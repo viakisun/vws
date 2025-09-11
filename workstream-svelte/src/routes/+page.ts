@@ -8,3 +8,4 @@ export const load: PageLoad = async ({ fetch }) => {
 		return { health: '오프라인' as const };
 	}
 };
+
