@@ -21,8 +21,16 @@
 	.card {
 		@apply bg-white rounded-xl shadow-sm border border-gray-200 p-4;
 	}
+	/* Ensure card content stacks with even rhythm */
+	.card > * + * {
+		@apply mt-3;
+	}
 	.kpi {
 		@apply flex items-center justify-between gap-3;
+	}
+	/* Normalize header spacing inside cards */
+	.card header h3 {
+		@apply leading-tight;
 	}
 }
 

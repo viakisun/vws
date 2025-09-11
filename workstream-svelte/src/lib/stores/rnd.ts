@@ -1,57 +1,84 @@
 import { writable, derived, get } from 'svelte/store';
 import type { Project, ExpenseDocument } from '$lib/types';
 
-const initialProjects: Project[] = [
-	{
-		id: 'P-001',
-		name: '스마트 제조 혁신 플랫폼',
-		status: '진행중',
-		budgetKRW: 1_200_000_000,
-		spentKRW: 760_000_000,
-		progressPct: 68,
-		startDate: '2025-07-01',
-		dueDate: '2026-06-30',
-		organization: '개발팀',
-		personnelIds: ['E-101', 'E-205'],
-		risks: [
-			{ id: 'R1', severity: '보통', description: '부품 수급 지연 가능성', impact: '일정', status: '열림' }
-		]
-	},
-	{
-		id: 'P-002',
-		name: 'AI 품질 예측 시스템',
-		status: '지연',
-		budgetKRW: 800_000_000,
-		spentKRW: 620_000_000,
-		progressPct: 54,
-		startDate: '2025-05-01',
-		dueDate: '2026-04-30',
-		organization: '연구팀',
-		personnelIds: ['E-205'],
-		risks: [
-			{ id: 'R2', severity: '높음', description: '데이터 품질 불안정', impact: '품질', status: '열림' }
-		]
-	},
-	{
-		id: 'P-003',
-		name: '클라우드 전환 프로젝트',
-		status: '정상',
-		budgetKRW: 600_000_000,
-		spentKRW: 240_000_000,
-		progressPct: 32,
-		startDate: '2025-09-01',
-		dueDate: '2026-08-31',
-		organization: '인프라팀',
-		personnelIds: ['E-309'],
-		risks: []
-	}
-];
+// Utilities to build mock data at scale
+function pad(num: number, size = 3): string {
+	return String(num).padStart(size, '0');
+}
+function randInt(min: number, max: number): number {
+	return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+function pick<T>(arr: T[]): T {
+	return arr[randInt(0, arr.length - 1)];
+}
+function dateISO(year: number, month: number, day: number): string {
+	const d = new Date(Date.UTC(year, month - 1, day));
+	return d.toISOString().slice(0, 10);
+}
 
-const initialDocs: ExpenseDocument[] = [
-	{ id: 'D-001', projectId: 'P-001', category: '재료비', quarter: 3, status: '대기', title: '연구용 장비 구입', amountKRW: 15_000_000, attachments: 4, createdAt: '2025-09-05', appRoute: ['김연구원', '이팀장', '박이사'] },
-	{ id: 'D-014', projectId: 'P-002', category: '인건비', quarter: 3, status: '승인', title: '여름휴가 신청', amountKRW: 0, attachments: 2, createdAt: '2025-08-10', appRoute: ['최사원', '김대리', '이부장'] },
-	{ id: 'D-020', projectId: 'P-003', category: '여비', quarter: 2, status: '반려', title: '부산 전시회 참가', amountKRW: 2_200_000, attachments: 3, createdAt: '2025-07-21', appRoute: ['정주임', '이팀장'] }
-];
+// Quarter helpers
+const QUARTERS = ['2025-Q1','2025-Q2','2025-Q3','2025-Q4','2026-Q1','2026-Q2'];
+const QUARTER_TO_MONTH: Record<string, number> = { '2025-Q1': 1, '2025-Q2': 4, '2025-Q3': 7, '2025-Q4': 10, '2026-Q1': 1, '2026-Q2': 4 };
+
+// 10 Projects with budgets between 200M~500M
+const ORGS = ['개발팀', '연구팀', '인프라팀', '기획팀', '영업팀'];
+const NAMES = ['스마트 제조', 'AI 예측', '클라우드 전환', '데이터 파이프라인', '설비 모니터링', '디지털 트윈', 'QA 자동화', '로보틱스', 'OCR 엔진', '예지보전'];
+const STATUSES: Project['status'][] = ['정상', '진행중', '지연', '위험', '완료'];
+
+const initialProjects: Project[] = Array.from({ length: 10 }).map((_, i) => {
+	const id = `P-${pad(i + 1)}`;
+	const budgetKRW = randInt(200_000_000, 500_000_000);
+	const spentKRW = randInt(Math.floor(budgetKRW * 0.2), Math.floor(budgetKRW * 0.9));
+	const progressPct = randInt(10, 95);
+	const startYear = 2025;
+	const startMonth = pick([1, 4, 7, 10]);
+	const endYear = 2026;
+	const endMonth = pick([3, 6, 9, 12]);
+	return {
+		id,
+		name: `${NAMES[i]} 프로젝트` as string,
+		status: pick(STATUSES),
+		budgetKRW,
+		spentKRW,
+		progressPct,
+		startDate: dateISO(startYear, startMonth, 1),
+		dueDate: dateISO(endYear, endMonth, 30),
+		organization: pick(ORGS),
+		personnelIds: [],
+		risks: []
+	};
+});
+
+// Rich expense documents across projects and categories
+const CATS: ExpenseDocument['category'][] = ['인건비','재료비','연구활동비','여비'];
+function quarterToNumber(q: string): 1|2|3|4 {
+	return Number(q.split('-Q')[1]) as 1|2|3|4;
+}
+
+const initialDocs: ExpenseDocument[] = (function(){
+	const docs: ExpenseDocument[] = [];
+	let counter = 1;
+	for (const p of initialProjects) {
+		const docCount = randInt(4, 8);
+		for (let k = 0; k < docCount; k++) {
+			const q = pick(QUARTERS);
+			const id = `D-${pad(counter++)}`;
+			docs.push({
+				id,
+				projectId: p.id,
+				category: pick(CATS),
+				quarter: quarterToNumber(q),
+				status: pick(['대기','승인','반려']),
+				title: `${p.name} 관련 지출 ${k + 1}`,
+				amountKRW: randInt(300_000, 20_000_000),
+				attachments: randInt(0, 4),
+				createdAt: dateISO( Number(q.slice(0,4)), QUARTER_TO_MONTH[q], randInt(1, 28) ),
+				appRoute: ['담당자','팀장','임원']
+			});
+		}
+	}
+	return docs;
+})();
 
 export const projectsStore = writable<Project[]>(initialProjects);
 export const expenseDocsStore = writable<ExpenseDocument[]>(initialDocs);
@@ -69,14 +96,21 @@ export const budgetThresholds = {
 	over: 1.0
 };
 
-// Example quarterly personnel budgets per project (KRW)
+// Distribute personnel budgets per project across quarters (~60% of project budget)
 export const quarterlyPersonnelBudgets = writable<Record<string, Record<string, number>>>(
-	{
-		P_001: {}, // kept for reference if IDs change
-		'P-001': { '2025-Q3': 300_000_000, '2025-Q4': 300_000_000, '2026-Q1': 300_000_000, '2026-Q2': 300_000_000 },
-		'P-002': { '2025-Q3': 200_000_000, '2025-Q4': 200_000_000, '2026-Q1': 200_000_000 },
-		'P-003': { '2025-Q4': 150_000_000, '2026-Q1': 200_000_000, '2026-Q2': 250_000_000 }
-	}
+	(function () {
+		const map: Record<string, Record<string, number>> = {};
+		for (const p of initialProjects) {
+			const total = Math.floor(p.budgetKRW * 0.6);
+			const per = Math.floor(total / QUARTERS.length);
+			map[p.id] = {} as Record<string, number>;
+			for (const q of QUARTERS) {
+				// add small variance per quarter
+				map[p.id][q] = Math.max(50_000_000, per + randInt(-per * 0.2, per * 0.2));
+			}
+		}
+		return map;
+	})()
 );
 
 // Overall budget utilization from project-level budget/spent

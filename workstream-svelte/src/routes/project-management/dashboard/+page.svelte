@@ -6,7 +6,6 @@
 	import { expenseDocsStore } from '$lib/stores/rnd';
 	import { personnelStore } from '$lib/stores/personnel';
 	import { quarterlyPersonnelBudgets, getQuarterSummary } from '$lib/stores/rnd';
-	import { goto } from '$app/navigation';
 
 	$: ob = $overallBudget;
 	$: avgProgress = $projectsStore.length
@@ -78,10 +77,7 @@
 	// 분기 선택 및 URL 동기화
 	function sortQuarterLabels(labels: string[]): string[] {
 		return labels
-			.map((q) => {
-				const [y, qpart] = q.split('-Q');
-				return { q, y: Number(y), qn: Number(qpart) };
-			})
+			.map((q) => { const [y, qpart] = q.split('-Q'); return { q, y: Number(y), qn: Number(qpart) }; })
 			.sort((a,b) => a.y === b.y ? a.qn - b.qn : a.y - b.y)
 			.map((x) => x.q);
 	}
@@ -94,10 +90,7 @@
 	$: quarters = (function(){
 		const set = new Set<string>();
 		const qmap = $quarterlyPersonnelBudgets;
-		for (const pid in qmap) {
-			const entries = qmap[pid];
-			for (const k in entries) set.add(k);
-		}
+		for (const pid in qmap) { for (const k in qmap[pid]) set.add(k); }
 		return sortQuarterLabels(Array.from(set));
 	})();
 	let selectedQuarter = currentQuarterLabel();
@@ -119,16 +112,55 @@
 		const newQuery = params.toString();
 		if (newQuery !== lastQuery) {
 			lastQuery = newQuery;
-			goto(`${window.location.pathname}${newQuery ? `?${newQuery}` : ''}`,
-				{ replaceState: true, keepFocus: true, noScroll: true });
+			const url = `${window.location.pathname}${newQuery ? `?${newQuery}` : ''}`;
+			window.history.replaceState(null, '', url);
 		}
 	}
 
+	// Headcount churn (최근 4분기)
+	function sortQs(labels: string[]): string[] { return sortQuarterLabels(labels); }
+	$: allQLabels = (function(){
+		const s = new Set<string>();
+		for (const p of $personnelStore) {
+			for (const part of p.participations) {
+				const qb = part.quarterlyBreakdown ?? {};
+				for (const k in qb) s.add(k);
+			}
+		}
+		return sortQs(Array.from(s));
+	})();
+	$: last4 = allQLabels.slice(-4);
+	$: activeByQ = (function(){
+		const map: Record<string, Set<string>> = {};
+		for (const q of last4) map[q] = new Set<string>();
+		for (const p of $personnelStore) {
+			for (const part of p.participations) {
+				const qb = part.quarterlyBreakdown ?? {};
+				for (const q of last4) { if ((qb[q] ?? 0) > 0) map[q].add(p.id); }
+			}
+		}
+		return map;
+	})();
+	$: churnData = (function(){
+		const data: Array<{ q: string; headcount: number; join: number; leave: number }> = [];
+		for (let i = 0; i < last4.length; i++) {
+			const q = last4[i];
+			const prev = i>0 ? last4[i-1] : null;
+			const currSet = activeByQ[q] ?? new Set<string>();
+			const prevSet = prev ? (activeByQ[prev] ?? new Set<string>()) : new Set<string>();
+			let join = 0, leave = 0;
+			if (prev) {
+				for (const id of currSet) if (!prevSet.has(id)) join++;
+				for (const id of prevSet) if (!currSet.has(id)) leave++;
+			}
+			data.push({ q, headcount: currSet.size, join, leave });
+		}
+		return data;
+	})();
+
 	// simple skeleton
 	let loading = true;
-	if (typeof window !== 'undefined') {
-		setTimeout(() => (loading = false), 300);
-	}
+	if (typeof window !== 'undefined') { setTimeout(() => (loading = false), 300); }
 </script>
 
 <h2 class="text-lg font-semibold mb-4">Project Overview Dashboard</h2>
@@ -149,14 +181,17 @@
 		{/each}
 	{:else}
 	<Card>
+		{#snippet children()}
 		<div class="kpi">
 			<div>
 				<p class="text-caption">총 프로젝트</p>
 				<div class="text-2xl font-bold">{$projectsStore.length}</div>
 			</div>
 		</div>
+		{/snippet}
 	</Card>
 	<Card>
+		{#snippet children()}
 		<div class="kpi">
 			<div>
 				<p class="text-caption">예산 집행률</p>
@@ -164,8 +199,10 @@
 				<div class="mt-3"><Progress value={ob.utilization * 100} /></div>
 			</div>
 		</div>
+		{/snippet}
 	</Card>
 	<Card>
+		{#snippet children()}
 		<div class="kpi">
 			<div>
 				<p class="text-caption">평균 진행률</p>
@@ -173,20 +210,24 @@
 				<div class="mt-3"><Progress value={avgProgress} /></div>
 			</div>
 		</div>
+		{/snippet}
 	</Card>
 	<Card>
+		{#snippet children()}
 		<div class="kpi">
 			<div>
 				<p class="text-caption">경보 프로젝트</p>
 				<div class="text-2xl font-bold">{$budgetAlerts.length}</div>
 			</div>
 		</div>
+		{/snippet}
 	</Card>
 	{/if}
 </div>
 
 {#if !loading && $budgetAlerts.length}
 	<Card header="예산 경보">
+		{#snippet children()}
 		<ul class="space-y-2 text-sm">
 			{#each alertDetails as a}
 				<li class="flex items-center justify-between">
@@ -198,47 +239,57 @@
 				</li>
 			{/each}
 		</ul>
+		{/snippet}
 	</Card>
 {/if}
 
 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-2">
 	<Card>
+		{#snippet children()}
 		<div class="kpi">
 			<div>
 				<p class="text-caption">{selectedQuarter} 분기 인건비 예산</p>
 				<div class="text-2xl font-bold">{quarterSummary.totalBudgetKRW.toLocaleString()}원</div>
 			</div>
 		</div>
+		{/snippet}
 	</Card>
 	<Card>
+		{#snippet children()}
 		<div class="kpi">
 			<div>
 				<p class="text-caption">{selectedQuarter.split('-Q')[1]}분기 문서 수</p>
 				<div class="text-2xl font-bold">{docsInQuarter}</div>
 			</div>
 		</div>
+		{/snippet}
 	</Card>
 	<Card>
+		{#snippet children()}
 		<div class="kpi">
 			<div>
 				<p class="text-caption">분기 키 개수</p>
 				<div class="text-2xl font-bold">{quarters.length}</div>
 			</div>
 		</div>
+		{/snippet}
 	</Card>
 </div>
 
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-6">
 	<Card header="리스크 매트릭스">
+		{#snippet children()}
 		<div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
 			<div><div class="text-caption mb-1">위험</div><Badge color="red">{riskCounts.위험}</Badge></div>
 			<div><div class="text-caption mb-1">지연</div><Badge color="yellow">{riskCounts.지연}</Badge></div>
 			<div><div class="text-caption mb-1">진행중</div><Badge color="blue">{riskCounts.진행중}</Badge></div>
 			<div><div class="text-caption mb-1">정상/완료</div><Badge color="green">{riskCounts.정상}</Badge></div>
 		</div>
+		{/snippet}
 	</Card>
 
 	<Card header="리소스 분석">
+		{#snippet children()}
 		<div class="grid grid-cols-2 gap-4">
 			<div>
 				<div class="text-caption">평균 참여율</div>
@@ -250,20 +301,24 @@
 				<div class="text-2xl font-bold">{overAllocated}</div>
 			</div>
 		</div>
+		{/snippet}
 	</Card>
 </div>
 
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-6">
 	<Card header="예산 카테고리 분해">
+		{#snippet children()}
 		<div class="grid grid-cols-2 gap-3 text-sm">
 			<div class="flex items-center justify-between"><span>인건비</span><span class="tabular-nums">{categoryTotals['인건비'].toLocaleString()}원</span></div>
 			<div class="flex items-center justify-between"><span>재료비</span><span class="tabular-nums">{categoryTotals['재료비'].toLocaleString()}원</span></div>
 			<div class="flex items-center justify-between"><span>연구활동비</span><span class="tabular-nums">{categoryTotals['연구활동비'].toLocaleString()}원</span></div>
 			<div class="flex items-center justify-between"><span>여비</span><span class="tabular-nums">{categoryTotals['여비'].toLocaleString()}원</span></div>
 		</div>
+		{/snippet}
 	</Card>
 
 	<Card header="번레이트 예측(포트폴리오)">
+		{#snippet children()}
 		<div class="grid grid-cols-1 gap-2 text-sm">
 			<div class="flex items-center justify-between"><span>총 예산</span><span class="tabular-nums">{portfolioProjection.totalBudget.toLocaleString()}원</span></div>
 			<div class="flex items-center justify-between"><span>예상 집행</span><span class="tabular-nums">{portfolioProjection.totalProjected.toLocaleString()}원</span></div>
@@ -272,10 +327,12 @@
 				<Progress value={Math.min(100, portfolioProjection.utilization * 100)} />
 			</div>
 		</div>
+		{/snippet}
 	</Card>
 </div>
 
 <Card header="소진 속도 편차 상위">
+	{#snippet children()}
 	<div class="overflow-auto">
 		<table class="min-w-full text-sm">
 			<thead class="bg-gray-50 text-left text-gray-600">
@@ -298,5 +355,33 @@
 			</tbody>
 		</table>
 	</div>
+	{/snippet}
+</Card>
+
+<Card header="인력 변동 (최근 4분기)">
+	{#snippet children()}
+	<div class="overflow-auto">
+		<table class="min-w-full text-sm">
+			<thead class="bg-gray-50 text-left text-gray-600">
+				<tr>
+					<th class="px-3 py-2">분기</th>
+					<th class="px-3 py-2">인원수</th>
+					<th class="px-3 py-2">신규</th>
+					<th class="px-3 py-2">퇴사</th>
+				</tr>
+			</thead>
+			<tbody class="divide-y">
+				{#each churnData as r}
+					<tr>
+						<td class="px-3 py-2">{r.q}</td>
+						<td class="px-3 py-2 tabular-nums">{r.headcount}</td>
+						<td class="px-3 py-2 tabular-nums text-green-700">+{r.join}</td>
+						<td class="px-3 py-2 tabular-nums text-red-700">-{r.leave}</td>
+					</tr>
+				{/each}
+			</tbody>
+		</table>
+	</div>
+	{/snippet}
 </Card>
 
