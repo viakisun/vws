@@ -6,14 +6,31 @@
 	import { personnelStore } from '$lib/stores/personnel';
 	import { quarterlyPersonnelBudgets, budgetThresholds } from '$lib/stores/rnd';
 	import { page } from '$app/state';
+	import { goto } from '$app/navigation';
 	import type { Personnel, Participation } from '$lib/types';
 	let quarter = '2025-Q3';
 	function personQuarterCost(p: Personnel): number {
-		return p.participations.reduce<number>((sum: number, pp: Participation) => sum + (pp.quarterlyBreakdown?.[quarter] ?? 0), 0);
+		// 우선 순위: 참여 항목별 quarterlyBreakdown → 연봉 기반 추정치(분기)
+		const breakdownSum = p.participations.reduce<number>((sum: number, pp: Participation) => sum + (pp.quarterlyBreakdown?.[quarter] ?? 0), 0);
+		if (breakdownSum > 0) return breakdownSum;
+		// fallback: 연봉 * 참여율 / 4
+		const est = (p.annualSalaryKRW ?? 0) * (p.participations.reduce((s, pp) => s + pp.allocationPct, 0) / 100) / 4;
+		return Math.round(est);
 	}
 	function personQuarterBudget(p: Personnel): number {
 		const map = $quarterlyPersonnelBudgets;
 		return p.participations.reduce<number>((sum: number, pp: Participation) => sum + (map[pp.projectId]?.[quarter] ?? 0) * (pp.allocationPct / 100), 0);
+	}
+
+	// available quarters
+	$: quarters = Array.from(new Set(Object.values($quarterlyPersonnelBudgets).flatMap((m)=> Object.keys(m)))).sort();
+
+	// read initial quarter from URL if present
+	let lastQuery = '';
+	if (typeof window !== 'undefined') {
+		const params = new URLSearchParams(window.location.search);
+		quarter = params.get('q') ?? quarter;
+		lastQuery = params.toString();
 	}
 
 	let selectedId: string | null = null;
@@ -34,6 +51,32 @@
 	$: orgOptions = Array.from(new Set(all.map((p) => p.organization)));
 	$: totalCount = all.length;
 	$: activeCount = all.filter((p) => p.status === '재직').length;
+
+	// KPI summary for selected quarter and current filter
+	$: kpiTotalCost = filtered.reduce((s, p) => s + personQuarterCost(p), 0);
+	$: kpiTotalBudget = filtered.reduce((s, p) => s + personQuarterBudget(p), 0);
+	$: kpiUtil = kpiTotalBudget > 0 ? Math.round((kpiTotalCost / kpiTotalBudget) * 100) : 0;
+	$: overCount = filtered.filter((p) => {
+		const b = personQuarterBudget(p);
+		return b > 0 && (personQuarterCost(p) / b) >= budgetThresholds.critical;
+	}).length;
+
+	// URL sync for quarter only (q)
+	$: if (typeof window !== 'undefined') {
+		const params = new URLSearchParams(window.location.search);
+		if (quarter) params.set('q', quarter); else params.delete('q');
+		const newQuery = params.toString();
+		if (newQuery !== lastQuery) {
+			lastQuery = newQuery;
+			goto(`${window.location.pathname}${newQuery ? `?${newQuery}` : ''}`, { replaceState: true, keepFocus: true, noScroll: true });
+		}
+	}
+
+	// skeleton loading for table
+	let loading = true;
+	if (typeof window !== 'undefined') {
+		setTimeout(() => (loading = false), 300);
+	}
 </script>
 
 <Card header="인력 비용 관리">
@@ -51,49 +94,68 @@
 			<option value='신규'>신규</option>
 			<option value='퇴사예정'>퇴사예정</option>
 		</select>
+		<select class="w-full sm:w-40 rounded-md border border-gray-200 bg-white px-2 py-1.5 text-sm" bind:value={quarter}>
+			{#each quarters as q}
+				<option value={q}>{q}</option>
+			{/each}
+		</select>
 		{#if projectId}
 			<Badge color="blue">프로젝트 필터: {projectId}</Badge>
 		{/if}
 	</div>
-	<div class="overflow-auto">
-		<table class="min-w-full text-sm">
-			<thead class="bg-gray-50 text-left text-gray-600">
-				<tr>
-					<th class="px-3 py-2">사번</th>
-					<th class="px-3 py-2">이름</th>
-					<th class="px-3 py-2">부서</th>
-					<th class="px-3 py-2">직급</th>
-					<th class="px-3 py-2">연봉</th>
-					<th class="px-3 py-2">프로젝트</th>
-					<th class="px-3 py-2">{quarter} 인건비</th>
-					<th class="px-3 py-2">예산대비</th>
-					<th class="px-3 py-2">상태</th>
-				</tr>
-			</thead>
-			<tbody class="divide-y">
-				{#each filtered as p}
-					<tr class="hover:bg-gray-50 cursor-pointer" on:click={() => (selectedId = p.id)}>
-						<td class="px-3 py-2">{p.id}</td>
-						<td class="px-3 py-2">{p.name}</td>
-						<td class="px-3 py-2">{p.organization}</td>
-						<td class="px-3 py-2">{p.role}</td>
-						<td class="px-3 py-2">{p.annualSalaryKRW ? formatKRW(p.annualSalaryKRW) : '-'}</td>
-						<td class="px-3 py-2">{p.participations.length}건</td>
-						<td class="px-3 py-2">{formatKRW(personQuarterCost(p))}</td>
-						<td class="px-3 py-2">
-							{#if personQuarterBudget(p) > 0}
-								{@const util = personQuarterCost(p) / personQuarterBudget(p)}
-								<Badge color={util >= budgetThresholds.over ? 'red' : util >= budgetThresholds.critical ? 'yellow' : util >= budgetThresholds.warning ? 'yellow' : 'green'}>{Math.round(util * 100)}%</Badge>
-							{:else}
-								-
-							{/if}
-						</td>
-						<td class="px-3 py-2"><Badge color={p.status === '퇴사예정' ? 'yellow' : 'green'}>{p.status}</Badge></td>
-					</tr>
-				{/each}
-			</tbody>
-		</table>
+	<div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
+		<div class="card"><div class="text-caption">분기 인건비 합계</div><div class="text-lg font-semibold">{kpiTotalCost.toLocaleString()}원</div></div>
+		<div class="card"><div class="text-caption">분기 예산 합계</div><div class="text-lg font-semibold">{kpiTotalBudget.toLocaleString()}원</div></div>
+		<div class="card"><div class="text-caption">예산 대비 집행률</div><div class="text-lg font-semibold">{kpiUtil}%</div></div>
 	</div>
+	<div class="text-caption mb-2">임계치 {Math.round(budgetThresholds.warning*100)}%/{Math.round(budgetThresholds.critical*100)}% 기준, 위험 인원 {overCount}명</div>
+	{#if loading}
+		<div class="space-y-2">
+			{#each Array(8) as _}
+				<div class="h-8 bg-gray-100 animate-pulse rounded"></div>
+			{/each}
+		</div>
+	{:else}
+		<div class="overflow-auto">
+			<table class="min-w-full text-sm">
+				<thead class="bg-gray-50 text-left text-gray-600">
+					<tr>
+						<th class="px-3 py-2">사번</th>
+						<th class="px-3 py-2">이름</th>
+						<th class="px-3 py-2">부서</th>
+						<th class="px-3 py-2">직급</th>
+						<th class="px-3 py-2">연봉</th>
+						<th class="px-3 py-2">프로젝트</th>
+						<th class="px-3 py-2">{quarter} 인건비</th>
+						<th class="px-3 py-2">예산대비</th>
+						<th class="px-3 py-2">상태</th>
+					</tr>
+				</thead>
+				<tbody class="divide-y">
+					{#each filtered as p}
+						<tr class="hover:bg-gray-50 cursor-pointer" on:click={() => (selectedId = p.id)}>
+							<td class="px-3 py-2">{p.id}</td>
+							<td class="px-3 py-2">{p.name}</td>
+							<td class="px-3 py-2">{p.organization}</td>
+							<td class="px-3 py-2">{p.role}</td>
+							<td class="px-3 py-2">{p.annualSalaryKRW ? formatKRW(p.annualSalaryKRW) : '-'}</td>
+							<td class="px-3 py-2">{p.participations.length}건</td>
+							<td class="px-3 py-2">{formatKRW(personQuarterCost(p))}</td>
+							<td class="px-3 py-2">
+								{#if personQuarterBudget(p) > 0}
+									{@const util = personQuarterCost(p) / personQuarterBudget(p)}
+									<Badge color={util >= budgetThresholds.over ? 'red' : util >= budgetThresholds.critical ? 'yellow' : util >= budgetThresholds.warning ? 'yellow' : 'green'}>{Math.round(util * 100)}%</Badge>
+								{:else}
+									-
+								{/if}
+							</td>
+							<td class="px-3 py-2"><Badge color={p.status === '퇴사예정' ? 'yellow' : 'green'}>{p.status}</Badge></td>
+						</tr>
+					{/each}
+				</tbody>
+			</table>
+		</div>
+	{/if}
 </Card>
 
 <Modal open={!!selected} title={selected?.name ?? ''} onClose={() => (selectedId = null)}>

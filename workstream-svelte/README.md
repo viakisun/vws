@@ -1,38 +1,49 @@
-# sv
+# Workstream Enterprise Management Platform (SvelteKit)
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+## Setup
 
-## Creating a project
-
-If you're seeing this, you've probably already done this step. Congrats!
-
-```sh
-# create a new project in the current directory
-npx sv create
-
-# create a new project in my-app
-npx sv create my-app
+1. Node 20+
+2. Install deps:
+```bash
+npm ci
+```
+3. Copy env:
+```bash
+cp env.example .env
 ```
 
-## Developing
+## Scripts
+- dev: `npm run dev`
+- build: `npm run build`
+- preview: `npm run preview`
+- check: `npm run check`
+- test: `npm run test`
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+## Tech
+- SvelteKit 2, Svelte 5, TypeScript
+- Tailwind CSS 4
+- Vitest
 
-```sh
-npm run dev
+## Env
+- `API_BASE_URL` default `http://localhost:3000/api`
+- `LOG_LEVEL` one of `debug|info|warn|error`
 
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
-```
-
-## Building
-
-To create a production version of your app:
-
-```sh
+## Deploy
+- Node:
+```bash
 npm run build
+node build/index.js
 ```
+- Adapter can be switched in `svelte.config.js`
 
-You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+## AWS ECS/ECR Deploy (template)
+1) Create ECR repo `workstream-svelte` in `ap-northeast-2`.
+2) Configure OIDC/GitHub in AWS and set repo secrets:
+   - `AWS_ROLE_TO_ASSUME`: ARN for GitHub OIDC role
+   - `ECS_EXEC_ROLE_ARN`: ECS execution role ARN
+   - `ECS_TASK_ROLE_ARN`: ECS task role ARN
+3) Build & push image:
+   - Run GitHub Action `Push to ECR` (ecr.yml)
+4) Deploy to ECS:
+   - Ensure `ECS_CLUSTER`/`ECS_SERVICE` in `ecs-deploy.yml`
+   - Run GitHub Action `ECS Deploy`

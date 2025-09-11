@@ -4,9 +4,13 @@
 	import Modal from '$lib/components/ui/Modal.svelte';
 	import { formatKRW } from '$lib/utils/format';
 	import { expenseDocsStore, updateExpenseStatus, expenseHistories, addExpenseHistory } from '$lib/stores/rnd';
+	import { pushToast } from '$lib/stores/toasts';
+	import { page } from '$app/state';
+	import { goto } from '$app/navigation';
+	import type { ExpenseDocument } from '$lib/types';
 
-	let status = '' as '' | '대기' | '승인' | '반려';
-	let query = '';
+	let status = (page.url.searchParams.get('status') as '' | '대기' | '승인' | '반려') || '';
+	let query = page.url.searchParams.get('q') || '';
 	let selectedId: string | null = null;
 
 	$: all = $expenseDocsStore;
@@ -19,6 +23,7 @@
 			updateExpenseStatus(selected.id, '승인');
 			addExpenseHistory(selected.id, '승인', reason || undefined);
 			reason = '';
+			pushToast('문서가 승인되었습니다.', 'success');
 		}
 	}
 	function reject() {
@@ -26,7 +31,42 @@
 			updateExpenseStatus(selected.id, '반려');
 			addExpenseHistory(selected.id, '반려', reason || undefined);
 			reason = '';
+			pushToast('문서가 반려되었습니다.', 'error');
 		}
+	}
+
+	// URL 동기화
+	$: (function syncUrl() {
+		const sp = new URLSearchParams(page.url.searchParams);
+		if (query) sp.set('q', query); else sp.delete('q');
+		if (status) sp.set('status', status); else sp.delete('status');
+		const newUrl = `/expenses?${sp.toString()}`;
+		if (newUrl !== page.url.pathname + (page.url.search ? page.url.search : '')) {
+			goto(newUrl, { replaceState: true, noScroll: true, keepFocus: true });
+		}
+	})();
+
+	// 간단한 컴플라이언스 검증: 카테고리별 최소 첨부 개수 요구
+	const requiredAttachments: Record<string, number> = {
+		'인건비': 2,
+		'재료비': 1,
+		'연구활동비': 1,
+		'여비': 2
+	};
+	const requiredDocNames: Record<string, string[]> = {
+		'인건비': ['급여명세서', '4대보험 납부확인'],
+		'재료비': ['세금계산서'],
+		'연구활동비': ['증빙서류'],
+		'여비': ['영수증', '출장보고서']
+	};
+	function isCompliant(d: ExpenseDocument): boolean {
+		const min = requiredAttachments[d.category] ?? 0;
+		return (d.attachments ?? 0) >= min;
+	}
+	function missingDocs(d: ExpenseDocument): string[] {
+		const req = requiredDocNames[d.category] ?? [];
+		const have = d.attachments ?? 0;
+		return have >= req.length ? [] : req.slice(have);
 	}
 </script>
 
@@ -63,7 +103,9 @@
 						<td class="px-3 py-2">{d.amountKRW ? formatKRW(d.amountKRW) : '-'}</td>
 						<td class="px-3 py-2">{d.attachments}</td>
 						<td class="px-3 py-2">
-							<Badge color={d.status === '대기' ? 'yellow' : d.status === '반려' ? 'red' : 'green'}>{d.status}</Badge>
+							<Badge color={!isCompliant(d) ? 'red' : d.status === '대기' ? 'yellow' : d.status === '반려' ? 'red' : 'green'}>
+								{!isCompliant(d) ? '미비' : d.status}
+							</Badge>
 						</td>
 					</tr>
 				{/each}
@@ -93,6 +135,27 @@
 					<div>{selected.appRoute.join(' → ')}</div>
 				</div>
 			</div>
+
+			<div>
+				<div class="text-caption mb-1">첨부 미리보기</div>
+				{#if (selected.attachments ?? 0) > 0}
+					<div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+						{#each Array(selected.attachments) as _, idx}
+							<button type="button" class="block rounded overflow-hidden border hover:ring-2 hover:ring-primary/40" aria-label={`첨부 ${idx+1} 미리보기`}>
+								<img src={`https://placehold.co/240x160?text=${encodeURIComponent(selected.id)}-${idx+1}`} alt={`Attachment ${idx+1}`} class="w-full h-24 object-cover" />
+							</button>
+						{/each}
+					</div>
+				{:else}
+					<div class="text-xs text-gray-500">첨부 없음</div>
+				{/if}
+			</div>
+
+			{#if !isCompliant(selected)}
+				<div class="text-xs text-red-700 bg-red-50 border border-red-200 rounded p-2">
+					필수 서류 미비: {missingDocs(selected).join(', ')}
+				</div>
+			{/if}
 			<div>
 				<div class="text-caption mb-1">결재 이력</div>
 				{#if $expenseHistories[selected.id]?.length}
