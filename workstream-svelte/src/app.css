@@ -1,0 +1,33 @@
+@import 'tailwindcss';
+
+@theme {
+	--color-primary: #2563eb;
+	--color-success: #16a34a;
+	--color-warning: #eab308;
+	--color-danger: #dc2626;
+	--color-neutral: #4b5563;
+}
+
+@layer base {
+	html, body, #svelte {
+		height: 100%;
+	}
+	body {
+		@apply bg-gray-50 text-gray-800 antialiased;
+	}
+}
+
+@layer components {
+	.card {
+		@apply bg-white rounded-xl shadow-sm border border-gray-200 p-4;
+	}
+	.kpi {
+		@apply flex items-center justify-between gap-3;
+	}
+}
+
+@layer utilities {
+	.text-caption {
+		@apply text-xs text-gray-500;
+	}
+}
