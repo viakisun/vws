@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { page } from '$app/stores';
+	import { themeManager, isDark } from '$lib/stores/theme';
 	import { 
 		HomeIcon, 
 		BarChart3Icon, 
@@ -16,7 +18,9 @@
 		SearchIcon,
 		BellIcon,
 		LogOutIcon,
-		UserIcon
+		UserIcon,
+		SunIcon,
+		MoonIcon
 	} from 'lucide-svelte';
 	import ThemeButton from '$lib/components/ui/ThemeButton.svelte';
 	import ThemeAvatar from '$lib/components/ui/ThemeAvatar.svelte';
@@ -56,38 +60,73 @@
 	}
 
 	const navigationItems = [
-		{ name: '대시보드', href: '/', icon: HomeIcon, current: true },
-		{ name: '재무관리', href: '/finance', icon: BanknoteIcon, current: false },
-		{ name: '인사관리', href: '/hr', icon: UsersIcon, current: false },
-		{ name: '연구개발', href: '/project-management', icon: FlaskConicalIcon, current: false },
-		{ name: '영업관리', href: '/sales', icon: BriefcaseIcon, current: false },
-		{ name: '고객관리', href: '/crm', icon: BuildingIcon, current: false },
-		{ name: '일정관리', href: '/calendar', icon: CalendarIcon, current: false },
-		{ name: '보고서', href: '/reports', icon: FileTextIcon, current: false },
-		{ name: '분석', href: '/analytics', icon: BarChart3Icon, current: false },
-		{ name: '메시지', href: '/messages', icon: MessageSquareIcon, current: false },
-		{ name: '설정', href: '/settings', icon: SettingsIcon, current: false }
+		{ name: '대시보드', href: '/', icon: HomeIcon },
+		{ name: '재무관리', href: '/finance', icon: BanknoteIcon },
+		{ name: '인사관리', href: '/hr', icon: UsersIcon },
+		{ name: '연구개발', href: '/project-management', icon: FlaskConicalIcon },
+		{ name: '영업관리', href: '/sales', icon: BriefcaseIcon },
+		{ name: '고객관리', href: '/crm', icon: BuildingIcon },
+		{ name: '일정관리', href: '/calendar', icon: CalendarIcon },
+		{ name: '보고서', href: '/reports', icon: FileTextIcon },
+		{ name: '분석', href: '/analytics', icon: BarChart3Icon },
+		{ name: '메시지', href: '/messages', icon: MessageSquareIcon },
+		{ name: '설정', href: '/settings', icon: SettingsIcon }
 	];
+
+	// Check if a navigation item is current based on the current page
+	function isCurrentItem(href: string): boolean {
+		const currentPath = $page.url.pathname;
+		
+		// Exact match for root
+		if (href === '/' && currentPath === '/') {
+			return true;
+		}
+		
+		// For other paths, check if current path starts with the href
+		if (href !== '/' && currentPath.startsWith(href)) {
+			return true;
+		}
+		
+		return false;
+	}
 
 	function toggleCollapse() {
 		isCollapsed = !isCollapsed;
 	}
 </script>
 
-<aside class="bg-slate-900 text-white transition-all duration-300 {isCollapsed ? 'w-16' : 'w-64'} flex-shrink-0">
+<aside class="transition-all duration-300 {isCollapsed ? 'w-16' : 'w-64'} flex-shrink-0" style="background: var(--color-surface); border-right: 1px solid var(--color-border);">
 	<div class="flex h-full flex-col">
 		<!-- Logo Section -->
-		<div class="flex h-16 items-center justify-between px-4 border-b border-slate-800">
+		<div class="flex h-16 items-center justify-between px-4" style="border-bottom: 1px solid var(--color-border);">
 			{#if !isCollapsed}
-				<div class="flex items-center space-x-2">
-					<div class="h-8 w-8 rounded bg-blue-600 flex items-center justify-center">
-						<span class="text-sm font-bold text-white">VWS</span>
+				<div class="flex items-center space-x-3">
+					<!-- 화려한 그라데이션 W 로고 -->
+					<div class="relative">
+						<div class="h-10 w-10 rounded-xl flex items-center justify-center bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 shadow-lg">
+							<svg class="h-6 w-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+								<path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+							</svg>
+						</div>
+						<!-- 반짝이는 효과 -->
+						<div class="absolute -top-1 -right-1 h-3 w-3 bg-yellow-400 rounded-full animate-pulse"></div>
 					</div>
-					<span class="text-lg font-semibold">WorkStream</span>
+					<div class="flex flex-col">
+						<span class="text-lg font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+							WorkStream
+						</span>
+						<span class="text-xs text-gray-500 dark:text-gray-400">Via WorkStream</span>
+					</div>
 				</div>
 			{:else}
-				<div class="h-8 w-8 rounded bg-blue-600 flex items-center justify-center mx-auto">
-					<span class="text-sm font-bold text-white">VWS</span>
+				<!-- 축소된 상태의 화려한 로고 -->
+				<div class="relative mx-auto">
+					<div class="h-10 w-10 rounded-xl flex items-center justify-center bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 shadow-lg">
+						<svg class="h-6 w-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+							<path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+						</svg>
+					</div>
+					<div class="absolute -top-1 -right-1 h-3 w-3 bg-yellow-400 rounded-full animate-pulse"></div>
 				</div>
 			{/if}
 			
@@ -95,7 +134,8 @@
 				variant="ghost" 
 				size="sm"
 				onclick={toggleCollapse}
-				class="p-1.5 hover:bg-slate-800 transition-colors"
+				class="p-1.5 transition-colors"
+				style="color: var(--color-text-secondary);"
 			>
 				{#if isCollapsed}
 					<ChevronRightIcon size={16} />
@@ -106,7 +146,7 @@
 		</div>
 
 		<!-- Search Section -->
-		<div class="p-4 border-b border-slate-800">
+		<div class="p-4" style="border-bottom: 1px solid var(--color-border);">
 			{#if !isCollapsed}
 				<ThemeInput 
 					type="search" 
@@ -121,7 +161,8 @@
 				<ThemeButton 
 					variant="ghost" 
 					size="sm"
-					class="w-full text-slate-300 hover:text-white"
+					class="w-full"
+					style="color: var(--color-text-secondary);"
 				>
 					<SearchIcon size={20} />
 				</ThemeButton>
@@ -131,18 +172,25 @@
 		<!-- Navigation -->
 		<nav class="flex-1 px-2 py-4 space-y-1">
 			{#each navigationItems as item}
+				{@const isCurrent = isCurrentItem(item.href)}
 				<a
 					href={item.href}
-					class="group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors
-						{item.current 
-							? 'bg-blue-600 text-white' 
-							: 'text-slate-300 hover:bg-slate-800 hover:text-white'
+					class="group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200
+						{isCurrent 
+							? 'text-white' 
+							: 'hover:scale-[1.02]'
 						}"
+					style="
+						{isCurrent 
+							? 'background: var(--color-primary);' 
+							: 'color: var(--color-text-secondary); background: transparent;'
+						}
+						{isCurrent ? '' : 'hover:background: var(--color-surface-elevated);'}
+					"
 					title={isCollapsed ? item.name : ''}
 				>
 					{#if item.icon}
-						{@const IconComponent = item.icon}
-						<IconComponent size={20} class="flex-shrink-0" />
+						<item.icon size={20} class="flex-shrink-0" />
 					{/if}
 					{#if !isCollapsed}
 						<span class="ml-3">{item.name}</span>
@@ -152,14 +200,34 @@
 		</nav>
 
 		<!-- Bottom Section -->
-		<div class="border-t border-slate-800 p-4 space-y-2">
+		<div class="p-4 space-y-2" style="border-top: 1px solid var(--color-border);">
+			<!-- Theme Toggle -->
+			<ThemeButton 
+				variant="ghost" 
+				size="sm"
+				onclick={() => themeManager.toggleTheme()}
+				class="w-full {isCollapsed ? 'justify-center' : 'justify-start'}"
+				style="color: var(--color-text-secondary);"
+				title={$isDark ? '라이트 모드로 전환' : '다크 모드로 전환'}
+			>
+				{#if $isDark}
+					<SunIcon size={20} class={isCollapsed ? '' : 'mr-3'} />
+				{:else}
+					<MoonIcon size={20} class={isCollapsed ? '' : 'mr-3'} />
+				{/if}
+				{#if !isCollapsed}
+					<span class="flex-1 text-left">테마 전환</span>
+				{/if}
+			</ThemeButton>
+
 			<!-- Notifications -->
 			<div class="relative" bind:this={notificationsContainer}>
 				<ThemeButton 
 					variant="ghost" 
 					size="sm"
 					onclick={toggleNotifications}
-					class="w-full {isCollapsed ? 'justify-center' : 'justify-start'} text-slate-300 hover:text-white relative"
+					class="w-full {isCollapsed ? 'justify-center' : 'justify-start'} relative"
+					style="color: var(--color-text-secondary);"
 				>
 					<BellIcon size={20} class={isCollapsed ? '' : 'mr-3'} />
 					{#if !isCollapsed}
@@ -206,13 +274,14 @@
 					variant="ghost" 
 					size="sm"
 					onclick={toggleUserMenu}
-					class="w-full {isCollapsed ? 'justify-center' : 'justify-start'} text-slate-300 hover:text-white"
+					class="w-full {isCollapsed ? 'justify-center' : 'justify-start'}"
+					style="color: var(--color-text-secondary);"
 				>
 					<ThemeAvatar size="sm" fallback="김" class={isCollapsed ? '' : 'mr-3'} />
 					{#if !isCollapsed}
 						<div class="flex-1 min-w-0 text-left">
-							<p class="text-sm font-medium text-white truncate">김개발</p>
-							<p class="text-xs text-slate-400 truncate">개발팀</p>
+							<p class="text-sm font-medium truncate" style="color: var(--color-text);">김개발</p>
+							<p class="text-xs truncate" style="color: var(--color-text-secondary);">개발팀</p>
 						</div>
 					{/if}
 				</ThemeButton>

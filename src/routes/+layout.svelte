@@ -2,19 +2,26 @@
 	import '../app.css';
 	import Sidebar from '$lib/components/layout/Sidebar.svelte';
 	import { toasts } from '$lib/stores/toasts';
+	import { themeManager, currentTheme, isDark } from '$lib/stores/theme';
+	import { onMount } from 'svelte';
 
 	let { children } = $props();
 	let sidebarCollapsed = $state(false);
+
+	// Initialize theme on mount
+	onMount(() => {
+		themeManager.applyTheme();
+	});
 </script>
 
-<div class="min-h-screen bg-gray-50 flex">
+<div class="min-h-screen flex" style="background: var(--color-background);">
 	<!-- Sidebar -->
 	<Sidebar bind:isCollapsed={sidebarCollapsed} />
 
 	<!-- Main content area -->
 	<div class="flex-1 flex flex-col min-w-0">
 		<!-- Main content -->
-		<main class="flex-1 p-6">
+		<main class="flex-1 p-6" style="background: var(--color-background);">
 			<div class="max-w-7xl mx-auto">
 				{@render children()}
 			</div>
@@ -22,11 +29,17 @@
 	</div>
 </div>
 
-
+<!-- Toast notifications -->
 {#if $toasts.length}
 	<div class="fixed bottom-4 right-4 space-y-2 z-50" aria-live="polite" aria-atomic="true">
 		{#each $toasts as t}
-			<div class="px-3 py-2 rounded-md shadow border text-sm bg-white" class:text-green-700={t.type==='success'} class:text-red-700={t.type==='error'} class:text-gray-700={t.type==='info'}>
+			<div 
+				class="px-4 py-3 rounded-lg shadow-lg border text-sm transition-all duration-300"
+				style="background: var(--color-surface); border-color: var(--color-border); color: var(--color-text);"
+				class:text-green-600={t.type==='success'} 
+				class:text-red-600={t.type==='error'} 
+				class:text-blue-600={t.type==='info'}
+			>
 				{t.message}
 			</div>
 		{/each}
@@ -34,5 +47,5 @@
 {/if}
 
 <style>
-	/* Layout handled by Tailwind */
+	/* Layout handled by CSS variables and Tailwind */
 </style>

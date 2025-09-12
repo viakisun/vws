@@ -1,11 +1,101 @@
 @import 'tailwindcss';
 
 @theme {
-	--color-primary: #2563eb;
-	--color-success: #16a34a;
-	--color-warning: #eab308;
-	--color-danger: #dc2626;
-	--color-neutral: #4b5563;
+	/* Light theme colors */
+	--color-primary: #3B82F6;
+	--color-secondary: #6B7280;
+	--color-accent: #8B5CF6;
+	--color-background: #FFFFFF;
+	--color-surface: #F9FAFB;
+	--color-surface-elevated: #FFFFFF;
+	--color-text: #111827;
+	--color-text-secondary: #6B7280;
+	--color-text-muted: #9CA3AF;
+	--color-border: #E5E7EB;
+	--color-border-light: #F3F4F6;
+	--color-success: #10B981;
+	--color-warning: #F59E0B;
+	--color-error: #EF4444;
+	--color-info: #06B6D4;
+	
+	/* Button colors */
+	--color-button-primary: #3B82F6;
+	--color-button-primary-hover: #2563EB;
+	--color-button-secondary: #6B7280;
+	--color-button-secondary-hover: #4B5563;
+	--color-button-success: #10B981;
+	--color-button-success-hover: #059669;
+	--color-button-warning: #F59E0B;
+	--color-button-warning-hover: #D97706;
+	--color-button-error: #EF4444;
+	--color-button-error-hover: #DC2626;
+	--color-button-info: #06B6D4;
+	--color-button-info-hover: #0891B2;
+	--color-button-ghost: transparent;
+	--color-button-ghost-text: #6B7280;
+	--color-button-ghost-border: #E5E7EB;
+	--color-button-ghost-hover: #F3F4F6;
+	--color-button-ghost-text-hover: #374151;
+	--color-button-ghost-border-hover: #D1D5DB;
+	
+	/* Input colors */
+	--color-input-background: #FFFFFF;
+	--color-input-border: #E5E7EB;
+	--color-input-focus: #3B82F6;
+	--color-primary-light: rgba(59, 130, 246, 0.1);
+	
+	/* Shadow colors */
+	--color-shadow: rgba(0, 0, 0, 0.1);
+	--color-shadow-light: rgba(0, 0, 0, 0.05);
+}
+
+/* Dark theme colors */
+[data-theme="dark"] {
+	--color-primary: #60A5FA;
+	--color-secondary: #9CA3AF;
+	--color-accent: #A78BFA;
+	--color-background: #111827;
+	--color-surface: #1F2937;
+	--color-surface-elevated: #374151;
+	--color-text: #F9FAFB;
+	--color-text-secondary: #D1D5DB;
+	--color-text-muted: #9CA3AF;
+	--color-border: #374151;
+	--color-border-light: #4B5563;
+	--color-success: #34D399;
+	--color-warning: #FBBF24;
+	--color-error: #F87171;
+	--color-info: #22D3EE;
+	
+	/* Button colors for dark theme */
+	--color-button-primary: #60A5FA;
+	--color-button-primary-hover: #3B82F6;
+	--color-button-secondary: #9CA3AF;
+	--color-button-secondary-hover: #6B7280;
+	--color-button-success: #34D399;
+	--color-button-success-hover: #10B981;
+	--color-button-warning: #FBBF24;
+	--color-button-warning-hover: #F59E0B;
+	--color-button-error: #F87171;
+	--color-button-error-hover: #EF4444;
+	--color-button-info: #22D3EE;
+	--color-button-info-hover: #06B6D4;
+	--color-button-ghost: transparent;
+	--color-button-ghost-text: #9CA3AF;
+	--color-button-ghost-border: #374151;
+	--color-button-ghost-hover: #374151;
+	--color-button-ghost-text-hover: #D1D5DB;
+	--color-button-ghost-border-hover: #4B5563;
+	
+	/* Input colors for dark theme */
+	--color-input-background: #1F2937;
+	--color-input-border: #374151;
+	--color-input-focus: #60A5FA;
+	--color-primary-light: rgba(96, 165, 250, 0.1);
+	
+	/* Shadow colors for dark theme */
+	--color-shadow: rgba(0, 0, 0, 0.3);
+	--color-shadow-light: rgba(0, 0, 0, 0.2);
 }
 
 @layer base {
@@ -13,29 +103,47 @@
 		height: 100%;
 	}
 	body {
-		@apply bg-gray-50 text-gray-800 antialiased;
+		background: var(--color-background);
+		color: var(--color-text);
+		transition: background-color 0.3s ease, color 0.3s ease;
 	}
 }
 
 @layer components {
 	.card {
-		@apply bg-white rounded-xl shadow-sm border border-gray-200 p-4;
+		background: var(--color-surface);
+		border: 1px solid var(--color-border);
+		border-radius: 12px;
+		padding: 16px;
+		box-shadow: 0 1px 3px var(--color-shadow-light);
+		transition: all 0.2s ease;
 	}
+	
+	.card:hover {
+		box-shadow: 0 4px 12px var(--color-shadow-light);
+	}
+	
 	/* Ensure card content stacks with even rhythm */
 	.card > * + * {
-		@apply mt-3;
+		margin-top: 12px;
 	}
+	
 	.kpi {
-		@apply flex items-center justify-between gap-3;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 12px;
 	}
+	
 	/* Normalize header spacing inside cards */
 	.card header h3 {
-		@apply leading-tight;
+		line-height: 1.2;
 	}
 }
 
 @layer utilities {
 	.text-caption {
-		@apply text-xs text-gray-500;
+		font-size: 0.75rem;
+		color: var(--color-text-secondary);
 	}
 }
