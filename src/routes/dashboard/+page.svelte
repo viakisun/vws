@@ -3,7 +3,7 @@
 	import Badge from '$lib/components/ui/Badge.svelte';
 	import Progress from '$lib/components/ui/Progress.svelte';
 	import Modal from '$lib/components/ui/Modal.svelte';
-	import { TrendingUp, Briefcase, Coins, AlertTriangle } from 'lucide-svelte';
+	import { TrendingUpIcon, BriefcaseIcon, CoinsIcon, AlertTriangleIcon } from 'lucide-svelte';
 	import { projectsStore, budgetAlerts, overallBudget, getQuarterSummary } from '$lib/stores/rnd';
 	import { personnelStore, estimateMonthlyCostKRW } from '$lib/stores/personnel';
 	import { formatKRW } from '$lib/utils/format';
@@ -11,10 +11,10 @@
 	type Kpi = { label: string; value: number | string; icon: any; numeric?: number };
 	$: ob = $overallBudget;
 	$: kpis = [
-		{ label: '총 프로젝트', value: $projectsStore.length, icon: Briefcase },
-		{ label: '예산 집행률', value: `${(ob.utilization * 100).toFixed(1)}%`, numeric: ob.utilization * 100, icon: Coins },
-		{ label: '평균 진행률', value: `${Math.round(($projectsStore.reduce((s, p) => s + p.progressPct, 0) / Math.max($projectsStore.length, 1)))}%`, numeric: ($projectsStore.reduce((s, p) => s + p.progressPct, 0) / Math.max($projectsStore.length, 1)), icon: TrendingUp },
-		{ label: '리스크 경고', value: $projectsStore.filter((p) => p.status === '위험' || p.status === '지연').length, icon: AlertTriangle }
+		{ label: '총 프로젝트', value: $projectsStore.length, icon: BriefcaseIcon },
+		{ label: '예산 집행률', value: `${(ob.utilization * 100).toFixed(1)}%`, numeric: ob.utilization * 100, icon: CoinsIcon },
+		{ label: '평균 진행률', value: `${Math.round(($projectsStore.reduce((s, p) => s + p.progressPct, 0) / Math.max($projectsStore.length, 1)))}%`, numeric: ($projectsStore.reduce((s, p) => s + p.progressPct, 0) / Math.max($projectsStore.length, 1)), icon: TrendingUpIcon },
+		{ label: '리스크 경고', value: $projectsStore.filter((p) => p.status === '위험' || p.status === '지연').length, icon: AlertTriangleIcon }
 	] as Kpi[];
 
 	let statusFilter = '' as '' | '정상' | '진행중' | '지연' | '위험' | '완료';

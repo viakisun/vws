@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { X } from 'lucide-svelte';
+	import { XIcon } from 'lucide-svelte';
 	let { open = false, title = '', maxWidth = 'max-w-lg', onClose, children } = $props<{
 		open?: boolean;
 		title?: string;
@@ -20,7 +20,7 @@
 			<header class="flex items-center justify-between border-b border-gray-200 px-4 py-3">
 				<h3 class="text-base font-semibold text-gray-900">{title}</h3>
 				<button type="button" class="p-1.5 rounded-md hover:bg-gray-50" aria-label="Close" onclick={close}>
-					<X size={18} />
+					<XIcon size={18} />
 				</button>
 			</header>
 			<div class="p-4">
