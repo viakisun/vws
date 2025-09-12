@@ -1,7 +1,13 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import Card from '$lib/components/ui/Card.svelte';
-	import Badge from '$lib/components/ui/Badge.svelte';
+	import ThemeCard from '$lib/components/ui/ThemeCard.svelte';
+	import ThemeButton from '$lib/components/ui/ThemeButton.svelte';
+	import ThemeBadge from '$lib/components/ui/ThemeBadge.svelte';
+	import ThemePageHeader from '$lib/components/ui/ThemePageHeader.svelte';
+	import ThemeSectionHeader from '$lib/components/ui/ThemeSectionHeader.svelte';
+	import ThemeStatCard from '$lib/components/ui/ThemeStatCard.svelte';
+	import ThemeGrid from '$lib/components/ui/ThemeGrid.svelte';
+	import ThemeSpacer from '$lib/components/ui/ThemeSpacer.svelte';
 	import TransactionModal from '$lib/components/ui/TransactionModal.svelte';
 	import TransactionEditModal from '$lib/components/ui/TransactionEditModal.svelte';
 	import BankAccountModal from '$lib/components/ui/BankAccountModal.svelte';
@@ -9,6 +15,19 @@
 	import SimpleChart from '$lib/components/ui/SimpleChart.svelte';
 	import BudgetModal from '$lib/components/ui/BudgetModal.svelte';
 	import NotificationPanel from '$lib/components/ui/NotificationPanel.svelte';
+	import { 
+		BanknoteIcon, 
+		TrendingUpIcon, 
+		TrendingDownIcon, 
+		DollarSignIcon,
+		PlusIcon,
+		FileTextIcon,
+		DownloadIcon,
+		UploadIcon,
+		BrainIcon,
+		BarChart3Icon,
+		PieChartIcon
+	} from 'lucide-svelte';
 	import { formatCurrency, formatDate } from '$lib/utils/format';
 	import { 
 		bankAccounts, 
@@ -465,273 +484,260 @@
 
 <div class="max-w-7xl mx-auto px-4 py-8 space-y-6">
 	<!-- 헤더 -->
-	<div class="flex justify-between items-center">
-		<div>
-			<h1 class="text-3xl font-bold">재무/회계 관리</h1>
-			<p class="text-gray-600 mt-1">자금 일보 및 재무 현황 관리</p>
-		</div>
-		<div class="flex items-center gap-3">
-			<NotificationPanel />
-			
-			<div class="relative group">
-				<button class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-					보고서 생성
-				</button>
-				<div class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10">
-					<div class="py-1">
-						<button 
-							onclick={generateHTMLFinancialReport}
-							class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-						>
-							HTML 보고서
-						</button>
-						<button 
-							onclick={generateCSVFinancialReport}
-							class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-						>
-							CSV 보고서
-						</button>
-						<button 
-							onclick={exportFundsReport}
-							class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-						>
-							JSON 데이터
-						</button>
-						<div class="border-t border-gray-100 my-1"></div>
-						<button 
-							onclick={createDataBackup}
-							class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-						>
-							데이터 백업
-						</button>
-						<label class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
-							데이터 복원
-							<input 
-								type="file" 
-								accept=".json" 
-								onchange={handleBackupRestore}
-								class="hidden"
-							/>
-						</label>
-					</div>
+	<ThemePageHeader 
+		title="재무/회계 관리"
+		subtitle="자금 일보 및 재무 현황 관리"
+	/>
+	
+	<div class="flex justify-end items-center gap-3 mb-6">
+		<NotificationPanel />
+		
+		<div class="relative group">
+			<ThemeButton variant="primary" class="flex items-center gap-2">
+				<FileTextIcon size={16} />
+				보고서 생성
+			</ThemeButton>
+			<div class="absolute right-0 mt-2 w-48 rounded-md shadow-lg border opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10" style="background: var(--color-surface); border-color: var(--color-border);">
+				<div class="py-1">
+					<button 
+						onclick={generateHTMLFinancialReport}
+						class="block w-full text-left px-4 py-2 text-sm hover:opacity-80 transition-opacity"
+						style="color: var(--color-text);"
+					>
+						HTML 보고서
+					</button>
+					<button 
+						onclick={generateCSVFinancialReport}
+						class="block w-full text-left px-4 py-2 text-sm hover:opacity-80 transition-opacity"
+						style="color: var(--color-text);"
+					>
+						CSV 보고서
+					</button>
+					<button 
+						onclick={exportFundsReport}
+						class="block w-full text-left px-4 py-2 text-sm hover:opacity-80 transition-opacity"
+						style="color: var(--color-text);"
+					>
+						JSON 데이터
+					</button>
+					<div class="my-1" style="border-top: 1px solid var(--color-border);"></div>
+					<button 
+						onclick={createDataBackup}
+						class="block w-full text-left px-4 py-2 text-sm hover:opacity-80 transition-opacity"
+						style="color: var(--color-text);"
+					>
+						<DownloadIcon size={14} class="inline mr-2" />
+						데이터 백업
+					</button>
+					<label class="block w-full text-left px-4 py-2 text-sm hover:opacity-80 transition-opacity cursor-pointer" style="color: var(--color-text);">
+						<UploadIcon size={14} class="inline mr-2" />
+						데이터 복원
+						<input 
+							type="file" 
+							accept=".json" 
+							onchange={handleBackupRestore}
+							class="hidden"
+						/>
+					</label>
 				</div>
 			</div>
-			
-			<button 
-				onclick={analyzeWithAI}
-				class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-			>
-				AI 분석
-			</button>
 		</div>
+		
+		<ThemeButton 
+			variant="success"
+			onclick={analyzeWithAI}
+			class="flex items-center gap-2"
+		>
+			<BrainIcon size={16} />
+			AI 분석
+		</ThemeButton>
 	</div>
 
 	<!-- 입력 마감 안내 -->
 	{#if isInputClosed}
-		<div class="bg-red-50 border border-red-200 rounded-lg p-4">
+		<ThemeCard variant="elevated" class="p-4" style="background: var(--color-error-light); border-color: var(--color-error);">
 			<div class="flex items-center">
 				<div class="flex-shrink-0">
-					<svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+					<svg class="h-5 w-5" style="color: var(--color-error);" viewBox="0 0 20 20" fill="currentColor">
 						<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
 					</svg>
 				</div>
 				<div class="ml-3">
-					<h3 class="text-sm font-medium text-red-800">입력 마감</h3>
-					<div class="mt-2 text-sm text-red-700">
+					<h3 class="text-sm font-medium" style="color: var(--color-error);">입력 마감</h3>
+					<div class="mt-2 text-sm" style="color: var(--color-error-dark);">
 						<p>오전 10시 30분 입력 마감 시간이 지났습니다. 내일 오전 10시 30분까지 입력해주세요.</p>
 					</div>
 				</div>
 			</div>
-		</div>
+		</ThemeCard>
 	{:else}
-		<div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+		<ThemeCard variant="elevated" class="p-4" style="background: var(--color-warning-light); border-color: var(--color-warning);">
 			<div class="flex items-center">
 				<div class="flex-shrink-0">
-					<svg class="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+					<svg class="h-5 w-5" style="color: var(--color-warning);" viewBox="0 0 20 20" fill="currentColor">
 						<path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
 					</svg>
 				</div>
 				<div class="ml-3">
-					<h3 class="text-sm font-medium text-yellow-800">입력 마감 안내</h3>
-					<div class="mt-2 text-sm text-yellow-700">
+					<h3 class="text-sm font-medium" style="color: var(--color-warning);">입력 마감 안내</h3>
+					<div class="mt-2 text-sm" style="color: var(--color-warning-dark);">
 						<p>오전 10시 30분까지 자금 일보 입력을 완료해주세요. 남은 시간: <span class="font-mono font-bold">{Math.max(0, Math.floor((inputDeadline.getTime() - currentTime.getTime()) / 1000 / 60))}분</span></p>
 					</div>
 				</div>
 			</div>
-		</div>
+		</ThemeCard>
 	{/if}
 
 	<!-- 자금 현황 요약 -->
-	<div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-		<Card class="p-6">
-			<div class="flex items-center justify-between">
-				<div>
-					<p class="text-sm font-medium text-gray-600">총 통장 잔고</p>
-					<p class="text-2xl font-bold text-gray-900">{formatCurrency(totalBalance)}</p>
-				</div>
-				<div class="p-3 bg-blue-100 rounded-full">
-					<svg class="h-6 w-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
-					</svg>
-				</div>
-			</div>
-		</Card>
-
-		<Card class="p-6">
-			<div class="flex items-center justify-between">
-				<div>
-					<p class="text-sm font-medium text-gray-600">실제 수입</p>
-					<p class="text-2xl font-bold text-green-600">{formatCurrency(totalIncome)}</p>
-				</div>
-				<div class="p-3 bg-green-100 rounded-full">
-					<svg class="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
-					</svg>
-				</div>
-			</div>
-		</Card>
-
-		<Card class="p-6">
-			<div class="flex items-center justify-between">
-				<div>
-					<p class="text-sm font-medium text-gray-600">실제 지출</p>
-					<p class="text-2xl font-bold text-red-600">{formatCurrency(totalExpense)}</p>
-				</div>
-				<div class="p-3 bg-red-100 rounded-full">
-					<svg class="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"></path>
-					</svg>
-				</div>
-			</div>
-		</Card>
-
-		<Card class="p-6">
-			<div class="flex items-center justify-between">
-				<div>
-					<p class="text-sm font-medium text-gray-600">순이익</p>
-					<p class="text-2xl font-bold {totalIncome - totalExpense >= 0 ? 'text-green-600' : 'text-red-600'}">
-						{formatCurrency(totalIncome - totalExpense)}
-					</p>
-				</div>
-				<div class="p-3 bg-gray-100 rounded-full">
-					<svg class="h-6 w-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-					</svg>
-				</div>
-			</div>
-		</Card>
-	</div>
+	<ThemeGrid cols={1} gap={6} class="md:grid-cols-4">
+		<ThemeStatCard
+			title="총 통장 잔고"
+			value={formatCurrency(totalBalance)}
+			icon={BanknoteIcon}
+			color="blue"
+		/>
+		<ThemeStatCard
+			title="실제 수입"
+			value={formatCurrency(totalIncome)}
+			icon={TrendingUpIcon}
+			color="green"
+		/>
+		<ThemeStatCard
+			title="실제 지출"
+			value={formatCurrency(totalExpense)}
+			icon={TrendingDownIcon}
+			color="red"
+		/>
+		<ThemeStatCard
+			title="순이익"
+			value={formatCurrency(totalIncome - totalExpense)}
+			icon={DollarSignIcon}
+			color={totalIncome - totalExpense >= 0 ? 'green' : 'red'}
+		/>
+	</ThemeGrid>
 
 	<!-- 통장 잔고 상세 -->
-	<Card class="p-6">
+	<ThemeCard variant="elevated" class="p-6">
 		<div class="flex justify-between items-center mb-4">
-			<h2 class="text-xl font-semibold">통장 잔고</h2>
-			<button 
+			<h2 class="text-xl font-semibold" style="color: var(--color-text);">통장 잔고</h2>
+			<ThemeButton 
+				variant="primary" 
+				size="sm"
 				onclick={openAddAccountModal}
-				class="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
+				class="flex items-center gap-2"
 			>
+				<PlusIcon size={16} />
 				계좌 추가
-			</button>
+			</ThemeButton>
 		</div>
-		<div class="space-y-3">
-			{#each $bankAccounts as account}
-				<div class="flex justify-between items-center p-4 bg-gray-50 rounded-lg group">
-					<div>
-						<h3 class="font-medium">{account.name}</h3>
-						<p class="text-sm text-gray-600">{account.accountNumber}</p>
-						{#if account.bankName}
-							<p class="text-xs text-gray-500">{account.bankName}</p>
-						{/if}
-					</div>
-					<div class="flex items-center space-x-2">
-						<div class="text-right">
-							<p class="text-lg font-semibold">{formatCurrency(account.balance)}</p>
+		<ThemeSpacer size={4}>
+			<div class="space-y-3">
+				{#each $bankAccounts as account}
+					<div class="flex justify-between items-center p-4 rounded-lg group transition-all duration-200 hover:scale-[1.02]" style="background: var(--color-surface-elevated);">
+						<div>
+							<h3 class="font-medium" style="color: var(--color-text);">{account.name}</h3>
+							<p class="text-sm" style="color: var(--color-text-secondary);">{account.accountNumber}</p>
+							{#if account.bankName}
+								<p class="text-xs" style="color: var(--color-text-muted);">{account.bankName}</p>
+							{/if}
 						</div>
-						<div class="opacity-0 group-hover:opacity-100 transition-opacity flex space-x-1">
-							<button 
-								onclick={() => openEditAccountModal(account)}
-								class="p-1 text-blue-600 hover:bg-blue-100 rounded"
-								aria-label="계좌 수정"
-							>
-								<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-								</svg>
-							</button>
-							<button 
-								onclick={() => confirmDeleteAccount(account)}
-								class="p-1 text-red-600 hover:bg-red-100 rounded"
-								aria-label="계좌 삭제"
-							>
-								<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-								</svg>
-							</button>
+						<div class="flex items-center space-x-2">
+							<div class="text-right">
+								<p class="text-lg font-semibold" style="color: var(--color-text);">{formatCurrency(account.balance)}</p>
+							</div>
+							<div class="opacity-0 group-hover:opacity-100 transition-opacity flex space-x-1">
+								<ThemeButton 
+									variant="ghost" 
+									size="sm"
+									onclick={() => openEditAccountModal(account)}
+									class="p-1"
+								>
+									<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+									</svg>
+								</ThemeButton>
+								<ThemeButton 
+									variant="ghost" 
+									size="sm"
+									onclick={() => confirmDeleteAccount(account)}
+									class="p-1 text-red-600 hover:text-red-700"
+								>
+									<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+									</svg>
+								</ThemeButton>
+							</div>
 						</div>
 					</div>
-				</div>
-			{/each}
-		</div>
-	</Card>
+				{/each}
+			</div>
+		</ThemeSpacer>
+	</ThemeCard>
 
 	<!-- 거래 내역 -->
-	<Card class="p-6">
+	<ThemeCard variant="elevated" class="p-6">
 		<div class="flex justify-between items-center mb-4">
-			<h2 class="text-xl font-semibold">거래 내역</h2>
-			<button 
+			<h2 class="text-xl font-semibold" style="color: var(--color-text);">거래 내역</h2>
+			<ThemeButton 
+				variant="primary" 
+				size="sm"
 				onclick={openAddTransactionModal}
-				class="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
+				class="flex items-center gap-2"
 			>
+				<PlusIcon size={16} />
 				거래 추가
-			</button>
+			</ThemeButton>
 		</div>
 		<div class="overflow-x-auto">
-			<table class="min-w-full divide-y divide-gray-200">
-				<thead class="bg-gray-50">
+			<table class="min-w-full divide-y" style="border-color: var(--color-border);">
+				<thead style="background: var(--color-surface-elevated);">
 					<tr>
-						<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">날짜</th>
-						<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">내용</th>
-						<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">분류</th>
-						<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">금액</th>
-						<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">구분</th>
-						<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">액션</th>
+						<th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style="color: var(--color-text-secondary);">날짜</th>
+						<th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style="color: var(--color-text-secondary);">내용</th>
+						<th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style="color: var(--color-text-secondary);">분류</th>
+						<th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style="color: var(--color-text-secondary);">금액</th>
+						<th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style="color: var(--color-text-secondary);">구분</th>
+						<th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style="color: var(--color-text-secondary);">액션</th>
 					</tr>
 				</thead>
-				<tbody class="bg-white divide-y divide-gray-200">
+				<tbody class="divide-y" style="background: var(--color-surface); border-color: var(--color-border);">
 					{#each $transactions as transaction}
-						<tr class="group hover:bg-gray-50">
-							<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+						<tr class="group hover:opacity-80 transition-opacity">
+							<td class="px-6 py-4 whitespace-nowrap text-sm" style="color: var(--color-text);">
 								{formatDate(transaction.date)}
 							</td>
-							<td class="px-6 py-4 text-sm text-gray-900">{transaction.description}</td>
-							<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{transaction.category}</td>
-							<td class="px-6 py-4 whitespace-nowrap text-sm font-medium {transaction.type === 'income' ? 'text-green-600' : 'text-red-600'}">
+							<td class="px-6 py-4 text-sm" style="color: var(--color-text);">{transaction.description}</td>
+							<td class="px-6 py-4 whitespace-nowrap text-sm" style="color: var(--color-text-secondary);">{transaction.category}</td>
+							<td class="px-6 py-4 whitespace-nowrap text-sm font-medium" style="color: {transaction.type === 'income' ? 'var(--color-success)' : 'var(--color-error)'};">
 								{transaction.type === 'income' ? '+' : '-'}{formatCurrency(transaction.amount)}
 							</td>
 							<td class="px-6 py-4 whitespace-nowrap">
-								<Badge variant={transaction.type === 'income' ? 'success' : 'danger'}>
+								<ThemeBadge variant={transaction.type === 'income' ? 'success' : 'error'}>
 									{transaction.type === 'income' ? '수입' : '지출'}
-								</Badge>
+								</ThemeBadge>
 							</td>
 							<td class="px-6 py-4 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
 								<div class="flex space-x-1">
-									<button 
+									<ThemeButton 
+										variant="ghost" 
+										size="sm"
 										onclick={() => openEditTransactionModal(transaction)}
-										class="p-1 text-blue-600 hover:bg-blue-100 rounded"
-										aria-label="거래 수정"
+										class="p-1"
 									>
 										<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
 										</svg>
-									</button>
-									<button 
+									</ThemeButton>
+									<ThemeButton 
+										variant="ghost" 
+										size="sm"
 										onclick={() => confirmDeleteTransaction(transaction)}
-										class="p-1 text-red-600 hover:bg-red-100 rounded"
-										aria-label="거래 삭제"
+										class="p-1 text-red-600 hover:text-red-700"
 									>
 										<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
 										</svg>
-									</button>
+									</ThemeButton>
 								</div>
 							</td>
 						</tr>
@@ -739,275 +745,271 @@
 				</tbody>
 			</table>
 		</div>
-	</Card>
+	</ThemeCard>
 
 	<!-- 예상 거래 내역 -->
-	<Card class="p-6">
+	<ThemeCard variant="elevated" class="p-6">
 		<div class="flex justify-between items-center mb-4">
-			<h2 class="text-xl font-semibold">예상 거래 내역</h2>
+			<h2 class="text-xl font-semibold" style="color: var(--color-text);">예상 거래 내역</h2>
 			{#if !isInputClosed}
-				<button 
+				<ThemeButton 
+					variant="success" 
+					size="sm"
 					onclick={openAddExpectedTransactionModal}
-					class="px-3 py-1 text-sm bg-green-600 text-white rounded hover:bg-green-700"
+					class="flex items-center gap-2"
 				>
+					<PlusIcon size={16} />
 					예상 거래 추가
-				</button>
+				</ThemeButton>
 			{/if}
 		</div>
 		<div class="overflow-x-auto">
-			<table class="min-w-full divide-y divide-gray-200">
-				<thead class="bg-gray-50">
+			<table class="min-w-full divide-y" style="border-color: var(--color-border);">
+				<thead style="background: var(--color-surface-elevated);">
 					<tr>
-						<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">예상일</th>
-						<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">내용</th>
-						<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">분류</th>
-						<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">금액</th>
-						<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">구분</th>
-						<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">상태</th>
+						<th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style="color: var(--color-text-secondary);">예상일</th>
+						<th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style="color: var(--color-text-secondary);">내용</th>
+						<th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style="color: var(--color-text-secondary);">분류</th>
+						<th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style="color: var(--color-text-secondary);">금액</th>
+						<th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style="color: var(--color-text-secondary);">구분</th>
+						<th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style="color: var(--color-text-secondary);">상태</th>
 					</tr>
 				</thead>
-				<tbody class="bg-white divide-y divide-gray-200">
+				<tbody class="divide-y" style="background: var(--color-surface); border-color: var(--color-border);">
 					{#each $expectedTransactions as transaction}
-						<tr>
-							<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+						<tr class="hover:opacity-80 transition-opacity">
+							<td class="px-6 py-4 whitespace-nowrap text-sm" style="color: var(--color-text);">
 								{formatDate(transaction.date)}
 							</td>
-							<td class="px-6 py-4 text-sm text-gray-900">{transaction.description}</td>
-							<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{transaction.category}</td>
-							<td class="px-6 py-4 whitespace-nowrap text-sm font-medium {transaction.type === 'income' ? 'text-green-600' : 'text-red-600'}">
+							<td class="px-6 py-4 text-sm" style="color: var(--color-text);">{transaction.description}</td>
+							<td class="px-6 py-4 whitespace-nowrap text-sm" style="color: var(--color-text-secondary);">{transaction.category}</td>
+							<td class="px-6 py-4 whitespace-nowrap text-sm font-medium" style="color: {transaction.type === 'income' ? 'var(--color-success)' : 'var(--color-error)'};">
 								{transaction.type === 'income' ? '+' : '-'}{formatCurrency(transaction.amount)}
 							</td>
 							<td class="px-6 py-4 whitespace-nowrap">
-								<Badge variant={transaction.type === 'income' ? 'success' : 'danger'}>
+								<ThemeBadge variant={transaction.type === 'income' ? 'success' : 'error'}>
 									{transaction.type === 'income' ? '수입' : '지출'}
-								</Badge>
+								</ThemeBadge>
 							</td>
 							<td class="px-6 py-4 whitespace-nowrap">
-								<Badge variant={transaction.status === 'confirmed' ? 'success' : transaction.status === 'cancelled' ? 'danger' : 'warning'}>
+								<ThemeBadge variant={transaction.status === 'confirmed' ? 'success' : transaction.status === 'cancelled' ? 'error' : 'warning'}>
 									{transaction.status === 'confirmed' ? '확정' : transaction.status === 'cancelled' ? '취소' : '대기'}
-								</Badge>
+								</ThemeBadge>
 							</td>
 						</tr>
 					{/each}
 				</tbody>
 			</table>
 		</div>
-	</Card>
+	</ThemeCard>
 
 	<!-- 예상 현황 요약 -->
-	<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-		<Card class="p-6">
-			<div class="flex items-center justify-between">
-				<div>
-					<p class="text-sm font-medium text-gray-600">예상 수입</p>
-					<p class="text-2xl font-bold text-green-600">{formatCurrency(expectedIncome)}</p>
-				</div>
-				<div class="p-3 bg-green-100 rounded-full">
-					<svg class="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
-					</svg>
-				</div>
-			</div>
-		</Card>
-
-		<Card class="p-6">
-			<div class="flex items-center justify-between">
-				<div>
-					<p class="text-sm font-medium text-gray-600">예상 지출</p>
-					<p class="text-2xl font-bold text-red-600">{formatCurrency(expectedExpense)}</p>
-				</div>
-				<div class="p-3 bg-red-100 rounded-full">
-					<svg class="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"></path>
-					</svg>
-				</div>
-			</div>
-		</Card>
-	</div>
+	<ThemeGrid cols={1} gap={6} class="md:grid-cols-2">
+		<ThemeStatCard
+			title="예상 수입"
+			value={formatCurrency(expectedIncome)}
+			icon={TrendingUpIcon}
+			color="green"
+		/>
+		<ThemeStatCard
+			title="예상 지출"
+			value={formatCurrency(expectedExpense)}
+			icon={TrendingDownIcon}
+			color="red"
+		/>
+	</ThemeGrid>
 
 	<!-- 차트 및 분석 섹션 -->
-	<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+	<ThemeGrid cols={1} gap={6} class="lg:grid-cols-2">
 		<!-- 지출 분석 차트 -->
-		<Card class="p-6">
-			<div class="flex justify-between items-center mb-4">
-				<h2 class="text-xl font-semibold">지출 분석</h2>
-			</div>
+		<ThemeCard variant="elevated" class="p-6">
+			<h2 class="text-xl font-semibold mb-4" style="color: var(--color-text);">지출 분석</h2>
 			{#if expenseChartData.length > 0}
 				<SimpleChart data={expenseChartData} type="pie" height={250} />
 			{:else}
-				<div class="flex items-center justify-center h-64 text-gray-500">
+				<div class="flex items-center justify-center h-64" style="color: var(--color-text-secondary);">
 					<div class="text-center">
-						<svg class="w-12 h-12 mx-auto mb-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<svg class="w-12 h-12 mx-auto mb-2" style="color: var(--color-text-muted);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
 						</svg>
 						<p>지출 데이터가 없습니다</p>
 					</div>
 				</div>
 			{/if}
-		</Card>
+		</ThemeCard>
 
 		<!-- 수입 분석 차트 -->
-		<Card class="p-6">
-			<div class="flex justify-between items-center mb-4">
-				<h2 class="text-xl font-semibold">수입 분석</h2>
-			</div>
+		<ThemeCard variant="elevated" class="p-6">
+			<h2 class="text-xl font-semibold mb-4" style="color: var(--color-text);">수입 분석</h2>
 			{#if incomeChartData.length > 0}
 				<SimpleChart data={incomeChartData} type="pie" height={250} />
 			{:else}
-				<div class="flex items-center justify-center h-64 text-gray-500">
+				<div class="flex items-center justify-center h-64" style="color: var(--color-text-secondary);">
 					<div class="text-center">
-						<svg class="w-12 h-12 mx-auto mb-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<svg class="w-12 h-12 mx-auto mb-2" style="color: var(--color-text-muted);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
 						</svg>
 						<p>수입 데이터가 없습니다</p>
 					</div>
 				</div>
 			{/if}
-		</Card>
-	</div>
+		</ThemeCard>
+	</ThemeGrid>
 
 	<!-- 월별 트렌드 차트 -->
-	<Card class="p-6">
-		<div class="flex justify-between items-center mb-4">
-			<h2 class="text-xl font-semibold">월별 거래 트렌드</h2>
-		</div>
+	<ThemeCard variant="elevated" class="p-6">
+		<h2 class="text-xl font-semibold mb-4" style="color: var(--color-text);">월별 거래 트렌드</h2>
 		{#if monthlyTrendData.length > 0}
 			<SimpleChart data={monthlyTrendData} type="bar" height={200} />
 		{:else}
-			<div class="flex items-center justify-center h-48 text-gray-500">
+			<div class="flex items-center justify-center h-48" style="color: var(--color-text-secondary);">
 				<div class="text-center">
-					<svg class="w-12 h-12 mx-auto mb-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<svg class="w-12 h-12 mx-auto mb-2" style="color: var(--color-text-muted);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
 					</svg>
 					<p>트렌드 데이터가 없습니다</p>
 				</div>
 			</div>
 		{/if}
-	</Card>
+	</ThemeCard>
 
 	<!-- 예산 관리 섹션 -->
-	<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+	<ThemeGrid cols={1} gap={6} class="lg:grid-cols-2">
 		<!-- 예산 카테고리 -->
-		<Card class="p-6">
+		<ThemeCard variant="elevated" class="p-6">
 			<div class="flex justify-between items-center mb-4">
-				<h2 class="text-xl font-semibold">예산 카테고리</h2>
-				<button 
+				<h2 class="text-xl font-semibold" style="color: var(--color-text);">예산 카테고리</h2>
+				<ThemeButton 
+					variant="primary" 
+					size="sm"
 					onclick={openAddBudgetCategoryModal}
-					class="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
+					class="flex items-center gap-2"
 				>
+					<PlusIcon size={16} />
 					카테고리 추가
-				</button>
+				</ThemeButton>
 			</div>
-			<div class="space-y-4">
-				{#each $budgetCategories as category}
-					{@const usage = calculateBudgetUsage(category)}
-					<div class="p-4 border rounded-lg">
-						<div class="flex justify-between items-start mb-2">
-							<div>
-								<h3 class="font-medium">{category.name}</h3>
-								<p class="text-sm text-gray-600">
-									{formatCurrency(category.spent)} / {formatCurrency(category.amount)}
-								</p>
+			<ThemeSpacer size={4}>
+				<div class="space-y-4">
+					{#each $budgetCategories as category}
+						{@const usage = calculateBudgetUsage(category)}
+						<div class="p-4 rounded-lg transition-all duration-200 hover:scale-[1.02]" style="background: var(--color-surface-elevated); border: 1px solid var(--color-border);">
+							<div class="flex justify-between items-start mb-2">
+								<div>
+									<h3 class="font-medium" style="color: var(--color-text);">{category.name}</h3>
+									<p class="text-sm" style="color: var(--color-text-secondary);">
+										{formatCurrency(category.spent)} / {formatCurrency(category.amount)}
+									</p>
+								</div>
+								<div class="flex space-x-1">
+									<ThemeButton 
+										variant="ghost" 
+										size="sm"
+										onclick={() => openEditBudgetCategoryModal(category)}
+										class="p-1"
+									>
+										<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+										</svg>
+									</ThemeButton>
+									<ThemeButton 
+										variant="ghost" 
+										size="sm"
+										onclick={() => confirmDeleteBudgetCategory(category)}
+										class="p-1 text-red-600 hover:text-red-700"
+									>
+										<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+										</svg>
+									</ThemeButton>
+								</div>
 							</div>
-							<div class="flex space-x-1">
-								<button 
-									onclick={() => openEditBudgetCategoryModal(category)}
-									class="p-1 text-blue-600 hover:bg-blue-100 rounded"
-									aria-label="예산 수정"
-								>
-									<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-									</svg>
-								</button>
-								<button 
-									onclick={() => confirmDeleteBudgetCategory(category)}
-									class="p-1 text-red-600 hover:bg-red-100 rounded"
-									aria-label="예산 삭제"
-								>
-									<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-									</svg>
-								</button>
+							<div class="w-full rounded-full h-2" style="background: var(--color-border);">
+								<div 
+									class="h-2 rounded-full transition-all duration-300"
+									style="width: {Math.min(usage, 100)}%; background: {usage > 100 ? 'var(--color-error)' : usage > 80 ? 'var(--color-warning)' : 'var(--color-success)'};"
+								></div>
+							</div>
+							<div class="flex justify-between items-center mt-2">
+								<span class="text-sm" style="color: var(--color-text-secondary);">{usage.toFixed(1)}%</span>
+								<ThemeBadge variant={usage > 100 ? 'error' : usage > 80 ? 'warning' : 'success'}>
+									{usage > 100 ? '초과' : usage > 80 ? '주의' : '정상'}
+								</ThemeBadge>
 							</div>
 						</div>
-						<div class="w-full bg-gray-200 rounded-full h-2">
-							<div 
-								class="h-2 rounded-full transition-all duration-300 {usage > 100 ? 'bg-red-500' : usage > 80 ? 'bg-yellow-500' : 'bg-green-500'}"
-								style="width: {Math.min(usage, 100)}%"
-							></div>
-						</div>
-						<div class="flex justify-between items-center mt-2">
-							<span class="text-sm text-gray-600">{usage.toFixed(1)}%</span>
-							<Badge variant={usage > 100 ? 'danger' : usage > 80 ? 'warning' : 'success'}>
-								{usage > 100 ? '초과' : usage > 80 ? '주의' : '정상'}
-							</Badge>
-						</div>
-					</div>
-				{/each}
-			</div>
-		</Card>
+					{/each}
+				</div>
+			</ThemeSpacer>
+		</ThemeCard>
 
 		<!-- 예산 목표 -->
-		<Card class="p-6">
+		<ThemeCard variant="elevated" class="p-6">
 			<div class="flex justify-between items-center mb-4">
-				<h2 class="text-xl font-semibold">예산 목표</h2>
-				<button 
+				<h2 class="text-xl font-semibold" style="color: var(--color-text);">예산 목표</h2>
+				<ThemeButton 
+					variant="success" 
+					size="sm"
 					onclick={openAddBudgetGoalModal}
-					class="px-3 py-1 text-sm bg-green-600 text-white rounded hover:bg-green-700"
+					class="flex items-center gap-2"
 				>
+					<PlusIcon size={16} />
 					목표 추가
-				</button>
+				</ThemeButton>
 			</div>
-			<div class="space-y-4">
-				{#each $budgetGoals as goal}
-					{@const progress = calculateGoalProgress(goal)}
-					<div class="p-4 border rounded-lg">
-						<div class="flex justify-between items-start mb-2">
-							<div>
-								<h3 class="font-medium">{goal.name}</h3>
-								<p class="text-sm text-gray-600">
-									{formatCurrency(goal.currentAmount)} / {formatCurrency(goal.targetAmount)}
-								</p>
-								<p class="text-xs text-gray-500">마감: {formatDate(goal.deadline)}</p>
+			<ThemeSpacer size={4}>
+				<div class="space-y-4">
+					{#each $budgetGoals as goal}
+						{@const progress = calculateGoalProgress(goal)}
+						<div class="p-4 rounded-lg transition-all duration-200 hover:scale-[1.02]" style="background: var(--color-surface-elevated); border: 1px solid var(--color-border);">
+							<div class="flex justify-between items-start mb-2">
+								<div>
+									<h3 class="font-medium" style="color: var(--color-text);">{goal.name}</h3>
+									<p class="text-sm" style="color: var(--color-text-secondary);">
+										{formatCurrency(goal.currentAmount)} / {formatCurrency(goal.targetAmount)}
+									</p>
+									<p class="text-xs" style="color: var(--color-text-muted);">마감: {formatDate(goal.deadline)}</p>
+								</div>
+								<div class="flex space-x-1">
+									<ThemeButton 
+										variant="ghost" 
+										size="sm"
+										onclick={() => openEditBudgetGoalModal(goal)}
+										class="p-1"
+									>
+										<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+										</svg>
+									</ThemeButton>
+									<ThemeButton 
+										variant="ghost" 
+										size="sm"
+										onclick={() => confirmDeleteBudgetGoal(goal)}
+										class="p-1 text-red-600 hover:text-red-700"
+									>
+										<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+										</svg>
+									</ThemeButton>
+								</div>
 							</div>
-							<div class="flex space-x-1">
-								<button 
-									onclick={() => openEditBudgetGoalModal(goal)}
-									class="p-1 text-blue-600 hover:bg-blue-100 rounded"
-									aria-label="목표 수정"
-								>
-									<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-									</svg>
-								</button>
-								<button 
-									onclick={() => confirmDeleteBudgetGoal(goal)}
-									class="p-1 text-red-600 hover:bg-red-100 rounded"
-									aria-label="목표 삭제"
-								>
-									<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-									</svg>
-								</button>
+							<div class="w-full rounded-full h-2" style="background: var(--color-border);">
+								<div 
+									class="h-2 rounded-full transition-all duration-300"
+									style="width: {Math.min(progress, 100)}%; background: {progress >= 100 ? 'var(--color-success)' : progress >= 75 ? 'var(--color-primary)' : 'var(--color-warning)'};"
+								></div>
+							</div>
+							<div class="flex justify-between items-center mt-2">
+								<span class="text-sm" style="color: var(--color-text-secondary);">{progress.toFixed(1)}%</span>
+								<ThemeBadge variant={goal.status === 'completed' ? 'success' : goal.status === 'paused' ? 'warning' : 'primary'}>
+									{goal.status === 'completed' ? '완료' : goal.status === 'paused' ? '일시정지' : '진행중'}
+								</ThemeBadge>
 							</div>
 						</div>
-						<div class="w-full bg-gray-200 rounded-full h-2">
-							<div 
-								class="h-2 rounded-full transition-all duration-300 {progress >= 100 ? 'bg-green-500' : progress >= 75 ? 'bg-blue-500' : 'bg-yellow-500'}"
-								style="width: {Math.min(progress, 100)}%"
-							></div>
-						</div>
-						<div class="flex justify-between items-center mt-2">
-							<span class="text-sm text-gray-600">{progress.toFixed(1)}%</span>
-							<Badge variant={goal.status === 'completed' ? 'success' : goal.status === 'paused' ? 'warning' : 'primary'}>
-								{goal.status === 'completed' ? '완료' : goal.status === 'paused' ? '일시정지' : '진행중'}
-							</Badge>
-						</div>
-					</div>
-				{/each}
-			</div>
-		</Card>
-	</div>
+					{/each}
+				</div>
+			</ThemeSpacer>
+		</ThemeCard>
+	</ThemeGrid>
 </div>
 
 <!-- 예상 거래 추가 모달 -->

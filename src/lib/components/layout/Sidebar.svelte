@@ -95,7 +95,7 @@
 	}
 </script>
 
-<aside class="transition-all duration-300 {isCollapsed ? 'w-16' : 'w-64'} flex-shrink-0" style="background: var(--color-surface); border-right: 1px solid var(--color-border);">
+<aside class="transition-all duration-300 {isCollapsed ? 'w-16' : 'w-64'} flex-shrink-0 h-screen sticky top-0" style="background: var(--color-surface); border-right: 1px solid var(--color-border);">
 	<div class="flex h-full flex-col">
 		<!-- Logo Section -->
 		<div class="flex h-16 items-center justify-between px-4" style="border-bottom: 1px solid var(--color-border);">

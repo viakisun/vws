@@ -5,6 +5,7 @@
 		lgCols?: 1 | 2 | 3 | 4 | 5 | 6;
 		gap?: 2 | 3 | 4 | 6 | 8;
 		class?: string;
+		children?: any;
 	}
 
 	let {
@@ -13,6 +14,7 @@
 		lgCols = 3,
 		gap = 6,
 		class: className = '',
+		children,
 		...restProps
 	}: Props = $props();
 

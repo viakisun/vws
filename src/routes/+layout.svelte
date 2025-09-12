@@ -14,14 +14,14 @@
 	});
 </script>
 
-<div class="min-h-screen flex" style="background: var(--color-background);">
+<div class="h-screen flex overflow-hidden" style="background: var(--color-background);">
 	<!-- Sidebar -->
 	<Sidebar bind:isCollapsed={sidebarCollapsed} />
 
 	<!-- Main content area -->
-	<div class="flex-1 flex flex-col min-w-0">
+	<div class="flex-1 flex flex-col min-w-0 overflow-auto">
 		<!-- Main content -->
-		<main class="flex-1 p-6" style="background: var(--color-background);">
+		<main class="flex-1 p-6 overflow-auto" style="background: var(--color-background);">
 			<div class="max-w-7xl mx-auto">
 				{@render children()}
 			</div>
