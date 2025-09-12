@@ -1,6 +1,8 @@
 <script lang="ts">
-	import Card from '$lib/components/ui/Card.svelte';
-	import Progress from '$lib/components/ui/Progress.svelte';
+	import ThemeCard from '$lib/components/ui/ThemeCard.svelte';
+	import ThemeProgress from '$lib/components/ui/ThemeProgress.svelte';
+	import ThemeBadge from '$lib/components/ui/ThemeBadge.svelte';
+	import ThemeButton from '$lib/components/ui/ThemeButton.svelte';
 	import { formatKRW } from '$lib/utils/format';
 	import { BanknoteIcon, UsersIcon, FlaskConicalIcon, CoinsIcon, FileTextIcon, BriefcaseIcon } from 'lucide-svelte';
 
@@ -19,114 +21,163 @@
 	];
 </script>
 
-<section class="max-w-7xl mx-auto px-4 py-10 space-y-8">
-	<!-- 헤더/히어로 -->
-	<div class="flex flex-col gap-1">
-		<h1 class="text-3xl font-bold text-gray-900">VWS (Via WorkStream)</h1>
-		<p class="text-caption">Move fast on what matters. See key metrics and your work at a glance.</p>
+<div class="space-y-6">
+	<!-- Page Header -->
+	<div class="mb-8">
+		<h1 class="text-2xl font-bold text-gray-900">대시보드</h1>
+		<p class="text-sm text-gray-600 mt-1">전체 시스템 현황과 주요 지표를 한눈에 확인하세요</p>
 	</div>
 
-	<!-- 핵심 영역: 대형 타일 3개 -->
-	<div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-		<a href="/finance" class="group relative overflow-hidden rounded-xl border border-gray-200 bg-gradient-to-br from-primary/5 to-white p-5 hover:shadow transition">
+	<!-- Quick Stats Cards -->
+	<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+		<ThemeCard class="hover:shadow-md transition-shadow">
 			<div class="flex items-center justify-between">
 				<div>
-					<div class="text-sm text-caption">재무/회계</div>
-					<div class="mt-1 text-xl font-semibold">오늘 지출 {formatKRW(finance.todaySpending)}</div>
-					<div class="mt-1 text-sm text-gray-600">결재 대기 {finance.pendingApprovals}건</div>
+					<p class="text-sm font-medium text-gray-600">오늘 지출</p>
+					<p class="text-2xl font-bold text-gray-900">{formatKRW(finance.todaySpending)}</p>
+					<div class="mt-1">
+						<ThemeBadge variant="default" size="sm">결재 대기 {finance.pendingApprovals}건</ThemeBadge>
+					</div>
 				</div>
-				{#if BanknoteIcon}<BanknoteIcon class="text-primary/70 group-hover:text-primary" />{/if}
-			</div>
-		</a>
-		<a href="/hr" class="group relative overflow-hidden rounded-xl border border-gray-200 bg-gradient-to-br from-blue-50 to-white p-5 hover:shadow transition">
-			<div class="flex items-center justify-between">
-				<div>
-					<div class="text-sm text-caption">인사</div>
-					<div class="mt-1 text-xl font-semibold">휴가 대기 {hr.pendingLeave}건</div>
-					<div class="mt-1 text-sm text-gray-600">미체크 {hr.missingCheckins}명</div>
+				<div class="h-12 w-12 bg-blue-100 rounded-lg flex items-center justify-center">
+					<BanknoteIcon class="h-6 w-6 text-blue-600" />
 				</div>
-				{#if UsersIcon}<UsersIcon class="text-blue-500/70 group-hover:text-blue-600" />{/if}
 			</div>
-		</a>
-		<a href="/project-management" class="group relative overflow-hidden rounded-xl border border-gray-200 bg-gradient-to-br from-green-50 to-white p-5 hover:shadow transition">
-			<div class="flex items-center justify-between">
-				<div>
-					<div class="text-sm text-caption">연구개발</div>
-					<div class="mt-1 text-xl font-semibold">예산 {formatKRW(rnd.budget)}</div>
-					<div class="mt-1 text-sm text-gray-600">대기 문서 {rnd.pendingDocs}건</div>
-				</div>
-				{#if FlaskConicalIcon}<FlaskConicalIcon class="text-green-600/70 group-hover:text-green-700" />{/if}
-			</div>
-		</a>
+		</ThemeCard>
 
-		<a href="/sales" class="group relative overflow-hidden rounded-xl border border-gray-200 bg-gradient-to-br from-amber-50 to-white p-5 hover:shadow transition">
+		<ThemeCard class="hover:shadow-md transition-shadow">
 			<div class="flex items-center justify-between">
 				<div>
-					<div class="text-sm text-caption">영업</div>
-					<div class="mt-1 text-xl font-semibold">월 매출 {formatKRW(sales.monthRevenue)}</div>
-					<div class="mt-1 text-sm text-gray-600">파이프라인 {formatKRW(sales.pipeline)}</div>
+					<p class="text-sm font-medium text-gray-600">인사 현황</p>
+					<p class="text-2xl font-bold text-gray-900">{hr.pendingLeave}건</p>
+					<div class="mt-1">
+						<ThemeBadge variant="default" size="sm">휴가 대기, 미체크 {hr.missingCheckins}명</ThemeBadge>
+					</div>
 				</div>
-				{#if BriefcaseIcon}<BriefcaseIcon class="text-amber-600/70 group-hover:text-amber-700" />{/if}
+				<div class="h-12 w-12 bg-green-100 rounded-lg flex items-center justify-center">
+					<UsersIcon class="h-6 w-6 text-green-600" />
+				</div>
 			</div>
-		</a>
+		</ThemeCard>
+
+		<ThemeCard class="hover:shadow-md transition-shadow">
+			<div class="flex items-center justify-between">
+				<div>
+					<p class="text-sm font-medium text-gray-600">R&D 예산</p>
+					<p class="text-2xl font-bold text-gray-900">{formatKRW(rnd.budget)}</p>
+					<div class="mt-1">
+						<ThemeBadge variant="default" size="sm">대기 문서 {rnd.pendingDocs}건</ThemeBadge>
+					</div>
+				</div>
+				<div class="h-12 w-12 bg-purple-100 rounded-lg flex items-center justify-center">
+					<FlaskConicalIcon class="h-6 w-6 text-purple-600" />
+				</div>
+			</div>
+		</ThemeCard>
+
+		<ThemeCard class="hover:shadow-md transition-shadow">
+			<div class="flex items-center justify-between">
+				<div>
+					<p class="text-sm font-medium text-gray-600">월 매출</p>
+					<p class="text-2xl font-bold text-gray-900">{formatKRW(sales.monthRevenue)}</p>
+					<div class="mt-1">
+						<ThemeBadge variant="default" size="sm">파이프라인 {formatKRW(sales.pipeline)}</ThemeBadge>
+					</div>
+				</div>
+				<div class="h-12 w-12 bg-orange-100 rounded-lg flex items-center justify-center">
+					<BriefcaseIcon class="h-6 w-6 text-orange-600" />
+				</div>
+			</div>
+		</ThemeCard>
 	</div>
 
-	<!-- 하단 2열: 요약 KPI(대형) / 내 업무(대형) - 글로벌 표준 레이아웃 -->
+	<!-- Main Content Grid -->
 	<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-		<!-- KPI Panel (span 2) -->
-		<div class="lg:col-span-2 rounded-2xl border border-gray-200 bg-white p-6">
-			<div class="flex items-center justify-between mb-4">
-				<h2 class="text-xl font-semibold">Key Metrics</h2>
-				<a href="/project-management/dashboard" class="text-primary text-sm hover:underline">View details</a>
+		<!-- Key Metrics Panel -->
+		<ThemeCard class="lg:col-span-2">
+			<div class="flex items-center justify-between mb-6">
+				<h2 class="text-lg font-semibold text-gray-900">주요 지표</h2>
+				<a href="/analytics" class="text-sm text-blue-600 hover:text-blue-500 font-medium">상세 보기 →</a>
 			</div>
-			<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-				<!-- Budget -->
-				<div class="rounded-xl border border-gray-200 p-4 flex items-start justify-between">
-					<div>
-						<div class="text-caption">Quarter Budget</div>
-						<div class="mt-1 text-2xl font-bold">{formatKRW(rnd.budget)}</div>
+			
+			<div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+				<!-- Budget Utilization -->
+				<div class="space-y-3">
+					<div class="flex items-center justify-between">
+						<h3 class="text-sm font-medium text-gray-600">예산 사용률</h3>
+						<ThemeBadge variant="default">{utilization}%</ThemeBadge>
 					</div>
-					{#if CoinsIcon}<CoinsIcon class="text-primary" />{/if}
-				</div>
-				<!-- Spent -->
-				<div class="rounded-xl border border-gray-200 p-4">
-					<div class="text-caption">Spent</div>
-					<div class="mt-1 text-2xl font-bold">{formatKRW(rnd.spent)}</div>
-					<div class="mt-3"><Progress value={utilization} /></div>
-				</div>
-				<!-- Pending Docs -->
-				<div class="rounded-xl border border-gray-200 p-4 flex items-start justify-between">
-					<div>
-						<div class="text-caption">Pending Docs</div>
-						<div class="mt-1 text-2xl font-bold">{rnd.pendingDocs}</div>
+					<ThemeProgress value={utilization} class="h-2" />
+					<div class="flex justify-between text-xs text-gray-500">
+						<span>사용: {formatKRW(rnd.spent)}</span>
+						<span>예산: {formatKRW(rnd.budget)}</span>
 					</div>
-					{#if FileTextIcon}<FileTextIcon class="text-gray-600" />{/if}
 				</div>
-				<!-- Monthly Revenue -->
-				<div class="rounded-xl border border-gray-200 p-4 flex items-start justify-between">
-					<div>
-						<div class="text-caption">Monthly Revenue</div>
-						<div class="mt-1 text-2xl font-bold">{formatKRW(sales.monthRevenue)}</div>
-					</div>
-					{#if BriefcaseIcon}<BriefcaseIcon class="text-amber-600" />{/if}
-				</div>
-			</div>
-		</div>
 
-		<!-- My Work Panel -->
-		<div class="rounded-2xl border border-gray-200 bg-white p-6">
-			<div class="flex items-center justify-between mb-4">
-				<h2 class="text-xl font-semibold">My Work</h2>
-				<a href="/project-management" class="text-primary text-sm hover:underline">Go to workspace</a>
+				<!-- Revenue Chart Placeholder -->
+				<div class="space-y-3">
+					<h3 class="text-sm font-medium text-gray-600">월별 매출 추이</h3>
+					<div class="h-20 bg-gray-50 rounded-lg flex items-center justify-center">
+						<span class="text-sm text-gray-500">차트 영역</span>
+					</div>
+					<div class="text-xs text-gray-500">
+						이번 달: {formatKRW(sales.monthRevenue)}
+					</div>
+				</div>
 			</div>
-			<ul class="divide-y">
-				{#each myTasks as t}
-					<li class="flex items-center justify-between py-3 text-sm">
-						<span>{t.title}</span>
-						<a class="px-2 py-1 rounded-md border border-primary text-primary hover:bg-primary/5" href={t.href}>Open</a>
-					</li>
+		</ThemeCard>
+
+		<!-- My Tasks Panel -->
+		<ThemeCard>
+			<div class="flex items-center justify-between mb-6">
+				<h2 class="text-lg font-semibold text-gray-900">내 업무</h2>
+				<a href="/tasks" class="text-sm text-blue-600 hover:text-blue-500 font-medium">전체 보기 →</a>
+			</div>
+			
+			<div class="space-y-4">
+				{#each myTasks as task}
+					<div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+						<div class="flex-1 min-w-0">
+							<p class="text-sm font-medium text-gray-900 truncate">{task.title}</p>
+						</div>
+						<a href={task.href} class="ml-3 text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-md hover:bg-blue-200 transition-colors">
+							처리
+						</a>
+					</div>
 				{/each}
-			</ul>
-		</div>
+			</div>
+		</ThemeCard>
 	</div>
-</section>
+
+	<!-- Recent Activity -->
+	<ThemeCard class="mt-6">
+		<div class="flex items-center justify-between mb-6">
+			<h2 class="text-lg font-semibold text-gray-900">최근 활동</h2>
+			<a href="/activity" class="text-sm text-blue-600 hover:text-blue-500 font-medium">전체 보기 →</a>
+		</div>
+		
+		<div class="space-y-4">
+			<div class="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+				<ThemeBadge variant="success" size="sm" class="h-2 w-2 p-0 rounded-full"></ThemeBadge>
+				<div class="flex-1 min-w-0">
+					<p class="text-sm text-gray-900">새로운 프로젝트가 승인되었습니다</p>
+					<p class="text-xs text-gray-500">2시간 전</p>
+				</div>
+			</div>
+			<div class="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+				<ThemeBadge variant="primary" size="sm" class="h-2 w-2 p-0 rounded-full"></ThemeBadge>
+				<div class="flex-1 min-w-0">
+					<p class="text-sm text-gray-900">비용 청구서 3건이 결재를 기다리고 있습니다</p>
+					<p class="text-xs text-gray-500">4시간 전</p>
+				</div>
+			</div>
+			<div class="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+				<ThemeBadge variant="warning" size="sm" class="h-2 w-2 p-0 rounded-full"></ThemeBadge>
+				<div class="flex-1 min-w-0">
+					<p class="text-sm text-gray-900">R&D 보고서 검토가 필요합니다</p>
+					<p class="text-xs text-gray-500">1일 전</p>
+				</div>
+			</div>
+		</div>
+	</ThemeCard>
+</div>

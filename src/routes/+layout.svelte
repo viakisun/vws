@@ -1,24 +1,27 @@
 <script lang="ts">
 	import '../app.css';
-	import AppHeader from '$lib/components/layout/AppHeader.svelte';
+	import Sidebar from '$lib/components/layout/Sidebar.svelte';
 	import { toasts } from '$lib/stores/toasts';
 
 	let { children } = $props();
+	let sidebarCollapsed = $state(false);
 </script>
 
-<div class="min-h-screen flex flex-col">
-	<AppHeader title="Workstream" />
+<div class="min-h-screen bg-gray-50 flex">
+	<!-- Sidebar -->
+	<Sidebar bind:isCollapsed={sidebarCollapsed} />
 
-	<main class="flex-1 w-full max-w-6xl mx-auto px-4 py-6">
-		{@render children()}
-	</main>
-
-	<footer class="flex flex-col items-center justify-center py-3 text-caption">
-		<p>
-			visit <a class="text-primary font-semibold hover:underline" href="https://svelte.dev/docs/kit">svelte.dev/docs/kit</a> to learn about SvelteKit
-		</p>
-	</footer>
+	<!-- Main content area -->
+	<div class="flex-1 flex flex-col min-w-0">
+		<!-- Main content -->
+		<main class="flex-1 p-6">
+			<div class="max-w-7xl mx-auto">
+				{@render children()}
+			</div>
+		</main>
+	</div>
 </div>
+
 
 {#if $toasts.length}
 	<div class="fixed bottom-4 right-4 space-y-2 z-50" aria-live="polite" aria-atomic="true">
