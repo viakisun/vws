@@ -1,6 +1,16 @@
 <script lang="ts">
 	import { XIcon } from 'lucide-svelte';
-	let { open = false, title = '', maxWidth = 'max-w-lg', onClose, children } = $props<{
+	import { createEventDispatcher } from 'svelte';
+	
+	const dispatch = createEventDispatcher();
+	
+	let { 
+		open = $bindable(false), 
+		title = '', 
+		maxWidth = 'max-w-lg', 
+		onClose, 
+		children 
+	} = $props<{
 		open?: boolean;
 		title?: string;
 		maxWidth?: string;
@@ -9,7 +19,9 @@
 	}>();
 
 	function close() {
+		open = false;
 		onClose?.();
+		dispatch('close');
 	}
 </script>
 
