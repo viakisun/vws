@@ -1,278 +1,244 @@
 <script lang="ts">
-	// Props
+	import { onMount } from 'svelte';
+	import ThemeButton from '$lib/components/ui/ThemeButton.svelte';
+	import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-svelte';
+
+	interface Tab {
+		id: string;
+		label: string;
+		icon?: any;
+		badge?: string | number;
+		disabled?: boolean;
+	}
+
 	interface Props {
+		tabs: Tab[];
 		activeTab?: string;
-		variant?: 'default' | 'pills' | 'underline' | 'cards';
-		size?: 'sm' | 'md' | 'lg' | 'xl';
-		orientation?: 'horizontal' | 'vertical';
-		class?: string;
-		onchange?: (activeTab: string) => void;
 		children?: any;
+		class?: string;
+		orientation?: 'horizontal' | 'vertical';
+		size?: 'sm' | 'md' | 'lg';
+		variant?: 'default' | 'pills' | 'underline' | 'cards';
+		scrollable?: boolean;
+		onTabChange?: (tabId: string) => void;
 	}
 
 	let {
-		activeTab = '',
-		variant = 'default',
-		size = 'md',
-		orientation = 'horizontal',
-		class: className = '',
-		onchange,
+		tabs,
+		activeTab = $bindable(tabs[0]?.id || ''),
 		children,
+		class: className = '',
+		orientation = 'horizontal',
+		size = 'md',
+		variant = 'default',
+		scrollable = false,
+		onTabChange,
 		...restProps
 	}: Props = $props();
 
-	// Get tabs classes
-	function getTabsClasses(): string {
-		const baseClasses = 'theme-tabs';
-		const variantClass = `theme-tabs-${variant}`;
-		const sizeClass = `theme-tabs-${size}`;
-		const orientationClass = `theme-tabs-${orientation}`;
+	let currentTab = $state(activeTab);
+	let tabContainer: HTMLDivElement;
+	let scrollPosition = $state(0);
+	let canScrollLeft = $state(false);
+	let canScrollRight = $state(false);
 
-		return [baseClasses, variantClass, sizeClass, orientationClass, className].filter(Boolean).join(' ');
+	// 탭 변경 핸들러
+	function handleTabChange(tabId: string) {
+		if (tabs.find(tab => tab.id === tabId)?.disabled) return;
+		
+		currentTab = tabId;
+		onTabChange?.(tabId);
 	}
 
-	// Get tab classes
-	function getTabClasses(tabId: string): string {
-		const baseClasses = 'theme-tab';
-		const variantClass = `theme-tab-${variant}`;
-		const sizeClass = `theme-tab-${size}`;
-		const activeClass = activeTab === tabId ? 'theme-tab-active' : '';
-
-		return [baseClasses, variantClass, sizeClass, activeClass].filter(Boolean).join(' ');
+	// 스크롤 핸들러
+	function handleScroll() {
+		if (!tabContainer) return;
+		
+		scrollPosition = tabContainer.scrollLeft;
+		canScrollLeft = scrollPosition > 0;
+		canScrollRight = scrollPosition < tabContainer.scrollWidth - tabContainer.clientWidth;
 	}
 
-	// Get panel classes
-	function getPanelClasses(tabId: string): string {
-		const baseClasses = 'theme-tab-panel';
-		const activeClass = activeTab === tabId ? 'theme-tab-panel-active' : '';
-
-		return [baseClasses, activeClass].filter(Boolean).join(' ');
+	// 스크롤 버튼 핸들러
+	function scrollTabs(direction: 'left' | 'right') {
+		if (!tabContainer) return;
+		
+		const scrollAmount = 200;
+		const newPosition = direction === 'left' 
+			? Math.max(0, scrollPosition - scrollAmount)
+			: Math.min(tabContainer.scrollWidth - tabContainer.clientWidth, scrollPosition + scrollAmount);
+		
+		tabContainer.scrollTo({ left: newPosition, behavior: 'smooth' });
 	}
 
-	// Handle tab click
-	function handleTabClick(tabId: string) {
-		activeTab = tabId;
-		if (onchange) {
-			onchange(tabId);
+	// 반응형 탭 크기 클래스
+	const getTabSizeClass = () => {
+		const sizeClasses = {
+			sm: 'px-3 py-1.5 text-sm',
+			md: 'px-4 py-2 text-sm',
+			lg: 'px-6 py-3 text-base'
+		};
+		return sizeClasses[size];
+	};
+
+	// 탭 스타일 클래스
+	const getTabClass = (tab: Tab) => {
+		const isActive = currentTab === tab.id;
+		const baseClass = `flex items-center gap-2 transition-all duration-200 ${getTabSizeClass()}`;
+		
+		if (variant === 'pills') {
+			return `${baseClass} rounded-full ${
+				isActive 
+					? 'text-white shadow-sm' 
+					: 'hover:opacity-80'
+			}`;
 		}
-	}
-
-	// Handle keydown
-	function handleKeydown(event: KeyboardEvent, tabId: string) {
-		if (event.key === 'Enter' || event.key === ' ') {
-			event.preventDefault();
-			handleTabClick(tabId);
+		
+		if (variant === 'underline') {
+			return `${baseClass} border-b-2 ${
+				isActive 
+					? 'border-blue-500 text-blue-600' 
+					: 'border-transparent hover:border-gray-300'
+			}`;
 		}
-	}
+		
+		if (variant === 'cards') {
+			return `${baseClass} rounded-lg border ${
+				isActive 
+					? 'border-blue-500 shadow-sm' 
+					: 'border-gray-200 hover:border-gray-300'
+			}`;
+		}
+		
+		// default variant
+		return `${baseClass} ${
+			isActive 
+				? 'text-white' 
+				: 'hover:opacity-80'
+		}`;
+	};
+
+	// 탭 스타일
+	const getTabStyle = (tab: Tab) => {
+		const isActive = currentTab === tab.id;
+		
+		if (variant === 'pills') {
+			return isActive 
+				? 'background: var(--color-primary);' 
+				: 'color: var(--color-text-secondary); background: transparent;';
+		}
+		
+		if (variant === 'underline') {
+			return isActive 
+				? 'color: var(--color-primary);' 
+				: 'color: var(--color-text-secondary);';
+		}
+		
+		if (variant === 'cards') {
+			return isActive 
+				? 'background: var(--color-surface-elevated); border-color: var(--color-primary);' 
+				: 'background: var(--color-surface); border-color: var(--color-border); color: var(--color-text-secondary);';
+		}
+		
+		// default variant
+		return isActive 
+			? 'background: var(--color-primary);' 
+			: 'color: var(--color-text-secondary); background: transparent;';
+	};
+
+	onMount(() => {
+		if (scrollable && tabContainer) {
+			handleScroll();
+			tabContainer.addEventListener('scroll', handleScroll);
+		}
+	});
 </script>
 
-<div class={getTabsClasses()} {...restProps}>
-	<div class="theme-tabs-list" role="tablist">
-		<slot name="tabs" />
+<div class="theme-tabs {orientation === 'vertical' ? 'flex' : 'block'} {className}" {...restProps}>
+	<!-- 탭 헤더 -->
+	<div class="relative {orientation === 'vertical' ? 'flex-shrink-0 w-48' : 'w-full'}">
+		{#if scrollable && orientation === 'horizontal'}
+			<!-- 스크롤 버튼들 -->
+			{#if canScrollLeft}
+				<button
+					onclick={() => scrollTabs('left')}
+					class="absolute left-0 top-0 z-10 flex items-center justify-center w-8 h-full bg-white/80 hover:bg-white/90 transition-colors"
+					style="background: var(--color-surface);"
+				>
+					<ChevronLeftIcon size={16} style="color: var(--color-text-secondary);" />
+				</button>
+			{/if}
+			
+			{#if canScrollRight}
+				<button
+					onclick={() => scrollTabs('right')}
+					class="absolute right-0 top-0 z-10 flex items-center justify-center w-8 h-full bg-white/80 hover:bg-white/90 transition-colors"
+					style="background: var(--color-surface);"
+				>
+					<ChevronRightIcon size={16} style="color: var(--color-text-secondary);" />
+				</button>
+			{/if}
+		{/if}
+
+		<!-- 탭 리스트 -->
+		<div 
+			bind:this={tabContainer}
+			class="flex {orientation === 'vertical' ? 'flex-col' : 'flex-row'} {scrollable ? 'overflow-x-auto scrollbar-hide' : ''} {variant === 'default' ? 'border-b' : ''}"
+			style="border-color: var(--color-border);"
+			role="tablist"
+		>
+			{#each tabs as tab}
+				<button
+					role="tab"
+					aria-selected={currentTab === tab.id}
+					aria-controls="tabpanel-{tab.id}"
+					disabled={tab.disabled}
+					onclick={() => handleTabChange(tab.id)}
+					class="{getTabClass(tab)} {tab.disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}"
+					style="{getTabStyle(tab)} {tab.disabled ? 'opacity: 0.5;' : ''}"
+				>
+					{#if tab.icon}
+						<tab.icon size={size === 'sm' ? 16 : size === 'lg' ? 20 : 18} />
+					{/if}
+					<span>{tab.label}</span>
+					{#if tab.badge}
+						<span class="inline-flex items-center justify-center px-2 py-0.5 text-xs font-medium rounded-full" 
+							style="background: var(--color-primary); color: white;">
+							{tab.badge}
+						</span>
+					{/if}
+				</button>
+			{/each}
+		</div>
 	</div>
 
-	<div class="theme-tabs-content">
-		<slot name="panels" />
+	<!-- 탭 콘텐츠 -->
+	<div class="flex-1 {orientation === 'vertical' ? 'ml-6' : 'mt-4'}">
+		{#each tabs as tab}
+			<div
+				role="tabpanel"
+				id="tabpanel-{tab.id}"
+				aria-labelledby="tab-{tab.id}"
+				class="{currentTab === tab.id ? 'block' : 'hidden'}"
+			>
+				{@render children(tab)}
+			</div>
+		{/each}
 	</div>
 </div>
 
 <style>
-	.theme-tabs {
-		display: flex;
-		flex-direction: column;
-		gap: 16px;
+	.scrollbar-hide {
+		-ms-overflow-style: none;
+		scrollbar-width: none;
 	}
-
-	.theme-tabs-list {
-		display: flex;
-		gap: 8px;
-		border-bottom: 1px solid var(--color-border);
-	}
-
-	.theme-tab {
-		background: transparent;
-		border: none;
-		padding: 12px 16px;
-		cursor: pointer;
-		transition: all 0.2s ease;
-		font-weight: 500;
-		color: var(--color-text-secondary);
-		position: relative;
-		border-radius: 8px 8px 0 0;
-	}
-
-	.theme-tab:focus {
-		outline: none;
-		box-shadow: 0 0 0 2px var(--color-primary);
-	}
-
-	.theme-tab:hover {
-		color: var(--color-text);
-		background: var(--color-surface);
-	}
-
-	.theme-tab-active {
-		color: var(--color-primary);
-		background: var(--color-surface);
-	}
-
-	.theme-tab-panel {
+	
+	.scrollbar-hide::-webkit-scrollbar {
 		display: none;
-		padding: 20px;
-		background: var(--color-surface);
-		border-radius: 0 0 12px 12px;
 	}
-
-	.theme-tab-panel-active {
-		display: block;
-	}
-
-	/* Variants */
-	.theme-tabs-default {
-		/* Default styling is handled by base classes */
-	}
-
-	.theme-tabs-pills .theme-tabs-list {
-		border-bottom: none;
-		gap: 4px;
-	}
-
-	.theme-tabs-pills .theme-tab {
-		border-radius: 8px;
-		background: var(--color-surface);
-		border: 1px solid var(--color-border);
-	}
-
-	.theme-tabs-pills .theme-tab-active {
-		background: var(--color-primary);
-		color: white;
-		border-color: var(--color-primary);
-	}
-
-	.theme-tabs-underline .theme-tabs-list {
-		border-bottom: 2px solid var(--color-border);
-	}
-
-	.theme-tabs-underline .theme-tab {
-		border-radius: 0;
-		border-bottom: 2px solid transparent;
-	}
-
-	.theme-tabs-underline .theme-tab-active {
-		border-bottom-color: var(--color-primary);
-		background: transparent;
-	}
-
-	.theme-tabs-cards .theme-tabs-list {
-		border-bottom: none;
-		gap: 8px;
-	}
-
-	.theme-tabs-cards .theme-tab {
-		border-radius: 12px;
-		background: var(--color-surface);
-		border: 1px solid var(--color-border);
-		box-shadow: 0 2px 4px var(--color-shadow-light);
-	}
-
-	.theme-tabs-cards .theme-tab-active {
-		background: var(--color-primary);
-		color: white;
-		border-color: var(--color-primary);
-		box-shadow: 0 4px 8px var(--color-shadow);
-	}
-
-	/* Sizes */
-	.theme-tab-sm {
-		padding: 8px 12px;
-		font-size: 12px;
-	}
-
-	.theme-tab-md {
-		padding: 12px 16px;
-		font-size: 14px;
-	}
-
-	.theme-tab-lg {
-		padding: 16px 20px;
-		font-size: 16px;
-	}
-
-	.theme-tab-xl {
-		padding: 20px 24px;
-		font-size: 18px;
-	}
-
-	/* Orientation */
-	.theme-tabs-vertical {
-		flex-direction: row;
-		gap: 24px;
-	}
-
-	.theme-tabs-vertical .theme-tabs-list {
-		flex-direction: column;
-		border-bottom: none;
-		border-right: 1px solid var(--color-border);
-		width: 200px;
-	}
-
-	.theme-tabs-vertical .theme-tab {
-		border-radius: 8px 0 0 8px;
-		text-align: left;
-	}
-
-	.theme-tabs-vertical .theme-tab-panel {
-		flex: 1;
-		border-radius: 0 12px 12px 0;
-	}
-
-	/* Responsive design */
-	@media (max-width: 640px) {
-		.theme-tabs-list {
-			flex-wrap: wrap;
-			gap: 4px;
-		}
-
-		.theme-tab-sm {
-			padding: 6px 10px;
-			font-size: 11px;
-		}
-
-		.theme-tab-md {
-			padding: 10px 14px;
-			font-size: 13px;
-		}
-
-		.theme-tab-lg {
-			padding: 14px 18px;
-			font-size: 15px;
-		}
-
-		.theme-tab-xl {
-			padding: 18px 22px;
-			font-size: 17px;
-		}
-
-		.theme-tab-panel {
-			padding: 16px;
-		}
-
-		.theme-tabs-vertical {
-			flex-direction: column;
-		}
-
-		.theme-tabs-vertical .theme-tabs-list {
-			width: 100%;
-			border-right: none;
-			border-bottom: 1px solid var(--color-border);
-		}
-
-		.theme-tabs-vertical .theme-tab {
-			border-radius: 8px;
-		}
-
-		.theme-tabs-vertical .theme-tab-panel {
-			border-radius: 0 0 12px 12px;
-		}
+	
+	.theme-tabs button[role="tab"]:focus {
+		outline: 2px solid var(--color-primary);
+		outline-offset: 2px;
 	}
 </style>

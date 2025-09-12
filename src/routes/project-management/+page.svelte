@@ -1,8 +1,34 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import Card from '$lib/components/ui/Card.svelte';
-	import Badge from '$lib/components/ui/Badge.svelte';
+	import PageLayout from '$lib/components/layout/PageLayout.svelte';
+	import ThemeCard from '$lib/components/ui/ThemeCard.svelte';
+	import ThemeBadge from '$lib/components/ui/ThemeBadge.svelte';
+	import ThemeButton from '$lib/components/ui/ThemeButton.svelte';
+	import ThemeGrid from '$lib/components/ui/ThemeGrid.svelte';
+	import ThemeSpacer from '$lib/components/ui/ThemeSpacer.svelte';
+	import ThemeSectionHeader from '$lib/components/ui/ThemeSectionHeader.svelte';
+	import ThemeStatCard from '$lib/components/ui/ThemeStatCard.svelte';
+	import ThemeChartPlaceholder from '$lib/components/ui/ThemeChartPlaceholder.svelte';
+	import ThemeActivityItem from '$lib/components/ui/ThemeActivityItem.svelte';
+	import ThemeProgressCard from '$lib/components/ui/ThemeProgressCard.svelte';
 	import { formatDate } from '$lib/utils/format';
+	import { 
+		BriefcaseIcon, 
+		UsersIcon, 
+		CalendarIcon, 
+		TrendingUpIcon,
+		PlusIcon,
+		EyeIcon,
+		EditIcon,
+		TrashIcon,
+		ClockIcon,
+		CheckCircleIcon,
+		AlertCircleIcon,
+		TargetIcon,
+		DollarSignIcon,
+		FileTextIcon,
+		SettingsIcon
+	} from 'lucide-svelte';
 	
 	// 스토어 임포트
 	import { 
@@ -50,404 +76,373 @@
 	let canViewLabHead = $derived(() => canAccessLabHeadDashboard(user));
 	let canViewPM = $derived(() => canAccessPMDashboard(user));
 	let canViewSupport = $derived(() => canAccessSupportDashboard(user));
-	let canViewResearcher = $derived(() => canAccessResearcherDashboard(user));
 
-	// 데이터 로드
-	async function loadDashboardData() {
-		// 사용자 정보 로드
-		user = {
-			id: 'current-user',
-			name: '김관리자',
-			email: 'admin@company.com',
-			department: '경영지원팀',
-			roleSet: ['R4', 'R5', 'R6'],
-			active: true
-		};
-		
-		userRoles = getUserRoleNames(user);
-		
-		// 대시보드 데이터 로드
-		healthData = getHealthDashboardData();
-		
-		// 프로젝트 데이터 로드
-		activeProjects = getActiveProjects($projects);
-		
-		// 프로젝트별 헬스 인디케이터 계산
-		projectHealthIndicators = activeProjects.map(project => 
-			calculateHealthIndicator(project.id)
-		);
-	}
-
-	// 헬스 상태 텍스트
-	function getHealthText(status: string) {
-		switch (status) {
-			case 'green': return '양호';
-			case 'amber': return '주의';
-			case 'red': return '위험';
-			default: return '알 수 없음';
+	// 통계 데이터
+	const stats = [
+		{
+			title: '진행중인 프로젝트',
+			value: activeProjects.length,
+			change: '+2',
+			changeType: 'positive' as const,
+			icon: BriefcaseIcon
+		},
+		{
+			title: '참여 인원',
+			value: activeProjects.reduce((sum, project) => sum + (project.team?.length || 0), 0),
+			change: '+5',
+			changeType: 'positive' as const,
+			icon: UsersIcon
+		},
+		{
+			title: '완료율',
+			value: `${Math.round(activeProjects.reduce((sum, project) => sum + (project.progress || 0), 0) / Math.max(activeProjects.length, 1))}%`,
+			change: '+3%',
+			changeType: 'positive' as const,
+			icon: TrendingUpIcon
+		},
+		{
+			title: '예산 사용률',
+			value: '78%',
+			change: '+2%',
+			changeType: 'positive' as const,
+			icon: DollarSignIcon
 		}
-	}
+	];
 
-	onMount(() => {
-		loadDashboardData();
+	// 액션 버튼들
+	const actions = [
+		{
+			label: '프로젝트 생성',
+			icon: PlusIcon,
+			onclick: () => console.log('Create project'),
+			variant: 'primary' as const
+		},
+		{
+			label: '보고서 생성',
+			icon: FileTextIcon,
+			onclick: () => console.log('Generate report'),
+			variant: 'success' as const
+		}
+	];
+
+	// 프로젝트 상태별 색상
+	const getStatusColor = (status: string) => {
+		const colors = {
+			'planning': 'info',
+			'in-progress': 'primary',
+			'on-hold': 'warning',
+			'completed': 'success',
+			'cancelled': 'error'
+		};
+		return colors[status] || 'default';
+	};
+
+	// 프로젝트 상태별 한글 라벨
+	const getStatusLabel = (status: string) => {
+		const labels = {
+			'planning': '계획중',
+			'in-progress': '진행중',
+			'on-hold': '보류',
+			'completed': '완료',
+			'cancelled': '취소'
+		};
+		return labels[status] || status;
+	};
+
+	// 프로젝트 건강도 색상
+	const getHealthColor = (health: number) => {
+		if (health >= 80) return 'success';
+		if (health >= 60) return 'warning';
+		return 'error';
+	};
+
+	// 최근 활동 데이터
+	let recentActivities = $derived(() => {
+		const activities: Array<{
+			type: string;
+			title: string;
+			description: string;
+			time: string;
+			icon: any;
+			color: string;
+		}> = [];
+
+		// 최근 프로젝트 업데이트
+		activeProjects
+			.sort((a, b) => new Date(b.updatedAt || b.createdAt).getTime() - new Date(a.updatedAt || a.createdAt).getTime())
+			.slice(0, 3)
+			.forEach(project => {
+				activities.push({
+					type: 'project',
+					title: '프로젝트 업데이트',
+					description: `${project.name} 프로젝트가 업데이트되었습니다.`,
+					time: project.updatedAt || project.createdAt,
+					icon: BriefcaseIcon,
+					color: 'text-blue-600'
+				});
+			});
+
+		// 최근 마일스톤 완료
+		activeProjects
+			.flatMap(project => project.milestones || [])
+			.filter(milestone => milestone.status === 'completed')
+			.sort((a, b) => new Date(b.completedAt).getTime() - new Date(a.completedAt).getTime())
+			.slice(0, 2)
+			.forEach(milestone => {
+				activities.push({
+					type: 'milestone',
+					title: '마일스톤 완료',
+					description: `${milestone.title} 마일스톤이 완료되었습니다.`,
+					time: milestone.completedAt,
+					icon: CheckCircleIcon,
+					color: 'text-green-600'
+				});
+			});
+
+		return activities.slice(0, 5);
+	});
+
+	// 프로젝트별 진행률 데이터
+	let projectProgressData = $derived(() => {
+		return activeProjects.map(project => ({
+			name: project.name,
+			progress: project.progress || 0,
+			status: project.status,
+			health: calculateHealthIndicator(project)
+		}));
+	});
+
+	// 위험 프로젝트
+	let riskProjects = $derived(() => {
+		return activeProjects.filter(project => {
+			const health = calculateHealthIndicator(project);
+			return health < 60 || project.status === 'on-hold';
+		});
+	});
+
+	onMount(async () => {
+		try {
+			// 사용자 정보 로드
+			user = currentUser;
+			userRoles = getUserRoleNames(user);
+			
+			// 프로젝트 데이터 로드
+			activeProjects = getActiveProjects($projects);
+			
+			// 건강도 데이터 로드
+			healthData = getHealthDashboardData(activeProjects);
+			
+			// 프로젝트 건강도 지표 계산
+			projectHealthIndicators = activeProjects.map(project => ({
+				...project,
+				health: calculateHealthIndicator(project)
+			}));
+			
+			console.log('Project Management 페이지 로드됨', {
+				user,
+				userRoles,
+				dashboardType: dashboardType,
+				activeProjects: activeProjects.length
+			});
+		} catch (error) {
+			console.error('데이터 로드 중 오류:', error);
+		}
 	});
 </script>
 
-<div class="min-h-screen bg-gray-50 p-6">
-	<div class="max-w-7xl mx-auto">
-		<!-- 헤더 -->
-		<div class="mb-8">
-			<h1 class="text-3xl font-bold text-gray-900">사업·R&D·HR 통합관리 시스템</h1>
-			<p class="text-gray-600 mt-1">
-				{user?.name}님 ({userRoles.join(', ')}) - {dashboardType()} 대시보드
-			</p>
+<PageLayout
+	title="프로젝트 관리"
+	subtitle="프로젝트 현황, 진행률, 팀 관리"
+	{stats}
+	{actions}
+	searchPlaceholder="프로젝트명, 담당자, 상태로 검색..."
+>
+	<!-- 프로젝트 목록 -->
+	<ThemeCard class="p-6">
+		<div class="flex items-center justify-between mb-6">
+			<h3 class="text-lg font-semibold" style="color: var(--color-text);">프로젝트 목록</h3>
+			<div class="flex items-center gap-2">
+				<ThemeButton variant="primary" size="sm" class="flex items-center gap-2">
+					<PlusIcon size={16} />
+					새 프로젝트
+				</ThemeButton>
+			</div>
 		</div>
-
-		<!-- 경영진 대시보드 -->
-		{#if canViewExecutive()}
-			<div class="mb-8">
-				<h2 class="text-2xl font-semibold text-gray-900 mb-6">경영진 대시보드</h2>
-				
-				<!-- 전체 현황 카드 -->
-				<div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-					<Card>
-						<div class="p-6">
-							<div class="flex items-center">
-								<div class="flex-shrink-0">
-									<div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-										<span class="text-white text-sm font-medium">P</span>
-									</div>
-								</div>
-								<div class="ml-4">
-									<p class="text-sm font-medium text-gray-500">활성 프로젝트</p>
-									<p class="text-2xl font-semibold text-gray-900">{activeProjects.length}</p>
-								</div>
+		
+		<div class="space-y-4">
+			{#each activeProjects as project}
+				<div class="flex items-center justify-between p-4 rounded-lg border" style="border-color: var(--color-border); background: var(--color-surface-elevated);">
+					<div class="flex-1">
+						<div class="flex items-center gap-3 mb-2">
+							<BriefcaseIcon size={20} style="color: var(--color-primary);" />
+							<h4 class="font-medium" style="color: var(--color-text);">{project.name}</h4>
+							<ThemeBadge variant={getStatusColor(project.status)}>
+								{getStatusLabel(project.status)}
+							</ThemeBadge>
+							<ThemeBadge variant={getHealthColor(calculateHealthIndicator(project))}>
+								건강도: {calculateHealthIndicator(project)}%
+							</ThemeBadge>
+						</div>
+						<div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm" style="color: var(--color-text-secondary);">
+							<div class="flex items-center gap-2">
+								<UsersIcon size={16} />
+								팀: {project.team?.length || 0}명
+							</div>
+							<div class="flex items-center gap-2">
+								<CalendarIcon size={16} />
+								마감: {formatDate(project.endDate)}
+							</div>
+							<div class="flex items-center gap-2">
+								<DollarSignIcon size={16} />
+								예산: {project.budget ? `₩${project.budget.toLocaleString()}` : '미정'}
 							</div>
 						</div>
-					</Card>
-					
-					<Card>
-						<div class="p-6">
-							<div class="flex items-center">
-								<div class="flex-shrink-0">
-									<div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
-										<span class="text-white text-sm font-medium">H</span>
-									</div>
-								</div>
-								<div class="ml-4">
-									<p class="text-sm font-medium text-gray-500">양호 상태</p>
-									<p class="text-2xl font-semibold text-gray-900">{healthData?.greenCount || 0}</p>
-								</div>
-							</div>
-						</div>
-					</Card>
-					
-					<Card>
-						<div class="p-6">
-							<div class="flex items-center">
-								<div class="flex-shrink-0">
-									<div class="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">
-										<span class="text-white text-sm font-medium">A</span>
-									</div>
-								</div>
-								<div class="ml-4">
-									<p class="text-sm font-medium text-gray-500">주의 상태</p>
-									<p class="text-2xl font-semibold text-gray-900">{healthData?.amberCount || 0}</p>
-								</div>
-							</div>
-						</div>
-					</Card>
-					
-					<Card>
-						<div class="p-6">
-							<div class="flex items-center">
-								<div class="flex-shrink-0">
-									<div class="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center">
-										<span class="text-white text-sm font-medium">R</span>
-									</div>
-								</div>
-								<div class="ml-4">
-									<p class="text-sm font-medium text-gray-500">위험 상태</p>
-									<p class="text-2xl font-semibold text-gray-900">{healthData?.redCount || 0}</p>
-								</div>
-							</div>
-						</div>
-					</Card>
-				</div>
-
-				<!-- 프로젝트 헬스 상태 -->
-				<Card class="mb-8">
-					<div class="p-6">
-						<h3 class="text-lg font-semibold text-gray-900 mb-4">프로젝트 헬스 상태</h3>
-						<div class="overflow-x-auto">
-							<table class="min-w-full divide-y divide-gray-200">
-								<thead class="bg-gray-50">
-									<tr>
-										<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">프로젝트</th>
-										<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">일정</th>
-										<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">예산</th>
-										<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">인력</th>
-										<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">리스크</th>
-										<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">전체</th>
-									</tr>
-								</thead>
-								<tbody class="bg-white divide-y divide-gray-200">
-									{#each projectHealthIndicators as indicator}
-										<tr class="hover:bg-gray-50">
-											<td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-												{activeProjects.find(p => p.id === indicator.projectId)?.title || 'Unknown'}
-											</td>
-											<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{indicator.schedule}점</td>
-											<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{indicator.budget}점</td>
-											<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{indicator.people}점</td>
-											<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{indicator.risk}점</td>
-											<td class="px-6 py-4 whitespace-nowrap">
-												<Badge variant={indicator.overall === 'green' ? 'success' : indicator.overall === 'amber' ? 'warning' : 'danger'}>
-													{getHealthText(indicator.overall)}
-												</Badge>
-											</td>
-										</tr>
-									{/each}
-								</tbody>
-							</table>
+						<div class="mt-3">
+							<ThemeProgressCard
+								label="진행률"
+								value={project.progress || 0}
+								max={100}
+								showValue={true}
+								variant={project.progress >= 80 ? 'success' : project.progress >= 50 ? 'primary' : 'warning'}
+							/>
 						</div>
 					</div>
-				</Card>
-			</div>
-		{/if}
-
-		<!-- 연구소장 대시보드 -->
-		{#if canViewLabHead()}
-			<div class="mb-8">
-				<h2 class="text-2xl font-semibold text-gray-900 mb-6">연구소장 대시보드</h2>
-				
-				<!-- 주간 리포트 및 알림 -->
-				<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-					<Card>
-						<div class="p-6">
-							<h3 class="text-lg font-semibold text-gray-900 mb-4">주간 리포트 요약</h3>
-							<div class="space-y-4">
-								<div class="flex justify-between items-center">
-									<span class="text-sm text-gray-600">완료된 마일스톤</span>
-									<span class="text-sm font-medium text-gray-900">12/15</span>
-								</div>
-								<div class="flex justify-between items-center">
-									<span class="text-sm text-gray-600">예산 집행률</span>
-									<span class="text-sm font-medium text-gray-900">68%</span>
-								</div>
-								<div class="flex justify-between items-center">
-									<span class="text-sm text-gray-600">연구노트 제출률</span>
-									<span class="text-sm font-medium text-gray-900">85%</span>
-								</div>
-							</div>
-						</div>
-					</Card>
-					
-					<Card>
-						<div class="p-6">
-							<h3 class="text-lg font-semibold text-gray-900 mb-4">SLA 알림</h3>
-							<div class="space-y-3">
-								<div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-									<div>
-										<p class="text-sm font-medium text-gray-900">PM 승인 마감 1일 전입니다.</p>
-										<p class="text-xs text-gray-500">2시간 전</p>
-									</div>
-									<Badge variant="warning">medium</Badge>
-								</div>
-								<div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-									<div>
-										<p class="text-sm font-medium text-gray-900">연구노트 제출 마감일입니다.</p>
-										<p class="text-xs text-gray-500">4시간 전</p>
-									</div>
-									<Badge variant="danger">high</Badge>
-								</div>
-							</div>
-						</div>
-					</Card>
-				</div>
-			</div>
-		{/if}
-
-		<!-- PM 대시보드 -->
-		{#if canViewPM()}
-			<div class="mb-8">
-				<h2 class="text-2xl font-semibold text-gray-900 mb-6">PM 대시보드</h2>
-				
-				<!-- 프로젝트 목록 -->
-				<div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-					{#each activeProjects as project}
-						<Card>
-							<div class="p-6">
-								<div class="flex justify-between items-start mb-4">
-									<div>
-										<h3 class="text-lg font-semibold text-gray-900">{project.title}</h3>
-										<p class="text-sm text-gray-500">{project.code}</p>
-									</div>
-									<Badge variant={project.status === 'active' ? 'success' : 'secondary'}>
-										{project.status}
-									</Badge>
-								</div>
-								
-								<div class="space-y-3">
-									<div class="flex justify-between items-center">
-										<span class="text-sm text-gray-600">시작일</span>
-										<span class="text-sm font-medium text-gray-900">{formatDate(project.startDate)}</span>
-									</div>
-									<div class="flex justify-between items-center">
-										<span class="text-sm text-gray-600">종료일</span>
-										<span class="text-sm font-medium text-gray-900">{formatDate(project.endDate)}</span>
-									</div>
-									<div class="flex justify-between items-center">
-										<span class="text-sm text-gray-600">상태</span>
-										{#each projectHealthIndicators as health}
-											{#if health.projectId === project.id}
-												<Badge variant={health.overall === 'green' ? 'success' : health.overall === 'amber' ? 'warning' : 'danger'}>
-													{getHealthText(health.overall)}
-												</Badge>
-											{/if}
-										{/each}
-									</div>
-								</div>
-								
-								<div class="mt-4">
-									<button
-										class="w-full px-4 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 transition-colors"
-									>
-										상세 보기
-									</button>
-								</div>
-							</div>
-						</Card>
-		{/each}
-	</div>
-			</div>
-		{/if}
-
-		<!-- 경영지원 대시보드 -->
-		{#if canViewSupport()}
-			<div class="mb-8">
-				<h2 class="text-2xl font-semibold text-gray-900 mb-6">경영지원 대시보드</h2>
-				
-				<!-- 결재 대기 및 번들 현황 -->
-				<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-					<Card>
-						<div class="p-6">
-							<h3 class="text-lg font-semibold text-gray-900 mb-4">결재 대기 현황</h3>
-							<div class="space-y-3">
-								<div class="flex justify-between items-center">
-									<span class="text-sm text-gray-600">PM 승인 대기</span>
-									<span class="text-sm font-medium text-gray-900">5건</span>
-								</div>
-								<div class="flex justify-between items-center">
-									<span class="text-sm text-gray-600">경영지원 검토 대기</span>
-									<span class="text-sm font-medium text-gray-900">3건</span>
-								</div>
-								<div class="flex justify-between items-center">
-									<span class="text-sm text-gray-600">연구소장 승인 대기</span>
-									<span class="text-sm font-medium text-gray-900">1건</span>
-								</div>
-							</div>
-						</div>
-					</Card>
-					
-					<Card>
-						<div class="p-6">
-							<h3 class="text-lg font-semibold text-gray-900 mb-4">업로드 번들 현황</h3>
-							<div class="space-y-3">
-								<div class="flex justify-between items-center">
-									<span class="text-sm text-gray-600">생성 중</span>
-									<span class="text-sm font-medium text-gray-900">2건</span>
-								</div>
-								<div class="flex justify-between items-center">
-									<span class="text-sm text-gray-600">준비 완료</span>
-									<span class="text-sm font-medium text-gray-900">5건</span>
-								</div>
-								<div class="flex justify-between items-center">
-									<span class="text-sm text-gray-600">업로드 완료</span>
-									<span class="text-sm font-medium text-gray-900">12건</span>
-								</div>
-							</div>
-						</div>
-					</Card>
-				</div>
-			</div>
-		{/if}
-
-		<!-- 연구원 대시보드 -->
-		{#if canViewResearcher()}
-			<div class="mb-8">
-				<h2 class="text-2xl font-semibold text-gray-900 mb-6">연구원 대시보드</h2>
-				
-				<!-- 개인 업무 현황 -->
-				<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-					<Card>
-						<div class="p-6">
-							<h3 class="text-lg font-semibold text-gray-900 mb-4">이번 주 할 일</h3>
-							<div class="space-y-3">
-								<div class="flex items-center space-x-3">
-									<input type="checkbox" class="rounded">
-									<span class="text-sm text-gray-900">연구노트 작성</span>
-								</div>
-								<div class="flex items-center space-x-3">
-									<input type="checkbox" class="rounded">
-									<span class="text-sm text-gray-900">실험 결과 분석</span>
-								</div>
-								<div class="flex items-center space-x-3">
-									<input type="checkbox" class="rounded">
-									<span class="text-sm text-gray-900">산출물 업로드</span>
-								</div>
-							</div>
-						</div>
-					</Card>
-					
-					<Card>
-						<div class="p-6">
-							<h3 class="text-lg font-semibold text-gray-900 mb-4">참여 프로젝트</h3>
-							<div class="space-y-3">
-								{#each activeProjects.slice(0, 3) as project}
-									<div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-										<div>
-											<p class="text-sm font-medium text-gray-900">{project.title}</p>
-											<p class="text-xs text-gray-500">{project.code}</p>
-										</div>
-										<Badge variant="secondary">참여중</Badge>
-									</div>
-								{/each}
-							</div>
-						</div>
-					</Card>
-				</div>
-			</div>
-		{/if}
-
-		<!-- 공통 섹션: 최근 활동 -->
-		<Card>
-			<div class="p-6">
-				<h3 class="text-lg font-semibold text-gray-900 mb-4">최근 활동</h3>
-				<div class="space-y-4">
-					<div class="flex items-center space-x-3">
-						<div class="w-2 h-2 bg-blue-500 rounded-full"></div>
-						<div>
-							<p class="text-sm text-gray-900">새로운 지출 요청이 생성되었습니다.</p>
-							<p class="text-xs text-gray-500">2시간 전</p>
-						</div>
-					</div>
-					<div class="flex items-center space-x-3">
-						<div class="w-2 h-2 bg-green-500 rounded-full"></div>
-						<div>
-							<p class="text-sm text-gray-900">마일스톤이 완료되었습니다.</p>
-							<p class="text-xs text-gray-500">4시간 전</p>
-						</div>
-					</div>
-					<div class="flex items-center space-x-3">
-						<div class="w-2 h-2 bg-yellow-500 rounded-full"></div>
-						<div>
-							<p class="text-sm text-gray-900">연구노트가 제출되었습니다.</p>
-							<p class="text-xs text-gray-500">6시간 전</p>
-						</div>
+					<div class="flex items-center gap-2">
+						<ThemeButton variant="ghost" size="sm">
+							<EyeIcon size={16} />
+						</ThemeButton>
+						<ThemeButton variant="ghost" size="sm">
+							<EditIcon size={16} />
+						</ThemeButton>
+						<ThemeButton variant="ghost" size="sm">
+							<SettingsIcon size={16} />
+						</ThemeButton>
 					</div>
 				</div>
+			{/each}
+		</div>
+	</ThemeCard>
+
+	<!-- 프로젝트 분석 -->
+	<ThemeGrid cols={1} lgCols={2} gap={6}>
+		<!-- 프로젝트 진행률 -->
+		<ThemeCard class="p-6">
+			<ThemeSectionHeader title="프로젝트 진행률" />
+			<ThemeSpacer size={4}>
+				{#each projectProgressData as project}
+					<div class="flex items-center justify-between p-3 rounded-lg" style="background: var(--color-surface-elevated);">
+						<div class="flex-1">
+							<h4 class="font-medium" style="color: var(--color-text);">{project.name}</h4>
+							<div class="flex items-center gap-2 mt-1">
+								<ThemeBadge variant={getStatusColor(project.status)}>
+									{getStatusLabel(project.status)}
+								</ThemeBadge>
+								<ThemeBadge variant={getHealthColor(project.health)}>
+									건강도: {project.health}%
+								</ThemeBadge>
+							</div>
+						</div>
+						<div class="text-right">
+							<span class="text-lg font-bold" style="color: var(--color-primary);">
+								{project.progress}%
+							</span>
+						</div>
+					</div>
+				{/each}
+			</ThemeSpacer>
+		</ThemeCard>
+
+		<!-- 위험 프로젝트 -->
+		<ThemeCard class="p-6">
+			<ThemeSectionHeader title="위험 프로젝트" />
+			<ThemeSpacer size={4}>
+				{#each riskProjects as project}
+					<div class="flex items-center justify-between p-3 rounded-lg" style="background: var(--color-surface-elevated);">
+						<div class="flex-1">
+							<h4 class="font-medium" style="color: var(--color-text);">{project.name}</h4>
+							<p class="text-sm" style="color: var(--color-text-secondary);">
+								건강도: {calculateHealthIndicator(project)}%
+							</p>
+							<div class="flex items-center gap-2 mt-1">
+								<ThemeBadge variant="error">
+									{project.status === 'on-hold' ? '보류' : '위험'}
+								</ThemeBadge>
+							</div>
+						</div>
+						<div class="text-right">
+							<ThemeButton variant="warning" size="sm">
+								<AlertCircleIcon size={16} />
+							</ThemeButton>
+						</div>
+					</div>
+				{/each}
+			</ThemeSpacer>
+		</ThemeCard>
+	</ThemeGrid>
+
+	<!-- 최근 활동 -->
+	<ThemeCard class="p-6">
+		<ThemeSectionHeader title="최근 활동" />
+		<ThemeSpacer size={4}>
+			{#each recentActivities as activity}
+				<ThemeActivityItem
+					title={activity.title}
+					description={activity.description}
+					time={activity.time}
+					icon={activity.icon}
+					color={activity.color}
+				/>
+			{/each}
+		</ThemeSpacer>
+	</ThemeCard>
+
+	<!-- 차트 섹션 -->
+	<ThemeGrid cols={1} lgCols={2} gap={6}>
+		<!-- 프로젝트 상태 분포 -->
+		<ThemeCard class="p-6">
+			<ThemeSectionHeader title="프로젝트 상태 분포" />
+			<ThemeChartPlaceholder
+				title="상태별 분포"
+				description="프로젝트 상태별 분포 현황"
+				icon={TargetIcon}
+			/>
+		</ThemeCard>
+
+		<!-- 월별 진행률 추이 -->
+		<ThemeCard class="p-6">
+			<ThemeSectionHeader title="월별 진행률 추이" />
+			<ThemeChartPlaceholder
+				title="진행률 분석"
+				description="최근 6개월간 프로젝트 진행률"
+				icon={TrendingUpIcon}
+			/>
+		</ThemeCard>
+	</ThemeGrid>
+
+	<!-- 권한별 대시보드 정보 -->
+	{#if canViewExecutive}
+		<ThemeCard class="p-6">
+			<ThemeSectionHeader title="경영진 대시보드" />
+			<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+				<div class="p-4 rounded-lg" style="background: var(--color-surface-elevated);">
+					<h4 class="font-medium mb-2" style="color: var(--color-text);">전체 예산</h4>
+					<p class="text-2xl font-bold" style="color: var(--color-primary);">
+						₩{activeProjects.reduce((sum, project) => sum + (project.budget || 0), 0).toLocaleString()}
+					</p>
+				</div>
+				<div class="p-4 rounded-lg" style="background: var(--color-surface-elevated);">
+					<h4 class="font-medium mb-2" style="color: var(--color-text);">평균 건강도</h4>
+					<p class="text-2xl font-bold" style="color: var(--color-success);">
+						{Math.round(activeProjects.reduce((sum, project) => sum + calculateHealthIndicator(project), 0) / Math.max(activeProjects.length, 1))}%
+					</p>
+				</div>
+				<div class="p-4 rounded-lg" style="background: var(--color-surface-elevated);">
+					<h4 class="font-medium mb-2" style="color: var(--color-text);">완료 예정</h4>
+					<p class="text-2xl font-bold" style="color: var(--color-info);">
+						{activeProjects.filter(project => project.status === 'in-progress' && project.progress >= 80).length}개
+					</p>
+				</div>
 			</div>
-		</Card>
-	</div>
-</div>
+		</ThemeCard>
+	{/if}
+</PageLayout>

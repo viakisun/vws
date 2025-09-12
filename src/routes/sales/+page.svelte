@@ -1,8 +1,35 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { Badge } from '$lib/components/ui/Badge.svelte';
-	import { Card } from '$lib/components/ui/Card.svelte';
-	import { Modal } from '$lib/components/ui/Modal.svelte';
+	import PageLayout from '$lib/components/layout/PageLayout.svelte';
+	import ThemeCard from '$lib/components/ui/ThemeCard.svelte';
+	import ThemeBadge from '$lib/components/ui/ThemeBadge.svelte';
+	import ThemeButton from '$lib/components/ui/ThemeButton.svelte';
+	import ThemeGrid from '$lib/components/ui/ThemeGrid.svelte';
+	import ThemeSpacer from '$lib/components/ui/ThemeSpacer.svelte';
+	import ThemeSectionHeader from '$lib/components/ui/ThemeSectionHeader.svelte';
+	import ThemeStatCard from '$lib/components/ui/ThemeStatCard.svelte';
+	import ThemeChartPlaceholder from '$lib/components/ui/ThemeChartPlaceholder.svelte';
+	import ThemeActivityItem from '$lib/components/ui/ThemeActivityItem.svelte';
+	import ThemeModal from '$lib/components/ui/ThemeModal.svelte';
+	import ThemeInput from '$lib/components/ui/ThemeInput.svelte';
+	import ThemeDropdown from '$lib/components/ui/ThemeDropdown.svelte';
+	import { formatCurrency, formatDate } from '$lib/utils/format';
+	import { 
+		TrendingUpIcon, 
+		UsersIcon, 
+		DollarSignIcon, 
+		TargetIcon,
+		PlusIcon,
+		EyeIcon,
+		EditIcon,
+		TrashIcon,
+		PhoneIcon,
+		MailIcon,
+		CalendarIcon,
+		BuildingIcon,
+		SearchIcon,
+		FilterIcon
+	} from 'lucide-svelte';
 
 	// Mock sales data
 	let salesData = $state({
@@ -38,429 +65,390 @@
 				createdAt: '2024-01-10',
 				lastContact: '2024-01-18',
 				notes: '제안서 검토 중, 추가 미팅 예정'
+			},
+			{
+				id: 'lead-3',
+				company: 'DEF 스타트업',
+				contact: '이지은',
+				position: 'CEO',
+				email: 'lee@defstartup.com',
+				phone: '010-5555-1234',
+				industry: '핀테크',
+				status: 'negotiation',
+				value: 15000000,
+				probability: 80,
+				source: '이벤트',
+				createdAt: '2024-01-08',
+				lastContact: '2024-01-19',
+				notes: '가격 협상 중, 빠른 결정 예상'
+			}
+		],
+		opportunities: [
+			{
+				id: 'opp-1',
+				title: 'ABC 테크놀로지 AI 솔루션',
+				company: 'ABC 테크놀로지',
+				value: 50000000,
+				stage: 'proposal',
+				probability: 70,
+				expectedClose: '2024-02-15',
+				owner: '김영희',
+				createdAt: '2024-01-15'
+			},
+			{
+				id: 'opp-2',
+				title: 'XYZ 제조 스마트팩토리',
+				company: 'XYZ 제조',
+				value: 30000000,
+				stage: 'negotiation',
+				probability: 50,
+				expectedClose: '2024-02-28',
+				owner: '박민수',
+				createdAt: '2024-01-10'
+			}
+		],
+		deals: [
+			{
+				id: 'deal-1',
+				title: 'DEF 스타트업 핀테크 솔루션',
+				company: 'DEF 스타트업',
+				value: 15000000,
+				stage: 'closed-won',
+				closedDate: '2024-01-20',
+				owner: '이지은'
 			}
 		]
 	});
 
-	let selectedLead: any = null;
+	let selectedLead = $state(null);
 	let showLeadModal = $state(false);
 	let showCreateModal = $state(false);
 	let searchTerm = $state('');
-	let selectedStatus = $state<string>('all');
+	let selectedStatus = $state('all');
 
-	// Form data for creating new lead
-	let formData = $state({
-		company: '',
-		contact: '',
-		position: '',
-		email: '',
-		phone: '',
-		industry: '',
-		status: 'new',
-		value: 0,
-		probability: 0,
-		source: '',
-		notes: ''
-	});
+	// 통계 데이터
+	const stats = [
+		{
+			title: '총 리드 수',
+			value: salesData.leads.length,
+			change: '+12%',
+			changeType: 'positive' as const,
+			icon: UsersIcon
+		},
+		{
+			title: '진행중인 기회',
+			value: salesData.opportunities.length,
+			change: '+3',
+			changeType: 'positive' as const,
+			icon: TargetIcon
+		},
+		{
+			title: '예상 매출',
+			value: formatCurrency(salesData.opportunities.reduce((sum, opp) => sum + opp.value, 0)),
+			change: '+25%',
+			changeType: 'positive' as const,
+			icon: DollarSignIcon
+		},
+		{
+			title: '성공률',
+			value: '68%',
+			change: '+5%',
+			changeType: 'positive' as const,
+			icon: TrendingUpIcon
+		}
+	];
 
-	// Get filtered leads
+	// 액션 버튼들
+	const actions = [
+		{
+			label: '리드 추가',
+			icon: PlusIcon,
+			onclick: () => showCreateModal = true,
+			variant: 'primary' as const
+		},
+		{
+			label: '기회 생성',
+			icon: TargetIcon,
+			onclick: () => console.log('Create opportunity'),
+			variant: 'success' as const
+		}
+	];
+
+	// 필터링된 리드 데이터
 	let filteredLeads = $derived(() => {
-		let filtered = salesData.leads;
+		let leads = salesData.leads;
 		
 		if (searchTerm) {
-			filtered = filtered.filter(lead => 
+			leads = leads.filter(lead => 
 				lead.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
-				lead.contact.toLowerCase().includes(searchTerm.toLowerCase())
+				lead.contact.toLowerCase().includes(searchTerm.toLowerCase()) ||
+				lead.industry.toLowerCase().includes(searchTerm.toLowerCase())
 			);
 		}
 		
 		if (selectedStatus !== 'all') {
-			filtered = filtered.filter(lead => lead.status === selectedStatus);
+			leads = leads.filter(lead => lead.status === selectedStatus);
 		}
 		
-		return filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+		return leads;
 	});
 
-	// Show lead detail
-	function showLeadDetail(lead: any) {
+	// 상태별 색상 매핑
+	const getStatusColor = (status: string) => {
+		const colors = {
+			'new': 'info',
+			'qualified': 'primary',
+			'proposal': 'warning',
+			'negotiation': 'success',
+			'closed-won': 'success',
+			'closed-lost': 'error'
+		};
+		return colors[status] || 'default';
+	};
+
+	// 상태별 한글 라벨
+	const getStatusLabel = (status: string) => {
+		const labels = {
+			'new': '신규',
+			'qualified': '검증됨',
+			'proposal': '제안',
+			'negotiation': '협상',
+			'closed-won': '성공',
+			'closed-lost': '실패'
+		};
+		return labels[status] || status;
+	};
+
+	// 리드 상세 보기
+	function viewLead(lead: any) {
 		selectedLead = lead;
 		showLeadModal = true;
 	}
 
-	// Create new lead
-	function createLead() {
-		if (!formData.company || !formData.contact || !formData.email) {
-			alert('필수 필드를 입력해주세요.');
-			return;
-		}
-
-		const newLead = {
-			id: `lead-${Date.now()}`,
-			...formData,
-			createdAt: new Date().toISOString().split('T')[0],
-			lastContact: new Date().toISOString().split('T')[0]
-		};
-
-		salesData.leads.push(newLead);
-		
-		// Reset form
-		formData = {
-			company: '',
-			contact: '',
-			position: '',
-			email: '',
-			phone: '',
-			industry: '',
-			status: 'new',
-			value: 0,
-			probability: 0,
-			source: '',
-			notes: ''
-		};
-		
-		showCreateModal = false;
-	}
-
-	// Format currency
-	function formatCurrency(amount: number): string {
-		return new Intl.NumberFormat('ko-KR', {
-			style: 'currency',
-			currency: 'KRW',
-			minimumFractionDigits: 0
-		}).format(amount);
-	}
-
-	// Format date
-	function formatDate(dateString: string): string {
-		return new Date(dateString).toLocaleDateString('ko-KR');
-	}
-
-	// Get status badge variant
-	function getStatusVariant(status: string): 'success' | 'warning' | 'danger' {
-		switch (status) {
-			case 'qualified': return 'success';
-			case 'proposal': return 'warning';
-			case 'negotiation': return 'warning';
-			case 'closed_won': return 'success';
-			case 'closed_lost': return 'danger';
-			default: return 'danger';
-		}
-	}
-
-	// Get status text
-	function getStatusText(status: string): string {
-		switch (status) {
-			case 'new': return '신규';
-			case 'qualified': return '자격확보';
-			case 'proposal': return '제안';
-			case 'negotiation': return '협상';
-			case 'closed_won': return '성사';
-			case 'closed_lost': return '실패';
-			default: return '알 수 없음';
-		}
+	// 리드 삭제
+	function deleteLead(leadId: string) {
+		salesData.leads = salesData.leads.filter(lead => lead.id !== leadId);
 	}
 
 	onMount(() => {
-		console.log('Sales system initialized');
+		console.log('Sales 페이지 로드됨');
 	});
 </script>
 
-<div class="container mx-auto p-6">
-	<div class="mb-6">
-		<h1 class="text-3xl font-bold text-gray-900 mb-2">영업관리 시스템</h1>
-		<p class="text-gray-600">리드 관리, 기회 추적, 영업 활동을 통합 관리합니다.</p>
-	</div>
-
-	<!-- Key Metrics -->
-	<div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-		<Card class="p-6">
-			<div class="flex items-center">
-				<div class="flex-shrink-0">
-					<div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-						<span class="text-blue-600 text-lg">👥</span>
-					</div>
-				</div>
-				<div class="ml-4">
-					<p class="text-sm font-medium text-gray-500">총 리드</p>
-					<p class="text-2xl font-semibold text-gray-900">{salesData.leads.length}</p>
-				</div>
-			</div>
-		</Card>
-		<Card class="p-6">
-			<div class="flex items-center">
-				<div class="flex-shrink-0">
-					<div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-						<span class="text-green-600 text-lg">💰</span>
-					</div>
-				</div>
-				<div class="ml-4">
-					<p class="text-sm font-medium text-gray-500">총 가치</p>
-					<p class="text-2xl font-semibold text-gray-900">
-						{formatCurrency(salesData.leads.reduce((sum, lead) => sum + lead.value, 0))}
-					</p>
-				</div>
-			</div>
-		</Card>
-		<Card class="p-6">
-			<div class="flex items-center">
-				<div class="flex-shrink-0">
-					<div class="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
-						<span class="text-yellow-600 text-lg">📈</span>
-					</div>
-				</div>
-				<div class="ml-4">
-					<p class="text-sm font-medium text-gray-500">평균 확률</p>
-					<p class="text-2xl font-semibold text-gray-900">
-						{Math.round(salesData.leads.reduce((sum, lead) => sum + lead.probability, 0) / salesData.leads.length)}%
-					</p>
-				</div>
-			</div>
-		</Card>
-		<Card class="p-6">
-			<div class="flex items-center">
-				<div class="flex-shrink-0">
-					<div class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-						<span class="text-purple-600 text-lg">🎯</span>
-					</div>
-				</div>
-				<div class="ml-4">
-					<p class="text-sm font-medium text-gray-500">활성 리드</p>
-					<p class="text-2xl font-semibold text-gray-900">
-						{salesData.leads.filter(lead => lead.status !== 'closed_won' && lead.status !== 'closed_lost').length}
-					</p>
-				</div>
-			</div>
-		</Card>
-	</div>
-
-	<!-- Action Buttons -->
-	<div class="flex gap-4 mb-6">
-		<button
-			onclick={() => showCreateModal = true}
-			class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-		>
-			새 리드 추가
-		</button>
-		<button
-			onclick={() => alert('리드 가져오기 기능')}
-			class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
-		>
-			리드 가져오기
-		</button>
-	</div>
-
-	<!-- Filters -->
-	<div class="bg-white rounded-lg shadow-sm border p-4 mb-6">
-		<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-			<div>
-				<label for="search" class="block text-sm font-medium text-gray-700 mb-1">검색</label>
-				<input
-					id="search"
-					type="text"
-					bind:value={searchTerm}
-					placeholder="회사명, 담당자 검색..."
-					class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+<PageLayout
+	title="영업관리"
+	subtitle="리드 관리, 기회 추적, 매출 분석"
+	{stats}
+	{actions}
+	searchPlaceholder="회사명, 담당자, 업종으로 검색..."
+>
+	<!-- 리드 목록 -->
+	<ThemeCard class="p-6">
+		<div class="flex items-center justify-between mb-6">
+			<h3 class="text-lg font-semibold" style="color: var(--color-text);">리드 목록</h3>
+			<div class="flex items-center gap-2">
+				<ThemeDropdown
+					options={[
+						{ value: 'all', label: '전체' },
+						{ value: 'new', label: '신규' },
+						{ value: 'qualified', label: '검증됨' },
+						{ value: 'proposal', label: '제안' },
+						{ value: 'negotiation', label: '협상' }
+					]}
+					bind:value={selectedStatus}
+					placeholder="상태 필터"
 				/>
 			</div>
-			<div>
-				<label for="status-filter" class="block text-sm font-medium text-gray-700 mb-1">상태</label>
-				<select
-					id="status-filter"
-					bind:value={selectedStatus}
-					class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-				>
-					<option value="all">전체</option>
-					<option value="new">신규</option>
-					<option value="qualified">자격확보</option>
-					<option value="proposal">제안</option>
-					<option value="negotiation">협상</option>
-					<option value="closed_won">성사</option>
-					<option value="closed_lost">실패</option>
-				</select>
-			</div>
 		</div>
-	</div>
-
-	<!-- Leads List -->
-	<div class="grid gap-6">
-		{#each filteredLeads() as lead}
-			<Card class="p-6 hover:shadow-md transition-shadow">
-				<div class="flex justify-between items-start mb-4">
+		
+		<div class="space-y-4">
+			{#each filteredLeads as lead}
+				<div class="flex items-center justify-between p-4 rounded-lg border" style="border-color: var(--color-border); background: var(--color-surface-elevated);">
 					<div class="flex-1">
 						<div class="flex items-center gap-3 mb-2">
-							<h3 class="text-xl font-semibold text-gray-900">{lead.company}</h3>
-							<Badge variant={getStatusVariant(lead.status)}>
-								{getStatusText(lead.status)}
-							</Badge>
+							<BuildingIcon size={20} style="color: var(--color-primary);" />
+							<h4 class="font-medium" style="color: var(--color-text);">{lead.company}</h4>
+							<ThemeBadge variant={getStatusColor(lead.status)}>
+								{getStatusLabel(lead.status)}
+							</ThemeBadge>
 						</div>
-						<div class="text-sm text-gray-600 mb-3">
-							<span class="font-medium">담당자:</span> {lead.contact} ({lead.position}) | 
-							<span class="font-medium">업종:</span> {lead.industry} | 
-							<span class="font-medium">가치:</span> {formatCurrency(lead.value)} | 
-							<span class="font-medium">확률:</span> {lead.probability}%
+						<div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm" style="color: var(--color-text-secondary);">
+							<div class="flex items-center gap-2">
+								<UsersIcon size={16} />
+								{lead.contact} ({lead.position})
+							</div>
+							<div class="flex items-center gap-2">
+								<DollarSignIcon size={16} />
+								{formatCurrency(lead.value)} ({lead.probability}%)
+							</div>
+							<div class="flex items-center gap-2">
+								<CalendarIcon size={16} />
+								{formatDate(lead.lastContact)}
+							</div>
 						</div>
-						<div class="text-sm text-gray-500">
-							<span class="font-medium">연락처:</span> {lead.email} | {lead.phone} | 
-							<span class="font-medium">최근 연락:</span> {formatDate(lead.lastContact)}
-						</div>
+						{#if lead.notes}
+							<p class="text-sm mt-2" style="color: var(--color-text-secondary);">{lead.notes}</p>
+						{/if}
 					</div>
-					<div class="flex gap-2 ml-4">
-						<button
-							onclick={() => showLeadDetail(lead)}
-							class="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500"
-							aria-label="상세보기"
-						>
-							상세보기
-						</button>
+					<div class="flex items-center gap-2">
+						<ThemeButton variant="ghost" size="sm" onclick={() => viewLead(lead)}>
+							<EyeIcon size={16} />
+						</ThemeButton>
+						<ThemeButton variant="ghost" size="sm">
+							<EditIcon size={16} />
+						</ThemeButton>
+						<ThemeButton variant="ghost" size="sm" onclick={() => deleteLead(lead.id)}>
+							<TrashIcon size={16} />
+						</ThemeButton>
 					</div>
 				</div>
-				{#if lead.notes}
-					<div class="bg-gray-50 p-3 rounded-md">
-						<p class="text-sm text-gray-700">{lead.notes}</p>
-					</div>
-				{/if}
-			</Card>
-		{/each}
-	</div>
-
-	{#if filteredLeads().length === 0}
-		<div class="text-center py-12">
-			<div class="text-gray-400 text-6xl mb-4">🎯</div>
-			<h3 class="text-lg font-medium text-gray-900 mb-2">리드가 없습니다</h3>
-			<p class="text-gray-500">새로운 리드를 추가해보세요.</p>
+			{/each}
 		</div>
-	{/if}
-</div>
+	</ThemeCard>
 
-<!-- Lead Detail Modal -->
-<Modal bind:show={showLeadModal} title="리드 상세">
-	{#if selectedLead}
-		<div class="space-y-6">
-			<div>
-				<h3 class="text-xl font-semibold text-gray-900 mb-2">{selectedLead.company}</h3>
-				<div class="grid grid-cols-2 gap-4 text-sm">
-					<div>
-						<span class="font-medium text-gray-700">담당자:</span>
-						<span class="ml-2">{selectedLead.contact} ({selectedLead.position})</span>
+	<!-- 기회 현황 -->
+	<ThemeGrid cols={1} lgCols={2} gap={6}>
+		<!-- 진행중인 기회 -->
+		<ThemeCard class="p-6">
+			<ThemeSectionHeader title="진행중인 기회" />
+			<ThemeSpacer size={4}>
+				{#each salesData.opportunities as opportunity}
+					<div class="flex items-center justify-between p-3 rounded-lg" style="background: var(--color-surface-elevated);">
+						<div class="flex-1">
+							<h4 class="font-medium" style="color: var(--color-text);">{opportunity.title}</h4>
+							<p class="text-sm" style="color: var(--color-text-secondary);">{opportunity.company}</p>
+							<div class="flex items-center gap-2 mt-1">
+								<span class="text-sm font-medium" style="color: var(--color-primary);">
+									{formatCurrency(opportunity.value)}
+								</span>
+								<ThemeBadge variant="info">{opportunity.probability}%</ThemeBadge>
+							</div>
+						</div>
+						<div class="text-right">
+							<p class="text-xs" style="color: var(--color-text-secondary);">
+								예상 마감: {formatDate(opportunity.expectedClose)}
+							</p>
+							<p class="text-xs" style="color: var(--color-text-secondary);">
+								담당: {opportunity.owner}
+							</p>
+						</div>
 					</div>
-					<div>
-						<span class="font-medium text-gray-700">업종:</span>
-						<span class="ml-2">{selectedLead.industry}</span>
-					</div>
-					<div>
-						<span class="font-medium text-gray-700">이메일:</span>
-						<span class="ml-2">{selectedLead.email}</span>
-					</div>
-					<div>
-						<span class="font-medium text-gray-700">전화:</span>
-						<span class="ml-2">{selectedLead.phone}</span>
-					</div>
-					<div>
-						<span class="font-medium text-gray-700">상태:</span>
-						<span class="ml-2">
-							<Badge variant={getStatusVariant(selectedLead.status)}>
-								{getStatusText(selectedLead.status)}
-							</Badge>
-						</span>
-					</div>
-					<div>
-						<span class="font-medium text-gray-700">가치:</span>
-						<span class="ml-2">{formatCurrency(selectedLead.value)}</span>
-					</div>
-				</div>
-			</div>
+				{/each}
+			</ThemeSpacer>
+		</ThemeCard>
 
-			{#if selectedLead.notes}
+		<!-- 최근 성사된 거래 -->
+		<ThemeCard class="p-6">
+			<ThemeSectionHeader title="최근 성사된 거래" />
+			<ThemeSpacer size={4}>
+				{#each salesData.deals as deal}
+					<div class="flex items-center justify-between p-3 rounded-lg" style="background: var(--color-surface-elevated);">
+						<div class="flex-1">
+							<h4 class="font-medium" style="color: var(--color-text);">{deal.title}</h4>
+							<p class="text-sm" style="color: var(--color-text-secondary);">{deal.company}</p>
+							<div class="flex items-center gap-2 mt-1">
+								<span class="text-sm font-medium" style="color: var(--color-success);">
+									{formatCurrency(deal.value)}
+								</span>
+								<ThemeBadge variant="success">성사</ThemeBadge>
+							</div>
+						</div>
+						<div class="text-right">
+							<p class="text-xs" style="color: var(--color-text-secondary);">
+								성사일: {formatDate(deal.closedDate)}
+							</p>
+							<p class="text-xs" style="color: var(--color-text-secondary);">
+								담당: {deal.owner}
+							</p>
+						</div>
+					</div>
+				{/each}
+			</ThemeSpacer>
+		</ThemeCard>
+	</ThemeGrid>
+
+	<!-- 매출 분석 차트 -->
+	<ThemeGrid cols={1} lgCols={2} gap={6}>
+		<ThemeCard class="p-6">
+			<ThemeSectionHeader title="월별 매출 추이" />
+			<ThemeChartPlaceholder
+				title="매출 분석"
+				description="최근 12개월간 매출 현황"
+				icon={TrendingUpIcon}
+			/>
+		</ThemeCard>
+
+		<ThemeCard class="p-6">
+			<ThemeSectionHeader title="업종별 매출 분포" />
+			<ThemeChartPlaceholder
+				title="업종별 분석"
+				description="업종별 매출 비중"
+				icon={TargetIcon}
+			/>
+		</ThemeCard>
+	</ThemeGrid>
+</PageLayout>
+
+<!-- 리드 상세 모달 -->
+{#if showLeadModal && selectedLead}
+	<ThemeModal
+		title="리드 상세 정보"
+		onClose={() => { showLeadModal = false; selectedLead = null; }}
+	>
+		<div class="space-y-4">
+			<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 				<div>
-					<h4 class="font-medium text-gray-900 mb-2">메모</h4>
-					<div class="bg-gray-50 p-4 rounded-md">
-						<p class="text-gray-700">{selectedLead.notes}</p>
-					</div>
+					<label class="block text-sm font-medium mb-1" style="color: var(--color-text);">회사명</label>
+					<p class="text-sm" style="color: var(--color-text-secondary);">{selectedLead.company}</p>
 				</div>
-			{/if}
+				<div>
+					<label class="block text-sm font-medium mb-1" style="color: var(--color-text);">담당자</label>
+					<p class="text-sm" style="color: var(--color-text-secondary);">{selectedLead.contact} ({selectedLead.position})</p>
+				</div>
+				<div>
+					<label class="block text-sm font-medium mb-1" style="color: var(--color-text);">이메일</label>
+					<p class="text-sm" style="color: var(--color-text-secondary);">{selectedLead.email}</p>
+				</div>
+				<div>
+					<label class="block text-sm font-medium mb-1" style="color: var(--color-text);">전화번호</label>
+					<p class="text-sm" style="color: var(--color-text-secondary);">{selectedLead.phone}</p>
+				</div>
+				<div>
+					<label class="block text-sm font-medium mb-1" style="color: var(--color-text);">업종</label>
+					<p class="text-sm" style="color: var(--color-text-secondary);">{selectedLead.industry}</p>
+				</div>
+				<div>
+					<label class="block text-sm font-medium mb-1" style="color: var(--color-text);">예상 매출</label>
+					<p class="text-sm font-medium" style="color: var(--color-primary);">{formatCurrency(selectedLead.value)}</p>
+				</div>
+			</div>
+			<div>
+				<label class="block text-sm font-medium mb-1" style="color: var(--color-text);">메모</label>
+				<p class="text-sm" style="color: var(--color-text-secondary);">{selectedLead.notes}</p>
+			</div>
+		</div>
+	</ThemeModal>
+{/if}
 
-			<div class="flex justify-end gap-2">
-				<button
-					onclick={() => showLeadModal = false}
-					class="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500"
-				>
-					닫기
-				</button>
-			</div>
+<!-- 리드 생성 모달 -->
+{#if showCreateModal}
+	<ThemeModal
+		title="새 리드 추가"
+		onClose={() => showCreateModal = false}
+	>
+		<div class="space-y-4">
+			<ThemeInput label="회사명" placeholder="회사명을 입력하세요" />
+			<ThemeInput label="담당자명" placeholder="담당자명을 입력하세요" />
+			<ThemeInput label="직책" placeholder="직책을 입력하세요" />
+			<ThemeInput label="이메일" type="email" placeholder="이메일을 입력하세요" />
+			<ThemeInput label="전화번호" placeholder="전화번호를 입력하세요" />
+			<ThemeInput label="업종" placeholder="업종을 입력하세요" />
+			<ThemeInput label="예상 매출" type="number" placeholder="예상 매출을 입력하세요" />
+			<ThemeInput label="메모" placeholder="메모를 입력하세요" />
 		</div>
-	{/if}
-</Modal>
-
-<!-- Create Lead Modal -->
-<Modal bind:show={showCreateModal} title="새 리드 추가">
-	<div class="space-y-4">
-		<div class="grid grid-cols-2 gap-4">
-			<div>
-				<label for="create-company" class="block text-sm font-medium text-gray-700 mb-1">회사명 *</label>
-				<input
-					id="create-company"
-					type="text"
-					bind:value={formData.company}
-					placeholder="회사명"
-					class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-				/>
-			</div>
-			<div>
-				<label for="create-contact" class="block text-sm font-medium text-gray-700 mb-1">담당자 *</label>
-				<input
-					id="create-contact"
-					type="text"
-					bind:value={formData.contact}
-					placeholder="담당자명"
-					class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-				/>
-			</div>
+		<div class="flex justify-end gap-2 mt-6">
+			<ThemeButton variant="ghost" onclick={() => showCreateModal = false}>취소</ThemeButton>
+			<ThemeButton variant="primary" onclick={() => showCreateModal = false}>저장</ThemeButton>
 		</div>
-		<div class="grid grid-cols-2 gap-4">
-			<div>
-				<label for="create-email" class="block text-sm font-medium text-gray-700 mb-1">이메일 *</label>
-				<input
-					id="create-email"
-					type="email"
-					bind:value={formData.email}
-					placeholder="이메일"
-					class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-				/>
-			</div>
-			<div>
-				<label for="create-phone" class="block text-sm font-medium text-gray-700 mb-1">전화번호</label>
-				<input
-					id="create-phone"
-					type="tel"
-					bind:value={formData.phone}
-					placeholder="전화번호"
-					class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-				/>
-			</div>
-		</div>
-		<div>
-			<label for="create-notes" class="block text-sm font-medium text-gray-700 mb-1">메모</label>
-			<textarea
-				id="create-notes"
-				bind:value={formData.notes}
-				rows="3"
-				placeholder="리드에 대한 추가 정보나 메모..."
-				class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-			></textarea>
-		</div>
-		<div class="flex justify-end gap-2 pt-4">
-			<button
-				onclick={() => showCreateModal = false}
-				class="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500"
-			>
-				취소
-			</button>
-			<button
-				onclick={createLead}
-				class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-			>
-				생성
-			</button>
-		</div>
-	</div>
-</Modal>
+	</ThemeModal>
+{/if}
