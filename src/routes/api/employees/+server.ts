@@ -65,11 +65,11 @@ export const POST: RequestHandler = async ({ request }) => {
 			}, { status: 400 });
 		}
 		
-		// employee_id 생성
-		const email = data.email.trim();
-		const timestamp = Date.now().toString().slice(-6);
-		const random = Math.random().toString(36).substr(2, 4);
-		const employeeId = `${email.split('@')[0]}_${timestamp}_${random}`;
+		// employee_id 생성 (V00001 형식)
+		// 기존 직원 수를 확인하여 다음 사번 생성
+		const countResult = await query('SELECT COUNT(*) as count FROM employees');
+		const nextId = (countResult.rows[0]?.count || 0) + 1;
+		const employeeId = `V${nextId.toString().padStart(5, '0')}`;
 		
 		// 입사일 처리
 		let hireDate = new Date();

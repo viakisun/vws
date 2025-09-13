@@ -17,7 +17,16 @@
 	import DepartmentModal from '$lib/components/ui/DepartmentModal.svelte';
 	import PositionModal from '$lib/components/ui/PositionModal.svelte';
 	import OrganizationChart from '$lib/components/ui/OrganizationChart.svelte';
-	import { formatCurrency, formatDate } from '$lib/utils/format';
+	import { formatCurrency, formatDate, formatEmployeeId } from '$lib/utils/format';
+	
+	// 사번 포맷팅 함수 (기존 사번을 V00001 형식으로 변환)
+	function formatEmployeeIdDisplay(employeeId: string, index: number): string {
+		if (employeeId.startsWith('V')) {
+			return employeeId;
+		}
+		// 기존 사번이 V 형식이 아닌 경우 순서대로 V00001 형식으로 변환
+		return `V${(index + 1).toString().padStart(5, '0')}`;
+	}
 	import { 
 		UsersIcon, 
 		BuildingIcon, 
@@ -42,7 +51,8 @@
 		PhoneIcon,
 		DollarSignIcon,
 		CrownIcon,
-		BriefcaseIcon
+		BriefcaseIcon,
+		TagIcon
 	} from 'lucide-svelte';
 	
 	// HR 스토어들
@@ -133,6 +143,11 @@
 		}
 	}
 
+	// 생성일 순으로 정렬된 부서 목록
+	let sortedDepartments = $derived(() => {
+		return [...departments].sort((a: any, b: any) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+	});
+
 	// 직급 데이터 가져오기
 	async function fetchPositions() {
 		try {
@@ -199,12 +214,46 @@
 		return levels;
 	}
 
+	// T/O (정원) 정보 - 데이터베이스에서 가져옴
+	let teamTO = $derived(() => {
+		const toMap: any = {};
+		if (departments) {
+			departments.forEach((dept: any) => {
+				toMap[dept.name] = dept.max_employees || 0;
+			});
+		}
+		return toMap;
+	});
+
+
 	// 반응형 데이터 (데이터베이스 기반)
 	let totalEmployees = $derived(() => {
 		const activeEmployeeCount = employees?.filter((emp: any) => emp.status === 'active').length || 0;
 		const executiveCount = executives?.length || 0;
 		return activeEmployeeCount + executiveCount;
 	});
+	
+	let totalTO = $derived(() => {
+		const activeEmployeeCount = employees?.filter((emp: any) => emp.status === 'active').length || 0;
+		const executiveCount = executives?.length || 0;
+		const currentTotal = activeEmployeeCount + executiveCount;
+		
+		// T/O가 설정된 팀들의 T/O 합계
+		const toSum = Object.values(teamTO() as Record<string, number>).reduce((sum: number, to: number) => sum + to, 0);
+		
+		// T/O가 0인 팀들은 현재 인원을 최대 인원으로 간주
+		const toZeroTeams = Object.entries(teamTO() as Record<string, number>).filter(([_, to]: [string, number]) => to === 0);
+		const toZeroTeamEmployees = toZeroTeams.reduce((sum: number, [teamName, _]: [string, number]) => {
+			const teamEmployeeCount = employees?.filter((emp: any) => emp.status === 'active' && emp.department === teamName).length || 0;
+			return sum + teamEmployeeCount;
+		}, 0);
+		
+		// 이사진 T/O (현재 이사진 수와 동일)
+		const executiveTO = executiveCount;
+		
+		return toSum + toZeroTeamEmployees + executiveTO;
+	});
+	
 	let totalDepartments = $derived(() => [...new Set(employees?.map((emp: any) => emp.department) || [])].length);
 	let activeRecruitments = $derived(() => $jobPostings.filter(job => job.status === 'published').length);
 	let pendingOnboardings = $derived(() => $onboardingProcesses.filter(process => process.status === 'in-progress').length);
@@ -407,7 +456,7 @@
 		const statsData = [
 			{
 				title: '총 직원 수',
-				value: totalEmployees(),
+				value: `${totalEmployees()} / ${totalTO()}`,
 				change: '+5%',
 				changeType: 'positive' as const,
 				icon: UsersIcon
@@ -705,6 +754,7 @@
 		uploadProgress = 0;
 		uploadMessage = '';
 	}
+
 	
 	// 직원 추가/수정
 	async function handleEmployeeSave(event: any) {
@@ -1056,7 +1106,9 @@
 	<ThemeGrid cols={1} lgCols={2} gap={6}>
 		<!-- 부서별 직원 현황 -->
 		<ThemeCard class="p-6">
-			<ThemeSectionHeader title="부서별 직원 현황" />
+			<div class="mb-6">
+				<h3 class="text-lg font-semibold" style="color: var(--color-text);">부서별 직원 현황</h3>
+			</div>
 			<ThemeSpacer size={4}>
 				{#each departmentData() as dept}
 					<div class="flex items-center justify-between p-3 rounded-lg" style="background: var(--color-surface-elevated);">
@@ -1075,7 +1127,9 @@
 
 		<!-- 최근 활동 -->
 		<ThemeCard class="p-6">
-			<ThemeSectionHeader title="최근 활동" />
+			<div class="mb-6">
+				<h3 class="text-lg font-semibold" style="color: var(--color-text);">최근 활동</h3>
+			</div>
 			<ThemeSpacer size={4}>
 				{#each recentActivities() as activity}
 					<ThemeActivityItem
@@ -1092,7 +1146,9 @@
 	<ThemeGrid cols={1} lgCols={2} gap={6}>
 		<!-- 부서별 분포 차트 -->
 		<ThemeCard class="p-6">
-			<ThemeSectionHeader title="부서별 직원 분포" />
+			<div class="mb-6">
+				<h3 class="text-lg font-semibold" style="color: var(--color-text);">부서별 직원 분포</h3>
+			</div>
 			<ThemeChartPlaceholder
 				title="부서별 직원 수"
 				icon={TrendingUpIcon}
@@ -1101,7 +1157,9 @@
 
 		<!-- 채용 현황 차트 -->
 		<ThemeCard class="p-6">
-			<ThemeSectionHeader title="채용 현황" />
+			<div class="mb-6">
+				<h3 class="text-lg font-semibold" style="color: var(--color-text);">채용 현황</h3>
+			</div>
 			<ThemeChartPlaceholder
 				title="월별 채용 현황"
 				icon={UserPlusIcon}
@@ -1283,72 +1341,87 @@
 										<!-- 팀 내 직원 카드 그리드 -->
 										<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
 											{#each paginatedGroupedEmployees[teamName] || [] as employee}
-									<div class="p-4 rounded-lg border transition-all hover:shadow-md {isTeamLead(employee) ? 'ring-2 ring-yellow-400/50 shadow-lg' : ''}" style="border-color: {isTeamLead(employee) ? 'var(--color-warning)' : 'var(--color-border)'}; background: {isTeamLead(employee) ? 'linear-gradient(135deg, var(--color-surface-elevated) 0%, rgba(251, 191, 36, 0.05) 100%)' : 'var(--color-surface-elevated)'};">
+									<div class="p-4 rounded-lg border transition-all hover:shadow-md overflow-hidden {isTeamLead(employee) ? 'ring-2 ring-yellow-400/50 shadow-lg' : ''}" style="border-color: {isTeamLead(employee) ? 'var(--color-warning)' : 'var(--color-border)'}; background: {isTeamLead(employee) ? 'linear-gradient(135deg, var(--color-surface-elevated) 0%, rgba(251, 191, 36, 0.05) 100%)' : 'var(--color-surface-elevated)'};">
 										<!-- 직원 헤더 -->
-										<div class="flex items-start justify-between mb-3">
-											<div class="flex items-center gap-3">
-												<div class="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold">
+										<div class="flex items-start justify-between mb-3 min-w-0">
+											<div class="flex items-center gap-3 min-w-0 flex-1">
+												<div class="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold flex-shrink-0">
 													{employee.last_name.charAt(0)}
-						</div>
-												<div>
-													<div class="flex items-center gap-2">
-														<h4 class="font-semibold text-lg" style="color: var(--color-text);">
+												</div>
+												<div class="min-w-0 flex-1">
+													<div class="flex items-center gap-2 min-w-0">
+														<h4 class="font-semibold text-lg truncate" style="color: var(--color-text);">
 															{employee.last_name}{employee.first_name}
 														</h4>
 														{#if isTeamLead(employee)}
-															<span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gradient-to-r from-yellow-400 to-orange-500 text-white shadow-sm">
+															<span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gradient-to-r from-yellow-400 to-orange-500 text-white shadow-sm flex-shrink-0">
 																👑 팀 리더
 															</span>
 														{/if}
-					</div>
-													<p class="text-sm" style="color: var(--color-text-secondary);">{employee.employee_id}</p>
-				</div>
-				</div>
-											<div class="flex flex-col gap-1 items-end">
-												<ThemeBadge variant={employee.status === 'active' ? 'success' : employee.status === 'terminated' ? 'error' : 'warning'}>
+													</div>
+													<p class="text-sm truncate" style="color: var(--color-text-secondary);">
+														{formatEmployeeIdDisplay(employee.employee_id, employees.indexOf(employee))}
+													</p>
+												</div>
+											</div>
+											<div class="flex flex-col gap-1 items-end flex-shrink-0 ml-2">
+												<ThemeBadge 
+													variant={employee.status === 'active' ? 'success' : employee.status === 'terminated' ? 'error' : 'warning'}
+													size="sm"
+													shape="pill"
+												>
 													{employee.status === 'active' ? '재직중' : 
 													 employee.status === 'terminated' ? '퇴사' :
 													 employee.status === 'on-leave' ? '휴직' : '비활성'}
 												</ThemeBadge>
 											</div>
-		</div>
+										</div>
 
 										<!-- 직원 정보 -->
 										<div class="space-y-2 mb-4">
-											<div class="flex items-center gap-2">
-												<BuildingIcon size={16} style="color: var(--color-text-secondary);" />
-												<span class="text-sm" style="color: var(--color-text);">{employee.department}</span>
-				</div>
-											<div class="flex items-center gap-2">
-												<UserCheckIcon size={16} style="color: var(--color-text-secondary);" />
-												<span class="text-sm" style="color: var(--color-text);">
+											<div class="flex items-center gap-2 min-w-0">
+												<BuildingIcon size={16} style="color: var(--color-text-secondary);" class="flex-shrink-0" />
+												<span class="text-sm truncate" style="color: var(--color-text);">{employee.department}</span>
+											</div>
+											<div class="flex items-center gap-2 min-w-0">
+												<UserCheckIcon size={16} style="color: var(--color-text-secondary);" class="flex-shrink-0" />
+												<span class="text-sm truncate" style="color: var(--color-text);">
 													{employee.job_title_name || employee.position}
 												</span>
 											</div>
-											<div class="flex items-center gap-2">
-												<MailIcon size={16} style="color: var(--color-text-secondary);" />
-												<span class="text-sm" style="color: var(--color-text-secondary);">{employee.email}</span>
+											<div class="flex items-center gap-2 min-w-0">
+												<MailIcon size={16} style="color: var(--color-text-secondary);" class="flex-shrink-0" />
+												<span class="text-sm truncate" style="color: var(--color-text-secondary);">{employee.email}</span>
 											</div>
 											{#if employee.phone}
-												<div class="flex items-center gap-2">
-													<PhoneIcon size={16} style="color: var(--color-text-secondary);" />
-													<span class="text-sm" style="color: var(--color-text-secondary);">{employee.phone}</span>
+												<div class="flex items-center gap-2 min-w-0">
+													<PhoneIcon size={16} style="color: var(--color-text-secondary);" class="flex-shrink-0" />
+													<span class="text-sm truncate" style="color: var(--color-text-secondary);">{employee.phone}</span>
 												</div>
 											{/if}
-											<div class="flex items-center gap-2">
-												<DollarSignIcon size={16} style="color: var(--color-text-secondary);" />
-												<span class="text-sm font-medium" style="color: var(--color-primary);">
+											<div class="flex items-center gap-2 min-w-0">
+												<DollarSignIcon size={16} style="color: var(--color-text-secondary);" class="flex-shrink-0" />
+												<span class="text-sm font-medium truncate" style="color: var(--color-primary);">
 													{Math.round(Number(employee.salary) / 10000)}만원
+												</span>
+											</div>
+											<!-- 재직 상태 정보 -->
+											<div class="flex items-center gap-2 pt-2 border-t min-w-0" style="border-color: var(--color-border);">
+												<div class="w-2 h-2 rounded-full flex-shrink-0" style="background: {employee.status === 'active' ? 'var(--color-success)' : employee.status === 'terminated' ? 'var(--color-error)' : 'var(--color-warning)'};"></div>
+												<span class="text-xs font-medium truncate" style="color: var(--color-text-secondary);">
+													{employee.status === 'active' ? '재직중' : 
+													 employee.status === 'terminated' ? '퇴사' :
+													 employee.status === 'on-leave' ? '휴직중' : '비활성'}
 												</span>
 											</div>
 										</div>
 
 										<!-- 액션 버튼 -->
-										<div class="flex items-center gap-2 pt-3 border-t" style="border-color: var(--color-border);">
+										<div class="flex items-center gap-2 pt-3 border-t min-w-0" style="border-color: var(--color-border);">
 											<ThemeButton 
 												variant="ghost" 
 												size="sm"
-												class="flex-1"
+												class="flex-1 min-w-0"
 												onclick={() => openEditEmployeeModal(employee)}
 											>
 												<EditIcon size={16} />
@@ -1357,13 +1430,13 @@
 											<ThemeButton 
 												variant="ghost" 
 												size="sm"
-												class="flex-1"
+												class="flex-1 min-w-0"
 												onclick={() => openDeleteEmployeeModal(employee)}
 											>
 												<TrashIcon size={16} />
 												삭제
 											</ThemeButton>
-				</div>
+										</div>
 									</div>
 											{/each}
 										</div>
@@ -1450,7 +1523,9 @@
 				<!-- 온보딩 탭 -->
 				<ThemeSpacer size={6}>
 					<ThemeCard class="p-6">
-						<ThemeSectionHeader title="온보딩 진행 현황" />
+						<div class="mb-6">
+							<h3 class="text-lg font-semibold" style="color: var(--color-text);">온보딩 진행 현황</h3>
+						</div>
 						<ThemeChartPlaceholder
 							title="온보딩 진행률"
 							icon={GraduationCapIcon}
@@ -1462,7 +1537,9 @@
 				<!-- 성과관리 탭 -->
 				<ThemeSpacer size={6}>
 					<ThemeCard class="p-6">
-						<ThemeSectionHeader title="성과 평가 현황" />
+						<div class="mb-6">
+							<h3 class="text-lg font-semibold" style="color: var(--color-text);">성과 평가 현황</h3>
+						</div>
 						<div class="space-y-4">
 							{#each performanceData() as review}
 								<div class="flex items-center justify-between p-4 rounded-lg border" style="border-color: var(--color-border); background: var(--color-surface-elevated);">
@@ -1495,70 +1572,119 @@
 			{:else if tab.id === 'departments'}
 				<!-- 부서관리 탭 -->
 				<ThemeSpacer size={6}>
-					<ThemeGrid cols={1} lgCols={2} gap={6}>
-						<!-- 부서 관리 -->
-						<ThemeCard class="p-6">
-							<div class="flex items-center justify-between mb-6">
-								<h3 class="text-lg font-semibold" style="color: var(--color-text);">부서 관리</h3>
-								<ThemeButton 
-									variant="primary" 
-									size="sm" 
-									class="flex items-center gap-2"
-									onclick={openAddDepartmentModal}
-								>
-									<PlusIcon size={16} />
-									부서 추가
-								</ThemeButton>
-							</div>
-							
-					<div class="space-y-3">
-								{#each departments as department}
-									<div class="flex items-center justify-between p-3 rounded-lg border" style="border-color: var(--color-border); background: var(--color-surface-elevated);">
-										<div class="flex items-center gap-3">
-											<BuildingIcon size={20} style="color: var(--color-primary);" />
-											<div>
-												<h4 class="font-medium" style="color: var(--color-text);">{department.name}</h4>
-												{#if department.description}
-													<p class="text-sm" style="color: var(--color-text-secondary);">{department.description}</p>
+					<!-- 부서 관리 -->
+					<ThemeCard class="p-6">
+						<div class="flex items-center justify-between mb-6">
+							<h3 class="text-lg font-semibold" style="color: var(--color-text);">부서 관리</h3>
+							<ThemeButton 
+								variant="primary" 
+								size="sm" 
+								class="flex items-center gap-2"
+								onclick={openAddDepartmentModal}
+							>
+								<PlusIcon size={16} />
+								부서 추가
+							</ThemeButton>
+						</div>
+						
+						<div class="space-y-3">
+							{#each sortedDepartments() as department (department.id)}
+								<div class="flex items-center justify-between p-4 rounded-lg border" style="border-color: var(--color-border); background: var(--color-surface-elevated);">
+									<div class="flex items-center gap-4">
+										<BuildingIcon size={24} style="color: var(--color-primary);" />
+										<div class="flex-1">
+											<div class="flex items-center gap-3 mb-1">
+												<h4 class="font-semibold text-lg" style="color: var(--color-text);">{department.name}</h4>
+												<ThemeBadge variant={department.status === 'active' ? 'success' : 'warning'}>
+													{department.status === 'active' ? '활성' : '비활성'}
+												</ThemeBadge>
+											</div>
+											{#if department.description}
+												<p class="text-sm mb-2" style="color: var(--color-text-secondary);">{department.description}</p>
+											{/if}
+											<!-- 부서 정보 -->
+											<div class="flex items-center gap-4">
+												<div class="flex items-center gap-2">
+													<CalendarIcon size={14} style="color: var(--color-text-secondary);" />
+													<span class="text-xs" style="color: var(--color-text-secondary);">
+														생성일: {formatDate(department.created_at)}
+													</span>
+												</div>
+											</div>
+											<!-- T/O 정보 -->
+											<div class="flex items-center gap-4 mt-2">
+												<div class="flex items-center gap-2">
+													<UsersIcon size={16} style="color: var(--color-text-secondary);" />
+													<span class="text-sm font-medium" style="color: var(--color-text);">
+														{employees?.filter((emp: any) => emp.status === 'active' && emp.department === department.name).length || 0}
+														{#if department.max_employees !== undefined && department.max_employees > 0}
+															/ {department.max_employees}
+														{:else}
+															/ ∞
+														{/if}
+													</span>
+												</div>
+												{#if department.max_employees !== undefined && department.max_employees > 0}
+													{@const currentCount = employees?.filter((emp: any) => emp.status === 'active' && emp.department === department.name).length || 0}
+													{@const maxCount = department.max_employees}
+													<div class="flex items-center gap-2">
+														<div class="w-2 h-2 rounded-full" 
+															 style="background-color: {
+															 	currentCount > maxCount ? 'var(--color-error)' :
+															 	currentCount === maxCount ? 'var(--color-warning)' :
+															 	'var(--color-success)'
+															 }"></div>
+														<span class="text-xs font-medium" style="color: var(--color-text-secondary);">
+															{currentCount > maxCount ? '정원초과' : 
+															 currentCount === maxCount ? '정원충족' : '여유'}
+														</span>
+													</div>
 												{/if}
 											</div>
 										</div>
-										<div class="flex items-center gap-2">
-											<ThemeBadge variant={department.status === 'active' ? 'success' : 'warning'}>
-												{department.status === 'active' ? '활성' : '비활성'}
-											</ThemeBadge>
-											<ThemeButton 
-												variant="ghost" 
-												size="sm"
-												onclick={() => openEditDepartmentModal(department)}
-											>
-												<EditIcon size={16} />
-											</ThemeButton>
-											<ThemeButton 
-												variant="ghost" 
-												size="sm"
-												onclick={() => handleDepartmentDelete(department)}
-											>
-												<TrashIcon size={16} />
-											</ThemeButton>
-										</div>
-							</div>
-						{/each}
-								
-								{#if departments.length === 0}
-									<div class="text-center py-8">
-										<BuildingIcon size={48} class="mx-auto mb-4" style="color: var(--color-text-secondary);" />
-										<p class="text-sm" style="color: var(--color-text-secondary);">등록된 부서가 없습니다.</p>
-					</div>
-								{/if}
-				</div>
-						</ThemeCard>
-
-					</ThemeGrid>
+									</div>
+									<div class="flex items-center gap-2">
+										<ThemeButton 
+											variant="ghost" 
+											size="sm"
+											onclick={() => openEditDepartmentModal(department)}
+										>
+											<EditIcon size={16} />
+										</ThemeButton>
+										<ThemeButton 
+											variant="ghost" 
+											size="sm"
+											onclick={() => handleDepartmentDelete(department)}
+										>
+											<TrashIcon size={16} />
+										</ThemeButton>
+									</div>
+								</div>
+							{/each}
+							
+							{#if departments.length === 0}
+								<div class="text-center py-12">
+									<BuildingIcon size={64} class="mx-auto mb-4" style="color: var(--color-text-secondary);" />
+									<h3 class="text-lg font-medium mb-2" style="color: var(--color-text);">등록된 부서가 없습니다</h3>
+									<p class="text-sm mb-4" style="color: var(--color-text-secondary);">새 부서를 추가하여 조직을 구성해보세요.</p>
+									<ThemeButton 
+										variant="primary" 
+										onclick={openAddDepartmentModal}
+										class="flex items-center gap-2"
+									>
+										<PlusIcon size={16} />
+										첫 부서 추가하기
+									</ThemeButton>
+								</div>
+							{/if}
+						</div>
+					</ThemeCard>
 
 					<!-- 부서 관리 안내 -->
-					<ThemeCard class="p-6">
-						<ThemeSectionHeader title="부서 관리 안내" />
+				<ThemeCard class="p-6">
+					<div class="mb-6">
+						<h3 class="text-lg font-semibold" style="color: var(--color-text);">부서 관리 안내</h3>
+					</div>
 						<div class="space-y-3">
 							<h4 class="font-medium" style="color: var(--color-text);">부서 관리 규칙</h4>
 							<ul class="text-sm space-y-2" style="color: var(--color-text-secondary);">
@@ -1659,7 +1785,9 @@
 
 						<!-- 직급 관리 안내 -->
 						<ThemeCard class="p-6">
-							<ThemeSectionHeader title="직급 관리 안내" />
+							<div class="mb-6">
+								<h3 class="text-lg font-semibold" style="color: var(--color-text);">직급 관리 안내</h3>
+							</div>
 							<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
 								<div class="space-y-3">
 									<h4 class="font-medium flex items-center gap-2" style="color: var(--color-text);">
@@ -1701,221 +1829,173 @@
 			{:else if tab.id === 'executives'}
 				<!-- 이사관리 탭 -->
 				<ThemeSpacer size={6}>
-					<div class="space-y-6">
-						<!-- 이사 목록 -->
-						<ThemeCard class="p-6">
-							<div class="flex items-center justify-between mb-6">
-								<h3 class="text-lg font-semibold" style="color: var(--color-text);">이사 명부</h3>
-								<ThemeButton
-									variant="primary"
-									size="sm"
-									class="flex items-center gap-2"
-									onclick={() => openAddExecutiveModal()}
-								>
-									<PlusIcon size={16} />
-									이사 추가
-								</ThemeButton>
-							</div>
+					<ThemeCard class="p-6">
+						<div class="flex items-center justify-between mb-6">
+							<h3 class="text-lg font-semibold" style="color: var(--color-text);">이사 관리</h3>
+							<ThemeButton
+								variant="primary"
+								size="sm"
+								class="flex items-center gap-2"
+								onclick={() => openAddExecutiveModal()}
+							>
+								<PlusIcon size={16} />
+								이사 추가
+							</ThemeButton>
+						</div>
 
-							<div class="space-y-4">
-								{#if executiveLoading}
-									<div class="flex items-center justify-center py-8">
-										<div class="text-sm" style="color: var(--color-text-secondary);">이사 데이터를 불러오는 중...</div>
-									</div>
-								{:else if executives.length === 0}
-									<div class="text-center py-8">
-										<CrownIcon size={48} class="mx-auto mb-4" style="color: var(--color-text-secondary);" />
-										<p class="text-sm" style="color: var(--color-text-secondary);">등록된 이사가 없습니다.</p>
-									</div>
-								{:else}
-									{#each executives as executive}
-										<div class="flex items-center justify-between p-4 rounded-lg border" style="border-color: var(--color-border); background: var(--color-surface-elevated);">
-											<div class="flex items-center gap-4">
-												<div class="h-12 w-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-													<span class="text-white font-semibold text-lg">
-														{executive.first_name.charAt(0)}
-													</span>
-												</div>
-												<div>
-													<h4 class="font-medium" style="color: var(--color-text);">
+						<div class="space-y-3">
+							{#if executiveLoading}
+								<div class="flex items-center justify-center py-8">
+									<div class="text-sm" style="color: var(--color-text-secondary);">이사 데이터를 불러오는 중...</div>
+								</div>
+							{:else if executives.length === 0}
+								<div class="text-center py-8">
+									<BriefcaseIcon size={48} class="mx-auto mb-4" style="color: var(--color-text-secondary);" />
+									<p class="text-sm" style="color: var(--color-text-secondary);">등록된 이사가 없습니다.</p>
+								</div>
+							{:else}
+								{#each executives as executive (executive.id)}
+									<div class="flex items-center justify-between p-4 rounded-lg border" style="border-color: var(--color-border); background: var(--color-surface-elevated);">
+										<div class="flex items-center gap-4">
+											<BriefcaseIcon size={24} style="color: var(--color-primary);" />
+											<div class="flex-1">
+												<div class="flex items-center gap-3 mb-1">
+													<h4 class="font-semibold text-lg" style="color: var(--color-text);">
 														{executive.first_name} {executive.last_name}
 													</h4>
-													<p class="text-sm" style="color: var(--color-text-secondary);">
-														{executive.job_title_name} • {executive.department}
-													</p>
-													<div class="flex items-center gap-2 mt-1">
-														<ThemeBadge variant={executive.status === 'active' ? 'success' : 'warning'} size="sm">
-															{executive.status === 'active' ? '활성' : '비활성'}
-														</ThemeBadge>
+													<ThemeBadge variant={executive.status === 'active' ? 'success' : 'warning'}>
+														{executive.status === 'active' ? '활성' : '비활성'}
+													</ThemeBadge>
+												</div>
+												<div class="flex items-center gap-4">
+													<div class="flex items-center gap-2">
+														<BriefcaseIcon size={14} style="color: var(--color-text-secondary);" />
+														<span class="text-sm" style="color: var(--color-text);">
+															{executive.job_title_name}
+														</span>
+													</div>
+													<div class="flex items-center gap-2">
+														<BuildingIcon size={14} style="color: var(--color-text-secondary);" />
+														<span class="text-sm" style="color: var(--color-text);">
+															{executive.department}
+														</span>
+													</div>
+													<div class="flex items-center gap-2">
+														<UserCheckIcon size={14} style="color: var(--color-text-secondary);" />
 														<span class="text-xs" style="color: var(--color-text-secondary);">
-															레벨 {executive.job_title_level}
+															레벨: {executive.job_title_level}
 														</span>
 													</div>
 												</div>
 											</div>
-											<div class="flex items-center gap-2">
-												<ThemeButton
-													variant="ghost"
-													size="sm"
-													onclick={() => openEditExecutiveModal(executive)}
-												>
-													<EditIcon size={16} />
-												</ThemeButton>
-												<ThemeButton
-													variant="ghost"
-													size="sm"
-													onclick={() => handleExecutiveDelete(executive)}
-												>
-													<TrashIcon size={16} />
-												</ThemeButton>
-											</div>
 										</div>
-									{/each}
-								{/if}
-							</div>
-						</ThemeCard>
-
-						<!-- 이사 관리 안내 -->
-						<ThemeCard class="p-6">
-							<ThemeSectionHeader title="이사 관리 안내" />
-							<div class="space-y-3">
-								<h4 class="font-medium" style="color: var(--color-text);">이사 관리 규칙</h4>
-								<ul class="text-sm space-y-2" style="color: var(--color-text-secondary);">
-									<li>• C-Level 임원진은 회사의 최고 경영진입니다</li>
-									<li>• 이사는 직급이 아닌 직책으로 관리됩니다</li>
-									<li>• 이사 임기는 별도로 관리되며, 연장이 가능합니다</li>
-									<li>• 이사 정보는 회사 대표 정보로 활용됩니다</li>
-								</ul>
-							</div>
-						</ThemeCard>
-					</div>
+										<div class="flex items-center gap-2">
+											<ThemeButton
+												variant="ghost"
+												size="sm"
+												onclick={() => openEditExecutiveModal(executive)}
+											>
+												<EditIcon size={16} />
+												수정
+											</ThemeButton>
+											<ThemeButton
+												variant="ghost"
+												size="sm"
+												onclick={() => handleExecutiveDelete(executive)}
+											>
+												<TrashIcon size={16} />
+												삭제
+											</ThemeButton>
+										</div>
+									</div>
+								{/each}
+							{/if}
+						</div>
+					</ThemeCard>
 				</ThemeSpacer>
 			{:else if tab.id === 'job-titles'}
 				<!-- 직책관리 탭 -->
 				<ThemeSpacer size={6}>
-					<div class="space-y-6">
-						<!-- 직책 레벨별 관리 -->
-						{#each Object.entries(getJobTitlesByLevel()) as [level, levelJobTitles]}
-							<ThemeCard class="p-6">
-								<div class="flex items-center justify-between mb-6">
-									<div class="flex items-center gap-3">
-										{#if level === 'C-Level'}
-											<CrownIcon size={24} style="color: var(--color-primary);" />
-										{:else if level === 'Management'}
-											<BriefcaseIcon size={24} style="color: var(--color-primary);" />
-										{:else if level === 'Specialist'}
-											<UserCheckIcon size={24} style="color: var(--color-primary);" />
-										{/if}
-										<div>
-											<h3 class="text-xl font-semibold" style="color: var(--color-text);">{level} 직책</h3>
-											<p class="text-sm" style="color: var(--color-text-secondary);">{levelJobTitles.length}개 직책</p>
-										</div>
-									</div>
-									<ThemeButton
-										variant="primary"
-										size="sm"
-										class="flex items-center gap-2"
-										onclick={() => openAddJobTitleModal(level)}
-									>
-										<PlusIcon size={16} />
-										{level} 직책 추가
-									</ThemeButton>
-								</div>
-
-								<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-									{#each levelJobTitles as jobTitle}
-										<div class="p-4 rounded-lg border" style="border-color: var(--color-border); background: var(--color-surface-elevated);">
-											<div class="flex items-start justify-between mb-3">
-												<div class="flex-1">
-													<h4 class="font-medium" style="color: var(--color-text);">{jobTitle.name}</h4>
-													<p class="text-sm" style="color: var(--color-text-secondary);">{jobTitle.category}</p>
-													<div class="flex items-center gap-2 mt-2">
-														<ThemeBadge variant="default" size="sm">
-															레벨 {jobTitle.level}
-														</ThemeBadge>
-														<ThemeBadge variant={jobTitle.is_active ? 'success' : 'warning'} size="sm">
-															{jobTitle.is_active ? '활성' : '비활성'}
-														</ThemeBadge>
-													</div>
-												</div>
-												<div class="flex items-center gap-1">
-													<ThemeButton
-														variant="ghost"
-														size="sm"
-														onclick={() => openEditJobTitleModal(jobTitle)}
-													>
-														<EditIcon size={14} />
-													</ThemeButton>
-													<ThemeButton
-														variant="ghost"
-														size="sm"
-														onclick={() => handleJobTitleDelete(jobTitle)}
-													>
-														<TrashIcon size={14} />
-													</ThemeButton>
-												</div>
+					<ThemeCard class="p-6">
+						<div class="flex items-center justify-between mb-6">
+							<h3 class="text-lg font-semibold" style="color: var(--color-text);">직책 관리</h3>
+							<ThemeButton 
+								variant="primary" 
+								size="sm" 
+								class="flex items-center gap-2"
+								onclick={openAddJobTitleModal}
+							>
+								<PlusIcon size={16} />
+								직책 추가
+							</ThemeButton>
+						</div>
+						
+						<div class="space-y-3">
+							{#each jobTitles as jobTitle (jobTitle.id)}
+								<div class="flex items-center justify-between p-4 rounded-lg border" style="border-color: var(--color-border); background: var(--color-surface-elevated);">
+									<div class="flex items-center gap-4">
+										<BriefcaseIcon size={24} style="color: var(--color-primary);" />
+										<div class="flex-1">
+											<div class="flex items-center gap-3 mb-1">
+												<h4 class="font-semibold text-lg" style="color: var(--color-text);">{jobTitle.name}</h4>
+												<ThemeBadge variant={jobTitle.is_active ? 'success' : 'warning'}>
+													{jobTitle.is_active ? '활성' : '비활성'}
+												</ThemeBadge>
 											</div>
 											{#if jobTitle.description}
-												<p class="text-xs" style="color: var(--color-text-secondary);">{jobTitle.description}</p>
+												<p class="text-sm mb-2" style="color: var(--color-text-secondary);">{jobTitle.description}</p>
 											{/if}
+											<div class="flex items-center gap-4">
+												<div class="flex items-center gap-2">
+													<CalendarIcon size={14} style="color: var(--color-text-secondary);" />
+													<span class="text-xs" style="color: var(--color-text-secondary);">
+														생성일: {formatDate(jobTitle.created_at)}
+													</span>
+												</div>
+												<div class="flex items-center gap-2">
+													<UserCheckIcon size={14} style="color: var(--color-text-secondary);" />
+													<span class="text-xs" style="color: var(--color-text-secondary);">
+														레벨: {jobTitle.level}
+													</span>
+												</div>
+												<div class="flex items-center gap-2">
+													<TagIcon size={14} style="color: var(--color-text-secondary);" />
+													<span class="text-xs" style="color: var(--color-text-secondary);">
+														카테고리: {jobTitle.category}
+													</span>
+												</div>
+											</div>
 										</div>
-									{/each}
-
-									{#if levelJobTitles.length === 0}
-										<div class="col-span-full text-center py-8">
-											{#if level === 'C-Level'}
-												<CrownIcon size={48} class="mx-auto mb-4" style="color: var(--color-text-secondary);" />
-											{:else if level === 'Management'}
-												<BriefcaseIcon size={48} class="mx-auto mb-4" style="color: var(--color-text-secondary);" />
-											{:else if level === 'Specialist'}
-												<UserCheckIcon size={48} class="mx-auto mb-4" style="color: var(--color-text-secondary);" />
-											{/if}
-											<p class="text-sm" style="color: var(--color-text-secondary);">{level} 직책이 등록되지 않았습니다.</p>
-										</div>
-									{/if}
+									</div>
+									<div class="flex items-center gap-2">
+										<ThemeButton 
+											variant="ghost" 
+											size="sm"
+											onclick={() => openEditJobTitleModal(jobTitle)}
+										>
+											<EditIcon size={16} />
+											수정
+										</ThemeButton>
+										<ThemeButton 
+											variant="ghost" 
+											size="sm"
+											onclick={() => handleJobTitleDelete(jobTitle)}
+										>
+											<TrashIcon size={16} />
+											삭제
+										</ThemeButton>
+									</div>
 								</div>
-							</ThemeCard>
-						{/each}
-
-						<!-- 직책 관리 안내 -->
-						<ThemeCard class="p-6">
-							<ThemeSectionHeader title="직책 관리 안내" />
-							<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-								<div class="space-y-3">
-									<h4 class="font-medium flex items-center gap-2" style="color: var(--color-text);">
-										<CrownIcon size={16} style="color: var(--color-primary);" />
-										C-Level 직책
-									</h4>
-									<ul class="text-sm space-y-1" style="color: var(--color-text-secondary);">
-										<li>• CEO (대표이사)</li>
-										<li>• CTO (연구소장, 기술이사)</li>
-										<li>• CFO (상무이사)</li>
-									</ul>
+							{/each}
+							
+							{#if jobTitles.length === 0}
+								<div class="text-center py-8">
+									<BriefcaseIcon size={48} class="mx-auto mb-4" style="color: var(--color-text-secondary);" />
+									<p class="text-sm" style="color: var(--color-text-secondary);">등록된 직책이 없습니다.</p>
 								</div>
-								<div class="space-y-3">
-									<h4 class="font-medium flex items-center gap-2" style="color: var(--color-text);">
-										<BriefcaseIcon size={16} style="color: var(--color-primary);" />
-										Management 직책
-									</h4>
-									<ul class="text-sm space-y-1" style="color: var(--color-text-secondary);">
-										<li>• Director (이사)</li>
-										<li>• Managing Director (상무)</li>
-									</ul>
-								</div>
-								<div class="space-y-3">
-									<h4 class="font-medium flex items-center gap-2" style="color: var(--color-text);">
-										<UserCheckIcon size={16} style="color: var(--color-primary);" />
-										Specialist 직책
-									</h4>
-									<ul class="text-sm space-y-1" style="color: var(--color-text-secondary);">
-										<li>• Team Lead (팀장)</li>
-										<li>• Senior Manager (부장)</li>
-										<li>• Manager (과장)</li>
-									</ul>
-								</div>
-							</div>
-						</ThemeCard>
-					</div>
+							{/if}
+						</div>
+					</ThemeCard>
 				</ThemeSpacer>
 			{:else if tab.id === 'org-chart'}
 				<!-- 조직도 탭 -->
@@ -2077,6 +2157,7 @@
 	}}
 	on:confirm={(event) => handleEmployeeDelete(event.detail.action)}
 />
+
 
 <!-- 부서 관리 모달 -->
 <DepartmentModal

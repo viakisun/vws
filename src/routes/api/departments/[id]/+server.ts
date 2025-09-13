@@ -6,7 +6,7 @@ import { query } from '$lib/database/connection';
 export const GET: RequestHandler = async ({ params }) => {
 	try {
 		const result = await query(`
-			SELECT id, name, description, status, created_at, updated_at
+			SELECT id, name, description, status, max_employees, created_at, updated_at
 			FROM departments
 			WHERE id = $1
 		`, [params.id]);
@@ -62,14 +62,16 @@ export const PUT: RequestHandler = async ({ params, request }) => {
 				name = $2,
 				description = $3,
 				status = $4,
-				updated_at = $5
+				max_employees = $5,
+				updated_at = $6
 			WHERE id = $1
-			RETURNING id, name, description, status, created_at, updated_at
+			RETURNING id, name, description, status, max_employees, created_at, updated_at
 		`, [
 			params.id,
 			data.name.trim(),
 			data.description?.trim() || '',
 			data.status || 'active',
+			data.to || 0,
 			new Date()
 		]);
 

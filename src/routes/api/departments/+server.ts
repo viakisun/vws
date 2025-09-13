@@ -16,7 +16,7 @@ export const GET: RequestHandler = async ({ url }) => {
 		}
 
 		const result = await query(`
-			SELECT id, name, description, status, created_at, updated_at
+			SELECT id, name, description, status, max_employees, created_at, updated_at
 			FROM departments
 			${whereClause}
 			ORDER BY name ASC
@@ -62,13 +62,14 @@ export const POST: RequestHandler = async ({ request }) => {
 		}
 
 		const result = await query(`
-			INSERT INTO departments (name, description, status, created_at, updated_at)
-			VALUES ($1, $2, $3, $4, $5)
-			RETURNING id, name, description, status, created_at, updated_at
+			INSERT INTO departments (name, description, status, max_employees, created_at, updated_at)
+			VALUES ($1, $2, $3, $4, $5, $6)
+			RETURNING id, name, description, status, max_employees, created_at, updated_at
 		`, [
 			data.name.trim(),
 			data.description?.trim() || '',
 			data.status || 'active',
+			data.to || 0,
 			new Date(),
 			new Date()
 		]);

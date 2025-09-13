@@ -9,6 +9,7 @@
 		name: string;
 		description: string;
 		status: 'active' | 'inactive';
+		max_employees?: number; // T/O (정원)
 	}
 
 	interface Props {
@@ -24,7 +25,8 @@
 	let formData = $state({
 		name: '',
 		description: '',
-		status: 'active' as 'active' | 'inactive'
+		status: 'active' as 'active' | 'inactive',
+		to: 0
 	});
 
 	// 부서 데이터가 변경될 때 폼 데이터 업데이트
@@ -33,11 +35,13 @@
 			formData.name = department.name || '';
 			formData.description = department.description || '';
 			formData.status = department.status || 'active';
+			formData.to = department.max_employees || 0;
 		} else {
 			// 새 부서 추가 시 기본값으로 리셋
 			formData.name = '';
 			formData.description = '';
 			formData.status = 'active';
+			formData.to = 0;
 		}
 	});
 
@@ -94,6 +98,25 @@
 					class="w-full px-3 py-2 border rounded-md text-sm resize-none"
 					style="border-color: var(--color-border); background: var(--color-surface); color: var(--color-text);"
 				></textarea>
+			</div>
+
+			<!-- T/O (정원) -->
+			<div>
+				<label for="dept-to" class="block text-sm font-medium mb-2" style="color: var(--color-text);">
+					T/O (정원)
+				</label>
+				<input
+					id="dept-to"
+					type="number"
+					bind:value={formData.to}
+					placeholder="0 (무제한)"
+					min="0"
+					class="w-full px-3 py-2 border rounded-md text-sm"
+					style="border-color: var(--color-border); background: var(--color-surface); color: var(--color-text);"
+				/>
+				<p class="text-xs mt-1" style="color: var(--color-text-secondary);">
+					0으로 설정하면 현재 인원이 최대 인원으로 간주됩니다.
+				</p>
 			</div>
 
 			<!-- 상태 -->

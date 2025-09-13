@@ -22,3 +22,7 @@ export function pct(n: number): string {
 	return `${Math.round(n)}%`;
 }
 
+export function formatEmployeeId(id: number): string {
+	return `V${id.toString().padStart(5, '0')}`;
+}
+

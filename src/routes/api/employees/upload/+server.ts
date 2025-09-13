@@ -172,11 +172,10 @@ export async function POST({ request }) {
 			// 미들네임 처리 (선택사항)
 			const middleName = row['미들네임'] ? String(row['미들네임']).trim() : '';
 			
-			// employee_id 생성 (이메일 기반 + 타임스탬프)
-			const email = row['이메일'] ? String(row['이메일']).trim() : '';
-			const timestamp = Date.now().toString().slice(-6);
-			const random = Math.random().toString(36).substr(2, 4);
-			const employeeId = email ? `${email.split('@')[0]}_${timestamp}_${random}` : `emp_${timestamp}_${random}`;
+			// employee_id 생성 (V00001 형식)
+			// 업로드 시에는 임시로 인덱스 기반 생성, 실제 저장 시에는 순차적으로 할당
+			const tempId = rowNumber; // 행 번호를 임시 ID로 사용
+			const employeeId = `V${tempId.toString().padStart(5, '0')}`;
 
 			return {
 				employee_id: employeeId,
@@ -203,6 +202,11 @@ export async function POST({ request }) {
 			try {
 				console.log('직원 데이터 저장 시도:', employee);
 				
+				// 새로운 사번 생성 (V00001 형식)
+				const countResult = await query('SELECT COUNT(*) as count FROM employees');
+				const nextId = (countResult.rows[0]?.count || 0) + 1;
+				const newEmployeeId = `V${nextId.toString().padStart(5, '0')}`;
+				
 				// UPSERT: 이메일이 존재하면 UPDATE, 없으면 INSERT
 				await query(`
 					INSERT INTO employees (
@@ -224,7 +228,7 @@ export async function POST({ request }) {
 						employment_type = EXCLUDED.employment_type,
 						updated_at = EXCLUDED.updated_at
 				`, [
-					employee.employee_id,
+					newEmployeeId,
 					employee.first_name,
 					employee.last_name,
 					employee.middle_name,
@@ -239,7 +243,7 @@ export async function POST({ request }) {
 					employee.created_at,
 					employee.updated_at
 				]);
-				console.log('직원 저장/업데이트 성공:', employee.employee_id);
+				console.log('직원 저장/업데이트 성공:', newEmployeeId);
 				successCount++;
 			} catch (error) {
 				console.error('직원 저장 실패:', error);
