@@ -16,7 +16,6 @@
 	import DeleteConfirmModal from '$lib/components/ui/DeleteConfirmModal.svelte';
 	import DepartmentModal from '$lib/components/ui/DepartmentModal.svelte';
 	import PositionModal from '$lib/components/ui/PositionModal.svelte';
-	import OrganizationChart from '$lib/components/ui/OrganizationChart.svelte';
 	import { formatCurrency, formatDate } from '$lib/utils/format';
 	import { 
 		UsersIcon, 
@@ -37,12 +36,7 @@
 		FileSpreadsheetIcon,
 		DownloadIcon,
 		AlertCircleIcon,
-		CheckCircleIcon,
-		MailIcon,
-		PhoneIcon,
-		DollarSignIcon,
-		CrownIcon,
-		BriefcaseIcon
+		CheckCircleIcon
 	} from 'lucide-svelte';
 	
 	// HR 스토어들
@@ -100,104 +94,6 @@
 	let loading = $state(true);
 	let error = $state<string | null>(null);
 
-	// 직원 데이터 가져오기 (활성 직원만)
-	async function fetchEmployees() {
-		try {
-			loading = true;
-			error = null;
-			const response = await fetch('/api/employees?status=active');
-			if (response.ok) {
-				const result = await response.json();
-				employees = result.data || result.employees || [];
-			} else {
-				error = '직원 데이터를 불러오는데 실패했습니다.';
-			}
-		} catch (err) {
-			error = '직원 데이터를 불러오는데 실패했습니다.';
-			console.error('Error fetching employees:', err);
-		} finally {
-			loading = false;
-		}
-	}
-
-	// 부서 데이터 가져오기
-	async function fetchDepartments() {
-		try {
-			const response = await fetch('/api/departments');
-			if (response.ok) {
-				const result = await response.json();
-				departments = result.data || result.departments || [];
-			}
-		} catch (err) {
-			console.error('Error fetching departments:', err);
-		}
-	}
-
-	// 직급 데이터 가져오기
-	async function fetchPositions() {
-		try {
-			const response = await fetch('/api/positions');
-			if (response.ok) {
-				const result = await response.json();
-				positions = result.data || result.positions || [];
-			}
-		} catch (err) {
-			console.error('Error fetching positions:', err);
-		}
-	}
-
-	// 이사 데이터 가져오기
-	async function fetchExecutives() {
-		try {
-			executiveLoading = true;
-			const response = await fetch('/api/executives');
-			if (response.ok) {
-				const result = await response.json();
-				executives = result.data || result.executives || [];
-			}
-		} catch (err) {
-			console.error('Error fetching executives:', err);
-		} finally {
-			executiveLoading = false;
-		}
-	}
-
-	// 직책 데이터 가져오기
-	async function fetchJobTitles() {
-		try {
-			jobTitleLoading = true;
-			const response = await fetch('/api/job-titles');
-			if (response.ok) {
-				const result = await response.json();
-				jobTitles = result.data || result.jobTitles || [];
-			}
-		} catch (err) {
-			console.error('Error fetching job titles:', err);
-		} finally {
-			jobTitleLoading = false;
-		}
-	}
-
-	// 직급을 카테고리별로 분류
-	function getPositionsByCategory() {
-		const categories = {
-			'연구원': positions.filter(p => p.department === '연구개발'),
-			'디자이너': positions.filter(p => p.department === '디자인'),
-			'행정원': positions.filter(p => p.department === '행정')
-		};
-		return categories;
-	}
-
-	// 직책을 레벨별로 분류
-	function getJobTitlesByLevel() {
-		const levels = {
-			'C-Level': jobTitles.filter(jt => jt.level === 1),
-			'Management': jobTitles.filter(jt => jt.level === 2),
-			'Specialist': jobTitles.filter(jt => jt.level === 3)
-		};
-		return levels;
-	}
-
 	// 반응형 데이터 (데이터베이스 기반)
 	let totalEmployees = $derived(() => employees?.filter((emp: any) => emp.status === 'active').length || 0);
 	let totalDepartments = $derived(() => [...new Set(employees?.map((emp: any) => emp.department) || [])].length);
@@ -232,28 +128,8 @@
 			icon: TargetIcon
 		},
 		{
-			id: 'departments',
-			label: '부서관리',
-			icon: BuildingIcon
-		},
-		{
-			id: 'positions',
-			label: '직급관리',
-			icon: UserCheckIcon
-		},
-		{
-			id: 'executives',
-			label: '이사관리',
-			icon: CrownIcon
-		},
-		{
-			id: 'job-titles',
-			label: '직책관리',
-			icon: BriefcaseIcon
-		},
-		{
-			id: 'org-chart',
-			label: '조직도',
+			id: 'organization',
+			label: '조직관리',
 			icon: BuildingIcon
 		}
 	];
@@ -285,119 +161,8 @@
 	let departmentLoading = $state(false);
 	let positionLoading = $state(false);
 
-	// 이사 관리 관련 상태
-	let executives = $state<any[]>([]);
-	let jobTitles = $state<any[]>([]);
-	let showExecutiveModal = $state(false);
-	let showJobTitleModal = $state(false);
-	let selectedExecutive = $state<any>(null);
-	let selectedJobTitle = $state<any>(null);
-	let executiveLoading = $state(false);
-	let jobTitleLoading = $state(false);
-
-	// 직원 검색 및 필터링 상태
-	let searchQuery = $state('');
-	let departmentFilter = $state('');
-	let statusFilter = $state('');
-	let currentPage = $state(1);
-	let itemsPerPage = 20;
-
-	// 필터링된 직원 목록
-	let filteredEmployees = $derived((() => {
-		let filtered = employees || [];
-		
-		// 검색 필터
-		if (searchQuery) {
-			const query = searchQuery.toLowerCase();
-			filtered = filtered.filter(emp => 
-				`${emp.last_name}${emp.first_name}`.toLowerCase().includes(query) ||
-				emp.email.toLowerCase().includes(query) ||
-				emp.employee_id.toLowerCase().includes(query) ||
-				emp.department.toLowerCase().includes(query) ||
-				emp.position.toLowerCase().includes(query)
-			);
-		}
-		
-		// 부서 필터
-		if (departmentFilter) {
-			filtered = filtered.filter(emp => emp.department === departmentFilter);
-		}
-		
-		// 상태 필터
-		if (statusFilter) {
-			filtered = filtered.filter(emp => emp.status === statusFilter);
-		}
-		
-		return filtered;
-	})());
-
-	// 팀별로 그룹화된 직원 목록
-	let groupedEmployees = $derived((() => {
-		const groups: { [key: string]: any[] } = {};
-		
-		filteredEmployees.forEach((employee: any) => {
-			const team = employee.department || '기타';
-			if (!groups[team]) {
-				groups[team] = [];
-			}
-			groups[team].push(employee);
-		});
-		
-		return groups;
-	})());
-
-	// 페이지네이션 계산 (직원 수 기준)
-	let totalPages = $derived(Math.ceil(filteredEmployees.length / itemsPerPage));
-	let paginatedEmployees = $derived((() => {
-		const start = (currentPage - 1) * itemsPerPage;
-		const end = start + itemsPerPage;
-		return filteredEmployees.slice(start, end);
-	})());
-
-	// 팀 리더인지 확인하는 함수
-	function isTeamLead(employee: any): boolean {
-		return employee.job_title_name === 'Team Lead' || employee.position === 'Team Lead';
-	}
-
-	// 직원을 정렬하는 함수 (팀 리더 우선)
-	function sortEmployees(employees: any[]): any[] {
-		return employees.sort((a, b) => {
-			const aIsTeamLead = isTeamLead(a);
-			const bIsTeamLead = isTeamLead(b);
-			
-			// 팀 리더가 아닌 직원보다 팀 리더를 앞에 배치
-			if (aIsTeamLead && !bIsTeamLead) return -1;
-			if (!aIsTeamLead && bIsTeamLead) return 1;
-			
-			// 둘 다 팀 리더이거나 둘 다 일반 직원인 경우 이름순 정렬
-			const aName = a.last_name + a.first_name;
-			const bName = b.last_name + b.first_name;
-			return aName.localeCompare(bName);
-		});
-	}
-
-	// 페이지네이션된 직원들을 팀별로 그룹화 (팀 리더 우선 정렬)
-	let paginatedGroupedEmployees = $derived((() => {
-		const groups: { [key: string]: any[] } = {};
-		
-		paginatedEmployees.forEach((employee: any) => {
-			const team = employee.department || '기타';
-			if (!groups[team]) {
-				groups[team] = [];
-			}
-			groups[team].push(employee);
-		});
-		
-		// 각 팀 내에서 팀 리더를 우선 정렬
-		Object.keys(groups).forEach(team => {
-			groups[team] = sortEmployees(groups[team]);
-		});
-		
-		return groups;
-	})());
-
 	// 통계 데이터
-	let stats = $derived((() => [
+	let stats = $derived(() => [
 		{
 			title: '총 직원 수',
 			value: totalEmployees(),
@@ -426,7 +191,7 @@
 			changeType: 'negative' as const,
 			icon: ClipboardListIcon
 		}
-	])());
+	]);
 
 	// 액션 버튼들
 	const actions = [
@@ -521,14 +286,60 @@
 			.slice(0, 5);
 	});
 
+	// 데이터베이스에서 직원 데이터 가져오기
+	async function fetchEmployees() {
+		try {
+			loading = true;
+			error = null;
+			const response = await fetch('/api/database/employees');
+			const result = await response.json();
+			
+			if (result.success) {
+				employees = result.data;
+			} else {
+				error = '직원 데이터를 가져오는데 실패했습니다.';
+			}
+		} catch (err) {
+			error = '직원 데이터를 가져오는데 오류가 발생했습니다.';
+			console.error('Error fetching employees:', err);
+		} finally {
+			loading = false;
+		}
+	}
+
+	// 부서 데이터 가져오기
+	async function fetchDepartments() {
+		try {
+			const response = await fetch('/api/departments?status=active');
+			const result = await response.json();
+			
+			if (result.success) {
+				departments = result.data;
+			}
+		} catch (err) {
+			console.error('Error fetching departments:', err);
+		}
+	}
+
+	// 직급 데이터 가져오기
+	async function fetchPositions() {
+		try {
+			const response = await fetch('/api/positions?status=active');
+			const result = await response.json();
+			
+			if (result.success) {
+				positions = result.data;
+			}
+		} catch (err) {
+			console.error('Error fetching positions:', err);
+		}
+	}
 	
 	// 컴포넌트 마운트 시 데이터 로드
 	onMount(() => {
 		fetchEmployees();
 		fetchDepartments();
 		fetchPositions();
-		fetchExecutives();
-		fetchJobTitles();
 	});
 	
 	// 파일 업로드 처리
@@ -730,19 +541,6 @@
 		}
 	}
 	
-	// 페이지네이션 함수들
-	function setCurrentPage(page: number) {
-		currentPage = page;
-	}
-
-	// 검색/필터 변경 시 첫 페이지로 이동
-	$effect(() => {
-		searchQuery;
-		departmentFilter;
-		statusFilter;
-		currentPage = 1;
-	});
-	
 	// 직원 추가 모달 열기
 	function openAddEmployeeModal() {
 		selectedEmployee = null;
@@ -906,82 +704,9 @@
 		}
 	}
 
-	function openAddPositionModal(category?: string) {
+	function openAddPositionModal() {
 		selectedPosition = null;
 		showPositionModal = true;
-		// 카테고리 정보를 모달에 전달할 수 있도록 설정
-		if (category) {
-			// 모달에서 카테고리 정보를 사용할 수 있도록 상태 설정
-			// 이는 PositionModal 컴포넌트에서 활용할 수 있습니다
-		}
-	}
-
-	// 이사 관리 함수들
-	function openAddExecutiveModal() {
-		selectedExecutive = null;
-		showExecutiveModal = true;
-	}
-
-	function openEditExecutiveModal(executive: any) {
-		selectedExecutive = executive;
-		showExecutiveModal = true;
-	}
-
-	async function handleExecutiveDelete(executive: any) {
-		if (confirm(`정말로 ${executive.first_name} ${executive.last_name} 이사를 삭제하시겠습니까?`)) {
-			try {
-				const response = await fetch(`/api/executives/${executive.id}`, {
-					method: 'DELETE'
-				});
-				
-				if (response.ok) {
-					await fetchExecutives();
-					alert('이사가 성공적으로 삭제되었습니다.');
-				} else {
-					const result = await response.json();
-					alert(result.error || '이사 삭제 중 오류가 발생했습니다.');
-				}
-			} catch (error) {
-				console.error('Error deleting executive:', error);
-				alert('이사 삭제 중 오류가 발생했습니다.');
-			}
-		}
-	}
-
-	// 직책 관리 함수들
-	function openAddJobTitleModal(level?: string) {
-		selectedJobTitle = null;
-		showJobTitleModal = true;
-		// 레벨 정보를 모달에 전달할 수 있도록 설정
-		if (level) {
-			// 모달에서 레벨 정보를 사용할 수 있도록 상태 설정
-		}
-	}
-
-	function openEditJobTitleModal(jobTitle: any) {
-		selectedJobTitle = jobTitle;
-		showJobTitleModal = true;
-	}
-
-	async function handleJobTitleDelete(jobTitle: any) {
-		if (confirm(`정말로 ${jobTitle.name} 직책을 삭제하시겠습니까?`)) {
-			try {
-				const response = await fetch(`/api/job-titles/${jobTitle.id}`, {
-					method: 'DELETE'
-				});
-				
-				if (response.ok) {
-					await fetchJobTitles();
-					alert('직책이 성공적으로 삭제되었습니다.');
-				} else {
-					const result = await response.json();
-					alert(result.error || '직책 삭제 중 오류가 발생했습니다.');
-				}
-			} catch (error) {
-				console.error('Error deleting job title:', error);
-				alert('직책 삭제 중 오류가 발생했습니다.');
-			}
-		}
 	}
 
 	function openEditPositionModal(position: any) {
@@ -1023,7 +748,7 @@
 							<div>
 								<h4 class="font-medium" style="color: var(--color-text);">{dept.department}</h4>
 								<p class="text-sm" style="color: var(--color-text-secondary);">{dept.count}명</p>
-		</div>
+							</div>
 						</div>
 						<ThemeBadge variant="info">{dept.percentage}%</ThemeBadge>
 					</div>
@@ -1075,7 +800,7 @@
 				<PlusIcon size={16} />
 				새 공고
 			</ThemeButton>
-						</div>
+		</div>
 
 		<div class="space-y-4">
 			{#each recentJobPostings() as job}
@@ -1102,7 +827,7 @@
 						<ThemeButton variant="ghost" size="sm">
 							<TrashIcon size={16} />
 						</ThemeButton>
-				</div>
+					</div>
 				</div>
 			{/each}
 		</div>
@@ -1140,7 +865,7 @@
 						<ThemeButton variant="ghost" size="sm">
 							<EditIcon size={16} />
 						</ThemeButton>
-				</div>
+					</div>
 				</div>
 			{/each}
 		</div>
@@ -1171,193 +896,58 @@
 									<FileSpreadsheetIcon size={16} />
 									엑셀 업로드
 								</button>
-						</div>
+							</div>
 						</div>
 						
 						{#if loading}
 							<div class="flex items-center justify-center py-8">
 								<div class="text-sm" style="color: var(--color-text-secondary);">직원 데이터를 불러오는 중...</div>
-					</div>
+							</div>
 						{:else if error}
 							<div class="flex items-center justify-center py-8">
 								<div class="text-sm text-red-500">{error}</div>
-				</div>
+							</div>
 						{:else if employees.length === 0}
 							<div class="flex items-center justify-center py-8">
 								<div class="text-sm" style="color: var(--color-text-secondary);">등록된 직원이 없습니다.</div>
 							</div>
 						{:else}
-							<!-- 검색 및 필터 -->
-							<div class="mb-6 space-y-4">
-								<div class="flex flex-col sm:flex-row gap-4">
-									<div class="flex-1">
-										<input
-											type="text"
-											bind:value={searchQuery}
-											placeholder="이름, 이메일, 부서로 검색..."
-											class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-											style="border-color: var(--color-border); background: var(--color-input-background); color: var(--color-text);"
-										/>
-									</div>
-									<div class="flex gap-2">
-										<select
-											bind:value={departmentFilter}
-											class="px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-											style="border-color: var(--color-border); background: var(--color-input-background); color: var(--color-text);"
-										>
-											<option value="">전체 부서</option>
-											{#each departments as dept}
-												<option value={dept.name}>{dept.name}</option>
-											{/each}
-										</select>
-										<select
-											bind:value={statusFilter}
-											class="px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-											style="border-color: var(--color-border); background: var(--color-input-background); color: var(--color-text);"
-										>
-											<option value="">전체 상태</option>
-											<option value="active">재직중</option>
-											<option value="on-leave">휴직중</option>
-											<option value="terminated">퇴사</option>
-										</select>
-									</div>
-								</div>
-							</div>
-
-							<!-- 팀별 직원 카드 그리드 -->
-							<div class="space-y-8">
-								{#each Object.keys(paginatedGroupedEmployees) as teamName}
-									<div class="space-y-4">
-										<!-- 팀 헤더 -->
-										<div class="flex items-center gap-3 pb-2 border-b" style="border-color: var(--color-border);">
-											<BuildingIcon size={20} style="color: var(--color-primary);" />
-											<h3 class="text-lg font-semibold" style="color: var(--color-text);">{teamName}</h3>
-											<span class="text-sm px-2 py-1 rounded-full" style="background: var(--color-primary-light); color: var(--color-primary);">
-												{paginatedGroupedEmployees[teamName]?.length || 0}명
-											</span>
-						</div>
-										
-										<!-- 팀 내 직원 카드 그리드 -->
-										<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-											{#each paginatedGroupedEmployees[teamName] || [] as employee}
-									<div class="p-4 rounded-lg border transition-all hover:shadow-md {isTeamLead(employee) ? 'ring-2 ring-yellow-400/50 shadow-lg' : ''}" style="border-color: {isTeamLead(employee) ? 'var(--color-warning)' : 'var(--color-border)'}; background: {isTeamLead(employee) ? 'linear-gradient(135deg, var(--color-surface-elevated) 0%, rgba(251, 191, 36, 0.05) 100%)' : 'var(--color-surface-elevated)'};">
-										<!-- 직원 헤더 -->
-										<div class="flex items-start justify-between mb-3">
-											<div class="flex items-center gap-3">
-												<div class="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold">
-													{employee.last_name.charAt(0)}
-						</div>
-												<div>
-													<div class="flex items-center gap-2">
-														<h4 class="font-semibold text-lg" style="color: var(--color-text);">
-															{employee.last_name}{employee.first_name}
-														</h4>
-														{#if isTeamLead(employee)}
-															<span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gradient-to-r from-yellow-400 to-orange-500 text-white shadow-sm">
-																👑 팀 리더
-															</span>
-														{/if}
-													</div>
-													<p class="text-sm" style="color: var(--color-text-secondary);">{employee.employee_id}</p>
-					</div>
-				</div>
-											<div class="flex flex-col gap-1 items-end">
-												<ThemeBadge variant={employee.status === 'active' ? 'success' : employee.status === 'terminated' ? 'error' : 'warning'}>
-													{employee.status === 'active' ? '재직중' : 
-													 employee.status === 'terminated' ? '퇴사' :
-													 employee.status === 'on-leave' ? '휴직' : '비활성'}
-												</ThemeBadge>
+							<div class="space-y-4">
+								{#each employees.slice(0, 5) as employee}
+									<div class="flex items-center justify-between p-4 rounded-lg border" style="border-color: var(--color-border); background: var(--color-surface-elevated);">
+										<div class="flex items-center gap-3">
+											<UsersIcon size={20} style="color: var(--color-primary);" />
+											<div>
+												<h4 class="font-medium" style="color: var(--color-text);">
+													{employee.last_name}{employee.first_name}
+												</h4>
+												<p class="text-sm" style="color: var(--color-text-secondary);">{employee.department} • {employee.position}</p>
 											</div>
 										</div>
-
-										<!-- 직원 정보 -->
-										<div class="space-y-2 mb-4">
-											<div class="flex items-center gap-2">
-												<BuildingIcon size={16} style="color: var(--color-text-secondary);" />
-												<span class="text-sm" style="color: var(--color-text);">{employee.department}</span>
-				</div>
-											<div class="flex items-center gap-2">
-												<UserCheckIcon size={16} style="color: var(--color-text-secondary);" />
-												<span class="text-sm" style="color: var(--color-text);">
-													{employee.job_title_name || employee.position}
-												</span>
-											</div>
-											<div class="flex items-center gap-2">
-												<MailIcon size={16} style="color: var(--color-text-secondary);" />
-												<span class="text-sm" style="color: var(--color-text-secondary);">{employee.email}</span>
-											</div>
-											{#if employee.phone}
-												<div class="flex items-center gap-2">
-													<PhoneIcon size={16} style="color: var(--color-text-secondary);" />
-													<span class="text-sm" style="color: var(--color-text-secondary);">{employee.phone}</span>
-												</div>
-											{/if}
-											<div class="flex items-center gap-2">
-												<DollarSignIcon size={16} style="color: var(--color-text-secondary);" />
-												<span class="text-sm font-medium" style="color: var(--color-primary);">
-													{Math.round(Number(employee.salary) / 10000)}만원
-												</span>
-											</div>
-										</div>
-
-										<!-- 액션 버튼 -->
-										<div class="flex items-center gap-2 pt-3 border-t" style="border-color: var(--color-border);">
+										<div class="flex items-center gap-2">
+											<ThemeBadge variant={employee.status === 'active' ? 'success' : employee.status === 'terminated' ? 'error' : 'warning'}>
+												{employee.status === 'active' ? '활성' : 
+												 employee.status === 'terminated' ? '퇴사' :
+												 employee.status === 'on-leave' ? '휴직' : '비활성'}
+											</ThemeBadge>
 											<ThemeButton 
 												variant="ghost" 
 												size="sm"
-												class="flex-1"
 												onclick={() => openEditEmployeeModal(employee)}
 											>
 												<EditIcon size={16} />
-												수정
 											</ThemeButton>
 											<ThemeButton 
 												variant="ghost" 
 												size="sm"
-												class="flex-1"
 												onclick={() => openDeleteEmployeeModal(employee)}
 											>
 												<TrashIcon size={16} />
-												삭제
 											</ThemeButton>
-				</div>
-									</div>
-											{/each}
 										</div>
 									</div>
 								{/each}
-		</div>
-
-							<!-- 페이지네이션 -->
-							{#if totalPages > 1}
-								<div class="flex items-center justify-center gap-2 mt-6">
-									<ThemeButton 
-										variant="ghost" 
-										size="sm"
-										disabled={currentPage === 1}
-										onclick={() => setCurrentPage(currentPage - 1)}
-									>
-										이전
-									</ThemeButton>
-									{#each Array.from({length: totalPages}, (_, i) => i + 1) as page}
-										<ThemeButton 
-											variant={page === currentPage ? 'primary' : 'ghost'} 
-											size="sm"
-											onclick={() => setCurrentPage(page)}
-										>
-											{page}
-										</ThemeButton>
-									{/each}
-									<ThemeButton 
-										variant="ghost" 
-										size="sm"
-										disabled={currentPage === totalPages}
-										onclick={() => setCurrentPage(currentPage + 1)}
-									>
-										다음
-									</ThemeButton>
-				</div>
-							{/if}
+							</div>
 						{/if}
 					</ThemeCard>
 				</ThemeSpacer>
@@ -1374,7 +964,7 @@
 							</ThemeButton>
 						</div>
 						
-					<div class="space-y-4">
+						<div class="space-y-4">
 							{#each recentJobPostings() as job}
 								<div class="flex items-center justify-between p-4 rounded-lg border" style="border-color: var(--color-border); background: var(--color-surface-elevated);">
 									<div class="flex-1">
@@ -1387,7 +977,7 @@
 											<span class="text-xs" style="color: var(--color-text-secondary);">
 												{formatDate(job.createdAt)}
 											</span>
-								</div>
+					</div>
 				</div>
 									<div class="flex items-center gap-2">
 										<ThemeButton variant="ghost" size="sm">
@@ -1396,10 +986,10 @@
 										<ThemeButton variant="ghost" size="sm">
 											<EditIcon size={16} />
 										</ThemeButton>
-								</div>
-							</div>
-						{/each}
-					</div>
+									</div>
+		</div>
+							{/each}
+				</div>
 					</ThemeCard>
 				</ThemeSpacer>
 
@@ -1449,8 +1039,8 @@
 					</ThemeCard>
 				</ThemeSpacer>
 
-			{:else if tab.id === 'departments'}
-				<!-- 부서관리 탭 -->
+			{:else if tab.id === 'organization'}
+				<!-- 조직관리 탭 -->
 				<ThemeSpacer size={6}>
 					<ThemeGrid cols={1} lgCols={2} gap={6}>
 						<!-- 부서 관리 -->
@@ -1468,7 +1058,7 @@
 								</ThemeButton>
 							</div>
 							
-					<div class="space-y-3">
+							<div class="space-y-3">
 								{#each departments as department}
 									<div class="flex items-center justify-between p-3 rounded-lg border" style="border-color: var(--color-border); background: var(--color-surface-elevated);">
 										<div class="flex items-center gap-3">
@@ -1499,384 +1089,101 @@
 												<TrashIcon size={16} />
 											</ThemeButton>
 										</div>
-							</div>
-						{/each}
+									</div>
+								{/each}
 								
 								{#if departments.length === 0}
 									<div class="text-center py-8">
 										<BuildingIcon size={48} class="mx-auto mb-4" style="color: var(--color-text-secondary);" />
 										<p class="text-sm" style="color: var(--color-text-secondary);">등록된 부서가 없습니다.</p>
-					</div>
+									</div>
 								{/if}
-				</div>
-						</ThemeCard>
-
-					</ThemeGrid>
-
-					<!-- 부서 관리 안내 -->
-					<ThemeCard class="p-6">
-						<ThemeSectionHeader title="부서 관리 안내" />
-						<div class="space-y-3">
-							<h4 class="font-medium" style="color: var(--color-text);">부서 관리 규칙</h4>
-							<ul class="text-sm space-y-2" style="color: var(--color-text-secondary);">
-								<li>• 부서명은 중복될 수 없습니다</li>
-								<li>• 부서를 삭제하면 해당 부서의 직원들에게 영향을 줄 수 있습니다</li>
-								<li>• 비활성화된 부서는 새 직원 배치 시 선택할 수 없습니다</li>
-								<li>• 부서 설명은 선택사항이며, 부서의 역할과 책임을 명시할 수 있습니다</li>
-							</ul>
-							</div>
-					</ThemeCard>
-				</ThemeSpacer>
-			{:else if tab.id === 'positions'}
-				<!-- 직급관리 탭 -->
-				<ThemeSpacer size={6}>
-					<div class="space-y-6">
-						<!-- 직급 카테고리별 관리 -->
-						{#each Object.entries(getPositionsByCategory()) as [category, categoryPositions]}
-							<ThemeCard class="p-6">
-								<div class="flex items-center justify-between mb-6">
-									<div class="flex items-center gap-3">
-										{#if category === '연구원'}
-											<GraduationCapIcon size={24} style="color: var(--color-primary);" />
-										{:else if category === '디자이너'}
-											<UsersIcon size={24} style="color: var(--color-primary);" />
-										{:else if category === '행정원'}
-											<BuildingIcon size={24} style="color: var(--color-primary);" />
-										{/if}
-										<div>
-											<h3 class="text-xl font-semibold" style="color: var(--color-text);">{category} 직급 관리</h3>
-											<p class="text-sm" style="color: var(--color-text-secondary);">{categoryPositions.length}개 직급</p>
-							</div>
-							</div>
-									<ThemeButton 
-										variant="primary" 
-										size="sm" 
-										class="flex items-center gap-2"
-										onclick={() => openAddPositionModal(category)}
-									>
-										<PlusIcon size={16} />
-										{category} 직급 추가
-									</ThemeButton>
-							</div>
-								
-								<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-									{#each categoryPositions as position}
-										<div class="p-4 rounded-lg border" style="border-color: var(--color-border); background: var(--color-surface-elevated);">
-											<div class="flex items-start justify-between mb-3">
-												<div class="flex-1">
-													<h4 class="font-medium" style="color: var(--color-text);">{position.name}</h4>
-													<p class="text-sm" style="color: var(--color-text-secondary);">{position.department}</p>
-													<div class="flex items-center gap-2 mt-2">
-														<ThemeBadge variant="default" size="sm">
-															레벨 {position.level}
-														</ThemeBadge>
-														<ThemeBadge variant={position.status === 'active' ? 'success' : 'warning'} size="sm">
-															{position.status === 'active' ? '활성' : '비활성'}
-														</ThemeBadge>
-					</div>
-				</div>
-												<div class="flex items-center gap-1">
-													<ThemeButton 
-														variant="ghost" 
-														size="sm"
-														onclick={() => openEditPositionModal(position)}
-													>
-														<EditIcon size={14} />
-													</ThemeButton>
-													<ThemeButton 
-														variant="ghost" 
-														size="sm"
-														onclick={() => handlePositionDelete(position)}
-													>
-														<TrashIcon size={14} />
-													</ThemeButton>
-		</div>
-	</div>
-											{#if position.description}
-												<p class="text-xs" style="color: var(--color-text-secondary);">{position.description}</p>
-											{/if}
-</div>
-									{/each}
-									
-									{#if categoryPositions.length === 0}
-										<div class="col-span-full text-center py-8">
-											{#if category === '연구원'}
-												<GraduationCapIcon size={48} class="mx-auto mb-4" style="color: var(--color-text-secondary);" />
-											{:else if category === '디자이너'}
-												<UsersIcon size={48} class="mx-auto mb-4" style="color: var(--color-text-secondary);" />
-											{:else if category === '행정원'}
-												<BuildingIcon size={48} class="mx-auto mb-4" style="color: var(--color-text-secondary);" />
-											{/if}
-											<p class="text-sm" style="color: var(--color-text-secondary);">{category} 직급이 등록되지 않았습니다.</p>
-										</div>
-									{/if}
-								</div>
-							</ThemeCard>
-						{/each}
-
-						<!-- 직급 관리 안내 -->
-						<ThemeCard class="p-6">
-							<ThemeSectionHeader title="직급 관리 안내" />
-							<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-								<div class="space-y-3">
-									<h4 class="font-medium flex items-center gap-2" style="color: var(--color-text);">
-										<GraduationCapIcon size={16} style="color: var(--color-primary);" />
-										연구원 직급
-									</h4>
-									<ul class="text-sm space-y-1" style="color: var(--color-text-secondary);">
-										<li>• 연구원 → 주임연구원</li>
-										<li>• 선임연구원 → 책임연구원</li>
-										<li>• 수석연구원</li>
-									</ul>
-								</div>
-								<div class="space-y-3">
-									<h4 class="font-medium flex items-center gap-2" style="color: var(--color-text);">
-										<UsersIcon size={16} style="color: var(--color-primary);" />
-										디자이너 직급
-									</h4>
-									<ul class="text-sm space-y-1" style="color: var(--color-text-secondary);">
-										<li>• 디자이너 → 주임디자이너</li>
-										<li>• 선임디자이너 → 책임디자이너</li>
-										<li>• 수석디자이너</li>
-									</ul>
-								</div>
-								<div class="space-y-3">
-									<h4 class="font-medium flex items-center gap-2" style="color: var(--color-text);">
-										<BuildingIcon size={16} style="color: var(--color-primary);" />
-										행정원 직급
-									</h4>
-									<ul class="text-sm space-y-1" style="color: var(--color-text-secondary);">
-										<li>• 행정원 → 주임행정원</li>
-										<li>• 선임행정원 → 책임행정원</li>
-										<li>• 수석행정원</li>
-									</ul>
-								</div>
 							</div>
 						</ThemeCard>
-					</div>
-				</ThemeSpacer>
-			{:else if tab.id === 'executives'}
-				<!-- 이사관리 탭 -->
-				<ThemeSpacer size={6}>
-					<div class="space-y-6">
-						<!-- 이사 목록 -->
+
+						<!-- 직급 관리 -->
 						<ThemeCard class="p-6">
 							<div class="flex items-center justify-between mb-6">
-								<h3 class="text-lg font-semibold" style="color: var(--color-text);">이사 명부</h3>
-								<ThemeButton
-									variant="primary"
-									size="sm"
+								<h3 class="text-lg font-semibold" style="color: var(--color-text);">직급 관리</h3>
+								<ThemeButton 
+									variant="primary" 
+									size="sm" 
 									class="flex items-center gap-2"
-									onclick={() => openAddExecutiveModal()}
+									onclick={openAddPositionModal}
 								>
 									<PlusIcon size={16} />
-									이사 추가
+									직급 추가
 								</ThemeButton>
 							</div>
-
-							<div class="space-y-4">
-								{#if executiveLoading}
-									<div class="flex items-center justify-center py-8">
-										<div class="text-sm" style="color: var(--color-text-secondary);">이사 데이터를 불러오는 중...</div>
-									</div>
-								{:else if executives.length === 0}
-									<div class="text-center py-8">
-										<CrownIcon size={48} class="mx-auto mb-4" style="color: var(--color-text-secondary);" />
-										<p class="text-sm" style="color: var(--color-text-secondary);">등록된 이사가 없습니다.</p>
-									</div>
-								{:else}
-									{#each executives as executive}
-										<div class="flex items-center justify-between p-4 rounded-lg border" style="border-color: var(--color-border); background: var(--color-surface-elevated);">
-											<div class="flex items-center gap-4">
-												<div class="h-12 w-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-													<span class="text-white font-semibold text-lg">
-														{executive.first_name.charAt(0)}
-													</span>
-												</div>
-												<div>
-													<h4 class="font-medium" style="color: var(--color-text);">
-														{executive.first_name} {executive.last_name}
-													</h4>
-													<p class="text-sm" style="color: var(--color-text-secondary);">
-														{executive.job_title_name} • {executive.department}
-													</p>
-													<div class="flex items-center gap-2 mt-1">
-														<ThemeBadge variant={executive.status === 'active' ? 'success' : 'warning'} size="sm">
-															{executive.status === 'active' ? '활성' : '비활성'}
-														</ThemeBadge>
-														<span class="text-xs" style="color: var(--color-text-secondary);">
-															레벨 {executive.job_title_level}
-														</span>
-													</div>
-												</div>
-											</div>
-											<div class="flex items-center gap-2">
-												<ThemeButton
-													variant="ghost"
-													size="sm"
-													onclick={() => openEditExecutiveModal(executive)}
-												>
-													<EditIcon size={16} />
-												</ThemeButton>
-												<ThemeButton
-													variant="ghost"
-													size="sm"
-													onclick={() => handleExecutiveDelete(executive)}
-												>
-													<TrashIcon size={16} />
-												</ThemeButton>
+							
+							<div class="space-y-3">
+								{#each positions as position}
+									<div class="flex items-center justify-between p-3 rounded-lg border" style="border-color: var(--color-border); background: var(--color-surface-elevated);">
+										<div class="flex items-center gap-3">
+											<UserCheckIcon size={20} style="color: var(--color-primary);" />
+											<div>
+												<h4 class="font-medium" style="color: var(--color-text);">{position.name}</h4>
+												<p class="text-sm" style="color: var(--color-text-secondary);">{position.department} • 레벨 {position.level}</p>
+												{#if position.description}
+													<p class="text-xs" style="color: var(--color-text-secondary);">{position.description}</p>
+												{/if}
 											</div>
 										</div>
-									{/each}
+										<div class="flex items-center gap-2">
+											<ThemeBadge variant={position.status === 'active' ? 'success' : 'warning'}>
+												{position.status === 'active' ? '활성' : '비활성'}
+											</ThemeBadge>
+											<ThemeButton 
+												variant="ghost" 
+												size="sm"
+												onclick={() => openEditPositionModal(position)}
+											>
+												<EditIcon size={16} />
+											</ThemeButton>
+											<ThemeButton 
+												variant="ghost" 
+												size="sm"
+												onclick={() => handlePositionDelete(position)}
+											>
+												<TrashIcon size={16} />
+											</ThemeButton>
+										</div>
+									</div>
+								{/each}
+								
+								{#if positions.length === 0}
+									<div class="text-center py-8">
+										<UserCheckIcon size={48} class="mx-auto mb-4" style="color: var(--color-text-secondary);" />
+										<p class="text-sm" style="color: var(--color-text-secondary);">등록된 직급이 없습니다.</p>
+									</div>
 								{/if}
 							</div>
 						</ThemeCard>
+					</ThemeGrid>
 
-						<!-- 이사 관리 안내 -->
-						<ThemeCard class="p-6">
-							<ThemeSectionHeader title="이사 관리 안내" />
+					<!-- 조직 구조 안내 -->
+					<ThemeCard class="p-6">
+						<ThemeSectionHeader title="조직 관리 안내" />
+						<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 							<div class="space-y-3">
-								<h4 class="font-medium" style="color: var(--color-text);">이사 관리 규칙</h4>
+								<h4 class="font-medium" style="color: var(--color-text);">부서 관리</h4>
 								<ul class="text-sm space-y-2" style="color: var(--color-text-secondary);">
-									<li>• C-Level 임원진은 회사의 최고 경영진입니다</li>
-									<li>• 이사는 직급이 아닌 직책으로 관리됩니다</li>
-									<li>• 이사 임기는 별도로 관리되며, 연장이 가능합니다</li>
-									<li>• 이사 정보는 회사 대표 정보로 활용됩니다</li>
+									<li>• 부서명은 중복될 수 없습니다</li>
+									<li>• 부서를 삭제하면 해당 부서의 직원들에게 영향을 줄 수 있습니다</li>
+									<li>• 비활성화된 부서는 새 직원 배치 시 선택할 수 없습니다</li>
 								</ul>
 							</div>
-						</ThemeCard>
-					</div>
-				</ThemeSpacer>
-			{:else if tab.id === 'job-titles'}
-				<!-- 직책관리 탭 -->
-				<ThemeSpacer size={6}>
-					<div class="space-y-6">
-						<!-- 직책 레벨별 관리 -->
-						{#each Object.entries(getJobTitlesByLevel()) as [level, levelJobTitles]}
-							<ThemeCard class="p-6">
-								<div class="flex items-center justify-between mb-6">
-									<div class="flex items-center gap-3">
-										{#if level === 'C-Level'}
-											<CrownIcon size={24} style="color: var(--color-primary);" />
-										{:else if level === 'Management'}
-											<BriefcaseIcon size={24} style="color: var(--color-primary);" />
-										{:else if level === 'Specialist'}
-											<UserCheckIcon size={24} style="color: var(--color-primary);" />
-										{/if}
-										<div>
-											<h3 class="text-xl font-semibold" style="color: var(--color-text);">{level} 직책</h3>
-											<p class="text-sm" style="color: var(--color-text-secondary);">{levelJobTitles.length}개 직책</p>
-										</div>
-									</div>
-									<ThemeButton
-										variant="primary"
-										size="sm"
-										class="flex items-center gap-2"
-										onclick={() => openAddJobTitleModal(level)}
-									>
-										<PlusIcon size={16} />
-										{level} 직책 추가
-									</ThemeButton>
-								</div>
-
-								<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-									{#each levelJobTitles as jobTitle}
-										<div class="p-4 rounded-lg border" style="border-color: var(--color-border); background: var(--color-surface-elevated);">
-											<div class="flex items-start justify-between mb-3">
-												<div class="flex-1">
-													<h4 class="font-medium" style="color: var(--color-text);">{jobTitle.name}</h4>
-													<p class="text-sm" style="color: var(--color-text-secondary);">{jobTitle.category}</p>
-													<div class="flex items-center gap-2 mt-2">
-														<ThemeBadge variant="default" size="sm">
-															레벨 {jobTitle.level}
-														</ThemeBadge>
-														<ThemeBadge variant={jobTitle.is_active ? 'success' : 'warning'} size="sm">
-															{jobTitle.is_active ? '활성' : '비활성'}
-														</ThemeBadge>
-													</div>
-												</div>
-												<div class="flex items-center gap-1">
-													<ThemeButton
-														variant="ghost"
-														size="sm"
-														onclick={() => openEditJobTitleModal(jobTitle)}
-													>
-														<EditIcon size={14} />
-													</ThemeButton>
-													<ThemeButton
-														variant="ghost"
-														size="sm"
-														onclick={() => handleJobTitleDelete(jobTitle)}
-													>
-														<TrashIcon size={14} />
-													</ThemeButton>
-												</div>
-											</div>
-											{#if jobTitle.description}
-												<p class="text-xs" style="color: var(--color-text-secondary);">{jobTitle.description}</p>
-											{/if}
-										</div>
-									{/each}
-
-									{#if levelJobTitles.length === 0}
-										<div class="col-span-full text-center py-8">
-											{#if level === 'C-Level'}
-												<CrownIcon size={48} class="mx-auto mb-4" style="color: var(--color-text-secondary);" />
-											{:else if level === 'Management'}
-												<BriefcaseIcon size={48} class="mx-auto mb-4" style="color: var(--color-text-secondary);" />
-											{:else if level === 'Specialist'}
-												<UserCheckIcon size={48} class="mx-auto mb-4" style="color: var(--color-text-secondary);" />
-											{/if}
-											<p class="text-sm" style="color: var(--color-text-secondary);">{level} 직책이 등록되지 않았습니다.</p>
-										</div>
-									{/if}
-								</div>
-							</ThemeCard>
-						{/each}
-
-						<!-- 직책 관리 안내 -->
-						<ThemeCard class="p-6">
-							<ThemeSectionHeader title="직책 관리 안내" />
-							<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-								<div class="space-y-3">
-									<h4 class="font-medium flex items-center gap-2" style="color: var(--color-text);">
-										<CrownIcon size={16} style="color: var(--color-primary);" />
-										C-Level 직책
-									</h4>
-									<ul class="text-sm space-y-1" style="color: var(--color-text-secondary);">
-										<li>• CEO (대표이사)</li>
-										<li>• CTO (연구소장, 기술이사)</li>
-										<li>• CFO (상무이사)</li>
-									</ul>
-								</div>
-								<div class="space-y-3">
-									<h4 class="font-medium flex items-center gap-2" style="color: var(--color-text);">
-										<BriefcaseIcon size={16} style="color: var(--color-primary);" />
-										Management 직책
-									</h4>
-									<ul class="text-sm space-y-1" style="color: var(--color-text-secondary);">
-										<li>• Director (이사)</li>
-										<li>• Managing Director (상무)</li>
-									</ul>
-								</div>
-								<div class="space-y-3">
-									<h4 class="font-medium flex items-center gap-2" style="color: var(--color-text);">
-										<UserCheckIcon size={16} style="color: var(--color-primary);" />
-										Specialist 직책
-									</h4>
-									<ul class="text-sm space-y-1" style="color: var(--color-text-secondary);">
-										<li>• Team Lead (팀장)</li>
-										<li>• Senior Manager (부장)</li>
-										<li>• Manager (과장)</li>
-									</ul>
-								</div>
+							<div class="space-y-3">
+								<h4 class="font-medium" style="color: var(--color-text);">직급 관리</h4>
+								<ul class="text-sm space-y-2" style="color: var(--color-text-secondary);">
+									<li>• 같은 부서 내에서 직급명은 중복될 수 없습니다</li>
+									<li>• 직급 레벨은 1-10까지 설정 가능합니다</li>
+									<li>• 연구원, 선임연구원, 책임연구원 등 연구직 체계를 지원합니다</li>
+								</ul>
 							</div>
-						</ThemeCard>
-					</div>
+						</div>
+					</ThemeCard>
 				</ThemeSpacer>
-			{:else if tab.id === 'org-chart'}
-				<!-- 조직도 탭 -->
-				<OrganizationChart />
 			{/if}
 		{/snippet}
 	</ThemeTabs>
@@ -2012,7 +1319,6 @@
 	loading={employeeLoading}
 	departments={departments}
 	positions={positions}
-	jobTitles={jobTitles}
 	on:close={() => {
 		showEmployeeModal = false;
 		selectedEmployee = null;

@@ -7,11 +7,14 @@ let pool: Pool | null = null;
 
 // Database configuration
 const dbConfig = {
-	host: config.database.host || 'localhost',
-	port: config.database.port || 5432,
-	database: config.database.database || 'workstream',
-	user: config.database.user || 'postgres',
-	password: config.database.password || 'password',
+	host: 'db-viahub.cdgqkcss8mpj.ap-northeast-2.rds.amazonaws.com',
+	port: 5432,
+	database: 'postgres',
+	user: 'postgres',
+	password: 'viahubdev',
+	ssl: {
+		rejectUnauthorized: false
+	},
 	max: 20, // Maximum number of clients in the pool
 	idleTimeoutMillis: 30000, // Close idle clients after 30 seconds
 	connectionTimeoutMillis: 2000, // Return an error after 2 seconds if connection could not be established
@@ -37,7 +40,12 @@ export function initializeDatabase(): Pool {
 // Get database connection
 export async function getConnection(): Promise<PoolClient> {
 	if (!pool) {
-		initializeDatabase();
+		try {
+			initializeDatabase();
+		} catch (error) {
+			console.error('Failed to initialize database connection:', error);
+			throw error;
+		}
 	}
 	
 	return await pool!.connect();
@@ -87,10 +95,23 @@ export async function closeDatabase(): Promise<void> {
 // Database health check
 export async function healthCheck(): Promise<boolean> {
 	try {
+		console.log('Starting database health check...');
+		console.log('Database config:', { ...dbConfig, password: '[HIDDEN]' });
+		
 		const result = await query('SELECT 1 as health');
-		return result.rows[0]?.health === 1;
+		console.log('Health check query result:', result.rows);
+		
+		const isHealthy = result.rows[0]?.health === 1;
+		console.log('Health check result:', isHealthy);
+		
+		return isHealthy;
 	} catch (error) {
 		console.error('Database health check failed:', error);
+		console.error('Error details:', {
+			message: error instanceof Error ? error.message : 'Unknown error',
+			code: (error as any)?.code,
+			detail: (error as any)?.detail
+		});
 		return false;
 	}
 }
@@ -220,6 +241,53 @@ export class DatabaseService {
 			[email]
 		);
 		return result.rows[0] || null;
+	}
+
+	static async getUsers(filters?: {
+		department?: string;
+		role?: string;
+		is_active?: boolean;
+		limit?: number;
+		offset?: number;
+	}): Promise<DatabaseUser[]> {
+		let queryText = 'SELECT * FROM users WHERE 1=1';
+		const params: any[] = [];
+		let paramCount = 0;
+
+		if (filters?.department) {
+			paramCount++;
+			queryText += ` AND department = $${paramCount}`;
+			params.push(filters.department);
+		}
+
+		if (filters?.role) {
+			paramCount++;
+			queryText += ` AND role = $${paramCount}`;
+			params.push(filters.role);
+		}
+
+		if (filters?.is_active !== undefined) {
+			paramCount++;
+			queryText += ` AND is_active = $${paramCount}`;
+			params.push(filters.is_active);
+		}
+
+		queryText += ' ORDER BY created_at DESC';
+
+		if (filters?.limit) {
+			paramCount++;
+			queryText += ` LIMIT $${paramCount}`;
+			params.push(filters.limit);
+		}
+
+		if (filters?.offset) {
+			paramCount++;
+			queryText += ` OFFSET $${paramCount}`;
+			params.push(filters.offset);
+		}
+
+		const result = await query<DatabaseUser>(queryText, params);
+		return result.rows;
 	}
 
 	// Company operations
@@ -553,8 +621,4 @@ export class DatabaseService {
 	}
 }
 
-// Initialize database on module load
-if (typeof window === 'undefined') {
-	// Only initialize on server side
-	initializeDatabase();
-}
+// Database will be initialized on first connection
