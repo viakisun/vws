@@ -426,3 +426,63 @@ export function getEmployeeCareerRecords(employeeId: string, recordList: CareerR
 export function getEmployeeAgreements(employeeId: string, agreementList: Agreement[]): Agreement[] {
 	return agreementList.filter(agreement => agreement.employeeId === employeeId);
 }
+
+// 온보딩 프로세스 스토어
+export const onboardingProcesses = writable([
+	{
+		id: '1',
+		employeeId: 'EMP001',
+		employeeName: '김신입',
+		startDate: '2024-01-15',
+		status: 'in-progress',
+		progress: 60,
+		tasks: [
+			{ id: '1', name: '계약서 서명', completed: true },
+			{ id: '2', name: '사전 교육', completed: true },
+			{ id: '3', name: '장비 지급', completed: false },
+			{ id: '4', name: '팀 소개', completed: false }
+		]
+	}
+]);
+
+// 오프보딩 프로세스 스토어
+export const offboardingProcesses = writable([
+	{
+		id: '1',
+		employeeId: 'EMP002',
+		employeeName: '박퇴사',
+		startDate: '2024-01-10',
+		status: 'in-progress',
+		progress: 80,
+		tasks: [
+			{ id: '1', name: '업무 인수인계', completed: true },
+			{ id: '2', name: '장비 반납', completed: true },
+			{ id: '3', name: '계정 정리', completed: false },
+			{ id: '4', name: '최종 면담', completed: false }
+		]
+	}
+]);
+
+// 온보딩 진행률 계산 함수
+export function getOnboardingProgress(processId: string): number {
+	let progress = 0;
+	onboardingProcesses.subscribe(processes => {
+		const process = processes.find(p => p.id === processId);
+		if (process) {
+			progress = process.progress;
+		}
+	})();
+	return progress;
+}
+
+// 오프보딩 진행률 계산 함수
+export function getOffboardingProgress(processId: string): number {
+	let progress = 0;
+	offboardingProcesses.subscribe(processes => {
+		const process = processes.find(p => p.id === processId);
+		if (process) {
+			progress = process.progress;
+		}
+	})();
+	return progress;
+}

@@ -1,12 +1,13 @@
 <script lang="ts">
 	import '../app.css';
+	import Header from '$lib/components/layout/Header.svelte';
 	import Sidebar from '$lib/components/layout/Sidebar.svelte';
 	import { toasts } from '$lib/stores/toasts';
 	import { themeManager, currentTheme, isDark } from '$lib/stores/theme';
 	import { onMount } from 'svelte';
 
 	let { children } = $props();
-	let sidebarCollapsed = $state(false);
+	let sidebarCollapsed = $state(true);
 
 	// Initialize theme on mount
 	onMount(() => {
@@ -14,12 +15,15 @@
 	});
 </script>
 
-<div class="h-screen flex overflow-hidden" style="background: var(--color-background);">
-	<!-- Sidebar -->
-	<Sidebar bind:isCollapsed={sidebarCollapsed} />
+<div class="h-screen flex flex-col overflow-hidden" style="background: var(--color-background);">
+	<!-- Header -->
+	<Header />
 
-	<!-- Main content area -->
-	<div class="flex-1 flex flex-col min-w-0 overflow-auto">
+	<!-- Main content area with sidebar -->
+	<div class="flex-1 flex overflow-hidden">
+		<!-- Sidebar -->
+		<Sidebar bind:isCollapsed={sidebarCollapsed} />
+
 		<!-- Main content -->
 		<main class="flex-1 p-6 overflow-auto" style="background: var(--color-background);">
 			<div class="max-w-7xl mx-auto">

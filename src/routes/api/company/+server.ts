@@ -1,0 +1,123 @@
+import { json } from '@sveltejs/kit';
+import { query } from '$lib/database/connection.js';
+import type { RequestHandler } from './$types';
+
+// GET /api/company - 회사 정보 조회
+export const GET: RequestHandler = async () => {
+	try {
+		const result = await query(`
+			SELECT 
+				id, name, establishment_date, ceo_name, business_type,
+				address, phone, fax, email, website, registration_number,
+				created_at, updated_at
+			FROM companies 
+			ORDER BY created_at DESC
+			LIMIT 1
+		`);
+		
+		const company = result.rows.length > 0 ? result.rows[0] : null;
+
+		return json({
+			success: true,
+			data: company,
+			message: company ? '회사 정보를 성공적으로 조회했습니다.' : '등록된 회사 정보가 없습니다.'
+		});
+	} catch (error: any) {
+		console.error('Error fetching company:', error);
+		return json({
+			success: false,
+			error: error.message || '회사 정보 조회에 실패했습니다.'
+		}, { status: 500 });
+	}
+};
+
+// POST /api/company - 회사 정보 등록/수정
+export const POST: RequestHandler = async ({ request }) => {
+	try {
+		const data = await request.json();
+
+		// 필수 필드 검증
+		if (!data.name) {
+			return json({
+				success: false,
+				error: '회사명은 필수입니다.'
+			}, { status: 400 });
+		}
+
+		// 기존 회사 정보가 있는지 확인
+		const existingResult = await query('SELECT id FROM companies LIMIT 1');
+		const existingCompany = existingResult.rows.length > 0;
+
+		let result;
+		if (existingCompany) {
+			// 기존 회사 정보 업데이트
+			result = await query(`
+				UPDATE companies SET
+					name = $1,
+					establishment_date = $2,
+					ceo_name = $3,
+					business_type = $4,
+					address = $5,
+					phone = $6,
+					fax = $7,
+					email = $8,
+					website = $9,
+					registration_number = $10,
+					updated_at = $11
+				WHERE id = (SELECT id FROM companies LIMIT 1)
+				RETURNING id, name, establishment_date, ceo_name, business_type,
+					address, phone, fax, email, website, registration_number,
+					created_at, updated_at
+			`, [
+				data.name,
+				data.establishment_date || null,
+				data.ceo_name || null,
+				data.business_type || null,
+				data.address || null,
+				data.phone || null,
+				data.fax || null,
+				data.email || null,
+				data.website || null,
+				data.registration_number || null,
+				new Date()
+			]);
+		} else {
+			// 새 회사 정보 등록
+			result = await query(`
+				INSERT INTO companies (
+					name, establishment_date, ceo_name, business_type,
+					address, phone, fax, email, website, registration_number,
+					created_at, updated_at
+				) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+				RETURNING id, name, establishment_date, ceo_name, business_type,
+					address, phone, fax, email, website, registration_number,
+					created_at, updated_at
+			`, [
+				data.name,
+				data.establishment_date || null,
+				data.ceo_name || null,
+				data.business_type || null,
+				data.address || null,
+				data.phone || null,
+				data.fax || null,
+				data.email || null,
+				data.website || null,
+				data.registration_number || null,
+				new Date(),
+				new Date()
+			]);
+		}
+
+		return json({
+			success: true,
+			data: result.rows[0],
+			message: existingCompany ? '회사 정보가 성공적으로 수정되었습니다.' : '회사 정보가 성공적으로 등록되었습니다.'
+		});
+	} catch (error: any) {
+		console.error('Error saving company:', error);
+		return json({
+			success: false,
+			error: error.message || '회사 정보 저장에 실패했습니다.'
+		}, { status: 500 });
+	}
+};

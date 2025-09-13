@@ -2,7 +2,10 @@ export function formatKRW(amount: number): string {
 	return amount.toLocaleString('ko-KR', { style: 'currency', currency: 'KRW', maximumFractionDigits: 0 });
 }
 
-export function formatCurrency(amount: number): string {
+export function formatCurrency(amount: number | undefined | null): string {
+	if (amount === undefined || amount === null || isNaN(amount)) {
+		return '0원';
+	}
 	return amount.toLocaleString('ko-KR') + '원';
 }
 

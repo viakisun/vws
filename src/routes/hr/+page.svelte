@@ -178,6 +178,7 @@
 		}
 	}
 
+
 	// 직급을 카테고리별로 분류
 	function getPositionsByCategory() {
 		const categories = {
@@ -199,7 +200,11 @@
 	}
 
 	// 반응형 데이터 (데이터베이스 기반)
-	let totalEmployees = $derived(() => employees?.filter((emp: any) => emp.status === 'active').length || 0);
+	let totalEmployees = $derived(() => {
+		const activeEmployeeCount = employees?.filter((emp: any) => emp.status === 'active').length || 0;
+		const executiveCount = executives?.length || 0;
+		return activeEmployeeCount + executiveCount;
+	});
 	let totalDepartments = $derived(() => [...new Set(employees?.map((emp: any) => emp.department) || [])].length);
 	let activeRecruitments = $derived(() => $jobPostings.filter(job => job.status === 'published').length);
 	let pendingOnboardings = $derived(() => $onboardingProcesses.filter(process => process.status === 'in-progress').length);
@@ -259,6 +264,7 @@
 	];
 
 	let activeTab = $state('overview');
+	
 	
 	// 업로드 관련 상태
 	let showUploadModal = $state(false);
@@ -397,36 +403,41 @@
 	})());
 
 	// 통계 데이터
-	let stats = $derived((() => [
-		{
-			title: '총 직원 수',
-			value: totalEmployees(),
-			change: '+5%',
-			changeType: 'positive' as const,
-			icon: UsersIcon
-		},
-		{
-			title: '부서 수',
-			value: totalDepartments(),
-			change: '0%',
-			changeType: 'neutral' as const,
-			icon: BuildingIcon
-		},
-		{
-			title: '진행중인 채용',
-			value: activeRecruitments(),
-			change: '+2',
-			changeType: 'positive' as const,
-			icon: UserPlusIcon
-		},
-		{
-			title: '온보딩 진행중',
-			value: pendingOnboardings(),
-			change: '-1',
-			changeType: 'negative' as const,
-			icon: ClipboardListIcon
-		}
-	])());
+	let stats = $derived((() => {
+		const statsData = [
+			{
+				title: '총 직원 수',
+				value: totalEmployees(),
+				change: '+5%',
+				changeType: 'positive' as const,
+				icon: UsersIcon
+			},
+			{
+				title: '부서 수',
+				value: totalDepartments(),
+				change: '0%',
+				changeType: 'neutral' as const,
+				icon: BuildingIcon
+			},
+			{
+				title: '진행중인 채용',
+				value: activeRecruitments(),
+				change: '+2',
+				changeType: 'positive' as const,
+				icon: UserPlusIcon
+			},
+			{
+				title: '온보딩 진행중',
+				value: pendingOnboardings(),
+				change: '-1',
+				changeType: 'negative' as const,
+				icon: ClipboardListIcon
+			}
+		];
+		
+		
+		return statsData;
+	})());
 
 	// 액션 버튼들
 	const actions = [
@@ -529,6 +540,36 @@
 		fetchPositions();
 		fetchExecutives();
 		fetchJobTitles();
+	});
+
+	// 탭 변경 시 해당 탭의 데이터 로드
+	$effect(() => {
+		// activeTab 변경을 감지하여 데이터 로드
+		const currentTab = activeTab;
+		console.log('Tab changed to:', currentTab);
+		
+		switch (currentTab) {
+			case 'employees':
+				console.log('Loading employees data...');
+				fetchEmployees();
+				break;
+			case 'departments':
+				console.log('Loading departments data...');
+				fetchDepartments();
+				break;
+			case 'positions':
+				console.log('Loading positions data...');
+				fetchPositions();
+				break;
+			case 'executives':
+				console.log('Loading executives data...');
+				fetchExecutives();
+				break;
+			case 'job-titles':
+				console.log('Loading job titles data...');
+				fetchJobTitles();
+				break;
+		}
 	});
 	
 	// 파일 업로드 처리
@@ -984,6 +1025,7 @@
 		}
 	}
 
+
 	function openEditPositionModal(position: any) {
 		selectedPosition = position;
 		showPositionModal = true;
@@ -1174,15 +1216,16 @@
 						</div>
 						</div>
 						
+
 						{#if loading}
 							<div class="flex items-center justify-center py-8">
 								<div class="text-sm" style="color: var(--color-text-secondary);">직원 데이터를 불러오는 중...</div>
-					</div>
+				</div>
 						{:else if error}
 							<div class="flex items-center justify-center py-8">
 								<div class="text-sm text-red-500">{error}</div>
 				</div>
-						{:else if employees.length === 0}
+						{:else if !employees || employees.length === 0}
 							<div class="flex items-center justify-center py-8">
 								<div class="text-sm" style="color: var(--color-text-secondary);">등록된 직원이 없습니다.</div>
 							</div>
@@ -1257,9 +1300,9 @@
 																👑 팀 리더
 															</span>
 														{/if}
-													</div>
-													<p class="text-sm" style="color: var(--color-text-secondary);">{employee.employee_id}</p>
 					</div>
+													<p class="text-sm" style="color: var(--color-text-secondary);">{employee.employee_id}</p>
+				</div>
 				</div>
 											<div class="flex flex-col gap-1 items-end">
 												<ThemeBadge variant={employee.status === 'active' ? 'success' : employee.status === 'terminated' ? 'error' : 'warning'}>
@@ -1268,7 +1311,7 @@
 													 employee.status === 'on-leave' ? '휴직' : '비활성'}
 												</ThemeBadge>
 											</div>
-										</div>
+		</div>
 
 										<!-- 직원 정보 -->
 										<div class="space-y-2 mb-4">
@@ -2049,16 +2092,17 @@
 
 <!-- 직급 관리 모달 -->
 <PositionModal
-	open={showPositionModal}
-	position={selectedPosition}
-	departments={departments}
-	loading={positionLoading}
-	on:close={() => {
-		showPositionModal = false;
-		selectedPosition = null;
-	}}
-	on:save={handlePositionSave}
+        open={showPositionModal}
+        position={selectedPosition}
+        departments={departments}
+        loading={positionLoading}
+        on:close={() => {
+                showPositionModal = false;
+                selectedPosition = null;
+        }}
+        on:save={handlePositionSave}
 />
+
 
 <style>
 	.drag-over {

@@ -2,110 +2,118 @@ import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { query } from '$lib/database/connection';
 
-// 조직도 데이터 생성
+// 조직도 데이터 생성 (동적)
 export const GET: RequestHandler = async () => {
 	try {
-		// 모든 직원 데이터 조회
+		// 모든 직원 데이터 조회 (직책 정보 포함)
 		const employeesResult = await query(`
 			SELECT 
-				id,
-				first_name,
-				last_name,
-				email,
-				department,
-				position,
-				salary,
-				status
-			FROM employees 
-			WHERE status = 'active'
-			ORDER BY department, position
+				e.id,
+				e.first_name,
+				e.last_name,
+				e.email,
+				e.department,
+				e.position,
+				e.salary,
+				e.status,
+				e.job_title_id,
+				jt.name as job_title_name,
+				jt.level as job_title_level,
+				jt.category as job_title_category
+			FROM employees e
+			LEFT JOIN job_titles jt ON e.job_title_id = jt.id
+			WHERE e.status = 'active'
+			ORDER BY e.department, e.position
 		`);
 		
 		const employees = Array.isArray(employeesResult) ? employeesResult : employeesResult.rows || [];
 
 		// 부서별로 직원 그룹화
-		const orgStructure = {
-			"대표이사": {
-				"name": "대표이사",
-				"position": "대표이사",
-				"email": "ceo@company.com",
-				"children": [
-					{
-						"name": "경영기획팀",
-						"position": "팀",
-						"type": "department",
-						"children": employees.filter((emp: any) => emp.department === '경영기획팀').map((emp: any) => ({
-							"name": `${emp.last_name}${emp.first_name}`,
-							"position": emp.position,
-							"email": emp.email,
-							"salary": emp.salary
-						}))
-					}
-				]
-			},
-			"재무이사": {
-				"name": "재무이사",
-				"position": "재무이사",
-				"email": "cfo@company.com",
-				"children": [
-					{
-						"name": "경영지원팀",
-						"position": "팀",
-						"type": "department",
-						"children": employees.filter((emp: any) => emp.department === '경영지원팀').map((emp: any) => ({
-							"name": `${emp.last_name}${emp.first_name}`,
-							"position": emp.position,
-							"email": emp.email,
-							"salary": emp.salary
-						}))
-					}
-				]
-			},
-			"연구소장": {
-				"name": "연구소장",
-				"position": "연구소장",
-				"email": "cto@company.com",
-				"children": [
-					{
-						"name": "PSR팀",
-						"position": "팀",
-						"type": "department",
-						"children": employees.filter((emp: any) => emp.department === 'PSR팀').map((emp: any) => ({
-							"name": `${emp.last_name}${emp.first_name}`,
-							"position": emp.position,
-							"email": emp.email,
-							"salary": emp.salary
-						}))
-					},
-					{
-						"name": "GRIT팀",
-						"position": "팀",
-						"type": "department",
-						"children": employees.filter((emp: any) => emp.department === 'GRIT팀').map((emp: any) => ({
-							"name": `${emp.last_name}${emp.first_name}`,
-							"position": emp.position,
-							"email": emp.email,
-							"salary": emp.salary
-						}))
-					},
-					{
-						"name": "개발팀",
-						"position": "팀",
-						"type": "department",
-						"children": employees.filter((emp: any) => emp.department === '개발팀').map((emp: any) => ({
-							"name": `${emp.last_name}${emp.first_name}`,
-							"position": emp.position,
-							"email": emp.email,
-							"salary": emp.salary
-						}))
-					}
-				]
+		const departmentGroups: { [key: string]: any[] } = {};
+		employees.forEach((emp: any) => {
+			const dept = emp.department || '기타';
+			if (!departmentGroups[dept]) {
+				departmentGroups[dept] = [];
 			}
+			departmentGroups[dept].push({
+				name: `${emp.last_name}${emp.first_name}`,
+				position: emp.position,
+				email: emp.email,
+				salary: emp.salary,
+				job_title: emp.job_title_name,
+				isTeamLead: emp.job_title_name === 'Team Lead'
+			});
+		});
+
+		// 부서를 임원별로 그룹화하는 매핑
+		const executiveDepartmentMapping: { [key: string]: string[] } = {
+			'대표이사': ['경영기획팀'],
+			'재무이사': ['경영지원팀'],
+			'연구소장': ['PSR팀', 'GRIT팀', '개발팀']
 		};
+
+		// 동적으로 조직도 구조 생성
+		const orgStructure: { [key: string]: any } = {};
+
+		// 각 임원별로 구조 생성
+		Object.entries(executiveDepartmentMapping).forEach(([executiveName, departments]) => {
+			const children: any[] = [];
+			
+			departments.forEach(deptName => {
+				// 해당 부서에 직원이 있는지 확인
+				if (departmentGroups[deptName] && departmentGroups[deptName].length > 0) {
+					children.push({
+						name: deptName,
+						position: '팀',
+						type: 'department',
+						children: departmentGroups[deptName]
+					});
+				}
+			});
+
+			// 직원이 있는 부서가 있는 경우에만 임원 추가
+			if (children.length > 0) {
+				orgStructure[executiveName] = {
+					name: executiveName,
+					position: executiveName,
+					email: `${executiveName.toLowerCase().replace('이사', '')}@company.com`,
+					children: children
+				};
+			}
+		});
+
+		// 매핑되지 않은 부서들을 '기타' 임원으로 그룹화
+		const mappedDepartments = Object.values(executiveDepartmentMapping).flat();
+		const unmappedDepartments = Object.keys(departmentGroups).filter(dept => !mappedDepartments.includes(dept));
+		
+		if (unmappedDepartments.length > 0) {
+			const otherChildren: any[] = [];
+			unmappedDepartments.forEach(deptName => {
+				otherChildren.push({
+					name: deptName,
+					position: '팀',
+					type: 'department',
+					children: departmentGroups[deptName]
+				});
+			});
+
+			orgStructure['기타'] = {
+				name: '기타',
+				position: '기타',
+				email: 'other@company.com',
+				children: otherChildren
+			};
+		}
 
 		return json({
 			success: true,
 			data: orgStructure,
+			metadata: {
+				totalEmployees: employees.length,
+				totalDepartments: Object.keys(departmentGroups).length,
+				totalExecutives: Object.keys(orgStructure).length,
+				departments: Object.keys(departmentGroups)
+			},
 			message: '조직도 데이터가 성공적으로 생성되었습니다.'
 		});
 	} catch (error: any) {
@@ -116,4 +124,3 @@ export const GET: RequestHandler = async () => {
 		}, { status: 500 });
 	}
 };
-

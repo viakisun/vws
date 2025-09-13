@@ -23,6 +23,7 @@
 		...restProps
 	}: Props = $props();
 
+
 	const colorClasses = {
 		blue: { bg: 'bg-blue-100', text: 'text-blue-600', dark: { bg: 'bg-blue-900/20', text: 'text-blue-400' } },
 		green: { bg: 'bg-green-100', text: 'text-green-600', dark: { bg: 'bg-green-900/20', text: 'text-green-400' } },
@@ -50,7 +51,12 @@
 				</div>
 				{#if icon}
 					<div class="h-12 w-12 rounded-xl flex items-center justify-center transition-all duration-200 group-hover:scale-110 {colorClasses[color].bg} dark:{colorClasses[color].dark.bg}">
-						<icon class="h-6 w-6 {colorClasses[color].text} dark:{colorClasses[color].dark.text}"></icon>
+						<svelte:component this={icon} class="h-6 w-6 {colorClasses[color].text} dark:{colorClasses[color].dark.text}" />
+					</div>
+				{:else}
+					<!-- 아이콘이 없을 때 대체 아이콘 -->
+					<div class="h-12 w-12 rounded-xl flex items-center justify-center transition-all duration-200 group-hover:scale-110 bg-gray-100 dark:bg-gray-800">
+						<div class="h-6 w-6 bg-gray-400 dark:bg-gray-500 rounded"></div>
 					</div>
 				{/if}
 			</div>
@@ -68,7 +74,12 @@
 			</div>
 			{#if icon}
 				<div class="h-12 w-12 rounded-xl flex items-center justify-center transition-all duration-200 group-hover:scale-110 {colorClasses[color].bg} dark:{colorClasses[color].dark.bg}">
-					<icon class="h-6 w-6 {colorClasses[color].text} dark:{colorClasses[color].dark.text}"></icon>
+					<svelte:component this={icon} class="h-6 w-6 {colorClasses[color].text} dark:{colorClasses[color].dark.text}" />
+				</div>
+			{:else}
+				<!-- 아이콘이 없을 때 대체 아이콘 -->
+				<div class="h-12 w-12 rounded-xl flex items-center justify-center transition-all duration-200 group-hover:scale-110 bg-gray-100 dark:bg-gray-800">
+					<div class="h-6 w-6 bg-gray-400 dark:bg-gray-500 rounded"></div>
 				</div>
 			{/if}
 		</div>
