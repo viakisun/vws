@@ -295,7 +295,6 @@
 				{#each recentActivities as activity}
 					<ThemeActivityItem
 						title={activity.title}
-						description={activity.description}
 						time={activity.time}
 						icon={activity.icon}
 						color={activity.color}
@@ -492,7 +491,6 @@
 						<ThemeSectionHeader title="온보딩 진행 현황" />
 						<ThemeChartPlaceholder
 							title="온보딩 진행률"
-							description="신입 직원 온보딩 진행 상황"
 							icon={GraduationCapIcon}
 						/>
 					</ThemeCard>

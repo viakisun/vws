@@ -11,6 +11,7 @@
 	import ThemeChartPlaceholder from '$lib/components/ui/ThemeChartPlaceholder.svelte';
 	import ThemeActivityItem from '$lib/components/ui/ThemeActivityItem.svelte';
 	import ThemeProgressCard from '$lib/components/ui/ThemeProgressCard.svelte';
+	import ThemeTabs from '$lib/components/ui/ThemeTabs.svelte';
 	import { formatDate } from '$lib/utils/format';
 	import { 
 		BriefcaseIcon, 
@@ -27,7 +28,11 @@
 		TargetIcon,
 		DollarSignIcon,
 		FileTextIcon,
-		SettingsIcon
+		SettingsIcon,
+		BarChart3Icon,
+		FlaskConicalIcon,
+		ClipboardListIcon,
+		PieChartIcon
 	} from 'lucide-svelte';
 	
 	// 스토어 임포트
@@ -108,6 +113,17 @@
 			icon: DollarSignIcon
 		}
 	];
+
+	// 탭 정의
+	const tabs = [
+		{ id: 'overview', label: '개요', icon: BarChart3Icon },
+		{ id: 'projects', label: '프로젝트', icon: BriefcaseIcon },
+		{ id: 'research', label: '연구개발', icon: FlaskConicalIcon },
+		{ id: 'milestones', label: '마일스톤', icon: TargetIcon },
+		{ id: 'reports', label: '보고서', icon: FileTextIcon }
+	];
+
+	let activeTab = $state('overview');
 
 	// 액션 버튼들
 	const actions = [
@@ -224,11 +240,11 @@
 		try {
 			// 사용자 정보 로드
 			user = currentUser;
-			userRoles = getUserRoleNames(user);
-			
-			// 프로젝트 데이터 로드
-			activeProjects = getActiveProjects($projects);
-			
+		userRoles = getUserRoleNames(user);
+		
+		// 프로젝트 데이터 로드
+		activeProjects = getActiveProjects($projects);
+		
 			// 건강도 데이터 로드
 			healthData = getHealthDashboardData(activeProjects);
 			
@@ -251,198 +267,261 @@
 </script>
 
 <PageLayout
-	title="프로젝트 관리"
-	subtitle="프로젝트 현황, 진행률, 팀 관리"
+	title="연구개발 관리"
+	subtitle="프로젝트 현황, 연구개발, 마일스톤 관리"
 	{stats}
 	{actions}
 	searchPlaceholder="프로젝트명, 담당자, 상태로 검색..."
 >
-	<!-- 프로젝트 목록 -->
-	<ThemeCard class="p-6">
-		<div class="flex items-center justify-between mb-6">
-			<h3 class="text-lg font-semibold" style="color: var(--color-text);">프로젝트 목록</h3>
-			<div class="flex items-center gap-2">
-				<ThemeButton variant="primary" size="sm" class="flex items-center gap-2">
-					<PlusIcon size={16} />
-					새 프로젝트
-				</ThemeButton>
-			</div>
-		</div>
-		
-		<div class="space-y-4">
-			{#each activeProjects as project}
-				<div class="flex items-center justify-between p-4 rounded-lg border" style="border-color: var(--color-border); background: var(--color-surface-elevated);">
-					<div class="flex-1">
-						<div class="flex items-center gap-3 mb-2">
-							<BriefcaseIcon size={20} style="color: var(--color-primary);" />
-							<h4 class="font-medium" style="color: var(--color-text);">{project.name}</h4>
-							<ThemeBadge variant={getStatusColor(project.status)}>
-								{getStatusLabel(project.status)}
-							</ThemeBadge>
-							<ThemeBadge variant={getHealthColor(calculateHealthIndicator(project))}>
-								건강도: {calculateHealthIndicator(project)}%
-							</ThemeBadge>
+	<!-- 탭 시스템 -->
+	<ThemeTabs
+		{tabs}
+		bind:activeTab
+		variant="underline"
+		size="md"
+		class="mb-6"
+	>
+		{#snippet children(tab: any)}
+			{#if tab.id === 'overview'}
+				<!-- 개요 탭 -->
+				<ThemeSpacer size={6}>
+					<!-- 메인 대시보드 -->
+					<ThemeGrid cols={1} lgCols={2} gap={6}>
+						<!-- 프로젝트 진행률 -->
+						<ThemeCard class="p-6">
+							<ThemeSectionHeader title="프로젝트 진행률" />
+							<ThemeSpacer size={4}>
+								{#each projectProgressData as project}
+									<div class="flex items-center justify-between p-3 rounded-lg" style="background: var(--color-surface-elevated);">
+										<div class="flex-1">
+											<h4 class="font-medium" style="color: var(--color-text);">{project.name}</h4>
+											<div class="flex items-center gap-2 mt-1">
+												<ThemeBadge variant={getStatusColor(project.status)}>
+													{getStatusLabel(project.status)}
+												</ThemeBadge>
+												<ThemeBadge variant={getHealthColor(project.health)}>
+													건강도: {project.health}%
+												</ThemeBadge>
+									</div>
+								</div>
+										<div class="text-right">
+											<span class="text-lg font-bold" style="color: var(--color-primary);">
+												{project.progress}%
+											</span>
 						</div>
-						<div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm" style="color: var(--color-text-secondary);">
-							<div class="flex items-center gap-2">
-								<UsersIcon size={16} />
-								팀: {project.team?.length || 0}명
-							</div>
-							<div class="flex items-center gap-2">
-								<CalendarIcon size={16} />
-								마감: {formatDate(project.endDate)}
-							</div>
-							<div class="flex items-center gap-2">
-								<DollarSignIcon size={16} />
-								예산: {project.budget ? `₩${project.budget.toLocaleString()}` : '미정'}
-							</div>
-						</div>
-						<div class="mt-3">
-							<ThemeProgressCard
-								label="진행률"
-								value={project.progress || 0}
-								max={100}
-								showValue={true}
-								variant={project.progress >= 80 ? 'success' : project.progress >= 50 ? 'primary' : 'warning'}
+									</div>
+								{/each}
+							</ThemeSpacer>
+						</ThemeCard>
+
+						<!-- 최근 활동 -->
+						<ThemeCard class="p-6">
+							<ThemeSectionHeader title="최근 활동" />
+							<ThemeSpacer size={4}>
+								{#each recentActivities as activity}
+									<ThemeActivityItem
+										title={activity.title}
+										time={activity.time}
+										icon={activity.icon}
+										color={activity.color}
+									/>
+								{/each}
+							</ThemeSpacer>
+						</ThemeCard>
+					</ThemeGrid>
+
+					<!-- 차트 섹션 -->
+					<ThemeGrid cols={1} lgCols={2} gap={6}>
+						<!-- 프로젝트 상태 분포 -->
+						<ThemeCard class="p-6">
+							<ThemeSectionHeader title="프로젝트 상태 분포" />
+							<ThemeChartPlaceholder
+								title="상태별 분포"
+								icon={PieChartIcon}
 							/>
-						</div>
-					</div>
-					<div class="flex items-center gap-2">
-						<ThemeButton variant="ghost" size="sm">
-							<EyeIcon size={16} />
-						</ThemeButton>
-						<ThemeButton variant="ghost" size="sm">
-							<EditIcon size={16} />
-						</ThemeButton>
-						<ThemeButton variant="ghost" size="sm">
-							<SettingsIcon size={16} />
-						</ThemeButton>
-					</div>
-				</div>
-			{/each}
-		</div>
-	</ThemeCard>
+						</ThemeCard>
 
-	<!-- 프로젝트 분석 -->
-	<ThemeGrid cols={1} lgCols={2} gap={6}>
-		<!-- 프로젝트 진행률 -->
-		<ThemeCard class="p-6">
-			<ThemeSectionHeader title="프로젝트 진행률" />
-			<ThemeSpacer size={4}>
-				{#each projectProgressData as project}
-					<div class="flex items-center justify-between p-3 rounded-lg" style="background: var(--color-surface-elevated);">
-						<div class="flex-1">
-							<h4 class="font-medium" style="color: var(--color-text);">{project.name}</h4>
-							<div class="flex items-center gap-2 mt-1">
-								<ThemeBadge variant={getStatusColor(project.status)}>
-									{getStatusLabel(project.status)}
-								</ThemeBadge>
-								<ThemeBadge variant={getHealthColor(project.health)}>
-									건강도: {project.health}%
-								</ThemeBadge>
+						<!-- 월별 진행률 추이 -->
+						<ThemeCard class="p-6">
+							<ThemeSectionHeader title="월별 진행률 추이" />
+							<ThemeChartPlaceholder
+								title="진행률 분석"
+								icon={TrendingUpIcon}
+							/>
+						</ThemeCard>
+					</ThemeGrid>
+
+					<!-- 권한별 대시보드 정보 -->
+					{#if canViewExecutive}
+						<ThemeCard class="p-6">
+							<ThemeSectionHeader title="경영진 대시보드" />
+							<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+								<div class="p-4 rounded-lg" style="background: var(--color-surface-elevated);">
+									<h4 class="font-medium mb-2" style="color: var(--color-text);">전체 예산</h4>
+									<p class="text-2xl font-bold" style="color: var(--color-primary);">
+										₩{activeProjects.reduce((sum, project) => sum + (project.budget || 0), 0).toLocaleString()}
+									</p>
+								</div>
+								<div class="p-4 rounded-lg" style="background: var(--color-surface-elevated);">
+									<h4 class="font-medium mb-2" style="color: var(--color-text);">평균 건강도</h4>
+									<p class="text-2xl font-bold" style="color: var(--color-success);">
+										{Math.round(activeProjects.reduce((sum, project) => sum + calculateHealthIndicator(project), 0) / Math.max(activeProjects.length, 1))}%
+									</p>
+								</div>
+								<div class="p-4 rounded-lg" style="background: var(--color-surface-elevated);">
+									<h4 class="font-medium mb-2" style="color: var(--color-text);">완료 예정</h4>
+									<p class="text-2xl font-bold" style="color: var(--color-info);">
+										{activeProjects.filter(project => project.status === 'in-progress' && project.progress >= 80).length}개
+									</p>
+								</div>
 							</div>
-						</div>
-						<div class="text-right">
-							<span class="text-lg font-bold" style="color: var(--color-primary);">
-								{project.progress}%
-							</span>
-						</div>
-					</div>
-				{/each}
-			</ThemeSpacer>
-		</ThemeCard>
+						</ThemeCard>
+					{/if}
+				</ThemeSpacer>
 
-		<!-- 위험 프로젝트 -->
-		<ThemeCard class="p-6">
-			<ThemeSectionHeader title="위험 프로젝트" />
-			<ThemeSpacer size={4}>
-				{#each riskProjects as project}
-					<div class="flex items-center justify-between p-3 rounded-lg" style="background: var(--color-surface-elevated);">
-						<div class="flex-1">
-							<h4 class="font-medium" style="color: var(--color-text);">{project.name}</h4>
-							<p class="text-sm" style="color: var(--color-text-secondary);">
-								건강도: {calculateHealthIndicator(project)}%
-							</p>
-							<div class="flex items-center gap-2 mt-1">
-								<ThemeBadge variant="error">
-									{project.status === 'on-hold' ? '보류' : '위험'}
-								</ThemeBadge>
+			{:else if tab.id === 'projects'}
+				<!-- 프로젝트 탭 -->
+				<ThemeSpacer size={6}>
+					<ThemeCard class="p-6">
+						<div class="flex items-center justify-between mb-6">
+							<h3 class="text-lg font-semibold" style="color: var(--color-text);">프로젝트 목록</h3>
+							<div class="flex items-center gap-2">
+								<ThemeButton variant="primary" size="sm" class="flex items-center gap-2">
+									<PlusIcon size={16} />
+									새 프로젝트
+								</ThemeButton>
 							</div>
+				</div>
+
+						<div class="space-y-4">
+							{#each activeProjects as project}
+								<div class="flex items-center justify-between p-4 rounded-lg border" style="border-color: var(--color-border); background: var(--color-surface-elevated);">
+									<div class="flex-1">
+										<div class="flex items-center gap-3 mb-2">
+											<BriefcaseIcon size={20} style="color: var(--color-primary);" />
+											<h4 class="font-medium" style="color: var(--color-text);">{project.name}</h4>
+											<ThemeBadge variant={getStatusColor(project.status)}>
+												{getStatusLabel(project.status)}
+											</ThemeBadge>
+											<ThemeBadge variant={getHealthColor(calculateHealthIndicator(project))}>
+												건강도: {calculateHealthIndicator(project)}%
+											</ThemeBadge>
 						</div>
-						<div class="text-right">
-							<ThemeButton variant="warning" size="sm">
-								<AlertCircleIcon size={16} />
-							</ThemeButton>
-						</div>
+										<div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm" style="color: var(--color-text-secondary);">
+											<div class="flex items-center gap-2">
+												<UsersIcon size={16} />
+												팀: {project.team?.length || 0}명
 					</div>
-				{/each}
-			</ThemeSpacer>
-		</ThemeCard>
-	</ThemeGrid>
-
-	<!-- 최근 활동 -->
-	<ThemeCard class="p-6">
-		<ThemeSectionHeader title="최근 활동" />
-		<ThemeSpacer size={4}>
-			{#each recentActivities as activity}
-				<ThemeActivityItem
-					title={activity.title}
-					description={activity.description}
-					time={activity.time}
-					icon={activity.icon}
-					color={activity.color}
-				/>
-			{/each}
-		</ThemeSpacer>
-	</ThemeCard>
-
-	<!-- 차트 섹션 -->
-	<ThemeGrid cols={1} lgCols={2} gap={6}>
-		<!-- 프로젝트 상태 분포 -->
-		<ThemeCard class="p-6">
-			<ThemeSectionHeader title="프로젝트 상태 분포" />
-			<ThemeChartPlaceholder
-				title="상태별 분포"
-				description="프로젝트 상태별 분포 현황"
-				icon={TargetIcon}
-			/>
-		</ThemeCard>
-
-		<!-- 월별 진행률 추이 -->
-		<ThemeCard class="p-6">
-			<ThemeSectionHeader title="월별 진행률 추이" />
-			<ThemeChartPlaceholder
-				title="진행률 분석"
-				description="최근 6개월간 프로젝트 진행률"
-				icon={TrendingUpIcon}
-			/>
-		</ThemeCard>
-	</ThemeGrid>
-
-	<!-- 권한별 대시보드 정보 -->
-	{#if canViewExecutive}
-		<ThemeCard class="p-6">
-			<ThemeSectionHeader title="경영진 대시보드" />
-			<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-				<div class="p-4 rounded-lg" style="background: var(--color-surface-elevated);">
-					<h4 class="font-medium mb-2" style="color: var(--color-text);">전체 예산</h4>
-					<p class="text-2xl font-bold" style="color: var(--color-primary);">
-						₩{activeProjects.reduce((sum, project) => sum + (project.budget || 0), 0).toLocaleString()}
-					</p>
-				</div>
-				<div class="p-4 rounded-lg" style="background: var(--color-surface-elevated);">
-					<h4 class="font-medium mb-2" style="color: var(--color-text);">평균 건강도</h4>
-					<p class="text-2xl font-bold" style="color: var(--color-success);">
-						{Math.round(activeProjects.reduce((sum, project) => sum + calculateHealthIndicator(project), 0) / Math.max(activeProjects.length, 1))}%
-					</p>
-				</div>
-				<div class="p-4 rounded-lg" style="background: var(--color-surface-elevated);">
-					<h4 class="font-medium mb-2" style="color: var(--color-text);">완료 예정</h4>
-					<p class="text-2xl font-bold" style="color: var(--color-info);">
-						{activeProjects.filter(project => project.status === 'in-progress' && project.progress >= 80).length}개
-					</p>
-				</div>
+											<div class="flex items-center gap-2">
+												<CalendarIcon size={16} />
+												마감: {formatDate(project.endDate)}
 			</div>
-		</ThemeCard>
-	{/if}
+											<div class="flex items-center gap-2">
+												<DollarSignIcon size={16} />
+												예산: {project.budget ? `₩${project.budget.toLocaleString()}` : '미정'}
+								</div>
+							</div>
+										<div class="mt-3">
+											<ThemeProgressCard
+												label="진행률"
+												value={project.progress || 0}
+												max={100}
+												showValue={true}
+												variant={project.progress >= 80 ? 'success' : project.progress >= 50 ? 'primary' : 'warning'}
+											/>
+						</div>
+									</div>
+									<div class="flex items-center gap-2">
+										<ThemeButton variant="ghost" size="sm">
+											<EyeIcon size={16} />
+										</ThemeButton>
+										<ThemeButton variant="ghost" size="sm">
+											<EditIcon size={16} />
+										</ThemeButton>
+										<ThemeButton variant="ghost" size="sm">
+											<SettingsIcon size={16} />
+										</ThemeButton>
+									</div>
+								</div>
+							{/each}
+						</div>
+					</ThemeCard>
+				</ThemeSpacer>
+
+			{:else if tab.id === 'research'}
+				<!-- 연구개발 탭 -->
+				<ThemeSpacer size={6}>
+					<ThemeCard class="p-6">
+						<ThemeSectionHeader title="연구개발 현황" />
+						<ThemeChartPlaceholder
+							title="연구개발 진행률"
+							icon={FlaskConicalIcon}
+						/>
+					</ThemeCard>
+
+					<ThemeCard class="p-6">
+						<ThemeSectionHeader title="위험 프로젝트" />
+						<ThemeSpacer size={4}>
+							{#each riskProjects as project}
+								<div class="flex items-center justify-between p-3 rounded-lg" style="background: var(--color-surface-elevated);">
+									<div class="flex-1">
+										<h4 class="font-medium" style="color: var(--color-text);">{project.name}</h4>
+										<p class="text-sm" style="color: var(--color-text-secondary);">
+											건강도: {calculateHealthIndicator(project)}%
+										</p>
+										<div class="flex items-center gap-2 mt-1">
+											<ThemeBadge variant="error">
+												{project.status === 'on-hold' ? '보류' : '위험'}
+											</ThemeBadge>
+									</div>
+									</div>
+									<div class="text-right">
+										<ThemeButton variant="warning" size="sm">
+											<AlertCircleIcon size={16} />
+										</ThemeButton>
+									</div>
+								</div>
+		{/each}
+						</ThemeSpacer>
+					</ThemeCard>
+				</ThemeSpacer>
+
+			{:else if tab.id === 'milestones'}
+				<!-- 마일스톤 탭 -->
+				<ThemeSpacer size={6}>
+					<ThemeCard class="p-6">
+						<ThemeSectionHeader title="마일스톤 관리" />
+						<ThemeChartPlaceholder
+							title="마일스톤 진행률"
+							icon={TargetIcon}
+						/>
+					</ThemeCard>
+				</ThemeSpacer>
+
+			{:else if tab.id === 'reports'}
+				<!-- 보고서 탭 -->
+				<ThemeSpacer size={6}>
+					<ThemeCard class="p-6">
+						<ThemeSectionHeader title="연구개발 보고서" />
+						<ThemeGrid cols={1} mdCols={2} gap={4}>
+							<ThemeButton variant="secondary" class="flex items-center gap-2 p-4 h-auto">
+								<FileTextIcon size={20} />
+								<div class="text-left">
+									<div class="font-medium">월간 연구보고서</div>
+									<div class="text-sm opacity-70">월별 연구 진행 상황</div>
+								</div>
+							</ThemeButton>
+							<ThemeButton variant="secondary" class="flex items-center gap-2 p-4 h-auto">
+								<BarChart3Icon size={20} />
+								<div class="text-left">
+									<div class="font-medium">프로젝트 분석</div>
+									<div class="text-sm opacity-70">프로젝트 성과 분석</div>
+								</div>
+							</ThemeButton>
+						</ThemeGrid>
+					</ThemeCard>
+				</ThemeSpacer>
+		{/if}
+		{/snippet}
+	</ThemeTabs>
 </PageLayout>
