@@ -17,7 +17,8 @@
 	import { formatCurrency, formatDate } from '$lib/utils/format';
 	import { 
 		UsersIcon, 
-		BuildingIcon, 
+		BuildingIcon,
+		X, 
 		PhoneIcon, 
 		MailIcon, 
 		CalendarIcon,
@@ -118,7 +119,7 @@
 		]
 	});
 
-	let selectedCustomer = $state(null);
+	let selectedCustomer = $state<any>(null);
 	let showCustomerModal = $state(false);
 	let showCreateModal = $state(false);
 	let searchTerm = $state('');
@@ -210,7 +211,7 @@
 			'prospect': 'warning',
 			'churned': 'error'
 		};
-		return colors[status] || 'default';
+		return (colors as any)[status] || 'default';
 	};
 
 	// 상태별 라벨
@@ -221,7 +222,7 @@
 			'prospect': '잠재고객',
 			'churned': '이탈'
 		};
-		return labels[status] || status;
+		return (labels as any)[status] || status;
 	};
 
 	// 상호작용 타입별 색상
@@ -232,7 +233,7 @@
 			'meeting': 'success',
 			'note': 'warning'
 		};
-		return colors[type] || 'default';
+		return (colors as any)[type] || 'default';
 	};
 
 	// 상호작용 타입별 라벨
@@ -243,7 +244,7 @@
 			'meeting': '미팅',
 			'note': '메모'
 		};
-		return labels[type] || type;
+		return (labels as any)[type] || type;
 	};
 
 	// 단계별 색상
@@ -256,7 +257,7 @@
 			'closed-won': 'success',
 			'closed-lost': 'error'
 		};
-		return colors[stage] || 'default';
+		return (colors as any)[stage] || 'default';
 	};
 
 	// 단계별 라벨
@@ -269,7 +270,7 @@
 			'closed-won': '성사',
 			'closed-lost': '실패'
 		};
-		return labels[stage] || stage;
+		return (labels as any)[stage] || stage;
 	};
 
 	// 고객 보기
@@ -398,22 +399,22 @@
 						<div class="flex items-center justify-between mb-6">
 							<h3 class="text-lg font-semibold" style="color: var(--color-text);">고객 목록</h3>
 							<div class="flex items-center gap-2">
-								<ThemeDropdown
-									options={[
-										{ value: 'all', label: '전체' },
-										{ value: 'active', label: '활성' },
-										{ value: 'inactive', label: '비활성' },
-										{ value: 'prospect', label: '잠재고객' },
-										{ value: 'churned', label: '이탈' }
-									]}
-									bind:value={selectedStatus}
-									placeholder="상태 필터"
-								/>
+				<select
+					bind:value={selectedStatus}
+									class="px-3 py-2 border rounded-md"
+									style="background: var(--color-surface); border-color: var(--color-border); color: var(--color-text);"
+				>
+					<option value="all">전체</option>
+					<option value="active">활성</option>
+					<option value="inactive">비활성</option>
+									<option value="prospect">잠재고객</option>
+									<option value="churned">이탈</option>
+				</select>
 		</div>
 	</div>
 
 						<div class="space-y-4">
-							{#each filteredCustomers as customer}
+		{#each filteredCustomers() as customer}
 								<div class="flex items-center justify-between p-4 rounded-lg border" style="border-color: var(--color-border); background: var(--color-surface-elevated);">
 					<div class="flex-1">
 						<div class="flex items-center gap-3 mb-2">
@@ -554,39 +555,46 @@
 
 <!-- 고객 상세 모달 -->
 {#if showCustomerModal && selectedCustomer}
-	<ThemeModal
-		title="고객 상세 정보"
-		onClose={() => { showCustomerModal = false; selectedCustomer = null; }}
-	>
+	<ThemeModal>
+		<div class="flex justify-between items-center mb-4">
+			<h3 class="text-lg font-semibold" style="color: var(--color-text);">고객 상세 정보</h3>
+			<button
+				onclick={() => { showCustomerModal = false; selectedCustomer = null; }}
+				class="p-1 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700"
+				style="color: var(--color-text-secondary);"
+			>
+				<X class="w-5 h-5" />
+			</button>
+		</div>
 	<div class="space-y-4">
 			<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 			<div>
-					<label class="block text-sm font-medium mb-1" style="color: var(--color-text);">회사명</label>
+           <div class="block text-sm font-medium mb-1" style="color: var(--color-text);">회사명</div>
 					<p class="text-sm" style="color: var(--color-text-secondary);">{selectedCustomer.name}</p>
 			</div>
 			<div>
-					<label class="block text-sm font-medium mb-1" style="color: var(--color-text);">담당자</label>
+					<div class="block text-sm font-medium mb-1" style="color: var(--color-text);">담당자</div>
 					<p class="text-sm" style="color: var(--color-text-secondary);">{selectedCustomer.contact}</p>
 			</div>
 			<div>
-					<label class="block text-sm font-medium mb-1" style="color: var(--color-text);">이메일</label>
+					<div class="block text-sm font-medium mb-1" style="color: var(--color-text);">이메일</div>
 					<p class="text-sm" style="color: var(--color-text-secondary);">{selectedCustomer.email}</p>
 			</div>
 			<div>
-					<label class="block text-sm font-medium mb-1" style="color: var(--color-text);">전화번호</label>
+					<div class="block text-sm font-medium mb-1" style="color: var(--color-text);">전화번호</div>
 					<p class="text-sm" style="color: var(--color-text-secondary);">{selectedCustomer.phone}</p>
 		</div>
 		<div>
-					<label class="block text-sm font-medium mb-1" style="color: var(--color-text);">업종</label>
+					<div class="block text-sm font-medium mb-1" style="color: var(--color-text);">업종</div>
 					<p class="text-sm" style="color: var(--color-text-secondary);">{selectedCustomer.industry}</p>
-			</div>
+		</div>
 			<div>
-					<label class="block text-sm font-medium mb-1" style="color: var(--color-text);">고객 가치</label>
+					<div class="block text-sm font-medium mb-1" style="color: var(--color-text);">고객 가치</div>
 					<p class="text-sm font-medium" style="color: var(--color-primary);">{formatCurrency(selectedCustomer.value)}</p>
 		</div>
 			</div>
 			<div>
-				<label class="block text-sm font-medium mb-1" style="color: var(--color-text);">메모</label>
+				<div class="block text-sm font-medium mb-1" style="color: var(--color-text);">메모</div>
 				<p class="text-sm" style="color: var(--color-text-secondary);">{selectedCustomer.notes}</p>
 			</div>
 		</div>
@@ -595,10 +603,17 @@
 
 <!-- 고객 생성 모달 -->
 {#if showCreateModal}
-	<ThemeModal
-		title="새 고객 추가"
-		onClose={() => showCreateModal = false}
-	>
+	<ThemeModal>
+		<div class="flex justify-between items-center mb-4">
+			<h3 class="text-lg font-semibold" style="color: var(--color-text);">새 고객 추가</h3>
+			<button
+				onclick={() => showCreateModal = false}
+				class="p-1 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700"
+				style="color: var(--color-text-secondary);"
+			>
+				<X class="w-5 h-5" />
+			</button>
+		</div>
 		<div class="space-y-4">
 			<ThemeInput label="회사명" placeholder="회사명을 입력하세요" />
 			<ThemeInput label="담당자명" placeholder="담당자명을 입력하세요" />
@@ -611,6 +626,6 @@
 		<div class="flex justify-end gap-2 mt-6">
 			<ThemeButton variant="secondary" onclick={() => showCreateModal = false}>취소</ThemeButton>
 			<ThemeButton variant="primary">저장</ThemeButton>
-		</div>
+	</div>
 	</ThemeModal>
 {/if}

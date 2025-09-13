@@ -11,24 +11,24 @@ export const POST: RequestHandler = async ({ request }) => {
 
 		// Validate input
 		if (!email || !password) {
-			return error(400, { message: 'Email and password are required' });
+			return error(400, 'Email and password are required');
 		}
 
 		// Get user from database
 		const user = await DatabaseService.getUserByEmail(email);
 		if (!user) {
-			return error(401, { message: 'Invalid credentials' });
+			return error(401, 'Invalid credentials');
 		}
 
 		// Check if user is active
 		if (!user.is_active) {
-			return error(401, { message: 'Account is deactivated' });
+			return error(401, 'Account is deactivated');
 		}
 
 		// Verify password
-		const isValidPassword = await bcrypt.compare(password, user.password_hash);
+		const isValidPassword = await bcrypt.compare(password, (user as any).password_hash);
 		if (!isValidPassword) {
-			return error(401, { message: 'Invalid credentials' });
+			return error(401, 'Invalid credentials');
 		}
 
 		// Generate JWT token
@@ -43,7 +43,8 @@ export const POST: RequestHandler = async ({ request }) => {
 		);
 
 		// Update last login
-		await DatabaseService.query(
+		const { query } = await import('$lib/database/connection');
+		await query(
 			'UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = $1',
 			[user.id]
 		);
@@ -59,6 +60,6 @@ export const POST: RequestHandler = async ({ request }) => {
 
 	} catch (err) {
 		console.error('Login error:', err);
-		return error(500, { message: 'Internal server error' });
+		return error(500, 'Internal server error');
 	}
 };

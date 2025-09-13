@@ -85,7 +85,7 @@
 </script>
 
 {#if open}
-	<div class={getBackdropClasses()} onclick={handleBackdropClick} role="dialog" aria-modal="true">
+	<div class={getBackdropClasses()} onclick={handleBackdropClick} onkeydown={(e) => { if (e.key === 'Escape') handleCloseClick(); }} role="dialog" aria-modal="true" tabindex="-1">
 		<div class={getModalClasses()} {...restProps}>
 			{#if closable}
 				<button class="theme-modal-close" onclick={handleCloseClick} aria-label="Close modal">
@@ -256,7 +256,4 @@
 	}
 
 	/* Dark theme specific adjustments */
-	[data-theme="dark"] .theme-modal {
-		box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
-	}
 </style>

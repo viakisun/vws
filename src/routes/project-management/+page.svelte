@@ -9,519 +9,784 @@
 	import ThemeSectionHeader from '$lib/components/ui/ThemeSectionHeader.svelte';
 	import ThemeStatCard from '$lib/components/ui/ThemeStatCard.svelte';
 	import ThemeChartPlaceholder from '$lib/components/ui/ThemeChartPlaceholder.svelte';
-	import ThemeActivityItem from '$lib/components/ui/ThemeActivityItem.svelte';
-	import ThemeProgressCard from '$lib/components/ui/ThemeProgressCard.svelte';
-	import ThemeTabs from '$lib/components/ui/ThemeTabs.svelte';
-	import { formatDate } from '$lib/utils/format';
+	import ThemeModal from '$lib/components/ui/ThemeModal.svelte';
+	import ThemeInput from '$lib/components/ui/ThemeInput.svelte';
+	import ThemeDropdown from '$lib/components/ui/ThemeDropdown.svelte';
+	import ParticipationDashboard from '$lib/components/rd/ParticipationDashboard.svelte';
+	import { formatCurrency, formatDate } from '$lib/utils/format';
 	import { 
-		BriefcaseIcon, 
-		UsersIcon, 
-		CalendarIcon, 
+		FlaskConicalIcon,
+		UsersIcon,
+		DollarSignIcon,
 		TrendingUpIcon,
 		PlusIcon,
 		EyeIcon,
 		EditIcon,
 		TrashIcon,
-		ClockIcon,
-		CheckCircleIcon,
-		AlertCircleIcon,
-		TargetIcon,
-		DollarSignIcon,
 		FileTextIcon,
-		SettingsIcon,
 		BarChart3Icon,
-		FlaskConicalIcon,
-		ClipboardListIcon,
-		PieChartIcon
+		PieChartIcon,
+		AlertTriangleIcon,
+		CheckCircleIcon,
+		ClockIcon,
+		TargetIcon,
+		CalendarIcon,
+		BuildingIcon,
+		UserIcon,
+		PercentIcon,
+		UploadIcon,
+		DownloadIcon,
+		SearchIcon,
+		FilterIcon,
+		BrainIcon,
+		SettingsIcon
 	} from 'lucide-svelte';
-	
-	// 스토어 임포트
-	import { 
-		projects, 
-		getActiveProjects
-	} from '$lib/stores/project-management/core';
-	
-	import { 
-		currentUser,
-		canAccessExecutiveDashboard,
-		canAccessLabHeadDashboard,
-		canAccessPMDashboard,
-		canAccessSupportDashboard,
-		canAccessResearcherDashboard,
-		getUserRoleNames
-	} from '$lib/stores/project-management/rbac';
-	
-	import { 
-		calculateHealthIndicator,
-		getHealthDashboardData
-	} from '$lib/stores/project-management/health-indicators';
+	import {
+		employees,
+		projects,
+		participations,
+		rdBudgets,
+		documentTemplates,
+		documentSubmissions,
+		recommendations,
+		getEmployeeById,
+		getProjectById,
+		getParticipationsByEmployee,
+		getParticipationsByProject,
+		calculatePersonnelCost,
+		getTotalParticipationRate,
+		getProjectBudgetUtilization,
+		getDocumentSubmissionStatus,
+		addEmployee,
+		updateEmployee,
+		addProject,
+		updateProject,
+		addParticipation,
+		updateParticipation,
+		addDocumentSubmission,
+		updateDocumentSubmission,
+		addRecommendation,
+		updateRecommendation
+	} from '$lib/stores/rd';
+	import { initializeParticipationManager } from '$lib/stores/rnd/participation-manager';
+	import DocumentEditor from '$lib/components/rd/DocumentEditor.svelte';
+	import ParticipationAdjuster from '$lib/components/rd/ParticipationAdjuster.svelte';
+	import { toasts } from '$lib/stores/toasts';
 
-	// 현재 사용자 정보
-	let user: any = $state(null);
-	let userRoles: string[] = $state([]);
-	
-	// 대시보드 데이터
-	let healthData: any = $state(null);
-	let activeProjects: any[] = $state([]);
-	let projectHealthIndicators: any[] = $state([]);
+	// 상태 관리
+	let selectedProject = $state<any>(null);
+	let selectedEmployee = $state<any>(null);
+	let selectedTemplate = $state<any>(null);
+	let showProjectModal = $state(false);
+	let showEmployeeModal = $state(false);
+	let showParticipationModal = $state(false);
+	let showDocumentModal = $state(false);
+	let showDocumentEditor = $state(false);
+	let showRecommendationModal = $state(false);
+	let searchTerm = $state('');
+	let selectedStatus = $state('all');
+	let selectedCategory = $state('all');
 
-	// 대시보드 타입 결정
-	let dashboardType = $derived(() => {
-		if (!user) return 'researcher';
-		
-		if (canAccessExecutiveDashboard(user)) return 'executive';
-		if (canAccessLabHeadDashboard(user)) return 'labHead';
-		if (canAccessPMDashboard(user)) return 'pm';
-		if (canAccessSupportDashboard(user)) return 'support';
-		return 'researcher';
-	});
-
-	// 권한 체크
-	let canViewExecutive = $derived(() => canAccessExecutiveDashboard(user));
-	let canViewLabHead = $derived(() => canAccessLabHeadDashboard(user));
-	let canViewPM = $derived(() => canAccessPMDashboard(user));
-	let canViewSupport = $derived(() => canAccessSupportDashboard(user));
+	// 탭 제거 - 모든 내용을 단일 뷰로 통합
 
 	// 통계 데이터
 	const stats = [
 		{
 			title: '진행중인 프로젝트',
-			value: activeProjects.length,
-			change: '+2',
+			value: 3,
+			change: '+1',
 			changeType: 'positive' as const,
-			icon: BriefcaseIcon
+			icon: TargetIcon
 		},
 		{
-			title: '참여 인원',
-			value: activeProjects.reduce((sum, project) => sum + (project.team?.length || 0), 0),
-			change: '+5',
+			title: '총 연구인력',
+			value: 5,
+			change: '+2',
 			changeType: 'positive' as const,
 			icon: UsersIcon
 		},
 		{
-			title: '완료율',
-			value: `${Math.round(activeProjects.reduce((sum, project) => sum + (project.progress || 0), 0) / Math.max(activeProjects.length, 1))}%`,
-			change: '+3%',
+			title: '총 연구개발비',
+			value: formatCurrency(1800000000),
+			change: '+15%',
 			changeType: 'positive' as const,
-			icon: TrendingUpIcon
+			icon: DollarSignIcon
 		},
 		{
 			title: '예산 사용률',
-			value: '78%',
-			change: '+2%',
+			value: '68%',
+			change: '+5%',
 			changeType: 'positive' as const,
-			icon: DollarSignIcon
+			icon: TrendingUpIcon
 		}
 	];
-
-	// 탭 정의
-	const tabs = [
-		{ id: 'overview', label: '개요', icon: BarChart3Icon },
-		{ id: 'projects', label: '프로젝트', icon: BriefcaseIcon },
-		{ id: 'research', label: '연구개발', icon: FlaskConicalIcon },
-		{ id: 'milestones', label: '마일스톤', icon: TargetIcon },
-		{ id: 'reports', label: '보고서', icon: FileTextIcon }
-	];
-
-	let activeTab = $state('overview');
 
 	// 액션 버튼들
 	const actions = [
 		{
-			label: '프로젝트 생성',
+			label: '프로젝트 추가',
 			icon: PlusIcon,
-			onclick: () => console.log('Create project'),
+			onclick: () => { selectedProject = null; showProjectModal = true; },
 			variant: 'primary' as const
 		},
 		{
-			label: '보고서 생성',
-			icon: FileTextIcon,
-			onclick: () => console.log('Generate report'),
+			label: '인력 추가',
+			icon: UserIcon,
+			onclick: () => { selectedEmployee = null; showEmployeeModal = true; },
 			variant: 'success' as const
 		}
 	];
 
-	// 프로젝트 상태별 색상
+	// 필터링된 프로젝트 데이터
+	let filteredProjects = $derived(
+		$projects.filter((project: any) => {
+			const matchesSearch = project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+				project.description.toLowerCase().includes(searchTerm.toLowerCase());
+			const matchesStatus = selectedStatus === 'all' || project.status === selectedStatus;
+			const matchesCategory = selectedCategory === 'all' || project.category === selectedCategory;
+			return matchesSearch && matchesStatus && matchesCategory;
+		})
+	);
+
+	// 상태별 색상
 	const getStatusColor = (status: string) => {
-		const colors = {
+		const colors: Record<string, string> = {
 			'planning': 'info',
-			'in-progress': 'primary',
-			'on-hold': 'warning',
-			'completed': 'success',
-			'cancelled': 'error'
+			'active': 'success',
+			'completed': 'primary',
+			'cancelled': 'error',
+			'on-hold': 'warning'
 		};
 		return colors[status] || 'default';
 	};
 
-	// 프로젝트 상태별 한글 라벨
+	// 상태별 라벨
 	const getStatusLabel = (status: string) => {
-		const labels = {
-			'planning': '계획중',
-			'in-progress': '진행중',
-			'on-hold': '보류',
+		const labels: Record<string, string> = {
+			'planning': '기획',
+			'active': '진행중',
 			'completed': '완료',
-			'cancelled': '취소'
+			'cancelled': '취소',
+			'on-hold': '보류'
 		};
 		return labels[status] || status;
 	};
 
-	// 프로젝트 건강도 색상
-	const getHealthColor = (health: number) => {
-		if (health >= 80) return 'success';
-		if (health >= 60) return 'warning';
-		return 'error';
+	// 카테고리별 색상
+	const getCategoryColor = (category: string) => {
+		const colors: Record<string, string> = {
+			'basic-research': 'primary',
+			'applied-research': 'info',
+			'development': 'success',
+			'pilot': 'warning'
+		};
+		return colors[category] || 'default';
 	};
 
-	// 최근 활동 데이터
-	let recentActivities = $derived(() => {
-		const activities: Array<{
-			type: string;
-			title: string;
-			description: string;
-			time: string;
-			icon: any;
-			color: string;
-		}> = [];
+	// 카테고리별 라벨
+	const getCategoryLabel = (category: string) => {
+		const labels: Record<string, string> = {
+			'basic-research': '기초연구',
+			'applied-research': '응용연구',
+			'development': '개발',
+			'pilot': '파일럿'
+		};
+		return labels[category] || category;
+	};
 
-		// 최근 프로젝트 업데이트
-		activeProjects
-			.sort((a, b) => new Date(b.updatedAt || b.createdAt).getTime() - new Date(a.updatedAt || a.createdAt).getTime())
-			.slice(0, 3)
-			.forEach(project => {
-				activities.push({
-					type: 'project',
-					title: '프로젝트 업데이트',
-					description: `${project.name} 프로젝트가 업데이트되었습니다.`,
-					time: project.updatedAt || project.createdAt,
-					icon: BriefcaseIcon,
-					color: 'text-blue-600'
-				});
-			});
+	// 우선순위별 색상
+	const getPriorityColor = (priority: string) => {
+		const colors: Record<string, string> = {
+			'high': 'error',
+			'medium': 'warning',
+			'low': 'info'
+		};
+		return colors[priority] || 'default';
+	};
 
-		// 최근 마일스톤 완료
-		activeProjects
-			.flatMap(project => project.milestones || [])
-			.filter(milestone => milestone.status === 'completed')
-			.sort((a, b) => new Date(b.completedAt).getTime() - new Date(a.completedAt).getTime())
-			.slice(0, 2)
-			.forEach(milestone => {
-				activities.push({
-					type: 'milestone',
-					title: '마일스톤 완료',
-					description: `${milestone.title} 마일스톤이 완료되었습니다.`,
-					time: milestone.completedAt,
-					icon: CheckCircleIcon,
-					color: 'text-green-600'
-				});
-			});
+	// 우선순위별 라벨
+	const getPriorityLabel = (priority: string) => {
+		const labels: Record<string, string> = {
+			'high': '높음',
+			'medium': '보통',
+			'low': '낮음'
+		};
+		return labels[priority] || priority;
+	};
 
-		return activities.slice(0, 5);
-	});
+	// 추천 타입별 색상
+	const getRecommendationTypeColor = (type: string) => {
+		const colors: Record<string, string> = {
+			'hiring': 'primary',
+			'participation-adjustment': 'info',
+			'budget-reallocation': 'warning',
+			'timeline-adjustment': 'success'
+		};
+		return colors[type] || 'default';
+	};
 
-	// 프로젝트별 진행률 데이터
-	let projectProgressData = $derived(() => {
-		return activeProjects.map(project => ({
-			name: project.name,
-			progress: project.progress || 0,
-			status: project.status,
-			health: calculateHealthIndicator(project)
-		}));
-	});
+	// 추천 타입별 라벨
+	const getRecommendationTypeLabel = (type: string) => {
+		const labels: Record<string, string> = {
+			'hiring': '채용',
+			'participation-adjustment': '참여율 조정',
+			'budget-reallocation': '예산 재배분',
+			'timeline-adjustment': '일정 조정'
+		};
+		return labels[type] || type;
+	};
 
-	// 위험 프로젝트
-	let riskProjects = $derived(() => {
-		return activeProjects.filter(project => {
-			const health = calculateHealthIndicator(project);
-			return health < 60 || project.status === 'on-hold';
-		});
-	});
+	// 프로젝트 보기
+	function viewProject(project: any) {
+		selectedProject = project;
+		showProjectModal = true;
+	}
 
-	onMount(async () => {
-		try {
-			// 사용자 정보 로드
-			user = currentUser;
-		userRoles = getUserRoleNames(user);
+	// 인력 보기
+	function viewEmployee(employee: any) {
+		selectedEmployee = employee;
+		showEmployeeModal = true;
+	}
+
+	// 참여율 조정
+	function adjustParticipation(employee: any) {
+		selectedEmployee = employee;
+		showParticipationModal = true;
+	}
+
+	// 문서 제출
+	function submitDocument(project: any) {
+		selectedProject = project;
+		showDocumentModal = true;
+	}
+
+	// AI 추천 생성
+	function generateRecommendations() {
+		// 실제로는 AI 알고리즘을 호출
+		toasts.update(toasts => [...toasts, {
+			type: 'info',
+			message: 'AI 추천 분석을 시작합니다...',
+			id: crypto.randomUUID()
+		}]);
+	}
+
+	onMount(() => {
+		console.log('연구개발 관리 페이지 로드됨');
 		
-		// 프로젝트 데이터 로드
-		activeProjects = getActiveProjects($projects);
-		
-			// 건강도 데이터 로드
-			healthData = getHealthDashboardData(activeProjects);
-			
-			// 프로젝트 건강도 지표 계산
-			projectHealthIndicators = activeProjects.map(project => ({
-				...project,
-				health: calculateHealthIndicator(project)
-			}));
-			
-			console.log('Project Management 페이지 로드됨', {
-				user,
-				userRoles,
-				dashboardType: dashboardType,
-				activeProjects: activeProjects.length
-			});
-		} catch (error) {
-			console.error('데이터 로드 중 오류:', error);
-		}
+		// 참여율 관리 시스템 초기화
+		initializeParticipationManager();
 	});
 </script>
 
 <PageLayout
 	title="연구개발 관리"
-	subtitle="프로젝트 현황, 연구개발, 마일스톤 관리"
+	subtitle="프로젝트, 인력, 예산, 증빙자료 통합 관리"
 	{stats}
 	{actions}
-	searchPlaceholder="프로젝트명, 담당자, 상태로 검색..."
+	searchPlaceholder="프로젝트명, 설명으로 검색..."
 >
-	<!-- 탭 시스템 -->
-	<ThemeTabs
-		{tabs}
-		bind:activeTab
-		variant="underline"
-		size="md"
-		class="mb-6"
-	>
-		{#snippet children(tab: any)}
-			{#if tab.id === 'overview'}
-				<!-- 개요 탭 -->
-				<ThemeSpacer size={6}>
-					<!-- 메인 대시보드 -->
-					<ThemeGrid cols={1} lgCols={2} gap={6}>
-						<!-- 프로젝트 진행률 -->
-						<ThemeCard class="p-6">
-							<ThemeSectionHeader title="프로젝트 진행률" />
-							<ThemeSpacer size={4}>
-								{#each projectProgressData as project}
-									<div class="flex items-center justify-between p-3 rounded-lg" style="background: var(--color-surface-elevated);">
-										<div class="flex-1">
-											<h4 class="font-medium" style="color: var(--color-text);">{project.name}</h4>
-											<div class="flex items-center gap-2 mt-1">
-												<ThemeBadge variant={getStatusColor(project.status)}>
-													{getStatusLabel(project.status)}
-												</ThemeBadge>
-												<ThemeBadge variant={getHealthColor(project.health)}>
-													건강도: {project.health}%
-												</ThemeBadge>
-									</div>
-								</div>
-										<div class="text-right">
-											<span class="text-lg font-bold" style="color: var(--color-primary);">
-												{project.progress}%
-											</span>
-						</div>
-									</div>
-								{/each}
-							</ThemeSpacer>
-						</ThemeCard>
+	<!-- 통합된 연구개발 관리 대시보드 -->
+	<ThemeSpacer size={6}>
+		<!-- 메인 대시보드 -->
+		<ThemeGrid cols={1} lgCols={2} gap={6}>
+			<!-- 프로젝트 현황 -->
+			<ThemeCard class="p-6">
+				<ThemeSectionHeader title="프로젝트 현황" />
+				<ThemeChartPlaceholder
+					title="프로젝트 상태별 분포"
+					icon={PieChartIcon}
+				/>
+			</ThemeCard>
 
-						<!-- 최근 활동 -->
-						<ThemeCard class="p-6">
-							<ThemeSectionHeader title="최근 활동" />
-							<ThemeSpacer size={4}>
-								{#each recentActivities as activity}
-									<ThemeActivityItem
-										title={activity.title}
-										time={activity.time}
-										icon={activity.icon}
-										color={activity.color}
-									/>
-								{/each}
-							</ThemeSpacer>
-						</ThemeCard>
-					</ThemeGrid>
+			<!-- 예산 사용률 -->
+			<ThemeCard class="p-6">
+				<ThemeSectionHeader title="예산 사용률" />
+				<ThemeChartPlaceholder
+					title="월별 예산 사용 추이"
+					icon={BarChart3Icon}
+				/>
+			</ThemeCard>
+		</ThemeGrid>
 
-					<!-- 차트 섹션 -->
-					<ThemeGrid cols={1} lgCols={2} gap={6}>
-						<!-- 프로젝트 상태 분포 -->
-						<ThemeCard class="p-6">
-							<ThemeSectionHeader title="프로젝트 상태 분포" />
-							<ThemeChartPlaceholder
-								title="상태별 분포"
-								icon={PieChartIcon}
-							/>
-						</ThemeCard>
-
-						<!-- 월별 진행률 추이 -->
-						<ThemeCard class="p-6">
-							<ThemeSectionHeader title="월별 진행률 추이" />
-							<ThemeChartPlaceholder
-								title="진행률 분석"
-								icon={TrendingUpIcon}
-							/>
-						</ThemeCard>
-					</ThemeGrid>
-
-					<!-- 권한별 대시보드 정보 -->
-					{#if canViewExecutive}
-						<ThemeCard class="p-6">
-							<ThemeSectionHeader title="경영진 대시보드" />
-							<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-								<div class="p-4 rounded-lg" style="background: var(--color-surface-elevated);">
-									<h4 class="font-medium mb-2" style="color: var(--color-text);">전체 예산</h4>
-									<p class="text-2xl font-bold" style="color: var(--color-primary);">
-										₩{activeProjects.reduce((sum, project) => sum + (project.budget || 0), 0).toLocaleString()}
-									</p>
-								</div>
-								<div class="p-4 rounded-lg" style="background: var(--color-surface-elevated);">
-									<h4 class="font-medium mb-2" style="color: var(--color-text);">평균 건강도</h4>
-									<p class="text-2xl font-bold" style="color: var(--color-success);">
-										{Math.round(activeProjects.reduce((sum, project) => sum + calculateHealthIndicator(project), 0) / Math.max(activeProjects.length, 1))}%
-									</p>
-								</div>
-								<div class="p-4 rounded-lg" style="background: var(--color-surface-elevated);">
-									<h4 class="font-medium mb-2" style="color: var(--color-text);">완료 예정</h4>
-									<p class="text-2xl font-bold" style="color: var(--color-info);">
-										{activeProjects.filter(project => project.status === 'in-progress' && project.progress >= 80).length}개
-									</p>
-								</div>
-							</div>
-						</ThemeCard>
-					{/if}
-				</ThemeSpacer>
-
-			{:else if tab.id === 'projects'}
-				<!-- 프로젝트 탭 -->
-				<ThemeSpacer size={6}>
-					<ThemeCard class="p-6">
-						<div class="flex items-center justify-between mb-6">
-							<h3 class="text-lg font-semibold" style="color: var(--color-text);">프로젝트 목록</h3>
-							<div class="flex items-center gap-2">
-								<ThemeButton variant="primary" size="sm" class="flex items-center gap-2">
-									<PlusIcon size={16} />
-									새 프로젝트
-								</ThemeButton>
-							</div>
+		<!-- 프로젝트 목록 -->
+		<ThemeCard class="p-6">
+			<div class="flex items-center justify-between mb-6">
+				<ThemeSectionHeader title="프로젝트 목록" />
+				<div class="flex items-center gap-2">
+					<select 
+						bind:value={selectedStatus}
+						class="px-3 py-2 border rounded-md text-sm"
+						style="background: var(--color-surface); border-color: var(--color-border); color: var(--color-text);"
+					>
+						<option value="all">전체</option>
+						<option value="planning">기획</option>
+						<option value="active">진행중</option>
+						<option value="completed">완료</option>
+						<option value="cancelled">취소</option>
+						<option value="on-hold">보류</option>
+					</select>
+					<select 
+						bind:value={selectedCategory}
+						class="px-3 py-2 border rounded-md text-sm"
+						style="background: var(--color-surface); border-color: var(--color-border); color: var(--color-text);"
+					>
+						<option value="all">전체</option>
+						<option value="basic-research">기초연구</option>
+						<option value="applied-research">응용연구</option>
+						<option value="development">개발</option>
+						<option value="pilot">파일럿</option>
+					</select>
 				</div>
-
-						<div class="space-y-4">
-							{#each activeProjects as project}
-								<div class="flex items-center justify-between p-4 rounded-lg border" style="border-color: var(--color-border); background: var(--color-surface-elevated);">
-									<div class="flex-1">
-										<div class="flex items-center gap-3 mb-2">
-											<BriefcaseIcon size={20} style="color: var(--color-primary);" />
-											<h4 class="font-medium" style="color: var(--color-text);">{project.name}</h4>
-											<ThemeBadge variant={getStatusColor(project.status)}>
-												{getStatusLabel(project.status)}
-											</ThemeBadge>
-											<ThemeBadge variant={getHealthColor(calculateHealthIndicator(project))}>
-												건강도: {calculateHealthIndicator(project)}%
-											</ThemeBadge>
-						</div>
-										<div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm" style="color: var(--color-text-secondary);">
-											<div class="flex items-center gap-2">
-												<UsersIcon size={16} />
-												팀: {project.team?.length || 0}명
-					</div>
-											<div class="flex items-center gap-2">
-												<CalendarIcon size={16} />
-												마감: {formatDate(project.endDate)}
 			</div>
-											<div class="flex items-center gap-2">
-												<DollarSignIcon size={16} />
-												예산: {project.budget ? `₩${project.budget.toLocaleString()}` : '미정'}
+			
+			<div class="space-y-4">
+				{#each filteredProjects as project}
+					<div class="flex items-center justify-between p-4 rounded-lg border" style="border-color: var(--color-border); background: var(--color-surface-elevated);">
+						<div class="flex-1">
+							<div class="flex items-center gap-3 mb-2">
+								<TargetIcon size={20} style="color: var(--color-primary);" />
+								<h4 class="font-medium" style="color: var(--color-text);">{project.name}</h4>
+								<ThemeBadge variant={getStatusColor(project.status) as any}>
+									{getStatusLabel(project.status)}
+								</ThemeBadge>
+							</div>
+							<p class="text-sm mb-2" style="color: var(--color-text-secondary);">{project.description}</p>
+							<div class="flex items-center gap-4 text-sm" style="color: var(--color-text-secondary);">
+								<div class="flex items-center gap-1">
+									<UserIcon size={16} />
+									{project.manager}
+								</div>
+								<div class="flex items-center gap-1">
+									<BuildingIcon size={16} />
+									{project.department}
+								</div>
+								<div class="flex items-center gap-1">
+									<CalendarIcon size={16} />
+									{formatDate(project.startDate)} ~ {formatDate(project.endDate)}
 								</div>
 							</div>
-										<div class="mt-3">
-											<ThemeProgressCard
-												label="진행률"
-												value={project.progress || 0}
-												max={100}
-												showValue={true}
-												variant={project.progress >= 80 ? 'success' : project.progress >= 50 ? 'primary' : 'warning'}
-											/>
+							<div class="flex items-center gap-2 mt-2">
+								<ThemeBadge variant={getCategoryColor(project.category) as any}>
+									{getCategoryLabel(project.category)}
+								</ThemeBadge>
+								<ThemeBadge variant={getPriorityColor(project.priority) as any}>
+									{getPriorityLabel(project.priority)}
+								</ThemeBadge>
+								{#if project.client}
+									<ThemeBadge variant="info">{project.client}</ThemeBadge>
+								{/if}
+							</div>
 						</div>
-									</div>
-									<div class="flex items-center gap-2">
-										<ThemeButton variant="ghost" size="sm">
-											<EyeIcon size={16} />
-										</ThemeButton>
-										<ThemeButton variant="ghost" size="sm">
-											<EditIcon size={16} />
-										</ThemeButton>
-										<ThemeButton variant="ghost" size="sm">
-											<SettingsIcon size={16} />
-										</ThemeButton>
-									</div>
-								</div>
-							{/each}
+						<div class="flex items-center gap-2">
+							<div class="text-right mr-4">
+								<p class="text-sm font-medium" style="color: var(--color-primary);">
+									{formatCurrency(project.budget)}
+								</p>
+								<p class="text-xs" style="color: var(--color-text-secondary);">
+									사용률: {getProjectBudgetUtilization(project.id).toFixed(1)}%
+								</p>
+							</div>
+							<ThemeButton variant="ghost" size="sm" onclick={() => viewProject(project)}>
+								<EyeIcon size={16} />
+							</ThemeButton>
+							<ThemeButton variant="ghost" size="sm" onclick={() => submitDocument(project)}>
+								<FileTextIcon size={16} />
+							</ThemeButton>
+							<ThemeButton variant="ghost" size="sm">
+								<EditIcon size={16} />
+							</ThemeButton>
 						</div>
-					</ThemeCard>
-				</ThemeSpacer>
+					</div>
+				{/each}
+			</div>
+		</ThemeCard>
 
-			{:else if tab.id === 'research'}
-				<!-- 연구개발 탭 -->
-				<ThemeSpacer size={6}>
-					<ThemeCard class="p-6">
-						<ThemeSectionHeader title="연구개발 현황" />
-						<ThemeChartPlaceholder
-							title="연구개발 진행률"
-							icon={FlaskConicalIcon}
-						/>
-					</ThemeCard>
+		<!-- 고도화된 참여율 관리 -->
+		<ParticipationDashboard />
 
-					<ThemeCard class="p-6">
-						<ThemeSectionHeader title="위험 프로젝트" />
-						<ThemeSpacer size={4}>
-							{#each riskProjects as project}
-								<div class="flex items-center justify-between p-3 rounded-lg" style="background: var(--color-surface-elevated);">
-									<div class="flex-1">
-										<h4 class="font-medium" style="color: var(--color-text);">{project.name}</h4>
-										<p class="text-sm" style="color: var(--color-text-secondary);">
-											건강도: {calculateHealthIndicator(project)}%
-										</p>
-										<div class="flex items-center gap-2 mt-1">
-											<ThemeBadge variant="error">
-												{project.status === 'on-hold' ? '보류' : '위험'}
-											</ThemeBadge>
-									</div>
-									</div>
-									<div class="text-right">
-										<ThemeButton variant="warning" size="sm">
-											<AlertCircleIcon size={16} />
-										</ThemeButton>
-									</div>
+		<!-- 연구개발비 현황 -->
+		<ThemeCard class="p-6">
+			<ThemeSectionHeader title="연구개발비 현황" />
+			<div class="space-y-4">
+				{#each $projects as project}
+					{@const projectBudgets = $rdBudgets.filter(budget => budget.projectId === project.id)}
+					{@const totalPlanned = projectBudgets.reduce((sum, budget) => sum + budget.plannedAmount, 0)}
+					{@const totalActual = projectBudgets.reduce((sum, budget) => sum + budget.actualAmount, 0)}
+					{@const utilization = totalPlanned > 0 ? (totalActual / totalPlanned) * 100 : 0}
+					<div class="flex items-center justify-between p-4 rounded-lg border" style="border-color: var(--color-border); background: var(--color-surface-elevated);">
+						<div class="flex-1">
+							<h4 class="font-medium mb-2" style="color: var(--color-text);">{project.name}</h4>
+							<div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
+								<div>
+									<p class="font-medium" style="color: var(--color-primary);">인건비</p>
+									<p style="color: var(--color-text-secondary);">
+										{formatCurrency(projectBudgets.filter(b => b.category === 'personnel').reduce((sum, b) => sum + b.actualAmount, 0))}
+									</p>
 								</div>
-		{/each}
-						</ThemeSpacer>
-					</ThemeCard>
-				</ThemeSpacer>
-
-			{:else if tab.id === 'milestones'}
-				<!-- 마일스톤 탭 -->
-				<ThemeSpacer size={6}>
-					<ThemeCard class="p-6">
-						<ThemeSectionHeader title="마일스톤 관리" />
-						<ThemeChartPlaceholder
-							title="마일스톤 진행률"
-							icon={TargetIcon}
-						/>
-					</ThemeCard>
-				</ThemeSpacer>
-
-			{:else if tab.id === 'reports'}
-				<!-- 보고서 탭 -->
-				<ThemeSpacer size={6}>
-					<ThemeCard class="p-6">
-						<ThemeSectionHeader title="연구개발 보고서" />
-						<ThemeGrid cols={1} mdCols={2} gap={4}>
-							<ThemeButton variant="secondary" class="flex items-center gap-2 p-4 h-auto">
-								<FileTextIcon size={20} />
-								<div class="text-left">
-									<div class="font-medium">월간 연구보고서</div>
-									<div class="text-sm opacity-70">월별 연구 진행 상황</div>
+								<div>
+									<p class="font-medium" style="color: var(--color-info);">재료비</p>
+									<p style="color: var(--color-text-secondary);">
+										{formatCurrency(projectBudgets.filter(b => b.category === 'materials').reduce((sum, b) => sum + b.actualAmount, 0))}
+									</p>
 								</div>
+								<div>
+									<p class="font-medium" style="color: var(--color-success);">장비비</p>
+									<p style="color: var(--color-text-secondary);">
+										{formatCurrency(projectBudgets.filter(b => b.category === 'equipment').reduce((sum, b) => sum + b.actualAmount, 0))}
+									</p>
+								</div>
+								<div>
+									<p class="font-medium" style="color: var(--color-warning);">기타</p>
+									<p style="color: var(--color-text-secondary);">
+										{formatCurrency(projectBudgets.filter(b => b.category === 'other').reduce((sum, b) => sum + b.actualAmount, 0))}
+									</p>
+								</div>
+							</div>
+						</div>
+						<div class="text-right">
+							<p class="text-sm font-medium" style="color: var(--color-primary);">
+								{formatCurrency(totalActual)} / {formatCurrency(totalPlanned)}
+							</p>
+							<p class="text-xs" style="color: var(--color-text-secondary);">
+								사용률: {utilization.toFixed(1)}%
+							</p>
+							<div class="w-20 h-2 bg-gray-200 rounded-full mt-1">
+								<div 
+									class="h-2 rounded-full" 
+									style="width: {Math.min(utilization, 100)}%; background: {utilization > 90 ? 'var(--color-error)' : utilization > 70 ? 'var(--color-warning)' : 'var(--color-success)'};"
+								></div>
+							</div>
+						</div>
+					</div>
+				{/each}
+			</div>
+		</ThemeCard>
+
+		<!-- 증빙자료 관리 -->
+		<ThemeCard class="p-6">
+			<ThemeSectionHeader title="증빙자료 관리" />
+			<div class="space-y-4">
+				{#each $projects as project}
+					{@const projectSubmissions = $documentSubmissions.filter(sub => sub.projectId === project.id)}
+					{@const submissionStatus = getDocumentSubmissionStatus(project.id)}
+					<div class="flex items-center justify-between p-4 rounded-lg border" style="border-color: var(--color-border); background: var(--color-surface-elevated);">
+						<div class="flex-1">
+							<h4 class="font-medium mb-2" style="color: var(--color-text);">{project.name}</h4>
+							<div class="flex items-center gap-4 text-sm" style="color: var(--color-text-secondary);">
+								<div class="flex items-center gap-1">
+									<CheckCircleIcon size={16} style="color: var(--color-success);" />
+									승인: {submissionStatus.submitted}개
+								</div>
+								<div class="flex items-center gap-1">
+									<ClockIcon size={16} style="color: var(--color-warning);" />
+									대기: {submissionStatus.pending}개
+								</div>
+								<div class="flex items-center gap-1">
+									<FileTextIcon size={16} style="color: var(--color-info);" />
+									전체: {submissionStatus.total}개
+								</div>
+							</div>
+						</div>
+						<div class="flex items-center gap-2">
+							<ThemeButton variant="ghost" size="sm" onclick={() => submitDocument(project)}>
+								<PlusIcon size={16} />
+								문서 제출
 							</ThemeButton>
-							<ThemeButton variant="secondary" class="flex items-center gap-2 p-4 h-auto">
-								<BarChart3Icon size={20} />
-								<div class="text-left">
-									<div class="font-medium">프로젝트 분석</div>
-									<div class="text-sm opacity-70">프로젝트 성과 분석</div>
-								</div>
+							<ThemeButton variant="ghost" size="sm">
+								<EyeIcon size={16} />
 							</ThemeButton>
-						</ThemeGrid>
-					</ThemeCard>
-				</ThemeSpacer>
-		{/if}
-		{/snippet}
-	</ThemeTabs>
+						</div>
+					</div>
+				{/each}
+			</div>
+		</ThemeCard>
+
+		<!-- AI 추천사항 -->
+		<ThemeCard class="p-6">
+			<div class="flex items-center justify-between mb-6">
+				<ThemeSectionHeader title="AI 추천사항" />
+				<ThemeButton variant="primary" onclick={generateRecommendations}>
+					<BrainIcon size={16} class="mr-2" />
+					새 추천 생성
+				</ThemeButton>
+			</div>
+			<div class="space-y-4">
+				{#each $recommendations as recommendation}
+					<div class="flex items-center justify-between p-4 rounded-lg border" style="border-color: var(--color-border); background: var(--color-surface-elevated);">
+						<div class="flex-1">
+							<div class="flex items-center gap-3 mb-2">
+								<BrainIcon size={20} style="color: var(--color-primary);" />
+								<h4 class="font-medium" style="color: var(--color-text);">{recommendation.title}</h4>
+								<ThemeBadge variant={getRecommendationTypeColor(recommendation.type) as any}>
+									{getRecommendationTypeLabel(recommendation.type)}
+								</ThemeBadge>
+								<ThemeBadge variant={recommendation.priority === 'high' ? 'error' : recommendation.priority === 'medium' ? 'warning' : 'info'}>
+									{recommendation.priority === 'high' ? '높음' : recommendation.priority === 'medium' ? '보통' : '낮음'}
+								</ThemeBadge>
+								<ThemeBadge variant={recommendation.status === 'pending' ? 'warning' : recommendation.status === 'approved' ? 'success' : 'error'}>
+									{recommendation.status === 'pending' ? '대기' : recommendation.status === 'approved' ? '승인' : '거부'}
+								</ThemeBadge>
+							</div>
+							<p class="text-sm mb-2" style="color: var(--color-text-secondary);">{recommendation.description}</p>
+							<p class="text-sm" style="color: var(--color-text-secondary);">
+								<strong>예상 효과:</strong> {recommendation.impact}
+							</p>
+							{#if recommendation.estimatedCost || recommendation.estimatedBenefit}
+								<div class="flex items-center gap-4 mt-2 text-sm">
+									{#if recommendation.estimatedCost}
+										<span style="color: var(--color-error);">
+											예상 비용: {formatCurrency(recommendation.estimatedCost)}
+										</span>
+									{/if}
+									{#if recommendation.estimatedBenefit}
+										<span style="color: var(--color-success);">
+											예상 효과: {formatCurrency(recommendation.estimatedBenefit)}
+										</span>
+									{/if}
+								</div>
+							{/if}
+						</div>
+						<div class="flex items-center gap-2">
+							{#if recommendation.status === 'pending'}
+								<ThemeButton variant="success" size="sm">
+									승인
+								</ThemeButton>
+								<ThemeButton variant="error" size="sm">
+									거부
+								</ThemeButton>
+							{/if}
+							<ThemeButton variant="ghost" size="sm">
+								<EyeIcon size={16} />
+							</ThemeButton>
+						</div>
+					</div>
+				{/each}
+			</div>
+		</ThemeCard>
+	</ThemeSpacer>
 </PageLayout>
+
+<!-- 프로젝트 상세 모달 -->
+{#if showProjectModal && selectedProject}
+	<ThemeModal
+	>
+		<div class="space-y-4">
+			<h3 class="text-lg font-semibold mb-4" style="color: var(--color-text);">프로젝트 상세 정보</h3>
+			<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+				<div>
+					<div class="block text-sm font-medium mb-1" style="color: var(--color-text);">프로젝트명</div>
+					<p class="text-sm" style="color: var(--color-text-secondary);">{selectedProject.name}</p>
+				</div>
+				<div>
+					<div class="block text-sm font-medium mb-1" style="color: var(--color-text);">담당자</div>
+					<p class="text-sm" style="color: var(--color-text-secondary);">{selectedProject.manager}</p>
+				</div>
+				<div>
+					<div class="block text-sm font-medium mb-1" style="color: var(--color-text);">시작일</div>
+					<p class="text-sm" style="color: var(--color-text-secondary);">{formatDate(selectedProject.startDate)}</p>
+				</div>
+				<div>
+					<div class="block text-sm font-medium mb-1" style="color: var(--color-text);">종료일</div>
+					<p class="text-sm" style="color: var(--color-text-secondary);">{formatDate(selectedProject.endDate)}</p>
+				</div>
+				<div>
+					<div class="block text-sm font-medium mb-1" style="color: var(--color-text);">예산</div>
+					<p class="text-sm font-medium" style="color: var(--color-primary);">{formatCurrency(selectedProject.budget)}</p>
+				</div>
+				<div>
+					<div class="block text-sm font-medium mb-1" style="color: var(--color-text);">상태</div>
+					<ThemeBadge variant={getStatusColor(selectedProject.status) as any}>
+						{getStatusLabel(selectedProject.status)}
+					</ThemeBadge>
+				</div>
+			</div>
+			<div>
+				<div class="block text-sm font-medium mb-1" style="color: var(--color-text);">설명</div>
+					<p class="text-sm" style="color: var(--color-text-secondary);">{selectedProject?.description}</p>
+			</div>
+		</div>
+	</ThemeModal>
+{/if}
+
+<!-- 인력 상세 모달 -->
+{#if showEmployeeModal && selectedEmployee}
+	<ThemeModal
+	>
+		<div class="space-y-4">
+			<h3 class="text-lg font-semibold mb-4" style="color: var(--color-text);">인력 상세 정보</h3>
+			<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+				<div>
+					<div class="block text-sm font-medium mb-1" style="color: var(--color-text);">이름</div>
+					<p class="text-sm" style="color: var(--color-text-secondary);">{selectedEmployee.name}</p>
+				</div>
+				<div>
+					<div class="block text-sm font-medium mb-1" style="color: var(--color-text);">부서</div>
+					<p class="text-sm" style="color: var(--color-text-secondary);">{selectedEmployee.department}</p>
+				</div>
+				<div>
+					<div class="block text-sm font-medium mb-1" style="color: var(--color-text);">직책</div>
+					<p class="text-sm" style="color: var(--color-text-secondary);">{selectedEmployee.position}</p>
+				</div>
+				<div>
+					<div class="block text-sm font-medium mb-1" style="color: var(--color-text);">입사일</div>
+					<p class="text-sm" style="color: var(--color-text-secondary);">{formatDate(selectedEmployee.hireDate)}</p>
+				</div>
+				<div>
+					<div class="block text-sm font-medium mb-1" style="color: var(--color-text);">급여</div>
+					<p class="text-sm font-medium" style="color: var(--color-primary);">{formatCurrency(selectedEmployee.salary)}/월</p>
+				</div>
+				<div>
+					<div class="block text-sm font-medium mb-1" style="color: var(--color-text);">상태</div>
+					<ThemeBadge variant={selectedEmployee.status === 'active' ? 'success' : 'error'}>
+						{selectedEmployee.status === 'active' ? '활성' : '비활성'}
+					</ThemeBadge>
+				</div>
+			</div>
+			<div>
+				<div class="block text-sm font-medium mb-1" style="color: var(--color-text);">보유 기술</div>
+				<div class="flex flex-wrap gap-1">
+					{#each selectedEmployee.skills as skill}
+						<ThemeBadge variant="info" size="sm">{skill}</ThemeBadge>
+					{/each}
+				</div>
+			</div>
+		</div>
+	</ThemeModal>
+{/if}
+
+<!-- 참여율 조정 모달 -->
+{#if showParticipationModal && selectedEmployee}
+	<ThemeModal
+		size="xl"
+	>
+		<ParticipationAdjuster
+			employee={selectedEmployee}
+			currentParticipations={getParticipationsByEmployee(selectedEmployee?.id || '')}
+			availableProjects={$projects}
+			onSave={(adjustments) => {
+				// 참여율 조정 저장 로직
+				adjustments.forEach(adj => {
+					if (adj.id.startsWith('new-')) {
+						addParticipation({
+							employeeId: selectedEmployee.id,
+							projectId: adj.projectId,
+							startDate: adj.startDate,
+							endDate: adj.endDate,
+							participationRate: adj.participationRate,
+							monthlySalary: adj.monthlySalary,
+							role: adj.role,
+							status: 'active'
+						});
+					} else {
+						updateParticipation(adj.id, {
+							participationRate: adj.participationRate,
+							monthlySalary: adj.monthlySalary,
+							role: adj.role
+						});
+					}
+				});
+				showParticipationModal = false;
+				selectedEmployee = null;
+				toasts.update(toasts => [...toasts, {
+					type: 'success',
+					message: '참여율이 성공적으로 조정되었습니다.',
+					id: crypto.randomUUID()
+				}]);
+			}}
+			onCancel={() => {
+				showParticipationModal = false;
+				selectedEmployee = null;
+			}}
+		/>
+	</ThemeModal>
+{/if}
+
+<!-- 문서 제출 모달 -->
+{#if showDocumentModal && selectedProject}
+	<ThemeModal
+		size="xl"
+	>
+		<div class="space-y-6">
+			<div class="flex items-center justify-between">
+				<div>
+					<h3 class="text-lg font-semibold" style="color: var(--color-text);">
+						{selectedProject.name} - 문서 제출
+					</h3>
+					<p class="text-sm" style="color: var(--color-text-secondary);">
+						필요한 문서를 선택하여 작성하거나 제출하세요.
+					</p>
+				</div>
+			</div>
+
+			<!-- 문서 템플릿 선택 -->
+			<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+				{#each $documentTemplates as template}
+					<button 
+						class="w-full p-4 rounded-lg border hover:opacity-80 transition-opacity text-left" 
+						style="border-color: var(--color-border); background: var(--color-surface-elevated);"
+						onclick={() => {
+							selectedTemplate = template;
+							showDocumentEditor = true;
+						}}
+						onkeydown={(e) => {
+							if (e.key === 'Enter' || e.key === ' ') {
+								selectedTemplate = template;
+								showDocumentEditor = true;
+							}
+						}}
+					>
+						<div class="flex items-center gap-3 mb-2">
+							<FileTextIcon size={20} style="color: var(--color-primary);" />
+							<h4 class="font-medium" style="color: var(--color-text);">{template.name}</h4>
+						</div>
+						<p class="text-sm" style="color: var(--color-text-secondary);">{template.description}</p>
+						<div class="flex flex-wrap gap-1 mt-2">
+							{#each template.requiredFields.slice(0, 3) as field}
+								<ThemeBadge variant="info" size="sm">{field}</ThemeBadge>
+							{/each}
+							{#if template.requiredFields.length > 3}
+								<ThemeBadge variant="info" size="sm">+{template.requiredFields.length - 3}</ThemeBadge>
+							{/if}
+						</div>
+					</button>
+				{/each}
+			</div>
+		</div>
+	</ThemeModal>
+{/if}
+
+<!-- 문서 편집기 모달 -->
+{#if showDocumentEditor && selectedTemplate && selectedProject}
+	<ThemeModal
+		size="xl"
+	>
+		<DocumentEditor
+			template={selectedTemplate!}
+			projectId={selectedProject?.id || ''}
+			onSave={(data) => {
+				addDocumentSubmission({
+					projectId: selectedProject?.id || '',
+					templateId: selectedTemplate?.id || '',
+					title: `${selectedTemplate?.name} - ${selectedProject?.name}`,
+					status: data.status,
+					submittedBy: '현재 사용자', // 실제로는 로그인한 사용자
+					submittedAt: new Date().toISOString(),
+					content: JSON.stringify(data)
+				});
+				showDocumentEditor = false;
+				showDocumentModal = false;
+				selectedTemplate = null;
+				selectedProject = null;
+				toasts.update(toasts => [...toasts, {
+					type: 'success',
+					message: '문서가 성공적으로 제출되었습니다.',
+					id: crypto.randomUUID()
+				}]);
+			}}
+			onCancel={() => {
+				showDocumentEditor = false;
+				selectedTemplate = null;
+			}}
+		/>
+	</ThemeModal>
+{/if}

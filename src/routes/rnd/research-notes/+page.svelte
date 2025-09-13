@@ -1,12 +1,13 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { researchNotes, persons, projects } from '$lib/stores/rnd/init-dummy-data';
-	import { Badge } from '$lib/components/ui/Badge.svelte';
-	import { Card } from '$lib/components/ui/Card.svelte';
-	import { Modal } from '$lib/components/ui/Modal.svelte';
+	import { projects, employees } from '$lib/stores/rd';
+	import { researchNotes } from '$lib/stores/rnd/mock-data';
+	import Badge from '$lib/components/ui/Badge.svelte';
+	import Card from '$lib/components/ui/Card.svelte';
+	import Modal from '$lib/components/ui/Modal.svelte';
 	import type { ResearchNote, Person, Project } from '$lib/stores/rnd/types';
 
-	let selectedNote: ResearchNote | null = null;
+	let selectedNote = $state<ResearchNote | null>(null);
 	let showDetailModal = $state(false);
 	let showCreateModal = $state(false);
 	let searchTerm = $state('');
@@ -25,46 +26,46 @@
 
 	// Get filtered research notes
 	let filteredNotes = $derived(() => {
-		let notes = researchNotes;
+		let notes = $researchNotes;
 		
 		if (searchTerm) {
-			notes = notes.filter(note => 
+			notes = notes.filter((note: any) => 
 				note.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-				note.content.toLowerCase().includes(searchTerm.toLowerCase())
+				note.contentMd.toLowerCase().includes(searchTerm.toLowerCase())
 			);
 		}
 		
 		if (selectedProject !== 'all') {
-			notes = notes.filter(note => note.projectId === selectedProject);
+			notes = notes.filter((note: any) => note.projectId === selectedProject);
 		}
 		
 		if (selectedAuthor !== 'all') {
-			notes = notes.filter(note => note.authorId === selectedAuthor);
+			notes = notes.filter((note: any) => note.authorId === selectedAuthor);
 		}
 		
 		if (selectedWeek !== 'all') {
-			notes = notes.filter(note => note.weekOf === selectedWeek);
+			notes = notes.filter((note: any) => note.weekOf === selectedWeek);
 		}
 		
-		return notes.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+		return notes.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 	});
 
 	// Get unique weeks for filter
 	let availableWeeks = $derived(() => {
-		const weeks = [...new Set(researchNotes.map(note => note.weekOf))];
+		const weeks = [...new Set($researchNotes.map((note: any) => note.weekOf))];
 		return weeks.sort();
 	});
 
 	// Get person name by ID
 	function getPersonName(personId: string): string {
-		const person = persons.find(p => p.id === personId);
+		const person = $employees.find((p: any) => p.id === personId);
 		return person ? person.name : 'Unknown';
 	}
 
 	// Get project name by ID
 	function getProjectName(projectId: string): string {
-		const project = projects.find(p => p.id === projectId);
-		return project ? project.title : 'Unknown Project';
+		const project = $projects.find((p: any) => p.id === projectId);
+		return project ? project.name : 'Unknown Project';
 	}
 
 	// Show note detail
@@ -83,18 +84,15 @@
 		const newNote: ResearchNote = {
 			id: `rn-${Date.now()}`,
 			projectId: formData.projectId,
-			authorId: 'person-1', // Current user ID
+			authorId: 'emp-001', // Current user ID
 			weekOf: formData.weekOf,
 			title: formData.title,
-			content: formData.content,
-			attachments: formData.attachments,
-			signedAt: null,
-			verifiedBy: null,
-			createdAt: new Date().toISOString(),
-			updatedAt: new Date().toISOString()
+			contentMd: formData.content,
+			attachments: formData.attachments.map((att: string) => ({ documentId: att, description: 'Attachment' })),
+			createdAt: new Date().toISOString()
 		};
 
-		researchNotes.push(newNote);
+		$researchNotes.push(newNote);
 		
 		// Reset form
 		formData = {
@@ -110,19 +108,17 @@
 
 	// Sign research note
 	function signNote(noteId: string) {
-		const note = researchNotes.find(n => n.id === noteId);
+		const note = $researchNotes.find((n: any) => n.id === noteId);
 		if (note) {
 			note.signedAt = new Date().toISOString();
-			note.updatedAt = new Date().toISOString();
 		}
 	}
 
 	// Verify research note
 	function verifyNote(noteId: string) {
-		const note = researchNotes.find(n => n.id === noteId);
+		const note = $researchNotes.find((n: any) => n.id === noteId);
 		if (note) {
 			note.verifiedBy = 'person-2'; // PM ID
-			note.updatedAt = new Date().toISOString();
 		}
 	}
 
@@ -147,7 +143,7 @@
 
 	onMount(() => {
 		// Initialize dummy data if needed
-		if (researchNotes.length === 0) {
+		if ($researchNotes.length === 0) {
 			// Dummy data will be loaded from init-dummy-data.ts
 		}
 	});
@@ -180,8 +176,8 @@
 					class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 				>
 					<option value="all">전체</option>
-					{#each projects as project}
-						<option value={project.id}>{project.title}</option>
+					{#each $projects as project}
+						<option value={project.id}>{project.name}</option>
 					{/each}
 				</select>
 			</div>
@@ -193,7 +189,7 @@
 					class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 				>
 					<option value="all">전체</option>
-					{#each persons as person}
+					{#each $employees as person}
 						<option value={person.id}>{person.name}</option>
 					{/each}
 				</select>
@@ -238,7 +234,7 @@
 							<span class="font-medium">주차:</span> {note.weekOf} | 
 							<span class="font-medium">작성일:</span> {formatDate(note.createdAt)}
 						</div>
-						<p class="text-gray-700 text-sm line-clamp-2">{note.content}</p>
+						<p class="text-gray-700 text-sm line-clamp-2">{note.contentMd}</p>
 						{#if note.attachments.length > 0}
 							<div class="mt-2">
 								<span class="text-xs text-gray-500">첨부파일: {note.attachments.length}개</span>
@@ -285,7 +281,7 @@
 </div>
 
 <!-- Detail Modal -->
-<Modal bind:show={showDetailModal} title="연구노트 상세">
+<Modal bind:open={showDetailModal} title="연구노트 상세">
 	{#if selectedNote}
 		<div class="space-y-4">
 			<div>
@@ -305,9 +301,9 @@
 			</div>
 			<div>
 				<h4 class="font-medium text-gray-900 mb-2">내용</h4>
-				<div class="bg-gray-50 p-4 rounded-md">
-					<p class="whitespace-pre-wrap">{selectedNote.content}</p>
-				</div>
+								<div class="bg-gray-50 p-4 rounded-md">
+									<p class="whitespace-pre-wrap">{selectedNote?.contentMd}</p>
+								</div>
 			</div>
 			{#if selectedNote.attachments.length > 0}
 				<div>
@@ -326,7 +322,7 @@
 </Modal>
 
 <!-- Create Modal -->
-<Modal bind:show={showCreateModal} title="새 연구노트 작성">
+<Modal bind:open={showCreateModal} title="새 연구노트 작성">
 	<div class="space-y-4">
 		<div>
 			<label for="create-project" class="block text-sm font-medium text-gray-700 mb-1">프로젝트 *</label>
@@ -336,8 +332,8 @@
 				class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 			>
 				<option value="">프로젝트 선택</option>
-				{#each projects as project}
-					<option value={project.id}>{project.title}</option>
+				{#each $projects as project}
+					<option value={project.id}>{project.name}</option>
 				{/each}
 			</select>
 		</div>
@@ -392,6 +388,7 @@
 	.line-clamp-2 {
 		display: -webkit-box;
 		-webkit-line-clamp: 2;
+		line-clamp: 2;
 		-webkit-box-orient: vertical;
 		overflow: hidden;
 	}

@@ -1,4 +1,5 @@
-import { Pool, PoolClient, QueryResult } from 'pg';
+import { Pool } from 'pg';
+import type { PoolClient, QueryResult } from 'pg';
 import { config } from '$lib/utils/config';
 
 // Database connection pool
@@ -8,7 +9,7 @@ let pool: Pool | null = null;
 const dbConfig = {
 	host: config.database.host || 'localhost',
 	port: config.database.port || 5432,
-	database: config.database.name || 'workstream',
+	database: config.database.database || 'workstream',
 	user: config.database.user || 'postgres',
 	password: config.database.password || 'password',
 	max: 20, // Maximum number of clients in the pool
@@ -43,7 +44,7 @@ export async function getConnection(): Promise<PoolClient> {
 }
 
 // Execute a query with parameters
-export async function query<T = any>(
+export async function query<T extends Record<string, any> = any>(
 	text: string, 
 	params?: any[]
 ): Promise<QueryResult<T>> {
@@ -200,7 +201,7 @@ export class DatabaseService {
 			`INSERT INTO users (email, password_hash, name, department, position, role)
 			 VALUES ($1, $2, $3, $4, $5, $6)
 			 RETURNING *`,
-			[userData.email, userData.password_hash, userData.name, userData.department, userData.position, userData.role]
+			[userData.email, (userData as any).password_hash, userData.name, userData.department, userData.position, userData.role]
 		);
 		return result.rows[0];
 	}

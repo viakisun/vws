@@ -108,7 +108,7 @@
 		]
 	});
 
-	let selectedLead = $state(null);
+	let selectedLead = $state<any>(null);
 	let showLeadModal = $state(false);
 	let showCreateModal = $state(false);
 	let searchTerm = $state('');
@@ -178,7 +178,7 @@
 		let leads = salesData.leads;
 		
 		if (searchTerm) {
-			leads = leads.filter(lead => 
+			leads = leads.filter((lead: any) => 
 				lead.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
 				lead.contact.toLowerCase().includes(searchTerm.toLowerCase()) ||
 				lead.industry.toLowerCase().includes(searchTerm.toLowerCase())
@@ -186,7 +186,7 @@
 		}
 		
 		if (selectedStatus !== 'all') {
-			leads = leads.filter(lead => lead.status === selectedStatus);
+			leads = leads.filter((lead: any) => lead.status === selectedStatus);
 		}
 		
 		return leads;
@@ -194,7 +194,7 @@
 
 	// 상태별 색상
 	const getStatusColor = (status: string) => {
-		const colors = {
+		const colors: Record<string, string> = {
 			'new': 'info',
 			'qualified': 'primary',
 			'proposal': 'warning',
@@ -207,7 +207,7 @@
 
 	// 상태별 라벨
 	const getStatusLabel = (status: string) => {
-		const labels = {
+		const labels: Record<string, string> = {
 			'new': '신규',
 			'qualified': '검증됨',
 			'proposal': '제안',
@@ -220,7 +220,7 @@
 
 	// 단계별 색상
 	const getStageColor = (stage: string) => {
-		const colors = {
+		const colors: Record<string, string> = {
 			'prospecting': 'info',
 			'qualification': 'primary',
 			'proposal': 'warning',
@@ -233,7 +233,7 @@
 
 	// 단계별 라벨
 	const getStageLabel = (stage: string) => {
-		const labels = {
+		const labels: Record<string, string> = {
 			'prospecting': '탐색',
 			'qualification': '검증',
 			'proposal': '제안',
@@ -369,28 +369,28 @@
 						<div class="flex items-center justify-between mb-6">
 							<h3 class="text-lg font-semibold" style="color: var(--color-text);">리드 목록</h3>
 							<div class="flex items-center gap-2">
-								<ThemeDropdown
-									options={[
-										{ value: 'all', label: '전체' },
-										{ value: 'new', label: '신규' },
-										{ value: 'qualified', label: '검증됨' },
-										{ value: 'proposal', label: '제안' },
-										{ value: 'negotiation', label: '협상' }
-									]}
+								<select
 									bind:value={selectedStatus}
-									placeholder="상태 필터"
-								/>
+									class="px-3 py-2 border rounded-md text-sm"
+									style="background: var(--color-surface); border-color: var(--color-border); color: var(--color-text);"
+								>
+									<option value="all">전체</option>
+									<option value="new">신규</option>
+									<option value="qualified">검증됨</option>
+									<option value="proposal">제안</option>
+									<option value="negotiation">협상</option>
+								</select>
 							</div>
 						</div>
 						
 						<div class="space-y-4">
-							{#each filteredLeads as lead}
+							{#each filteredLeads() as lead}
 								<div class="flex items-center justify-between p-4 rounded-lg border" style="border-color: var(--color-border); background: var(--color-surface-elevated);">
 									<div class="flex-1">
 										<div class="flex items-center gap-3 mb-2">
 											<BuildingIcon size={20} style="color: var(--color-primary);" />
 											<h4 class="font-medium" style="color: var(--color-text);">{lead.company}</h4>
-											<ThemeBadge variant={getStatusColor(lead.status)}>
+											<ThemeBadge variant={getStatusColor(lead.status) as any}>
 												{getStatusLabel(lead.status)}
 											</ThemeBadge>
 										</div>
@@ -443,7 +443,7 @@
 											{opportunity.company} • {opportunity.owner}
 										</p>
 										<div class="flex items-center gap-2 mt-1">
-											<ThemeBadge variant={getStageColor(opportunity.stage)}>
+											<ThemeBadge variant={getStageColor(opportunity.stage) as any}>
 												{getStageLabel(opportunity.stage)}
 											</ThemeBadge>
 											<span class="text-sm font-medium" style="color: var(--color-primary);">
@@ -527,38 +527,46 @@
 <!-- 리드 상세 모달 -->
 {#if showLeadModal && selectedLead}
 	<ThemeModal
-		title="리드 상세 정보"
-		onClose={() => { showLeadModal = false; selectedLead = null; }}
+		open={showLeadModal}
 	>
 		<div class="space-y-4">
+			<div class="flex justify-between items-center mb-4">
+				<h3 class="text-lg font-semibold" style="color: var(--color-text);">리드 상세 정보</h3>
+				<button 
+					onclick={() => { showLeadModal = false; selectedLead = null; }}
+					class="text-gray-500 hover:text-gray-700"
+				>
+					×
+				</button>
+			</div>
 			<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 				<div>
-					<label class="block text-sm font-medium mb-1" style="color: var(--color-text);">회사명</label>
+					<div class="block text-sm font-medium mb-1" style="color: var(--color-text);">회사명</div>
 					<p class="text-sm" style="color: var(--color-text-secondary);">{selectedLead.company}</p>
 				</div>
 				<div>
-					<label class="block text-sm font-medium mb-1" style="color: var(--color-text);">담당자</label>
+					<div class="block text-sm font-medium mb-1" style="color: var(--color-text);">담당자</div>
 					<p class="text-sm" style="color: var(--color-text-secondary);">{selectedLead.contact} ({selectedLead.position})</p>
 				</div>
 				<div>
-					<label class="block text-sm font-medium mb-1" style="color: var(--color-text);">이메일</label>
+					<div class="block text-sm font-medium mb-1" style="color: var(--color-text);">이메일</div>
 					<p class="text-sm" style="color: var(--color-text-secondary);">{selectedLead.email}</p>
 				</div>
 				<div>
-					<label class="block text-sm font-medium mb-1" style="color: var(--color-text);">전화번호</label>
+					<div class="block text-sm font-medium mb-1" style="color: var(--color-text);">전화번호</div>
 					<p class="text-sm" style="color: var(--color-text-secondary);">{selectedLead.phone}</p>
 				</div>
 				<div>
-					<label class="block text-sm font-medium mb-1" style="color: var(--color-text);">업종</label>
+					<div class="block text-sm font-medium mb-1" style="color: var(--color-text);">업종</div>
 					<p class="text-sm" style="color: var(--color-text-secondary);">{selectedLead.industry}</p>
 				</div>
 				<div>
-					<label class="block text-sm font-medium mb-1" style="color: var(--color-text);">예상 매출</label>
+					<div class="block text-sm font-medium mb-1" style="color: var(--color-text);">예상 매출</div>
 					<p class="text-sm font-medium" style="color: var(--color-primary);">{formatCurrency(selectedLead.value)}</p>
 				</div>
 			</div>
 			<div>
-				<label class="block text-sm font-medium mb-1" style="color: var(--color-text);">메모</label>
+				<div class="block text-sm font-medium mb-1" style="color: var(--color-text);">메모</div>
 				<p class="text-sm" style="color: var(--color-text-secondary);">{selectedLead.notes}</p>
 			</div>
 		</div>
@@ -568,10 +576,18 @@
 <!-- 리드 생성 모달 -->
 {#if showCreateModal}
 	<ThemeModal
-		title="새 리드 추가"
-		onClose={() => showCreateModal = false}
+		open={showCreateModal}
 	>
 		<div class="space-y-4">
+			<div class="flex justify-between items-center mb-4">
+				<h3 class="text-lg font-semibold" style="color: var(--color-text);">새 리드 추가</h3>
+				<button 
+					onclick={() => showCreateModal = false}
+					class="text-gray-500 hover:text-gray-700"
+				>
+					×
+				</button>
+			</div>
 			<ThemeInput label="회사명" placeholder="회사명을 입력하세요" />
 			<ThemeInput label="담당자명" placeholder="담당자명을 입력하세요" />
 			<ThemeInput label="직책" placeholder="직책을 입력하세요" />

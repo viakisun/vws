@@ -22,5 +22,5 @@
 </script>
 
 <div class="{gridClass} {className}" {...restProps}>
-	{@render children()}
+	{@render children?.()}
 </div>

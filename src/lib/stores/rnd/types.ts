@@ -140,6 +140,7 @@ export interface ParticipationAssignment {
 	ratePct: number; // 참여율 (0-100)
 	role: string;
 	createdAt: DateString;
+	updatedAt: DateString;
 }
 
 // ===== 예산 카테고리 =====

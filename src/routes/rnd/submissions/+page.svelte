@@ -1,13 +1,26 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { projects, persons, expenseItems, documents } from '$lib/stores/rnd/init-dummy-data';
-	import { Badge } from '$lib/components/ui/Badge.svelte';
-	import { Card } from '$lib/components/ui/Card.svelte';
-	import { Modal } from '$lib/components/ui/Modal.svelte';
+	import { projects, employees } from '$lib/stores/rd';
+	import { submissionBundles, documents, expenseItems } from '$lib/stores/rnd/mock-data';
+	import Badge from '$lib/components/ui/Badge.svelte';
+	import Card from '$lib/components/ui/Card.svelte';
+	import Modal from '$lib/components/ui/Modal.svelte';
 	import type { Project, Person, SubmissionBundle, Document } from '$lib/stores/rnd/types';
 
+	// Extended SubmissionBundle interface for this page
+	interface ExtendedSubmissionBundle extends SubmissionBundle {
+		documentCount?: number;
+		totalSize?: string;
+		validationResults?: {
+			valid: boolean;
+			errors: string[];
+			warnings: string[];
+			completeness: number;
+		};
+	}
+
 	// Mock submission bundles data
-	let submissionBundles = $state<SubmissionBundle[]>([
+	let localSubmissionBundles = $state<ExtendedSubmissionBundle[]>([
 		{
 			id: 'bundle-1',
 			projectId: 'project-1',
@@ -17,7 +30,7 @@
 			checksum: 'sha256:abc123def456...',
 			createdBy: 'person-2',
 			createdAt: '2024-04-01T10:00:00Z',
-			status: 'completed',
+			status: 'uploaded',
 			documentCount: 45,
 			totalSize: '125.6 MB',
 			validationResults: {
@@ -36,7 +49,7 @@
 			checksum: 'sha256:def456ghi789...',
 			createdBy: 'person-2',
 			createdAt: '2024-04-02T14:30:00Z',
-			status: 'pending_validation',
+			status: 'ready',
 			documentCount: 32,
 			totalSize: '89.2 MB',
 			validationResults: {
@@ -67,7 +80,7 @@
 		}
 	]);
 
-	let selectedBundle: SubmissionBundle | null = null;
+	let selectedBundle = $state<ExtendedSubmissionBundle | null>(null);
 	let showDetailModal = $state(false);
 	let showCreateModal = $state(false);
 	let showValidationModal = $state(false);
@@ -90,50 +103,50 @@
 
 	// Get filtered bundles
 	let filteredBundles = $derived(() => {
-		let filtered = submissionBundles;
+		let filtered = $submissionBundles;
 		
 		if (searchTerm) {
-			filtered = filtered.filter(bundle => 
+			filtered = filtered.filter((bundle: any) => 
 				bundle.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
 				bundle.period.toLowerCase().includes(searchTerm.toLowerCase())
 			);
 		}
 		
 		if (selectedProject !== 'all') {
-			filtered = filtered.filter(bundle => bundle.projectId === selectedProject);
+			filtered = filtered.filter((bundle: any) => bundle.projectId === selectedProject);
 		}
 		
 		if (selectedPeriod !== 'all') {
-			filtered = filtered.filter(bundle => bundle.period === selectedPeriod);
+			filtered = filtered.filter((bundle: any) => bundle.period === selectedPeriod);
 		}
 		
 		if (selectedStatus !== 'all') {
-			filtered = filtered.filter(bundle => bundle.status === selectedStatus);
+			filtered = filtered.filter((bundle: any) => bundle.status === selectedStatus);
 		}
 		
-		return filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+		return filtered.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 	});
 
 	// Get unique periods for filter
 	let availablePeriods = $derived(() => {
-		const periods = [...new Set(submissionBundles.map(b => b.period))];
+		const periods = [...new Set($submissionBundles.map((b: any) => b.period))];
 		return periods.sort().reverse();
 	});
 
 	// Get person name by ID
 	function getPersonName(personId: string): string {
-		const person = persons.find(p => p.id === personId);
+		const person = $employees.find((p: any) => p.id === personId);
 		return person ? person.name : 'Unknown';
 	}
 
 	// Get project name by ID
 	function getProjectName(projectId: string): string {
-		const project = projects.find(p => p.id === projectId);
-		return project ? project.title : 'Unknown Project';
+		const project = $projects.find((p: any) => p.id === projectId);
+		return project ? project.name : 'Unknown Project';
 	}
 
 	// Show bundle detail
-	function showBundleDetail(bundle: SubmissionBundle) {
+	function showBundleDetail(bundle: ExtendedSubmissionBundle) {
 		selectedBundle = bundle;
 		showDetailModal = true;
 	}
@@ -146,7 +159,7 @@
 		}
 
 		// Check if bundle already exists
-		const existingBundle = submissionBundles.find(b => 
+		const existingBundle = $submissionBundles.find((b: any) => 
 			b.projectId === formData.projectId && b.period === formData.period
 		);
 
@@ -155,14 +168,14 @@
 			return;
 		}
 
-		const newBundle: SubmissionBundle = {
+		const newBundle: ExtendedSubmissionBundle = {
 			id: `bundle-${Date.now()}`,
 			projectId: formData.projectId,
 			period: formData.period,
 			fileUrl: `/bundles/${formData.projectId}-${formData.period}.zip`,
 			manifestXml: '<?xml version="1.0" encoding="UTF-8"?><manifest>...</manifest>',
 			checksum: 'sha256:generating...',
-			createdBy: 'person-2', // Current user
+			createdBy: 'emp-001', // Current user
 			createdAt: new Date().toISOString(),
 			status: 'generating',
 			documentCount: 0,
@@ -175,7 +188,7 @@
 			}
 		};
 
-		submissionBundles.push(newBundle);
+		$submissionBundles.push(newBundle);
 		
 		// Simulate bundle generation
 		setTimeout(() => {
@@ -199,17 +212,17 @@
 
 	// Generate bundle content (simulation)
 	function generateBundleContent(bundleId: string) {
-		const bundle = submissionBundles.find(b => b.id === bundleId);
+		const bundle = $submissionBundles.find((b: any) => b.id === bundleId);
 		if (bundle) {
-			// Simulate document collection and validation
-			const projectExpenses = expenseItems.filter(e => e.projectId === bundle.projectId);
-			const projectDocuments = documents.filter(d => d.expenseId && 
-				projectExpenses.some(e => e.id === d.expenseId));
+		// Simulate document collection and validation
+		const projectExpenses = $expenseItems.filter((e: any) => e.projectId === bundle.projectId);
+		const projectDocuments = $documents.filter((d: any) => d.expenseId && 
+			projectExpenses.some((e: any) => e.id === d.expenseId));
 			
-			bundle.documentCount = projectDocuments.length;
-			bundle.totalSize = `${(Math.random() * 100 + 50).toFixed(1)} MB`;
+			(bundle as any).documentCount = projectDocuments.length;
+			(bundle as any).totalSize = `${(Math.random() * 100 + 50).toFixed(1)} MB`;
 			bundle.checksum = `sha256:${Math.random().toString(36).substring(2, 15)}...`;
-			bundle.status = 'pending_validation';
+			bundle.status = 'ready';
 			
 			// Simulate validation
 			setTimeout(() => {
@@ -220,27 +233,26 @@
 
 	// Validate bundle
 	function validateBundle(bundleId: string) {
-		const bundle = submissionBundles.find(b => b.id === bundleId);
+		const bundle = $submissionBundles.find((b: any) => b.id === bundleId);
 		if (bundle) {
 			// Mock validation results
 			const hasErrors = Math.random() > 0.7;
 			const completeness = Math.floor(Math.random() * 20) + 80;
 			
-			bundle.validationResults = {
+			(bundle as any).validationResults = {
 				valid: !hasErrors,
 				errors: hasErrors ? ['일부 필수 문서 누락', '서명 누락 문서 2건'] : [],
 				warnings: ['일부 영수증 해상도 부족', '연구노트 서명 누락 1건'],
 				completeness
 			};
 			
-			bundle.status = hasErrors ? 'validation_failed' : 'completed';
-			bundle.updatedAt = new Date().toISOString();
+			bundle.status = hasErrors ? 'failed' : 'uploaded';
 		}
 	}
 
 	// Download bundle
-	function downloadBundle(bundle: SubmissionBundle) {
-		if (bundle.status !== 'completed') {
+	function downloadBundle(bundle: ExtendedSubmissionBundle) {
+		if (bundle.status !== 'uploaded') {
 			alert('번들이 아직 준비되지 않았습니다.');
 			return;
 		}
@@ -252,10 +264,9 @@
 
 	// Re-validate bundle
 	function revalidateBundle(bundleId: string) {
-		const bundle = submissionBundles.find(b => b.id === bundleId);
+		const bundle = $submissionBundles.find((b: any) => b.id === bundleId);
 		if (bundle) {
-			bundle.status = 'validating';
-			bundle.updatedAt = new Date().toISOString();
+			bundle.status = 'generating';
 			
 			setTimeout(() => {
 				validateBundle(bundleId);
@@ -358,8 +369,8 @@
 					class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 				>
 					<option value="all">전체</option>
-					{#each projects as project}
-						<option value={project.id}>{project.title}</option>
+					{#each $projects as project}
+						<option value={project.id}>{project.name}</option>
 					{/each}
 				</select>
 			</div>
@@ -411,8 +422,8 @@
 						<div class="text-sm text-gray-600 mb-3">
 							<span class="font-medium">생성자:</span> {getPersonName(bundle.createdBy)} | 
 							<span class="font-medium">생성일:</span> {formatDate(bundle.createdAt)} | 
-							<span class="font-medium">문서수:</span> {bundle.documentCount}개 | 
-							<span class="font-medium">크기:</span> {bundle.totalSize}
+							<span class="font-medium">문서수:</span> {(bundle as any).documentCount}개 | 
+							<span class="font-medium">크기:</span> {(bundle as any).totalSize}
 						</div>
 					</div>
 					<div class="flex gap-2 ml-4">
@@ -423,7 +434,7 @@
 						>
 							상세보기
 						</button>
-						{#if bundle.status === 'completed'}
+						{#if bundle.status === 'uploaded'}
 							<button
 								onclick={() => downloadBundle(bundle)}
 								class="px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -431,7 +442,7 @@
 								다운로드
 							</button>
 						{/if}
-						{#if bundle.status === 'validation_failed' || bundle.status === 'pending_validation'}
+						{#if bundle.status === 'failed' || bundle.status === 'ready'}
 							<button
 								onclick={() => revalidateBundle(bundle.id)}
 								class="px-3 py-1 text-sm bg-yellow-100 text-yellow-700 rounded hover:bg-yellow-200 focus:outline-none focus:ring-2 focus:ring-yellow-500"
@@ -452,22 +463,22 @@
 				<div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
 					<div class="bg-gray-50 p-4 rounded-md">
 						<div class="text-sm text-gray-600 mb-1">문서 수</div>
-						<div class="text-2xl font-bold text-gray-900">{bundle.documentCount}</div>
+						<div class="text-2xl font-bold text-gray-900">{(bundle as any).documentCount}</div>
 					</div>
 					<div class="bg-gray-50 p-4 rounded-md">
 						<div class="text-sm text-gray-600 mb-1">총 크기</div>
-						<div class="text-2xl font-bold text-gray-900">{bundle.totalSize}</div>
+						<div class="text-2xl font-bold text-gray-900">{(bundle as any).totalSize}</div>
 					</div>
 					<div class="bg-gray-50 p-4 rounded-md">
 						<div class="text-sm text-gray-600 mb-1">완성도</div>
-						<div class="text-2xl font-bold {getCompletenessColor(bundle.validationResults.completeness)}">
-							{bundle.validationResults.completeness}%
+						<div class="text-2xl font-bold {getCompletenessColor((bundle as any).validationResults.completeness)}">
+							{(bundle as any).validationResults.completeness}%
 						</div>
 					</div>
 					<div class="bg-gray-50 p-4 rounded-md">
 						<div class="text-sm text-gray-600 mb-1">검증 상태</div>
-						<div class="text-2xl font-bold {getValidationColor(bundle.validationResults.valid)}">
-							{bundle.validationResults.valid ? '✓' : '✗'}
+						<div class="text-2xl font-bold {getValidationColor((bundle as any).validationResults.valid)}">
+							{(bundle as any).validationResults.valid ? '✓' : '✗'}
 						</div>
 					</div>
 				</div>
@@ -477,13 +488,13 @@
 					<div>
 						<h4 class="font-medium text-gray-900 mb-2">에러</h4>
 						<div class="text-sm text-red-600">
-							{bundle.validationResults.errors.length}개
+							{(bundle as any).validationResults.errors.length}개
 						</div>
 					</div>
 					<div>
 						<h4 class="font-medium text-gray-900 mb-2">경고</h4>
 						<div class="text-sm text-yellow-600">
-							{bundle.validationResults.warnings.length}개
+							{(bundle as any).validationResults.warnings.length}개
 						</div>
 					</div>
 					<div>
@@ -507,7 +518,7 @@
 </div>
 
 <!-- Detail Modal -->
-<Modal bind:show={showDetailModal} title="번들 상세">
+<Modal bind:open={showDetailModal} title="번들 상세">
 	{#if selectedBundle}
 		<div class="space-y-6">
 			<div>
@@ -543,7 +554,7 @@
 							{getStatusText(selectedBundle.status)}
 						</Badge>
 						<span class="text-sm text-gray-600">
-							완성도: {selectedBundle.validationResults.completeness}%
+							완성도: {(selectedBundle as any).validationResults.completeness}%
 						</span>
 					</div>
 					<div class="text-xs text-gray-500 font-mono">
@@ -565,9 +576,9 @@
 			</div>
 
 			<div class="flex justify-end">
-				{#if selectedBundle.status === 'completed'}
+						{#if selectedBundle.status === 'uploaded'}
 					<button
-						onclick={() => downloadBundle(selectedBundle)}
+						onclick={() => selectedBundle && downloadBundle(selectedBundle)}
 						class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
 					>
 						번들 다운로드
@@ -579,7 +590,7 @@
 </Modal>
 
 <!-- Validation Modal -->
-<Modal bind:show={showValidationModal} title="검증 상세">
+<Modal bind:open={showValidationModal} title="검증 상세">
 	{#if selectedBundle}
 		<div class="space-y-6">
 			<div>
@@ -591,17 +602,17 @@
 						{getStatusText(selectedBundle.status)}
 					</Badge>
 					<span class="text-sm text-gray-600">
-						완성도: {selectedBundle.validationResults.completeness}%
+						완성도: {(selectedBundle as any).validationResults.completeness}%
 					</span>
 				</div>
 			</div>
 
 			<!-- Errors -->
-			{#if selectedBundle.validationResults.errors.length > 0}
+			{#if (selectedBundle as any).validationResults.errors.length > 0}
 				<div>
-					<h4 class="font-medium text-red-700 mb-3">에러 ({selectedBundle.validationResults.errors.length}개)</h4>
+					<h4 class="font-medium text-red-700 mb-3">에러 ({(selectedBundle as any).validationResults.errors.length}개)</h4>
 					<div class="space-y-2">
-						{#each selectedBundle.validationResults.errors as error}
+						{#each (selectedBundle as any).validationResults.errors as error}
 							<div class="flex items-center gap-2 p-3 bg-red-50 rounded-md">
 								<span class="text-red-500">✗</span>
 								<span class="text-red-700">{error}</span>
@@ -612,11 +623,11 @@
 			{/if}
 
 			<!-- Warnings -->
-			{#if selectedBundle.validationResults.warnings.length > 0}
+			{#if (selectedBundle as any).validationResults.warnings.length > 0}
 				<div>
-					<h4 class="font-medium text-yellow-700 mb-3">경고 ({selectedBundle.validationResults.warnings.length}개)</h4>
+					<h4 class="font-medium text-yellow-700 mb-3">경고 ({(selectedBundle as any).validationResults.warnings.length}개)</h4>
 					<div class="space-y-2">
-						{#each selectedBundle.validationResults.warnings as warning}
+						{#each (selectedBundle as any).validationResults.warnings as warning}
 							<div class="flex items-center gap-2 p-3 bg-yellow-50 rounded-md">
 								<span class="text-yellow-500">⚠</span>
 								<span class="text-yellow-700">{warning}</span>
@@ -632,39 +643,39 @@
 				<div class="grid grid-cols-2 gap-4 text-sm">
 					<div>
 						<span class="font-medium text-gray-700">검증 상태:</span>
-						<span class="ml-2 {getValidationColor(selectedBundle.validationResults.valid)}">
-							{selectedBundle.validationResults.valid ? '통과' : '실패'}
+						<span class="ml-2 {getValidationColor((selectedBundle as any).validationResults.valid)}">
+							{(selectedBundle as any).validationResults.valid ? '통과' : '실패'}
 						</span>
 					</div>
 					<div>
 						<span class="font-medium text-gray-700">완성도:</span>
-						<span class="ml-2 {getCompletenessColor(selectedBundle.validationResults.completeness)}">
-							{selectedBundle.validationResults.completeness}%
+						<span class="ml-2 {getCompletenessColor((selectedBundle as any).validationResults.completeness)}">
+							{(selectedBundle as any).validationResults.completeness}%
 						</span>
 					</div>
 					<div>
 						<span class="font-medium text-gray-700">에러 수:</span>
-						<span class="ml-2 text-red-600">{selectedBundle.validationResults.errors.length}개</span>
+						<span class="ml-2 text-red-600">{(selectedBundle as any).validationResults.errors.length}개</span>
 					</div>
 					<div>
 						<span class="font-medium text-gray-700">경고 수:</span>
-						<span class="ml-2 text-yellow-600">{selectedBundle.validationResults.warnings.length}개</span>
+						<span class="ml-2 text-yellow-600">{(selectedBundle as any).validationResults.warnings.length}개</span>
 					</div>
 				</div>
 			</div>
 
 			<div class="flex justify-end gap-2">
-				{#if selectedBundle.status === 'validation_failed' || selectedBundle.status === 'pending_validation'}
+						{#if selectedBundle.status === 'failed' || selectedBundle.status === 'ready'}
 					<button
-						onclick={() => revalidateBundle(selectedBundle.id)}
+						onclick={() => selectedBundle && revalidateBundle(selectedBundle.id)}
 						class="px-4 py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-500"
 					>
 						재검증
 					</button>
 				{/if}
-				{#if selectedBundle.status === 'completed'}
+						{#if selectedBundle.status === 'uploaded'}
 					<button
-						onclick={() => downloadBundle(selectedBundle)}
+						onclick={() => selectedBundle && downloadBundle(selectedBundle)}
 						class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
 					>
 						다운로드
@@ -676,7 +687,7 @@
 </Modal>
 
 <!-- Create Modal -->
-<Modal bind:show={showCreateModal} title="번들 생성">
+<Modal bind:open={showCreateModal} title="번들 생성">
 	<div class="space-y-4">
 		<div class="grid grid-cols-2 gap-4">
 			<div>
@@ -687,8 +698,8 @@
 					class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 				>
 					<option value="">프로젝트 선택</option>
-					{#each projects as project}
-						<option value={project.id}>{project.title}</option>
+					{#each $projects as project}
+						<option value={project.id}>{project.name}</option>
 					{/each}
 				</select>
 			</div>
@@ -704,7 +715,7 @@
 			</div>
 		</div>
 		<div>
-			<label class="block text-sm font-medium text-gray-700 mb-2">포함할 내용</label>
+			<div class="block text-sm font-medium text-gray-700 mb-2">포함할 내용</div>
 			<div class="space-y-2">
 				<label class="flex items-center">
 					<input

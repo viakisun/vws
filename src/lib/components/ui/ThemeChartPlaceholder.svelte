@@ -20,7 +20,7 @@
 	<div class="h-24 rounded-xl flex items-center justify-center transition-colors" style="background: var(--color-surface); border: 1px solid var(--color-border);">
 		<div class="text-center">
 			{#if icon}
-				<icon class="w-8 h-8 mx-auto mb-2" style="color: var(--color-primary);" />
+				<icon class="w-8 h-8 mx-auto mb-2" style="color: var(--color-primary);"></icon>
 			{/if}
 			<span class="text-sm" style="color: var(--color-text-secondary);">차트 영역</span>
 		</div>

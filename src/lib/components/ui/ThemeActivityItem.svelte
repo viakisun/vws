@@ -29,7 +29,7 @@
 <div class="flex items-center space-x-4 p-4 rounded-xl transition-all duration-200 hover:scale-[1.01] {className}" style="background: var(--color-surface); border: 1px solid var(--color-border);" {...restProps}>
 	{#if icon}
 		<div class="h-10 w-10 rounded-full flex items-center justify-center" style="background: var(--color-primary-light);">
-			<icon class="h-5 w-5" style="color: var(--color-primary);" />
+			<icon class="h-5 w-5" style="color: var(--color-primary);"></icon>
 		</div>
 	{/if}
 	<div class="flex-1 min-w-0">

@@ -119,7 +119,7 @@
 	let activeTab = $state('overview');
 
 	// 통계 데이터
-	const stats = [
+	let stats = $derived([
 		{
 			title: '총 직원 수',
 			value: totalEmployees,
@@ -148,7 +148,7 @@
 			changeType: 'negative' as const,
 			icon: ClipboardListIcon
 		}
-	];
+	]);
 
 	// 액션 버튼들
 	const actions = [
@@ -273,7 +273,7 @@
 		<ThemeCard class="p-6">
 			<ThemeSectionHeader title="부서별 직원 현황" />
 			<ThemeSpacer size={4}>
-				{#each departmentData as dept}
+				{#each departmentData() as dept}
 					<div class="flex items-center justify-between p-3 rounded-lg" style="background: var(--color-surface-elevated);">
 						<div class="flex items-center gap-3">
 							<BuildingIcon size={20} style="color: var(--color-primary);" />
@@ -292,12 +292,11 @@
 		<ThemeCard class="p-6">
 			<ThemeSectionHeader title="최근 활동" />
 			<ThemeSpacer size={4}>
-				{#each recentActivities as activity}
+				{#each recentActivities() as activity}
 					<ThemeActivityItem
 						title={activity.title}
 						time={activity.time}
 						icon={activity.icon}
-						color={activity.color}
 					/>
 				{/each}
 			</ThemeSpacer>
@@ -311,7 +310,6 @@
 			<ThemeSectionHeader title="부서별 직원 분포" />
 			<ThemeChartPlaceholder
 				title="부서별 직원 수"
-				description="각 부서별 직원 수를 시각화"
 				icon={TrendingUpIcon}
 			/>
 		</ThemeCard>
@@ -321,7 +319,6 @@
 			<ThemeSectionHeader title="채용 현황" />
 			<ThemeChartPlaceholder
 				title="월별 채용 현황"
-				description="최근 6개월간 채용 통계"
 				icon={UserPlusIcon}
 			/>
 		</ThemeCard>
@@ -338,7 +335,7 @@
 		</div>
 		
 		<div class="space-y-4">
-			{#each recentJobPostings as job}
+			{#each recentJobPostings() as job}
 				<div class="flex items-center justify-between p-4 rounded-lg border" style="border-color: var(--color-border); background: var(--color-surface-elevated);">
 					<div class="flex-1">
 						<h4 class="font-medium" style="color: var(--color-text);">{job.title}</h4>
@@ -379,17 +376,17 @@
 		</div>
 		
 		<div class="space-y-4">
-			{#each performanceData as review}
+			{#each performanceData() as review}
 				<div class="flex items-center justify-between p-4 rounded-lg border" style="border-color: var(--color-border); background: var(--color-surface-elevated);">
 					<div class="flex-1">
-						<h4 class="font-medium" style="color: var(--color-text);">{review.employeeName}</h4>
-						<p class="text-sm" style="color: var(--color-text-secondary);">{review.department} • {review.position}</p>
+						<h4 class="font-medium" style="color: var(--color-text);">{(review as any).employeeName}</h4>
+						<p class="text-sm" style="color: var(--color-text-secondary);">{(review as any).department} • {(review as any).position}</p>
 						<div class="flex items-center gap-2 mt-2">
 							<ThemeBadge variant={review.overallRating >= 4 ? 'success' : review.overallRating >= 3 ? 'warning' : 'error'}>
 								{review.overallRating}/5
 							</ThemeBadge>
 							<span class="text-xs" style="color: var(--color-text-secondary);">
-								{formatDate(review.reviewDate)}
+								{formatDate((review as any).reviewDate)}
 							</span>
 						</div>
 					</div>
@@ -456,7 +453,7 @@
 						</div>
 						
 						<div class="space-y-4">
-							{#each recentJobPostings as job}
+							{#each recentJobPostings() as job}
 								<div class="flex items-center justify-between p-4 rounded-lg border" style="border-color: var(--color-border); background: var(--color-surface-elevated);">
 									<div class="flex-1">
 										<h4 class="font-medium" style="color: var(--color-text);">{job.title}</h4>
@@ -502,17 +499,17 @@
 					<ThemeCard class="p-6">
 						<ThemeSectionHeader title="성과 평가 현황" />
 						<div class="space-y-4">
-							{#each performanceData as review}
+							{#each performanceData() as review}
 								<div class="flex items-center justify-between p-4 rounded-lg border" style="border-color: var(--color-border); background: var(--color-surface-elevated);">
 									<div class="flex-1">
-										<h4 class="font-medium" style="color: var(--color-text);">{review.employeeName}</h4>
-										<p class="text-sm" style="color: var(--color-text-secondary);">{review.department} • {review.position}</p>
+										<h4 class="font-medium" style="color: var(--color-text);">{(review as any).employeeName}</h4>
+										<p class="text-sm" style="color: var(--color-text-secondary);">{(review as any).department} • {(review as any).position}</p>
 										<div class="flex items-center gap-2 mt-2">
 											<ThemeBadge variant={review.overallRating >= 4 ? 'success' : review.overallRating >= 3 ? 'warning' : 'error'}>
 												{review.overallRating}/5
 											</ThemeBadge>
 											<span class="text-xs" style="color: var(--color-text-secondary);">
-												{formatDate(review.reviewDate)}
+												{formatDate((review as any).reviewDate)}
 											</span>
 										</div>
 									</div>

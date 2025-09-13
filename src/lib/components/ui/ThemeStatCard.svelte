@@ -50,7 +50,7 @@
 				</div>
 				{#if icon}
 					<div class="h-12 w-12 rounded-xl flex items-center justify-center transition-all duration-200 group-hover:scale-110 {colorClasses[color].bg} dark:{colorClasses[color].dark.bg}">
-						<icon class="h-6 w-6 {colorClasses[color].text} dark:{colorClasses[color].dark.text}" />
+						<icon class="h-6 w-6 {colorClasses[color].text} dark:{colorClasses[color].dark.text}"></icon>
 					</div>
 				{/if}
 			</div>
@@ -68,7 +68,7 @@
 			</div>
 			{#if icon}
 				<div class="h-12 w-12 rounded-xl flex items-center justify-center transition-all duration-200 group-hover:scale-110 {colorClasses[color].bg} dark:{colorClasses[color].dark.bg}">
-					<icon class="h-6 w-6 {colorClasses[color].text} dark:{colorClasses[color].dark.text}" />
+					<icon class="h-6 w-6 {colorClasses[color].text} dark:{colorClasses[color].dark.text}"></icon>
 				</div>
 			{/if}
 		</div>

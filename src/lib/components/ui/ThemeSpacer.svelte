@@ -16,5 +16,5 @@
 </script>
 
 <div class="{spacerClass} {className}" {...restProps}>
-	{@render children()}
+	{@render children?.()}
 </div>

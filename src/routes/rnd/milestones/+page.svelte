@@ -1,13 +1,40 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { projects, persons } from '$lib/stores/rnd/init-dummy-data';
-	import { Badge } from '$lib/components/ui/Badge.svelte';
-	import { Card } from '$lib/components/ui/Card.svelte';
-	import { Modal } from '$lib/components/ui/Modal.svelte';
-	import type { Project, Person, Milestone } from '$lib/stores/rnd/types';
+	import { projects, employees } from '$lib/stores/rd';
+	import Badge from '$lib/components/ui/Badge.svelte';
+	import Card from '$lib/components/ui/Card.svelte';
+	import Modal from '$lib/components/ui/Modal.svelte';
+	import type { Project, Employee } from '$lib/stores/rd';
+	
+	interface Milestone {
+		id: string;
+		title: string;
+		description: string;
+		projectId: string;
+		ownerId: string;
+		dueDate: string;
+		status: 'pending' | 'in_progress' | 'completed' | 'overdue';
+		priority: 'low' | 'medium' | 'high' | 'critical';
+		progress: number;
+		dependencies: string[];
+		quarter: string;
+		deliverables: Array<{
+			name: string;
+			status: string;
+			dueDate: string;
+		}>;
+		kpis: Array<{
+			name: string;
+			target: string;
+			unit: string;
+			current: number;
+		}>;
+		createdAt: string;
+		updatedAt: string;
+	}
 
 	// Mock milestones data
-	let milestones = $state<Milestone[]>([
+	let milestones = $state<any[]>([
 		{
 			id: 'milestone-1',
 			projectId: 'project-1',
@@ -15,9 +42,9 @@
 			title: 'AI 모델 프로토타입 개발',
 			description: '기본 AI 모델 아키텍처 설계 및 프로토타입 구현',
 			kpis: [
-				{ name: '모델 정확도', target: '85%', current: '82%', unit: '%' },
-				{ name: '처리 속도', target: '100ms', current: '120ms', unit: 'ms' },
-				{ name: '메모리 사용량', target: '2GB', current: '2.1GB', unit: 'GB' }
+				{ name: '모델 정확도', target: '85%', current: 82, unit: '%' },
+				{ name: '처리 속도', target: '100ms', current: 120, unit: 'ms' },
+				{ name: '메모리 사용량', target: '2GB', current: 2.1, unit: 'GB' }
 			],
 			deliverables: [
 				{ name: 'AI 모델 설계서', status: 'completed', dueDate: '2024-01-15' },
@@ -27,6 +54,9 @@
 			ownerId: 'person-1',
 			dueDate: '2024-03-31',
 			status: 'in_progress',
+			priority: 'high',
+			progress: 75,
+			dependencies: [],
 			createdAt: '2024-01-01T00:00:00Z',
 			updatedAt: '2024-01-15T10:30:00Z'
 		},
@@ -37,9 +67,9 @@
 			title: '데이터 파이프라인 구축',
 			description: '대용량 데이터 처리 및 전처리 파이프라인 개발',
 			kpis: [
-				{ name: '데이터 처리량', target: '1TB/day', current: '800GB/day', unit: 'GB/day' },
-				{ name: '처리 시간', target: '2시간', current: '2.5시간', unit: '시간' },
-				{ name: '에러율', target: '0.1%', current: '0.2%', unit: '%' }
+				{ name: '데이터 처리량', target: '1TB/day', current: 800, unit: 'GB/day' },
+				{ name: '처리 시간', target: '2시간', current: 2.5, unit: '시간' },
+				{ name: '에러율', target: '0.1%', current: 0.2, unit: '%' }
 			],
 			deliverables: [
 				{ name: '파이프라인 설계서', status: 'pending', dueDate: '2024-04-15' },
@@ -49,6 +79,9 @@
 			ownerId: 'person-2',
 			dueDate: '2024-06-30',
 			status: 'pending',
+			priority: 'medium',
+			progress: 0,
+			dependencies: [],
 			createdAt: '2024-01-01T00:00:00Z',
 			updatedAt: '2024-01-01T00:00:00Z'
 		},
@@ -59,9 +92,9 @@
 			title: '사용자 인터페이스 설계',
 			description: '웹 기반 사용자 인터페이스 설계 및 프로토타입 개발',
 			kpis: [
-				{ name: '사용자 만족도', target: '4.5/5', current: '4.2/5', unit: '/5' },
-				{ name: '페이지 로딩 시간', target: '2초', current: '2.3초', unit: '초' },
-				{ name: '접근성 점수', target: '95점', current: '92점', unit: '점' }
+				{ name: '사용자 만족도', target: '4.5/5', current: 4.2, unit: '/5' },
+				{ name: '페이지 로딩 시간', target: '2초', current: 2.3, unit: '초' },
+				{ name: '접근성 점수', target: '95점', current: 92, unit: '점' }
 			],
 			deliverables: [
 				{ name: 'UI/UX 설계서', status: 'completed', dueDate: '2024-01-30' },
@@ -71,12 +104,15 @@
 			ownerId: 'person-3',
 			dueDate: '2024-03-31',
 			status: 'in_progress',
+			priority: 'high',
+			progress: 80,
+			dependencies: [],
 			createdAt: '2024-01-01T00:00:00Z',
 			updatedAt: '2024-02-20T14:15:00Z'
 		}
 	]);
 
-	let selectedMilestone: Milestone | null = null;
+	let selectedMilestone = $state<Milestone | null>(null);
 	let showDetailModal = $state(false);
 	let showCreateModal = $state(false);
 	let searchTerm = $state('');
@@ -130,14 +166,14 @@
 
 	// Get person name by ID
 	function getPersonName(personId: string): string {
-		const person = persons.find(p => p.id === personId);
+		const person = $employees.find(p => p.id === personId);
 		return person ? person.name : 'Unknown';
 	}
 
 	// Get project name by ID
 	function getProjectName(projectId: string): string {
-		const project = projects.find(p => p.id === projectId);
-		return project ? project.title : 'Unknown Project';
+		const project = $projects.find((p: any) => p.id === projectId);
+		return project ? project.name : 'Unknown Project';
 	}
 
 	// Show milestone detail
@@ -161,7 +197,7 @@
 			description: formData.description,
 			kpis: formData.kpis.map(kpi => ({
 				...kpi,
-				current: '0',
+				current: 0,
 				unit: kpi.unit
 			})),
 			deliverables: formData.deliverables.map(deliverable => ({
@@ -171,6 +207,9 @@
 			ownerId: formData.ownerId,
 			dueDate: formData.dueDate,
 			status: 'pending',
+			priority: 'medium',
+			progress: 0,
+			dependencies: [],
 			createdAt: new Date().toISOString(),
 			updatedAt: new Date().toISOString()
 		};
@@ -282,8 +321,8 @@
 					class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 				>
 					<option value="all">전체</option>
-					{#each projects as project}
-						<option value={project.id}>{project.title}</option>
+					{#each $projects as project}
+						<option value={project.id}>{project.name}</option>
 					{/each}
 				</select>
 			</div>
@@ -431,7 +470,7 @@
 </div>
 
 <!-- Detail Modal -->
-<Modal bind:show={showDetailModal} title="마일스톤 상세">
+<Modal bind:open={showDetailModal} title="마일스톤 상세">
 	{#if selectedMilestone}
 		<div class="space-y-6">
 			<div>
@@ -500,7 +539,7 @@
 </Modal>
 
 <!-- Create Modal -->
-<Modal bind:show={showCreateModal} title="새 마일스톤 추가">
+<Modal bind:open={showCreateModal} title="새 마일스톤 추가">
 	<div class="space-y-4">
 		<div class="grid grid-cols-2 gap-4">
 			<div>
@@ -511,8 +550,8 @@
 					class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 				>
 					<option value="">프로젝트 선택</option>
-					{#each projects as project}
-						<option value={project.id}>{project.title}</option>
+					{#each $projects as project}
+						<option value={project.id}>{project.name}</option>
 					{/each}
 				</select>
 			</div>
@@ -556,7 +595,7 @@
 					class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 				>
 					<option value="">담당자 선택</option>
-					{#each persons as person}
+					{#each $employees as person}
 						<option value={person.id}>{person.name}</option>
 					{/each}
 				</select>
@@ -575,7 +614,7 @@
 		<!-- KPIs -->
 		<div>
 			<div class="flex justify-between items-center mb-2">
-				<label class="block text-sm font-medium text-gray-700">KPI</label>
+				<div class="block text-sm font-medium text-gray-700">KPI</div>
 				<button
 					type="button"
 					onclick={addKPI}
@@ -620,7 +659,7 @@
 		<!-- Deliverables -->
 		<div>
 			<div class="flex justify-between items-center mb-2">
-				<label class="block text-sm font-medium text-gray-700">산출물</label>
+				<div class="block text-sm font-medium text-gray-700">산출물</div>
 				<button
 					type="button"
 					onclick={addDeliverable}

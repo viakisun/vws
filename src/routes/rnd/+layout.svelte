@@ -2,6 +2,8 @@
 	import { page } from '$app/stores';
 	import { onMount } from 'svelte';
 	
+	let { children } = $props();
+	
 	// 현재 사용자 역할 (실제로는 인증 시스템에서 가져옴)
 	let currentUser = $state({
 		id: 'user-001',
@@ -130,7 +132,7 @@
 
 	<!-- 메인 콘텐츠 -->
 	<main class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-		<slot />
+		{@render children()}
 	</main>
 </div>
 

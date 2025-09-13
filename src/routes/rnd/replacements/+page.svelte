@@ -1,10 +1,37 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { persons, projects } from '$lib/stores/rnd/init-dummy-data';
-	import { Badge } from '$lib/components/ui/Badge.svelte';
-	import { Card } from '$lib/components/ui/Card.svelte';
-	import { Modal } from '$lib/components/ui/Modal.svelte';
-	import type { Person, Project, ReplacementCandidate } from '$lib/stores/rnd/types';
+	import { employees, projects } from '$lib/stores/rd';
+	import Badge from '$lib/components/ui/Badge.svelte';
+	import Card from '$lib/components/ui/Card.svelte';
+	import Modal from '$lib/components/ui/Modal.svelte';
+	import type { Employee, Project } from '$lib/stores/rd';
+	
+	interface ReplacementCandidate {
+		id: string;
+		originalPersonId: string;
+		reason: string;
+		priority: 'low' | 'medium' | 'high' | 'urgent';
+		status: 'pending' | 'in_progress' | 'completed' | 'cancelled' | 'approved' | 'rejected';
+		requestedBy: string;
+		requestedAt: string;
+		dueDate: string;
+		projectId: string;
+		effectiveDate: string;
+		candidates: Array<{
+			personId: string;
+			score: number;
+			reasons: string[];
+			availability: number;
+			experience: string;
+			salaryMatch: boolean;
+			skillsMatch: string[];
+			recommended: boolean;
+		}>;
+		selectedCandidate?: string;
+		notes: string;
+		createdAt: string;
+		updatedAt: string;
+	}
 
 	// Mock replacement candidates data
 	let replacementCandidates = $state<ReplacementCandidate[]>([
@@ -15,6 +42,11 @@
 			reason: '퇴사',
 			effectiveDate: '2024-02-01',
 			status: 'pending',
+			priority: 'high',
+			requestedBy: 'emp-001',
+			requestedAt: '2024-01-15T00:00:00Z',
+			dueDate: '2024-02-01',
+			notes: '긴급 대체 인력 필요',
 			candidates: [
 				{
 					personId: 'person-4',
@@ -57,6 +89,11 @@
 			reason: '프로젝트 변경',
 			effectiveDate: '2024-03-01',
 			status: 'approved',
+			priority: 'medium',
+			requestedBy: 'emp-002',
+			requestedAt: '2024-02-01T00:00:00Z',
+			dueDate: '2024-03-01',
+			notes: '프로젝트 우선순위 변경으로 인한 인력 재배치',
 			candidates: [
 				{
 					personId: 'person-7',
@@ -89,6 +126,11 @@
 			reason: '휴직',
 			effectiveDate: '2024-02-15',
 			status: 'in_progress',
+			priority: 'medium',
+			requestedBy: 'emp-003',
+			requestedAt: '2024-02-01T00:00:00Z',
+			dueDate: '2024-02-15',
+			notes: '개인 사정으로 인한 휴직',
 			candidates: [
 				{
 					personId: 'person-9',
@@ -116,7 +158,7 @@
 		}
 	]);
 
-	let selectedReplacement: ReplacementCandidate | null = null;
+	let selectedReplacement = $state<ReplacementCandidate | null>(null);
 	let showDetailModal = $state(false);
 	let showCreateModal = $state(false);
 	let searchTerm = $state('');
@@ -143,7 +185,7 @@
 		
 		if (searchTerm) {
 			filtered = filtered.filter(replacement => {
-				const originalPerson = persons.find(p => p.id === replacement.originalPersonId);
+				const originalPerson = $employees.find(p => p.id === replacement.originalPersonId);
 				return originalPerson?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
 					   replacement.reason.toLowerCase().includes(searchTerm.toLowerCase());
 			});
@@ -172,14 +214,14 @@
 
 	// Get person name by ID
 	function getPersonName(personId: string): string {
-		const person = persons.find(p => p.id === personId);
+		const person = $employees.find(p => p.id === personId);
 		return person ? person.name : 'Unknown';
 	}
 
 	// Get project name by ID
 	function getProjectName(projectId: string): string {
-		const project = projects.find(p => p.id === projectId);
-		return project ? project.title : 'Unknown Project';
+		const project = $projects.find((p: any) => p.id === projectId);
+		return project ? project.name : 'Unknown Project';
 	}
 
 	// Show replacement detail
@@ -205,6 +247,11 @@
 			reason: formData.reason,
 			effectiveDate: formData.effectiveDate,
 			status: 'pending',
+			priority: 'medium',
+			requestedBy: 'emp-001',
+			requestedAt: new Date().toISOString(),
+			dueDate: formData.effectiveDate,
+			notes: '',
 			candidates: matchingCandidates,
 			createdAt: new Date().toISOString(),
 			updatedAt: new Date().toISOString()
@@ -231,7 +278,7 @@
 	// Find matching candidates based on criteria
 	function findMatchingCandidates(criteria: any) {
 		// Mock algorithm - in real implementation, this would use ML/AI
-		const availablePersons = persons.filter(p => p.id !== criteria.originalPersonId);
+		const availablePersons = $employees.filter(p => p.id !== criteria.originalPersonId);
 		
 		return availablePersons.slice(0, 3).map((person, index) => ({
 			personId: person.id,
@@ -380,8 +427,8 @@
 					class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 				>
 					<option value="all">전체</option>
-					{#each projects as project}
-						<option value={project.id}>{project.title}</option>
+					{#each $projects as project}
+						<option value={project.id}>{project.name}</option>
 					{/each}
 				</select>
 			</div>
@@ -528,31 +575,31 @@
 </div>
 
 <!-- Detail Modal -->
-<Modal bind:show={showDetailModal} title="대체 요청 상세">
+<Modal bind:open={showDetailModal} title="대체 요청 상세">
 	{#if selectedReplacement}
 		<div class="space-y-6">
 			<div>
 				<h3 class="text-xl font-semibold text-gray-900 mb-2">
-					{getPersonName(selectedReplacement.originalPersonId)} 대체 요청
+					{selectedReplacement && getPersonName(selectedReplacement.originalPersonId)} 대체 요청
 				</h3>
 				<div class="grid grid-cols-2 gap-4 text-sm">
 					<div>
 						<span class="font-medium text-gray-700">프로젝트:</span>
-						<span class="ml-2">{getProjectName(selectedReplacement.projectId)}</span>
+						<span class="ml-2">{selectedReplacement && getProjectName(selectedReplacement.projectId)}</span>
 					</div>
 					<div>
 						<span class="font-medium text-gray-700">사유:</span>
-						<span class="ml-2">{selectedReplacement.reason}</span>
+						<span class="ml-2">{selectedReplacement && selectedReplacement.reason}</span>
 					</div>
 					<div>
 						<span class="font-medium text-gray-700">효력일:</span>
-						<span class="ml-2">{formatDate(selectedReplacement.effectiveDate)}</span>
+						<span class="ml-2">{selectedReplacement && formatDate(selectedReplacement.effectiveDate)}</span>
 					</div>
 					<div>
 						<span class="font-medium text-gray-700">상태:</span>
 						<span class="ml-2">
-							<Badge variant={getStatusVariant(selectedReplacement.status)}>
-								{getStatusText(selectedReplacement.status)}
+							<Badge variant={selectedReplacement && getStatusVariant(selectedReplacement.status)}>
+								{selectedReplacement && getStatusText(selectedReplacement.status)}
 							</Badge>
 						</span>
 					</div>
@@ -563,7 +610,7 @@
 			<div>
 				<h4 class="font-medium text-gray-900 mb-3">모든 후보자</h4>
 				<div class="space-y-4">
-					{#each selectedReplacement.candidates as candidate, index}
+					{#each selectedReplacement?.candidates || [] as candidate, index}
 						<div class="bg-gray-50 p-4 rounded-md">
 							<div class="flex justify-between items-start mb-3">
 								<div>
@@ -605,9 +652,9 @@
 									{/each}
 								</div>
 							</div>
-							{#if selectedReplacement.status === 'pending'}
+							{#if selectedReplacement && selectedReplacement.status === 'pending'}
 								<button
-									onclick={() => approveReplacement(selectedReplacement.id, candidate.personId)}
+									onclick={() => selectedReplacement && approveReplacement(selectedReplacement.id, candidate.personId)}
 									class="w-full mt-3 px-3 py-2 text-sm bg-green-100 text-green-700 rounded hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-green-500"
 								>
 									이 후보자 승인
@@ -622,7 +669,7 @@
 </Modal>
 
 <!-- Create Modal -->
-<Modal bind:show={showCreateModal} title="대체 요청 생성">
+<Modal bind:open={showCreateModal} title="대체 요청 생성">
 	<div class="space-y-4">
 		<div class="grid grid-cols-2 gap-4">
 			<div>
@@ -633,7 +680,7 @@
 					class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 				>
 					<option value="">인력 선택</option>
-					{#each persons as person}
+					{#each $employees as person}
 						<option value={person.id}>{person.name}</option>
 					{/each}
 				</select>
@@ -646,8 +693,8 @@
 					class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 				>
 					<option value="">프로젝트 선택</option>
-					{#each projects as project}
-						<option value={project.id}>{project.title}</option>
+					{#each $projects as project}
+						<option value={project.id}>{project.name}</option>
 					{/each}
 				</select>
 			</div>
@@ -717,7 +764,7 @@
 		</div>
 		<div>
 			<div class="flex justify-between items-center mb-2">
-				<label class="block text-sm font-medium text-gray-700">필수 기술</label>
+				<div class="block text-sm font-medium text-gray-700">필수 기술</div>
 				<button
 					type="button"
 					onclick={addRequiredSkill}
@@ -731,7 +778,7 @@
 					<div class="flex gap-2 items-center">
 						<input
 							type="text"
-							bind:value={skill}
+							bind:value={formData.requiredSkills[index]}
 							placeholder="기술명"
 							class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 						/>

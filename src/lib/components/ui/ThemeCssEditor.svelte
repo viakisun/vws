@@ -23,7 +23,7 @@
 
 	// State
 	let isPreview = $state(false);
-	let textareaElement: HTMLTextAreaElement;
+	let textareaElement = $state<HTMLTextAreaElement>();
 	let isValidCss = $state(true);
 	let cssError = $state('');
 
@@ -193,7 +193,7 @@
 		if (!value) return '<p>No content</p>';
 		
 		if (isValidCss) {
-			return `<style>${value}</style><div class="css-preview-content"><p>CSS Preview</p><div class="sample-element">Sample Element</div></div>`;
+			return '<div class="css-preview-content"><p>CSS Preview</p><div class="sample-element">Sample Element</div></div>';
 		} else {
 			return '<p>Invalid CSS</p>';
 		}
@@ -447,21 +447,6 @@
 		color: var(--color-text);
 	}
 
-	.css-render-preview .css-preview-content {
-		margin-top: 16px;
-		padding: 16px;
-		background: var(--color-surface);
-		border-radius: 8px;
-		border: 1px solid var(--color-border);
-	}
-
-	.css-render-preview .sample-element {
-		margin-top: 12px;
-		padding: 12px;
-		background: var(--color-surface-elevated);
-		border-radius: 6px;
-		border: 1px solid var(--color-border);
-	}
 
 	.theme-csseditor-children {
 		padding: 16px;
@@ -503,13 +488,6 @@
 		font-size: 12px;
 	}
 
-	.theme-csseditor-sm .css-render-preview .css-preview-content {
-		padding: 12px;
-	}
-
-	.theme-csseditor-sm .css-render-preview .sample-element {
-		padding: 8px;
-	}
 
 	.theme-csseditor-md .theme-csseditor-textarea,
 	.theme-csseditor-md .theme-csseditor-preview {
@@ -544,13 +522,6 @@
 		font-size: 14px;
 	}
 
-	.theme-csseditor-md .css-render-preview .css-preview-content {
-		padding: 16px;
-	}
-
-	.theme-csseditor-md .css-render-preview .sample-element {
-		padding: 12px;
-	}
 
 	.theme-csseditor-lg .theme-csseditor-textarea,
 	.theme-csseditor-lg .theme-csseditor-preview {
@@ -585,13 +556,6 @@
 		font-size: 16px;
 	}
 
-	.theme-csseditor-lg .css-render-preview .css-preview-content {
-		padding: 20px;
-	}
-
-	.theme-csseditor-lg .css-render-preview .sample-element {
-		padding: 16px;
-	}
 
 	.theme-csseditor-xl .theme-csseditor-textarea,
 	.theme-csseditor-xl .theme-csseditor-preview {
@@ -626,13 +590,6 @@
 		font-size: 18px;
 	}
 
-	.theme-csseditor-xl .css-render-preview .css-preview-content {
-		padding: 24px;
-	}
-
-	.theme-csseditor-xl .css-render-preview .sample-element {
-		padding: 20px;
-	}
 
 	/* States */
 	.theme-csseditor-disabled .theme-csseditor-textarea {
@@ -691,13 +648,6 @@
 			font-size: 13px;
 		}
 
-		.css-render-preview .css-preview-content {
-			padding: 12px;
-		}
-
-		.css-render-preview .sample-element {
-			padding: 8px;
-		}
 
 		.theme-csseditor-sm .theme-csseditor-textarea,
 		.theme-csseditor-sm .theme-csseditor-preview {
@@ -732,13 +682,6 @@
 			font-size: 11px;
 		}
 
-		.theme-csseditor-sm .css-render-preview .css-preview-content {
-			padding: 8px;
-		}
-
-		.theme-csseditor-sm .css-render-preview .sample-element {
-			padding: 6px;
-		}
 
 		.theme-csseditor-lg .theme-csseditor-textarea,
 		.theme-csseditor-lg .theme-csseditor-preview {
@@ -773,13 +716,6 @@
 			font-size: 15px;
 		}
 
-		.theme-csseditor-lg .css-render-preview .css-preview-content {
-			padding: 16px;
-		}
-
-		.theme-csseditor-lg .css-render-preview .sample-element {
-			padding: 12px;
-		}
 
 		.theme-csseditor-xl .theme-csseditor-textarea,
 		.theme-csseditor-xl .theme-csseditor-preview {
@@ -814,12 +750,5 @@
 			font-size: 17px;
 		}
 
-		.theme-csseditor-xl .css-render-preview .css-preview-content {
-			padding: 20px;
-		}
-
-		.theme-csseditor-xl .css-render-preview .sample-element {
-			padding: 16px;
-		}
 	}
 </style>

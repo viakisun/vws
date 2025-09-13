@@ -28,8 +28,8 @@
 	}: Props = $props();
 
 	// State
-	let dropdownElement: HTMLElement;
-	let triggerElement: HTMLElement = externalTrigger || ({} as HTMLElement);
+	let dropdownElement = $state<HTMLElement | undefined>(undefined);
+	let triggerElement = $state<HTMLElement>(externalTrigger || ({} as HTMLElement));
 	let isVisible = $state(false);
 
 	// Get dropdown classes
@@ -217,6 +217,9 @@
 			class="theme-dropdown-trigger"
 			bind:this={triggerElement}
 			onclick={handleTriggerClick}
+			onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleTriggerClick(); } }}
+			role="button"
+			tabindex="0"
 			onmouseenter={handleTriggerHover}
 			onmouseleave={handleTriggerLeave}
 			onfocus={handleTriggerFocus}

@@ -1,13 +1,28 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { projects, persons, expenseItems } from '$lib/stores/rnd/init-dummy-data';
-	import { Badge } from '$lib/components/ui/Badge.svelte';
-	import { Card } from '$lib/components/ui/Card.svelte';
-	import { Modal } from '$lib/components/ui/Modal.svelte';
+	import { projects, employees } from '$lib/stores/rd';
+	import { reports, expenseItems } from '$lib/stores/rnd/mock-data';
+	import Badge from '$lib/components/ui/Badge.svelte';
+	import Card from '$lib/components/ui/Card.svelte';
+	import Modal from '$lib/components/ui/Modal.svelte';
 	import type { Project, Person, ExpenseItem, Report } from '$lib/stores/rnd/types';
 
+	// Extended Report interface for this page
+	interface ExtendedReport extends Omit<Report, 'summaryJson'> {
+		summary: {
+			progress: number;
+			budgetUtilization: number;
+			deliverablesCompleted: number;
+			totalDeliverables: number;
+			risks: string[];
+			achievements: string[];
+			nextWeekGoals: string[];
+		};
+		summaryJson: Record<string, any>; // Add required summaryJson to match Report interface
+	}
+
 	// Mock reports data
-	let reports = $state<Report[]>([
+	let localReports = $state<ExtendedReport[]>([
 		{
 			id: 'report-1',
 			projectId: 'project-1',
@@ -25,7 +40,16 @@
 			},
 			fileUrl: '/reports/weekly-2024-01-01.pdf',
 			generatedAt: '2024-01-08T09:00:00Z',
-			generatedBy: 'person-1'
+			generatedBy: 'emp-001',
+			summaryJson: {
+				progress: 75,
+				budgetUtilization: 68,
+				deliverablesCompleted: 3,
+				totalDeliverables: 4,
+				risks: ['예산 초과 가능성', '인력 부족'],
+				achievements: ['AI 모델 프로토타입 완성', '데이터 수집 완료'],
+				nextWeekGoals: ['모델 성능 최적화', '사용자 테스트 진행']
+			}
 		},
 		{
 			id: 'report-2',
@@ -44,7 +68,16 @@
 			},
 			fileUrl: '/reports/quarterly-2024-Q1.pdf',
 			generatedAt: '2024-04-01T10:00:00Z',
-			generatedBy: 'person-2'
+			generatedBy: 'emp-002',
+			summaryJson: {
+				progress: 85,
+				budgetUtilization: 78,
+				deliverablesCompleted: 8,
+				totalDeliverables: 10,
+				risks: ['기술적 도전', '일정 지연'],
+				achievements: ['핵심 기능 완성', '사용자 피드백 수집'],
+				nextWeekGoals: ['성능 최적화', '문서화 완료']
+			}
 		},
 		{
 			id: 'report-3',
@@ -63,11 +96,20 @@
 			},
 			fileUrl: '/reports/weekly-2024-01-08.pdf',
 			generatedAt: '2024-01-15T09:30:00Z',
-			generatedBy: 'person-3'
+			generatedBy: 'emp-003',
+			summaryJson: {
+				progress: 60,
+				budgetUtilization: 45,
+				deliverablesCompleted: 2,
+				totalDeliverables: 5,
+				risks: ['요구사항 변경'],
+				achievements: ['UI 설계 완료', '프로토타입 개발 시작'],
+				nextWeekGoals: ['프론트엔드 개발', '백엔드 API 설계']
+			}
 		}
 	]);
 
-	let selectedReport: Report | null = null;
+	let selectedReport = $state<ExtendedReport | null>(null);
 	let showDetailModal = $state(false);
 	let showGenerateModal = $state(false);
 	let searchTerm = $state('');
@@ -89,53 +131,53 @@
 
 	// Get filtered reports
 	let filteredReports = $derived(() => {
-		let filtered = reports;
+		let filtered = $reports;
 		
 		if (searchTerm) {
-			filtered = filtered.filter(report => 
+			filtered = filtered.filter((report: any) => 
 				report.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
 				report.type.toLowerCase().includes(searchTerm.toLowerCase())
 			);
 		}
 		
 		if (selectedProject !== 'all') {
-			filtered = filtered.filter(report => report.projectId === selectedProject);
+			filtered = filtered.filter((report: any) => report.projectId === selectedProject);
 		}
 		
 		if (selectedType !== 'all') {
-			filtered = filtered.filter(report => report.type === selectedType);
+			filtered = filtered.filter((report: any) => report.type === selectedType);
 		}
 		
 		if (selectedPeriod !== 'all') {
-			filtered = filtered.filter(report => 
+			filtered = filtered.filter((report: any) => 
 				report.periodStart.startsWith(selectedPeriod) || 
 				report.periodEnd.startsWith(selectedPeriod)
 			);
 		}
 		
-		return filtered.sort((a, b) => new Date(b.generatedAt).getTime() - new Date(a.generatedAt).getTime());
+		return filtered.sort((a: any, b: any) => new Date(b.generatedAt).getTime() - new Date(a.generatedAt).getTime());
 	});
 
 	// Get unique periods for filter
 	let availablePeriods = $derived(() => {
-		const periods = [...new Set(reports.map(r => r.periodStart.substring(0, 7)))];
+		const periods = [...new Set($reports.map((r: any) => r.periodStart.substring(0, 7)))];
 		return periods.sort().reverse();
 	});
 
 	// Get person name by ID
 	function getPersonName(personId: string): string {
-		const person = persons.find(p => p.id === personId);
+		const person = $employees.find((p: any) => p.id === personId);
 		return person ? person.name : 'Unknown';
 	}
 
 	// Get project name by ID
 	function getProjectName(projectId: string): string {
-		const project = projects.find(p => p.id === projectId);
-		return project ? project.title : 'Unknown Project';
+		const project = $projects.find((p: any) => p.id === projectId);
+		return project ? project.name : 'Unknown Project';
 	}
 
 	// Show report detail
-	function showReportDetail(report: Report) {
+	function showReportDetail(report: ExtendedReport) {
 		selectedReport = report;
 		showDetailModal = true;
 	}
@@ -148,8 +190,8 @@
 		}
 
 		// Calculate summary data based on project data
-		const project = projects.find(p => p.id === formData.projectId);
-		const projectExpenses = expenseItems.filter(e => e.projectId === formData.projectId);
+		const project = $projects.find((p: any) => p.id === formData.projectId);
+		const projectExpenses = $expenseItems.filter((e: any) => e.projectId === formData.projectId);
 		
 		// Mock calculation - in real implementation, this would be calculated from actual data
 		const progress = Math.floor(Math.random() * 40) + 60; // 60-100%
@@ -157,7 +199,7 @@
 		const deliverablesCompleted = Math.floor(Math.random() * 5) + 1;
 		const totalDeliverables = deliverablesCompleted + Math.floor(Math.random() * 3) + 1;
 
-		const newReport: Report = {
+		const newReport: ExtendedReport = {
 			id: `report-${Date.now()}`,
 			projectId: formData.projectId,
 			type: formData.type,
@@ -174,10 +216,19 @@
 			},
 			fileUrl: `/reports/${formData.type}-${formData.periodStart}.pdf`,
 			generatedAt: new Date().toISOString(),
-			generatedBy: 'person-1' // Current user
+			generatedBy: 'emp-001', // Current user
+			summaryJson: {
+				progress,
+				budgetUtilization,
+				deliverablesCompleted,
+				totalDeliverables,
+				risks: ['일정 지연 가능성', '예산 초과 위험'],
+				achievements: ['주요 기능 개발 완료', '테스트 진행'],
+				nextWeekGoals: ['성능 최적화', '문서화 작업']
+			}
 		};
 
-		reports.push(newReport);
+		$reports.push(newReport);
 		
 		// Reset form
 		formData = {
@@ -195,7 +246,7 @@
 	}
 
 	// Download report
-	function downloadReport(report: Report) {
+	function downloadReport(report: ExtendedReport) {
 		// In real implementation, this would download the actual file
 		console.log('Downloading report:', report.fileUrl);
 		alert(`리포트 다운로드: ${report.fileUrl}`);
@@ -246,8 +297,8 @@
 		const weekEnd = new Date(weekStart);
 		weekEnd.setDate(weekStart.getDate() + 6);
 
-		projects.forEach(project => {
-			const existingReport = reports.find(r => 
+		$projects.forEach((project: any) => {
+			const existingReport = $reports.find((r: any) => 
 				r.projectId === project.id && 
 				r.type === 'weekly' &&
 				r.periodStart === weekStart.toISOString().split('T')[0]
@@ -259,7 +310,7 @@
 				const deliverablesCompleted = Math.floor(Math.random() * 3) + 1;
 				const totalDeliverables = deliverablesCompleted + Math.floor(Math.random() * 2) + 1;
 
-				const newReport: Report = {
+				const newReport: ExtendedReport = {
 					id: `report-auto-${Date.now()}-${project.id}`,
 					projectId: project.id,
 					type: 'weekly',
@@ -276,10 +327,19 @@
 					},
 					fileUrl: `/reports/weekly-${weekStart.toISOString().split('T')[0]}-${project.id}.pdf`,
 					generatedAt: new Date().toISOString(),
-					generatedBy: 'system'
+					generatedBy: 'emp-001',
+					summaryJson: {
+						progress,
+						budgetUtilization,
+						deliverablesCompleted,
+						totalDeliverables,
+						risks: ['일정 관리', '품질 보증'],
+						achievements: ['주요 작업 완료', '테스트 진행'],
+						nextWeekGoals: ['다음 단계 진행', '문서화']
+					}
 				};
 
-				reports.push(newReport);
+				$reports.push(newReport);
 			}
 		});
 
@@ -334,8 +394,8 @@
 					class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 				>
 					<option value="all">전체</option>
-					{#each projects as project}
-						<option value={project.id}>{project.title}</option>
+					{#each $projects as project}
+						<option value={project.id}>{project.name}</option>
 					{/each}
 				</select>
 			</div>
@@ -390,14 +450,14 @@
 					</div>
 					<div class="flex gap-2 ml-4">
 						<button
-							onclick={() => showReportDetail(report)}
+							onclick={() => showReportDetail(report as any)}
 							class="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500"
 							aria-label="상세보기"
 						>
 							상세보기
 						</button>
 						<button
-							onclick={() => downloadReport(report)}
+							onclick={() => downloadReport(report as any)}
 							class="px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
 						>
 							다운로드
@@ -409,26 +469,26 @@
 				<div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
 					<div class="bg-gray-50 p-4 rounded-md">
 						<div class="text-sm text-gray-600 mb-1">진행률</div>
-						<div class="text-2xl font-bold {getProgressColor(report.summary.progress)}">
-							{report.summary.progress}%
+						<div class="text-2xl font-bold {getProgressColor((report as any).summary.progress)}">
+							{(report as any).summary.progress}%
 						</div>
 					</div>
 					<div class="bg-gray-50 p-4 rounded-md">
 						<div class="text-sm text-gray-600 mb-1">예산 집행률</div>
-						<div class="text-2xl font-bold {getBudgetColor(report.summary.budgetUtilization)}">
-							{report.summary.budgetUtilization}%
+						<div class="text-2xl font-bold {getBudgetColor((report as any).summary.budgetUtilization)}">
+							{(report as any).summary.budgetUtilization}%
 						</div>
 					</div>
 					<div class="bg-gray-50 p-4 rounded-md">
 						<div class="text-sm text-gray-600 mb-1">산출물 완료</div>
 						<div class="text-2xl font-bold text-gray-900">
-							{report.summary.deliverablesCompleted}/{report.summary.totalDeliverables}
+							{(report as any).summary.deliverablesCompleted}/{(report as any).summary.totalDeliverables}
 						</div>
 					</div>
 					<div class="bg-gray-50 p-4 rounded-md">
 						<div class="text-sm text-gray-600 mb-1">리스크</div>
 						<div class="text-2xl font-bold text-red-600">
-							{report.summary.risks.length}
+							{(report as any).summary.risks.length}
 						</div>
 					</div>
 				</div>
@@ -438,7 +498,7 @@
 					<div>
 						<h4 class="font-medium text-gray-900 mb-2">주요 성과</h4>
 						<ul class="text-sm text-gray-600 space-y-1">
-							{#each report.summary.achievements.slice(0, 2) as achievement}
+							{#each (report as any).summary.achievements.slice(0, 2) as achievement}
 								<li class="flex items-center gap-2">
 									<span class="text-green-500">✓</span>
 									{achievement}
@@ -449,7 +509,7 @@
 					<div>
 						<h4 class="font-medium text-gray-900 mb-2">다음 주 목표</h4>
 						<ul class="text-sm text-gray-600 space-y-1">
-							{#each report.summary.nextWeekGoals.slice(0, 2) as goal}
+							{#each (report as any).summary.nextWeekGoals.slice(0, 2) as goal}
 								<li class="flex items-center gap-2">
 									<span class="text-blue-500">→</span>
 									{goal}
@@ -472,7 +532,7 @@
 </div>
 
 <!-- Detail Modal -->
-<Modal bind:show={showDetailModal} title="리포트 상세">
+<Modal bind:open={showDetailModal} title="리포트 상세">
 	{#if selectedReport}
 		<div class="space-y-6">
 			<div>
@@ -556,7 +616,7 @@
 
 			<div class="flex justify-end">
 				<button
-					onclick={() => downloadReport(selectedReport)}
+					onclick={() => selectedReport && downloadReport(selectedReport)}
 					class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
 				>
 					리포트 다운로드
@@ -567,7 +627,7 @@
 </Modal>
 
 <!-- Generate Modal -->
-<Modal bind:show={showGenerateModal} title="리포트 생성">
+<Modal bind:open={showGenerateModal} title="리포트 생성">
 	<div class="space-y-4">
 		<div class="grid grid-cols-2 gap-4">
 			<div>
@@ -578,8 +638,8 @@
 					class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 				>
 					<option value="">프로젝트 선택</option>
-					{#each projects as project}
-						<option value={project.id}>{project.title}</option>
+					{#each $projects as project}
+						<option value={project.id}>{project.name}</option>
 					{/each}
 				</select>
 			</div>
@@ -616,7 +676,7 @@
 			</div>
 		</div>
 		<div>
-			<label class="block text-sm font-medium text-gray-700 mb-2">포함할 내용</label>
+			<div class="block text-sm font-medium text-gray-700 mb-2">포함할 내용</div>
 			<div class="space-y-2">
 				<label class="flex items-center">
 					<input
