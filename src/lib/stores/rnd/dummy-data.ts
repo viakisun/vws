@@ -1,13 +1,14 @@
 // R&D 통합관리 시스템 더미데이터 생성
 
-import type { 
-	Person, 
-	Project, 
-	ExpenseItem, 
-	Document, 
-	ResearchNote,
-	Milestone,
-	ParticipationAssignment,
+import { 
+	UserRole,
+	type Person, 
+	type Project, 
+	type ExpenseItem, 
+	type Document, 
+	type ResearchNote,
+	type Milestone,
+	type ParticipationAssignment,
 	HealthIndicator,
 	Alert,
 	Approval,

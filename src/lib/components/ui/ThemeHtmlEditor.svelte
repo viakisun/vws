@@ -457,26 +457,7 @@
 
 	/* HTML 미리보기 스타일은 동적으로 생성되는 컨텐츠에만 적용 */
 
-	.html-render-preview h2 {
-		font-size: 20px;
-		border-bottom: 1px solid var(--color-border);
-		padding-bottom: 4px;
-	}
-
-	.html-render-preview h3 {
-		font-size: 18px;
-	}
-
-	.html-render-preview h4 {
-		font-size: 16px;
-	}
-
-	.html-render-preview h5 {
-		font-size: 14px;
-	}
-
-	.html-render-preview h6 {
-		font-size: 12px;
+	/* HTML 미리보기 스타일은 동적으로 생성되는 컨텐츠에만 적용 */
 	}
 
 	.html-render-preview p {

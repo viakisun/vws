@@ -54,22 +54,7 @@
 		/* Default styling is handled by base classes */
 	}
 
-	.theme-table-striped tbody tr:nth-child(even) {
-		background: var(--color-table-row-hover);
-	}
-
-	.theme-table-bordered {
-		border: 1px solid var(--color-border);
-	}
-
-	.theme-table-bordered th,
-	.theme-table-bordered td {
-		border: 1px solid var(--color-border);
-	}
-
-	.theme-table-hover tbody tr:hover {
-		background: var(--color-table-row-hover);
-	}
+	/* 테이블 스타일은 동적으로 생성되는 테이블에만 적용 */
 
 	/* Sizes */
 	.theme-table-sm th,

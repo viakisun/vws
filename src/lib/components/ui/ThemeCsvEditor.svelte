@@ -465,13 +465,7 @@
 
 	/* CSV 테이블 스타일은 동적으로 생성되는 테이블에만 적용 */
 
-	.csv-table td {
-		color: var(--color-text);
-	}
-
-	.csv-table tbody tr:hover {
-		background: var(--color-surface-elevated);
-	}
+	/* CSV 테이블 스타일은 동적으로 생성되는 테이블에만 적용 */
 
 	.theme-csveditor-children {
 		padding: 16px;

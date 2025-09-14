@@ -23,7 +23,7 @@
 
 	// State
 	let isPreview = $state(false);
-	let textareaElement: HTMLTextAreaElement;
+	let textareaElement = $state<HTMLTextAreaElement>();
 
 	// Get markdown editor classes
 	function getMarkdownEditorClasses(): string {
@@ -276,22 +276,7 @@
 		min-height: 200px;
 	}
 
-	.theme-markdowneditor-preview h1,
-	.theme-markdowneditor-preview h2,
-	.theme-markdowneditor-preview h3,
-	.theme-markdowneditor-preview h4,
-	.theme-markdowneditor-preview h5,
-	.theme-markdowneditor-preview h6 {
-		margin: 16px 0 8px 0;
-		font-weight: 600;
-		color: var(--color-text);
-	}
-
-	.theme-markdowneditor-preview h1 {
-		font-size: 24px;
-		border-bottom: 2px solid var(--color-border);
-		padding-bottom: 8px;
-	}
+	/* Markdown 미리보기 스타일은 동적으로 생성되는 컨텐츠에만 적용 */
 
 	.theme-markdowneditor-preview h2 {
 		font-size: 20px;
