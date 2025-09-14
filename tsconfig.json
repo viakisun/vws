@@ -9,7 +9,40 @@
 		"skipLibCheck": true,
 		"sourceMap": true,
 		"strict": true,
-		"moduleResolution": "bundler"
+		"moduleResolution": "bundler",
+		
+		// === Strict Type Checking ===
+		"noImplicitAny": true,
+		"strictNullChecks": true,
+		"strictFunctionTypes": true,
+		"strictBindCallApply": true,
+		"strictPropertyInitialization": true,
+		"noImplicitReturns": true,
+		"noFallthroughCasesInSwitch": true,
+		"noUncheckedIndexedAccess": true,
+		"noImplicitOverride": true,
+		"noPropertyAccessFromIndexSignature": true,
+		"exactOptionalPropertyTypes": false,
+		
+		// === Additional Checks ===
+		"noUnusedLocals": false,
+		"noUnusedParameters": false,
+		"allowUnreachableCode": false,
+		"allowUnusedLabels": false,
+		
+		// === Module Resolution ===
+		// Note: baseUrl and paths removed to avoid conflicts with SvelteKit
+		// Use kit.alias in svelte.config.js for path aliases
+		
+		// === Output ===
+		"declaration": true,
+		"declarationMap": true,
+		"removeComments": false,
+		"preserveConstEnums": true,
+		
+		// === Interop Constraints ===
+		"isolatedModules": true,
+		"verbatimModuleSyntax": true
 	}
 	// Path aliases are handled by https://svelte.dev/docs/kit/configuration#alias
 	// except $lib which is handled by https://svelte.dev/docs/kit/configuration#files

@@ -34,14 +34,63 @@ npm run check:quick
 npm run check:errors
 ```
 
-### 자동화된 체크
-- **Git 커밋 시**: 기본 빌드 체크만 수행 (간소화됨)
-- **VS Code 저장 시**: 자동 포맷팅 및 오류 표시
-- **빌드 전**: 자동 TypeScript 및 린터 체크
+### 타이트한 코드 품질 관리 시스템
 
-### 현재 상태
-- 🚧 **개발 중**: 많은 TypeScript 오류가 있어 일시적으로 체크 규칙을 간소화했습니다
-- 📋 **향후 계획**: 타입 정의 통합 및 오류 수정 후 전체 체크 규칙 복원 예정
+#### 🔒 **Pre-commit Hook (강화됨)**
+- TypeScript 타입 체크 (오류 0개 허용)
+- ESLint 코드 품질 체크 (오류 0개, 경고 10개 이하)
+- 빌드 테스트 (120초 이내)
+- 보안 취약점 체크
+- 의존성 무결성 체크
+
+#### 🚀 **CI/CD 파이프라인**
+- **코드 품질 체크**: TypeScript, ESLint, 빌드, 테스트
+- **성능 테스트**: 번들 크기 체크
+- **보안 스캔**: npm audit, CodeQL 분석
+- **배포 준비**: 프로덕션 빌드 및 아티팩트 업로드
+
+#### 📊 **품질 게이트**
+- TypeScript 오류: **0개 허용**
+- ESLint 오류: **0개 허용**
+- ESLint 경고: **10개 이하**
+- 테스트 커버리지: **80% 이상**
+- 보안 취약점: **0개 허용**
+- 빌드 시간: **120초 이내**
+
+#### 🛠 **개발 도구**
+- **ESLint**: 100+ 규칙으로 엄격한 코드 품질 관리
+- **Prettier**: 일관된 코드 포맷팅
+- **TypeScript**: Strict 모드 + 추가 엄격 옵션
+- **VS Code**: 자동 포맷팅, 린팅, 타입 체크
+
+### 📋 **사용 가능한 명령어**
+
+```bash
+# 기본 체크
+npm run check          # TypeScript 타입 체크
+npm run lint           # ESLint 체크
+npm run lint:strict    # ESLint 엄격 체크 (경고도 오류로 처리)
+npm run build          # 빌드 테스트
+
+# 품질 관리
+npm run quality:gate   # 품질 게이트 실행
+npm run quality:full   # 전체 품질 체크
+npm run ci             # CI 파이프라인 시뮬레이션
+
+# 자동 수정
+npm run lint:fix       # ESLint 자동 수정
+npm run format         # Prettier 포맷팅
+npm run security:fix   # 보안 취약점 자동 수정
+
+# 상세 분석
+npm run check:errors   # 상세 오류 리포트
+npm run security:audit # 보안 취약점 분석
+```
+
+### ⚠️ **현재 상태**
+- 🔴 **667개 문제 발견**: TypeScript 오류 332개, ESLint 경고 335개
+- 🎯 **목표**: 모든 문제를 0개로 줄이기
+- 🚀 **다음 단계**: 타입 정의 통합 및 Svelte 5 마이그레이션 완료
 
 ## Tech
 - SvelteKit 2, Svelte 5, TypeScript

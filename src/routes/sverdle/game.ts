@@ -13,7 +13,7 @@ export class Game {
 		if (serialized) {
 			const [index, guesses, answers] = serialized.split('-');
 
-			this.index = +index;
+			this.index = index ? +index : Math.floor(Math.random() * words.length);
 			this.guesses = guesses ? guesses.split(' ') : [];
 			this.answers = answers ? answers.split(' ') : [];
 		} else {
@@ -22,7 +22,7 @@ export class Game {
 			this.answers = [];
 		}
 
-		this.answer = words[this.index];
+		this.answer = words[this.index] || '';
 	}
 
 	/**
@@ -52,8 +52,8 @@ export class Game {
 		// in a second step, otherwise an early close
 		// match can prevent a later exact match)
 		for (let i = 0; i < 5; i += 1) {
-			if (answer[i] === '_') {
-				const index = available.indexOf(letters[i]);
+			if (answer[i] === '_' && letters[i]) {
+				const index = available.indexOf(letters[i]!);
 				if (index !== -1) {
 					answer[i] = 'c';
 					available[index] = ' ';

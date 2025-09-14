@@ -33,24 +33,13 @@
 		BuildingIcon,
 		UserIcon,
 		PercentIcon,
-		UploadIcon,
 		DownloadIcon,
-		SearchIcon,
-		FilterIcon,
-		BrainIcon,
-		SettingsIcon,
 		FileSpreadsheetIcon,
 		AlertCircleIcon
 	} from 'lucide-svelte';
 	import {
 		employees,
-		projects, 
-		participations,
-		rdBudgets,
-		documentTemplates,
-		documentSubmissions,
-		getProjectBudgetUtilization,
-		getDocumentSubmissionStatus
+		getProjectBudgetUtilization
 	} from '$lib/stores/rd';
 
 	// 탭 정의

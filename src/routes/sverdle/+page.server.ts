@@ -38,9 +38,9 @@ export const actions = {
 		const i = game.answers.length;
 
 		if (key === 'backspace') {
-			game.guesses[i] = game.guesses[i].slice(0, -1);
-		} else {
-			game.guesses[i] += key;
+			game.guesses[i] = game.guesses[i]?.slice(0, -1) || '';
+		} else if (key && typeof key === 'string') {
+			game.guesses[i] = (game.guesses[i] || '') + key;
 		}
 
 		cookies.set('sverdle', game.toString(), { path: '/' });
@@ -61,6 +61,7 @@ export const actions = {
 		}
 
 		cookies.set('sverdle', game.toString(), { path: '/' });
+		return { success: true };
 	},
 
 	restart: async ({ cookies }) => {
