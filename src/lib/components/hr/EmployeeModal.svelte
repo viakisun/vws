@@ -2,8 +2,6 @@
 	import { createEventDispatcher } from 'svelte';
 	import ThemeModal from '$lib/components/ui/ThemeModal.svelte';
 	import ThemeButton from '$lib/components/ui/ThemeButton.svelte';
-	import ThemeInput from '$lib/components/ui/ThemeInput.svelte';
-	import ThemeSelect from '$lib/components/ui/ThemeSelect.svelte';
 	import { XIcon, SaveIcon, UserIcon, MailIcon, PhoneIcon, CalendarIcon } from 'lucide-svelte';
 	import type { Employee, EmployeeLevel, EmploymentType, EmployeeStatus } from '$lib/types/hr';
 
@@ -207,7 +205,7 @@
 	}
 </script>
 
-<ThemeModal bind:open>
+<ThemeModal {open}>
 	<div class="p-6 max-w-4xl mx-auto">
 		<div class="flex items-center justify-between mb-6">
 			<h2 class="text-2xl font-bold text-gray-900">
@@ -229,31 +227,50 @@
 					기본 정보
 				</h3>
 				<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-					<ThemeInput
-						label="사번 *"
-						bind:value={formData.employeeId}
-						placeholder="예: EMP001"
-						required
-					/>
-					<ThemeInput
-						label="이름 *"
-						bind:value={formData.name}
-						placeholder="홍길동"
-						required
-					/>
-					<ThemeInput
-						label="이메일 *"
-						type="email"
-						bind:value={formData.email}
-						placeholder="hong@company.com"
-						required
-					/>
-					<ThemeInput
-						label="전화번호 *"
-						bind:value={formData.phone}
-						placeholder="010-1234-5678"
-						required
-					/>
+					<div>
+						<label for="employeeId" class="block text-sm font-medium text-gray-700 mb-2">사번 *</label>
+						<input
+							id="employeeId"
+							type="text"
+							bind:value={formData.employeeId}
+							placeholder="예: EMP001"
+							required
+							class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+						/>
+					</div>
+					<div>
+						<label for="name" class="block text-sm font-medium text-gray-700 mb-2">이름 *</label>
+						<input
+							id="name"
+							type="text"
+							bind:value={formData.name}
+							placeholder="홍길동"
+							required
+							class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+						/>
+					</div>
+					<div>
+						<label for="email" class="block text-sm font-medium text-gray-700 mb-2">이메일 *</label>
+						<input
+							id="email"
+							type="email"
+							bind:value={formData.email}
+							placeholder="hong@company.com"
+							required
+							class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+						/>
+					</div>
+					<div>
+						<label for="phone" class="block text-sm font-medium text-gray-700 mb-2">전화번호 *</label>
+						<input
+							id="phone"
+							type="tel"
+							bind:value={formData.phone}
+							placeholder="010-1234-5678"
+							required
+							class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+						/>
+					</div>
 				</div>
 			</div>
 
@@ -264,43 +281,79 @@
 					직무 정보
 				</h3>
 				<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-					<ThemeSelect
-						label="부서 *"
-						bind:value={formData.department}
-						options={departments.map(dept => ({ value: dept, label: dept }))}
-						placeholder="부서 선택"
-						required
-					/>
-					<ThemeSelect
-						label="직위 *"
-						bind:value={formData.position}
-						options={positions.map(pos => ({ value: pos, label: pos }))}
-						placeholder="직위 선택"
-						required
-					/>
-					<ThemeSelect
-						label="레벨"
-						bind:value={formData.level}
-						options={levelOptions}
-						placeholder="레벨 선택"
-					/>
-					<ThemeSelect
-						label="고용 형태"
-						bind:value={formData.employmentType}
-						options={employmentTypeOptions}
-						placeholder="고용 형태 선택"
-					/>
-					<ThemeInput
-						label="입사일 *"
-						type="date"
-						bind:value={formData.hireDate}
-						required
-					/>
-					<ThemeInput
-						label="생년월일"
-						type="date"
-						bind:value={formData.personalInfo.birthDate}
-					/>
+					<div>
+						<label for="department" class="block text-sm font-medium text-gray-700 mb-2">부서 *</label>
+						<select
+							id="department"
+							bind:value={formData.department}
+							required
+							class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+						>
+							<option value="">부서 선택</option>
+							{#each departments as dept}
+								<option value={dept}>{dept}</option>
+							{/each}
+						</select>
+					</div>
+					<div>
+						<label for="position" class="block text-sm font-medium text-gray-700 mb-2">직위 *</label>
+						<select
+							id="position"
+							bind:value={formData.position}
+							required
+							class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+						>
+							<option value="">직위 선택</option>
+							{#each positions as pos}
+								<option value={pos}>{pos}</option>
+							{/each}
+						</select>
+					</div>
+					<div>
+						<label for="level" class="block text-sm font-medium text-gray-700 mb-2">레벨</label>
+						<select
+							id="level"
+							bind:value={formData.level}
+							class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+						>
+							<option value="">레벨 선택</option>
+							{#each levelOptions as option}
+								<option value={option.value}>{option.label}</option>
+							{/each}
+						</select>
+					</div>
+					<div>
+						<label for="employmentType" class="block text-sm font-medium text-gray-700 mb-2">고용 형태</label>
+						<select
+							id="employmentType"
+							bind:value={formData.employmentType}
+							class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+						>
+							<option value="">고용 형태 선택</option>
+							{#each employmentTypeOptions as option}
+								<option value={option.value}>{option.label}</option>
+							{/each}
+						</select>
+					</div>
+					<div>
+						<label for="hireDate" class="block text-sm font-medium text-gray-700 mb-2">입사일 *</label>
+						<input
+							id="hireDate"
+							type="date"
+							bind:value={formData.hireDate}
+							required
+							class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+						/>
+					</div>
+					<div>
+						<label for="birthDate" class="block text-sm font-medium text-gray-700 mb-2">생년월일</label>
+						<input
+							id="birthDate"
+							type="date"
+							bind:value={formData.personalInfo.birthDate}
+							class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+						/>
+					</div>
 				</div>
 			</div>
 
@@ -311,22 +364,39 @@
 					비상 연락처
 				</h3>
 				<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-					<ThemeInput
-						label="이름"
-						bind:value={formData.emergencyContact.name}
-						placeholder="홍길순"
-					/>
-					<ThemeSelect
-						label="관계"
-						bind:value={formData.emergencyContact.relationship}
-						options={relationshipOptions}
-						placeholder="관계 선택"
-					/>
-					<ThemeInput
-						label="전화번호"
-						bind:value={formData.emergencyContact.phone}
-						placeholder="010-9876-5432"
-					/>
+					<div>
+						<label for="emergencyName" class="block text-sm font-medium text-gray-700 mb-2">이름</label>
+						<input
+							id="emergencyName"
+							type="text"
+							bind:value={formData.emergencyContact.name}
+							placeholder="홍길순"
+							class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+						/>
+					</div>
+					<div>
+						<label for="relationship" class="block text-sm font-medium text-gray-700 mb-2">관계</label>
+						<select
+							id="relationship"
+							bind:value={formData.emergencyContact.relationship}
+							class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+						>
+							<option value="">관계 선택</option>
+							{#each relationshipOptions as option}
+								<option value={option.value}>{option.label}</option>
+							{/each}
+						</select>
+					</div>
+					<div>
+						<label for="emergencyPhone" class="block text-sm font-medium text-gray-700 mb-2">전화번호</label>
+						<input
+							id="emergencyPhone"
+							type="tel"
+							bind:value={formData.emergencyContact.phone}
+							placeholder="010-9876-5432"
+							class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+						/>
+					</div>
 				</div>
 			</div>
 
@@ -337,28 +407,52 @@
 					개인 정보
 				</h3>
 				<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-					<ThemeSelect
-						label="성별"
-						bind:value={formData.personalInfo.gender}
-						options={genderOptions}
-						placeholder="성별 선택"
-					/>
-					<ThemeInput
-						label="국적"
-						bind:value={formData.personalInfo.nationality}
-						placeholder="한국"
-					/>
-					<ThemeSelect
-						label="결혼 상태"
-						bind:value={formData.personalInfo.maritalStatus}
-						options={maritalStatusOptions}
-						placeholder="결혼 상태 선택"
-					/>
-					<ThemeInput
-						label="주소"
-						bind:value={formData.address}
-						placeholder="서울시 강남구..."
-					/>
+					<div>
+						<label for="gender" class="block text-sm font-medium text-gray-700 mb-2">성별</label>
+						<select
+							id="gender"
+							bind:value={formData.personalInfo.gender}
+							class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+						>
+							<option value="">성별 선택</option>
+							{#each genderOptions as option}
+								<option value={option.value}>{option.label}</option>
+							{/each}
+						</select>
+					</div>
+					<div>
+						<label for="nationality" class="block text-sm font-medium text-gray-700 mb-2">국적</label>
+						<input
+							id="nationality"
+							type="text"
+							bind:value={formData.personalInfo.nationality}
+							placeholder="한국"
+							class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+						/>
+					</div>
+					<div>
+						<label for="maritalStatus" class="block text-sm font-medium text-gray-700 mb-2">결혼 상태</label>
+						<select
+							id="maritalStatus"
+							bind:value={formData.personalInfo.maritalStatus}
+							class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+						>
+							<option value="">결혼 상태 선택</option>
+							{#each maritalStatusOptions as option}
+								<option value={option.value}>{option.label}</option>
+							{/each}
+						</select>
+					</div>
+					<div>
+						<label for="address" class="block text-sm font-medium text-gray-700 mb-2">주소</label>
+						<input
+							id="address"
+							type="text"
+							bind:value={formData.address}
+							placeholder="서울시 강남구..."
+							class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+						/>
+					</div>
 				</div>
 			</div>
 
@@ -370,18 +464,29 @@
 						상태 정보
 					</h3>
 					<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-						<ThemeSelect
-							label="상태"
-							bind:value={formData.status}
-							options={statusOptions}
-							placeholder="상태 선택"
-						/>
+						<div>
+							<label for="status" class="block text-sm font-medium text-gray-700 mb-2">상태</label>
+							<select
+								id="status"
+								bind:value={formData.status}
+								class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+							>
+								<option value="">상태 선택</option>
+								{#each statusOptions as option}
+									<option value={option.value}>{option.label}</option>
+								{/each}
+							</select>
+						</div>
 						{#if formData.status === 'terminated'}
-							<ThemeInput
-								label="퇴사일"
-								type="date"
-								bind:value={formData.terminationDate}
-							/>
+							<div>
+								<label for="terminationDate" class="block text-sm font-medium text-gray-700 mb-2">퇴사일</label>
+								<input
+									id="terminationDate"
+									type="date"
+									bind:value={formData.terminationDate}
+									class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+								/>
+							</div>
 						{/if}
 					</div>
 				</div>

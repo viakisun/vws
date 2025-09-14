@@ -1,6 +1,6 @@
 // 인사 관리 시스템 유틸리티 함수
 
-import type { Employee, EmployeeStatus, EmploymentType, EmployeeLevel } from '$lib/types/hr';
+import type { Employee, EmployeeLevel, EmployeeStatus, EmploymentType } from '$lib/types/hr';
 
 // ===== 직원 관련 유틸리티 =====
 
@@ -190,6 +190,7 @@ export function getTenureLabel(employee: Employee): string {
  * 날짜를 한국식으로 포맷팅
  */
 export function formatDate(dateString: string): string {
+	if (!dateString) return '';
 	const date = new Date(dateString);
 	return date.toLocaleDateString('ko-KR', {
 		year: 'numeric',
@@ -202,6 +203,7 @@ export function formatDate(dateString: string): string {
  * 날짜를 간단한 형식으로 포맷팅 (YYYY-MM-DD)
  */
 export function formatDateShort(dateString: string): string {
+	if (!dateString) return '';
 	const date = new Date(dateString);
 	return date.toISOString().split('T')[0];
 }
@@ -210,6 +212,7 @@ export function formatDateShort(dateString: string): string {
  * 상대적 시간 표시 (예: "3일 전", "1주 후")
  */
 export function getRelativeTime(dateString: string): string {
+	if (!dateString) return '';
 	const date = new Date(dateString);
 	const now = new Date();
 	const diffTime = date.getTime() - now.getTime();
