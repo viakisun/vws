@@ -223,8 +223,9 @@ export class SessionManager {
 			await fetch('/api/auth/logout', {
 				method: 'POST',
 				headers: {
-					'Authorization': `Bearer ${this.getToken()}`
-				}
+					'Authorization': `Bearer ${this.getToken()}`,
+					'Content-Type': 'application/json'
+				} as Record<string, string>
 			});
 		} catch (error) {
 			console.error('Logout API error:', error);
@@ -239,8 +240,9 @@ export class SessionManager {
 			const response = await fetch('/api/auth/refresh', {
 				method: 'POST',
 				headers: {
-					'Authorization': `Bearer ${this.getToken()}`
-				}
+					'Authorization': `Bearer ${this.getToken()}`,
+					'Content-Type': 'application/json'
+				} as Record<string, string>
 			});
 
 			if (response.ok) {
@@ -270,9 +272,9 @@ export class SessionManager {
 	public async apiRequest(url: string, options: RequestInit = {}): Promise<Response> {
 		const token = this.getToken();
 		
-		const headers = {
+		const headers: Record<string, string> = {
 			'Content-Type': 'application/json',
-			...options.headers
+			...(options.headers as Record<string, string> || {})
 		};
 
 		if (token) {

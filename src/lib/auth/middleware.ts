@@ -1,8 +1,8 @@
 import { error, redirect } from '@sveltejs/kit';
-import type { RequestHandler } from '@sveltejs/kit';
+import type { RequestHandler, RequestEvent } from '@sveltejs/kit';
 import jwt from 'jsonwebtoken';
 import { config } from '$lib/utils/config';
-import { DatabaseService } from '$lib/database/connection';
+import { DatabaseService, query } from '$lib/database/connection';
 
 // JWT token interface
 export interface JWTPayload {
@@ -15,7 +15,8 @@ export interface JWTPayload {
 
 // Authentication middleware
 export function authenticate(requiredRoles?: string[]): RequestHandler {
-	return async ({ request, cookies, url, locals }) => {
+	return async (event: RequestEvent) => {
+		const { request, cookies, url, locals } = event;
 		try {
 			// Get token from Authorization header or cookies
 			let token: string | null = null;
@@ -24,7 +25,7 @@ export function authenticate(requiredRoles?: string[]): RequestHandler {
 			if (authHeader && authHeader.startsWith('Bearer ')) {
 				token = authHeader.substring(7);
 			} else {
-				token = cookies.get('auth_token');
+				token = cookies.get('auth_token') || null;
 			}
 
 			if (!token) {
@@ -163,7 +164,8 @@ export function hasPermission(userRole: string, permission: string): boolean {
 
 // Permission middleware
 export function requirePermission(permission: string): RequestHandler {
-	return async ({ request, locals }) => {
+	return async (event: RequestEvent) => {
+		const { request, locals } = event;
 		const user = (request as any).user;
 		
 		if (!user) {
@@ -182,7 +184,8 @@ export function requirePermission(permission: string): RequestHandler {
 const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
 
 export function rateLimit(maxRequests: number, windowMs: number): RequestHandler {
-	return async ({ request, getClientAddress, locals }) => {
+	return async (event: RequestEvent) => {
+		const { request, getClientAddress, locals } = event;
 		const clientIP = getClientAddress();
 		const now = Date.now();
 		const windowStart = now - windowMs;
@@ -220,7 +223,8 @@ export function rateLimit(maxRequests: number, windowMs: number): RequestHandler
 
 // Input validation
 export function validateInput(schema: any): RequestHandler {
-	return async ({ request, locals }) => {
+	return async (event: RequestEvent) => {
+		const { request, locals } = event;
 		try {
 			const body = await request.json();
 			const validated = schema.parse(body);
@@ -234,7 +238,8 @@ export function validateInput(schema: any): RequestHandler {
 
 // CORS middleware
 export function cors(origins: string[] = ['*']): RequestHandler {
-	return async ({ request, locals }) => {
+	return async (event: RequestEvent) => {
+		const { request, locals } = event;
 		const origin = request.headers.get('origin');
 		
 		if (origins.includes('*') || (origin && origins.includes(origin))) {
@@ -254,7 +259,8 @@ export function cors(origins: string[] = ['*']): RequestHandler {
 
 // Security headers
 export function securityHeaders(): RequestHandler {
-	return async ({ locals }) => {
+	return async (event: RequestEvent) => {
+		const { locals } = event;
 		return {
 			headers: {
 				'X-Content-Type-Options': 'nosniff',
@@ -270,14 +276,15 @@ export function securityHeaders(): RequestHandler {
 
 // Audit logging
 export function auditLog(action: string, entity: string): RequestHandler {
-	return async ({ request, locals }) => {
+	return async (event: RequestEvent) => {
+		const { request, locals } = event;
 		const user = (request as any).user;
 		const clientIP = request.headers.get('x-forwarded-for') || 'unknown';
 		const userAgent = request.headers.get('user-agent') || 'unknown';
 		
 		if (user) {
 			try {
-				await DatabaseService.query(
+				await query(
 					`INSERT INTO audit_logs (actor_id, action, entity, entity_id, ip_address, user_agent)
 					 VALUES ($1, $2, $3, $4, $5, $6)`,
 					[user.id, action, entity, 'unknown', clientIP, userAgent]

@@ -1,11 +1,11 @@
 // R&D 통합관리 시스템 RBAC (Role-Based Access Control) 구현
 
 import { writable, derived } from 'svelte/store';
-import type { 
+import { 
 	UserRole, 
 	Permission, 
-	Person, 
-	UUID 
+	type Person, 
+	type UUID 
 } from './types';
 
 // ===== 권한 매트릭스 정의 =====
