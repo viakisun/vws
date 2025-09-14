@@ -1,0 +1,424 @@
+<script lang="ts">
+	import { onMount } from 'svelte';
+	import type { Payslip, EmployeePayroll } from '$lib/types/salary';
+	import { formatCurrency, formatDate } from '$lib/utils/format';
+	import { 
+		DownloadIcon, 
+		FileTextIcon, 
+		CalendarIcon,
+		UserIcon,
+		DollarSignIcon,
+		PrinterIcon,
+		EyeIcon
+	} from 'lucide-svelte';
+
+	interface Props {
+		payroll: EmployeePayroll;
+		showPreview?: boolean;
+	}
+
+	let { payroll, showPreview = false }: Props = $props();
+
+	let isGenerating = $state(false);
+	let generatedPayslip = $state<Payslip | null>(null);
+	let showModal = $state(false);
+
+	// 급여명세서 생성
+	async function generatePayslip() {
+		isGenerating = true;
+		try {
+			// TODO: 실제 API 호출로 변경
+			const mockPayslip: Payslip = {
+				id: `payslip_${Date.now()}`,
+				employeeId: payroll.employeeId,
+				payrollId: payroll.payrollId,
+				period: payroll.payDate.substring(0, 7),
+				payDate: payroll.payDate,
+				employeeInfo: {
+					name: payroll.employeeName,
+					employeeId: payroll.employeeIdNumber,
+					department: payroll.department,
+					position: payroll.position,
+					hireDate: '2020-01-01', // TODO: 실제 입사일로 변경
+					bankAccount: '123-456-789012', // TODO: 실제 계좌 정보로 변경
+					bankName: '우리은행'
+				},
+				salaryInfo: {
+					baseSalary: payroll.baseSalary,
+					totalAllowances: payroll.totalAllowances,
+					totalDeductions: payroll.totalDeductions,
+					grossSalary: payroll.grossSalary,
+					netSalary: payroll.netSalary,
+					workingDays: 22, // TODO: 실제 근무일수로 변경
+					actualWorkingDays: 22
+				},
+				allowances: payroll.allowances,
+				deductions: payroll.deductions,
+				totals: {
+					grossSalary: payroll.grossSalary,
+					totalAllowances: payroll.totalAllowances,
+					totalDeductions: payroll.totalDeductions,
+					netSalary: payroll.netSalary,
+					taxableIncome: payroll.grossSalary,
+					nonTaxableIncome: 0
+				},
+				status: 'generated',
+				generatedAt: new Date().toISOString(),
+				generatedBy: 'system'
+			};
+
+			generatedPayslip = mockPayslip;
+			showModal = true;
+		} catch (error) {
+			console.error('급여명세서 생성 실패:', error);
+			alert('급여명세서 생성에 실패했습니다.');
+		} finally {
+			isGenerating = false;
+		}
+	}
+
+	// 급여명세서 다운로드 (PDF)
+	async function downloadPayslip() {
+		if (!generatedPayslip) return;
+
+		try {
+			// TODO: 실제 PDF 생성 로직 구현
+			// 현재는 HTML을 새 창에서 열어서 인쇄 가능하게 함
+			const printWindow = window.open('', '_blank');
+			if (printWindow) {
+				printWindow.document.write(generatePayslipHTML(generatedPayslip));
+				printWindow.document.close();
+				printWindow.print();
+			}
+		} catch (error) {
+			console.error('급여명세서 다운로드 실패:', error);
+			alert('급여명세서 다운로드에 실패했습니다.');
+		}
+	}
+
+	// 급여명세서 HTML 생성
+	function generatePayslipHTML(payslip: Payslip): string {
+		return `
+			<!DOCTYPE html>
+			<html>
+			<head>
+				<meta charset="UTF-8">
+				<title>급여명세서 - ${payslip.employeeInfo.name}</title>
+				<style>
+					body { font-family: 'Malgun Gothic', sans-serif; margin: 0; padding: 20px; }
+					.payslip { max-width: 800px; margin: 0 auto; border: 1px solid #ddd; }
+					.header { background: #f8f9fa; padding: 20px; text-align: center; border-bottom: 2px solid #007bff; }
+					.content { padding: 20px; }
+					.employee-info { background: #e9ecef; padding: 15px; margin-bottom: 20px; border-radius: 5px; }
+					.salary-section { margin-bottom: 20px; }
+					.salary-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+					.salary-table th, .salary-table td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+					.salary-table th { background: #f8f9fa; font-weight: bold; }
+					.total-section { background: #f8f9fa; padding: 15px; border-radius: 5px; text-align: right; }
+					.text-right { text-align: right; }
+					.text-center { text-align: center; }
+					.bold { font-weight: bold; }
+					.footer { background: #f8f9fa; padding: 15px; text-align: center; border-top: 1px solid #ddd; font-size: 12px; color: #666; }
+					@media print { body { margin: 0; } .payslip { border: none; } }
+				</style>
+			</head>
+			<body>
+				<div class="payslip">
+					<div class="header">
+						<h1>급여명세서</h1>
+						<p>${formatDate(payslip.payDate)} 지급분</p>
+					</div>
+					
+					<div class="content">
+						<div class="employee-info">
+							<h3>직원 정보</h3>
+							<table class="salary-table">
+								<tr><td>성명</td><td>${payslip.employeeInfo.name}</td><td>사번</td><td>${payslip.employeeInfo.employeeId}</td></tr>
+								<tr><td>부서</td><td>${payslip.employeeInfo.department}</td><td>직위</td><td>${payslip.employeeInfo.position}</td></tr>
+								<tr><td>입사일</td><td>${formatDate(payslip.employeeInfo.hireDate)}</td><td>지급일</td><td>${formatDate(payslip.payDate)}</td></tr>
+							</table>
+						</div>
+
+						<div class="salary-section">
+							<h3>급여 내역</h3>
+							<table class="salary-table">
+								<thead>
+									<tr>
+										<th>구분</th>
+										<th>항목</th>
+										<th>금액</th>
+										<th>비고</th>
+									</tr>
+								</thead>
+								<tbody>
+									<tr>
+										<td rowspan="${payslip.allowances.length + 1}" class="bold">지급</td>
+										<td>기본급</td>
+										<td class="text-right">${formatCurrency(payslip.salaryInfo.baseSalary)}</td>
+										<td></td>
+									</tr>
+									${payslip.allowances.map(allowance => `
+										<tr>
+											<td>${allowance.name}</td>
+											<td class="text-right">${formatCurrency(allowance.amount)}</td>
+											<td>${allowance.isTaxable ? '과세' : '비과세'}</td>
+										</tr>
+									`).join('')}
+									<tr class="bold">
+										<td>지급액 계</td>
+										<td class="text-right">${formatCurrency(payslip.totals.grossSalary)}</td>
+										<td></td>
+									</tr>
+								</tbody>
+							</table>
+						</div>
+
+						<div class="salary-section">
+							<h3>공제 내역</h3>
+							<table class="salary-table">
+								<thead>
+									<tr>
+										<th>구분</th>
+										<th>항목</th>
+										<th>금액</th>
+										<th>비고</th>
+									</tr>
+								</thead>
+								<tbody>
+									${payslip.deductions.map(deduction => `
+										<tr>
+											<td>공제</td>
+											<td>${deduction.name}</td>
+											<td class="text-right">${formatCurrency(deduction.amount)}</td>
+											<td>${deduction.isMandatory ? '법정' : '임의'}</td>
+										</tr>
+									`).join('')}
+									<tr class="bold">
+										<td>공제액 계</td>
+										<td class="text-right">${formatCurrency(payslip.totals.totalDeductions)}</td>
+										<td></td>
+									</tr>
+								</tbody>
+							</table>
+						</div>
+
+						<div class="total-section">
+							<h3>실지급액: ${formatCurrency(payslip.totals.netSalary)}</h3>
+						</div>
+					</div>
+
+					<div class="footer">
+						<p>본 급여명세서는 전자문서로 생성되었으며, 출력일시: ${new Date().toLocaleString('ko-KR')}</p>
+					</div>
+				</div>
+			</body>
+			</html>
+		`;
+	}
+
+	// 미리보기 보기
+	function showPreview() {
+		if (!generatedPayslip) {
+			generatePayslip();
+		} else {
+			showModal = true;
+		}
+	}
+</script>
+
+<div class="flex items-center space-x-2">
+	{#if showPreview}
+		<button
+			onclick={showPreview}
+			class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+		>
+			<EyeIcon size={16} class="mr-1" />
+			미리보기
+		</button>
+	{/if}
+	
+	<button
+		onclick={generatePayslip}
+		disabled={isGenerating}
+		class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+	>
+		{#if isGenerating}
+			<div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-1"></div>
+		{:else}
+			<FileTextIcon size={16} class="mr-1" />
+		{/if}
+		명세서 생성
+	</button>
+
+	{#if generatedPayslip}
+		<button
+			onclick={downloadPayslip}
+			class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
+		>
+			<DownloadIcon size={16} class="mr-1" />
+			다운로드
+		</button>
+	{/if}
+</div>
+
+<!-- 급여명세서 미리보기 모달 -->
+{#if showModal && generatedPayslip}
+	<div class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+		<div class="relative top-4 mx-auto p-5 border w-11/12 max-w-4xl shadow-lg rounded-md bg-white">
+			<div class="flex items-center justify-between mb-4">
+				<h3 class="text-lg font-medium text-gray-900">급여명세서 미리보기</h3>
+				<div class="flex items-center space-x-2">
+					<button
+						onclick={downloadPayslip}
+						class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-green-600 hover:bg-green-700"
+					>
+						<DownloadIcon size={16} class="mr-1" />
+						다운로드
+					</button>
+					<button
+						onclick={() => showModal = false}
+						class="text-gray-400 hover:text-gray-600"
+					>
+						<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+						</svg>
+					</button>
+				</div>
+			</div>
+			
+			<div class="border rounded-lg p-6 bg-white">
+				<!-- 급여명세서 헤더 -->
+				<div class="text-center mb-6 pb-4 border-b-2 border-blue-600">
+					<h1 class="text-2xl font-bold text-gray-900">급여명세서</h1>
+					<p class="text-gray-600">{formatDate(generatedPayslip.payDate)} 지급분</p>
+				</div>
+				
+				<!-- 직원 정보 -->
+				<div class="bg-gray-50 p-4 rounded-lg mb-6">
+					<h3 class="text-lg font-semibold text-gray-900 mb-3">직원 정보</h3>
+					<div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+						<div>
+							<span class="font-medium text-gray-700">성명:</span>
+							<span class="ml-2 text-gray-900">{generatedPayslip.employeeInfo.name}</span>
+						</div>
+						<div>
+							<span class="font-medium text-gray-700">사번:</span>
+							<span class="ml-2 text-gray-900">{generatedPayslip.employeeInfo.employeeId}</span>
+						</div>
+						<div>
+							<span class="font-medium text-gray-700">부서:</span>
+							<span class="ml-2 text-gray-900">{generatedPayslip.employeeInfo.department}</span>
+						</div>
+						<div>
+							<span class="font-medium text-gray-700">직위:</span>
+							<span class="ml-2 text-gray-900">{generatedPayslip.employeeInfo.position}</span>
+						</div>
+						<div>
+							<span class="font-medium text-gray-700">입사일:</span>
+							<span class="ml-2 text-gray-900">{formatDate(generatedPayslip.employeeInfo.hireDate)}</span>
+						</div>
+						<div>
+							<span class="font-medium text-gray-700">지급일:</span>
+							<span class="ml-2 text-gray-900">{formatDate(generatedPayslip.payDate)}</span>
+						</div>
+					</div>
+				</div>
+
+				<!-- 급여 내역 -->
+				<div class="mb-6">
+					<h3 class="text-lg font-semibold text-gray-900 mb-3">급여 내역</h3>
+					<div class="overflow-x-auto">
+						<table class="min-w-full border border-gray-200 rounded-lg">
+							<thead class="bg-gray-50">
+								<tr>
+									<th class="border border-gray-200 px-4 py-2 text-left text-sm font-medium text-gray-700">구분</th>
+									<th class="border border-gray-200 px-4 py-2 text-left text-sm font-medium text-gray-700">항목</th>
+									<th class="border border-gray-200 px-4 py-2 text-right text-sm font-medium text-gray-700">금액</th>
+									<th class="border border-gray-200 px-4 py-2 text-center text-sm font-medium text-gray-700">비고</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td rowspan={generatedPayslip.allowances.length + 1} class="border border-gray-200 px-4 py-2 text-sm font-medium text-gray-900">지급</td>
+									<td class="border border-gray-200 px-4 py-2 text-sm text-gray-900">기본급</td>
+									<td class="border border-gray-200 px-4 py-2 text-sm text-gray-900 text-right">
+										{formatCurrency(generatedPayslip.salaryInfo.baseSalary)}
+									</td>
+									<td class="border border-gray-200 px-4 py-2 text-sm text-gray-500 text-center">-</td>
+								</tr>
+								{#each generatedPayslip.allowances as allowance}
+									<tr>
+										<td class="border border-gray-200 px-4 py-2 text-sm text-gray-900">{allowance.name}</td>
+										<td class="border border-gray-200 px-4 py-2 text-sm text-gray-900 text-right">
+											{formatCurrency(allowance.amount)}
+										</td>
+										<td class="border border-gray-200 px-4 py-2 text-sm text-gray-500 text-center">
+											{allowance.isTaxable ? '과세' : '비과세'}
+										</td>
+									</tr>
+								{/each}
+								<tr class="bg-gray-50">
+									<td colspan="2" class="border border-gray-200 px-4 py-2 text-sm font-medium text-gray-900">지급액 계</td>
+									<td class="border border-gray-200 px-4 py-2 text-sm font-bold text-gray-900 text-right">
+										{formatCurrency(generatedPayslip.totals.grossSalary)}
+									</td>
+									<td class="border border-gray-200 px-4 py-2"></td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
+
+				<!-- 공제 내역 -->
+				<div class="mb-6">
+					<h3 class="text-lg font-semibold text-gray-900 mb-3">공제 내역</h3>
+					<div class="overflow-x-auto">
+						<table class="min-w-full border border-gray-200 rounded-lg">
+							<thead class="bg-gray-50">
+								<tr>
+									<th class="border border-gray-200 px-4 py-2 text-left text-sm font-medium text-gray-700">구분</th>
+									<th class="border border-gray-200 px-4 py-2 text-left text-sm font-medium text-gray-700">항목</th>
+									<th class="border border-gray-200 px-4 py-2 text-right text-sm font-medium text-gray-700">금액</th>
+									<th class="border border-gray-200 px-4 py-2 text-center text-sm font-medium text-gray-700">비고</th>
+								</tr>
+							</thead>
+							<tbody>
+								{#each generatedPayslip.deductions as deduction}
+									<tr>
+										<td class="border border-gray-200 px-4 py-2 text-sm text-gray-900">공제</td>
+										<td class="border border-gray-200 px-4 py-2 text-sm text-gray-900">{deduction.name}</td>
+										<td class="border border-gray-200 px-4 py-2 text-sm text-gray-900 text-right">
+											{formatCurrency(deduction.amount)}
+										</td>
+										<td class="border border-gray-200 px-4 py-2 text-sm text-gray-500 text-center">
+											{deduction.isMandatory ? '법정' : '임의'}
+										</td>
+									</tr>
+								{/each}
+								<tr class="bg-gray-50">
+									<td colspan="2" class="border border-gray-200 px-4 py-2 text-sm font-medium text-gray-900">공제액 계</td>
+									<td class="border border-gray-200 px-4 py-2 text-sm font-bold text-gray-900 text-right">
+										{formatCurrency(generatedPayslip.totals.totalDeductions)}
+									</td>
+									<td class="border border-gray-200 px-4 py-2"></td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
+
+				<!-- 실지급액 -->
+				<div class="bg-blue-50 p-6 rounded-lg text-center">
+					<h3 class="text-xl font-bold text-blue-900">
+						실지급액: {formatCurrency(generatedPayslip.totals.netSalary)}
+					</h3>
+				</div>
+
+				<!-- 푸터 -->
+				<div class="mt-6 pt-4 border-t text-center text-sm text-gray-500">
+					<p>본 급여명세서는 전자문서로 생성되었으며, 출력일시: {new Date().toLocaleString('ko-KR')}</p>
+				</div>
+			</div>
+		</div>
+	</div>
+{/if}
