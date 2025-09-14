@@ -1,5 +1,5 @@
-import { writable, derived, get } from 'svelte/store';
-import type { Project, ExpenseDocument } from '$lib/types';
+import type { ExpenseDocument, Project } from '$lib/types';
+import { derived, get, writable } from 'svelte/store';
 
 // Utilities to build mock data at scale
 function pad(num: number, size = 3): string {
@@ -106,7 +106,9 @@ export const quarterlyPersonnelBudgets = writable<Record<string, Record<string, 
 			map[p.id] = {} as Record<string, number>;
 			for (const q of QUARTERS) {
 				// add small variance per quarter
-				map[p.id][q] = Math.max(50_000_000, per + randInt(-per * 0.2, per * 0.2));
+				if (map[p.id]) {
+					map[p.id][q] = Math.max(50_000_000, per + randInt(-per * 0.2, per * 0.2));
+				}
 			}
 		}
 		return map;

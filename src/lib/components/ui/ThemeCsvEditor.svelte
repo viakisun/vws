@@ -463,19 +463,7 @@
 		overflow: hidden;
 	}
 
-	.csv-table th,
-	.csv-table td {
-		padding: 8px 12px;
-		text-align: left;
-		border-bottom: 1px solid var(--color-border);
-	}
-
-	.csv-table th {
-		background: var(--color-surface-elevated);
-		font-weight: 600;
-		color: var(--color-text);
-		border-bottom: 2px solid var(--color-border);
-	}
+	/* CSV 테이블 스타일은 동적으로 생성되는 테이블에만 적용 */
 
 	.csv-table td {
 		color: var(--color-text);

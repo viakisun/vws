@@ -1,13 +1,13 @@
 // R&D 통합관리 시스템 예산 카테고리 마스터 및 워크플로우 관리
 
 import { writable, derived } from 'svelte/store';
-import type { 
-	BudgetCategory, 
-	RequiredDocument, 
-	WorkflowStep, 
+import { 
 	UserRole,
-	UUID,
-	DocumentType
+	type BudgetCategory, 
+	type RequiredDocument, 
+	type WorkflowStep, 
+	type UUID,
+	type DocumentType
 } from './types';
 
 // ===== 예산 카테고리 마스터 데이터 =====

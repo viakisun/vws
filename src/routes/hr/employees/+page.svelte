@@ -456,8 +456,9 @@
 				<form onsubmit={(e) => { e.preventDefault(); handleAddEmployee(); }}>
 					<div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
 						<div>
-							<label class="block text-sm font-medium text-gray-700 mb-1">사번 *</label>
+							<label for="employee-id-input" class="block text-sm font-medium text-gray-700 mb-1">사번 *</label>
 							<input
+								id="employee-id-input"
 								type="text"
 								bind:value={formData.employeeId}
 								required

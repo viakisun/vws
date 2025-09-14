@@ -23,7 +23,7 @@
 
 	// State
 	let isPreview = $state(false);
-	let editorElement: HTMLDivElement;
+	let editorElement = $state<HTMLDivElement>();
 
 	// Get rich text editor classes
 	function getRichTextEditorClasses(): string {
@@ -553,25 +553,7 @@
 		min-height: 200px;
 	}
 
-	.theme-richtexteditor-preview h1,
-	.theme-richtexteditor-preview h2,
-	.theme-richtexteditor-preview h3,
-	.theme-richtexteditor-preview h4,
-	.theme-richtexteditor-preview h5,
-	.theme-richtexteditor-preview h6 {
-		margin: 16px 0 8px 0;
-		font-weight: 600;
-		color: var(--color-text);
-	}
-
-	.theme-richtexteditor-preview h1 {
-		font-size: 24px;
-		border-bottom: 2px solid var(--color-border);
-		padding-bottom: 8px;
-	}
-
-	.theme-richtexteditor-preview h2 {
-		font-size: 20px;
+	/* Rich text 미리보기 스타일은 동적으로 생성되는 컨텐츠에만 적용 */
 		border-bottom: 1px solid var(--color-border);
 		padding-bottom: 4px;
 	}

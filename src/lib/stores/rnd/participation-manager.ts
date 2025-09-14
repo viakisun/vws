@@ -1,6 +1,7 @@
 import { writable, derived, get } from 'svelte/store';
 import { employees, projects } from '../rd';
-import type { ParticipationAssignment, Employee, Project } from './types';
+import type { ParticipationAssignment } from './types';
+import type { Employee, Project } from '../rd';
 
 // 고도화된 참여율 관리 스토어
 export const participationAssignments = writable<ParticipationAssignment[]>([]);

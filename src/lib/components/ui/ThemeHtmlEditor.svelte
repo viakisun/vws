@@ -23,9 +23,10 @@
 
 	// State
 	let isPreview = $state(false);
-	let textareaElement: HTMLTextAreaElement;
+	let textareaElement = $state<HTMLTextAreaElement>();
 	let isValidHtml = $state(true);
 	let htmlError = $state('');
+	let selectedFiles = $state<FileList | null>(null);
 
 	// Get HTML editor classes
 	function getHtmlEditorClasses(): string {
@@ -454,22 +455,7 @@
 		color: var(--color-text);
 	}
 
-	.html-render-preview h1,
-	.html-render-preview h2,
-	.html-render-preview h3,
-	.html-render-preview h4,
-	.html-render-preview h5,
-	.html-render-preview h6 {
-		margin: 16px 0 8px 0;
-		font-weight: 600;
-		color: var(--color-text);
-	}
-
-	.html-render-preview h1 {
-		font-size: 24px;
-		border-bottom: 2px solid var(--color-border);
-		padding-bottom: 8px;
-	}
+	/* HTML 미리보기 스타일은 동적으로 생성되는 컨텐츠에만 적용 */
 
 	.html-render-preview h2 {
 		font-size: 20px;
