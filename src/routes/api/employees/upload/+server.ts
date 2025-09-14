@@ -1,6 +1,6 @@
 import { json } from '@sveltejs/kit';
 import { query } from '$lib/database/connection.js';
-import * as XLSX from 'xlsx';
+import * as ExcelJS from 'exceljs';
 
 export async function POST({ request }) {
 	try {
@@ -22,26 +22,29 @@ export async function POST({ request }) {
 		if (isExcel) {
 			// Excel 파일 파싱
 			const buffer = await file.arrayBuffer();
-			const workbook = XLSX.read(buffer, { type: 'array' });
-			const sheetName = workbook.SheetNames[0];
-			const worksheet = workbook.Sheets[sheetName];
+			const workbook = new ExcelJS.Workbook();
+			await workbook.xlsx.load(buffer);
 			
-			// Excel 데이터를 JSON으로 변환
-			const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+			const worksheet = workbook.worksheets[0];
+			if (!worksheet) {
+				return json({ error: 'Excel 파일에 워크시트가 없습니다.' }, { status: 400 });
+			}
 			
-			if (jsonData.length < 2) {
+			const rows = worksheet.getRows();
+			if (!rows || rows.length < 2) {
 				return json({ error: '파일에 데이터가 없습니다.' }, { status: 400 });
 			}
 
-			// 헤더 추출
-			headers = jsonData[0] as string[];
+			// 헤더 추출 (첫 번째 행)
+			headers = rows[0].values.slice(1) as string[]; // ExcelJS는 1-based indexing
 			console.log('Excel 파싱된 헤더:', headers);
 
 			// 데이터 추출
-			data = jsonData.slice(1).map((row: any, index: number) => {
+			data = rows.slice(1).map((row, index) => {
 				const rowData: any = {};
+				const rowValues = row.values.slice(1) as any[]; // ExcelJS는 1-based indexing
 				headers.forEach((header, headerIndex) => {
-					rowData[header] = row[headerIndex] || '';
+					rowData[header] = rowValues[headerIndex] || '';
 				});
 				console.log(`Excel 행 ${index + 2} 파싱 결과:`, rowData);
 				return rowData;

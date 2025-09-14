@@ -224,6 +224,12 @@ export class DatabaseService {
 			 RETURNING *`,
 			[userData.email, (userData as any).password_hash, userData.name, userData.department, userData.position, userData.role]
 		);
+		if (!result.rows[0]) {
+			throw new Error('사용자 생성에 실패했습니다.');
+		}
+		if (!result.rows[0]) {
+			throw new Error('데이터 생성에 실패했습니다.');
+		}
 		return result.rows[0];
 	}
 
@@ -298,6 +304,9 @@ export class DatabaseService {
 			 RETURNING *`,
 			[companyData.name, companyData.type, companyData.industry, companyData.status, companyData.contact_person, companyData.email, companyData.phone, companyData.address, companyData.website, companyData.revenue, companyData.employees, companyData.notes, JSON.stringify(companyData.tags || [])]
 		);
+		if (!result.rows[0]) {
+			throw new Error('데이터 생성에 실패했습니다.');
+		}
 		return result.rows[0];
 	}
 
@@ -364,6 +373,9 @@ export class DatabaseService {
 			 RETURNING *`,
 			[projectData.code, projectData.title, projectData.description, projectData.sponsor, projectData.sponsor_type, projectData.start_date, projectData.end_date, projectData.manager_id, projectData.status, projectData.budget_total]
 		);
+		if (!result.rows[0]) {
+			throw new Error('데이터 생성에 실패했습니다.');
+		}
 		return result.rows[0];
 	}
 
@@ -423,6 +435,9 @@ export class DatabaseService {
 			 RETURNING *`,
 			[expenseData.project_id, expenseData.category_code, expenseData.requester_id, expenseData.amount, expenseData.currency, expenseData.description, expenseData.status, expenseData.dept_owner]
 		);
+		if (!result.rows[0]) {
+			throw new Error('데이터 생성에 실패했습니다.');
+		}
 		return result.rows[0];
 	}
 
@@ -489,6 +504,9 @@ export class DatabaseService {
 			 RETURNING *`,
 			[employeeData.employee_id, employeeData.user_id, employeeData.first_name, employeeData.last_name, employeeData.email, employeeData.phone, employeeData.department, employeeData.position, employeeData.manager_id, employeeData.employment_type, employeeData.hire_date, employeeData.salary, employeeData.status, employeeData.address, JSON.stringify(employeeData.emergency_contact || {})]
 		);
+		if (!result.rows[0]) {
+			throw new Error('데이터 생성에 실패했습니다.');
+		}
 		return result.rows[0];
 	}
 
@@ -548,6 +566,9 @@ export class DatabaseService {
 			 RETURNING *`,
 			[transactionData.bank_account_id, transactionData.category_id, transactionData.amount, transactionData.type, transactionData.description, transactionData.reference, transactionData.date, transactionData.created_by]
 		);
+		if (!result.rows[0]) {
+			throw new Error('데이터 생성에 실패했습니다.');
+		}
 		return result.rows[0];
 	}
 

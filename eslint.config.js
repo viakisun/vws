@@ -1,6 +1,6 @@
 import js from '@eslint/js';
-import tsParser from '@typescript-eslint/parser';
 import tsPlugin from '@typescript-eslint/eslint-plugin';
+import tsParser from '@typescript-eslint/parser';
 import sveltePlugin from 'eslint-plugin-svelte';
 import svelteParser from 'svelte-eslint-parser';
 
@@ -68,7 +68,7 @@ export default [
 			'svelte/require-stores-init': 'error',
 			'svelte/require-store-callbacks-use-set-param': 'error',
 			// 'svelte/require-store-reactive-return': 'error', // Rule not found
-			'svelte/require-store-rest-parameters': 'error',
+			// 'svelte/require-store-rest-parameters': 'error', // Rule not found
 			'svelte/require-stores-leading-store': 'error',
 			'svelte/block-lang': 'error',
 			'svelte/button-has-type': 'error',

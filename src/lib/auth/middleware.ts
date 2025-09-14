@@ -15,7 +15,7 @@ export interface JWTPayload {
 
 // Authentication middleware
 export function authenticate(requiredRoles?: string[]): RequestHandler {
-	return async ({ request, cookies, url }) => {
+	return async ({ request, cookies, url, locals }) => {
 		try {
 			// Get token from Authorization header or cookies
 			let token: string | null = null;
@@ -163,7 +163,7 @@ export function hasPermission(userRole: string, permission: string): boolean {
 
 // Permission middleware
 export function requirePermission(permission: string): RequestHandler {
-	return async ({ request }) => {
+	return async ({ request, locals }) => {
 		const user = (request as any).user;
 		
 		if (!user) {
@@ -182,7 +182,7 @@ export function requirePermission(permission: string): RequestHandler {
 const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
 
 export function rateLimit(maxRequests: number, windowMs: number): RequestHandler {
-	return async ({ request, getClientAddress }) => {
+	return async ({ request, getClientAddress, locals }) => {
 		const clientIP = getClientAddress();
 		const now = Date.now();
 		const windowStart = now - windowMs;
@@ -220,7 +220,7 @@ export function rateLimit(maxRequests: number, windowMs: number): RequestHandler
 
 // Input validation
 export function validateInput(schema: any): RequestHandler {
-	return async ({ request }) => {
+	return async ({ request, locals }) => {
 		try {
 			const body = await request.json();
 			const validated = schema.parse(body);
@@ -234,7 +234,7 @@ export function validateInput(schema: any): RequestHandler {
 
 // CORS middleware
 export function cors(origins: string[] = ['*']): RequestHandler {
-	return async ({ request }) => {
+	return async ({ request, locals }) => {
 		const origin = request.headers.get('origin');
 		
 		if (origins.includes('*') || (origin && origins.includes(origin))) {
@@ -254,7 +254,7 @@ export function cors(origins: string[] = ['*']): RequestHandler {
 
 // Security headers
 export function securityHeaders(): RequestHandler {
-	return async () => {
+	return async ({ locals }) => {
 		return {
 			headers: {
 				'X-Content-Type-Options': 'nosniff',
@@ -270,7 +270,7 @@ export function securityHeaders(): RequestHandler {
 
 // Audit logging
 export function auditLog(action: string, entity: string): RequestHandler {
-	return async ({ request }) => {
+	return async ({ request, locals }) => {
 		const user = (request as any).user;
 		const clientIP = request.headers.get('x-forwarded-for') || 'unknown';
 		const userAgent = request.headers.get('user-agent') || 'unknown';

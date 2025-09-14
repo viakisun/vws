@@ -66,10 +66,10 @@
 		"@types/jsonwebtoken": "^9.0.10",
 		"@types/pg": "^8.15.5",
 		"bcryptjs": "^3.0.2",
+		"exceljs": "^4.4.0",
 		"jsonwebtoken": "^9.0.2",
 		"lucide-svelte": "^0.544.0",
 		"mermaid": "^11.11.0",
-		"pg": "^8.16.3",
-		"xlsx": "^0.18.5"
+		"pg": "^8.16.3"
 	}
 }
