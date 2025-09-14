@@ -1,0 +1,14 @@
+{
+    "recommendations": [
+        "svelte.svelte-vscode",
+        "ms-vscode.vscode-typescript-next",
+        "bradlc.vscode-tailwindcss",
+        "esbenp.prettier-vscode",
+        "ms-vscode.vscode-json",
+        "ms-vscode.vscode-eslint",
+        "ms-vscode.vscode-typescript-next",
+        "ms-vscode.vscode-npm-scripts",
+        "ms-vscode.vscode-json"
+    ],
+    "unwantedRecommendations": []
+}

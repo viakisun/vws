@@ -17,15 +17,20 @@
 	import DepartmentModal from '$lib/components/ui/DepartmentModal.svelte';
 	import PositionModal from '$lib/components/ui/PositionModal.svelte';
 	import OrganizationChart from '$lib/components/ui/OrganizationChart.svelte';
-	import { formatCurrency, formatDate, formatEmployeeId } from '$lib/utils/format';
+	import { formatCurrency, formatDate, formatEmployeeId, formatEmployeeName } from '$lib/utils/format';
 	
-	// 사번 포맷팅 함수 (기존 사번을 V00001 형식으로 변환)
+	// 사번 포맷팅 함수 (새로운 사번 형식 1001, 1002 등 표시)
 	function formatEmployeeIdDisplay(employeeId: string, index: number): string {
+		// 새로운 사번 형식 (1001, 1002 등)을 그대로 표시
+		if (employeeId.match(/^\d{4}$/)) {
+			return employeeId;
+		}
+		// 기존 V 형식 사번도 그대로 표시
 		if (employeeId.startsWith('V')) {
 			return employeeId;
 		}
-		// 기존 사번이 V 형식이 아닌 경우 순서대로 V00001 형식으로 변환
-		return `V${(index + 1).toString().padStart(5, '0')}`;
+		// 기타 형식의 경우 순서대로 표시
+		return employeeId || `V${(index + 1).toString().padStart(5, '0')}`;
 	}
 	import { 
 		UsersIcon, 
@@ -40,8 +45,6 @@
 		EditIcon,
 		TrashIcon,
 		UserCheckIcon,
-		GraduationCapIcon,
-		TargetIcon,
 		BarChart3Icon,
 		FileSpreadsheetIcon,
 		DownloadIcon,
@@ -52,7 +55,9 @@
 		DollarSignIcon,
 		CrownIcon,
 		BriefcaseIcon,
-		TagIcon
+		TagIcon,
+		FlaskConicalIcon,
+		UserMinusIcon
 	} from 'lucide-svelte';
 	
 	// HR 스토어들
@@ -63,12 +68,6 @@
 		getEmployeesByDepartment
 	} from '$lib/stores/hr';
 	
-	import { 
-		onboardingProcesses, 
-		offboardingProcesses,
-		getOnboardingProgress,
-		getOffboardingProgress
-	} from '$lib/stores/onboarding';
 	
 	import { 
 		attendanceRecords, 
@@ -84,12 +83,6 @@
 		getRecruitmentStats
 	} from '$lib/stores/recruitment';
 	
-	import { 
-		performanceReviews, 
-		feedback360,
-		getPerformanceReviewsByEmployee,
-		calculateAverageFeedback360
-	} from '$lib/stores/performance';
 	
 	import { 
 		payrolls, 
@@ -110,12 +103,12 @@
 	let loading = $state(true);
 	let error = $state<string | null>(null);
 
-	// 직원 데이터 가져오기 (활성 직원만)
+	// 직원 데이터 가져오기 (모든 직원 - 재직자 + 퇴사자)
 	async function fetchEmployees() {
 		try {
 			loading = true;
 			error = null;
-			const response = await fetch('/api/employees?status=active');
+			const response = await fetch('/api/employees?status=all');
 			if (response.ok) {
 				const result = await response.json();
 				employees = result.data || result.employees || [];
@@ -228,35 +221,23 @@
 
 	// 반응형 데이터 (데이터베이스 기반)
 	let totalEmployees = $derived(() => {
+		// 재직중인 직원만 카운트 (이사 제외)
 		const activeEmployeeCount = employees?.filter((emp: any) => emp.status === 'active').length || 0;
-		const executiveCount = executives?.length || 0;
-		return activeEmployeeCount + executiveCount;
+		return activeEmployeeCount;
+	});
+	
+	let totalAllEmployees = $derived(() => {
+		// 모든 직원 카운트 (재직자 + 퇴사자, 이사 제외)
+		return employees?.length || 0;
 	});
 	
 	let totalTO = $derived(() => {
-		const activeEmployeeCount = employees?.filter((emp: any) => emp.status === 'active').length || 0;
-		const executiveCount = executives?.length || 0;
-		const currentTotal = activeEmployeeCount + executiveCount;
-		
-		// T/O가 설정된 팀들의 T/O 합계
-		const toSum = Object.values(teamTO() as Record<string, number>).reduce((sum: number, to: number) => sum + to, 0);
-		
-		// T/O가 0인 팀들은 현재 인원을 최대 인원으로 간주
-		const toZeroTeams = Object.entries(teamTO() as Record<string, number>).filter(([_, to]: [string, number]) => to === 0);
-		const toZeroTeamEmployees = toZeroTeams.reduce((sum: number, [teamName, _]: [string, number]) => {
-			const teamEmployeeCount = employees?.filter((emp: any) => emp.status === 'active' && emp.department === teamName).length || 0;
-			return sum + teamEmployeeCount;
-		}, 0);
-		
-		// 이사진 T/O (현재 이사진 수와 동일)
-		const executiveTO = executiveCount;
-		
-		return toSum + toZeroTeamEmployees + executiveTO;
+		// 부서별 T/O 카운트를 단순히 합산
+		return Object.values(teamTO() as Record<string, number>).reduce((sum: number, to: number) => sum + to, 0);
 	});
 	
 	let totalDepartments = $derived(() => [...new Set(employees?.map((emp: any) => emp.department) || [])].length);
 	let activeRecruitments = $derived(() => $jobPostings.filter(job => job.status === 'published').length);
-	let pendingOnboardings = $derived(() => $onboardingProcesses.filter(process => process.status === 'in-progress').length);
 
 	// 탭 정의
 	const tabs = [
@@ -274,16 +255,6 @@
 			id: 'recruitment',
 			label: '채용관리',
 			icon: UserPlusIcon
-		},
-		{
-			id: 'onboarding',
-			label: '온보딩',
-			icon: GraduationCapIcon
-		},
-		{
-			id: 'performance',
-			label: '성과관리',
-			icon: TargetIcon
 		},
 		{
 			id: 'departments',
@@ -353,7 +324,7 @@
 	// 직원 검색 및 필터링 상태
 	let searchQuery = $state('');
 	let departmentFilter = $state('');
-	let statusFilter = $state('');
+	let statusFilter = $state('active'); // 기본값: 재직중
 	let currentPage = $state(1);
 	let itemsPerPage = 20;
 
@@ -365,7 +336,7 @@
 		if (searchQuery) {
 			const query = searchQuery.toLowerCase();
 			filtered = filtered.filter(emp => 
-				`${emp.last_name}${emp.first_name}`.toLowerCase().includes(query) ||
+				formatEmployeeName(emp).toLowerCase().includes(query) ||
 				emp.email.toLowerCase().includes(query) ||
 				emp.employee_id.toLowerCase().includes(query) ||
 				emp.department.toLowerCase().includes(query) ||
@@ -409,29 +380,43 @@
 		return filteredEmployees.slice(start, end);
 	})());
 
-	// 팀 리더인지 확인하는 함수
+	// 팀 리더 및 임원인지 확인하는 함수
 	function isTeamLead(employee: any): boolean {
-		return employee.job_title_name === 'Team Lead' || employee.position === 'Team Lead';
+		const leadershipPositions = ['Team Lead', 'CEO', 'CFO', 'CTO', '대표이사', '재무이사', '기술이사', '연구소장', '상무'];
+		return leadershipPositions.includes(employee.job_title_name) || 
+			   leadershipPositions.includes(employee.position);
 	}
 
-	// 직원을 정렬하는 함수 (팀 리더 우선)
+	// 직원을 정렬하는 함수 (임원/팀 리더 우선, 퇴사자는 퇴사일 역순)
 	function sortEmployees(employees: any[]): any[] {
 		return employees.sort((a, b) => {
-			const aIsTeamLead = isTeamLead(a);
-			const bIsTeamLead = isTeamLead(b);
+			// 퇴사자인 경우 퇴사일 역순으로 정렬
+			if (a.status === 'terminated' && b.status === 'terminated') {
+				const aTerminationDate = a.termination_date ? new Date(a.termination_date).getTime() : 0;
+				const bTerminationDate = b.termination_date ? new Date(b.termination_date).getTime() : 0;
+				return bTerminationDate - aTerminationDate; // 최신 퇴사일이 먼저
+			}
 			
-			// 팀 리더가 아닌 직원보다 팀 리더를 앞에 배치
-			if (aIsTeamLead && !bIsTeamLead) return -1;
-			if (!aIsTeamLead && bIsTeamLead) return 1;
+			// 퇴사자와 재직자 구분 (재직자가 먼저)
+			if (a.status === 'terminated' && b.status !== 'terminated') return 1;
+			if (a.status !== 'terminated' && b.status === 'terminated') return -1;
 			
-			// 둘 다 팀 리더이거나 둘 다 일반 직원인 경우 이름순 정렬
-			const aName = a.last_name + a.first_name;
-			const bName = b.last_name + b.first_name;
+			// 재직자인 경우 기존 로직 적용
+			const aIsLeader = isTeamLead(a);
+			const bIsLeader = isTeamLead(b);
+			
+			// 임원/팀 리더가 아닌 직원보다 임원/팀 리더를 앞에 배치
+			if (aIsLeader && !bIsLeader) return -1;
+			if (!aIsLeader && bIsLeader) return 1;
+			
+			// 둘 다 임원/팀 리더이거나 둘 다 일반 직원인 경우 이름순 정렬
+			const aName = formatEmployeeName(a);
+			const bName = formatEmployeeName(b);
 			return aName.localeCompare(bName);
 		});
 	}
 
-	// 페이지네이션된 직원들을 팀별로 그룹화 (팀 리더 우선 정렬)
+	// 페이지네이션된 직원들을 팀별로 그룹화 (임원/팀 리더 우선 정렬)
 	let paginatedGroupedEmployees = $derived((() => {
 		const groups: { [key: string]: any[] } = {};
 		
@@ -448,25 +433,44 @@
 			groups[team] = sortEmployees(groups[team]);
 		});
 		
-		return groups;
+		// 부서별 정렬 순서 적용
+		const departmentOrder: { [key: string]: number } = {
+			'대표': 1,
+			'전략기획실': 2,
+			'연구소': 3,
+			'부서없음': 999
+		};
+		
+		// 정렬된 그룹 객체 생성
+		const sortedGroups: { [key: string]: any[] } = {};
+		const sortedTeamNames = Object.keys(groups).sort((a, b) => {
+			const aOrder = departmentOrder[a] || 100;
+			const bOrder = departmentOrder[b] || 100;
+			
+			if (aOrder !== bOrder) {
+				return aOrder - bOrder;
+			}
+			
+			// 같은 우선순위 내에서는 알파벳 순
+			return a.localeCompare(b);
+		});
+		
+		sortedTeamNames.forEach(teamName => {
+			sortedGroups[teamName] = groups[teamName];
+		});
+		
+		return sortedGroups;
 	})());
 
 	// 통계 데이터
 	let stats = $derived((() => {
 		const statsData = [
 			{
-				title: '총 직원 수',
-				value: `${totalEmployees()} / ${totalTO()}`,
+				title: '직원 수',
+				value: `${totalEmployees()}`,
 				change: '+5%',
 				changeType: 'positive' as const,
 				icon: UsersIcon
-			},
-			{
-				title: '부서 수',
-				value: totalDepartments(),
-				change: '0%',
-				changeType: 'neutral' as const,
-				icon: BuildingIcon
 			},
 			{
 				title: '진행중인 채용',
@@ -474,13 +478,6 @@
 				change: '+2',
 				changeType: 'positive' as const,
 				icon: UserPlusIcon
-			},
-			{
-				title: '온보딩 진행중',
-				value: pendingOnboardings(),
-				change: '-1',
-				changeType: 'negative' as const,
-				icon: ClipboardListIcon
 			}
 		];
 		
@@ -513,58 +510,188 @@
 			time: string;
 			icon: any;
 			color: string;
+			metadata?: any;
 		}> = [];
 
-		// 최근 입사자
+		// 최근 입사자 (최근 3개월 이내)
+		const threeMonthsAgo = new Date();
+		threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+		
 		employees
-			.filter((emp: any) => emp.status === 'active')
+			.filter((emp: any) => 
+				emp.status === 'active' && 
+				emp.hire_date &&
+				new Date(emp.hire_date) >= threeMonthsAgo
+			)
 			.sort((a: any, b: any) => new Date(b.hire_date).getTime() - new Date(a.hire_date).getTime())
 			.slice(0, 3)
 			.forEach((emp: any) => {
+				const daysSinceHire = Math.floor((new Date().getTime() - new Date(emp.hire_date).getTime()) / (1000 * 60 * 60 * 24));
+				const hireDate = new Date(emp.hire_date).toLocaleDateString('ko-KR');
 				activities.push({
 					type: 'hire',
 					title: '신규 입사',
-					description: `${emp.first_name} ${emp.last_name}님이 ${emp.department}에 입사했습니다.`,
+        description: `${formatEmployeeName(emp)}님이 ${hireDate}에 ${emp.department} ${emp.position}로 입사했습니다. (${daysSinceHire}일 경과)`,
 					time: emp.hire_date,
 					icon: UserPlusIcon,
-					color: 'text-green-600'
+					color: 'text-green-600',
+					metadata: { daysSinceHire, department: emp.department, position: emp.position, employeeName: formatEmployeeName(emp) }
 				});
 			});
 
-		// 최근 휴가 신청
-		$leaveRequests
-			.sort((a, b) => new Date(b.requestedAt).getTime() - new Date(a.requestedAt).getTime())
+		// 퇴직 예정자 (1개월 이내)
+		const oneMonthFromNow = new Date();
+		oneMonthFromNow.setMonth(oneMonthFromNow.getMonth() + 1);
+		
+		employees
+			.filter((emp: any) => 
+				emp.status === 'active' && 
+				emp.termination_date &&
+				new Date(emp.termination_date) > new Date() && // 미래 날짜
+				new Date(emp.termination_date) <= oneMonthFromNow // 1개월 이내
+			)
+			.sort((a: any, b: any) => new Date(a.termination_date).getTime() - new Date(b.termination_date).getTime())
 			.slice(0, 3)
-			.forEach((request: any) => {
-				const employee = employees.find((emp: any) => emp.id === request.employeeId);
-				if (employee) {
-					activities.push({
-						type: 'leave',
-						title: '휴가 신청',
-						description: `${employee.first_name} ${employee.last_name}님이 ${request.days}일 휴가를 신청했습니다.`,
-						time: request.requestedAt,
-						icon: CalendarIcon,
-						color: 'text-blue-600'
-					});
-				}
+			.forEach((emp: any) => {
+				const daysLeft = Math.ceil((new Date(emp.termination_date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+				const isContract = emp.employment_type === 'contract';
+				const terminationDate = new Date(emp.termination_date).toLocaleDateString('ko-KR');
+				activities.push({
+					type: 'termination_pending',
+					title: isContract ? '계약 만료 예정' : '퇴직 예정',
+        description: `${formatEmployeeName(emp)}님(${emp.department} ${emp.position})이 ${terminationDate}에 ${isContract ? '계약 만료' : '퇴직'} 예정입니다. (${daysLeft}일 남음)`,
+					time: emp.termination_date,
+					icon: CalendarIcon,
+					color: 'text-orange-600',
+					metadata: { daysLeft, employmentType: emp.employment_type, department: emp.department, employeeName: formatEmployeeName(emp), position: emp.position }
+				});
 			});
 
-		return activities.slice(0, 5);
+		// 최근 퇴사자 (최근 3개월 이내)
+		const threeMonthsAgoForTermination = new Date();
+		threeMonthsAgoForTermination.setMonth(threeMonthsAgoForTermination.getMonth() - 3);
+		
+		employees
+			.filter((emp: any) => 
+				emp.status === 'terminated' && 
+				emp.termination_date &&
+				new Date(emp.termination_date) >= threeMonthsAgoForTermination
+			)
+			.sort((a: any, b: any) => new Date(b.termination_date).getTime() - new Date(a.termination_date).getTime())
+			.slice(0, 3)
+			.forEach((emp: any) => {
+				const daysSinceTermination = Math.floor((new Date().getTime() - new Date(emp.termination_date).getTime()) / (1000 * 60 * 60 * 24));
+				const terminationDate = new Date(emp.termination_date).toLocaleDateString('ko-KR');
+				activities.push({
+					type: 'termination',
+					title: '퇴사 완료',
+                description: `${formatEmployeeName(emp)}님(${emp.department} ${emp.position})이 ${terminationDate}에 퇴사했습니다. (${daysSinceTermination}일 경과)`,
+					time: emp.termination_date,
+					icon: UserMinusIcon,
+					color: 'text-red-600',
+					metadata: { daysSinceTermination, department: emp.department, employeeName: formatEmployeeName(emp), position: emp.position }
+				});
+			});
+
+		// 부서별 인원 변화 (최근 입사/퇴사로 인한 변화)
+		const departmentChanges = employees.reduce((acc: any, emp: any) => {
+			if (!acc[emp.department]) {
+				acc[emp.department] = { hires: [], terminations: [] };
+			}
+			
+			if (emp.status === 'active' && emp.hire_date && new Date(emp.hire_date) >= threeMonthsAgo) {
+            acc[emp.department].hires.push(formatEmployeeName(emp));
+			}
+			if (emp.status === 'terminated' && emp.termination_date && new Date(emp.termination_date) >= threeMonthsAgoForTermination) {
+				acc[emp.department].terminations.push(formatEmployeeName(emp));
+			}
+			
+			return acc;
+		}, {});
+
+		// 변화가 있는 부서 정보 추가
+		Object.entries(departmentChanges).forEach(([dept, changes]: [string, any]) => {
+			if (changes.hires.length > 0 || changes.terminations.length > 0) {
+				const netChange = changes.hires.length - changes.terminations.length;
+				if (netChange !== 0) {
+					let description = `${dept} 부서: `;
+					if (changes.hires.length > 0) {
+						description += `입사 ${changes.hires.length}명(${changes.hires.join(', ')})`;
+					}
+					if (changes.terminations.length > 0) {
+						if (changes.hires.length > 0) description += ', ';
+						description += `퇴사 ${changes.terminations.length}명(${changes.terminations.join(', ')})`;
+					}
+					description += ` (순증감: ${netChange > 0 ? '+' : ''}${netChange}명)`;
+					
+					activities.push({
+						type: 'department_change',
+						title: '부서 인원 변화',
+						description: description,
+						time: new Date().toISOString(),
+						icon: BuildingIcon,
+						color: netChange > 0 ? 'text-blue-600' : 'text-red-600',
+						metadata: { department: dept, netChange, hires: changes.hires, terminations: changes.terminations }
+					});
+				}
+			}
+		});
+
+		// 시간순 정렬 후 최대 8개 반환
+		return activities
+			.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime())
+			.slice(0, 8);
 	});
 
-	// 부서별 직원 데이터
+	// 부서별 직원 데이터 (T/O 포함)
 	let departmentData = $derived(() => {
-		if (!employees || employees.length === 0) return [];
+		if (!employees || employees.length === 0 || !departments || departments.length === 0) return [];
+		
+		// 모든 직원 카운트 (이사 포함)
 		const deptCounts = employees.reduce((acc: any, emp: any) => {
 			acc[emp.department] = (acc[emp.department] || 0) + 1;
 			return acc;
 		}, {} as Record<string, number>);
 		
-		return Object.entries(deptCounts).map(([department, count]) => ({
-			department,
-			count: count as number,
-			percentage: Math.round((count as number / totalEmployees()) * 100)
-		}));
+		// departments 데이터를 기반으로 부서별 데이터 생성 (부서없음 포함)
+		const deptData = departments.map((dept: any) => {
+			const currentCount = deptCounts[dept.name] || 0;
+			const departmentTO = teamTO()[dept.name] || 0;
+			const percentage = Math.round((currentCount / totalEmployees()) * 100);
+			
+			return {
+				department: dept.name,
+				count: currentCount,
+				to: departmentTO,
+				percentage,
+				// T/O 대비 현재 인원 비율
+				toPercentage: departmentTO > 0 ? Math.round((currentCount / departmentTO) * 100) : 0,
+				// T/O 상태 (여유/충족/초과)
+				toStatus: departmentTO === 0 ? 'unlimited' : 
+						 currentCount > departmentTO ? 'over' :
+						 currentCount === departmentTO ? 'full' : 'available'
+			};
+		});
+		
+		// 부서 정렬 순서: 대표 → 전략기획실 → 연구소 → 각 팀들 → 부서없음
+		return deptData.sort((a, b) => {
+			const order: { [key: string]: number } = {
+				'대표': 1,
+				'전략기획실': 2,
+				'연구소': 3,
+				'부서없음': 999
+			};
+			
+			const aOrder = order[a.department] || 100;
+			const bOrder = order[b.department] || 100;
+			
+			if (aOrder !== bOrder) {
+				return aOrder - bOrder;
+			}
+			
+			// 같은 우선순위 내에서는 알파벳 순
+			return a.department.localeCompare(b.department);
+		});
 	});
 
 	// 최근 채용 공고
@@ -574,12 +701,6 @@
 			.slice(0, 5);
 	});
 
-	// 성과 평가 데이터
-	let performanceData = $derived(() => {
-		return $performanceReviews
-			.filter(review => review.status === 'completed')
-			.slice(0, 5);
-	});
 
 	
 	// 컴포넌트 마운트 시 데이터 로드
@@ -762,9 +883,7 @@
 			const employeeData = event.detail;
 			employeeLoading = true;
 			
-			const url = selectedEmployee?.id 
-				? `/api/employees/${selectedEmployee.id}` 
-				: '/api/employees';
+			const url = '/api/employees';
 			const method = selectedEmployee?.id ? 'PUT' : 'POST';
 			
 			const response = await fetch(url, {
@@ -1019,7 +1138,7 @@
 	}
 
 	async function handleExecutiveDelete(executive: any) {
-		if (confirm(`정말로 ${executive.first_name} ${executive.last_name} 이사를 삭제하시겠습니까?`)) {
+		if (confirm(`정말로 ${formatEmployeeName(executive)} 이사를 삭제하시겠습니까?`)) {
 			try {
 				const response = await fetch(`/api/executives/${executive.id}`, {
 					method: 'DELETE'
@@ -1107,7 +1226,10 @@
 		<!-- 부서별 직원 현황 -->
 		<ThemeCard class="p-6">
 			<div class="mb-6">
-				<h3 class="text-lg font-semibold" style="color: var(--color-text);">부서별 직원 현황</h3>
+				<h3 class="text-lg font-semibold" style="color: var(--color-text);">부서별 직원 현황 (T/O)</h3>
+				<p class="text-sm mt-1" style="color: var(--color-text-secondary);">
+					현재 인원 / 정원 (T/O) • 색상: 🟢여유 🟡충족 🔴초과 ⚪미설정
+				</p>
 			</div>
 			<ThemeSpacer size={4}>
 				{#each departmentData() as dept}
@@ -1116,10 +1238,41 @@
 							<BuildingIcon size={20} style="color: var(--color-primary);" />
 							<div>
 								<h4 class="font-medium" style="color: var(--color-text);">{dept.department}</h4>
-								<p class="text-sm" style="color: var(--color-text-secondary);">{dept.count}명</p>
-		</div>
+								<div class="flex items-center gap-2">
+									<p class="text-sm" style="color: var(--color-text-secondary);">
+										{dept.count}명
+										{#if dept.to > 0}
+											/ {dept.to}명
+										{:else}
+											/ ∞
+										{/if}
+									</p>
+									<!-- T/O 상태 표시 -->
+									{#if dept.toStatus === 'over'}
+										<div class="w-2 h-2 rounded-full bg-red-500" title="정원 초과"></div>
+									{:else if dept.toStatus === 'full'}
+										<div class="w-2 h-2 rounded-full bg-yellow-500" title="정원 충족"></div>
+									{:else if dept.toStatus === 'available'}
+										<div class="w-2 h-2 rounded-full bg-green-500" title="여유 있음"></div>
+									{:else}
+										<div class="w-2 h-2 rounded-full bg-gray-400" title="T/O 미설정"></div>
+									{/if}
+								</div>
+							</div>
 						</div>
-						<ThemeBadge variant="info">{dept.percentage}%</ThemeBadge>
+						<div class="flex items-center gap-2">
+							<!-- T/O 대비 비율 -->
+							{#if dept.to > 0}
+								<ThemeBadge 
+									variant={dept.toStatus === 'over' ? 'error' : dept.toStatus === 'full' ? 'warning' : 'success'}
+									size="sm"
+								>
+									{dept.toPercentage}%
+								</ThemeBadge>
+							{/if}
+							<!-- 전체 대비 비율 -->
+							<ThemeBadge variant="info" size="sm">{dept.percentage}%</ThemeBadge>
+						</div>
 					</div>
 				{/each}
 			</ThemeSpacer>
@@ -1135,6 +1288,7 @@
 					<ThemeActivityItem
 						title={activity.title}
 						time={activity.time}
+						description={activity.description}
 						icon={activity.icon}
 					/>
 				{/each}
@@ -1208,43 +1362,6 @@
 		</div>
 	</ThemeCard>
 
-	<!-- 성과 평가 현황 -->
-	<ThemeCard class="p-6">
-		<div class="flex items-center justify-between mb-6">
-			<h3 class="text-lg font-semibold" style="color: var(--color-text);">성과 평가 현황</h3>
-			<ThemeButton variant="primary" size="sm" class="flex items-center gap-2">
-				<PlusIcon size={16} />
-				새 평가
-			</ThemeButton>
-						</div>
-		
-		<div class="space-y-4">
-			{#each performanceData() as review}
-				<div class="flex items-center justify-between p-4 rounded-lg border" style="border-color: var(--color-border); background: var(--color-surface-elevated);">
-					<div class="flex-1">
-						<h4 class="font-medium" style="color: var(--color-text);">{(review as any).employeeName}</h4>
-						<p class="text-sm" style="color: var(--color-text-secondary);">{(review as any).department} • {(review as any).position}</p>
-						<div class="flex items-center gap-2 mt-2">
-							<ThemeBadge variant={review.overallRating >= 4 ? 'success' : review.overallRating >= 3 ? 'warning' : 'error'}>
-								{review.overallRating}/5
-							</ThemeBadge>
-							<span class="text-xs" style="color: var(--color-text-secondary);">
-								{formatDate((review as any).reviewDate)}
-							</span>
-						</div>
-					</div>
-					<div class="flex items-center gap-2">
-						<ThemeButton variant="ghost" size="sm">
-							<EyeIcon size={16} />
-						</ThemeButton>
-						<ThemeButton variant="ghost" size="sm">
-							<EditIcon size={16} />
-						</ThemeButton>
-				</div>
-				</div>
-			{/each}
-		</div>
-	</ThemeCard>
 				</ThemeSpacer>
 
 			{:else if tab.id === 'employees'}
@@ -1307,9 +1424,13 @@
 											style="border-color: var(--color-border); background: var(--color-input-background); color: var(--color-text);"
 										>
 											<option value="">전체 부서</option>
-											{#each departments as dept}
+											<option value="대표">대표</option>
+											<option value="전략기획실">전략기획실</option>
+											<option value="연구소">연구소</option>
+											{#each departments.filter(d => !['대표', '전략기획실', '연구소', '부서없음'].includes(d.name)) as dept}
 												<option value={dept.name}>{dept.name}</option>
 											{/each}
+											<option value="부서없음">부서없음</option>
 										</select>
 										<select
 											bind:value={statusFilter}
@@ -1341,21 +1462,31 @@
 										<!-- 팀 내 직원 카드 그리드 -->
 										<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
 											{#each paginatedGroupedEmployees[teamName] || [] as employee}
-									<div class="p-4 rounded-lg border transition-all hover:shadow-md overflow-hidden {isTeamLead(employee) ? 'ring-2 ring-yellow-400/50 shadow-lg' : ''}" style="border-color: {isTeamLead(employee) ? 'var(--color-warning)' : 'var(--color-border)'}; background: {isTeamLead(employee) ? 'linear-gradient(135deg, var(--color-surface-elevated) 0%, rgba(251, 191, 36, 0.05) 100%)' : 'var(--color-surface-elevated)'};">
+												<div class="p-4 rounded-lg border transition-all duration-300 hover:shadow-lg hover:scale-[1.02] overflow-hidden {isTeamLead(employee) ? 'ring-2 ring-yellow-400/50 shadow-lg' : employee.employment_type === 'contract' ? 'ring-2 ring-purple-400/50 shadow-md' : employee.termination_date && new Date(employee.termination_date) > new Date() ? 'ring-2 ring-red-400/50 shadow-md' : ''}" style="{isTeamLead(employee) ? 'border-color: var(--color-warning); background: linear-gradient(135deg, var(--color-surface-elevated) 0%, rgba(251, 191, 36, 0.05) 100%);' : employee.employment_type === 'contract' ? 'border-color: var(--color-primary); background: linear-gradient(135deg, var(--color-surface-elevated) 0%, rgba(147, 51, 234, 0.05) 100%);' : employee.termination_date && new Date(employee.termination_date) > new Date() ? 'border-color: #dc2626; background: linear-gradient(135deg, var(--color-surface-elevated) 0%, rgba(220, 38, 38, 0.08) 100%);' : 'border-color: var(--color-border); background: var(--color-surface-elevated);'}">
 										<!-- 직원 헤더 -->
 										<div class="flex items-start justify-between mb-3 min-w-0">
 											<div class="flex items-center gap-3 min-w-0 flex-1">
-												<div class="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold flex-shrink-0">
+												<div class="w-12 h-12 rounded-full bg-gradient-to-br {employee.employment_type === 'contract' ? 'from-purple-500 to-pink-600' : employee.termination_date && new Date(employee.termination_date) > new Date() ? 'from-red-500 to-red-700' : 'from-blue-500 to-purple-600'} flex items-center justify-center text-white font-semibold flex-shrink-0 shadow-md">
 													{employee.last_name.charAt(0)}
 												</div>
 												<div class="min-w-0 flex-1">
 													<div class="flex items-center gap-2 min-w-0">
 														<h4 class="font-semibold text-lg truncate" style="color: var(--color-text);">
-															{employee.last_name}{employee.first_name}
+															{formatEmployeeName(employee)}
 														</h4>
 														{#if isTeamLead(employee)}
 															<span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gradient-to-r from-yellow-400 to-orange-500 text-white shadow-sm flex-shrink-0">
 																👑 팀 리더
+															</span>
+														{/if}
+														{#if employee.employment_type === 'contract'}
+															<span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-md flex-shrink-0 animate-pulse">
+																📋 계약직
+															</span>
+														{/if}
+														{#if employee.termination_date && new Date(employee.termination_date) > new Date()}
+															<span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gradient-to-r from-red-500 to-red-600 text-white shadow-md flex-shrink-0 animate-pulse">
+																⚠️ 퇴사 예정
 															</span>
 														{/if}
 													</div>
@@ -1405,6 +1536,37 @@
 													{Math.round(Number(employee.salary) / 10000)}만원
 												</span>
 											</div>
+											{#if employee.hire_date}
+												<div class="flex items-center gap-2 min-w-0">
+													<CalendarIcon size={16} style="color: var(--color-text-secondary);" class="flex-shrink-0" />
+													<span class="text-sm truncate" style="color: var(--color-text-secondary);">
+														입사일: {formatDate(employee.hire_date)}
+													</span>
+												</div>
+											{/if}
+											{#if employee.birth_date}
+												<div class="flex items-center gap-2 min-w-0">
+													<CalendarIcon size={16} style="color: var(--color-text-secondary);" class="flex-shrink-0" />
+													<span class="text-sm truncate" style="color: var(--color-text-secondary);">
+														생일: {formatDate(employee.birth_date)}
+													</span>
+												</div>
+											{/if}
+											{#if employee.termination_date}
+												{@const terminationDate = new Date(employee.termination_date)}
+												{@const today = new Date()}
+												{@const isFuture = terminationDate > today}
+												{@const daysLeft = isFuture ? Math.ceil((terminationDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)) : null}
+												<div class="flex items-center gap-2 min-w-0">
+													<CalendarIcon size={16} style="color: {isFuture ? 'var(--color-warning)' : 'var(--color-error)'};" class="flex-shrink-0" />
+													<span class="text-sm truncate" style="color: {isFuture ? 'var(--color-warning)' : 'var(--color-error)'};">
+														{isFuture ? '퇴사(예정)일' : '퇴사일'}: {formatDate(employee.termination_date)}
+														{#if isFuture && daysLeft !== null}
+															<span class="ml-1 font-medium">({daysLeft}일 남음)</span>
+														{/if}
+													</span>
+												</div>
+											{/if}
 											<!-- 재직 상태 정보 -->
 											<div class="flex items-center gap-2 pt-2 border-t min-w-0" style="border-color: var(--color-border);">
 												<div class="w-2 h-2 rounded-full flex-shrink-0" style="background: {employee.status === 'active' ? 'var(--color-success)' : employee.status === 'terminated' ? 'var(--color-error)' : 'var(--color-warning)'};"></div>
@@ -1519,55 +1681,6 @@
 					</ThemeCard>
 				</ThemeSpacer>
 
-			{:else if tab.id === 'onboarding'}
-				<!-- 온보딩 탭 -->
-				<ThemeSpacer size={6}>
-					<ThemeCard class="p-6">
-						<div class="mb-6">
-							<h3 class="text-lg font-semibold" style="color: var(--color-text);">온보딩 진행 현황</h3>
-						</div>
-						<ThemeChartPlaceholder
-							title="온보딩 진행률"
-							icon={GraduationCapIcon}
-						/>
-					</ThemeCard>
-				</ThemeSpacer>
-
-			{:else if tab.id === 'performance'}
-				<!-- 성과관리 탭 -->
-				<ThemeSpacer size={6}>
-					<ThemeCard class="p-6">
-						<div class="mb-6">
-							<h3 class="text-lg font-semibold" style="color: var(--color-text);">성과 평가 현황</h3>
-						</div>
-						<div class="space-y-4">
-							{#each performanceData() as review}
-								<div class="flex items-center justify-between p-4 rounded-lg border" style="border-color: var(--color-border); background: var(--color-surface-elevated);">
-									<div class="flex-1">
-										<h4 class="font-medium" style="color: var(--color-text);">{(review as any).employeeName}</h4>
-										<p class="text-sm" style="color: var(--color-text-secondary);">{(review as any).department} • {(review as any).position}</p>
-										<div class="flex items-center gap-2 mt-2">
-											<ThemeBadge variant={review.overallRating >= 4 ? 'success' : review.overallRating >= 3 ? 'warning' : 'error'}>
-												{review.overallRating}/5
-											</ThemeBadge>
-											<span class="text-xs" style="color: var(--color-text-secondary);">
-												{formatDate((review as any).reviewDate)}
-											</span>
-				</div>
-		</div>
-									<div class="flex items-center gap-2">
-										<ThemeButton variant="ghost" size="sm">
-											<EyeIcon size={16} />
-										</ThemeButton>
-										<ThemeButton variant="ghost" size="sm">
-											<EditIcon size={16} />
-										</ThemeButton>
-				</div>
-								</div>
-							{/each}
-								</div>
-					</ThemeCard>
-				</ThemeSpacer>
 
 			{:else if tab.id === 'departments'}
 				<!-- 부서관리 탭 -->
@@ -1706,7 +1819,7 @@
 								<div class="flex items-center justify-between mb-6">
 									<div class="flex items-center gap-3">
 										{#if category === '연구원'}
-											<GraduationCapIcon size={24} style="color: var(--color-primary);" />
+											<FlaskConicalIcon size={24} style="color: var(--color-primary);" />
 										{:else if category === '디자이너'}
 											<UsersIcon size={24} style="color: var(--color-primary);" />
 										{:else if category === '행정원'}
@@ -1770,7 +1883,7 @@
 									{#if categoryPositions.length === 0}
 										<div class="col-span-full text-center py-8">
 											{#if category === '연구원'}
-												<GraduationCapIcon size={48} class="mx-auto mb-4" style="color: var(--color-text-secondary);" />
+												<FlaskConicalIcon size={48} class="mx-auto mb-4" style="color: var(--color-text-secondary);" />
 											{:else if category === '디자이너'}
 												<UsersIcon size={48} class="mx-auto mb-4" style="color: var(--color-text-secondary);" />
 											{:else if category === '행정원'}
@@ -1791,7 +1904,7 @@
 							<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
 								<div class="space-y-3">
 									<h4 class="font-medium flex items-center gap-2" style="color: var(--color-text);">
-										<GraduationCapIcon size={16} style="color: var(--color-primary);" />
+										<FlaskConicalIcon size={16} style="color: var(--color-primary);" />
 										연구원 직급
 									</h4>
 									<ul class="text-sm space-y-1" style="color: var(--color-text-secondary);">
@@ -1861,7 +1974,7 @@
 											<div class="flex-1">
 												<div class="flex items-center gap-3 mb-1">
 													<h4 class="font-semibold text-lg" style="color: var(--color-text);">
-														{executive.first_name} {executive.last_name}
+														{formatEmployeeName(executive)}
 													</h4>
 													<ThemeBadge variant={executive.status === 'active' ? 'success' : 'warning'}>
 														{executive.status === 'active' ? '활성' : '비활성'}
@@ -2148,7 +2261,7 @@
 	open={showDeleteModal}
 	title="직원 삭제"
 	message="이 직원을 삭제하시겠습니까?"
-	itemName={selectedEmployee ? `${selectedEmployee.last_name}${selectedEmployee.first_name} (${selectedEmployee.department})` : ''}
+	itemName={selectedEmployee ? `${formatEmployeeName(selectedEmployee)} (${selectedEmployee.department})` : ''}
 	loading={deleteLoading}
 	showArchive={true}
 	on:close={() => {

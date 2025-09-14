@@ -469,6 +469,7 @@
 									style="background: var(--color-surface); border-color: var(--color-border); color: var(--color-text);"
 								>
 									<option value="all">전체 부서</option>
+									<option value="부서없음">부서없음</option>
 									<option value="research">연구개발</option>
 									<option value="engineering">엔지니어링</option>
 									<option value="design">디자인</option>

@@ -1,0 +1,39 @@
+{
+    "typescript.preferences.includePackageJsonAutoImports": "auto",
+    "typescript.suggest.autoImports": true,
+    "typescript.updateImportsOnFileMove.enabled": "always",
+    "typescript.preferences.importModuleSpecifier": "relative",
+    // Svelte 설정
+    "svelte.enable-ts-plugin": true,
+    "svelte.plugin.typescript.diagnostics.enable": true,
+    "svelte.plugin.typescript.hover.enable": true,
+    "svelte.plugin.typescript.completions.enable": true,
+    // 파일 저장 시 자동 포맷팅 및 체크
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+        "source.fixAll": "explicit",
+        "source.organizeImports": "explicit"
+    },
+    // TypeScript 오류 표시
+    "typescript.reportStyleChecksAsWarnings": false,
+    "typescript.validate.enable": true,
+    // 린터 설정
+    "eslint.enable": true,
+    "eslint.validate": [
+        "javascript",
+        "typescript",
+        "svelte"
+    ],
+    // 자동 저장 시 체크
+    "files.autoSave": "afterDelay",
+    "files.autoSaveDelay": 1000,
+    // 터미널 설정
+    "terminal.integrated.defaultProfile.osx": "zsh",
+    // 작업 공간 설정
+    "typescript.preferences.includePackageJsonAutoImports": "auto",
+    "typescript.suggest.autoImports": true,
+    // 파일 연결 설정
+    "files.associations": {
+        "*.svelte": "svelte"
+    }
+}

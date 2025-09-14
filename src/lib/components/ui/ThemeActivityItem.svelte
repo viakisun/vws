@@ -4,6 +4,7 @@
 	interface Props {
 		title: string;
 		time: string;
+		description?: string;
 		type?: 'success' | 'warning' | 'info' | 'error';
 		icon?: any;
 		class?: string;
@@ -12,6 +13,7 @@
 	let {
 		title,
 		time,
+		description,
 		type = 'info',
 		icon,
 		class: className = '',
@@ -34,6 +36,9 @@
 	{/if}
 	<div class="flex-1 min-w-0">
 		<p class="text-sm font-medium" style="color: var(--color-text);">{title}</p>
+		{#if description}
+			<p class="text-xs mt-1" style="color: var(--color-text-secondary);">{description}</p>
+		{/if}
 		<p class="text-xs mt-1" style="color: var(--color-text-secondary);">{time}</p>
 	</div>
 	<ThemeBadge variant={typeConfig[type].variant} size="sm">

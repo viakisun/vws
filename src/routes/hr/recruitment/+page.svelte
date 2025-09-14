@@ -198,6 +198,7 @@
 							class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 						>
 							<option value="">전체 부서</option>
+							<option value="부서없음">부서없음</option>
 							<option value="개발팀">개발팀</option>
 							<option value="마케팅팀">마케팅팀</option>
 							<option value="영업팀">영업팀</option>

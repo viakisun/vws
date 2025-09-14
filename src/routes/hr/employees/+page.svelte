@@ -3,7 +3,7 @@
 	import Card from '$lib/components/ui/Card.svelte';
 	import Badge from '$lib/components/ui/Badge.svelte';
 	import Modal from '$lib/components/ui/Modal.svelte';
-	import { formatDate } from '$lib/utils/format';
+	import { formatDate, formatEmployeeName } from '$lib/utils/format';
 	
 	import { 
 		employees, 
@@ -29,7 +29,7 @@
 	// 필터 및 검색
 	let searchQuery = $state('');
 	let departmentFilter = $state('');
-	let statusFilter = $state('');
+	let statusFilter = $state('active'); // 기본값: 재직중
 	let employmentTypeFilter = $state('');
 
 	// 정렬
@@ -37,7 +37,7 @@
 	let sortOrder = $state<'asc' | 'desc'>('asc');
 
 	// 필터링된 직원 목록
-	let filteredEmployees = $derived(() => {
+	let filteredEmployees = $derived((): Employee[] => {
 		let filtered = $employees;
 
 		// 검색 필터
@@ -67,10 +67,26 @@
 			filtered = filtered.filter(emp => emp.employmentType === employmentTypeFilter);
 		}
 
-		// 정렬
-		filtered.sort((a, b) => {
-			let aValue: any = (a as any)[sortBy];
-			let bValue: any = (b as any)[sortBy];
+		// 정렬 - 부서별 우선 정렬, 그 다음 선택된 정렬 기준
+		filtered.sort((a: Employee, b: Employee) => {
+			// 부서별 우선 정렬 (대표 → 전략기획실 → 연구소 → 각 팀들 → 부서없음)
+			const departmentOrder: { [key: string]: number } = {
+				'대표': 1,
+				'전략기획실': 2,
+				'연구소': 3,
+				'부서없음': 999
+			};
+			
+			const aDeptOrder = departmentOrder[a.department] || 100;
+			const bDeptOrder = departmentOrder[b.department] || 100;
+			
+			if (aDeptOrder !== bDeptOrder) {
+				return aDeptOrder - bDeptOrder;
+			}
+			
+			// 같은 부서 내에서는 선택된 정렬 기준으로 정렬
+			let aValue: any = (a as Employee)[sortBy as keyof Employee];
+			let bValue: any = (b as Employee)[sortBy as keyof Employee];
 
 			if (sortBy === 'hireDate') {
 				aValue = new Date(aValue).getTime();
@@ -154,7 +170,10 @@
 
 	function openEditModal(employee: Employee) {
 		selectedEmployee = employee;
-		formData = { ...employee };
+		formData = { 
+			...employee,
+			managerId: employee.managerId || ''
+		};
 		isEditModalOpen = true;
 	}
 
@@ -275,9 +294,13 @@
 							class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 						>
 							<option value="">전체 부서</option>
-							{#each departments as dept}
+							<option value="대표">대표</option>
+							<option value="전략기획실">전략기획실</option>
+							<option value="연구소">연구소</option>
+							{#each departments.filter(d => !['대표', '전략기획실', '연구소', '부서없음'].includes(d)) as dept}
 								<option value={dept}>{dept}</option>
 							{/each}
+							<option value="부서없음">부서없음</option>
 						</select>
 					</div>
 					<div>
@@ -311,7 +334,7 @@
 							onclick={() => {
 								searchQuery = '';
 								departmentFilter = '';
-								statusFilter = '';
+								statusFilter = 'active'; // 기본값: 재직중
 								employmentTypeFilter = '';
 							}}
 							class="w-full px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors"
@@ -383,11 +406,11 @@
 									{employee.position}
 								</td>
 								<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-									{getEmploymentTypeText(employee.employmentType)}
+									{getEmploymentTypeText(employee.employmentType as Employee['employmentType'])}
 								</td>
 								<td class="px-6 py-4 whitespace-nowrap">
-									<Badge variant={getStatusBadgeVariant(employee.status)}>
-										{getStatusText(employee.status)}
+									<Badge variant={getStatusBadgeVariant(employee.status as Employee['status'])}>
+										{getStatusText(employee.status as Employee['status'])}
 									</Badge>
 								</td>
 								<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -396,19 +419,19 @@
 								<td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
 									<div class="flex space-x-2">
 										<button
-											onclick={() => openViewModal(employee)}
+											onclick={() => openViewModal(employee as Employee)}
 											class="text-blue-600 hover:text-blue-900"
 										>
 											보기
 										</button>
 										<button
-											onclick={() => openEditModal(employee)}
+											onclick={() => openEditModal(employee as Employee)}
 											class="text-indigo-600 hover:text-indigo-900"
 										>
 											수정
 										</button>
 										<button
-											onclick={() => handleDeleteEmployee(employee)}
+											onclick={() => handleDeleteEmployee(employee as Employee)}
 											class="text-red-600 hover:text-red-900"
 										>
 											삭제
@@ -717,11 +740,11 @@
 								</div>
 								<div>
 									<label class="block text-sm font-medium text-gray-500">레벨</label>
-									<p class="text-sm text-gray-900">{getLevelText(selectedEmployee.level)}</p>
+									<p class="text-sm text-gray-900">{getLevelText(selectedEmployee.level as Employee['level'])}</p>
 								</div>
 								<div>
 									<label class="block text-sm font-medium text-gray-500">고용 형태</label>
-									<p class="text-sm text-gray-900">{getEmploymentTypeText(selectedEmployee.employmentType)}</p>
+									<p class="text-sm text-gray-900">{getEmploymentTypeText(selectedEmployee.employmentType as Employee['employmentType'])}</p>
 								</div>
 								<div>
 									<label class="block text-sm font-medium text-gray-500">입사일</label>
@@ -729,8 +752,8 @@
 								</div>
 								<div>
 									<label class="block text-sm font-medium text-gray-500">상태</label>
-									<Badge variant={getStatusBadgeVariant(selectedEmployee.status)}>
-										{getStatusText(selectedEmployee.status)}
+									<Badge variant={getStatusBadgeVariant(selectedEmployee.status as Employee['status'])}>
+										{getStatusText(selectedEmployee.status as Employee['status'])}
 									</Badge>
 								</div>
 							</div>

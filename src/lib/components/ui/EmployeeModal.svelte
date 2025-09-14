@@ -5,6 +5,7 @@
 	import ThemeInput from './ThemeInput.svelte';
 	import ThemeSelect from './ThemeSelect.svelte';
 	import { XIcon, SaveIcon } from 'lucide-svelte';
+	import { formatEmployeeName } from '$lib/utils/format';
 
 	interface Employee {
 		id?: string;
@@ -17,6 +18,8 @@
 		position: string;
 		salary: number;
 		hire_date: string;
+		birth_date?: string;
+		termination_date?: string;
 		status: 'active' | 'inactive' | 'on-leave' | 'terminated';
 		employment_type: 'full-time' | 'part-time' | 'contract' | 'intern';
 		job_title_id?: string;
@@ -51,6 +54,8 @@
 		position: '',
 		salary: 0,
 		hire_date: new Date().toISOString().split('T')[0],
+		birth_date: '',
+		termination_date: '',
 		status: 'active',
 		employment_type: 'full-time',
 		job_title_id: ''
@@ -113,11 +118,13 @@
 			formData.position = String(employee.position || '');
 			formData.salary = Number(employee.salary || 0);
 			formData.hire_date = employee.hire_date ? new Date(employee.hire_date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
+			formData.birth_date = employee.birth_date ? new Date(employee.birth_date).toISOString().split('T')[0] : '';
+			formData.termination_date = employee.termination_date ? new Date(employee.termination_date).toISOString().split('T')[0] : '';
 			formData.status = employee.status || 'active';
 			formData.employment_type = employee.employment_type || 'full-time';
 			formData.job_title_id = employee.job_title_id || '';
 			// 수정 모드에서는 전체 이름을 조합해서 표시
-			fullName = `${employee.last_name || ''}${employee.first_name || ''}`;
+			fullName = formatEmployeeName(employee);
 			
 			console.log('Form data set:', formData);
 			console.log('Filtered positions:', filteredPositions());
@@ -131,6 +138,8 @@
 			formData.position = '';
 			formData.salary = 0;
 			formData.hire_date = new Date().toISOString().split('T')[0];
+			formData.birth_date = '';
+			formData.termination_date = '';
 			formData.status = 'active';
 			formData.employment_type = 'full-time';
 			formData.job_title_id = '';
@@ -194,6 +203,11 @@
 			...formData,
 			salary: Number(formData.salary) || 0
 		};
+		
+		// 수정 모드일 때는 id를 포함
+		if (employee?.id) {
+			dataToSave.id = employee.id;
+		}
 		
 		dispatch('save', dataToSave);
 	}
@@ -299,9 +313,13 @@
 						style="background: var(--color-surface); border-color: var(--color-border); color: var(--color-text);"
 					>
 						<option value="">부서를 선택하세요</option>
-						{#each departments as dept}
+						<option value="대표">대표</option>
+						<option value="전략기획실">전략기획실</option>
+						<option value="연구소">연구소</option>
+						{#each departments.filter(d => !['대표', '전략기획실', '연구소', '부서없음'].includes(d.name)) as dept}
 							<option value={dept.name}>{dept.name}</option>
 						{/each}
+						<option value="부서없음">부서없음</option>
 					</select>
 				</div>
 				
@@ -369,6 +387,30 @@
 						type="date"
 						bind:value={formData.hire_date}
 						required
+						class="w-full px-3 py-2 border rounded-md text-sm"
+						style="background: var(--color-surface); border-color: var(--color-border); color: var(--color-text);"
+					/>
+				</div>
+				
+				<!-- 생일 -->
+				<div>
+					<label for="birth-date" class="block text-sm font-medium mb-2" style="color: var(--color-text);">생일</label>
+					<input
+						id="birth-date"
+						type="date"
+						bind:value={formData.birth_date}
+						class="w-full px-3 py-2 border rounded-md text-sm"
+						style="background: var(--color-surface); border-color: var(--color-border); color: var(--color-text);"
+					/>
+				</div>
+				
+				<!-- 퇴사일 -->
+				<div>
+					<label for="termination-date" class="block text-sm font-medium mb-2" style="color: var(--color-text);">퇴사일</label>
+					<input
+						id="termination-date"
+						type="date"
+						bind:value={formData.termination_date}
 						class="w-full px-3 py-2 border rounded-md text-sm"
 						style="background: var(--color-surface); border-color: var(--color-border); color: var(--color-text);"
 					/>

@@ -22,8 +22,8 @@
 <div class="space-y-8">
 	<!-- Page Header -->
 	<div class="mb-8">
-		<h1 class="text-3xl font-bold" style="color: var(--color-text);">대시보드</h1>
-		<p class="text-sm mt-2" style="color: var(--color-text-secondary);">전체 시스템 현황과 주요 지표를 한눈에 확인하세요</p>
+		<h1 class="text-3xl font-bold" style="color: var(--color-text);">🔥 핫리로드 대시보드</h1>
+		<p class="text-sm mt-2" style="color: var(--color-text-secondary);">전체 시스템 현황과 주요 지표를 한눈에 확인하세요 - 실시간 업데이트!</p>
 	</div>
 
 	<!-- Stats Grid -->
