@@ -279,8 +279,9 @@
 			<div class="p-6">
 				<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
 					<div>
-						<label class="block text-sm font-medium text-gray-700 mb-2">검색</label>
+						<label for="search-input" class="block text-sm font-medium text-gray-700 mb-2">검색</label>
 						<input
+							id="search-input"
 							type="text"
 							bind:value={searchQuery}
 							placeholder="이름, 이메일, 사번으로 검색..."
@@ -288,8 +289,9 @@
 						/>
 					</div>
 					<div>
-						<label class="block text-sm font-medium text-gray-700 mb-2">부서</label>
+						<label for="department-select" class="block text-sm font-medium text-gray-700 mb-2">부서</label>
 						<select
+							id="department-select"
 							bind:value={departmentFilter}
 							class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 						>
@@ -304,8 +306,9 @@
 						</select>
 					</div>
 					<div>
-						<label class="block text-sm font-medium text-gray-700 mb-2">상태</label>
+						<label for="status-select" class="block text-sm font-medium text-gray-700 mb-2">상태</label>
 						<select
+							id="status-select"
 							bind:value={statusFilter}
 							class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 						>
@@ -317,8 +320,9 @@
 						</select>
 					</div>
 					<div>
-						<label class="block text-sm font-medium text-gray-700 mb-2">고용 형태</label>
+						<label for="employment-type-select" class="block text-sm font-medium text-gray-700 mb-2">고용 형태</label>
 						<select
+							id="employment-type-select"
 							bind:value={employmentTypeFilter}
 							class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 						>

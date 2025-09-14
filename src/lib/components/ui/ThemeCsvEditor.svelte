@@ -23,7 +23,7 @@
 
 	// State
 	let isPreview = $state(false);
-	let textareaElement: HTMLTextAreaElement;
+	let textareaElement = $state<HTMLTextAreaElement>();
 	let isValidCsv = $state(true);
 	let csvError = $state('');
 

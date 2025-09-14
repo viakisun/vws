@@ -238,19 +238,19 @@ export function validateInput(schema: any): RequestHandler {
 
 // CORS middleware
 export function cors(origins: string[] = ['*']): RequestHandler {
-	return async (event: RequestEvent) => {
+	return async (event: RequestEvent): Promise<Response | null> => {
 		const { request, locals } = event;
 		const origin = request.headers.get('origin');
 		
 		if (origins.includes('*') || (origin && origins.includes(origin))) {
-			return {
+			return new Response(null, {
 				headers: {
 					'Access-Control-Allow-Origin': origin || '*',
 					'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
 					'Access-Control-Allow-Headers': 'Content-Type, Authorization',
 					'Access-Control-Max-Age': '86400'
 				}
-			};
+			});
 		}
 		
 		return null;
@@ -259,9 +259,9 @@ export function cors(origins: string[] = ['*']): RequestHandler {
 
 // Security headers
 export function securityHeaders(): RequestHandler {
-	return async (event: RequestEvent) => {
+	return async (event: RequestEvent): Promise<Response> => {
 		const { locals } = event;
-		return {
+		return new Response(null, {
 			headers: {
 				'X-Content-Type-Options': 'nosniff',
 				'X-Frame-Options': 'DENY',
@@ -270,7 +270,7 @@ export function securityHeaders(): RequestHandler {
 				'Referrer-Policy': 'strict-origin-when-cross-origin',
 				'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:;"
 			}
-		};
+		});
 	};
 }
 

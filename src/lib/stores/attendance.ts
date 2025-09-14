@@ -287,9 +287,10 @@ export function checkIn(employeeId: string, time?: string) {
 	const today = new Date().toISOString().split('T')[0];
 	
 	// 오늘의 근태 기록이 있는지 확인
-	const existingRecord = attendanceRecords.subscribe(records => 
-		records.find(record => record.employeeId === employeeId && record.date === today)
-	);
+	let existingRecord: any = null;
+	attendanceRecords.subscribe(records => {
+		existingRecord = records.find(record => record.employeeId === employeeId && record.date === today);
+	});
 
 	if (existingRecord) {
 		// 기존 기록 업데이트
@@ -306,7 +307,7 @@ export function checkIn(employeeId: string, time?: string) {
 			employeeId,
 			date: today,
 			checkIn: now,
-			status: 'present'
+			status: 'present' as const
 		});
 	}
 }
