@@ -13,7 +13,8 @@
 		CalendarIcon,
 		MessageSquareIcon,
 		ChevronLeftIcon,
-		ChevronRightIcon
+		ChevronRightIcon,
+		DollarSignIcon
 	} from 'lucide-svelte';
 	import ThemeButton from '$lib/components/ui/ThemeButton.svelte';
 
@@ -23,6 +24,7 @@
 	const navigationItems = [
 		{ name: '대시보드', href: '/', icon: HomeIcon },
 		{ name: '재무관리', href: '/finance', icon: BanknoteIcon },
+		{ name: '급여관리', href: '/salary', icon: DollarSignIcon },
 		{ name: '인사관리', href: '/hr', icon: UsersIcon },
 		{ name: '연구개발', href: '/project-management', icon: FlaskConicalIcon },
 		{ name: '영업관리', href: '/sales', icon: BriefcaseIcon },

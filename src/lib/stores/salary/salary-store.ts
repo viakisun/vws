@@ -1,18 +1,15 @@
 // 급여 관리 시스템 - 급여 스토어
 
-import { writable, derived, get } from 'svelte/store';
-import type { 
-	SalaryStructure, 
-	Payroll, 
-	EmployeePayroll, 
-	Payslip,
-	SalaryHistory,
-	SalaryStatistics,
-	SalarySearchFilter,
-	SalarySearchResult,
-	ApiResponse,
-	PaginatedResponse
+import type {
+    ApiResponse,
+    EmployeePayroll,
+    Payroll,
+    Payslip,
+    SalaryHistory,
+    SalarySearchFilter,
+    SalaryStructure
 } from '$lib/types/salary';
+import { derived, writable } from 'svelte/store';
 
 // ===== 기본 스토어 =====
 export const salaryStructures = writable<SalaryStructure[]>([]);
@@ -134,16 +131,21 @@ export const departmentSalaryStats = derived(
 				};
 			}
 
-			stats[payroll.department].employeeCount++;
-			stats[payroll.department].totalGrossSalary += payroll.grossSalary;
-			stats[payroll.department].totalNetSalary += payroll.netSalary;
+			const deptStats = stats[payroll.department];
+			if (deptStats) {
+				deptStats.employeeCount++;
+				deptStats.totalGrossSalary += payroll.grossSalary;
+				deptStats.totalNetSalary += payroll.netSalary;
+			}
 		});
 
 		// 평균 계산
 		Object.keys(stats).forEach(dept => {
 			const stat = stats[dept];
-			stat.averageGrossSalary = stat.employeeCount > 0 ? stat.totalGrossSalary / stat.employeeCount : 0;
-			stat.averageNetSalary = stat.employeeCount > 0 ? stat.totalNetSalary / stat.employeeCount : 0;
+			if (stat) {
+				stat.averageGrossSalary = stat.employeeCount > 0 ? stat.totalGrossSalary / stat.employeeCount : 0;
+				stat.averageNetSalary = stat.employeeCount > 0 ? stat.totalNetSalary / stat.employeeCount : 0;
+			}
 		});
 
 		return stats;

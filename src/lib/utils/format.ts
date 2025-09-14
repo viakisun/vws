@@ -9,6 +9,13 @@ export function formatCurrency(amount: number | undefined | null): string {
 	return amount.toLocaleString('ko-KR') + '원';
 }
 
+export function formatPercentage(value: number | undefined | null): string {
+	if (value === undefined || value === null || isNaN(value)) {
+		return '0%';
+	}
+	return value.toFixed(1) + '%';
+}
+
 export function formatDate(dateString: string): string {
 	const date = new Date(dateString);
 	return date.toLocaleDateString('ko-KR', {

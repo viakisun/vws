@@ -217,7 +217,7 @@
 	}
 
 	// 미리보기 보기
-	function showPreview() {
+	function openPreview() {
 		if (!generatedPayslip) {
 			generatePayslip();
 		} else {
@@ -229,7 +229,7 @@
 <div class="flex items-center space-x-2">
 	{#if showPreview}
 		<button
-			onclick={showPreview}
+			onclick={openPreview}
 			class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
 		>
 			<EyeIcon size={16} class="mr-1" />
