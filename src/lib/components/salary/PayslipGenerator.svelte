@@ -91,7 +91,37 @@
 	// 급여명세서 생성
 	async function generatePayslip() {
 		// payroll prop이 있으면 그것을 사용, 없으면 선택된 급여 데이터 사용
-		const targetPayroll = payroll || selectedPayroll;
+		let targetPayroll = payroll || selectedPayroll;
+		
+		// 급여 데이터가 없지만 직원이 선택된 경우, 현재 계약 정보로 생성
+		if (!targetPayroll && selectedEmployeeId) {
+			// 현재 계약 정보 로드
+			await loadCurrentContract(selectedEmployeeId);
+			
+			if (!currentContract) {
+				alert('현재 계약 정보를 찾을 수 없습니다.');
+				return;
+			}
+			
+			// 선택된 직원 정보 가져오기
+			const selectedEmployee = employees.find(emp => emp.id === selectedEmployeeId);
+			if (!selectedEmployee) {
+				alert('선택된 직원 정보를 찾을 수 없습니다.');
+				return;
+			}
+			
+			// 가상의 급여 데이터 생성
+			targetPayroll = {
+				employeeId: selectedEmployeeId,
+				employeeName: selectedEmployee.name,
+				employeeIdNumber: selectedEmployee.id,
+				department: selectedEmployee.department,
+				position: selectedEmployee.name.split('(')[1]?.replace(')', '') || '연구원',
+				baseSalary: currentContract.monthlySalary.toString(),
+				payrollId: `payroll_${Date.now()}`,
+				payDate: new Date().toISOString()
+			};
+		}
 		
 		if (!targetPayroll) {
 			alert('급여 데이터를 선택해주세요.');
@@ -402,8 +432,15 @@
 	{/if}
 	
 	<button
-		onclick={generatePayslip}
-		disabled={isGenerating || (!payroll && !selectedPayroll)}
+		onclick={() => {
+			console.log('명세서 생성 버튼 클릭됨');
+			console.log('payroll:', payroll);
+			console.log('selectedPayroll:', selectedPayroll);
+			console.log('selectedEmployeeId:', selectedEmployeeId);
+			console.log('currentContract:', currentContract);
+			generatePayslip();
+		}}
+		disabled={isGenerating || (!payroll && !selectedPayroll && !selectedEmployeeId)}
 		class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
 	>
 		{#if isGenerating}
