@@ -130,7 +130,6 @@ export const GET: RequestHandler = async ({ params }) => {
 		});
 
 	} catch (error) {
-		console.error('Error fetching employee salary info:', error);
 		return json({
 			success: false,
 			error: '직원 급여 정보 조회에 실패했습니다.'

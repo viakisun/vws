@@ -66,7 +66,6 @@ export async function GET({ url }) {
 
 		return json({ success: true, data: rows });
 	} catch (error) {
-		console.error('Error fetching payslips:', error);
 		return json({
 			success: false,
 			error: '급여명세서 목록을 가져오는데 실패했습니다.',
@@ -78,7 +77,6 @@ export async function GET({ url }) {
 export async function POST({ request }) {
 	try {
 		const payslipData = await request.json();
-		console.log('급여명세서 저장 요청 데이터:', JSON.stringify(payslipData, null, 2));
 		
 		const {
 			employeeId,
@@ -102,7 +100,7 @@ export async function POST({ request }) {
 			}, { status: 400 });
 		}
 
-		// period에서 시작일과 종료일 계산 (예: "2024-12" -> "2024-12-01", "2024-12-31")
+		// period에서 시작일과 종료일 계산 (예: "2025-09" -> "2025-09-01", "2025-09-30")
 		const [year, month] = period.split('-');
 		const payPeriodStart = `${year}-${month.padStart(2, '0')}-01`;
 		const payPeriodEnd = new Date(parseInt(year), parseInt(month), 0).toISOString().split('T')[0]; // 해당 월의 마지막 날
@@ -163,12 +161,6 @@ export async function POST({ request }) {
 
 		return json({ success: true, data: result.rows[0] });
 	} catch (error) {
-		console.error('Error saving payslip:', error);
-		console.error('Error details:', {
-			message: error instanceof Error ? error.message : 'Unknown error',
-			stack: error instanceof Error ? error.stack : undefined,
-			name: error instanceof Error ? error.name : undefined
-		});
 		return json({
 			success: false,
 			error: '급여명세서 저장에 실패했습니다.',

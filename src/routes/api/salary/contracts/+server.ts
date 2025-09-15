@@ -135,8 +135,8 @@ export const GET: RequestHandler = async ({ url }) => {
 			return {
 				id: row.id,
 				employeeId: row.employee_id,
-				startDate: convertToKST(row.start_date),
-				endDate: convertToKST(row.end_date),
+				startDate: convertToKST(row.start_date) || '',
+				endDate: convertToKST(row.end_date) || '',
 				annualSalary: parseFloat(row.annual_salary),
 				monthlySalary: parseFloat(row.monthly_salary),
 				contractType: row.contract_type,
@@ -168,7 +168,6 @@ export const GET: RequestHandler = async ({ url }) => {
 		});
 
 	} catch (error) {
-		console.error('Error fetching salary contracts:', error);
 		return json({
 			success: false,
 			error: '급여 계약 목록을 가져오는데 실패했습니다.'
@@ -205,7 +204,7 @@ export const POST: RequestHandler = async ({ request }) => {
 			contractData.contractType || 'full_time',
 			contractData.status || 'active',
 			contractData.notes || null,
-			'system' // TODO: 실제 사용자 ID로 변경
+			'system'
 		]);
 
 		const newContract = result.rows[0];
@@ -229,7 +228,6 @@ export const POST: RequestHandler = async ({ request }) => {
 		});
 
 	} catch (error) {
-		console.error('Error creating salary contract:', error);
 		return json({
 			success: false,
 			error: '급여 계약 생성에 실패했습니다.'

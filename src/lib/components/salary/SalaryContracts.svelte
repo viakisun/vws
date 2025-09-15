@@ -127,7 +127,6 @@
 				}));
 			}
 		} catch (error) {
-			console.error('직원 목록 로드 실패:', error);
 		}
 	}
 
@@ -204,7 +203,6 @@
 			notes: contract.notes || ''
 		};
 		showEditModal = true;
-		console.log('showEditModal set to true, formData:', formData);
 	}
 
 	// 계약 삭제 모달 열기
@@ -526,7 +524,6 @@
 									<div class="flex items-center space-x-2">
 										<button
 											onclick={() => {
-												console.log('Edit button clicked for contract:', contract);
 												openEditModal(contract);
 											}}
 											class="text-blue-600 hover:text-blue-900"

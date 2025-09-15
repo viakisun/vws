@@ -196,7 +196,6 @@ export async function POST({ request }) {
 		});
 
 	} catch (error) {
-		console.error('Error uploading payslip file:', error);
 		return json({
 			success: false,
 			error: '파일 업로드 처리 중 오류가 발생했습니다.',

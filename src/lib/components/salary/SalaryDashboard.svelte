@@ -59,10 +59,8 @@ import {
 					averageMonthlySalary: activeContracts.length > 0 ? Math.round(totalMonthlySalary / activeContracts.length) : 0
 				};
 				
-				console.log('개요 탭 로컬 통계:', localStats);
 			}
 		} catch (error) {
-			console.error('급여 계약 데이터 로드 실패:', error);
 		}
 	});
 

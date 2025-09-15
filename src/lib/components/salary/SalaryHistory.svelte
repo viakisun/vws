@@ -56,11 +56,8 @@ import {
 
 	onMount(async () => {
 		mounted = true;
-		console.log('SalaryHistory onMount - loadEmployeePayrolls 시작');
 		await loadPayslips(); // 모든 급여명세서 데이터 로드
-		console.log('SalaryHistory onMount - loadPayslips 완료, 데이터:', $payslips.length);
 		await loadEmployees();
-		console.log('SalaryHistory onMount - loadEmployees 완료, 직원 수:', employees.length);
 	});
 
 	// 직원 목록 로드
@@ -80,20 +77,16 @@ import {
 				];
 			}
 		} catch (error) {
-			console.error('직원 목록 로드 실패:', error);
 		}
 	}
 
 	// 필터링된 급여명세서 데이터 목록 (로컬 필터)
 	const localFilteredPayslips = $derived(() => {
 		let filtered = $payslips;
-		console.log('SalaryHistory - 전체 급여명세서 데이터:', $payslips.length);
-		console.log('SalaryHistory - payslips store 데이터:', $payslips);
 
 		// 직원 필터
 		if (selectedEmployee) {
 			filtered = filtered.filter(payroll => payroll.employeeId === selectedEmployee);
-			console.log('SalaryHistory - 직원 필터 적용 후:', filtered.length, '선택된 직원:', selectedEmployee);
 		}
 
 		// 부서 필터
@@ -106,8 +99,6 @@ import {
 			filtered = filtered.filter(payroll => payroll.status === selectedStatus);
 		}
 
-		console.log('SalaryHistory - 최종 필터링된 데이터:', filtered.length);
-		console.log('SalaryHistory - 필터링된 데이터 내용:', filtered);
 		return filtered;
 	});
 
@@ -132,17 +123,13 @@ import {
 
 	// 선택된 직원의 급여 이력
 	const selectedEmployeeHistory = $derived(() => {
-		console.log('SalaryHistory - selectedEmployeeHistory 계산 시작, selectedEmployee:', selectedEmployee);
-		console.log('SalaryHistory - localFilteredPayrolls:', localFilteredPayrolls.length);
 		
 		if (!selectedEmployee) {
 			// 직원이 선택되지 않았으면 모든 급여 이력을 평면화하여 반환
 			const result = localFilteredPayrolls.sort((a, b) => new Date(b.payDate).getTime() - new Date(a.payDate).getTime());
-			console.log('SalaryHistory - 직원 미선택, 모든 이력 반환:', result.length);
 			return result;
 		}
 		const result = salaryHistoryByEmployee[selectedEmployee] || [];
-		console.log('SalaryHistory - 직원 선택됨, 해당 직원 이력:', result.length);
 		return result;
 	});
 

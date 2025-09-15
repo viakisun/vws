@@ -80,7 +80,6 @@ export const GET: RequestHandler = async ({ params }) => {
 		});
 
 	} catch (error) {
-		console.error('Error fetching salary contract:', error);
 		return json({
 			success: false,
 			error: '급여 계약 조회에 실패했습니다.'
@@ -196,7 +195,6 @@ export const PUT: RequestHandler = async ({ params, request }) => {
 		});
 
 	} catch (error) {
-		console.error('Error updating salary contract:', error);
 		return json({
 			success: false,
 			error: '급여 계약 수정에 실패했습니다.'
@@ -228,7 +226,6 @@ export const DELETE: RequestHandler = async ({ params }) => {
 		});
 
 	} catch (error) {
-		console.error('Error deleting salary contract:', error);
 		return json({
 			success: false,
 			error: '급여 계약 삭제에 실패했습니다.'

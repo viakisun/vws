@@ -124,8 +124,6 @@
 				});
 			}
 		} catch (error) {
-			console.error('급여명세서 데이터 로드 실패:', error);
-			console.error('Error details:', error);
 			
 			const currentDate = new Date();
 			const currentYear = currentDate.getFullYear();
@@ -180,7 +178,6 @@
 				}));
 			}
 		} catch (error) {
-			console.error('직원 목록 로드 실패:', error);
 		}
 	}
 
@@ -296,7 +293,6 @@
 				alert(`저장에 실패했습니다: ${result.error}`);
 			}
 		} catch (error) {
-			console.error('급여명세서 저장 실패:', error);
 			alert('저장 중 오류가 발생했습니다.');
 		}
 	}

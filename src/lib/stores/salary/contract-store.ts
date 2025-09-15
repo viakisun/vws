@@ -134,11 +134,6 @@ export async function loadContracts(filter?: Partial<SalaryContractFilter>): Pro
 		const response = await fetch(`/api/salary/contracts?${params.toString()}`);
 		const result: ApiResponse<PaginatedResponse<SalaryContract>> = await response.json();
 
-		console.log('loadContracts API 응답:', {
-			success: result.success,
-			dataLength: result.data?.data?.length || 0,
-			error: result.error
-		});
 
 		if (result.success && result.data) {
 			contracts.set(result.data.data);
@@ -148,9 +143,7 @@ export async function loadContracts(filter?: Partial<SalaryContractFilter>): Pro
 				total: result.data.total,
 				totalPages: result.data.totalPages
 			});
-			console.log('contracts 설정 완료:', result.data.data.length, '개');
 		} else {
-			console.error('loadContracts 실패:', result.error);
 			error.set(result.error || '급여 계약 목록을 불러오는데 실패했습니다.');
 		}
 	} catch (err) {
@@ -250,7 +243,6 @@ export async function updateContract(contractId: string, updateData: UpdateSalar
 			// 전체 목록을 다시 로드하여 완전한 데이터로 업데이트
 			// loadContracts는 자체적으로 isLoading을 관리하므로 여기서는 설정하지 않음
 			await loadContracts();
-			console.log('Contract updated, full list reloaded');
 			return true;
 		} else {
 			error.set(result.error || '급여 계약 수정에 실패했습니다.');

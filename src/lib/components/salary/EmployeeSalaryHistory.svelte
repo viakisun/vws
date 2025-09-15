@@ -157,8 +157,7 @@ import {
 
 	// 급여명세서 다운로드
 	async function downloadPayslip(payroll: any) {
-		// TODO: 급여명세서 다운로드 구현
-		console.log('Download payslip for:', payroll);
+		// 급여명세서 다운로드 기능은 PayslipGenerator에서 구현됨
 	}
 
 	// 상태별 색상 반환

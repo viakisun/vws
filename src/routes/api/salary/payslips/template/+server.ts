@@ -159,7 +159,6 @@ export async function GET({ url }) {
 		});
 
 	} catch (error) {
-		console.error('Error generating payslip template:', error);
 		return json({
 			success: false,
 			error: '엑셀 템플릿 생성에 실패했습니다.',

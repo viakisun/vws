@@ -209,7 +209,6 @@ export async function GET({ params, url }) {
 		});
 
 	} catch (error) {
-		console.error('Error fetching employee payslip:', error);
 		return json({
 			success: false,
 			error: '직원 급여명세서를 가져오는데 실패했습니다.',

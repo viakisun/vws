@@ -77,7 +77,6 @@ export const GET: RequestHandler = async () => {
 		});
 
 	} catch (error) {
-		console.error('Error fetching salary contract stats:', error);
 		return json({
 			success: false,
 			error: '급여 계약 통계 조회에 실패했습니다.'
