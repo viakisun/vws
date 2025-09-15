@@ -34,6 +34,7 @@
 	// 현재 월을 기본값으로 설정
 	let selectedPeriod = $state(new Date().toISOString().slice(0, 7)); // YYYY-MM 형식
 	let currentContract = $state<any>(null);
+	let isLoadingPayroll = $state(false);
 	
 	// 급여명세서 작성 모드
 	let isPayslipEditMode = $state<boolean>(false);
@@ -82,17 +83,43 @@
 
 	// 급여 데이터 로드
 	async function loadPayrollData() {
-		if (!selectedEmployeeId) return;
+		console.log('급여 조회 시작:', { selectedEmployeeId, selectedPeriod });
+		
+		if (!selectedEmployeeId) {
+			alert('직원을 먼저 선택해주세요.');
+			return;
+		}
+		
+		isLoadingPayroll = true;
 		
 		try {
+			console.log('급여 데이터 로드 중...');
 			await loadEmployeePayrolls(selectedPeriod);
+			
+			console.log('로드된 급여 데이터:', $employeePayrolls);
+			
 			// 선택된 직원의 급여 데이터 찾기
 			const payroll = $employeePayrolls.find(p => p.employeeId === selectedEmployeeId);
+			console.log('찾은 급여 데이터:', payroll);
+			
 			selectedPayroll = payroll || null;
+			
+			if (!selectedPayroll) {
+				console.log('해당 기간의 급여 데이터가 없습니다. 계약 정보를 확인합니다.');
+				alert('해당 기간의 급여 데이터가 없습니다. 계약 정보를 확인합니다.');
+			} else {
+				console.log('급여 데이터 조회 완료');
+			}
+			
 			// 현재 계약 정보도 함께 로드
 			await loadCurrentContract(selectedEmployeeId);
+			console.log('현재 계약 정보:', currentContract);
+			
 		} catch (error) {
 			console.error('급여 데이터 로드 실패:', error);
+			alert('급여 데이터를 불러오는데 실패했습니다: ' + (error instanceof Error ? error.message : '알 수 없는 오류'));
+		} finally {
+			isLoadingPayroll = false;
 		}
 	}
 
@@ -672,10 +699,19 @@
 			<div class="flex items-end">
 				<button
 					onclick={loadPayrollData}
-					class="w-full inline-flex items-center justify-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+					disabled={isLoadingPayroll || !selectedEmployeeId}
+					class="w-full inline-flex items-center justify-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
 				>
-					<SearchIcon size={16} class="mr-1" />
-					급여 조회
+					{#if isLoadingPayroll}
+						<svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+							<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+							<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+						</svg>
+						조회 중...
+					{:else}
+						<SearchIcon size={16} class="mr-1" />
+						급여 조회
+					{/if}
 				</button>
 			</div>
 		</div>
