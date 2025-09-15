@@ -241,7 +241,7 @@ export async function loadEmployeePayrolls(period?: string): Promise<void> {
 	error.set(null);
 
 	try {
-		const url = period ? `/api/salary/payrolls/${period}/employees` : '/api/salary/employee-payrolls';
+		const url = period ? `/api/salary/employee-payrolls?period=${period}` : '/api/salary/employee-payrolls';
 		const response = await fetch(url);
 		const result: ApiResponse<EmployeePayroll[]> = await response.json();
 
