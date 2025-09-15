@@ -62,11 +62,23 @@
 	// 직원 목록
 	let employees: any[] = [];
 
+	// 디버깅을 위한 reactive statements
+	$: {
+		console.log('Contracts data changed:', $contracts);
+		console.log('Filtered contracts:', $filteredContracts);
+		console.log('Is loading:', $isLoading);
+		console.log('Error:', $error);
+	}
+
 	onMount(async () => {
 		mounted = true;
+		console.log('SalaryContracts onMount - 시작');
 		await loadContracts();
+		console.log('SalaryContracts onMount - loadContracts 완료');
 		await loadContractStats();
+		console.log('SalaryContracts onMount - loadContractStats 완료');
 		await loadEmployees();
+		console.log('SalaryContracts onMount - loadEmployees 완료');
 	});
 
 	// 직원 목록 로드
@@ -395,7 +407,7 @@
 			<div class="bg-red-50 border border-red-200 rounded-lg p-4">
 				<span class="text-red-800">{$error}</span>
 			</div>
-		{:else if $filteredContracts.length === 0}
+		{:else if $contracts.length === 0}
 			<div class="text-center py-12">
 				<FileTextIcon size={48} class="mx-auto text-gray-400 mb-4" />
 				<p class="text-gray-500">급여 계약이 없습니다.</p>
@@ -414,7 +426,7 @@
 						</tr>
 					</thead>
 					<tbody class="bg-white divide-y divide-gray-200">
-						{#each $filteredContracts as contract}
+						{#each $contracts as contract}
 							<tr class="hover:bg-gray-50">
 								<td class="px-6 py-4 whitespace-nowrap">
 									<div>
