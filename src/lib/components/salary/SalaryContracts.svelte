@@ -509,16 +509,18 @@
 				/>
 			</div>
 			<div>
-				<label class="block text-sm font-medium text-gray-700 mb-1">종료일</label>
+				<label for="create-endDate" class="block text-sm font-medium text-gray-700 mb-1">종료일</label>
 				<input
+					id="create-endDate"
 					type="date"
 					bind:value={formData.endDate}
 					class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 				/>
 			</div>
 			<div>
-				<label class="block text-sm font-medium text-gray-700 mb-1">연봉 (원) *</label>
+				<label for="create-annualSalary" class="block text-sm font-medium text-gray-700 mb-1">연봉 (원) *</label>
 				<input
+					id="create-annualSalary"
 					type="number"
 					bind:value={formData.annualSalary}
 					oninput={calculateMonthlySalary}
@@ -527,8 +529,9 @@
 				/>
 			</div>
 			<div>
-				<label class="block text-sm font-medium text-gray-700 mb-1">월급 (원) *</label>
+				<label for="create-monthlySalary" class="block text-sm font-medium text-gray-700 mb-1">월급 (원) *</label>
 				<input
+					id="create-monthlySalary"
 					type="number"
 					bind:value={formData.monthlySalary}
 					oninput={calculateAnnualSalary}
@@ -538,8 +541,9 @@
 			</div>
 		</div>
 		<div>
-			<label class="block text-sm font-medium text-gray-700 mb-1">비고</label>
+			<label for="create-notes" class="block text-sm font-medium text-gray-700 mb-1">비고</label>
 			<textarea
+				id="create-notes"
 				bind:value={formData.notes}
 				rows="3"
 				class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -599,16 +603,18 @@
 				/>
 			</div>
 			<div>
-				<label class="block text-sm font-medium text-gray-700 mb-1">종료일</label>
+				<label for="edit-endDate" class="block text-sm font-medium text-gray-700 mb-1">종료일</label>
 				<input
+					id="edit-endDate"
 					type="date"
 					bind:value={formData.endDate}
 					class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 				/>
 			</div>
 			<div>
-				<label class="block text-sm font-medium text-gray-700 mb-1">연봉 (원)</label>
+				<label for="edit-annualSalary" class="block text-sm font-medium text-gray-700 mb-1">연봉 (원)</label>
 				<input
+					id="edit-annualSalary"
 					type="number"
 					bind:value={formData.annualSalary}
 					oninput={calculateMonthlySalary}
@@ -616,8 +622,9 @@
 				/>
 			</div>
 			<div>
-				<label class="block text-sm font-medium text-gray-700 mb-1">월급 (원)</label>
+				<label for="edit-monthlySalary" class="block text-sm font-medium text-gray-700 mb-1">월급 (원)</label>
 				<input
+					id="edit-monthlySalary"
 					type="number"
 					bind:value={formData.monthlySalary}
 					oninput={calculateAnnualSalary}
@@ -626,8 +633,9 @@
 			</div>
 		</div>
 		<div>
-			<label class="block text-sm font-medium text-gray-700 mb-1">비고</label>
+			<label for="edit-notes" class="block text-sm font-medium text-gray-700 mb-1">비고</label>
 			<textarea
+				id="edit-notes"
 				bind:value={formData.notes}
 				rows="3"
 				class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
