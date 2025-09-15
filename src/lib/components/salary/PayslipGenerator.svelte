@@ -919,6 +919,19 @@
 		@page {
 			margin: 0 !important;
 			padding: 0 !important;
+			size: A4 portrait !important;
+		}
+		
+		/* 모든 요소의 기본 여백 제거 */
+		* {
+			margin: 0 !important;
+			padding: 0 !important;
+		}
+		
+		/* body 여백 제거 */
+		body {
+			margin: 0 !important;
+			padding: 0 !important;
 		}
 		
 		/* 모달 외부 모든 요소 숨기기 */
@@ -934,13 +947,13 @@
 		
 		/* 급여명세서 컨테이너 위치 조정 */
 		.payslip-container {
-			position: absolute !important;
+			position: fixed !important;
 			left: 0 !important;
 			top: 0 !important;
 			width: 210mm !important;
 			height: 297mm !important;
 			margin: 0 !important;
-			padding: 10mm !important;
+			padding: 3mm !important;
 			box-shadow: none !important;
 			border: none !important;
 			background: white !important;
@@ -948,6 +961,7 @@
 			font-size: 12px !important;
 			line-height: 1.4 !important;
 			color: black !important;
+			overflow: visible !important;
 		}
 		
 		/* 제목 스타일 */
