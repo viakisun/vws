@@ -6,16 +6,13 @@
 	import ThemeSpacer from '$lib/components/ui/ThemeSpacer.svelte';
 	import ThemeSectionHeader from '$lib/components/ui/ThemeSectionHeader.svelte';
 	import { 
-		contracts, 
-		filteredContracts,
-		contractFilter,
+		employeePayrolls,
 		isLoading,
 		error,
-		loadContracts,
-		updateFilter
-	} from '$lib/stores/salary/contract-store';
+		loadEmployeePayrolls
+	} from '$lib/stores/salary/salary-store';
 	import { formatCurrency, formatDate } from '$lib/utils/format';
-	import type { SalaryContract } from '$lib/types/salary-contracts';
+	import type { EmployeePayroll } from '$lib/types/salary';
 	import { 
 		SearchIcon,
 		FilterIcon,
@@ -41,7 +38,7 @@
 
 	onMount(async () => {
 		mounted = true;
-		await loadContracts();
+		await loadEmployeePayrolls('2024-12'); // 최신 급여 데이터 로드
 		await loadEmployees();
 	});
 
@@ -66,28 +63,23 @@
 		}
 	}
 
-	// 필터링된 계약 목록 (로컬 필터)
-	const localFilteredContracts = $derived(() => {
-		let filtered = $contracts;
+	// 필터링된 급여 데이터 목록 (로컬 필터)
+	const localFilteredPayrolls = $derived(() => {
+		let filtered = $employeePayrolls;
 
 		// 직원 필터
 		if (selectedEmployee) {
-			filtered = filtered.filter(contract => contract.employeeId === selectedEmployee);
+			filtered = filtered.filter(payroll => payroll.employeeId === selectedEmployee);
 		}
 
 		// 부서 필터
 		if (selectedDepartment) {
-			filtered = filtered.filter(contract => contract.department === selectedDepartment);
-		}
-
-		// 계약 유형 필터
-		if (selectedContractType) {
-			filtered = filtered.filter(contract => contract.contractType === selectedContractType);
+			filtered = filtered.filter(payroll => payroll.department === selectedDepartment);
 		}
 
 		// 상태 필터
 		if (selectedStatus) {
-			filtered = filtered.filter(contract => contract.status === selectedStatus);
+			filtered = filtered.filter(payroll => payroll.status === selectedStatus);
 		}
 
 		return filtered;
@@ -95,18 +87,18 @@
 
 	// 직원별 급여 이력 그룹화
 	const salaryHistoryByEmployee = $derived(() => {
-		const historyMap: Record<string, SalaryContract[]> = {};
+		const historyMap: Record<string, EmployeePayroll[]> = {};
 		
-		localFilteredContracts.forEach(contract => {
-			if (!historyMap[contract.employeeId]) {
-				historyMap[contract.employeeId] = [];
+		localFilteredPayrolls.forEach(payroll => {
+			if (!historyMap[payroll.employeeId]) {
+				historyMap[payroll.employeeId] = [];
 			}
-			historyMap[contract.employeeId].push(contract);
+			historyMap[payroll.employeeId].push(payroll);
 		});
 
-		// 각 직원별로 계약을 시작일 기준으로 정렬
+		// 각 직원별로 급여를 지급일 기준으로 정렬 (최신순)
 		Object.keys(historyMap).forEach(employeeId => {
-			historyMap[employeeId].sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime());
+			historyMap[employeeId].sort((a, b) => new Date(b.payDate).getTime() - new Date(a.payDate).getTime());
 		});
 
 		return historyMap;
@@ -127,13 +119,13 @@
 	}
 
 	// 급여 변화 계산
-	function calculateSalaryChange(contracts: SalaryContract[], index: number): { change: number; percentage: number; direction: 'up' | 'down' | 'same' } {
+	function calculateSalaryChange(payrolls: EmployeePayroll[], index: number): { change: number; percentage: number; direction: 'up' | 'down' | 'same' } {
 		if (index === 0) {
 			return { change: 0, percentage: 0, direction: 'same' };
 		}
 
-		const currentSalary = contracts[index].annualSalary;
-		const previousSalary = contracts[index - 1].annualSalary;
+		const currentSalary = parseFloat(String(payrolls[index].netSalary));
+		const previousSalary = parseFloat(String(payrolls[index - 1].netSalary));
 		const change = currentSalary - previousSalary;
 		const percentage = previousSalary > 0 ? (change / previousSalary) * 100 : 0;
 
@@ -144,35 +136,15 @@
 		};
 	}
 
-	// 계약 유형별 색상
-	function getContractTypeColor(type: string): string {
-		switch (type) {
-			case 'full_time': return 'bg-blue-100 text-blue-800';
-			case 'part_time': return 'bg-green-100 text-green-800';
-			case 'contract': return 'bg-yellow-100 text-yellow-800';
-			case 'intern': return 'bg-purple-100 text-purple-800';
-			default: return 'bg-gray-100 text-gray-800';
-		}
-	}
-
-	// 계약 유형 표시명
-	function getContractTypeLabel(type: string): string {
-		switch (type) {
-			case 'full_time': return '정규직';
-			case 'part_time': return '파트타임';
-			case 'contract': return '계약직';
-			case 'intern': return '인턴';
-			default: return type;
-		}
-	}
 
 	// 상태별 색상
 	function getStatusColor(status: string): string {
 		switch (status) {
-			case 'active': return 'bg-green-100 text-green-800';
-			case 'expired': return 'bg-red-100 text-red-800';
-			case 'terminated': return 'bg-gray-100 text-gray-800';
-			case 'draft': return 'bg-yellow-100 text-yellow-800';
+			case 'calculated': return 'bg-blue-100 text-blue-800';
+			case 'approved': return 'bg-green-100 text-green-800';
+			case 'paid': return 'bg-emerald-100 text-emerald-800';
+			case 'pending': return 'bg-yellow-100 text-yellow-800';
+			case 'error': return 'bg-red-100 text-red-800';
 			default: return 'bg-gray-100 text-gray-800';
 		}
 	}
@@ -180,10 +152,11 @@
 	// 상태 표시명
 	function getStatusLabel(status: string): string {
 		switch (status) {
-			case 'active': return '진행중';
-			case 'expired': return '만료됨';
-			case 'terminated': return '종료됨';
-			case 'draft': return '임시저장';
+			case 'calculated': return '계산완료';
+			case 'approved': return '승인완료';
+			case 'paid': return '지급완료';
+			case 'pending': return '대기중';
+			case 'error': return '오류';
 			default: return status;
 		}
 	}
@@ -260,16 +233,15 @@
 					</select>
 				</div>
 				<div>
-					<label class="block text-sm font-medium text-gray-700 mb-1">계약 유형</label>
+					<label class="block text-sm font-medium text-gray-700 mb-1">급여 기간</label>
 					<select
 						bind:value={selectedContractType}
 						class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 					>
 						<option value="">전체</option>
-						<option value="full_time">정규직</option>
-						<option value="part_time">파트타임</option>
-						<option value="contractor">계약직</option>
-						<option value="intern">인턴</option>
+						<option value="2024-12">2024년 12월</option>
+						<option value="2024-11">2024년 11월</option>
+						<option value="2024-10">2024년 10월</option>
 					</select>
 				</div>
 				<div>
@@ -279,10 +251,10 @@
 						class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 					>
 						<option value="">전체</option>
-						<option value="active">진행중</option>
-						<option value="expired">만료됨</option>
-						<option value="terminated">종료됨</option>
-						<option value="draft">임시저장</option>
+						<option value="calculated">계산완료</option>
+						<option value="approved">승인완료</option>
+						<option value="paid">지급완료</option>
+						<option value="pending">대기중</option>
 					</select>
 				</div>
 				<div class="flex items-end space-x-2">
@@ -320,7 +292,7 @@
 		</div>
 	{:else}
 		<!-- 선택된 직원의 급여 이력 -->
-		{#each selectedEmployeeHistory as contract, index}
+		{#each selectedEmployeeHistory as payroll, index}
 			<ThemeCard class="p-6">
 				<div class="flex items-start justify-between">
 					<div class="flex-1">
@@ -328,56 +300,53 @@
 							<div class="flex items-center space-x-2">
 								<CalendarIcon size={20} class="text-gray-400" />
 								<span class="text-lg font-semibold text-gray-900">
-									{formatDate(contract.startDate)} ~ {contract.endDate ? formatDate(contract.endDate) : '무기한'}
+									{formatDate(payroll.payDate)} 지급분
 								</span>
 							</div>
-							<ThemeBadge class={getContractTypeColor(contract.contractType)}>
-								{getContractTypeLabel(contract.contractType)}
-							</ThemeBadge>
-							<ThemeBadge class={getStatusColor(contract.status)}>
-								{getStatusLabel(contract.status)}
+							<ThemeBadge class={getStatusColor(payroll.status)}>
+								{getStatusLabel(payroll.status)}
 							</ThemeBadge>
 						</div>
 
-						<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+						<div class="grid grid-cols-1 md:grid-cols-4 gap-6">
 							<div class="space-y-2">
-								<div class="text-sm text-gray-500">연봉</div>
-								<div class="text-2xl font-bold text-gray-900">{formatCurrency(contract.annualSalary)}</div>
+								<div class="text-sm text-gray-500">기본급</div>
+								<div class="text-xl font-bold text-gray-900">{formatCurrency(payroll.baseSalary)}</div>
 							</div>
 							<div class="space-y-2">
-								<div class="text-sm text-gray-500">월급</div>
-								<div class="text-xl font-semibold text-gray-900">{formatCurrency(contract.monthlySalary)}</div>
+								<div class="text-sm text-gray-500">총 지급액</div>
+								<div class="text-xl font-semibold text-gray-900">{formatCurrency(payroll.grossSalary)}</div>
 							</div>
 							<div class="space-y-2">
-								<div class="text-sm text-gray-500">급여 변화</div>
-								{#if index > 0}
-									{@const change = calculateSalaryChange(selectedEmployeeHistory, index)}
-									<div class="flex items-center space-x-2">
-										{#if change.direction === 'up'}
-											<TrendingUpIcon size={20} class="text-green-500" />
-											<span class="text-green-600 font-semibold">
-												+{formatCurrency(change.change)} (+{change.percentage.toFixed(1)}%)
-											</span>
-										{:else if change.direction === 'down'}
-											<TrendingDownIcon size={20} class="text-red-500" />
-											<span class="text-red-600 font-semibold">
-												-{formatCurrency(Math.abs(change.change))} (-{change.percentage.toFixed(1)}%)
-											</span>
-										{:else}
-											<MinusIcon size={20} class="text-gray-500" />
-											<span class="text-gray-500 font-semibold">변화 없음</span>
-										{/if}
-									</div>
-								{:else}
-									<span class="text-gray-500 font-semibold">첫 계약</span>
-								{/if}
+								<div class="text-sm text-gray-500">총 공제액</div>
+								<div class="text-lg font-semibold text-red-600">{formatCurrency(payroll.totalDeductions)}</div>
+							</div>
+							<div class="space-y-2">
+								<div class="text-sm text-gray-500">실지급액</div>
+								<div class="text-2xl font-bold text-green-600">{formatCurrency(payroll.netSalary)}</div>
 							</div>
 						</div>
 
-						{#if contract.notes}
+						<!-- 급여 변화 표시 -->
+						{#if index > 0}
+							{@const change = calculateSalaryChange(selectedEmployeeHistory, index)}
 							<div class="mt-4 p-3 bg-gray-50 rounded-lg">
-								<div class="text-sm text-gray-600">
-									<strong>비고:</strong> {contract.notes}
+								<div class="text-sm text-gray-500 mb-2">이전 급여 대비 변화</div>
+								<div class="flex items-center space-x-2">
+									{#if change.direction === 'up'}
+										<TrendingUpIcon size={20} class="text-green-500" />
+										<span class="text-green-600 font-semibold">
+											+{formatCurrency(change.change)} (+{change.percentage.toFixed(1)}%)
+										</span>
+									{:else if change.direction === 'down'}
+										<TrendingDownIcon size={20} class="text-red-500" />
+										<span class="text-red-600 font-semibold">
+											-{formatCurrency(Math.abs(change.change))} (-{change.percentage.toFixed(1)}%)
+										</span>
+									{:else}
+										<MinusIcon size={20} class="text-gray-500" />
+										<span class="text-gray-500 font-semibold">변화 없음</span>
+									{/if}
 								</div>
 							</div>
 						{/if}
