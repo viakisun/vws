@@ -10,6 +10,12 @@
 	import SalaryHistory from '$lib/components/salary/SalaryHistory.svelte';
 	import PayslipGenerator from '$lib/components/salary/PayslipGenerator.svelte';
 	import PayslipUploader from '$lib/components/salary/PayslipUploader.svelte';
+	import { 
+		DollarSignIcon, 
+		UsersIcon, 
+		FileTextIcon, 
+		CheckCircleIcon 
+	} from 'lucide-svelte';
 import { 
     loadContracts, 
     loadContractStats,
@@ -21,7 +27,6 @@ import {
 } from '$lib/stores/salary/salary-store';
 import { 
     BarChartIcon, 
-    FileTextIcon, 
     ClockIcon, 
     PrinterIcon 
 } from 'lucide-svelte';
@@ -84,28 +89,28 @@ import {
 						value: totalMonthlySalary.toLocaleString() + '원',
 						change: '변화 없음 (지난달 대비)',
 						changeType: 'neutral',
-						icon: 'DollarSignIcon'
+						icon: DollarSignIcon
 					},
 					{
 						title: '총 직원 수',
 						value: activeContracts.length + '명',
 						change: '변화 없음 (지난달 대비)',
 						changeType: 'neutral',
-						icon: 'UsersIcon'
+						icon: UsersIcon
 					},
 					{
 						title: '총 지급액',
 						value: totalAnnualSalary.toLocaleString() + '원',
 						change: '변화 없음 (지난달 대비)',
 						changeType: 'neutral',
-						icon: 'FileTextIcon'
+						icon: FileTextIcon
 					},
 					{
 						title: '급여 상태',
 						value: '정상',
 						change: '모든 계약 활성',
 						changeType: 'positive',
-						icon: 'CheckCircleIcon'
+						icon: CheckCircleIcon
 					}
 				];
 			}
