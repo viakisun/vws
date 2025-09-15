@@ -50,7 +50,7 @@
 	// 폼 데이터
 	let formData: CreateSalaryContractRequest = {
 		employeeId: '',
-		startDate: '',
+		startDate: new Date().toISOString().split('T')[0], // 오늘 날짜
 		endDate: '',
 		annualSalary: 0,
 		monthlySalary: 0,
@@ -59,18 +59,33 @@
 		notes: ''
 	};
 
-	// 직원 목록 (실제로는 API에서 가져와야 함)
-	let employees = [
-		{ id: '1', name: '김대표', department: '대표', position: '대표' },
-		{ id: '2', name: '최연구소장', department: '연구소', position: '연구소장' },
-		{ id: '3', name: '이책임연구원', department: '연구소', position: '책임연구원' }
-	];
+	// 직원 목록
+	let employees: any[] = [];
 
 	onMount(async () => {
 		mounted = true;
 		await loadContracts();
 		await loadContractStats();
+		await loadEmployees();
 	});
+
+	// 직원 목록 로드
+	async function loadEmployees() {
+		try {
+			const response = await fetch('/api/employees');
+			const result = await response.json();
+			if (result.success) {
+				employees = result.data.map((emp: any) => ({
+					id: emp.id,
+					name: `${emp.last_name}${emp.first_name}`,
+					department: emp.department || '부서없음',
+					position: emp.position || '연구원'
+				}));
+			}
+		} catch (error) {
+			console.error('직원 목록 로드 실패:', error);
+		}
+	}
 
 	// 계약 유형별 색상
 	function getContractTypeColor(type: string): string {
@@ -198,14 +213,14 @@
 		loadContracts();
 	}
 
-	// 연봉 변경 시 월급 자동 계산
+	// 월급 자동 계산 (연봉 변경 시)
 	function calculateMonthlySalary() {
 		if (formData.annualSalary > 0) {
 			formData.monthlySalary = Math.round(formData.annualSalary / 12);
 		}
 	}
 
-	// 월급 변경 시 연봉 자동 계산
+	// 연봉 자동 계산 (월급 변경 시)
 	function calculateAnnualSalary() {
 		if (formData.monthlySalary > 0) {
 			formData.annualSalary = formData.monthlySalary * 12;
