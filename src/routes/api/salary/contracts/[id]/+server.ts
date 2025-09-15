@@ -87,48 +87,48 @@ export const PUT: RequestHandler = async ({ params, request }) => {
 
 		// 업데이트할 필드 구성
 		const updateFields: string[] = [];
-		const params: any[] = [];
+		const queryParams: any[] = [];
 		let paramIndex = 1;
 
 		if (updateData.startDate !== undefined) {
 			updateFields.push(`start_date = $${paramIndex}`);
-			params.push(updateData.startDate);
+			queryParams.push(updateData.startDate);
 			paramIndex++;
 		}
 
 		if (updateData.endDate !== undefined) {
 			updateFields.push(`end_date = $${paramIndex}`);
-			params.push(updateData.endDate || null);
+			queryParams.push(updateData.endDate || null);
 			paramIndex++;
 		}
 
 		if (updateData.annualSalary !== undefined) {
 			updateFields.push(`annual_salary = $${paramIndex}`);
-			params.push(updateData.annualSalary);
+			queryParams.push(updateData.annualSalary);
 			paramIndex++;
 		}
 
 		if (updateData.monthlySalary !== undefined) {
 			updateFields.push(`monthly_salary = $${paramIndex}`);
-			params.push(updateData.monthlySalary);
+			queryParams.push(updateData.monthlySalary);
 			paramIndex++;
 		}
 
 		if (updateData.contractType !== undefined) {
 			updateFields.push(`contract_type = $${paramIndex}`);
-			params.push(updateData.contractType);
+			queryParams.push(updateData.contractType);
 			paramIndex++;
 		}
 
 		if (updateData.status !== undefined) {
 			updateFields.push(`status = $${paramIndex}`);
-			params.push(updateData.status);
+			queryParams.push(updateData.status);
 			paramIndex++;
 		}
 
 		if (updateData.notes !== undefined) {
 			updateFields.push(`notes = $${paramIndex}`);
-			params.push(updateData.notes || null);
+			queryParams.push(updateData.notes || null);
 			paramIndex++;
 		}
 
@@ -141,14 +141,14 @@ export const PUT: RequestHandler = async ({ params, request }) => {
 
 		// updated_at 자동 업데이트
 		updateFields.push(`updated_at = CURRENT_TIMESTAMP`);
-		params.push(id);
+		queryParams.push(id);
 
 		const result = await query(`
 			UPDATE salary_contracts 
 			SET ${updateFields.join(', ')}
 			WHERE id = $${paramIndex}
 			RETURNING *
-		`, params);
+		`, queryParams);
 
 		if (result.rows.length === 0) {
 			return json({
