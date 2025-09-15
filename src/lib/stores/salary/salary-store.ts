@@ -224,7 +224,9 @@ export async function loadPayrolls(): Promise<void> {
 		const result: ApiResponse<Payroll[]> = await response.json();
 
 		if (result.success && result.data) {
-			payrolls.set(result.data);
+			// API 응답이 { data: { data: [...] } } 구조인 경우
+			const payrollData = Array.isArray(result.data) ? result.data : result.data.data;
+			payrolls.set(payrollData);
 		} else {
 			error.set(result.error || '급여 목록을 불러오는데 실패했습니다.');
 		}
@@ -246,7 +248,9 @@ export async function loadEmployeePayrolls(period?: string): Promise<void> {
 		const result: ApiResponse<EmployeePayroll[]> = await response.json();
 
 		if (result.success && result.data) {
-			employeePayrolls.set(result.data);
+			// API 응답이 { data: { data: [...] } } 구조인 경우
+			const employeePayrollData = Array.isArray(result.data) ? result.data : result.data.data;
+			employeePayrolls.set(employeePayrollData);
 		} else {
 			error.set(result.error || '직원별 급여 목록을 불러오는데 실패했습니다.');
 		}
