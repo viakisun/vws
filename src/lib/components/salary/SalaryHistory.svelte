@@ -38,8 +38,11 @@
 
 	onMount(async () => {
 		mounted = true;
-		await loadEmployeePayrolls('2024-12'); // 최신 급여 데이터 로드
+		console.log('SalaryHistory onMount - loadEmployeePayrolls 시작');
+		await loadEmployeePayrolls(); // 모든 급여 데이터 로드 (기간 제한 없음)
+		console.log('SalaryHistory onMount - loadEmployeePayrolls 완료, 데이터:', $employeePayrolls.length);
 		await loadEmployees();
+		console.log('SalaryHistory onMount - loadEmployees 완료, 직원 수:', employees.length);
 	});
 
 	// 직원 목록 로드
@@ -66,10 +69,12 @@
 	// 필터링된 급여 데이터 목록 (로컬 필터)
 	const localFilteredPayrolls = $derived(() => {
 		let filtered = $employeePayrolls;
+		console.log('SalaryHistory - 전체 급여 데이터:', $employeePayrolls.length);
 
 		// 직원 필터
 		if (selectedEmployee) {
 			filtered = filtered.filter(payroll => payroll.employeeId === selectedEmployee);
+			console.log('SalaryHistory - 직원 필터 적용 후:', filtered.length, '선택된 직원:', selectedEmployee);
 		}
 
 		// 부서 필터
@@ -82,6 +87,7 @@
 			filtered = filtered.filter(payroll => payroll.status === selectedStatus);
 		}
 
+		console.log('SalaryHistory - 최종 필터링된 데이터:', filtered.length);
 		return filtered;
 	});
 
