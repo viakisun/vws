@@ -5,12 +5,53 @@ export async function GET({ params, url }) {
 	try {
 		const { employeeId } = params;
 		const period = url.searchParams.get('period'); // YYYY-MM 형식
+		const year = url.searchParams.get('year'); // YYYY 형식
 
 		if (!employeeId) {
 			return json({
 				success: false,
 				error: '직원 ID가 필요합니다.'
 			}, { status: 400 });
+		}
+
+		// 연도별 데이터 요청인 경우
+		if (year) {
+			const { rows } = await query(
+				`
+				SELECT
+					p.id,
+					p.employee_id AS "employeeId",
+					p.period,
+					p.pay_date AS "payDate",
+					p.base_salary AS "baseSalary",
+					p.total_payments AS "totalPayments",
+					p.total_deductions AS "totalDeductions",
+					p.net_salary AS "netSalary",
+					p.payments,
+					p.deductions,
+					p.status,
+					p.is_generated AS "isGenerated",
+					p.created_at AS "createdAt",
+					p.updated_at AS "updatedAt",
+					-- 직원 정보
+					e.first_name || e.last_name AS "employeeName",
+					e.employee_id AS "employeeIdNumber",
+					e.department,
+					e.position,
+					e.hire_date AS "hireDate"
+				FROM payslips p
+				JOIN employees e ON p.employee_id = e.id
+				WHERE p.employee_id = $1 AND p.period LIKE $2
+				ORDER BY p.period DESC
+				`,
+				[employeeId, `${year}-%`]
+			);
+
+			return json({ 
+				success: true, 
+				data: rows,
+				source: 'yearly'
+			});
 		}
 
 		// 1. 이번달 급여명세서가 있는지 확인
