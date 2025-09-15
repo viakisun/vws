@@ -36,7 +36,7 @@
 		DollarSignIcon,
 		FileTextIcon,
 		UserIcon,
-		BuildingOfficeIcon,
+		BuildingIcon,
 		BriefcaseIcon
 	} from 'lucide-svelte';
 

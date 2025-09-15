@@ -7,38 +7,44 @@
 	import SalaryContracts from '$lib/components/salary/SalaryContracts.svelte';
 	import SalaryHistory from '$lib/components/salary/SalaryHistory.svelte';
 	import PayslipGenerator from '$lib/components/salary/PayslipGenerator.svelte';
-	import { 
-		loadContracts, 
-		loadContractStats,
-		isLoading,
-		error
-	} from '$lib/stores/salary/contract-store';
-	import { 
-		loadPayrolls,
-		loadEmployeePayrolls
-	} from '$lib/stores/salary/salary-store';
+import { 
+    loadContracts, 
+    loadContractStats,
+    isLoading,
+    error
+} from '$lib/stores/salary/contract-store';
+import { 
+    loadPayrolls,
+    loadEmployeePayrolls
+} from '$lib/stores/salary/salary-store';
+import { 
+    BarChartIcon, 
+    FileTextIcon, 
+    ClockIcon, 
+    PrinterIcon 
+} from 'lucide-svelte';
 
 	// 탭 정의
 	const tabs = [
 		{
 			id: 'overview',
 			label: '개요',
-			icon: 'chart-bar'
+			icon: BarChartIcon
 		},
 		{
 			id: 'contracts',
 			label: '급여 계약',
-			icon: 'document-text'
+			icon: FileTextIcon
 		},
 		{
 			id: 'history',
 			label: '급여 이력',
-			icon: 'clock'
+			icon: ClockIcon
 		},
 		{
 			id: 'payslips',
 			label: '급여명세서',
-			icon: 'printer'
+			icon: PrinterIcon
 		}
 	];
 

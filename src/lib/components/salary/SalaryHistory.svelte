@@ -24,7 +24,7 @@
 		TrendingDownIcon,
 		MinusIcon,
 		UserIcon,
-		BuildingOfficeIcon,
+		BuildingIcon,
 		BriefcaseIcon,
 		ClockIcon
 	} from 'lucide-svelte';
