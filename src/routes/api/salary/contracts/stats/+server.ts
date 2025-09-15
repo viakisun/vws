@@ -12,12 +12,12 @@ export const GET: RequestHandler = async () => {
 		const statsResult = await query(`
 			SELECT 
 				COUNT(*) as total_contracts,
-				COUNT(CASE WHEN status = 'active' THEN 1 END) as active_contracts,
-				COUNT(CASE WHEN status = 'expired' OR (status = 'active' AND end_date < CURRENT_DATE) THEN 1 END) as expired_contracts,
-				AVG(annual_salary) as average_annual_salary,
-				AVG(monthly_salary) as average_monthly_salary,
-				SUM(annual_salary) as total_annual_salary,
-				SUM(monthly_salary) as total_monthly_salary
+				COUNT(CASE WHEN sc.status = 'active' THEN 1 END) as active_contracts,
+				COUNT(CASE WHEN sc.status = 'expired' OR (sc.status = 'active' AND sc.end_date < CURRENT_DATE) THEN 1 END) as expired_contracts,
+				AVG(sc.annual_salary) as average_annual_salary,
+				AVG(sc.monthly_salary) as average_monthly_salary,
+				SUM(sc.annual_salary) as total_annual_salary,
+				SUM(sc.monthly_salary) as total_monthly_salary
 			FROM salary_contracts sc
 			JOIN employees e ON sc.employee_id = e.id
 			WHERE e.status = 'active'
@@ -26,12 +26,12 @@ export const GET: RequestHandler = async () => {
 		// 계약 유형별 통계
 		const typeStatsResult = await query(`
 			SELECT 
-				contract_type,
+				sc.contract_type,
 				COUNT(*) as count
 			FROM salary_contracts sc
 			JOIN employees e ON sc.employee_id = e.id
 			WHERE e.status = 'active'
-			GROUP BY contract_type
+			GROUP BY sc.contract_type
 		`);
 
 		// 부서별 통계

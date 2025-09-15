@@ -27,14 +27,14 @@
 	import type { SalaryContract, CreateSalaryContractRequest } from '$lib/types/salary-contracts';
 	import { 
 		PlusIcon,
-		MagnifyingGlassIcon,
-		FunnelIcon,
+		SearchIcon,
+		FilterIcon,
 		EyeIcon,
 		PencilIcon,
 		TrashIcon,
 		CalendarIcon,
-		CurrencyDollarIcon,
-		DocumentTextIcon,
+		DollarSignIcon,
+		FileTextIcon,
 		UserIcon,
 		BuildingOfficeIcon,
 		BriefcaseIcon
@@ -220,7 +220,7 @@
 			<ThemeCard class="p-6">
 				<div class="flex items-center">
 					<div class="p-3 bg-blue-100 rounded-full">
-						<DocumentTextIcon size={24} class="text-blue-600" />
+						<FileTextIcon size={24} class="text-blue-600" />
 					</div>
 					<div class="ml-4">
 						<p class="text-sm font-medium text-gray-600">총 계약 수</p>
@@ -244,7 +244,7 @@
 			<ThemeCard class="p-6">
 				<div class="flex items-center">
 					<div class="p-3 bg-purple-100 rounded-full">
-						<CurrencyDollarIcon size={24} class="text-purple-600" />
+						<DollarSignIcon size={24} class="text-purple-600" />
 					</div>
 					<div class="ml-4">
 						<p class="text-sm font-medium text-gray-600">평균 연봉</p>
@@ -277,7 +277,7 @@
 					size="sm"
 					onclick={() => showFilters = !showFilters}
 				>
-					<FunnelIcon size={16} class="mr-2" />
+					<FilterIcon size={16} class="mr-2" />
 					필터
 				</ThemeButton>
 				<ThemeButton
@@ -356,7 +356,7 @@
 						size="sm"
 						onclick={applyFilter}
 					>
-						<MagnifyingGlassIcon size={16} class="mr-1" />
+						<SearchIcon size={16} class="mr-1" />
 						검색
 					</ThemeButton>
 					<ThemeButton
@@ -382,7 +382,7 @@
 			</div>
 		{:else if $filteredContracts.length === 0}
 			<div class="text-center py-12">
-				<DocumentTextIcon size={48} class="mx-auto text-gray-400 mb-4" />
+				<FileTextIcon size={48} class="mx-auto text-gray-400 mb-4" />
 				<p class="text-gray-500">급여 계약이 없습니다.</p>
 			</div>
 		{:else}

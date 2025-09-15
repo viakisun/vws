@@ -17,8 +17,8 @@
 	import { formatCurrency, formatDate } from '$lib/utils/format';
 	import type { SalaryContract } from '$lib/types/salary-contracts';
 	import { 
-		MagnifyingGlassIcon,
-		FunnelIcon,
+		SearchIcon,
+		FilterIcon,
 		CalendarIcon,
 		TrendingUpIcon,
 		TrendingDownIcon,
@@ -30,8 +30,8 @@
 	} from 'lucide-svelte';
 
 	let mounted = false;
-	let showFilters = false;
-	let selectedEmployee: string = '';
+	let showFilters = $state(false);
+	let selectedEmployee = $state('');
 
 	// 직원 목록 (실제로는 API에서 가져와야 함)
 	let employees = [
@@ -176,7 +176,7 @@
 					size="sm"
 					onclick={() => showFilters = !showFilters}
 				>
-					<FunnelIcon size={16} class="mr-2" />
+					<FilterIcon size={16} class="mr-2" />
 					필터
 				</ThemeButton>
 			</div>
@@ -255,7 +255,7 @@
 						size="sm"
 						onclick={applyFilter}
 					>
-						<MagnifyingGlassIcon size={16} class="mr-1" />
+						<SearchIcon size={16} class="mr-1" />
 						검색
 					</ThemeButton>
 					<ThemeButton
@@ -360,13 +360,13 @@
 
 		<!-- 급여 변화 요약 -->
 		{#if selectedEmployeeHistory.length > 1}
+			{@const firstContract = selectedEmployeeHistory[0]}
+			{@const lastContract = selectedEmployeeHistory[selectedEmployeeHistory.length - 1]}
+			{@const totalChange = lastContract.annualSalary - firstContract.annualSalary}
+			{@const totalPercentage = firstContract.annualSalary > 0 ? (totalChange / firstContract.annualSalary) * 100 : 0}
 			<ThemeCard class="p-6">
 				<ThemeSectionHeader title="급여 변화 요약" />
 				<div class="mt-4 space-y-4">
-					{@const firstContract = selectedEmployeeHistory[0]}
-					{@const lastContract = selectedEmployeeHistory[selectedEmployeeHistory.length - 1]}
-					{@const totalChange = lastContract.annualSalary - firstContract.annualSalary}
-					{@const totalPercentage = firstContract.annualSalary > 0 ? (totalChange / firstContract.annualSalary) * 100 : 0}
 					
 					<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
 						<div class="text-center p-4 bg-gray-50 rounded-lg">
