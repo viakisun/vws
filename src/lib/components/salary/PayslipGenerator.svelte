@@ -45,7 +45,8 @@
 					employeeId: emp.employee_id,
 					name: `${emp.last_name}${emp.first_name} (${emp.position})`,
 					department: emp.department || '부서없음',
-					position: emp.position
+					position: emp.position,
+					hireDate: emp.hire_date
 				}));
 			}
 		} catch (error) {
@@ -119,6 +120,7 @@
 				employeeIdNumber: selectedEmployee.employeeId || selectedEmployee.id,
 				department: selectedEmployee.department,
 				position: selectedEmployee.position || '연구원',
+				hireDate: selectedEmployee.hireDate,
 				baseSalary: currentContract.monthlySalary.toString(),
 				payrollId: `payroll_${Date.now()}`,
 				payDate: new Date().toISOString()
@@ -172,7 +174,7 @@
 					employeeId: targetPayroll.employeeIdNumber,
 					department: targetPayroll.department,
 					position: targetPayroll.position,
-					hireDate: '2020-01-01', // TODO: 실제 입사일로 변경
+					hireDate: targetPayroll.hireDate || '2020-01-01', // 실제 입사일 사용, 없으면 기본값
 					bankAccount: '123-456-789012', // TODO: 실제 계좌 정보로 변경
 					bankName: '우리은행'
 				},
