@@ -47,9 +47,24 @@
 			return;
 		}
 		
+		// 마우스 이벤트가 드래그나 선택과 관련된 경우 모달을 닫지 않음
+		if (event.detail === 0) { // 드래그 이벤트는 detail이 0
+			return;
+		}
+		
+		// 마우스 버튼이 왼쪽 버튼이고 단순 클릭인 경우만 처리
+		if (event.button !== 0) {
+			return;
+		}
+		
 		// 배경을 클릭했을 때만 모달을 닫음
 		if (backdrop && event.target === event.currentTarget && closable) {
-			closeModal();
+			// 약간의 지연을 두어 드래그와 클릭을 구분
+			setTimeout(() => {
+				if (!window.getSelection()?.toString()) {
+					closeModal();
+				}
+			}, 100);
 		}
 	}
 
@@ -91,7 +106,7 @@
 </script>
 
 {#if open}
-	<div class={getBackdropClasses()} onclick={handleBackdropClick} onkeydown={(e) => { if (e.key === 'Escape') handleCloseClick(); }} role="dialog" aria-modal="true" tabindex="-1">
+	<div class={getBackdropClasses()} onmousedown={handleBackdropClick} onkeydown={(e) => { if (e.key === 'Escape') handleCloseClick(); }} role="dialog" aria-modal="true" tabindex="-1">
 		<div class={getModalClasses()} {...restProps}>
 			{#if closable}
 				<button class="theme-modal-close" onclick={handleCloseClick} aria-label="Close modal">
