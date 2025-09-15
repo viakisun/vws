@@ -383,17 +383,133 @@
 		if (!generatedPayslip) return;
 
 		try {
-			// TODO: 실제 PDF 생성 로직 구현
-			// 현재는 HTML을 새 창에서 열어서 인쇄 가능하게 함
-			const printWindow = window.open('', '_blank');
-			if (printWindow) {
-				printWindow.document.write(generatePayslipHTML(generatedPayslip));
-				printWindow.document.close();
-				printWindow.print();
-			}
+			// jsPDF 라이브러리 동적 로드
+			const { jsPDF } = await import('jspdf');
+			const doc = new jsPDF('p', 'mm', 'a4');
+			
+			// 폰트 설정 (한글 지원을 위해 기본 폰트 사용)
+			doc.setFont('helvetica');
+			
+			// 페이지 설정
+			const pageWidth = 210;
+			const pageHeight = 297;
+			const margin = 10;
+			let yPosition = margin;
+			
+			// 제목
+			doc.setFontSize(20);
+			doc.setFont('helvetica', 'bold');
+			doc.text('급여명세서', pageWidth / 2, yPosition, { align: 'center' });
+			yPosition += 10;
+			
+			doc.setFontSize(12);
+			doc.setFont('helvetica', 'normal');
+			doc.text(`${generatedPayslip.period} 지급분`, pageWidth / 2, yPosition, { align: 'center' });
+			yPosition += 15;
+			
+			// 직원 정보
+			doc.setFontSize(14);
+			doc.setFont('helvetica', 'bold');
+			doc.text('직원 정보', margin, yPosition);
+			yPosition += 8;
+			
+			doc.setFontSize(10);
+			doc.setFont('helvetica', 'normal');
+			doc.text(`성명: ${generatedPayslip.employeeInfo.name}`, margin, yPosition);
+			doc.text(`사번: ${generatedPayslip.employeeInfo.employeeId}`, pageWidth / 2, yPosition);
+			yPosition += 10;
+			
+			// 지급 내역
+			doc.setFontSize(14);
+			doc.setFont('helvetica', 'bold');
+			doc.text('지급 내역', margin, yPosition);
+			yPosition += 8;
+			
+			// 지급 내역 테이블
+			doc.setFontSize(9);
+			doc.setFont('helvetica', 'bold');
+			doc.text('구분', margin, yPosition);
+			doc.text('항목', margin + 20, yPosition);
+			doc.text('금액', margin + 80, yPosition);
+			doc.text('비고', margin + 120, yPosition);
+			yPosition += 5;
+			
+			// 구분선
+			doc.line(margin, yPosition, pageWidth - margin, yPosition);
+			yPosition += 3;
+			
+			doc.setFont('helvetica', 'normal');
+			generatedPayslip.payments.forEach((payment: any) => {
+				doc.text('지급', margin, yPosition);
+				doc.text(payment.name, margin + 20, yPosition);
+				doc.text(formatCurrency(payment.amount), margin + 80, yPosition);
+				doc.text(payment.isTaxable ? '과세' : '비과세', margin + 120, yPosition);
+				yPosition += 4;
+			});
+			
+			// 지급총액
+			yPosition += 2;
+			doc.line(margin, yPosition, pageWidth - margin, yPosition);
+			yPosition += 3;
+			doc.setFont('helvetica', 'bold');
+			doc.text('지급총액', margin + 20, yPosition);
+			doc.text(formatCurrency(generatedPayslip.totalPayments), margin + 80, yPosition);
+			yPosition += 10;
+			
+			// 공제 내역
+			doc.setFontSize(14);
+			doc.setFont('helvetica', 'bold');
+			doc.text('공제 내역', margin, yPosition);
+			yPosition += 8;
+			
+			// 공제 내역 테이블
+			doc.setFontSize(9);
+			doc.setFont('helvetica', 'bold');
+			doc.text('구분', margin, yPosition);
+			doc.text('항목', margin + 20, yPosition);
+			doc.text('금액', margin + 80, yPosition);
+			doc.text('비고', margin + 120, yPosition);
+			yPosition += 5;
+			
+			// 구분선
+			doc.line(margin, yPosition, pageWidth - margin, yPosition);
+			yPosition += 3;
+			
+			doc.setFont('helvetica', 'normal');
+			generatedPayslip.deductions.forEach((deduction: any) => {
+				doc.text('공제', margin, yPosition);
+				doc.text(deduction.name, margin + 20, yPosition);
+				doc.text(formatCurrency(deduction.amount), margin + 80, yPosition);
+				doc.text(deduction.isMandatory ? '법정' : '임의', margin + 120, yPosition);
+				yPosition += 4;
+			});
+			
+			// 공제총액
+			yPosition += 2;
+			doc.line(margin, yPosition, pageWidth - margin, yPosition);
+			yPosition += 3;
+			doc.setFont('helvetica', 'bold');
+			doc.text('공제총액', margin + 20, yPosition);
+			doc.text(formatCurrency(generatedPayslip.totalDeductions), margin + 80, yPosition);
+			yPosition += 10;
+			
+			// 차감지급액
+			doc.setFontSize(16);
+			doc.setFont('helvetica', 'bold');
+			doc.text('차감지급액', pageWidth / 2, yPosition, { align: 'center' });
+			yPosition += 5;
+			doc.setFontSize(18);
+			doc.text(formatCurrency(generatedPayslip.netSalary), pageWidth / 2, yPosition, { align: 'center' });
+			
+			// 파일명 생성
+			const fileName = `급여명세서_${generatedPayslip.employeeInfo.name}_${generatedPayslip.period}.pdf`;
+			
+			// PDF 다운로드
+			doc.save(fileName);
+			
 		} catch (error) {
 			console.error('급여명세서 다운로드 실패:', error);
-			alert('급여명세서 다운로드에 실패했습니다.');
+			alert('급여명세서 다운로드에 실패했습니다. jsPDF 라이브러리가 필요합니다.');
 		}
 	}
 
