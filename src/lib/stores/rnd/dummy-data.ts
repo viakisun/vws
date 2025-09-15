@@ -8,11 +8,7 @@ import {
 	type Document, 
 	type ResearchNote,
 	type Milestone,
-	type ParticipationAssignment,
-	HealthIndicator,
-	Alert,
-	Approval,
-	ApprovalWorkflow
+	type ParticipationAssignment
 } from './types';
 
 // ===== 더미 데이터 생성 함수들 =====

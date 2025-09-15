@@ -11,8 +11,7 @@
 	} from '$lib/stores/salary/salary-store';
 	import { 
 		formatCurrency, 
-		formatPercentage,
-		getRelativeTime 
+		formatPercentage
 	} from '$lib/utils/format';
 	import { 
 		TrendingUpIcon, 
