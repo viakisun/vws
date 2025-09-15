@@ -18,12 +18,26 @@ export function formatPercentage(value: number | undefined | null): string {
 
 export function formatDate(dateString: string): string {
 	if (!dateString) return '';
-	const date = new Date(dateString);
-	return date.toLocaleDateString('ko-KR', {
-		year: 'numeric',
-		month: '2-digit',
-		day: '2-digit'
-	});
+	
+	try {
+		const date = new Date(dateString);
+		
+		// Invalid date 체크
+		if (isNaN(date.getTime())) {
+			console.warn('Invalid date string:', dateString);
+			return dateString; // 원본 문자열 반환
+		}
+		
+		// 더 간단한 형식으로 표시
+		const year = date.getFullYear();
+		const month = String(date.getMonth() + 1).padStart(2, '0');
+		const day = String(date.getDate()).padStart(2, '0');
+		
+		return `${year}. ${month}. ${day}.`;
+	} catch (error) {
+		console.warn('Date formatting error:', error, 'for string:', dateString);
+		return dateString; // 원본 문자열 반환
+	}
 }
 
 export function getRelativeTime(dateString: string): string {
