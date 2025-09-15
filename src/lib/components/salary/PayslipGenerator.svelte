@@ -913,50 +913,99 @@
 {/if}
 
 <style>
-	/* A4 세로 모드 프린트 스타일 */
+	/* A4 세로 모드 프린트 스타일 - 급여명세서만 깔끔하게 출력 */
 	@media print {
+		/* 모달 외부 모든 요소 숨기기 */
+		body * {
+			visibility: hidden !important;
+		}
+		
+		/* 급여명세서 컨테이너만 보이기 */
+		.payslip-container,
+		.payslip-container * {
+			visibility: visible !important;
+		}
+		
+		/* 급여명세서 컨테이너 위치 조정 */
 		.payslip-container {
+			position: absolute !important;
+			left: 0 !important;
+			top: 0 !important;
 			width: 210mm !important;
 			height: 297mm !important;
 			margin: 0 !important;
-			padding: 15mm !important;
+			padding: 20mm !important;
 			box-shadow: none !important;
 			border: none !important;
 			background: white !important;
+			font-family: 'Malgun Gothic', '맑은 고딕', sans-serif !important;
 			font-size: 12px !important;
 			line-height: 1.4 !important;
+			color: black !important;
 		}
 		
+		/* 제목 스타일 */
 		.payslip-container h1 {
-			font-size: 24px !important;
-			margin-bottom: 10px !important;
+			font-size: 28px !important;
+			font-weight: bold !important;
+			margin-bottom: 20px !important;
+			text-align: center !important;
+			color: black !important;
 		}
 		
 		.payslip-container h3 {
 			font-size: 16px !important;
-			margin-bottom: 8px !important;
+			font-weight: bold !important;
+			margin-bottom: 12px !important;
+			margin-top: 20px !important;
+			color: black !important;
 		}
 		
+		/* 직원 정보 섹션 */
+		.payslip-container .bg-gray-50 {
+			background-color: #f8f9fa !important;
+			border: 1px solid #dee2e6 !important;
+			padding: 15px !important;
+			margin-bottom: 20px !important;
+		}
+		
+		/* 그리드 레이아웃 */
 		.payslip-container .grid {
 			display: grid !important;
+			gap: 10px !important;
 		}
 		
+		.payslip-container .grid-cols-2 {
+			grid-template-columns: 1fr 1fr !important;
+		}
+		
+		.payslip-container .grid-cols-4 {
+			grid-template-columns: repeat(4, 1fr) !important;
+		}
+		
+		/* 테이블 스타일 */
 		.payslip-container table {
 			width: 100% !important;
 			border-collapse: collapse !important;
 			font-size: 11px !important;
+			margin-bottom: 20px !important;
 		}
 		
 		.payslip-container th,
 		.payslip-container td {
-			padding: 6px 8px !important;
+			padding: 8px 10px !important;
 			border: 1px solid #000 !important;
+			text-align: left !important;
+			vertical-align: middle !important;
 		}
 		
-		.payslip-container .bg-gray-50 {
-			background-color: #f9fafb !important;
+		.payslip-container th {
+			background-color: #f8f9fa !important;
+			font-weight: bold !important;
+			text-align: center !important;
 		}
 		
+		/* 텍스트 정렬 */
 		.payslip-container .text-center {
 			text-align: center !important;
 		}
@@ -965,6 +1014,7 @@
 			text-align: right !important;
 		}
 		
+		/* 폰트 굵기 */
 		.payslip-container .font-bold {
 			font-weight: bold !important;
 		}
@@ -973,18 +1023,64 @@
 			font-weight: 600 !important;
 		}
 		
+		/* 차감지급액 섹션 */
+		.payslip-container .bg-blue-50 {
+			background-color: #e3f2fd !important;
+			border: 2px solid #1976d2 !important;
+			padding: 20px !important;
+			margin: 20px 0 !important;
+			text-align: center !important;
+		}
+		
+		.payslip-container .bg-blue-50 h3 {
+			font-size: 20px !important;
+			color: #1976d2 !important;
+			margin: 0 !important;
+		}
+		
 		/* 페이지 브레이크 방지 */
 		.payslip-container > div {
 			page-break-inside: avoid !important;
 		}
 		
-		/* 헤더와 푸터 고정 */
+		/* 테이블 행이 페이지를 넘나들지 않도록 */
+		.payslip-container tr {
+			page-break-inside: avoid !important;
+		}
+		
+		/* 헤더와 푸터 스타일 */
 		.payslip-container .border-b-2 {
-			border-bottom: 2px solid #000 !important;
+			border-bottom: 3px solid #000 !important;
+			padding-bottom: 15px !important;
+			margin-bottom: 20px !important;
 		}
 		
 		.payslip-container .border-t {
 			border-top: 1px solid #000 !important;
+			padding-top: 15px !important;
+			margin-top: 20px !important;
+		}
+		
+		/* 푸터 텍스트 */
+		.payslip-container .text-gray-500 {
+			color: #666 !important;
+			font-size: 10px !important;
+		}
+		
+		/* 금액 표시 강조 */
+		.payslip-container .text-lg {
+			font-size: 14px !important;
+		}
+		
+		.payslip-container .text-xl {
+			font-size: 18px !important;
+		}
+		
+		/* 색상 제거 (흑백 프린트용) */
+		.payslip-container .text-green-600,
+		.payslip-container .text-red-600,
+		.payslip-container .text-blue-900 {
+			color: black !important;
 		}
 	}
 </style>
