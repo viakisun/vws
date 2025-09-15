@@ -15,53 +15,14 @@ import {
 	import { 
 		TrendingUpIcon, 
 		TrendingDownIcon, 
-		DollarSignIcon, 
-		UsersIcon, 
-		CalendarIcon,
-		FileTextIcon,
-		CheckCircleIcon,
-		ClockIcon,
 		AlertCircleIcon
 	} from 'lucide-svelte';
 
 	let mounted = false;
-	
-	// 로컬 급여 계약 데이터
-	let localContracts: any[] = [];
-	let localStats = {
-		totalEmployees: 0,
-		totalMonthlySalary: 0,
-		totalAnnualSalary: 0,
-		averageMonthlySalary: 0
-	};
 
 	onMount(async () => {
 		mounted = true;
 		await loadPayslips();
-		
-		// 급여 계약 데이터 로드
-		try {
-			const response = await fetch('/api/salary/contracts?page=1&limit=100');
-			const result = await response.json();
-			
-			if (result.success && result.data) {
-				localContracts = result.data.data;
-				
-				// 통계 계산
-				const activeContracts = localContracts.filter(contract => contract.status === 'active');
-				const totalMonthlySalary = activeContracts.reduce((sum, contract) => sum + (contract.monthlySalary || 0), 0);
-				const totalAnnualSalary = activeContracts.reduce((sum, contract) => sum + (contract.annualSalary || 0), 0);
-				
-				localStats = {
-					totalEmployees: activeContracts.length,
-					totalMonthlySalary: totalMonthlySalary,
-					totalAnnualSalary: totalAnnualSalary,
-					averageMonthlySalary: activeContracts.length > 0 ? Math.round(totalMonthlySalary / activeContracts.length) : 0
-				};
-				
-			}
-		} catch (error) {
-		}
 	});
 
 	// 상태별 색상 반환
@@ -118,95 +79,6 @@ import {
 			</div>
 		</div>
 	{:else}
-		<!-- 급여 현황 카드들 -->
-		<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-			<!-- 이번달 급여 지급 예정액 -->
-			<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-				<div class="flex items-center justify-between">
-					<div>
-						<p class="text-sm font-medium text-gray-600">이번달 급여 지급 예정액</p>
-						<p class="text-2xl font-bold text-gray-900">
-							{formatCurrency(localStats.totalMonthlySalary)}
-						</p>
-						<div class="flex items-center mt-2">
-							<span class="text-sm text-gray-500">변화 없음</span>
-							<span class="text-sm text-gray-500 ml-1">
-								(지난달 대비)
-							</span>
-						</div>
-					</div>
-					<div class="p-3 bg-blue-100 rounded-full">
-						<DollarSignIcon size={24} class="text-blue-600" />
-					</div>
-				</div>
-			</div>
-
-			<!-- 총 직원 수 -->
-			<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-				<div class="flex items-center justify-between">
-					<div>
-						<p class="text-sm font-medium text-gray-600">총 직원 수</p>
-						<p class="text-2xl font-bold text-gray-900">
-							{localStats.totalEmployees}명
-						</p>
-						<div class="flex items-center mt-2">
-							<span class="text-sm text-gray-500">변화 없음</span>
-							<span class="text-sm text-gray-500 ml-1">
-								(지난달 대비)
-							</span>
-						</div>
-					</div>
-					<div class="p-3 bg-green-100 rounded-full">
-						<UsersIcon size={24} class="text-green-600" />
-					</div>
-				</div>
-			</div>
-
-			<!-- 총 지급액 -->
-			<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-				<div class="flex items-center justify-between">
-					<div>
-						<p class="text-sm font-medium text-gray-600">총 지급액</p>
-						<p class="text-2xl font-bold text-gray-900">
-							{formatCurrency(localStats.totalAnnualSalary)}
-						</p>
-						<div class="flex items-center mt-2">
-							<span class="text-sm text-gray-500">변화 없음</span>
-							<span class="text-sm text-gray-500 ml-1">
-								(지난달 대비)
-							</span>
-						</div>
-					</div>
-					<div class="p-3 bg-purple-100 rounded-full">
-						<FileTextIcon size={24} class="text-purple-600" />
-					</div>
-				</div>
-			</div>
-
-			<!-- 급여 상태 -->
-			<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-				<div class="flex items-center justify-between">
-					<div>
-						<p class="text-sm font-medium text-gray-600">급여 상태</p>
-						<div class="mt-2">
-							<span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium {getStatusColor($salaryStatistics.currentMonth.status)}">
-								<svelte:component this={getStatusIcon($salaryStatistics.currentMonth.status)} size={14} class="mr-1" />
-								{#if $salaryStatistics.currentMonth.status === 'draft'} 초안
-								{:else if $salaryStatistics.currentMonth.status === 'calculated'} 계산 완료
-								{:else if $salaryStatistics.currentMonth.status === 'approved'} 승인 완료
-								{:else if $salaryStatistics.currentMonth.status === 'paid'} 지급 완료
-								{:else if $salaryStatistics.currentMonth.status === 'cancelled'} 취소됨
-								{:else} 알 수 없음
-								{/if}
-							</span>
-						</div>
-					</div>
-					<div class="p-3 bg-yellow-100 rounded-full">
-						<CalendarIcon size={24} class="text-yellow-600" />
-					</div>
-				</div>
-			</div>
-		</div>
 
 		<!-- 부서별 급여 통계 -->
 		<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">

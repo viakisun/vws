@@ -53,6 +53,9 @@ import {
 	// URL 파라미터에서 탭 상태 가져오기
 	let activeTab = $state($page.url.searchParams.get('tab') || 'overview');
 	let mounted = false;
+	
+	// 급여 통계 데이터
+	let salaryStats = $state([]);
 
 	// 탭 변경 함수
 	function handleTabChange(tabId: string) {
@@ -63,11 +66,60 @@ import {
 		goto(url.toString(), { replaceState: true });
 	}
 
+	// 급여 통계 로드
+	async function loadSalaryStats() {
+		try {
+			const response = await fetch('/api/salary/contracts?page=1&limit=100');
+			const result = await response.json();
+			
+			if (result.success && result.data) {
+				const contracts = result.data.data;
+				const activeContracts = contracts.filter(contract => contract.status === 'active');
+				const totalMonthlySalary = activeContracts.reduce((sum, contract) => sum + (contract.monthlySalary || 0), 0);
+				const totalAnnualSalary = activeContracts.reduce((sum, contract) => sum + (contract.annualSalary || 0), 0);
+				
+				salaryStats = [
+					{
+						title: '이번달 급여 지급 예정액',
+						value: totalMonthlySalary.toLocaleString() + '원',
+						change: '변화 없음 (지난달 대비)',
+						changeType: 'neutral',
+						icon: 'DollarSignIcon'
+					},
+					{
+						title: '총 직원 수',
+						value: activeContracts.length + '명',
+						change: '변화 없음 (지난달 대비)',
+						changeType: 'neutral',
+						icon: 'UsersIcon'
+					},
+					{
+						title: '총 지급액',
+						value: totalAnnualSalary.toLocaleString() + '원',
+						change: '변화 없음 (지난달 대비)',
+						changeType: 'neutral',
+						icon: 'FileTextIcon'
+					},
+					{
+						title: '급여 상태',
+						value: '정상',
+						change: '모든 계약 활성',
+						changeType: 'positive',
+						icon: 'CheckCircleIcon'
+					}
+				];
+			}
+		} catch (error) {
+			// 에러 처리
+		}
+	}
+
 	onMount(async () => {
 		mounted = true;
 		// 기본 데이터 로드
 		await loadPayslips();
 		await loadContractStats();
+		await loadSalaryStats();
 	});
 
 	// 탭 변경 시 데이터 로드
@@ -100,6 +152,7 @@ import {
 	title="급여 관리"
 	subtitle="전체 직원 급여 현황 및 계약 관리"
 	searchPlaceholder="직원명, 부서, 사번으로 검색..."
+	stats={salaryStats}
 >
 	<!-- 탭 시스템 -->
 	<ThemeTabs
