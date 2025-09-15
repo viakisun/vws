@@ -68,6 +68,9 @@
 		console.log('Filtered contracts:', $filteredContracts);
 		console.log('Is loading:', $isLoading);
 		console.log('Error:', $error);
+		console.log('showEditModal:', showEditModal);
+		console.log('showCreateModal:', showCreateModal);
+		console.log('showDeleteModal:', showDeleteModal);
 	}
 
 	onMount(async () => {
@@ -160,6 +163,7 @@
 
 	// 계약 수정 모달 열기
 	function openEditModal(contract: SalaryContract) {
+		console.log('openEditModal called with contract:', contract);
 		selectedContract = contract;
 		formData = {
 			employeeId: contract.employeeId,
@@ -172,6 +176,7 @@
 			notes: contract.notes || ''
 		};
 		showEditModal = true;
+		console.log('showEditModal set to true, formData:', formData);
 	}
 
 	// 계약 삭제 모달 열기
@@ -458,7 +463,10 @@
 								<td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
 									<div class="flex items-center space-x-2">
 										<button
-											onclick={() => openEditModal(contract)}
+											onclick={() => {
+												console.log('Edit button clicked for contract:', contract);
+												openEditModal(contract);
+											}}
 											class="text-blue-600 hover:text-blue-900"
 										>
 											<PencilIcon size={16} />
@@ -482,8 +490,8 @@
 
 <!-- 새 계약 생성 모달 -->
 <ThemeModal
-	isOpen={showCreateModal}
-	onClose={() => showCreateModal = false}
+	open={showCreateModal}
+	onclose={() => showCreateModal = false}
 	title="새 급여 계약"
 >
 	<div class="space-y-4">
@@ -576,8 +584,8 @@
 
 <!-- 계약 수정 모달 -->
 <ThemeModal
-	isOpen={showEditModal}
-	onClose={() => showEditModal = false}
+	open={showEditModal}
+	onclose={() => showEditModal = false}
 	title="급여 계약 수정"
 >
 	<div class="space-y-4">
@@ -667,8 +675,8 @@
 
 <!-- 계약 삭제 확인 모달 -->
 <ThemeModal
-	isOpen={showDeleteModal}
-	onClose={() => showDeleteModal = false}
+	open={showDeleteModal}
+	onclose={() => showDeleteModal = false}
 	title="급여 계약 삭제"
 >
 	<div class="space-y-4">

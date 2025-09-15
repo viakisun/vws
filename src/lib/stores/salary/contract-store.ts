@@ -1,16 +1,16 @@
 // 급여 계약 관리 Svelte Store
 
-import { writable, derived } from 'svelte/store';
-import type { 
-	SalaryContract, 
-	CreateSalaryContractRequest, 
-	UpdateSalaryContractRequest,
-	SalaryContractFilter,
-	SalaryContractStats,
-	CurrentSalaryInfo,
-	ApiResponse,
-	PaginatedResponse
+import type {
+    ApiResponse,
+    CreateSalaryContractRequest,
+    CurrentSalaryInfo,
+    PaginatedResponse,
+    SalaryContract,
+    SalaryContractFilter,
+    SalaryContractStats,
+    UpdateSalaryContractRequest
 } from '$lib/types/salary-contracts';
+import { derived, writable } from 'svelte/store';
 
 // ===== 기본 상태 =====
 export const contracts = writable<SalaryContract[]>([]);
@@ -134,7 +134,10 @@ export async function loadContracts(filter?: Partial<SalaryContractFilter>): Pro
 		const response = await fetch(`/api/salary/contracts?${params.toString()}`);
 		const result: ApiResponse<PaginatedResponse<SalaryContract>> = await response.json();
 
+		console.log('loadContracts API response:', result);
+
 		if (result.success && result.data) {
+			console.log('Setting contracts data:', result.data.data);
 			contracts.set(result.data.data);
 			pagination.set({
 				page: result.data.page,
