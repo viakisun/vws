@@ -55,23 +55,23 @@ export const salaryStatistics = derived(
 			currentPeriod: $currentPeriod,
 			previousPeriod: $previousPeriod,
 			currentMonth: {
-				totalEmployees: currentPayroll?.totalEmployees || 0,
-				totalGrossSalary: currentPayroll?.totalGrossSalary || 0,
-				totalNetSalary: currentPayroll?.totalNetSalary || 0,
-				totalDeductions: currentPayroll?.totalDeductions || 0,
+				totalEmployees: parseInt(String(currentPayroll?.totalEmployees || 0)),
+				totalGrossSalary: parseFloat(String(currentPayroll?.totalGrossSalary || 0)),
+				totalNetSalary: parseFloat(String(currentPayroll?.totalNetSalary || 0)),
+				totalDeductions: parseFloat(String(currentPayroll?.totalDeductions || 0)),
 				status: currentPayroll?.status || 'draft'
 			},
 			previousMonth: {
-				totalEmployees: previousPayroll?.totalEmployees || 0,
-				totalGrossSalary: previousPayroll?.totalGrossSalary || 0,
-				totalNetSalary: previousPayroll?.totalNetSalary || 0,
-				totalDeductions: previousPayroll?.totalDeductions || 0,
+				totalEmployees: parseInt(String(previousPayroll?.totalEmployees || 0)),
+				totalGrossSalary: parseFloat(String(previousPayroll?.totalGrossSalary || 0)),
+				totalNetSalary: parseFloat(String(previousPayroll?.totalNetSalary || 0)),
+				totalDeductions: parseFloat(String(previousPayroll?.totalDeductions || 0)),
 				status: previousPayroll?.status || 'draft'
 			},
 			changes: {
-				employeeChange: (currentPayroll?.totalEmployees || 0) - (previousPayroll?.totalEmployees || 0),
-				salaryChange: (currentPayroll?.totalGrossSalary || 0) - (previousPayroll?.totalGrossSalary || 0),
-				netSalaryChange: (currentPayroll?.totalNetSalary || 0) - (previousPayroll?.totalNetSalary || 0)
+				employeeChange: parseInt(String(currentPayroll?.totalEmployees || 0)) - parseInt(String(previousPayroll?.totalEmployees || 0)),
+				salaryChange: parseFloat(String(currentPayroll?.totalGrossSalary || 0)) - parseFloat(String(previousPayroll?.totalGrossSalary || 0)),
+				netSalaryChange: parseFloat(String(currentPayroll?.totalNetSalary || 0)) - parseFloat(String(previousPayroll?.totalNetSalary || 0))
 			}
 		};
 	}
@@ -129,8 +129,8 @@ export const departmentSalaryStats = derived(
 			const deptStats = stats[payroll.department];
 			if (deptStats) {
 				deptStats.employeeCount++;
-				deptStats.totalGrossSalary += payroll.grossSalary;
-				deptStats.totalNetSalary += payroll.netSalary;
+				deptStats.totalGrossSalary += parseFloat(String(payroll.grossSalary));
+				deptStats.totalNetSalary += parseFloat(String(payroll.netSalary));
 			}
 		});
 
