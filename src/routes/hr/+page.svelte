@@ -32,6 +32,24 @@
 		// 기타 형식의 경우 순서대로 표시
 		return employeeId || `V${(index + 1).toString().padStart(5, '0')}`;
 	}
+
+	// 직원별 현재 급여 정보 가져오기
+	function getCurrentSalary(employeeId: string): { annualSalary: number; monthlySalary: number; contractType: string } | null {
+		const activeContract = $contracts.find(contract => 
+			contract.employeeId === employeeId && 
+			contract.status === 'active' &&
+			(!contract.endDate || new Date(contract.endDate) > new Date())
+		);
+		
+		if (activeContract) {
+			return {
+				annualSalary: activeContract.annualSalary,
+				monthlySalary: activeContract.monthlySalary,
+				contractType: activeContract.contractType
+			};
+		}
+		return null;
+	}
 	import { 
 		UsersIcon, 
 		BuildingIcon, 
@@ -90,6 +108,12 @@
 		welfareApplications,
 		calculateAnnualCompensation
 	} from '$lib/stores/benefits';
+
+	// 급여 계약 스토어
+	import { 
+		contracts,
+		loadContracts
+	} from '$lib/stores/salary/contract-store';
 	
 	import { 
 		hrPolicies, 
@@ -704,12 +728,13 @@
 
 	
 	// 컴포넌트 마운트 시 데이터 로드
-	onMount(() => {
+	onMount(async () => {
 		fetchEmployees();
 		fetchDepartments();
 		fetchPositions();
 		fetchExecutives();
 		fetchJobTitles();
+		await loadContracts(); // 급여 계약 데이터 로드
 	});
 
 	// 탭 변경 시 해당 탭의 데이터 로드
@@ -1530,12 +1555,28 @@
 													<span class="text-sm truncate" style="color: var(--color-text-secondary);">{employee.phone}</span>
 												</div>
 											{/if}
-											<div class="flex items-center gap-2 min-w-0">
-												<DollarSignIcon size={16} style="color: var(--color-text-secondary);" class="flex-shrink-0" />
-												<span class="text-sm font-medium truncate" style="color: var(--color-primary);">
-													{Math.round(Number(employee.salary) / 10000)}만원
-												</span>
-											</div>
+											{#if getCurrentSalary(employee.id)}
+												{@const currentSalary = getCurrentSalary(employee.id)}
+												<div class="flex items-center gap-2 min-w-0">
+													<DollarSignIcon size={16} style="color: var(--color-text-secondary);" class="flex-shrink-0" />
+													<span class="text-sm font-medium truncate" style="color: var(--color-primary);">
+														{Math.round(currentSalary.annualSalary / 10000)}만원
+													</span>
+													<span class="text-xs text-gray-500">
+														({currentSalary.contractType === 'full_time' ? '정규직' : 
+														  currentSalary.contractType === 'contractor' ? '계약직' : 
+														  currentSalary.contractType === 'part_time' ? '파트타임' : 
+														  currentSalary.contractType === 'intern' ? '인턴' : currentSalary.contractType})
+													</span>
+												</div>
+											{:else}
+												<div class="flex items-center gap-2 min-w-0">
+													<DollarSignIcon size={16} style="color: var(--color-text-secondary);" class="flex-shrink-0" />
+													<span class="text-sm text-gray-400 truncate">
+														계약 정보 없음
+													</span>
+												</div>
+											{/if}
 											{#if employee.hire_date}
 												<div class="flex items-center gap-2 min-w-0">
 													<CalendarIcon size={16} style="color: var(--color-text-secondary);" class="flex-shrink-0" />
