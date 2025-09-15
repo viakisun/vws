@@ -14,7 +14,10 @@ export function formatCurrency(amount: number | string | undefined | null): stri
 		return '0원';
 	}
 	
-	return numAmount.toLocaleString('ko-KR') + '원';
+	// 소수점 제거하고 정수로 변환
+	const integerAmount = Math.round(numAmount);
+	
+	return integerAmount.toLocaleString('ko-KR') + '원';
 }
 
 export function formatPercentage(value: number | undefined | null): string {

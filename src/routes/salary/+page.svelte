@@ -25,6 +25,7 @@ import {
 import { 
     loadPayslips
 } from '$lib/stores/salary/salary-store';
+import { formatCurrency } from '$lib/utils/format';
 import { 
     BarChartIcon, 
     ClockIcon, 
@@ -86,7 +87,7 @@ import {
 				salaryStats = [
 					{
 						title: '이번달 급여 지급 예정액',
-						value: totalMonthlySalary.toLocaleString() + '원',
+						value: formatCurrency(totalMonthlySalary),
 						change: '변화 없음 (지난달 대비)',
 						changeType: 'neutral',
 						icon: DollarSignIcon
@@ -100,7 +101,7 @@ import {
 					},
 					{
 						title: '총 지급액',
-						value: totalAnnualSalary.toLocaleString() + '원',
+						value: formatCurrency(totalAnnualSalary),
 						change: '변화 없음 (지난달 대비)',
 						changeType: 'neutral',
 						icon: FileTextIcon
