@@ -3,17 +3,22 @@
 	import type { Payslip, EmployeePayroll } from '$lib/types/salary';
 	import { formatCurrency, formatDate } from '$lib/utils/format';
 	import { 
+		employeePayrolls,
+		loadEmployeePayrolls
+	} from '$lib/stores/salary/salary-store';
+	import { 
 		DownloadIcon, 
 		FileTextIcon, 
 		CalendarIcon,
 		UserIcon,
 		DollarSignIcon,
 		PrinterIcon,
-		EyeIcon
+		EyeIcon,
+		SearchIcon
 	} from 'lucide-svelte';
 
 	interface Props {
-		payroll: EmployeePayroll;
+		payroll?: EmployeePayroll;
 		showPreview?: boolean;
 	}
 
@@ -22,44 +27,92 @@
 	let isGenerating = $state(false);
 	let generatedPayslip = $state<Payslip | null>(null);
 	let showModal = $state(false);
+	let selectedPayroll = $state<EmployeePayroll | null>(null);
+	let employees = $state<any[]>([]);
+	let selectedEmployeeId = $state('');
+	let selectedPeriod = $state('2024-12');
+
+	// 직원 목록 로드
+	async function loadEmployees() {
+		try {
+			const response = await fetch('/api/employees');
+			const result = await response.json();
+			if (result.success) {
+				employees = result.data.map((emp: any) => ({
+					id: emp.id,
+					name: `${emp.last_name}${emp.first_name} (${emp.position})`,
+					department: emp.department || '부서없음'
+				}));
+			}
+		} catch (error) {
+			console.error('직원 목록 로드 실패:', error);
+		}
+	}
+
+	// 급여 데이터 로드
+	async function loadPayrollData() {
+		if (!selectedEmployeeId) return;
+		
+		try {
+			await loadEmployeePayrolls(selectedPeriod);
+			// 선택된 직원의 급여 데이터 찾기
+			const payroll = $employeePayrolls.find(p => p.employeeId === selectedEmployeeId);
+			selectedPayroll = payroll || null;
+		} catch (error) {
+			console.error('급여 데이터 로드 실패:', error);
+		}
+	}
+
+	onMount(async () => {
+		await loadEmployees();
+		await loadEmployeePayrolls(selectedPeriod);
+	});
 
 	// 급여명세서 생성
 	async function generatePayslip() {
+		// payroll prop이 있으면 그것을 사용, 없으면 선택된 급여 데이터 사용
+		const targetPayroll = payroll || selectedPayroll;
+		
+		if (!targetPayroll) {
+			alert('급여 데이터를 선택해주세요.');
+			return;
+		}
+
 		isGenerating = true;
 		try {
 			// TODO: 실제 API 호출로 변경
 			const mockPayslip: Payslip = {
 				id: `payslip_${Date.now()}`,
-				employeeId: payroll.employeeId,
-				payrollId: payroll.payrollId,
-				period: payroll.payDate.substring(0, 7),
-				payDate: payroll.payDate,
+				employeeId: targetPayroll.employeeId,
+				payrollId: targetPayroll.payrollId,
+				period: targetPayroll.payDate.substring(0, 7),
+				payDate: targetPayroll.payDate,
 				employeeInfo: {
-					name: payroll.employeeName,
-					employeeId: payroll.employeeIdNumber,
-					department: payroll.department,
-					position: payroll.position,
+					name: targetPayroll.employeeName,
+					employeeId: targetPayroll.employeeIdNumber,
+					department: targetPayroll.department,
+					position: targetPayroll.position,
 					hireDate: '2020-01-01', // TODO: 실제 입사일로 변경
 					bankAccount: '123-456-789012', // TODO: 실제 계좌 정보로 변경
 					bankName: '우리은행'
 				},
 				salaryInfo: {
-					baseSalary: payroll.baseSalary,
-					totalAllowances: payroll.totalAllowances,
-					totalDeductions: payroll.totalDeductions,
-					grossSalary: payroll.grossSalary,
-					netSalary: payroll.netSalary,
+					baseSalary: targetPayroll.baseSalary,
+					totalAllowances: targetPayroll.totalAllowances,
+					totalDeductions: targetPayroll.totalDeductions,
+					grossSalary: targetPayroll.grossSalary,
+					netSalary: targetPayroll.netSalary,
 					workingDays: 22, // TODO: 실제 근무일수로 변경
 					actualWorkingDays: 22
 				},
-				allowances: payroll.allowances,
-				deductions: payroll.deductions,
+				allowances: targetPayroll.allowances,
+				deductions: targetPayroll.deductions,
 				totals: {
-					grossSalary: payroll.grossSalary,
-					totalAllowances: payroll.totalAllowances,
-					totalDeductions: payroll.totalDeductions,
-					netSalary: payroll.netSalary,
-					taxableIncome: payroll.grossSalary,
+					grossSalary: targetPayroll.grossSalary,
+					totalAllowances: targetPayroll.totalAllowances,
+					totalDeductions: targetPayroll.totalDeductions,
+					netSalary: targetPayroll.netSalary,
+					taxableIncome: targetPayroll.grossSalary,
 					nonTaxableIncome: 0
 				},
 				status: 'generated',
@@ -226,7 +279,70 @@
 	}
 </script>
 
-<div class="flex items-center space-x-2">
+{#if !payroll}
+	<!-- 직원 선택 UI (payroll prop이 없는 경우) -->
+	<div class="space-y-4">
+		<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+			<div>
+				<label class="block text-sm font-medium text-gray-700 mb-1">직원 선택</label>
+				<select
+					bind:value={selectedEmployeeId}
+					onchange={loadPayrollData}
+					class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+				>
+					<option value="">직원을 선택하세요</option>
+					{#each employees as employee}
+						<option value={employee.id}>{employee.name}</option>
+					{/each}
+				</select>
+			</div>
+			<div>
+				<label class="block text-sm font-medium text-gray-700 mb-1">급여 기간</label>
+				<input
+					type="month"
+					bind:value={selectedPeriod}
+					onchange={loadPayrollData}
+					class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+				/>
+			</div>
+			<div class="flex items-end">
+				<button
+					onclick={loadPayrollData}
+					class="w-full inline-flex items-center justify-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+				>
+					<SearchIcon size={16} class="mr-1" />
+					급여 조회
+				</button>
+			</div>
+		</div>
+
+		{#if selectedPayroll}
+			<div class="bg-gray-50 p-4 rounded-lg">
+				<h3 class="text-lg font-semibold text-gray-900 mb-2">선택된 급여 정보</h3>
+				<div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+					<div>
+						<span class="font-medium text-gray-700">직원명:</span>
+						<span class="ml-2 text-gray-900">{selectedPayroll.employeeName}</span>
+					</div>
+					<div>
+						<span class="font-medium text-gray-700">부서:</span>
+						<span class="ml-2 text-gray-900">{selectedPayroll.department}</span>
+					</div>
+					<div>
+						<span class="font-medium text-gray-700">지급일:</span>
+						<span class="ml-2 text-gray-900">{formatDate(selectedPayroll.payDate)}</span>
+					</div>
+					<div>
+						<span class="font-medium text-gray-700">실지급액:</span>
+						<span class="ml-2 text-gray-900 font-semibold">{formatCurrency(selectedPayroll.netSalary)}</span>
+					</div>
+				</div>
+			</div>
+		{/if}
+	</div>
+{/if}
+
+<div class="flex items-center space-x-2 mt-4">
 	{#if showPreview}
 		<button
 			onclick={openPreview}
@@ -239,7 +355,7 @@
 	
 	<button
 		onclick={generatePayslip}
-		disabled={isGenerating}
+		disabled={isGenerating || (!payroll && !selectedPayroll)}
 		class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
 	>
 		{#if isGenerating}
