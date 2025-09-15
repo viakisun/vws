@@ -721,7 +721,7 @@
 				<!-- 직원 정보 -->
 				<div class="bg-gray-50 p-4 rounded-lg mb-6">
 					<h3 class="text-lg font-semibold text-gray-900 mb-3">직원 정보</h3>
-					<div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+					<div class="grid grid-cols-2 gap-4 text-sm">
 						<div>
 							<span class="font-medium text-gray-700">성명:</span>
 							<span class="ml-2 text-gray-900">{generatedPayslip.employeeInfo.name}</span>
@@ -729,22 +729,6 @@
 						<div>
 							<span class="font-medium text-gray-700">사번:</span>
 							<span class="ml-2 text-gray-900">{generatedPayslip.employeeInfo.employeeId}</span>
-						</div>
-						<div>
-							<span class="font-medium text-gray-700">부서:</span>
-							<span class="ml-2 text-gray-900">{generatedPayslip.employeeInfo.department}</span>
-						</div>
-						<div>
-							<span class="font-medium text-gray-700">직위:</span>
-							<span class="ml-2 text-gray-900">{generatedPayslip.employeeInfo.position}</span>
-						</div>
-						<div>
-							<span class="font-medium text-gray-700">입사일:</span>
-							<span class="ml-2 text-gray-900">{formatDate(generatedPayslip.employeeInfo.hireDate)}</span>
-						</div>
-						<div>
-							<span class="font-medium text-gray-700">지급일:</span>
-							<span class="ml-2 text-gray-900">{generatedPayslip.period}</span>
 						</div>
 					</div>
 				</div>
@@ -930,20 +914,29 @@
 		
 		/* 급여명세서 컨테이너 내부 요소에 적절한 여백 재적용 */
 		.payslip-container > div {
-			margin-bottom: 15px !important;
+			margin-bottom: 10px !important;
 		}
 		
 		.payslip-container h1 {
-			margin-bottom: 20px !important;
+			margin-bottom: 15px !important;
 		}
 		
 		.payslip-container h3 {
-			margin-bottom: 12px !important;
-			margin-top: 20px !important;
+			margin-bottom: 8px !important;
+			margin-top: 15px !important;
 		}
 		
 		.payslip-container table {
-			margin-bottom: 20px !important;
+			margin-bottom: 15px !important;
+		}
+		
+		/* 테이블 행 간격 줄이기 */
+		.payslip-container th,
+		.payslip-container td {
+			padding: 4px 6px !important;
+			border: 1px solid #000 !important;
+			text-align: left !important;
+			vertical-align: middle !important;
 		}
 		
 		/* 모달 외부 모든 요소 숨기기 */
@@ -965,13 +958,13 @@
 			width: 210mm !important;
 			height: 297mm !important;
 			margin: 0 !important;
-			padding: 15mm !important;
+			padding: 10mm !important;
 			box-shadow: none !important;
 			border: none !important;
 			background: white !important;
 			font-family: 'Malgun Gothic', '맑은 고딕', sans-serif !important;
-			font-size: 12px !important;
-			line-height: 1.4 !important;
+			font-size: 11px !important;
+			line-height: 1.3 !important;
 			color: black !important;
 			overflow: visible !important;
 		}
@@ -994,8 +987,8 @@
 		.payslip-container .bg-gray-50 {
 			background-color: #f8f9fa !important;
 			border: 1px solid #dee2e6 !important;
-			padding: 15px !important;
-			margin-bottom: 20px !important;
+			padding: 8px !important;
+			margin-bottom: 10px !important;
 		}
 		
 		/* 그리드 레이아웃 */
@@ -1016,16 +1009,7 @@
 		.payslip-container table {
 			width: 100% !important;
 			border-collapse: collapse !important;
-			font-size: 11px !important;
-			margin-bottom: 20px !important;
-		}
-		
-		.payslip-container th,
-		.payslip-container td {
-			padding: 8px 10px !important;
-			border: 1px solid #000 !important;
-			text-align: left !important;
-			vertical-align: middle !important;
+			font-size: 10px !important;
 		}
 		
 		.payslip-container th {
@@ -1056,8 +1040,8 @@
 		.payslip-container .bg-blue-50 {
 			background-color: #e3f2fd !important;
 			border: 2px solid #1976d2 !important;
-			padding: 20px !important;
-			margin: 20px 0 !important;
+			padding: 10px !important;
+			margin: 10px 0 !important;
 			text-align: center !important;
 		}
 		
