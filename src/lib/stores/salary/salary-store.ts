@@ -93,14 +93,14 @@ export const employeeSalaryStatus = derived(
 
 		return currentPayslip ? {
 			employeeId: currentPayslip.employeeId,
-			employeeName: currentPayslip.employeeInfo.name,
-			department: currentPayslip.employeeInfo.department,
-			position: currentPayslip.employeeInfo.position,
-			baseSalary: currentPayslip.salaryInfo.baseSalary,
-			totalAllowances: currentPayslip.totals.totalAllowances,
-			totalDeductions: currentPayslip.totals.totalDeductions,
-			grossSalary: currentPayslip.totals.totalPayments,
-			netSalary: currentPayslip.totals.netSalary,
+			employeeName: currentPayslip.employeeInfo?.name || '알 수 없음',
+			department: currentPayslip.employeeInfo?.department || '부서없음',
+			position: currentPayslip.employeeInfo?.position || '연구원',
+			baseSalary: currentPayslip.salaryInfo?.baseSalary || 0,
+			totalAllowances: currentPayslip.totals?.totalAllowances || 0,
+			totalDeductions: currentPayslip.totals?.totalDeductions || 0,
+			grossSalary: currentPayslip.totals?.totalPayments || 0,
+			netSalary: currentPayslip.totals?.netSalary || 0,
 			status: currentPayslip.status,
 			payDate: currentPayslip.payDate
 		} : null;
@@ -120,7 +120,7 @@ export const departmentSalaryStats = derived(
 		}> = {};
 
 		$payslips.forEach(payslip => {
-			const department = payslip.employeeInfo.department;
+			const department = payslip.employeeInfo?.department || '부서없음';
 			if (!stats[department]) {
 				stats[department] = {
 					employeeCount: 0,
@@ -134,8 +134,8 @@ export const departmentSalaryStats = derived(
 			const deptStats = stats[department];
 			if (deptStats) {
 				deptStats.employeeCount++;
-				deptStats.totalGrossSalary += parseFloat(String(payslip.totals.totalPayments));
-				deptStats.totalNetSalary += parseFloat(String(payslip.totals.netSalary));
+				deptStats.totalGrossSalary += parseFloat(String(payslip.totals?.totalPayments || 0));
+				deptStats.totalNetSalary += parseFloat(String(payslip.totals?.netSalary || 0));
 			}
 		});
 

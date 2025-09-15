@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { page } from '$app/stores';
+	import { goto } from '$app/navigation';
 	import PageLayout from '$lib/components/layout/PageLayout.svelte';
 	import ThemeTabs from '$lib/components/ui/ThemeTabs.svelte';
 	import ThemeSpacer from '$lib/components/ui/ThemeSpacer.svelte';
@@ -7,6 +9,7 @@
 	import SalaryContracts from '$lib/components/salary/SalaryContracts.svelte';
 	import SalaryHistory from '$lib/components/salary/SalaryHistory.svelte';
 	import PayslipGenerator from '$lib/components/salary/PayslipGenerator.svelte';
+	import PayslipUploader from '$lib/components/salary/PayslipUploader.svelte';
 import { 
     loadContracts, 
     loadContractStats,
@@ -47,8 +50,18 @@ import {
 		}
 	];
 
-	let activeTab = $state('overview');
+	// URL 파라미터에서 탭 상태 가져오기
+	let activeTab = $state($page.url.searchParams.get('tab') || 'overview');
 	let mounted = false;
+
+	// 탭 변경 함수
+	function handleTabChange(tabId: string) {
+		activeTab = tabId;
+		// URL 파라미터 업데이트
+		const url = new URL($page.url);
+		url.searchParams.set('tab', tabId);
+		goto(url.toString(), { replaceState: true });
+	}
 
 	onMount(async () => {
 		mounted = true;
@@ -83,15 +96,11 @@ import {
 	<meta name="description" content="전체 직원 급여 관리 및 급여명세서 출력" />
 </svelte:head>
 
-<PageLayout>
-	<!-- 페이지 헤더 -->
-	<div class="flex items-center justify-between mb-6">
-		<div>
-			<h1 class="text-3xl font-bold text-gray-900">급여 관리</h1>
-			<p class="mt-2 text-gray-600">전체 직원 급여 현황 및 계약 관리</p>
-		</div>
-	</div>
-
+<PageLayout
+	title="급여 관리"
+	subtitle="전체 직원 급여 현황 및 계약 관리"
+	searchPlaceholder="직원명, 부서, 사번으로 검색..."
+>
 	<!-- 탭 시스템 -->
 	<ThemeTabs
 		{tabs}
@@ -122,7 +131,27 @@ import {
 			{:else if tab.id === 'payslips'}
 				<!-- 급여명세서 탭 -->
 				<ThemeSpacer size={6}>
-					<PayslipGenerator />
+					<div class="space-y-6">
+						<!-- 업로드 섹션 -->
+						<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+							<div class="flex items-center justify-between mb-4">
+								<div>
+									<h3 class="text-lg font-semibold text-gray-900">엑셀 일괄 업로드</h3>
+									<p class="text-sm text-gray-600">모든 직원의 급여명세서를 엑셀 파일로 일괄 업로드할 수 있습니다.</p>
+								</div>
+								<PayslipUploader />
+							</div>
+						</div>
+						
+						<!-- 개별 급여명세서 관리 -->
+						<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+							<div class="mb-4">
+								<h3 class="text-lg font-semibold text-gray-900">개별 급여명세서 관리</h3>
+								<p class="text-sm text-gray-600">직원별로 급여명세서를 작성하고 관리할 수 있습니다.</p>
+							</div>
+							<PayslipGenerator />
+						</div>
+					</div>
 				</ThemeSpacer>
 			{/if}
 		{/snippet}

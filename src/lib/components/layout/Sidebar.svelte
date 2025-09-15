@@ -36,23 +36,6 @@
 		{ name: '설정', href: '/settings', icon: SettingsIcon }
 	];
 
-	// Check if a navigation item is current based on the current page
-	function isCurrentItem(href: string): boolean {
-		const currentPath = $page.url.pathname;
-		
-		// Exact match for root
-		if (href === '/' && currentPath === '/') {
-			return true;
-		}
-		
-		// For other paths, check if current path starts with the href
-		if (href !== '/' && currentPath.startsWith(href)) {
-			return true;
-		}
-		
-		return false;
-	}
-
 	function toggleCollapse() {
 		isCollapsed = !isCollapsed;
 	}
@@ -81,7 +64,8 @@
 		<!-- Navigation -->
 		<nav class="flex-1 px-3 py-4 space-y-1">
 			{#each navigationItems as item}
-				{@const isCurrent = isCurrentItem(item.href)}
+				{@const currentPath = $page.url.pathname}
+				{@const isCurrent = (item.href === '/' && currentPath === '/') || (item.href !== '/' && currentPath.startsWith(item.href))}
 				<a
 					href={item.href}
 					class="group flex items-center px-3 py-3 text-sm font-medium rounded-xl transition-all duration-200 relative
