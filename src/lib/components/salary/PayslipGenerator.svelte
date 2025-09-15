@@ -42,8 +42,10 @@
 			if (result.success) {
 				employees = result.data.map((emp: any) => ({
 					id: emp.id,
+					employeeId: emp.employee_id,
 					name: `${emp.last_name}${emp.first_name} (${emp.position})`,
-					department: emp.department || '부서없음'
+					department: emp.department || '부서없음',
+					position: emp.position
 				}));
 			}
 		} catch (error) {
@@ -114,9 +116,9 @@
 			targetPayroll = {
 				employeeId: selectedEmployeeId,
 				employeeName: selectedEmployee.name,
-				employeeIdNumber: selectedEmployee.id,
+				employeeIdNumber: selectedEmployee.employeeId || selectedEmployee.id,
 				department: selectedEmployee.department,
-				position: selectedEmployee.name.split('(')[1]?.replace(')', '') || '연구원',
+				position: selectedEmployee.position || '연구원',
 				baseSalary: currentContract.monthlySalary.toString(),
 				payrollId: `payroll_${Date.now()}`,
 				payDate: new Date().toISOString()
@@ -164,7 +166,7 @@
 				employeeId: targetPayroll.employeeId,
 				payrollId: targetPayroll.payrollId || `payroll_${Date.now()}`,
 				period: selectedPeriod,
-				payDate: new Date().toISOString(),
+				payDate: selectedPeriod + '-01', // 월만 표시 (YYYY-MM-01 형식)
 				employeeInfo: {
 					name: targetPayroll.employeeName,
 					employeeId: targetPayroll.employeeIdNumber,
@@ -498,7 +500,7 @@
 				<!-- 급여명세서 헤더 -->
 				<div class="text-center mb-6 pb-4 border-b-2 border-blue-600">
 					<h1 class="text-2xl font-bold text-gray-900">급여명세서</h1>
-					<p class="text-gray-600">{formatDate(generatedPayslip.payDate)} 지급분</p>
+					<p class="text-gray-600">{generatedPayslip.period} 지급분</p>
 				</div>
 				
 				<!-- 직원 정보 -->
@@ -527,7 +529,7 @@
 						</div>
 						<div>
 							<span class="font-medium text-gray-700">지급일:</span>
-							<span class="ml-2 text-gray-900">{formatDate(generatedPayslip.payDate)}</span>
+							<span class="ml-2 text-gray-900">{generatedPayslip.period}</span>
 						</div>
 					</div>
 				</div>
