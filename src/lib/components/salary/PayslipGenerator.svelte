@@ -30,7 +30,9 @@
 	let selectedPayroll = $state<EmployeePayroll | null>(null);
 	let employees = $state<any[]>([]);
 	let selectedEmployeeId = $state('');
-	let selectedPeriod = $state('2024-12');
+	// 현재 월을 기본값으로 설정
+	let selectedPeriod = $state(new Date().toISOString().slice(0, 7)); // YYYY-MM 형식
+	let currentContract = $state<any>(null);
 
 	// 직원 목록 로드
 	async function loadEmployees() {
@@ -49,6 +51,22 @@
 		}
 	}
 
+	// 현재 계약 정보 로드
+	async function loadCurrentContract(employeeId: string) {
+		try {
+			const response = await fetch(`/api/salary/contracts/employee/${employeeId}`);
+			const result = await response.json();
+			if (result.success && result.data.currentContract) {
+				currentContract = result.data.currentContract;
+			} else {
+				currentContract = null;
+			}
+		} catch (error) {
+			console.error('현재 계약 정보 로드 실패:', error);
+			currentContract = null;
+		}
+	}
+
 	// 급여 데이터 로드
 	async function loadPayrollData() {
 		if (!selectedEmployeeId) return;
@@ -58,6 +76,8 @@
 			// 선택된 직원의 급여 데이터 찾기
 			const payroll = $employeePayrolls.find(p => p.employeeId === selectedEmployeeId);
 			selectedPayroll = payroll || null;
+			// 현재 계약 정보도 함께 로드
+			await loadCurrentContract(selectedEmployeeId);
 		} catch (error) {
 			console.error('급여 데이터 로드 실패:', error);
 		}
@@ -78,15 +98,43 @@
 			return;
 		}
 
+		// 현재 계약 정보가 없으면 로드
+		if (!currentContract && targetPayroll.employeeId) {
+			await loadCurrentContract(targetPayroll.employeeId);
+		}
+
 		isGenerating = true;
 		try {
-			// TODO: 실제 API 호출로 변경
+			// 현재 계약 정보를 기반으로 급여명세서 생성
+			const baseSalary = currentContract ? currentContract.monthlySalary : targetPayroll.baseSalary;
+			const allowances = currentContract ? [
+				{ id: 'housing', name: '주거비', type: 'housing', amount: 500000, isRegular: true, isTaxable: false },
+				{ id: 'transport', name: '교통비', type: 'transport', amount: 200000, isRegular: true, isTaxable: false },
+				{ id: 'meal', name: '식비', type: 'meal', amount: 300000, isRegular: true, isTaxable: false }
+			] : targetPayroll.allowances;
+			
+			const totalAllowances = allowances.reduce((sum, allowance) => sum + allowance.amount, 0);
+			const grossSalary = baseSalary + totalAllowances;
+			
+			// 공제 계산 (간단한 예시)
+			const deductions = [
+				{ id: 'income_tax', name: '소득세', rate: 0.13, type: 'income_tax', amount: Math.round(grossSalary * 0.13), isMandatory: true },
+				{ id: 'local_tax', name: '지방소득세', rate: 0.013, type: 'local_tax', amount: Math.round(grossSalary * 0.013), isMandatory: true },
+				{ id: 'national_pension', name: '국민연금', rate: 0.045, type: 'national_pension', amount: Math.round(grossSalary * 0.045), isMandatory: true },
+				{ id: 'health_insurance', name: '건강보험', rate: 0.034, type: 'health_insurance', amount: Math.round(grossSalary * 0.034), isMandatory: true },
+				{ id: 'employment_insurance', name: '고용보험', rate: 0.008, type: 'employment_insurance', amount: Math.round(grossSalary * 0.008), isMandatory: true },
+				{ id: 'long_term_care', name: '장기요양보험', rate: 0.0034, type: 'long_term_care', amount: Math.round(grossSalary * 0.0034), isMandatory: true }
+			];
+			
+			const totalDeductions = deductions.reduce((sum, deduction) => sum + deduction.amount, 0);
+			const netSalary = grossSalary - totalDeductions;
+
 			const mockPayslip: Payslip = {
 				id: `payslip_${Date.now()}`,
 				employeeId: targetPayroll.employeeId,
-				payrollId: targetPayroll.payrollId,
-				period: targetPayroll.payDate.substring(0, 7),
-				payDate: targetPayroll.payDate,
+				payrollId: targetPayroll.payrollId || `payroll_${Date.now()}`,
+				period: selectedPeriod,
+				payDate: new Date().toISOString(),
 				employeeInfo: {
 					name: targetPayroll.employeeName,
 					employeeId: targetPayroll.employeeIdNumber,
@@ -97,23 +145,23 @@
 					bankName: '우리은행'
 				},
 				salaryInfo: {
-					baseSalary: targetPayroll.baseSalary,
-					totalAllowances: targetPayroll.totalAllowances,
-					totalDeductions: targetPayroll.totalDeductions,
-					grossSalary: targetPayroll.grossSalary,
-					netSalary: targetPayroll.netSalary,
+					baseSalary: baseSalary.toString(),
+					totalAllowances: totalAllowances.toString(),
+					totalDeductions: totalDeductions.toString(),
+					grossSalary: grossSalary.toString(),
+					netSalary: netSalary.toString(),
 					workingDays: 22, // TODO: 실제 근무일수로 변경
 					actualWorkingDays: 22
 				},
-				allowances: targetPayroll.allowances,
-				deductions: targetPayroll.deductions,
+				allowances: allowances,
+				deductions: deductions,
 				totals: {
-					grossSalary: targetPayroll.grossSalary,
-					totalAllowances: targetPayroll.totalAllowances,
-					totalDeductions: targetPayroll.totalDeductions,
-					netSalary: targetPayroll.netSalary,
-					taxableIncome: targetPayroll.grossSalary,
-					nonTaxableIncome: 0
+					grossSalary: grossSalary.toString(),
+					totalAllowances: totalAllowances.toString(),
+					totalDeductions: totalDeductions.toString(),
+					netSalary: netSalary.toString(),
+					taxableIncome: grossSalary.toString(),
+					nonTaxableIncome: '0'
 				},
 				status: 'generated',
 				generatedAt: new Date().toISOString(),
@@ -385,6 +433,13 @@
 				<h3 class="text-lg font-medium text-gray-900">급여명세서 미리보기</h3>
 				<div class="flex items-center space-x-2">
 					<button
+						onclick={() => window.print()}
+						class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+					>
+						<PrinterIcon size={16} class="mr-1" />
+						프린트
+					</button>
+					<button
 						onclick={downloadPayslip}
 						class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-green-600 hover:bg-green-700"
 					>
@@ -402,7 +457,7 @@
 				</div>
 			</div>
 			
-			<div class="border rounded-lg p-6 bg-white">
+			<div class="border rounded-lg p-6 bg-white payslip-container">
 				<!-- 급여명세서 헤더 -->
 				<div class="text-center mb-6 pb-4 border-b-2 border-blue-600">
 					<h1 class="text-2xl font-bold text-gray-900">급여명세서</h1>
@@ -538,3 +593,80 @@
 		</div>
 	</div>
 {/if}
+
+<style>
+	/* A4 세로 모드 프린트 스타일 */
+	@media print {
+		.payslip-container {
+			width: 210mm !important;
+			height: 297mm !important;
+			margin: 0 !important;
+			padding: 15mm !important;
+			box-shadow: none !important;
+			border: none !important;
+			background: white !important;
+			font-size: 12px !important;
+			line-height: 1.4 !important;
+		}
+		
+		.payslip-container h1 {
+			font-size: 24px !important;
+			margin-bottom: 10px !important;
+		}
+		
+		.payslip-container h3 {
+			font-size: 16px !important;
+			margin-bottom: 8px !important;
+		}
+		
+		.payslip-container .grid {
+			display: grid !important;
+		}
+		
+		.payslip-container table {
+			width: 100% !important;
+			border-collapse: collapse !important;
+			font-size: 11px !important;
+		}
+		
+		.payslip-container th,
+		.payslip-container td {
+			padding: 6px 8px !important;
+			border: 1px solid #000 !important;
+		}
+		
+		.payslip-container .bg-gray-50 {
+			background-color: #f9fafb !important;
+		}
+		
+		.payslip-container .text-center {
+			text-align: center !important;
+		}
+		
+		.payslip-container .text-right {
+			text-align: right !important;
+		}
+		
+		.payslip-container .font-bold {
+			font-weight: bold !important;
+		}
+		
+		.payslip-container .font-semibold {
+			font-weight: 600 !important;
+		}
+		
+		/* 페이지 브레이크 방지 */
+		.payslip-container > div {
+			page-break-inside: avoid !important;
+		}
+		
+		/* 헤더와 푸터 고정 */
+		.payslip-container .border-b-2 {
+			border-bottom: 2px solid #000 !important;
+		}
+		
+		.payslip-container .border-t {
+			border-top: 1px solid #000 !important;
+		}
+	}
+</style>
