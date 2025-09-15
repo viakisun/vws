@@ -32,25 +32,72 @@
 	let mounted = false;
 	let showFilters = $state(false);
 	let selectedEmployee = $state('');
+	let selectedDepartment = $state('');
+	let selectedContractType = $state('');
+	let selectedStatus = $state('');
 
-	// 직원 목록 (실제로는 API에서 가져와야 함)
-	let employees = [
-		{ id: '', name: '전체 직원' },
-		{ id: '1', name: '김대표 (대표)', department: '대표' },
-		{ id: '2', name: '최연구소장 (연구소)', department: '연구소' },
-		{ id: '3', name: '이책임연구원 (연구소)', department: '연구소' }
-	];
+	// 직원 목록
+	let employees = $state<any[]>([]);
 
 	onMount(async () => {
 		mounted = true;
 		await loadContracts();
+		await loadEmployees();
+	});
+
+	// 직원 목록 로드
+	async function loadEmployees() {
+		try {
+			const response = await fetch('/api/employees');
+			const result = await response.json();
+			if (result.success) {
+				employees = [
+					{ id: '', name: '전체 직원', department: '' },
+					...result.data.map((emp: any) => ({
+						id: emp.id,
+						name: `${emp.last_name}${emp.first_name} (${emp.position})`,
+						department: emp.department || '부서없음',
+						position: emp.position
+					}))
+				];
+			}
+		} catch (error) {
+			console.error('직원 목록 로드 실패:', error);
+		}
+	}
+
+	// 필터링된 계약 목록 (로컬 필터)
+	const localFilteredContracts = $derived(() => {
+		let filtered = $contracts;
+
+		// 직원 필터
+		if (selectedEmployee) {
+			filtered = filtered.filter(contract => contract.employeeId === selectedEmployee);
+		}
+
+		// 부서 필터
+		if (selectedDepartment) {
+			filtered = filtered.filter(contract => contract.department === selectedDepartment);
+		}
+
+		// 계약 유형 필터
+		if (selectedContractType) {
+			filtered = filtered.filter(contract => contract.contractType === selectedContractType);
+		}
+
+		// 상태 필터
+		if (selectedStatus) {
+			filtered = filtered.filter(contract => contract.status === selectedStatus);
+		}
+
+		return filtered;
 	});
 
 	// 직원별 급여 이력 그룹화
 	const salaryHistoryByEmployee = $derived(() => {
 		const historyMap: Record<string, SalaryContract[]> = {};
 		
-		$filteredContracts.forEach(contract => {
+		localFilteredContracts.forEach(contract => {
 			if (!historyMap[contract.employeeId]) {
 				historyMap[contract.employeeId] = [];
 			}
@@ -70,6 +117,14 @@
 		if (!selectedEmployee) return [];
 		return salaryHistoryByEmployee[selectedEmployee] || [];
 	});
+
+	// 필터 초기화
+	function clearFilters() {
+		selectedEmployee = '';
+		selectedDepartment = '';
+		selectedContractType = '';
+		selectedStatus = '';
+	}
 
 	// 급여 변화 계산
 	function calculateSalaryChange(contracts: SalaryContract[], index: number): { change: number; percentage: number; direction: 'up' | 'down' | 'same' } {
@@ -145,23 +200,7 @@
 
 	// 필터 적용
 	function applyFilter() {
-		loadContracts($contractFilter);
-	}
-
-	// 필터 초기화
-	function clearFilters() {
-		selectedEmployee = '';
-		updateFilter({
-			employeeId: '',
-			department: '',
-			position: '',
-			contractType: '',
-			status: '',
-			startDateFrom: '',
-			startDateTo: '',
-			search: ''
-		});
-		loadContracts();
+		// 필터가 변경되면 자동으로 반영됨 (reactive)
 	}
 </script>
 
@@ -205,33 +244,38 @@
 				<div>
 					<label class="block text-sm font-medium text-gray-700 mb-1">부서</label>
 					<select
-						bind:value={$contractFilter.department}
+						bind:value={selectedDepartment}
 						class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 					>
 						<option value="">전체</option>
 						<option value="대표">대표</option>
 						<option value="연구소">연구소</option>
+						<option value="전략기획실">전략기획실</option>
 						<option value="경영기획팀">경영기획팀</option>
+						<option value="GRIT팀">GRIT팀</option>
+						<option value="PSR팀">PSR팀</option>
+						<option value="개발팀">개발팀</option>
+						<option value="경영지원팀">경영지원팀</option>
 						<option value="부서없음">부서없음</option>
 					</select>
 				</div>
 				<div>
 					<label class="block text-sm font-medium text-gray-700 mb-1">계약 유형</label>
 					<select
-						bind:value={$contractFilter.contractType}
+						bind:value={selectedContractType}
 						class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 					>
 						<option value="">전체</option>
 						<option value="full_time">정규직</option>
 						<option value="part_time">파트타임</option>
-						<option value="contract">계약직</option>
+						<option value="contractor">계약직</option>
 						<option value="intern">인턴</option>
 					</select>
 				</div>
 				<div>
 					<label class="block text-sm font-medium text-gray-700 mb-1">상태</label>
 					<select
-						bind:value={$contractFilter.status}
+						bind:value={selectedStatus}
 						class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 					>
 						<option value="">전체</option>
@@ -241,23 +285,7 @@
 						<option value="draft">임시저장</option>
 					</select>
 				</div>
-				<div>
-					<label class="block text-sm font-medium text-gray-700 mb-1">시작일 (부터)</label>
-					<input
-						type="date"
-						bind:value={$contractFilter.startDateFrom}
-						class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-					/>
-				</div>
 				<div class="flex items-end space-x-2">
-					<ThemeButton
-						variant="primary"
-						size="sm"
-						onclick={applyFilter}
-					>
-						<SearchIcon size={16} class="mr-1" />
-						검색
-					</ThemeButton>
 					<ThemeButton
 						variant="outline"
 						size="sm"
