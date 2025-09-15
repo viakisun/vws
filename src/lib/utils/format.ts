@@ -20,6 +20,14 @@ export function formatDate(dateString: string): string {
 	if (!dateString) return '';
 	
 	try {
+		// ISO 날짜 문자열에서 날짜 부분만 추출 (타임존 변환 방지)
+		if (dateString.includes('T')) {
+			const datePart = dateString.split('T')[0]; // "2025-06-27T15:00:00.000Z" -> "2025-06-27"
+			const [year, month, day] = datePart.split('-');
+			return `${year}. ${month}. ${day}.`;
+		}
+		
+		// 일반 날짜 문자열 처리
 		const date = new Date(dateString);
 		
 		// Invalid date 체크
@@ -45,6 +53,13 @@ export function formatDateForInput(dateString: string): string {
 	if (!dateString) return '';
 	
 	try {
+		// ISO 날짜 문자열에서 날짜 부분만 추출 (타임존 변환 방지)
+		if (dateString.includes('T')) {
+			const datePart = dateString.split('T')[0]; // "2025-06-27T15:00:00.000Z" -> "2025-06-27"
+			return datePart; // 이미 YYYY-MM-DD 형식
+		}
+		
+		// 일반 날짜 문자열 처리
 		const date = new Date(dateString);
 		
 		// Invalid date 체크
