@@ -71,7 +71,7 @@ import {
 				loadContracts();
 				break;
 			case 'history':
-				loadContracts();
+				loadEmployeePayrolls(); // 급여 이력 탭에서는 employee payrolls 로드
 				break;
 			case 'payslips':
 				// 급여명세서 탭은 별도 데이터 로드 불필요

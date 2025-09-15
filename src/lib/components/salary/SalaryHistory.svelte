@@ -70,6 +70,7 @@
 	const localFilteredPayrolls = $derived(() => {
 		let filtered = $employeePayrolls;
 		console.log('SalaryHistory - 전체 급여 데이터:', $employeePayrolls.length);
+		console.log('SalaryHistory - employeePayrolls store 데이터:', $employeePayrolls);
 
 		// 직원 필터
 		if (selectedEmployee) {
@@ -88,6 +89,7 @@
 		}
 
 		console.log('SalaryHistory - 최종 필터링된 데이터:', filtered.length);
+		console.log('SalaryHistory - 필터링된 데이터 내용:', filtered);
 		return filtered;
 	});
 
@@ -112,11 +114,18 @@
 
 	// 선택된 직원의 급여 이력
 	const selectedEmployeeHistory = $derived(() => {
+		console.log('SalaryHistory - selectedEmployeeHistory 계산 시작, selectedEmployee:', selectedEmployee);
+		console.log('SalaryHistory - localFilteredPayrolls:', localFilteredPayrolls.length);
+		
 		if (!selectedEmployee) {
 			// 직원이 선택되지 않았으면 모든 급여 이력을 평면화하여 반환
-			return localFilteredPayrolls.sort((a, b) => new Date(b.payDate).getTime() - new Date(a.payDate).getTime());
+			const result = localFilteredPayrolls.sort((a, b) => new Date(b.payDate).getTime() - new Date(a.payDate).getTime());
+			console.log('SalaryHistory - 직원 미선택, 모든 이력 반환:', result.length);
+			return result;
 		}
-		return salaryHistoryByEmployee[selectedEmployee] || [];
+		const result = salaryHistoryByEmployee[selectedEmployee] || [];
+		console.log('SalaryHistory - 직원 선택됨, 해당 직원 이력:', result.length);
+		return result;
 	});
 
 	// 필터 초기화
