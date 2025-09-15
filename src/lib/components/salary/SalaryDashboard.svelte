@@ -57,13 +57,6 @@ import {
 </script>
 
 <div class="space-y-6">
-	<!-- 현재 기간 표시 -->
-	<div class="flex items-center justify-end mb-6">
-		<div class="text-sm text-gray-500">
-			<CalendarIcon size={16} class="inline mr-1" />
-			현재 기간: {$currentPeriod}
-		</div>
-	</div>
 
 	<!-- 로딩 및 에러 상태 -->
 	{#if !mounted}
