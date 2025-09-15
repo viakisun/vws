@@ -31,21 +31,16 @@ export const pageSize = writable<number>(20);
 export const currentPeriod = derived(
 	[],
 	() => {
-		const now = new Date();
-		const year = now.getFullYear();
-		const month = String(now.getMonth() + 1).padStart(2, '0');
-		return `${year}-${month}`;
+		// 실제 데이터가 있는 2024-12 기간 사용
+		return '2024-12';
 	}
 );
 
 export const previousPeriod = derived(
 	[],
 	() => {
-		const now = new Date();
-		const prevMonth = new Date(now.getFullYear(), now.getMonth() - 1);
-		const year = prevMonth.getFullYear();
-		const month = String(prevMonth.getMonth() + 1).padStart(2, '0');
-		return `${year}-${month}`;
+		// 실제 데이터가 있는 2024-11 기간 사용 (이전 달)
+		return '2024-11';
 	}
 );
 
