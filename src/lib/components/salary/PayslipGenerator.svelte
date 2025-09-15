@@ -14,7 +14,8 @@
 		DollarSignIcon,
 		PrinterIcon,
 		EyeIcon,
-		SearchIcon
+		SearchIcon,
+		EditIcon
 	} from 'lucide-svelte';
 
 	interface Props {
@@ -33,6 +34,11 @@
 	// 현재 월을 기본값으로 설정
 	let selectedPeriod = $state(new Date().toISOString().slice(0, 7)); // YYYY-MM 형식
 	let currentContract = $state<any>(null);
+	
+	// 급여명세서 작성 모드
+	let isPayslipEditMode = $state<boolean>(false);
+	let editedPayments = $state<any[]>([]);
+	let editedDeductions = $state<any[]>([]);
 
 	// 직원 목록 로드
 	async function loadEmployees() {
@@ -91,6 +97,43 @@
 		await loadEmployeePayrolls(selectedPeriod);
 	});
 
+	// 급여명세서 작성 모드로 전환
+	function enterPayslipEditMode() {
+		if (!generatedPayslip) return;
+		
+		isPayslipEditMode = true;
+		// 현재 급여명세서 데이터를 편집용으로 복사
+		editedPayments = [...generatedPayslip.payments];
+		editedDeductions = [...generatedPayslip.deductions];
+	}
+	
+	// 급여명세서 작성 모드 종료
+	function exitPayslipEditMode() {
+		isPayslipEditMode = false;
+		editedPayments = [];
+		editedDeductions = [];
+	}
+	
+	// 급여명세서 저장
+	function savePayslip() {
+		if (!generatedPayslip) return;
+		
+		// 편집된 데이터로 급여명세서 업데이트
+		generatedPayslip.payments = [...editedPayments];
+		generatedPayslip.deductions = [...editedDeductions];
+		
+		// 총액 재계산
+		const totalPayments = editedPayments.reduce((sum, payment) => sum + payment.amount, 0);
+		const totalDeductions = editedDeductions.reduce((sum, deduction) => sum + deduction.amount, 0);
+		const netSalary = totalPayments - totalDeductions;
+		
+		generatedPayslip.totals.totalPayments = totalPayments.toString();
+		generatedPayslip.totals.totalDeductions = totalDeductions.toString();
+		generatedPayslip.totals.netSalary = netSalary.toString();
+		
+		isPayslipEditMode = false;
+	}
+
 	// 급여명세서 생성
 	async function generatePayslip() {
 		// payroll prop이 있으면 그것을 사용, 없으면 선택된 급여 데이터 사용
@@ -141,27 +184,33 @@
 		try {
 			// 현재 계약 정보를 기반으로 급여명세서 생성
 			const baseSalary = currentContract ? currentContract.monthlySalary : targetPayroll.baseSalary;
-			const allowances = currentContract ? [
-				{ id: 'housing', name: '주거비', type: 'housing', amount: 500000, isRegular: true, isTaxable: false },
-				{ id: 'transport', name: '교통비', type: 'transport', amount: 200000, isRegular: true, isTaxable: false },
-				{ id: 'meal', name: '식비', type: 'meal', amount: 300000, isRegular: true, isTaxable: false }
-			] : targetPayroll.allowances;
 			
-			const totalAllowances = allowances.reduce((sum, allowance) => sum + allowance.amount, 0);
-			const grossSalary = baseSalary + totalAllowances;
+			// 지급사항 구성 (실제 급여 시스템에 맞게)
+			const payments = [
+				{ id: 'basic_salary', name: '기본급', amount: baseSalary, type: 'basic', isTaxable: true },
+				{ id: 'position_allowance', name: '직책수당', amount: Math.round(baseSalary * 0.1), type: 'allowance', isTaxable: true },
+				{ id: 'bonus', name: '상여금', amount: 0, type: 'bonus', isTaxable: true },
+				{ id: 'meal_allowance', name: '식대', amount: 300000, type: 'allowance', isTaxable: false },
+				{ id: 'vehicle_maintenance', name: '차량유지', amount: 200000, type: 'allowance', isTaxable: false },
+				{ id: 'annual_leave_allowance', name: '연차수당', amount: 0, type: 'allowance', isTaxable: true },
+				{ id: 'year_end_settlement', name: '연말정산', amount: 0, type: 'settlement', isTaxable: true }
+			];
 			
-			// 공제 계산 (간단한 예시)
+			const totalPayments = payments.reduce((sum, payment) => sum + payment.amount, 0);
+			
+			// 공제사항 구성 (실제 급여 시스템에 맞게)
 			const deductions = [
-				{ id: 'income_tax', name: '소득세', rate: 0.13, type: 'income_tax', amount: Math.round(grossSalary * 0.13), isMandatory: true },
-				{ id: 'local_tax', name: '지방소득세', rate: 0.013, type: 'local_tax', amount: Math.round(grossSalary * 0.013), isMandatory: true },
-				{ id: 'national_pension', name: '국민연금', rate: 0.045, type: 'national_pension', amount: Math.round(grossSalary * 0.045), isMandatory: true },
-				{ id: 'health_insurance', name: '건강보험', rate: 0.034, type: 'health_insurance', amount: Math.round(grossSalary * 0.034), isMandatory: true },
-				{ id: 'employment_insurance', name: '고용보험', rate: 0.008, type: 'employment_insurance', amount: Math.round(grossSalary * 0.008), isMandatory: true },
-				{ id: 'long_term_care', name: '장기요양보험', rate: 0.0034, type: 'long_term_care', amount: Math.round(grossSalary * 0.0034), isMandatory: true }
+				{ id: 'health_insurance', name: '건강보험', rate: 0.034, type: 'insurance', amount: Math.round(totalPayments * 0.034), isMandatory: true },
+				{ id: 'long_term_care', name: '장기요양보험', rate: 0.0034, type: 'insurance', amount: Math.round(totalPayments * 0.0034), isMandatory: true },
+				{ id: 'national_pension', name: '국민연금', rate: 0.045, type: 'pension', amount: Math.round(totalPayments * 0.045), isMandatory: true },
+				{ id: 'employment_insurance', name: '고용보험', rate: 0.008, type: 'insurance', amount: Math.round(totalPayments * 0.008), isMandatory: true },
+				{ id: 'income_tax', name: '갑근세', rate: 0.13, type: 'tax', amount: Math.round(totalPayments * 0.13), isMandatory: true },
+				{ id: 'local_tax', name: '주민세', rate: 0.013, type: 'tax', amount: Math.round(totalPayments * 0.013), isMandatory: true },
+				{ id: 'other', name: '기타', rate: 0, type: 'other', amount: 0, isMandatory: false }
 			];
 			
 			const totalDeductions = deductions.reduce((sum, deduction) => sum + deduction.amount, 0);
-			const netSalary = grossSalary - totalDeductions;
+			const netSalary = totalPayments - totalDeductions;
 
 			const mockPayslip: Payslip = {
 				id: `payslip_${Date.now()}`,
@@ -180,21 +229,19 @@
 				},
 				salaryInfo: {
 					baseSalary: baseSalary.toString(),
-					totalAllowances: totalAllowances.toString(),
+					totalPayments: totalPayments.toString(),
 					totalDeductions: totalDeductions.toString(),
-					grossSalary: grossSalary.toString(),
 					netSalary: netSalary.toString(),
 					workingDays: 22, // TODO: 실제 근무일수로 변경
 					actualWorkingDays: 22
 				},
-				allowances: allowances,
+				payments: payments,
 				deductions: deductions,
 				totals: {
-					grossSalary: grossSalary.toString(),
-					totalAllowances: totalAllowances.toString(),
+					totalPayments: totalPayments.toString(),
 					totalDeductions: totalDeductions.toString(),
 					netSalary: netSalary.toString(),
-					taxableIncome: grossSalary.toString(),
+					taxableIncome: totalPayments.toString(),
 					nonTaxableIncome: '0'
 				},
 				status: 'generated',
@@ -463,6 +510,14 @@
 			<DownloadIcon size={16} class="mr-1" />
 			다운로드
 		</button>
+		
+		<button
+			onclick={enterPayslipEditMode}
+			class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500"
+		>
+			<EditIcon size={16} class="mr-1" />
+			급여명세서 작성
+		</button>
 	{/if}
 </div>
 
@@ -471,22 +526,47 @@
 	<div class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
 		<div class="relative top-4 mx-auto p-5 border w-11/12 max-w-4xl shadow-lg rounded-md bg-white">
 			<div class="flex items-center justify-between mb-4">
-				<h3 class="text-lg font-medium text-gray-900">급여명세서 미리보기</h3>
+				<h3 class="text-lg font-medium text-gray-900">
+					{isPayslipEditMode ? '급여명세서 작성' : '급여명세서 미리보기'}
+				</h3>
 				<div class="flex items-center space-x-2">
-					<button
-						onclick={() => window.print()}
-						class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
-					>
-						<PrinterIcon size={16} class="mr-1" />
-						프린트
-					</button>
-					<button
-						onclick={downloadPayslip}
-						class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-green-600 hover:bg-green-700"
-					>
-						<DownloadIcon size={16} class="mr-1" />
-						다운로드
-					</button>
+					{#if isPayslipEditMode}
+						<button
+							onclick={savePayslip}
+							class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-green-600 hover:bg-green-700"
+						>
+							<FileTextIcon size={16} class="mr-1" />
+							저장
+						</button>
+						<button
+							onclick={exitPayslipEditMode}
+							class="inline-flex items-center px-3 py-2 border border-gray-300 text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+						>
+							취소
+						</button>
+					{:else}
+						<button
+							onclick={enterPayslipEditMode}
+							class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700"
+						>
+							<EditIcon size={16} class="mr-1" />
+							급여명세서 작성
+						</button>
+						<button
+							onclick={() => window.print()}
+							class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+						>
+							<PrinterIcon size={16} class="mr-1" />
+							프린트
+						</button>
+						<button
+							onclick={downloadPayslip}
+							class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-green-600 hover:bg-green-700"
+						>
+							<DownloadIcon size={16} class="mr-1" />
+							다운로드
+						</button>
+					{/if}
 					<button
 						onclick={() => showModal = false}
 						class="text-gray-400 hover:text-gray-600"
@@ -536,9 +616,9 @@
 					</div>
 				</div>
 
-				<!-- 급여 내역 -->
+				<!-- 지급 내역 -->
 				<div class="mb-6">
-					<h3 class="text-lg font-semibold text-gray-900 mb-3">급여 내역</h3>
+					<h3 class="text-lg font-semibold text-gray-900 mb-3">지급 내역</h3>
 					<div class="overflow-x-auto">
 						<table class="min-w-full border border-gray-200 rounded-lg">
 							<thead class="bg-gray-50">
@@ -551,28 +631,55 @@
 							</thead>
 							<tbody>
 								<tr>
-									<td rowspan={generatedPayslip.allowances.length + 1} class="border border-gray-200 px-4 py-2 text-sm font-medium text-gray-900">지급</td>
-									<td class="border border-gray-200 px-4 py-2 text-sm text-gray-900">기본급</td>
-									<td class="border border-gray-200 px-4 py-2 text-sm text-gray-900 text-right">
-										{formatCurrency(generatedPayslip.salaryInfo.baseSalary)}
-									</td>
-									<td class="border border-gray-200 px-4 py-2 text-sm text-gray-500 text-center">-</td>
+									<td rowspan={(isPayslipEditMode ? editedPayments : generatedPayslip.payments).length + 1} class="border border-gray-200 px-4 py-2 text-sm font-medium text-gray-900">지급</td>
 								</tr>
-								{#each generatedPayslip.allowances as allowance}
+								{#each (isPayslipEditMode ? editedPayments : generatedPayslip.payments) as payment, index}
 									<tr>
-										<td class="border border-gray-200 px-4 py-2 text-sm text-gray-900">{allowance.name}</td>
+										<td class="border border-gray-200 px-4 py-2 text-sm text-gray-900">
+											{#if isPayslipEditMode}
+												<input 
+													type="text" 
+													bind:value={editedPayments[index].name}
+													class="w-full px-2 py-1 border border-gray-300 rounded text-sm"
+												/>
+											{:else}
+												{payment.name}
+											{/if}
+										</td>
 										<td class="border border-gray-200 px-4 py-2 text-sm text-gray-900 text-right">
-											{formatCurrency(allowance.amount)}
+											{#if isPayslipEditMode}
+												<input 
+													type="number" 
+													bind:value={editedPayments[index].amount}
+													class="w-full px-2 py-1 border border-gray-300 rounded text-sm text-right"
+												/>
+											{:else}
+												{formatCurrency(payment.amount)}
+											{/if}
 										</td>
 										<td class="border border-gray-200 px-4 py-2 text-sm text-gray-500 text-center">
-											{allowance.isTaxable ? '과세' : '비과세'}
+											{#if isPayslipEditMode}
+												<select 
+													bind:value={editedPayments[index].isTaxable}
+													class="w-full px-2 py-1 border border-gray-300 rounded text-sm"
+												>
+													<option value={true}>과세</option>
+													<option value={false}>비과세</option>
+												</select>
+											{:else}
+												{payment.isTaxable ? '과세' : '비과세'}
+											{/if}
 										</td>
 									</tr>
 								{/each}
 								<tr class="bg-gray-50">
-									<td colspan="2" class="border border-gray-200 px-4 py-2 text-sm font-medium text-gray-900">지급액 계</td>
+									<td colspan="2" class="border border-gray-200 px-4 py-2 text-sm font-medium text-gray-900">지급총액</td>
 									<td class="border border-gray-200 px-4 py-2 text-sm font-bold text-gray-900 text-right">
-										{formatCurrency(generatedPayslip.totals.grossSalary)}
+										{#if isPayslipEditMode}
+											{formatCurrency(editedPayments.reduce((sum, payment) => sum + payment.amount, 0))}
+										{:else}
+											{formatCurrency(generatedPayslip.totals.totalPayments)}
+										{/if}
 									</td>
 									<td class="border border-gray-200 px-4 py-2"></td>
 								</tr>
@@ -595,22 +702,54 @@
 								</tr>
 							</thead>
 							<tbody>
-								{#each generatedPayslip.deductions as deduction}
+								{#each (isPayslipEditMode ? editedDeductions : generatedPayslip.deductions) as deduction, index}
 									<tr>
 										<td class="border border-gray-200 px-4 py-2 text-sm text-gray-900">공제</td>
-										<td class="border border-gray-200 px-4 py-2 text-sm text-gray-900">{deduction.name}</td>
+										<td class="border border-gray-200 px-4 py-2 text-sm text-gray-900">
+											{#if isPayslipEditMode}
+												<input 
+													type="text" 
+													bind:value={editedDeductions[index].name}
+													class="w-full px-2 py-1 border border-gray-300 rounded text-sm"
+												/>
+											{:else}
+												{deduction.name}
+											{/if}
+										</td>
 										<td class="border border-gray-200 px-4 py-2 text-sm text-gray-900 text-right">
-											{formatCurrency(deduction.amount)}
+											{#if isPayslipEditMode}
+												<input 
+													type="number" 
+													bind:value={editedDeductions[index].amount}
+													class="w-full px-2 py-1 border border-gray-300 rounded text-sm text-right"
+												/>
+											{:else}
+												{formatCurrency(deduction.amount)}
+											{/if}
 										</td>
 										<td class="border border-gray-200 px-4 py-2 text-sm text-gray-500 text-center">
-											{deduction.isMandatory ? '법정' : '임의'}
+											{#if isPayslipEditMode}
+												<select 
+													bind:value={editedDeductions[index].isMandatory}
+													class="w-full px-2 py-1 border border-gray-300 rounded text-sm"
+												>
+													<option value={true}>법정</option>
+													<option value={false}>임의</option>
+												</select>
+											{:else}
+												{deduction.isMandatory ? '법정' : '임의'}
+											{/if}
 										</td>
 									</tr>
 								{/each}
 								<tr class="bg-gray-50">
-									<td colspan="2" class="border border-gray-200 px-4 py-2 text-sm font-medium text-gray-900">공제액 계</td>
+									<td colspan="2" class="border border-gray-200 px-4 py-2 text-sm font-medium text-gray-900">공제총액</td>
 									<td class="border border-gray-200 px-4 py-2 text-sm font-bold text-gray-900 text-right">
-										{formatCurrency(generatedPayslip.totals.totalDeductions)}
+										{#if isPayslipEditMode}
+											{formatCurrency(editedDeductions.reduce((sum, deduction) => sum + deduction.amount, 0))}
+										{:else}
+											{formatCurrency(generatedPayslip.totals.totalDeductions)}
+										{/if}
 									</td>
 									<td class="border border-gray-200 px-4 py-2"></td>
 								</tr>
@@ -619,10 +758,15 @@
 					</div>
 				</div>
 
-				<!-- 실지급액 -->
+				<!-- 차감지급액 -->
 				<div class="bg-blue-50 p-6 rounded-lg text-center">
 					<h3 class="text-xl font-bold text-blue-900">
-						실지급액: {formatCurrency(generatedPayslip.totals.netSalary)}
+						차감지급액: 
+						{#if isPayslipEditMode}
+							{formatCurrency(editedPayments.reduce((sum, payment) => sum + payment.amount, 0) - editedDeductions.reduce((sum, deduction) => sum + deduction.amount, 0))}
+						{:else}
+							{formatCurrency(generatedPayslip.totals.netSalary)}
+						{/if}
 					</h3>
 				</div>
 
