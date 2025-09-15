@@ -1,13 +1,12 @@
 // 개별 급여 계약 관리 API 엔드포인트
 
-import { json } from '@sveltejs/kit';
 import { query } from '$lib/database/connection.js';
-import type { RequestHandler } from './$types';
-import type { 
-	SalaryContract, 
-	UpdateSalaryContractRequest,
-	ApiResponse 
+import type {
+    SalaryContract,
+    UpdateSalaryContractRequest
 } from '$lib/types/salary-contracts';
+import { json } from '@sveltejs/kit';
+import type { RequestHandler } from './$types';
 
 // GET: 특정 급여 계약 조회
 export const GET: RequestHandler = async ({ params }) => {
@@ -44,11 +43,21 @@ export const GET: RequestHandler = async ({ params }) => {
 		}
 
 		const contract = result.rows[0];
+		
+		// 날짜를 KST로 변환
+		const convertToKST = (dateString: string) => {
+			if (!dateString) return null;
+			const date = new Date(dateString);
+			// UTC+9 (KST)로 변환
+			const kstDate = new Date(date.getTime() + (9 * 60 * 60 * 1000));
+			return kstDate.toISOString().split('T')[0]; // YYYY-MM-DD 형식으로 반환
+		};
+
 		const salaryContract: SalaryContract = {
 			id: contract.id,
 			employeeId: contract.employee_id,
-			startDate: contract.start_date,
-			endDate: contract.end_date,
+			startDate: convertToKST(contract.start_date),
+			endDate: convertToKST(contract.end_date),
 			annualSalary: parseFloat(contract.annual_salary),
 			monthlySalary: parseFloat(contract.monthly_salary),
 			contractType: contract.contract_type,
@@ -159,13 +168,22 @@ export const PUT: RequestHandler = async ({ params, request }) => {
 
 		const updatedContract = result.rows[0];
 
+		// 날짜를 KST로 변환
+		const convertToKST = (dateString: string) => {
+			if (!dateString) return null;
+			const date = new Date(dateString);
+			// UTC+9 (KST)로 변환
+			const kstDate = new Date(date.getTime() + (9 * 60 * 60 * 1000));
+			return kstDate.toISOString().split('T')[0]; // YYYY-MM-DD 형식으로 반환
+		};
+
 		return json({
 			success: true,
 			data: {
 				id: updatedContract.id,
 				employeeId: updatedContract.employee_id,
-				startDate: updatedContract.start_date,
-				endDate: updatedContract.end_date,
+				startDate: convertToKST(updatedContract.start_date),
+				endDate: convertToKST(updatedContract.end_date),
 				annualSalary: parseFloat(updatedContract.annual_salary),
 				monthlySalary: parseFloat(updatedContract.monthly_salary),
 				contractType: updatedContract.contract_type,

@@ -50,8 +50,9 @@
 					{/if}
 				</div>
 				{#if icon}
+					{@const IconComponent = icon}
 					<div class="h-12 w-12 rounded-xl flex items-center justify-center transition-all duration-200 group-hover:scale-110 {colorClasses[color].bg} dark:{colorClasses[color].dark.bg}">
-						<svelte:component this={icon} class="h-6 w-6 {colorClasses[color].text} dark:{colorClasses[color].dark.text}" />
+						<IconComponent class="h-6 w-6 {colorClasses[color].text} dark:{colorClasses[color].dark.text}" />
 					</div>
 				{:else}
 					<!-- 아이콘이 없을 때 대체 아이콘 -->
@@ -73,8 +74,9 @@
 				{/if}
 			</div>
 			{#if icon}
+				{@const IconComponent = icon}
 				<div class="h-12 w-12 rounded-xl flex items-center justify-center transition-all duration-200 group-hover:scale-110 {colorClasses[color].bg} dark:{colorClasses[color].dark.bg}">
-					<svelte:component this={icon} class="h-6 w-6 {colorClasses[color].text} dark:{colorClasses[color].dark.text}" />
+					<IconComponent class="h-6 w-6 {colorClasses[color].text} dark:{colorClasses[color].dark.text}" />
 				</div>
 			{:else}
 				<!-- 아이콘이 없을 때 대체 아이콘 -->

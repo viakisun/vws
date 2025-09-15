@@ -1,49 +1,6 @@
 import { writable } from 'svelte/store';
 
-// 급여 명세서
-export interface Payroll {
-	id: string;
-	employeeId: string;
-	payPeriod: {
-		startDate: string;
-		endDate: string;
-		year: number;
-		month: number;
-	};
-	
-	// 기본 급여
-	basicSalary: number;
-	overtimePay: number;
-	holidayPay: number;
-	bonus: number;
-	allowances: {
-		meal: number;
-		transportation: number;
-		housing: number;
-		other: number;
-	};
-	
-	// 공제
-	deductions: {
-		incomeTax: number;
-		localTax: number;
-		nationalPension: number;
-		healthInsurance: number;
-		longTermCare: number;
-		employmentInsurance: number;
-		other: number;
-	};
-	
-	// 최종 급여
-	grossPay: number; // 총 지급액
-	totalDeductions: number; // 총 공제액
-	netPay: number; // 실수령액
-	
-	status: 'draft' | 'approved' | 'paid';
-	createdAt: string;
-	updatedAt: string;
-	paidAt?: string;
-}
+// Payroll 타입은 salary-store.ts로 이동됨
 
 // 상여금/성과급
 export interface Bonus {
@@ -142,45 +99,6 @@ export interface EventSupport {
 }
 
 // 초기 데이터
-const initialPayrolls: Payroll[] = [
-	{
-		id: 'payroll-1',
-		employeeId: 'emp-1',
-		payPeriod: {
-			startDate: '2024-01-01',
-			endDate: '2024-01-31',
-			year: 2024,
-			month: 1
-		},
-		basicSalary: 5000000,
-		overtimePay: 200000,
-		holidayPay: 0,
-		bonus: 0,
-		allowances: {
-			meal: 200000,
-			transportation: 100000,
-			housing: 0,
-			other: 0
-		},
-		deductions: {
-			incomeTax: 500000,
-			localTax: 50000,
-			nationalPension: 200000,
-			healthInsurance: 150000,
-			longTermCare: 15000,
-			employmentInsurance: 50000,
-			other: 0
-		},
-		grossPay: 5500000,
-		totalDeductions: 965000,
-		netPay: 4535000,
-		status: 'paid',
-		createdAt: '2024-01-31T00:00:00Z',
-		updatedAt: '2024-02-01T00:00:00Z',
-		paidAt: '2024-02-01T00:00:00Z'
-	}
-];
-
 const initialBonuses: Bonus[] = [
 	{
 		id: 'bonus-1',
@@ -304,7 +222,6 @@ const initialEventSupports: EventSupport[] = [
 ];
 
 // 스토어 생성
-export const payrolls = writable<Payroll[]>(initialPayrolls);
 export const bonuses = writable<Bonus[]>(initialBonuses);
 export const insuranceRecords = writable<InsuranceRecord[]>(initialInsuranceRecords);
 export const welfarePoints = writable<WelfarePoint[]>(initialWelfarePoints);
@@ -312,51 +229,7 @@ export const welfarePrograms = writable<WelfareProgram[]>(initialWelfarePrograms
 export const welfareApplications = writable<WelfareApplication[]>(initialWelfareApplications);
 export const eventSupports = writable<EventSupport[]>(initialEventSupports);
 
-// 급여 관리 함수들
-export function addPayroll(payroll: Omit<Payroll, 'id' | 'createdAt' | 'updatedAt'>) {
-	const newPayroll: Payroll = {
-		...payroll,
-		id: `payroll-${Date.now()}`,
-		createdAt: new Date().toISOString(),
-		updatedAt: new Date().toISOString()
-	};
-	payrolls.update(current => [...current, newPayroll]);
-}
-
-export function updatePayroll(id: string, updates: Partial<Payroll>) {
-	payrolls.update(current =>
-		current.map(payroll => 
-			payroll.id === id 
-				? { ...payroll, ...updates, updatedAt: new Date().toISOString() }
-				: payroll
-		)
-	);
-}
-
-export function approvePayroll(id: string) {
-	payrolls.update(current =>
-		current.map(payroll => 
-			payroll.id === id 
-				? { ...payroll, status: 'approved', updatedAt: new Date().toISOString() }
-				: payroll
-		)
-	);
-}
-
-export function payPayroll(id: string) {
-	payrolls.update(current =>
-		current.map(payroll => 
-			payroll.id === id 
-				? { 
-					...payroll, 
-					status: 'paid', 
-					paidAt: new Date().toISOString(),
-					updatedAt: new Date().toISOString() 
-				}
-				: payroll
-		)
-	);
-}
+// 급여 관리 함수들은 salary-store.ts로 이동됨
 
 // 상여금 관리 함수들
 export function addBonus(bonus: Omit<Bonus, 'id' | 'createdAt'>) {

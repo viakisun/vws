@@ -1,5 +1,5 @@
-import { json } from '@sveltejs/kit';
 import { query } from '$lib/database/connection';
+import { json } from '@sveltejs/kit';
 
 export async function GET({ params, url }) {
 	try {
@@ -22,11 +22,6 @@ export async function GET({ params, url }) {
 					p.employee_id AS "employeeId",
 					p.period,
 					p.pay_date AS "payDate",
-					p.employee_name AS "employeeName",
-					p.employee_id_number AS "employeeIdNumber",
-					p.department,
-					p.position,
-					p.hire_date AS "hireDate",
 					p.base_salary AS "baseSalary",
 					p.total_payments AS "totalPayments",
 					p.total_deductions AS "totalDeductions",
@@ -36,8 +31,15 @@ export async function GET({ params, url }) {
 					p.status,
 					p.is_generated AS "isGenerated",
 					p.created_at AS "createdAt",
-					p.updated_at AS "updatedAt"
+					p.updated_at AS "updatedAt",
+					-- 직원 정보
+					e.first_name || e.last_name AS "employeeName",
+					e.employee_id AS "employeeIdNumber",
+					e.department,
+					e.position,
+					e.hire_date AS "hireDate"
 				FROM payslips p
+				JOIN employees e ON p.employee_id = e.id
 				WHERE p.employee_id = $1 AND p.period = $2
 				`,
 				[employeeId, period]
@@ -60,11 +62,6 @@ export async function GET({ params, url }) {
 				p.employee_id AS "employeeId",
 				p.period,
 				p.pay_date AS "payDate",
-				p.employee_name AS "employeeName",
-				p.employee_id_number AS "employeeIdNumber",
-				p.department,
-				p.position,
-				p.hire_date AS "hireDate",
 				p.base_salary AS "baseSalary",
 				p.total_payments AS "totalPayments",
 				p.total_deductions AS "totalDeductions",
@@ -74,8 +71,15 @@ export async function GET({ params, url }) {
 				p.status,
 				p.is_generated AS "isGenerated",
 				p.created_at AS "createdAt",
-				p.updated_at AS "updatedAt"
+				p.updated_at AS "updatedAt",
+				-- 직원 정보
+				e.first_name || e.last_name AS "employeeName",
+				e.employee_id AS "employeeIdNumber",
+				e.department,
+				e.position,
+				e.hire_date AS "hireDate"
 			FROM payslips p
+			JOIN employees e ON p.employee_id = e.id
 			WHERE p.employee_id = $1
 			ORDER BY p.period DESC
 			LIMIT 1

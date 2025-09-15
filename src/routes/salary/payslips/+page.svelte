@@ -1,11 +1,11 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { 
-		employeePayrolls,
-		loadEmployeePayrolls,
-		isLoading,
-		error
-	} from '$lib/stores/salary/salary-store';
+import { 
+    payslips,
+    loadPayslips,
+    isLoading,
+    error
+} from '$lib/stores/salary/salary-store';
 	import PayslipGenerator from '$lib/components/salary/PayslipGenerator.svelte';
 	import { formatCurrency, formatDate } from '$lib/utils/format';
 	import { 
@@ -21,9 +21,9 @@
 	let selectedPeriod = $state('');
 	let selectedEmployee = $state('');
 
-	// 필터링된 급여 목록
-	const filteredPayrolls = $derived(() => {
-		let filtered = [...$employeePayrolls];
+	// 필터링된 급여명세서 목록
+	const filteredPayslips = $derived(() => {
+		let filtered = [...$payslips];
 
 		if (searchQuery) {
 			const query = searchQuery.toLowerCase();
@@ -52,8 +52,8 @@
 	// 기간 옵션
 	const periodOptions = $derived(() => {
 		const periods = new Set();
-		$employeePayrolls.forEach(payroll => {
-			const period = payroll.payDate.substring(0, 7);
+		$payslips.forEach(payslip => {
+			const period = payslip.period;
 			periods.add(period);
 		});
 		return Array.from(periods).sort().reverse();
@@ -62,17 +62,17 @@
 	// 직원 옵션
 	const employeeOptions = $derived(() => {
 		const employees = new Map();
-		$employeePayrolls.forEach(payroll => {
-			employees.set(payroll.employeeId, {
-				id: payroll.employeeId,
-				name: payroll.employeeName
+		$payslips.forEach(payslip => {
+			employees.set(payslip.employeeId, {
+				id: payslip.employeeId,
+				name: payslip.employeeName
 			});
 		});
 		return Array.from(employees.values()).sort((a, b) => a.name.localeCompare(b.name));
 	});
 
 	onMount(async () => {
-		await loadEmployeePayrolls();
+		await loadPayslips();
 	});
 
 	// 상태별 색상
@@ -190,7 +190,7 @@
 							</tr>
 						</thead>
 						<tbody class="bg-white divide-y divide-gray-200">
-							{#each filteredPayrolls as payroll}
+							{#each filteredPayslips as payroll}
 								<tr class="hover:bg-gray-50">
 									<td class="px-6 py-4 whitespace-nowrap">
 										<div class="flex items-center">
@@ -238,7 +238,7 @@
 				</div>
 
 				<!-- 결과가 없을 때 -->
-				{#if filteredPayrolls.length === 0}
+				{#if filteredPayslips.length === 0}
 					<div class="text-center py-12">
 						<FileTextIcon size={48} class="mx-auto text-gray-400" />
 						<h3 class="mt-2 text-sm font-medium text-gray-900">급여명세서가 없습니다</h3>

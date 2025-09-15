@@ -103,7 +103,6 @@
 	
 	
 	import { 
-		payrolls, 
 		bonuses, 
 		welfareApplications,
 		calculateAnnualCompensation

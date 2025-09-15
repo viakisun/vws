@@ -2,8 +2,6 @@
 
 import type {
     ApiResponse,
-    EmployeePayroll,
-    Payroll,
     Payslip,
     SalaryHistory,
     SalarySearchFilter,
@@ -13,8 +11,6 @@ import { derived, writable } from 'svelte/store';
 
 // ===== 기본 스토어 =====
 export const salaryStructures = writable<SalaryStructure[]>([]);
-export const payrolls = writable<Payroll[]>([]);
-export const employeePayrolls = writable<EmployeePayroll[]>([]);
 export const payslips = writable<Payslip[]>([]);
 export const salaryHistory = writable<SalaryHistory[]>([]);
 export const selectedEmployee = writable<string | null>(null);
@@ -46,32 +42,40 @@ export const previousPeriod = derived(
 
 // ===== 급여 통계 =====
 export const salaryStatistics = derived(
-	[payrolls, currentPeriod, previousPeriod],
-	([$payrolls, $currentPeriod, $previousPeriod]) => {
-		const currentPayroll = $payrolls.find(p => p.period === $currentPeriod);
-		const previousPayroll = $payrolls.find(p => p.period === $previousPeriod);
+	[payslips, currentPeriod, previousPeriod],
+	([$payslips, $currentPeriod, $previousPeriod]) => {
+		const currentPayslips = $payslips.filter(p => p.period === $currentPeriod);
+		const previousPayslips = $payslips.filter(p => p.period === $previousPeriod);
+
+		const currentTotalGross = currentPayslips.reduce((sum, p) => sum + (p.totalPayments || 0), 0);
+		const currentTotalNet = currentPayslips.reduce((sum, p) => sum + (p.netSalary || 0), 0);
+		const currentTotalDeductions = currentPayslips.reduce((sum, p) => sum + (p.totalDeductions || 0), 0);
+		
+		const previousTotalGross = previousPayslips.reduce((sum, p) => sum + (p.totalPayments || 0), 0);
+		const previousTotalNet = previousPayslips.reduce((sum, p) => sum + (p.netSalary || 0), 0);
+		const previousTotalDeductions = previousPayslips.reduce((sum, p) => sum + (p.totalDeductions || 0), 0);
 
 		return {
 			currentPeriod: $currentPeriod,
 			previousPeriod: $previousPeriod,
 			currentMonth: {
-				totalEmployees: parseInt(String(currentPayroll?.totalEmployees || 0)),
-				totalGrossSalary: parseFloat(String(currentPayroll?.totalGrossSalary || 0)),
-				totalNetSalary: parseFloat(String(currentPayroll?.totalNetSalary || 0)),
-				totalDeductions: parseFloat(String(currentPayroll?.totalDeductions || 0)),
-				status: currentPayroll?.status || 'draft'
+				totalEmployees: currentPayslips.length,
+				totalGrossSalary: currentTotalGross,
+				totalNetSalary: currentTotalNet,
+				totalDeductions: currentTotalDeductions,
+				status: currentPayslips.length > 0 ? 'calculated' : 'draft'
 			},
 			previousMonth: {
-				totalEmployees: parseInt(String(previousPayroll?.totalEmployees || 0)),
-				totalGrossSalary: parseFloat(String(previousPayroll?.totalGrossSalary || 0)),
-				totalNetSalary: parseFloat(String(previousPayroll?.totalNetSalary || 0)),
-				totalDeductions: parseFloat(String(previousPayroll?.totalDeductions || 0)),
-				status: previousPayroll?.status || 'draft'
+				totalEmployees: previousPayslips.length,
+				totalGrossSalary: previousTotalGross,
+				totalNetSalary: previousTotalNet,
+				totalDeductions: previousTotalDeductions,
+				status: previousPayslips.length > 0 ? 'calculated' : 'draft'
 			},
 			changes: {
-				employeeChange: parseInt(String(currentPayroll?.totalEmployees || 0)) - parseInt(String(previousPayroll?.totalEmployees || 0)),
-				salaryChange: parseFloat(String(currentPayroll?.totalGrossSalary || 0)) - parseFloat(String(previousPayroll?.totalGrossSalary || 0)),
-				netSalaryChange: parseFloat(String(currentPayroll?.totalNetSalary || 0)) - parseFloat(String(previousPayroll?.totalNetSalary || 0))
+				employeeChange: currentPayslips.length - previousPayslips.length,
+				salaryChange: currentTotalGross - previousTotalGross,
+				netSalaryChange: currentTotalNet - previousTotalNet
 			}
 		};
 	}
@@ -79,34 +83,34 @@ export const salaryStatistics = derived(
 
 // ===== 직원별 급여 현황 =====
 export const employeeSalaryStatus = derived(
-	[employeePayrolls, selectedEmployee, currentPeriod],
-	([$employeePayrolls, $selectedEmployee, $currentPeriod]) => {
+	[payslips, selectedEmployee, currentPeriod],
+	([$payslips, $selectedEmployee, $currentPeriod]) => {
 		if (!$selectedEmployee) return null;
 
-		const currentPayroll = $employeePayrolls.find(
-			ep => ep.employeeId === $selectedEmployee && ep.payrollId.includes($currentPeriod)
+		const currentPayslip = $payslips.find(
+			p => p.employeeId === $selectedEmployee && p.period === $currentPeriod
 		);
 
-		return currentPayroll ? {
-			employeeId: currentPayroll.employeeId,
-			employeeName: currentPayroll.employeeName,
-			department: currentPayroll.department,
-			position: currentPayroll.position,
-			baseSalary: currentPayroll.baseSalary,
-			totalAllowances: currentPayroll.totalAllowances,
-			totalDeductions: currentPayroll.totalDeductions,
-			grossSalary: currentPayroll.grossSalary,
-			netSalary: currentPayroll.netSalary,
-			status: currentPayroll.status,
-			payDate: currentPayroll.payDate
+		return currentPayslip ? {
+			employeeId: currentPayslip.employeeId,
+			employeeName: currentPayslip.employeeInfo.name,
+			department: currentPayslip.employeeInfo.department,
+			position: currentPayslip.employeeInfo.position,
+			baseSalary: currentPayslip.salaryInfo.baseSalary,
+			totalAllowances: currentPayslip.totals.totalAllowances,
+			totalDeductions: currentPayslip.totals.totalDeductions,
+			grossSalary: currentPayslip.totals.totalPayments,
+			netSalary: currentPayslip.totals.netSalary,
+			status: currentPayslip.status,
+			payDate: currentPayslip.payDate
 		} : null;
 	}
 );
 
 // ===== 부서별 급여 통계 =====
 export const departmentSalaryStats = derived(
-	employeePayrolls,
-	($employeePayrolls) => {
+	payslips,
+	($payslips) => {
 		const stats: Record<string, {
 			employeeCount: number;
 			totalGrossSalary: number;
@@ -115,9 +119,10 @@ export const departmentSalaryStats = derived(
 			averageNetSalary: number;
 		}> = {};
 
-		$employeePayrolls.forEach(payroll => {
-			if (!stats[payroll.department]) {
-				stats[payroll.department] = {
+		$payslips.forEach(payslip => {
+			const department = payslip.employeeInfo.department;
+			if (!stats[department]) {
+				stats[department] = {
 					employeeCount: 0,
 					totalGrossSalary: 0,
 					totalNetSalary: 0,
@@ -126,11 +131,11 @@ export const departmentSalaryStats = derived(
 				};
 			}
 
-			const deptStats = stats[payroll.department];
+			const deptStats = stats[department];
 			if (deptStats) {
 				deptStats.employeeCount++;
-				deptStats.totalGrossSalary += parseFloat(String(payroll.grossSalary));
-				deptStats.totalNetSalary += parseFloat(String(payroll.netSalary));
+				deptStats.totalGrossSalary += parseFloat(String(payslip.totals.totalPayments));
+				deptStats.totalNetSalary += parseFloat(String(payslip.totals.netSalary));
 			}
 		});
 
@@ -157,11 +162,11 @@ export const filteredSalaryHistory = derived(
 	}
 );
 
-// ===== 필터된 급여 목록 =====
-export const filteredPayrolls = derived(
-	[payrolls, searchFilter],
-	([$payrolls, $filter]) => {
-		let filtered = [...$payrolls];
+// ===== 필터된 급여명세서 목록 =====
+export const filteredPayslips = derived(
+	[payslips, searchFilter],
+	([$payslips, $filter]) => {
+		let filtered = [...$payslips];
 
 		// 기간 필터
 		if ($filter.periodFrom) {
@@ -182,12 +187,12 @@ export const filteredPayrolls = derived(
 );
 
 // ===== 페이지네이션된 급여 목록 =====
-export const paginatedPayrolls = derived(
-	[filteredPayrolls, currentPage, pageSize],
-	([$filteredPayrolls, $currentPage, $pageSize]) => {
+export const paginatedPayslips = derived(
+	[filteredPayslips, currentPage, pageSize],
+	([$filteredPayslips, $currentPage, $pageSize]) => {
 		const startIndex = ($currentPage - 1) * $pageSize;
 		const endIndex = startIndex + $pageSize;
-		return $filteredPayrolls.slice(startIndex, endIndex);
+		return $filteredPayslips.slice(startIndex, endIndex);
 	}
 );
 
@@ -214,21 +219,19 @@ export async function loadSalaryStructures(): Promise<void> {
 	}
 }
 
-// 급여 목록 로드
-export async function loadPayrolls(): Promise<void> {
+// 급여명세서 목록 로드
+export async function loadPayslips(): Promise<void> {
 	isLoading.set(true);
 	error.set(null);
 
 	try {
-		const response = await fetch('/api/salary/payrolls');
-		const result: ApiResponse<Payroll[]> = await response.json();
+		const response = await fetch('/api/salary/payslips');
+		const result: ApiResponse<Payslip[]> = await response.json();
 
 		if (result.success && result.data) {
-			// API 응답이 { data: { data: [...] } } 구조인 경우
-			const payrollData = Array.isArray(result.data) ? result.data : result.data.data;
-			payrolls.set(payrollData);
+			payslips.set(result.data);
 		} else {
-			error.set(result.error || '급여 목록을 불러오는데 실패했습니다.');
+			error.set(result.error || '급여명세서 목록을 불러오는데 실패했습니다.');
 		}
 	} catch (err) {
 		error.set(err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.');
@@ -237,29 +240,6 @@ export async function loadPayrolls(): Promise<void> {
 	}
 }
 
-// 직원별 급여 목록 로드
-export async function loadEmployeePayrolls(period?: string): Promise<void> {
-	isLoading.set(true);
-	error.set(null);
-
-	try {
-		const url = period ? `/api/salary/employee-payrolls?period=${period}` : '/api/salary/employee-payrolls';
-		const response = await fetch(url);
-		const result: ApiResponse<EmployeePayroll[]> = await response.json();
-
-		if (result.success && result.data) {
-			// API 응답이 { data: { data: [...] } } 구조인 경우
-			const employeePayrollData = Array.isArray(result.data) ? result.data : result.data.data;
-			employeePayrolls.set(employeePayrollData);
-		} else {
-			error.set(result.error || '직원별 급여 목록을 불러오는데 실패했습니다.');
-		}
-	} catch (err) {
-		error.set(err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.');
-	} finally {
-		isLoading.set(false);
-	}
-}
 
 // 급여 이력 로드
 export async function loadSalaryHistory(employeeId?: string): Promise<void> {
@@ -347,68 +327,7 @@ export async function updateSalaryStructure(id: string, updates: Partial<SalaryS
 	}
 }
 
-// 급여 계산
-export async function calculatePayroll(period: string): Promise<boolean> {
-	isLoading.set(true);
-	error.set(null);
-
-	try {
-		const response = await fetch(`/api/salary/payrolls/${period}/calculate`, {
-			method: 'POST'
-		});
-
-		const result: ApiResponse<Payroll> = await response.json();
-
-		if (result.success && result.data) {
-			payrolls.update(current => {
-				const existing = current.find(p => p.period === period);
-				if (existing) {
-					return current.map(p => p.period === period ? result.data! : p);
-				} else {
-					return [...current, result.data!];
-				}
-			});
-			return true;
-		} else {
-			error.set(result.error || '급여 계산에 실패했습니다.');
-			return false;
-		}
-	} catch (err) {
-		error.set(err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.');
-		return false;
-	} finally {
-		isLoading.set(false);
-	}
-}
-
-// 급여 승인
-export async function approvePayroll(payrollId: string): Promise<boolean> {
-	isLoading.set(true);
-	error.set(null);
-
-	try {
-		const response = await fetch(`/api/salary/payrolls/${payrollId}/approve`, {
-			method: 'POST'
-		});
-
-		const result: ApiResponse<Payroll> = await response.json();
-
-		if (result.success && result.data) {
-			payrolls.update(current => 
-				current.map(p => p.id === payrollId ? result.data! : p)
-			);
-			return true;
-		} else {
-			error.set(result.error || '급여 승인에 실패했습니다.');
-			return false;
-		}
-	} catch (err) {
-		error.set(err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.');
-		return false;
-	} finally {
-		isLoading.set(false);
-	}
-}
+// 급여 계산 및 승인 함수들은 더 이상 사용하지 않음 - payslips API로 통합됨
 
 // 급여명세서 생성
 export async function generatePayslip(employeeId: string, period: string): Promise<boolean> {

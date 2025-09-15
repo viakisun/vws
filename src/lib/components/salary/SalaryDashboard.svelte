@@ -1,14 +1,13 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { 
-		salaryStatistics, 
-		departmentSalaryStats, 
-		currentPeriod,
-		loadPayrolls,
-		loadEmployeePayrolls,
-		isLoading,
-		error
-	} from '$lib/stores/salary/salary-store';
+import { 
+    salaryStatistics, 
+    departmentSalaryStats, 
+    currentPeriod,
+    loadPayslips,
+    isLoading,
+    error
+} from '$lib/stores/salary/salary-store';
 	import { 
 		formatCurrency, 
 		formatPercentage
@@ -26,11 +25,45 @@
 	} from 'lucide-svelte';
 
 	let mounted = false;
+	
+	// 로컬 급여 계약 데이터
+	let localContracts: any[] = [];
+	let localStats = {
+		totalEmployees: 0,
+		totalMonthlySalary: 0,
+		totalAnnualSalary: 0,
+		averageMonthlySalary: 0
+	};
 
 	onMount(async () => {
 		mounted = true;
-		await loadPayrolls();
-		await loadEmployeePayrolls();
+		await loadPayslips();
+		
+		// 급여 계약 데이터 로드
+		try {
+			const response = await fetch('/api/salary/contracts?page=1&limit=100');
+			const result = await response.json();
+			
+			if (result.success && result.data) {
+				localContracts = result.data.data;
+				
+				// 통계 계산
+				const activeContracts = localContracts.filter(contract => contract.status === 'active');
+				const totalMonthlySalary = activeContracts.reduce((sum, contract) => sum + (contract.monthlySalary || 0), 0);
+				const totalAnnualSalary = activeContracts.reduce((sum, contract) => sum + (contract.annualSalary || 0), 0);
+				
+				localStats = {
+					totalEmployees: activeContracts.length,
+					totalMonthlySalary: totalMonthlySalary,
+					totalAnnualSalary: totalAnnualSalary,
+					averageMonthlySalary: activeContracts.length > 0 ? Math.round(totalMonthlySalary / activeContracts.length) : 0
+				};
+				
+				console.log('개요 탭 로컬 통계:', localStats);
+			}
+		} catch (error) {
+			console.error('급여 계약 데이터 로드 실패:', error);
+		}
 	});
 
 	// 상태별 색상 반환
@@ -65,17 +98,11 @@
 </script>
 
 <div class="space-y-6">
-	<!-- 페이지 헤더 -->
-	<div class="flex items-center justify-between">
-		<div>
-			<h1 class="text-3xl font-bold text-gray-900">급여 관리</h1>
-			<p class="mt-2 text-gray-600">전체 직원 급여 현황 및 관리</p>
-		</div>
-		<div class="flex items-center space-x-4">
-			<div class="text-sm text-gray-500">
-				<CalendarIcon size={16} class="inline mr-1" />
-				현재 기간: {$currentPeriod}
-			</div>
+	<!-- 현재 기간 표시 -->
+	<div class="flex items-center justify-end mb-6">
+		<div class="text-sm text-gray-500">
+			<CalendarIcon size={16} class="inline mr-1" />
+			현재 기간: {$currentPeriod}
 		</div>
 	</div>
 
@@ -101,22 +128,10 @@
 					<div>
 						<p class="text-sm font-medium text-gray-600">이번달 급여 지급 예정액</p>
 						<p class="text-2xl font-bold text-gray-900">
-							{formatCurrency($salaryStatistics.currentMonth.totalNetSalary)}
+							{formatCurrency(localStats.totalMonthlySalary)}
 						</p>
 						<div class="flex items-center mt-2">
-							{#if $salaryStatistics.changes.netSalaryChange > 0}
-								<TrendingUpIcon size={16} class="text-green-500 mr-1" />
-								<span class="text-sm text-green-600">
-									+{formatCurrency($salaryStatistics.changes.netSalaryChange)}
-								</span>
-							{:else if $salaryStatistics.changes.netSalaryChange < 0}
-								<TrendingDownIcon size={16} class="text-red-500 mr-1" />
-								<span class="text-sm text-red-600">
-									{formatCurrency($salaryStatistics.changes.netSalaryChange)}
-								</span>
-							{:else}
-								<span class="text-sm text-gray-500">변화 없음</span>
-							{/if}
+							<span class="text-sm text-gray-500">변화 없음</span>
 							<span class="text-sm text-gray-500 ml-1">
 								(지난달 대비)
 							</span>
@@ -134,22 +149,10 @@
 					<div>
 						<p class="text-sm font-medium text-gray-600">총 직원 수</p>
 						<p class="text-2xl font-bold text-gray-900">
-							{$salaryStatistics.currentMonth.totalEmployees}명
+							{localStats.totalEmployees}명
 						</p>
 						<div class="flex items-center mt-2">
-							{#if $salaryStatistics.changes.employeeChange > 0}
-								<TrendingUpIcon size={16} class="text-green-500 mr-1" />
-								<span class="text-sm text-green-600">
-									+{$salaryStatistics.changes.employeeChange}명
-								</span>
-							{:else if $salaryStatistics.changes.employeeChange < 0}
-								<TrendingDownIcon size={16} class="text-red-500 mr-1" />
-								<span class="text-sm text-red-600">
-									{$salaryStatistics.changes.employeeChange}명
-								</span>
-							{:else}
-								<span class="text-sm text-gray-500">변화 없음</span>
-							{/if}
+							<span class="text-sm text-gray-500">변화 없음</span>
 							<span class="text-sm text-gray-500 ml-1">
 								(지난달 대비)
 							</span>
@@ -167,22 +170,10 @@
 					<div>
 						<p class="text-sm font-medium text-gray-600">총 지급액</p>
 						<p class="text-2xl font-bold text-gray-900">
-							{formatCurrency($salaryStatistics.currentMonth.totalGrossSalary)}
+							{formatCurrency(localStats.totalAnnualSalary)}
 						</p>
 						<div class="flex items-center mt-2">
-							{#if $salaryStatistics.changes.salaryChange > 0}
-								<TrendingUpIcon size={16} class="text-green-500 mr-1" />
-								<span class="text-sm text-green-600">
-									+{formatCurrency($salaryStatistics.changes.salaryChange)}
-								</span>
-							{:else if $salaryStatistics.changes.salaryChange < 0}
-								<TrendingDownIcon size={16} class="text-red-500 mr-1" />
-								<span class="text-sm text-red-600">
-									{formatCurrency($salaryStatistics.changes.salaryChange)}
-								</span>
-							{:else}
-								<span class="text-sm text-gray-500">변화 없음</span>
-							{/if}
+							<span class="text-sm text-gray-500">변화 없음</span>
 							<span class="text-sm text-gray-500 ml-1">
 								(지난달 대비)
 							</span>

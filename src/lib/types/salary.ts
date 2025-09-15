@@ -89,32 +89,9 @@ export interface Payroll {
 	createdBy: string;
 	approvedBy?: string;
 	approvedAt?: string;
-	employeePayrolls: EmployeePayroll[];
-}
-
-export interface EmployeePayroll {
-	id: string;
-	payrollId: PayrollId;
-	employeeId: EmployeeId;
-	employeeName: string;
-	employeeIdNumber: string;
-	department: string;
-	position: string;
-	baseSalary: number;
-	allowances: Allowance[];
-	deductions: Deduction[];
-	totalAllowances: number;
-	totalDeductions: number;
-	grossSalary: number; // 지급액
-	netSalary: number; // 실지급액
-	status: EmployeePayrollStatus;
-	payDate: string;
-	createdAt: string;
-	updatedAt: string;
 }
 
 export type PayrollStatus = 'draft' | 'calculated' | 'approved' | 'paid' | 'cancelled';
-export type EmployeePayrollStatus = 'pending' | 'calculated' | 'approved' | 'paid' | 'error';
 
 // ===== 급여명세서 관련 타입 =====
 export interface Payslip {
@@ -242,7 +219,7 @@ export interface SalarySearchFilter {
 }
 
 export interface SalarySearchResult {
-	payrolls: Payroll[];
+	payslips: Payslip[];
 	total: number;
 	page: number;
 	limit: number;

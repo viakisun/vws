@@ -1,16 +1,13 @@
 // 급여 계약 관리 API 엔드포인트
 
-import { json } from '@sveltejs/kit';
 import { query } from '$lib/database/connection.js';
-import type { RequestHandler } from './$types';
-import type { 
-	SalaryContract, 
-	CreateSalaryContractRequest, 
-	UpdateSalaryContractRequest,
-	ApiResponse, 
+import type {
+	CreateSalaryContractRequest,
 	PaginatedResponse,
-	SalaryContractStats 
+	SalaryContract
 } from '$lib/types/salary-contracts';
+import { json } from '@sveltejs/kit';
+import type { RequestHandler } from './$types';
 
 // GET: 급여 계약 목록 조회
 export const GET: RequestHandler = async ({ url }) => {
@@ -99,7 +96,7 @@ export const GET: RequestHandler = async ({ url }) => {
 		const totalPages = Math.ceil(total / limit);
 		const offset = (page - 1) * limit;
 
-		// 급여 계약 목록 조회
+		// 급여 계약 목록 조회 (최적화된 쿼리)
 		const result = await query(`
 			SELECT 
 				sc.id,
@@ -114,47 +111,48 @@ export const GET: RequestHandler = async ({ url }) => {
 				sc.created_at,
 				sc.updated_at,
 				sc.created_by,
-				CONCAT(e.last_name, e.first_name) as employee_name,
+				e.last_name || e.first_name as employee_name,
 				e.employee_id as employee_id_number,
 				e.department,
-				e.position,
-				CASE 
-					WHEN sc.end_date IS NULL THEN '무기한'
-					ELSE TO_CHAR(sc.end_date, 'YYYY-MM-DD')
-				END as contract_end_display,
-				CASE 
-					WHEN sc.status = 'active' AND sc.end_date IS NULL THEN '진행중 (무기한)'
-					WHEN sc.status = 'active' AND sc.end_date >= CURRENT_DATE THEN '진행중'
-					WHEN sc.status = 'expired' OR sc.end_date < CURRENT_DATE THEN '만료됨'
-					ELSE sc.status
-				END as status_display
+				e.position
 			FROM salary_contracts sc
-			JOIN employees e ON sc.employee_id = e.id
+			INNER JOIN employees e ON sc.employee_id = e.id
 			${whereClause}
 			ORDER BY sc.start_date DESC, sc.created_at DESC
 			LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
 		`, [...params, limit, offset]);
 
-		const contracts: SalaryContract[] = result.rows.map(row => ({
-			id: row.id,
-			employeeId: row.employee_id,
-			startDate: row.start_date,
-			endDate: row.end_date,
-			annualSalary: parseFloat(row.annual_salary),
-			monthlySalary: parseFloat(row.monthly_salary),
-			contractType: row.contract_type,
-			status: row.status,
-			notes: row.notes,
-			createdAt: row.created_at,
-			updatedAt: row.updated_at,
-			createdBy: row.created_by,
-			employeeName: row.employee_name,
-			employeeIdNumber: row.employee_id_number,
-			department: row.department,
-			position: row.position,
-			contractEndDisplay: row.contract_end_display,
-			statusDisplay: row.status_display
-		}));
+		const contracts: SalaryContract[] = result.rows.map(row => {
+			// 날짜를 KST로 변환
+			const convertToKST = (dateString: string) => {
+				if (!dateString) return null;
+				const date = new Date(dateString);
+				// UTC+9 (KST)로 변환
+				const kstDate = new Date(date.getTime() + (9 * 60 * 60 * 1000));
+				return kstDate.toISOString().split('T')[0]; // YYYY-MM-DD 형식으로 반환
+			};
+
+			return {
+				id: row.id,
+				employeeId: row.employee_id,
+				startDate: convertToKST(row.start_date),
+				endDate: convertToKST(row.end_date),
+				annualSalary: parseFloat(row.annual_salary),
+				monthlySalary: parseFloat(row.monthly_salary),
+				contractType: row.contract_type,
+				status: row.status,
+				notes: row.notes,
+				createdAt: row.created_at,
+				updatedAt: row.updated_at,
+				createdBy: row.created_by,
+				employeeName: row.employee_name,
+				employeeIdNumber: row.employee_id_number,
+				department: row.department,
+				position: row.position,
+				contractEndDisplay: row.contract_end_display,
+				statusDisplay: row.status_display
+			};
+		});
 
 		const response: PaginatedResponse<SalaryContract> = {
 			data: contracts,

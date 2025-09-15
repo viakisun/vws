@@ -7,21 +7,9 @@
 	import ThemeSpacer from '$lib/components/ui/ThemeSpacer.svelte';
 	import ThemeSectionHeader from '$lib/components/ui/ThemeSectionHeader.svelte';
 	import { 
-		contracts, 
-		filteredContracts, 
-		activeContracts,
-		contractStats,
-		contractFilter,
-		isLoading,
-		error,
-		loadContracts,
-		loadContractStats,
 		createContract,
 		updateContract,
-		deleteContract,
-		updateFilter,
-		resetFilter,
-		clearSelectedContract
+		deleteContract
 	} from '$lib/stores/salary/contract-store';
 	import { formatCurrency, formatDate, formatDateForInput } from '$lib/utils/format';
 	import type { SalaryContract, CreateSalaryContractRequest } from '$lib/types/salary-contracts';
@@ -62,26 +50,67 @@
 	// 직원 목록
 	let employees: any[] = [];
 
-	// 디버깅을 위한 reactive statements
+	// 로컬 계약 데이터
+	let localContracts: any[] = [];
+	let localLoading = false;
+	let localError: string | null = null;
+	
+	// 로컬 통계 데이터 (기존 데이터로 계산)
+	let localStats = {
+		totalContracts: 0,
+		activeContracts: 0,
+		totalAnnualSalary: 0,
+		averageAnnualSalary: 0
+	};
+
+	// 로컬 필터
+	let localFilter = {
+		status: '',
+		contractType: '',
+		employeeId: '',
+		department: '',
+		startDateFrom: ''
+	};
+
+	// 로컬 통계 계산 (localContracts가 변경될 때마다 자동 계산)
 	$: {
-		console.log('Contracts data changed:', $contracts);
-		console.log('Filtered contracts:', $filteredContracts);
-		console.log('Is loading:', $isLoading);
-		console.log('Error:', $error);
-		console.log('showEditModal:', showEditModal);
-		console.log('showCreateModal:', showCreateModal);
-		console.log('showDeleteModal:', showDeleteModal);
+		if (localContracts.length > 0) {
+			const activeContracts = localContracts.filter(contract => contract.status === 'active');
+			const totalAnnualSalary = localContracts.reduce((sum, contract) => sum + (contract.annualSalary || 0), 0);
+			
+			localStats = {
+				totalContracts: localContracts.length,
+				activeContracts: activeContracts.length,
+				totalAnnualSalary: totalAnnualSalary,
+				averageAnnualSalary: localContracts.length > 0 ? Math.round(totalAnnualSalary / localContracts.length) : 0
+			};
+		}
 	}
 
 	onMount(async () => {
 		mounted = true;
-		console.log('SalaryContracts onMount - 시작');
-		await loadContracts();
-		console.log('SalaryContracts onMount - loadContracts 완료');
-		await loadContractStats();
-		console.log('SalaryContracts onMount - loadContractStats 완료');
-		await loadEmployees();
-		console.log('SalaryContracts onMount - loadEmployees 완료');
+		
+		// 직접 API 호출로 데이터 로드
+		try {
+			localLoading = true;
+			localError = null;
+			
+			// 직접 API 호출
+			const response = await fetch('/api/salary/contracts?page=1&limit=20');
+			const result = await response.json();
+			
+			if (result.success && result.data) {
+				localContracts = result.data.data;
+			} else {
+				localError = result.error || '급여 계약 목록을 불러오는데 실패했습니다.';
+			}
+			
+			await loadEmployees();
+		} catch (error) {
+			localError = '알 수 없는 오류가 발생했습니다.';
+		} finally {
+			localLoading = false;
+		}
 	});
 
 	// 직원 목록 로드
@@ -163,7 +192,6 @@
 
 	// 계약 수정 모달 열기
 	function openEditModal(contract: SalaryContract) {
-		console.log('openEditModal called with contract:', contract);
 		selectedContract = contract;
 		formData = {
 			employeeId: contract.employeeId,
@@ -192,18 +220,49 @@
 			return;
 		}
 
+		// endDate가 빈 문자열인 경우 null로 변환하고, 날짜를 한국시간으로 처리
+		const submitData = {
+			...formData,
+			startDate: formData.startDate + 'T00:00:00+09:00',
+			endDate: formData.endDate === '' ? null : formData.endDate + 'T00:00:00+09:00'
+		};
+
 		let success = false;
 		if (showCreateModal) {
-			success = await createContract(formData);
+			success = await createContract(submitData);
 		} else if (showEditModal && selectedContract) {
-			success = await updateContract(selectedContract.id, formData);
+			success = await updateContract(selectedContract.id, submitData);
 		}
 
 		if (success) {
 			showCreateModal = false;
 			showEditModal = false;
 			selectedContract = null;
-			await loadContracts();
+			// 로컬 상태 새로고침
+			await refreshLocalData();
+		}
+	}
+
+	// 로컬 데이터 새로고침
+	async function refreshLocalData() {
+		try {
+			// 계약 목록 새로고침
+			const response = await fetch('/api/salary/contracts?page=1&limit=20');
+			const result = await response.json();
+			
+			if (result.success && result.data) {
+				localContracts = result.data.data;
+			}
+			
+			// 통계 새로고침
+			const statsResponse = await fetch('/api/salary/contracts/stats');
+			const statsResult = await statsResponse.json();
+			
+			if (statsResult.success && statsResult.data) {
+				localStats = statsResult.data;
+			}
+		} catch (error) {
+			// 에러는 조용히 처리
 		}
 	}
 
@@ -214,20 +273,25 @@
 			if (success) {
 				showDeleteModal = false;
 				selectedContract = null;
-				await loadContracts();
+				await refreshLocalData();
 			}
 		}
 	}
 
 	// 필터 적용
 	function applyFilter() {
-		loadContracts($contractFilter);
+		// 로컬 필터링 로직 (필요시 구현)
 	}
 
 	// 필터 초기화
 	function clearFilters() {
-		resetFilter();
-		loadContracts();
+		localFilter = {
+			status: '',
+			contractType: '',
+			employeeId: '',
+			department: '',
+			startDateFrom: ''
+		};
 	}
 
 	// 월급 자동 계산 (연봉 변경 시)
@@ -247,57 +311,55 @@
 
 <div class="space-y-6">
 	<!-- 통계 카드들 -->
-	{#if $contractStats}
-		<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-			<ThemeCard class="p-6">
-				<div class="flex items-center">
-					<div class="p-3 bg-blue-100 rounded-full">
-						<FileTextIcon size={24} class="text-blue-600" />
-					</div>
-					<div class="ml-4">
-						<p class="text-sm font-medium text-gray-600">총 계약 수</p>
-						<p class="text-2xl font-bold text-gray-900">{$contractStats.totalContracts}개</p>
-					</div>
+	<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+		<ThemeCard class="p-6">
+			<div class="flex items-center">
+				<div class="p-3 bg-blue-100 rounded-full">
+					<FileTextIcon size={24} class="text-blue-600" />
 				</div>
-			</ThemeCard>
+				<div class="ml-4">
+					<p class="text-sm font-medium text-gray-600">총 계약 수</p>
+					<p class="text-2xl font-bold text-gray-900">{localStats.totalContracts}개</p>
+				</div>
+			</div>
+		</ThemeCard>
 
-			<ThemeCard class="p-6">
-				<div class="flex items-center">
-					<div class="p-3 bg-green-100 rounded-full">
-						<UserIcon size={24} class="text-green-600" />
-					</div>
-					<div class="ml-4">
-						<p class="text-sm font-medium text-gray-600">진행중 계약</p>
-						<p class="text-2xl font-bold text-gray-900">{$contractStats.activeContracts}개</p>
-					</div>
+		<ThemeCard class="p-6">
+			<div class="flex items-center">
+				<div class="p-3 bg-green-100 rounded-full">
+					<UserIcon size={24} class="text-green-600" />
 				</div>
-			</ThemeCard>
+				<div class="ml-4">
+					<p class="text-sm font-medium text-gray-600">진행중 계약</p>
+					<p class="text-2xl font-bold text-gray-900">{localStats.activeContracts}개</p>
+				</div>
+			</div>
+		</ThemeCard>
 
-			<ThemeCard class="p-6">
-				<div class="flex items-center">
-					<div class="p-3 bg-purple-100 rounded-full">
-						<DollarSignIcon size={24} class="text-purple-600" />
-					</div>
-					<div class="ml-4">
-						<p class="text-sm font-medium text-gray-600">평균 연봉</p>
-						<p class="text-2xl font-bold text-gray-900">{formatCurrency($contractStats.averageAnnualSalary)}</p>
-					</div>
+		<ThemeCard class="p-6">
+			<div class="flex items-center">
+				<div class="p-3 bg-purple-100 rounded-full">
+					<DollarSignIcon size={24} class="text-purple-600" />
 				</div>
-			</ThemeCard>
+				<div class="ml-4">
+					<p class="text-sm font-medium text-gray-600">평균 연봉</p>
+					<p class="text-2xl font-bold text-gray-900">{formatCurrency(localStats.averageAnnualSalary)}</p>
+				</div>
+			</div>
+		</ThemeCard>
 
-			<ThemeCard class="p-6">
-				<div class="flex items-center">
-					<div class="p-3 bg-yellow-100 rounded-full">
-						<CalendarIcon size={24} class="text-yellow-600" />
-					</div>
-					<div class="ml-4">
-						<p class="text-sm font-medium text-gray-600">총 급여</p>
-						<p class="text-2xl font-bold text-gray-900">{formatCurrency($contractStats.totalAnnualSalary)}</p>
-					</div>
+		<ThemeCard class="p-6">
+			<div class="flex items-center">
+				<div class="p-3 bg-yellow-100 rounded-full">
+					<CalendarIcon size={24} class="text-yellow-600" />
 				</div>
-			</ThemeCard>
-		</div>
-	{/if}
+				<div class="ml-4">
+					<p class="text-sm font-medium text-gray-600">총 급여</p>
+					<p class="text-2xl font-bold text-gray-900">{formatCurrency(localStats.totalAnnualSalary)}</p>
+				</div>
+			</div>
+		</ThemeCard>
+	</div>
 
 	<!-- 필터 및 액션 바 -->
 	<ThemeCard class="p-6">
@@ -331,14 +393,14 @@
 					<input
 						type="text"
 						placeholder="직원명, 사번으로 검색"
-						bind:value={$contractFilter.search}
+						bind:value={localFilter.employeeId}
 						class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 					/>
 				</div>
 				<div>
 					<label class="block text-sm font-medium text-gray-700 mb-1">부서</label>
 					<select
-						bind:value={$contractFilter.department}
+						bind:value={localFilter.department}
 						class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 					>
 						<option value="">전체</option>
@@ -351,7 +413,7 @@
 				<div>
 					<label class="block text-sm font-medium text-gray-700 mb-1">계약 유형</label>
 					<select
-						bind:value={$contractFilter.contractType}
+						bind:value={localFilter.contractType}
 						class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 					>
 						<option value="">전체</option>
@@ -364,7 +426,7 @@
 				<div>
 					<label class="block text-sm font-medium text-gray-700 mb-1">상태</label>
 					<select
-						bind:value={$contractFilter.status}
+						bind:value={localFilter.status}
 						class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 					>
 						<option value="">전체</option>
@@ -378,7 +440,7 @@
 					<label class="block text-sm font-medium text-gray-700 mb-1">시작일 (부터)</label>
 					<input
 						type="date"
-						bind:value={$contractFilter.startDateFrom}
+						bind:value={localFilter.startDateFrom}
 						class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 					/>
 				</div>
@@ -402,22 +464,22 @@
 			</div>
 		{/if}
 
-		<!-- 계약 목록 테이블 -->
-		{#if $isLoading}
-			<div class="flex items-center justify-center py-12">
-				<div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-				<span class="ml-2 text-gray-600">로딩 중...</span>
-			</div>
-		{:else if $error}
-			<div class="bg-red-50 border border-red-200 rounded-lg p-4">
-				<span class="text-red-800">{$error}</span>
-			</div>
-		{:else if $contracts.length === 0}
-			<div class="text-center py-12">
-				<FileTextIcon size={48} class="mx-auto text-gray-400 mb-4" />
-				<p class="text-gray-500">급여 계약이 없습니다.</p>
-			</div>
-		{:else}
+	<!-- 계약 목록 테이블 -->
+	{#if localLoading && localContracts.length === 0}
+		<div class="flex items-center justify-center py-12">
+			<div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+			<span class="ml-2 text-gray-600">로딩 중...</span>
+		</div>
+	{:else if localError}
+		<div class="bg-red-50 border border-red-200 rounded-lg p-4">
+			<span class="text-red-800">{localError}</span>
+		</div>
+	{:else if localContracts.length === 0}
+		<div class="text-center py-12">
+			<FileTextIcon size={48} class="mx-auto text-gray-400 mb-4" />
+			<p class="text-gray-500">급여 계약이 없습니다.</p>
+		</div>
+	{:else}
 			<div class="overflow-x-auto">
 				<table class="min-w-full divide-y divide-gray-200">
 					<thead class="bg-gray-50">
@@ -431,7 +493,7 @@
 						</tr>
 					</thead>
 					<tbody class="bg-white divide-y divide-gray-200">
-						{#each $contracts as contract}
+						{#each localContracts as contract}
 							<tr class="hover:bg-gray-50">
 								<td class="px-6 py-4 whitespace-nowrap">
 									<div>

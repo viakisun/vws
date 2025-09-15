@@ -1,14 +1,14 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { 
-		employeePayrolls,
-		filteredSalaryHistory,
-		selectedEmployee,
-		loadEmployeePayrolls,
-		loadSalaryHistory,
-		isLoading,
-		error
-	} from '$lib/stores/salary/salary-store';
+import { 
+	payslips,
+	filteredSalaryHistory,
+	selectedEmployee,
+	loadPayslips,
+	loadSalaryHistory,
+	isLoading,
+	error
+} from '$lib/stores/salary/salary-store';
 	import { formatCurrency, formatDate } from '$lib/utils/format';
 	import { 
 		SearchIcon, 
@@ -37,8 +37,8 @@
 	// 기간 옵션 생성
 	const periodOptions = $derived(() => {
 		const periods = new Set();
-		$employeePayrolls.forEach(payroll => {
-			const period = payroll.payDate.substring(0, 7); // YYYY-MM 형식
+		$payslips.forEach(payslip => {
+			const period = payslip.period; // YYYY-MM 형식
 			periods.add(period);
 		});
 		return Array.from(periods).sort().reverse();
@@ -46,7 +46,7 @@
 
 	// 필터링된 급여 이력
 	const filteredHistory = $derived(() => {
-		let filtered = [...$employeePayrolls];
+		let filtered = [...$payslips];
 
 		// 검색 필터
 		if (searchQuery) {
@@ -135,7 +135,7 @@
 	});
 
 	onMount(async () => {
-		await loadEmployeePayrolls();
+		await loadPayslips();
 		await loadSalaryHistory();
 	});
 
@@ -473,19 +473,19 @@
 					<div class="grid grid-cols-2 gap-4">
 						<div>
 							<label class="block text-sm font-medium text-gray-700">직원명</label>
-							<p class="mt-1 text-sm text-gray-900">{selectedPayroll.employeeName}</p>
+							<p class="mt-1 text-sm text-gray-900">{selectedPayroll.employeeInfo.name}</p>
 						</div>
 						<div>
 							<label class="block text-sm font-medium text-gray-700">사번</label>
-							<p class="mt-1 text-sm text-gray-900">{selectedPayroll.employeeIdNumber}</p>
+							<p class="mt-1 text-sm text-gray-900">{selectedPayroll.employeeInfo.employeeId}</p>
 						</div>
 						<div>
 							<label class="block text-sm font-medium text-gray-700">부서</label>
-							<p class="mt-1 text-sm text-gray-900">{selectedPayroll.department}</p>
+							<p class="mt-1 text-sm text-gray-900">{selectedPayroll.employeeInfo.department}</p>
 						</div>
 						<div>
 							<label class="block text-sm font-medium text-gray-700">직위</label>
-							<p class="mt-1 text-sm text-gray-900">{selectedPayroll.position}</p>
+							<p class="mt-1 text-sm text-gray-900">{selectedPayroll.employeeInfo.position}</p>
 						</div>
 					</div>
 
@@ -495,19 +495,19 @@
 						<div class="grid grid-cols-2 gap-4">
 							<div>
 								<label class="block text-sm font-medium text-gray-700">기본급</label>
-								<p class="mt-1 text-sm text-gray-900">{formatCurrency(selectedPayroll.baseSalary)}</p>
+								<p class="mt-1 text-sm text-gray-900">{formatCurrency(selectedPayroll.salaryInfo.baseSalary)}</p>
 							</div>
 							<div>
 								<label class="block text-sm font-medium text-gray-700">총 수당</label>
-								<p class="mt-1 text-sm text-green-600">{formatCurrency(selectedPayroll.totalAllowances)}</p>
+								<p class="mt-1 text-sm text-green-600">{formatCurrency(selectedPayroll.totals.totalAllowances)}</p>
 							</div>
 							<div>
 								<label class="block text-sm font-medium text-gray-700">총 공제</label>
-								<p class="mt-1 text-sm text-red-600">{formatCurrency(selectedPayroll.totalDeductions)}</p>
+								<p class="mt-1 text-sm text-red-600">{formatCurrency(selectedPayroll.totals.totalDeductions)}</p>
 							</div>
 							<div>
 								<label class="block text-sm font-medium text-gray-700">실지급액</label>
-								<p class="mt-1 text-lg font-bold text-gray-900">{formatCurrency(selectedPayroll.netSalary)}</p>
+								<p class="mt-1 text-lg font-bold text-gray-900">{formatCurrency(selectedPayroll.totals.netSalary)}</p>
 							</div>
 						</div>
 					</div>

@@ -14,8 +14,7 @@ import {
     error
 } from '$lib/stores/salary/contract-store';
 import { 
-    loadPayrolls,
-    loadEmployeePayrolls
+    loadPayslips
 } from '$lib/stores/salary/salary-store';
 import { 
     BarChartIcon, 
@@ -54,8 +53,7 @@ import {
 	onMount(async () => {
 		mounted = true;
 		// 기본 데이터 로드
-		await loadPayrolls();
-		await loadEmployeePayrolls();
+		await loadPayslips();
 		await loadContractStats();
 	});
 
@@ -71,7 +69,7 @@ import {
 				loadContracts();
 				break;
 			case 'history':
-				loadEmployeePayrolls(); // 급여 이력 탭에서는 employee payrolls 로드
+				loadPayslips(); // 급여 이력 탭에서는 payslips 로드
 				break;
 			case 'payslips':
 				// 급여명세서 탭은 별도 데이터 로드 불필요

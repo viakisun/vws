@@ -1,10 +1,12 @@
 import { query } from '$lib/database/connection';
 import { json } from '@sveltejs/kit';
 
+// 새로운 단순화된 payslips API (기존 API 교체)
 export async function GET({ url }) {
 	try {
 		const employeeId = url.searchParams.get('employeeId');
 		const period = url.searchParams.get('period'); // YYYY-MM 형식
+		const status = url.searchParams.get('status');
 
 		let conditions: string[] = [];
 		let params: (string | number)[] = [];
@@ -22,8 +24,15 @@ export async function GET({ url }) {
 			paramIndex++;
 		}
 
+		if (status) {
+			conditions.push(`p.status = $${paramIndex}`);
+			params.push(status);
+			paramIndex++;
+		}
+
 		const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
 
+		// 기존 payslips 테이블 사용 (마이그레이션 전)
 		const { rows } = await query(
 			`
 			SELECT
@@ -31,11 +40,6 @@ export async function GET({ url }) {
 				p.employee_id AS "employeeId",
 				p.period,
 				p.pay_date AS "payDate",
-				p.employee_name AS "employeeName",
-				p.employee_id_number AS "employeeIdNumber",
-				p.department,
-				p.position,
-				p.hire_date AS "hireDate",
 				p.base_salary AS "baseSalary",
 				p.total_payments AS "totalPayments",
 				p.total_deductions AS "totalDeductions",
@@ -46,13 +50,16 @@ export async function GET({ url }) {
 				p.is_generated AS "isGenerated",
 				p.created_at AS "createdAt",
 				p.updated_at AS "updatedAt",
-				p.created_by AS "createdBy",
-				p.updated_by AS "updatedBy"
-			FROM
-				payslips p
+				-- 직원 정보 조인
+				e.first_name || e.last_name AS "employeeName",
+				e.employee_id AS "employeeIdNumber",
+				e.department,
+				e.position,
+				e.hire_date AS "hireDate"
+			FROM payslips p
+			JOIN employees e ON p.employee_id = e.id
 			${whereClause}
-			ORDER BY
-				p.period DESC, p.created_at DESC;
+			ORDER BY p.period DESC, p.created_at DESC
 			`,
 			params
 		);
@@ -77,11 +84,6 @@ export async function POST({ request }) {
 			employeeId,
 			period,
 			payDate,
-			employeeName,
-			employeeIdNumber,
-			department,
-			position,
-			hireDate,
 			baseSalary,
 			totalPayments,
 			totalDeductions,
@@ -100,6 +102,11 @@ export async function POST({ request }) {
 			}, { status: 400 });
 		}
 
+		// period에서 시작일과 종료일 계산 (예: "2024-12" -> "2024-12-01", "2024-12-31")
+		const [year, month] = period.split('-');
+		const payPeriodStart = `${year}-${month.padStart(2, '0')}-01`;
+		const payPeriodEnd = new Date(parseInt(year), parseInt(month), 0).toISOString().split('T')[0]; // 해당 월의 마지막 날
+
 		// 기존 급여명세서가 있는지 확인
 		const existingPayslip = await query(
 			'SELECT id FROM payslips WHERE employee_id = $1 AND period = $2',
@@ -113,54 +120,43 @@ export async function POST({ request }) {
 				`
 				UPDATE payslips SET
 					pay_date = $3,
-					employee_name = $4,
-					employee_id_number = $5,
-					department = $6,
-					position = $7,
-					hire_date = $8,
-					base_salary = $9,
-					total_payments = $10,
-					total_deductions = $11,
-					net_salary = $12,
-					payments = $13,
-					deductions = $14,
-					status = $15,
-					is_generated = $16,
-					updated_at = CURRENT_TIMESTAMP,
-					updated_by = 'system'
+					pay_period_start = $4,
+					pay_period_end = $5,
+					base_salary = $6,
+					total_payments = $7,
+					total_deductions = $8,
+					net_salary = $9,
+					total_amount = $10,
+					payments = $11,
+					deductions = $12,
+					status = $13,
+					is_generated = $14,
+					updated_at = CURRENT_TIMESTAMP
 				WHERE employee_id = $1 AND period = $2
 				RETURNING *
 				`,
 				[
-					employeeId, period, payDate, employeeName, employeeIdNumber,
-					department, position, hireDate, baseSalary, totalPayments,
-					totalDeductions, netSalary, JSON.stringify(payments),
+					employeeId, period, payDate, payPeriodStart, payPeriodEnd, baseSalary, totalPayments,
+					totalDeductions, netSalary, totalPayments, JSON.stringify(payments),
 					JSON.stringify(deductions), status, isGenerated
 				]
 			);
 		} else {
 			// 새 급여명세서 생성
-			// period에서 시작일과 종료일 계산 (YYYY-MM 형식)
-			const [year, month] = period.split('-');
-			const payPeriodStart = `${year}-${month}-01`;
-			const payPeriodEnd = new Date(parseInt(year), parseInt(month), 0).toISOString().split('T')[0];
-			
 			result = await query(
 				`
 				INSERT INTO payslips (
-					employee_id, period, pay_period_start, pay_period_end, pay_date, 
-					employee_name, employee_id_number, department, position, hire_date, 
+					employee_id, period, pay_date, pay_period_start, pay_period_end,
 					base_salary, total_payments, total_deductions, net_salary, total_amount,
 					payments, deductions, status, is_generated
 				) VALUES (
-					$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19
+					$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14
 				) RETURNING *
 				`,
 				[
-					employeeId, period, payPeriodStart, payPeriodEnd, payDate, 
-					employeeName, employeeIdNumber, department, position, hireDate, 
-					baseSalary, totalPayments, totalDeductions, netSalary, netSalary,
-					JSON.stringify(payments), JSON.stringify(deductions), status, isGenerated
+					employeeId, period, payDate, payPeriodStart, payPeriodEnd, baseSalary, totalPayments,
+					totalDeductions, netSalary, totalPayments, JSON.stringify(payments),
+					JSON.stringify(deductions), status, isGenerated
 				]
 			);
 		}

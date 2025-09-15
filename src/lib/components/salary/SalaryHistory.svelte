@@ -5,14 +5,13 @@
 	import ThemeBadge from '$lib/components/ui/ThemeBadge.svelte';
 	import ThemeSpacer from '$lib/components/ui/ThemeSpacer.svelte';
 	import ThemeSectionHeader from '$lib/components/ui/ThemeSectionHeader.svelte';
-	import { 
-		employeePayrolls,
-		isLoading,
-		error,
-		loadEmployeePayrolls
-	} from '$lib/stores/salary/salary-store';
+import { 
+	payslips,
+	isLoading,
+	error,
+	loadPayslips
+} from '$lib/stores/salary/salary-store';
 	import { formatCurrency, formatDate } from '$lib/utils/format';
-	import type { EmployeePayroll } from '$lib/types/salary';
 	import { 
 		SearchIcon,
 		FilterIcon,
@@ -39,8 +38,8 @@
 	onMount(async () => {
 		mounted = true;
 		console.log('SalaryHistory onMount - loadEmployeePayrolls 시작');
-		await loadEmployeePayrolls(); // 모든 급여 데이터 로드 (기간 제한 없음)
-		console.log('SalaryHistory onMount - loadEmployeePayrolls 완료, 데이터:', $employeePayrolls.length);
+		await loadPayslips(); // 모든 급여명세서 데이터 로드
+		console.log('SalaryHistory onMount - loadPayslips 완료, 데이터:', $payslips.length);
 		await loadEmployees();
 		console.log('SalaryHistory onMount - loadEmployees 완료, 직원 수:', employees.length);
 	});
@@ -66,11 +65,11 @@
 		}
 	}
 
-	// 필터링된 급여 데이터 목록 (로컬 필터)
-	const localFilteredPayrolls = $derived(() => {
-		let filtered = $employeePayrolls;
-		console.log('SalaryHistory - 전체 급여 데이터:', $employeePayrolls.length);
-		console.log('SalaryHistory - employeePayrolls store 데이터:', $employeePayrolls);
+	// 필터링된 급여명세서 데이터 목록 (로컬 필터)
+	const localFilteredPayslips = $derived(() => {
+		let filtered = $payslips;
+		console.log('SalaryHistory - 전체 급여명세서 데이터:', $payslips.length);
+		console.log('SalaryHistory - payslips store 데이터:', $payslips);
 
 		// 직원 필터
 		if (selectedEmployee) {
@@ -95,13 +94,13 @@
 
 	// 직원별 급여 이력 그룹화
 	const salaryHistoryByEmployee = $derived(() => {
-		const historyMap: Record<string, EmployeePayroll[]> = {};
+		const historyMap: Record<string, any[]> = {};
 		
-		localFilteredPayrolls.forEach(payroll => {
-			if (!historyMap[payroll.employeeId]) {
-				historyMap[payroll.employeeId] = [];
+		localFilteredPayslips.forEach(payslip => {
+			if (!historyMap[payslip.employeeId]) {
+				historyMap[payslip.employeeId] = [];
 			}
-			historyMap[payroll.employeeId].push(payroll);
+			historyMap[payslip.employeeId].push(payslip);
 		});
 
 		// 각 직원별로 급여를 지급일 기준으로 정렬 (최신순)
@@ -137,13 +136,13 @@
 	}
 
 	// 급여 변화 계산
-	function calculateSalaryChange(payrolls: EmployeePayroll[], index: number): { change: number; percentage: number; direction: 'up' | 'down' | 'same' } {
+	function calculateSalaryChange(payslips: any[], index: number): { change: number; percentage: number; direction: 'up' | 'down' | 'same' } {
 		if (index === 0) {
 			return { change: 0, percentage: 0, direction: 'same' };
 		}
 
-		const currentSalary = parseFloat(String(payrolls[index].netSalary));
-		const previousSalary = parseFloat(String(payrolls[index - 1].netSalary));
+		const currentSalary = parseFloat(String(payslips[index].netSalary));
+		const previousSalary = parseFloat(String(payslips[index - 1].netSalary));
 		const change = currentSalary - previousSalary;
 		const percentage = previousSalary > 0 ? (change / previousSalary) * 100 : 0;
 
