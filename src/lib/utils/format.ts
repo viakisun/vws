@@ -40,6 +40,31 @@ export function formatDate(dateString: string): string {
 	}
 }
 
+// HTML date input용 날짜 형식 변환 (YYYY-MM-DD)
+export function formatDateForInput(dateString: string): string {
+	if (!dateString) return '';
+	
+	try {
+		const date = new Date(dateString);
+		
+		// Invalid date 체크
+		if (isNaN(date.getTime())) {
+			console.warn('Invalid date string for input:', dateString);
+			return '';
+		}
+		
+		// YYYY-MM-DD 형식으로 변환
+		const year = date.getFullYear();
+		const month = String(date.getMonth() + 1).padStart(2, '0');
+		const day = String(date.getDate()).padStart(2, '0');
+		
+		return `${year}-${month}-${day}`;
+	} catch (error) {
+		console.warn('Date input formatting error:', error, 'for string:', dateString);
+		return '';
+	}
+}
+
 export function getRelativeTime(dateString: string): string {
 	if (!dateString) return '';
 	const date = new Date(dateString);

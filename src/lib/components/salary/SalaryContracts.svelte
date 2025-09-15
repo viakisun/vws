@@ -23,7 +23,7 @@
 		resetFilter,
 		clearSelectedContract
 	} from '$lib/stores/salary/contract-store';
-	import { formatCurrency, formatDate } from '$lib/utils/format';
+	import { formatCurrency, formatDate, formatDateForInput } from '$lib/utils/format';
 	import type { SalaryContract, CreateSalaryContractRequest } from '$lib/types/salary-contracts';
 	import { 
 		PlusIcon,
@@ -167,8 +167,8 @@
 		selectedContract = contract;
 		formData = {
 			employeeId: contract.employeeId,
-			startDate: contract.startDate,
-			endDate: contract.endDate || '',
+			startDate: formatDateForInput(contract.startDate),
+			endDate: contract.endDate ? formatDateForInput(contract.endDate) : '',
 			annualSalary: contract.annualSalary,
 			monthlySalary: contract.monthlySalary,
 			contractType: contract.contractType,
