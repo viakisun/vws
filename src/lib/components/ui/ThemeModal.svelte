@@ -42,6 +42,12 @@
 
 	// Handle backdrop click
 	function handleBackdropClick(event: MouseEvent) {
+		// 텍스트 선택이나 드래그 중일 때는 모달을 닫지 않음
+		if (window.getSelection()?.toString()) {
+			return;
+		}
+		
+		// 배경을 클릭했을 때만 모달을 닫음
 		if (backdrop && event.target === event.currentTarget && closable) {
 			closeModal();
 		}
