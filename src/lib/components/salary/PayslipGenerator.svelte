@@ -39,6 +39,10 @@
 	let isPayslipEditMode = $state<boolean>(false);
 	let editedPayments = $state<any[]>([]);
 	let editedDeductions = $state<any[]>([]);
+	
+	// 데이터베이스에서 불러온 급여명세서
+	let savedPayslip = $state<any>(null);
+	let payslipSource = $state<string>(''); // 'current', 'previous', 'default'
 
 	// 직원 목록 로드
 	async function loadEmployees() {
@@ -97,6 +101,54 @@
 		await loadEmployeePayrolls(selectedPeriod);
 	});
 
+	// 데이터베이스에서 급여명세서 불러오기
+	async function loadPayslipFromDatabase(employeeId: string, period: string) {
+		try {
+			const response = await fetch(`/api/salary/payslips/employee/${employeeId}?period=${period}`);
+			const result = await response.json();
+			
+			if (result.success) {
+				savedPayslip = result.data;
+				payslipSource = result.source;
+				console.log('급여명세서 불러오기 성공:', result.source, savedPayslip);
+				return result.data;
+			} else {
+				console.error('급여명세서 불러오기 실패:', result.error);
+				return null;
+			}
+		} catch (error) {
+			console.error('급여명세서 불러오기 오류:', error);
+			return null;
+		}
+	}
+
+	// 급여명세서를 데이터베이스에 저장
+	async function savePayslipToDatabase(payslipData: any) {
+		try {
+			const response = await fetch('/api/salary/payslips', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify(payslipData)
+			});
+			
+			const result = await response.json();
+			
+			if (result.success) {
+				console.log('급여명세서 저장 성공:', result.data);
+				savedPayslip = result.data;
+				return result.data;
+			} else {
+				console.error('급여명세서 저장 실패:', result.error);
+				return null;
+			}
+		} catch (error) {
+			console.error('급여명세서 저장 오류:', error);
+			return null;
+		}
+	}
+
 	// 급여명세서 작성 모드로 전환
 	function enterPayslipEditMode() {
 		if (!generatedPayslip) return;
@@ -115,7 +167,7 @@
 	}
 	
 	// 급여명세서 저장
-	function savePayslip() {
+	async function savePayslip() {
 		if (!generatedPayslip) return;
 		
 		// 편집된 데이터로 급여명세서 업데이트
@@ -131,6 +183,29 @@
 		generatedPayslip.totals.totalDeductions = totalDeductions.toString();
 		generatedPayslip.totals.netSalary = netSalary.toString();
 		
+		// 데이터베이스에 저장할 데이터 준비
+		const payslipData = {
+			employeeId: generatedPayslip.employeeId,
+			period: generatedPayslip.period,
+			payDate: generatedPayslip.payDate,
+			employeeName: generatedPayslip.employeeInfo.name,
+			employeeIdNumber: generatedPayslip.employeeInfo.employeeId,
+			department: generatedPayslip.employeeInfo.department,
+			position: generatedPayslip.employeeInfo.position,
+			hireDate: generatedPayslip.employeeInfo.hireDate,
+			baseSalary: generatedPayslip.salaryInfo.baseSalary,
+			totalPayments: totalPayments,
+			totalDeductions: totalDeductions,
+			netSalary: netSalary,
+			payments: editedPayments,
+			deductions: editedDeductions,
+			status: 'draft',
+			isGenerated: true
+		};
+		
+		// 데이터베이스에 저장
+		await savePayslipToDatabase(payslipData);
+		
 		isPayslipEditMode = false;
 	}
 
@@ -139,20 +214,64 @@
 		// payroll prop이 있으면 그것을 사용, 없으면 선택된 급여 데이터 사용
 		let targetPayroll = payroll || selectedPayroll;
 		
-		// 급여 데이터가 없지만 직원이 선택된 경우, 현재 계약 정보로 생성
+		// 급여 데이터가 없지만 직원이 선택된 경우, 데이터베이스에서 먼저 확인
 		if (!targetPayroll && selectedEmployeeId) {
-			// 현재 계약 정보 로드
+			const selectedEmployee = employees.find(emp => emp.id === selectedEmployeeId);
+			if (!selectedEmployee) {
+				alert('선택된 직원 정보를 찾을 수 없습니다.');
+				return;
+			}
+			
+			// 데이터베이스에서 급여명세서 불러오기 시도
+			const dbPayslip = await loadPayslipFromDatabase(selectedEmployeeId, selectedPeriod);
+			if (dbPayslip) {
+				// 데이터베이스에서 불러온 급여명세서를 generatedPayslip으로 설정
+				generatedPayslip = {
+					id: dbPayslip.id || `payslip_${Date.now()}`,
+					employeeId: dbPayslip.employeeId,
+					payrollId: `payroll_${Date.now()}`,
+					period: dbPayslip.period,
+					payDate: dbPayslip.payDate,
+					employeeInfo: {
+						name: dbPayslip.employeeName,
+						employeeId: dbPayslip.employeeIdNumber,
+						department: dbPayslip.department,
+						position: dbPayslip.position,
+						hireDate: dbPayslip.hireDate,
+						bankAccount: '123-456-789012',
+						bankName: '우리은행'
+					},
+					salaryInfo: {
+						baseSalary: dbPayslip.baseSalary.toString(),
+						totalPayments: dbPayslip.totalPayments.toString(),
+						totalDeductions: dbPayslip.totalDeductions.toString(),
+						netSalary: dbPayslip.netSalary.toString(),
+						workingDays: 22,
+						actualWorkingDays: 22
+					},
+					payments: dbPayslip.payments,
+					deductions: dbPayslip.deductions,
+					totals: {
+						totalPayments: dbPayslip.totalPayments.toString(),
+						totalDeductions: dbPayslip.totalDeductions.toString(),
+						netSalary: dbPayslip.netSalary.toString(),
+						taxableIncome: dbPayslip.totalPayments.toString(),
+						nonTaxableIncome: '0'
+					},
+					status: 'generated',
+					generatedAt: new Date().toISOString(),
+					generatedBy: 'system'
+				};
+				
+				showModal = true;
+				return;
+			}
+			
+			// 데이터베이스에 급여명세서가 없는 경우, 현재 계약 정보로 생성
 			await loadCurrentContract(selectedEmployeeId);
 			
 			if (!currentContract) {
 				alert('현재 계약 정보를 찾을 수 없습니다.');
-				return;
-			}
-			
-			// 선택된 직원 정보 가져오기
-			const selectedEmployee = employees.find(emp => emp.id === selectedEmployeeId);
-			if (!selectedEmployee) {
-				alert('선택된 직원 정보를 찾을 수 없습니다.');
 				return;
 			}
 			
@@ -526,9 +645,23 @@
 	<div class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
 		<div class="relative top-4 mx-auto p-5 border w-11/12 max-w-4xl shadow-lg rounded-md bg-white">
 			<div class="flex items-center justify-between mb-4">
-				<h3 class="text-lg font-medium text-gray-900">
-					{isPayslipEditMode ? '급여명세서 작성' : '급여명세서 미리보기'}
-				</h3>
+				<div>
+					<h3 class="text-lg font-medium text-gray-900">
+						{isPayslipEditMode ? '급여명세서 작성' : '급여명세서 미리보기'}
+					</h3>
+					{#if payslipSource}
+						<p class="text-sm text-gray-500">
+							데이터 소스: 
+							{#if payslipSource === 'current'}
+								<span class="text-green-600">이번달 데이터</span>
+							{:else if payslipSource === 'previous'}
+								<span class="text-yellow-600">지난달 데이터</span>
+							{:else if payslipSource === 'default'}
+								<span class="text-blue-600">기본 템플릿</span>
+							{/if}
+						</p>
+					{/if}
+				</div>
 				<div class="flex items-center space-x-2">
 					{#if isPayslipEditMode}
 						<button
