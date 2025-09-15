@@ -1,5 +1,5 @@
-import { json } from '@sveltejs/kit';
 import { query } from '$lib/database/connection';
+import { json } from '@sveltejs/kit';
 
 export async function GET({ url }) {
 	try {
@@ -71,6 +71,7 @@ export async function GET({ url }) {
 export async function POST({ request }) {
 	try {
 		const payslipData = await request.json();
+		console.log('급여명세서 저장 요청 데이터:', JSON.stringify(payslipData, null, 2));
 		
 		const {
 			employeeId,
@@ -139,21 +140,27 @@ export async function POST({ request }) {
 			);
 		} else {
 			// 새 급여명세서 생성
+			// period에서 시작일과 종료일 계산 (YYYY-MM 형식)
+			const [year, month] = period.split('-');
+			const payPeriodStart = `${year}-${month}-01`;
+			const payPeriodEnd = new Date(parseInt(year), parseInt(month), 0).toISOString().split('T')[0];
+			
 			result = await query(
 				`
 				INSERT INTO payslips (
-					employee_id, period, pay_date, employee_name, employee_id_number,
-					department, position, hire_date, base_salary, total_payments,
-					total_deductions, net_salary, payments, deductions, status, is_generated
+					employee_id, period, pay_period_start, pay_period_end, pay_date, 
+					employee_name, employee_id_number, department, position, hire_date, 
+					base_salary, total_payments, total_deductions, net_salary, total_amount,
+					payments, deductions, status, is_generated
 				) VALUES (
-					$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16
+					$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19
 				) RETURNING *
 				`,
 				[
-					employeeId, period, payDate, employeeName, employeeIdNumber,
-					department, position, hireDate, baseSalary, totalPayments,
-					totalDeductions, netSalary, JSON.stringify(payments),
-					JSON.stringify(deductions), status, isGenerated
+					employeeId, period, payPeriodStart, payPeriodEnd, payDate, 
+					employeeName, employeeIdNumber, department, position, hireDate, 
+					baseSalary, totalPayments, totalDeductions, netSalary, netSalary,
+					JSON.stringify(payments), JSON.stringify(deductions), status, isGenerated
 				]
 			);
 		}
@@ -161,6 +168,11 @@ export async function POST({ request }) {
 		return json({ success: true, data: result.rows[0] });
 	} catch (error) {
 		console.error('Error saving payslip:', error);
+		console.error('Error details:', {
+			message: error instanceof Error ? error.message : 'Unknown error',
+			stack: error instanceof Error ? error.stack : undefined,
+			name: error instanceof Error ? error.name : undefined
+		});
 		return json({
 			success: false,
 			error: '급여명세서 저장에 실패했습니다.',

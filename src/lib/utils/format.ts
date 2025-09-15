@@ -2,11 +2,19 @@ export function formatKRW(amount: number): string {
 	return amount.toLocaleString('ko-KR', { style: 'currency', currency: 'KRW', maximumFractionDigits: 0 });
 }
 
-export function formatCurrency(amount: number | undefined | null): string {
-	if (amount === undefined || amount === null || isNaN(amount)) {
+export function formatCurrency(amount: number | string | undefined | null): string {
+	if (amount === undefined || amount === null) {
 		return '0원';
 	}
-	return amount.toLocaleString('ko-KR') + '원';
+	
+	// 문자열인 경우 숫자로 변환
+	const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
+	
+	if (isNaN(numAmount)) {
+		return '0원';
+	}
+	
+	return numAmount.toLocaleString('ko-KR') + '원';
 }
 
 export function formatPercentage(value: number | undefined | null): string {

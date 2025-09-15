@@ -809,7 +809,7 @@
 									<td colspan="2" class="border border-gray-200 px-4 py-2 text-sm font-medium text-gray-900">지급총액</td>
 									<td class="border border-gray-200 px-4 py-2 text-sm font-bold text-gray-900 text-right">
 										{#if isPayslipEditMode}
-											{formatCurrency(editedPayments.reduce((sum, payment) => sum + payment.amount, 0))}
+											{formatCurrency(editedPayments.reduce((sum, payment) => sum + Number(payment.amount), 0))}
 										{:else}
 											{formatCurrency(generatedPayslip.totals.totalPayments)}
 										{/if}
@@ -879,7 +879,7 @@
 									<td colspan="2" class="border border-gray-200 px-4 py-2 text-sm font-medium text-gray-900">공제총액</td>
 									<td class="border border-gray-200 px-4 py-2 text-sm font-bold text-gray-900 text-right">
 										{#if isPayslipEditMode}
-											{formatCurrency(editedDeductions.reduce((sum, deduction) => sum + deduction.amount, 0))}
+											{formatCurrency(editedDeductions.reduce((sum, deduction) => sum + Number(deduction.amount), 0))}
 										{:else}
 											{formatCurrency(generatedPayslip.totals.totalDeductions)}
 										{/if}
@@ -896,7 +896,7 @@
 					<h3 class="text-xl font-bold text-blue-900">
 						차감지급액: 
 						{#if isPayslipEditMode}
-							{formatCurrency(editedPayments.reduce((sum, payment) => sum + payment.amount, 0) - editedDeductions.reduce((sum, deduction) => sum + deduction.amount, 0))}
+							{formatCurrency(editedPayments.reduce((sum, payment) => sum + Number(payment.amount), 0) - editedDeductions.reduce((sum, deduction) => sum + Number(deduction.amount), 0))}
 						{:else}
 							{formatCurrency(generatedPayslip.totals.netSalary)}
 						{/if}
