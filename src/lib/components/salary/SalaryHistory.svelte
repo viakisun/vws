@@ -112,7 +112,10 @@
 
 	// 선택된 직원의 급여 이력
 	const selectedEmployeeHistory = $derived(() => {
-		if (!selectedEmployee) return [];
+		if (!selectedEmployee) {
+			// 직원이 선택되지 않았으면 모든 급여 이력을 평면화하여 반환
+			return localFilteredPayrolls.sort((a, b) => new Date(b.payDate).getTime() - new Date(a.payDate).getTime());
+		}
 		return salaryHistoryByEmployee[selectedEmployee] || [];
 	});
 
@@ -281,15 +284,12 @@
 		<div class="bg-red-50 border border-red-200 rounded-lg p-4">
 			<span class="text-red-800">{$error}</span>
 		</div>
-	{:else if selectedEmployee && selectedEmployeeHistory.length === 0}
+	{:else if selectedEmployeeHistory.length === 0}
 		<div class="text-center py-12">
 			<ClockIcon size={48} class="mx-auto text-gray-400 mb-4" />
-			<p class="text-gray-500">선택한 직원의 급여 이력이 없습니다.</p>
-		</div>
-	{:else if !selectedEmployee}
-		<div class="text-center py-12">
-			<UserIcon size={48} class="mx-auto text-gray-400 mb-4" />
-			<p class="text-gray-500">직원을 선택하여 급여 이력을 확인하세요.</p>
+			<p class="text-gray-500">
+				{selectedEmployee ? '선택한 직원의 급여 이력이 없습니다.' : '급여 이력이 없습니다.'}
+			</p>
 		</div>
 	{:else}
 		<!-- 선택된 직원의 급여 이력 -->
@@ -304,6 +304,12 @@
 									{formatDate(payroll.payDate)} 지급분
 								</span>
 							</div>
+							{#if !selectedEmployee}
+								<div class="flex items-center space-x-2">
+									<UserIcon size={16} class="text-gray-400" />
+									<span class="text-sm text-gray-600">{payroll.employeeName} ({payroll.department})</span>
+								</div>
+							{/if}
 							<ThemeBadge class={getStatusColor(payroll.status)}>
 								{getStatusLabel(payroll.status)}
 							</ThemeBadge>
