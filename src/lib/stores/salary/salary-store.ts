@@ -27,16 +27,23 @@ export const pageSize = writable<number>(20);
 export const currentPeriod = derived(
 	[],
 	() => {
-		// 실제 데이터가 있는 2024-12 기간 사용
-		return '2024-12';
+		// 현재 날짜를 기준으로 YYYY-MM 형식으로 반환
+		const now = new Date();
+		const year = now.getFullYear();
+		const month = String(now.getMonth() + 1).padStart(2, '0');
+		return `${year}-${month}`;
 	}
 );
 
 export const previousPeriod = derived(
 	[],
 	() => {
-		// 실제 데이터가 있는 2024-11 기간 사용 (이전 달)
-		return '2024-11';
+		// 이전 달 계산
+		const now = new Date();
+		const prevMonth = new Date(now.getFullYear(), now.getMonth() - 1);
+		const year = prevMonth.getFullYear();
+		const month = String(prevMonth.getMonth() + 1).padStart(2, '0');
+		return `${year}-${month}`;
 	}
 );
 

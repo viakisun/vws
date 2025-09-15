@@ -35,6 +35,25 @@ import {
 	// 직원 목록
 	let employees = $state<any[]>([]);
 
+	// 월별 옵션 동적 생성 (최근 12개월)
+	function generateMonthOptions() {
+		const options = [];
+		const now = new Date();
+		
+		for (let i = 0; i < 12; i++) {
+			const date = new Date(now.getFullYear(), now.getMonth() - i);
+			const year = date.getFullYear();
+			const month = String(date.getMonth() + 1).padStart(2, '0');
+			const period = `${year}-${month}`;
+			const label = `${year}년 ${month}월`;
+			options.push({ value: period, label });
+		}
+		
+		return options;
+	}
+
+	const monthOptions = generateMonthOptions();
+
 	onMount(async () => {
 		mounted = true;
 		console.log('SalaryHistory onMount - loadEmployeePayrolls 시작');
@@ -251,9 +270,9 @@ import {
 						class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 					>
 						<option value="">전체</option>
-						<option value="2024-12">2024년 12월</option>
-						<option value="2024-11">2024년 11월</option>
-						<option value="2024-10">2024년 10월</option>
+						{#each monthOptions as option}
+							<option value={option.value}>{option.label}</option>
+						{/each}
 					</select>
 				</div>
 				<div>
