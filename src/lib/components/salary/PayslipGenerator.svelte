@@ -922,16 +922,28 @@
 			size: A4 portrait !important;
 		}
 		
-		/* 모든 요소의 기본 여백 제거 */
-		* {
+		/* 급여명세서 컨테이너 내부 요소 여백 정리 */
+		.payslip-container * {
 			margin: 0 !important;
 			padding: 0 !important;
 		}
 		
-		/* body 여백 제거 */
-		body {
-			margin: 0 !important;
-			padding: 0 !important;
+		/* 급여명세서 컨테이너 내부 요소에 적절한 여백 재적용 */
+		.payslip-container > div {
+			margin-bottom: 15px !important;
+		}
+		
+		.payslip-container h1 {
+			margin-bottom: 20px !important;
+		}
+		
+		.payslip-container h3 {
+			margin-bottom: 12px !important;
+			margin-top: 20px !important;
+		}
+		
+		.payslip-container table {
+			margin-bottom: 20px !important;
 		}
 		
 		/* 모달 외부 모든 요소 숨기기 */
@@ -953,7 +965,7 @@
 			width: 210mm !important;
 			height: 297mm !important;
 			margin: 0 !important;
-			padding: 3mm !important;
+			padding: 15mm !important;
 			box-shadow: none !important;
 			border: none !important;
 			background: white !important;
@@ -968,7 +980,6 @@
 		.payslip-container h1 {
 			font-size: 28px !important;
 			font-weight: bold !important;
-			margin-bottom: 20px !important;
 			text-align: center !important;
 			color: black !important;
 		}
@@ -976,8 +987,6 @@
 		.payslip-container h3 {
 			font-size: 16px !important;
 			font-weight: bold !important;
-			margin-bottom: 12px !important;
-			margin-top: 20px !important;
 			color: black !important;
 		}
 		
