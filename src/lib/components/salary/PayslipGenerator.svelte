@@ -104,16 +104,22 @@
 			
 			selectedPayroll = payroll || null;
 			
-			if (!selectedPayroll) {
-				console.log('해당 기간의 급여 데이터가 없습니다. 계약 정보를 확인합니다.');
-				alert('해당 기간의 급여 데이터가 없습니다. 계약 정보를 확인합니다.');
-			} else {
-				console.log('급여 데이터 조회 완료');
-			}
-			
 			// 현재 계약 정보도 함께 로드
 			await loadCurrentContract(selectedEmployeeId);
 			console.log('현재 계약 정보:', currentContract);
+			
+			if (!selectedPayroll) {
+				console.log('해당 기간의 급여 데이터가 없습니다.');
+				if (currentContract) {
+					console.log('계약 정보가 있습니다. 급여명세서 생성이 가능합니다.');
+					alert('해당 기간의 급여 데이터가 없습니다.\n계약 정보를 바탕으로 급여명세서를 생성할 수 있습니다.');
+				} else {
+					console.log('계약 정보도 없습니다.');
+					alert('해당 기간의 급여 데이터와 계약 정보가 모두 없습니다.\n급여 계약을 먼저 등록해주세요.');
+				}
+			} else {
+				console.log('급여 데이터 조회 완료');
+			}
 			
 		} catch (error) {
 			console.error('급여 데이터 로드 실패:', error);
@@ -738,6 +744,31 @@
 					</div>
 				</div>
 			</div>
+		{:else if selectedEmployeeId && currentContract}
+			<div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
+				<h3 class="text-lg font-semibold text-blue-900 mb-2">계약 정보 기반 급여명세서 생성 가능</h3>
+				<div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+					<div>
+						<span class="font-medium text-blue-700">직원명:</span>
+						<span class="ml-2 text-blue-900">{employees.find(emp => emp.id === selectedEmployeeId)?.name || '알 수 없음'}</span>
+					</div>
+					<div>
+						<span class="font-medium text-blue-700">계약 유형:</span>
+						<span class="ml-2 text-blue-900">{currentContract.contractType}</span>
+					</div>
+					<div>
+						<span class="font-medium text-blue-700">연봉:</span>
+						<span class="ml-2 text-blue-900 font-semibold">{formatCurrency(currentContract.annualSalary)}</span>
+					</div>
+					<div>
+						<span class="font-medium text-blue-700">월급:</span>
+						<span class="ml-2 text-blue-900 font-semibold">{formatCurrency(Math.round(currentContract.annualSalary / 12))}</span>
+					</div>
+				</div>
+				<p class="text-sm text-blue-700 mt-2">
+					💡 해당 기간의 급여 데이터는 없지만, 계약 정보를 바탕으로 급여명세서를 생성할 수 있습니다.
+				</p>
+			</div>
 		{/if}
 	</div>
 {/if}
@@ -762,7 +793,7 @@
 			console.log('currentContract:', currentContract);
 			generatePayslip();
 		}}
-		disabled={isGenerating || (!payroll && !selectedPayroll && !selectedEmployeeId)}
+		disabled={isGenerating || (!payroll && !selectedPayroll && !selectedEmployeeId) || (!payroll && !selectedPayroll && !currentContract)}
 		class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
 	>
 		{#if isGenerating}
