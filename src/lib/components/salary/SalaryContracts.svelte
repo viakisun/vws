@@ -443,9 +443,6 @@
 									<div class="text-sm text-gray-900">
 										{formatDate(contract.startDate)} ~ {contract.endDate ? formatDate(contract.endDate) : '무기한'}
 									</div>
-									<div class="text-xs text-gray-500">
-										원본: {contract.startDate} ~ {contract.endDate || 'null'}
-									</div>
 								</td>
 								<td class="px-6 py-4 whitespace-nowrap">
 									<div class="text-sm text-gray-900">

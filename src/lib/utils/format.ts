@@ -24,7 +24,9 @@ export function formatDate(dateString: string): string {
 		if (dateString.includes('T')) {
 			const datePart = dateString.split('T')[0]; // "2025-06-27T15:00:00.000Z" -> "2025-06-27"
 			const [year, month, day] = datePart.split('-');
-			return `${year}. ${month}. ${day}.`;
+			const result = `${year}. ${month}. ${day}.`;
+			console.log(`formatDate: ${dateString} -> ${result}`);
+			return result;
 		}
 		
 		// 일반 날짜 문자열 처리
@@ -41,7 +43,9 @@ export function formatDate(dateString: string): string {
 		const month = String(date.getMonth() + 1).padStart(2, '0');
 		const day = String(date.getDate()).padStart(2, '0');
 		
-		return `${year}. ${month}. ${day}.`;
+		const result = `${year}. ${month}. ${day}.`;
+		console.log(`formatDate (fallback): ${dateString} -> ${result}`);
+		return result;
 	} catch (error) {
 		console.warn('Date formatting error:', error, 'for string:', dateString);
 		return dateString; // 원본 문자열 반환
