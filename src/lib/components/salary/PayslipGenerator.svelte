@@ -915,6 +915,12 @@
 <style>
 	/* A4 세로 모드 프린트 스타일 - 급여명세서만 깔끔하게 출력 */
 	@media print {
+		/* 브라우저 기본 여백 제거 */
+		@page {
+			margin: 0 !important;
+			padding: 0 !important;
+		}
+		
 		/* 모달 외부 모든 요소 숨기기 */
 		body * {
 			visibility: hidden !important;
@@ -934,7 +940,7 @@
 			width: 210mm !important;
 			height: 297mm !important;
 			margin: 0 !important;
-			padding: 20mm !important;
+			padding: 10mm !important;
 			box-shadow: none !important;
 			border: none !important;
 			background: white !important;
