@@ -164,11 +164,6 @@
 	// 직원 선택
 	function selectEmployee(employeeId: string) {
 		selectedEmployee = employeeId;
-		if (employeeId) {
-			updateFilter({ employeeId });
-		} else {
-			updateFilter({ employeeId: '' });
-		}
 	}
 
 	// 필터 적용
