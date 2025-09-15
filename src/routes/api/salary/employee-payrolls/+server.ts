@@ -23,7 +23,7 @@ export const GET: RequestHandler = async ({ url }) => {
 		let paramIndex = 1;
 
 		if (period) {
-			conditions.push(`ep.pay_date LIKE $${paramIndex}`);
+			conditions.push(`ep.pay_date::text LIKE $${paramIndex}`);
 			params.push(`${period}%`);
 			paramIndex++;
 		}
@@ -132,9 +132,14 @@ export const GET: RequestHandler = async ({ url }) => {
 
 	} catch (error) {
 		console.error('Error fetching employee payrolls:', error);
+		console.error('Error details:', {
+			message: error instanceof Error ? error.message : 'Unknown error',
+			stack: error instanceof Error ? error.stack : undefined
+		});
 		return json({
 			success: false,
-			error: '직원별 급여 목록을 가져오는데 실패했습니다.'
+			error: '직원별 급여 목록을 가져오는데 실패했습니다.',
+			details: error instanceof Error ? error.message : 'Unknown error'
 		}, { status: 500 });
 	}
 };
