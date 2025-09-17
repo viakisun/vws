@@ -33,7 +33,7 @@
 		BarChart3Icon,
 		FileTextIcon,
 		PieChartIcon
-	} from 'lucide-svelte';
+	} from '@lucide/svelte';
 
 	// Mock sales data
 	let salesData = $state({

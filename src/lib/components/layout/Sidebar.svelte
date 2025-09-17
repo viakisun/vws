@@ -15,7 +15,7 @@
 		ChevronLeftIcon,
 		ChevronRightIcon,
 		DollarSignIcon
-	} from 'lucide-svelte';
+	} from '@lucide/svelte';
 	import ThemeButton from '$lib/components/ui/ThemeButton.svelte';
 
 	let { isCollapsed = $bindable(true) } = $props<{ isCollapsed?: boolean }>();

@@ -19,7 +19,7 @@
 		PlusIcon,
 		EditIcon,
 		FileTextIcon
-	} from 'lucide-svelte';
+	} from '@lucide/svelte';
 
 	// 회사 정보 관련 상태
 	interface Company {

@@ -1,8 +1,8 @@
 <script lang="ts">
-  import Card from '$lib/components/ui/Card.svelte';
-  import Progress from '$lib/components/ui/Progress.svelte';
-  import { overallBudget, quarterlyPersonnelBudgets } from '$lib/stores/rnd';
-  import { get } from 'svelte/store';
+  import Card from '$lib/components/ui/Card.svelte'
+  import Progress from '$lib/components/ui/Progress.svelte'
+  import { overallBudget, quarterlyPersonnelBudgets } from '$lib/stores/rnd'
+  import { get } from 'svelte/store'
   const qb = get(quarterlyPersonnelBudgets);
   const quarterSet = new Set<string>();
   Object.values(qb).forEach((m) => Object.keys(m).forEach((q) => quarterSet.add(q)));

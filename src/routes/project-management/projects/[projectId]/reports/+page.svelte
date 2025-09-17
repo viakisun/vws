@@ -1,8 +1,8 @@
 <script lang="ts">
-	import Card from '$lib/components/ui/Card.svelte';
-	import Badge from '$lib/components/ui/Badge.svelte';
-	import { page } from '$app/state';
-	import { goto } from '$app/navigation';
+	import { goto } from '$app/navigation'
+	import { page } from '$app/state'
+	import Badge from '$lib/components/ui/Badge.svelte'
+	import Card from '$lib/components/ui/Card.svelte'
 
 	type RStatus = '작성중' | '제출' | '반려';
 	interface Report { id: string; title: string; status: RStatus; period: string; submittedAt?: string }

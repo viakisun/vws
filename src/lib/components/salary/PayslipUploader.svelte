@@ -9,7 +9,7 @@
 		XCircleIcon,
 		AlertCircleIcon,
 		CalendarIcon
-	} from 'lucide-svelte';
+	} from '@lucide/svelte';
 
 	let showUploadModal = $state(false);
 	let selectedFile = $state<File | null>(null);

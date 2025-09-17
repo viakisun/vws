@@ -10,7 +10,7 @@
 		LogOutIcon,
 		UserIcon,
 		BuildingIcon
-	} from 'lucide-svelte';
+	} from '@lucide/svelte';
 	import ThemeButton from '$lib/components/ui/ThemeButton.svelte';
 	import ThemeAvatar from '$lib/components/ui/ThemeAvatar.svelte';
 	import ThemeDropdown from '$lib/components/ui/ThemeDropdown.svelte';

@@ -1,15 +1,14 @@
 <script lang="ts">
-	export let data: Array<{ label: string; value: number; color?: string }> = [];
-	export let type: 'bar' | 'pie' = 'bar';
-	export let height: number = 200;
-
-	let maxValue = 0;
-	let totalValue = 0;
-
-	$: {
-		maxValue = Math.max(...data.map(d => d.value));
-		totalValue = data.reduce((sum, d) => sum + d.value, 0);
+	interface Props {
+		data?: Array<{ label: string; value: number; color?: string }>;
+		type?: 'bar' | 'pie';
+		height?: number;
 	}
+
+	let { data = [], type = 'bar', height = 200 }: Props = $props();
+
+	const maxValue = $derived(Math.max(...data.map(d => d.value)));
+	const totalValue = $derived(data.reduce((sum, d) => sum + d.value, 0));
 
 	const defaultColors = [
 		'#3B82F6', '#EF4444', '#10B981', '#F59E0B', 

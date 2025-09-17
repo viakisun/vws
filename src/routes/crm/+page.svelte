@@ -35,7 +35,7 @@
 		StarIcon,
 		TrendingUpIcon,
 		TargetIcon
-	} from 'lucide-svelte';
+	} from '@lucide/svelte';
 
 	// Mock CRM data
 	let crmData = $state({

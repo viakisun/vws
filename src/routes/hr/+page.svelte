@@ -75,7 +75,7 @@
 		TagIcon,
 		FlaskConicalIcon,
 		UserMinusIcon
-	} from 'lucide-svelte';
+	} from '@lucide/svelte';
 	
 	// HR 스토어들
 	import { 

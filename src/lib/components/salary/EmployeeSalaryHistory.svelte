@@ -21,7 +21,7 @@ import {
 		TrendingUpIcon,
 		TrendingDownIcon,
 		MinusIcon
-	} from 'lucide-svelte';
+	} from '@lucide/svelte';
 
 	// 검색 및 필터 상태
 	let searchQuery = $state('');

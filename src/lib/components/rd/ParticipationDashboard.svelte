@@ -39,7 +39,7 @@
 		RefreshCwIcon,
 		FilterIcon,
 		DownloadIcon
-	} from 'lucide-svelte';
+	} from '@lucide/svelte';
 
 	// 상태 관리
 	let selectedMonth = $state(new Date().toISOString().slice(0, 7));

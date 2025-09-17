@@ -2,7 +2,7 @@
 	import ThemeModal from './ThemeModal.svelte';
 	import ThemeButton from './ThemeButton.svelte';
 	import ThemeInput from './ThemeInput.svelte';
-	import { PlusIcon, TrashIcon } from 'lucide-svelte';
+	import { PlusIcon, TrashIcon } from '@lucide/svelte';
 
 	interface TeamTO {
 		teamName: string;

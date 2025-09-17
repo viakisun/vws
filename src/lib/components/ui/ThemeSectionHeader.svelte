@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { ArrowRightIcon } from 'lucide-svelte';
+	import { ArrowRightIcon } from '@lucide/svelte';
 
 	interface Props {
 		title: string;

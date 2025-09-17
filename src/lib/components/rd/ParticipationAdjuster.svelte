@@ -11,7 +11,7 @@
 		CheckCircleIcon,
 		PlusIcon,
 		TrashIcon
-	} from 'lucide-svelte';
+	} from '@lucide/svelte';
 	import { formatCurrency, formatDate } from '$lib/utils/format';
 
 	interface ParticipationAdjustment {

@@ -11,7 +11,7 @@
 		RefreshCwIcon,
 		SearchIcon,
 		SettingsIcon
-	} from 'lucide-svelte'
+	} from '@lucide/svelte'
 
 	interface Props {
 		title: string;

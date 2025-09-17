@@ -3,7 +3,7 @@
 	import ThemeButton from '$lib/components/ui/ThemeButton.svelte';
 	import ThemeInput from '$lib/components/ui/ThemeInput.svelte';
 	import ThemeSelect from '$lib/components/ui/ThemeSelect.svelte';
-	import { SaveIcon, DownloadIcon, UploadIcon, FileTextIcon } from 'lucide-svelte';
+	import { SaveIcon, DownloadIcon, UploadIcon, FileTextIcon } from '@lucide/svelte';
 
 	interface DocumentField {
 		id: string;

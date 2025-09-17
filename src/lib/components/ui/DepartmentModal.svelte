@@ -2,7 +2,7 @@
 	import { createEventDispatcher } from 'svelte';
 	import ThemeModal from './ThemeModal.svelte';
 	import ThemeButton from './ThemeButton.svelte';
-	import { XIcon } from 'lucide-svelte';
+	import { XIcon } from '@lucide/svelte';
 
 	interface Department {
 		id?: string;

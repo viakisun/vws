@@ -8,7 +8,7 @@
 		UsersIcon, 
 		FlaskConicalIcon, 
 		BriefcaseIcon
-	} from 'lucide-svelte';
+	} from '@lucide/svelte';
 
 	// Mock data
 	const stats = [

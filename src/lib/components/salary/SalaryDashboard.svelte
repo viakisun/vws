@@ -15,7 +15,7 @@ import {
 		TrendingUpIcon, 
 		TrendingDownIcon, 
 		AlertCircleIcon
-	} from 'lucide-svelte';
+	} from '@lucide/svelte';
 
 	let mounted = $state(false);
 

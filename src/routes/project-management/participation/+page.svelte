@@ -54,7 +54,7 @@
     InfoIcon,
     AlertTriangleIcon as WarningIcon,
     XCircleIcon
-  } from 'lucide-svelte';
+  } from '@lucide/svelte';
   import {
     employees,
     projects,

@@ -1,11 +1,9 @@
 <script lang="ts">
-	import Card from '$lib/components/ui/Card.svelte';
-	import Badge from '$lib/components/ui/Badge.svelte';
-	import Progress from '$lib/components/ui/Progress.svelte';
-	import { projectsStore, overallBudget, budgetAlerts } from '$lib/stores/rnd';
-	import { expenseDocsStore } from '$lib/stores/rnd';
-	import { personnelStore } from '$lib/stores/personnel';
-	import { quarterlyPersonnelBudgets, getQuarterSummary } from '$lib/stores/rnd';
+	import Badge from '$lib/components/ui/Badge.svelte'
+	import Card from '$lib/components/ui/Card.svelte'
+	import Progress from '$lib/components/ui/Progress.svelte'
+	import { personnelStore } from '$lib/stores/personnel'
+	import { budgetAlerts, expenseDocsStore, getQuarterSummary, overallBudget, projectsStore, quarterlyPersonnelBudgets } from '$lib/stores/rnd'
 
 	const ob = $derived($overallBudget);
 	const avgProgress = $derived($projectsStore.length

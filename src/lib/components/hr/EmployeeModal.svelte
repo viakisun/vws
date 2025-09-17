@@ -2,7 +2,7 @@
 	import { createEventDispatcher } from 'svelte';
 	import ThemeModal from '$lib/components/ui/ThemeModal.svelte';
 	import ThemeButton from '$lib/components/ui/ThemeButton.svelte';
-	import { XIcon, SaveIcon, UserIcon, MailIcon, PhoneIcon, CalendarIcon } from 'lucide-svelte';
+	import { XIcon, SaveIcon, UserIcon, MailIcon, PhoneIcon, CalendarIcon } from '@lucide/svelte';
 	import type { Employee, EmployeeLevel, EmploymentType, EmployeeStatus } from '$lib/types/hr';
 
 	interface Props {

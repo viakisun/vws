@@ -4,7 +4,7 @@
 	import ThemeButton from './ThemeButton.svelte';
 	import ThemeInput from './ThemeInput.svelte';
 	import ThemeSelect from './ThemeSelect.svelte';
-	import { XIcon, SaveIcon } from 'lucide-svelte';
+	import { XIcon, SaveIcon } from '@lucide/svelte';
 	import { formatEmployeeName } from '$lib/utils/format';
 
 	interface Employee {

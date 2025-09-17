@@ -27,7 +27,7 @@
 		PieChartIcon,
 		TargetIcon,
 		DollarSignIcon
-	} from 'lucide-svelte';
+	} from '@lucide/svelte';
 
 	// 자금일보 데이터
 	let fundsReport = $state({

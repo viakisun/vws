@@ -20,7 +20,7 @@
 		AlertTriangleIcon,
 		CheckIcon,
 		XIcon
-	} from 'lucide-svelte';
+	} from '@lucide/svelte';
 
 	const dispatch = createEventDispatcher();
 

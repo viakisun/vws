@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { DownloadIcon, PrinterIcon } from 'lucide-svelte';
+	import { DownloadIcon, PrinterIcon } from '@lucide/svelte';
 
 	interface Employee {
 		name: string;

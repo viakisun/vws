@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import ThemeButton from '$lib/components/ui/ThemeButton.svelte';
-	import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-svelte';
+	import { ChevronLeftIcon, ChevronRightIcon } from '@lucide/svelte';
 
 	interface Tab {
 		id: string;

@@ -14,7 +14,7 @@
 		UsersIcon, 
 		FileTextIcon, 
 		CheckCircleIcon 
-	} from 'lucide-svelte';
+	} from '@lucide/svelte';
 import { 
     loadContracts, 
     loadContractStats,
@@ -29,7 +29,7 @@ import {
     BarChartIcon, 
     ClockIcon, 
     PrinterIcon 
-} from 'lucide-svelte';
+} from '@lucide/svelte';
 
 	// 탭 정의
 	const tabs = [

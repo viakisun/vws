@@ -3,7 +3,7 @@
 	import Badge from '$lib/components/ui/Badge.svelte';
 	import Progress from '$lib/components/ui/Progress.svelte';
 	import Modal from '$lib/components/ui/Modal.svelte';
-	import { TrendingUpIcon, BriefcaseIcon, CoinsIcon, AlertTriangleIcon } from 'lucide-svelte';
+	import { TrendingUpIcon, BriefcaseIcon, CoinsIcon, AlertTriangleIcon } from '@lucide/svelte';
 	import { projectsStore, budgetAlerts, overallBudget, getQuarterSummary } from '$lib/stores/rnd';
 	import { personnelStore, estimateMonthlyCostKRW } from '$lib/stores/personnel';
 	import { formatKRW } from '$lib/utils/format';

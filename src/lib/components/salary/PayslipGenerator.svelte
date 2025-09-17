@@ -25,7 +25,7 @@
 		SaveIcon,
 		XIcon,
 		PrinterIcon
-	} from 'lucide-svelte';
+	} from '@lucide/svelte';
 
 	let { payroll = undefined }: { payroll?: any } = $props();
 

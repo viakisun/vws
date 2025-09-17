@@ -25,7 +25,7 @@
 		UserIcon,
 		BuildingIcon,
 		BriefcaseIcon
-	} from 'lucide-svelte';
+	} from '@lucide/svelte';
 
 	let mounted = $state(false);
 	let showCreateModal = $state(false);

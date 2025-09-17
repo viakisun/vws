@@ -22,7 +22,7 @@ import {
 		BuildingIcon,
 		BriefcaseIcon,
 		ClockIcon
-	} from 'lucide-svelte';
+	} from '@lucide/svelte';
 
 	let mounted = $state(false);
 	let showFilters = $state(false);

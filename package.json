@@ -62,6 +62,7 @@
 		"vitest": "^3.2.4"
 	},
 	"dependencies": {
+		"@lucide/svelte": "^0.544.0",
 		"@types/bcryptjs": "^2.4.6",
 		"@types/jsonwebtoken": "^9.0.10",
 		"@types/pg": "^8.15.5",
@@ -69,7 +70,6 @@
 		"exceljs": "^4.4.0",
 		"jsonwebtoken": "^9.0.2",
 		"jspdf": "^3.0.2",
-		"lucide-svelte": "^0.544.0",
 		"mermaid": "^11.11.0",
 		"pg": "^8.16.3"
 	}

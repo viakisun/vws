@@ -2,7 +2,7 @@
 	import { createEventDispatcher } from 'svelte';
 	import ThemeModal from './ThemeModal.svelte';
 	import ThemeButton from './ThemeButton.svelte';
-	import { AlertTriangleIcon, TrashIcon, ArchiveIcon } from 'lucide-svelte';
+	import { AlertTriangleIcon, TrashIcon, ArchiveIcon } from '@lucide/svelte';
 
 	interface Props {
 		open: boolean;

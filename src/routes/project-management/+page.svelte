@@ -34,7 +34,7 @@
 		FileSpreadsheetIcon,
 		AlertCircleIcon,
 		ActivityIcon
-	} from 'lucide-svelte';
+	} from '@lucide/svelte';
 
 	// 탭 정의
 	const tabs = [

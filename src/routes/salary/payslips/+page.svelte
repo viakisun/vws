@@ -15,7 +15,7 @@ import {
 		FileTextIcon,
 		CalendarIcon,
 		UserIcon
-	} from 'lucide-svelte';
+	} from '@lucide/svelte';
 
 	let searchQuery = $state('');
 	let selectedPeriod = $state('');
