@@ -262,8 +262,9 @@
 		<Card class="mb-6">
 			<div class="p-6">
 				<div class="flex items-center space-x-4">
-					<label class="text-sm font-medium text-gray-700">직원 선택:</label>
+					<label for="employee-select" class="text-sm font-medium text-gray-700">직원 선택:</label>
 					<select
+						id="employee-select"
 						bind:value={selectedEmployeeId}
 						class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 					>
@@ -272,8 +273,9 @@
 							<option value={employee.id}>{employee.name} ({employee.employeeId})</option>
 						{/each}
 					</select>
-					<label class="text-sm font-medium text-gray-700">평가 연도:</label>
+					<label for="year-select" class="text-sm font-medium text-gray-700">평가 연도:</label>
 					<select
+						id="year-select"
 						bind:value={selectedYear}
 						class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 					>
@@ -490,8 +492,9 @@
 					<div class="space-y-6">
 						<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 							<div>
-								<label class="block text-sm font-medium text-gray-700 mb-1">평가 유형 *</label>
+								<label for="review-type" class="block text-sm font-medium text-gray-700 mb-1">평가 유형 *</label>
 								<select
+									id="review-type"
 									bind:value={reviewForm.reviewType}
 									required
 									class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -503,8 +506,9 @@
 								</select>
 							</div>
 							<div>
-								<label class="block text-sm font-medium text-gray-700 mb-1">종합 평가 점수 *</label>
+								<label for="overall-rating" class="block text-sm font-medium text-gray-700 mb-1">종합 평가 점수 *</label>
 								<select
+									id="overall-rating"
 									bind:value={reviewForm.overallRating}
 									required
 									class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -519,11 +523,12 @@
 						</div>
 
 						<div>
-							<label class="block text-sm font-medium text-gray-700 mb-1">강점</label>
+							<label for="strengths" class="block text-sm font-medium text-gray-700 mb-1">강점</label>
 							<div class="space-y-2">
 								{#each reviewForm.strengths as strength, index}
 									<div class="flex space-x-2">
 										<input
+											id="strengths-{index}"
 											type="text"
 											bind:value={reviewForm.strengths[index]}
 											class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -548,11 +553,12 @@
 						</div>
 
 						<div>
-							<label class="block text-sm font-medium text-gray-700 mb-1">개선 영역</label>
+							<label for="improvement-areas" class="block text-sm font-medium text-gray-700 mb-1">개선 영역</label>
 							<div class="space-y-2">
 								{#each reviewForm.improvementAreas as area, index}
 									<div class="flex space-x-2">
 										<input
+											id="improvement-areas-{index}"
 											type="text"
 											bind:value={reviewForm.improvementAreas[index]}
 											class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -577,8 +583,9 @@
 						</div>
 
 						<div>
-							<label class="block text-sm font-medium text-gray-700 mb-1">개발 계획</label>
+							<label for="development-plan" class="block text-sm font-medium text-gray-700 mb-1">개발 계획</label>
 							<textarea
+								id="development-plan"
 								bind:value={reviewForm.developmentPlan}
 								rows="3"
 								class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -587,8 +594,9 @@
 						</div>
 
 						<div>
-							<label class="block text-sm font-medium text-gray-700 mb-1">경력 목표</label>
+							<label for="career-goals" class="block text-sm font-medium text-gray-700 mb-1">경력 목표</label>
 							<textarea
+								id="career-goals"
 								bind:value={reviewForm.careerGoals}
 								rows="3"
 								class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -650,8 +658,9 @@
 				<form onsubmit={(e) => { e.preventDefault(); handleFeedbackSubmit(); }}>
 					<div class="space-y-6">
 						<div>
-							<label class="block text-sm font-medium text-gray-700 mb-1">평가자 유형 *</label>
+							<label for="reviewer-type" class="block text-sm font-medium text-gray-700 mb-1">평가자 유형 *</label>
 							<select
+								id="reviewer-type"
 								bind:value={feedbackForm.reviewerType}
 								required
 								class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -667,8 +676,9 @@
 							<h4 class="text-md font-medium text-gray-900">역량 평가 (1-5점)</h4>
 							<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 								<div>
-									<label class="block text-sm font-medium text-gray-700 mb-1">리더십</label>
+									<label for="leadership" class="block text-sm font-medium text-gray-700 mb-1">리더십</label>
 									<select
+										id="leadership"
 										bind:value={feedbackForm.leadership}
 										class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 									>
@@ -680,8 +690,9 @@
 									</select>
 								</div>
 								<div>
-									<label class="block text-sm font-medium text-gray-700 mb-1">커뮤니케이션</label>
+									<label for="communication" class="block text-sm font-medium text-gray-700 mb-1">커뮤니케이션</label>
 									<select
+										id="communication"
 										bind:value={feedbackForm.communication}
 										class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 									>
@@ -693,8 +704,9 @@
 									</select>
 								</div>
 								<div>
-									<label class="block text-sm font-medium text-gray-700 mb-1">팀워크</label>
+									<label for="teamwork" class="block text-sm font-medium text-gray-700 mb-1">팀워크</label>
 									<select
+										id="teamwork"
 										bind:value={feedbackForm.teamwork}
 										class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 									>
@@ -706,8 +718,9 @@
 									</select>
 								</div>
 								<div>
-									<label class="block text-sm font-medium text-gray-700 mb-1">문제 해결</label>
+									<label for="problem-solving" class="block text-sm font-medium text-gray-700 mb-1">문제 해결</label>
 									<select
+										id="problem-solving"
 										bind:value={feedbackForm.problemSolving}
 										class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 									>
@@ -722,8 +735,9 @@
 						</div>
 
 						<div>
-							<label class="block text-sm font-medium text-gray-700 mb-1">강점</label>
+							<label for="feedback-strengths" class="block text-sm font-medium text-gray-700 mb-1">강점</label>
 							<textarea
+								id="feedback-strengths"
 								bind:value={feedbackForm.strengths}
 								rows="3"
 								class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -732,8 +746,9 @@
 						</div>
 
 						<div>
-							<label class="block text-sm font-medium text-gray-700 mb-1">개선 영역</label>
+							<label for="feedback-improvement" class="block text-sm font-medium text-gray-700 mb-1">개선 영역</label>
 							<textarea
+								id="feedback-improvement"
 								bind:value={feedbackForm.improvementAreas}
 								rows="3"
 								class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -742,8 +757,9 @@
 						</div>
 
 						<div>
-							<label class="block text-sm font-medium text-gray-700 mb-1">추천사항</label>
+							<label for="recommendations" class="block text-sm font-medium text-gray-700 mb-1">추천사항</label>
 							<textarea
+								id="recommendations"
 								bind:value={feedbackForm.recommendations}
 								rows="3"
 								class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
