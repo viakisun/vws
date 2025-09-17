@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/stores'
+	import { onMount } from 'svelte'
 	import { goto } from '$app/navigation'
 	import PageLayout from '$lib/components/layout/PageLayout.svelte'
 	import ThemeTabs from '$lib/components/ui/ThemeTabs.svelte'
@@ -103,7 +104,18 @@
 	let loading = $state(false)
 	let error = $state<string | null>(null)
 	
-	// 프로젝트 관련 상태
+
+	// Svelte 5: 프로젝트 탭이 활성화될 때 데이터 로드
+	$effect(() => {
+		if (activeTab === 'projects' && projects.length === 0 && mounted) {
+			loadProjectData()
+		}
+	})
+
+	// Svelte 5: 컴포넌트 마운트 시 mounted 상태 설정
+	onMount(() => {
+		mounted = true
+	})	// 프로젝트 관련 상태
 	let selectedProject = $state<Project | null>(null)
 	let selectedProjectId = $state('')
 	let showCreateProjectModal = $state(false)
