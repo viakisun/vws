@@ -185,7 +185,7 @@ export function createFundsReport(): FundsReport {
 	
 	return {
 		id: `funds-report-${Date.now()}`,
-		date: new Date().toISOString().split('T')[0],
+		date: new Date().toISOString().split('T')[0] || '',
 		bankAccounts: initialBankAccounts,
 		transactions: initialTransactions,
 		expectedTransactions: initialExpectedTransactions,

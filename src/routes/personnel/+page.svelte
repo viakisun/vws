@@ -8,7 +8,13 @@
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
 	import type { Personnel, Participation } from '$lib/types';
-	let quarter = '2025-Q3';
+	let quarter = $state('2025-Q3');
+	let selectedId = $state<string | null>(null);
+	let query = $state('');
+	let orgFilter = $state('');
+	let statusFilter = $state('') as '' | '재직' | '신규' | '퇴사예정';
+	let lastQuery = $state('');
+
 	function personQuarterCost(p: Personnel): number {
 		// 우선 순위: 참여 항목별 quarterlyBreakdown → 연봉 기반 추정치(분기)
 		const breakdownSum = p.participations.reduce<number>((sum: number, pp: Participation) => sum + (pp.quarterlyBreakdown?.[quarter] ?? 0), 0);
@@ -23,57 +29,56 @@
 	}
 
 	// available quarters
-	$: quarters = Array.from(new Set(Object.values($quarterlyPersonnelBudgets).flatMap((m)=> Object.keys(m)))).sort();
+	const quarters = $derived(Array.from(new Set(Object.values($quarterlyPersonnelBudgets).flatMap((m)=> Object.keys(m)))).sort());
 
 	// read initial quarter from URL if present
-	let lastQuery = '';
 	if (typeof window !== 'undefined') {
 		const params = new URLSearchParams(window.location.search);
-		quarter = params.get('q') ?? quarter;
+		const urlQuarter = params.get('q');
+		if (urlQuarter) {
+			quarter = urlQuarter;
+		}
 		lastQuery = params.toString();
 	}
 
-	let selectedId: string | null = null;
-	let query = '';
-	let orgFilter = '';
-	let statusFilter = '' as '' | '재직' | '신규' | '퇴사예정';
-
 	const projectId = page.url.searchParams.get('projectId');
-	$: all = $personnelStore;
-	$: filtered = all.filter((p) => {
+	const all = $derived($personnelStore);
+	const filtered = $derived(all.filter((p) => {
 		const matchQuery = query ? (p.name.includes(query) || p.id.includes(query) || p.organization.includes(query)) : true;
 		const matchProject = projectId ? p.participations.some((pp) => pp.projectId === projectId) : true;
 		const matchOrg = orgFilter ? p.organization === orgFilter : true;
 		const matchStatus = statusFilter ? p.status === statusFilter : true;
 		return matchQuery && matchProject && matchOrg && matchStatus;
-	});
-	$: selected = all.find((p) => p.id === selectedId);
-	$: orgOptions = Array.from(new Set(all.map((p) => p.organization)));
-	$: totalCount = all.length;
-	$: activeCount = all.filter((p) => p.status === '재직').length;
+	}));
+	const selected = $derived(all.find((p) => p.id === selectedId));
+	const orgOptions = $derived(Array.from(new Set(all.map((p) => p.organization))));
+	const totalCount = $derived(all.length);
+	const activeCount = $derived(all.filter((p) => p.status === '재직').length);
 
 	// KPI summary for selected quarter and current filter
-	$: kpiTotalCost = filtered.reduce((s, p) => s + personQuarterCost(p), 0);
-	$: kpiTotalBudget = filtered.reduce((s, p) => s + personQuarterBudget(p), 0);
-	$: kpiUtil = kpiTotalBudget > 0 ? Math.round((kpiTotalCost / kpiTotalBudget) * 100) : 0;
-	$: overCount = filtered.filter((p) => {
+	const kpiTotalCost = $derived(filtered.reduce((s, p) => s + personQuarterCost(p), 0));
+	const kpiTotalBudget = $derived(filtered.reduce((s, p) => s + personQuarterBudget(p), 0));
+	const kpiUtil = $derived(kpiTotalBudget > 0 ? Math.round((kpiTotalCost / kpiTotalBudget) * 100) : 0);
+	const overCount = $derived(filtered.filter((p) => {
 		const b = personQuarterBudget(p);
 		return b > 0 && (personQuarterCost(p) / b) >= budgetThresholds.critical;
-	}).length;
+	}).length);
 
 	// URL sync for quarter only (q)
-	$: if (typeof window !== 'undefined') {
-		const params = new URLSearchParams(window.location.search);
-		if (quarter) params.set('q', quarter); else params.delete('q');
-		const newQuery = params.toString();
-		if (newQuery !== lastQuery) {
-			lastQuery = newQuery;
-			goto(`${window.location.pathname}${newQuery ? `?${newQuery}` : ''}`, { replaceState: true, keepFocus: true, noScroll: true });
+	$effect(() => {
+		if (typeof window !== 'undefined') {
+			const params = new URLSearchParams(window.location.search);
+			if (quarter) params.set('q', quarter); else params.delete('q');
+			const newQuery = params.toString();
+			if (newQuery !== lastQuery) {
+				lastQuery = newQuery;
+				goto(`${window.location.pathname}${newQuery ? `?${newQuery}` : ''}`, { replaceState: true, keepFocus: true, noScroll: true });
+			}
 		}
-	}
+	});
 
 	// skeleton loading for table
-	let loading = true;
+	let loading = $state(true);
 	if (typeof window !== 'undefined') {
 		setTimeout(() => (loading = false), 300);
 	}
@@ -133,7 +138,7 @@
 				</thead>
 				<tbody class="divide-y">
 					{#each filtered as p}
-						<tr class="hover:bg-gray-50 cursor-pointer" on:click={() => (selectedId = p.id)}>
+            <tr class="hover:bg-gray-50 cursor-pointer" onclick={() => (selectedId = p.id)}>
 							<td class="px-3 py-2">{p.id}</td>
 							<td class="px-3 py-2">{p.name}</td>
 							<td class="px-3 py-2">{p.organization}</td>

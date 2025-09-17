@@ -119,7 +119,7 @@ export class ThemeManager {
 	}
 
 	// Setup listener for system theme changes
-	private setupSystemThemeListener(): void {
+	private setupSystemThemeListener(): (() => void) | void {
 		const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
 		
 		const handleChange = (e: MediaQueryListEvent) => {

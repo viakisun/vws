@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
 	import PageLayout from '$lib/components/layout/PageLayout.svelte';
@@ -58,7 +57,7 @@ import {
 
 	// URL 파라미터에서 탭 상태 가져오기
 	let activeTab = $state($page.url.searchParams.get('tab') || 'overview');
-	let mounted = false;
+	let mounted = $state(false);
 	
 	// 급여 통계 데이터
 	let salaryStats = $state([]);
@@ -120,12 +119,14 @@ import {
 		}
 	}
 
-	onMount(async () => {
-		mounted = true;
-		// 기본 데이터 로드
-		await loadPayslips();
-		await loadContractStats();
-		await loadSalaryStats();
+	$effect(async () => {
+		if (!mounted) {
+			mounted = true;
+			// 기본 데이터 로드
+			await loadPayslips();
+			await loadContractStats();
+			await loadSalaryStats();
+		}
 	});
 
 	// 탭 변경 시 데이터 로드
@@ -163,7 +164,8 @@ import {
 	<!-- 탭 시스템 -->
 	<ThemeTabs
 		{tabs}
-		bind:activeTab
+		activeTab={activeTab}
+		onTabChange={handleTabChange}
 		variant="underline"
 		size="md"
 		class="mb-6"

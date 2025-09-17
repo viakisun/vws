@@ -495,7 +495,7 @@
 			<!-- 버튼 영역 -->
 			<div class="flex justify-end space-x-3 pt-6 border-t">
 				<ThemeButton
-					variant="outline"
+					variant="ghost"
 					onclick={handleClose}
 					disabled={loading}
 				>

@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 import { 
     salaryStatistics, 
     departmentSalaryStats, 
@@ -18,11 +17,13 @@ import {
 		AlertCircleIcon
 	} from 'lucide-svelte';
 
-	let mounted = false;
+	let mounted = $state(false);
 
-	onMount(async () => {
-		mounted = true;
-		await loadPayslips();
+	$effect(async () => {
+		if (!mounted) {
+			mounted = true;
+			await loadPayslips();
+		}
 	});
 
 	// 상태별 색상 반환

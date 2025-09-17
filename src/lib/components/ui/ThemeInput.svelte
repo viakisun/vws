@@ -31,7 +31,7 @@
 		variant = 'default',
 		size = 'md',
 		placeholder = '',
-		value = '',
+		value = $bindable(''),
 		disabled = false,
 		readonly = false,
 		required = false,

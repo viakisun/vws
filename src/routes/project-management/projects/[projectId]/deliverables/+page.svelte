@@ -15,11 +15,11 @@
 		{ id: `${projectId}-D3`, title: '최종보고서', status: '준비', due: '2026-05-31', owner: '박민수' },
 	];
 
-	let status: '' | DStatus = '';
-	let query = '';
+	let status = $state('') as '' | DStatus;
+	let query = $state('');
 
 	// initial read
-	let lastQuery = '';
+	let lastQuery = $state('');
 	if (typeof window !== 'undefined') {
 		const sp = new URLSearchParams(window.location.search);
 		status = (sp.get('status') as typeof status) ?? '';
@@ -27,18 +27,20 @@
 		lastQuery = sp.toString();
 	}
 	// sync to URL
-	$: if (typeof window !== 'undefined') {
-		const sp = new URLSearchParams(window.location.search);
-		if (status) sp.set('status', status); else sp.delete('status');
-		if (query) sp.set('q', query); else sp.delete('q');
-		const newQuery = sp.toString();
-		if (newQuery !== lastQuery) {
-			lastQuery = newQuery;
-			goto(`${window.location.pathname}?${newQuery}`, { replaceState: true, keepFocus: true, noScroll: true });
+	$effect(() => {
+		if (typeof window !== 'undefined') {
+			const sp = new URLSearchParams(window.location.search);
+			if (status) sp.set('status', status); else sp.delete('status');
+			if (query) sp.set('q', query); else sp.delete('q');
+			const newQuery = sp.toString();
+			if (newQuery !== lastQuery) {
+				lastQuery = newQuery;
+				goto(`${window.location.pathname}?${newQuery}`, { replaceState: true, keepFocus: true, noScroll: true });
+			}
 		}
-	}
+	});
 
-	$: filtered = items.filter((d) => (status ? d.status === status : true) && (query ? d.title.includes(query) : true));
+	const filtered = $derived(items.filter((d) => (status ? d.status === status : true) && (query ? d.title.includes(query) : true)));
 
 	function colorOf(s: DStatus): 'green' | 'blue' | 'yellow' | 'red' {
 		if (s === '완료') return 'green';
@@ -47,7 +49,7 @@
 		return 'yellow';
 	}
 
-	let loading = true;
+	let loading = $state(true);
 	if (typeof window !== 'undefined') {
 		setTimeout(() => (loading = false), 300);
 	}

@@ -1,8 +1,8 @@
-import js from '@eslint/js';
-import tsPlugin from '@typescript-eslint/eslint-plugin';
-import tsParser from '@typescript-eslint/parser';
-import sveltePlugin from 'eslint-plugin-svelte';
-import svelteParser from 'svelte-eslint-parser';
+import js from '@eslint/js'
+import tsPlugin from '@typescript-eslint/eslint-plugin'
+import tsParser from '@typescript-eslint/parser'
+import sveltePlugin from 'eslint-plugin-svelte'
+import svelteParser from 'svelte-eslint-parser'
 
 /** @type {import('eslint').Linter.Config[]} */
 export default [
@@ -42,7 +42,11 @@ export default [
 		languageOptions: {
 			parser: svelteParser,
 			parserOptions: {
-				parser: tsParser
+				parser: tsParser,
+				// Svelte 5 호환성
+				svelteFeatures: {
+					runes: true
+				}
 			}
 		},
 		plugins: {
@@ -55,7 +59,6 @@ export default [
 			'svelte/no-at-html-tags': 'error',
 			'svelte/no-dupe-else-if-blocks': 'error',
 			'svelte/no-dupe-style-properties': 'error',
-			// 'svelte/no-dupe-use-elements': 'error', // Rule not found
 			'svelte/no-dynamic-slot-name': 'error',
 			'svelte/no-not-function-handler': 'error',
 			'svelte/no-object-in-text-mustaches': 'error',
@@ -67,9 +70,6 @@ export default [
 			'svelte/require-each-key': 'error',
 			'svelte/require-stores-init': 'error',
 			'svelte/require-store-callbacks-use-set-param': 'error',
-			// 'svelte/require-store-reactive-return': 'error', // Rule not found
-			// 'svelte/require-store-rest-parameters': 'error', // Rule not found
-			'svelte/require-stores-leading-store': 'error',
 			'svelte/block-lang': 'error',
 			'svelte/button-has-type': 'error',
 			'svelte/html-closing-bracket-spacing': 'error',
@@ -78,7 +78,6 @@ export default [
 			'svelte/indent': 'error',
 			'svelte/max-attributes-per-line': 'error',
 			'svelte/mustache-spacing': 'error',
-			'svelte/no-extra-reactive-curlies-in-string': 'error',
 			'svelte/no-spaces-around-equal-signs-in-attribute': 'error',
 			'svelte/no-trailing-spaces': 'error',
 			'svelte/prefer-class-directive': 'error',
@@ -88,22 +87,21 @@ export default [
 			'svelte/spaced-html-comment': 'error',
 			'svelte/derived-has-same-inputs-outputs': 'error',
 			'svelte/first-attribute-linebreak': 'error',
-			'svelte/html-content-first-newline': 'error',
-			'svelte/label-has-associated-control': 'error',
-			'svelte/no-conflict-variable-names': 'error',
 			'svelte/no-export-load-in-svelte-module-in-kit-pages': 'error',
-			'svelte/no-proxy-in-rest-props': 'error',
-			'svelte/no-reactive-class': 'error',
-			'svelte/no-reactive-label': 'error',
-			'svelte/no-reactive-textarea': 'error',
 			'svelte/no-target-blank': 'error',
 			'svelte/no-unused-class-name': 'error',
 			'svelte/no-unused-svelte-ignore': 'error',
-			'svelte/no-useless-fragment': 'error',
 			'svelte/prefer-destructured-store-props': 'error',
 			'svelte/require-event-dispatcher-types': 'error',
 			'svelte/require-optimized-style-attribute': 'error',
-			'svelte/valid-each-key': 'error'
+			'svelte/valid-each-key': 'error',
+
+			// === Svelte 5 호환성 규칙 ===
+			'svelte/no-reactive-functions': 'off', // Svelte 5에서는 $derived 사용
+			'svelte/no-reactive-literals': 'off', // Svelte 5에서는 $state 사용
+			'svelte/require-stores-init': 'off', // Svelte 5에서는 $state 사용
+			'svelte/require-store-callbacks-use-set-param': 'off', // Svelte 5에서는 $state 사용
+			'svelte/prefer-destructured-store-props': 'off' // Svelte 5에서는 $props 사용
 		}
 	},
 
@@ -118,4 +116,4 @@ export default [
 			'*.config.cjs'
 		]
 	}
-];
+]

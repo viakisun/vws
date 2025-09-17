@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import ThemeCard from '$lib/components/ui/ThemeCard.svelte';
 	import ThemeButton from '$lib/components/ui/ThemeButton.svelte';
 	import ThemeModal from '$lib/components/ui/ThemeModal.svelte';
@@ -28,15 +27,15 @@
 		BriefcaseIcon
 	} from 'lucide-svelte';
 
-	let mounted = false;
-	let showCreateModal = false;
-	let showEditModal = false;
-	let showDeleteModal = false;
-	let selectedContract: SalaryContract | null = null;
-	let showFilters = false;
+	let mounted = $state(false);
+	let showCreateModal = $state(false);
+	let showEditModal = $state(false);
+	let showDeleteModal = $state(false);
+	let selectedContract: SalaryContract | null = $state(null);
+	let showFilters = $state(false);
 
 	// 폼 데이터
-	let formData: CreateSalaryContractRequest = {
+	let formData: CreateSalaryContractRequest = $state({
 		employeeId: '',
 		startDate: new Date().toISOString().split('T')[0], // 오늘 날짜
 		endDate: '',
@@ -45,55 +44,55 @@
 		contractType: 'full_time',
 		status: 'active',
 		notes: ''
-	};
+	});
 
 	// 직원 목록
-	let employees: any[] = [];
+	let employees: any[] = $state([]);
 
 	// 로컬 계약 데이터
-	let localContracts: any[] = [];
-	let localLoading = false;
-	let localError: string | null = null;
+	let localContracts: any[] = $state([]);
+	let localLoading = $state(false);
+	let localError: string | null = $state(null);
 	
-	// 로컬 통계 데이터 (기존 데이터로 계산)
-	let localStats = {
-		totalContracts: 0,
-		activeContracts: 0,
-		totalAnnualSalary: 0,
-		averageAnnualSalary: 0
-	};
 
 	// 로컬 필터
-	let localFilter = {
+	let localFilter = $state({
 		status: '',
 		contractType: '',
 		employeeId: '',
 		department: '',
 		startDateFrom: ''
-	};
+	});
 
 	// 로컬 통계 계산 (localContracts가 변경될 때마다 자동 계산)
-	$: {
+	let localStats = $derived((() => {
 		if (localContracts.length > 0) {
 			const activeContracts = localContracts.filter(contract => contract.status === 'active');
 			const totalAnnualSalary = localContracts.reduce((sum, contract) => sum + (contract.annualSalary || 0), 0);
 			
-			localStats = {
+			return {
 				totalContracts: localContracts.length,
 				activeContracts: activeContracts.length,
 				totalAnnualSalary: totalAnnualSalary,
 				averageAnnualSalary: localContracts.length > 0 ? Math.round(totalAnnualSalary / localContracts.length) : 0
 			};
 		}
-	}
+		return {
+			totalContracts: 0,
+			activeContracts: 0,
+			totalAnnualSalary: 0,
+			averageAnnualSalary: 0
+		};
+	})());
 
-	onMount(async () => {
-		mounted = true;
-		
-		// 직접 API 호출로 데이터 로드
-		try {
-			localLoading = true;
-			localError = null;
+	$effect(async () => {
+		if (!mounted) {
+			mounted = true;
+			
+			// 직접 API 호출로 데이터 로드
+			try {
+				localLoading = true;
+				localError = null;
 			
 			// 직접 API 호출
 			const response = await fetch('/api/salary/contracts?page=1&limit=20');
@@ -108,8 +107,9 @@
 			await loadEmployees();
 		} catch (error) {
 			localError = '알 수 없는 오류가 발생했습니다.';
-		} finally {
-			localLoading = false;
+			} finally {
+				localLoading = false;
+			}
 		}
 	});
 
@@ -387,8 +387,9 @@
 		{#if showFilters}
 			<div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-4 p-4 bg-gray-50 rounded-lg">
 				<div>
-					<label class="block text-sm font-medium text-gray-700 mb-1">직원 검색</label>
+					<label for="employee-search" class="block text-sm font-medium text-gray-700 mb-1">직원 검색</label>
 					<input
+						id="employee-search"
 						type="text"
 						placeholder="직원명, 사번으로 검색"
 						bind:value={localFilter.employeeId}
@@ -396,8 +397,9 @@
 					/>
 				</div>
 				<div>
-					<label class="block text-sm font-medium text-gray-700 mb-1">부서</label>
+					<label for="department-filter" class="block text-sm font-medium text-gray-700 mb-1">부서</label>
 					<select
+						id="department-filter"
 						bind:value={localFilter.department}
 						class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 					>
@@ -409,8 +411,9 @@
 					</select>
 				</div>
 				<div>
-					<label class="block text-sm font-medium text-gray-700 mb-1">계약 유형</label>
+					<label for="contract-type-filter" class="block text-sm font-medium text-gray-700 mb-1">계약 유형</label>
 					<select
+						id="contract-type-filter"
 						bind:value={localFilter.contractType}
 						class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 					>
@@ -422,8 +425,9 @@
 					</select>
 				</div>
 				<div>
-					<label class="block text-sm font-medium text-gray-700 mb-1">상태</label>
+					<label for="sc-status-filter" class="block text-sm font-medium text-gray-700 mb-1">상태</label>
 					<select
+						id="sc-status-filter"
 						bind:value={localFilter.status}
 						class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 					>
@@ -435,8 +439,9 @@
 					</select>
 				</div>
 				<div>
-					<label class="block text-sm font-medium text-gray-700 mb-1">시작일 (부터)</label>
+					<label for="start-date-filter" class="block text-sm font-medium text-gray-700 mb-1">시작일 (부터)</label>
 					<input
+						id="start-date-filter"
 						type="date"
 						bind:value={localFilter.startDateFrom}
 						class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -556,8 +561,9 @@
 	<div class="space-y-4">
 		<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 			<div>
-				<label class="block text-sm font-medium text-gray-700 mb-1">직원 선택 *</label>
+				<label for="create-employee" class="block text-sm font-medium text-gray-700 mb-1">직원 선택 *</label>
 				<select
+					id="create-employee"
 					bind:value={formData.employeeId}
 					class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 				>
@@ -568,8 +574,9 @@
 				</select>
 			</div>
 			<div>
-				<label class="block text-sm font-medium text-gray-700 mb-1">계약 유형 *</label>
+				<label for="create-contractType" class="block text-sm font-medium text-gray-700 mb-1">계약 유형 *</label>
 				<select
+					id="create-contractType"
 					bind:value={formData.contractType}
 					class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 				>
@@ -580,8 +587,9 @@
 				</select>
 			</div>
 			<div>
-				<label class="block text-sm font-medium text-gray-700 mb-1">시작일 *</label>
+				<label for="create-startDate" class="block text-sm font-medium text-gray-700 mb-1">시작일 *</label>
 				<input
+					id="create-startDate"
 					type="date"
 					bind:value={formData.startDate}
 					class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -650,8 +658,9 @@
 	<div class="space-y-4">
 		<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 			<div>
-				<label class="block text-sm font-medium text-gray-700 mb-1">계약 유형</label>
+				<label for="edit-contractType" class="block text-sm font-medium text-gray-700 mb-1">계약 유형</label>
 				<select
+					id="edit-contractType"
 					bind:value={formData.contractType}
 					class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 				>
@@ -662,8 +671,9 @@
 				</select>
 			</div>
 			<div>
-				<label class="block text-sm font-medium text-gray-700 mb-1">상태</label>
+				<label for="edit-status" class="block text-sm font-medium text-gray-700 mb-1">상태</label>
 				<select
+					id="edit-status"
 					bind:value={formData.status}
 					class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 				>
@@ -674,8 +684,9 @@
 				</select>
 			</div>
 			<div>
-				<label class="block text-sm font-medium text-gray-700 mb-1">시작일</label>
+				<label for="edit-startDate" class="block text-sm font-medium text-gray-700 mb-1">시작일</label>
 				<input
+					id="edit-startDate"
 					type="date"
 					bind:value={formData.startDate}
 					class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"

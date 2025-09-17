@@ -9,29 +9,30 @@
 	import { formatKRW } from '$lib/utils/format';
 
 	type Kpi = { label: string; value: number | string; icon: any; numeric?: number };
-	$: ob = $overallBudget;
-	$: kpis = [
+	
+	let statusFilter = $state('') as '' | '정상' | '진행중' | '지연' | '위험' | '완료';
+	let query = $state('');
+	let selectedId = $state<string | null>(null);
+
+	const ob = $derived($overallBudget);
+	const kpis = $derived([
 		{ label: '총 프로젝트', value: $projectsStore.length, icon: BriefcaseIcon },
 		{ label: '예산 집행률', value: `${(ob.utilization * 100).toFixed(1)}%`, numeric: ob.utilization * 100, icon: CoinsIcon },
 		{ label: '평균 진행률', value: `${Math.round(($projectsStore.reduce((s, p) => s + p.progressPct, 0) / Math.max($projectsStore.length, 1)))}%`, numeric: ($projectsStore.reduce((s, p) => s + p.progressPct, 0) / Math.max($projectsStore.length, 1)), icon: TrendingUpIcon },
 		{ label: '리스크 경고', value: $projectsStore.filter((p) => p.status === '위험' || p.status === '지연').length, icon: AlertTriangleIcon }
-	] as Kpi[];
+	] as Kpi[]);
 
-	let statusFilter = '' as '' | '정상' | '진행중' | '지연' | '위험' | '완료';
-	let query = '';
-	let selectedId: string | null = null;
-
-	$: allProjects = $projectsStore;
-	$: filtered = allProjects.filter((p) =>
+	const allProjects = $derived($projectsStore);
+	const filtered = $derived(allProjects.filter((p) =>
 		(statusFilter ? p.status === statusFilter : true) &&
 		(query ? p.name.toLowerCase().includes(query.toLowerCase()) : true)
-	);
-	$: selected = allProjects.find((p) => p.id === selectedId);
-	$: selectedMembers = selected ? $personnelStore.filter((pr) => pr.participations.some((pp) => pp.projectId === selected.id)) : [];
-	$: selectedCostMonthly = selectedMembers.reduce((sum, pr) => {
+	));
+	const selected = $derived(allProjects.find((p) => p.id === selectedId));
+	const selectedMembers = $derived(selected ? $personnelStore.filter((pr) => pr.participations.some((pp) => pp.projectId === selected.id)) : []);
+	const selectedCostMonthly = $derived(selectedMembers.reduce((sum, pr) => {
 		const part = pr.participations.find((pp) => pp.projectId === selected?.id);
 		return sum + (pr.annualSalaryKRW && part ? estimateMonthlyCostKRW(pr.annualSalaryKRW, part.allocationPct) : 0);
-	}, 0);
+	}, 0));
 	function openDetail(id: string) { selectedId = id; }
 	function closeDetail() { selectedId = null; }
 </script>
@@ -45,7 +46,10 @@
 						<p class="text-caption">{k.label}</p>
 						<div class="text-2xl font-bold">{k.value}</div>
 					</div>
-					<svelte:component this={k.icon} class="text-primary" />
+					{#if k.icon}
+						{@const IconComponent = k.icon}
+						<IconComponent class="text-primary" />
+					{/if}
 				</div>
 				{#if k.numeric}
 					<div class="mt-3">

@@ -235,11 +235,14 @@ export function createOnboardingProcess(
 	mentorId?: string,
 	buddyId?: string
 ) {
-	const template = templateId ? 
-		onboardingTemplates.subscribe(templates => templates.find(t => t.id === templateId)) : 
-		null;
+	let template: OnboardingTemplate | null = null;
+	if (templateId) {
+		onboardingTemplates.subscribe(templates => {
+			template = templates.find(t => t.id === templateId) || null;
+		})();
+	}
 
-	const checklistItems: OnboardingChecklistItem[] = template?.checklistItems?.map(item => ({
+	const checklistItems: OnboardingChecklistItem[] = template?.checklistItems?.map((item: any) => ({
 		...item,
 		id: `item-${Date.now()}-${Math.random()}`,
 		status: 'pending' as const
@@ -247,10 +250,10 @@ export function createOnboardingProcess(
 
 	const newProcess: OnboardingProcess = {
 		id: `onboarding-${Date.now()}`,
-		employeeId,
-		employeeName,
-		startDate: new Date().toISOString().split('T')[0],
-		expectedCompletionDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+		employeeId: employeeId || '',
+		employeeName: employeeName || '',
+		startDate: new Date().toISOString().split('T')[0] || '',
+		expectedCompletionDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] || '',
 		status: 'not-started',
 		checklistItems,
 		mentorId,
@@ -358,9 +361,9 @@ export function createOffboardingProcess(
 		id: `offboarding-${Date.now()}`,
 		employeeId,
 		employeeName,
-		lastWorkingDate,
-		startDate: new Date().toISOString().split('T')[0],
-		expectedCompletionDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+		lastWorkingDate: lastWorkingDate || '',
+		startDate: new Date().toISOString().split('T')[0] || '',
+		expectedCompletionDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] || '',
 		status: 'not-started',
 		checklistItems,
 		reason,
@@ -413,8 +416,8 @@ export function assignMentorBuddy(employeeId: string, mentorId?: string, buddyId
 		id: `mentor-${Date.now()}`,
 		employeeId,
 		mentorId,
-		buddyId,
-		startDate: new Date().toISOString().split('T')[0],
+		buddyId: buddyId || '',
+		startDate: new Date().toISOString().split('T')[0] || '',
 		status: 'active',
 		createdAt: new Date().toISOString()
 	};

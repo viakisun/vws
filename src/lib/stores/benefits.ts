@@ -1,6 +1,20 @@
 import { writable } from 'svelte/store';
 
-// Payroll 타입은 salary-store.ts로 이동됨
+// Payroll 타입 정의
+export interface Payroll {
+	id: string;
+	employeeId: string;
+	payPeriod: {
+		year: number;
+		month: number;
+	};
+	grossPay: number;
+	totalDeductions: number;
+	netPay: number;
+	status: 'pending' | 'paid';
+	createdAt: string;
+	paidAt?: string;
+}
 
 // 상여금/성과급
 export interface Bonus {

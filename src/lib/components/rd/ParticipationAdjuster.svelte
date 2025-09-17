@@ -229,9 +229,9 @@
 		<h4 class="font-medium mb-4" style="color: var(--color-text);">새 참여 추가</h4>
 		<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
 			<div>
-				<label for="project-select" class="block text-sm font-medium mb-1" style="color: var(--color-text);">프로젝트</label>
+				<label for="pa-project-select" class="block text-sm font-medium mb-1" style="color: var(--color-text);">프로젝트</label>
 				<select
-					id="project-select"
+					id="pa-project-select"
 					bind:value={newAdjustment.projectId}
 					class="w-full px-3 py-2 border rounded-md"
 					style="background: var(--color-surface); border-color: var(--color-border); color: var(--color-text);"

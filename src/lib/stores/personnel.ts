@@ -3,7 +3,7 @@ import type { Personnel } from '$lib/types';
 
 function pad(num: number, size = 3): string { return String(num).padStart(size, '0'); }
 function randInt(min: number, max: number): number { return Math.floor(Math.random() * (max - min + 1)) + min; }
-function pick<T>(arr: T[]): T { return arr[randInt(0, arr.length - 1)]; }
+function pick<T>(arr: T[]): T { return arr[randInt(0, arr.length - 1)] || arr[0]; }
 
 const ORGS = ['개발팀','연구팀','인프라팀','기획팀','영업팀'];
 const ROLES = ['사원','주임','대리','과장','차장'];

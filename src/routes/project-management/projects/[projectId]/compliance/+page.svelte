@@ -14,11 +14,11 @@
 		{ id: `${projectId}-C3`, category: '보고', title: '월간 진도보고 제출', status: '검토중' },
 	];
 
-	let cat: '' | Rule['category'] = '';
-	let status: '' | CStatus = '';
-	let query = '';
+	let cat = $state('') as '' | Rule['category'];
+	let status = $state('') as '' | CStatus;
+	let query = $state('');
 
-	let lastQuery = '';
+	let lastQuery = $state('');
 	if (typeof window !== 'undefined') {
 		const sp = new URLSearchParams(window.location.search);
 		cat = (sp.get('cat') as typeof cat) ?? '';
@@ -26,19 +26,21 @@
 		query = sp.get('q') ?? '';
 		lastQuery = sp.toString();
 	}
-	$: if (typeof window !== 'undefined') {
-		const sp = new URLSearchParams(window.location.search);
-		if (cat) sp.set('cat', cat); else sp.delete('cat');
-		if (status) sp.set('status', status); else sp.delete('status');
-		if (query) sp.set('q', query); else sp.delete('q');
-		const newQuery = sp.toString();
-		if (newQuery !== lastQuery) {
-			lastQuery = newQuery;
-			goto(`${window.location.pathname}?${newQuery}`, { replaceState: true, keepFocus: true, noScroll: true });
+	$effect(() => {
+		if (typeof window !== 'undefined') {
+			const sp = new URLSearchParams(window.location.search);
+			if (cat) sp.set('cat', cat); else sp.delete('cat');
+			if (status) sp.set('status', status); else sp.delete('status');
+			if (query) sp.set('q', query); else sp.delete('q');
+			const newQuery = sp.toString();
+			if (newQuery !== lastQuery) {
+				lastQuery = newQuery;
+				goto(`${window.location.pathname}?${newQuery}`, { replaceState: true, keepFocus: true, noScroll: true });
+			}
 		}
-	}
+	});
 
-	$: filtered = rules.filter((r) => (cat ? r.category === cat : true) && (status ? r.status === status : true) && (query ? r.title.includes(query) : true));
+	const filtered = $derived(rules.filter((r) => (cat ? r.category === cat : true) && (status ? r.status === status : true) && (query ? r.title.includes(query) : true)));
 
 	function colorOf(s: CStatus): 'green' | 'yellow' | 'red' {
 		if (s === '충족') return 'green';
@@ -46,7 +48,7 @@
 		return 'red';
 	}
 
-	let loading = true;
+	let loading = $state(true);
 	if (typeof window !== 'undefined') {
 		setTimeout(() => (loading = false), 300);
 	}

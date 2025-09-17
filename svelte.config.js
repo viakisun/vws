@@ -7,6 +7,12 @@ const config = {
 	// for more information about preprocessors
 	preprocess: vitePreprocess(),
 
+	// Svelte 5 호환성 설정
+	compilerOptions: {
+		runes: true, // Svelte 5 runes 활성화
+		enableSourcemap: true
+	},
+
 	kit: {
 		adapter: adapter({ out: 'build' })
 	}

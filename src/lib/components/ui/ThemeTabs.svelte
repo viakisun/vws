@@ -221,7 +221,9 @@
 				aria-labelledby="tab-{tab.id}"
 				class="{currentTab === tab.id ? 'block' : 'hidden'}"
 			>
+			{#if children && typeof children === 'function'}
 				{@render children(tab)}
+			{/if}
 			</div>
 		{/each}
 	</div>

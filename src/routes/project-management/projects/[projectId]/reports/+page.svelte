@@ -14,28 +14,30 @@
 		{ id: `${projectId}-R3`, title: '분기 성과보고(Q3)', status: '반려', period: '2025-Q3', submittedAt: '2025-10-05' },
 	];
 
-	let status: '' | RStatus = '';
-	let query = '';
+	let status = $state('') as '' | RStatus;
+	let query = $state('');
 
-	let lastQuery = '';
+	let lastQuery = $state('');
 	if (typeof window !== 'undefined') {
 		const sp = new URLSearchParams(window.location.search);
 		status = (sp.get('status') as typeof status) ?? '';
 		query = sp.get('q') ?? '';
 		lastQuery = sp.toString();
 	}
-	$: if (typeof window !== 'undefined') {
-		const sp = new URLSearchParams(window.location.search);
-		if (status) sp.set('status', status); else sp.delete('status');
-		if (query) sp.set('q', query); else sp.delete('q');
-		const newQuery = sp.toString();
-		if (newQuery !== lastQuery) {
-			lastQuery = newQuery;
-			goto(`${window.location.pathname}?${newQuery}`, { replaceState: true, keepFocus: true, noScroll: true });
+	$effect(() => {
+		if (typeof window !== 'undefined') {
+			const sp = new URLSearchParams(window.location.search);
+			if (status) sp.set('status', status); else sp.delete('status');
+			if (query) sp.set('q', query); else sp.delete('q');
+			const newQuery = sp.toString();
+			if (newQuery !== lastQuery) {
+				lastQuery = newQuery;
+				goto(`${window.location.pathname}?${newQuery}`, { replaceState: true, keepFocus: true, noScroll: true });
+			}
 		}
-	}
+	});
 
-	$: filtered = items.filter((r) => (status ? r.status === status : true) && (query ? r.title.includes(query) : true));
+	const filtered = $derived(items.filter((r) => (status ? r.status === status : true) && (query ? r.title.includes(query) : true)));
 
 	function colorOf(s: RStatus): 'green' | 'blue' | 'yellow' | 'red' {
 		if (s === '제출') return 'green';
@@ -44,7 +46,7 @@
 		return 'yellow';
 	}
 
-	let loading = true;
+	let loading = $state(true);
 	if (typeof window !== 'undefined') {
 		setTimeout(() => (loading = false), 300);
 	}
@@ -73,7 +75,7 @@
 			<option value='제출'>제출</option>
 			<option value='반려'>반려</option>
 		</select>
-		<button type="button" class="ml-auto px-3 py-1.5 rounded-md border bg-white hover:bg-gray-50" on:click={exportCSV}>CSV 내보내기</button>
+    <button type="button" class="ml-auto px-3 py-1.5 rounded-md border bg-white hover:bg-gray-50" onclick={exportCSV}>CSV 내보내기</button>
 	</div>
 	{#if loading}
 		<div class="space-y-2">

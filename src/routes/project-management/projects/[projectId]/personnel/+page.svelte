@@ -9,8 +9,8 @@
 	import type { Personnel, Participation } from '$lib/types';
 
 	const projectId = page.params.projectId as string;
-	$: project = $projectsStore.find((p) => p.id === projectId);
-	$: people = $personnelStore.filter((p) => p.participations.some((pp) => pp.projectId === projectId));
+	const project = $derived($projectsStore.find((p) => p.id === projectId));
+	const people = $derived($personnelStore.filter((p) => p.participations.some((pp) => pp.projectId === projectId)));
 
 	function currentQuarterLabel(): string {
 		const d = new Date();
@@ -18,9 +18,8 @@
 		const qn = Math.floor(d.getMonth() / 3) + 1;
 		return `${y}-Q${qn}`;
 	}
-	let quarter = currentQuarterLabel();
-	let budgetMap: Record<string, number> = {};
-	$: budgetMap = ($quarterlyPersonnelBudgets[projectId as string] ?? {}) as Record<string, number>;
+	let quarter = $state(currentQuarterLabel());
+	const budgetMap = $derived(($quarterlyPersonnelBudgets[projectId as string] ?? {}) as Record<string, number>);
 
 	function allocOf(person: Personnel): number {
 		const pp = person.participations.find((x) => x.projectId === projectId);
@@ -39,11 +38,11 @@
 		return Math.round(base * (alloc / 100));
 	}
 
-	$: totalBudget = Object.entries(budgetMap).reduce((s, [k, v]) => (k === quarter ? s + v : s), 0);
-	$: totalCost = people.reduce((s,p)=> s + quarterCost(p), 0);
-	$: util = totalBudget > 0 ? Math.round((totalCost / totalBudget) * 100) : 0;
+	const totalBudget = $derived(Object.entries(budgetMap).reduce((s, [k, v]) => (k === quarter ? s + v : s), 0));
+	const totalCost = $derived(people.reduce((s,p)=> s + quarterCost(p), 0));
+	const util = $derived(totalBudget > 0 ? Math.round((totalCost / totalBudget) * 100) : 0);
 
-	let loading = true;
+	let loading = $state(true);
 	if (typeof window !== 'undefined') {
 		setTimeout(() => (loading = false), 300);
 	}

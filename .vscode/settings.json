@@ -37,6 +37,10 @@
 	"typescript.preferences.includePackageJsonAutoImports": "auto",
 	"typescript.reportStyleChecksAsWarnings": false,
 	"typescript.validate.enable": true,
+	"typescript.preferences.includePackageJsonAutoImports": "auto",
+	"typescript.suggest.includeAutomaticOptionalChainCompletions": true,
+	"typescript.suggest.includeCompletionsForImportStatements": true,
+	"typescript.suggest.includeCompletionsWithSnippetText": true,
 
 	// === Svelte 설정 ===
 	"svelte.enable-ts-plugin": true,
@@ -45,6 +49,11 @@
 	"svelte.plugin.typescript.diagnostics.enable": true,
 	"svelte.plugin.typescript.hover.enable": true,
 	"svelte.plugin.typescript.completions.enable": true,
+	"svelte.plugin.svelte.codeActions.enable": true,
+	"svelte.plugin.svelte.diagnostics.enable": true,
+	"svelte.plugin.svelte.hover.enable": true,
+	"svelte.plugin.svelte.semanticTokens.enable": true,
+	"svelte.plugin.svelte.organizeImports.enable": true,
 
 	// === 파일 연결 ===
 	"files.associations": {

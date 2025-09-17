@@ -4,20 +4,20 @@ export function formatKRW(amount: number): string {
 
 export function formatCurrency(amount: number | string | undefined | null): string {
 	if (amount === undefined || amount === null) {
-		return '0원';
+		return '0천원';
 	}
 	
 	// 문자열인 경우 숫자로 변환
 	const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
 	
 	if (isNaN(numAmount)) {
-		return '0원';
+		return '0천원';
 	}
 	
-	// 소수점 제거하고 정수로 변환
-	const integerAmount = Math.round(numAmount);
+	// 천원 단위로 변환 (원 단위를 천원으로 나누기)
+	const thousandAmount = Math.round(numAmount / 1000);
 	
-	return integerAmount.toLocaleString('ko-KR') + '원';
+	return thousandAmount.toLocaleString('ko-KR') + '천원';
 }
 
 export function formatPercentage(value: number | undefined | null): string {
@@ -33,9 +33,10 @@ export function formatDate(dateString: string): string {
 	try {
 		// ISO 날짜 문자열에서 날짜 부분만 추출 (타임존 변환 방지)
 		if (dateString.includes('T')) {
-			const datePart = dateString.split('T')[0]; // "2025-06-27T15:00:00.000Z" -> "2025-06-27"
-			const [year, month, day] = datePart.split('-');
-			return `${year}. ${month}. ${day}.`;
+		const datePart = dateString.split('T')[0]; // "2025-06-27T15:00:00.000Z" -> "2025-06-27"
+		if (!datePart) return '';
+		const [year, month, day] = datePart.split('-');
+		return `${year}. ${month}. ${day}.`;
 		}
 		
 		// 일반 날짜 문자열 처리
@@ -64,8 +65,8 @@ export function formatDateForInput(dateString: string): string {
 	try {
 		// ISO 날짜 문자열에서 날짜 부분만 추출 (타임존 변환 방지)
 		if (dateString.includes('T')) {
-			const datePart = dateString.split('T')[0]; // "2025-06-27T15:00:00.000Z" -> "2025-06-27"
-			return datePart; // 이미 YYYY-MM-DD 형식
+		const datePart = dateString.split('T')[0]; // "2025-06-27T15:00:00.000Z" -> "2025-06-27"
+		return datePart || ''; // 이미 YYYY-MM-DD 형식
 		}
 		
 		// 일반 날짜 문자열 처리

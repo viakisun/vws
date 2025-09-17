@@ -4,8 +4,8 @@
   import Progress from '$lib/components/ui/Progress.svelte';
   import { projectsStore } from '$lib/stores/rnd';
   import { formatKRW } from '$lib/utils/format';
-  let query = '';
-  $: projects = $projectsStore.filter((p) => query ? p.name.includes(query) || p.id.includes(query) : true);
+  let query = $state('');
+  const projects = $derived($projectsStore.filter((p) => query ? p.name.includes(query) || p.id.includes(query) : true));
 </script>
 
 <h2 class="text-lg font-semibold mb-3">Projects</h2>

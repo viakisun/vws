@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import ThemeCard from '$lib/components/ui/ThemeCard.svelte';
 	import ThemeButton from '$lib/components/ui/ThemeButton.svelte';
 	import ThemeBadge from '$lib/components/ui/ThemeBadge.svelte';
@@ -25,7 +24,7 @@ import {
 		ClockIcon
 	} from 'lucide-svelte';
 
-	let mounted = false;
+	let mounted = $state(false);
 	let showFilters = $state(false);
 	let selectedEmployee = $state('');
 	let selectedDepartment = $state('');
@@ -54,10 +53,12 @@ import {
 
 	const monthOptions = generateMonthOptions();
 
-	onMount(async () => {
-		mounted = true;
-		await loadPayslips(); // 모든 급여명세서 데이터 로드
-		await loadEmployees();
+	$effect(async () => {
+		if (!mounted) {
+			mounted = true;
+			await loadPayslips(); // 모든 급여명세서 데이터 로드
+			await loadEmployees();
+		}
 	});
 
 	// 직원 목록 로드
@@ -233,8 +234,9 @@ import {
 		{#if showFilters}
 			<div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-4 p-4 bg-gray-50 rounded-lg">
 				<div>
-					<label class="block text-sm font-medium text-gray-700 mb-1">부서</label>
+					<label for="history-department" class="block text-sm font-medium text-gray-700 mb-1">부서</label>
 					<select
+						id="history-department"
 						bind:value={selectedDepartment}
 						class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 					>
@@ -251,8 +253,9 @@ import {
 					</select>
 				</div>
 				<div>
-					<label class="block text-sm font-medium text-gray-700 mb-1">급여 기간</label>
+					<label for="history-period" class="block text-sm font-medium text-gray-700 mb-1">급여 기간</label>
 					<select
+						id="history-period"
 						bind:value={selectedContractType}
 						class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 					>
@@ -263,8 +266,9 @@ import {
 					</select>
 				</div>
 				<div>
-					<label class="block text-sm font-medium text-gray-700 mb-1">상태</label>
+					<label for="history-status" class="block text-sm font-medium text-gray-700 mb-1">상태</label>
 					<select
+						id="history-status"
 						bind:value={selectedStatus}
 						class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 					>

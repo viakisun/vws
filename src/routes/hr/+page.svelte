@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import PageLayout from '$lib/components/layout/PageLayout.svelte';
 	import ThemeCard from '$lib/components/ui/ThemeCard.svelte';
 	import ThemeBadge from '$lib/components/ui/ThemeBadge.svelte';
@@ -513,13 +512,16 @@
 		{
 			label: '직원 추가',
 			icon: PlusIcon,
-			onclick: () => console.log('Add employee'),
+			onclick: () => openAddEmployeeModal(),
 			variant: 'primary' as const
 		},
 		{
 			label: '채용 공고',
 			icon: FileTextIcon,
-			onclick: () => console.log('Create job posting'),
+			onclick: () => {
+				// 채용 공고 탭으로 이동
+				activeTab = 'recruitment';
+			},
 			variant: 'success' as const
 		}
 	];
@@ -727,7 +729,7 @@
 
 	
 	// 컴포넌트 마운트 시 데이터 로드
-	onMount(async () => {
+	$effect(async () => {
 		fetchEmployees();
 		fetchDepartments();
 		fetchPositions();
@@ -740,7 +742,7 @@
 	$effect(() => {
 		// activeTab 변경을 감지하여 데이터 로드
 		const currentTab = activeTab;
-		console.log('Tab changed to:', currentTab);
+		console.log('HR Tab changed to:', currentTab);
 		
 		switch (currentTab) {
 			case 'employees':
@@ -765,6 +767,12 @@
 				break;
 		}
 	});
+
+	// 탭 변경 핸들러
+	function handleTabChange(tabId: string) {
+		console.log('HR Tab change requested:', tabId);
+		activeTab = tabId;
+	}
 	
 	// 파일 업로드 처리
 	function handleFileSelect(event: Event) {
@@ -1240,6 +1248,7 @@
 		variant="underline"
 		size="md"
 		class="mb-6"
+		onTabChange={handleTabChange}
 	>
 		{#snippet children(tab: any)}
 			{#if tab.id === 'overview'}
@@ -1349,7 +1358,15 @@
 	<ThemeCard class="p-6">
 		<div class="flex items-center justify-between mb-6">
 			<h3 class="text-lg font-semibold" style="color: var(--color-text);">최근 채용 공고</h3>
-			<ThemeButton variant="primary" size="sm" class="flex items-center gap-2">
+			<ThemeButton 
+				variant="primary" 
+				size="sm" 
+				class="flex items-center gap-2"
+				onclick={() => {
+					// 채용관리 탭으로 이동
+					activeTab = 'recruitment';
+				}}
+			>
 				<PlusIcon size={16} />
 				새 공고
 			</ThemeButton>
@@ -1371,13 +1388,34 @@
 						</div>
 					</div>
 					<div class="flex items-center gap-2">
-						<ThemeButton variant="ghost" size="sm">
+						<ThemeButton 
+							variant="ghost" 
+							size="sm"
+							onclick={() => {
+								// TODO: 채용 공고 상세 보기
+								alert('채용 공고 상세 보기 기능은 준비 중입니다.');
+							}}
+						>
 							<EyeIcon size={16} />
 						</ThemeButton>
-						<ThemeButton variant="ghost" size="sm">
+						<ThemeButton 
+							variant="ghost" 
+							size="sm"
+							onclick={() => {
+								// TODO: 채용 공고 수정
+								alert('채용 공고 수정 기능은 준비 중입니다.');
+							}}
+						>
 							<EditIcon size={16} />
 						</ThemeButton>
-						<ThemeButton variant="ghost" size="sm">
+						<ThemeButton 
+							variant="ghost" 
+							size="sm"
+							onclick={() => {
+								// TODO: 채용 공고 삭제
+								alert('채용 공고 삭제 기능은 준비 중입니다.');
+							}}
+						>
 							<TrashIcon size={16} />
 						</ThemeButton>
 				</div>
@@ -1686,7 +1724,15 @@
 					<ThemeCard class="p-6">
 						<div class="flex items-center justify-between mb-6">
 							<h3 class="text-lg font-semibold" style="color: var(--color-text);">채용 공고</h3>
-							<ThemeButton variant="primary" size="sm" class="flex items-center gap-2">
+							<ThemeButton 
+								variant="primary" 
+								size="sm" 
+								class="flex items-center gap-2"
+								onclick={() => {
+									// TODO: 채용 공고 등록 모달 열기
+									alert('채용 공고 등록 기능은 준비 중입니다.');
+								}}
+							>
 								<PlusIcon size={16} />
 								공고 등록
 							</ThemeButton>
@@ -1708,10 +1754,24 @@
 								</div>
 				</div>
 									<div class="flex items-center gap-2">
-										<ThemeButton variant="ghost" size="sm">
+										<ThemeButton 
+											variant="ghost" 
+											size="sm"
+											onclick={() => {
+												// TODO: 채용 공고 상세 보기
+												alert('채용 공고 상세 보기 기능은 준비 중입니다.');
+											}}
+										>
 											<EyeIcon size={16} />
 										</ThemeButton>
-										<ThemeButton variant="ghost" size="sm">
+										<ThemeButton 
+											variant="ghost" 
+											size="sm"
+											onclick={() => {
+												// TODO: 채용 공고 수정
+												alert('채용 공고 수정 기능은 준비 중입니다.');
+											}}
+										>
 											<EditIcon size={16} />
 										</ThemeButton>
 								</div>

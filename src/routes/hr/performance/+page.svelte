@@ -54,7 +54,7 @@
 		reviewPeriod: {
 			startDate: '',
 			endDate: '',
-			year: selectedYear,
+			year: 0,
 			quarter: 1
 		},
 		reviewType: 'annual' as PerformanceReview['reviewType'],
@@ -68,6 +68,11 @@
 		promotionRecommendation: false,
 		salaryIncreaseRecommendation: false,
 		bonusRecommendation: false
+	});
+
+	// Update review form year when selectedYear changes
+	$effect(() => {
+		reviewForm.reviewPeriod.year = selectedYear;
 	});
 
 	let feedbackForm = $state({

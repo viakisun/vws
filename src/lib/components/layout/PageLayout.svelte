@@ -1,23 +1,17 @@
 <script lang="ts">
-	import ThemePageHeader from '$lib/components/ui/ThemePageHeader.svelte';
-	import ThemeGrid from '$lib/components/ui/ThemeGrid.svelte';
-	import ThemeSpacer from '$lib/components/ui/ThemeSpacer.svelte';
-	import ThemeCard from '$lib/components/ui/ThemeCard.svelte';
-	import ThemeButton from '$lib/components/ui/ThemeButton.svelte';
-	import ThemeBadge from '$lib/components/ui/ThemeBadge.svelte';
-	import ThemeStatCard from '$lib/components/ui/ThemeStatCard.svelte';
-	import ThemeSectionHeader from '$lib/components/ui/ThemeSectionHeader.svelte';
-	import ThemeInput from '$lib/components/ui/ThemeInput.svelte';
-	import ThemeDropdown from '$lib/components/ui/ThemeDropdown.svelte';
-	import { 
-		SearchIcon, 
-		FilterIcon, 
-		PlusIcon, 
-		DownloadIcon, 
-		UploadIcon,
+	import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
+	import ThemeCard from '$lib/components/ui/ThemeCard.svelte'
+	import ThemeGrid from '$lib/components/ui/ThemeGrid.svelte'
+	import ThemeInput from '$lib/components/ui/ThemeInput.svelte'
+	import ThemePageHeader from '$lib/components/ui/ThemePageHeader.svelte'
+	import ThemeSpacer from '$lib/components/ui/ThemeSpacer.svelte'
+	import ThemeStatCard from '$lib/components/ui/ThemeStatCard.svelte'
+	import {
+		FilterIcon,
 		RefreshCwIcon,
+		SearchIcon,
 		SettingsIcon
-	} from 'lucide-svelte';
+	} from 'lucide-svelte'
 
 	interface Props {
 		title: string;
@@ -31,10 +25,10 @@
 		stats?: Array<{
 			title: string;
 			value: string | number;
-			change?: string;
-			changeType?: 'positive' | 'negative' | 'neutral';
+			badge?: string;
 			icon?: any;
 			href?: string;
+			color?: 'blue' | 'green' | 'purple' | 'orange' | 'red' | 'yellow' | 'indigo' | 'pink';
 		}>;
 	}
 
@@ -83,11 +77,11 @@
 			{#each stats as stat}
 				<ThemeStatCard
 					title={stat.title}
-					value={stat.value}
-					change={stat.change}
-					changeType={stat.changeType}
+					value={String(stat.value)}
+					badge={stat.badge}
 					icon={stat.icon}
 					href={stat.href}
+					color={stat.color}
 				/>
 			{/each}
 		</ThemeGrid>
@@ -114,7 +108,7 @@
 					{#if showFilters}
 						<div class="relative">
 							<ThemeButton
-								variant="outline"
+								variant="ghost"
 								size="sm"
 								onclick={() => showFiltersDropdown = !showFiltersDropdown}
 								class="flex items-center gap-2"

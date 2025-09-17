@@ -8,13 +8,13 @@
 	import { goto } from '$app/navigation';
 
 	const projectId = page.params.projectId as string;
-	$: all = $expenseDocsStore.filter((d) => d.projectId === projectId);
+	const all = $derived($expenseDocsStore.filter((d) => d.projectId === projectId));
 
-	let status: '' | '대기' | '승인' | '반려' = '';
-	let query = '';
+	let status = $state('') as '' | '대기' | '승인' | '반려';
+	let query = $state('');
 
 	// read initial from URL
-	let lastQuery = '';
+	let lastQuery = $state('');
 	if (typeof window !== 'undefined') {
 		const sp = new URLSearchParams(window.location.search);
 		status = (sp.get('status') as typeof status) ?? '';
@@ -23,18 +23,20 @@
 	}
 
 	// sync to URL
-	$: if (typeof window !== 'undefined') {
-		const sp = new URLSearchParams(window.location.search);
-		if (status) sp.set('status', status); else sp.delete('status');
-		if (query) sp.set('q', query); else sp.delete('q');
-		const newQuery = sp.toString();
-		if (newQuery !== lastQuery) {
-			lastQuery = newQuery;
-			goto(`${window.location.pathname}?${newQuery}`, { replaceState: true, keepFocus: true, noScroll: true });
+	$effect(() => {
+		if (typeof window !== 'undefined') {
+			const sp = new URLSearchParams(window.location.search);
+			if (status) sp.set('status', status); else sp.delete('status');
+			if (query) sp.set('q', query); else sp.delete('q');
+			const newQuery = sp.toString();
+			if (newQuery !== lastQuery) {
+				lastQuery = newQuery;
+				goto(`${window.location.pathname}?${newQuery}`, { replaceState: true, keepFocus: true, noScroll: true });
+			}
 		}
-	}
+	});
 
-	$: filtered = all.filter((d) => (status ? d.status === status : true) && (query ? (d.title.includes(query) || d.id.includes(query)) : true));
+	const filtered = $derived(all.filter((d) => (status ? d.status === status : true) && (query ? (d.title.includes(query) || d.id.includes(query)) : true)));
 
 	// 간단한 컴플라이언스 규칙
 	const requiredAttachments: Record<string, number> = { '인건비': 2, '재료비': 1, '연구활동비': 1, '여비': 2 };
@@ -54,7 +56,7 @@
 		return have >= req.length ? [] : req.slice(have);
 	}
 
-	let loading = true;
+	let loading = $state(true);
 	if (typeof window !== 'undefined') {
 		setTimeout(() => (loading = false), 300);
 	}

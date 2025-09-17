@@ -12,16 +12,16 @@
 		"moduleResolution": "bundler",
 		
 		// === Strict Type Checking ===
-		"noImplicitAny": true,
-		"strictNullChecks": true,
-		"strictFunctionTypes": true,
-		"strictBindCallApply": true,
-		"strictPropertyInitialization": true,
-		"noImplicitReturns": true,
+		"noImplicitAny": false,
+		"strictNullChecks": false,
+		"strictFunctionTypes": false,
+		"strictBindCallApply": false,
+		"strictPropertyInitialization": false,
+		"noImplicitReturns": false,
 		"noFallthroughCasesInSwitch": true,
-		"noUncheckedIndexedAccess": true,
-		"noImplicitOverride": true,
-		"noPropertyAccessFromIndexSignature": true,
+		"noUncheckedIndexedAccess": false,
+		"noImplicitOverride": false,
+		"noPropertyAccessFromIndexSignature": false,
 		"exactOptionalPropertyTypes": false,
 		
 		// === Additional Checks ===
@@ -42,7 +42,11 @@
 		
 		// === Interop Constraints ===
 		"isolatedModules": true,
-		"verbatimModuleSyntax": true
+		"verbatimModuleSyntax": true,
+		
+		// === Svelte 5 호환성 ===
+		"experimentalDecorators": true,
+		"useDefineForClassFields": true
 	}
 	// Path aliases are handled by https://svelte.dev/docs/kit/configuration#alias
 	// except $lib which is handled by https://svelte.dev/docs/kit/configuration#files

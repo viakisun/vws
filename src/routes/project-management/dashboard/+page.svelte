@@ -7,35 +7,35 @@
 	import { personnelStore } from '$lib/stores/personnel';
 	import { quarterlyPersonnelBudgets, getQuarterSummary } from '$lib/stores/rnd';
 
-	$: ob = $overallBudget;
-	$: avgProgress = $projectsStore.length
+	const ob = $derived($overallBudget);
+	const avgProgress = $derived($projectsStore.length
 		? Math.round($projectsStore.reduce((s, p) => s + p.progressPct, 0) / $projectsStore.length)
-		: 0;
-	$: riskCounts = {
+		: 0);
+	const riskCounts = $derived({
 		위험: $projectsStore.filter((p) => p.status === '위험').length,
 		지연: $projectsStore.filter((p) => p.status === '지연').length,
 		진행중: $projectsStore.filter((p) => p.status === '진행중').length,
 		정상: $projectsStore.filter((p) => p.status === '정상' || p.status === '완료').length
-	};
-	$: overAllocated = $personnelStore.filter((pr) => pr.participations.reduce((s, pp) => s + pp.allocationPct, 0) > 100).length;
-	$: avgAlloc = $personnelStore.length ? Math.round($personnelStore.reduce((sum, pr) => sum + pr.participations.reduce((s, pp) => s + pp.allocationPct, 0), 0) / $personnelStore.length) : 0;
+	});
+	const overAllocated = $derived($personnelStore.filter((pr) => pr.participations.reduce((s, pp) => s + pp.allocationPct, 0) > 100).length);
+	const avgAlloc = $derived($personnelStore.length ? Math.round($personnelStore.reduce((sum, pr) => sum + pr.participations.reduce((s, pp) => s + pp.allocationPct, 0), 0) / $personnelStore.length) : 0);
 
 	// Category breakdown (인건비/재료비/연구활동비/여비)
-	$: categoryTotals = (function(){
+	const categoryTotals = $derived((function(){
 		const res = { 인건비: 0, 재료비: 0, 연구활동비: 0, 여비: 0 } as Record<string, number>;
 		for (const d of $expenseDocsStore) {
 			const amt = d.amountKRW ?? 0;
 			if (res[d.category] !== undefined) res[d.category] += amt;
 		}
 		return res;
-	})();
+	})());
 
 	// Burn rate projection: project-level spent/elapsed → projected over total duration, aggregated
 	function daysBetween(a: string, b: string): number {
 		const ms = new Date(b).getTime() - new Date(a).getTime();
 		return Math.max(1, Math.ceil(ms / (1000 * 60 * 60 * 24)));
 	}
-	$: portfolioProjection = (function(){
+	const portfolioProjection = $derived((function(){
 		const todayIso = new Date().toISOString().slice(0,10);
 		let totalBudget = 0;
 		let totalProjected = 0;
@@ -53,17 +53,17 @@
 		}
 		const utilization = totalBudget > 0 ? totalProjected / totalBudget : 0;
 		return { totalBudget, totalProjected, utilization };
-	})();
+	})());
 
 	// 경보 상세 사유
-	$: alertDetails = $budgetAlerts.map((a) => {
+	const alertDetails = $derived($budgetAlerts.map((a) => {
 		const pct = (a.utilization * 100).toFixed(1);
 		const reason = a.level === 'over' ? `집행률 ${pct}% ≥ 100%` : a.level === 'critical' ? `집행률 ${pct}% ≥ 95%` : `집행률 ${pct}% ≥ 80%`;
 		return { ...a, reason };
-	});
+	}));
 
 	// 소진 속도 편차: 진행률 대비 집행액 편차 상위
-	$: burnVariance = (function(){
+	const burnVariance = $derived((function(){
 		return $projectsStore
 			.map((p) => {
 				const expected = (p.progressPct / 100) * p.budgetKRW;
@@ -72,7 +72,7 @@
 			})
 			.sort((a,b)=> Math.abs(b.delta) - Math.abs(a.delta))
 			.slice(0, 5);
-	})();
+	})());
 
 	// 분기 선택 및 URL 동기화
 	function sortQuarterLabels(labels: string[]): string[] {
@@ -87,39 +87,43 @@
 		const qn = Math.floor(d.getMonth() / 3) + 1;
 		return `${y}-Q${qn}`;
 	}
-	$: quarters = (function(){
+	const quarters = $derived((function(){
 		const set = new Set<string>();
 		const qmap = $quarterlyPersonnelBudgets;
 		for (const pid in qmap) { for (const k in qmap[pid]) set.add(k); }
 		return sortQuarterLabels(Array.from(set));
-	})();
-	let selectedQuarter = currentQuarterLabel();
-	let lastQuery = '';
+	})());
+	let selectedQuarter = $state(currentQuarterLabel());
+	let lastQuery = $state('');
 	if (typeof window !== 'undefined') {
 		const params = new URLSearchParams(window.location.search);
 		const qParam = params.get('q');
 		if (qParam) selectedQuarter = qParam;
 		lastQuery = params.toString();
 	}
-	$: quarterSummary = getQuarterSummary(selectedQuarter);
-	$: docsInQuarter = (function(){
+	const quarterSummary = $derived(getQuarterSummary(selectedQuarter));
+	const docsInQuarter = $derived((function(){
 		const qn = Number(selectedQuarter.split('-Q')[1] || '0');
 		return $expenseDocsStore.filter((d) => Number(d.quarter) === qn).length;
-	})();
-	$: if (typeof window !== 'undefined') {
-		const params = new URLSearchParams(window.location.search);
-		if (selectedQuarter) params.set('q', selectedQuarter); else params.delete('q');
-		const newQuery = params.toString();
-		if (newQuery !== lastQuery) {
-			lastQuery = newQuery;
-			const url = `${window.location.pathname}${newQuery ? `?${newQuery}` : ''}`;
-			window.history.replaceState(null, '', url);
+	})());
+	
+	// URL sync
+	$effect(() => {
+		if (typeof window !== 'undefined') {
+			const params = new URLSearchParams(window.location.search);
+			if (selectedQuarter) params.set('q', selectedQuarter); else params.delete('q');
+			const newQuery = params.toString();
+			if (newQuery !== lastQuery) {
+				lastQuery = newQuery;
+				const url = `${window.location.pathname}${newQuery ? `?${newQuery}` : ''}`;
+				window.history.replaceState(null, '', url);
+			}
 		}
-	}
+	});
 
 	// Headcount churn (최근 4분기)
 	function sortQs(labels: string[]): string[] { return sortQuarterLabels(labels); }
-	$: allQLabels = (function(){
+	const allQLabels = $derived((function(){
 		const s = new Set<string>();
 		for (const p of $personnelStore) {
 			for (const part of p.participations) {
@@ -128,9 +132,9 @@
 			}
 		}
 		return sortQs(Array.from(s));
-	})();
-	$: last4 = allQLabels.slice(-4);
-	$: activeByQ = (function(){
+	})());
+	const last4 = $derived(allQLabels.slice(-4));
+	const activeByQ = $derived((function(){
 		const map: Record<string, Set<string>> = {};
 		for (const q of last4) map[q] = new Set<string>();
 		for (const p of $personnelStore) {
@@ -140,8 +144,8 @@
 			}
 		}
 		return map;
-	})();
-	$: churnData = (function(){
+	})());
+	const churnData = $derived((function(){
 		const data: Array<{ q: string; headcount: number; join: number; leave: number }> = [];
 		for (let i = 0; i < last4.length; i++) {
 			const q = last4[i];
@@ -156,10 +160,10 @@
 			data.push({ q, headcount: currSet.size, join, leave });
 		}
 		return data;
-	})();
+	})());
 
 	// simple skeleton
-	let loading = true;
+	let loading = $state(true);
 	if (typeof window !== 'undefined') { setTimeout(() => (loading = false), 300); }
 </script>
 

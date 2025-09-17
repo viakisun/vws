@@ -66,3 +66,143 @@ export interface ExpenseDocument {
 	appRoute: string[]; // 결재선
 }
 
+// 추가 타입 정의
+export interface AuditLog {
+	id: string;
+	actorId: string;
+	action: string;
+	entity: string;
+	entityId: string;
+	ipAddress: string;
+	userAgent: string;
+	timestamp: string;
+	details?: Record<string, any>;
+}
+
+export interface Person {
+	id: string;
+	name: string;
+	email: string;
+	phone?: string;
+	department?: string;
+	position?: string;
+	status: 'active' | 'inactive';
+	createdAt: string;
+	updatedAt: string;
+}
+
+export interface Document {
+	id: string;
+	title: string;
+	type: string;
+	content: string;
+	authorId: string;
+	status: 'draft' | 'published' | 'archived';
+	createdAt: string;
+	updatedAt: string;
+	tags?: string[];
+}
+
+export interface BudgetCategoryMaster {
+	id: string;
+	name: string;
+	code: string;
+	description: string;
+	parentId?: string;
+	level: number;
+	isActive: boolean;
+	createdAt: string;
+	updatedAt: string;
+}
+
+export interface ExpenseItem {
+	id: string;
+	projectId: string;
+	category: string;
+	description: string;
+	amount: number;
+	currency: string;
+	date: string;
+	status: 'pending' | 'approved' | 'rejected';
+	createdBy: string;
+	createdAt: string;
+	updatedAt: string;
+}
+
+// 추가 타입들
+export interface Approval {
+	id: string;
+	entityType: string;
+	entityId: string;
+	status: 'pending' | 'approved' | 'rejected';
+	requestedBy: string;
+	requestedAt: string;
+	approvedBy?: string;
+	approvedAt?: string;
+	rejectionReason?: string;
+	notes?: string;
+}
+
+export interface Employment {
+	id: string;
+	employeeId: string;
+	companyId: string;
+	position: string;
+	department: string;
+	employmentType: 'full-time' | 'part-time' | 'contract' | 'intern';
+	startDate: string;
+	endDate?: string;
+	salary: number;
+	status: 'active' | 'inactive' | 'terminated';
+	createdAt: string;
+	updatedAt: string;
+}
+
+export interface SalaryHistory {
+	id: string;
+	employeeId: string;
+	effectiveDate: string;
+	salary: number;
+	currency: string;
+	changeReason: string;
+	approvedBy: string;
+	createdAt: string;
+}
+
+export interface ProjectBudgetCategory {
+	id: string;
+	projectId: string;
+	categoryId: string;
+	budgetAmount: number;
+	spentAmount: number;
+	currency: string;
+	createdAt: string;
+	updatedAt: string;
+}
+
+export interface Milestone {
+	id: string;
+	projectId: string;
+	title: string;
+	description: string;
+	dueDate: string;
+	completedDate?: string;
+	status: 'pending' | 'in-progress' | 'completed' | 'cancelled';
+	assignedTo?: string;
+	createdAt: string;
+	updatedAt: string;
+}
+
+export interface ParticipationAssignment {
+	id: string;
+	projectId: string;
+	employeeId: string;
+	allocationPercentage: number;
+	startDate: string;
+	endDate?: string;
+	role: string;
+	status: 'active' | 'inactive';
+	createdAt: string;
+	updatedAt: string;
+}
+

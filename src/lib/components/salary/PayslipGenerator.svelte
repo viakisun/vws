@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import {
 		employees as employeeStore,
 		loadEmployees,
@@ -338,7 +337,7 @@
 	}
 
 
-	onMount(async () => {
+	$effect(async () => {
 		await loadEmployeeList();
 	});
 
@@ -530,7 +529,7 @@
 													
 													<!-- 액션 버튼 -->
 													<div class="flex justify-end space-x-2">
-														<ThemeButton variant="outline" size="sm" onclick={cancelEdit}>
+														<ThemeButton variant="ghost" size="sm" onclick={cancelEdit}>
 															취소
 														</ThemeButton>
 														<ThemeButton size="sm" onclick={savePayslip} class="bg-blue-600 hover:bg-blue-700">
@@ -588,12 +587,12 @@
 														{monthData.isBeforeHire ? '입사전' : '잠금됨'}
 													</span>
 												{:else if monthData.hasData}
-													<ThemeButton variant="outline" size="sm" onclick={() => enterEditMode(monthData.month, monthData.payslip)}>
+													<ThemeButton variant="ghost" size="sm" onclick={() => enterEditMode(monthData.month, monthData.payslip)}>
 														<EditIcon size={16} class="mr-1" />
 														편집
 													</ThemeButton>
 												{:else}
-													<ThemeButton variant="outline" size="sm" onclick={() => enterEditMode(monthData.month)} class="border-red-300 text-red-700 hover:bg-red-50">
+													<ThemeButton variant="ghost" size="sm" onclick={() => enterEditMode(monthData.month)} class="border-red-300 text-red-700 hover:bg-red-50">
 														<PlusIcon size={16} class="mr-1" />
 														작성
 													</ThemeButton>

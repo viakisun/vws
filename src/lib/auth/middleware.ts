@@ -15,7 +15,7 @@ export interface JWTPayload {
 
 // Authentication middleware
 export function authenticate(requiredRoles?: string[]): RequestHandler {
-	return async (event: RequestEvent) => {
+	return async (event: RequestEvent): Promise<Response> => {
 		const { request, cookies, url, locals } = event;
 		try {
 			// Get token from Authorization header or cookies
@@ -61,7 +61,7 @@ export function authenticate(requiredRoles?: string[]): RequestHandler {
 			// Add user to request context
 			(request as any).user = user;
 			
-			return null; // Continue to the next handler
+			return new Response(); // Continue to the next handler
 
 		} catch (err) {
 			console.error('Authentication error:', err);
@@ -164,7 +164,7 @@ export function hasPermission(userRole: string, permission: string): boolean {
 
 // Permission middleware
 export function requirePermission(permission: string): RequestHandler {
-	return async (event: RequestEvent) => {
+	return async (event: RequestEvent): Promise<Response> => {
 		const { request, locals } = event;
 		const user = (request as any).user;
 		
@@ -176,7 +176,7 @@ export function requirePermission(permission: string): RequestHandler {
 			return error(403, { message: 'Insufficient permissions' });
 		}
 		
-		return null;
+		return new Response();
 	};
 }
 
@@ -184,7 +184,7 @@ export function requirePermission(permission: string): RequestHandler {
 const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
 
 export function rateLimit(maxRequests: number, windowMs: number): RequestHandler {
-	return async (event: RequestEvent) => {
+	return async (event: RequestEvent): Promise<Response> => {
 		const { request, getClientAddress, locals } = event;
 		const clientIP = getClientAddress();
 		const now = Date.now();
@@ -206,9 +206,12 @@ export function rateLimit(maxRequests: number, windowMs: number): RequestHandler
 		
 		// Check rate limit
 		if (rateLimitData.count >= maxRequests) {
-			return error(429, { 
-				message: 'Too many requests',
+			return new Response(JSON.stringify({ 
+				message: 'Too many requests'
+			}), {
+				status: 429,
 				headers: {
+					'Content-Type': 'application/json',
 					'Retry-After': Math.ceil((rateLimitData.resetTime - now) / 1000).toString()
 				}
 			});
@@ -217,19 +220,19 @@ export function rateLimit(maxRequests: number, windowMs: number): RequestHandler
 		// Increment counter
 		rateLimitData.count++;
 		
-		return null;
+		return new Response();
 	};
 }
 
 // Input validation
 export function validateInput(schema: any): RequestHandler {
-	return async (event: RequestEvent) => {
+	return async (event: RequestEvent): Promise<Response> => {
 		const { request, locals } = event;
 		try {
 			const body = await request.json();
 			const validated = schema.parse(body);
 			(request as any).validatedBody = validated;
-			return null;
+			return new Response();
 		} catch (err) {
 			return error(400, { message: 'Invalid input data' });
 		}
@@ -238,7 +241,7 @@ export function validateInput(schema: any): RequestHandler {
 
 // CORS middleware
 export function cors(origins: string[] = ['*']): RequestHandler {
-	return async (event: RequestEvent): Promise<Response | null> => {
+	return async (event: RequestEvent): Promise<Response> => {
 		const { request, locals } = event;
 		const origin = request.headers.get('origin');
 		
@@ -253,7 +256,7 @@ export function cors(origins: string[] = ['*']): RequestHandler {
 			});
 		}
 		
-		return null;
+		return new Response();
 	};
 }
 
@@ -276,7 +279,7 @@ export function securityHeaders(): RequestHandler {
 
 // Audit logging
 export function auditLog(action: string, entity: string): RequestHandler {
-	return async (event: RequestEvent) => {
+	return async (event: RequestEvent): Promise<Response> => {
 		const { request, locals } = event;
 		const user = (request as any).user;
 		const clientIP = request.headers.get('x-forwarded-for') || 'unknown';
@@ -294,6 +297,6 @@ export function auditLog(action: string, entity: string): RequestHandler {
 			}
 		}
 		
-		return null;
+		return new Response();
 	};
 }

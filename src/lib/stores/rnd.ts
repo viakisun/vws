@@ -9,7 +9,7 @@ function randInt(min: number, max: number): number {
 	return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 function pick<T>(arr: T[]): T {
-	return arr[randInt(0, arr.length - 1)];
+	return arr[randInt(0, arr.length - 1)] || arr[0];
 }
 function dateISO(year: number, month: number, day: number): string {
 	const d = new Date(Date.UTC(year, month - 1, day));
@@ -72,7 +72,7 @@ const initialDocs: ExpenseDocument[] = (function(){
 				title: `${p.name} 관련 지출 ${k + 1}`,
 				amountKRW: randInt(300_000, 20_000_000),
 				attachments: randInt(0, 4),
-				createdAt: dateISO( Number(q.slice(0,4)), QUARTER_TO_MONTH[q], randInt(1, 28) ),
+				createdAt: dateISO( Number(q.slice(0,4)), QUARTER_TO_MONTH[q] || 1, randInt(1, 28) ),
 				appRoute: ['담당자','팀장','임원']
 			});
 		}

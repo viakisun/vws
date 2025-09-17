@@ -7,16 +7,16 @@
 	import { formatKRW } from '$lib/utils/format';
 
 	const projectId = page.params.projectId;
-	$: project = $projectsStore.find((p) => p.id === projectId);
-	$: docs = $expenseDocsStore.filter((d) => d.projectId === projectId);
-	$: utilization = project ? Math.round((project.spentKRW / project.budgetKRW) * 100) : 0;
-	$: categoryHints = (function(){
+	const project = $derived($projectsStore.find((p) => p.id === projectId));
+	const docs = $derived($expenseDocsStore.filter((d) => d.projectId === projectId));
+	const utilization = $derived(project ? Math.round((project.spentKRW / project.budgetKRW) * 100) : 0);
+	const categoryHints = $derived((function(){
 		const m: Record<string, number> = {};
 		for (const d of docs) m[d.category] = (m[d.category] ?? 0) + (d.amountKRW ?? 0);
 		return m;
-	})();
+	})());
 
-	let loading = true;
+	let loading = $state(true);
 	if (typeof window !== 'undefined') {
 		setTimeout(() => (loading = false), 300);
 	}

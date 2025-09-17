@@ -304,10 +304,10 @@ export function checkIn(employeeId: string, time?: string) {
 	} else {
 		// 새 기록 생성
 		addAttendanceRecord({
-			employeeId,
+			employeeId: employeeId || '',
 			date: today,
 			checkIn: now,
-			status: 'present' as const
+			status: 'present'
 		});
 	}
 }
@@ -458,8 +458,8 @@ export function calculateWorkHours(checkIn: string, checkOut: string): number {
 	const [checkInHour, checkInMinute] = checkIn.split(':').map(Number);
 	const [checkOutHour, checkOutMinute] = checkOut.split(':').map(Number);
 	
-	const checkInMinutes = checkInHour * 60 + checkInMinute;
-	const checkOutMinutes = checkOutHour * 60 + checkOutMinute;
+	const checkInMinutes = (checkInHour || 0) * 60 + (checkInMinute || 0);
+	const checkOutMinutes = (checkOutHour || 0) * 60 + (checkOutMinute || 0);
 	
 	const workMinutes = checkOutMinutes - checkInMinutes;
 	return Math.round((workMinutes / 60) * 100) / 100; // 소수점 둘째 자리까지

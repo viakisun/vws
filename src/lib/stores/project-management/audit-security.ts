@@ -120,7 +120,7 @@ export function defineSecurityPolicies(): void {
 
 // 접근 제어 정책 정의
 export function defineAccessControlPolicies(): void {
-	const policies = {
+	const policies: Record<string, any> = {
 		roles: {
 			'R1': { // 연구원
 				permissions: ['read_own_data', 'create_research_notes', 'upload_documents'],
@@ -229,7 +229,7 @@ function getRolePermissions(roleSet: string[]): string[] {
 	
 	accessControl.subscribe(policies => {
 		roleSet.forEach(role => {
-			const rolePolicy = policies.roles[role];
+			const rolePolicy = (policies as any).roles?.[role];
 			if (rolePolicy) {
 				permissions = [...permissions, ...rolePolicy.permissions];
 			}
@@ -244,8 +244,8 @@ function getDataClassification(resource: string): string {
 	let classification = 'public';
 	
 	accessControl.subscribe(policies => {
-		Object.entries(policies.dataClassification).forEach(([level, resources]) => {
-			if (resources.includes(resource)) {
+		Object.entries((policies as any).dataClassification || {}).forEach(([level, resources]) => {
+			if (Array.isArray(resources) && resources.includes(resource)) {
 				classification = level;
 			}
 		});

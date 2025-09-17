@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import ThemeButton from '$lib/components/ui/ThemeButton.svelte';
 	import ThemeModal from '$lib/components/ui/ThemeModal.svelte';
 	import { 
@@ -185,7 +184,7 @@
 				</p>
 				<ThemeButton 
 					onclick={downloadTemplate} 
-					variant="outline" 
+					variant="ghost" 
 					class="border-amber-300 text-amber-700 hover:bg-amber-100"
 				>
 					<DownloadIcon size={16} class="mr-2" />
@@ -238,7 +237,7 @@
 
 			<!-- 액션 버튼 -->
 			<div class="flex justify-end space-x-3">
-				<ThemeButton variant="outline" onclick={closeUploadModal}>
+				<ThemeButton variant="ghost" onclick={closeUploadModal}>
 					취소
 				</ThemeButton>
 				<ThemeButton 

@@ -554,9 +554,6 @@
 	}
 
 	/* Rich text 미리보기 스타일은 동적으로 생성되는 컨텐츠에만 적용 */
-		border-bottom: 1px solid var(--color-border);
-		padding-bottom: 4px;
-	}
 
 	.theme-richtexteditor-preview h3 {
 		font-size: 18px;

@@ -1,17 +1,14 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { page } from '$app/stores';
+	import { goto } from '$app/navigation';
 	import PageLayout from '$lib/components/layout/PageLayout.svelte';
+	import ThemeTabs from '$lib/components/ui/ThemeTabs.svelte';
+	import ThemeSpacer from '$lib/components/ui/ThemeSpacer.svelte';
 	import ThemeCard from '$lib/components/ui/ThemeCard.svelte';
 	import ThemeBadge from '$lib/components/ui/ThemeBadge.svelte';
 	import ThemeButton from '$lib/components/ui/ThemeButton.svelte';
-	import ThemeGrid from '$lib/components/ui/ThemeGrid.svelte';
-	import ThemeSpacer from '$lib/components/ui/ThemeSpacer.svelte';
-	import ThemeSectionHeader from '$lib/components/ui/ThemeSectionHeader.svelte';
-	import ThemeStatCard from '$lib/components/ui/ThemeStatCard.svelte';
-	import ThemeChartPlaceholder from '$lib/components/ui/ThemeChartPlaceholder.svelte';
-	import ThemeActivityItem from '$lib/components/ui/ThemeActivityItem.svelte';
-	import ThemeTabs from '$lib/components/ui/ThemeTabs.svelte';
 	import ThemeModal from '$lib/components/ui/ThemeModal.svelte';
+	import ProjectDetailView from '$lib/components/project-management/ProjectDetailView.svelte';
 	import { formatCurrency, formatDate } from '$lib/utils/format';
 	import { 
 		FlaskConicalIcon,
@@ -35,15 +32,12 @@
 		PercentIcon,
 		DownloadIcon,
 		FileSpreadsheetIcon,
-		AlertCircleIcon
+		AlertCircleIcon,
+		ActivityIcon
 	} from 'lucide-svelte';
-	import {
-		employees,
-		getProjectBudgetUtilization
-	} from '$lib/stores/rd';
 
 	// 탭 정의
-	let tabs = [
+	const tabs = [
 		{
 			id: 'overview',
 			label: '개요',
@@ -53,648 +47,618 @@
 			id: 'projects',
 			label: '프로젝트',
 			icon: FlaskConicalIcon
+		},
+		{
+			id: 'participation',
+			label: '참여율 관리',
+			icon: PercentIcon
 		}
 	];
 
-	let activeTab = $state('overview');
+	// URL 파라미터에서 활성 탭 관리
+	let activeTab = $state($page.url.searchParams.get('tab') || 'overview');
 	
-	// 데이터베이스 프로젝트 데이터
-	let dbProjects = $state<any[]>([]);
-	let projectsLoading = $state(true);
-	let projectsError = $state<string | null>(null);
+	// 상태 변수들
+	let mounted = $state(false);
+	let projects = $state([]);
+	let projectSummary = $state(null);
+	let employeeParticipationSummary = $state([]);
+	let budgetSummaryByYear = $state([]);
+	let alerts = $state([]);
+	let loading = $state(false);
+	let error = $state(null);
 	
-	// 필터 상태
-	let selectedStatus = $state('all');
-	let selectedCategory = $state('all');
-	
-	// 업로드 관련 상태
-	let showUploadModal = $state(false);
-	let uploadFile = $state<File | null>(null);
-	let uploadStatus = $state<'idle' | 'uploading' | 'success' | 'error'>('idle');
-	let uploadMessage = $state('');
-	let uploadProgress = $state(0);
-	let isDragOver = $state(false);
-
-	// 통계 데이터
-	let stats = $derived([
-		{
-			title: '진행중인 프로젝트',
-			value: dbProjects.filter((p: any) => p.status === 'active').length,
-			change: '+2',
-			changeType: 'positive' as const,
-			icon: FlaskConicalIcon
-		},
-		{
-			title: '총 예산',
-			value: formatCurrency(dbProjects.reduce((sum: any, p: any) => sum + parseFloat(p.budget_total || 0), 0)),
-			change: '+5%',
-			changeType: 'positive' as const,
-			icon: DollarSignIcon
-		},
-		{
-			title: '참여 직원',
-			value: $employees.length,
-			change: '+1',
-			changeType: 'positive' as const,
-			icon: UsersIcon
-		},
-		{
-			title: '완료율',
-			value: Math.round((dbProjects.filter((p: any) => p.status === 'completed').length / Math.max(dbProjects.length, 1)) * 100) + '%',
-			change: '+3%',
-			changeType: 'positive' as const,
-			icon: TargetIcon
-		}
-	]);
-
-	// 액션 버튼들 (비활성화)
-	let actions: any[] = [];
-
-	// 필터링된 프로젝트
-	let filteredProjects = $derived(() => {
-		return dbProjects.filter((project: any) => {
-			const statusMatch = selectedStatus === 'all' || project.status === selectedStatus;
-			const categoryMatch = selectedCategory === 'all' || project.category === selectedCategory;
-			return statusMatch && categoryMatch;
-		});
+	// 프로젝트 관련 상태
+	let selectedProject = $state(null);
+	let selectedProjectId = $state('');
+	let showCreateProjectModal = $state(false);
+	let projectForm = $state({
+		title: '',
+		code: '',
+		description: '',
+		startDate: '',
+		endDate: '',
+		status: 'planning',
+		sponsorType: 'internal',
+		priority: 'medium',
+		researchType: 'basic'
 	});
-
-	// 상태별 색상
-	function getStatusColor(status: string): string {
-		const colors: Record<string, string> = {
-			'planning': 'info',
-			'active': 'success',
-			'completed': 'primary',
-			'cancelled': 'error',
-			'on-hold': 'warning'
-		};
-		return colors[status] || 'secondary';
+	
+	// 탭 변경 핸들러
+	function handleTabChange(tabId: string) {
+		activeTab = tabId;
+		const url = new URL($page.url);
+		url.searchParams.set('tab', tabId);
+		goto(url.toString(), { replaceState: true });
 	}
-
-	function getStatusLabel(status: string): string {
-		const labels: Record<string, string> = {
-			'planning': '기획',
-			'active': '진행중',
-			'completed': '완료',
-			'cancelled': '취소',
-			'on-hold': '보류'
-		};
-		return labels[status] || status;
-	}
-
-	function getCategoryColor(category: string): string {
-		const colors: Record<string, string> = {
-			'basic-research': 'info',
-			'applied-research': 'success',
-			'development': 'primary',
-			'pilot': 'warning'
-		};
-		return colors[category] || 'secondary';
-	}
-
-	function getCategoryLabel(category: string): string {
-		const labels: Record<string, string> = {
-			'basic-research': '기초연구',
-			'applied-research': '응용연구',
-			'development': '개발',
-			'pilot': '파일럿'
-		};
-		return labels[category] || category;
-	}
-
-	function getPriorityColor(priority: string): string {
-		const colors: Record<string, string> = {
-			'high': 'error',
-			'medium': 'warning',
-			'low': 'success'
-		};
-		return colors[priority] || 'secondary';
-	}
-
-	function getPriorityLabel(priority: string): string {
-		const labels: Record<string, string> = {
-			'high': '높음',
-			'medium': '보통',
-			'low': '낮음'
-		};
-		return labels[priority] || priority;
-	}
-
-	function viewProject(project: any) {
-		console.log('프로젝트 상세보기:', project);
-	}
-
-	function submitDocument(project: any) {
-		console.log('문서 제출:', project);
-	}
-
-	// 데이터베이스에서 프로젝트 데이터 가져오기
-	async function fetchProjects() {
+	
+	// API 호출 함수들
+	async function loadProjectData() {
 		try {
-			projectsLoading = true;
-			projectsError = null;
-			const response = await fetch('/api/database/projects');
-			const result = await response.json();
-			
-			if (result.success) {
-				dbProjects = result.data;
-			} else {
-				projectsError = '프로젝트 데이터를 가져오는데 실패했습니다.';
+			const response = await fetch('/api/project-management/projects');
+			if (response.ok) {
+				const data = await response.json();
+				projects = data.data || [];
 			}
 		} catch (err) {
-			projectsError = '프로젝트 데이터를 가져오는데 오류가 발생했습니다.';
-			console.error('Error fetching projects:', err);
-		} finally {
-			projectsLoading = false;
+			console.error('프로젝트 데이터 로드 실패:', err);
 		}
 	}
 	
-	// 컴포넌트 마운트 시 데이터 로드
-	onMount(() => {
-		fetchProjects();
-	});
+	async function loadProjectSummary() {
+		try {
+			const response = await fetch('/api/project-management/summary');
+			if (response.ok) {
+				const data = await response.json();
+				projectSummary = data.data;
+			}
+		} catch (err) {
+			console.error('프로젝트 요약 로드 실패:', err);
+		}
+	}
 	
-	// 파일 업로드 처리
-	function handleFileSelect(event: Event) {
-		const target = event.target as HTMLInputElement;
-		const file = target.files?.[0];
-		if (file) {
-			validateAndSetFile(file);
+	async function loadEmployeeParticipationSummary() {
+		try {
+			const response = await fetch('/api/project-management/participation-rates/summary');
+			if (response.ok) {
+				const data = await response.json();
+				employeeParticipationSummary = data.data || [];
+			}
+		} catch (err) {
+			console.error('직원 참여율 요약 로드 실패:', err);
+		}
+	}
+	
+	async function loadBudgetSummaryByYear() {
+		try {
+			const response = await fetch('/api/project-management/budgets/summary-by-year');
+			if (response.ok) {
+				const data = await response.json();
+				budgetSummaryByYear = data.data || [];
+			}
+		} catch (err) {
+			console.error('연도별 예산 요약 로드 실패:', err);
+		}
+	}
+	
+	async function loadAlerts() {
+		try {
+			const response = await fetch('/api/project-management/alerts');
+			if (response.ok) {
+				const data = await response.json();
+				alerts = data.data || [];
+			}
+		} catch (err) {
+			console.error('알림 로드 실패:', err);
 		}
 	}
 
-	// 드래그 앤 드롭 핸들러
-	function handleDragOver(event: DragEvent) {
-		event.preventDefault();
-		isDragOver = true;
-	}
-
-	function handleDragLeave(event: DragEvent) {
-		event.preventDefault();
-		isDragOver = false;
-	}
-
-	function handleDrop(event: DragEvent) {
-		event.preventDefault();
-		isDragOver = false;
-		
-		const files = event.dataTransfer?.files;
-		if (files && files.length > 0) {
-			const file = files[0];
-			validateAndSetFile(file);
-		}
-	}
-
-	// 파일 검증 및 설정
-	function validateAndSetFile(file: File) {
-		// 파일 크기 검증 (10MB 제한)
-		const maxSize = 10 * 1024 * 1024; // 10MB
-		if (file.size > maxSize) {
-			uploadMessage = '파일 크기는 10MB를 초과할 수 없습니다.';
-			uploadStatus = 'error';
+	// 프로젝트 생성
+	async function createProject() {
+		if (!projectForm.title || !projectForm.startDate || !projectForm.endDate) {
+			alert('제목, 시작일, 종료일은 필수 입력 항목입니다.');
 			return;
 		}
-
-		// 파일 형식 검증
-		const allowedTypes = [
-			'text/csv',
-			'application/vnd.ms-excel',
-			'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-		];
-		const allowedExtensions = ['.csv', '.xlsx', '.xls'];
-		
-		const isValidType = allowedTypes.includes(file.type);
-		const isValidExtension = allowedExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
-		
-		if (!isValidType && !isValidExtension) {
-			uploadMessage = 'CSV 또는 Excel 파일만 업로드 가능합니다.';
-			uploadStatus = 'error';
-			return;
-		}
-
-		uploadFile = file;
-		uploadStatus = 'idle';
-		uploadMessage = '';
-	}
-
-	// 엑셀 업로드 실행
-	async function uploadExcel() {
-		if (!uploadFile) return;
-
-		uploadStatus = 'uploading';
-		uploadProgress = 0;
-		uploadMessage = '파일을 업로드하는 중...';
 
 		try {
-			const formData = new FormData();
-			formData.append('file', uploadFile);
-
-			// 업로드 진행률 시뮬레이션
-			const progressInterval = setInterval(() => {
-				uploadProgress += 10;
-				if (uploadProgress >= 90) {
-					clearInterval(progressInterval);
-				}
-			}, 200);
-
-			const response = await fetch('/api/projects/upload', {
+			const response = await fetch('/api/project-management/projects', {
 				method: 'POST',
-				body: formData
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify(projectForm)
 			});
 
-			clearInterval(progressInterval);
-			uploadProgress = 100;
-
 			if (response.ok) {
-				const result = await response.json();
-				uploadStatus = 'success';
-				uploadMessage = `성공적으로 ${result.count}개의 프로젝트가 업로드되었습니다.`;
-				
-				// 프로젝트 목록 새로고침
-				await fetchProjects();
-				
-				setTimeout(() => {
-					showUploadModal = false;
-					uploadStatus = 'idle';
-					uploadFile = null;
-					uploadProgress = 0;
-					uploadMessage = '';
-				}, 2000);
+				const data = await response.json();
+				if (data.success) {
+					showCreateProjectModal = false;
+					projectForm = {
+						title: '',
+						code: '',
+						description: '',
+						startDate: '',
+						endDate: '',
+						status: 'planning',
+						sponsorType: 'internal',
+						priority: 'medium',
+						researchType: 'basic'
+					};
+					await loadProjectData();
+					await loadProjectSummary();
+				} else {
+					alert('프로젝트 생성 실패: ' + data.message);
+				}
 			} else {
-				throw new Error('업로드 실패');
+				alert('프로젝트 생성 실패');
 			}
-		} catch (error) {
-			uploadStatus = 'error';
-			uploadMessage = '업로드 중 오류가 발생했습니다. 파일 형식을 확인해주세요.';
-			console.error('Upload error:', error);
+		} catch (err) {
+			console.error('프로젝트 생성 오류:', err);
+			alert('프로젝트 생성 중 오류가 발생했습니다.');
 		}
 	}
 
-	// 업로드 모달 열기
-	function openUploadModal() {
-		showUploadModal = true;
-		uploadStatus = 'idle';
-		uploadFile = null;
-		uploadProgress = 0;
-		uploadMessage = '';
+	// 프로젝트 선택
+	function selectProject(project: any) {
+		selectedProject = project;
+		selectedProjectId = project.id;
 	}
 
-	// 업로드 모달 닫기
-	function closeUploadModal() {
-		showUploadModal = false;
-		uploadStatus = 'idle';
-		uploadFile = null;
-		uploadProgress = 0;
-		uploadMessage = '';
+	// 프로젝트 삭제 이벤트 처리
+	function handleProjectDeleted(event: any) {
+		const { projectId } = event.detail;
+		
+		// 삭제된 프로젝트가 현재 선택된 프로젝트라면 선택 해제
+		if (selectedProject && selectedProject.id === projectId) {
+			selectedProject = null;
+			selectedProjectId = '';
+		}
+		
+		// 프로젝트 목록에서 삭제된 프로젝트 제거
+		projects = projects.filter((p: any) => p.id !== projectId);
+		
+		// 프로젝트 데이터 새로고침
+		loadProjectData();
 	}
 
-	// 프로젝트 템플릿 다운로드
-	async function downloadProjectTemplate() {
-		try {
-			const response = await fetch('/api/templates/projects');
-			if (response.ok) {
-				const blob = await response.blob();
-				const url = window.URL.createObjectURL(blob);
-				const a = document.createElement('a');
-				a.href = url;
-				a.download = 'project_template.csv';
-				document.body.appendChild(a);
-				a.click();
-				window.URL.revokeObjectURL(url);
-				document.body.removeChild(a);
-			} else {
-				alert('템플릿 다운로드에 실패했습니다.');
-			}
-		} catch (error) {
-			console.error('템플릿 다운로드 에러:', error);
-			alert('템플릿 다운로드 중 오류가 발생했습니다.');
+	// 상태 배지 색상
+	function getStatusBadgeColor(status: string) {
+		switch (status) {
+			case 'active': return 'green';
+			case 'planning': return 'blue';
+			case 'completed': return 'gray';
+			case 'cancelled': return 'red';
+			case 'suspended': return 'yellow';
+			default: return 'gray';
 		}
 	}
 
-	onMount(() => {
-		console.log('연구개발 관리 페이지 로드됨');
+	// 상태 한글 변환
+	function getStatusLabel(status: string) {
+		switch (status) {
+			case 'active': return '진행중';
+			case 'planning': return '기획중';
+			case 'completed': return '완료';
+			case 'cancelled': return '취소';
+			case 'suspended': return '중단';
+			default: return status;
+		}
+	}
+
+	// 연구 유형 한글 변환
+	function getResearchTypeLabel(researchType: string) {
+		switch (researchType) {
+			case 'basic': return '기초연구';
+			case 'applied': return '응용연구';
+			case 'development': return '개발연구';
+			default: return researchType;
+		}
+	}
+
+	// 초기화
+	$effect(() => {
+		if (!mounted) {
+			mounted = true;
+			Promise.all([
+				loadProjectData(),
+				loadProjectSummary(),
+				loadEmployeeParticipationSummary(),
+				loadBudgetSummaryByYear(),
+				loadAlerts()
+			]);
+		}
 	});
 </script>
 
 <PageLayout
-	title="연구개발 관리"
-	subtitle="프로젝트, 인력, 예산, 문서 관리"
-	{stats}
-	{actions}
-	searchPlaceholder="프로젝트명, 담당자, 부서로 검색..."
+	title="프로젝트 관리"
+	subtitle="연구개발 프로젝트 및 참여율 관리 시스템"
 >
-	<!-- 탭 시스템 -->
+	<div class="space-y-6">
+		<!-- 탭 네비게이션 -->
 	<ThemeTabs
-		{tabs}
-		bind:activeTab
-		variant="underline"
-		size="md"
-		class="mb-6"
-	>
-		{#snippet children(tab: any)}
-			{#if tab.id === 'overview'}
+			tabs={tabs}
+			activeTab={activeTab}
+			onTabChange={handleTabChange}
+		/>
+
 				<!-- 개요 탭 -->
-				<ThemeSpacer size={6}>
-					<!-- 프로젝트 현황 -->
-					<ThemeCard class="p-6">
-						<ThemeSectionHeader title="프로젝트 현황" />
-						<ThemeSpacer size={4}>
-							{#each dbProjects.slice(0, 5) as project}
-								<div class="flex items-center justify-between p-3 rounded-lg" style="background: var(--color-surface-elevated);">
-									<div class="flex items-center gap-3">
-										<FlaskConicalIcon size={20} style="color: var(--color-primary);" />
-										<div>
-											<h4 class="font-medium" style="color: var(--color-text);">{project.title}</h4>
-											<p class="text-sm" style="color: var(--color-text-secondary);">{project.manager}</p>
+		{#if activeTab === 'overview'}
+			<div class="space-y-6">
+				<!-- 요약 통계 -->
+				<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+					<ThemeCard>
+						<div class="flex items-center">
+							<div class="flex-shrink-0">
+								<FlaskConicalIcon class="h-8 w-8 text-blue-600" />
 		</div>
-									</div>
-									<div class="flex items-center gap-2">
-										<ThemeBadge variant={getStatusColor(project.status) as any}>
-											{getStatusLabel(project.status)}
-										</ThemeBadge>
-										<span class="text-sm font-medium" style="color: var(--color-primary);">
-											{formatCurrency(project.budget)}
+							<div class="ml-4">
+								<p class="text-sm font-medium text-gray-500">총 프로젝트</p>
+								<p class="text-2xl font-semibold text-gray-900">
+									{projectSummary?.totalProjects || 0}개
+								</p>
+								<div class="flex items-center mt-2">
+									<span class="text-sm text-green-600">
+										진행중: {projectSummary?.activeProjects || 0}
 										</span>
 									</div>
 								</div>
-							{/each}
-						</ThemeSpacer>
-					</ThemeCard>
-
-					<!-- 예산 사용률 -->
-					<ThemeCard class="p-6">
-						<ThemeSectionHeader title="예산 사용률" />
-						<ThemeSpacer size={4}>
-							{#each dbProjects.slice(0, 5) as project}
-								<div class="mb-4">
-									<div class="flex items-center justify-between mb-2">
-										<span class="text-sm font-medium" style="color: var(--color-text);">{project.name}</span>
-										<span class="text-sm" style="color: var(--color-text-secondary);">
-											{getProjectBudgetUtilization(project.id).toFixed(1)}%
-										</span>
-									</div>
-									<div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-										<div 
-											class="h-2 rounded-full transition-all duration-300" 
-											style="width: {Math.min(getProjectBudgetUtilization(project.id), 100)}%; background: {getProjectBudgetUtilization(project.id) > 90 ? 'var(--color-error)' : getProjectBudgetUtilization(project.id) > 70 ? 'var(--color-warning)' : 'var(--color-success)'};"
-										></div>
-									</div>
-								</div>
-									{/each}
-						</ThemeSpacer>
-					</ThemeCard>
-
-					<!-- 최근 활동 -->
-					<ThemeCard class="p-6">
-						<ThemeSectionHeader title="최근 활동" />
-						<ThemeSpacer size={4}>
-							<ThemeActivityItem
-								icon={PlusIcon}
-								title="새 프로젝트 추가됨"
-								time="2시간 전"
-							/>
-							<ThemeActivityItem
-								icon={FileTextIcon}
-								title="문서 제출 완료"
-								time="1일 전"
-							/>
-							<ThemeActivityItem
-								icon={UsersIcon}
-								title="인력 배정 완료"
-								time="3일 전"
-							/>
-						</ThemeSpacer>
-					</ThemeCard>
-				</ThemeSpacer>
-			{:else if tab.id === 'projects'}
-				<!-- 프로젝트 탭 -->
-				<ThemeSpacer size={6}>
-					<!-- 필터 -->
-					<ThemeCard class="p-4">
-						<div class="flex items-center gap-4">
-							<select 
-								bind:value={selectedStatus}
-								class="px-3 py-2 border rounded-md text-sm"
-								style="background: var(--color-surface); border-color: var(--color-border); color: var(--color-text);"
-							>
-								<option value="all">전체 상태</option>
-								<option value="planning">기획</option>
-								<option value="active">진행중</option>
-								<option value="completed">완료</option>
-								<option value="cancelled">취소</option>
-								<option value="on-hold">보류</option>
-							</select>
-							<select 
-								bind:value={selectedCategory}
-								class="px-3 py-2 border rounded-md text-sm"
-								style="background: var(--color-surface); border-color: var(--color-border); color: var(--color-text);"
-							>
-								<option value="all">전체 카테고리</option>
-								<option value="basic-research">기초연구</option>
-								<option value="applied-research">응용연구</option>
-								<option value="development">개발</option>
-								<option value="pilot">파일럿</option>
-							</select>
-							<ThemeButton variant="primary" size="sm">
-								<PlusIcon size={16} class="mr-2" />
-								프로젝트 추가
-							</ThemeButton>
-							<button 
-								type="button" 
-								onclick={openUploadModal}
-								class="px-3 py-2 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-md text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors flex items-center gap-2"
-							>
-								<FileSpreadsheetIcon size={16} />
-								엑셀 업로드
-							</button>
 						</div>
 					</ThemeCard>
 
-					<!-- 프로젝트 목록 -->
-					<ThemeCard class="p-6">
-						<ThemeSectionHeader title="프로젝트 목록" />
-						<ThemeSpacer size={4}>
-							{#each filteredProjects() as project}
-								<div class="flex items-center justify-between p-4 rounded-lg border" style="border-color: var(--color-border); background: var(--color-surface-elevated);">
-									<div class="flex-1">
-										<div class="flex items-center gap-3 mb-2">
-											<FlaskConicalIcon size={20} style="color: var(--color-primary);" />
-											<h4 class="font-medium" style="color: var(--color-text);">{project.title}</h4>
-											<ThemeBadge variant={getStatusColor(project.status) as any}>
-												{getStatusLabel(project.status)}
-											</ThemeBadge>
+					<ThemeCard>
+						<div class="flex items-center">
+							<div class="flex-shrink-0">
+								<DollarSignIcon class="h-8 w-8 text-green-600" />
+							</div>
+							<div class="ml-4">
+								<p class="text-sm font-medium text-gray-500">총 예산</p>
+								<p class="text-2xl font-semibold text-gray-900">
+									{formatCurrency(projectSummary?.totalBudget || 0)}
+								</p>
+								<div class="flex items-center mt-2">
+									<span class="text-sm text-blue-600">
+										올해: {formatCurrency(projectSummary?.currentYearBudget || 0)}
+										</span>
+									</div>
+									</div>
 								</div>
-										<p class="text-sm mb-2" style="color: var(--color-text-secondary);">{project.description}</p>
-										<div class="flex items-center gap-4 text-sm" style="color: var(--color-text-secondary);">
-											<div class="flex items-center gap-1">
-												<UserIcon size={16} />
-												{project.sponsor}
+					</ThemeCard>
+
+					<ThemeCard>
+						<div class="flex items-center">
+							<div class="flex-shrink-0">
+								<UsersIcon class="h-8 w-8 text-purple-600" />
+							</div>
+							<div class="ml-4">
+								<p class="text-sm font-medium text-gray-500">참여 연구원</p>
+								<p class="text-2xl font-semibold text-gray-900">
+									{projectSummary?.totalMembers || 0}명
+								</p>
+								<div class="flex items-center mt-2">
+									<span class="text-sm text-gray-500">
+										활성: {projectSummary?.activeMembers || 0}명
+									</span>
 								</div>
-											<div class="flex items-center gap-1">
-												<BuildingIcon size={16} />
-												{project.sponsor_type}
-								</div>
-											<div class="flex items-center gap-1">
-												<CalendarIcon size={16} />
-												{formatDate(project.start_date)} ~ {formatDate(project.end_date)}
 							</div>
 						</div>
-									</div>
-									<div class="flex items-center gap-2">
-										<div class="text-right mr-4">
-											<p class="text-sm font-medium" style="color: var(--color-primary);">
-												{formatCurrency(project.budget_total)}
-											</p>
-											<p class="text-xs" style="color: var(--color-text-secondary);">
-												사용률: {getProjectBudgetUtilization(project.id).toFixed(1)}%
-											</p>
+					</ThemeCard>
+
+					<ThemeCard>
+						<div class="flex items-center">
+							<div class="flex-shrink-0">
+								<AlertTriangleIcon class="h-8 w-8 text-orange-600" />
 								</div>
-										<ThemeButton variant="ghost" size="sm" onclick={() => viewProject(project)}>
-											<EyeIcon size={16} />
-										</ThemeButton>
-										<ThemeButton variant="ghost" size="sm" onclick={() => submitDocument(project)}>
-											<FileTextIcon size={16} />
-										</ThemeButton>
-										<ThemeButton variant="ghost" size="sm">
-											<EditIcon size={16} />
-										</ThemeButton>
+							<div class="ml-4">
+								<p class="text-sm font-medium text-gray-500">알림</p>
+								<p class="text-2xl font-semibold text-gray-900">
+									{alerts.length}개
+								</p>
+								<div class="flex items-center mt-2">
+									<span class="text-sm text-red-600">
+										초과 참여: {projectSummary?.overParticipationEmployees || 0}명
+									</span>
+								</div>
+							</div>
+						</div>
+					</ThemeCard>
+				</div>
+
+				<!-- 최근 활동 -->
+				<ThemeCard>
+					<div class="px-6 py-4 border-b border-gray-200">
+						<h3 class="text-lg font-medium text-gray-900">최근 프로젝트 활동</h3>
+					</div>
+					<div class="divide-y divide-gray-200">
+						{#if projectSummary?.recentActivities && projectSummary.recentActivities.length > 0}
+							{#each projectSummary.recentActivities as activity}
+								<div class="px-6 py-4">
+									<div class="flex items-center justify-between">
+										<div class="flex items-center">
+											<ThemeBadge variant={getStatusBadgeColor(activity.status) as any}>
+												{getStatusLabel(activity.status)}
+											</ThemeBadge>
+											<div class="ml-4">
+												<p class="text-sm font-medium text-gray-900">{activity.title}</p>
+												<p class="text-sm text-gray-500">{activity.code}</p>
+						</div>
+									</div>
+										<div class="text-sm text-gray-500">
+											{formatDate(activity.updatedAt)}
+								</div>
 									</div>
 								</div>
 							{/each}
-						</ThemeSpacer>
+						{:else}
+							<div class="px-6 py-8 text-center text-gray-500">
+								<ActivityIcon class="mx-auto h-12 w-12 text-gray-400" />
+								<p class="mt-2">최근 활동이 없습니다.</p>
+							</div>
+						{/if}
+					</div>
 					</ThemeCard>
-				</ThemeSpacer>
+			</div>
 			{/if}
-		{/snippet}
-	</ThemeTabs>
 
-	<!-- 엑셀 업로드 모달 -->
-	<ThemeModal
-		open={showUploadModal}
-		onclose={closeUploadModal}
-		size="md"
-	>
-		<div class="space-y-6">
-			<h2 class="text-xl font-semibold mb-4" style="color: var(--color-text);">프로젝트 엑셀 업로드</h2>
-			<!-- 파일 선택 -->
-			<div>
-				<label for="project-file-input" class="block text-sm font-medium mb-2" style="color: var(--color-text);">
-					엑셀 파일 선택
-				</label>
-				
-				<!-- 드래그 앤 드롭 영역 -->
-				<div
-					class="border-2 border-dashed rounded-lg p-6 text-center transition-colors cursor-pointer"
-					class:drag-over={isDragOver}
-					ondragover={handleDragOver}
-					ondragleave={handleDragLeave}
-					ondrop={handleDrop}
-					onclick={() => document.getElementById('project-file-input')?.click()}
-					onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); document.getElementById('project-file-input')?.click(); } }}
-					role="button"
-					tabindex="0"
-					aria-label="파일 업로드 영역 - 클릭하거나 파일을 드래그하여 업로드하세요"
-					style="border-color: var(--color-border); background: var(--color-surface);"
-				>
-					{#if uploadFile}
-						<div class="flex items-center justify-center space-x-2">
-							<FileSpreadsheetIcon size={24} style="color: var(--color-primary);" />
-							<span style="color: var(--color-text);">{uploadFile.name}</span>
+		<!-- 프로젝트 탭 -->
+		{#if activeTab === 'projects'}
+			<div class="space-y-6">
+				<!-- 프로젝트 선택 헤더 -->
+				<ThemeCard>
+					<div class="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+						<div class="flex flex-col sm:flex-row gap-4 flex-1">
+							<div class="relative flex-1 max-w-md">
+								<select
+									bind:value={selectedProjectId}
+									onchange={(e) => {
+										const target = e.target as HTMLSelectElement;
+										const project = projects.find((p: any) => p.id === target.value);
+										if (project) selectProject(project);
+									}}
+									class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+								>
+									<option value="">프로젝트 선택 ({projects.length}개)</option>
+									{#each projects as project}
+										<option value={project.id}>{project.title} ({getStatusLabel(project.status)})</option>
+									{/each}
+								</select>
+							</div>
 						</div>
+						<div class="flex gap-2">
+							<ThemeButton
+								variant="primary"
+								size="sm"
+								onclick={() => showCreateProjectModal = true}
+							>
+								<PlusIcon size={16} class="mr-2" />
+								새 프로젝트
+							</ThemeButton>
+						</div>
+					</div>
+				</ThemeCard>
+
+				<!-- 프로젝트 상세 정보 -->
+				{#if selectedProject}
+					<ProjectDetailView 
+						{selectedProject} 
+						on:refresh={loadProjectData}
+						on:project-deleted={handleProjectDeleted}
+					/>
 					{:else}
-						<div class="space-y-2">
-							<FileSpreadsheetIcon size={48} class="mx-auto" style="color: var(--color-text-secondary);" />
-							<p style="color: var(--color-text);">파일을 여기에 드래그하거나 클릭하여 선택하세요</p>
-							<p class="text-sm" style="color: var(--color-text-secondary);">CSV, XLSX, XLS 파일 지원</p>
+					<ThemeCard>
+						<div class="text-center py-12">
+							<FlaskConicalIcon class="mx-auto h-12 w-12 text-gray-400" />
+							<h3 class="mt-2 text-sm font-medium text-gray-900">프로젝트를 선택하세요</h3>
+							<p class="mt-1 text-sm text-gray-500">
+								위에서 프로젝트를 선택하면 상세 정보를 볼 수 있습니다.
+							</p>
+						</div>
+					</ThemeCard>
+				{/if}
+			</div>
+		{/if}
+
+		<!-- 참여율 관리 탭 -->
+		{#if activeTab === 'participation'}
+			<div class="space-y-6">
+				<ThemeCard>
+					<div class="px-6 py-4 border-b border-gray-200">
+						<h3 class="text-lg font-medium text-gray-900">직원별 참여율 현황</h3>
+					</div>
+					<div class="overflow-x-auto">
+						<table class="min-w-full divide-y divide-gray-200">
+							<thead class="bg-gray-50">
+								<tr>
+									<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">직원</th>
+									<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">부서</th>
+									<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">참여 프로젝트</th>
+									<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">총 참여율</th>
+									<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">상태</th>
+								</tr>
+							</thead>
+							<tbody class="bg-white divide-y divide-gray-200">
+								{#if employeeParticipationSummary.length > 0}
+									{#each employeeParticipationSummary as employee}
+										<tr class="hover:bg-gray-50">
+											<td class="px-6 py-4 whitespace-nowrap">
+												<div class="text-sm font-medium text-gray-900">{employee.name}</div>
+												<div class="text-sm text-gray-500">{employee.email}</div>
+											</td>
+											<td class="px-6 py-4 whitespace-nowrap">
+												<div class="text-sm text-gray-500">{employee.department}</div>
+											</td>
+											<td class="px-6 py-4 whitespace-nowrap">
+												<div class="text-sm text-gray-900">{employee.activeProjects}개</div>
+											</td>
+											<td class="px-6 py-4 whitespace-nowrap">
+												<div class="text-sm text-gray-900">{employee.totalParticipationRate}%</div>
+											</td>
+											<td class="px-6 py-4 whitespace-nowrap">
+											{#if employee.totalParticipationRate > 100}
+												<ThemeBadge variant="error">초과 참여</ThemeBadge>
+											{:else if employee.totalParticipationRate === 100}
+												<ThemeBadge variant="success">정상</ThemeBadge>
+											{:else}
+												<ThemeBadge variant="info">여유</ThemeBadge>
+											{/if}
+											</td>
+										</tr>
+									{/each}
+								{:else}
+									<tr>
+										<td colspan="5" class="px-6 py-12 text-center text-gray-500">
+											<UsersIcon class="mx-auto h-12 w-12 text-gray-400" />
+											<p class="mt-2">참여율 데이터가 없습니다.</p>
+										</td>
+									</tr>
+								{/if}
+							</tbody>
+						</table>
+					</div>
+				</ThemeCard>
 						</div>
 					{/if}
+	</div>
+</PageLayout>
+
+<!-- 프로젝트 생성 모달 -->
+<ThemeModal
+	open={showCreateProjectModal}
+	onclose={() => showCreateProjectModal = false}
+>
+	<div class="mb-6">
+		<h2 class="text-xl font-semibold text-gray-900">새 프로젝트 생성</h2>
+		<p class="text-sm text-gray-500 mt-1">새로운 연구개발 프로젝트를 생성합니다.</p>
+	</div>
+	<div class="space-y-4">
+		<div>
+			<label for="pm-project-title" class="block text-sm font-medium text-gray-700">프로젝트 제목 *</label>
+			<input
+				id="pm-project-title"
+				type="text"
+				bind:value={projectForm.title}
+				class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+				placeholder="프로젝트 제목을 입력하세요"
+			/>
+		</div>
+
+		<div>
+			<label for="pm-project-code" class="block text-sm font-medium text-gray-700">프로젝트 코드</label>
+			<input
+				id="pm-project-code"
+				type="text"
+				bind:value={projectForm.code}
+				class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+				placeholder="프로젝트 코드를 입력하세요"
+			/>
+		</div>
+
+		<div>
+			<label for="pm-project-description" class="block text-sm font-medium text-gray-700">설명</label>
+			<textarea
+				id="pm-project-description"
+				bind:value={projectForm.description}
+				rows="3"
+				class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+				placeholder="프로젝트 설명을 입력하세요"
+			></textarea>
 				</div>
 				
-				<!-- 숨겨진 파일 입력 -->
+		<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+			<div>
+				<label for="pm-project-start-date" class="block text-sm font-medium text-gray-700">시작일 *</label>
 				<input
-					id="project-file-input"
-					type="file"
-					accept=".xlsx,.xls,.csv"
-					onchange={handleFileSelect}
-					class="hidden"
+					id="pm-project-start-date"
+					type="date"
+					bind:value={projectForm.startDate}
+					class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 				/>
 			</div>
 								
-			<!-- 선택된 파일 정보 -->
-			{#if uploadFile}
-				<div class="p-3 rounded-lg" style="background: var(--color-surface-elevated); border: 1px solid var(--color-border);">
-					<div class="flex items-center gap-2">
-						<FileSpreadsheetIcon size={16} style="color: var(--color-primary);" />
-						<span class="text-sm font-medium" style="color: var(--color-text);">{uploadFile.name}</span>
-						<span class="text-xs" style="color: var(--color-text-secondary);">
-							({(uploadFile.size / 1024).toFixed(1)} KB)
-						</span>
-	</div>
+			<div>
+				<label for="pm-project-end-date" class="block text-sm font-medium text-gray-700">종료일 *</label>
+				<input
+					id="pm-project-end-date"
+					type="date"
+					bind:value={projectForm.endDate}
+					class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+				/>
 			</div>
-		{/if}
-
-			<!-- 업로드 진행률 -->
-			{#if uploadStatus === 'uploading'}
-				<div class="space-y-2">
-					<div class="flex justify-between text-sm">
-						<span style="color: var(--color-text-secondary);">업로드 진행률</span>
-						<span style="color: var(--color-text);">{uploadProgress}%</span>
 								</div>
-					<div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-						<div 
-							class="h-2 rounded-full transition-all duration-300" 
-							style="width: {uploadProgress}%; background: var(--color-primary);"
-						></div>
+
+		<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+			<div>
+				<label for="pm-project-status" class="block text-sm font-medium text-gray-700">상태</label>
+				<select
+					id="pm-project-status"
+					bind:value={projectForm.status}
+					class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+				>
+					<option value="planning">기획중</option>
+					<option value="active">진행중</option>
+					<option value="completed">완료</option>
+					<option value="cancelled">취소</option>
+					<option value="suspended">중단</option>
+				</select>
 				</div>
-			</div>
-		{/if}
 
-			<!-- 상태 메시지 -->
-			{#if uploadMessage}
-				<div class="flex items-center gap-2 p-3 rounded-lg" style="background: {uploadStatus === 'success' ? 'var(--color-success-light)' : uploadStatus === 'error' ? 'var(--color-error-light)' : 'var(--color-info-light)'}; border: 1px solid {uploadStatus === 'success' ? 'var(--color-success)' : uploadStatus === 'error' ? 'var(--color-error)' : 'var(--color-info)'};">
-					{#if uploadStatus === 'success'}
-						<CheckCircleIcon size={16} style="color: var(--color-success);" />
-					{:else if uploadStatus === 'error'}
-						<AlertCircleIcon size={16} style="color: var(--color-error);" />
-					{/if}
-					<span class="text-sm" style="color: {uploadStatus === 'success' ? 'var(--color-success)' : uploadStatus === 'error' ? 'var(--color-error)' : 'var(--color-info)'};">
-						{uploadMessage}
-					</span>
+			<div>
+				<label for="pm-project-priority" class="block text-sm font-medium text-gray-700">우선순위</label>
+				<select
+					id="pm-project-priority"
+					bind:value={projectForm.priority}
+					class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+				>
+					<option value="low">낮음</option>
+					<option value="medium">보통</option>
+					<option value="high">높음</option>
+					<option value="critical">긴급</option>
+				</select>
 			</div>
-		{/if}
+		</div>
 
-			<!-- 엑셀 템플릿 다운로드 -->
-			<div class="p-4 rounded-lg" style="background: var(--color-surface-elevated); border: 1px solid var(--color-border);">
-				<h4 class="text-sm font-medium mb-2" style="color: var(--color-text);">엑셀 템플릿</h4>
-				<p class="text-xs mb-3" style="color: var(--color-text-secondary);">
-					프로젝트 데이터를 업로드하기 전에 템플릿을 다운로드하여 올바른 형식으로 데이터를 입력하세요.
-				</p>
-				<ThemeButton variant="ghost" size="sm" onclick={downloadProjectTemplate}>
-					<DownloadIcon size={16} class="mr-2" />
-					템플릿 다운로드
-				</ThemeButton>
+		<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+			<div>
+				<label for="pm-project-sponsor" class="block text-sm font-medium text-gray-700">후원 유형</label>
+				<select
+					id="pm-project-sponsor"
+					bind:value={projectForm.sponsorType}
+					class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+				>
+					<option value="internal">내부</option>
+					<option value="government">정부</option>
+					<option value="private">민간</option>
+					<option value="international">국제</option>
+				</select>
+			</div>
+
+			<div>
+				<label for="pm-project-research-type" class="block text-sm font-medium text-gray-700">연구 유형</label>
+				<select
+					id="pm-project-research-type"
+					bind:value={projectForm.researchType}
+					class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+				>
+					<option value="basic">기초연구</option>
+					<option value="applied">응용연구</option>
+					<option value="development">개발연구</option>
+				</select>
+			</div>
 			</div>
 	</div>
 
-		<!-- 모달 액션 버튼 -->
-		<div class="flex justify-end gap-2 pt-4 border-t" style="border-color: var(--color-border);">
-			<ThemeButton variant="ghost" onclick={closeUploadModal}>
+	<div class="mt-6 flex justify-end space-x-3">
+		<ThemeButton
+			variant="ghost"
+			onclick={() => showCreateProjectModal = false}
+		>
 				취소
 			</ThemeButton>
 			<ThemeButton 
 				variant="primary" 
-				onclick={uploadExcel}
-				disabled={!uploadFile || uploadStatus === 'uploading'}
+			onclick={createProject}
 			>
-				{uploadStatus === 'uploading' ? '업로드 중...' : '업로드'}
+			생성
 			</ThemeButton>
 		</div>
 	</ThemeModal>
-</PageLayout>
-
-<style>
-	.drag-over {
-		border-color: var(--color-primary) !important;
-		background: var(--color-primary-light) !important;
-	}
-</style>

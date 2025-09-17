@@ -9,15 +9,15 @@
 	import { goto } from '$app/navigation';
 	import type { ExpenseDocument } from '$lib/types';
 
-	let status = (page.url.searchParams.get('status') as '' | '대기' | '승인' | '반려') || '';
-	let query = page.url.searchParams.get('q') || '';
-	let selectedId: string | null = null;
+	let status = $state((page.url.searchParams.get('status') as '' | '대기' | '승인' | '반려') || '');
+	let query = $state(page.url.searchParams.get('q') || '');
+	let selectedId = $state<string | null>(null);
 
-	$: all = $expenseDocsStore;
-	$: filtered = all.filter((d) => (status ? d.status === status : true) && (query ? d.title.includes(query) || d.id.includes(query) : true));
-	$: selected = all.find((d) => d.id === selectedId);
+	const all = $derived($expenseDocsStore);
+	const filtered = $derived(all.filter((d) => (status ? d.status === status : true) && (query ? d.title.includes(query) || d.id.includes(query) : true)));
+	const selected = $derived(all.find((d) => d.id === selectedId));
 
-	let reason = '';
+	let reason = $state('');
 	function approve() {
 		if (selected) {
 			updateExpenseStatus(selected.id, '승인');
@@ -36,7 +36,7 @@
 	}
 
 	// URL 동기화
-	$: (function syncUrl() {
+	$effect(() => {
 		const sp = new URLSearchParams(page.url.searchParams);
 		if (query) sp.set('q', query); else sp.delete('q');
 		if (status) sp.set('status', status); else sp.delete('status');
@@ -44,7 +44,7 @@
 		if (newUrl !== page.url.pathname + (page.url.search ? page.url.search : '')) {
 			goto(newUrl, { replaceState: true, noScroll: true, keepFocus: true });
 		}
-	})();
+	});
 
 	// 간단한 컴플라이언스 검증: 카테고리별 최소 첨부 개수 요구
 	const requiredAttachments: Record<string, number> = {
@@ -95,7 +95,7 @@
 			</thead>
 			<tbody class="divide-y">
 				{#each filtered as d}
-					<tr class="hover:bg-gray-50 cursor-pointer" on:click={() => (selectedId = d.id)}>
+          <tr class="hover:bg-gray-50 cursor-pointer" onclick={() => (selectedId = d.id)}>
 						<td class="px-3 py-2">{d.id}</td>
 						<td class="px-3 py-2">{d.title}</td>
 						<td class="px-3 py-2">{d.category}</td>
@@ -177,8 +177,8 @@
 			{#if selected.status === '대기'}
 				<div class="pt-2 flex items-center gap-2">
 					<input class="flex-1 rounded-md border border-gray-200 bg-white px-3 py-1.5 text-sm" placeholder="사유(선택)" bind:value={reason} />
-					<button class="px-3 py-1.5 rounded-md bg-success text-white hover:brightness-95" on:click={approve}>승인</button>
-					<button class="px-3 py-1.5 rounded-md bg-danger text-white hover:brightness-95" on:click={reject}>반려</button>
+          <button class="px-3 py-1.5 rounded-md bg-success text-white hover:brightness-95" onclick={approve}>승인</button>
+          <button class="px-3 py-1.5 rounded-md bg-danger text-white hover:brightness-95" onclick={reject}>반려</button>
 				</div>
 			{/if}
 		</div>

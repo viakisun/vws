@@ -7,7 +7,7 @@
   const quarterSet = new Set<string>();
   Object.values(qb).forEach((m) => Object.keys(m).forEach((q) => quarterSet.add(q)));
   const quarters = Array.from(quarterSet).sort();
-  $: ob = $overallBudget;
+  const ob = $derived($overallBudget);
   function sumQuarter(q: string): number {
     return Object.values(qb).reduce((s, m) => s + (m[q] ?? 0), 0);
   }
