@@ -1,22 +1,25 @@
-import { query } from '$lib/database/connection';
-import { json } from '@sveltejs/kit';
-import type { RequestHandler } from './$types';
+import { query } from '$lib/database/connection'
+import { json } from '@sveltejs/kit'
+import type { RequestHandler } from './$types'
 
 // GET /api/project-management/employees/[id]/contract - 특정 직원의 참여기간 내 계약 정보 조회
 export const GET: RequestHandler = async ({ params, url }) => {
 	try {
-		const { id } = params;
-		const startDate = url.searchParams.get('startDate');
-		const endDate = url.searchParams.get('endDate');
+		const { id } = params
+		const startDate = url.searchParams.get('startDate')
+		const endDate = url.searchParams.get('endDate')
 
 		if (!startDate || !endDate) {
-			return json({
-				success: false,
-				message: '시작일과 종료일이 필요합니다.'
-			}, { status: 400 });
+			return json(
+				{
+					success: false,
+					message: '시작일과 종료일이 필요합니다.'
+				},
+				{ status: 400 }
+			)
 		}
 
-		console.log('계약 정보 조회:', { employeeId: id, startDate, endDate });
+		// 계약 정보 조회
 
 		// 먼저 해당 직원의 모든 활성 계약을 확인
 		const allContractsQuery = `
@@ -32,10 +35,10 @@ export const GET: RequestHandler = async ({ params, url }) => {
 			WHERE sc.employee_id = $1 
 				AND sc.status = 'active'
 			ORDER BY sc.start_date DESC
-		`;
+		`
 
-		const allContractsResult = await query(allContractsQuery, [id]);
-		console.log('해당 직원의 모든 활성 계약:', allContractsResult.rows);
+		const allContractsResult = await query(allContractsQuery, [id])
+		// 해당 직원의 모든 활성 계약 조회 완료
 
 		// 참여기간과 겹치는 활성 계약 조회 (더 유연한 조건)
 		const contractQuery = `
@@ -60,22 +63,22 @@ export const GET: RequestHandler = async ({ params, url }) => {
 				)
 			ORDER BY sc.start_date DESC
 			LIMIT 1
-		`;
+		`
 
-		const result = await query(contractQuery, [id, startDate, endDate]);
+		const result = await query(contractQuery, [id, startDate, endDate])
 
 		if (result.rows.length === 0) {
 			// 계약이 없을 때 더 자세한 정보 제공
-			const hasAnyContracts = allContractsResult.rows.length > 0;
-			let message = '해당 기간에 유효한 계약이 없습니다.';
-			
+			const hasAnyContracts = allContractsResult.rows.length > 0
+			let message = '해당 기간에 유효한 계약이 없습니다.'
+
 			if (hasAnyContracts) {
-				const latestContract = allContractsResult.rows[0];
-				message = `해당 기간(${startDate} ~ ${endDate})에 유효한 계약이 없습니다. 최신 계약: ${latestContract.start_date} ~ ${latestContract.end_date || '무기한'}`;
+				const latestContract = allContractsResult.rows[0]
+				message = `해당 기간(${startDate} ~ ${endDate})에 유효한 계약이 없습니다. 최신 계약: ${latestContract.start_date} ~ ${latestContract.end_date || '무기한'}`
 			} else {
-				message = '해당 직원의 활성 계약이 없습니다.';
+				message = '해당 직원의 활성 계약이 없습니다.'
 			}
-			
+
 			return json({
 				success: false,
 				message,
@@ -88,11 +91,11 @@ export const GET: RequestHandler = async ({ params, url }) => {
 						annual_salary: c.annual_salary
 					}))
 				}
-			});
+			})
 		}
 
-		const contract = result.rows[0];
-		console.log('찾은 계약:', contract);
+		const contract = result.rows[0]
+		// 계약 정보 조회 완료
 
 		return json({
 			success: true,
@@ -105,14 +108,16 @@ export const GET: RequestHandler = async ({ params, url }) => {
 				status: contract.status,
 				contract_type: contract.contract_type
 			}
-		});
-
+		})
 	} catch (error) {
-		console.error('계약 정보 조회 실패:', error);
-		return json({
-			success: false,
-			message: '계약 정보를 불러오는데 실패했습니다.',
-			error: error instanceof Error ? error.message : '알 수 없는 오류'
-		}, { status: 500 });
+		console.error('계약 정보 조회 실패:', error)
+		return json(
+			{
+				success: false,
+				message: '계약 정보를 불러오는데 실패했습니다.',
+				error: error instanceof Error ? error.message : '알 수 없는 오류'
+			},
+			{ status: 500 }
+		)
 	}
-};
+}

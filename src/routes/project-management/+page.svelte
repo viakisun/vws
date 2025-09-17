@@ -1,40 +1,75 @@
 <script lang="ts">
-	import { page } from '$app/stores';
-	import { goto } from '$app/navigation';
-	import PageLayout from '$lib/components/layout/PageLayout.svelte';
-	import ThemeTabs from '$lib/components/ui/ThemeTabs.svelte';
-	import ThemeSpacer from '$lib/components/ui/ThemeSpacer.svelte';
-	import ThemeCard from '$lib/components/ui/ThemeCard.svelte';
-	import ThemeBadge from '$lib/components/ui/ThemeBadge.svelte';
-	import ThemeButton from '$lib/components/ui/ThemeButton.svelte';
-	import ThemeModal from '$lib/components/ui/ThemeModal.svelte';
-	import ProjectDetailView from '$lib/components/project-management/ProjectDetailView.svelte';
-	import { formatCurrency, formatDate } from '$lib/utils/format';
+	import { page } from '$app/stores'
+	import { goto } from '$app/navigation'
+	import PageLayout from '$lib/components/layout/PageLayout.svelte'
+	import ThemeTabs from '$lib/components/ui/ThemeTabs.svelte'
+	import ThemeCard from '$lib/components/ui/ThemeCard.svelte'
+	import ThemeBadge from '$lib/components/ui/ThemeBadge.svelte'
+	import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
+	import ThemeModal from '$lib/components/ui/ThemeModal.svelte'
+	import ProjectDetailView from '$lib/components/project-management/ProjectDetailView.svelte'
+	import { formatCurrency, formatDate } from '$lib/utils/format'
 	import { 
 		FlaskConicalIcon,
 		UsersIcon,
 		DollarSignIcon,
-		TrendingUpIcon,
 		PlusIcon,
-		EyeIcon,
-		EditIcon,
-		TrashIcon,
-		FileTextIcon,
 		BarChart3Icon,
-		PieChartIcon,
 		AlertTriangleIcon,
-		CheckCircleIcon,
-		ClockIcon,
-		TargetIcon,
-		CalendarIcon,
-		BuildingIcon,
-		UserIcon,
-		PercentIcon,
-		DownloadIcon,
-		FileSpreadsheetIcon,
-		AlertCircleIcon,
-		ActivityIcon
-	} from '@lucide/svelte';
+		ActivityIcon,
+		PercentIcon
+	} from '@lucide/svelte'
+
+	// 타입 정의
+	interface Project {
+		id: string
+		title: string
+		code: string
+		description?: string
+		startDate: string
+		endDate: string
+		status: 'planning' | 'active' | 'completed' | 'cancelled' | 'suspended'
+		sponsorType: 'internal' | 'government' | 'private' | 'international'
+		priority: 'low' | 'medium' | 'high' | 'critical'
+		researchType: 'basic' | 'applied' | 'development'
+		updatedAt: string
+	}
+
+	interface ProjectSummary {
+		totalProjects: number
+		activeProjects: number
+		totalBudget: number
+		currentYearBudget: number
+		totalMembers: number
+		activeMembers: number
+		overParticipationEmployees: number
+		recentActivities?: Array<{
+			title: string
+			code: string
+			status: string
+			updatedAt: string
+		}>
+	}
+
+	interface EmployeeParticipation {
+		name: string
+		email: string
+		department: string
+		activeProjects: number
+		totalParticipationRate: number
+	}
+
+	interface ProjectForm {
+		title: string
+		code: string
+		description: string
+		startDate: string
+		endDate: string
+		status: 'planning' | 'active' | 'completed' | 'cancelled' | 'suspended'
+		sponsorType: 'internal' | 'government' | 'private' | 'international'
+		priority: 'low' | 'medium' | 'high' | 'critical'
+		researchType: 'basic' | 'applied' | 'development'
+	}
 
 	// 탭 정의
 	const tabs = [
@@ -53,26 +88,26 @@
 			label: '참여율 관리',
 			icon: PercentIcon
 		}
-	];
+	]
 
 	// URL 파라미터에서 활성 탭 관리
-	let activeTab = $state($page.url.searchParams.get('tab') || 'overview');
+	let activeTab = $state($page.url.searchParams.get('tab') || 'overview')
 	
 	// 상태 변수들
-	let mounted = $state(false);
-	let projects = $state([]);
-	let projectSummary = $state(null);
-	let employeeParticipationSummary = $state([]);
-	let budgetSummaryByYear = $state([]);
-	let alerts = $state([]);
-	let loading = $state(false);
-	let error = $state(null);
+	let mounted = $state(false)
+	let projects = $state<Project[]>([])
+	let projectSummary = $state<ProjectSummary | null>(null)
+	let employeeParticipationSummary = $state<EmployeeParticipation[]>([])
+	let budgetSummaryByYear = $state<any[]>([])
+	let alerts = $state<any[]>([])
+	let loading = $state(false)
+	let error = $state<string | null>(null)
 	
 	// 프로젝트 관련 상태
-	let selectedProject = $state(null);
-	let selectedProjectId = $state('');
-	let showCreateProjectModal = $state(false);
-	let projectForm = $state({
+	let selectedProject = $state<Project | null>(null)
+	let selectedProjectId = $state('')
+	let showCreateProjectModal = $state(false)
+	let projectForm = $state<ProjectForm>({
 		title: '',
 		code: '',
 		description: '',
@@ -82,82 +117,97 @@
 		sponsorType: 'internal',
 		priority: 'medium',
 		researchType: 'basic'
-	});
+	})
+
+	// 파생된 상태들
+	const hasProjects = $derived(projects.length > 0)
+	const hasAlerts = $derived(alerts.length > 0)
+	const hasEmployeeData = $derived(employeeParticipationSummary.length > 0)
+	const selectedProjectData = $derived(projects.find(p => p.id === selectedProjectId) || null)
 	
 	// 탭 변경 핸들러
 	function handleTabChange(tabId: string) {
-		activeTab = tabId;
-		const url = new URL($page.url);
-		url.searchParams.set('tab', tabId);
-		goto(url.toString(), { replaceState: true });
+		activeTab = tabId
+		const url = new URL($page.url)
+		url.searchParams.set('tab', tabId)
+		goto(url.toString(), { replaceState: true })
 	}
 	
 	// API 호출 함수들
 	async function loadProjectData() {
 		try {
-			const response = await fetch('/api/project-management/projects');
+			const response = await fetch('/api/project-management/projects')
 			if (response.ok) {
-				const data = await response.json();
-				projects = data.data || [];
+				const data = await response.json()
+				projects = data.data || []
+			} else if (response.status === 404) {
+				error = '프로젝트 관리 API가 아직 구현되지 않았습니다.'
+			} else {
+				error = '프로젝트 데이터를 불러오는데 실패했습니다.'
 			}
 		} catch (err) {
-			console.error('프로젝트 데이터 로드 실패:', err);
+			error = '네트워크 오류로 프로젝트 데이터를 불러올 수 없습니다.'
+			console.error('프로젝트 데이터 로드 실패:', err)
 		}
 	}
 	
 	async function loadProjectSummary() {
 		try {
-			const response = await fetch('/api/project-management/summary');
+			const response = await fetch('/api/project-management/summary')
 			if (response.ok) {
-				const data = await response.json();
-				projectSummary = data.data;
+				const data = await response.json()
+				projectSummary = data.data
 			}
 		} catch (err) {
-			console.error('프로젝트 요약 로드 실패:', err);
+			
+			console.error('프로젝트 요약 로드 실패:', err)
 		}
 	}
 	
 	async function loadEmployeeParticipationSummary() {
 		try {
-			const response = await fetch('/api/project-management/participation-rates/summary');
+			const response = await fetch('/api/project-management/participation-rates/summary')
 			if (response.ok) {
-				const data = await response.json();
-				employeeParticipationSummary = data.data || [];
+				const data = await response.json()
+				employeeParticipationSummary = data.data || []
 			}
 		} catch (err) {
-			console.error('직원 참여율 요약 로드 실패:', err);
+			
+			// 직원 참여율 데이터 로드 실패 - 조용히 처리
 		}
 	}
 	
 	async function loadBudgetSummaryByYear() {
 		try {
-			const response = await fetch('/api/project-management/budgets/summary-by-year');
+			const response = await fetch('/api/project-management/budgets/summary-by-year')
 			if (response.ok) {
-				const data = await response.json();
-				budgetSummaryByYear = data.data || [];
+				const data = await response.json()
+				budgetSummaryByYear = data.data || []
 			}
 		} catch (err) {
-			console.error('연도별 예산 요약 로드 실패:', err);
+			
+			// 연도별 예산 데이터 로드 실패 - 조용히 처리
 		}
 	}
 	
 	async function loadAlerts() {
 		try {
-			const response = await fetch('/api/project-management/alerts');
+			const response = await fetch('/api/project-management/alerts')
 			if (response.ok) {
-				const data = await response.json();
-				alerts = data.data || [];
+				const data = await response.json()
+				alerts = data.data || []
 			}
 		} catch (err) {
-			console.error('알림 로드 실패:', err);
+			
+			// 알림 데이터 로드 실패 - 조용히 처리
 		}
 	}
 
 	// 프로젝트 생성
 	async function createProject() {
 		if (!projectForm.title || !projectForm.startDate || !projectForm.endDate) {
-			alert('제목, 시작일, 종료일은 필수 입력 항목입니다.');
-			return;
+			alert('제목, 시작일, 종료일은 필수 입력 항목입니다.')
+			return
 		}
 
 		try {
@@ -167,12 +217,12 @@
 					'Content-Type': 'application/json'
 				},
 				body: JSON.stringify(projectForm)
-			});
+			})
 
 			if (response.ok) {
-				const data = await response.json();
+				const data = await response.json()
 				if (data.success) {
-					showCreateProjectModal = false;
+					showCreateProjectModal = false
 					projectForm = {
 						title: '',
 						code: '',
@@ -183,106 +233,126 @@
 						sponsorType: 'internal',
 						priority: 'medium',
 						researchType: 'basic'
-					};
-					await loadProjectData();
-					await loadProjectSummary();
+					}
+					await loadProjectData()
+					await loadProjectSummary()
 				} else {
-					alert('프로젝트 생성 실패: ' + data.message);
+					alert('프로젝트 생성 실패: ' + data.message)
 				}
 			} else {
-				alert('프로젝트 생성 실패');
+				alert('프로젝트 생성 실패')
 			}
 		} catch (err) {
-			console.error('프로젝트 생성 오류:', err);
-			alert('프로젝트 생성 중 오류가 발생했습니다.');
+			
+			console.error('프로젝트 생성 오류:', err)
+			alert('프로젝트 생성 중 오류가 발생했습니다.')
 		}
 	}
 
 	// 프로젝트 선택
-	function selectProject(project: any) {
-		selectedProject = project;
-		selectedProjectId = project.id;
+	function selectProject(project: Project) {
+		selectedProject = project
+		selectedProjectId = project.id
 	}
 
 	// 프로젝트 삭제 이벤트 처리
-	function handleProjectDeleted(event: any) {
-		const { projectId } = event.detail;
+	function handleProjectDeleted(event: CustomEvent<{ projectId: string }>) {
+		const { projectId } = event.detail
 		
 		// 삭제된 프로젝트가 현재 선택된 프로젝트라면 선택 해제
 		if (selectedProject && selectedProject.id === projectId) {
-			selectedProject = null;
-			selectedProjectId = '';
+			selectedProject = null
+			selectedProjectId = ''
 		}
 		
 		// 프로젝트 목록에서 삭제된 프로젝트 제거
-		projects = projects.filter((p: any) => p.id !== projectId);
+		projects = projects.filter(p => p.id !== projectId)
 		
 		// 프로젝트 데이터 새로고침
-		loadProjectData();
+		loadProjectData()
 	}
 
 	// 상태 배지 색상
-	function getStatusBadgeColor(status: string) {
+	function getStatusBadgeColor(status: string): 'green' | 'blue' | 'gray' | 'red' | 'yellow' {
 		switch (status) {
-			case 'active': return 'green';
-			case 'planning': return 'blue';
-			case 'completed': return 'gray';
-			case 'cancelled': return 'red';
-			case 'suspended': return 'yellow';
-			default: return 'gray';
+			case 'active': return 'green'
+			case 'planning': return 'blue'
+			case 'completed': return 'gray'
+			case 'cancelled': return 'red'
+			case 'suspended': return 'yellow'
+			default: return 'gray'
 		}
 	}
 
 	// 상태 한글 변환
-	function getStatusLabel(status: string) {
+	function getStatusLabel(status: string): string {
 		switch (status) {
-			case 'active': return '진행중';
-			case 'planning': return '기획중';
-			case 'completed': return '완료';
-			case 'cancelled': return '취소';
-			case 'suspended': return '중단';
-			default: return status;
+			case 'active': return '진행중'
+			case 'planning': return '기획중'
+			case 'completed': return '완료'
+			case 'cancelled': return '취소'
+			case 'suspended': return '중단'
+			default: return status
 		}
 	}
 
 	// 연구 유형 한글 변환
-	function getResearchTypeLabel(researchType: string) {
+	function getResearchTypeLabel(researchType: string): string {
 		switch (researchType) {
-			case 'basic': return '기초연구';
-			case 'applied': return '응용연구';
-			case 'development': return '개발연구';
-			default: return researchType;
+			case 'basic': return '기초연구'
+			case 'applied': return '응용연구'
+			case 'development': return '개발연구'
+			default: return researchType
 		}
 	}
 
 	// 초기화
 	$effect(() => {
 		if (!mounted) {
-			mounted = true;
+			mounted = true
 			Promise.all([
 				loadProjectData(),
 				loadProjectSummary(),
 				loadEmployeeParticipationSummary(),
 				loadBudgetSummaryByYear(),
 				loadAlerts()
-			]);
+			])
 		}
-	});
+	})
 </script>
 
 <PageLayout
 	title="프로젝트 관리"
 	subtitle="연구개발 프로젝트 및 참여율 관리 시스템"
 >
-	<div class="space-y-6">
+	<div class="space-y-6">		<!-- 에러 메시지 -->
+		{#if error}
+			<ThemeCard>
+				<div class="bg-red-50 border border-red-200 rounded-md p-4">
+					<div class="flex">
+						<div class="flex-shrink-0">
+							<AlertTriangleIcon class="h-5 w-5 text-red-400" />
+						</div>
+						<div class="ml-3">
+							<h3 class="text-sm font-medium text-red-800">시스템 안내</h3>
+							<div class="mt-2 text-sm text-red-700">
+								<p>{error}</p>
+								<p class="mt-1">관리자에게 문의하시거나 잠시 후 다시 시도해주세요.</p>
+							</div>
+						</div>
+					</div>
+				</div>
+			</ThemeCard>
+		{/if}
+
 		<!-- 탭 네비게이션 -->
-	<ThemeTabs
+		<ThemeTabs
 			tabs={tabs}
 			activeTab={activeTab}
 			onTabChange={handleTabChange}
 		/>
 
-				<!-- 개요 탭 -->
+		<!-- 개요 탭 -->
 		{#if activeTab === 'overview'}
 			<div class="space-y-6">
 				<!-- 요약 통계 -->
@@ -291,7 +361,7 @@
 						<div class="flex items-center">
 							<div class="flex-shrink-0">
 								<FlaskConicalIcon class="h-8 w-8 text-blue-600" />
-		</div>
+							</div>
 							<div class="ml-4">
 								<p class="text-sm font-medium text-gray-500">총 프로젝트</p>
 								<p class="text-2xl font-semibold text-gray-900">
@@ -300,9 +370,9 @@
 								<div class="flex items-center mt-2">
 									<span class="text-sm text-green-600">
 										진행중: {projectSummary?.activeProjects || 0}
-										</span>
-									</div>
+									</span>
 								</div>
+							</div>
 						</div>
 					</ThemeCard>
 
@@ -319,10 +389,10 @@
 								<div class="flex items-center mt-2">
 									<span class="text-sm text-blue-600">
 										올해: {formatCurrency(projectSummary?.currentYearBudget || 0)}
-										</span>
-									</div>
-									</div>
+									</span>
 								</div>
+							</div>
+						</div>
 					</ThemeCard>
 
 					<ThemeCard>
@@ -348,7 +418,7 @@
 						<div class="flex items-center">
 							<div class="flex-shrink-0">
 								<AlertTriangleIcon class="h-8 w-8 text-orange-600" />
-								</div>
+							</div>
 							<div class="ml-4">
 								<p class="text-sm font-medium text-gray-500">알림</p>
 								<p class="text-2xl font-semibold text-gray-900">
@@ -375,17 +445,17 @@
 								<div class="px-6 py-4">
 									<div class="flex items-center justify-between">
 										<div class="flex items-center">
-											<ThemeBadge variant={getStatusBadgeColor(activity.status) as any}>
+											<ThemeBadge variant={getStatusBadgeColor(activity.status)}>
 												{getStatusLabel(activity.status)}
 											</ThemeBadge>
 											<div class="ml-4">
 												<p class="text-sm font-medium text-gray-900">{activity.title}</p>
 												<p class="text-sm text-gray-500">{activity.code}</p>
-						</div>
-									</div>
+											</div>
+										</div>
 										<div class="text-sm text-gray-500">
 											{formatDate(activity.updatedAt)}
-								</div>
+										</div>
 									</div>
 								</div>
 							{/each}
@@ -396,9 +466,9 @@
 							</div>
 						{/if}
 					</div>
-					</ThemeCard>
+				</ThemeCard>
 			</div>
-			{/if}
+		{/if}
 
 		<!-- 프로젝트 탭 -->
 		{#if activeTab === 'projects'}
@@ -411,9 +481,9 @@
 								<select
 									bind:value={selectedProjectId}
 									onchange={(e) => {
-										const target = e.target as HTMLSelectElement;
-										const project = projects.find((p: any) => p.id === target.value);
-										if (project) selectProject(project);
+										const target = e.target as HTMLSelectElement
+										const project = projects.find(p => p.id === target.value)
+										if (project) selectProject(project)
 									}}
 									class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 								>
@@ -444,7 +514,7 @@
 						on:refresh={loadProjectData}
 						on:project-deleted={handleProjectDeleted}
 					/>
-					{:else}
+				{:else}
 					<ThemeCard>
 						<div class="text-center py-12">
 							<FlaskConicalIcon class="mx-auto h-12 w-12 text-gray-400" />
@@ -460,7 +530,25 @@
 
 		<!-- 참여율 관리 탭 -->
 		{#if activeTab === 'participation'}
-			<div class="space-y-6">
+			<div class="space-y-6">				<!-- 미구현 기능 안내 -->
+				<ThemeCard>
+					<div class="bg-blue-50 border border-blue-200 rounded-md p-4">
+						<div class="flex">
+							<div class="flex-shrink-0">
+								<ActivityIcon class="h-5 w-5 text-blue-400" />
+							</div>
+							<div class="ml-3">
+								<h3 class="text-sm font-medium text-blue-800">기능 개발 중</h3>
+								<div class="mt-2 text-sm text-blue-700">
+									<p>직원별 참여율 관리 기능이 현재 개발 중입니다.</p>
+									<p class="mt-1">곧 정확한 참여율 데이터를 확인할 수 있습니다.</p>
+								</div>
+							</div>
+						</div>
+					</div>
+				</ThemeCard>
+
+				
 				<ThemeCard>
 					<div class="px-6 py-4 border-b border-gray-200">
 						<h3 class="text-lg font-medium text-gray-900">직원별 참여율 현황</h3>
