@@ -1034,70 +1034,63 @@
 <div class="space-y-6">
 	<!-- 프로젝트 기본 정보 -->
 	<ThemeCard class="p-6">
-		<!-- 프로젝트 헤더 -->
-		<div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6 mb-6">
-			<div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
-				<!-- 프로젝트 기본 정보 -->
-				<div class="flex-1">
-					<!-- 프로젝트 코드와 제목 -->
-					<div class="flex items-center gap-3 mb-3">
-						<span class="bg-blue-100 text-blue-800 text-sm font-medium px-3 py-1 rounded-full">
-							{selectedProject.code}
-						</span>
-						<h2 class="text-2xl font-bold text-gray-900">{selectedProject.title}</h2>
-					</div>
-					
-					<!-- 상태 및 우선순위 태그 -->
-					<div class="flex items-center gap-2 mb-3">
-						<ThemeBadge variant={getStatusColor(selectedProject.status)} size="md">
-							{getStatusText(selectedProject.status)}
-						</ThemeBadge>
-						<ThemeBadge variant={getPriorityColor(selectedProject.priority)} size="md">
-							{getPriorityText(selectedProject.priority)}
-						</ThemeBadge>
-						<ThemeBadge variant="info" size="md">
-							{getSponsorTypeText(selectedProject.sponsor_type || selectedProject.sponsorType)}
-						</ThemeBadge>
-						<ThemeBadge variant="primary" size="md">
-							{getResearchTypeText(selectedProject.research_type || selectedProject.researchType)}
-						</ThemeBadge>
-					</div>
-					
-					{#if selectedProject.description}
-						<p class="text-gray-700 mb-4">{selectedProject.description}</p>
-					{/if}
-					
-					<!-- 프로젝트 기간 -->
-					<div class="flex items-center text-sm text-gray-600 bg-white/50 rounded-md px-3 py-2 w-fit">
-						<CalendarIcon size={16} class="mr-2 text-orange-600" />
-						<span>{formatDate(selectedProject.start_date || selectedProject.startDate)} ~ {formatDate(selectedProject.end_date || selectedProject.endDate)}</span>
-					</div>
+		<div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+			<!-- 프로젝트 기본 정보 -->
+			<div class="flex-1">
+				<!-- 프로젝트 제목과 코드 -->
+				<div class="flex items-center gap-3 mb-3">
+					<h2 class="text-2xl font-bold text-gray-900">{selectedProject.title}</h2>
+					<span class="text-sm text-gray-500 font-mono">{selectedProject.code}</span>
 				</div>
 				
-				<!-- 액션 버튼 -->
-				<div class="flex gap-2">
-					<ThemeButton 
-						variant="ghost" 
-						size="sm" 
-						onclick={() => {
-							initProjectForm();
-							showEditProjectModal = true;
-						}}
-						class="bg-white/80 hover:bg-white"
-					>
-						<EditIcon size={16} class="mr-2" />
-						수정
-					</ThemeButton>
-					<ThemeButton 
-						variant="error" 
-						size="sm" 
-						onclick={() => showDeleteConfirmModal = true}
-						class="bg-white/80 hover:bg-white"
-					>
-						<TrashIcon size={16} class="mr-2" />
-						삭제
-					</ThemeButton>
+				<!-- 상태 및 우선순위 태그 -->
+				<div class="flex items-center gap-2 mb-3">
+					<ThemeBadge variant={getStatusColor(selectedProject.status)} size="md">
+						{getStatusText(selectedProject.status)}
+					</ThemeBadge>
+					<ThemeBadge variant={getPriorityColor(selectedProject.priority)} size="md">
+						{getPriorityText(selectedProject.priority)}
+					</ThemeBadge>
+					<ThemeBadge variant="info" size="md">
+						{getSponsorTypeText(selectedProject.sponsor_type || selectedProject.sponsorType)}
+					</ThemeBadge>
+					<ThemeBadge variant="primary" size="md">
+						{getResearchTypeText(selectedProject.research_type || selectedProject.researchType)}
+					</ThemeBadge>
 				</div>
+				
+				{#if selectedProject.description}
+					<p class="text-gray-700 mb-3">{selectedProject.description}</p>
+				{/if}
+				
+				<!-- 프로젝트 기간 -->
+				<div class="flex items-center text-sm text-gray-600">
+					<CalendarIcon size={16} class="mr-2 text-orange-600" />
+					<span>{formatDate(selectedProject.start_date || selectedProject.startDate)} ~ {formatDate(selectedProject.end_date || selectedProject.endDate)}</span>
+				</div>
+			</div>
+			
+			<!-- 액션 버튼 -->
+			<div class="flex gap-2">
+				<ThemeButton 
+					variant="ghost" 
+					size="sm" 
+					onclick={() => {
+						initProjectForm();
+						showEditProjectModal = true;
+					}}
+				>
+					<EditIcon size={16} class="mr-2" />
+					수정
+				</ThemeButton>
+				<ThemeButton 
+					variant="error" 
+					size="sm" 
+					onclick={() => showDeleteConfirmModal = true}
+				>
+					<TrashIcon size={16} class="mr-2" />
+					삭제
+				</ThemeButton>
 			</div>
 		</div>
 	</ThemeCard>
@@ -1105,7 +1098,7 @@
 	<!-- 연차별 사업비 관리 -->
 	<ThemeCard class="p-6">
 		<div class="flex items-center justify-between mb-4">
-			<h3 class="text-lg font-semibold text-gray-900">연차별 사업비 (국가연구개발비 기준)</h3>
+			<h3 class="text-lg font-semibold text-gray-900">연구개발비</h3>
 			<ThemeButton onclick={() => showBudgetModal = true} size="sm">
 				<PlusIcon size={16} class="mr-2" />
 				사업비 추가
@@ -1573,7 +1566,7 @@
 <!-- 프로젝트 멤버 관리 -->
 <ThemeCard class="p-6">
 	<div class="flex items-center justify-between mb-4">
-		<h3 class="text-lg font-semibold text-gray-900">참여 연구원</h3>
+		<h3 class="text-lg font-semibold text-gray-900">참여연구원</h3>
 		<ThemeButton 
 			onclick={() => addingMember = true} 
 			size="sm" 
