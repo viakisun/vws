@@ -10,6 +10,7 @@
 		CalendarIcon,
 		CheckIcon,
 		ChevronDownIcon,
+		ChevronRightIcon,
 		ChevronUpIcon,
 		DollarSignIcon,
 		EditIcon,
@@ -87,7 +88,29 @@
 	let showEvidenceModal = $state(false);
 	let selectedBudgetForEvidence = $state(null);
 	let evidenceList = $state([]);
+	let selectedEvidencePeriod = $state(1);
+	let showEvidenceDetailModal = $state(false);
+	let selectedEvidenceItem = $state(null);
 	let evidenceTypes = $state([]);
+	let expandedEvidenceSections = $state({
+		personnel: true,
+		material: true,
+		activity: true,
+		indirect: true
+	});
+	let evidenceCategories = $state([]);
+	let evidenceItems = $state([]);
+	let isLoadingEvidence = $state(false);
+	
+	// 증빙 추가 폼
+	let newEvidenceForm = $state({
+		categoryId: '',
+		name: '',
+		description: '',
+		budgetAmount: '',
+		assigneeId: '',
+		dueDate: ''
+	});
 
 	let editProjectForm = $state({
 		title: '',
@@ -618,7 +641,7 @@
 			alert('프로젝트 코드가 일치하지 않습니다. 정확한 코드를 입력해주세요.');
 			return;
 		}
-		
+
 		isDeleting = true;
 		try {
 			const response = await fetch(`/api/project-management/projects/${selectedProject.id}`, {
@@ -733,6 +756,179 @@
 		selectedBudgetForEvidence = budget;
 		showEvidenceModal = true;
 		loadEvidenceList(budget.id);
+	}
+
+	async function openEvidenceDetail(item) {
+		selectedEvidenceItem = item;
+		showEvidenceDetailModal = true;
+		
+		// 증빙 항목 상세 정보 로드
+		if (item.id) {
+			try {
+				const response = await fetch(`/api/project-management/evidence/${item.id}`);
+				const result = await response.json();
+				
+				if (result.success) {
+					selectedEvidenceItem = result.data;
+				}
+			} catch (error) {
+				console.error('증빙 항목 상세 정보 로드 실패:', error);
+			}
+		}
+	}
+
+	// 증빙 카테고리 로드
+	async function loadEvidenceCategories() {
+		try {
+			const response = await fetch('/api/project-management/evidence-categories');
+			const result = await response.json();
+			
+			if (result.success) {
+				evidenceCategories = result.data;
+			}
+		} catch (error) {
+			console.error('증빙 카테고리 로드 실패:', error);
+		}
+	}
+
+	// 증빙 항목 로드
+	async function loadEvidenceItems() {
+		if (!selectedProject || projectBudgets.length === 0) return;
+		
+		try {
+			isLoadingEvidence = true;
+			const currentBudget = projectBudgets.find(b => (b.period_number || 1) === selectedEvidencePeriod) || projectBudgets[0];
+			
+			if (!currentBudget) return;
+
+			const response = await fetch(`/api/project-management/evidence?projectBudgetId=${currentBudget.id}`);
+			const result = await response.json();
+			
+			if (result.success) {
+				evidenceItems = result.data;
+			}
+		} catch (error) {
+			console.error('증빙 항목 로드 실패:', error);
+		} finally {
+			isLoadingEvidence = false;
+		}
+	}
+
+	// 증빙 항목 추가
+	async function addEvidenceItem(categoryId, itemData) {
+		try {
+			const currentBudget = projectBudgets.find(b => (b.period_number || 1) === selectedEvidencePeriod) || projectBudgets[0];
+			
+			const response = await fetch('/api/project-management/evidence', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({
+					projectBudgetId: currentBudget.id,
+					categoryId: categoryId,
+					...itemData
+				})
+			});
+			
+			const result = await response.json();
+			
+			if (result.success) {
+				await loadEvidenceItems();
+				return result.data;
+			} else {
+				throw new Error(result.message);
+			}
+		} catch (error) {
+			console.error('증빙 항목 추가 실패:', error);
+			throw error;
+		}
+	}
+
+	// 증빙 항목 수정
+	async function updateEvidenceItem(itemId, updateData) {
+		try {
+			const response = await fetch(`/api/project-management/evidence/${itemId}`, {
+				method: 'PUT',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify(updateData)
+			});
+			
+			const result = await response.json();
+			
+			if (result.success) {
+				await loadEvidenceItems();
+				return result.data;
+			} else {
+				throw new Error(result.message);
+			}
+		} catch (error) {
+			console.error('증빙 항목 수정 실패:', error);
+			throw error;
+		}
+	}
+
+	// 증빙 항목 삭제
+	async function deleteEvidenceItem(itemId) {
+		try {
+			const response = await fetch(`/api/project-management/evidence/${itemId}`, {
+				method: 'DELETE'
+			});
+			
+			const result = await response.json();
+			
+			if (result.success) {
+				await loadEvidenceItems();
+			} else {
+				throw new Error(result.message);
+			}
+		} catch (error) {
+			console.error('증빙 항목 삭제 실패:', error);
+			throw error;
+		}
+	}
+
+	// 증빙 항목 추가 핸들러
+	async function handleAddEvidenceItem() {
+		if (!newEvidenceForm.categoryId || !newEvidenceForm.name || !newEvidenceForm.budgetAmount) {
+			alert('필수 필드를 모두 입력해주세요.');
+			return;
+		}
+
+		try {
+			isUpdating = true;
+			
+			const selectedEmployee = availableEmployees.find(emp => emp.id === newEvidenceForm.assigneeId);
+			const assigneeName = selectedEmployee ? `${selectedEmployee.first_name} ${selectedEmployee.last_name}` : '';
+			
+			await addEvidenceItem(newEvidenceForm.categoryId, {
+				name: newEvidenceForm.name,
+				description: newEvidenceForm.description,
+				budgetAmount: parseFloat(newEvidenceForm.budgetAmount),
+				assigneeId: newEvidenceForm.assigneeId,
+				assigneeName: assigneeName,
+				dueDate: newEvidenceForm.dueDate
+			});
+
+			// 폼 초기화
+			newEvidenceForm = {
+				categoryId: '',
+				name: '',
+				description: '',
+				budgetAmount: '',
+				assigneeId: '',
+				dueDate: ''
+			};
+
+			showEvidenceModal = false;
+		} catch (error) {
+			console.error('증빙 항목 추가 실패:', error);
+			alert('증빙 항목 추가에 실패했습니다.');
+		} finally {
+			isUpdating = false;
+		}
 	}
 
 	// 증빙 내역 목록 로드
@@ -1026,6 +1222,14 @@
 			loadBudgetCategories();
 			loadAvailableEmployees();
 			loadEvidenceTypes();
+			loadEvidenceCategories();
+		}
+	});
+
+	// Svelte 5: 증빙 데이터 로드
+	$effect(() => {
+		if (selectedProject && projectBudgets.length > 0) {
+			loadEvidenceItems();
 		}
 	});
 </script>
@@ -1041,8 +1245,8 @@
 				<div class="flex items-center gap-3 mb-3">
 					<h2 class="text-2xl font-bold text-gray-900">{selectedProject.title}</h2>
 					<span class="text-sm text-gray-500 font-mono">{selectedProject.code}</span>
-				</div>
-				
+			</div>
+			
 				<!-- 상태 및 우선순위 태그 -->
 				<div class="flex items-center gap-2 mb-3">
 					<ThemeBadge variant={getStatusColor(selectedProject.status)} size="md">
@@ -1072,27 +1276,27 @@
 			
 			<!-- 액션 버튼 -->
 			<div class="flex gap-2">
-				<ThemeButton 
-					variant="ghost" 
-					size="sm" 
+					<ThemeButton 
+						variant="ghost" 
+						size="sm" 
 					onclick={() => {
 						initProjectForm();
 						showEditProjectModal = true;
 					}}
-				>
+					>
 					<EditIcon size={16} class="mr-2" />
-					수정
-				</ThemeButton>
-				<ThemeButton 
+						수정
+					</ThemeButton>
+					<ThemeButton 
 					variant="error" 
-					size="sm" 
-					onclick={() => showDeleteConfirmModal = true}
-				>
+						size="sm" 
+						onclick={() => showDeleteConfirmModal = true}
+					>
 					<TrashIcon size={16} class="mr-2" />
-					삭제
-				</ThemeButton>
+						삭제
+					</ThemeButton>
+				</div>
 			</div>
-		</div>
 	</ThemeCard>
 
 	<!-- 연차별 사업비 관리 -->
@@ -1106,7 +1310,7 @@
 		</div>
 		
 		<div class="overflow-x-auto">
-			<table class="min-w-full divide-y divide-gray-200" style="min-width: 1200px;">
+			<table class="min-w-full divide-y divide-gray-200" style="min-width: 1000px;">
 				<thead class="bg-gray-50">
 					<tr>
 						<th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">연차 기간</th>
@@ -1116,7 +1320,6 @@
 						<th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-32">간접비</th>
 						<th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-32">총 예산</th>
 						<th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-32">실행액</th>
-						<th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-32">증빙 내역</th>
 						<th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-40">액션</th>
 					</tr>
 				</thead>
@@ -1231,13 +1434,6 @@
 									</div>
 								</div>
 							</td>
-							<!-- 증빙 내역 -->
-							<td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-								<ThemeButton variant="ghost" size="sm" onclick={() => openEvidenceModal(budget)}>
-									<FileTextIcon size={14} class="mr-1" />
-									증빙 관리
-								</ThemeButton>
-							</td>
 							<!-- 액션 -->
 							<td class="px-4 py-4 whitespace-nowrap text-sm font-medium">
 								<div class="flex space-x-1 justify-center">
@@ -1254,7 +1450,7 @@
 						</tr>
 					{:else}
 						<tr>
-							<td colspan="9" class="px-6 py-12 text-center text-gray-500">
+							<td colspan="8" class="px-6 py-12 text-center text-gray-500">
 								<DollarSignIcon size={48} class="mx-auto mb-2 text-gray-300" />
 								<p>등록된 사업비가 없습니다.</p>
 							</td>
@@ -1325,10 +1521,6 @@
 									</div>
 									<span class="text-xs text-gray-600 font-bold">{totalUsageRate.toFixed(1)}%</span>
 								</div>
-							</td>
-							<!-- 증빙 내역 -->
-							<td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-								<div class="text-xs text-gray-500 text-center">-</div>
 							</td>
 							<!-- 액션 -->
 							<td class="px-4 py-4 whitespace-nowrap text-sm font-medium">
@@ -1563,171 +1755,171 @@
 	</div>
 </ThemeModal>
 
-<!-- 프로젝트 멤버 관리 -->
-<ThemeCard class="p-6">
-	<div class="flex items-center justify-between mb-4">
+	<!-- 프로젝트 멤버 관리 -->
+	<ThemeCard class="p-6">
+		<div class="flex items-center justify-between mb-4">
 		<h3 class="text-lg font-semibold text-gray-900">참여연구원</h3>
 		<ThemeButton 
 			onclick={() => addingMember = true} 
 			size="sm" 
 			disabled={addingMember || editingMember !== null}
 		>
-			<PlusIcon size={16} class="mr-2" />
-			연구원 추가
-		</ThemeButton>
-	</div>
-	
-	<div class="overflow-x-auto">
+				<PlusIcon size={16} class="mr-2" />
+				연구원 추가
+			</ThemeButton>
+		</div>
+		
+		<div class="overflow-x-auto">
 		<table class="min-w-full divide-y divide-gray-200" style="min-width: 1000px;">
-			<thead class="bg-gray-50">
-				<tr>
+				<thead class="bg-gray-50">
+					<tr>
 					<th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-80">연구원</th>
-					<th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-40">참여율</th>
-					<th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-40">월간금액</th>
-					<th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-56">참여기간</th>
-					<th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">기여 유형</th>
+						<th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-40">참여율</th>
+						<th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-40">월간금액</th>
+						<th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-56">참여기간</th>
+						<th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">기여 유형</th>
 					<th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-40">액션</th>
-				</tr>
-			</thead>
-			<tbody class="bg-white divide-y divide-gray-200">
-				<!-- 인라인 추가 행 -->
-				{#if addingMember}
-					<tr class="bg-blue-50">
-						<!-- 연구원 -->
-						<td class="px-4 py-4 whitespace-nowrap">
-							{#if editingMember}
-								<div class="text-sm text-gray-500">
-									{processKoreanName(memberForm.employeeId ? availableEmployees.find(e => e.id === memberForm.employeeId)?.name || '' : '')}
-								</div>
-							{:else}
+					</tr>
+				</thead>
+				<tbody class="bg-white divide-y divide-gray-200">
+					<!-- 인라인 추가 행 -->
+					{#if addingMember}
+						<tr class="bg-blue-50">
+							<!-- 연구원 -->
+							<td class="px-4 py-4 whitespace-nowrap">
+								{#if editingMember}
+									<div class="text-sm text-gray-500">
+										{processKoreanName(memberForm.employeeId ? availableEmployees.find(e => e.id === memberForm.employeeId)?.name || '' : '')}
+									</div>
+								{:else}
+									<select
+										bind:value={memberForm.employeeId}
+										class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+										onchange={updateMonthlyAmount}
+									>
+										<option value="">연구원 선택 ({availableEmployees.length}명)</option>
+										{#each availableEmployees as employee}
+											<option value={employee.id}>{processKoreanName(employee.name)} ({employee.department})</option>
+										{/each}
+									</select>
+								{/if}
+							</td>
+							<!-- 역할 -->
+							<td class="px-4 py-4 whitespace-nowrap">
 								<select
-									bind:value={memberForm.employeeId}
+									bind:value={memberForm.role}
 									class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-									onchange={updateMonthlyAmount}
 								>
-									<option value="">연구원 선택 ({availableEmployees.length}명)</option>
-									{#each availableEmployees as employee}
-										<option value={employee.id}>{processKoreanName(employee.name)} ({employee.department})</option>
-									{/each}
+									<option value="researcher">연구원</option>
+									<option value="lead">연구책임자</option>
+									<option value="support">지원</option>
 								</select>
-							{/if}
-						</td>
-						<!-- 역할 -->
-						<td class="px-4 py-4 whitespace-nowrap">
-							<select
-								bind:value={memberForm.role}
-								class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-							>
-								<option value="researcher">연구원</option>
-								<option value="lead">연구책임자</option>
-								<option value="support">지원</option>
-							</select>
-						</td>
-						<!-- 참여율 -->
-						<td class="px-4 py-4 whitespace-nowrap">
-							<input
-								type="number"
-								bind:value={memberForm.participationRate}
-								class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-								min="0"
-								max="100"
-								step="1"
-								placeholder="100"
-								oninput={(e) => {
+							</td>
+							<!-- 참여율 -->
+							<td class="px-4 py-4 whitespace-nowrap">
+								<input
+									type="number"
+									bind:value={memberForm.participationRate}
+									class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+									min="0"
+									max="100"
+									step="1"
+									placeholder="100"
+									oninput={(e) => {
 									const target = e.target as HTMLInputElement;
 									const value = parseInt(target.value);
-									if (value < 0) memberForm.participationRate = 0;
-									if (value > 100) memberForm.participationRate = 100;
-									updateMonthlyAmount();
-								}}
-							/>
-						</td>
-						<!-- 월간금액 (자동 계산) -->
-						<td class="px-4 py-4 whitespace-nowrap">
-							<div class="text-sm font-medium text-gray-900">
-								{#if isCalculatingMonthlyAmount}
-									<div class="flex items-center">
-										<div class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
-										계산 중...
-									</div>
-								{:else if calculatedMonthlyAmount > 0}
-									{formatCurrency(calculatedMonthlyAmount)}
-								{:else if memberForm.employeeId && memberForm.participationRate && memberForm.startDate && memberForm.endDate}
-									<span class="text-gray-500">계산 가능</span>
-								{:else}
-									<span class="text-gray-400">자동 계산</span>
-								{/if}
-							</div>
-						</td>
-						<!-- 참여기간 (시작일/종료일) -->
-						<td class="px-4 py-4 whitespace-nowrap">
-							<div class="space-y-2">
-								<div class="text-xs text-gray-500">시작일</div>
-								<input
-									type="date"
-									bind:value={memberForm.startDate}
-									class="w-full px-2 py-1 border border-gray-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
-									placeholder="시작일"
-									onchange={updateMonthlyAmount}
+										if (value < 0) memberForm.participationRate = 0;
+										if (value > 100) memberForm.participationRate = 100;
+										updateMonthlyAmount();
+									}}
 								/>
-								<div class="text-xs text-gray-500">종료일</div>
-								<input
-									type="date"
-									bind:value={memberForm.endDate}
-									class="w-full px-2 py-1 border border-gray-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
-									placeholder="종료일"
-									onchange={updateMonthlyAmount}
-								/>
-							</div>
-						</td>
-						<!-- 기여 유형 -->
-						<td class="px-4 py-4 whitespace-nowrap">
-							<select
-								bind:value={memberForm.contributionType}
-								class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-							>
-								<option value="cash">현금</option>
-								<option value="in_kind">현물</option>
-							</select>
-						</td>
-						<!-- 액션 -->
-						<td class="px-4 py-4 whitespace-nowrap text-sm font-medium">
-							<div class="flex space-x-2">
-								{#if editingMember}
-									<ThemeButton variant="ghost" size="sm" onclick={updateMember}>
-										<CheckIcon size={14} />
-									</ThemeButton>
-									<ThemeButton variant="ghost" size="sm" onclick={cancelEditMember}>
-										<XIcon size={14} />
-									</ThemeButton>
-								{:else}
-									<ThemeButton variant="ghost" size="sm" onclick={addMember}>
-										<CheckIcon size={14} />
-									</ThemeButton>
-									<ThemeButton variant="ghost" size="sm" onclick={cancelAddMember}>
-										<XIcon size={14} />
-									</ThemeButton>
-								{/if}
-							</div>
-						</td>
-					</tr>
-				{/if}
-				
-				{#each projectMembers as member}
+							</td>
+							<!-- 월간금액 (자동 계산) -->
+							<td class="px-4 py-4 whitespace-nowrap">
+								<div class="text-sm font-medium text-gray-900">
+									{#if isCalculatingMonthlyAmount}
+										<div class="flex items-center">
+											<div class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
+											계산 중...
+										</div>
+									{:else if calculatedMonthlyAmount > 0}
+										{formatCurrency(calculatedMonthlyAmount)}
+									{:else if memberForm.employeeId && memberForm.participationRate && memberForm.startDate && memberForm.endDate}
+										<span class="text-gray-500">계산 가능</span>
+									{:else}
+										<span class="text-gray-400">자동 계산</span>
+									{/if}
+								</div>
+							</td>
+							<!-- 참여기간 (시작일/종료일) -->
+							<td class="px-4 py-4 whitespace-nowrap">
+								<div class="space-y-2">
+									<div class="text-xs text-gray-500">시작일</div>
+									<input
+										type="date"
+										bind:value={memberForm.startDate}
+										class="w-full px-2 py-1 border border-gray-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
+										placeholder="시작일"
+										onchange={updateMonthlyAmount}
+									/>
+									<div class="text-xs text-gray-500">종료일</div>
+									<input
+										type="date"
+										bind:value={memberForm.endDate}
+										class="w-full px-2 py-1 border border-gray-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
+										placeholder="종료일"
+										onchange={updateMonthlyAmount}
+									/>
+								</div>
+							</td>
+							<!-- 기여 유형 -->
+							<td class="px-4 py-4 whitespace-nowrap">
+								<select
+									bind:value={memberForm.contributionType}
+									class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+								>
+									<option value="cash">현금</option>
+									<option value="in_kind">현물</option>
+								</select>
+							</td>
+							<!-- 액션 -->
+							<td class="px-4 py-4 whitespace-nowrap text-sm font-medium">
+								<div class="flex space-x-2">
+									{#if editingMember}
+										<ThemeButton variant="ghost" size="sm" onclick={updateMember}>
+											<CheckIcon size={14} />
+										</ThemeButton>
+										<ThemeButton variant="ghost" size="sm" onclick={cancelEditMember}>
+											<XIcon size={14} />
+										</ThemeButton>
+									{:else}
+										<ThemeButton variant="ghost" size="sm" onclick={addMember}>
+											<CheckIcon size={14} />
+										</ThemeButton>
+										<ThemeButton variant="ghost" size="sm" onclick={cancelAddMember}>
+											<XIcon size={14} />
+										</ThemeButton>
+									{/if}
+								</div>
+							</td>
+						</tr>
+					{/if}
+					
+					{#each projectMembers as member}
 					<tr class="hover:bg-gray-50 {editingMember && editingMember.id === member.id ? 'bg-blue-50 border-l-4 border-blue-500' : ''}">
-						<td class="px-4 py-4 whitespace-nowrap">
-							<div class="flex items-center">
-								<UserIcon size={20} class="text-gray-400 mr-3" />
+							<td class="px-4 py-4 whitespace-nowrap">
+								<div class="flex items-center">
+									<UserIcon size={20} class="text-gray-400 mr-3" />
 								<div class="flex-1">
 									<div class="flex items-center gap-2 mb-1">
 										<div class="text-sm font-medium text-gray-900">{processKoreanName(member.employee_name)}</div>
 										<ThemeBadge variant="info" size="sm">{member.role}</ThemeBadge>
 									</div>
-									<div class="text-xs text-gray-500">{member.employee_department} / {member.employee_position}</div>
+										<div class="text-xs text-gray-500">{member.employee_department} / {member.employee_position}</div>
+									</div>
 								</div>
-							</div>
-						</td>
-						<td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+							</td>
+							<td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
 							{#if editingMember && editingMember.id === member.id}
 								<input
 									type="number"
@@ -1740,8 +1932,8 @@
 							{:else}
 								{member.participation_rate}%
 							{/if}
-						</td>
-						<td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+							</td>
+							<td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
 							{#if editingMember && editingMember.id === member.id}
 								<input
 									type="number"
@@ -1752,8 +1944,8 @@
 							{:else}
 								{formatCurrency(member.monthly_amount || 0)}
 							{/if}
-						</td>
-						<td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+							</td>
+							<td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
 							{#if editingMember && editingMember.id === member.id}
 								<div class="space-y-1">
 									<div class="flex items-center gap-2">
@@ -1781,8 +1973,8 @@
 									<div class="text-xs text-gray-500">종료: {formatDate(member.end_date)}</div>
 								</div>
 							{/if}
-						</td>
-						<td class="px-4 py-4 whitespace-nowrap">
+							</td>
+							<td class="px-4 py-4 whitespace-nowrap">
 							{#if editingMember && editingMember.id === member.id}
 								<select
 									bind:value={memberForm.contributionType}
@@ -1796,8 +1988,8 @@
 									{member.contribution_type === 'cash' ? '현금' : '현물'}
 								</ThemeBadge>
 							{/if}
-						</td>
-						<td class="px-4 py-4 whitespace-nowrap text-sm font-medium">
+							</td>
+							<td class="px-4 py-4 whitespace-nowrap text-sm font-medium">
 							<div class="flex space-x-1 justify-center">
 								{#if editingMember && editingMember.id === member.id}
 									<ThemeButton variant="ghost" size="sm" onclick={updateMember}>
@@ -1826,25 +2018,25 @@
 										삭제
 									</ThemeButton>
 								{/if}
-							</div>
-						</td>
-					</tr>
-				{/each}
-				
-				{#if projectMembers.length === 0 && !addingMember}
-					<tr>
-						<td colspan="7" class="px-6 py-12 text-center text-gray-500">
-							<UsersIcon size={48} class="mx-auto mb-2 text-gray-300" />
-							<p>참여 연구원이 없습니다.</p>
-						</td>
-					</tr>
-				{/if}
-			</tbody>
-		</table>
-	</div>
-	
-	<!-- 인건비 요약 -->
-	{#if projectMembers.length > 0}
+								</div>
+							</td>
+						</tr>
+					{/each}
+					
+					{#if projectMembers.length === 0 && !addingMember}
+						<tr>
+							<td colspan="7" class="px-6 py-12 text-center text-gray-500">
+								<UsersIcon size={48} class="mx-auto mb-2 text-gray-300" />
+								<p>참여 연구원이 없습니다.</p>
+							</td>
+						</tr>
+					{/if}
+				</tbody>
+			</table>
+		</div>
+		
+		<!-- 인건비 요약 -->
+		{#if projectMembers.length > 0}
 		{@const personnelSummary = calculatePersonnelCostSummary()}
 		<div class="mt-4 p-3 bg-gray-50 rounded-lg">
 			<div class="flex items-center justify-between mb-2">
@@ -1872,25 +2064,25 @@
 			
 			<!-- 기본 요약 정보 -->
 			<div class="grid grid-cols-3 gap-4">
-				<div class="text-center">
+					<div class="text-center">
 					<div class="text-sm font-semibold text-green-600">
 						{formatCurrency(personnelSummary.totalCash)}
-					</div>
+						</div>
 					<div class="text-xs text-gray-500">현금</div>
-				</div>
-				<div class="text-center">
+					</div>
+					<div class="text-center">
 					<div class="text-sm font-semibold text-orange-600">
 						{formatCurrency(personnelSummary.totalInKind)}
-					</div>
+						</div>
 					<div class="text-xs text-gray-500">현물</div>
-				</div>
-				<div class="text-center">
+					</div>
+					<div class="text-center">
 					<div class="text-sm font-semibold text-blue-600">
 						{formatCurrency(personnelSummary.totalCost)}
-					</div>
+						</div>
 					<div class="text-xs text-gray-500">합계</div>
+					</div>
 				</div>
-			</div>
 			
 			<!-- 월별 상세 정보 -->
 			{#if isPersonnelSummaryExpanded}
@@ -1943,9 +2135,558 @@
 					</div>
 				</div>
 			{/if}
+			</div>
+		{/if}
+	</ThemeCard>
+
+<!-- 증빙 관리 -->
+	<ThemeCard class="p-6">
+		<div class="flex items-center justify-between mb-4">
+		<div class="flex items-center gap-4">
+			<h3 class="text-lg font-semibold text-gray-900">증빙 관리</h3>
+			{#if projectBudgets.length > 0}
+				<select 
+					bind:value={selectedEvidencePeriod} 
+					class="px-3 py-1 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+				>
+					{#each projectBudgets as budget}
+						<option value={budget.period_number || 1}>
+							{budget.period_number || 1}연차
+						</option>
+					{/each}
+				</select>
+			{/if}
+		</div>
+		<ThemeButton onclick={() => showEvidenceModal = true} size="sm">
+				<PlusIcon size={16} class="mr-2" />
+			증빙 추가
+			</ThemeButton>
+		</div>
+		
+	{#if projectBudgets.length > 0}
+		{@const currentBudget = projectBudgets.find(b => (b.period_number || 1) === selectedEvidencePeriod) || projectBudgets[0]}
+		{@const budgetCategories = [
+			{ 
+				id: 'personnel',
+				type: 'personnel', 
+				name: '인건비', 
+				cash: parseFloat(currentBudget.personnel_cost_cash) || 0, 
+				inKind: parseFloat(currentBudget.personnel_cost_in_kind) || 0
+			},
+			{ 
+				id: 'material',
+				type: 'material', 
+				name: '연구재료비', 
+				cash: parseFloat(currentBudget.research_material_cost_cash) || 0, 
+				inKind: parseFloat(currentBudget.research_material_cost_in_kind) || 0
+			},
+			{ 
+				id: 'activity',
+				type: 'activity', 
+				name: '연구활동비', 
+				cash: parseFloat(currentBudget.research_activity_cost_cash) || 0, 
+				inKind: parseFloat(currentBudget.research_activity_cost_in_kind) || 0
+			},
+			{ 
+				id: 'indirect',
+				type: 'indirect', 
+				name: '간접비', 
+				cash: parseFloat(currentBudget.indirect_cost_cash) || 0, 
+				inKind: parseFloat(currentBudget.indirect_cost_in_kind) || 0
+			}
+		].filter(category => (category.cash + category.inKind) > 0)}
+		
+		{#if isLoadingEvidence}
+			<div class="text-center py-8">
+				<div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+				<p class="mt-2 text-sm text-gray-500">증빙 데이터를 로드하는 중...</p>
+			</div>
+		{:else}
+			<div class="space-y-4">
+				{#each budgetCategories as budgetCategory}
+					{@const categoryItems = evidenceItems.filter(item => item.category_name === budgetCategory.name)}
+					{@const totalAmount = budgetCategory.cash + budgetCategory.inKind}
+					{@const totalItems = categoryItems.length}
+					{@const completedItems = categoryItems.filter(item => item.status === 'completed').length}
+					{@const inProgressItems = categoryItems.filter(item => item.status === 'in_progress').length}
+					{@const overallProgress = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0}
+				
+					<div class="border border-gray-200 rounded-lg">
+						<!-- 카테고리 헤더 -->
+						<button 
+							type="button"
+							class="flex items-center justify-between p-4 bg-gray-50 cursor-pointer hover:bg-gray-100 w-full text-left"
+							onclick={() => expandedEvidenceSections[budgetCategory.type] = !expandedEvidenceSections[budgetCategory.type]}
+							onkeydown={(e) => e.key === 'Enter' && (expandedEvidenceSections[budgetCategory.type] = !expandedEvidenceSections[budgetCategory.type])}
+						>
+							<div class="flex items-center space-x-3">
+								{#if expandedEvidenceSections[budgetCategory.type]}
+									<ChevronDownIcon size={16} class="text-gray-500" />
+								{:else}
+									<ChevronRightIcon size={16} class="text-gray-500" />
+								{/if}
+								<div>
+									<h4 class="text-md font-medium text-gray-900">{budgetCategory.name}</h4>
+									<div class="text-xs text-gray-500">
+										예산: {formatCurrency(totalAmount)} | 
+										증빙: {totalItems}개 | 
+										완료: {completedItems}개 | 
+										진행중: {inProgressItems}개
+									</div>
+								</div>
+							</div>
+							<div class="flex items-center space-x-3">
+								<div class="flex items-center">
+									<div class="w-20 bg-gray-200 rounded-full h-2 mr-2">
+										<div 
+											class="h-2 rounded-full {overallProgress >= 100 ? 'bg-green-600' : overallProgress >= 70 ? 'bg-blue-600' : overallProgress >= 30 ? 'bg-yellow-500' : 'bg-red-500'}" 
+											style="width: {Math.min(overallProgress, 100)}%"
+										></div>
+									</div>
+									<span class="text-xs text-gray-600">{overallProgress}%</span>
+								</div>
+								<ThemeButton variant="ghost" size="sm" onclick={() => openEvidenceDetail(budgetCategory)}>
+									<PlusIcon size={14} class="mr-1" />
+									추가
+								</ThemeButton>
+							</div>
+						</button>
+					
+						<!-- 카테고리 내용 -->
+						{#if expandedEvidenceSections[budgetCategory.type]}
+							<div class="p-4 border-t border-gray-200">
+								{#if categoryItems.length > 0}
+		<div class="overflow-x-auto">
+			<table class="min-w-full divide-y divide-gray-200">
+				<thead class="bg-gray-50">
+					<tr>
+													<th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-48">증빙 항목</th>
+													<th class="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-32">금액</th>
+													<th class="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-24">담당자</th>
+													<th class="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-24">진행률</th>
+													<th class="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-24">마감일</th>
+													<th class="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-24">상태</th>
+													<th class="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-32">액션</th>
+					</tr>
+				</thead>
+				<tbody class="bg-white divide-y divide-gray-200">
+												{#each categoryItems as item}
+													{@const isOverdue = new Date(item.due_date) < new Date() && item.status !== 'completed'}
+						<tr class="hover:bg-gray-50">
+														<!-- 증빙 항목 -->
+														<td class="px-3 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
+															{item.name}
+							</td>
+														
+														<!-- 금액 -->
+														<td class="px-3 py-3 whitespace-nowrap text-sm text-gray-900 text-center">
+															<span class="font-medium">{formatCurrency(item.budget_amount)}</span>
+							</td>
+														
+														<!-- 담당자 -->
+														<td class="px-3 py-3 whitespace-nowrap text-sm text-gray-900 text-center">
+															<span class="text-gray-600">{item.assignee_full_name || item.assignee_name || '미할당'}</span>
+							</td>
+														
+														<!-- 진행률 -->
+														<td class="px-3 py-3 whitespace-nowrap text-sm text-gray-900">
+								<div class="flex items-center">
+																<div class="w-12 bg-gray-200 rounded-full h-2 mr-2">
+																	<div 
+																		class="h-2 rounded-full {item.progress >= 100 ? 'bg-green-600' : item.progress >= 70 ? 'bg-blue-600' : item.progress >= 30 ? 'bg-yellow-500' : 'bg-red-500'}" 
+																		style="width: {Math.min(item.progress, 100)}%"
+																	></div>
+									</div>
+																<span class="text-xs text-gray-600">{item.progress}%</span>
+								</div>
+							</td>
+														
+														<!-- 마감일 -->
+														<td class="px-3 py-3 whitespace-nowrap text-sm text-center">
+															<span class="text-xs {isOverdue ? 'text-red-600 font-medium' : 'text-gray-600'}">
+																{item.due_date ? formatDate(item.due_date) : '-'}
+															</span>
+							</td>
+														
+														<!-- 상태 -->
+														<td class="px-3 py-3 whitespace-nowrap text-sm text-center">
+															<span class="px-2 py-1 text-xs font-medium rounded-full {
+																item.status === 'completed' ? 'bg-green-100 text-green-800' :
+																item.status === 'in_progress' ? 'bg-blue-100 text-blue-800' :
+																item.status === 'planned' ? 'bg-gray-100 text-gray-800' :
+																'bg-yellow-100 text-yellow-800'
+															}">
+																{item.status === 'completed' ? '완료' :
+																 item.status === 'in_progress' ? '진행중' :
+																 item.status === 'planned' ? '계획' : '검토중'}
+															</span>
+														</td>
+														
+							<!-- 액션 -->
+														<td class="px-3 py-3 whitespace-nowrap text-sm font-medium text-center">
+															<div class="flex space-x-1 justify-center">
+																<ThemeButton variant="ghost" size="sm" onclick={() => openEvidenceDetail(item)}>
+																	<EditIcon size={12} class="mr-1" />
+																	상세
+									</ThemeButton>
+								</div>
+							</td>
+						</tr>
+					{/each}
+				</tbody>
+			</table>
+		</div>
+								{:else}
+									<div class="text-center py-8 text-gray-500">
+										<FileTextIcon size={48} class="mx-auto mb-2 text-gray-300" />
+										<p>등록된 증빙 항목이 없습니다.</p>
+										<ThemeButton variant="ghost" size="sm" class="mt-2" onclick={() => openEvidenceDetail(budgetCategory)}>
+											<PlusIcon size={14} class="mr-1" />
+											첫 번째 증빙 추가
+										</ThemeButton>
+</div>
+								{/if}
+							</div>
+						{/if}
+					</div>
+				{/each}
+			</div>
+		{/if}
+	{:else}
+		<div class="text-center py-8 text-gray-500">
+			<FileTextIcon size={48} class="mx-auto mb-2 text-gray-300" />
+			<p>등록된 사업비가 없어 증빙을 관리할 수 없습니다.</p>
 		</div>
 	{/if}
 </ThemeCard>
+
+<!-- 증빙 상세 모달 -->
+{#if showEvidenceDetailModal}
+<ThemeModal open={showEvidenceDetailModal} onclose={() => showEvidenceDetailModal = false}>
+	<div class="p-6 max-w-4xl">
+		<div class="flex items-center justify-between mb-4">
+			<h3 class="text-lg font-medium text-gray-900">
+				{selectedEvidenceItem?.name} 증빙 관리
+			</h3>
+			<button 
+				onclick={() => showEvidenceDetailModal = false}
+				class="text-gray-400 hover:text-gray-600"
+			>
+				<XIcon size={20} />
+			</button>
+		</div>
+		
+		{#if selectedEvidenceItem}
+	<div class="space-y-6">
+		<!-- 기본 정보 -->
+				<div class="bg-gray-50 rounded-lg p-4">
+					<h4 class="text-md font-medium text-gray-900 mb-3">기본 정보</h4>
+					<div class="grid grid-cols-2 gap-4 text-sm">
+			<div>
+							<span class="text-gray-600">예산액:</span>
+							<span class="ml-2 font-medium">
+								{formatCurrency(selectedEvidenceItem.budget_amount || 0)}
+							</span>
+			</div>
+			<div>
+							<span class="text-gray-600">담당자:</span>
+							<span class="ml-2">{selectedEvidenceItem.assignee_name || selectedEvidenceItem.assignee_full_name || '미지정'}</span>
+						</div>
+						<div>
+							<span class="text-gray-600">진행률:</span>
+							<span class="ml-2">{selectedEvidenceItem.progress || 0}%</span>
+						</div>
+						<div>
+							<span class="text-gray-600">마감일:</span>
+							<span class="ml-2">{selectedEvidenceItem.due_date ? formatDate(selectedEvidenceItem.due_date) : '미설정'}</span>
+						</div>
+						<div>
+							<span class="text-gray-600">상태:</span>
+							<span class="ml-2">
+								{#if selectedEvidenceItem.status === 'completed'}
+									<span class="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">완료</span>
+								{:else if selectedEvidenceItem.status === 'in_progress'}
+									<span class="px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800">진행중</span>
+								{:else if selectedEvidenceItem.status === 'planned'}
+									<span class="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-800">계획</span>
+								{:else}
+									<span class="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">{selectedEvidenceItem.status}</span>
+								{/if}
+							</span>
+						</div>
+						<div>
+							<span class="text-gray-600">카테고리:</span>
+							<span class="ml-2">{selectedEvidenceItem.category_name}</span>
+						</div>
+			</div>
+		</div>
+
+				<!-- 증빙 서류 관리 -->
+				<div class="space-y-4">
+						<div class="flex items-center justify-between">
+							<h5 class="text-md font-medium text-gray-900">증빙 서류</h5>
+							<ThemeButton size="sm">
+								<PlusIcon size={14} class="mr-1" />
+								서류 추가
+							</ThemeButton>
+						</div>
+						
+			<div class="space-y-2">
+							{#if selectedEvidenceItem.documents && selectedEvidenceItem.documents.length > 0}
+								{#each selectedEvidenceItem.documents as document}
+									<div class="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg">
+										<div class="flex items-center space-x-3">
+											<div>
+												<div class="font-medium text-sm">{document.document_type}</div>
+												<div class="text-xs text-gray-500">{document.document_name}</div>
+												{#if document.uploader_name}
+													<div class="text-xs text-gray-400">업로더: {document.uploader_name}</div>
+												{/if}
+											</div>
+											{#if document.file_size}
+												<div class="text-xs text-gray-500">
+													크기: {(document.file_size / 1024).toFixed(1)}KB
+												</div>
+											{/if}
+										</div>
+										<div class="flex items-center space-x-2">
+											{#if document.status === 'approved'}
+												<span class="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
+													승인됨
+												</span>
+											{:else if document.status === 'reviewed'}
+												<span class="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">
+													검토됨
+												</span>
+											{:else if document.status === 'rejected'}
+												<span class="px-2 py-1 text-xs font-medium rounded-full bg-red-100 text-red-800">
+													거부됨
+												</span>
+											{:else}
+												<span class="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-800">
+													업로드됨
+												</span>
+											{/if}
+											<ThemeButton variant="ghost" size="sm">
+												<FileTextIcon size={12} class="mr-1" />
+												보기
+											</ThemeButton>
+										</div>
+									</div>
+								{/each}
+							{:else}
+								<div class="text-center py-8 text-gray-500">
+									<FileTextIcon size={48} class="mx-auto mb-2 text-gray-300" />
+									<p>등록된 증빙 서류가 없습니다.</p>
+								</div>
+							{/if}
+				</div>
+			</div>
+
+				<!-- 증빙 일정 관리 -->
+				<div class="space-y-4">
+						<div class="flex items-center justify-between">
+							<h5 class="text-md font-medium text-gray-900">증빙 일정</h5>
+							<ThemeButton size="sm">
+								<PlusIcon size={14} class="mr-1" />
+								일정 추가
+							</ThemeButton>
+						</div>
+						
+			<div class="space-y-2">
+							{#if selectedEvidenceItem.schedules && selectedEvidenceItem.schedules.length > 0}
+								{#each selectedEvidenceItem.schedules as schedule}
+									<div class="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg">
+										<div class="flex items-center space-x-3">
+											<div>
+												<div class="font-medium text-sm">{schedule.task_name}</div>
+												{#if schedule.description}
+													<div class="text-xs text-gray-500">{schedule.description}</div>
+												{/if}
+												<div class="text-xs text-gray-400">
+													마감일: {formatDate(schedule.due_date)}
+													{#if schedule.assignee_name}
+														| 담당자: {schedule.assignee_name}
+													{/if}
+												</div>
+											</div>
+										</div>
+										<div class="flex items-center space-x-2">
+											{#if schedule.status === 'completed'}
+												<span class="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
+													완료
+												</span>
+											{:else if schedule.status === 'in_progress'}
+												<span class="px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800">
+													진행중
+												</span>
+											{:else if schedule.status === 'overdue'}
+												<span class="px-2 py-1 text-xs font-medium rounded-full bg-red-100 text-red-800">
+													지연
+												</span>
+											{:else}
+												<span class="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-800">
+													대기
+												</span>
+											{/if}
+											{#if schedule.priority === 'high'}
+												<span class="px-1 py-1 text-xs font-medium rounded-full bg-red-100 text-red-800">
+													높음
+												</span>
+											{:else if schedule.priority === 'urgent'}
+												<span class="px-1 py-1 text-xs font-medium rounded-full bg-red-200 text-red-900">
+													긴급
+												</span>
+											{/if}
+										</div>
+									</div>
+								{/each}
+							{:else}
+								<div class="text-center py-8 text-gray-500">
+									<CalendarIcon size={48} class="mx-auto mb-2 text-gray-300" />
+									<p>등록된 증빙 일정이 없습니다.</p>
+								</div>
+							{/if}
+				</div>
+			</div>
+				
+				<!-- 액션 버튼 -->
+				<div class="flex justify-end space-x-3 pt-4 border-t border-gray-200">
+					<ThemeButton variant="ghost" onclick={() => showEvidenceDetailModal = false}>
+						닫기
+					</ThemeButton>
+					<ThemeButton>
+						저장
+					</ThemeButton>
+				</div>
+			</div>
+		{/if}
+	</div>
+</ThemeModal>
+{/if}
+
+<!-- 증빙 추가 모달 -->
+{#if showEvidenceModal}
+<ThemeModal open={showEvidenceModal} onclose={() => showEvidenceModal = false}>
+	<div class="p-6 max-w-2xl">
+		<div class="flex items-center justify-between mb-4">
+			<h3 class="text-lg font-medium text-gray-900">증빙 항목 추가</h3>
+			<button 
+				onclick={() => showEvidenceModal = false}
+				class="text-gray-400 hover:text-gray-600"
+			>
+				<XIcon size={20} />
+			</button>
+		</div>
+		
+		<div class="space-y-4">
+			<!-- 증빙 카테고리 선택 -->
+			<div>
+				<label for="evidence-category" class="block text-sm font-medium text-gray-700 mb-1">
+					증빙 카테고리 *
+				</label>
+				<select 
+					id="evidence-category"
+					bind:value={newEvidenceForm.categoryId}
+					class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+					required
+				>
+					<option value="">카테고리를 선택하세요</option>
+					{#each evidenceCategories as category}
+						<option value={category.id}>{category.name}</option>
+					{/each}
+				</select>
+			</div>
+
+			<!-- 증빙 항목명 -->
+			<div>
+				<label for="evidence-name" class="block text-sm font-medium text-gray-700 mb-1">
+					증빙 항목명 *
+				</label>
+				<input
+					id="evidence-name"
+					type="text"
+					bind:value={newEvidenceForm.name}
+					class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+					placeholder="예: 박기선 (2025-01), 모터 10개, 출장비 (국내)"
+					required
+				/>
+			</div>
+
+			<!-- 설명 -->
+			<div>
+				<label for="evidence-description" class="block text-sm font-medium text-gray-700 mb-1">
+					설명
+				</label>
+				<textarea
+					id="evidence-description"
+					bind:value={newEvidenceForm.description}
+					rows="3"
+					class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+					placeholder="증빙 항목에 대한 상세 설명"
+				></textarea>
+			</div>
+
+			<!-- 예산액 -->
+			<div>
+				<label for="evidence-budget-amount" class="block text-sm font-medium text-gray-700 mb-1">
+					예산액 *
+				</label>
+				<input
+					id="evidence-budget-amount"
+					type="number"
+					bind:value={newEvidenceForm.budgetAmount}
+					class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+					placeholder="0"
+					required
+				/>
+			</div>
+
+			<!-- 담당자 -->
+			<div>
+				<label for="evidence-assignee" class="block text-sm font-medium text-gray-700 mb-1">
+					담당자
+				</label>
+				<select 
+					id="evidence-assignee"
+					bind:value={newEvidenceForm.assigneeId}
+					class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+				>
+					<option value="">담당자를 선택하세요</option>
+					{#each availableEmployees as employee}
+						<option value={employee.id}>
+							{employee.first_name} {employee.last_name}
+						</option>
+					{/each}
+				</select>
+			</div>
+
+			<!-- 마감일 -->
+			<div>
+				<label for="evidence-due-date" class="block text-sm font-medium text-gray-700 mb-1">
+					마감일
+				</label>
+				<input
+					id="evidence-due-date"
+					type="date"
+					bind:value={newEvidenceForm.dueDate}
+					class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+				/>
+			</div>
+		</div>
+
+		<!-- 액션 버튼 -->
+		<div class="flex justify-end space-x-3 pt-4 border-t border-gray-200 mt-6">
+			<ThemeButton variant="ghost" onclick={() => showEvidenceModal = false}>
+				취소
+			</ThemeButton>
+			<ThemeButton onclick={handleAddEvidenceItem} disabled={isUpdating}>
+				{isUpdating ? '추가 중...' : '추가'}
+			</ThemeButton>
+		</div>
+	</div>
+</ThemeModal>
+{/if}
 
 <!-- 프로젝트 수정 모달 -->
 {#if showEditProjectModal}
@@ -1959,30 +2700,30 @@
 				<label for="edit-project-title" class="block text-sm font-medium text-gray-700 mb-1">
 					프로젝트 제목 *
 				</label>
-				<input
+						<input
 					id="edit-project-title"
 					type="text"
 					bind:value={projectForm.title}
-					class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+							class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 					placeholder="프로젝트 제목을 입력하세요"
 					required
-				/>
-			</div>
+						/>
+					</div>
 
 			<!-- 프로젝트 코드 -->
-			<div>
+					<div>
 				<label for="edit-project-code" class="block text-sm font-medium text-gray-700 mb-1">
 					프로젝트 코드 *
 				</label>
-				<input
+						<input
 					id="edit-project-code"
 					type="text"
 					bind:value={projectForm.code}
-					class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+							class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 					placeholder="프로젝트 코드를 입력하세요"
 					required
-				/>
-			</div>
+						/>
+					</div>
 
 			<!-- 프로젝트 설명 -->
 			<div>
@@ -1996,35 +2737,35 @@
 					class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 					placeholder="프로젝트 설명을 입력하세요"
 				></textarea>
-			</div>
+		</div>
 
 			<!-- 프로젝트 기간 -->
 			<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-				<div>
+					<div>
 					<label for="edit-project-start-date" class="block text-sm font-medium text-gray-700 mb-1">
 						시작일 *
 					</label>
-					<input
+						<input
 						id="edit-project-start-date"
 						type="date"
 						bind:value={projectForm.startDate}
-						class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+							class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 						required
-					/>
-				</div>
-				<div>
+						/>
+					</div>
+					<div>
 					<label for="edit-project-end-date" class="block text-sm font-medium text-gray-700 mb-1">
 						종료일 *
 					</label>
-					<input
+						<input
 						id="edit-project-end-date"
 						type="date"
 						bind:value={projectForm.endDate}
-						class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+							class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
 						required
-					/>
+						/>
+					</div>
 				</div>
-			</div>
 
 			<!-- 프로젝트 상태 및 우선순위 -->
 			<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -2095,18 +2836,18 @@
 						<option value="applied">응용연구</option>
 						<option value="development">개발연구</option>
 					</select>
-				</div>
 			</div>
 		</div>
+	</div>
 
-		<div class="flex justify-end space-x-3 mt-6">
+	<div class="flex justify-end space-x-3 mt-6">
 			<ThemeButton 
 				variant="ghost" 
 				onclick={() => showEditProjectModal = false}
 				disabled={isUpdating}
 			>
-				취소
-			</ThemeButton>
+			취소
+		</ThemeButton>
 			<ThemeButton 
 				onclick={updateProject}
 				disabled={isUpdating}
@@ -2116,7 +2857,7 @@
 				{:else}
 					수정
 				{/if}
-			</ThemeButton>
+		</ThemeButton>
 		</div>
 	</div>
 </ThemeModal>

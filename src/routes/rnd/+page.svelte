@@ -1,9 +1,10 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
-	import Card from '$lib/components/ui/Card.svelte';
-	import Badge from '$lib/components/ui/Badge.svelte';
-	import SimpleChart from '$lib/components/ui/SimpleChart.svelte';
-	import { initializeDummyData } from '$lib/stores/rnd/init-dummy-data';
+	import Badge from '$lib/components/ui/Badge.svelte'
+	import Card from '$lib/components/ui/Card.svelte'
+	import SimpleChart from '$lib/components/ui/SimpleChart.svelte'
+	import { initializeDummyData } from '$lib/stores/rnd/init-dummy-data'
+	import { ExternalLinkIcon } from '@lucide/svelte'
+	import { onMount } from 'svelte'
 	
 	// 대시보드 데이터
 	let dashboardData = $state({
@@ -254,6 +255,10 @@
 			<p class="mt-2 text-gray-600">경영지원팀 - 전체 프로젝트 현황 및 모니터링</p>
 		</div>
 		<div class="flex items-center space-x-4">
+			<a href="/rnd/rnd-asw" class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors">
+				<ExternalLinkIcon size={16} class="mr-2" />
+				RND-ASW 프로젝트
+			</a>
 			<button class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
 				새 프로젝트 생성
 			</button>
