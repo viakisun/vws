@@ -1,25 +1,24 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
-	import PageLayout from '$lib/components/layout/PageLayout.svelte';
-	import ThemeCard from '$lib/components/ui/ThemeCard.svelte';
-	import ThemeButton from '$lib/components/ui/ThemeButton.svelte';
-	import ThemeTabs from '$lib/components/ui/ThemeTabs.svelte';
-	import ThemeSpacer from '$lib/components/ui/ThemeSpacer.svelte';
-	import ThemeSectionHeader from '$lib/components/ui/ThemeSectionHeader.svelte';
-	import CompanyModal from '$lib/components/ui/CompanyModal.svelte';
-	import { 
-		SettingsIcon,
-		BuildingIcon,
-		UserIcon,
-		ShieldIcon,
+	import PageLayout from '$lib/components/layout/PageLayout.svelte'
+	import CompanyModal from '$lib/components/ui/CompanyModal.svelte'
+	import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
+	import ThemeCard from '$lib/components/ui/ThemeCard.svelte'
+	import ThemeSectionHeader from '$lib/components/ui/ThemeSectionHeader.svelte'
+	import ThemeSpacer from '$lib/components/ui/ThemeSpacer.svelte'
+	import ThemeTabs from '$lib/components/ui/ThemeTabs.svelte'
+	import { availableTimezones, currentTimezone, setUserTimezone, userTimezone } from '$lib/stores/timezone'
+	import {
 		BellIcon,
-		PaletteIcon,
+		BuildingIcon,
+		ClockIcon,
 		DatabaseIcon,
-		GlobeIcon,
+		FileTextIcon,
+		PaletteIcon,
 		PlusIcon,
-		EditIcon,
-		FileTextIcon
-	} from '@lucide/svelte';
+		ShieldIcon,
+		UserIcon
+	} from '@lucide/svelte'
+	import { onMount } from 'svelte'
 
 	// 회사 정보 관련 상태
 	interface Company {
@@ -53,6 +52,11 @@
 			id: 'profile',
 			label: '프로필',
 			icon: UserIcon
+		},
+		{
+			id: 'timezone',
+			label: '시간 설정',
+			icon: ClockIcon
 		},
 		{
 			id: 'security',
@@ -251,6 +255,92 @@
 							<UserIcon class="w-16 h-16 mx-auto mb-4" style="color: var(--color-text-secondary);" />
 							<h3 class="text-lg font-semibold mb-2" style="color: var(--color-text);">프로필 설정</h3>
 							<p class="text-sm" style="color: var(--color-text-secondary);">개인 프로필 설정 기능이 곧 추가될 예정입니다.</p>
+						</div>
+					</ThemeCard>
+				</ThemeSpacer>
+			{:else if tab.id === 'timezone'}
+				<!-- 시간 설정 탭 -->
+				<ThemeSpacer size={6}>
+					<ThemeCard>
+						<ThemeSectionHeader title="시간대 설정" />
+						
+						<div class="space-y-6">
+							<!-- 현재 시간 표시 -->
+							<div class="p-4 rounded-lg" style="background-color: var(--color-surface-secondary);">
+								<h4 class="font-medium mb-2" style="color: var(--color-text);">현재 시간</h4>
+								<div class="text-2xl font-mono" style="color: var(--color-text-accent);">
+									{$currentTimezone.displayName}
+								</div>
+								<div class="text-sm mt-1" style="color: var(--color-text-secondary);">
+									현재 시간: {new Date().toLocaleString('ko-KR', { 
+										timeZone: $currentTimezone.timezoneString,
+										year: 'numeric',
+										month: '2-digit',
+										day: '2-digit',
+										hour: '2-digit',
+										minute: '2-digit',
+										second: '2-digit',
+										timeZoneName: 'short'
+									})}
+								</div>
+							</div>
+
+							<!-- 타임존 선택 -->
+							<div>
+								<label for="timezone-select" class="block text-sm font-medium mb-2" style="color: var(--color-text);">
+									시간대 선택
+								</label>
+								<select
+									id="timezone-select"
+									bind:value={$userTimezone}
+									onchange={(e) => setUserTimezone((e.target as HTMLSelectElement).value)}
+									class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+									style="background-color: var(--color-surface); border-color: var(--color-border); color: var(--color-text);"
+								>
+									{#each availableTimezones as tz}
+										<option value={tz.key}>{tz.displayName}</option>
+									{/each}
+								</select>
+								<p class="text-xs mt-1" style="color: var(--color-text-secondary);">
+									시간대를 변경하면 모든 날짜와 시간이 새로운 시간대에 맞게 표시됩니다.
+								</p>
+							</div>
+
+							<!-- 지원되는 타임존 목록 -->
+							<div>
+								<h4 class="font-medium mb-3" style="color: var(--color-text);">지원되는 시간대</h4>
+								<div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+									{#each availableTimezones as tz}
+										<button
+											type="button"
+											class="p-3 rounded-lg border cursor-pointer transition-colors text-left w-full"
+											class:bg-blue-50={$userTimezone === tz.key}
+											class:border-blue-300={$userTimezone === tz.key}
+											class:bg-gray-50={$userTimezone !== tz.key}
+											class:border-gray-200={$userTimezone !== tz.key}
+											onclick={() => setUserTimezone(tz.key)}
+										>
+											<div class="font-medium text-sm" style="color: var(--color-text);">
+												{tz.displayName}
+											</div>
+											<div class="text-xs mt-1" style="color: var(--color-text-secondary);">
+												{tz.value}
+											</div>
+										</button>
+									{/each}
+								</div>
+							</div>
+
+							<!-- 시간대 정보 -->
+							<div class="p-4 rounded-lg" style="background-color: var(--color-surface-secondary);">
+								<h4 class="font-medium mb-2" style="color: var(--color-text);">시간대 정보</h4>
+								<div class="text-sm space-y-1" style="color: var(--color-text-secondary);">
+									<p>• 모든 데이터는 UTC 기준으로 저장됩니다</p>
+									<p>• 선택한 시간대에 따라 날짜와 시간이 표시됩니다</p>
+									<p>• 프로젝트 생성 및 수정 시 선택한 시간대가 적용됩니다</p>
+									<p>• 설정은 브라우저에 저장되며 다른 기기와 동기화되지 않습니다</p>
+								</div>
+							</div>
 						</div>
 					</ThemeCard>
 				</ThemeSpacer>

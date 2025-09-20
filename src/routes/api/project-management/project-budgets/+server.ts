@@ -1,4 +1,5 @@
 import { query } from '$lib/database/connection'
+import { transformArrayData, transformProjectBudgetData } from '$lib/utils/api-data-transformer'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
 
@@ -38,9 +39,12 @@ export const GET: RequestHandler = async ({ url }) => {
 
 		const result = await query(sqlQuery, params)
 
+		// 데이터 변환: snake_case를 camelCase로 변환
+		const transformedData = transformArrayData(result.rows, transformProjectBudgetData)
+
 		return json({
 			success: true,
-			data: result.rows
+			data: transformedData
 		})
 	} catch (error) {
 		console.error('프로젝트 사업비 조회 실패:', error)

@@ -1,0 +1,214 @@
+name: 자동 검증 및 품질 관리
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    # 매일 오전 9시에 실행
+    - cron: '0 9 * * *'
+
+jobs:
+  auto-validation:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 코드 체크아웃
+      uses: actions/checkout@v4
+      
+    - name: Node.js 설정
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: 의존성 설치
+      run: npm ci
+      
+    - name: 자동 검증 서비스 테스트
+      run: npm run auto-validation:test
+      
+    - name: 코드 품질 검사
+      run: |
+        npm run lint:strict
+        npm run format:check
+        npm run check
+        
+    - name: 보안 검사
+      run: npm run security:audit
+      
+    - name: 자동 검증 실행
+      run: |
+        # 백그라운드에서 자동 검증 서비스 시작
+        npm run auto-validation:start
+        
+        # 30초 대기
+        sleep 30
+        
+        # 검증 결과 확인
+        npm run auto-validation:status
+        
+        # 로그 확인
+        npm run auto-validation:logs 100
+        
+        # 서비스 중지
+        npm run auto-validation:stop
+        
+    - name: 테스트 실행
+      run: npm run test:coverage
+      
+    - name: 빌드 테스트
+      run: npm run build
+      
+    - name: 검증 결과 업로드
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: validation-results
+        path: |
+          logs/
+          coverage/
+        retention-days: 30
+        
+    - name: 검증 실패 시 알림
+      if: failure()
+      uses: 8398a7/action-slack@v3
+      with:
+        status: failure
+        channel: '#dev-alerts'
+        text: '자동 검증 실패: ${{ github.repository }}'
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+  dependency-analysis:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 코드 체크아웃
+      uses: actions/checkout@v4
+      
+    - name: Node.js 설정
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: 의존성 설치
+      run: npm ci
+      
+    - name: 의존성 분석
+      run: |
+        # 의존성 분석 실행
+        curl -X GET "http://localhost:5173/api/project-management/safe-change-management?action=analyze&scope=project" \
+          -H "Content-Type: application/json" \
+          -o dependency-analysis.json
+          
+    - name: 의존성 분석 결과 업로드
+      uses: actions/upload-artifact@v4
+      with:
+        name: dependency-analysis
+        path: dependency-analysis.json
+        retention-days: 30
+
+  code-quality:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 코드 체크아웃
+      uses: actions/checkout@v4
+      
+    - name: Node.js 설정
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: 의존성 설치
+      run: npm ci
+      
+    - name: 코드 품질 검사
+      run: |
+        # ESLint 검사
+        npm run lint:strict
+        
+        # Prettier 검사
+        npm run format:check
+        
+        # TypeScript 검사
+        npm run check
+        
+        # 품질 게이트
+        npm run quality:gate
+        
+    - name: 코드 커버리지
+      run: npm run test:coverage
+      
+    - name: 커버리지 리포트 업로드
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage/lcov.info
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: false
+
+  security-scan:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 코드 체크아웃
+      uses: actions/checkout@v4
+      
+    - name: Node.js 설정
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: 의존성 설치
+      run: npm ci
+      
+    - name: 보안 검사
+      run: |
+        # npm audit
+        npm run security:audit
+        
+        # 취약점 자동 수정 시도
+        npm run security:fix
+        
+    - name: 보안 스캔 결과 업로드
+      uses: actions/upload-artifact@v4
+      with:
+        name: security-scan-results
+        path: |
+          npm-audit.json
+        retention-days: 30
+
+  notification:
+    runs-on: ubuntu-latest
+    needs: [auto-validation, dependency-analysis, code-quality, security-scan]
+    if: always()
+    
+    steps:
+    - name: 성공 알림
+      if: ${{ needs.auto-validation.result == 'success' && needs.dependency-analysis.result == 'success' && needs.code-quality.result == 'success' && needs.security-scan.result == 'success' }}
+      uses: 8398a7/action-slack@v3
+      with:
+        status: success
+        channel: '#dev-success'
+        text: '모든 자동 검증이 성공했습니다! 🎉'
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        
+    - name: 실패 알림
+      if: ${{ needs.auto-validation.result == 'failure' || needs.dependency-analysis.result == 'failure' || needs.code-quality.result == 'failure' || needs.security-scan.result == 'failure' }}
+      uses: 8398a7/action-slack@v3
+      with:
+        status: failure
+        channel: '#dev-alerts'
+        text: '자동 검증 중 일부가 실패했습니다. 확인이 필요합니다.'
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+
+

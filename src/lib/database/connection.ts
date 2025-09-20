@@ -208,6 +208,11 @@ export interface DatabaseTransaction {
 
 // Utility functions for common database operations
 export class DatabaseService {
+	// 쿼리 메서드
+	static async query(text: string, params?: any[]) {
+		return await query(text, params)
+	}
+
 	// User operations
 	static async createUser(userData: Partial<DatabaseUser>): Promise<DatabaseUser> {
 		const result = await query<DatabaseUser>(

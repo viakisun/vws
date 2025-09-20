@@ -1,147 +1,49 @@
 {
-	// === 기본 에디터 설정 ===
-	"editor.formatOnSave": true,
-	"editor.codeActionsOnSave": {
-		"source.fixAll.eslint": "explicit",
-		"source.organizeImports": "explicit",
-		"source.fixAll.prettier": "explicit"
+	"files.watcherExclude": {
+		"**/node_modules/**": true,
+		"**/.git/**": true,
+		"**/dist/**": true,
+		"**/build/**": true,
+		"**/.svelte-kit/**": true
 	},
+	"typescript.preferences.includePackageJsonAutoImports": "auto",
+	"editor.codeActionsOnSave": {
+		"source.fixAll": "explicit",
+		"source.organizeImports": "explicit"
+	},
+	"editor.formatOnSave": true,
 	"editor.defaultFormatter": "esbenp.prettier-vscode",
-	"editor.tabSize": 2,
-	"editor.insertSpaces": false,
-	"editor.detectIndentation": false,
-	"editor.rulers": [100],
-	"editor.wordWrap": "on",
-	"editor.bracketPairColorization.enabled": true,
-	"editor.guides.bracketPairs": true,
-
-	// === ESLint 설정 ===
+	"typescript.suggest.autoImports": true,
+	"typescript.updateImportsOnFileMove.enabled": "always",
 	"eslint.validate": [
 		"javascript",
 		"typescript",
 		"svelte"
 	],
 	"eslint.format.enable": true,
-	"eslint.run": "onSave",
-	"eslint.options": {
-		"extensions": [".js", ".ts", ".svelte"]
-	},
-
-	// === TypeScript 설정 ===
-	"typescript.preferences.importModuleSpecifier": "relative",
-	"typescript.suggest.autoImports": true,
-	"typescript.updateImportsOnFileMove.enabled": "always",
-	"typescript.inlayHints.parameterNames.enabled": "all",
-	"typescript.inlayHints.variableTypes.enabled": true,
-	"typescript.inlayHints.functionLikeReturnTypes.enabled": true,
-	"typescript.preferences.includePackageJsonAutoImports": "auto",
-	"typescript.reportStyleChecksAsWarnings": false,
-	"typescript.validate.enable": true,
-	"typescript.preferences.includePackageJsonAutoImports": "auto",
-	"typescript.suggest.includeAutomaticOptionalChainCompletions": true,
-	"typescript.suggest.includeCompletionsForImportStatements": true,
-	"typescript.suggest.includeCompletionsWithSnippetText": true,
-
-	// === Svelte 설정 ===
 	"svelte.enable-ts-plugin": true,
-	"svelte.plugin.svelte.format.enable": true,
-	"svelte.plugin.svelte.completions.enable": true,
-	"svelte.plugin.typescript.diagnostics.enable": true,
-	"svelte.plugin.typescript.hover.enable": true,
-	"svelte.plugin.typescript.completions.enable": true,
-	"svelte.plugin.svelte.codeActions.enable": true,
-	"svelte.plugin.svelte.diagnostics.enable": true,
-	"svelte.plugin.svelte.hover.enable": true,
-	"svelte.plugin.svelte.semanticTokens.enable": true,
-	"svelte.plugin.svelte.organizeImports.enable": true,
-
-	// === 파일 연결 ===
 	"files.associations": {
 		"*.svelte": "svelte"
 	},
-
-	// === 검색 제외 ===
-	"search.exclude": {
-		"**/node_modules": true,
-		"**/build": true,
-		"**/dist": true,
-		"**/.svelte-kit": true,
-		"**/coverage": true
-	},
-
-	// === 파일 감시 제외 ===
-	"files.watcherExclude": {
-		"**/node_modules/**": true,
-		"**/build/**": true,
-		"**/dist/**": true,
-		"**/.svelte-kit/**": true,
-		"**/coverage/**": true
-	},
-
-	// === 자동 저장 설정 ===
-	"files.autoSave": "afterDelay",
-	"files.autoSaveDelay": 1000,
-
-	// === Git 설정 ===
-	"git.autofetch": true,
-	"git.confirmSync": false,
-	"git.enableSmartCommit": true,
-
-	// === 터미널 설정 ===
-	"terminal.integrated.defaultProfile.osx": "zsh",
-	"terminal.integrated.fontSize": 14,
-
-	// === 워크벤치 설정 ===
-	"workbench.colorTheme": "Default Dark+",
-	"workbench.iconTheme": "material-icon-theme",
-	"workbench.editor.enablePreview": false,
-	"workbench.editor.closeOnFileDelete": true,
-
-	// === 언어별 설정 ===
-	"[typescript]": {
-		"editor.defaultFormatter": "esbenp.prettier-vscode",
-		"editor.formatOnSave": true,
-		"editor.codeActionsOnSave": {
-			"source.fixAll.eslint": "explicit"
-		}
-	},
-	"[javascript]": {
-		"editor.defaultFormatter": "esbenp.prettier-vscode",
-		"editor.formatOnSave": true,
-		"editor.codeActionsOnSave": {
-			"source.fixAll.eslint": "explicit"
-		}
-	},
-	"[svelte]": {
-		"editor.defaultFormatter": "esbenp.prettier-vscode",
-		"editor.formatOnSave": true,
-		"editor.codeActionsOnSave": {
-			"source.fixAll.eslint": "explicit"
-		}
-	},
-	"[json]": {
-		"editor.defaultFormatter": "esbenp.prettier-vscode",
-		"editor.formatOnSave": true
-	},
-	"[markdown]": {
-		"editor.defaultFormatter": "esbenp.prettier-vscode",
-		"editor.formatOnSave": true,
-		"editor.wordWrap": "on",
-		"editor.quickSuggestions": {
-			"comments": "off",
-			"strings": "off",
-			"other": "off"
-		}
-	},
-
-	// === 확장 프로그램별 설정 ===
 	"emmet.includeLanguages": {
 		"svelte": "html"
 	},
-	"tailwindCSS.includeLanguages": {
-		"svelte": "html"
+	"search.exclude": {
+		"**/node_modules": true,
+		"**/dist": true,
+		"**/build": true,
+		"**/.svelte-kit": true
 	},
-	"tailwindCSS.experimental.classRegex": [
-		["class:list\\s*=\\s*\\{([^}]*)\\}", "[\"'`]([^\"'`]*).*?[\"'`]"]
-	]
+	"files.exclude": {
+		"**/.svelte-kit": true
+	},
+	"auto-validation.enabled": true,
+	"auto-validation.watchDirectories": [
+		"src/lib/utils",
+		"src/routes/api/project-management",
+		"src/lib/components/project-management"
+	],
+	"auto-validation.autoFix": true,
+	"auto-validation.showNotifications": true,
+	"auto-validation.logLevel": "info"
 }
