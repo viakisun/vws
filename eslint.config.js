@@ -32,7 +32,40 @@ export default [
 			'no-debugger': 'error',
 			'no-var': 'error',
 			'prefer-const': 'error',
-			'no-unused-vars': 'off' // Handled by TypeScript
+			'no-unused-vars': 'off', // Handled by TypeScript
+
+			// === 이름 처리 강제 규칙 ===
+			'no-restricted-syntax': [
+				'error',
+				{
+					selector: 'TemplateLiteral[expressions.length=2]',
+					message:
+						'이름 조합 시 formatEmployeeName 또는 formatKoreanNameStandard 함수를 사용하세요.'
+				},
+				{
+					selector: 'BinaryExpression[operator="+"] > Literal[value=" "]',
+					message: '이름 조합 시 공백을 직접 사용하지 마세요. 표준 함수를 사용하세요.'
+				},
+				// === 날짜 처리 강제 규칙 ===
+				{
+					selector:
+						'CallExpression[callee.object.name="Date"][callee.property.name="toLocaleDateString"]',
+					message: '날짜 표시 시 formatDateForDisplay 함수를 사용하세요.'
+				},
+				{
+					selector:
+						'CallExpression[callee.object.name="Date"][callee.property.name="toLocaleString"]',
+					message: '날짜/시간 표시 시 formatDateForDisplay 함수를 사용하세요.'
+				},
+				{
+					selector: 'CallExpression[callee.name="Date"]',
+					message: '날짜 생성 시 toUTC 함수를 사용하여 표준화하세요.'
+				},
+				{
+					selector: 'CallExpression[callee.property.name="toISOString"]',
+					message: 'UTC 변환 시 toUTC 함수를 사용하세요.'
+				}
+			]
 		}
 	},
 
