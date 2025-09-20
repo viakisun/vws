@@ -1,6 +1,6 @@
 import { browser } from '$app/environment'
-import { DEFAULT_TIMEZONE, SUPPORTED_TIMEZONES, type Timezone } from '$lib/utils/timezone'
 import { formatDateForDisplay } from '$lib/utils/date-handler'
+import { DEFAULT_TIMEZONE, SUPPORTED_TIMEZONES, type Timezone } from '$lib/utils/timezone'
 import { derived, writable } from 'svelte/store'
 
 // 타임존 설정 스토어
@@ -105,12 +105,15 @@ export const currentTime = derived(userTimezone, $timezone => {
 	const timezoneString = SUPPORTED_TIMEZONES[$timezone]
 
 	return {
-		formatted: formatDateForDisplay(now.toISOString(), 'KOREAN') + ' ' + now.toLocaleTimeString('ko-KR', {
-			timeZone: timezoneString,
-			hour: '2-digit',
-			minute: '2-digit',
-			second: '2-digit'
-		}),
+		formatted:
+			formatDateForDisplay(now.toISOString(), 'KOREAN') +
+			' ' +
+			now.toLocaleTimeString('ko-KR', {
+				timeZone: timezoneString,
+				hour: '2-digit',
+				minute: '2-digit',
+				second: '2-digit'
+			}),
 		dateOnly: formatDateForDisplay(now.toISOString(), 'KOREAN'),
 		timeOnly: now.toLocaleTimeString('ko-KR', {
 			timeZone: timezoneString,

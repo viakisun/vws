@@ -1,7 +1,7 @@
 // 시간대 검증기
 
-import { ValidationUtils } from './validation'
 import { toUTC } from './date-handler'
+import { ValidationUtils } from './validation'
 
 export interface TimezoneValidationResult {
 	isValid: boolean
@@ -416,6 +416,3 @@ export class TimezoneValidator {
 		}
 	}
 }
-
-
-

@@ -1,6 +1,6 @@
+import { formatDateForDisplay } from '$lib/utils/date-handler'
 import { json } from '@sveltejs/kit'
 import { Pool } from 'pg'
-import { formatDateForDisplay } from '$lib/utils/date-handler'
 import type { RequestHandler } from './$types'
 
 const pool = new Pool({
@@ -121,7 +121,9 @@ export const POST: RequestHandler = async ({ request }) => {
 		if (isValid) {
 			// 퇴사 예정인 직원
 			if (terminationDate && dueDateObj > terminationDate) {
-				warnings.push(`퇴사 예정일(${formatDateForDisplay(terminationDate.toISOString(), 'KOREAN')}) 이후의 인건비입니다.`)
+				warnings.push(
+					`퇴사 예정일(${formatDateForDisplay(terminationDate.toISOString(), 'KOREAN')}) 이후의 인건비입니다.`
+				)
 			}
 
 			// 입사한 지 얼마 안 된 직원
@@ -171,4 +173,3 @@ export const POST: RequestHandler = async ({ request }) => {
 		)
 	}
 }
-
