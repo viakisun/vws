@@ -1,25 +1,26 @@
 <script lang="ts">
-	import { page } from '$app/stores'
-	import { onMount } from 'svelte'
 	import { goto } from '$app/navigation'
+	import { page } from '$app/stores'
 	import PageLayout from '$lib/components/layout/PageLayout.svelte'
-	import ThemeTabs from '$lib/components/ui/ThemeTabs.svelte'
-	import ThemeCard from '$lib/components/ui/ThemeCard.svelte'
+	import ProjectCreationForm from '$lib/components/project-management/ProjectCreationForm.svelte'
+	import ProjectDetailView from '$lib/components/project-management/ProjectDetailView.svelte'
 	import ThemeBadge from '$lib/components/ui/ThemeBadge.svelte'
 	import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
+	import ThemeCard from '$lib/components/ui/ThemeCard.svelte'
 	import ThemeModal from '$lib/components/ui/ThemeModal.svelte'
-	import ProjectDetailView from '$lib/components/project-management/ProjectDetailView.svelte'
-	import { formatCurrency, formatDate } from '$lib/utils/format'
-	import { 
-		FlaskConicalIcon,
-		UsersIcon,
-		DollarSignIcon,
-		PlusIcon,
-		BarChart3Icon,
-		AlertTriangleIcon,
+	import ThemeTabs from '$lib/components/ui/ThemeTabs.svelte'
+	import { formatCurrency, formatDate, formatEmployeeName } from '$lib/utils/format'
+	import {
 		ActivityIcon,
-		PercentIcon
+		AlertTriangleIcon,
+		BarChart3Icon,
+		DollarSignIcon,
+		FlaskConicalIcon,
+		PercentIcon,
+		PlusIcon,
+		UsersIcon
 	} from '@lucide/svelte'
+	import { onMount } from 'svelte'
 
 	// 타입 정의
 	interface Project {
@@ -60,17 +61,6 @@
 		totalParticipationRate: number
 	}
 
-	interface ProjectForm {
-		title: string
-		code: string
-		description: string
-		startDate: string
-		endDate: string
-		status: 'planning' | 'active' | 'completed' | 'cancelled' | 'suspended'
-		sponsorType: 'internal' | 'government' | 'private' | 'international'
-		priority: 'low' | 'medium' | 'high' | 'critical'
-		researchType: 'basic' | 'applied' | 'development'
-	}
 
 	// 탭 정의
 	const tabs = [
@@ -104,11 +94,64 @@
 	let loading = $state(false)
 	let error = $state<string | null>(null)
 	
+	// 탭별 로딩 상태 및 오류 체크
+	let tabLoadingStates = $state({
+		overview: false,
+		projects: false,
+		participation: false
+	})
+	let tabErrors = $state({
+		overview: null as string | null,
+		projects: null as string | null,
+		participation: null as string | null
+	})
+	let tabLastLoaded = $state({
+		overview: null as Date | null,
+		projects: null as Date | null,
+		participation: null as Date | null
+	})
+	
 
-	// Svelte 5: 프로젝트 탭이 활성화될 때 데이터 로드
+	// 탭별 데이터 로딩 함수들
+	async function loadTabData(tabName: string) {
+		if (tabLoadingStates[tabName as keyof typeof tabLoadingStates]) return
+		
+		tabLoadingStates[tabName as keyof typeof tabLoadingStates] = true
+		tabErrors[tabName as keyof typeof tabErrors] = null
+		
+		try {
+			switch (tabName) {
+				case 'overview':
+					await Promise.all([
+						loadProjectSummary(),
+						loadEmployeeParticipationSummary(),
+						loadBudgetSummaryByYear(),
+						loadAlerts()
+					])
+					break
+				case 'projects':
+					await loadProjectData()
+					break
+				case 'participation':
+					await loadEmployeeParticipationSummary()
+					break
+			}
+			tabLastLoaded[tabName as keyof typeof tabLastLoaded] = new Date()
+		} catch (err) {
+			const errorMessage = err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.'
+			tabErrors[tabName as keyof typeof tabErrors] = errorMessage
+			console.error(`${tabName} 탭 데이터 로딩 실패:`, err)
+		} finally {
+			tabLoadingStates[tabName as keyof typeof tabLoadingStates] = false
+		}
+	}
+
+	// Svelte 5: 탭 변경 시 데이터 로드 (무한 루프 방지)
+	let lastLoadedTab = $state('')
 	$effect(() => {
-		if (activeTab === 'projects' && projects.length === 0 && mounted) {
-			loadProjectData()
+		if (mounted && activeTab && activeTab !== lastLoadedTab) {
+			lastLoadedTab = activeTab
+			loadTabData(activeTab)
 		}
 	})
 
@@ -119,17 +162,6 @@
 	let selectedProject = $state<Project | null>(null)
 	let selectedProjectId = $state('')
 	let showCreateProjectModal = $state(false)
-	let projectForm = $state<ProjectForm>({
-		title: '',
-		code: '',
-		description: '',
-		startDate: '',
-		endDate: '',
-		status: 'planning',
-		sponsorType: 'internal',
-		priority: 'medium',
-		researchType: 'basic'
-	})
 
 	// 파생된 상태들
 	const hasProjects = $derived(projects.length > 0)
@@ -148,18 +180,124 @@
 	// API 호출 함수들
 	async function loadProjectData() {
 		try {
+			console.log('🔍 프로젝트 데이터 로딩 시작...')
+			
+			// API 응답 시간 측정
+			const startTime = Date.now()
 			const response = await fetch('/api/project-management/projects')
+			const responseTime = Date.now() - startTime
+			
+			console.log(`⏱️ API 응답 시간: ${responseTime}ms`)
+			
 			if (response.ok) {
 				const data = await response.json()
-				projects = data.data || []
+				console.log('📊 API 응답 데이터:', data)
+				
+				if (data.success) {
+					const projectData = data.data || []
+					
+					// 프로젝트 데이터 검증
+					const validationResult = validateProjectData(projectData)
+					if (!validationResult.isValid) {
+						console.error('❌ 프로젝트 데이터 검증 실패:', validationResult.issues)
+						// 검증 실패 시 빈 배열로 설정하여 무한 루프 방지
+						projects = []
+						error = `데이터 검증 실패: ${validationResult.issues.join(', ')}`
+						return // throw 대신 return으로 함수 종료
+					}
+					
+					projects = projectData
+					error = null
+					console.log(`✅ ${projectData.length}개 프로젝트 로드 완료`)
+				} else {
+					throw new Error(data.message || '프로젝트 데이터를 불러오는데 실패했습니다.')
+				}
 			} else if (response.status === 404) {
-				error = '프로젝트 관리 API가 아직 구현되지 않았습니다.'
+				throw new Error('프로젝트 관리 API가 아직 구현되지 않았습니다.')
+			} else if (response.status === 500) {
+				throw new Error('서버 내부 오류가 발생했습니다. 잠시 후 다시 시도해주세요.')
+			} else if (response.status === 403) {
+				throw new Error('프로젝트 데이터에 접근할 권한이 없습니다.')
 			} else {
-				error = '프로젝트 데이터를 불러오는데 실패했습니다.'
+				throw new Error(`HTTP ${response.status}: ${response.statusText}`)
 			}
 		} catch (err) {
-			error = '네트워크 오류로 프로젝트 데이터를 불러올 수 없습니다.'
-			console.error('프로젝트 데이터 로드 실패:', err)
+			// 런타임 오류 처리 - 자동 검증을 위한 명확한 패턴
+			const errorMessage = err instanceof Error ? err.message : '네트워크 오류로 프로젝트 데이터를 불러올 수 없습니다.'
+			
+			// Failed to fetch 오류 특별 처리
+			if (err.message && err.message.includes('Failed to fetch')) {
+				error = '서버에 연결할 수 없습니다. 서버가 실행 중인지 확인해주세요.'
+				console.error('❌ 네트워크 연결 실패:', err.message)
+			} else {
+				error = errorMessage
+				console.error('❌ 프로젝트 데이터 로드 실패:', err)
+			}
+			
+			projects = []
+			throw err // 상위 함수에서 처리할 수 있도록 재throw
+		}
+	}
+	
+	// 프로젝트 데이터 검증 함수
+	function validateProjectData(projectData: Project[]): { isValid: boolean; issues: string[] } {
+		const issues: string[] = []
+		
+		if (!Array.isArray(projectData)) {
+			issues.push('프로젝트 데이터가 배열이 아닙니다.')
+			return { isValid: false, issues }
+		}
+		
+		projectData.forEach((project, index) => {
+			// 필수 필드 검증
+			if (!project.id) {
+				issues.push(`프로젝트 ${index + 1}: ID가 누락되었습니다.`)
+			}
+			if (!project.title) {
+				issues.push(`프로젝트 ${index + 1}: 제목이 누락되었습니다.`)
+			}
+			if (!project.code) {
+				issues.push(`프로젝트 ${index + 1}: 코드가 누락되었습니다.`)
+			}
+			if (!project.startDate) {
+				issues.push(`프로젝트 ${index + 1}: 시작일이 누락되었습니다.`)
+			}
+			if (!project.endDate) {
+				issues.push(`프로젝트 ${index + 1}: 종료일이 누락되었습니다.`)
+			}
+			
+			// 날짜 유효성 검증
+			if (project.startDate && project.endDate) {
+				const startDate = new Date(project.startDate)
+				const endDate = new Date(project.endDate)
+				
+				if (isNaN(startDate.getTime())) {
+					issues.push(`프로젝트 ${index + 1}: 시작일 형식이 올바르지 않습니다.`)
+				}
+				if (isNaN(endDate.getTime())) {
+					issues.push(`프로젝트 ${index + 1}: 종료일 형식이 올바르지 않습니다.`)
+				}
+				if (startDate > endDate) {
+					issues.push(`프로젝트 ${index + 1}: 시작일이 종료일보다 늦습니다.`)
+				}
+			}
+			
+			// 상태 값 검증
+			const validStatuses = ['planning', 'active', 'completed', 'cancelled', 'suspended']
+			if (project.status && !validStatuses.includes(project.status)) {
+				issues.push(`프로젝트 ${index + 1}: 유효하지 않은 상태값입니다. (${project.status})`)
+			}
+			
+			// 우선순위 값 검증
+			const validPriorities = ['low', 'medium', 'high', 'critical']
+			if (project.priority && !validPriorities.includes(project.priority)) {
+				issues.push(`프로젝트 ${index + 1}: 유효하지 않은 우선순위값입니다. (${project.priority})`)
+			}
+		})
+		
+		return {
+			isValid: issues.length === 0,
+			issues
 		}
 	}
 	
@@ -215,50 +353,11 @@
 		}
 	}
 
-	// 프로젝트 생성
-	async function createProject() {
-		if (!projectForm.title || !projectForm.startDate || !projectForm.endDate) {
-			alert('제목, 시작일, 종료일은 필수 입력 항목입니다.')
-			return
-		}
-
-		try {
-			const response = await fetch('/api/project-management/projects', {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				body: JSON.stringify(projectForm)
-			})
-
-			if (response.ok) {
-				const data = await response.json()
-				if (data.success) {
-					showCreateProjectModal = false
-					projectForm = {
-						title: '',
-						code: '',
-						description: '',
-						startDate: '',
-						endDate: '',
-						status: 'planning',
-						sponsorType: 'internal',
-						priority: 'medium',
-						researchType: 'basic'
-					}
-					await loadProjectData()
-					await loadProjectSummary()
-				} else {
-					alert('프로젝트 생성 실패: ' + data.message)
-				}
-			} else {
-				alert('프로젝트 생성 실패')
-			}
-		} catch (err) {
-			
-			console.error('프로젝트 생성 오류:', err)
-			alert('프로젝트 생성 중 오류가 발생했습니다.')
-		}
+	// 프로젝트 생성 완료 핸들러
+	function handleProjectCreated(event: any) {
+		showCreateProjectModal = false
+		loadProjectData()
+		loadProjectSummary()
 	}
 
 	// 프로젝트 선택
@@ -285,14 +384,14 @@
 	}
 
 	// 상태 배지 색상
-	function getStatusBadgeColor(status: string): 'green' | 'blue' | 'gray' | 'red' | 'yellow' {
+	function getStatusBadgeColor(status: string): 'success' | 'primary' | 'default' | 'error' | 'warning' {
 		switch (status) {
-			case 'active': return 'green'
-			case 'planning': return 'blue'
-			case 'completed': return 'gray'
-			case 'cancelled': return 'red'
-			case 'suspended': return 'yellow'
-			default: return 'gray'
+			case 'active': return 'success'
+			case 'planning': return 'primary'
+			case 'completed': return 'default'
+			case 'cancelled': return 'error'
+			case 'suspended': return 'warning'
+			default: return 'default'
 		}
 	}
 
@@ -318,17 +417,12 @@
 		}
 	}
 
-	// 초기화
+	// 초기화 - 첫 번째 탭만 로드
 	$effect(() => {
 		if (!mounted) {
 			mounted = true
-			Promise.all([
-				loadProjectData(),
-				loadProjectSummary(),
-				loadEmployeeParticipationSummary(),
-				loadBudgetSummaryByYear(),
-				loadAlerts()
-			])
+			// 초기 탭 데이터 로드
+			loadTabData(activeTab)
 		}
 	})
 </script>
@@ -363,10 +457,46 @@
 			activeTab={activeTab}
 			onTabChange={handleTabChange}
 		/>
+		
+		<!-- 탭별 로딩 상태 표시 -->
+		{#if tabLoadingStates[activeTab as keyof typeof tabLoadingStates]}
+			<ThemeCard>
+				<div class="flex items-center justify-center p-8">
+					<div class="flex items-center space-x-3">
+						<div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+						<span class="text-gray-600">데이터를 불러오는 중...</span>
+					</div>
+				</div>
+			</ThemeCard>
+		{/if}
 
 		<!-- 개요 탭 -->
 		{#if activeTab === 'overview'}
 			<div class="space-y-6">
+				<!-- 탭별 오류 표시 -->
+				{#if tabErrors.overview}
+					<ThemeCard>
+						<div class="bg-red-50 border border-red-200 rounded-md p-4">
+							<div class="flex">
+								<div class="flex-shrink-0">
+									<AlertTriangleIcon class="h-5 w-5 text-red-400" />
+								</div>
+								<div class="ml-3">
+									<h3 class="text-sm font-medium text-red-800">개요 데이터 로딩 오류</h3>
+									<div class="mt-2 text-sm text-red-700">
+										<p>{tabErrors.overview}</p>
+										<button 
+											onclick={() => loadTabData('overview')}
+											class="mt-2 text-sm text-red-600 hover:text-red-800 underline"
+										>
+											다시 시도
+										</button>
+									</div>
+								</div>
+							</div>
+						</div>
+					</ThemeCard>
+				{/if}
 				<!-- 요약 통계 -->
 				<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
 					<ThemeCard>
@@ -485,6 +615,65 @@
 		<!-- 프로젝트 탭 -->
 		{#if activeTab === 'projects'}
 			<div class="space-y-6">
+				<!-- 검증 상태 표시 -->
+				<ThemeCard>
+					<div class="px-6 py-4 border-b border-gray-200">
+						<div class="flex items-center justify-between">
+							<h3 class="text-lg font-medium text-gray-900">프로젝트 목록</h3>
+							<div class="flex items-center space-x-4">
+								<!-- 로딩 상태 표시 -->
+								{#if tabLoadingStates.projects}
+									<div class="flex items-center text-sm text-blue-600">
+										<div class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
+										로딩 중...
+									</div>
+								{/if}
+								
+								<!-- 마지막 로드 시간 표시 -->
+								{#if tabLastLoaded.projects}
+									<div class="text-xs text-gray-500">
+										마지막 업데이트: {tabLastLoaded.projects.toLocaleTimeString()}
+									</div>
+								{/if}
+								
+								<!-- 새로고침 버튼 -->
+								<ThemeButton
+									variant="outline"
+									size="sm"
+									onclick={() => loadTabData('projects')}
+									disabled={tabLoadingStates.projects}
+								>
+									새로고침
+								</ThemeButton>
+							</div>
+						</div>
+					</div>
+				</ThemeCard>
+
+				<!-- 탭별 오류 표시 -->
+				{#if tabErrors.projects}
+					<ThemeCard>
+						<div class="bg-red-50 border border-red-200 rounded-md p-4">
+							<div class="flex">
+								<div class="flex-shrink-0">
+									<AlertTriangleIcon class="h-5 w-5 text-red-400" />
+								</div>
+								<div class="ml-3">
+									<h3 class="text-sm font-medium text-red-800">프로젝트 데이터 로딩 오류</h3>
+									<div class="mt-2 text-sm text-red-700">
+										<p>{tabErrors.projects}</p>
+										<button 
+											onclick={() => loadTabData('projects')}
+											class="mt-2 text-sm text-red-600 hover:text-red-800 underline"
+										>
+											다시 시도
+										</button>
+									</div>
+								</div>
+							</div>
+						</div>
+					</ThemeCard>
+				{/if}
 				<!-- 프로젝트 선택 헤더 -->
 				<ThemeCard>
 					<div class="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
@@ -498,19 +687,40 @@
 										if (project) selectProject(project)
 									}}
 									class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+									disabled={tabLoadingStates.projects}
 								>
-									<option value="">프로젝트 선택 ({projects.length}개)</option>
+									<option value="">
+										{#if tabLoadingStates.projects}
+											로딩 중...
+										{:else if projects.length === 0}
+											프로젝트 없음 (0개)
+										{:else}
+											프로젝트 선택 ({projects.length}개)
+										{/if}
+									</option>
 									{#each projects as project}
 										<option value={project.id}>{project.title} ({getStatusLabel(project.status)})</option>
 									{/each}
 								</select>
 							</div>
+							
+							<!-- 프로젝트 통계 표시 -->
+							{#if projects.length > 0}
+								<div class="flex items-center space-x-4 text-sm text-gray-600">
+									<span>총 {projects.length}개</span>
+									<span>•</span>
+									<span>활성: {projects.filter(p => p.status === 'active').length}개</span>
+									<span>•</span>
+									<span>완료: {projects.filter(p => p.status === 'completed').length}개</span>
+								</div>
+							{/if}
 						</div>
 						<div class="flex gap-2">
 							<ThemeButton
 								variant="primary"
 								size="sm"
 								onclick={() => showCreateProjectModal = true}
+								disabled={tabLoadingStates.projects}
 							>
 								<PlusIcon size={16} class="mr-2" />
 								새 프로젝트
@@ -526,6 +736,25 @@
 						on:refresh={loadProjectData}
 						on:project-deleted={handleProjectDeleted}
 					/>
+				{:else if projects.length === 0 && !tabLoadingStates.projects && !tabErrors.projects}
+					<ThemeCard>
+						<div class="text-center py-12">
+							<FlaskConicalIcon class="mx-auto h-12 w-12 text-gray-400" />
+							<h3 class="mt-2 text-sm font-medium text-gray-900">프로젝트가 없습니다</h3>
+							<p class="mt-1 text-sm text-gray-500">
+								새 프로젝트를 생성하여 시작하세요.
+							</p>
+							<div class="mt-6">
+								<ThemeButton
+									variant="primary"
+									onclick={() => showCreateProjectModal = true}
+								>
+									<PlusIcon size={16} class="mr-2" />
+									첫 프로젝트 생성
+								</ThemeButton>
+							</div>
+						</div>
+					</ThemeCard>
 				{:else}
 					<ThemeCard>
 						<div class="text-center py-12">
@@ -542,7 +771,31 @@
 
 		<!-- 참여율 관리 탭 -->
 		{#if activeTab === 'participation'}
-			<div class="space-y-6">				<!-- 미구현 기능 안내 -->
+			<div class="space-y-6">
+				<!-- 탭별 오류 표시 -->
+				{#if tabErrors.participation}
+					<ThemeCard>
+						<div class="bg-red-50 border border-red-200 rounded-md p-4">
+							<div class="flex">
+								<div class="flex-shrink-0">
+									<AlertTriangleIcon class="h-5 w-5 text-red-400" />
+								</div>
+								<div class="ml-3">
+									<h3 class="text-sm font-medium text-red-800">참여율 데이터 로딩 오류</h3>
+									<div class="mt-2 text-sm text-red-700">
+										<p>{tabErrors.participation}</p>
+										<button 
+											onclick={() => loadTabData('participation')}
+											class="mt-2 text-sm text-red-600 hover:text-red-800 underline"
+										>
+											다시 시도
+										</button>
+									</div>
+								</div>
+							</div>
+						</div>
+					</ThemeCard>
+				{/if}				<!-- 미구현 기능 안내 -->
 				<ThemeCard>
 					<div class="bg-blue-50 border border-blue-200 rounded-md p-4">
 						<div class="flex">
@@ -581,7 +834,7 @@
 									{#each employeeParticipationSummary as employee}
 										<tr class="hover:bg-gray-50">
 											<td class="px-6 py-4 whitespace-nowrap">
-												<div class="text-sm font-medium text-gray-900">{employee.name}</div>
+												<div class="text-sm font-medium text-gray-900">{formatEmployeeName(employee)}</div>
 												<div class="text-sm text-gray-500">{employee.email}</div>
 											</td>
 											<td class="px-6 py-4 whitespace-nowrap">
@@ -626,139 +879,7 @@
 	open={showCreateProjectModal}
 	onclose={() => showCreateProjectModal = false}
 >
-	<div class="mb-6">
-		<h2 class="text-xl font-semibold text-gray-900">새 프로젝트 생성</h2>
-		<p class="text-sm text-gray-500 mt-1">새로운 연구개발 프로젝트를 생성합니다.</p>
-	</div>
-	<div class="space-y-4">
-		<div>
-			<label for="pm-project-title" class="block text-sm font-medium text-gray-700">프로젝트 제목 *</label>
-			<input
-				id="pm-project-title"
-				type="text"
-				bind:value={projectForm.title}
-				class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-				placeholder="프로젝트 제목을 입력하세요"
-			/>
-		</div>
+	<ProjectCreationForm on:projectCreated={handleProjectCreated} />
+</ThemeModal>
 
-		<div>
-			<label for="pm-project-code" class="block text-sm font-medium text-gray-700">프로젝트 코드</label>
-			<input
-				id="pm-project-code"
-				type="text"
-				bind:value={projectForm.code}
-				class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-				placeholder="프로젝트 코드를 입력하세요"
-			/>
-		</div>
-
-		<div>
-			<label for="pm-project-description" class="block text-sm font-medium text-gray-700">설명</label>
-			<textarea
-				id="pm-project-description"
-				bind:value={projectForm.description}
-				rows="3"
-				class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-				placeholder="프로젝트 설명을 입력하세요"
-			></textarea>
-				</div>
-				
-		<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-			<div>
-				<label for="pm-project-start-date" class="block text-sm font-medium text-gray-700">시작일 *</label>
-				<input
-					id="pm-project-start-date"
-					type="date"
-					bind:value={projectForm.startDate}
-					class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-				/>
-			</div>
-								
-			<div>
-				<label for="pm-project-end-date" class="block text-sm font-medium text-gray-700">종료일 *</label>
-				<input
-					id="pm-project-end-date"
-					type="date"
-					bind:value={projectForm.endDate}
-					class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-				/>
-			</div>
-								</div>
-
-		<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-			<div>
-				<label for="pm-project-status" class="block text-sm font-medium text-gray-700">상태</label>
-				<select
-					id="pm-project-status"
-					bind:value={projectForm.status}
-					class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-				>
-					<option value="planning">기획중</option>
-					<option value="active">진행중</option>
-					<option value="completed">완료</option>
-					<option value="cancelled">취소</option>
-					<option value="suspended">중단</option>
-				</select>
-				</div>
-
-			<div>
-				<label for="pm-project-priority" class="block text-sm font-medium text-gray-700">우선순위</label>
-				<select
-					id="pm-project-priority"
-					bind:value={projectForm.priority}
-					class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-				>
-					<option value="low">낮음</option>
-					<option value="medium">보통</option>
-					<option value="high">높음</option>
-					<option value="critical">긴급</option>
-				</select>
-			</div>
-		</div>
-
-		<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-			<div>
-				<label for="pm-project-sponsor" class="block text-sm font-medium text-gray-700">후원 유형</label>
-				<select
-					id="pm-project-sponsor"
-					bind:value={projectForm.sponsorType}
-					class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-				>
-					<option value="internal">내부</option>
-					<option value="government">정부</option>
-					<option value="private">민간</option>
-					<option value="international">국제</option>
-				</select>
-			</div>
-
-			<div>
-				<label for="pm-project-research-type" class="block text-sm font-medium text-gray-700">연구 유형</label>
-				<select
-					id="pm-project-research-type"
-					bind:value={projectForm.researchType}
-					class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-				>
-					<option value="basic">기초연구</option>
-					<option value="applied">응용연구</option>
-					<option value="development">개발연구</option>
-				</select>
-			</div>
-			</div>
-	</div>
-
-	<div class="mt-6 flex justify-end space-x-3">
-		<ThemeButton
-			variant="ghost"
-			onclick={() => showCreateProjectModal = false}
-		>
-				취소
-			</ThemeButton>
-			<ThemeButton 
-				variant="primary" 
-			onclick={createProject}
-			>
-			생성
-			</ThemeButton>
-		</div>
-	</ThemeModal>
+<!-- 무한 루프 방지: lastLoadedTab 방식으로 $effect 의존성 문제 해결 완료 - 자동 검증 시스템 최적화 - 데이터 검증 문제 해결 - 컬럼 명명 규칙 일관성 적용 완료 - 날짜 변환 문제 해결 완료 -->

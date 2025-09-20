@@ -17,7 +17,7 @@ export const GET: RequestHandler = async ({ url }) => {
 			SELECT 
 				ei.*,
 				ec.name as category_name,
-				e.first_name || ' ' || e.last_name as assignee_full_name,
+				CONCAT(e.last_name, e.first_name) as assignee_full_name,
 				pb.period_number,
 				pb.fiscal_year,
 				COUNT(ed.id) as document_count,
@@ -171,7 +171,7 @@ export const POST: RequestHandler = async ({ request }) => {
 			SELECT 
 				ei.*,
 				ec.name as category_name,
-				e.first_name || ' ' || e.last_name as assignee_full_name,
+				CONCAT(e.last_name, e.first_name) as assignee_full_name,
 				pb.period_number,
 				pb.fiscal_year
 			FROM evidence_items ei
@@ -200,4 +200,3 @@ export const POST: RequestHandler = async ({ request }) => {
 		)
 	}
 }
-

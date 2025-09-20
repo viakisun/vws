@@ -17,7 +17,7 @@ export const GET: RequestHandler = async ({ url }) => {
 			SELECT 
 				es.*,
 				ei.name as evidence_item_name,
-				assignee.first_name || ' ' || assignee.last_name as assignee_name
+				CONCAT(assignee.last_name, assignee.first_name) as assignee_name
 			FROM evidence_schedules es
 			JOIN evidence_items ei ON es.evidence_item_id = ei.id
 			LEFT JOIN employees assignee ON es.assignee_id = assignee.id
@@ -120,7 +120,7 @@ export const POST: RequestHandler = async ({ request }) => {
 			SELECT 
 				es.*,
 				ei.name as evidence_item_name,
-				assignee.first_name || ' ' || assignee.last_name as assignee_name
+				CONCAT(assignee.last_name, assignee.first_name) as assignee_name
 			FROM evidence_schedules es
 			JOIN evidence_items ei ON es.evidence_item_id = ei.id
 			LEFT JOIN employees assignee ON es.assignee_id = assignee.id
@@ -146,4 +146,3 @@ export const POST: RequestHandler = async ({ request }) => {
 		)
 	}
 }
-

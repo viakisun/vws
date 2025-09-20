@@ -1,11 +1,9 @@
 <script lang="ts">
-	import { createEventDispatcher } from 'svelte';
-	import ThemeModal from './ThemeModal.svelte';
-	import ThemeButton from './ThemeButton.svelte';
-	import ThemeInput from './ThemeInput.svelte';
-	import ThemeSelect from './ThemeSelect.svelte';
-	import { XIcon, SaveIcon } from '@lucide/svelte';
-	import { formatEmployeeName } from '$lib/utils/format';
+	import { formatEmployeeName } from '$lib/utils/format'
+	import { splitKoreanName } from '$lib/utils/korean-name'
+	import { SaveIcon } from '@lucide/svelte'
+	import { createEventDispatcher } from 'svelte'
+	import ThemeModal from './ThemeModal.svelte'
 
 	interface Employee {
 		id?: string;
@@ -61,36 +59,8 @@
 		job_title_id: ''
 	});
 	
-	// 한국 이름 분리 함수
-	function splitKoreanName(fullName: string) {
-		if (!fullName || fullName.trim() === '') return { surname: '', givenName: '' };
-		
-		const trimmedName = fullName.trim();
-		
-		// 한글 이름인지 확인 (첫 글자가 한글인지)
-		if (/^[가-힣]/.test(trimmedName)) {
-			// 첫 글자를 성으로, 나머지를 이름으로 분리
-			return {
-				surname: trimmedName.charAt(0),
-				givenName: trimmedName.slice(1)
-			};
-		}
-		
-		// 영문 이름인 경우 공백으로 분리
-		const parts = trimmedName.split(' ');
-		if (parts.length >= 2) {
-			return {
-				surname: parts[0],
-				givenName: parts.slice(1).join(' ')
-			};
-		}
-		
-		// 분리할 수 없는 경우 전체를 이름으로
-		return {
-			surname: '',
-			givenName: trimmedName
-		};
-	}
+	// 한국 이름 분리 함수 (통합된 유틸리티 사용)
+	// splitKoreanName은 korean-name.ts에서 import
 	
 	// 전체 이름 입력 필드
 	let fullName = $state('');

@@ -24,18 +24,20 @@ if [ -n "$ALL_RELATED_FILES" ]; then
     VIOLATIONS=0
     
     for file in $ALL_RELATED_FILES; do
-        # 이름 처리 금지된 패턴들 검사
-        if git show ":$file" | grep -E "(first_name.*\+.*[\"']\s[\"'].*\+.*last_name|last_name.*\+.*[\"']\s[\"'].*\+.*first_name|\`\$\{.*\}\s\$\{.*\}\`)" > /dev/null; then
-            echo "❌ $file: 금지된 이름 조합 패턴 발견"
-            echo "   직접 문자열 결합 대신 formatEmployeeName() 또는 formatKoreanNameStandard() 사용"
-            VIOLATIONS=$((VIOLATIONS + 1))
-        fi
-        
-        # 공백을 포함한 한국 이름 패턴 검사
-        if git show ":$file" | grep -E "[\"'][가-힣]+\s[가-힣]+[\"']" > /dev/null; then
-            echo "❌ $file: 한국 이름에 공백 포함 패턴 발견"
-            echo "   표준 형식: (성)(이름) - 공백 없음"
-            VIOLATIONS=$((VIOLATIONS + 1))
+        # 이름 처리 금지된 패턴들 검사 (표준 함수 파일들 제외)
+        if [[ "$file" != "src/lib/utils/korean-name.ts" && "$file" != "src/lib/utils/name-validation.ts" ]]; then
+            if git show ":$file" | grep -E "(first_name.*\+.*[\"']\s[\"'].*\+.*last_name|last_name.*\+.*[\"']\s[\"'].*\+.*first_name|\`\$\{.*\}\s\$\{.*\}\`)" > /dev/null; then
+                echo "❌ $file: 금지된 이름 조합 패턴 발견"
+                echo "   직접 문자열 결합 대신 formatEmployeeName() 또는 formatKoreanNameStandard() 사용"
+                VIOLATIONS=$((VIOLATIONS + 1))
+            fi
+            
+            # 공백을 포함한 한국 이름 패턴 검사
+            if git show ":$file" | grep -E "[\"'][가-힣]+\s[가-힣]+[\"']" > /dev/null; then
+                echo "❌ $file: 한국 이름에 공백 포함 패턴 발견"
+                echo "   표준 형식: (성)(이름) - 공백 없음"
+                VIOLATIONS=$((VIOLATIONS + 1))
+            fi
         fi
         
         # 날짜 처리 금지된 패턴들 검사 (date-handler.ts 제외)

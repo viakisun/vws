@@ -2,6 +2,14 @@
 // 개별 프로젝트 관련 API
 
 import { query } from '$lib/database/connection'
+import {
+	transformArrayData,
+	transformMilestoneData,
+	transformProjectBudgetData,
+	transformProjectData,
+	transformProjectMemberData,
+	transformRiskData
+} from '$lib/utils/api-data-transformer'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
 
@@ -88,14 +96,21 @@ export const GET: RequestHandler = async ({ params }) => {
 			[id]
 		)
 
+		// 데이터 변환: snake_case를 camelCase로 변환
+		const transformedProject = transformProjectData(project)
+		const transformedMembers = transformArrayData(membersResult.rows, transformProjectMemberData)
+		const transformedBudgets = transformArrayData(budgetsResult.rows, transformProjectBudgetData)
+		const transformedMilestones = transformArrayData(milestonesResult.rows, transformMilestoneData)
+		const transformedRisks = transformArrayData(risksResult.rows, transformRiskData)
+
 		return json({
 			success: true,
 			data: {
-				...project,
-				members: membersResult.rows,
-				budgets: budgetsResult.rows,
-				milestones: milestonesResult.rows,
-				risks: risksResult.rows
+				...transformedProject,
+				members: transformedMembers,
+				budgets: transformedBudgets,
+				milestones: transformedMilestones,
+				risks: transformedRisks
 			}
 		})
 	} catch (error) {
@@ -235,9 +250,12 @@ export const PUT: RequestHandler = async ({ params, request }) => {
 			[id]
 		)
 
+		// 데이터 변환: snake_case를 camelCase로 변환
+		const transformedProject = transformProjectData(projectWithDetails.rows[0])
+
 		return json({
 			success: true,
-			data: projectWithDetails.rows[0],
+			data: transformedProject,
 			message: '프로젝트가 성공적으로 수정되었습니다.'
 		})
 	} catch (error) {
@@ -280,15 +298,31 @@ export const DELETE: RequestHandler = async ({ params }) => {
 		await query('BEGIN')
 
 		try {
-			// 관련 데이터 삭제 (CASCADE로 자동 삭제되지만 명시적으로 처리)
+			// 1. evidence_items 먼저 삭제 (project_budgets를 참조)
+			await query(
+				`
+				DELETE FROM evidence_items 
+				WHERE project_budget_id IN (
+					SELECT id FROM project_budgets WHERE project_id = $1
+				)
+			`,
+				[id]
+			)
+
+			// 2. project_budgets 삭제
+			await query('DELETE FROM project_budgets WHERE project_id = $1', [id])
+
+			// 3. 기타 관련 데이터 삭제
 			await query('DELETE FROM participation_rate_history WHERE project_id = $1', [id])
 			await query('DELETE FROM participation_rates WHERE project_id = $1', [id])
 			await query('DELETE FROM project_members WHERE project_id = $1', [id])
-			await query('DELETE FROM project_budgets WHERE project_id = $1', [id])
 			await query('DELETE FROM project_milestones WHERE project_id = $1', [id])
 			await query('DELETE FROM project_risks WHERE project_id = $1', [id])
 
-			// 프로젝트 삭제
+			// 4. rd_projects 테이블에서 삭제 (외래키 제약조건 해결)
+			await query('DELETE FROM rd_projects WHERE project_id = $1', [id])
+
+			// 5. 마지막으로 프로젝트 삭제
 			await query('DELETE FROM projects WHERE id = $1', [id])
 
 			await query('COMMIT')

@@ -16,7 +16,7 @@ export const GET: RequestHandler = async ({ params }) => {
 			SELECT 
 				ei.*,
 				ec.name as category_name,
-				e.first_name || ' ' || e.last_name as assignee_full_name,
+				CONCAT(e.last_name, e.first_name) as assignee_full_name,
 				pb.period_number,
 				pb.fiscal_year,
 				pb.personnel_cost_cash,
@@ -69,7 +69,7 @@ export const GET: RequestHandler = async ({ params }) => {
 			`
 			SELECT 
 				es.*,
-				assignee.first_name || ' ' || assignee.last_name as assignee_name
+				CONCAT(assignee.last_name, assignee.first_name) as assignee_name
 			FROM evidence_schedules es
 			LEFT JOIN employees assignee ON es.assignee_id = assignee.id
 			WHERE es.evidence_item_id = $1
@@ -202,7 +202,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
 			SELECT 
 				ei.*,
 				ec.name as category_name,
-				e.first_name || ' ' || e.last_name as assignee_full_name,
+				CONCAT(e.last_name, e.first_name) as assignee_full_name,
 				pb.period_number,
 				pb.fiscal_year
 			FROM evidence_items ei
@@ -268,4 +268,3 @@ export const DELETE: RequestHandler = async ({ params }) => {
 		)
 	}
 }
-
