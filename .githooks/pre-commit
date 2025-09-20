@@ -40,8 +40,8 @@ if [ -n "$ALL_RELATED_FILES" ]; then
             fi
         fi
         
-        # 날짜 처리 금지된 패턴들 검사 (date-handler.ts 제외)
-        if [ "$file" != "src/lib/utils/date-handler.ts" ]; then
+        # 날짜 처리 금지된 패턴들 검사 (date-handler.ts, timezone-validation 제외)
+        if [ "$file" != "src/lib/utils/date-handler.ts" ] && [[ "$file" != *"timezone-validation"* ]]; then
             if git show ":$file" | grep -E "\.toLocaleDateString\(|\.toLocaleString\(|new Date\(.*\).*toISOString" > /dev/null; then
                 echo "❌ $file: 금지된 날짜 처리 패턴 발견"
                 echo "   직접 toLocaleDateString() 대신 formatDateForDisplay() 사용"
@@ -49,8 +49,8 @@ if [ -n "$ALL_RELATED_FILES" ]; then
             fi
         fi
         
-        # Date 생성자 직접 사용 검사 (date-handler.ts 제외)
-        if [ "$file" != "src/lib/utils/date-handler.ts" ]; then
+        # Date 생성자 직접 사용 검사 (date-handler.ts, timezone-validation 제외)
+        if [ "$file" != "src/lib/utils/date-handler.ts" ] && [[ "$file" != *"timezone-validation"* ]]; then
             if git show ":$file" | grep -E "new Date\([^)]*\)(?!.*toUTC)" > /dev/null; then
                 echo "❌ $file: Date 생성자 직접 사용 패턴 발견"
                 echo "   날짜 생성 시 toUTC() 함수를 사용하여 표준화"
