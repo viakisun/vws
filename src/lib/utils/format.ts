@@ -6,22 +6,25 @@ export function formatKRW(amount: number): string {
 	})
 }
 
-export function formatCurrency(amount: number | string | undefined | null): string {
+export function formatCurrency(
+	amount: number | string | undefined | null,
+	includeUnit: boolean = true
+): string {
 	if (amount === undefined || amount === null) {
-		return '0천원'
+		return includeUnit ? '0천원' : '0'
 	}
 
 	// 문자열인 경우 숫자로 변환
 	const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount
 
 	if (isNaN(numAmount)) {
-		return '0천원'
+		return includeUnit ? '0천원' : '0'
 	}
 
 	// 천원 단위로 변환 (원 단위를 천원으로 나누기)
 	const thousandAmount = Math.round(numAmount / 1000)
 
-	return thousandAmount.toLocaleString('ko-KR') + '천원'
+	return thousandAmount.toLocaleString('ko-KR') + (includeUnit ? '천원' : '')
 }
 
 export function formatPercentage(value: number | undefined | null): string {

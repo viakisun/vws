@@ -618,7 +618,7 @@
           startDate: budgetForm.startDate,
           endDate: budgetForm.endDate,
           // 현금 비목들 (천원 단위를 원 단위로 변환, 인건비는 100만원 단위로 조정)
-          personnelCostCash: adjustPersonnelCost(fromThousands(budgetForm.personnelCostCash)),
+          personnelCostCash: fromThousands(budgetForm.personnelCostCash),
           researchMaterialCostCash: fromThousands(budgetForm.researchMaterialCostCash),
           researchActivityCostCash: fromThousands(budgetForm.researchActivityCostCash),
           indirectCostCash: fromThousands(budgetForm.indirectCostCash),
@@ -888,7 +888,7 @@
           startDate: budgetForm.startDate,
           endDate: budgetForm.endDate,
           // 현금 비목들 (천원 단위를 원 단위로 변환, 인건비는 100만원 단위로 조정)
-          personnelCostCash: adjustPersonnelCost(fromThousands(budgetForm.personnelCostCash)),
+          personnelCostCash: fromThousands(budgetForm.personnelCostCash),
           researchMaterialCostCash: fromThousands(budgetForm.researchMaterialCostCash),
           researchActivityCostCash: fromThousands(budgetForm.researchActivityCostCash),
           indirectCostCash: fromThousands(budgetForm.indirectCostCash),
@@ -1473,14 +1473,6 @@
 
 
 
-  // 인건비를 100만원 단위로 조정 (12로 나누어 떨어지게)
-  function adjustPersonnelCost(amount: number): number {
-    // 100만원 단위로 반올림
-    const millionWon = Math.floor(amount / 1000000);
-    // 12로 나누어 떨어지게 조정
-    const adjustedMillionWon = Math.floor(millionWon / 12) * 12;
-    return adjustedMillionWon * 1000000;
-  }
 
   // 사업비 합계 계산
   function calculateBudgetTotals() {
@@ -1790,19 +1782,44 @@
 
 
 
+      <!-- 단위 안내 -->
+      <div class="mb-4 p-3 bg-gray-50 border border-gray-200 rounded-lg">
+        <div class="flex items-center justify-between">
+          <div class="text-sm text-gray-700">
+            <span class="font-medium">금액 단위: 천원</span>
+            <span class="ml-4 text-gray-600">
+              (현금) | (현물)
+            </span>
+          </div>
+          <div class="text-xs text-gray-600">
+            예: 1,000 = 1,000천원
+          </div>
+        </div>
+      </div>
+
       <div class="overflow-x-auto">
         <table
-          class="min-w-full divide-y divide-gray-200"
-          style:min-width="1000px">
+          class="w-full divide-y divide-gray-200"
+          style:min-width="100%">
           <thead class="bg-gray-50">
             <tr>
-              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">연차</th>
-              <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-32">인건비</th>
-              <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-32">연구재료비</th>
-              <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-32">연구활동비</th>
-              <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-32">간접비</th>
-              <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-32">총 예산</th>
-              <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-40">액션</th>
+              <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">연차</th>
+              <th class="px-6 py-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <div>인건비</div>
+              </th>
+              <th class="px-6 py-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <div>연구재료비</div>
+              </th>
+              <th class="px-6 py-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <div>연구활동비</div>
+              </th>
+              <th class="px-6 py-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <div>간접비</div>
+              </th>
+              <th class="px-6 py-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <div>총 예산</div>
+              </th>
+              <th class="px-6 py-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-32">액션</th>
             </tr>
           </thead>
           <tbody class="bg-white divide-y divide-gray-200">
@@ -1811,66 +1828,68 @@
                                     getResearchMaterialCostCash(budget) + getResearchMaterialCostInKind(budget) + 
                                     getResearchActivityCostCash(budget) + getResearchActivityCostInKind(budget) + 
                                     getIndirectCostCash(budget) + getIndirectCostInKind(budget))}
-              {@const personnelCostCash = getPersonnelCostCash(budget)}
-              {@const cashTotal = personnelCostCash + getResearchMaterialCostCash(budget) + getResearchActivityCostCash(budget) + getIndirectCostCash(budget)}
-              {@const inKindTotal = getPersonnelCostInKind(budget) + getResearchMaterialCostInKind(budget) + getResearchActivityCostInKind(budget) + getIndirectCostInKind(budget)}
+              {@const personnelCash = Number(getPersonnelCostCash(budget)) || 0}
+              {@const materialCash = Number(getResearchMaterialCostCash(budget)) || 0}
+              {@const activityCash = Number(getResearchActivityCostCash(budget)) || 0}
+              {@const indirectCash = Number(getIndirectCostCash(budget)) || 0}
+              {@const cashTotal = personnelCash + materialCash + activityCash + indirectCash}
+              {@const personnelInKind = Number(getPersonnelCostInKind(budget)) || 0}
+              {@const materialInKind = Number(getResearchMaterialCostInKind(budget)) || 0}
+              {@const activityInKind = Number(getResearchActivityCostInKind(budget)) || 0}
+              {@const indirectInKind = Number(getIndirectCostInKind(budget)) || 0}
+              {@const inKindTotal = personnelInKind + materialInKind + activityInKind + indirectInKind}
               <tr class="hover:bg-gray-50">
                 <!-- 연차 -->
-                <td class="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                <td class="px-6 py-6 whitespace-nowrap text-sm font-medium text-gray-900 w-24">
                   <div
                     class="text-sm cursor-help"
                     title={formatPeriodTooltip(budget)}
                   >
-                    {formatPeriodDisplay(budget)}
+                    <div class="font-medium">{formatPeriodDisplay(budget)}</div>
+                    <div class="text-xs text-gray-500 mt-1">현금 | 현물</div>
                   </div>
                 </td>
                 <!-- 인건비 (현금/현물) -->
-                <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                <td class="px-6 py-6 whitespace-nowrap text-sm text-gray-900 text-right">
                   <div class="space-y-2">
-                    <div class="space-y-1">
-                      <div class="text-xs text-blue-600">현금: {formatCurrency(personnelCostCash)}</div>
-                      <div class="text-xs text-green-600">현물: {formatCurrency(getPersonnelCostInKind(budget))}</div>
-                    </div>
+                    <div class="text-sm text-blue-600 font-medium">{formatCurrency(getPersonnelCostCash(budget), false)}</div>
+                    <div class="text-sm text-gray-600">{formatCurrency(getPersonnelCostInKind(budget), false)}</div>
                   </div>
                 </td>
                 <!-- 연구재료비 (현금/현물) -->
-                <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                <td class="px-6 py-6 whitespace-nowrap text-sm text-gray-900 text-right">
                   <div class="space-y-2">
-                    <div class="space-y-1">
-                      <div class="text-xs text-blue-600">현금: {formatCurrency(getResearchMaterialCostCash(budget))}</div>
-                      <div class="text-xs text-green-600">현물: {formatCurrency(getResearchMaterialCostInKind(budget))}</div>
-                    </div>
+                    <div class="text-sm text-blue-600 font-medium">{formatCurrency(getResearchMaterialCostCash(budget), false)}</div>
+                    <div class="text-sm text-gray-600">{formatCurrency(getResearchMaterialCostInKind(budget), false)}</div>
                   </div>
                 </td>
                 <!-- 연구활동비 (현금/현물) -->
-                <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                <td class="px-6 py-6 whitespace-nowrap text-sm text-gray-900 text-right">
                   <div class="space-y-2">
-                    <div class="space-y-1">
-                      <div class="text-xs text-blue-600">현금: {formatCurrency(getResearchActivityCostCash(budget))}</div>
-                      <div class="text-xs text-green-600">현물: {formatCurrency(getResearchActivityCostInKind(budget))}</div>
-                    </div>
+                    <div class="text-sm text-blue-600 font-medium">{formatCurrency(getResearchActivityCostCash(budget), false)}</div>
+                    <div class="text-sm text-gray-600">{formatCurrency(getResearchActivityCostInKind(budget), false)}</div>
                   </div>
                 </td>
                 <!-- 간접비 (현금/현물) -->
-                <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                <td class="px-6 py-6 whitespace-nowrap text-sm text-gray-900 text-right">
                   <div class="space-y-2">
-                    <div class="space-y-1">
-                      <div class="text-xs text-blue-600">현금: {formatCurrency(getIndirectCostCash(budget))}</div>
-                      <div class="text-xs text-green-600">현물: {formatCurrency(getIndirectCostInKind(budget))}</div>
-                    </div>
+                    <div class="text-sm text-blue-600 font-medium">{formatCurrency(getIndirectCostCash(budget), false)}</div>
+                    <div class="text-sm text-gray-600">{formatCurrency(getIndirectCostInKind(budget), false)}</div>
                   </div>
                 </td>
                 <!-- 총 예산 (현금/현물) -->
-                <td class="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                <td class="px-6 py-6 whitespace-nowrap text-sm font-medium text-gray-900 text-right">
                   <div class="space-y-2">
-                    <div class="space-y-1">
-                      <div class="text-xs text-blue-600 font-semibold">현금: {formatCurrency(cashTotal)}</div>
-                      <div class="text-xs text-green-600 font-semibold">현물: {formatCurrency(inKindTotal)}</div>
+                    <div class="text-sm text-blue-600 font-semibold">{formatCurrency(cashTotal, false)}</div>
+                    <div class="text-sm text-gray-600 font-semibold">{formatCurrency(inKindTotal, false)}</div>
+                    <!-- 디버깅 정보 표시 -->
+                    <div class="text-xs text-red-500 bg-red-50 p-1 rounded">
+                      Y{getPeriodNumber(budget)}: {cashTotal} = {personnelCash}+{materialCash}+{activityCash}+{indirectCash}
                     </div>
                   </div>
                 </td>
                 <!-- 액션 -->
-                <td class="px-4 py-4 whitespace-nowrap text-sm font-medium">
+                <td class="px-6 py-6 whitespace-nowrap text-sm font-medium w-32">
                   <div class="flex space-x-1 justify-center">
                     <ThemeButton
                       variant="ghost"
@@ -1896,7 +1915,7 @@
             {:else}
               <tr>
                 <td
-                  colspan="8"
+                  colspan="7"
                   class="px-6 py-12 text-center text-gray-500">
                   <DollarSignIcon
                     size={48}
@@ -1911,55 +1930,55 @@
               {@const totals = calculateBudgetTotals()}
               <tr class="bg-gray-100 border-t-2 border-gray-300">
                 <!-- 연차 -->
-                <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                <td class="px-6 py-6 whitespace-nowrap text-sm text-gray-900 w-24">
                   <div class="text-center">
                     <div class="font-medium">합계</div>
                     <div class="text-xs text-gray-600">{projectBudgets.length}개 연차</div>
                   </div>
                 </td>
                 <!-- 인건비 (현금/현물) -->
-                <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                  <div class="space-y-1">
-                    <div class="text-xs text-blue-600">현금: {formatCurrency(totals.personnelCash)}</div>
-                    <div class="text-xs text-green-600">현물: {formatCurrency(totals.personnelInKind)}</div>
-                    <div class="text-xs text-gray-800 font-medium">소계: {formatCurrency(totals.personnelCash + totals.personnelInKind)}</div>
+                <td class="px-6 py-6 whitespace-nowrap text-sm text-gray-900 text-right">
+                  <div class="space-y-2">
+                    <div class="text-sm text-blue-600 font-medium">{formatCurrency(totals.personnelCash, false)}</div>
+                    <div class="text-sm text-gray-600">{formatCurrency(totals.personnelInKind, false)}</div>
+                    <div class="text-sm text-gray-800 font-medium border-t pt-2">소계: {formatCurrency((totals.personnelCash || 0) + (totals.personnelInKind || 0), false)}</div>
                   </div>
                 </td>
                 <!-- 연구재료비 (현금/현물) -->
-                <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                  <div class="space-y-1">
-                    <div class="text-xs text-blue-600">현금: {formatCurrency(totals.researchMaterialCash)}</div>
-                    <div class="text-xs text-green-600">현물: {formatCurrency(totals.researchMaterialInKind)}</div>
-                    <div class="text-xs text-gray-800 font-medium">소계: {formatCurrency(totals.researchMaterialCash + totals.researchMaterialInKind)}</div>
+                <td class="px-6 py-6 whitespace-nowrap text-sm text-gray-900 text-right">
+                  <div class="space-y-2">
+                    <div class="text-sm text-blue-600 font-medium">{formatCurrency(totals.researchMaterialCash, false)}</div>
+                    <div class="text-sm text-gray-600">{formatCurrency(totals.researchMaterialInKind, false)}</div>
+                    <div class="text-sm text-gray-800 font-medium border-t pt-2">소계: {formatCurrency((totals.researchMaterialCash || 0) + (totals.researchMaterialInKind || 0), false)}</div>
                   </div>
                 </td>
                 <!-- 연구활동비 (현금/현물) -->
-                <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                  <div class="space-y-1">
-                    <div class="text-xs text-blue-600">현금: {formatCurrency(totals.researchActivityCash)}</div>
-                    <div class="text-xs text-green-600">현물: {formatCurrency(totals.researchActivityInKind)}</div>
-                    <div class="text-xs text-gray-800 font-medium">소계: {formatCurrency(totals.researchActivityCash + totals.researchActivityInKind)}</div>
+                <td class="px-6 py-6 whitespace-nowrap text-sm text-gray-900 text-right">
+                  <div class="space-y-2">
+                    <div class="text-sm text-blue-600 font-medium">{formatCurrency(totals.researchActivityCash, false)}</div>
+                    <div class="text-sm text-gray-600">{formatCurrency(totals.researchActivityInKind, false)}</div>
+                    <div class="text-sm text-gray-800 font-medium border-t pt-2">소계: {formatCurrency((totals.researchActivityCash || 0) + (totals.researchActivityInKind || 0), false)}</div>
                   </div>
                 </td>
                 <!-- 간접비 (현금/현물) -->
-                <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                  <div class="space-y-1">
-                    <div class="text-xs text-blue-600">현금: {formatCurrency(totals.indirectCash)}</div>
-                    <div class="text-xs text-green-600">현물: {formatCurrency(totals.indirectInKind)}</div>
-                    <div class="text-xs text-gray-800 font-medium">소계: {formatCurrency(totals.indirectCash + totals.indirectInKind)}</div>
+                <td class="px-6 py-6 whitespace-nowrap text-sm text-gray-900 text-right">
+                  <div class="space-y-2">
+                    <div class="text-sm text-blue-600 font-medium">{formatCurrency(totals.indirectCash, false)}</div>
+                    <div class="text-sm text-gray-600">{formatCurrency(totals.indirectInKind, false)}</div>
+                    <div class="text-sm text-gray-800 font-medium border-t pt-2">소계: {formatCurrency((totals.indirectCash || 0) + (totals.indirectInKind || 0), false)}</div>
                   </div>
                 </td>
                 <!-- 총 예산 (현금/현물) -->
-                <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                  <div class="space-y-1">
-                    <div class="text-xs text-blue-600">현금: {formatCurrency(totals.totalCash)}</div>
-                    <div class="text-xs text-green-600">현물: {formatCurrency(totals.totalInKind)}</div>
-                    <div class="text-sm text-gray-900 font-medium">총계: {formatCurrency(totals.totalBudget)}</div>
+                <td class="px-6 py-6 whitespace-nowrap text-sm text-gray-900 text-right">
+                  <div class="space-y-2">
+                    <div class="text-sm text-blue-600 font-medium">{formatCurrency(totals.totalCash, false)}</div>
+                    <div class="text-sm text-gray-600">{formatCurrency(totals.totalInKind, false)}</div>
+                    <div class="text-base text-gray-900 font-bold border-t-2 pt-2">총계: {formatCurrency(totals.totalBudget, false)}</div>
                   </div>
                 </td>
                 <!-- 액션 -->
-                <td class="px-4 py-4 whitespace-nowrap text-sm font-medium">
-                  <div class="text-xs text-gray-500 text-center">-</div>
+                <td class="px-6 py-6 whitespace-nowrap text-sm font-medium w-32">
+                  <div class="text-sm text-gray-500 text-center">-</div>
                 </td>
               </tr>
             {/if}

@@ -237,8 +237,8 @@
 
 <div class="space-y-6">
 	<div class="text-center">
-		<h3 class="text-lg font-semibold text-gray-900">연차별 사업비 예산</h3>
-		<p class="text-sm text-gray-600 mt-1">각 연차별로 지원금과 기업부담금을 입력하세요</p>
+		<h3 class="text-lg font-semibold text-gray-900">연차별 연구개발비 예산</h3>
+		<p class="text-sm text-gray-600 mt-1">지원금, 기업부담금, 현물지원을 연차별로 입력하세요</p>
 	</div>
 	
 	{#if isLoading}
@@ -303,48 +303,70 @@
 				</div>
 				
 				<!-- 예산 입력 -->
-				<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-					<div>
-						<label for="gov-funding-{index}" class="block text-sm font-medium text-green-700 mb-1">
-							지원금 (현금)
-						</label>
-						<input
-							id="gov-funding-{index}"
-							type="number"
-							bind:value={budget.governmentFunding}
-							min="0"
-							step="1000000"
-							class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-							placeholder="0"
-						/>
+				<div class="space-y-3">
+					<!-- 단위 안내 -->
+					<div class="text-xs text-gray-500 text-center bg-gray-50 py-1 rounded">
+						금액 단위: 천원 (예: 1000 입력 = 1,000천원)
 					</div>
-					<div>
-						<label for="company-cash-{index}" class="block text-sm font-medium text-orange-700 mb-1">
-							기업부담금 (현금)
-						</label>
-						<input
-							id="company-cash-{index}"
-							type="number"
-							bind:value={budget.companyCash}
-							min="0"
-							step="1000000"
-							class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-							placeholder="0"
-						/>
-					</div>
-					<div>
-						<label for="company-inkind-{index}" class="block text-sm font-medium text-purple-700 mb-1">
-							기업부담금 (현물)
-						</label>
-						<input
-							id="company-inkind-{index}"
-							type="number"
-							bind:value={budget.companyInKind}
-							min="0"
-							step="1000000"
-							class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-							placeholder="0"
-						/>
+					
+					<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+						<div>
+							<label for="gov-funding-{index}" class="block text-sm font-medium text-green-700 mb-1">
+								지원금
+							</label>
+							<div class="relative">
+								<input
+									id="gov-funding-{index}"
+									type="number"
+									bind:value={budget.governmentFunding}
+									min="0"
+									step="1000"
+									class="w-full px-3 py-2 pr-12 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+									placeholder="0"
+								/>
+								<div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+									<span class="text-gray-500 text-sm">천원</span>
+								</div>
+							</div>
+						</div>
+						<div>
+							<label for="company-cash-{index}" class="block text-sm font-medium text-orange-700 mb-1">
+								기업부담금
+							</label>
+							<div class="relative">
+								<input
+									id="company-cash-{index}"
+									type="number"
+									bind:value={budget.companyCash}
+									min="0"
+									step="1000"
+									class="w-full px-3 py-2 pr-12 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+									placeholder="0"
+								/>
+								<div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+									<span class="text-gray-500 text-sm">천원</span>
+								</div>
+							</div>
+						</div>
+						<div>
+							<label for="company-inkind-{index}" class="block text-sm font-medium text-purple-700 mb-1">
+								현물 지원
+							</label>
+							<div class="relative">
+								<input
+									id="company-inkind-{index}"
+									type="number"
+									bind:value={budget.companyInKind}
+									min="0"
+									step="1000"
+									class="w-full px-3 py-2 pr-12 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+									placeholder="0"
+								/>
+								<div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+									<span class="text-gray-500 text-sm">천원</span>
+								</div>
+							</div>
+						</div>
 					</div>
 				</div>
 				
@@ -352,6 +374,11 @@
 				<div class="mt-3 p-3 bg-gray-50 rounded-md">
 					<div class="text-sm font-medium text-gray-900">
 						{budget.year}차년도 사업비: {formatNumber(calculateTotal(budget))}원
+					</div>
+					<div class="text-xs text-gray-500 mt-1">
+						지원금 {formatNumber(budget.governmentFunding || 0)}천원 + 
+						기업부담금 {formatNumber(budget.companyCash || 0)}천원 + 
+						현물지원 {formatNumber(budget.companyInKind || 0)}천원
 					</div>
 				</div>
 			</div>
@@ -381,6 +408,12 @@
 				</div>
 				<div class="text-sm text-blue-600">
 					{budgets.length}년차 사업 총액
+				</div>
+				<!-- 세부 내역 -->
+				<div class="mt-2 text-xs text-blue-500 space-y-1">
+					<div>지원금: {formatNumber(budgets.reduce((sum, b) => sum + (b.governmentFunding || 0), 0))}천원</div>
+					<div>기업부담금: {formatNumber(budgets.reduce((sum, b) => sum + (b.companyCash || 0), 0))}천원</div>
+					<div>현물지원: {formatNumber(budgets.reduce((sum, b) => sum + (b.companyInKind || 0), 0))}천원</div>
 				</div>
 			</div>
 			
