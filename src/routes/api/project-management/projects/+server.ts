@@ -109,24 +109,15 @@ export const GET: RequestHandler = async ({ url }) => {
 	}
 }
 
-// 프로젝트 생성
+// 간소화된 프로젝트 생성
 export const POST: RequestHandler = async ({ request }) => {
 	try {
 		const data = await request.json()
 		const {
 			code,
 			title,
-			description,
-			sponsor,
-			sponsorName,
-			sponsorType = 'government',
-			startDate,
-			endDate,
-			managerId,
-			budgetTotal,
-			researchType,
-			technologyArea,
-			priority = 'medium'
+			description = '',
+			status = 'planning' // 기본값을 '기획'으로 설정
 		} = data
 
 		// 필수 필드 검증
@@ -134,7 +125,19 @@ export const POST: RequestHandler = async ({ request }) => {
 			return json(
 				{
 					success: false,
-					message: '프로젝트 코드와 제목은 필수입니다.'
+					error: '프로젝트 코드와 제목은 필수입니다.'
+				},
+				{ status: 400 }
+			)
+		}
+
+		// 상태 값 검증 - 기획, 진행, 완료만 허용
+		const validStatuses = ['planning', 'active', 'completed']
+		if (!validStatuses.includes(status)) {
+			return json(
+				{
+					success: false,
+					error: '유효하지 않은 프로젝트 상태입니다. (기획, 진행, 완료 중 선택)'
 				},
 				{ status: 400 }
 			)
@@ -147,62 +150,27 @@ export const POST: RequestHandler = async ({ request }) => {
 			return json(
 				{
 					success: false,
-					message: '이미 존재하는 프로젝트 코드입니다.'
+					error: '이미 존재하는 프로젝트 코드입니다.'
 				},
 				{ status: 400 }
 			)
 		}
 
-		// 프로젝트 생성
+		// 간소화된 프로젝트 생성
 		const result = await query(
 			`
 			INSERT INTO projects (
-				code, title, description, sponsor, sponsor_name, sponsor_type,
-				start_date, end_date, manager_id, budget_total, research_type,
-				technology_area, priority
-			) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+				code, title, description, status
+			) VALUES ($1, $2, $3, $4)
 			RETURNING *
 		`,
-			[
-				code,
-				title,
-				description,
-				sponsor,
-				sponsorName,
-				sponsorType,
-				startDate,
-				endDate,
-				managerId,
-				budgetTotal,
-				researchType,
-				technologyArea,
-				priority
-			]
+			[code, title, description, status]
 		)
 
 		const project = result.rows[0]
 
-		// 프로젝트 멤버 정보와 함께 반환
-		const projectWithDetails = await query(
-			`
-			SELECT 
-				p.*,
-				e.first_name || ' ' || e.last_name as manager_name,
-				COUNT(pm.id) as member_count,
-				COALESCE(SUM(pm.participation_rate), 0) as total_participation_rate
-			FROM projects p
-			LEFT JOIN employees e ON p.manager_id = e.id
-			LEFT JOIN project_members pm ON p.id = pm.project_id AND pm.status = 'active'
-			WHERE p.id = $1
-			GROUP BY p.id, e.first_name, e.last_name
-		`,
-			[project.id]
-		)
-
 		// 데이터 변환: snake_case를 camelCase로 변환
-		const transformedProject = projectWithDetails.rows[0]
-			? transformProjectData(projectWithDetails.rows[0])
-			: null
+		const transformedProject = transformProjectData(project)
 
 		return json({
 			success: true,
@@ -214,8 +182,8 @@ export const POST: RequestHandler = async ({ request }) => {
 		return json(
 			{
 				success: false,
-				message: '프로젝트 생성에 실패했습니다.',
-				error: error instanceof Error ? error.message : '알 수 없는 오류'
+				error: '프로젝트 생성에 실패했습니다.',
+				details: error instanceof Error ? error.message : '알 수 없는 오류'
 			},
 			{ status: 500 }
 		)

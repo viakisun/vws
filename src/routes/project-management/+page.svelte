@@ -22,19 +22,19 @@
 	} from '@lucide/svelte'
 	import { onMount } from 'svelte'
 
-	// 타입 정의
+	// 타입 정의 (기획 단계 고려)
 	interface Project {
 		id: string
 		title: string
 		code: string
 		description?: string
-		startDate: string
-		endDate: string
-		status: 'planning' | 'active' | 'completed' | 'cancelled' | 'suspended'
-		sponsorType: 'internal' | 'government' | 'private' | 'international'
-		priority: 'low' | 'medium' | 'high' | 'critical'
-		researchType: 'basic' | 'applied' | 'development'
-		updatedAt: string
+		startDate?: string // 기획 단계에서는 선택사항
+		endDate?: string   // 기획 단계에서는 선택사항
+		status: 'planning' | 'active' | 'completed'
+		sponsorType?: 'internal' | 'government' | 'private' | 'international' // 선택사항
+		priority?: 'low' | 'medium' | 'high' | 'critical' // 선택사항
+		researchType?: 'basic' | 'applied' | 'development' // 선택사항
+		updatedAt?: string // 선택사항
 	}
 
 	interface ProjectSummary {
@@ -162,6 +162,7 @@
 	let selectedProject = $state<Project | null>(null)
 	let selectedProjectId = $state('')
 	let showCreateProjectModal = $state(false)
+	let showBudgetModal = $state(false)
 
 	// 파생된 상태들
 	const hasProjects = $derived(projects.length > 0)
@@ -239,9 +240,10 @@
 		}
 	}
 	
-	// 프로젝트 데이터 검증 함수
+	// 개선된 프로젝트 데이터 검증 함수 (기획 단계 완화)
 	function validateProjectData(projectData: Project[]): { isValid: boolean; issues: string[] } {
 		const issues: string[] = []
+		const warnings: string[] = []
 		
 		if (!Array.isArray(projectData)) {
 			issues.push('프로젝트 데이터가 배열이 아닙니다.')
@@ -249,51 +251,73 @@
 		}
 		
 		projectData.forEach((project, index) => {
-			// 필수 필드 검증
+			const projectName = project.title || project.code || `프로젝트 ${index + 1}`
+			const isPlanning = project.status === 'planning'
+			
+			// 모든 프로젝트에 공통으로 필요한 필수 필드
 			if (!project.id) {
-				issues.push(`프로젝트 ${index + 1}: ID가 누락되었습니다.`)
+				issues.push(`${projectName}: ID가 누락되었습니다.`)
 			}
 			if (!project.title) {
-				issues.push(`프로젝트 ${index + 1}: 제목이 누락되었습니다.`)
+				issues.push(`${projectName}: 제목이 누락되었습니다.`)
 			}
 			if (!project.code) {
-				issues.push(`프로젝트 ${index + 1}: 코드가 누락되었습니다.`)
-			}
-			if (!project.startDate) {
-				issues.push(`프로젝트 ${index + 1}: 시작일이 누락되었습니다.`)
-			}
-			if (!project.endDate) {
-				issues.push(`프로젝트 ${index + 1}: 종료일이 누락되었습니다.`)
+				issues.push(`${projectName}: 코드가 누락되었습니다.`)
 			}
 			
-			// 날짜 유효성 검증
+			// 기획 단계가 아닌 경우에만 필수인 필드들
+			if (!isPlanning) {
+				if (!project.startDate) {
+					issues.push(`${projectName}: 진행/완료 상태 프로젝트는 시작일이 필요합니다.`)
+				}
+				if (!project.endDate) {
+					issues.push(`${projectName}: 진행/완료 상태 프로젝트는 종료일이 필요합니다.`)
+				}
+			} else {
+				// 기획 단계에서는 경고만 표시
+				if (!project.startDate) {
+					warnings.push(`${projectName}: 시작일이 설정되지 않았습니다. (기획 단계이므로 선택사항)`)
+				}
+				if (!project.endDate) {
+					warnings.push(`${projectName}: 종료일이 설정되지 않았습니다. (기획 단계이므로 선택사항)`)
+				}
+			}
+			
+			// 날짜 유효성 검증 (날짜가 있는 경우에만)
 			if (project.startDate && project.endDate) {
 				const startDate = new Date(project.startDate)
 				const endDate = new Date(project.endDate)
 				
 				if (isNaN(startDate.getTime())) {
-					issues.push(`프로젝트 ${index + 1}: 시작일 형식이 올바르지 않습니다.`)
+					issues.push(`${projectName}: 시작일 형식이 올바르지 않습니다.`)
 				}
 				if (isNaN(endDate.getTime())) {
-					issues.push(`프로젝트 ${index + 1}: 종료일 형식이 올바르지 않습니다.`)
+					issues.push(`${projectName}: 종료일 형식이 올바르지 않습니다.`)
 				}
-				if (startDate > endDate) {
-					issues.push(`프로젝트 ${index + 1}: 시작일이 종료일보다 늦습니다.`)
+				if (!isNaN(startDate.getTime()) && !isNaN(endDate.getTime()) && startDate > endDate) {
+					issues.push(`${projectName}: 시작일이 종료일보다 늦습니다.`)
 				}
 			}
 			
 			// 상태 값 검증
-			const validStatuses = ['planning', 'active', 'completed', 'cancelled', 'suspended']
+			const validStatuses = ['planning', 'active', 'completed']
 			if (project.status && !validStatuses.includes(project.status)) {
-				issues.push(`프로젝트 ${index + 1}: 유효하지 않은 상태값입니다. (${project.status})`)
+				issues.push(`${projectName}: 유효하지 않은 상태값입니다. (${project.status})`)
 			}
 			
-			// 우선순위 값 검증
-			const validPriorities = ['low', 'medium', 'high', 'critical']
-			if (project.priority && !validPriorities.includes(project.priority)) {
-				issues.push(`프로젝트 ${index + 1}: 유효하지 않은 우선순위값입니다. (${project.priority})`)
+			// 우선순위 값 검증 (있는 경우에만)
+			if (project.priority) {
+				const validPriorities = ['low', 'medium', 'high', 'critical']
+				if (!validPriorities.includes(project.priority)) {
+					issues.push(`${projectName}: 유효하지 않은 우선순위값입니다. (${project.priority})`)
+				}
 			}
 		})
+		
+		// 경고가 있으면 콘솔에 출력
+		if (warnings.length > 0) {
+			console.warn('⚠️ 프로젝트 데이터 경고:', warnings)
+		}
 		
 		return {
 			isValid: issues.length === 0,
@@ -383,27 +407,33 @@
 		loadProjectData()
 	}
 
-	// 상태 배지 색상
-	function getStatusBadgeColor(status: string): 'success' | 'primary' | 'default' | 'error' | 'warning' {
+	// 간소화된 상태 배지 색상
+	function getStatusBadgeColor(status: string): 'success' | 'primary' | 'default' {
 		switch (status) {
 			case 'active': return 'success'
 			case 'planning': return 'primary'
 			case 'completed': return 'default'
-			case 'cancelled': return 'error'
-			case 'suspended': return 'warning'
 			default: return 'default'
 		}
 	}
 
-	// 상태 한글 변환
+	// 간소화된 상태 한글 변환
 	function getStatusLabel(status: string): string {
 		switch (status) {
-			case 'active': return '진행중'
-			case 'planning': return '기획중'
+			case 'active': return '진행'
+			case 'planning': return '기획'
 			case 'completed': return '완료'
-			case 'cancelled': return '취소'
-			case 'suspended': return '중단'
 			default: return status
+		}
+	}
+
+	// 안전한 날짜 표시 함수
+	function safeFormatDate(dateString?: string): string {
+		if (!dateString) return '미정'
+		try {
+			return formatDate(dateString)
+		} catch {
+			return '잘못된 날짜'
 		}
 	}
 
@@ -596,7 +626,7 @@
 											</div>
 										</div>
 										<div class="text-sm text-gray-500">
-											{formatDate(activity.updatedAt)}
+											{safeFormatDate(activity.updatedAt)}
 										</div>
 									</div>
 								</div>
@@ -699,7 +729,9 @@
 										{/if}
 									</option>
 									{#each projects as project}
-										<option value={project.id}>{project.title} ({getStatusLabel(project.status)})</option>
+										<option value={project.id}>
+											{project.title} ({getStatusLabel(project.status)})
+										</option>
 									{/each}
 								</select>
 							</div>
@@ -731,11 +763,47 @@
 
 				<!-- 프로젝트 상세 정보 -->
 				{#if selectedProject}
-					<ProjectDetailView 
-						{selectedProject} 
-						on:refresh={loadProjectData}
-						on:project-deleted={handleProjectDeleted}
-					/>
+					<div class="space-y-6">
+						<!-- 프로젝트 기본 정보 -->
+						<ProjectDetailView 
+							{selectedProject} 
+							on:refresh={loadProjectData}
+							on:project-deleted={handleProjectDeleted}
+						/>
+						
+						<!-- 사업비 예산 -->
+						<ThemeCard>
+							<div class="px-6 py-4 border-b border-gray-200">
+								<div class="flex items-center justify-between">
+									<h3 class="text-lg font-medium text-gray-900">사업비 예산</h3>
+									<ThemeButton
+										variant="primary"
+										size="sm"
+										onclick={() => showBudgetModal = true}
+									>
+										예산 설정
+									</ThemeButton>
+								</div>
+							</div>
+							<div class="p-6">
+								{#await import('$lib/components/project-management/ProjectBudgetSummary.svelte')}
+									<div class="flex items-center justify-center py-4">
+										<div class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+										<span class="ml-2 text-gray-600 text-sm">로딩 중...</span>
+									</div>
+								{:then { default: ProjectBudgetSummary }}
+									<ProjectBudgetSummary 
+										projectId={selectedProject.id}
+										compact={true}
+									/>
+								{:catch error}
+									<div class="text-center py-4 text-gray-500">
+										<p class="text-sm">예산 정보를 불러올 수 없습니다.</p>
+									</div>
+								{/await}
+							</div>
+						</ThemeCard>
+					</div>
 				{:else if projects.length === 0 && !tabLoadingStates.projects && !tabErrors.projects}
 					<ThemeCard>
 						<div class="text-center py-12">
@@ -881,5 +949,34 @@
 >
 	<ProjectCreationForm on:projectCreated={handleProjectCreated} />
 </ThemeModal>
+
+<!-- 예산 설정 모달 -->
+{#if selectedProject}
+	<ThemeModal 
+		open={showBudgetModal}
+		onclose={() => showBudgetModal = false}
+		title={`${selectedProject.title} - 예산 설정`}
+	>
+		{#await import('$lib/components/project-management/SimpleBudgetForm.svelte')}
+			<div class="flex items-center justify-center py-8">
+				<div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+				<span class="ml-2 text-gray-600">로딩 중...</span>
+			</div>
+		{:then { default: SimpleBudgetForm }}
+			<SimpleBudgetForm 
+				projectId={selectedProject.id}
+				on:budgetSaved={() => {
+					showBudgetModal = false;
+					// 예산 정보 새로고침을 위해 프로젝트 데이터 다시 로드
+					loadProjectData();
+				}}
+			/>
+		{:catch error}
+			<div class="text-center py-8 text-red-600">
+				<p>예산 입력 폼을 로드할 수 없습니다.</p>
+			</div>
+		{/await}
+	</ThemeModal>
+{/if}
 
 <!-- 무한 루프 방지: lastLoadedTab 방식으로 $effect 의존성 문제 해결 완료 - 자동 검증 시스템 최적화 - 데이터 검증 문제 해결 - 컬럼 명명 규칙 일관성 적용 완료 - 날짜 변환 문제 해결 완료 -->

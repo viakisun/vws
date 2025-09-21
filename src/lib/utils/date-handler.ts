@@ -86,8 +86,15 @@ export function toUTC(date: DateInputFormat): StandardDate {
 				const [year, month, day] = dateStr.split('.')
 				dateObj = new Date(parseInt(year), parseInt(month) - 1, parseInt(day))
 			} else if (dateStr.includes('-')) {
-				// YYYY-MM-DD 형식
-				dateObj = new Date(dateStr + 'T00:00:00.000Z')
+				// YYYY-MM-DD 형식 - 서울 시간 기준으로 해석
+				// 정확한 방법: 서울 타임존을 명시적으로 사용
+				const [year, month, day] = dateStr.split('-')
+
+				// 서울 시간 자정을 UTC로 변환하는 정확한 방법
+				const seoulMidnight = new Date(
+					`${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}T00:00:00+09:00`
+				)
+				dateObj = seoulMidnight
 			} else if (dateStr.includes('/')) {
 				// MM/DD/YYYY 또는 DD/MM/YYYY 형식
 				const parts = dateStr.split('/')

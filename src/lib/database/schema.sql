@@ -159,7 +159,7 @@ CREATE TABLE projects (
     start_date DATE,
     end_date DATE,
     manager_id UUID REFERENCES employees(id),
-    status VARCHAR(50) DEFAULT 'planning', -- 'planning', 'active', 'completed', 'cancelled'
+    status VARCHAR(50) DEFAULT 'planning', -- 'planning', 'active', 'completed'
     budget_total DECIMAL(15,2),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
