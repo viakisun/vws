@@ -4,6 +4,7 @@
 	import Progress from '$lib/components/ui/Progress.svelte'
 	import { personnelStore } from '$lib/stores/personnel'
 	import { budgetAlerts, expenseDocsStore, getQuarterSummary, overallBudget, projectsStore, quarterlyPersonnelBudgets } from '$lib/stores/rnd'
+	import { formatDateForDisplay, getCurrentUTC, getDateDifference } from '$lib/utils/date-handler'
 
 	const ob = $derived($overallBudget);
 	const avgProgress = $derived($projectsStore.length
@@ -34,16 +35,16 @@
 		return Math.max(1, Math.ceil(ms / (1000 * 60 * 60 * 24)));
 	}
 	const portfolioProjection = $derived((function(){
-		const todayIso = new Date().toISOString().slice(0,10);
+		const todayIso = formatDateForDisplay(getCurrentUTC(), 'ISO');
 		let totalBudget = 0;
 		let totalProjected = 0;
 		for (const p of $projectsStore) {
 			const start = p.startDate;
 			const due = p.dueDate;
-			const totalDays = daysBetween(start, due);
+			const totalDays = getDateDifference(start, due);
 			// 오늘이 시작 이전이면 0일 경과로 간주
 			const cappedToday = todayIso < start ? start : (todayIso > due ? due : todayIso);
-			const elapsedDays = Math.max(1, daysBetween(start, cappedToday));
+			const elapsedDays = Math.max(1, getDateDifference(start, cappedToday));
 			const burn = p.spentKRW / Math.max(1, elapsedDays);
 			const projected = burn * totalDays;
 			totalBudget += p.budgetKRW;
@@ -80,7 +81,7 @@
 			.map((x) => x.q);
 	}
 	function currentQuarterLabel(): string {
-		const d = new Date();
+		const d = new Date(getCurrentUTC());
 		const y = d.getFullYear();
 		const qn = Math.floor(d.getMonth() / 3) + 1;
 		return `${y}-Q${qn}`;

@@ -1,4 +1,5 @@
 import { query } from '$lib/database/connection.js'
+import { formatDateForDisplay, getCurrentUTC, isValidDate, toUTC } from '$lib/utils/date-handler'
 import { json } from '@sveltejs/kit'
 import * as ExcelJS from 'exceljs'
 
@@ -154,20 +155,11 @@ export async function POST({ request }) {
 			if (row['입사일'] && String(row['입사일']).trim() !== '') {
 				const hireDateValue = row['입사일']
 
-				// Excel 날짜 (숫자)인지 확인
-				if (typeof hireDateValue === 'number' && hireDateValue > 25569) {
-					// Excel 날짜를 JavaScript Date로 변환 (Excel epoch: 1900-01-01)
-					// Excel은 1900년을 1로 시작하지만, JavaScript는 1970년을 0으로 시작
-					const excelEpoch = new Date(1900, 0, 1)
-					hireDate = new Date(excelEpoch.getTime() + (hireDateValue - 2) * 24 * 60 * 60 * 1000)
-				} else {
-					// 일반 날짜 문자열 처리
-					hireDate = new Date(String(hireDateValue))
-				}
-
-				if (isNaN(hireDate.getTime())) {
+				if (!isValidDate(hireDateValue)) {
 					throw new Error(`행 ${rowNumber}: 올바르지 않은 입사일 형식입니다: ${row['입사일']}`)
 				}
+
+				hireDate = new Date(toUTC(hireDateValue))
 			}
 
 			// 상태 검증
@@ -197,11 +189,11 @@ export async function POST({ request }) {
 				department: String(row['부서']).trim(),
 				position: String(row['직급']).trim(),
 				salary: salary,
-				hire_date: hireDate,
+				hire_date: formatDateForDisplay(toUTC(hireDate), 'ISO'),
 				status: status,
 				employment_type: row['고용형태'] || 'full-time',
-				created_at: new Date(),
-				updated_at: new Date()
+				created_at: getCurrentUTC(),
+				updated_at: getCurrentUTC()
 			}
 		})
 

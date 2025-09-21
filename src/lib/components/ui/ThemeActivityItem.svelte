@@ -1,5 +1,6 @@
 <script lang="ts">
-	import ThemeBadge from './ThemeBadge.svelte';
+	import { formatDateForDisplay } from '$lib/utils/date-handler'
+	import ThemeBadge from './ThemeBadge.svelte'
 
 	interface Props {
 		title: string;
@@ -20,6 +21,11 @@
 		...restProps
 	}: Props = $props();
 
+	// 날짜 포맷팅
+	const formattedTime = $derived(
+		time ? formatDateForDisplay(time, 'KOREAN') : ''
+	);
+
 	const typeConfig = {
 		success: { variant: 'success' as const, label: '완료' },
 		warning: { variant: 'warning' as const, label: '대기' },
@@ -39,7 +45,7 @@
 		{#if description}
 			<p class="text-xs mt-1" style="color: var(--color-text-secondary);">{description}</p>
 		{/if}
-		<p class="text-xs mt-1" style="color: var(--color-text-secondary);">{time}</p>
+		<p class="text-xs mt-1" style="color: var(--color-text-secondary);">{formattedTime}</p>
 	</div>
 	<ThemeBadge variant={typeConfig[type].variant} size="sm">
 		{typeConfig[type].label}

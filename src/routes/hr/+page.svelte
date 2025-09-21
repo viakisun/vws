@@ -1,23 +1,84 @@
 <script lang="ts">
-	import PageLayout from '$lib/components/layout/PageLayout.svelte';
-	import ThemeCard from '$lib/components/ui/ThemeCard.svelte';
-	import ThemeBadge from '$lib/components/ui/ThemeBadge.svelte';
-	import ThemeButton from '$lib/components/ui/ThemeButton.svelte';
-	import ThemeGrid from '$lib/components/ui/ThemeGrid.svelte';
-	import ThemeSpacer from '$lib/components/ui/ThemeSpacer.svelte';
-	import ThemeSectionHeader from '$lib/components/ui/ThemeSectionHeader.svelte';
-	import ThemeStatCard from '$lib/components/ui/ThemeStatCard.svelte';
-	import ThemeChartPlaceholder from '$lib/components/ui/ThemeChartPlaceholder.svelte';
-	import ThemeActivityItem from '$lib/components/ui/ThemeActivityItem.svelte';
-	import ThemeTabs from '$lib/components/ui/ThemeTabs.svelte';
-	import ThemeModal from '$lib/components/ui/ThemeModal.svelte';
-	import EmployeeModal from '$lib/components/ui/EmployeeModal.svelte';
-	import DeleteConfirmModal from '$lib/components/ui/DeleteConfirmModal.svelte';
-	import DepartmentModal from '$lib/components/ui/DepartmentModal.svelte';
-	import PositionModal from '$lib/components/ui/PositionModal.svelte';
-	import OrganizationChart from '$lib/components/ui/OrganizationChart.svelte';
-	import { formatCurrency, formatDate, formatEmployeeId, formatEmployeeName } from '$lib/utils/format';
+	import PageLayout from '$lib/components/layout/PageLayout.svelte'
+	import DeleteConfirmModal from '$lib/components/ui/DeleteConfirmModal.svelte'
+	import DepartmentModal from '$lib/components/ui/DepartmentModal.svelte'
+	import EmployeeModal from '$lib/components/ui/EmployeeModal.svelte'
+	import OrganizationChart from '$lib/components/ui/OrganizationChart.svelte'
+	import PositionModal from '$lib/components/ui/PositionModal.svelte'
+	import ThemeActivityItem from '$lib/components/ui/ThemeActivityItem.svelte'
+	import ThemeBadge from '$lib/components/ui/ThemeBadge.svelte'
+	import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
+	import ThemeCard from '$lib/components/ui/ThemeCard.svelte'
+	import ThemeChartPlaceholder from '$lib/components/ui/ThemeChartPlaceholder.svelte'
+	import ThemeGrid from '$lib/components/ui/ThemeGrid.svelte'
+	import ThemeModal from '$lib/components/ui/ThemeModal.svelte'
+	import ThemeSpacer from '$lib/components/ui/ThemeSpacer.svelte'
+	import ThemeTabs from '$lib/components/ui/ThemeTabs.svelte'
+	import { formatDateForDisplay, getCurrentUTC, getDateDifference } from '$lib/utils/date-handler'
+	import { formatDate, formatEmployeeName } from '$lib/utils/format'
+	import {
+		AlertCircleIcon,
+		BarChart3Icon,
+		BriefcaseIcon,
+		BuildingIcon,
+		CalendarIcon,
+		CheckCircleIcon,
+		CrownIcon,
+		DollarSignIcon,
+		DownloadIcon,
+		EditIcon,
+		EyeIcon,
+		FileSpreadsheetIcon,
+		FileTextIcon,
+		FlaskConicalIcon,
+		MailIcon,
+		PhoneIcon,
+		PlusIcon,
+		TagIcon,
+		TrashIcon,
+		TrendingUpIcon,
+		UserCheckIcon,
+		UserMinusIcon,
+		UserPlusIcon,
+		UsersIcon
+	} from '@lucide/svelte'
+// HR 스토어들
 	
+	
+	
+	import {
+		jobPostings
+	} from '$lib/stores/recruitment'
+	// 급여 계약 스토어
+	import {
+		contracts,
+		loadContracts
+	} from '$lib/stores/salary/contract-store'
+	
+
+	// 데이터베이스 직원 데이터
+	let employees = $state<any[]>([]);
+	let loading = $state(true);
+	let error = $state<string | null>(null);
+
+	// 직원별 현재 급여 정보 가져오기
+	function getCurrentSalary(employeeId: string): { annualSalary: number; monthlySalary: number; contractType: string } | null {
+		const activeContract = $contracts.find(contract => 
+			contract.employeeId === employeeId && 
+			contract.status === 'active' &&
+			(!contract.endDate || new Date(contract.endDate) > new Date(getCurrentUTC()))
+		);
+		
+		if (activeContract) {
+			return {
+				annualSalary: activeContract.annualSalary,
+				monthlySalary: activeContract.monthlySalary,
+				contractType: activeContract.contractType
+			};
+		}
+		return null;
+	}
+
 	// 사번 포맷팅 함수 (새로운 사번 형식 1001, 1002 등 표시)
 	function formatEmployeeIdDisplay(employeeId: string, index: number): string {
 		// 새로운 사번 형식 (1001, 1002 등)을 그대로 표시
@@ -31,99 +92,6 @@
 		// 기타 형식의 경우 순서대로 표시
 		return employeeId || `V${(index + 1).toString().padStart(5, '0')}`;
 	}
-
-	// 직원별 현재 급여 정보 가져오기
-	function getCurrentSalary(employeeId: string): { annualSalary: number; monthlySalary: number; contractType: string } | null {
-		const activeContract = $contracts.find(contract => 
-			contract.employeeId === employeeId && 
-			contract.status === 'active' &&
-			(!contract.endDate || new Date(contract.endDate) > new Date())
-		);
-		
-		if (activeContract) {
-			return {
-				annualSalary: activeContract.annualSalary,
-				monthlySalary: activeContract.monthlySalary,
-				contractType: activeContract.contractType
-			};
-		}
-		return null;
-	}
-	import { 
-		UsersIcon, 
-		BuildingIcon, 
-		UserPlusIcon, 
-		ClipboardListIcon,
-		TrendingUpIcon,
-		CalendarIcon,
-		FileTextIcon,
-		PlusIcon,
-		EyeIcon,
-		EditIcon,
-		TrashIcon,
-		UserCheckIcon,
-		BarChart3Icon,
-		FileSpreadsheetIcon,
-		DownloadIcon,
-		AlertCircleIcon,
-		CheckCircleIcon,
-		MailIcon,
-		PhoneIcon,
-		DollarSignIcon,
-		CrownIcon,
-		BriefcaseIcon,
-		TagIcon,
-		FlaskConicalIcon,
-		UserMinusIcon
-	} from '@lucide/svelte';
-	
-	// HR 스토어들
-	import { 
-		employmentContracts, 
-		jobDescriptions,
-		getActiveEmployees,
-		getEmployeesByDepartment
-	} from '$lib/stores/hr';
-	
-	
-	import { 
-		attendanceRecords, 
-		leaveRequests, 
-		leaveBalances,
-		calculateMonthlyAttendance
-	} from '$lib/stores/attendance';
-	
-	import { 
-		jobPostings, 
-		candidates, 
-		interviewSchedules,
-		getRecruitmentStats
-	} from '$lib/stores/recruitment';
-	
-	
-	import { 
-		bonuses, 
-		welfareApplications,
-		calculateAnnualCompensation
-	} from '$lib/stores/benefits';
-
-	// 급여 계약 스토어
-	import { 
-		contracts,
-		loadContracts
-	} from '$lib/stores/salary/contract-store';
-	
-	import { 
-		hrPolicies, 
-		faqs, 
-		guidelines,
-		getPopularFAQs
-	} from '$lib/stores/policies';
-
-	// 데이터베이스 직원 데이터
-	let employees = $state<any[]>([]);
-	let loading = $state(true);
-	let error = $state<string | null>(null);
 
 	// 직원 데이터 가져오기 (모든 직원 - 재직자 + 퇴사자)
 	async function fetchEmployees() {
@@ -539,7 +507,7 @@
 		}> = [];
 
 		// 최근 입사자 (최근 3개월 이내)
-		const threeMonthsAgo = new Date();
+		const threeMonthsAgo = new Date(getCurrentUTC());
 		threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
 		
 		employees
@@ -551,8 +519,8 @@
 			.sort((a: any, b: any) => new Date(b.hire_date).getTime() - new Date(a.hire_date).getTime())
 			.slice(0, 3)
 			.forEach((emp: any) => {
-				const daysSinceHire = Math.floor((new Date().getTime() - new Date(emp.hire_date).getTime()) / (1000 * 60 * 60 * 24));
-				const hireDate = new Date(emp.hire_date).toLocaleDateString('ko-KR');
+				const daysSinceHire = getDateDifference(emp.hire_date, getCurrentUTC());
+				const hireDate = formatDateForDisplay(emp.hire_date, 'KOREAN');
 				activities.push({
 					type: 'hire',
 					title: '신규 입사',
@@ -565,7 +533,7 @@
 			});
 
 		// 퇴직 예정자 (1개월 이내)
-		const oneMonthFromNow = new Date();
+		const oneMonthFromNow = new Date(getCurrentUTC());
 		oneMonthFromNow.setMonth(oneMonthFromNow.getMonth() + 1);
 		
 		employees
@@ -578,9 +546,9 @@
 			.sort((a: any, b: any) => new Date(a.termination_date).getTime() - new Date(b.termination_date).getTime())
 			.slice(0, 3)
 			.forEach((emp: any) => {
-				const daysLeft = Math.ceil((new Date(emp.termination_date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+				const daysLeft = Math.ceil(getDateDifference(getCurrentUTC(), emp.termination_date));
 				const isContract = emp.employment_type === 'contract';
-				const terminationDate = new Date(emp.termination_date).toLocaleDateString('ko-KR');
+				const terminationDate = formatDateForDisplay(emp.termination_date, 'KOREAN');
 				activities.push({
 					type: 'termination_pending',
 					title: isContract ? '계약 만료 예정' : '퇴직 예정',
@@ -593,7 +561,7 @@
 			});
 
 		// 최근 퇴사자 (최근 3개월 이내)
-		const threeMonthsAgoForTermination = new Date();
+		const threeMonthsAgoForTermination = new Date(getCurrentUTC());
 		threeMonthsAgoForTermination.setMonth(threeMonthsAgoForTermination.getMonth() - 3);
 		
 		employees
@@ -605,8 +573,8 @@
 			.sort((a: any, b: any) => new Date(b.termination_date).getTime() - new Date(a.termination_date).getTime())
 			.slice(0, 3)
 			.forEach((emp: any) => {
-				const daysSinceTermination = Math.floor((new Date().getTime() - new Date(emp.termination_date).getTime()) / (1000 * 60 * 60 * 24));
-				const terminationDate = new Date(emp.termination_date).toLocaleDateString('ko-KR');
+				const daysSinceTermination = getDateDifference(emp.termination_date, getCurrentUTC());
+				const terminationDate = formatDateForDisplay(emp.termination_date, 'KOREAN');
 				activities.push({
 					type: 'termination',
 					title: '퇴사 완료',
@@ -729,13 +697,13 @@
 
 	
 	// 컴포넌트 마운트 시 데이터 로드
-	$effect(async () => {
+	$effect(() => {
 		fetchEmployees();
 		fetchDepartments();
 		fetchPositions();
 		fetchExecutives();
 		fetchJobTitles();
-		await loadContracts(); // 급여 계약 데이터 로드
+		loadContracts(); // 급여 계약 데이터 로드
 	});
 
 	// 탭 변경 시 해당 탭의 데이터 로드
