@@ -204,10 +204,15 @@ export async function POST({ request }) {
 			try {
 				// 직원 데이터 저장 시도
 
-				// 새로운 사번 생성 (V00001 형식)
-				const countResult = await query('SELECT COUNT(*) as count FROM employees')
-				const nextId = (countResult.rows[0]?.count || 0) + 1
-				const newEmployeeId = `V${nextId.toString().padStart(5, '0')}`
+				// 새로운 사번 생성 (기존 4자리 숫자 규칙 유지)
+				const countResult = await query(`
+					SELECT MAX(CAST(employee_id AS INTEGER)) as max_id 
+					FROM employees 
+					WHERE employee_id ~ '^[0-9]+$' AND LENGTH(employee_id) <= 4
+				`)
+				const maxId = countResult.rows[0]?.max_id || 1000
+				const nextId = maxId + 1
+				const newEmployeeId = nextId.toString()
 
 				// UPSERT: 이메일이 존재하면 UPDATE, 없으면 INSERT
 				await query(

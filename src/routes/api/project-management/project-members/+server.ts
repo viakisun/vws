@@ -236,16 +236,23 @@ export const POST: RequestHandler = async ({ request }) => {
 		const salaryMultiplier =
 			factorResult.rows.length > 0 ? parseFloat(factorResult.rows[0].factor_value) : 1.15
 
-		// 월간 금액 계산: 계약금액 * 급여배수 * (참여율/100)
+		// 실제 근로계약서에서 월급 가져오기
+		let contractMonthlySalary = 0
+		if (validContracts.length > 0) {
+			const contract = validContracts[0]
+			contractMonthlySalary = contract.monthly_salary || contract.annual_salary / 12
+		}
+
+		// 월간 금액 계산: 실제 계약월급 * 급여배수 * (참여율/100)
 		const monthlyAmount = Math.round(
-			finalContractAmount * salaryMultiplier * (participationRate / 100)
+			contractMonthlySalary * salaryMultiplier * (participationRate / 100)
 		)
 
-		// 프로젝트 멤버 추가
+		// 프로젝트 멤버 추가 (contract_amount 제거)
 		const result = await query(
 			`
-			INSERT INTO project_members (project_id, employee_id, role, start_date, end_date, participation_rate, contribution_type, contract_amount, monthly_amount, status)
-			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+			INSERT INTO project_members (project_id, employee_id, role, start_date, end_date, participation_rate, contribution_type, monthly_amount, status)
+			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
 			RETURNING *
 		`,
 			[
@@ -256,7 +263,6 @@ export const POST: RequestHandler = async ({ request }) => {
 				endDate,
 				participationRate,
 				contributionType,
-				finalContractAmount,
 				monthlyAmount,
 				status
 			]

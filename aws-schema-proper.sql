@@ -1116,7 +1116,6 @@ CREATE TABLE public.project_members (
     created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
     updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
     contribution_type character varying(20) DEFAULT 'cash'::character varying,
-    contract_amount numeric(12,2) DEFAULT 0,
     monthly_amount numeric(12,2) DEFAULT 0,
     CONSTRAINT project_members_participation_rate_check CHECK (((participation_rate >= 0) AND (participation_rate <= 100)))
 );

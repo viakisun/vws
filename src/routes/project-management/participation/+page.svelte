@@ -1,72 +1,36 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
-  import PageLayout from '$lib/components/layout/PageLayout.svelte';
-  import ThemeCard from '$lib/components/ui/ThemeCard.svelte';
-  import ThemeBadge from '$lib/components/ui/ThemeBadge.svelte';
-  import ThemeButton from '$lib/components/ui/ThemeButton.svelte';
-  import ThemeGrid from '$lib/components/ui/ThemeGrid.svelte';
-  import ThemeSectionHeader from '$lib/components/ui/ThemeSectionHeader.svelte';
-  import ThemeStatCard from '$lib/components/ui/ThemeStatCard.svelte';
-  import ThemeModal from '$lib/components/ui/ThemeModal.svelte';
-  import ThemeInput from '$lib/components/ui/ThemeInput.svelte';
-  import { formatCurrency, formatDate } from '$lib/utils/format';
-  import { 
-    UsersIcon,
-    DollarSignIcon,
-    TrendingUpIcon,
-    PlusIcon,
-    EyeIcon,
-    EditIcon,
-    TrashIcon,
-    BarChart3Icon,
-    PieChartIcon,
-    AlertTriangleIcon,
-    CheckCircleIcon,
-    ClockIcon,
-    TargetIcon,
-    CalendarIcon,
-    BuildingIcon,
-    UserIcon,
-    PercentIcon,
-    UploadIcon,
-    DownloadIcon,
-    SearchIcon,
-    FilterIcon,
-    BrainIcon,
-    SettingsIcon,
-    ArrowUpIcon,
-    ArrowDownIcon,
-    ArrowRightIcon,
-    ActivityIcon,
-    TrendingDownIcon,
-    ZapIcon,
-    StarIcon,
-    AwardIcon,
-    BookOpenIcon,
-    LayersIcon,
-    PieChartIcon as PieIcon,
-    BarChartIcon,
-    LineChartIcon,
-    RefreshCwIcon,
-    SaveIcon,
-    XIcon,
-    CheckIcon,
-    InfoIcon,
-    AlertTriangleIcon as WarningIcon,
-    XCircleIcon
-  } from '@lucide/svelte';
+  import { goto } from '$app/navigation'
+  import { page } from '$app/stores'
+  import PageLayout from '$lib/components/layout/PageLayout.svelte'
+  import ResearcherValidationTable from '$lib/components/project-management/ResearcherValidationTable.svelte'
+  import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
+  import ThemeCard from '$lib/components/ui/ThemeCard.svelte'
+  import ThemeGrid from '$lib/components/ui/ThemeGrid.svelte'
+  import ThemeModal from '$lib/components/ui/ThemeModal.svelte'
+  import ThemeSectionHeader from '$lib/components/ui/ThemeSectionHeader.svelte'
+  import ThemeStatCard from '$lib/components/ui/ThemeStatCard.svelte'
   import {
-    employees,
-    projects,
-    participations,
-    rdBudgets,
-    documentTemplates,
-    documentSubmissions,
-    recommendations as aiRecommendations
-  } from '$lib/stores/rd';
-  import { initializeParticipationManager } from '$lib/stores/rnd/participation-manager';
-  import { page } from '$app/stores';
-  import { goto } from '$app/navigation';
+  	recommendations as aiRecommendations,
+  	employees,
+  	participations,
+  	projects
+  } from '$lib/stores/rd'
+  import { initializeParticipationManager } from '$lib/stores/rnd/participation-manager'
+  import { formatCurrency } from '$lib/utils/format'
+  import {
+  	AlertTriangleIcon,
+  	DollarSignIcon,
+  	DownloadIcon,
+  	FilterIcon,
+  	PercentIcon,
+  	PlusIcon,
+  	TargetIcon,
+  	UserIcon,
+  	UsersIcon,
+  	XCircleIcon,
+  	ZapIcon
+  } from '@lucide/svelte'
+  import { onMount } from 'svelte'
 
   // URL 파라미터에서 정렬 옵션 가져오기
   let sortOrder = $derived($page.url.searchParams.get('sort') || 'desc');
@@ -305,6 +269,17 @@
     closeParticipationModal();
   };
 
+  const handleMemberUpdate = (memberId: string, updates: any) => {
+    if (memberId === 'refresh') {
+      // 전체 새로고침
+      initializeParticipationManager();
+    } else {
+      // 특정 멤버 업데이트
+      // TODO: 실제 업데이트 로직 구현
+      console.log('Member update:', memberId, updates);
+    }
+  };
+
   onMount(() => {
     initializeParticipationManager();
   });
@@ -533,140 +508,12 @@
 			</ThemeCard>
 		</ThemeGrid>
 
-		<!-- 참여 데이터 테이블 -->
-		<ThemeCard>
-			<div class="p-6">
-				<div class="flex justify-between items-center mb-4">
-					<ThemeSectionHeader title="참여 현황" />
-					<div class="flex gap-2">
-						<ThemeButton
-							variant="secondary"
-							size="sm"
-							onclick={() => showAnalyticsModal = true}
-						>
-							<BarChart3Icon size={16} class="mr-2" />
-							상세 분석
-						</ThemeButton>
-						<ThemeButton
-							variant="secondary"
-							size="sm"
-							onclick={() => showOptimizationModal = true}
-						>
-							<SettingsIcon size={16} class="mr-2" />
-							최적화
-						</ThemeButton>
-					</div>
-				</div>
-
-				<div class="overflow-x-auto">
-					<table class="w-full">
-						<thead>
-							<tr class="border-b" style="border-color: var(--color-border);">
-								<th class="text-left py-3 px-4 font-medium" style="color: var(--color-text);">
-									<button
-										onclick={() => updateSort('employee')}
-										class="flex items-center gap-1 hover:opacity-70"
-									>
-										직원
-										{#if sortBy === 'employee'}
-											{#if sortOrder === 'asc'}
-												<ArrowUpIcon size={14} />
-											{:else}
-												<ArrowDownIcon size={14} />
-											{/if}
-										{/if}
-									</button>
-								</th>
-								<th class="text-left py-3 px-4 font-medium" style="color: var(--color-text);">
-									<button
-										onclick={() => updateSort('project')}
-										class="flex items-center gap-1 hover:opacity-70"
-									>
-										프로젝트
-										{#if sortBy === 'project'}
-											{#if sortOrder === 'asc'}
-												<ArrowUpIcon size={14} />
-											{:else}
-												<ArrowDownIcon size={14} />
-											{/if}
-										{/if}
-									</button>
-								</th>
-								<th class="text-left py-3 px-4 font-medium" style="color: var(--color-text);">
-									<button
-										onclick={() => updateSort('participationRate')}
-										class="flex items-center gap-1 hover:opacity-70"
-									>
-										참여율
-										{#if sortBy === 'participationRate'}
-											{#if sortOrder === 'asc'}
-												<ArrowUpIcon size={14} />
-											{:else}
-												<ArrowDownIcon size={14} />
-											{/if}
-										{/if}
-									</button>
-								</th>
-								<th class="text-left py-3 px-4 font-medium" style="color: var(--color-text);">역할</th>
-								<th class="text-left py-3 px-4 font-medium" style="color: var(--color-text);">상태</th>
-								<th class="text-left py-3 px-4 font-medium" style="color: var(--color-text);">시작일</th>
-								<th class="text-left py-3 px-4 font-medium" style="color: var(--color-text);">종료일</th>
-								<th class="text-left py-3 px-4 font-medium" style="color: var(--color-text);">액션</th>
-							</tr>
-						</thead>
-						<tbody>
-							{#each sortedParticipations as participation}
-								<tr class="border-b hover:bg-opacity-50" style="border-color: var(--color-border);">
-									<td class="py-3 px-4">
-										<div class="flex items-center gap-2">
-											<UserIcon size={16} style="color: var(--color-primary);" />
-											<span style="color: var(--color-text);">{getEmployeeName(participation.employeeId)}</span>
-										</div>
-									</td>
-									<td class="py-3 px-4">
-										<div class="flex items-center gap-2">
-											<TargetIcon size={16} style="color: var(--color-primary);" />
-											<span style="color: var(--color-text);">{getProjectName(participation.projectId)}</span>
-										</div>
-									</td>
-									<td class="py-3 px-4">
-										<ThemeBadge variant={getParticipationRateColor(participation.participationRate) as any}>
-											{participation.participationRate}%
-										</ThemeBadge>
-									</td>
-									<td class="py-3 px-4" style="color: var(--color-text);">{participation.role}</td>
-									<td class="py-3 px-4">
-										<ThemeBadge variant={getStatusColor(participation.status) as any}>
-											{participation.status}
-										</ThemeBadge>
-									</td>
-									<td class="py-3 px-4" style="color: var(--color-text);">{formatDate(participation.startDate)}</td>
-									<td class="py-3 px-4" style="color: var(--color-text);">{formatDate(participation.endDate)}</td>
-									<td class="py-3 px-4">
-										<div class="flex gap-1">
-											<button
-												onclick={() => openParticipationModal(participation)}
-												class="p-1 rounded hover:bg-opacity-20"
-												style="color: var(--color-primary);"
-											>
-												<EditIcon size={14} />
-											</button>
-											<button
-												onclick={() => {/* 삭제 로직 */}}
-												class="p-1 rounded hover:bg-opacity-20"
-												style="color: var(--color-danger);"
-											>
-												<TrashIcon size={14} />
-											</button>
-										</div>
-									</td>
-								</tr>
-							{/each}
-						</tbody>
-					</table>
-				</div>
-			</div>
-		</ThemeCard>
+		<!-- 참여연구원 검증 테이블 -->
+		<ResearcherValidationTable 
+			projectId="851a584c-7b2e-4413-97b3-15665dede7fc" 
+			members={sortedParticipations}
+			onMemberUpdate={handleMemberUpdate}
+		/>
 
 		<!-- 프로젝트별 참여 현황 -->
 		<ThemeCard>

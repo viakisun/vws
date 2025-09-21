@@ -108,7 +108,6 @@ export function transformProjectMemberData(member: any) {
 		end_date,
 		participation_rate,
 		contribution_type,
-		contract_amount,
 		monthly_amount,
 		created_at,
 		updated_at,
@@ -124,7 +123,6 @@ export function transformProjectMemberData(member: any) {
 		endDate: formatDateForDisplayLegacy(end_date),
 		participationRate: participation_rate,
 		contributionType: contribution_type,
-		contractAmount: contract_amount,
 		monthlyAmount: monthly_amount,
 		createdAt: created_at,
 		updatedAt: updated_at

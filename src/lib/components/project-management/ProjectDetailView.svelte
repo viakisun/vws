@@ -8,6 +8,7 @@
   import {
   	AlertTriangleIcon,
   	CalendarIcon,
+  	CheckCircleIcon,
   	CheckIcon,
   	ChevronDownIcon,
   	ChevronRightIcon,
@@ -22,6 +23,7 @@
   	TrashIcon,
   	UserIcon,
   	UsersIcon,
+  	XCircleIcon,
   	XIcon
   } from '@lucide/svelte'
   import { createEventDispatcher, onMount } from 'svelte'
@@ -361,25 +363,15 @@
   let budgetCategories = $state<any[]>([]);
   let availableEmployees = $state<any[]>([]);
 
-  // 예산 검증 상태
-  let budgetValidation = $state<any>(null);
-  let isValidatingBudget = $state(false);
-  let validationLastChecked = $state<Date | null>(null);
 
-  // 재직 기간 검증 상태
-  let employmentValidation = $state<any>(null);
-  let isValidatingEmployment = $state(false);
-  let employmentValidationLastChecked = $state<Date | null>(null);
-
-  // 참여연구원 검증 상태
+  // 참여연구원 검증 상태 (테이블용)
   let memberValidation = $state<any>(null);
   let isValidatingMembers = $state(false);
   let memberValidationLastChecked = $state<Date | null>(null);
 
-  // 사용률 검증 상태
-  let usageRateValidation = $state<any>(null);
-  let isValidatingUsageRate = $state(false);
-  let usageRateValidationLastChecked = $state<Date | null>(null);
+  // 개별 멤버 검증 상태
+  let memberValidationStatuses = $state<Record<string, any>>({});
+
 
   // 컴포넌트 마운트 시 초기화
   onMount(async () => {
@@ -387,54 +379,10 @@
       await loadProjectBudgets();
       await loadProjectMembers();
       await loadEvidenceCategories();
-      await validateBudget();
-      await validateEmployment();
-      await validateMembers();
-      await validateUsageRate();
     }
   });
 
-  // 예산 검증 함수
-  async function validateBudget() {
-    if (!selectedProject?.id) return;
 
-    isValidatingBudget = true;
-    try {
-      const response = await fetch(`/api/project-management/budget-validation?projectId=${selectedProject.id}`);
-      if (response.ok) {
-        const data = await response.json();
-        budgetValidation = data;
-        validationLastChecked = new Date();
-      } else {
-        console.error('예산 검증 실패:', response.statusText);
-      }
-    } catch (error) {
-      console.error('예산 검증 중 오류:', error);
-    } finally {
-      isValidatingBudget = false;
-    }
-  }
-
-  // 재직 기간 검증 함수
-  async function validateEmployment() {
-    if (!selectedProject?.id) return;
-
-    isValidatingEmployment = true;
-    try {
-      const response = await fetch(`/api/project-management/employment-validation?projectId=${selectedProject.id}`);
-      if (response.ok) {
-        const data = await response.json();
-        employmentValidation = data;
-        employmentValidationLastChecked = new Date();
-      } else {
-        console.error('재직 기간 검증 실패:', response.statusText);
-      }
-    } catch (error) {
-      console.error('재직 기간 검증 중 오류:', error);
-    } finally {
-      isValidatingEmployment = false;
-    }
-  }
 
   // 증빙 등록 시 재직 기간 검증 함수
   async function validateEvidenceRegistration() {
@@ -477,17 +425,22 @@
     }
   }
 
-  // 참여연구원 검증 함수
+  // 참여연구원 검증 함수 (테이블용)
   async function validateMembers() {
     if (!selectedProject?.id) return;
 
     isValidatingMembers = true;
     try {
-      const response = await fetch(`/api/project-management/member-validation?projectId=${selectedProject.id}`);
+      const response = await fetch(`/api/project-management/researcher-validation?projectId=${selectedProject.id}`);
       if (response.ok) {
         const data = await response.json();
         memberValidation = data;
         memberValidationLastChecked = new Date();
+        
+        // 개별 멤버 검증 상태 업데이트
+        if (data.success && data.data?.validation?.issues) {
+          updateMemberValidationStatuses(data.data.validation.issues);
+        }
       } else {
         console.error('참여연구원 검증 실패:', response.statusText);
       }
@@ -498,26 +451,51 @@
     }
   }
 
-  // 사용률 검증 함수
-  async function validateUsageRate() {
-    if (!selectedProject?.id) return;
-
-    isValidatingUsageRate = true;
-    try {
-      const response = await fetch(`/api/project-management/usage-rate-validation?projectId=${selectedProject.id}`);
-      if (response.ok) {
-        const data = await response.json();
-        usageRateValidation = data.data;
-        usageRateValidationLastChecked = new Date();
+  // 개별 멤버 검증 상태 업데이트
+  function updateMemberValidationStatuses(issues: any[]) {
+    // 초기화
+    memberValidationStatuses = {};
+    
+    // 각 멤버별로 검증 상태 설정
+    projectMembers.forEach(member => {
+      const memberIssues = issues.filter(issue => issue.memberId === member.id);
+      
+      if (memberIssues.length === 0) {
+        memberValidationStatuses[member.id] = {
+          status: 'valid',
+          message: '검증 완료',
+          issues: []
+        };
       } else {
-        console.error('사용률 검증 실패:', response.statusText);
+        const hasErrors = memberIssues.some(issue => issue.severity === 'error');
+        const hasWarnings = memberIssues.some(issue => issue.severity === 'warning');
+        const errorCount = memberIssues.filter(i => i.severity === 'error').length;
+        const warningCount = memberIssues.filter(i => i.severity === 'warning').length;
+        
+        // 더 자세한 메시지 생성
+        let detailedMessage = '';
+        if (hasErrors && hasWarnings) {
+          detailedMessage = `${errorCount}개 오류, ${warningCount}개 경고`;
+        } else if (hasErrors) {
+          detailedMessage = `${errorCount}개 오류`;
+        } else {
+          detailedMessage = `${warningCount}개 경고`;
+        }
+        
+        memberValidationStatuses[member.id] = {
+          status: hasErrors ? 'error' : 'warning',
+          message: detailedMessage,
+          issues: memberIssues.map(issue => ({
+            ...issue,
+            // API에서 제공하는 실제 메시지 사용
+            priority: issue.severity === 'error' ? 'high' : 'medium'
+          }))
+        };
       }
-    } catch (error) {
-      console.error('사용률 검증 중 오류:', error);
-    } finally {
-      isValidatingUsageRate = false;
-    }
+    });
   }
+
+
 
   // 프로젝트 멤버 로드
   async function loadProjectMembers() {
@@ -529,6 +507,8 @@
         console.log('참여연구원 목록 로드 성공:', data.data?.length, '명');
         projectMembers = data.data || [];
         console.log('참여연구원 상태 업데이트 완료:', projectMembers.length, '명');
+        
+        // 자동 검증 제거 - 수작업으로만 검증 실행
       } else {
         console.error('참여연구원 목록 로드 실패, 응답 상태:', response.status);
       }
@@ -646,8 +626,6 @@
           actualAmount: ''
         };
         await loadProjectBudgets();
-        await validateBudget(); // 예산 검증 다시 실행
-        await validateUsageRate(); // 사용률 검증 다시 실행
         dispatch('refresh');
 
         // 성공 메시지 표시
@@ -719,7 +697,7 @@
       role: member.role,
       startDate: formatDateForInput(getMemberStartDate(member)),
       endDate: formatDateForInput(getMemberEndDate(member)),
-      participationRate: (getMemberParticipationRate(member) || 0).toString(),
+      participationRate: getMemberParticipationRate(member) || 0,
       monthlyAmount: (getMemberMonthlyAmount(member) || 0).toString(),
       contributionType: getMemberContributionType(member)
     };
@@ -925,8 +903,6 @@
           actualAmount: ''
         };
         await loadProjectBudgets();
-        await validateBudget(); // 예산 검증 다시 실행
-        await validateUsageRate(); // 사용률 검증 다시 실행
         dispatch('refresh');
 
         // 성공 메시지 표시
@@ -954,8 +930,6 @@
 
       if (response.ok) {
         await loadProjectBudgets();
-        await validateBudget(); // 예산 검증 다시 실행
-        await validateUsageRate(); // 사용률 검증 다시 실행
         dispatch('refresh');
       }
     } catch (error) {
@@ -1196,31 +1170,6 @@
     }
   }
 
-  // 자동 검증 실행
-  async function runAutoValidation() {
-    if (!selectedProject) return;
-
-    try {
-      const response = await fetch('/api/project-management/auto-validation', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ projectId: selectedProject.id })
-      });
-
-      const result = await response.json();
-
-      if (result.success) {
-        alert(`자동 검증 완료: ${result.fixedIssues}개 문제가 수정되었습니다.`);
-        // 프로젝트 데이터 새로고침
-        dispatch('refresh');
-      } else {
-        alert('자동 검증 중 오류가 발생했습니다.');
-      }
-    } catch (error) {
-      console.error('자동 검증 실행 실패:', error);
-      alert('자동 검증 실행 중 오류가 발생했습니다.');
-    }
-  }
 
   // 증빙 내역 모달 표시
   function openEvidenceModal(budget) {
@@ -1858,15 +1807,6 @@
             {isRunningValidation ? '검증 중...' : '검증 실행'}
           </ThemeButton>
           <ThemeButton
-            onclick={runAutoValidation}
-            size="sm"
-            variant="ghost">
-            <RefreshCwIcon
-              size={16}
-              class="mr-2" />
-            자동 수정
-          </ThemeButton>
-          <ThemeButton
             onclick={() => showBudgetModal = true}
             size="sm">
             <PlusIcon
@@ -1877,353 +1817,9 @@
         </div>
       </div>
 
-      <!-- 예산 검증 상태 표시 -->
-      {#if budgetValidation}
-        <div class="mb-4 p-4 rounded-lg border {budgetValidation.overallValidation.isValid ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}">
-          <div class="flex items-center justify-between">
-            <div class="flex items-center space-x-3">
-              {#if budgetValidation.overallValidation.isValid}
-                <ShieldCheckIcon class="h-5 w-5 text-green-600" />
-                <span class="text-green-800 font-medium">예산 검증 완료</span>
-              {:else}
-                <ShieldAlertIcon class="h-5 w-5 text-red-600" />
-                <span class="text-red-800 font-medium">예산 검증 불일치</span>
-              {/if}
-              <span class="text-sm text-gray-600">
-                ({budgetValidation.overallValidation.validPeriods}/{budgetValidation.overallValidation.periods} 연차 검증 통과)
-              </span>
-            </div>
-            <div class="flex items-center space-x-2">
-              <span class="text-sm text-gray-500">
-                마지막 검증: {validationLastChecked ? validationLastChecked.toLocaleString() : 'N/A'}
-              </span>
-              <ThemeButton
-                variant="secondary"
-                size="sm"
-                onclick={validateBudget}
-                disabled={isValidatingBudget}
-              >
-                <RefreshCwIcon class="h-4 w-4 {isValidatingBudget ? 'animate-spin' : ''}" />
-                {isValidatingBudget ? '검증 중...' : '다시 검증'}
-              </ThemeButton>
-            </div>
-          </div>
 
-          <!-- 상세 검증 결과 -->
-          <div class="mt-3 space-y-2">
-            {#each budgetValidation.periodValidations as period}
-              <div class="flex items-center justify-between text-sm">
-                <span class="font-medium">Y{period.periodNumber} ({period.fiscalYear}년)</span>
-                <div class="flex items-center space-x-4">
-                  <span class="text-gray-600">
-                    예산: {formatCurrency(period.budget.total)} |
-                    증빙: {formatCurrency(period.evidence.total)} |
-                    집행: {formatCurrency(period.budget.spent)}
-                  </span>
-                  {#if period.validation.overallMatch}
-                    <ThemeBadge
-                      variant="success"
-                      size="sm">일치</ThemeBadge>
-                  {:else}
-                    <ThemeBadge
-                      variant="error"
-                      size="sm">불일치</ThemeBadge>
-                  {/if}
-                </div>
-              </div>
-            {/each}
-          </div>
-        </div>
-      {:else if isValidatingBudget}
-        <div class="mb-4 p-4 rounded-lg border border-gray-200 bg-gray-50">
-          <div class="flex items-center space-x-3">
-            <RefreshCwIcon class="h-5 w-5 text-gray-600 animate-spin" />
-            <span class="text-gray-700">예산 검증 중...</span>
-          </div>
-        </div>
-      {/if}
 
-      <!-- 재직 기간 검증 상태 표시 -->
-      {#if employmentValidation}
-        <div class="mb-4 p-4 rounded-lg border {employmentValidation.overallValidation.isValid ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}">
-          <div class="flex items-center justify-between">
-            <div class="flex items-center space-x-3">
-              {#if employmentValidation.overallValidation.isValid}
-                <ShieldCheckIcon class="h-5 w-5 text-green-600" />
-                <span class="text-green-800 font-medium">재직 기간 검증 완료</span>
-              {:else}
-                <ShieldAlertIcon class="h-5 w-5 text-red-600" />
-                <span class="text-red-800 font-medium">재직 기간 검증 불일치</span>
-              {/if}
-              <span class="text-sm text-gray-600">
-                (참여연구원: {employmentValidation.overallValidation.validMembers}/{employmentValidation.overallValidation.totalMembers}명,
-                증빙항목: {employmentValidation.overallValidation.validEvidenceItems}/{employmentValidation.overallValidation.totalEvidenceItems}개 검증 통과)
-              </span>
-            </div>
-            <div class="flex items-center space-x-2">
-              <span class="text-sm text-gray-500">
-                마지막 검증: {employmentValidationLastChecked ? employmentValidationLastChecked.toLocaleString() : 'N/A'}
-              </span>
-              <ThemeButton
-                variant="secondary"
-                size="sm"
-                onclick={validateEmployment}
-                disabled={isValidatingEmployment}
-              >
-                <RefreshCwIcon class="h-4 w-4 {isValidatingEmployment ? 'animate-spin' : ''}" />
-                {isValidatingEmployment ? '검증 중...' : '다시 검증'}
-              </ThemeButton>
-            </div>
-          </div>
 
-          <!-- 상세 검증 결과 -->
-          {#if employmentValidation.memberValidationResults && employmentValidation.memberValidationResults.length > 0}
-            <div class="mt-3 space-y-2">
-              <h4 class="font-medium text-gray-800">참여연구원 검증 결과</h4>
-              {#each employmentValidation.memberValidationResults as result}
-                <div class="flex items-center justify-between text-sm p-2 rounded {result.validation.isValid ? 'bg-green-100' : 'bg-red-100'}">
-                  <div class="flex items-center space-x-3">
-                    <span class="font-medium">{result.memberName}</span>
-                    <span class="text-gray-600">역할: {result.role}</span>
-                    <span class="text-gray-500">기간: {result.participationPeriod}</span>
-                    <span class="text-gray-500">상태: {result.employee.status}</span>
-                  </div>
-                  <div class="flex items-center space-x-2">
-                    {#if result.validation.isValid}
-                      <ThemeBadge
-                        variant="success"
-                        size="sm">유효</ThemeBadge>
-                    {:else}
-                      <ThemeBadge
-                        variant="error"
-                        size="sm">무효</ThemeBadge>
-                    {/if}
-                  </div>
-                </div>
-                {#if !result.validation.isValid}
-                  <div class="ml-4 text-sm text-red-700 bg-red-50 p-2 rounded">
-                    {result.validation.message}
-                    {#if result.validation.issues && result.validation.issues.length > 0}
-                      <ul class="mt-1 list-disc list-inside">
-                        {#each result.validation.issues as issue}
-                          <li>{issue}</li>
-                        {/each}
-                      </ul>
-                    {/if}
-                  </div>
-                {/if}
-              {/each}
-            </div>
-          {/if}
-
-          {#if employmentValidation.evidenceValidationResults && employmentValidation.evidenceValidationResults.length > 0}
-            <div class="mt-3 space-y-2">
-              <h4 class="font-medium text-gray-800">증빙항목 검증 결과</h4>
-              {#each employmentValidation.evidenceValidationResults as result}
-                <div class="flex items-center justify-between text-sm p-2 rounded {result.validation.isValid ? 'bg-green-100' : 'bg-red-100'}">
-                  <div class="flex items-center space-x-3">
-                    <span class="font-medium">{result.evidenceName}</span>
-                    <span class="text-gray-600">담당자: {formatAssigneeName(result.assigneeName, '미지정')}</span>
-                    <span class="text-gray-500">Y{result.periodNumber}</span>
-                  </div>
-                  <div class="flex items-center space-x-2">
-                    {#if result.validation.isValid}
-                      <ThemeBadge
-                        variant="success"
-                        size="sm">유효</ThemeBadge>
-                    {:else}
-                      <ThemeBadge
-                        variant="error"
-                        size="sm">무효</ThemeBadge>
-                    {/if}
-                  </div>
-                </div>
-                {#if !result.validation.isValid}
-                  <div class="ml-4 text-sm text-red-700 bg-red-50 p-2 rounded">
-                    {result.validation.message}
-                  </div>
-                {/if}
-              {/each}
-            </div>
-          {/if}
-        </div>
-      {:else if isValidatingEmployment}
-        <div class="mb-4 p-4 rounded-lg border border-gray-200 bg-gray-50">
-          <div class="flex items-center space-x-3">
-            <RefreshCwIcon class="h-5 w-5 text-gray-600 animate-spin" />
-            <span class="text-gray-700">재직 기간 검증 중...</span>
-          </div>
-        </div>
-      {/if}
-
-      <!-- 참여연구원 검증 상태 표시 -->
-      {#if memberValidation}
-        <div class="mb-4 p-4 rounded-lg border {memberValidation.overallValidation.isValid ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}">
-          <div class="flex items-center justify-between">
-            <div class="flex items-center space-x-3">
-              {#if memberValidation.overallValidation.isValid}
-                <ShieldCheckIcon class="h-5 w-5 text-green-600" />
-                <span class="text-green-800 font-medium">참여연구원 검증 완료</span>
-              {:else}
-                <ShieldAlertIcon class="h-5 w-5 text-red-600" />
-                <span class="text-red-800 font-medium">참여연구원 검증 불일치</span>
-              {/if}
-              <span class="text-sm text-gray-600">
-                ({memberValidation.overallValidation.validMembers}/{memberValidation.overallValidation.totalMembers} 명 검증 통과)
-              </span>
-              {#if memberValidation.overallValidation.totalWarnings > 0}
-                <span class="text-sm text-yellow-600">
-                  ⚠️ {memberValidation.overallValidation.totalWarnings}개 경고
-                </span>
-              {/if}
-            </div>
-            <div class="flex items-center space-x-2">
-              <span class="text-sm text-gray-500">
-                마지막 검증: {memberValidationLastChecked ? memberValidationLastChecked.toLocaleString() : 'N/A'}
-              </span>
-              <ThemeButton
-                variant="secondary"
-                size="sm"
-                onclick={validateMembers}
-                disabled={isValidatingMembers}
-              >
-                <RefreshCwIcon class="h-4 w-4 {isValidatingMembers ? 'animate-spin' : ''}" />
-                {isValidatingMembers ? '검증 중...' : '다시 검증'}
-              </ThemeButton>
-            </div>
-          </div>
-
-          <!-- 상세 검증 결과 -->
-          {#if memberValidation.validationResults && memberValidation.validationResults.length > 0}
-            <div class="mt-3 space-y-2">
-              {#each memberValidation.validationResults as result}
-                <div class="flex items-center justify-between text-sm p-2 rounded {result.validation.isValid ? 'bg-green-100' : 'bg-red-100'}">
-                  <div class="flex items-center space-x-3">
-                    <span class="font-medium">{result.memberName}</span>
-                    <span class="text-gray-600">({result.role})</span>
-                    <span class="text-gray-500">참여율: {result.participationRate}%</span>
-                    <span class="text-gray-500">월급여: {parseInt(result.monthlyAmount).toLocaleString()}원</span>
-                  </div>
-                  <div class="flex items-center space-x-2">
-                    {#if result.validation.isValid}
-                      <ThemeBadge
-                        variant="success"
-                        size="sm">유효</ThemeBadge>
-                    {:else}
-                      <ThemeBadge
-                        variant="error"
-                        size="sm">무효</ThemeBadge>
-                    {/if}
-                  </div>
-                </div>
-                {#if !result.validation.isValid && result.validation.issues && result.validation.issues.length > 0}
-                  <div class="ml-4 text-sm text-red-700 bg-red-50 p-2 rounded">
-                    {#each result.validation.issues as issue}
-                      <div>❌ {issue}</div>
-                    {/each}
-                  </div>
-                {/if}
-                {#if result.validation.warnings && result.validation.warnings.length > 0}
-                  <div class="ml-4 text-sm text-yellow-700 bg-yellow-50 p-2 rounded">
-                    {#each result.validation.warnings as warning}
-                      <div>⚠️ {warning}</div>
-                    {/each}
-                  </div>
-                {/if}
-              {/each}
-            </div>
-          {/if}
-        </div>
-      {:else if isValidatingMembers}
-        <div class="mb-4 p-4 rounded-lg border border-gray-200 bg-gray-50">
-          <div class="flex items-center space-x-3">
-            <RefreshCwIcon class="h-5 w-5 text-gray-600 animate-spin" />
-            <span class="text-gray-700">참여연구원 검증 중...</span>
-          </div>
-        </div>
-      {/if}
-
-      <!-- 사용률 검증 상태 표시 -->
-      {#if usageRateValidation}
-        <div class="mb-4 p-4 rounded-lg border {usageRateValidation.overallValidation.isValid ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}">
-          <div class="flex items-center justify-between">
-            <div class="flex items-center space-x-3">
-              {#if usageRateValidation.overallValidation.isValid}
-                <ShieldCheckIcon class="h-5 w-5 text-green-600" />
-                <span class="text-green-800 font-medium">사용률 검증 완료</span>
-              {:else}
-                <ShieldAlertIcon class="h-5 w-5 text-red-600" />
-                <span class="text-red-800 font-medium">사용률 검증 불일치</span>
-              {/if}
-              <span class="text-sm text-gray-600">
-                ({usageRateValidation.overallValidation.validPeriods}/{usageRateValidation.overallValidation.totalPeriods} 연차 검증 통과)
-              </span>
-            </div>
-            <div class="flex items-center space-x-2">
-              <span class="text-sm text-gray-500">
-                마지막 검증: {usageRateValidationLastChecked ? usageRateValidationLastChecked.toLocaleString() : 'N/A'}
-              </span>
-              <ThemeButton
-                variant="secondary"
-                size="sm"
-                onclick={validateUsageRate}
-                disabled={isValidatingUsageRate}
-              >
-                <RefreshCwIcon class="h-4 w-4 {isValidatingUsageRate ? 'animate-spin' : ''}" />
-                {isValidatingUsageRate ? '검증 중...' : '다시 검증'}
-              </ThemeButton>
-            </div>
-          </div>
-
-          <!-- 상세 검증 결과 -->
-          {#if usageRateValidation.validationResults && usageRateValidation.validationResults.length > 0}
-            <div class="mt-3 space-y-2">
-              {#each usageRateValidation.validationResults as result}
-                <div class="flex items-center justify-between text-sm p-2 rounded {result.isValid ? 'bg-green-100' : 'bg-red-100'}">
-                  <div class="flex items-center space-x-3">
-                    <span class="font-medium">Y{result.periodNumber}</span>
-                    <span class="text-gray-600">전체 실행률: {result.overallUsageRate.toFixed(1)}%</span>
-                    <span class="text-gray-500">총 예산: {parseInt(result.totalBudget).toLocaleString()}원</span>
-                    <span class="text-gray-500">총 집행: {parseInt(result.totalSpent).toLocaleString()}원</span>
-                  </div>
-                  <div class="flex items-center space-x-2">
-                    {#if result.isValid}
-                      <ThemeBadge
-                        variant="success"
-                        size="sm">유효</ThemeBadge>
-                    {:else}
-                      <ThemeBadge
-                        variant="error"
-                        size="sm">불일치</ThemeBadge>
-                    {/if}
-                  </div>
-                </div>
-
-                <!-- 항목별 상세 결과 -->
-                {#if !result.isValid}
-                  <div class="ml-4 space-y-1">
-                    {#each result.categoryValidations as category}
-                      {#if !category.isConsistent}
-                        <div class="text-xs p-2 bg-red-50 rounded border-l-2 border-red-300">
-                          <span class="font-medium text-red-800">{category.categoryName}:</span>
-                          <span class="text-red-700 ml-2">{category.message}</span>
-                        </div>
-                      {/if}
-                    {/each}
-                  </div>
-                {/if}
-              {/each}
-            </div>
-          {/if}
-        </div>
-      {:else if isValidatingUsageRate}
-        <div class="mb-4 p-4 rounded-lg border border-gray-200 bg-gray-50">
-          <div class="flex items-center space-x-3">
-            <RefreshCwIcon class="h-5 w-5 text-gray-600 animate-spin" />
-            <span class="text-gray-700">사용률 검증 중...</span>
-          </div>
-        </div>
-      {/if}
 
       <div class="overflow-x-auto">
         <table
@@ -2723,16 +2319,34 @@
   <ThemeCard class="p-6">
     <div class="flex items-center justify-between mb-4">
       <h3 class="text-lg font-semibold text-gray-900">참여연구원</h3>
-      <ThemeButton
-        onclick={() => addingMember = true}
-        size="sm"
-        disabled={addingMember || editingMember !== null}
-      >
-        <PlusIcon
-          size={16}
-          class="mr-2" />
-        연구원 추가
-      </ThemeButton>
+      <div class="flex items-center gap-2">
+        {#if projectMembers.length > 0}
+          <ThemeButton
+            onclick={validateMembers}
+            size="sm"
+            variant="primary"
+            disabled={isValidatingMembers}
+          >
+            {#if isValidatingMembers}
+              <RefreshCwIcon size={14} class="mr-2 animate-spin" />
+              검증 중...
+            {:else}
+              <ShieldCheckIcon size={14} class="mr-2" />
+              검증 실행
+            {/if}
+          </ThemeButton>
+        {/if}
+        <ThemeButton
+          onclick={() => addingMember = true}
+          size="sm"
+          disabled={addingMember || editingMember !== null}
+        >
+          <PlusIcon
+            size={16}
+            class="mr-2" />
+          연구원 추가
+        </ThemeButton>
+      </div>
     </div>
 
     <div class="overflow-x-auto">
@@ -2746,6 +2360,7 @@
             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-40">월간금액</th>
             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-56">참여기간</th>
             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">기여 유형</th>
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">검증 상태</th>
             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-40">액션</th>
           </tr>
         </thead>
@@ -2849,6 +2464,12 @@
                   <option value="cash">현금</option>
                   <option value="in_kind">현물</option>
                 </select>
+              </td>
+              <!-- 검증 상태 -->
+              <td class="px-4 py-4 whitespace-nowrap">
+                <div class="flex items-center justify-center">
+                  <div class="animate-pulse bg-gray-200 rounded-full w-6 h-6"></div>
+                </div>
               </td>
               <!-- 액션 -->
               <td class="px-4 py-4 whitespace-nowrap text-sm font-medium">
@@ -2974,6 +2595,104 @@
                     {(member.contributionType || member.contribution_type) === 'cash' ? '현금' : '현물'}
                   </ThemeBadge>
                 {/if}
+              </td>
+              <!-- 검증 상태 -->
+              <td class="px-4 py-4 whitespace-nowrap">
+                <div class="flex items-center justify-center">
+                  {#if memberValidationStatuses[member.id]}
+                    {@const validationStatus = memberValidationStatuses[member.id]}
+                    {#if validationStatus.status === 'valid'}
+                      <div class="relative inline-block group">
+                        <CheckCircleIcon class="h-6 w-6 text-green-500 cursor-help hover:text-green-600 transition-colors" />
+                        <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-4 py-3 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-20 max-w-xs">
+                          <div class="font-semibold text-green-400 mb-1">✅ 검증 완료</div>
+                          <div class="text-gray-300">모든 검증 항목이 정상입니다.</div>
+                          <div class="text-gray-400 mt-1">• 근로계약서 유효</div>
+                          <div class="text-gray-400">• 참여율 적정</div>
+                          <div class="text-gray-400">• 월간금액 정상</div>
+                        </div>
+                      </div>
+                    {:else if validationStatus.status === 'warning'}
+                      <div class="relative inline-block group">
+                        <AlertTriangleIcon class="h-6 w-6 text-yellow-500 cursor-help hover:text-yellow-600 transition-colors" />
+                        <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-4 py-3 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-20 max-w-sm">
+                          <div class="font-semibold text-yellow-400 mb-2">⚠️ 경고 사항</div>
+                          <div class="text-gray-300 mb-1">{validationStatus.message}</div>
+                          {#if validationStatus.issues && validationStatus.issues.length > 0}
+                            {#each validationStatus.issues as issue}
+                              <div class="mb-2 last:mb-0 p-2 bg-gray-800 rounded">
+                                <div class="text-gray-300 font-medium">{issue.message}</div>
+                                {#if issue.suggestedFix}
+                                  <div class="text-gray-400 mt-1 text-xs">💡 {issue.suggestedFix}</div>
+                                {/if}
+                                {#if issue.data}
+                                  <div class="text-gray-500 mt-1 text-xs">
+                                    {#if issue.type === 'participation_rate_excess'}
+                                      현재 참여율: {issue.data.participationRate}%
+                                    {:else if issue.type === 'amount_excess'}
+                                      현재: {issue.data.monthlyAmount?.toLocaleString()}원<br>
+                                      예상: {issue.data.expectedMonthlyAmount?.toLocaleString()}원
+                                    {:else if issue.type === 'duplicate_participation'}
+                                      총 참여율: {issue.data.totalParticipationRate?.toFixed(1)}%
+                                      {#if issue.data.conflictingProjects && issue.data.conflictingProjects.length > 0}
+                                        <br>충돌 프로젝트: {issue.data.conflictingProjects.length}개
+                                      {/if}
+                                    {:else if issue.type === 'contract_missing' || issue.type === 'contract_period_mismatch'}
+                                      참여 기간: {issue.data.participationPeriod}
+                                    {/if}
+                                  </div>
+                                {/if}
+                              </div>
+                            {/each}
+                          {/if}
+                        </div>
+                      </div>
+                    {:else if validationStatus.status === 'error'}
+                      <div class="relative inline-block group">
+                        <XCircleIcon class="h-6 w-6 text-red-500 cursor-help hover:text-red-600 transition-colors" />
+                        <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-4 py-3 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-20 max-w-sm">
+                          <div class="font-semibold text-red-400 mb-2">❌ 검증 실패</div>
+                          <div class="text-gray-300 mb-1">{validationStatus.message}</div>
+                          {#if validationStatus.issues && validationStatus.issues.length > 0}
+                            {#each validationStatus.issues as issue}
+                              <div class="mb-2 last:mb-0 p-2 bg-gray-800 rounded">
+                                <div class="text-gray-300 font-medium">{issue.message}</div>
+                                {#if issue.suggestedFix}
+                                  <div class="text-gray-400 mt-1 text-xs">🔧 {issue.suggestedFix}</div>
+                                {/if}
+                                {#if issue.data}
+                                  <div class="text-gray-500 mt-1 text-xs">
+                                    {#if issue.type === 'participation_rate_excess'}
+                                      현재 참여율: {issue.data.participationRate}%
+                                    {:else if issue.type === 'amount_excess'}
+                                      현재: {issue.data.monthlyAmount?.toLocaleString()}원<br>
+                                      예상: {issue.data.expectedMonthlyAmount?.toLocaleString()}원
+                                    {:else if issue.type === 'duplicate_participation'}
+                                      총 참여율: {issue.data.totalParticipationRate?.toFixed(1)}%
+                                      {#if issue.data.conflictingProjects && issue.data.conflictingProjects.length > 0}
+                                        <br>충돌 프로젝트: {issue.data.conflictingProjects.length}개
+                                      {/if}
+                                    {:else if issue.type === 'contract_missing' || issue.type === 'contract_period_mismatch'}
+                                      참여 기간: {issue.data.participationPeriod}
+                                    {/if}
+                                  </div>
+                                {/if}
+                              </div>
+                            {/each}
+                          {/if}
+                        </div>
+                      </div>
+                    {/if}
+                  {:else}
+                    <div class="relative inline-block group">
+                      <div class="animate-pulse bg-gray-300 rounded-full w-6 h-6 cursor-help hover:bg-gray-400 transition-colors" />
+                      <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-10">
+                        <div class="font-semibold text-gray-400">⏳ 검증 대기 중</div>
+                        <div class="text-gray-500">아직 검증되지 않았습니다.</div>
+                      </div>
+                    </div>
+                  {/if}
+                </div>
               </td>
               <td class="px-4 py-4 whitespace-nowrap text-sm font-medium">
                 <div class="flex space-x-1 justify-center">
