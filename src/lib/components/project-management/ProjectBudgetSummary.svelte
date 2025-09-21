@@ -1,15 +1,17 @@
 <script lang="ts">
 	import type { BudgetSummary } from '$lib/types/project-budget'
+	import { formatDate } from '$lib/utils/format'
 	import { DollarSignIcon } from '@lucide/svelte'
-	import { formatDateForDisplay } from '$lib/utils/date-handler'
 	
-	let { projectId, compact = false } = $props<{
+	let { projectId, compact = false, refreshTrigger = 0 } = $props<{
 		projectId: string;
 		compact?: boolean;
+		refreshTrigger?: number;
 	}>()
 	
 	// 예산 데이터 상태
 	let budgetSummary = $state<BudgetSummary | null>(null)
+	let budgetDetails = $state<any[] | null>(null)
 	let loading = $state(true)
 	let error = $state<string | null>(null)
 	
@@ -24,10 +26,20 @@
 			const response = await fetch(`/api/project-management/projects/${projectId}/annual-budgets`)
 			const result = await response.json()
 			
-			if (result.success && result.data?.summary) {
-				budgetSummary = result.data.summary
+			if (result.success && result.data) {
+				budgetSummary = result.data.summary || null
+				budgetDetails = result.data.budgets || null
+				
+				// 디버깅: 받은 데이터 확인
+				console.log('ProjectBudgetSummary - 받은 데이터:', {
+					summary: budgetSummary,
+					budgets: budgetDetails,
+					첫번째예산: budgetDetails?.[0]
+				})
 			} else {
 				budgetSummary = null
+				budgetDetails = null
+				console.log('ProjectBudgetSummary - 데이터 로드 실패:', result)
 			}
 		} catch (err) {
 			console.error('예산 요약 로드 실패:', err)
@@ -37,27 +49,21 @@
 		}
 	}
 	
-	// 프로젝트 ID 변경 시 데이터 로드
+	// 프로젝트 ID 변경 시 또는 refreshTrigger 변경 시 데이터 로드
 	$effect(() => {
 		if (projectId) {
 			loadBudgetSummary()
 		}
+		// refreshTrigger가 변경될 때마다 데이터 다시 로드
+		if (refreshTrigger > 0) {
+			loadBudgetSummary()
+		}
 	})
 	
-	// 숫자 포맷팅 (더 정확하게)
+	// 숫자 포맷팅 (천원 단위)
 	function formatCurrency(amount: number): string {
-		if (amount >= 100000000) {
-			const billions = amount / 100000000
-			return billions % 1 === 0 ? `${billions}억원` : `${billions.toFixed(1)}억원`
-		} else if (amount >= 10000000) {
-			const tenMillions = amount / 10000000
-			return tenMillions % 1 === 0 ? `${tenMillions}천만원` : `${tenMillions.toFixed(1)}천만원`
-		} else if (amount >= 10000) {
-			const tenThousands = amount / 10000
-			return tenThousands % 1 === 0 ? `${tenThousands}만원` : `${tenThousands.toFixed(1)}만원`
-		} else {
-			return `${amount.toLocaleString()}원`
-		}
+		const thousands = amount / 1000
+		return thousands.toLocaleString()
 	}
 	
 	// 비율 색상
@@ -82,64 +88,54 @@
 	{#if compact}
 		<!-- 연차별 사업비 구성 표 -->
 		<div class="space-y-4">
-			<!-- 전체 사업비 헤더 -->
-			<div class="text-center">
-				<div class="text-xl font-bold text-gray-900">
-					{formatCurrency(budgetSummary.totalBudget)}
-				</div>
-				<div class="text-sm text-gray-600">{budgetSummary.totalYears}년차 전체 사업비</div>
-			</div>
-			
-			<!-- 연차별 예산 구성 표 -->
-			{#await fetch(`/api/project-management/projects/${projectId}/annual-budgets`).then(res => res.json())}
-				<div class="text-center py-4">
-					<div class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mx-auto"></div>
-					<p class="text-sm text-gray-500 mt-2">연차별 데이터 로딩 중...</p>
-				</div>
-			{:then result}
-				{#if result.success && result.data?.budgets}
+		<!-- 연차별 예산 구성 표 -->
+		{#if budgetDetails && budgetDetails.length > 0}
+					<!-- 단위 표시 -->
+					<div class="text-right text-sm text-gray-500 mb-2">
+						단위: 천원
+					</div>
 					<div class="overflow-x-auto">
 						<table class="w-full text-sm border border-gray-200 rounded-lg">
 							<thead class="bg-gray-50">
 								<tr>
-									<th class="px-3 py-2 text-left font-medium text-gray-700 border-b">연차</th>
-									<th class="px-3 py-2 text-center font-medium text-gray-700 border-b">사업기간</th>
-									<th class="px-3 py-2 text-right font-medium text-green-700 border-b">지원금(현금)</th>
-									<th class="px-3 py-2 text-right font-medium text-orange-700 border-b">기업부담금(현금)</th>
-									<th class="px-3 py-2 text-right font-medium text-purple-700 border-b">기업부담금(현물)</th>
-									<th class="px-3 py-2 text-right font-medium text-blue-700 border-b">합계 현금</th>
-									<th class="px-3 py-2 text-right font-medium text-purple-700 border-b">합계 현물</th>
-									<th class="px-3 py-2 text-right font-medium text-gray-900 border-b">총 합계</th>
+									<th class="px-4 py-3 text-left font-medium text-gray-700 border-b min-w-[80px]">연차</th>
+									<th class="px-4 py-3 text-center font-medium text-gray-700 border-b min-w-[200px]">사업기간</th>
+									<th class="px-4 py-3 text-right font-medium text-green-700 border-b min-w-[120px]">정부지원금</th>
+									<th class="px-4 py-3 text-right font-medium text-orange-700 border-b min-w-[130px]">기업부담금(현금)</th>
+									<th class="px-4 py-3 text-right font-medium text-purple-700 border-b min-w-[130px]">기업부담금(현물)</th>
+									<th class="px-4 py-3 text-right font-medium text-blue-700 border-b min-w-[120px]">합계 현금</th>
+									<th class="px-4 py-3 text-right font-medium text-purple-700 border-b min-w-[120px]">합계 현물</th>
+									<th class="px-4 py-3 text-right font-medium text-gray-900 border-b min-w-[120px]">총 합계</th>
 								</tr>
 							</thead>
 							<tbody class="divide-y divide-gray-200">
-								{#each result.data.budgets as budget}
+								{#each budgetDetails as budget}
 									<tr class="hover:bg-gray-50">
-										<td class="px-3 py-2 font-medium text-gray-900">{budget.year}차년도</td>
-										<td class="px-3 py-2 text-center text-gray-700 text-xs">
+										<td class="px-4 py-3 font-medium text-gray-900">{budget.year}차년도</td>
+										<td class="px-4 py-3 text-center text-gray-700 text-xs">
 											{#if budget.startDate && budget.endDate}
-												{formatDateForDisplay(budget.startDate, 'ISO')} ~ {formatDateForDisplay(budget.endDate, 'ISO')}
+												{formatDate(budget.startDate)} ~ {formatDate(budget.endDate)}
 											{:else}
 												미정
 											{/if}
 										</td>
-										<td class="px-3 py-2 text-right text-green-800">{formatCurrency(budget.governmentFunding)}</td>
-										<td class="px-3 py-2 text-right text-orange-800">{formatCurrency(budget.companyCash)}</td>
-										<td class="px-3 py-2 text-right text-purple-800">{formatCurrency(budget.companyInKind)}</td>
-										<td class="px-3 py-2 text-right text-blue-800 font-medium">{formatCurrency(budget.totalCash)}</td>
-										<td class="px-3 py-2 text-right text-purple-800 font-medium">{formatCurrency(budget.totalInKind)}</td>
-										<td class="px-3 py-2 text-right text-gray-900 font-bold">{formatCurrency(budget.yearlyTotal)}</td>
+										<td class="px-4 py-3 text-right text-green-800">{formatCurrency(budget.governmentFunding)}</td>
+										<td class="px-4 py-3 text-right text-orange-800">{formatCurrency(budget.companyCash)}</td>
+										<td class="px-4 py-3 text-right text-purple-800">{formatCurrency(budget.companyInKind)}</td>
+										<td class="px-4 py-3 text-right text-blue-800 font-medium">{formatCurrency(budget.totalCash)}</td>
+										<td class="px-4 py-3 text-right text-purple-800 font-medium">{formatCurrency(budget.totalInKind)}</td>
+										<td class="px-4 py-3 text-right text-gray-900 font-bold">{formatCurrency(budget.yearlyTotal)}</td>
 									</tr>
 								{/each}
 								<!-- 총합계 행 -->
 								<tr class="bg-blue-50 font-bold">
-									<td class="px-3 py-2 text-gray-900">총계</td>
-									<td class="px-3 py-2 text-center text-gray-700 text-xs">
-										{#if result.data.budgets.length > 0}
-											{@const firstBudget = result.data.budgets[0]}
-											{@const lastBudget = result.data.budgets[result.data.budgets.length - 1]}
+									<td class="px-4 py-3 text-gray-900">총계</td>
+									<td class="px-4 py-3 text-center text-gray-700 text-xs">
+										{#if budgetDetails.length > 0}
+											{@const firstBudget = budgetDetails[0]}
+											{@const lastBudget = budgetDetails[budgetDetails.length - 1]}
 											{#if firstBudget.startDate && lastBudget.endDate}
-												{formatDateForDisplay(firstBudget.startDate, 'ISO')} ~ {formatDateForDisplay(lastBudget.endDate, 'ISO')}
+												{formatDate(firstBudget.startDate)} ~ {formatDate(lastBudget.endDate)}
 											{:else}
 												전체 기간
 											{/if}
@@ -147,12 +143,12 @@
 											전체 기간
 										{/if}
 									</td>
-									<td class="px-3 py-2 text-right text-green-800">{formatCurrency(budgetSummary.totalGovernmentFunding)}</td>
-									<td class="px-3 py-2 text-right text-orange-800">{formatCurrency(budgetSummary.totalCompanyCash)}</td>
-									<td class="px-3 py-2 text-right text-purple-800">{formatCurrency(budgetSummary.totalCompanyInKind)}</td>
-									<td class="px-3 py-2 text-right text-blue-800">{formatCurrency(budgetSummary.totalCash)}</td>
-									<td class="px-3 py-2 text-right text-purple-800">{formatCurrency(budgetSummary.totalInKind)}</td>
-									<td class="px-3 py-2 text-right text-gray-900">{formatCurrency(budgetSummary.totalBudget)}</td>
+									<td class="px-4 py-3 text-right text-green-800">{formatCurrency(budgetSummary.totalGovernmentFunding)}</td>
+									<td class="px-4 py-3 text-right text-orange-800">{formatCurrency(budgetSummary.totalCompanyCash)}</td>
+									<td class="px-4 py-3 text-right text-purple-800">{formatCurrency(budgetSummary.totalCompanyInKind)}</td>
+									<td class="px-4 py-3 text-right text-blue-800">{formatCurrency(budgetSummary.totalCash)}</td>
+									<td class="px-4 py-3 text-right text-purple-800">{formatCurrency(budgetSummary.totalInKind)}</td>
+									<td class="px-4 py-3 text-right text-gray-900">{formatCurrency(budgetSummary.totalBudget)}</td>
 								</tr>
 							</tbody>
 						</table>
@@ -167,16 +163,11 @@
 							<span class="text-orange-700">기업부담 비율: {budgetSummary.companyBurdenRatio.toFixed(1)}%</span>
 						</div>
 					</div>
-				{:else}
-					<div class="text-center py-4 text-gray-500">
-						<p class="text-sm">연차별 예산 데이터가 없습니다.</p>
-					</div>
-				{/if}
-			{:catch error}
-				<div class="text-center py-4 text-red-500">
-					<p class="text-sm">연차별 데이터를 불러올 수 없습니다.</p>
-				</div>
-			{/await}
+		{:else}
+			<div class="text-center py-4 text-gray-500">
+				<p class="text-sm">연차별 예산 데이터가 없습니다.</p>
+			</div>
+		{/if}
 		</div>
 	{:else}
 		<!-- 상세한 예산 요약 -->

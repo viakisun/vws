@@ -3,7 +3,7 @@
   import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
   import ThemeCard from '$lib/components/ui/ThemeCard.svelte'
   import ThemeModal from '$lib/components/ui/ThemeModal.svelte'
-  import { formatCurrency, formatDate } from '$lib/utils/format'
+  import { formatCurrency, formatDate, formatDateForInput } from '$lib/utils/format'
   import { isKoreanName } from '$lib/utils/korean-name'
   import {
   	AlertTriangleIcon,
@@ -55,16 +55,31 @@
     return getBudgetField(budget, 'personnelCost', 'personnel_cost', 0);
   }
 
+  function getPersonnelCostCash(budget: any): number {
+    return getBudgetField(budget, 'personnelCostCash', 'personnel_cost_cash', 0);
+  }
+
   function getResearchMaterialCost(budget: any): number {
     return getBudgetField(budget, 'researchMaterialCost', 'research_material_cost', 0);
+  }
+
+  function getResearchMaterialCostCash(budget: any): number {
+    return getBudgetField(budget, 'researchMaterialCostCash', 'research_material_cost_cash', 0);
   }
 
   function getResearchActivityCost(budget: any): number {
     return getBudgetField(budget, 'researchActivityCost', 'research_activity_cost', 0);
   }
 
+  function getResearchActivityCostCash(budget: any): number {
+    return getBudgetField(budget, 'researchActivityCostCash', 'research_activity_cost_cash', 0);
+  }
+
   function getIndirectCost(budget: any): number {
     return getBudgetField(budget, 'indirectCost', 'indirect_cost', 0);
+  }
+  function getIndirectCostCash(budget: any): number {
+    return getBudgetField(budget, 'indirectCostCash', 'indirect_cost_cash', 0);
   }
 
   function getPersonnelCostInKind(budget: any): number {
@@ -83,13 +98,6 @@
     return getBudgetField(budget, 'indirectCostInKind', 'indirect_cost_in_kind', 0);
   }
 
-  function getActualAmount(budget: any): number {
-    return getBudgetField(budget, 'actualAmount', 'spent_amount', 0);
-  }
-
-  function getContributionType(budget: any): string {
-    return getBudgetField(budget, 'contributionType', 'contribution_type', 'cash');
-  }
 
   function formatPeriodDisplay(budget: any): string {
     return `Y${getPeriodNumber(budget)}`;
@@ -107,27 +115,44 @@
     return `기간: ${startDisplay} ~ ${endDisplay} (${monthsDisplay})`;
   }
 
-  // 날짜 처리 유틸리티 함수들
-  function formatDateForInput(dateStr: string): string {
-    if (!dateStr) return '';
-    // 이미 YYYY-MM-DD 형식이면 그대로 반환
-    if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
-      return dateStr;
-    }
-
+  // 날짜 처리 유틸리티 함수들 (표준화된 함수 사용)
+  
+  // 연차 정보 기반 프로젝트 기간 계산
+  async function updateProjectPeriodFromBudgets() {
+    if (!selectedProject?.id) return;
+    
     try {
-      // ISO 문자열이나 다른 형식을 YYYY-MM-DD로 변환
-      const date = new Date(dateStr);
-      if (isNaN(date.getTime())) return '';
-
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const day = String(date.getDate()).padStart(2, '0');
-
-      return `${year}-${month}-${day}`;
+      const response = await fetch(`/api/project-management/projects/${selectedProject.id}/annual-budgets`);
+      const result = await response.json();
+      
+      if (result.success && result.data?.budgets && result.data.budgets.length > 0) {
+        const budgets = result.data.budgets;
+        const firstBudget = budgets[0];
+        const lastBudget = budgets[budgets.length - 1];
+        
+        if (firstBudget.startDate && lastBudget.endDate) {
+          const periodElement = document.getElementById('project-period');
+          if (periodElement) {
+            periodElement.textContent = `${formatDate(firstBudget.startDate)} ~ ${formatDate(lastBudget.endDate)}`;
+          }
+        } else {
+          const periodElement = document.getElementById('project-period');
+          if (periodElement) {
+            periodElement.textContent = '연차별 기간 정보 없음';
+          }
+        }
+      } else {
+        const periodElement = document.getElementById('project-period');
+        if (periodElement) {
+          periodElement.textContent = '연차별 예산 정보 없음';
+        }
+      }
     } catch (error) {
-      console.error('Date formatting error:', error);
-      return '';
+      console.error('프로젝트 기간 업데이트 실패:', error);
+      const periodElement = document.getElementById('project-period');
+      if (periodElement) {
+        periodElement.textContent = '기간 정보 로드 실패';
+      }
     }
   }
 
@@ -247,6 +272,13 @@
   }
 
   let { selectedProject }: { selectedProject: any } = $props();
+  
+  // 프로젝트 변경 시 기간 업데이트
+  $effect(() => {
+    if (selectedProject?.id) {
+      updateProjectPeriodFromBudgets();
+    }
+  });
 
   // 모달 상태
   let showBudgetModal = $state(false);
@@ -259,13 +291,13 @@
   let addingMember = $state(false);
   let isDeleting = $state(false);
   let deleteConfirmationCode = $state('');
+  let budgetRefreshTrigger = $state(0);
 
   // 폼 데이터
   let budgetForm = $state({
     periodNumber: 1, // 연차 번호 (1연차, 2연차, ...)
     startDate: '', // 연차 시작일
     endDate: '', // 연차 종료일
-    contributionType: 'cash', // 'cash' or 'in_kind'
     // 현금 비목들
     personnelCostCash: '',
     researchMaterialCostCash: '',
@@ -275,16 +307,13 @@
     personnelCostInKind: '',
     researchMaterialCostInKind: '',
     researchActivityCostInKind: '',
-    indirectCostInKind: '',
-    actualAmount: ''
+    indirectCostInKind: ''
   });
 
   let projectForm = $state({
     title: '',
     code: '',
     description: '',
-    startDate: '',
-    endDate: '',
     status: 'active',
     sponsorType: 'internal',
     priority: 'medium',
@@ -580,19 +609,14 @@
     }
 
     try {
-      // 시작일의 연도를 fiscal_year로 사용
-      const fiscalYear = new Date(budgetForm.startDate).getFullYear();
-
       const response = await fetch('/api/project-management/project-budgets', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           projectId: selectedProject.id,
-          fiscalYear: fiscalYear,
           periodNumber: budgetForm.periodNumber,
           startDate: budgetForm.startDate,
           endDate: budgetForm.endDate,
-          contributionType: budgetForm.contributionType,
           // 현금 비목들 (천원 단위를 원 단위로 변환, 인건비는 100만원 단위로 조정)
           personnelCostCash: adjustPersonnelCost(fromThousands(budgetForm.personnelCostCash)),
           researchMaterialCostCash: fromThousands(budgetForm.researchMaterialCostCash),
@@ -602,8 +626,7 @@
           personnelCostInKind: fromThousands(budgetForm.personnelCostInKind),
           researchMaterialCostInKind: fromThousands(budgetForm.researchMaterialCostInKind),
           researchActivityCostInKind: fromThousands(budgetForm.researchActivityCostInKind),
-          indirectCostInKind: fromThousands(budgetForm.indirectCostInKind),
-          spentAmount: fromThousands(budgetForm.actualAmount)
+          indirectCostInKind: fromThousands(budgetForm.indirectCostInKind)
         })
       });
 
@@ -614,7 +637,6 @@
           periodNumber: 1,
           startDate: '',
           endDate: '',
-          contributionType: 'cash',
           personnelCostCash: '',
           researchMaterialCostCash: '',
           researchActivityCostCash: '',
@@ -622,10 +644,13 @@
           personnelCostInKind: '',
           researchMaterialCostInKind: '',
           researchActivityCostInKind: '',
-          indirectCostInKind: '',
-          actualAmount: ''
+          indirectCostInKind: ''
         };
         await loadProjectBudgets();
+        // 예산 추가 후 프로젝트 기간 정보 업데이트
+        updateProjectPeriodFromBudgets();
+        // 예산 요약 새로고침
+        budgetRefreshTrigger++;
         dispatch('refresh');
 
         // 성공 메시지 표시
@@ -824,18 +849,16 @@
       periodNumber: getPeriodNumber(budget),
       startDate: formatDateForInput(getStartDate(budget)),
       endDate: formatDateForInput(getEndDate(budget)),
-      contributionType: getContributionType(budget),
       // 현금 비목들 (천원 단위로 변환, 인건비는 조정된 값 표시)
-      personnelCostCash: toThousands(getPersonnelCost(budget)),
-      researchMaterialCostCash: toThousands(getResearchMaterialCost(budget)),
-      researchActivityCostCash: toThousands(getResearchActivityCost(budget)),
+      personnelCostCash: toThousands(getPersonnelCostCash(budget)),
+      researchMaterialCostCash: toThousands(getResearchMaterialCostCash(budget)),
+      researchActivityCostCash: toThousands(getResearchActivityCostCash(budget)),
       indirectCostCash: toThousands(getIndirectCost(budget)),
       // 현물 비목들 (천원 단위로 변환)
       personnelCostInKind: toThousands(getPersonnelCostInKind(budget)),
       researchMaterialCostInKind: toThousands(getResearchMaterialCostInKind(budget)),
       researchActivityCostInKind: toThousands(getResearchActivityCostInKind(budget)),
-      indirectCostInKind: toThousands(getIndirectCostInKind(budget)),
-      actualAmount: toThousands(getActualAmount(budget))
+      indirectCostInKind: toThousands(getIndirectCostInKind(budget))
     };
     showBudgetModal = true;
   }
@@ -857,18 +880,13 @@
     }
 
     try {
-      // 시작일의 연도를 fiscal_year로 사용
-      const fiscalYear = new Date(budgetForm.startDate).getFullYear();
-
       const response = await fetch(`/api/project-management/project-budgets/${editingBudget.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          fiscalYear: fiscalYear,
           periodNumber: budgetForm.periodNumber,
           startDate: budgetForm.startDate,
           endDate: budgetForm.endDate,
-          contributionType: budgetForm.contributionType,
           // 현금 비목들 (천원 단위를 원 단위로 변환, 인건비는 100만원 단위로 조정)
           personnelCostCash: adjustPersonnelCost(fromThousands(budgetForm.personnelCostCash)),
           researchMaterialCostCash: fromThousands(budgetForm.researchMaterialCostCash),
@@ -878,8 +896,7 @@
           personnelCostInKind: fromThousands(budgetForm.personnelCostInKind),
           researchMaterialCostInKind: fromThousands(budgetForm.researchMaterialCostInKind),
           researchActivityCostInKind: fromThousands(budgetForm.researchActivityCostInKind),
-          indirectCostInKind: fromThousands(budgetForm.indirectCostInKind),
-          spentAmount: fromThousands(budgetForm.actualAmount)
+          indirectCostInKind: fromThousands(budgetForm.indirectCostInKind)
         })
       });
 
@@ -891,7 +908,6 @@
           periodNumber: 1,
           startDate: '',
           endDate: '',
-          contributionType: 'cash',
           personnelCostCash: '',
           researchMaterialCostCash: '',
           researchActivityCostCash: '',
@@ -899,10 +915,13 @@
           personnelCostInKind: '',
           researchMaterialCostInKind: '',
           researchActivityCostInKind: '',
-          indirectCostInKind: '',
-          actualAmount: ''
+          indirectCostInKind: ''
         };
         await loadProjectBudgets();
+        // 예산 수정 후 프로젝트 기간 정보 업데이트
+        updateProjectPeriodFromBudgets();
+        // 예산 요약 새로고침
+        budgetRefreshTrigger++;
         dispatch('refresh');
 
         // 성공 메시지 표시
@@ -930,6 +949,10 @@
 
       if (response.ok) {
         await loadProjectBudgets();
+        // 예산 삭제 후 프로젝트 기간 정보 업데이트
+        updateProjectPeriodFromBudgets();
+        // 예산 요약 새로고침
+        budgetRefreshTrigger++;
         dispatch('refresh');
       }
     } catch (error) {
@@ -940,33 +963,10 @@
   // 프로젝트 수정 폼 초기화
   function initProjectForm() {
     if (selectedProject) {
-      // UTC 기준 날짜 형식 변환 (ISO 문자열을 YYYY-MM-DD 형식으로)
-      const formatDateForInput = (dateString: string) => {
-        if (!dateString) return '';
-
-        try {
-          // UTC 시간으로 해석하여 한국 시간으로 변환
-          const utcDate = new Date(dateString + 'T00:00:00.000Z');
-          if (isNaN(utcDate.getTime())) return '';
-
-          // UTC를 한국 시간(KST, UTC+9)으로 변환
-          const kstDate = new Date(utcDate.getTime() + 9 * 60 * 60 * 1000);
-          const year = kstDate.getUTCFullYear();
-          const month = String(kstDate.getUTCMonth() + 1).padStart(2, '0');
-          const day = String(kstDate.getUTCDate()).padStart(2, '0');
-          return `${year}-${month}-${day}`;
-        } catch (error) {
-          console.error('Date formatting error:', error);
-          return '';
-        }
-      };
-
       projectForm = {
         title: selectedProject.title || '',
         code: getProjectCode(selectedProject),
         description: getProjectDescription(selectedProject),
-        startDate: formatDateForInput(getProjectStartDate(selectedProject)),
-        endDate: formatDateForInput(getProjectEndDate(selectedProject)),
         status: getProjectStatus(selectedProject),
         sponsorType: getProjectSponsorType(selectedProject),
         priority: selectedProject.priority || 'medium',
@@ -1470,67 +1470,8 @@
     return num * 1000;
   }
 
-  // 사용률 계산 함수
-  function calculateUsageRate(budgeted: number, spent: number): number {
-    if (budgeted <= 0) return 0;
-    return Math.min((spent / budgeted) * 100, 100);
-  }
 
-  // 각 항목별 실제 집행액 계산
-  function getCategorySpentAmount(budget: any, categoryName: string): number {
-    if (!evidenceItems || evidenceItems.length === 0) return 0;
 
-    // 해당 연차의 해당 카테고리 증빙 항목들의 집행액 합계
-    const categoryEvidence = evidenceItems.filter(item =>
-      item.period_number === budget.period_number &&
-        item.category_name === categoryName
-    );
-
-    return categoryEvidence.reduce((sum, item) => sum + (parseFloat(item.spent_amount) || 0), 0);
-  }
-
-  // 참여연구원 기반 실제 인건비 계산
-  function getActualPersonnelCost(budget: any): number {
-    if (!projectMembers || projectMembers.length === 0) return 0;
-
-    // 해당 연차의 참여연구원들 필터링 (시작일과 종료일로 판단)
-    const budgetStartDate = new Date(budget.start_date);
-    const budgetEndDate = new Date(budget.end_date);
-
-    const relevantMembers = projectMembers.filter(member => {
-      const memberStartDate = new Date(member.startDate || member.start_date);
-      const memberEndDate = new Date(member.endDate || member.end_date);
-
-      // 참여 기간이 예산 기간과 겹치는지 확인
-      return memberStartDate <= budgetEndDate && memberEndDate >= budgetStartDate;
-    });
-
-    let totalCost = 0;
-    relevantMembers.forEach(member => {
-      const memberStartDate = new Date(member.startDate || member.start_date);
-      const memberEndDate = new Date(member.endDate || member.end_date);
-
-      // 실제 참여 기간 계산 (예산 기간과의 교집합)
-      const actualStartDate = memberStartDate > budgetStartDate ? memberStartDate : budgetStartDate;
-      const actualEndDate = memberEndDate < budgetEndDate ? memberEndDate : budgetEndDate;
-
-      const months = Math.ceil((actualEndDate.getTime() - actualStartDate.getTime()) / (1000 * 60 * 60 * 24 * 30));
-      const monthlyAmount = parseFloat(member.monthlyAmount || member.monthly_amount) || 0;
-      const participationRate = parseFloat(member.participationRate || member.participation_rate) || 0;
-
-      const memberCost = monthlyAmount * months * (participationRate / 100);
-      totalCost += memberCost;
-    });
-
-    return totalCost;
-  }
-
-  // 사용률에 따른 색상 반환
-  function getUsageRateColor(rate: number): string {
-    if (rate >= 90) return 'text-red-600 bg-red-100';
-    if (rate >= 70) return 'text-yellow-600 bg-yellow-100';
-    return 'text-green-600 bg-green-100';
-  }
 
   // 인건비를 100만원 단위로 조정 (12로 나누어 떨어지게)
   function adjustPersonnelCost(amount: number): number {
@@ -1556,28 +1497,20 @@
         totalCash: 0,
         totalInKind: 0,
         totalBudget: 0,
-        totalSpent: 0
       };
     }
 
     const totals = projectBudgets.reduce((acc, budget) => {
-      // 인건비는 참여연구원 데이터 기반으로 실시간 계산
-      const actualPersonnelCost = getActualPersonnelCost(budget);
-      acc.personnelCash += actualPersonnelCost;
-
-      // 다른 항목들은 예산에서 가져오되, 미래 기간은 0으로 처리
-      const today = new Date();
-      const budgetStartDate = new Date(budget.start_date);
-      const isFuture = budgetStartDate > today;
-
-      if (!isFuture) {
-        acc.researchMaterialCash += parseFloat(budget.research_material_cost) || 0;
-        acc.researchActivityCash += parseFloat(budget.research_activity_cost) || 0;
-        acc.indirectCash += parseFloat(budget.indirect_cost) || 0;
-        acc.totalSpent += parseFloat(budget.spent_amount) || 0;
-      }
-
-      acc.totalBudget += parseFloat(budget.total_budget) || 0;
+      // 모든 항목을 예산 편성 데이터에서 직접 가져오기 (미래 기간 구분 없이)
+      acc.personnelCash += parseFloat(budget.personnel_cost_cash) || 0;
+      acc.personnelInKind += parseFloat(budget.personnel_cost_in_kind) || 0;
+      acc.researchMaterialCash += parseFloat(budget.research_material_cost_cash) || 0;
+      acc.researchMaterialInKind += parseFloat(budget.research_material_cost_in_kind) || 0;
+      acc.researchActivityCash += parseFloat(budget.research_activity_cost_cash) || 0;
+      acc.researchActivityInKind += parseFloat(budget.research_activity_cost_in_kind) || 0;
+      acc.indirectCash += parseFloat(budget.indirect_cost_cash) || 0;
+      acc.indirectInKind += parseFloat(budget.indirect_cost_in_kind) || 0;
+      
       return acc;
     }, {
       personnelCash: 0,
@@ -1592,6 +1525,12 @@
       totalSpent: 0
     });
 
+    // 총 예산은 각 비목의 합계로 직접 계산 (reduce 외부에서)
+    totals.totalBudget = totals.personnelCash + totals.personnelInKind + 
+                        totals.researchMaterialCash + totals.researchMaterialInKind + 
+                        totals.researchActivityCash + totals.researchActivityInKind + 
+                        totals.indirectCash + totals.indirectInKind;
+    
     totals.totalCash = totals.personnelCash + totals.researchMaterialCash + totals.researchActivityCash + totals.indirectCash;
     totals.totalInKind = totals.personnelInKind + totals.researchMaterialInKind + totals.researchActivityInKind + totals.indirectInKind;
 
@@ -1717,8 +1656,8 @@
   <div class="space-y-6">
     <!-- 프로젝트 기본 정보 -->
     <ThemeCard class="p-6">
-      <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
-        <!-- 프로젝트 기본 정보 -->
+      <!-- 헤더: 제목과 액션 버튼 -->
+      <div class="flex items-start justify-between mb-6">
         <div class="flex-1">
           <!-- 프로젝트 제목과 코드 -->
           <div class="flex items-center gap-3 mb-3">
@@ -1754,19 +1693,19 @@
             <p class="text-gray-700 mb-3">{selectedProject.description}</p>
           {/if}
 
-          <!-- 프로젝트 기간 -->
+          <!-- 프로젝트 기간 (연차 정보 기반) -->
           <div class="flex items-center text-sm text-gray-600">
             <CalendarIcon
               size={16}
               class="mr-2 text-orange-600" />
-            <span>{formatDate(getProjectStartDate(selectedProject))} ~ {formatDate(getProjectEndDate(selectedProject))}</span>
+            <span id="project-period">연차 정보를 불러오는 중...</span>
           </div>
         </div>
 
         <!-- 액션 버튼 -->
-        <div class="flex gap-2">
+        <div class="flex gap-2 ml-4">
           <ThemeButton
-            variant="ghost"
+            variant="primary"
             size="sm"
             onclick={() => {
               initProjectForm();
@@ -1776,7 +1715,17 @@
             <EditIcon
               size={16}
               class="mr-2" />
-            수정
+            정보 수정
+          </ThemeButton>
+          <ThemeButton
+            variant="primary"
+            size="sm"
+            onclick={() => dispatch('showBudgetModal')}
+          >
+            <DollarSignIcon
+              size={16}
+              class="mr-2" />
+            예산 수정
           </ThemeButton>
           <ThemeButton
             variant="error"
@@ -1789,6 +1738,26 @@
             삭제
           </ThemeButton>
         </div>
+      </div>
+
+      <!-- 사업비 예산 -->
+      <div class="bg-gray-50 rounded-lg p-6">
+        {#await import('$lib/components/project-management/ProjectBudgetSummary.svelte')}
+          <div class="flex items-center justify-center py-4">
+            <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+            <span class="ml-2 text-gray-600 text-sm">로딩 중...</span>
+          </div>
+        {:then { default: ProjectBudgetSummary }}
+          <ProjectBudgetSummary 
+            projectId={selectedProject.id}
+            compact={true}
+            refreshTrigger={budgetRefreshTrigger}
+          />
+        {:catch error}
+          <div class="text-center py-4 text-gray-500">
+            <p class="text-sm">예산 정보를 불러올 수 없습니다.</p>
+          </div>
+        {/await}
       </div>
     </ThemeCard>
 
@@ -1833,20 +1802,17 @@
               <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-32">연구활동비</th>
               <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-32">간접비</th>
               <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-32">총 예산</th>
-              <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-32">실행액</th>
               <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-40">액션</th>
             </tr>
           </thead>
           <tbody class="bg-white divide-y divide-gray-200">
             {#each projectBudgets as budget}
-              {@const totalBudget = parseFloat(budget.total_budget) || 0}
-              {@const spentAmount = parseFloat(budget.spent_amount) || 0}
-              {@const usageRate = totalBudget > 0 ? (spentAmount / totalBudget) * 100 : 0}
-              {@const actualPersonnelCost = getActualPersonnelCost(budget)}
-              {@const today = new Date()}
-              {@const budgetStartDate = new Date(getStartDate(budget))}
-              {@const isFuture = budgetStartDate > today}
-              {@const cashTotal = actualPersonnelCost + (isFuture ? 0 : getResearchMaterialCost(budget) + getResearchActivityCost(budget) + getIndirectCost(budget))}
+              {@const totalBudget = (getPersonnelCostCash(budget) + getPersonnelCostInKind(budget) + 
+                                    getResearchMaterialCostCash(budget) + getResearchMaterialCostInKind(budget) + 
+                                    getResearchActivityCostCash(budget) + getResearchActivityCostInKind(budget) + 
+                                    getIndirectCostCash(budget) + getIndirectCostInKind(budget))}
+              {@const personnelCostCash = getPersonnelCostCash(budget)}
+              {@const cashTotal = personnelCostCash + getResearchMaterialCostCash(budget) + getResearchActivityCostCash(budget) + getIndirectCostCash(budget)}
               {@const inKindTotal = getPersonnelCostInKind(budget) + getResearchMaterialCostInKind(budget) + getResearchActivityCostInKind(budget) + getIndirectCostInKind(budget)}
               <tr class="hover:bg-gray-50">
                 <!-- 연차 -->
@@ -1862,16 +1828,8 @@
                 <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
                   <div class="space-y-2">
                     <div class="space-y-1">
-                      <div class="text-xs text-blue-600">현금: {formatCurrency(actualPersonnelCost)}</div>
+                      <div class="text-xs text-blue-600">현금: {formatCurrency(personnelCostCash)}</div>
                       <div class="text-xs text-green-600">현물: {formatCurrency(getPersonnelCostInKind(budget))}</div>
-                    </div>
-                    <div class="text-xs">
-                      <div class="flex items-center justify-between">
-                        <span class="text-gray-500">사용률:</span>
-                        <span class="px-2 py-1 rounded text-xs font-medium {getUsageRateColor(calculateUsageRate(actualPersonnelCost + getPersonnelCostInKind(budget), actualPersonnelCost))}">
-                          {calculateUsageRate(actualPersonnelCost + getPersonnelCostInKind(budget), actualPersonnelCost).toFixed(1)}%
-                        </span>
-                      </div>
                     </div>
                   </div>
                 </td>
@@ -1879,16 +1837,8 @@
                 <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
                   <div class="space-y-2">
                     <div class="space-y-1">
-                      <div class="text-xs text-blue-600">현금: {formatCurrency(isFuture ? 0 : getResearchMaterialCost(budget))}</div>
+                      <div class="text-xs text-blue-600">현금: {formatCurrency(getResearchMaterialCostCash(budget))}</div>
                       <div class="text-xs text-green-600">현물: {formatCurrency(getResearchMaterialCostInKind(budget))}</div>
-                    </div>
-                    <div class="text-xs">
-                      <div class="flex items-center justify-between">
-                        <span class="text-gray-500">사용률:</span>
-                        <span class="px-2 py-1 rounded text-xs font-medium {getUsageRateColor(calculateUsageRate(getResearchMaterialCost(budget) + getResearchMaterialCostInKind(budget), getCategorySpentAmount(budget, '연구재료비')))}">
-                          {calculateUsageRate(getResearchMaterialCost(budget) + getResearchMaterialCostInKind(budget), getCategorySpentAmount(budget, '연구재료비')).toFixed(1)}%
-                        </span>
-                      </div>
                     </div>
                   </div>
                 </td>
@@ -1896,16 +1846,8 @@
                 <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
                   <div class="space-y-2">
                     <div class="space-y-1">
-                      <div class="text-xs text-blue-600">현금: {formatCurrency(isFuture ? 0 : getResearchActivityCost(budget))}</div>
+                      <div class="text-xs text-blue-600">현금: {formatCurrency(getResearchActivityCostCash(budget))}</div>
                       <div class="text-xs text-green-600">현물: {formatCurrency(getResearchActivityCostInKind(budget))}</div>
-                    </div>
-                    <div class="text-xs">
-                      <div class="flex items-center justify-between">
-                        <span class="text-gray-500">사용률:</span>
-                        <span class="px-2 py-1 rounded text-xs font-medium {getUsageRateColor(calculateUsageRate(getResearchActivityCost(budget) + getResearchActivityCostInKind(budget), getCategorySpentAmount(budget, '연구활동비')))}">
-                          {calculateUsageRate(getResearchActivityCost(budget) + getResearchActivityCostInKind(budget), getCategorySpentAmount(budget, '연구활동비')).toFixed(1)}%
-                        </span>
-                      </div>
                     </div>
                   </div>
                 </td>
@@ -1913,16 +1855,8 @@
                 <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
                   <div class="space-y-2">
                     <div class="space-y-1">
-                      <div class="text-xs text-blue-600">현금: {formatCurrency(isFuture ? 0 : getIndirectCost(budget))}</div>
+                      <div class="text-xs text-blue-600">현금: {formatCurrency(getIndirectCostCash(budget))}</div>
                       <div class="text-xs text-green-600">현물: {formatCurrency(getIndirectCostInKind(budget))}</div>
-                    </div>
-                    <div class="text-xs">
-                      <div class="flex items-center justify-between">
-                        <span class="text-gray-500">사용률:</span>
-                        <span class="px-2 py-1 rounded text-xs font-medium {getUsageRateColor(calculateUsageRate(getIndirectCost(budget) + getIndirectCostInKind(budget), getCategorySpentAmount(budget, '간접비')))}">
-                          {calculateUsageRate(getIndirectCost(budget) + getIndirectCostInKind(budget), getCategorySpentAmount(budget, '간접비')).toFixed(1)}%
-                        </span>
-                      </div>
                     </div>
                   </div>
                 </td>
@@ -1932,23 +1866,6 @@
                     <div class="space-y-1">
                       <div class="text-xs text-blue-600 font-semibold">현금: {formatCurrency(cashTotal)}</div>
                       <div class="text-xs text-green-600 font-semibold">현물: {formatCurrency(inKindTotal)}</div>
-                    </div>
-                    <div class="text-xs">
-                      <div class="flex items-center justify-between">
-                        <span class="text-gray-500 font-medium">전체 사용률:</span>
-                        <span class="px-2 py-1 rounded text-xs font-bold {getUsageRateColor(calculateUsageRate(cashTotal + inKindTotal, parseFloat(budget.spent_amount) || 0))}">
-                          {calculateUsageRate(cashTotal + inKindTotal, parseFloat(budget.spent_amount) || 0).toFixed(1)}%
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </td>
-                <!-- 실행액 -->
-                <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                  <div class="space-y-1">
-                    <div class="font-medium">{formatCurrency(isFuture ? 0 : getActualAmount(budget))}</div>
-                    <div class="text-xs text-gray-500">
-                      예산 대비 {usageRate.toFixed(1)}% 사용
                     </div>
                   </div>
                 </td>
@@ -1992,7 +1909,6 @@
             <!-- 합계 행 -->
             {#if projectBudgets && projectBudgets.length > 0}
               {@const totals = calculateBudgetTotals()}
-              {@const totalUsageRate = totals.totalBudget > 0 ? (totals.totalSpent / totals.totalBudget) * 100 : 0}
               <tr class="bg-gray-100 border-t-2 border-gray-300">
                 <!-- 연차 -->
                 <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
@@ -2041,21 +1957,6 @@
                     <div class="text-sm text-gray-900 font-medium">총계: {formatCurrency(totals.totalBudget)}</div>
                   </div>
                 </td>
-                <!-- 실행액 -->
-                <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                  <div class="font-medium">{formatCurrency(totals.totalSpent)}</div>
-                </td>
-                <!-- 사용율 -->
-                <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                  <div class="flex items-center">
-                    <div class="w-16 bg-gray-200 rounded-full h-2 mr-2">
-                      <div
-                        class="bg-blue-600 h-2 rounded-full"
-                        style:width="{Math.min(totalUsageRate, 100)}%"></div>
-                    </div>
-                    <span class="text-xs text-gray-600 font-bold">{totalUsageRate.toFixed(1)}%</span>
-                  </div>
-                </td>
                 <!-- 액션 -->
                 <td class="px-4 py-4 whitespace-nowrap text-sm font-medium">
                   <div class="text-xs text-gray-500 text-center">-</div>
@@ -2086,8 +1987,7 @@
         personnelCostInKind: '',
         researchMaterialCostInKind: '',
         researchActivityCostInKind: '',
-        indirectCostInKind: '',
-        actualAmount: ''
+        indirectCostInKind: ''
       };
     }}
     size="lg"
@@ -2138,18 +2038,6 @@
               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
-        </div>
-        <div>
-          <label
-            for="pm-budget-actual-amount"
-            class="block text-sm font-medium text-gray-700 mb-1">실행 금액 (천원)</label>
-          <input
-            id="pm-budget-actual-amount"
-            type="number"
-            bind:value={budgetForm.actualAmount}
-            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="0"
-          />
         </div>
       </div>
 
@@ -2303,8 +2191,7 @@
             personnelCostInKind: '',
             researchMaterialCostInKind: '',
             researchActivityCostInKind: '',
-            indirectCostInKind: '',
-            actualAmount: ''
+            indirectCostInKind: ''
           };
         }}>
         취소
@@ -2685,7 +2572,7 @@
                     {/if}
                   {:else}
                     <div class="relative inline-block group">
-                      <div class="animate-pulse bg-gray-300 rounded-full w-6 h-6 cursor-help hover:bg-gray-400 transition-colors" />
+                      <div class="animate-pulse bg-gray-300 rounded-full w-6 h-6 cursor-help hover:bg-gray-400 transition-colors"></div>
                       <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-10">
                         <div class="font-semibold text-gray-400">⏳ 검증 대기 중</div>
                         <div class="text-gray-500">아직 검증되지 않았습니다.</div>
@@ -3568,37 +3455,6 @@
             ></textarea>
           </div>
 
-          <!-- 프로젝트 기간 -->
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label
-                for="edit-project-start-date"
-                class="block text-sm font-medium text-gray-700 mb-1">
-                시작일 *
-              </label>
-              <input
-                id="edit-project-start-date"
-                type="date"
-                bind:value={projectForm.startDate}
-                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              />
-            </div>
-            <div>
-              <label
-                for="edit-project-end-date"
-                class="block text-sm font-medium text-gray-700 mb-1">
-                종료일 *
-              </label>
-              <input
-                id="edit-project-end-date"
-                type="date"
-                bind:value={projectForm.endDate}
-                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              />
-            </div>
-          </div>
 
           <!-- 프로젝트 상태 및 우선순위 -->
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">

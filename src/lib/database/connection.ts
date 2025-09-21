@@ -8,29 +8,16 @@ config()
 // Database connection pool
 let pool: Pool | null = null
 
-// Database configuration - supports both local and AWS via environment selection
-const dbEnv = process.env.DB_ENV || 'local'
-
-// Select configuration based on DB_ENV
+// Database configuration - AWS only
 const getDbConfig = () => {
-	if (dbEnv === 'aws') {
-		return {
-			host: process.env.AWS_DB_HOST || 'db-viahub.cdgqkcss8mpj.ap-northeast-2.rds.amazonaws.com',
-			port: parseInt(process.env.AWS_DB_PORT || '5432'),
-			database: process.env.AWS_DB_NAME || 'postgres',
-			user: process.env.AWS_DB_USER || 'postgres',
-			password: process.env.AWS_DB_PASSWORD || 'viahubdev',
-			ssl: {
-				rejectUnauthorized: false
-			}
-		}
-	} else {
-		return {
-			host: process.env.LOCAL_DB_HOST || 'localhost',
-			port: parseInt(process.env.LOCAL_DB_PORT || '5432'),
-			database: process.env.LOCAL_DB_NAME || 'workstream',
-			user: process.env.LOCAL_DB_USER || 'postgres',
-			password: process.env.LOCAL_DB_PASSWORD || 'password'
+	return {
+		host: process.env.AWS_DB_HOST || 'db-viahub.cdgqkcss8mpj.ap-northeast-2.rds.amazonaws.com',
+		port: parseInt(process.env.AWS_DB_PORT || '5432'),
+		database: process.env.AWS_DB_NAME || 'postgres',
+		user: process.env.AWS_DB_USER || 'postgres',
+		password: process.env.AWS_DB_PASSWORD || 'viahubdev',
+		ssl: {
+			rejectUnauthorized: false
 		}
 	}
 }
@@ -39,7 +26,8 @@ const dbConfig = {
 	...getDbConfig(),
 	max: 20, // Maximum number of clients in the pool
 	idleTimeoutMillis: 30000, // Close idle clients after 30 seconds
-	connectionTimeoutMillis: 2000 // Return an error after 2 seconds if connection could not be established
+	connectionTimeoutMillis: 10000, // Return an error after 10 seconds if connection could not be established
+	acquireTimeoutMillis: 10000 // Return an error after 10 seconds if client could not be acquired from pool
 }
 
 // Initialize database connection pool

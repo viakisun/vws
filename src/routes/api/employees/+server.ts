@@ -1,4 +1,5 @@
 import { query } from '$lib/database/connection.js'
+import { formatDateForDisplay, toUTC } from '$lib/utils/date-handler.js'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
 
@@ -41,9 +42,19 @@ export const GET: RequestHandler = async ({ url }) => {
 			params
 		)
 
+		// 날짜 필드를 서울 시간대로 변환하여 반환
+		const employees = result.rows.map(row => ({
+			...row,
+			hire_date: row.hire_date ? formatDateForDisplay(row.hire_date, 'ISO') : null,
+			birth_date: row.birth_date ? formatDateForDisplay(row.birth_date, 'ISO') : null,
+			termination_date: row.termination_date
+				? formatDateForDisplay(row.termination_date, 'ISO')
+				: null
+		}))
+
 		return json({
 			success: true,
-			data: result.rows
+			data: employees
 		})
 	} catch (error) {
 		console.error('Error fetching employees:', error)
@@ -152,9 +163,9 @@ export const POST: RequestHandler = async ({ request }) => {
 				data.department?.trim() || '',
 				data.position?.trim() || '',
 				parseFloat(data.salary) || 0,
-				hireDate.toISOString().split('T')[0],
-				birthDate ? birthDate.toISOString().split('T')[0] : null,
-				terminationDate ? terminationDate.toISOString().split('T')[0] : null,
+				hireDate ? toUTC(hireDate).split('T')[0] : null,
+				birthDate ? toUTC(birthDate).split('T')[0] : null,
+				terminationDate ? toUTC(terminationDate).split('T')[0] : null,
 				data.status || 'active',
 				data.employment_type || 'full-time',
 				data.job_title_id || null,
@@ -163,9 +174,20 @@ export const POST: RequestHandler = async ({ request }) => {
 			]
 		)
 
+		// 응답 데이터의 날짜를 서울 시간대로 변환
+		const employee = result.rows[0]
+		const formattedEmployee = {
+			...employee,
+			hire_date: employee.hire_date ? formatDateForDisplay(employee.hire_date, 'ISO') : null,
+			birth_date: employee.birth_date ? formatDateForDisplay(employee.birth_date, 'ISO') : null,
+			termination_date: employee.termination_date
+				? formatDateForDisplay(employee.termination_date, 'ISO')
+				: null
+		}
+
 		return json({
 			success: true,
-			data: result.rows[0],
+			data: formattedEmployee,
 			message: '직원이 성공적으로 추가되었습니다.'
 		})
 	} catch (error) {
@@ -288,9 +310,9 @@ export const PUT: RequestHandler = async ({ request }) => {
 				data.department?.trim() || '',
 				data.position?.trim() || '',
 				parseFloat(data.salary) || 0,
-				hireDate.toISOString().split('T')[0],
-				birthDate ? birthDate.toISOString().split('T')[0] : null,
-				terminationDate ? terminationDate.toISOString().split('T')[0] : null,
+				hireDate ? toUTC(hireDate).split('T')[0] : null,
+				birthDate ? toUTC(birthDate).split('T')[0] : null,
+				terminationDate ? toUTC(terminationDate).split('T')[0] : null,
 				status,
 				data.employment_type || 'full-time',
 				data.job_title_id || null,
@@ -308,9 +330,20 @@ export const PUT: RequestHandler = async ({ request }) => {
 			)
 		}
 
+		// 응답 데이터의 날짜를 서울 시간대로 변환
+		const employee = result.rows[0]
+		const formattedEmployee = {
+			...employee,
+			hire_date: employee.hire_date ? formatDateForDisplay(employee.hire_date, 'ISO') : null,
+			birth_date: employee.birth_date ? formatDateForDisplay(employee.birth_date, 'ISO') : null,
+			termination_date: employee.termination_date
+				? formatDateForDisplay(employee.termination_date, 'ISO')
+				: null
+		}
+
 		return json({
 			success: true,
-			data: result.rows[0],
+			data: formattedEmployee,
 			message: '직원 정보가 성공적으로 수정되었습니다.'
 		})
 	} catch (error) {

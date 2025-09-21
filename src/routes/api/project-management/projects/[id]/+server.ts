@@ -67,7 +67,7 @@ export const GET: RequestHandler = async ({ params }) => {
 			`
 			SELECT * FROM project_budgets
 			WHERE project_id = $1
-			ORDER BY fiscal_year DESC
+			ORDER BY period_number DESC
 		`,
 			[id]
 		)

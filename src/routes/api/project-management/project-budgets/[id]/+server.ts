@@ -50,11 +50,9 @@ export const PUT: RequestHandler = async ({ params, request }) => {
 	try {
 		const data = await request.json()
 		const {
-			fiscalYear,
 			periodNumber = 1,
 			startDate,
 			endDate,
-			contributionType,
 			// 현금 비목들
 			personnelCostCash = 0,
 			researchMaterialCostCash = 0,
@@ -64,8 +62,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
 			personnelCostInKind = 0,
 			researchMaterialCostInKind = 0,
 			researchActivityCostInKind = 0,
-			indirectCostInKind = 0,
-			spentAmount = 0
+			indirectCostInKind = 0
 		} = data
 
 		// 사업비 존재 확인
@@ -81,52 +78,44 @@ export const PUT: RequestHandler = async ({ params, request }) => {
 			)
 		}
 
-		// 각 비목의 총합 계산 (현금 + 현물)
+		// 각 비목의 총합 계산 (현금 + 현물) - 로직으로 계산하므로 DB에 저장하지 않음
 		const personnelCost = personnelCostCash + personnelCostInKind
 		const researchMaterialCost = researchMaterialCostCash + researchMaterialCostInKind
 		const researchActivityCost = researchActivityCostCash + researchActivityCostInKind
 		const indirectCost = indirectCostCash + indirectCostInKind
-		const totalBudget = personnelCost + researchMaterialCost + researchActivityCost + indirectCost
 
 		// 사업비 수정
 		const result = await query(
 			`
 			UPDATE project_budgets 
 			SET 
-				fiscal_year = $1,
-				period_number = $2,
-				start_date = $3,
-				end_date = $4,
-				contribution_type = $5,
-				personnel_cost = $6,
-				research_material_cost = $7,
-				research_activity_cost = $8,
-				indirect_cost = $9,
-				total_budget = $10,
-				personnel_cost_cash = $11,
-				personnel_cost_in_kind = $12,
-				research_material_cost_cash = $13,
-				research_material_cost_in_kind = $14,
-				research_activity_cost_cash = $15,
-				research_activity_cost_in_kind = $16,
-				indirect_cost_cash = $17,
-				indirect_cost_in_kind = $18,
-				spent_amount = $19,
+				period_number = $1,
+				start_date = $2,
+				end_date = $3,
+				personnel_cost = $4,
+				research_material_cost = $5,
+				research_activity_cost = $6,
+				indirect_cost = $7,
+				personnel_cost_cash = $8,
+				personnel_cost_in_kind = $9,
+				research_material_cost_cash = $10,
+				research_material_cost_in_kind = $11,
+				research_activity_cost_cash = $12,
+				research_activity_cost_in_kind = $13,
+				indirect_cost_cash = $14,
+				indirect_cost_in_kind = $15,
 				updated_at = CURRENT_TIMESTAMP
-			WHERE id = $20
+			WHERE id = $16
 			RETURNING *
 		`,
 			[
-				fiscalYear,
 				periodNumber,
 				startDate,
 				endDate,
-				contributionType,
 				personnelCost,
 				researchMaterialCost,
 				researchActivityCost,
 				indirectCost,
-				totalBudget,
 				personnelCostCash,
 				personnelCostInKind,
 				researchMaterialCostCash,
@@ -135,7 +124,6 @@ export const PUT: RequestHandler = async ({ params, request }) => {
 				researchActivityCostInKind,
 				indirectCostCash,
 				indirectCostInKind,
-				spentAmount,
 				params.id
 			]
 		)

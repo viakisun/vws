@@ -7,7 +7,6 @@ import type { RequestHandler } from './$types'
 export const GET: RequestHandler = async ({ url }) => {
 	try {
 		const projectId = url.searchParams.get('projectId')
-		const fiscalYear = url.searchParams.get('fiscalYear')
 		const budgetCategoryId = url.searchParams.get('budgetCategoryId')
 
 		let sqlQuery = `
@@ -29,13 +28,7 @@ export const GET: RequestHandler = async ({ url }) => {
 			paramIndex++
 		}
 
-		if (fiscalYear) {
-			sqlQuery += ` AND pb.fiscal_year = $${paramIndex}`
-			params.push(parseInt(fiscalYear))
-			paramIndex++
-		}
-
-		sqlQuery += ` ORDER BY pb.period_number ASC, pb.fiscal_year ASC, pb.created_at ASC`
+		sqlQuery += ` ORDER BY pb.period_number ASC, pb.created_at ASC`
 
 		const result = await query(sqlQuery, params)
 
@@ -65,11 +58,9 @@ export const POST: RequestHandler = async ({ request }) => {
 		const data = await request.json()
 		const {
 			projectId,
-			fiscalYear,
 			periodNumber = 1,
 			startDate,
 			endDate,
-			contributionType = 'cash',
 			// 현금 비목들
 			personnelCostCash = 0,
 			researchMaterialCostCash = 0,
@@ -79,12 +70,11 @@ export const POST: RequestHandler = async ({ request }) => {
 			personnelCostInKind = 0,
 			researchMaterialCostInKind = 0,
 			researchActivityCostInKind = 0,
-			indirectCostInKind = 0,
-			spentAmount = 0
+			indirectCostInKind = 0
 		} = data
 
 		// 필수 필드 검증
-		if (!projectId || !fiscalYear) {
+		if (!projectId) {
 			return json(
 				{
 					success: false,
@@ -96,8 +86,8 @@ export const POST: RequestHandler = async ({ request }) => {
 
 		// 중복 검사
 		const existingBudget = await query(
-			'SELECT id FROM project_budgets WHERE project_id = $1 AND fiscal_year = $2',
-			[projectId, fiscalYear]
+			'SELECT id FROM project_budgets WHERE project_id = $1 AND period_number = $2',
+			[projectId, periodNumber]
 		)
 
 		if (existingBudget.rows.length > 0) {
@@ -110,40 +100,35 @@ export const POST: RequestHandler = async ({ request }) => {
 			)
 		}
 
-		// 각 비목의 총합 계산 (현금 + 현물)
+		// 각 비목의 총합 계산 (현금 + 현물) - 로직으로 계산하므로 DB에 저장하지 않음
 		const personnelCost = personnelCostCash + personnelCostInKind
 		const researchMaterialCost = researchMaterialCostCash + researchMaterialCostInKind
 		const researchActivityCost = researchActivityCostCash + researchActivityCostInKind
 		const indirectCost = indirectCostCash + indirectCostInKind
-		const totalBudget = personnelCost + researchMaterialCost + researchActivityCost + indirectCost
 
 		// 사업비 생성
 		const result = await query(
 			`
 			INSERT INTO project_budgets (
-				project_id, fiscal_year, period_number, start_date, end_date, contribution_type,
-				personnel_cost, research_material_cost, research_activity_cost, indirect_cost, total_budget,
+				project_id, period_number, start_date, end_date,
+				personnel_cost, research_material_cost, research_activity_cost, indirect_cost,
 				personnel_cost_cash, personnel_cost_in_kind,
 				research_material_cost_cash, research_material_cost_in_kind,
 				research_activity_cost_cash, research_activity_cost_in_kind,
-				indirect_cost_cash, indirect_cost_in_kind,
-				spent_amount
+				indirect_cost_cash, indirect_cost_in_kind
 			)
-			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20)
+			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
 			RETURNING *
 		`,
 			[
 				projectId,
-				fiscalYear,
 				periodNumber,
 				startDate,
 				endDate,
-				contributionType,
 				personnelCost,
 				researchMaterialCost,
 				researchActivityCost,
 				indirectCost,
-				totalBudget,
 				personnelCostCash,
 				personnelCostInKind,
 				researchMaterialCostCash,
@@ -151,8 +136,7 @@ export const POST: RequestHandler = async ({ request }) => {
 				researchActivityCostCash,
 				researchActivityCostInKind,
 				indirectCostCash,
-				indirectCostInKind,
-				spentAmount
+				indirectCostInKind
 			]
 		)
 

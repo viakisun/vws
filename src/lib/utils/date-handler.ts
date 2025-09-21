@@ -45,21 +45,37 @@ export const DATE_FORMATS = {
 } as const
 
 /**
- * 서울 시간대 상수
+ * 시간대 설정 import
+ */
+import { getCurrentTimezone, getTimezoneOffsetString } from './timezone-config.js'
+
+/**
+ * 시간대 상수 (하위 호환성을 위해 유지)
  */
 export const SEOUL_TIMEZONE = 'Asia/Seoul'
 export const UTC_TIMEZONE = 'UTC'
 
 /**
+ * 현재 설정된 시간대를 가져옵니다.
+ */
+function getCurrentAppTimezone(): string {
+	return getCurrentTimezone()
+}
+
+/**
  * 날짜를 UTC로 변환 (데이터베이스 저장용)
+ * 모든 입력을 현재 설정된 시간대 기준으로 해석하여 UTC로 저장
  */
 export function toUTC(date: DateInputFormat): StandardDate {
 	if (!date) return '' as StandardDate
 
 	try {
 		let dateObj: Date
+		const currentTimezone = getCurrentAppTimezone()
+		const timezoneOffset = getTimezoneOffsetString(currentTimezone as any)
 
 		if (date instanceof Date) {
+			// Date 객체는 이미 올바른 시간대로 간주
 			dateObj = date
 		} else if (typeof date === 'number') {
 			// Excel 날짜 또는 Unix timestamp 처리
@@ -72,39 +88,54 @@ export function toUTC(date: DateInputFormat): StandardDate {
 				dateObj = new Date(date * 1000)
 			}
 		} else {
-			// 문자열 처리
+			// 문자열 처리 - 모든 날짜를 현재 설정된 시간대 기준으로 해석
 			const dateStr = String(date).trim()
 
 			if (!dateStr) return '' as StandardDate
 
 			// 다양한 형식 지원
 			if (dateStr.includes('T')) {
-				// ISO 8601 형식
-				dateObj = new Date(dateStr)
+				// ISO 8601 형식 - 이미 시간대 정보가 포함되어 있으면 그대로 사용
+				if (dateStr.includes('+') || dateStr.includes('Z') || dateStr.includes('-', 10)) {
+					dateObj = new Date(dateStr)
+				} else {
+					// 시간대 정보가 없으면 현재 설정된 시간대로 해석
+					dateObj = new Date(`${dateStr}${timezoneOffset}`)
+				}
 			} else if (dateStr.includes('.')) {
-				// YYYY.MM.DD 형식
+				// YYYY.MM.DD 형식 - 현재 설정된 시간대 자정으로 해석
 				const [year, month, day] = dateStr.split('.')
-				dateObj = new Date(parseInt(year), parseInt(month) - 1, parseInt(day))
-			} else if (dateStr.includes('-')) {
-				// YYYY-MM-DD 형식 - 서울 시간 기준으로 해석
-				// 정확한 방법: 서울 타임존을 명시적으로 사용
-				const [year, month, day] = dateStr.split('-')
-
-				// 서울 시간 자정을 UTC로 변환하는 정확한 방법
-				const seoulMidnight = new Date(
-					`${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}T00:00:00+09:00`
+				dateObj = new Date(
+					`${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}T00:00:00${timezoneOffset}`
 				)
-				dateObj = seoulMidnight
+			} else if (dateStr.includes('-')) {
+				// YYYY-MM-DD 형식 - 현재 설정된 시간대 자정으로 해석
+				const [year, month, day] = dateStr.split('-')
+				dateObj = new Date(
+					`${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}T00:00:00${timezoneOffset}`
+				)
 			} else if (dateStr.includes('/')) {
-				// MM/DD/YYYY 또는 DD/MM/YYYY 형식
+				// MM/DD/YYYY 또는 DD/MM/YYYY 형식 - 현재 설정된 시간대 자정으로 해석
 				const parts = dateStr.split('/')
 				if (parts.length === 3) {
 					// MM/DD/YYYY 가정
-					dateObj = new Date(parseInt(parts[2]), parseInt(parts[0]) - 1, parseInt(parts[1]))
+					const [month, day, year] = parts
+					dateObj = new Date(
+						`${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}T00:00:00${timezoneOffset}`
+					)
 				}
 			} else {
-				// 기본 Date 생성자 사용
-				dateObj = new Date(dateStr)
+				// 기본 Date 생성자 사용 후 현재 설정된 시간대로 해석
+				const tempDate = new Date(dateStr)
+				if (!isNaN(tempDate.getTime())) {
+					// 유효한 날짜면 현재 설정된 시간대 자정으로 재해석
+					const year = tempDate.getFullYear()
+					const month = String(tempDate.getMonth() + 1).padStart(2, '0')
+					const day = String(tempDate.getDate()).padStart(2, '0')
+					dateObj = new Date(`${year}-${month}-${day}T00:00:00${timezoneOffset}`)
+				} else {
+					dateObj = tempDate
+				}
 			}
 		}
 
@@ -137,14 +168,15 @@ export function formatDateForDisplay(
 			return ''
 		}
 
-		// 서울 시간으로 변환
-		const seoulDate = new Date(date.toLocaleString('en-US', { timeZone: SEOUL_TIMEZONE }))
+		// 현재 설정된 시간대로 변환
+		const currentTimezone = getCurrentAppTimezone()
+		const localDate = new Date(date.toLocaleString('en-US', { timeZone: currentTimezone }))
 
-		const year = seoulDate.getFullYear()
-		const month = String(seoulDate.getMonth() + 1).padStart(2, '0')
-		const day = String(seoulDate.getDate()).padStart(2, '0')
-		const hours = String(seoulDate.getHours()).padStart(2, '0')
-		const minutes = String(seoulDate.getMinutes()).padStart(2, '0')
+		const year = localDate.getFullYear()
+		const month = String(localDate.getMonth() + 1).padStart(2, '0')
+		const day = String(localDate.getDate()).padStart(2, '0')
+		const hours = String(localDate.getHours()).padStart(2, '0')
+		const minutes = String(localDate.getMinutes()).padStart(2, '0')
 
 		switch (format) {
 			case 'FULL':
@@ -179,12 +211,13 @@ export function formatDateForInput(utcDate: StandardDate | string): string {
 			return ''
 		}
 
-		// 서울 시간으로 변환하여 YYYY-MM-DD 형식으로 반환
-		const seoulDate = new Date(date.toLocaleString('en-US', { timeZone: SEOUL_TIMEZONE }))
+		// 현재 설정된 시간대로 변환하여 YYYY-MM-DD 형식으로 반환
+		const currentTimezone = getCurrentAppTimezone()
+		const localDate = new Date(date.toLocaleString('en-US', { timeZone: currentTimezone }))
 
-		const year = seoulDate.getFullYear()
-		const month = String(seoulDate.getMonth() + 1).padStart(2, '0')
-		const day = String(seoulDate.getDate()).padStart(2, '0')
+		const year = localDate.getFullYear()
+		const month = String(localDate.getMonth() + 1).padStart(2, '0')
+		const day = String(localDate.getDate()).padStart(2, '0')
 
 		return `${year}-${month}-${day}`
 	} catch (error) {
@@ -206,14 +239,15 @@ export function formatDateTimeForInput(utcDate: StandardDate | string): string {
 			return ''
 		}
 
-		// 서울 시간으로 변환
-		const seoulDate = new Date(date.toLocaleString('en-US', { timeZone: SEOUL_TIMEZONE }))
+		// 현재 설정된 시간대로 변환
+		const currentTimezone = getCurrentAppTimezone()
+		const localDate = new Date(date.toLocaleString('en-US', { timeZone: currentTimezone }))
 
-		const year = seoulDate.getFullYear()
-		const month = String(seoulDate.getMonth() + 1).padStart(2, '0')
-		const day = String(seoulDate.getDate()).padStart(2, '0')
-		const hours = String(seoulDate.getHours()).padStart(2, '0')
-		const minutes = String(seoulDate.getMinutes()).padStart(2, '0')
+		const year = localDate.getFullYear()
+		const month = String(localDate.getMonth() + 1).padStart(2, '0')
+		const day = String(localDate.getDate()).padStart(2, '0')
+		const hours = String(localDate.getHours()).padStart(2, '0')
+		const minutes = String(localDate.getMinutes()).padStart(2, '0')
 
 		return `${year}-${month}-${day}T${hours}:${minutes}`
 	} catch (error) {
@@ -261,6 +295,7 @@ export function getCurrentUTC(): StandardDate {
  */
 export function getCurrentSeoulAsUTC(): StandardDate {
 	const now = new Date()
+	// 서울 시간대의 현재 시간을 UTC로 변환하는 더 정확한 방법
 	const seoulTime = new Date(now.toLocaleString('en-US', { timeZone: SEOUL_TIMEZONE }))
 	return seoulTime.toISOString() as StandardDate
 }

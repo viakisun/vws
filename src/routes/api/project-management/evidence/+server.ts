@@ -19,7 +19,6 @@ export const GET: RequestHandler = async ({ url }) => {
 				ec.name as category_name,
 				CONCAT(e.last_name, e.first_name) as assignee_full_name,
 				pb.period_number,
-				pb.fiscal_year,
 				COUNT(ed.id) as document_count,
 				COUNT(CASE WHEN ed.status = 'approved' THEN 1 END) as approved_document_count,
 				COUNT(es.id) as schedule_count,
@@ -60,7 +59,7 @@ export const GET: RequestHandler = async ({ url }) => {
 		}
 
 		queryText += `
-			GROUP BY ei.id, ec.name, e.first_name, e.last_name, pb.period_number, pb.fiscal_year
+			GROUP BY ei.id, ec.name, e.first_name, e.last_name, pb.period_number
 			ORDER BY ei.created_at DESC
 		`
 
@@ -172,8 +171,7 @@ export const POST: RequestHandler = async ({ request }) => {
 				ei.*,
 				ec.name as category_name,
 				CONCAT(e.last_name, e.first_name) as assignee_full_name,
-				pb.period_number,
-				pb.fiscal_year
+				pb.period_number
 			FROM evidence_items ei
 			JOIN evidence_categories ec ON ei.category_id = ec.id
 			LEFT JOIN employees e ON ei.assignee_id = e.id

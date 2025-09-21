@@ -260,28 +260,46 @@ async function createProjectBudgets(client: any, projectId: string, data: Projec
 
 		const budgetQuery = `
       INSERT INTO project_budgets (
-        project_id, fiscal_year, period_number, start_date, end_date, total_budget,
+        project_id, period_number, start_date, end_date,
         personnel_cost, research_material_cost, research_activity_cost, indirect_cost,
-        spent_amount, created_at, updated_at
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 0, NOW(), NOW())
+        personnel_cost_cash, personnel_cost_in_kind,
+        research_material_cost_cash, research_material_cost_in_kind,
+        research_activity_cost_cash, research_activity_cost_in_kind,
+        indirect_cost_cash, indirect_cost_in_kind,
+        government_funding_amount, company_cash_amount, company_in_kind_amount,
+        created_at, updated_at
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, NOW(), NOW())
       RETURNING id
     `
 
-		// fiscal_year는 시작일의 연도로 설정 (UTC 기준)
-		const periodStartUtc = new Date(period.startDate + 'T00:00:00.000Z')
-		const fiscalYear = periodStartUtc.getUTCFullYear()
+		// 각 비목의 총합 계산 (현금 + 현물)
+		const personnelCost = (period.personnelCostCash || 0) + (period.personnelCostInKind || 0)
+		const researchMaterialCost =
+			(period.researchMaterialCostCash || 0) + (period.researchMaterialCostInKind || 0)
+		const researchActivityCost =
+			(period.researchActivityCostCash || 0) + (period.researchActivityCostInKind || 0)
+		const indirectCost = (period.indirectCostCash || 0) + (period.indirectCostInKind || 0)
 
 		const result = await client.query(budgetQuery, [
 			projectId,
-			fiscalYear,
 			period.periodNumber,
 			period.startDate,
 			period.endDate,
-			period.budget,
 			personnelCost,
-			materialCost,
-			activityCost,
-			indirectCost
+			researchMaterialCost,
+			researchActivityCost,
+			indirectCost,
+			period.personnelCostCash || 0,
+			period.personnelCostInKind || 0,
+			period.researchMaterialCostCash || 0,
+			period.researchMaterialCostInKind || 0,
+			period.researchActivityCostCash || 0,
+			period.researchActivityCostInKind || 0,
+			period.indirectCostCash || 0,
+			period.indirectCostInKind || 0,
+			period.governmentFundingAmount || 0,
+			period.companyCashAmount || 0,
+			period.companyInKindAmount || 0
 		])
 
 		budgetIds.push(result.rows[0].id)

@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { page } from '$app/stores';
-	import { onMount } from 'svelte';
+	import { page } from '$app/stores'
+	import { onMount } from 'svelte'
 	
 	let { children } = $props();
 	
@@ -18,7 +18,6 @@
 	let navigationItems = $derived(() => {
 		const baseItems = [
 			{ name: '대시보드', href: '/rnd', icon: '📊' },
-			{ name: '프로젝트 관리', href: '/rnd/projects', icon: '📋' },
 			{ name: '예산 관리', href: '/rnd/budget', icon: '💰' },
 			{ name: '지출 관리', href: '/rnd/expenses', icon: '💳' },
 			{ name: '인력 관리', href: '/rnd/personnel', icon: '👥' },
@@ -33,15 +32,15 @@
 		switch (currentUser.role) {
 			case 'EXECUTIVE':
 				return baseItems.filter(item => 
-					['대시보드', '프로젝트 관리', '예산 관리', '리포트', '감사 로그'].includes(item.name)
+					['대시보드', '예산 관리', '리포트', '감사 로그'].includes(item.name)
 				);
 			case 'LAB_HEAD':
 				return baseItems.filter(item => 
-					['대시보드', '프로젝트 관리', '예산 관리', '연구노트', '리포트', '결재 관리'].includes(item.name)
+					['대시보드', '예산 관리', '연구노트', '리포트', '결재 관리'].includes(item.name)
 				);
 			case 'PM':
 				return baseItems.filter(item => 
-					['대시보드', '프로젝트 관리', '예산 관리', '지출 관리', '인력 관리', '연구노트', '리포트'].includes(item.name)
+					['대시보드', '예산 관리', '지출 관리', '인력 관리', '연구노트', '리포트'].includes(item.name)
 				);
 			case 'MANAGEMENT_SUPPORT':
 				return baseItems; // 경영지원팀은 모든 메뉴 접근 가능
