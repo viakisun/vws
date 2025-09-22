@@ -4,16 +4,16 @@ import type { RequestHandler } from './$types'
 
 // GET /api/project-management/employees - 직원 목록 조회 (프로젝트 멤버 추가용)
 export const GET: RequestHandler = async ({ url }) => {
-	try {
-		const projectId = url.searchParams.get('projectId')
-		const department = url.searchParams.get('department')
-		const position = url.searchParams.get('position')
-		const search = url.searchParams.get('search')
-		const excludeProjectMembers = url.searchParams.get('excludeProjectMembers') === 'true'
+  try {
+    const projectId = url.searchParams.get('projectId')
+    const department = url.searchParams.get('department')
+    const position = url.searchParams.get('position')
+    const search = url.searchParams.get('search')
+    const excludeProjectMembers = url.searchParams.get('excludeProjectMembers') === 'true'
 
-		// 직원 목록 API 호출
+    // 직원 목록 API 호출
 
-		let sqlQuery = `
+    let sqlQuery = `
 			SELECT 
 				e.id,
 				CASE 
@@ -34,23 +34,23 @@ export const GET: RequestHandler = async ({ url }) => {
 			WHERE e.status = 'active'
 		`
 
-		const params: any[] = []
-		let paramIndex = 1
+    const params: any[] = []
+    let paramIndex = 1
 
-		if (department) {
-			sqlQuery += ` AND e.department = $${paramIndex}`
-			params.push(department)
-			paramIndex++
-		}
+    if (department) {
+      sqlQuery += ` AND e.department = $${paramIndex}`
+      params.push(department)
+      paramIndex++
+    }
 
-		if (position) {
-			sqlQuery += ` AND e.position = $${paramIndex}`
-			params.push(position)
-			paramIndex++
-		}
+    if (position) {
+      sqlQuery += ` AND e.position = $${paramIndex}`
+      params.push(position)
+      paramIndex++
+    }
 
-		if (search) {
-			sqlQuery += ` AND (
+    if (search) {
+      sqlQuery += ` AND (
 				CASE 
 					WHEN e.first_name ~ '^[가-힣]+$' AND e.last_name ~ '^[가-힣]+$' 
 					THEN CONCAT(e.last_name, ' ', e.first_name)
@@ -61,40 +61,40 @@ export const GET: RequestHandler = async ({ url }) => {
 				OR e.email ILIKE $${paramIndex} 
 				OR e.employee_id ILIKE $${paramIndex}
 			)`
-			params.push(`%${search}%`)
-			paramIndex++
-		}
+      params.push(`%${search}%`)
+      paramIndex++
+    }
 
-		// 특정 프로젝트의 멤버를 제외
-		if (excludeProjectMembers && projectId) {
-			sqlQuery += ` AND e.id NOT IN (
+    // 특정 프로젝트의 멤버를 제외
+    if (excludeProjectMembers && projectId) {
+      sqlQuery += ` AND e.id NOT IN (
 				SELECT pm.employee_id 
 				FROM project_members pm 
 				WHERE pm.project_id = $${paramIndex} AND pm.status = 'active'
 			)`
-			params.push(projectId)
-			paramIndex++
-		}
+      params.push(projectId)
+      paramIndex++
+    }
 
-		sqlQuery += ' ORDER BY e.department ASC, e.last_name ASC, e.first_name ASC'
+    sqlQuery += ' ORDER BY e.department ASC, e.last_name ASC, e.first_name ASC'
 
-		const result = await query(sqlQuery, params)
+    const result = await query(sqlQuery, params)
 
-		// 직원 목록 쿼리 완료
+    // 직원 목록 쿼리 완료
 
-		return json({
-			success: true,
-			data: result.rows
-		})
-	} catch (error) {
-		console.error('직원 목록 조회 실패:', error)
-		return json(
-			{
-				success: false,
-				message: '직원 목록을 불러오는데 실패했습니다.',
-				error: (error as Error).message
-			},
-			{ status: 500 }
-		)
-	}
+    return json({
+      success: true,
+      data: result.rows
+    })
+  } catch (error) {
+    console.error('직원 목록 조회 실패:', error)
+    return json(
+      {
+        success: false,
+        message: '직원 목록을 불러오는데 실패했습니다.',
+        error: (error as Error).message
+      },
+      { status: 500 }
+    )
+  }
 }

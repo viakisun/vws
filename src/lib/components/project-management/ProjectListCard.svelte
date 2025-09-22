@@ -22,7 +22,7 @@
 
   const dispatch = createEventDispatcher()
 
-  let { 
+  let {
     projects = [],
     selectedProject = null,
     selectedProjectId = '',
@@ -33,10 +33,14 @@
   // 간소화된 상태 한글 변환
   function getStatusLabel(status) {
     switch (status) {
-      case 'active': return '진행'
-      case 'planning': return '기획'
-      case 'completed': return '완료'
-      default: return status
+      case 'active':
+        return '진행'
+      case 'planning':
+        return '기획'
+      case 'completed':
+        return '완료'
+      default:
+        return status
     }
   }
 
@@ -87,7 +91,7 @@
         <div class="relative flex-1 max-w-md">
           <select
             bind:value={selectedProjectId}
-            onchange={(e) => {
+            onchange={e => {
               const target = e.target
               if (target && 'value' in target) {
                 const project = projects.find(p => p.id === target.value)
@@ -126,15 +130,8 @@
         {/if}
       </div>
       <div class="flex gap-2">
-        <ThemeButton
-          variant="primary"
-          size="sm"
-          onclick={handleCreateProject}
-          disabled={loading}
-        >
-          <PlusIcon
-            size={16}
-            class="mr-2" />
+        <ThemeButton variant="primary" size="sm" onclick={handleCreateProject} disabled={loading}>
+          <PlusIcon size={16} class="mr-2" />
           새 프로젝트
         </ThemeButton>
       </div>
@@ -157,17 +154,10 @@
       <div class="text-center py-12">
         <FlaskConicalIcon class="mx-auto h-12 w-12 text-gray-400" />
         <h3 class="mt-2 text-sm font-medium text-gray-900">프로젝트가 없습니다</h3>
-        <p class="mt-1 text-sm text-gray-500">
-          새 프로젝트를 생성하여 시작하세요.
-        </p>
+        <p class="mt-1 text-sm text-gray-500">새 프로젝트를 생성하여 시작하세요.</p>
         <div class="mt-6">
-          <ThemeButton
-            variant="primary"
-            onclick={handleCreateProject}
-          >
-            <PlusIcon
-              size={16}
-              class="mr-2" />
+          <ThemeButton variant="primary" onclick={handleCreateProject}>
+            <PlusIcon size={16} class="mr-2" />
             첫 프로젝트 생성
           </ThemeButton>
         </div>

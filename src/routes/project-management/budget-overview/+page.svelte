@@ -3,13 +3,13 @@
   import Progress from '$lib/components/ui/Progress.svelte'
   import { overallBudget, quarterlyPersonnelBudgets } from '$lib/stores/rnd'
   import { get } from 'svelte/store'
-  const qb = get(quarterlyPersonnelBudgets);
-  const quarterSet = new Set<string>();
-  Object.values(qb).forEach((m) => Object.keys(m).forEach((q) => quarterSet.add(q)));
-  const quarters = Array.from(quarterSet).sort();
-  const ob = $derived($overallBudget);
+  const qb = get(quarterlyPersonnelBudgets)
+  const quarterSet = new Set<string>()
+  Object.values(qb).forEach(m => Object.keys(m).forEach(q => quarterSet.add(q)))
+  const quarters = Array.from(quarterSet).sort()
+  const ob = $derived($overallBudget)
   function sumQuarter(q: string): number {
-    return Object.values(qb).reduce((s, m) => s + (m[q] ?? 0), 0);
+    return Object.values(qb).reduce((s, m) => s + (m[q] ?? 0), 0)
   }
 </script>
 
@@ -64,4 +64,3 @@
   </div>
   <div class="text-caption mt-2">예산 데이터는 스토어 기준 합산입니다.</div>
 </Card>
-

@@ -10,15 +10,15 @@
  * @returns 월간 급여 (원, 정수)
  */
 export function calculateMonthlySalary(annualSalary: number, participationRate: number): number {
-	if (!annualSalary || !participationRate || isNaN(annualSalary) || isNaN(participationRate)) {
-		return 0
-	}
+  if (!annualSalary || !participationRate || isNaN(annualSalary) || isNaN(participationRate)) {
+    return 0
+  }
 
-	// 연봉 * (참여율/100) / 12개월
-	const monthlyAmount = (annualSalary * participationRate) / 100 / 12
+  // 연봉 * (참여율/100) / 12개월
+  const monthlyAmount = (annualSalary * participationRate) / 100 / 12
 
-	// 반올림 없이 버림 처리로 정수 반환
-	return Math.floor(monthlyAmount)
+  // 반올림 없이 버림 처리로 정수 반환
+  return Math.floor(monthlyAmount)
 }
 
 /**
@@ -27,11 +27,11 @@ export function calculateMonthlySalary(annualSalary: number, participationRate: 
  * @returns 월급 (원, 정수)
  */
 export function calculateMonthlyFromAnnual(annualSalary: number): number {
-	if (!annualSalary || isNaN(annualSalary)) {
-		return 0
-	}
+  if (!annualSalary || isNaN(annualSalary)) {
+    return 0
+  }
 
-	return Math.floor(annualSalary / 12)
+  return Math.floor(annualSalary / 12)
 }
 
 /**
@@ -41,11 +41,11 @@ export function calculateMonthlyFromAnnual(annualSalary: number): number {
  * @returns 배분된 금액 (원, 정수)
  */
 export function calculateBudgetAllocation(totalBudget: number, percentage: number): number {
-	if (!totalBudget || !percentage || isNaN(totalBudget) || isNaN(percentage)) {
-		return 0
-	}
+  if (!totalBudget || !percentage || isNaN(totalBudget) || isNaN(percentage)) {
+    return 0
+  }
 
-	return Math.floor((totalBudget * percentage) / 100)
+  return Math.floor((totalBudget * percentage) / 100)
 }
 
 /**
@@ -54,9 +54,9 @@ export function calculateBudgetAllocation(totalBudget: number, percentage: numbe
  * @returns 정수로 변환된 금액
  */
 export function normalizeSalaryAmount(amount: number): number {
-	if (!amount || isNaN(amount)) {
-		return 0
-	}
+  if (!amount || isNaN(amount)) {
+    return 0
+  }
 
-	return Math.floor(amount)
+  return Math.floor(amount)
 }

@@ -1,6 +1,6 @@
 <script lang="ts">
-  import Card from '$lib/components/ui/Card.svelte';
-  import Badge from '$lib/components/ui/Badge.svelte';
+  import Card from '$lib/components/ui/Card.svelte'
+  import Badge from '$lib/components/ui/Badge.svelte'
 </script>
 
 <h2 class="text-lg font-semibold mb-4">Management Reports</h2>
@@ -26,4 +26,3 @@
     <button class="px-3 py-1.5 rounded-md border border-gray-200">문서 생성</button>
   </Card>
 </div>
-

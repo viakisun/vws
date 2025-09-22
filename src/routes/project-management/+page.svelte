@@ -315,7 +315,7 @@
         employeeParticipationSummary = data.data || []
       }
     } catch {
-    // 직원 참여율 데이터 로드 실패 - 조용히 처리
+      // 직원 참여율 데이터 로드 실패 - 조용히 처리
     }
   }
 
@@ -323,11 +323,11 @@
     try {
       const response = await fetch('/api/project-management/budgets/summary-by-year')
       if (response.ok) {
-      // const data = await response.json()
+        // const data = await response.json()
         // budgetSummaryByYear = data.data || []
       }
     } catch {
-    // 연도별 예산 데이터 로드 실패 - 조용히 처리
+      // 연도별 예산 데이터 로드 실패 - 조용히 처리
     }
   }
 
@@ -339,7 +339,7 @@
         alerts = data.data || []
       }
     } catch {
-    // 알림 데이터 로드 실패 - 조용히 처리
+      // 알림 데이터 로드 실패 - 조용히 처리
     }
   }
 
@@ -377,26 +377,16 @@
   })
 </script>
 
-<PageLayout
-  title="프로젝트 관리"
-  subtitle="연구개발 프로젝트 및 참여율 관리 시스템"
->
+<PageLayout title="프로젝트 관리" subtitle="연구개발 프로젝트 및 참여율 관리 시스템">
   <div>
     <!-- 탭 네비게이션 -->
-    <ThemeTabs
-      {tabs}
-      {activeTab}
-      onTabChange={handleTabChange}
-    />
+    <ThemeTabs {tabs} {activeTab} onTabChange={handleTabChange} />
 
     <!-- 개요 탭 -->
     {#if activeTab === 'overview'}
       <div>
         <!-- 프로젝트 개요 카드 -->
-        <ProjectOverviewCard
-          {projectSummary}
-          {alerts}
-        />
+        <ProjectOverviewCard {projectSummary} {alerts} />
       </div>
     {/if}
 
@@ -432,9 +422,6 @@
 </PageLayout>
 
 <!-- 프로젝트 생성 모달 -->
-<ThemeModal
-  open={showCreateProjectModal}
-  onclose={() => (showCreateProjectModal = false)}
->
+<ThemeModal open={showCreateProjectModal} onclose={() => (showCreateProjectModal = false)}>
   <ProjectCreationForm on:projectCreated={handleProjectCreated} />
 </ThemeModal>

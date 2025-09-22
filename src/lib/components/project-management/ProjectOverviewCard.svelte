@@ -3,11 +3,11 @@
   import ThemeCard from '$lib/components/ui/ThemeCard.svelte'
   import { formatCurrency, formatDate } from '$lib/utils/format'
   import {
-  	ActivityIcon,
-  	AlertTriangleIcon,
-  	DollarSignIcon,
-  	FlaskConicalIcon,
-  	UsersIcon
+    ActivityIcon,
+    AlertTriangleIcon,
+    DollarSignIcon,
+    FlaskConicalIcon,
+    UsersIcon
   } from '@lucide/svelte'
 
   /**
@@ -22,28 +22,33 @@
    * @property {Array<{title: string, code: string, status: string, updatedAt: string}>} [recentActivities]
    */
 
-  let { 
-    projectSummary = null,
-    alerts = []
-  } = $props()
+  let { projectSummary = null, alerts = [] } = $props()
 
   // 간소화된 상태 배지 색상
   function getStatusBadgeColor(status) {
     switch (status) {
-      case 'active': return 'success'
-      case 'planning': return 'primary'
-      case 'completed': return 'default'
-      default: return 'default'
+      case 'active':
+        return 'success'
+      case 'planning':
+        return 'primary'
+      case 'completed':
+        return 'default'
+      default:
+        return 'default'
     }
   }
 
   // 간소화된 상태 한글 변환
   function getStatusLabel(status) {
     switch (status) {
-      case 'active': return '진행'
-      case 'planning': return '기획'
-      case 'completed': return '완료'
-      default: return status
+      case 'active':
+        return '진행'
+      case 'planning':
+        return '기획'
+      case 'completed':
+        return '완료'
+      default:
+        return status
     }
   }
 

@@ -17,6 +17,40 @@ export default [
 			parserOptions: {
 				ecmaVersion: 2022,
 				sourceType: 'module'
+			},
+			globals: {
+				// Browser globals
+				window: 'readonly',
+				document: 'readonly',
+				console: 'readonly',
+				// Node.js globals
+				process: 'readonly',
+				Buffer: 'readonly',
+				__dirname: 'readonly',
+				__filename: 'readonly',
+				global: 'readonly',
+				// SvelteKit globals
+				Response: 'readonly',
+				Request: 'readonly',
+				Headers: 'readonly',
+				URL: 'readonly',
+				URLSearchParams: 'readonly',
+				FormData: 'readonly',
+				File: 'readonly',
+				Blob: 'readonly',
+				// SvelteKit specific
+				locals: 'readonly',
+				// Other common globals
+				MouseEvent: 'readonly',
+				KeyboardEvent: 'readonly',
+				HTMLButtonElement: 'readonly',
+				HTMLInputElement: 'readonly',
+				HTMLSelectElement: 'readonly',
+				HTMLTextAreaElement: 'readonly',
+				HTMLElement: 'readonly',
+				Element: 'readonly',
+				Event: 'readonly',
+				EventTarget: 'readonly'
 			}
 		},
 		plugins: {
@@ -80,6 +114,40 @@ export default [
 				svelteFeatures: {
 					runes: true
 				}
+			},
+			globals: {
+				// Browser globals
+				window: 'readonly',
+				document: 'readonly',
+				console: 'readonly',
+				// Node.js globals
+				process: 'readonly',
+				Buffer: 'readonly',
+				__dirname: 'readonly',
+				__filename: 'readonly',
+				global: 'readonly',
+				// SvelteKit globals
+				Response: 'readonly',
+				Request: 'readonly',
+				Headers: 'readonly',
+				URL: 'readonly',
+				URLSearchParams: 'readonly',
+				FormData: 'readonly',
+				File: 'readonly',
+				Blob: 'readonly',
+				// SvelteKit specific
+				locals: 'readonly',
+				// Other common globals
+				MouseEvent: 'readonly',
+				KeyboardEvent: 'readonly',
+				HTMLButtonElement: 'readonly',
+				HTMLInputElement: 'readonly',
+				HTMLSelectElement: 'readonly',
+				HTMLTextAreaElement: 'readonly',
+				HTMLElement: 'readonly',
+				Element: 'readonly',
+				Event: 'readonly',
+				EventTarget: 'readonly'
 			}
 		},
 		plugins: {
