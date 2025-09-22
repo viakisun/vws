@@ -3,23 +3,18 @@
   import { goto } from '$app/navigation'
   import { page } from '$app/stores'
   import PageLayout from '$lib/components/layout/PageLayout.svelte'
+  import ParticipationCard from '$lib/components/project-management/ParticipationCard.svelte'
   import ProjectCreationForm from '$lib/components/project-management/ProjectCreationForm.svelte'
-  import ProjectDetailView from '$lib/components/project-management/ProjectDetailView.svelte'
-  import ThemeBadge from '$lib/components/ui/ThemeBadge.svelte'
-  import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
+  import ProjectListCard from '$lib/components/project-management/ProjectListCard.svelte'
+  import ProjectOverviewCard from '$lib/components/project-management/ProjectOverviewCard.svelte'
   import ThemeCard from '$lib/components/ui/ThemeCard.svelte'
   import ThemeModal from '$lib/components/ui/ThemeModal.svelte'
   import ThemeTabs from '$lib/components/ui/ThemeTabs.svelte'
-  import { formatCurrency, formatDate } from '$lib/utils/format'
   import {
-  	ActivityIcon,
   	AlertTriangleIcon,
   	BarChart3Icon,
-  	DollarSignIcon,
   	FlaskConicalIcon,
-  	PercentIcon,
-  	PlusIcon,
-  	UsersIcon
+  	PercentIcon
   } from '@lucide/svelte'
   import { onMount } from 'svelte'
 
@@ -370,12 +365,6 @@
     loadProjectSummary()
   }
 
-  // 프로젝트 선택
-  function selectProject(project) {
-    selectedProject = project
-    selectedProjectId = project.id
-  }
-
   // 프로젝트 삭제 이벤트 처리
   function handleProjectDeleted(event) {
     const { projectId } = event.detail
@@ -391,36 +380,6 @@
 
     // 프로젝트 데이터 새로고침
     loadProjectData()
-  }
-
-  // 간소화된 상태 배지 색상
-  function getStatusBadgeColor(status) {
-    switch (status) {
-      case 'active': return 'success'
-      case 'planning': return 'primary'
-      case 'completed': return 'default'
-      default: return 'default'
-    }
-  }
-
-  // 간소화된 상태 한글 변환
-  function getStatusLabel(status) {
-    switch (status) {
-      case 'active': return '진행'
-      case 'planning': return '기획'
-      case 'completed': return '완료'
-      default: return status
-    }
-  }
-
-  // 안전한 날짜 표시 함수
-  function safeFormatDate(dateString) {
-    if (!dateString) return '미정'
-    try {
-      return formatDate(dateString)
-    } catch {
-      return '잘못된 날짜'
-    }
   }
 
   // 초기화 - 첫 번째 탭만 로드
@@ -505,118 +464,12 @@
             </div>
           </ThemeCard>
         {/if}
-        <!-- 요약 통계 -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <ThemeCard>
-            <div class="flex items-center">
-              <div class="flex-shrink-0">
-                <FlaskConicalIcon class="h-8 w-8 text-blue-600" />
-              </div>
-              <div class="ml-4">
-                <p class="text-sm font-medium text-gray-500">총 프로젝트</p>
-                <p class="text-2xl font-semibold text-gray-900">
-                  {projectSummary?.totalProjects || 0}개
-                </p>
-                <div class="flex items-center mt-2">
-                  <span class="text-sm text-green-600">
-                    진행중: {projectSummary?.activeProjects || 0}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </ThemeCard>
-
-          <ThemeCard>
-            <div class="flex items-center">
-              <div class="flex-shrink-0">
-                <DollarSignIcon class="h-8 w-8 text-green-600" />
-              </div>
-              <div class="ml-4">
-                <p class="text-sm font-medium text-gray-500">총 예산</p>
-                <p class="text-2xl font-semibold text-gray-900">
-                  {formatCurrency(projectSummary?.totalBudget || 0)}
-                </p>
-                <div class="flex items-center mt-2">
-                  <span class="text-sm text-blue-600">
-                    올해: {formatCurrency(projectSummary?.currentYearBudget || 0)}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </ThemeCard>
-
-          <ThemeCard>
-            <div class="flex items-center">
-              <div class="flex-shrink-0">
-                <UsersIcon class="h-8 w-8 text-purple-600" />
-              </div>
-              <div class="ml-4">
-                <p class="text-sm font-medium text-gray-500">참여 연구원</p>
-                <p class="text-2xl font-semibold text-gray-900">
-                  {projectSummary?.totalMembers || 0}명
-                </p>
-                <div class="flex items-center mt-2">
-                  <span class="text-sm text-gray-500">
-                    활성: {projectSummary?.activeMembers || 0}명
-                  </span>
-                </div>
-              </div>
-            </div>
-          </ThemeCard>
-
-          <ThemeCard>
-            <div class="flex items-center">
-              <div class="flex-shrink-0">
-                <AlertTriangleIcon class="h-8 w-8 text-orange-600" />
-              </div>
-              <div class="ml-4">
-                <p class="text-sm font-medium text-gray-500">알림</p>
-                <p class="text-2xl font-semibold text-gray-900">
-                  {alerts.length}개
-                </p>
-                <div class="flex items-center mt-2">
-                  <span class="text-sm text-red-600">
-                    초과 참여: {projectSummary?.overParticipationEmployees || 0}명
-                  </span>
-                </div>
-              </div>
-            </div>
-          </ThemeCard>
-        </div>
-
-        <!-- 최근 활동 -->
-        <ThemeCard>
-          <div class="px-6 py-4 border-b border-gray-200">
-            <h3 class="text-lg font-medium text-gray-900">최근 프로젝트 활동</h3>
-          </div>
-          <div class="divide-y divide-gray-200">
-            {#if projectSummary?.recentActivities && projectSummary.recentActivities.length > 0}
-              {#each projectSummary.recentActivities as activity (activity.code)}
-                <div class="px-6 py-4">
-                  <div class="flex items-center justify-between">
-                    <div class="flex items-center">
-                      <ThemeBadge variant={getStatusBadgeColor(activity.status)}>
-                        {getStatusLabel(activity.status)}
-                      </ThemeBadge>
-                      <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-900">{activity.title}</p>
-                        <p class="text-sm text-gray-500">{activity.code}</p>
-                      </div>
-                    </div>
-                    <div class="text-sm text-gray-500">
-                      {safeFormatDate(activity.updatedAt)}
-                    </div>
-                  </div>
-                </div>
-              {/each}
-            {:else}
-              <div class="px-6 py-8 text-center text-gray-500">
-                <ActivityIcon class="mx-auto h-12 w-12 text-gray-400" />
-                <p class="mt-2">최근 활동이 없습니다.</p>
-              </div>
-            {/if}
-          </div>
-        </ThemeCard>
+        
+        <!-- 프로젝트 개요 카드 -->
+        <ProjectOverviewCard 
+          {projectSummary} 
+          {alerts} 
+        />
       </div>
     {/if}
 
@@ -648,110 +501,19 @@
             </div>
           </ThemeCard>
         {/if}
-        <!-- 프로젝트 선택 헤더 -->
-        <ThemeCard>
-          <div class="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-            <div class="flex flex-col sm:flex-row gap-4 flex-1">
-              <div class="relative flex-1 max-w-md">
-                <select
-                  bind:value={selectedProjectId}
-                  onchange={(e) => {
-                    const target = e.target
-                    if (target && 'value' in target) {
-                      const project = projects.find(p => p.id === target.value)
-                      if (project) selectProject(project)
-                    }
-                  }}
-                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  disabled={tabLoadingStates.projects}
-                >
-                  <option value="">
-                    {#if tabLoadingStates.projects}
-                      로딩 중...
-                    {:else if projects.length === 0}
-                      프로젝트 없음 (0개)
-                    {:else}
-                      프로젝트 선택 ({projects.length}개)
-                    {/if}
-                  </option>
-                  {#each projects as project (project.id)}
-                    <option value={project.id}>
-                      {project.title} ({getStatusLabel(project.status)})
-                    </option>
-                  {/each}
-                </select>
-              </div>
-
-              <!-- 프로젝트 통계 표시 -->
-              {#if projects.length > 0}
-                <div class="flex items-center space-x-4 text-sm text-gray-600">
-                  <span>총 {projects.length}개</span>
-                  <span>•</span>
-                  <span>활성: {projects.filter(p => p.status === 'active').length}개</span>
-                  <span>•</span>
-                  <span>완료: {projects.filter(p => p.status === 'completed').length}개</span>
-                </div>
-              {/if}
-            </div>
-            <div class="flex gap-2">
-              <ThemeButton
-                variant="primary"
-                size="sm"
-                onclick={() => showCreateProjectModal = true}
-                disabled={tabLoadingStates.projects}
-              >
-                <PlusIcon
-                  size={16}
-                  class="mr-2" />
-                새 프로젝트
-              </ThemeButton>
-            </div>
-          </div>
-        </ThemeCard>
-
-        <!-- 프로젝트 상세 정보 -->
-        {#if selectedProject}
-          <div class="space-y-6">
-            <!-- 프로젝트 기본 정보 -->
-            <ProjectDetailView
-              {selectedProject}
-              on:refresh={loadProjectData}
-              on:project-deleted={handleProjectDeleted}
-              on:showBudgetModal={() => showBudgetModal = true}
-            />
-          </div>
-        {:else if projects.length === 0 && !tabLoadingStates.projects && !tabErrors.projects}
-          <ThemeCard>
-            <div class="text-center py-12">
-              <FlaskConicalIcon class="mx-auto h-12 w-12 text-gray-400" />
-              <h3 class="mt-2 text-sm font-medium text-gray-900">프로젝트가 없습니다</h3>
-              <p class="mt-1 text-sm text-gray-500">
-                새 프로젝트를 생성하여 시작하세요.
-              </p>
-              <div class="mt-6">
-                <ThemeButton
-                  variant="primary"
-                  onclick={() => showCreateProjectModal = true}
-                >
-                  <PlusIcon
-                    size={16}
-                    class="mr-2" />
-                  첫 프로젝트 생성
-                </ThemeButton>
-              </div>
-            </div>
-          </ThemeCard>
-        {:else}
-          <ThemeCard>
-            <div class="text-center py-12">
-              <FlaskConicalIcon class="mx-auto h-12 w-12 text-gray-400" />
-              <h3 class="mt-2 text-sm font-medium text-gray-900">프로젝트를 선택하세요</h3>
-              <p class="mt-1 text-sm text-gray-500">
-                위에서 프로젝트를 선택하면 상세 정보를 볼 수 있습니다.
-              </p>
-            </div>
-          </ThemeCard>
-        {/if}
+        
+        <!-- 프로젝트 목록 카드 -->
+        <ProjectListCard
+          {projects}
+          {selectedProject}
+          {selectedProjectId}
+          loading={tabLoadingStates.projects}
+          error={tabErrors.projects}
+          on:create-project={() => showCreateProjectModal = true}
+          on:project-deleted={handleProjectDeleted}
+          on:refresh={loadProjectData}
+          on:show-budget-modal={() => showBudgetModal = true}
+        />
       </div>
     {/if}
 
@@ -783,81 +545,13 @@
             </div>
           </ThemeCard>
         {/if}
-        <!-- 미구현 기능 안내 -->
-        <ThemeCard>
-          <div class="bg-blue-50 border border-blue-200 rounded-md p-4">
-            <div class="flex">
-              <div class="flex-shrink-0">
-                <ActivityIcon class="h-5 w-5 text-blue-400" />
-              </div>
-              <div class="ml-3">
-                <h3 class="text-sm font-medium text-blue-800">기능 개발 중</h3>
-                <div class="mt-2 text-sm text-blue-700">
-                  <p>직원별 참여율 관리 기능이 현재 개발 중입니다.</p>
-                  <p class="mt-1">곧 정확한 참여율 데이터를 확인할 수 있습니다.</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </ThemeCard>
-
-        <ThemeCard>
-          <div class="px-6 py-4 border-b border-gray-200">
-            <h3 class="text-lg font-medium text-gray-900">직원별 참여율 현황</h3>
-          </div>
-          <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
-              <thead class="bg-gray-50">
-                <tr>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">직원</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">부서</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">참여 프로젝트</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">총 참여율</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">상태</th>
-                </tr>
-              </thead>
-              <tbody class="bg-white divide-y divide-gray-200">
-                {#if employeeParticipationSummary.length > 0}
-                  {#each employeeParticipationSummary as employee (employee.email)}
-                    <tr class="hover:bg-gray-50">
-                      <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="text-sm font-medium text-gray-900">{employee.name}</div>
-                        <div class="text-sm text-gray-500">{employee.email}</div>
-                      </td>
-                      <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="text-sm text-gray-500">{employee.department}</div>
-                      </td>
-                      <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="text-sm text-gray-900">{employee.activeProjects}개</div>
-                      </td>
-                      <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="text-sm text-gray-900">{employee.totalParticipationRate}%</div>
-                      </td>
-                      <td class="px-6 py-4 whitespace-nowrap">
-                        {#if employee.totalParticipationRate > 100}
-                          <ThemeBadge variant="error">초과 참여</ThemeBadge>
-                        {:else if employee.totalParticipationRate === 100}
-                          <ThemeBadge variant="success">정상</ThemeBadge>
-                        {:else}
-                          <ThemeBadge variant="info">여유</ThemeBadge>
-                        {/if}
-                      </td>
-                    </tr>
-                  {/each}
-                {:else}
-                  <tr>
-                    <td
-                      colspan="5"
-                      class="px-6 py-12 text-center text-gray-500">
-                      <UsersIcon class="mx-auto h-12 w-12 text-gray-400" />
-                      <p class="mt-2">참여율 데이터가 없습니다.</p>
-                    </td>
-                  </tr>
-                {/if}
-              </tbody>
-            </table>
-          </div>
-        </ThemeCard>
+        
+        <!-- 참여율 관리 카드 -->
+        <ParticipationCard
+          {employeeParticipationSummary}
+          loading={tabLoadingStates.participation}
+          error={tabErrors.participation}
+        />
       </div>
     {/if}
   </div>

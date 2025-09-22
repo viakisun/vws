@@ -76,6 +76,16 @@
     return getBudgetField(budget, 'researchActivityCostCash', 'research_activity_cost_cash', 0);
   }
 
+  function getResearchStipend(budget: any): number {
+    return getBudgetField(budget, 'researchStipend', 'research_stipend', 0);
+  }
+  function getResearchStipendCash(budget: any): number {
+    return getBudgetField(budget, 'researchStipendCash', 'research_stipend_cash', 0);
+  }
+  function getResearchStipendInKind(budget: any): number {
+    return getBudgetField(budget, 'researchStipendInKind', 'research_stipend_in_kind', 0);
+  }
+
   function getIndirectCost(budget: any): number {
     return getBudgetField(budget, 'indirectCost', 'indirect_cost', 0);
   }
@@ -303,11 +313,13 @@
     personnelCostCash: '',
     researchMaterialCostCash: '',
     researchActivityCostCash: '',
+    researchStipendCash: '',
     indirectCostCash: '',
     // 현물 비목들
     personnelCostInKind: '',
     researchMaterialCostInKind: '',
     researchActivityCostInKind: '',
+    researchStipendInKind: '',
     indirectCostInKind: ''
   });
 
@@ -330,6 +342,9 @@
     monthlyAmount: '0', // 월간 금액
     contributionType: 'cash' // 'cash' or 'in_kind'
   });
+
+  // 사용자가 수동으로 월간금액을 입력했는지 추적
+  let isManualMonthlyAmount = $state(false);
 
   let calculatedMonthlyAmount = $state(0);
   let isCalculatingMonthlyAmount = $state(false);
@@ -622,11 +637,13 @@
           personnelCostCash: fromThousands(budgetForm.personnelCostCash),
           researchMaterialCostCash: fromThousands(budgetForm.researchMaterialCostCash),
           researchActivityCostCash: fromThousands(budgetForm.researchActivityCostCash),
+          researchStipendCash: fromThousands(budgetForm.researchStipendCash),
           indirectCostCash: fromThousands(budgetForm.indirectCostCash),
           // 현물 비목들 (천원 단위를 원 단위로 변환)
           personnelCostInKind: fromThousands(budgetForm.personnelCostInKind),
           researchMaterialCostInKind: fromThousands(budgetForm.researchMaterialCostInKind),
           researchActivityCostInKind: fromThousands(budgetForm.researchActivityCostInKind),
+          researchStipendInKind: fromThousands(budgetForm.researchStipendInKind),
           indirectCostInKind: fromThousands(budgetForm.indirectCostInKind)
         })
       });
@@ -641,10 +658,12 @@
           personnelCostCash: '',
           researchMaterialCostCash: '',
           researchActivityCostCash: '',
+          researchStipendCash: '',
           indirectCostCash: '',
           personnelCostInKind: '',
           researchMaterialCostInKind: '',
           researchActivityCostInKind: '',
+          researchStipendInKind: '',
           indirectCostInKind: ''
         };
         await loadProjectBudgets();
@@ -706,6 +725,13 @@
     }
   }
 
+  // 멤버 추가 시작
+  function startAddMember() {
+    addingMember = true;
+    editingMember = null;
+    resetMemberForm();
+  }
+
   // 멤버 추가 취소
   function cancelAddMember() {
     addingMember = false;
@@ -738,7 +764,8 @@
     // 디버깅: memberForm 확인
     console.log('editMember - memberForm after setting:', memberForm);
 
-    // 수정 시 월간금액 자동 계산
+    // 수정 시 월간금액 자동 계산 (수동 입력 플래그 초기화)
+    isManualMonthlyAmount = false;
     updateMonthlyAmount();
   }
 
@@ -754,6 +781,7 @@
       contributionType: 'cash'
     };
     calculatedMonthlyAmount = 0;
+    isManualMonthlyAmount = false;
   }
 
   // 멤버 수정 취소
@@ -870,11 +898,13 @@
       personnelCostCash: toThousands(getPersonnelCostCash(budget)),
       researchMaterialCostCash: toThousands(getResearchMaterialCostCash(budget)),
       researchActivityCostCash: toThousands(getResearchActivityCostCash(budget)),
+      researchStipendCash: toThousands(getResearchStipendCash(budget)),
       indirectCostCash: toThousands(getIndirectCost(budget)),
       // 현물 비목들 (천원 단위로 변환)
       personnelCostInKind: toThousands(getPersonnelCostInKind(budget)),
       researchMaterialCostInKind: toThousands(getResearchMaterialCostInKind(budget)),
       researchActivityCostInKind: toThousands(getResearchActivityCostInKind(budget)),
+      researchStipendInKind: toThousands(getResearchStipendInKind(budget)),
       indirectCostInKind: toThousands(getIndirectCostInKind(budget))
     };
     showBudgetModal = true;
@@ -908,11 +938,13 @@
           personnelCostCash: fromThousands(budgetForm.personnelCostCash),
           researchMaterialCostCash: fromThousands(budgetForm.researchMaterialCostCash),
           researchActivityCostCash: fromThousands(budgetForm.researchActivityCostCash),
+          researchStipendCash: fromThousands(budgetForm.researchStipendCash),
           indirectCostCash: fromThousands(budgetForm.indirectCostCash),
           // 현물 비목들 (천원 단위를 원 단위로 변환)
           personnelCostInKind: fromThousands(budgetForm.personnelCostInKind),
           researchMaterialCostInKind: fromThousands(budgetForm.researchMaterialCostInKind),
           researchActivityCostInKind: fromThousands(budgetForm.researchActivityCostInKind),
+          researchStipendInKind: fromThousands(budgetForm.researchStipendInKind),
           indirectCostInKind: fromThousands(budgetForm.indirectCostInKind)
         })
       });
@@ -928,10 +960,12 @@
           personnelCostCash: '',
           researchMaterialCostCash: '',
           researchActivityCostCash: '',
+          researchStipendCash: '',
           indirectCostCash: '',
           personnelCostInKind: '',
           researchMaterialCostInKind: '',
           researchActivityCostInKind: '',
+          researchStipendInKind: '',
           indirectCostInKind: ''
         };
         await loadProjectBudgets();
@@ -1117,11 +1151,8 @@
         return 0;
       }
 
-      // 글로벌 팩터에서 급여 배수 가져오기 (기본값 1.15)
-      const salaryMultiplier = 1.15; // TODO: 글로벌 팩터에서 가져오기
-
       // 중앙화된 급여 계산 함수 사용
-      const monthlyAmount = calculateMonthlySalary(annualSalary, rate, salaryMultiplier);
+      const monthlyAmount = calculateMonthlySalary(annualSalary, rate);
       console.log('계산된 월간금액:', monthlyAmount);
 
       return monthlyAmount;
@@ -1135,6 +1166,12 @@
   async function updateMonthlyAmount() {
     if (!memberForm.employeeId || !memberForm.participationRate || !memberForm.startDate || !memberForm.endDate) {
       calculatedMonthlyAmount = 0;
+      return;
+    }
+
+    // 사용자가 수동으로 월간금액을 입력한 경우 자동 계산하지 않음
+    if (isManualMonthlyAmount) {
+      calculatedMonthlyAmount = parseFloat(memberForm.monthlyAmount) || 0;
       return;
     }
 
@@ -1517,6 +1554,8 @@
       acc.researchMaterialInKind += parseFloat(budget.research_material_cost_in_kind) || 0;
       acc.researchActivityCash += parseFloat(budget.research_activity_cost_cash) || 0;
       acc.researchActivityInKind += parseFloat(budget.research_activity_cost_in_kind) || 0;
+      acc.researchStipendCash += parseFloat(budget.research_stipend_cash) || 0;
+      acc.researchStipendInKind += parseFloat(budget.research_stipend_in_kind) || 0;
       acc.indirectCash += parseFloat(budget.indirect_cost_cash) || 0;
       acc.indirectInKind += parseFloat(budget.indirect_cost_in_kind) || 0;
       
@@ -1528,6 +1567,8 @@
       researchMaterialInKind: 0,
       researchActivityCash: 0,
       researchActivityInKind: 0,
+      researchStipendCash: 0,
+      researchStipendInKind: 0,
       indirectCash: 0,
       indirectInKind: 0,
       totalBudget: 0,
@@ -1538,10 +1579,11 @@
     totals.totalBudget = totals.personnelCash + totals.personnelInKind + 
                         totals.researchMaterialCash + totals.researchMaterialInKind + 
                         totals.researchActivityCash + totals.researchActivityInKind + 
+                        totals.researchStipendCash + totals.researchStipendInKind +
                         totals.indirectCash + totals.indirectInKind;
     
-    totals.totalCash = totals.personnelCash + totals.researchMaterialCash + totals.researchActivityCash + totals.indirectCash;
-    totals.totalInKind = totals.personnelInKind + totals.researchMaterialInKind + totals.researchActivityInKind + totals.indirectInKind;
+    totals.totalCash = totals.personnelCash + totals.researchMaterialCash + totals.researchActivityCash + totals.researchStipendCash + totals.indirectCash;
+    totals.totalInKind = totals.personnelInKind + totals.researchMaterialInKind + totals.researchActivityInKind + totals.researchStipendInKind + totals.indirectInKind;
 
     return totals;
   }
@@ -1831,6 +1873,9 @@
                 <div>연구활동비</div>
               </th>
               <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <div>연구수당</div>
+              </th>
+              <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                 <div>간접비</div>
               </th>
               <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -1844,17 +1889,20 @@
               {@const totalBudget = (getPersonnelCostCash(budget) + getPersonnelCostInKind(budget) + 
                                     getResearchMaterialCostCash(budget) + getResearchMaterialCostInKind(budget) + 
                                     getResearchActivityCostCash(budget) + getResearchActivityCostInKind(budget) + 
+                                    getResearchStipendCash(budget) + getResearchStipendInKind(budget) +
                                     getIndirectCostCash(budget) + getIndirectCostInKind(budget))}
               {@const personnelCash = Number(getPersonnelCostCash(budget)) || 0}
               {@const materialCash = Number(getResearchMaterialCostCash(budget)) || 0}
               {@const activityCash = Number(getResearchActivityCostCash(budget)) || 0}
+              {@const stipendCash = Number(getResearchStipendCash(budget)) || 0}
               {@const indirectCash = Number(getIndirectCostCash(budget)) || 0}
-              {@const cashTotal = personnelCash + materialCash + activityCash + indirectCash}
+              {@const cashTotal = personnelCash + materialCash + activityCash + stipendCash + indirectCash}
               {@const personnelInKind = Number(getPersonnelCostInKind(budget)) || 0}
               {@const materialInKind = Number(getResearchMaterialCostInKind(budget)) || 0}
               {@const activityInKind = Number(getResearchActivityCostInKind(budget)) || 0}
+              {@const stipendInKind = Number(getResearchStipendInKind(budget)) || 0}
               {@const indirectInKind = Number(getIndirectCostInKind(budget)) || 0}
-              {@const inKindTotal = personnelInKind + materialInKind + activityInKind + indirectInKind}
+              {@const inKindTotal = personnelInKind + materialInKind + activityInKind + stipendInKind + indirectInKind}
               <tr class="hover:bg-gray-50">
                 <!-- 연차 -->
                 <td class="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900 w-24">
@@ -1885,6 +1933,13 @@
                   <div class="space-y-2">
                     <div class="text-sm text-blue-600 font-medium">{formatCurrency(activityCash, false)}</div>
                     <div class="text-sm text-gray-600">{formatCurrency(activityInKind, false)}</div>
+                  </div>
+                </td>
+                <!-- 연구수당 (현금/현물) -->
+                <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
+                  <div class="space-y-2">
+                    <div class="text-sm text-blue-600 font-medium">{formatCurrency(stipendCash, false)}</div>
+                    <div class="text-sm text-gray-600">{formatCurrency(stipendInKind, false)}</div>
                   </div>
                 </td>
                 <!-- 간접비 (현금/현물) -->
@@ -1973,6 +2028,14 @@
                     <div class="text-sm text-gray-800 font-medium border-t pt-2">소계: {formatCurrency((totals.researchActivityCash || 0) + (totals.researchActivityInKind || 0), false)}</div>
                   </div>
                 </td>
+                <!-- 연구수당 (현금/현물) -->
+                <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
+                  <div class="space-y-2">
+                    <div class="text-sm text-blue-600 font-medium">{formatCurrency(totals.researchStipendCash, false)}</div>
+                    <div class="text-sm text-gray-600">{formatCurrency(totals.researchStipendInKind, false)}</div>
+                    <div class="text-sm text-gray-800 font-medium border-t pt-2">소계: {formatCurrency((totals.researchStipendCash || 0) + (totals.researchStipendInKind || 0), false)}</div>
+                  </div>
+                </td>
                 <!-- 간접비 (현금/현물) -->
                 <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
                   <div class="space-y-2">
@@ -2011,14 +2074,15 @@
         periodNumber: 1,
         startDate: '',
         endDate: '',
-        contributionType: 'cash',
         personnelCostCash: '',
         researchMaterialCostCash: '',
         researchActivityCostCash: '',
+        researchStipendCash: '',
         indirectCostCash: '',
         personnelCostInKind: '',
         researchMaterialCostInKind: '',
         researchActivityCostInKind: '',
+        researchStipendInKind: '',
         indirectCostInKind: ''
       };
     }}
@@ -2171,6 +2235,45 @@
         </div>
       </div>
 
+      <!-- 연구수당 -->
+      <div class="space-y-4">
+        <h4 class="text-lg font-medium text-gray-900">연구수당</h4>
+        <div class="space-y-2">
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label
+                for="pm-budget-research-stipend-cash"
+                class="block text-sm font-medium text-gray-700 mb-1"
+              >
+                연구수당 (현금)
+              </label>
+              <input
+                id="pm-budget-research-stipend-cash"
+                type="number"
+                bind:value={budgetForm.researchStipendCash}
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="0"
+              />
+            </div>
+            <div>
+              <label
+                for="pm-budget-research-stipend-in-kind"
+                class="block text-sm font-medium text-gray-700 mb-1"
+              >
+                연구수당 (현물)
+              </label>
+              <input
+                id="pm-budget-research-stipend-in-kind"
+                type="number"
+                bind:value={budgetForm.researchStipendInKind}
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="0"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- 간접비 -->
       <div class="space-y-4">
         <h4 class="text-lg font-medium text-gray-900">간접비</h4>
@@ -2215,14 +2318,15 @@
             periodNumber: 1,
             startDate: '',
             endDate: '',
-            contributionType: 'cash',
             personnelCostCash: '',
             researchMaterialCostCash: '',
             researchActivityCostCash: '',
+            researchStipendCash: '',
             indirectCostCash: '',
             personnelCostInKind: '',
             researchMaterialCostInKind: '',
             researchActivityCostInKind: '',
+            researchStipendInKind: '',
             indirectCostInKind: ''
           };
         }}>
@@ -2233,6 +2337,206 @@
       </ThemeButton>
     </div>
   </ThemeModal>
+
+  <!-- 연구원 추가 폼 카드 -->
+  {#if addingMember}
+    <ThemeCard class="p-6 mb-6 border-green-200 bg-gradient-to-r from-green-50 to-emerald-50">
+      <div class="flex items-center mb-4">
+        <div class="w-1 h-6 bg-green-500 rounded-full mr-3"></div>
+        <h3 class="text-lg font-semibold text-green-800">연구원 추가</h3>
+      </div>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- 연구원 선택 -->
+        <div>
+          <label for="member-employee-select" class="block text-sm font-medium text-gray-700 mb-2">연구원</label>
+          <select
+            id="member-employee-select"
+            bind:value={memberForm.employeeId}
+            class="w-full px-3 py-2 border border-green-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm font-medium bg-white shadow-sm"
+            onchange={() => {
+              isManualMonthlyAmount = false;
+              updateMonthlyAmount();
+            }}
+          >
+            <option value="">👥 연구원 선택 ({availableEmployees.length}명)</option>
+            {#each availableEmployees as employee}
+              <option value={employee.id}>{formatKoreanName(employee.name)} ({employee.department})</option>
+            {/each}
+          </select>
+        </div>
+
+        <!-- 역할 -->
+        <div>
+          <label for="member-role-select" class="block text-sm font-medium text-gray-700 mb-2">역할</label>
+          <select
+            id="member-role-select"
+            bind:value={memberForm.role}
+            class="w-full px-3 py-2 border border-green-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm font-medium bg-white shadow-sm"
+          >
+            <option value="researcher">👨‍🔬 연구원</option>
+            <option value="lead">👑 연구책임자</option>
+            <option value="support">🤝 지원</option>
+          </select>
+        </div>
+
+        <!-- 참여율 -->
+        <div>
+          <label for="member-participation-rate" class="block text-sm font-medium text-gray-700 mb-2">참여율</label>
+          <div class="relative">
+            <input
+              id="member-participation-rate"
+              type="number"
+              bind:value={memberForm.participationRate}
+              class="w-full px-3 py-2 pr-8 border border-green-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm font-medium bg-white shadow-sm"
+              min="0"
+              max="100"
+              step="0.1"
+              placeholder="100"
+              oninput={(e) => {
+                const target = e.target as HTMLInputElement;
+                const value = parseFloat(target.value);
+                if (value < 0) memberForm.participationRate = 0;
+                if (value > 100) memberForm.participationRate = 100;
+                isManualMonthlyAmount = false;
+                updateMonthlyAmount();
+              }}
+            />
+            <span class="absolute right-2 top-1/2 transform -translate-y-1/2 text-xs text-gray-500 pointer-events-none">%</span>
+          </div>
+        </div>
+
+        <!-- 기여 유형 -->
+        <div>
+          <label for="member-contribution-type" class="block text-sm font-medium text-gray-700 mb-2">기여 유형</label>
+          <select
+            id="member-contribution-type"
+            bind:value={memberForm.contributionType}
+            class="w-full px-3 py-2 border border-green-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm font-medium bg-white shadow-sm"
+          >
+            <option value="cash">💰 현금</option>
+            <option value="in_kind">📦 현물</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+        <!-- 월간금액 -->
+        <div>
+          <label for="member-monthly-amount" class="block text-sm font-medium text-gray-700 mb-2">월간금액</label>
+          <div class="flex items-center space-x-2">
+            <input
+              id="member-monthly-amount"
+              type="number"
+              bind:value={memberForm.monthlyAmount}
+              oninput={() => {
+                isManualMonthlyAmount = true;
+                calculatedMonthlyAmount = parseFloat(memberForm.monthlyAmount) || 0;
+              }}
+              class="flex-1 px-3 py-2 border border-green-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm font-medium bg-white shadow-sm"
+              placeholder="0"
+            />
+            <div class="text-sm min-w-0">
+              {#if isCalculatingMonthlyAmount}
+                <div class="flex items-center text-blue-600">
+                  <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
+                  계산 중...
+                </div>
+              {:else if calculatedMonthlyAmount > 0 && !isManualMonthlyAmount}
+                <div class="flex items-center text-green-600">
+                  <div class="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                  <span class="font-medium">자동: {formatCurrency(calculatedMonthlyAmount)}</span>
+                </div>
+              {:else if isManualMonthlyAmount}
+                <div class="flex items-center text-purple-600">
+                  <div class="w-2 h-2 bg-purple-500 rounded-full mr-2"></div>
+                  <span class="font-medium">수동 입력</span>
+                </div>
+              {:else if memberForm.employeeId && memberForm.participationRate && memberForm.startDate && memberForm.endDate}
+                <div class="flex items-center text-blue-600">
+                  <div class="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
+                  <span>계산 가능</span>
+                </div>
+              {:else}
+                <div class="flex items-center text-gray-400">
+                  <div class="w-2 h-2 bg-gray-400 rounded-full mr-2"></div>
+                  <span>자동 계산</span>
+                </div>
+              {/if}
+            </div>
+          </div>
+        </div>
+
+        <!-- 참여기간 -->
+        <div>
+          <div class="block text-sm font-medium text-gray-700 mb-2">참여기간</div>
+          <div class="flex space-x-2">
+            <div class="flex-1">
+              <label for="member-start-date" class="sr-only">시작일</label>
+              <input
+                id="member-start-date"
+                type="date"
+                bind:value={memberForm.startDate}
+                class="w-full px-3 py-2 border border-green-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white shadow-sm"
+                onchange={() => {
+                  isManualMonthlyAmount = false;
+                  updateMonthlyAmount();
+                }}
+              />
+            </div>
+            <div class="flex-1">
+              <label for="member-end-date" class="sr-only">종료일</label>
+              <input
+                id="member-end-date"
+                type="date"
+                bind:value={memberForm.endDate}
+                class="w-full px-3 py-2 border border-green-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white shadow-sm"
+                onchange={() => {
+                  isManualMonthlyAmount = false;
+                  updateMonthlyAmount();
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 폼 검증 메시지 -->
+      {#if !memberForm.employeeId || !memberForm.startDate || !memberForm.endDate}
+        <div class="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+          <div class="flex items-center">
+            <div class="w-5 h-5 text-amber-600 mr-2">⚠️</div>
+            <div class="text-sm text-amber-800">
+              {#if !memberForm.employeeId}
+                연구원을 선택해주세요.
+              {:else if !memberForm.startDate || !memberForm.endDate}
+                참여기간을 입력해주세요.
+              {/if}
+            </div>
+          </div>
+        </div>
+      {/if}
+
+      <!-- 액션 버튼 -->
+      <div class="flex justify-end space-x-3 mt-6">
+        <ThemeButton
+          variant="secondary"
+          onclick={cancelAddMember}
+          class="px-6 py-2">
+          <XIcon size={16} class="mr-2" />
+          취소
+        </ThemeButton>
+        <ThemeButton
+          variant="primary"
+          onclick={addMember}
+          disabled={!memberForm.employeeId || !memberForm.startDate || !memberForm.endDate}
+          class="px-6 py-2">
+          <CheckIcon size={16} class="mr-2" />
+          추가
+        </ThemeButton>
+      </div>
+    </ThemeCard>
+  {/if}
 
   <!-- 프로젝트 멤버 관리 -->
   <ThemeCard class="p-6">
@@ -2256,7 +2560,7 @@
           </ThemeButton>
         {/if}
         <ThemeButton
-          onclick={() => addingMember = true}
+          onclick={startAddMember}
           size="sm"
           disabled={addingMember || editingMember !== null}
         >
@@ -2284,147 +2588,6 @@
           </tr>
         </thead>
         <tbody class="bg-white divide-y divide-gray-200">
-          <!-- 인라인 추가 행 -->
-          {#if addingMember}
-            <tr class="bg-gradient-to-r from-green-50 to-emerald-50 border-l-4 border-green-400 shadow-sm">
-              <!-- 연구원 -->
-              <td class="px-4 py-4 whitespace-nowrap w-48">
-                {#if editingMember}
-                  <div class="text-sm text-gray-500">
-                    {formatKoreanName(memberForm.employeeId ? availableEmployees.find(e => e.id === memberForm.employeeId)?.name || '' : '')}
-                  </div>
-                {:else}
-                  <select
-                    bind:value={memberForm.employeeId}
-                    class="w-full px-3 py-2 border border-green-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm font-medium bg-white shadow-sm"
-                    onchange={updateMonthlyAmount}
-                  >
-                    <option value="">👥 연구원 선택 ({availableEmployees.length}명)</option>
-                    {#each availableEmployees as employee}
-                      <option value={employee.id}>{formatKoreanName(employee.name)} ({employee.department})</option>
-                    {/each}
-                  </select>
-                {/if}
-              </td>
-              <!-- 역할 -->
-              <td class="px-4 py-4 whitespace-nowrap">
-                <select
-                  bind:value={memberForm.role}
-                  class="w-full px-3 py-2 border border-green-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm font-medium bg-white shadow-sm"
-                >
-                  <option value="researcher">👨‍🔬 연구원</option>
-                  <option value="lead">👑 연구책임자</option>
-                  <option value="support">🤝 지원</option>
-                </select>
-              </td>
-              <!-- 참여율 -->
-              <td class="px-4 py-4 whitespace-nowrap w-24">
-                <div class="relative">
-                  <input
-                    type="number"
-                    bind:value={memberForm.participationRate}
-                    class="w-full px-3 py-2 pr-8 border border-green-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm font-medium bg-white shadow-sm"
-                  min="0"
-                  max="100"
-                  step="1"
-                  placeholder="100"
-                  oninput={(e) => {
-                    const target = e.target as HTMLInputElement;
-                    const value = parseInt(target.value);
-                    if (value < 0) memberForm.participationRate = 0;
-                    if (value > 100) memberForm.participationRate = 100;
-                    updateMonthlyAmount();
-                  }}
-                />
-              </td>
-              <!-- 월간금액 (자동 계산) -->
-              <td class="px-4 py-4 whitespace-nowrap">
-                <div class="text-sm font-medium text-gray-900">
-                  {#if isCalculatingMonthlyAmount}
-                    <div class="flex items-center">
-                      <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
-                      계산 중...
-                    </div>
-                  {:else if calculatedMonthlyAmount > 0}
-                    {formatCurrency(calculatedMonthlyAmount)}
-                  {:else if memberForm.employeeId && memberForm.participationRate && memberForm.startDate && memberForm.endDate}
-                    <span class="text-gray-500">계산 가능</span>
-                  {:else}
-                    <span class="text-gray-400">자동 계산</span>
-                  {/if}
-                </div>
-              </td>
-              <!-- 참여기간 (시작일/종료일) -->
-              <td class="px-4 py-4 whitespace-nowrap">
-                <div class="space-y-2">
-                  <div class="text-xs text-gray-500">시작일</div>
-                  <input
-                    type="date"
-                    bind:value={memberForm.startDate}
-                    class="w-full px-2 py-1 border border-gray-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
-                    placeholder="시작일"
-                    onchange={updateMonthlyAmount}
-                  />
-                  <div class="text-xs text-gray-500">종료일</div>
-                  <input
-                    type="date"
-                    bind:value={memberForm.endDate}
-                    class="w-full px-2 py-1 border border-gray-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
-                    placeholder="종료일"
-                    onchange={updateMonthlyAmount}
-                  />
-                </div>
-              </td>
-              <!-- 기여 유형 -->
-              <td class="px-4 py-4 whitespace-nowrap">
-                <select
-                  bind:value={memberForm.contributionType}
-                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                >
-                  <option value="cash">현금</option>
-                  <option value="in_kind">현물</option>
-                </select>
-              </td>
-              <!-- 검증 상태 -->
-              <td class="px-4 py-4 whitespace-nowrap">
-                <div class="flex items-center justify-center">
-                  <div class="animate-pulse bg-gray-200 rounded-full w-6 h-6"></div>
-                </div>
-              </td>
-              <!-- 액션 -->
-              <td class="px-4 py-4 whitespace-nowrap text-sm font-medium">
-                <div class="flex space-x-2">
-                  {#if editingMember}
-                    <ThemeButton
-                      variant="ghost"
-                      size="sm"
-                      onclick={updateMember}>
-                      <CheckIcon size={14} />
-                    </ThemeButton>
-                    <ThemeButton
-                      variant="ghost"
-                      size="sm"
-                      onclick={cancelEditMember}>
-                      <XIcon size={14} />
-                    </ThemeButton>
-                  {:else}
-                    <ThemeButton
-                      variant="ghost"
-                      size="sm"
-                      onclick={addMember}>
-                      <CheckIcon size={14} />
-                    </ThemeButton>
-                    <ThemeButton
-                      variant="ghost"
-                      size="sm"
-                      onclick={cancelAddMember}>
-                      <XIcon size={14} />
-                    </ThemeButton>
-                  {/if}
-                </div>
-              </td>
-            </tr>
-          {/if}
 
           {#each projectMembers as member}
             <tr class="hover:bg-gray-50 {editingMember && editingMember.id === member.id ? 'bg-gradient-to-r from-blue-50 to-indigo-50 border-l-4 border-blue-400 shadow-sm' : ''}">
@@ -2453,7 +2616,11 @@
                       class="w-20 px-3 py-2 border border-blue-300 rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm"
                       min="0"
                       max="100"
-                      onchange={updateMonthlyAmount}
+                      step="0.1"
+                      onchange={() => {
+                      isManualMonthlyAmount = false;
+                      updateMonthlyAmount();
+                    }}
                     />
                     <span class="absolute right-2 top-1/2 transform -translate-y-1/2 text-xs text-gray-500 pointer-events-none">%</span>
                   </div>
@@ -2467,6 +2634,10 @@
                     <input
                       type="number"
                       bind:value={memberForm.monthlyAmount}
+                      oninput={() => {
+                        isManualMonthlyAmount = true;
+                        calculatedMonthlyAmount = parseFloat(memberForm.monthlyAmount) || 0;
+                      }}
                       class="w-32 px-3 py-2 border border-blue-300 rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm"
                       placeholder="0"
                     />
@@ -2484,7 +2655,10 @@
                         type="date"
                         bind:value={memberForm.startDate}
                         class="flex-1 px-3 py-2 border border-blue-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm"
-                        onchange={updateMonthlyAmount}
+                        onchange={() => {
+                      isManualMonthlyAmount = false;
+                      updateMonthlyAmount();
+                    }}
                       />
                     </div>
                     <div class="flex items-center gap-3">
@@ -2493,7 +2667,10 @@
                         type="date"
                         bind:value={memberForm.endDate}
                         class="flex-1 px-3 py-2 border border-blue-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm"
-                        onchange={updateMonthlyAmount}
+                        onchange={() => {
+                      isManualMonthlyAmount = false;
+                      updateMonthlyAmount();
+                    }}
                       />
                     </div>
                   </div>
@@ -2838,6 +3015,13 @@
           name: '연구활동비',
           cash: parseFloat(currentBudget.research_activity_cost) || 0,
           inKind: parseFloat(currentBudget.research_activity_cost_in_kind) || 0
+        },
+        {
+          id: 'stipend',
+          type: 'stipend',
+          name: '연구수당',
+          cash: parseFloat(currentBudget.research_stipend) || 0,
+          inKind: parseFloat(currentBudget.research_stipend_in_kind) || 0
         },
         {
           id: 'indirect',

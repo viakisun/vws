@@ -270,19 +270,8 @@ async function performValidation(project: any, members: any[]): Promise<Validati
 			contractAmount = contract.monthly_salary || contract.annual_salary / 12
 		}
 
-		// 글로벌 팩터 가져오기
-		const factorResult = await query(`
-			SELECT factor_value FROM global_factors WHERE factor_name = 'salary_multiplier'
-		`)
-		const salaryMultiplier =
-			factorResult.rows.length > 0 ? parseFloat(factorResult.rows[0].factor_value) : 1.15
-
 		// 예상 월간 금액 계산
-		const expectedMonthlyAmount = calculateMonthlySalary(
-			contractAmount,
-			participationRate,
-			salaryMultiplier
-		)
+		const expectedMonthlyAmount = calculateMonthlySalary(contractAmount, participationRate)
 
 		if (monthlyAmount > expectedMonthlyAmount * 1.1) {
 			// 10% 허용 오차

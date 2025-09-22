@@ -1,0 +1,187 @@
+<script>
+  import ProjectDetailView from '$lib/components/project-management/ProjectDetailView.svelte'
+  import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
+  import ThemeCard from '$lib/components/ui/ThemeCard.svelte'
+  import { FlaskConicalIcon, PlusIcon } from '@lucide/svelte'
+  import { createEventDispatcher } from 'svelte'
+
+  /**
+   * @typedef {Object} Project
+   * @property {string} id
+   * @property {string} title
+   * @property {string} code
+   * @property {string} [description]
+   * @property {string} [startDate]
+   * @property {string} [endDate]
+   * @property {'planning' | 'active' | 'completed'} status
+   * @property {'internal' | 'government' | 'private' | 'international'} [sponsorType]
+   * @property {'low' | 'medium' | 'high' | 'critical'} [priority]
+   * @property {'basic' | 'applied' | 'development'} [researchType]
+   * @property {string} [updatedAt]
+   */
+
+  const dispatch = createEventDispatcher()
+
+  let { 
+    projects = [],
+    selectedProject = null,
+    selectedProjectId = '',
+    loading = false,
+    error = null
+  } = $props()
+
+  // 간소화된 상태 한글 변환
+  function getStatusLabel(status) {
+    switch (status) {
+      case 'active': return '진행'
+      case 'planning': return '기획'
+      case 'completed': return '완료'
+      default: return status
+    }
+  }
+
+  // 프로젝트 선택
+  function selectProject(project) {
+    selectedProject = project
+    selectedProjectId = project.id
+  }
+
+  // 프로젝트 생성 버튼 클릭
+  function handleCreateProject() {
+    dispatch('create-project')
+  }
+
+  // 프로젝트 삭제 이벤트 처리
+  function handleProjectDeleted(event) {
+    const { projectId } = event.detail
+
+    // 삭제된 프로젝트가 현재 선택된 프로젝트라면 선택 해제
+    if (selectedProject && selectedProject.id === projectId) {
+      selectedProject = null
+      selectedProjectId = ''
+    }
+
+    // 프로젝트 목록에서 삭제된 프로젝트 제거
+    projects = projects.filter(p => p.id !== projectId)
+
+    // 상위 컴포넌트에 삭제 이벤트 전달
+    dispatch('project-deleted', { projectId })
+  }
+
+  // 프로젝트 새로고침 이벤트 처리
+  function handleRefresh() {
+    dispatch('refresh')
+  }
+
+  // 예산 모달 표시 이벤트 처리
+  function handleShowBudgetModal() {
+    dispatch('show-budget-modal')
+  }
+</script>
+
+<div class="space-y-6">
+  <!-- 프로젝트 선택 헤더 -->
+  <ThemeCard>
+    <div class="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+      <div class="flex flex-col sm:flex-row gap-4 flex-1">
+        <div class="relative flex-1 max-w-md">
+          <select
+            bind:value={selectedProjectId}
+            onchange={(e) => {
+              const target = e.target
+              if (target && 'value' in target) {
+                const project = projects.find(p => p.id === target.value)
+                if (project) selectProject(project)
+              }
+            }}
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            disabled={loading}
+          >
+            <option value="">
+              {#if loading}
+                로딩 중...
+              {:else if projects.length === 0}
+                프로젝트 없음 (0개)
+              {:else}
+                프로젝트 선택 ({projects.length}개)
+              {/if}
+            </option>
+            {#each projects as project (project.id)}
+              <option value={project.id}>
+                {project.title} ({getStatusLabel(project.status)})
+              </option>
+            {/each}
+          </select>
+        </div>
+
+        <!-- 프로젝트 통계 표시 -->
+        {#if projects.length > 0}
+          <div class="flex items-center space-x-4 text-sm text-gray-600">
+            <span>총 {projects.length}개</span>
+            <span>•</span>
+            <span>활성: {projects.filter(p => p.status === 'active').length}개</span>
+            <span>•</span>
+            <span>완료: {projects.filter(p => p.status === 'completed').length}개</span>
+          </div>
+        {/if}
+      </div>
+      <div class="flex gap-2">
+        <ThemeButton
+          variant="primary"
+          size="sm"
+          onclick={handleCreateProject}
+          disabled={loading}
+        >
+          <PlusIcon
+            size={16}
+            class="mr-2" />
+          새 프로젝트
+        </ThemeButton>
+      </div>
+    </div>
+  </ThemeCard>
+
+  <!-- 프로젝트 상세 정보 -->
+  {#if selectedProject}
+    <div class="space-y-6">
+      <!-- 프로젝트 기본 정보 -->
+      <ProjectDetailView
+        {selectedProject}
+        on:refresh={handleRefresh}
+        on:project-deleted={handleProjectDeleted}
+        on:show-budget-modal={handleShowBudgetModal}
+      />
+    </div>
+  {:else if projects.length === 0 && !loading && !error}
+    <ThemeCard>
+      <div class="text-center py-12">
+        <FlaskConicalIcon class="mx-auto h-12 w-12 text-gray-400" />
+        <h3 class="mt-2 text-sm font-medium text-gray-900">프로젝트가 없습니다</h3>
+        <p class="mt-1 text-sm text-gray-500">
+          새 프로젝트를 생성하여 시작하세요.
+        </p>
+        <div class="mt-6">
+          <ThemeButton
+            variant="primary"
+            onclick={handleCreateProject}
+          >
+            <PlusIcon
+              size={16}
+              class="mr-2" />
+            첫 프로젝트 생성
+          </ThemeButton>
+        </div>
+      </div>
+    </ThemeCard>
+  {:else}
+    <ThemeCard>
+      <div class="text-center py-12">
+        <FlaskConicalIcon class="mx-auto h-12 w-12 text-gray-400" />
+        <h3 class="mt-2 text-sm font-medium text-gray-900">프로젝트를 선택하세요</h3>
+        <p class="mt-1 text-sm text-gray-500">
+          위에서 프로젝트를 선택하면 상세 정보를 볼 수 있습니다.
+        </p>
+      </div>
+    </ThemeCard>
+  {/if}
+</div>

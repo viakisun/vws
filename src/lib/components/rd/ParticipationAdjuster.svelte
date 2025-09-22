@@ -1,18 +1,17 @@
 <script lang="ts">
-	import ThemeCard from '$lib/components/ui/ThemeCard.svelte';
-	import ThemeButton from '$lib/components/ui/ThemeButton.svelte';
-	import ThemeInput from '$lib/components/ui/ThemeInput.svelte';
-	import ThemeBadge from '$lib/components/ui/ThemeBadge.svelte';
-	import { 
-		UsersIcon, 
-		PercentIcon, 
-		CalendarIcon, 
+	import ThemeBadge from '$lib/components/ui/ThemeBadge.svelte'
+	import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
+	import ThemeCard from '$lib/components/ui/ThemeCard.svelte'
+	import { formatCurrency, formatDate } from '$lib/utils/format'
+	import {
 		AlertTriangleIcon,
+		CalendarIcon,
 		CheckCircleIcon,
+		PercentIcon,
 		PlusIcon,
-		TrashIcon
-	} from '@lucide/svelte';
-	import { formatCurrency, formatDate } from '$lib/utils/format';
+		TrashIcon,
+		UsersIcon
+	} from '@lucide/svelte'
 
 	interface ParticipationAdjustment {
 		id: string;
@@ -209,11 +208,12 @@
 					<input
 						type="number"
 						value={adjustment.participationRate}
-						oninput={(e) => updateParticipation(adjustment.id, 'participationRate', parseInt((e.target as HTMLInputElement).value) || 0)}
+						oninput={(e) => updateParticipation(adjustment.id, 'participationRate', parseFloat((e.target as HTMLInputElement).value) || 0)}
 						class="w-20 px-2 py-1 border rounded"
 						style="background: var(--color-surface); border-color: var(--color-border); color: var(--color-text);"
 						min="0"
 						max="100"
+						step="0.1"
 					/>
 					<span class="text-sm" style="color: var(--color-text-secondary);">%</span>
 					<ThemeButton variant="ghost" size="sm" onclick={() => removeParticipation(adjustment.id)}>

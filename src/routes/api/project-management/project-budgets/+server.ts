@@ -65,11 +65,13 @@ export const POST: RequestHandler = async ({ request }) => {
 			personnelCostCash = 0,
 			researchMaterialCostCash = 0,
 			researchActivityCostCash = 0,
+			researchStipendCash = 0,
 			indirectCostCash = 0,
 			// 현물 비목들
 			personnelCostInKind = 0,
 			researchMaterialCostInKind = 0,
 			researchActivityCostInKind = 0,
+			researchStipendInKind = 0,
 			indirectCostInKind = 0
 		} = data
 
@@ -104,6 +106,7 @@ export const POST: RequestHandler = async ({ request }) => {
 		const personnelCost = personnelCostCash + personnelCostInKind
 		const researchMaterialCost = researchMaterialCostCash + researchMaterialCostInKind
 		const researchActivityCost = researchActivityCostCash + researchActivityCostInKind
+		const researchStipend = researchStipendCash + researchStipendInKind
 		const indirectCost = indirectCostCash + indirectCostInKind
 
 		// 사업비 생성
@@ -111,13 +114,14 @@ export const POST: RequestHandler = async ({ request }) => {
 			`
 			INSERT INTO project_budgets (
 				project_id, period_number, start_date, end_date,
-				personnel_cost, research_material_cost, research_activity_cost, indirect_cost,
+				personnel_cost, research_material_cost, research_activity_cost, research_stipend, indirect_cost,
 				personnel_cost_cash, personnel_cost_in_kind,
 				research_material_cost_cash, research_material_cost_in_kind,
 				research_activity_cost_cash, research_activity_cost_in_kind,
+				research_stipend_cash, research_stipend_in_kind,
 				indirect_cost_cash, indirect_cost_in_kind
 			)
-			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
 			RETURNING *
 		`,
 			[
@@ -128,6 +132,7 @@ export const POST: RequestHandler = async ({ request }) => {
 				personnelCost,
 				researchMaterialCost,
 				researchActivityCost,
+				researchStipend,
 				indirectCost,
 				personnelCostCash,
 				personnelCostInKind,
@@ -135,6 +140,8 @@ export const POST: RequestHandler = async ({ request }) => {
 				researchMaterialCostInKind,
 				researchActivityCostCash,
 				researchActivityCostInKind,
+				researchStipendCash,
+				researchStipendInKind,
 				indirectCostCash,
 				indirectCostInKind
 			]

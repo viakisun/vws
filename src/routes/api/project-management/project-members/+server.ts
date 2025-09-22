@@ -231,13 +231,6 @@ export const POST: RequestHandler = async ({ request }) => {
 			}
 		}
 
-		// 글로벌 팩터 가져오기 (급여 배수)
-		const factorResult = await query(`
-			SELECT factor_value FROM global_factors WHERE factor_name = 'salary_multiplier'
-		`)
-		const salaryMultiplier =
-			factorResult.rows.length > 0 ? parseFloat(factorResult.rows[0].factor_value) : 1.15
-
 		// 실제 근로계약서에서 월급 가져오기
 		let contractMonthlySalary = 0
 		if (contractResult.rows.length > 0) {
@@ -248,8 +241,7 @@ export const POST: RequestHandler = async ({ request }) => {
 		// 월간 금액 계산: 중앙화된 급여 계산 함수 사용
 		const monthlyAmount = calculateMonthlySalary(
 			contractMonthlySalary * 12, // 연봉으로 변환
-			participationRate,
-			salaryMultiplier
+			participationRate
 		)
 
 		// 프로젝트 멤버 추가 (contract_amount 제거)

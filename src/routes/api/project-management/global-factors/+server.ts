@@ -1,7 +1,7 @@
 // 글로벌 팩터 관리 API
-import { query } from '$lib/database/connection';
-import { json } from '@sveltejs/kit';
-import type { RequestHandler } from './$types';
+import { query } from '$lib/database/connection'
+import { json } from '@sveltejs/kit'
+import type { RequestHandler } from './$types'
 
 // GET /api/project-management/global-factors - 글로벌 팩터 조회
 export const GET: RequestHandler = async () => {
@@ -16,30 +16,26 @@ export const GET: RequestHandler = async () => {
 				created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 				updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 			)
-		`);
+		`)
 
-		// 기본값 삽입 (이미 있으면 무시)
-		await query(`
-			INSERT INTO global_factors (factor_name, factor_value, description)
-			VALUES ('salary_multiplier', 1.15, '급여 배수 (계약금액 * 배수)')
-			ON CONFLICT (factor_name) DO NOTHING
-		`);
+		// 기본값 삽입 (필요한 팩터만)
+		// salary_multiplier는 제거됨
 
 		// 글로벌 팩터 조회
 		const result = await query(`
 			SELECT factor_name, factor_value, description, updated_at
 			FROM global_factors
 			ORDER BY factor_name
-		`);
+		`)
 
 		// 객체 형태로 변환
-		const factors: Record<string, number> = {};
-		const descriptions: Record<string, string> = {};
-		
+		const factors: Record<string, number> = {}
+		const descriptions: Record<string, string> = {}
+
 		result.rows.forEach(row => {
-			factors[row.factor_name] = parseFloat(row.factor_value);
-			descriptions[row.factor_name] = row.description;
-		});
+			factors[row.factor_name] = parseFloat(row.factor_value)
+			descriptions[row.factor_name] = row.description
+		})
 
 		return json({
 			success: true,
@@ -47,55 +43,70 @@ export const GET: RequestHandler = async () => {
 				factors,
 				descriptions
 			}
-		});
+		})
 	} catch (error) {
-		console.error('글로벌 팩터 조회 실패:', error);
-		return json({
-			success: false,
-			message: '글로벌 팩터를 불러오는데 실패했습니다.',
-			error: (error as Error).message
-		}, { status: 500 });
+		console.error('글로벌 팩터 조회 실패:', error)
+		return json(
+			{
+				success: false,
+				message: '글로벌 팩터를 불러오는데 실패했습니다.',
+				error: (error as Error).message
+			},
+			{ status: 500 }
+		)
 	}
-};
+}
 
 // PUT /api/project-management/global-factors - 글로벌 팩터 업데이트
 export const PUT: RequestHandler = async ({ request }) => {
 	try {
-		const { factorName, factorValue, description } = await request.json();
+		const { factorName, factorValue, description } = await request.json()
 
 		if (!factorName || factorValue === undefined) {
-			return json({
-				success: false,
-				message: '팩터 이름과 값은 필수입니다.'
-			}, { status: 400 });
+			return json(
+				{
+					success: false,
+					message: '팩터 이름과 값은 필수입니다.'
+				},
+				{ status: 400 }
+			)
 		}
 
 		// 팩터 업데이트
-		const result = await query(`
+		const result = await query(
+			`
 			UPDATE global_factors 
 			SET factor_value = $1, description = $2, updated_at = CURRENT_TIMESTAMP
 			WHERE factor_name = $3
 			RETURNING *
-		`, [factorValue, description || null, factorName]);
+		`,
+			[factorValue, description || null, factorName]
+		)
 
 		if (result.rows.length === 0) {
-			return json({
-				success: false,
-				message: '해당 팩터를 찾을 수 없습니다.'
-			}, { status: 404 });
+			return json(
+				{
+					success: false,
+					message: '해당 팩터를 찾을 수 없습니다.'
+				},
+				{ status: 404 }
+			)
 		}
 
 		return json({
 			success: true,
 			message: '글로벌 팩터가 성공적으로 업데이트되었습니다.',
 			data: result.rows[0]
-		});
+		})
 	} catch (error) {
-		console.error('글로벌 팩터 업데이트 실패:', error);
-		return json({
-			success: false,
-			message: '글로벌 팩터 업데이트에 실패했습니다.',
-			error: (error as Error).message
-		}, { status: 500 });
+		console.error('글로벌 팩터 업데이트 실패:', error)
+		return json(
+			{
+				success: false,
+				message: '글로벌 팩터 업데이트에 실패했습니다.',
+				error: (error as Error).message
+			},
+			{ status: 500 }
+		)
 	}
-};
+}

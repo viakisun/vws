@@ -7,20 +7,15 @@
  * 월간 급여 계산 (반올림 없이 정수로 처리)
  * @param annualSalary 연봉 (원)
  * @param participationRate 참여율 (%)
- * @param salaryMultiplier 급여 배수 (기본값: 1.15)
  * @returns 월간 급여 (원, 정수)
  */
-export function calculateMonthlySalary(
-	annualSalary: number,
-	participationRate: number,
-	salaryMultiplier: number = 1.15
-): number {
+export function calculateMonthlySalary(annualSalary: number, participationRate: number): number {
 	if (!annualSalary || !participationRate || isNaN(annualSalary) || isNaN(participationRate)) {
 		return 0
 	}
 
-	// 연봉 * 급여 배수 * (참여율/100) / 12개월
-	const monthlyAmount = (annualSalary * salaryMultiplier * participationRate) / 100 / 12
+	// 연봉 * (참여율/100) / 12개월
+	const monthlyAmount = (annualSalary * participationRate) / 100 / 12
 
 	// 반올림 없이 버림 처리로 정수 반환
 	return Math.floor(monthlyAmount)

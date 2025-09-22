@@ -57,11 +57,13 @@ export const PUT: RequestHandler = async ({ params, request }) => {
 			personnelCostCash = 0,
 			researchMaterialCostCash = 0,
 			researchActivityCostCash = 0,
+			researchStipendCash = 0,
 			indirectCostCash = 0,
 			// 현물 비목들
 			personnelCostInKind = 0,
 			researchMaterialCostInKind = 0,
 			researchActivityCostInKind = 0,
+			researchStipendInKind = 0,
 			indirectCostInKind = 0
 		} = data
 
@@ -82,6 +84,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
 		const personnelCost = personnelCostCash + personnelCostInKind
 		const researchMaterialCost = researchMaterialCostCash + researchMaterialCostInKind
 		const researchActivityCost = researchActivityCostCash + researchActivityCostInKind
+		const researchStipend = researchStipendCash + researchStipendInKind
 		const indirectCost = indirectCostCash + indirectCostInKind
 
 		// 사업비 수정
@@ -95,17 +98,20 @@ export const PUT: RequestHandler = async ({ params, request }) => {
 				personnel_cost = $4,
 				research_material_cost = $5,
 				research_activity_cost = $6,
-				indirect_cost = $7,
-				personnel_cost_cash = $8,
-				personnel_cost_in_kind = $9,
-				research_material_cost_cash = $10,
-				research_material_cost_in_kind = $11,
-				research_activity_cost_cash = $12,
-				research_activity_cost_in_kind = $13,
-				indirect_cost_cash = $14,
-				indirect_cost_in_kind = $15,
+				research_stipend = $7,
+				indirect_cost = $8,
+				personnel_cost_cash = $9,
+				personnel_cost_in_kind = $10,
+				research_material_cost_cash = $11,
+				research_material_cost_in_kind = $12,
+				research_activity_cost_cash = $13,
+				research_activity_cost_in_kind = $14,
+				research_stipend_cash = $15,
+				research_stipend_in_kind = $16,
+				indirect_cost_cash = $17,
+				indirect_cost_in_kind = $18,
 				updated_at = CURRENT_TIMESTAMP
-			WHERE id = $16
+			WHERE id = $19
 			RETURNING *
 		`,
 			[
@@ -115,6 +121,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
 				personnelCost,
 				researchMaterialCost,
 				researchActivityCost,
+				researchStipend,
 				indirectCost,
 				personnelCostCash,
 				personnelCostInKind,
@@ -122,6 +129,8 @@ export const PUT: RequestHandler = async ({ params, request }) => {
 				researchMaterialCostInKind,
 				researchActivityCostCash,
 				researchActivityCostInKind,
+				researchStipendCash,
+				researchStipendInKind,
 				indirectCostCash,
 				indirectCostInKind,
 				params.id
