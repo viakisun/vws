@@ -1,6 +1,7 @@
 import { browser } from '$app/environment'
-import { writable } from 'svelte/store'
 import type { Writable } from 'svelte/store'
+import { writable } from 'svelte/store'
+import type { RequestInit } from 'undici'
 
 // User interface
 export interface User {
@@ -57,8 +58,10 @@ export class SessionManager {
   // Initialize session from localStorage
   private initializeFromStorage(): void {
     try {
-      const storedToken = localStorage.getItem('auth_token')
-      const storedUser = localStorage.getItem('user_data')
+      if (typeof window === 'undefined') return
+
+      const storedToken = window.localStorage.getItem('auth_token')
+      const storedUser = window.localStorage.getItem('user_data')
 
       if (storedToken && storedUser) {
         const user = JSON.parse(storedUser)
@@ -75,8 +78,8 @@ export class SessionManager {
           isLoading: false
         }))
       }
-    } catch (error) {
-      console.error('Error initializing session from storage:', error)
+    } catch {
+      // console.error('Error initializing session from storage:', error)
       this.clearSession()
     }
   }
@@ -93,8 +96,8 @@ export class SessionManager {
 
     // Store in localStorage on client side
     if (browser) {
-      localStorage.setItem('auth_token', token)
-      localStorage.setItem('user_data', JSON.stringify(user))
+      window.localStorage.setItem('auth_token', token)
+      window.localStorage.setItem('user_data', JSON.stringify(user))
     }
   }
 
@@ -110,8 +113,8 @@ export class SessionManager {
 
     // Remove from localStorage on client side
     if (browser) {
-      localStorage.removeItem('auth_token')
-      localStorage.removeItem('user_data')
+      window.localStorage.removeItem('auth_token')
+      window.localStorage.removeItem('user_data')
     }
   }
 
@@ -123,7 +126,7 @@ export class SessionManager {
 
         // Update localStorage on client side
         if (browser) {
-          localStorage.setItem('user_data', JSON.stringify(updatedUser))
+          window.localStorage.setItem('user_data', JSON.stringify(updatedUser))
         }
 
         return {
@@ -197,7 +200,11 @@ export class SessionManager {
     password: string
   ): Promise<{ success: boolean; message?: string }> {
     try {
-      const response = await fetch('/api/auth/login', {
+      if (typeof window === 'undefined') {
+        return { success: false, message: 'Client-side only function' }
+      }
+
+      const response = await window.fetch('/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -213,8 +220,8 @@ export class SessionManager {
       } else {
         return { success: false, message: data.message || 'Login failed' }
       }
-    } catch (error) {
-      console.error('Login error:', error)
+    } catch {
+      // console.error('Login error:', error)
       return { success: false, message: 'Network error' }
     }
   }
@@ -223,15 +230,17 @@ export class SessionManager {
   public async logout(): Promise<void> {
     try {
       // Call logout API if available
-      await fetch('/api/auth/logout', {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${this.getToken()}`,
-          'Content-Type': 'application/json'
-        } as Record<string, string>
-      })
-    } catch (error) {
-      console.error('Logout API error:', error)
+      if (typeof window !== 'undefined') {
+        await window.fetch('/api/auth/logout', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${this.getToken()}`,
+            'Content-Type': 'application/json'
+          } as Record<string, string>
+        })
+      }
+    } catch {
+      // console.error('Logout API error:', error)
     } finally {
       this.clearSession()
     }
@@ -240,7 +249,9 @@ export class SessionManager {
   // Refresh token
   public async refreshToken(): Promise<boolean> {
     try {
-      const response = await fetch('/api/auth/refresh', {
+      if (typeof window === 'undefined') return false
+
+      const response = await window.fetch('/api/auth/refresh', {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${this.getToken()}`,
@@ -257,13 +268,13 @@ export class SessionManager {
           }))
 
           if (browser) {
-            localStorage.setItem('auth_token', data.token)
+            window.localStorage.setItem('auth_token', data.token)
           }
           return true
         }
       }
-    } catch (error) {
-      console.error('Token refresh error:', error)
+    } catch {
+      // console.error('Token refresh error:', error)
     }
 
     // If refresh fails, clear session
@@ -273,6 +284,9 @@ export class SessionManager {
 
   // Make authenticated API request
   public async apiRequest(url: string, options: RequestInit = {}): Promise<Response> {
+    if (typeof window === 'undefined') {
+      throw new Error('Client-side only function')
+    }
     const token = this.getToken()
 
     const headers: Record<string, string> = {
@@ -284,7 +298,7 @@ export class SessionManager {
       headers['Authorization'] = `Bearer ${token}`
     }
 
-    const response = await fetch(url, {
+    const response = await window.fetch(url, {
       ...options,
       headers
     })
@@ -295,7 +309,7 @@ export class SessionManager {
       if (refreshed) {
         // Retry the request with new token
         headers['Authorization'] = `Bearer ${this.getToken()}`
-        return fetch(url, {
+        return window.fetch(url, {
           ...options,
           headers
         })

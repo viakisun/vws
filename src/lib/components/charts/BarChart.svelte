@@ -1,16 +1,29 @@
-<script lang="ts">
+<script>
   import { onMount } from 'svelte'
 
-  export let data: Array<{ label: string; value: number; color?: string }> = []
-  export let width: number = 400
-  export let height: number = 200
-  export let color: string = '#3B82F6'
-  export let showGrid: boolean = true
-  export let showValues: boolean = true
-  export let horizontal: boolean = false
-  export let animated: boolean = true
-  export let duration: number = 1000
-  export let barSpacing: number = 0.1 // 0-1, percentage of bar width for spacing
+  let {
+    data = [],
+    width = 400,
+    height = 200,
+    color = '#3B82F6',
+    showGrid = true,
+    showValues = true,
+    horizontal = false,
+    animated = true,
+    duration = 1000,
+    barSpacing = 0.1 // 0-1, percentage of bar width for spacing
+  } = $props<{
+    data?: Array<{ label: string; value: number; color?: string }>
+    width?: number
+    height?: number
+    color?: string
+    showGrid?: boolean
+    showValues?: boolean
+    horizontal?: boolean
+    animated?: boolean
+    duration?: number
+    barSpacing?: number
+  }>()
 
   let svgElement: SVGSVGElement
   let barsGroup: SVGGElement
@@ -20,7 +33,6 @@
   let chartHeight: number
   let xScale: (value: number) => number
   let yScale: (value: number) => number
-  let minValue: number
   let maxValue: number
   let barWidth: number
 
@@ -34,8 +46,7 @@
     chartWidth = width - 80 // Account for margins
     chartHeight = height - 60
 
-    // Find min/max values
-    minValue = Math.min(...data.map(d => d.value))
+    // Find max value
     maxValue = Math.max(...data.map(d => d.value))
 
     // Add padding to max value
@@ -73,11 +84,11 @@
       animationProgress = 1 - Math.pow(1 - progress, 3)
 
       if (progress < 1) {
-        requestAnimationFrame(updateAnimation)
+        window.requestAnimationFrame(updateAnimation)
       }
     }
 
-    requestAnimationFrame(updateAnimation)
+    window.requestAnimationFrame(updateAnimation)
   }
 
   // Update chart when data changes

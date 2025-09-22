@@ -1,8 +1,8 @@
-import { error, redirect } from '@sveltejs/kit'
-import type { RequestHandler, RequestEvent } from '@sveltejs/kit'
-import jwt from 'jsonwebtoken'
-import { config } from '$lib/utils/config'
 import { DatabaseService, query } from '$lib/database/connection'
+import { config } from '$lib/utils/config'
+import type { RequestEvent, RequestHandler } from '@sveltejs/kit'
+import { error, redirect } from '@sveltejs/kit'
+import jwt from 'jsonwebtoken'
 
 // JWT token interface
 export interface JWTPayload {
@@ -16,7 +16,7 @@ export interface JWTPayload {
 // Authentication middleware
 export function authenticate(requiredRoles?: string[]): RequestHandler {
   return async (event: RequestEvent): Promise<Response> => {
-    const { request, cookies, url, locals } = event
+    const { request, cookies, url } = event
     try {
       // Get token from Authorization header or cookies
       let token: string | null = null
@@ -59,11 +59,11 @@ export function authenticate(requiredRoles?: string[]): RequestHandler {
       }
 
       // Add user to request context
-      ;(request as any).user = user
+      ;(request as Record<string, unknown>).user = user
 
       return new Response() // Continue to the next handler
-    } catch (err) {
-      console.error('Authentication error:', err)
+    } catch {
+      // console.error('Authentication error:', err)
 
       if (url.pathname.startsWith('/api/')) {
         return error(401, { message: 'Invalid token' })
@@ -164,8 +164,8 @@ export function hasPermission(userRole: string, permission: string): boolean {
 // Permission middleware
 export function requirePermission(permission: string): RequestHandler {
   return async (event: RequestEvent): Promise<Response> => {
-    const { request, locals } = event
-    const user = (request as any).user
+    const { request } = event
+    const user = (request as Record<string, unknown>).user
 
     if (!user) {
       return error(401, { message: 'Authentication required' })
@@ -184,10 +184,9 @@ const rateLimitMap = new Map<string, { count: number; resetTime: number }>()
 
 export function rateLimit(maxRequests: number, windowMs: number): RequestHandler {
   return async (event: RequestEvent): Promise<Response> => {
-    const { request, getClientAddress, locals } = event
+    const { getClientAddress } = event
     const clientIP = getClientAddress()
     const now = Date.now()
-    const windowStart = now - windowMs
 
     // Clean up old entries
     for (const [key, value] of rateLimitMap.entries()) {
@@ -227,15 +226,15 @@ export function rateLimit(maxRequests: number, windowMs: number): RequestHandler
 }
 
 // Input validation
-export function validateInput(schema: any): RequestHandler {
+export function validateInput(schema: unknown): RequestHandler {
   return async (event: RequestEvent): Promise<Response> => {
-    const { request, locals } = event
+    const { request } = event
     try {
       const body = await request.json()
       const validated = schema.parse(body)
-      ;(request as any).validatedBody = validated
+      ;(request as Record<string, unknown>).validatedBody = validated
       return new Response()
-    } catch (err) {
+    } catch {
       return error(400, { message: 'Invalid input data' })
     }
   }
@@ -244,7 +243,7 @@ export function validateInput(schema: any): RequestHandler {
 // CORS middleware
 export function cors(origins: string[] = ['*']): RequestHandler {
   return async (event: RequestEvent): Promise<Response> => {
-    const { request, locals } = event
+    const { request } = event
     const origin = request.headers.get('origin')
 
     if (origins.includes('*') || (origin && origins.includes(origin))) {
@@ -264,8 +263,7 @@ export function cors(origins: string[] = ['*']): RequestHandler {
 
 // Security headers
 export function securityHeaders(): RequestHandler {
-  return async (event: RequestEvent): Promise<Response> => {
-    const { locals } = event
+  return async (_event: RequestEvent): Promise<Response> => {
     return new Response(null, {
       headers: {
         'X-Content-Type-Options': 'nosniff',
@@ -283,8 +281,8 @@ export function securityHeaders(): RequestHandler {
 // Audit logging
 export function auditLog(action: string, entity: string): RequestHandler {
   return async (event: RequestEvent): Promise<Response> => {
-    const { request, locals } = event
-    const user = (request as any).user
+    const { request } = event
+    const user = (request as Record<string, unknown>).user
     const clientIP = request.headers.get('x-forwarded-for') || 'unknown'
     const userAgent = request.headers.get('user-agent') || 'unknown'
 
@@ -295,8 +293,8 @@ export function auditLog(action: string, entity: string): RequestHandler {
 					 VALUES ($1, $2, $3, $4, $5, $6)`,
           [user.id, action, entity, 'unknown', clientIP, userAgent]
         )
-      } catch (err) {
-        console.error('Audit log error:', err)
+      } catch {
+        // console.error('Audit log error:', err)
       }
     }
 

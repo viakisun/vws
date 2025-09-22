@@ -6,9 +6,13 @@ function shouldLog(level: 'debug' | 'info' | 'warn' | 'error'): boolean {
 }
 
 // Global error handlers (safe outside components)
-window.addEventListener('error', ev => {
-  if (shouldLog('error')) console.error('[error]', ev.error || ev.message)
+window.addEventListener('error', _ev => {
+  if (shouldLog('error')) {
+    // console.error('[error]', ev.error || ev.message)
+  }
 })
-window.addEventListener('unhandledrejection', ev => {
-  if (shouldLog('error')) console.error('[unhandledrejection]', ev.reason)
+window.addEventListener('unhandledrejection', _ev => {
+  if (shouldLog('error')) {
+    // console.error('[unhandledrejection]', ev.reason)
+  }
 })
