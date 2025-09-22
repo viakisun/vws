@@ -1,7 +1,8 @@
 // API 데이터 변환 유틸리티
 // 데이터베이스 snake_case를 JavaScript camelCase로 변환하는 공통 함수들
 
-import { formatDateForDisplay as standardFormatDateForDisplay } from './date-handler'
+import { formatDateForAPI } from './date-calculator'
+import { formatEmployeeName } from './format'
 
 /**
  * 한국 이름을 표준 형식으로 포맷팅 (성+이름, 띄어쓰기 없음)
@@ -27,27 +28,16 @@ function formatKoreanNameStandard(fullName: string): string {
 			// 일반적으로 성은 1글자, 이름은 2글자 이상
 			if (first.length >= 2 && second.length === 1) {
 				// "지은 차" -> "차지은" (이름 성 -> 성 이름)
-				return `${second}${first}`
+				return formatEmployeeName({ last_name: second, first_name: first })
 			} else if (first.length === 1 && second.length >= 2) {
 				// "차 지은" -> "차지은" (이미 올바른 순서)
-				return `${first}${second}`
+				return formatEmployeeName({ last_name: first, first_name: second })
 			}
 		}
 	}
 
 	// 한국 이름이 아닌 경우 원본 반환
 	return trimmed
-}
-
-/**
- * UTC 날짜를 사용자 타임존의 YYYY-MM-DD 형식으로 변환
- * @deprecated 통합된 날짜 처리 시스템 사용을 위해 formatDateForDisplayLegacy로 대체
- */
-function formatDateForDisplayLegacy(dateStr: string): string {
-	if (!dateStr) return ''
-
-	// 통합된 날짜 처리 시스템 사용
-	return standardFormatDateForDisplay(dateStr, 'ISO')
 }
 
 /**
@@ -76,8 +66,8 @@ export function transformProjectData(project: any) {
 	return {
 		...otherFields,
 		// camelCase로 변환된 필드들만 포함
-		startDate: formatDateForDisplayLegacy(start_date),
-		endDate: formatDateForDisplayLegacy(end_date),
+		startDate: formatDateForAPI(start_date),
+		endDate: formatDateForAPI(end_date),
 		managerId: manager_id,
 		budgetTotal: budget_total,
 		sponsorType: sponsor_type,
@@ -103,6 +93,7 @@ export function transformProjectMemberData(member: any) {
 	// snake_case 필드들을 제거하고 camelCase로만 구성
 	const {
 		employee_id,
+		employee_name,
 		project_id,
 		start_date,
 		end_date,
@@ -118,9 +109,10 @@ export function transformProjectMemberData(member: any) {
 		...otherFields,
 		// camelCase로 변환된 필드들만 포함
 		employeeId: employee_id,
+		employeeName: employee_name,
 		projectId: project_id,
-		startDate: formatDateForDisplayLegacy(start_date),
-		endDate: formatDateForDisplayLegacy(end_date),
+		startDate: formatDateForAPI(start_date),
+		endDate: formatDateForAPI(end_date),
 		participationRate: participation_rate,
 		contributionType: contribution_type,
 		monthlyAmount: monthly_amount,
@@ -149,8 +141,8 @@ export function transformProjectBudgetData(budget: any) {
 		...otherFields,
 		// camelCase로 변환된 필드들만 포함
 		projectId: project_id,
-		startDate: formatDateForDisplayLegacy(start_date),
-		endDate: formatDateForDisplayLegacy(end_date),
+		startDate: formatDateForAPI(start_date),
+		endDate: formatDateForAPI(end_date),
 		fiscalYear: fiscal_year,
 		periodNumber: period_number,
 		createdAt: created_at,
@@ -165,7 +157,7 @@ export function transformMilestoneData(milestone: any) {
 	return {
 		...milestone,
 		projectId: milestone.project_id,
-		dueDate: formatDateForDisplayLegacy(milestone.due_date),
+		dueDate: formatDateForAPI(milestone.due_date),
 		createdAt: milestone.created_at,
 		updatedAt: milestone.updated_at
 	}
@@ -201,14 +193,14 @@ export function transformEmployeeData(employee: any) {
 		emailAddress: employee.email_address,
 		departmentId: employee.department_id,
 		positionId: employee.position_id,
-		hireDate: formatDateForDisplayLegacy(employee.hire_date),
+		hireDate: formatDateForAPI(employee.hire_date),
 		salaryAmount: employee.salary_amount,
 		createdAt: employee.created_at,
 		updatedAt: employee.updated_at,
 		// 직원 이름을 표준 형식으로 변환
 		...(lastName &&
 			firstName && {
-				displayName: formatKoreanNameStandard(`${lastName}${firstName}`)
+				displayName: formatEmployeeName({ last_name: lastName, first_name: firstName })
 			}),
 		...(employee.name && {
 			name: formatKoreanNameStandard(employee.name)
@@ -224,7 +216,7 @@ export function transformEvidenceItemData(evidence: any) {
 		...evidence,
 		projectId: evidence.project_id,
 		projectBudgetId: evidence.project_budget_id,
-		dueDate: formatDateForDisplayLegacy(evidence.due_date),
+		dueDate: formatDateForAPI(evidence.due_date),
 		createdAt: evidence.created_at,
 		updatedAt: evidence.updated_at,
 		// 담당자 이름을 표준 형식으로 변환

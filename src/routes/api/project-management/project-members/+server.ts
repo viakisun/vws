@@ -1,5 +1,7 @@
 import { query } from '$lib/database/connection'
 import { transformArrayData, transformProjectMemberData } from '$lib/utils/api-data-transformer'
+import { formatDateForAPI, formatDateForKorean } from '$lib/utils/date-calculator'
+import { calculateMonthlySalary } from '$lib/utils/salary-calculator'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
 
@@ -199,13 +201,13 @@ export const POST: RequestHandler = async ({ request }) => {
 
 				if (futureContracts.length > 0) {
 					const nextContract = futureContracts[futureContracts.length - 1] // 가장 가까운 미래 계약
-					const contractStartDate = new Date(nextContract.start_date).toLocaleDateString('ko-KR')
+					const contractStartDate = formatDateForKorean(nextContract.start_date)
 					message += `다음 계약 시작일: ${contractStartDate}\n`
 					message += `해당 날짜부터 프로젝트 참여가 가능합니다.`
 				} else if (pastContracts.length > 0) {
 					const lastContract = pastContracts[0]
 					if (lastContract.end_date) {
-						const contractEndDate = new Date(lastContract.end_date).toLocaleDateString('ko-KR')
+						const contractEndDate = formatDateForKorean(lastContract.end_date)
 						message += `마지막 계약 종료일: ${contractEndDate}\n`
 						message += `해당 직원은 이미 퇴사한 상태입니다.`
 					} else {
@@ -238,14 +240,16 @@ export const POST: RequestHandler = async ({ request }) => {
 
 		// 실제 근로계약서에서 월급 가져오기
 		let contractMonthlySalary = 0
-		if (validContracts.length > 0) {
-			const contract = validContracts[0]
+		if (contractResult.rows.length > 0) {
+			const contract = contractResult.rows[0]
 			contractMonthlySalary = contract.monthly_salary || contract.annual_salary / 12
 		}
 
-		// 월간 금액 계산: 실제 계약월급 * 급여배수 * (참여율/100)
-		const monthlyAmount = Math.round(
-			contractMonthlySalary * salaryMultiplier * (participationRate / 100)
+		// 월간 금액 계산: 중앙화된 급여 계산 함수 사용
+		const monthlyAmount = calculateMonthlySalary(
+			contractMonthlySalary * 12, // 연봉으로 변환
+			participationRate,
+			salaryMultiplier
 		)
 
 		// 프로젝트 멤버 추가 (contract_amount 제거)
@@ -293,9 +297,17 @@ export const POST: RequestHandler = async ({ request }) => {
 			[result.rows[0].id]
 		)
 
+		// TIMESTAMP 데이터를 YYYY-MM-DD 형식으로 변환 (중앙화된 함수 사용)
+		const memberData = memberWithDetails.rows[0]
+		const formattedMemberData = {
+			...memberData,
+			start_date: formatDateForAPI(memberData.start_date),
+			end_date: formatDateForAPI(memberData.end_date)
+		}
+
 		return json({
 			success: true,
-			data: memberWithDetails.rows[0],
+			data: formattedMemberData,
 			message: '프로젝트 멤버가 성공적으로 추가되었습니다.'
 		})
 	} catch (error) {

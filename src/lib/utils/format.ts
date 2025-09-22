@@ -22,7 +22,7 @@ export function formatCurrency(
 	}
 
 	// 천원 단위로 변환 (원 단위를 천원으로 나누기)
-	const thousandAmount = Math.round(numAmount / 1000)
+	const thousandAmount = Math.floor(numAmount / 1000)
 
 	return thousandAmount.toLocaleString('ko-KR') + (includeUnit ? '천원' : '')
 }
@@ -62,7 +62,7 @@ export function getRelativeTime(dateString: string): string {
 }
 
 export function pct(n: number): string {
-	return `${Math.round(n)}%`
+	return `${Math.floor(n)}%`
 }
 
 export function formatEmployeeId(id: number): string {

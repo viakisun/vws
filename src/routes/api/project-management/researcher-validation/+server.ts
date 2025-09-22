@@ -1,4 +1,6 @@
 import { query } from '$lib/database/connection'
+import { getCurrentDateForAPI } from '$lib/utils/date-calculator'
+import { calculateMonthlySalary } from '$lib/utils/salary-calculator'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
 
@@ -276,8 +278,10 @@ async function performValidation(project: any, members: any[]): Promise<Validati
 			factorResult.rows.length > 0 ? parseFloat(factorResult.rows[0].factor_value) : 1.15
 
 		// 예상 월간 금액 계산
-		const expectedMonthlyAmount = Math.round(
-			contractAmount * salaryMultiplier * (participationRate / 100)
+		const expectedMonthlyAmount = calculateMonthlySalary(
+			contractAmount,
+			participationRate,
+			salaryMultiplier
 		)
 
 		if (monthlyAmount > expectedMonthlyAmount * 1.1) {
@@ -319,7 +323,7 @@ async function performValidation(project: any, members: any[]): Promise<Validati
 			totalMembers: members.length,
 			validMembers,
 			invalidMembers: members.length - validMembers,
-			lastValidated: new Date().toISOString()
+			lastValidated: getCurrentDateForAPI()
 		}
 	}
 }

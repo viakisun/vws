@@ -1,3 +1,5 @@
+import { formatDateForAPI } from '$lib/utils/date-calculator'
+import { calculateBudgetAllocation } from '$lib/utils/salary-calculator'
 import { json } from '@sveltejs/kit'
 import { Pool } from 'pg'
 import type { RequestHandler } from './$types'
@@ -179,7 +181,7 @@ async function validateProjectData(data: ProjectCreationRequest) {
 
 	// 연차별 참여연구원 참여율 합계 검증
 	for (const period of data.annualPeriods) {
-		// UTC 기준으로 날짜 비교
+		// UTC+9 타임존 적용된 날짜 비교
 		const periodStartUtc = new Date(period.startDate + 'T00:00:00.000Z')
 		const periodEndUtc = new Date(period.endDate + 'T23:59:59.999Z')
 
@@ -239,23 +241,22 @@ async function createProjectBudgets(client: any, projectId: string, data: Projec
 	for (const period of data.annualPeriods) {
 		console.log(`💰 [생성] ${period.periodNumber}차년도 예산 생성`)
 
-		// 예산 항목별 배분 계산
-		const personnelCost = Math.round(
-			(period.budget * (data.budgetCategories.find(c => c.name === '인건비')?.percentage || 0)) /
-				100
+		// 예산 항목별 배분 계산 - 중앙화된 함수 사용
+		const personnelCost = calculateBudgetAllocation(
+			period.budget,
+			data.budgetCategories.find(c => c.name === '인건비')?.percentage || 0
 		)
-		const materialCost = Math.round(
-			(period.budget * (data.budgetCategories.find(c => c.name === '재료비')?.percentage || 0)) /
-				100
+		const materialCost = calculateBudgetAllocation(
+			period.budget,
+			data.budgetCategories.find(c => c.name === '재료비')?.percentage || 0
 		)
-		const activityCost = Math.round(
-			(period.budget *
-				(data.budgetCategories.find(c => c.name === '연구활동비')?.percentage || 0)) /
-				100
+		const activityCost = calculateBudgetAllocation(
+			period.budget,
+			data.budgetCategories.find(c => c.name === '연구활동비')?.percentage || 0
 		)
-		const indirectCost = Math.round(
-			(period.budget * (data.budgetCategories.find(c => c.name === '간접비')?.percentage || 0)) /
-				100
+		const indirectCost = calculateBudgetAllocation(
+			period.budget,
+			data.budgetCategories.find(c => c.name === '간접비')?.percentage || 0
 		)
 
 		const budgetQuery = `
@@ -323,12 +324,8 @@ async function createProjectMembers(client: any, projectId: string, data: Projec
 			if (!dateStr) return null
 
 			try {
-				// YYYY-MM-DD 형식을 UTC 기준으로 해석 (한국 시간 자정을 UTC로 변환)
-				const kstDate = new Date(dateStr + 'T00:00:00.000+09:00')
-				if (isNaN(kstDate.getTime())) return null
-
-				// UTC로 변환하여 ISO 문자열로 반환
-				return kstDate.toISOString().split('T')[0]
+				// 중앙화된 날짜 변환 함수 사용 (UTC+9 타임존 적용)
+				return formatDateForAPI(dateStr)
 			} catch (error) {
 				console.error('Date conversion error:', error)
 				return null
@@ -412,21 +409,19 @@ async function createEvidenceItems(client: any, projectId: string, data: Project
           RETURNING id
         `
 
-				// UTC 기준으로 연차 종료 후 1개월 계산
+				// UTC+9 타임존 적용된 연차 종료 후 1개월 계산
 				const periodEndUtc = new Date(period.endDate + 'T23:59:59.999Z')
 				const dueDate = new Date(periodEndUtc)
 				dueDate.setUTCMonth(dueDate.getUTCMonth() + 1) // 연차 종료 후 1개월
 
-				// UTC 기준으로 날짜 변환 (YYYY-MM-DD)
-				// 한국 시간 자정을 UTC로 변환
-				const kstDueDate = new Date(dueDate.toISOString().split('T')[0] + 'T00:00:00.000+09:00')
-				const formattedDueDate = kstDueDate.toISOString().split('T')[0]
+				// 중앙화된 날짜 변환 함수 사용 (UTC+9 타임존 적용)
+				const formattedDueDate = formatDateForAPI(dueDate)
 
 				const result = await client.query(evidenceQuery, [
 					projectBudgetId,
 					categoryId,
 					`${category.name} 증빙`,
-					Math.round((period.budget * category.percentage) / 100),
+					calculateBudgetAllocation(period.budget, category.percentage),
 					formattedDueDate
 				])
 

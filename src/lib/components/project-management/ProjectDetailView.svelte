@@ -5,6 +5,7 @@
   import ThemeModal from '$lib/components/ui/ThemeModal.svelte'
   import { formatCurrency, formatDate, formatDateForInput } from '$lib/utils/format'
   import { isKoreanName } from '$lib/utils/korean-name'
+  import { calculateMonthlySalary } from '$lib/utils/salary-calculator'
   import {
   	AlertTriangleIcon,
   	CalendarIcon,
@@ -162,11 +163,11 @@
   }
 
   function getMemberStartDate(member: any): string {
-    return getMemberField(member, 'startDate', 'start_date');
+    return getMemberField(member, 'startDate', 'start_date', '');
   }
 
   function getMemberEndDate(member: any): string {
-    return getMemberField(member, 'endDate', 'end_date');
+    return getMemberField(member, 'endDate', 'end_date', '');
   }
 
   function getMemberEmployeeId(member: any): string {
@@ -715,17 +716,27 @@
   function editMember(member: any) {
     editingMember = member;
 
-    // 중복된 formatDateForInput 함수 제거됨 - 상단의 유틸리티 함수 사용
+    // 디버깅: 멤버 데이터 확인
+    console.log('editMember - member data:', member);
+    console.log('editMember - startDate raw:', getMemberStartDate(member));
+    console.log('editMember - endDate raw:', getMemberEndDate(member));
 
+    // 날짜 데이터 확인 및 안전한 처리
+    const rawStartDate = getMemberStartDate(member);
+    const rawEndDate = getMemberEndDate(member);
+    
     memberForm = {
       employeeId: getMemberEmployeeId(member),
       role: member.role,
-      startDate: formatDateForInput(getMemberStartDate(member)),
-      endDate: formatDateForInput(getMemberEndDate(member)),
+      startDate: rawStartDate ? formatDateForInput(rawStartDate) : '',
+      endDate: rawEndDate ? formatDateForInput(rawEndDate) : '',
       participationRate: getMemberParticipationRate(member) || 0,
       monthlyAmount: (getMemberMonthlyAmount(member) || 0).toString(),
       contributionType: getMemberContributionType(member)
     };
+
+    // 디버깅: memberForm 확인
+    console.log('editMember - memberForm after setting:', memberForm);
 
     // 수정 시 월간금액 자동 계산
     updateMonthlyAmount();
@@ -751,6 +762,7 @@
     resetMemberForm();
   }
 
+
   // 멤버 수정 완료
   async function updateMember() {
     if (!editingMember) return;
@@ -760,6 +772,11 @@
       alert('참여율은 0-100 사이의 값이어야 합니다.');
       return;
     }
+
+    // 디버깅: 필드 값 확인
+    console.log('updateMember - memberForm:', memberForm);
+    console.log('updateMember - startDate:', memberForm.startDate, 'type:', typeof memberForm.startDate);
+    console.log('updateMember - endDate:', memberForm.endDate, 'type:', typeof memberForm.endDate);
 
     // 필수 필드 검증
     if (!memberForm.startDate || !memberForm.endDate) {
@@ -1103,11 +1120,11 @@
       // 글로벌 팩터에서 급여 배수 가져오기 (기본값 1.15)
       const salaryMultiplier = 1.15; // TODO: 글로벌 팩터에서 가져오기
 
-      // 연봉 * 급여 배수 * 참여율 / 12개월
-      const monthlyAmount = (annualSalary * salaryMultiplier * rate / 100) / 12;
+      // 중앙화된 급여 계산 함수 사용
+      const monthlyAmount = calculateMonthlySalary(annualSalary, rate, salaryMultiplier);
       console.log('계산된 월간금액:', monthlyAmount);
 
-      return Math.round(monthlyAmount);
+      return monthlyAmount;
     } catch (error) {
       console.error('월간금액 계산 중 오류:', error);
       return 0;
@@ -1803,23 +1820,23 @@
           style:min-width="100%">
           <thead class="bg-gray-50">
             <tr>
-              <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">연차</th>
-              <th class="px-6 py-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">연차</th>
+              <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                 <div>인건비</div>
               </th>
-              <th class="px-6 py-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                 <div>연구재료비</div>
               </th>
-              <th class="px-6 py-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                 <div>연구활동비</div>
               </th>
-              <th class="px-6 py-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                 <div>간접비</div>
               </th>
-              <th class="px-6 py-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                 <div>총 예산</div>
               </th>
-              <th class="px-6 py-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-32">액션</th>
+              <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-32">액션</th>
             </tr>
           </thead>
           <tbody class="bg-white divide-y divide-gray-200">
@@ -1840,7 +1857,7 @@
               {@const inKindTotal = personnelInKind + materialInKind + activityInKind + indirectInKind}
               <tr class="hover:bg-gray-50">
                 <!-- 연차 -->
-                <td class="px-6 py-6 whitespace-nowrap text-sm font-medium text-gray-900 w-24">
+                <td class="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900 w-24">
                   <div
                     class="text-sm cursor-help"
                     title={formatPeriodTooltip(budget)}
@@ -1850,42 +1867,42 @@
                   </div>
                 </td>
                 <!-- 인건비 (현금/현물) -->
-                <td class="px-6 py-6 whitespace-nowrap text-sm text-gray-900 text-right">
+                <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
                   <div class="space-y-2">
                     <div class="text-sm text-blue-600 font-medium">{formatCurrency(personnelCash, false)}</div>
                     <div class="text-sm text-gray-600">{formatCurrency(personnelInKind, false)}</div>
                   </div>
                 </td>
                 <!-- 연구재료비 (현금/현물) -->
-                <td class="px-6 py-6 whitespace-nowrap text-sm text-gray-900 text-right">
+                <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
                   <div class="space-y-2">
                     <div class="text-sm text-blue-600 font-medium">{formatCurrency(materialCash, false)}</div>
                     <div class="text-sm text-gray-600">{formatCurrency(materialInKind, false)}</div>
                   </div>
                 </td>
                 <!-- 연구활동비 (현금/현물) -->
-                <td class="px-6 py-6 whitespace-nowrap text-sm text-gray-900 text-right">
+                <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
                   <div class="space-y-2">
                     <div class="text-sm text-blue-600 font-medium">{formatCurrency(activityCash, false)}</div>
                     <div class="text-sm text-gray-600">{formatCurrency(activityInKind, false)}</div>
                   </div>
                 </td>
                 <!-- 간접비 (현금/현물) -->
-                <td class="px-6 py-6 whitespace-nowrap text-sm text-gray-900 text-right">
+                <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
                   <div class="space-y-2">
                     <div class="text-sm text-blue-600 font-medium">{formatCurrency(indirectCash, false)}</div>
                     <div class="text-sm text-gray-600">{formatCurrency(indirectInKind, false)}</div>
                   </div>
                 </td>
                 <!-- 총 예산 (현금/현물) -->
-                <td class="px-6 py-6 whitespace-nowrap text-sm font-medium text-gray-900 text-right">
+                <td class="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900 text-right">
                   <div class="space-y-2">
                     <div class="text-sm text-blue-600 font-semibold">{formatCurrency(cashTotal, false)}</div>
                     <div class="text-sm text-gray-600 font-semibold">{formatCurrency(inKindTotal, false)}</div>
                   </div>
                 </td>
                 <!-- 액션 -->
-                <td class="px-6 py-6 whitespace-nowrap text-sm font-medium w-32">
+                <td class="px-4 py-4 whitespace-nowrap text-sm font-medium w-32">
                   <div class="flex space-x-1 justify-center">
                     <ThemeButton
                       variant="ghost"
@@ -1912,7 +1929,7 @@
               <tr>
                 <td
                   colspan="7"
-                  class="px-6 py-12 text-center text-gray-500">
+                  class="px-4 py-12 text-center text-gray-500">
                   <DollarSignIcon
                     size={48}
                     class="mx-auto mb-2 text-gray-300" />
@@ -1933,7 +1950,7 @@
                   </div>
                 </td>
                 <!-- 인건비 (현금/현물) -->
-                <td class="px-6 py-6 whitespace-nowrap text-sm text-gray-900 text-right">
+                <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
                   <div class="space-y-2">
                     <div class="text-sm text-blue-600 font-medium">{formatCurrency(totals.personnelCash, false)}</div>
                     <div class="text-sm text-gray-600">{formatCurrency(totals.personnelInKind, false)}</div>
@@ -1941,7 +1958,7 @@
                   </div>
                 </td>
                 <!-- 연구재료비 (현금/현물) -->
-                <td class="px-6 py-6 whitespace-nowrap text-sm text-gray-900 text-right">
+                <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
                   <div class="space-y-2">
                     <div class="text-sm text-blue-600 font-medium">{formatCurrency(totals.researchMaterialCash, false)}</div>
                     <div class="text-sm text-gray-600">{formatCurrency(totals.researchMaterialInKind, false)}</div>
@@ -1949,7 +1966,7 @@
                   </div>
                 </td>
                 <!-- 연구활동비 (현금/현물) -->
-                <td class="px-6 py-6 whitespace-nowrap text-sm text-gray-900 text-right">
+                <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
                   <div class="space-y-2">
                     <div class="text-sm text-blue-600 font-medium">{formatCurrency(totals.researchActivityCash, false)}</div>
                     <div class="text-sm text-gray-600">{formatCurrency(totals.researchActivityInKind, false)}</div>
@@ -1957,7 +1974,7 @@
                   </div>
                 </td>
                 <!-- 간접비 (현금/현물) -->
-                <td class="px-6 py-6 whitespace-nowrap text-sm text-gray-900 text-right">
+                <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
                   <div class="space-y-2">
                     <div class="text-sm text-blue-600 font-medium">{formatCurrency(totals.indirectCash, false)}</div>
                     <div class="text-sm text-gray-600">{formatCurrency(totals.indirectInKind, false)}</div>
@@ -1965,7 +1982,7 @@
                   </div>
                 </td>
                 <!-- 총 예산 (현금/현물) -->
-                <td class="px-6 py-6 whitespace-nowrap text-sm text-gray-900 text-right">
+                <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
                   <div class="space-y-2">
                     <div class="text-sm text-blue-600 font-medium">{formatCurrency(totals.totalCash, false)}</div>
                     <div class="text-sm text-gray-600">{formatCurrency(totals.totalInKind, false)}</div>
@@ -1973,7 +1990,7 @@
                   </div>
                 </td>
                 <!-- 액션 -->
-                <td class="px-6 py-6 whitespace-nowrap text-sm font-medium w-32">
+                <td class="px-4 py-4 whitespace-nowrap text-sm font-medium w-32">
                   <div class="text-sm text-gray-500 text-center">-</div>
                 </td>
               </tr>
@@ -2257,8 +2274,8 @@
         style:min-width="1000px">
         <thead class="bg-gray-50">
           <tr>
-            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-80">연구원</th>
-            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-40">참여율</th>
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-48">연구원</th>
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">참여율</th>
             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-40">월간금액</th>
             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-56">참여기간</th>
             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">기여 유형</th>
@@ -2269,9 +2286,9 @@
         <tbody class="bg-white divide-y divide-gray-200">
           <!-- 인라인 추가 행 -->
           {#if addingMember}
-            <tr class="bg-blue-50">
+            <tr class="bg-gradient-to-r from-green-50 to-emerald-50 border-l-4 border-green-400 shadow-sm">
               <!-- 연구원 -->
-              <td class="px-4 py-4 whitespace-nowrap">
+              <td class="px-4 py-4 whitespace-nowrap w-48">
                 {#if editingMember}
                   <div class="text-sm text-gray-500">
                     {formatKoreanName(memberForm.employeeId ? availableEmployees.find(e => e.id === memberForm.employeeId)?.name || '' : '')}
@@ -2279,10 +2296,10 @@
                 {:else}
                   <select
                     bind:value={memberForm.employeeId}
-                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                    class="w-full px-3 py-2 border border-green-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm font-medium bg-white shadow-sm"
                     onchange={updateMonthlyAmount}
                   >
-                    <option value="">연구원 선택 ({availableEmployees.length}명)</option>
+                    <option value="">👥 연구원 선택 ({availableEmployees.length}명)</option>
                     {#each availableEmployees as employee}
                       <option value={employee.id}>{formatKoreanName(employee.name)} ({employee.department})</option>
                     {/each}
@@ -2293,19 +2310,20 @@
               <td class="px-4 py-4 whitespace-nowrap">
                 <select
                   bind:value={memberForm.role}
-                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                  class="w-full px-3 py-2 border border-green-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm font-medium bg-white shadow-sm"
                 >
-                  <option value="researcher">연구원</option>
-                  <option value="lead">연구책임자</option>
-                  <option value="support">지원</option>
+                  <option value="researcher">👨‍🔬 연구원</option>
+                  <option value="lead">👑 연구책임자</option>
+                  <option value="support">🤝 지원</option>
                 </select>
               </td>
               <!-- 참여율 -->
-              <td class="px-4 py-4 whitespace-nowrap">
-                <input
-                  type="number"
-                  bind:value={memberForm.participationRate}
-                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+              <td class="px-4 py-4 whitespace-nowrap w-24">
+                <div class="relative">
+                  <input
+                    type="number"
+                    bind:value={memberForm.participationRate}
+                    class="w-full px-3 py-2 pr-8 border border-green-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm font-medium bg-white shadow-sm"
                   min="0"
                   max="100"
                   step="1"
@@ -2409,67 +2427,72 @@
           {/if}
 
           {#each projectMembers as member}
-            <tr class="hover:bg-gray-50 {editingMember && editingMember.id === member.id ? 'bg-blue-50 border-l-4 border-blue-500' : ''}">
-              <td class="px-4 py-4 whitespace-nowrap">
+            <tr class="hover:bg-gray-50 {editingMember && editingMember.id === member.id ? 'bg-gradient-to-r from-blue-50 to-indigo-50 border-l-4 border-blue-400 shadow-sm' : ''}">
+              <td class="px-4 py-4 whitespace-nowrap w-48">
                 <div class="flex items-center">
                   <UserIcon
                     size={20}
-                    class="text-gray-400 mr-3" />
-                  <div class="flex-1">
+                    class="text-gray-400 mr-2" />
+                  <div class="flex-1 min-w-0">
                     <div class="flex items-center gap-2 mb-1">
-                      <div class="text-sm font-medium text-gray-900">{formatKoreanName(getMemberEmployeeName(member))}</div>
+                      <div class="text-sm font-medium text-gray-900 truncate">{formatKoreanName(getMemberEmployeeName(member))}</div>
                       <ThemeBadge
                         variant="info"
                         size="sm">{member.role}</ThemeBadge>
                     </div>
-                    <div class="text-xs text-gray-500">{member.employee_department} / {member.employee_position}</div>
+                    <div class="text-xs text-gray-500 truncate">{member.employee_department} / {member.employee_position}</div>
                   </div>
                 </div>
               </td>
-              <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+              <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900 w-24">
                 {#if editingMember && editingMember.id === member.id}
-                  <input
-                    type="number"
-                    bind:value={memberForm.participationRate}
-                    class="w-20 px-2 py-1 border border-gray-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
-                    min="0"
-                    max="100"
-                    onchange={updateMonthlyAmount}
-                  />
+                  <div class="relative">
+                    <input
+                      type="number"
+                      bind:value={memberForm.participationRate}
+                      class="w-20 px-3 py-2 border border-blue-300 rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm"
+                      min="0"
+                      max="100"
+                      onchange={updateMonthlyAmount}
+                    />
+                    <span class="absolute right-2 top-1/2 transform -translate-y-1/2 text-xs text-gray-500 pointer-events-none">%</span>
+                  </div>
                 {:else}
                   {member.participationRate}%
                 {/if}
               </td>
               <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
                 {#if editingMember && editingMember.id === member.id}
-                  <input
-                    type="number"
-                    bind:value={memberForm.monthlyAmount}
-                    class="w-24 px-2 py-1 border border-gray-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
-                    placeholder="0"
-                  />
+                  <div class="relative">
+                    <input
+                      type="number"
+                      bind:value={memberForm.monthlyAmount}
+                      class="w-32 px-3 py-2 border border-blue-300 rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm"
+                      placeholder="0"
+                    />
+                  </div>
                 {:else}
                   {formatCurrency(getMemberMonthlyAmount(member))}
                 {/if}
               </td>
               <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
                 {#if editingMember && editingMember.id === member.id}
-                  <div class="space-y-1">
-                    <div class="flex items-center gap-2">
-                      <span class="text-xs text-gray-500 w-8">시작:</span>
+                  <div class="space-y-2">
+                    <div class="flex items-center gap-3">
+                      <span class="text-xs font-medium text-blue-700 w-10">시작:</span>
                       <input
                         type="date"
                         bind:value={memberForm.startDate}
-                        class="flex-1 px-2 py-1 border border-gray-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        class="flex-1 px-3 py-2 border border-blue-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm"
                         onchange={updateMonthlyAmount}
                       />
                     </div>
-                    <div class="flex items-center gap-2">
-                      <span class="text-xs text-gray-500 w-8">종료:</span>
+                    <div class="flex items-center gap-3">
+                      <span class="text-xs font-medium text-blue-700 w-10">종료:</span>
                       <input
                         type="date"
                         bind:value={memberForm.endDate}
-                        class="flex-1 px-2 py-1 border border-gray-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        class="flex-1 px-3 py-2 border border-blue-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm"
                         onchange={updateMonthlyAmount}
                       />
                     </div>
@@ -2485,10 +2508,10 @@
                 {#if editingMember && editingMember.id === member.id}
                   <select
                     bind:value={memberForm.contributionType}
-                    class="w-full px-2 py-1 border border-gray-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    class="w-full px-3 py-2 border border-blue-300 rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm"
                   >
-                    <option value="cash">현금</option>
-                    <option value="in_kind">현물</option>
+                    <option value="cash">💰 현금</option>
+                    <option value="in_kind">🏢 현물</option>
                   </select>
                 {:else}
                   <ThemeBadge
@@ -2599,22 +2622,22 @@
               <td class="px-4 py-4 whitespace-nowrap text-sm font-medium">
                 <div class="flex space-x-1 justify-center">
                   {#if editingMember && editingMember.id === member.id}
-                    <ThemeButton
-                      variant="ghost"
-                      size="sm"
-                      onclick={updateMember}>
-                      <CheckIcon
-                        size={14}
-                        class="text-green-600" />
-                    </ThemeButton>
-                    <ThemeButton
-                      variant="ghost"
-                      size="sm"
-                      onclick={cancelEditMember}>
-                      <XIcon
-                        size={14}
-                        class="text-red-600" />
-                    </ThemeButton>
+                    <div class="flex space-x-1">
+                      <button
+                        onclick={updateMember}
+                        class="p-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors duration-200 shadow-sm"
+                        title="저장"
+                      >
+                        <CheckIcon size={14} />
+                      </button>
+                      <button
+                        onclick={cancelEditMember}
+                        class="p-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors duration-200 shadow-sm"
+                        title="취소"
+                      >
+                        <XIcon size={14} />
+                      </button>
+                    </div>
                   {:else}
                     <ThemeButton
                       variant="ghost"
@@ -2838,7 +2861,7 @@
             {@const totalItems = categoryItems.length}
             {@const completedItems = categoryItems.filter(item => item.status === 'completed').length}
             {@const inProgressItems = categoryItems.filter(item => item.status === 'in_progress').length}
-            {@const overallProgress = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0}
+            {@const overallProgress = totalItems > 0 ? Math.floor((completedItems / totalItems) * 100) : 0}
 
             <div class="border border-gray-200 rounded-lg">
               <!-- 카테고리 헤더 -->
