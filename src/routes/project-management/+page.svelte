@@ -7,15 +7,9 @@
   import ProjectCreationForm from '$lib/components/project-management/ProjectCreationForm.svelte'
   import ProjectListCard from '$lib/components/project-management/ProjectListCard.svelte'
   import ProjectOverviewCard from '$lib/components/project-management/ProjectOverviewCard.svelte'
-  import ThemeCard from '$lib/components/ui/ThemeCard.svelte'
   import ThemeModal from '$lib/components/ui/ThemeModal.svelte'
   import ThemeTabs from '$lib/components/ui/ThemeTabs.svelte'
-  import {
-  	AlertTriangleIcon,
-  	BarChart3Icon,
-  	FlaskConicalIcon,
-  	PercentIcon
-  } from '@lucide/svelte'
+  import { BarChart3Icon, FlaskConicalIcon, PercentIcon } from '@lucide/svelte'
   import { onMount } from 'svelte'
 
   /**
@@ -82,7 +76,6 @@
   let projectSummary = $state(null)
   let employeeParticipationSummary = $state([])
   let alerts = $state([])
-  let error = $state(null)
 
   // 탭별 로딩 상태 및 오류 체크
   let tabLoadingStates = $state({
@@ -153,7 +146,6 @@
   let selectedProject = $state(null)
   let selectedProjectId = $state('')
   let showCreateProjectModal = $state(false)
-  let showBudgetModal = $state(false)
 
   // 탭 변경 핸들러
   function handleTabChange(tabId) {
@@ -188,12 +180,10 @@
             console.error('❌ 프로젝트 데이터 검증 실패:', validationResult.issues)
             // 검증 실패 시 빈 배열로 설정하여 무한 루프 방지
             projects = []
-            error = `데이터 검증 실패: ${validationResult.issues.join(', ')}`
             return // throw 대신 return으로 함수 종료
           }
 
           projects = projectData
-          error = null
           console.log(`✅ ${projectData.length}개 프로젝트 로드 완료`)
         } else {
           throw new Error(data.message || '프로젝트 데이터를 불러오는데 실패했습니다.')
@@ -208,15 +198,10 @@
         throw new Error(`HTTP ${response.status}: ${response.statusText}`)
       }
     } catch (err) {
-      // 런타임 오류 처리 - 자동 검증을 위한 명확한 패턴
-      const errorMessage = err instanceof Error ? err.message : '네트워크 오류로 프로젝트 데이터를 불러올 수 없습니다.'
-
       // Failed to fetch 오류 특별 처리
       if (err instanceof Error && err.message && err.message.includes('Failed to fetch')) {
-        error = '서버에 연결할 수 없습니다. 서버가 실행 중인지 확인해주세요.'
         console.error('❌ 네트워크 연결 실패:', err.message)
       } else {
-        error = errorMessage
         console.error('❌ 프로젝트 데이터 로드 실패:', err)
       }
 
@@ -396,27 +381,7 @@
   title="프로젝트 관리"
   subtitle="연구개발 프로젝트 및 참여율 관리 시스템"
 >
-  <div class="space-y-6">
-    <!-- 에러 메시지 -->
-    {#if error}
-      <ThemeCard>
-        <div class="bg-red-50 border border-red-200 rounded-md p-4">
-          <div class="flex">
-            <div class="flex-shrink-0">
-              <AlertTriangleIcon class="h-5 w-5 text-red-400" />
-            </div>
-            <div class="ml-3">
-              <h3 class="text-sm font-medium text-red-800">시스템 안내</h3>
-              <div class="mt-2 text-sm text-red-700">
-                <p>{error}</p>
-                <p class="mt-1">관리자에게 문의하시거나 잠시 후 다시 시도해주세요.</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </ThemeCard>
-    {/if}
-
+  <div>
     <!-- 탭 네비게이션 -->
     <ThemeTabs
       {tabs}
@@ -424,84 +389,20 @@
       onTabChange={handleTabChange}
     />
 
-    <!-- 탭별 로딩 상태 표시 -->
-    {#if tabLoadingStates[activeTab]}
-      <ThemeCard>
-        <div class="flex items-center justify-center p-8">
-          <div class="flex items-center space-x-3">
-            <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-            <span class="text-gray-600">데이터를 불러오는 중...</span>
-          </div>
-        </div>
-      </ThemeCard>
-    {/if}
-
     <!-- 개요 탭 -->
     {#if activeTab === 'overview'}
-      <div class="space-y-6">
-        <!-- 탭별 오류 표시 -->
-        {#if tabErrors.overview}
-          <ThemeCard>
-            <div class="bg-red-50 border border-red-200 rounded-md p-4">
-              <div class="flex">
-                <div class="flex-shrink-0">
-                  <AlertTriangleIcon class="h-5 w-5 text-red-400" />
-                </div>
-                <div class="ml-3">
-                  <h3 class="text-sm font-medium text-red-800">개요 데이터 로딩 오류</h3>
-                  <div class="mt-2 text-sm text-red-700">
-                    <p>{tabErrors.overview}</p>
-                    <button
-                      type="button"
-                      onclick={() => loadTabData('overview')}
-                      class="mt-2 text-sm text-red-600 hover:text-red-800 underline"
-                    >
-                      다시 시도
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </ThemeCard>
-        {/if}
-        
+      <div>
         <!-- 프로젝트 개요 카드 -->
-        <ProjectOverviewCard 
-          {projectSummary} 
-          {alerts} 
+        <ProjectOverviewCard
+          {projectSummary}
+          {alerts}
         />
       </div>
     {/if}
 
     <!-- 프로젝트 탭 -->
     {#if activeTab === 'projects'}
-      <div class="space-y-6">
-        <!-- 탭별 오류 표시 -->
-        {#if tabErrors.projects}
-          <ThemeCard>
-            <div class="bg-red-50 border border-red-200 rounded-md p-4">
-              <div class="flex">
-                <div class="flex-shrink-0">
-                  <AlertTriangleIcon class="h-5 w-5 text-red-400" />
-                </div>
-                <div class="ml-3">
-                  <h3 class="text-sm font-medium text-red-800">프로젝트 데이터 로딩 오류</h3>
-                  <div class="mt-2 text-sm text-red-700">
-                    <p>{tabErrors.projects}</p>
-                    <button
-                      type="button"
-                      onclick={() => loadTabData('projects')}
-                      class="mt-2 text-sm text-red-600 hover:text-red-800 underline"
-                    >
-                      다시 시도
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </ThemeCard>
-        {/if}
-        
+      <div>
         <!-- 프로젝트 목록 카드 -->
         <ProjectListCard
           {projects}
@@ -509,43 +410,16 @@
           {selectedProjectId}
           loading={tabLoadingStates.projects}
           error={tabErrors.projects}
-          on:create-project={() => showCreateProjectModal = true}
+          on:create-project={() => (showCreateProjectModal = true)}
           on:project-deleted={handleProjectDeleted}
           on:refresh={loadProjectData}
-          on:show-budget-modal={() => showBudgetModal = true}
         />
       </div>
     {/if}
 
     <!-- 참여율 관리 탭 -->
     {#if activeTab === 'participation'}
-      <div class="space-y-6">
-        <!-- 탭별 오류 표시 -->
-        {#if tabErrors.participation}
-          <ThemeCard>
-            <div class="bg-red-50 border border-red-200 rounded-md p-4">
-              <div class="flex">
-                <div class="flex-shrink-0">
-                  <AlertTriangleIcon class="h-5 w-5 text-red-400" />
-                </div>
-                <div class="ml-3">
-                  <h3 class="text-sm font-medium text-red-800">참여율 데이터 로딩 오류</h3>
-                  <div class="mt-2 text-sm text-red-700">
-                    <p>{tabErrors.participation}</p>
-                    <button
-                      type="button"
-                      onclick={() => loadTabData('participation')}
-                      class="mt-2 text-sm text-red-600 hover:text-red-800 underline"
-                    >
-                      다시 시도
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </ThemeCard>
-        {/if}
-        
+      <div>
         <!-- 참여율 관리 카드 -->
         <ParticipationCard
           {employeeParticipationSummary}
@@ -560,38 +434,7 @@
 <!-- 프로젝트 생성 모달 -->
 <ThemeModal
   open={showCreateProjectModal}
-  onclose={() => showCreateProjectModal = false}
+  onclose={() => (showCreateProjectModal = false)}
 >
   <ProjectCreationForm on:projectCreated={handleProjectCreated} />
 </ThemeModal>
-
-<!-- 예산 설정 모달 -->
-{#if selectedProject}
-  <ThemeModal
-    open={showBudgetModal}
-    onclose={() => showBudgetModal = false}
-  >
-    <div class="px-6 py-4 border-b border-gray-200">
-      <h2 class="text-lg font-medium text-gray-900">{selectedProject.title} - 예산 설정</h2>
-    </div>
-    {#await import('$lib/components/project-management/SimpleBudgetForm.svelte')}
-      <div class="flex items-center justify-center py-8">
-        <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-        <span class="ml-2 text-gray-600">로딩 중...</span>
-      </div>
-    {:then { default: SimpleBudgetForm }}
-      <SimpleBudgetForm
-        projectId={selectedProject.id}
-        on:budgetSaved={() => {
-          showBudgetModal = false;
-          // 예산 정보 새로고침을 위해 프로젝트 데이터 다시 로드
-          loadProjectData();
-        }}
-      />
-    {:catch error}
-      <div class="text-center py-8 text-red-600">
-        <p>예산 입력 폼을 로드할 수 없습니다.</p>
-      </div>
-    {/await}
-  </ThemeModal>
-{/if}

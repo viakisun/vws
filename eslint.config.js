@@ -108,7 +108,7 @@ export default [
 			'svelte/html-closing-bracket-spacing': 'error',
 			'svelte/html-quotes': 'error',
 			'svelte/html-self-closing': 'error',
-			'svelte/indent': 'error',
+			'svelte/indent': ['error', { indent: 2 }],
 			'svelte/max-attributes-per-line': 'error',
 			'svelte/mustache-spacing': 'error',
 			'svelte/no-spaces-around-equal-signs-in-attribute': 'error',
