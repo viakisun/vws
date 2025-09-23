@@ -92,7 +92,94 @@ export default [
       'prefer-const': 'error',
       'no-unused-vars': 'off', // Handled by TypeScript
 
-      // === 이름 처리 강제 규칙 ===
+      // === 이름 처리 강제 규칙은 서버 사이드 파일에서만 적용 ===
+      'no-restricted-syntax': 'off'
+    }
+  },
+
+  // Server-side files (API routes, server utilities)
+  {
+    files: ['**/*.server.ts', '**/api/**/*.ts', '**/server/**/*.ts'],
+    languageOptions: {
+      parser: tsParser,
+      parserOptions: {
+        ecmaVersion: 2022,
+        sourceType: 'module'
+      },
+      globals: {
+        // Browser globals
+        window: 'readonly',
+        document: 'readonly',
+        console: 'readonly',
+        alert: 'readonly',
+        confirm: 'readonly',
+        fetch: 'readonly',
+        setTimeout: 'readonly',
+        clearTimeout: 'readonly',
+        setInterval: 'readonly',
+        clearInterval: 'readonly',
+        // Node.js globals
+        process: 'readonly',
+        Buffer: 'readonly',
+        __dirname: 'readonly',
+        __filename: 'readonly',
+        global: 'readonly',
+        // SvelteKit globals
+        Response: 'readonly',
+        Request: 'readonly',
+        Headers: 'readonly',
+        URL: 'readonly',
+        URLSearchParams: 'readonly',
+        FormData: 'readonly',
+        File: 'readonly',
+        Blob: 'readonly',
+        // SvelteKit specific
+        locals: 'readonly',
+        // Other common globals
+        MouseEvent: 'readonly',
+        KeyboardEvent: 'readonly',
+        HTMLButtonElement: 'readonly',
+        HTMLInputElement: 'readonly',
+        HTMLSelectElement: 'readonly',
+        HTMLTextAreaElement: 'readonly',
+        HTMLElement: 'readonly',
+        Element: 'readonly',
+        Event: 'readonly',
+        EventTarget: 'readonly',
+        // SVG globals
+        SVGSVGElement: 'readonly',
+        SVGGElement: 'readonly',
+        SVGPathElement: 'readonly',
+        SVGElement: 'readonly',
+        // Animation globals
+        requestAnimationFrame: 'readonly'
+      }
+    },
+    plugins: {
+      '@typescript-eslint': tsPlugin,
+      'unused-imports': unusedImports
+    },
+    rules: {
+      // === TypeScript Rules ===
+      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_'
+        }
+      ],
+      'unused-imports/no-unused-imports': 'error',
+
+      // === General Rules ===
+      'no-console': 'warn',
+      'no-debugger': 'error',
+      'no-var': 'error',
+      'prefer-const': 'error',
+      'no-unused-vars': 'off', // Handled by TypeScript
+
+      // === 이름 처리 강제 규칙 (서버 사이드에서만 적용) ===
       'no-restricted-syntax': [
         'error',
         {
@@ -242,7 +329,10 @@ export default [
       'svelte/no-reactive-literals': 'off', // Svelte 5에서는 $state 사용
       'svelte/require-stores-init': 'off', // Svelte 5에서는 $state 사용
       'svelte/require-store-callbacks-use-set-param': 'off', // Svelte 5에서는 $state 사용
-      'svelte/prefer-destructured-store-props': 'off' // Svelte 5에서는 $props 사용
+      'svelte/prefer-destructured-store-props': 'off', // Svelte 5에서는 $props 사용
+
+      // === 이름 처리 규칙은 Svelte 파일에서 비활성화 ===
+      'no-restricted-syntax': 'off'
     }
   },
 
