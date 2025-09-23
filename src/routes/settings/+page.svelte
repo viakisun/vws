@@ -451,7 +451,7 @@ import { logger } from '$lib/utils/logger';
                   style:color="var(--color-text)"
                   style:border-color="var(--color-border)"
                 >
-                  {#each availableTimezones as tz}
+                  {#each availableTimezones as tz, i (i)}
                     <option value={tz.key}>{tz.displayName}</option>
                   {/each}
                 </select>
@@ -468,7 +468,7 @@ import { logger } from '$lib/utils/logger';
                   class="font-medium mb-3"
                   style:color="var(--color-text)">지원되는 시간대</h4>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {#each availableTimezones as tz}
+                  {#each availableTimezones as tz, i (i)}
                     <button
                       type="button"
                       class="p-3 rounded-lg border cursor-pointer transition-colors text-left w-full"

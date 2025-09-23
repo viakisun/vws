@@ -99,7 +99,7 @@
               </tr>
             </thead>
             <tbody class="divide-y">
-              {#each docs as d}
+              {#each docs as d, i (i)}
                 <tr>
                   <td class="px-3 py-2">{d.id} · {d.title}</td>
                   <td class="px-3 py-2">{d.category}</td>

@@ -124,7 +124,7 @@ import { logger } from '$lib/utils/logger';
         <h3 class="text-sm font-medium text-red-800">검증 오류</h3>
       </div>
       <ul class="mt-2 text-sm text-red-700">
-        {#each validationErrors as error}
+        {#each validationErrors as error, i (i)}
           <li>• {error}</li>
         {/each}
       </ul>

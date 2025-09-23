@@ -188,7 +188,7 @@
           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           <option value="all">전체</option>
-          {#each $projects as project}
+          {#each $projects as project, i (i)}
             <option value={project.id}>{project.name}</option>
           {/each}
         </select>
@@ -205,7 +205,7 @@
           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           <option value="all">전체</option>
-          {#each $employees as person}
+          {#each $employees as person, i (i)}
             <option value={person.id}>{person.name}</option>
           {/each}
         </select>
@@ -333,7 +333,7 @@
         <div>
           <h4 class="font-medium text-gray-900 mb-2">첨부파일</h4>
           <div class="space-y-2">
-            {#each selectedNote.attachments as attachment}
+            {#each selectedNote.attachments as attachment, i (i)}
               <div class="flex items-center gap-2 p-2 bg-gray-50 rounded">
                 <span class="text-sm text-gray-600">📎 {attachment}</span>
               </div>
@@ -362,7 +362,7 @@
         class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
       >
         <option value="">프로젝트 선택</option>
-        {#each $projects as project}
+        {#each $projects as project, i (i)}
           <option value={project.id}>{project.name}</option>
         {/each}
       </select>

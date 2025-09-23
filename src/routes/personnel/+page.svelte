@@ -125,7 +125,7 @@
       bind:value={orgFilter}
     >
       <option value="">전체 부서</option>
-      {#each orgOptions as o}
+      {#each orgOptions as o, i (i)}
         <option value={o}>{o}</option>
       {/each}
     </select>
@@ -142,7 +142,7 @@
       class="w-full sm:w-40 rounded-md border border-gray-200 bg-white px-2 py-1.5 text-sm"
       bind:value={quarter}
     >
-      {#each quarters as q}
+      {#each quarters as q, i (i)}
         <option value={q}>{q}</option>
       {/each}
     </select>
@@ -192,7 +192,7 @@
           </tr>
         </thead>
         <tbody class="divide-y">
-          {#each filtered as p}
+          {#each filtered as p, i (i)}
             <tr
               class="hover:bg-gray-50 cursor-pointer"
               onclick={() => (selectedId = p.id)}>
@@ -255,7 +255,7 @@
       <div>
         <div class="text-caption mb-1">프로젝트 참여</div>
         <ul class="list-disc pl-5 space-y-1">
-          {#each selected.participations as pp}
+          {#each selected.participations as pp, i (i)}
             <li>
               {pp.projectId} · {pp.allocationPct}% · {pp.startDate}{pp.endDate
                 ? ` ~ ${pp.endDate}`

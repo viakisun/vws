@@ -307,7 +307,7 @@ import { logger } from '$lib/utils/logger';
             <ThemeCard class="p-6">
               <ThemeSectionHeader title="진행중인 기회" />
               <ThemeSpacer size={4}>
-                {#each salesData.opportunities as opportunity}
+                {#each salesData.opportunities as opportunity, i (i)}
                   <div
                     class="flex items-center justify-between p-3 rounded-lg"
                     style:background="var(--color-surface-elevated)"
@@ -353,7 +353,7 @@ import { logger } from '$lib/utils/logger';
             <ThemeCard class="p-6">
               <ThemeSectionHeader title="최근 성사된 거래" />
               <ThemeSpacer size={4}>
-                {#each salesData.deals as deal}
+                {#each salesData.deals as deal, i (i)}
                   <div
                     class="flex items-center justify-between p-3 rounded-lg"
                     style:background="var(--color-surface-elevated)"
@@ -493,7 +493,7 @@ import { logger } from '$lib/utils/logger';
           <ThemeCard class="p-6">
             <ThemeSectionHeader title="영업 기회" />
             <ThemeSpacer size={4}>
-              {#each salesData.opportunities as opportunity}
+              {#each salesData.opportunities as opportunity, i (i)}
                 <div
                   class="flex items-center justify-between p-3 rounded-lg"
                   style:background="var(--color-surface-elevated)"
@@ -538,7 +538,7 @@ import { logger } from '$lib/utils/logger';
           <ThemeCard class="p-6">
             <ThemeSectionHeader title="최근 거래" />
             <ThemeSpacer size={4}>
-              {#each salesData.deals as deal}
+              {#each salesData.deals as deal, i (i)}
                 <div
                   class="flex items-center justify-between p-3 rounded-lg"
                   style:background="var(--color-surface-elevated)"

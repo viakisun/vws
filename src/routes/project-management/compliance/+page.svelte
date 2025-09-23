@@ -110,7 +110,7 @@
         </tr>
       </thead>
       <tbody class="divide-y">
-        {#each rules as r}
+        {#each rules as r, i (i)}
           <tr>
             <td class="px-3 py-2">{r.title}</td>
             <td class="px-3 py-2">{r.required ? '예' : '권장'}</td>

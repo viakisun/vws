@@ -252,7 +252,7 @@ import { logger } from '$lib/utils/logger';
     {#if validationErrors.length > 0}
       <div class="p-3 bg-red-50 border border-red-200 rounded-lg">
         <ul class="text-sm text-red-700">
-          {#each validationErrors as error}
+          {#each validationErrors as error, i (i)}
             <li>• {error}</li>
           {/each}
         </ul>
@@ -261,7 +261,7 @@ import { logger } from '$lib/utils/logger';
 
     <!-- 연차별 예산 입력 -->
     <div class="space-y-4">
-      {#each budgets as budget, index}
+      {#each budgets as budget, index, i (i)}
         <div class="border border-gray-200 rounded-lg p-4">
           <div class="flex items-center justify-between mb-4">
             <h4 class="font-medium text-gray-900">{budget.year}차년도</h4>

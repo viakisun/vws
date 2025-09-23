@@ -454,7 +454,7 @@ import { logger } from '$lib/utils/logger';
           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           <option value="all">전체</option>
-          {#each $projects as project}
+          {#each $projects as project, i (i)}
             <option value={project.id}>{project.name}</option>
           {/each}
         </select>
@@ -591,7 +591,7 @@ import { logger } from '$lib/utils/logger';
         <div>
           <h4 class="font-medium text-gray-900 mb-2">추천 이유 (1순위)</h4>
           <ul class="text-sm text-gray-600 space-y-1">
-            {#each replacement.candidates[0]?.reasons || [] as reason}
+            {#each replacement.candidates[0]?.reasons || [] as reason, i (i)}
               <li class="flex items-center gap-2">
                 <span class="text-green-500">✓</span>
                 {reason}
@@ -654,7 +654,7 @@ import { logger } from '$lib/utils/logger';
       <div>
         <h4 class="font-medium text-gray-900 mb-3">모든 후보자</h4>
         <div class="space-y-4">
-          {#each selectedReplacement?.candidates || [] as candidate, index}
+          {#each selectedReplacement?.candidates || [] as candidate, index, i (i)}
             <div class="bg-gray-50 p-4 rounded-md">
               <div class="flex justify-between items-start mb-3">
                 <div>
@@ -679,7 +679,7 @@ import { logger } from '$lib/utils/logger';
               <div class="mb-3">
                 <div class="text-sm font-medium text-gray-700 mb-1">추천 이유:</div>
                 <ul class="text-sm text-gray-600 space-y-1">
-                  {#each candidate.reasons as reason}
+                  {#each candidate.reasons as reason, i (i)}
                     <li class="flex items-center gap-2">
                       <span class="text-green-500">✓</span>
                       {reason}
@@ -690,7 +690,7 @@ import { logger } from '$lib/utils/logger';
               <div>
                 <div class="text-sm font-medium text-gray-700 mb-1">기술 스택:</div>
                 <div class="flex flex-wrap gap-1">
-                  {#each candidate.skillsMatch as skill}
+                  {#each candidate.skillsMatch as skill, i (i)}
                     <span class="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded">
                       {skill}
                     </span>
@@ -733,7 +733,7 @@ import { logger } from '$lib/utils/logger';
           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           <option value="">인력 선택</option>
-          {#each $employees as person}
+          {#each $employees as person, i (i)}
             <option value={person.id}>{person.name}</option>
           {/each}
         </select>
@@ -750,7 +750,7 @@ import { logger } from '$lib/utils/logger';
           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           <option value="">프로젝트 선택</option>
-          {#each $projects as project}
+          {#each $projects as project, i (i)}
             <option value={project.id}>{project.name}</option>
           {/each}
         </select>
@@ -851,7 +851,7 @@ import { logger } from '$lib/utils/logger';
         </button>
       </div>
       <div class="space-y-2">
-        {#each formData.requiredSkills as skill, index}
+        {#each formData.requiredSkills as skill, index, i (i)}
           <div class="flex gap-2 items-center">
             <input
               type="text"

@@ -43,7 +43,7 @@
     class="fixed bottom-4 right-4 space-y-2 z-50"
     aria-live="polite"
     aria-atomic="true">
-    {#each $toasts as t}
+    {#each $toasts as t, i (i)}
       <div
         class="px-4 py-3 rounded-lg shadow-lg border text-sm transition-all duration-300"
         style:background="var(--color-surface)"

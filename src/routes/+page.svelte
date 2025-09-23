@@ -29,7 +29,7 @@
 
   <!-- Stats Grid -->
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-    {#each stats as stat}
+    {#each stats as stat, i (i)}
       <ThemeCard
         variant="elevated"
         hover={true}

@@ -130,7 +130,7 @@ import { logger } from '$lib/utils/logger';
               </tr>
             </thead>
             <tbody class="divide-y divide-gray-200">
-              {#each budgetDetails as budget}
+              {#each budgetDetails as budget, i (i)}
                 <tr class="hover:bg-gray-50">
                   <td class="px-4 py-3 font-medium text-gray-900">{budget.year}차년도</td>
                   <td class="px-4 py-3 text-center text-gray-700 text-xs">

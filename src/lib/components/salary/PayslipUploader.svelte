@@ -166,7 +166,7 @@
               bind:value={selectedYear}
               class="w-full px-3 py-2 border border-blue-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              {#each yearOptions as year}
+              {#each yearOptions as year, i (i)}
                 <option value={year.value}>{year.label}</option>
               {/each}
             </select>
@@ -181,7 +181,7 @@
               bind:value={selectedMonth}
               class="w-full px-3 py-2 border border-blue-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              {#each monthOptions as month}
+              {#each monthOptions as month, i (i)}
                 <option value={month.value}>{month.label}</option>
               {/each}
             </select>
@@ -336,7 +336,7 @@
           <div class="bg-red-50 border border-red-200 rounded-lg p-4">
             <h3 class="text-lg font-semibold text-red-800 mb-3">오류 목록</h3>
             <div class="max-h-40 overflow-y-auto">
-              {#each uploadResult.results.errors as error}
+              {#each uploadResult.results.errors as error, i (i)}
                 <div class="text-sm text-red-700 py-1">{error}</div>
               {/each}
             </div>
@@ -360,7 +360,7 @@
                   </tr>
                 </thead>
                 <tbody>
-                  {#each uploadResult.results.details as detail}
+                  {#each uploadResult.results.details as detail, i (i)}
                     <tr class="border-t">
                       <td class="px-3 py-2">{detail.row}</td>
                       <td class="px-3 py-2">{detail.employeeId}</td>

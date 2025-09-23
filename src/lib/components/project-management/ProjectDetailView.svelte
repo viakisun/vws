@@ -1991,7 +1991,7 @@ import { logger } from '$lib/utils/logger';
             </tr>
           </thead>
           <tbody class="bg-white divide-y divide-gray-200">
-            {#each projectBudgets as budget}
+            {#each projectBudgets as budget, i (i)}
               {@const totalBudget =
                 getPersonnelCostCash(budget) +
                   getPersonnelCostInKind(budget) +
@@ -2565,7 +2565,7 @@ import { logger } from '$lib/utils/logger';
             }}
           >
             <option value="">👥 연구원 선택 ({availableEmployees.length}명)</option>
-            {#each availableEmployees as employee}
+            {#each availableEmployees as employee, i (i)}
               <option value={employee.id}
               >{formatKoreanName(employee.name)} ({employee.department})</option
               >
@@ -2840,7 +2840,7 @@ import { logger } from '$lib/utils/logger';
           </tr>
         </thead>
         <tbody class="bg-white divide-y divide-gray-200">
-          {#each projectMembers as member}
+          {#each projectMembers as member, i (i)}
             <tr
               class="hover:bg-gray-50 {editingMember && editingMember.id === member.id
                 ? 'bg-gradient-to-r from-blue-50 to-indigo-50 border-l-4 border-blue-400 shadow-sm'
@@ -2995,7 +2995,7 @@ import { logger } from '$lib/utils/logger';
                           <div class="font-semibold text-yellow-400 mb-2">⚠️ 경고 사항</div>
                           <div class="text-gray-300 mb-1">{validationStatus.message}</div>
                           {#if validationStatus.issues && validationStatus.issues.length > 0}
-                            {#each validationStatus.issues as issue}
+                            {#each validationStatus.issues as issue, i (i)}
                               <div class="mb-2 last:mb-0 p-2 bg-gray-800 rounded">
                                 <div class="text-gray-300 font-medium">{issue.message}</div>
                                 {#if issue.suggestedFix}
@@ -3035,7 +3035,7 @@ import { logger } from '$lib/utils/logger';
                           <div class="font-semibold text-red-400 mb-2">❌ 검증 실패</div>
                           <div class="text-gray-300 mb-1">{validationStatus.message}</div>
                           {#if validationStatus.issues && validationStatus.issues.length > 0}
-                            {#each validationStatus.issues as issue}
+                            {#each validationStatus.issues as issue, i (i)}
                               <div class="mb-2 last:mb-0 p-2 bg-gray-800 rounded">
                                 <div class="text-gray-300 font-medium">{issue.message}</div>
                                 {#if issue.suggestedFix}
@@ -3216,7 +3216,7 @@ import { logger } from '$lib/utils/logger';
                   </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
-                  {#each personnelSummary.monthlyCosts as monthData}
+                  {#each personnelSummary.monthlyCosts as monthData, i (i)}
                     <tr class="hover:bg-gray-50">
                       <td class="px-3 py-2 whitespace-nowrap text-sm font-medium text-gray-900">
                         {monthData.monthName}
@@ -3270,7 +3270,7 @@ import { logger } from '$lib/utils/logger';
             bind:value={selectedEvidencePeriod}
             class="px-3 py-1 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            {#each projectBudgets as budget}
+            {#each projectBudgets as budget, i (i)}
               <option value={getPeriodNumber(budget)}>
                 {formatPeriodDisplay(budget)}
               </option>
@@ -3338,7 +3338,7 @@ import { logger } from '$lib/utils/logger';
         </div>
       {:else}
         <div class="space-y-4">
-          {#each budgetCategories as budgetCategory}
+          {#each budgetCategories as budgetCategory, i (i)}
             {@const categoryItems = evidenceItems.filter(
               item => item.category_name === budgetCategory.name
             )}
@@ -3445,7 +3445,7 @@ import { logger } from '$lib/utils/logger';
                           </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
-                          {#each categoryItems as item}
+                          {#each categoryItems as item, i (i)}
                             {@const isOverdue =
                               new Date(item.due_date) < new Date() && item.status !== 'completed'}
                             <tr class="hover:bg-gray-50">
@@ -3669,7 +3669,7 @@ import { logger } from '$lib/utils/logger';
 
               <div class="space-y-2">
                 {#if selectedEvidenceItem.documents && selectedEvidenceItem.documents.length > 0}
-                  {#each selectedEvidenceItem.documents as document}
+                  {#each selectedEvidenceItem.documents as document, i (i)}
                     <div class="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg"
                     >
                       <div class="flex items-center space-x-3">
@@ -3746,7 +3746,7 @@ import { logger } from '$lib/utils/logger';
 
               <div class="space-y-2">
                 {#if selectedEvidenceItem.schedules && selectedEvidenceItem.schedules.length > 0}
-                  {#each selectedEvidenceItem.schedules as schedule}
+                  {#each selectedEvidenceItem.schedules as schedule, i (i)}
                     <div class="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg"
                     >
                       <div class="flex items-center space-x-3">
@@ -3856,7 +3856,7 @@ import { logger } from '$lib/utils/logger';
               required
             >
               <option value="">카테고리를 선택하세요</option>
-              {#each evidenceCategories as category}
+              {#each evidenceCategories as category, i (i)}
                 <option value={category.id}>{category.name}</option>
               {/each}
             </select>
@@ -3927,7 +3927,7 @@ import { logger } from '$lib/utils/logger';
               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="">담당자를 선택하세요</option>
-              {#each availableEmployees as employee}
+              {#each availableEmployees as employee, i (i)}
                 <option value={employee.id}>
                   {formatEmployeeForSelect(employee)}
                 </option>
@@ -3984,7 +3984,7 @@ import { logger } from '$lib/utils/logger';
                 </p>
                 {#if evidenceValidation.validation.warnings && evidenceValidation.validation.warnings.length > 0}
                   <div class="mt-2">
-                    {#each evidenceValidation.validation.warnings as warning}
+                    {#each evidenceValidation.validation.warnings as warning, i (i)}
                       <p class="text-sm text-yellow-700">⚠️ {warning}</p>
                     {/each}
                   </div>
@@ -4340,7 +4340,7 @@ import { logger } from '$lib/utils/logger';
             <div class="border rounded-lg p-4">
               <h4 class="font-medium text-gray-900 mb-3">프로젝트 검증</h4>
               <div class="space-y-2 text-sm">
-                {#each validationResults.project.validationResults || [] as result}
+                {#each validationResults.project.validationResults || [] as result, i (i)}
                   <div class="flex justify-between">
                     <span>{result.ruleName}:</span>
                     <span class={result.isValid ? 'text-green-600' : 'text-red-600'}>
@@ -4357,7 +4357,7 @@ import { logger } from '$lib/utils/logger';
             <div class="border border-red-200 rounded-lg p-4 bg-red-50">
               <h4 class="font-medium text-red-900 mb-3">발견된 문제점</h4>
               <ul class="space-y-1 text-sm text-red-800">
-                {#each validationResults.summary.issues as issue}
+                {#each validationResults.summary.issues as issue, i (i)}
                   <li>• {issue}</li>
                 {/each}
               </ul>

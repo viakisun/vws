@@ -371,7 +371,7 @@ import { logger } from '$lib/utils/logger';
 
         {#if projectBudgets.length > 0}
           <div class="space-y-4">
-            {#each projectBudgets as budget}
+            {#each projectBudgets as budget, i (i)}
               <div class="border border-gray-200 rounded-lg p-4">
                 <div class="flex items-center justify-between mb-3">
                   <h3 class="font-medium text-gray-900">
@@ -467,7 +467,7 @@ import { logger } from '$lib/utils/logger';
                 </tr>
               </thead>
               <tbody class="bg-white divide-y divide-gray-200">
-                {#each projectMembers as member}
+                {#each projectMembers as member, i (i)}
                   <tr>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                       {member.first_name}
@@ -514,7 +514,7 @@ import { logger } from '$lib/utils/logger';
 
         {#if evidenceItems.length > 0}
           <div class="space-y-3">
-            {#each evidenceItems as item}
+            {#each evidenceItems as item, i (i)}
               <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                 <div>
                   <h4 class="font-medium text-gray-900">{item.name}</h4>
@@ -955,7 +955,7 @@ import { logger } from '$lib/utils/logger';
             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="">직원을 선택하세요</option>
-            {#each availableEmployees as employee}
+            {#each availableEmployees as employee, i (i)}
               <option value={employee.id}>{employee.first_name} {employee.last_name}</option>
             {/each}
           </select>

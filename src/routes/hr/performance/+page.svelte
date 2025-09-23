@@ -478,7 +478,7 @@
           <div class="p-6">
             <h3 class="text-lg font-semibold text-gray-900 mb-4">역량 매트릭스</h3>
             <div class="space-y-3">
-              {#each employeeCompetencies as competency}
+              {#each employeeCompetencies as competency, i (i)}
                 <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <div>
                     <p class="text-sm font-medium text-gray-900">{competency.competencyName}</p>
@@ -623,7 +623,7 @@
               >강점</label
               >
               <div class="space-y-2">
-                {#each reviewForm.strengths as strength, index}
+                {#each reviewForm.strengths as strength, index, i (i)}
                   <div class="flex space-x-2">
                     <input
                       id="strengths-{index}"
@@ -657,7 +657,7 @@
               >개선 영역</label
               >
               <div class="space-y-2">
-                {#each reviewForm.improvementAreas as area, index}
+                {#each reviewForm.improvementAreas as area, index, i (i)}
                   <div class="flex space-x-2">
                     <input
                       id="improvement-areas-{index}"

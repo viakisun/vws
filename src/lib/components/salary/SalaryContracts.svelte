@@ -564,7 +564,7 @@
             </tr>
           </thead>
           <tbody class="bg-white divide-y divide-gray-200">
-            {#each localContracts as contract}
+            {#each localContracts as contract, i (i)}
               <tr class="hover:bg-gray-50">
                 <td class="px-6 py-4 whitespace-nowrap">
                   <div>
@@ -643,7 +643,7 @@
           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           <option value="">직원을 선택하세요</option>
-          {#each employees as employee}
+          {#each employees as employee, i (i)}
             <option value={employee.id}>{employee.name} ({employee.department})</option>
           {/each}
         </select>

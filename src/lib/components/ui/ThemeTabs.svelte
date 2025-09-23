@@ -185,7 +185,7 @@
       style:border-color="var(--color-border)"
       role="tablist"
     >
-      {#each tabs as tab}
+      {#each tabs as tab, i (i)}
         <button type="button"
           role="tab"
           aria-selected={currentTab === tab.id}
@@ -218,7 +218,7 @@
 
   <!-- 탭 콘텐츠 -->
   <div class="flex-1 {orientation === 'vertical' ? 'ml-6' : 'mt-4'}">
-    {#each tabs as tab}
+    {#each tabs as tab, i (i)}
       <div
         role="tabpanel"
         id="tabpanel-{tab.id}"

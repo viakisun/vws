@@ -31,7 +31,7 @@
     class="chart-container"
     style:height="{height}px">
     <div class="flex items-end justify-between h-full space-x-2">
-      {#each data as item, index}
+      {#each data as item, index, i (i)}
         <div class="flex flex-col items-center flex-1">
           <div
             class="w-full bg-gray-200 rounded-t"
@@ -58,7 +58,7 @@
       <svg
         class="w-32 h-32 transform -rotate-90"
         viewBox="0 0 32 32">
-        {#each data as item, index}
+        {#each data as item, index, i (i)}
           {@const startAngle =
             (data.slice(0, index).reduce((sum, d) => sum + d.value, 0) / totalValue) * 360}
           {@const endAngle =
@@ -84,7 +84,7 @@
     </div>
   </div>
   <div class="mt-4 space-y-2">
-    {#each data as item, index}
+    {#each data as item, index, i (i)}
       <div class="flex items-center space-x-2">
         <div
           class="w-3 h-3 rounded-full"

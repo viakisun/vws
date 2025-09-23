@@ -128,7 +128,7 @@
           </tr>
         </thead>
         <tbody class="divide-y">
-          {#each filtered as d}
+          {#each filtered as d, i (i)}
             <tr>
               <td class="px-3 py-2">{d.id}</td>
               <td class="px-3 py-2">{d.title}</td>

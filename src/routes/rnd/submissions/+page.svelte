@@ -394,7 +394,7 @@ import { logger } from '$lib/utils/logger';
           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           <option value="all">전체</option>
-          {#each $projects as project}
+          {#each $projects as project, i (i)}
             <option value={project.id}>{project.name}</option>
           {/each}
         </select>
@@ -770,7 +770,7 @@ import { logger } from '$lib/utils/logger';
           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           <option value="">프로젝트 선택</option>
-          {#each $projects as project}
+          {#each $projects as project, i (i)}
             <option value={project.id}>{project.name}</option>
           {/each}
         </select>

@@ -334,7 +334,7 @@ import { logger } from '$lib/utils/logger';
             <ThemeCard class="p-6">
               <ThemeSectionHeader title="최근 상호작용" />
               <ThemeSpacer size={4}>
-                {#each crmData.interactions as interaction}
+                {#each crmData.interactions as interaction, i (i)}
                   <div
                     class="flex items-center justify-between p-3 rounded-lg"
                     style:background="var(--color-surface-elevated)"
@@ -377,7 +377,7 @@ import { logger } from '$lib/utils/logger';
             <ThemeCard class="p-6">
               <ThemeSectionHeader title="진행중인 기회" />
               <ThemeSpacer size={4}>
-                {#each crmData.opportunities as opportunity}
+                {#each crmData.opportunities as opportunity, i (i)}
                   <div
                     class="flex items-center justify-between p-3 rounded-lg"
                     style:background="var(--color-surface-elevated)"
@@ -522,7 +522,7 @@ import { logger } from '$lib/utils/logger';
           <ThemeCard class="p-6">
             <ThemeSectionHeader title="고객 상호작용" />
             <ThemeSpacer size={4}>
-              {#each crmData.interactions as interaction}
+              {#each crmData.interactions as interaction, i (i)}
                 <div
                   class="flex items-center justify-between p-3 rounded-lg"
                   style:background="var(--color-surface-elevated)"
@@ -567,7 +567,7 @@ import { logger } from '$lib/utils/logger';
           <ThemeCard class="p-6">
             <ThemeSectionHeader title="영업 기회" />
             <ThemeSpacer size={4}>
-              {#each crmData.opportunities as opportunity}
+              {#each crmData.opportunities as opportunity, i (i)}
                 <div
                   class="flex items-center justify-between p-3 rounded-lg"
                   style:background="var(--color-surface-elevated)"

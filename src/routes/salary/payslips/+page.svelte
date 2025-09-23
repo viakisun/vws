@@ -154,7 +154,7 @@
               class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="">전체 기간</option>
-              {#each periodOptions as period}
+              {#each periodOptions as period, i (i)}
                 <option value={period}>{period}</option>
               {/each}
             </select>
@@ -169,7 +169,7 @@
               class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="">전체 직원</option>
-              {#each employeeOptions as employee}
+              {#each employeeOptions as employee, i (i)}
                 <option value={employee.id}>{employee.name}</option>
               {/each}
             </select>
@@ -210,7 +210,7 @@
               </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
-              {#each filteredPayslips as payroll}
+              {#each filteredPayslips as payroll, i (i)}
                 <tr class="hover:bg-gray-50">
                   <td class="px-6 py-4 whitespace-nowrap">
                     <div class="flex items-center">

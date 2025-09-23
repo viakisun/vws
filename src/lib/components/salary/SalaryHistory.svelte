@@ -225,7 +225,7 @@
     <div class="mb-4">
       <label class="block text-sm font-medium text-gray-700 mb-2">직원 선택</label>
       <div class="flex flex-wrap gap-2">
-        {#each employees as employee}
+        {#each employees as employee, i (i)}
           <button type="button"
             onclick={() => selectEmployee(employee.id)}
             class="px-4 py-2 rounded-lg border transition-colors {selectedEmployee === employee.id
@@ -277,7 +277,7 @@
             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="">전체</option>
-            {#each monthOptions as option}
+            {#each monthOptions as option, i (i)}
               <option value={option.value}>{option.label}</option>
             {/each}
           </select>
@@ -331,7 +331,7 @@
     </div>
   {:else}
     <!-- 선택된 직원의 급여 이력 -->
-    {#each selectedEmployeeHistory as payroll, index}
+    {#each selectedEmployeeHistory as payroll, index, i (i)}
       <ThemeCard class="p-6">
         <div class="flex items-start justify-between">
           <div class="flex-1">

@@ -53,7 +53,7 @@
         </tr>
       </thead>
       <tbody class="divide-y">
-        {#each quarters as q}
+        {#each quarters as q, i (i)}
           <tr>
             <td class="px-3 py-2">{q}</td>
             <td class="px-3 py-2 tabular-nums">{sumQuarter(q).toLocaleString()}원</td>

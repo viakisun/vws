@@ -412,7 +412,7 @@ import { logger } from '$lib/utils/logger';
             style:color="var(--color-text)"
           >
             <option value="">직책을 선택하세요 (선택사항)</option>
-            {#each jobTitles as jobTitle}
+            {#each jobTitles as jobTitle, i (i)}
               <option value={jobTitle.id}>{jobTitle.name} ({jobTitle.category})</option>
             {/each}
           </select>
@@ -515,7 +515,7 @@ import { logger } from '$lib/utils/logger';
             style:border-color="var(--color-border)"
             style:color="var(--color-text)"
           >
-            {#each statusOptions as option}
+            {#each statusOptions as option, i (i)}
               <option value={option.value}>{option.label}</option>
             {/each}
           </select>
@@ -536,7 +536,7 @@ import { logger } from '$lib/utils/logger';
             style:border-color="var(--color-border)"
             style:color="var(--color-text)"
           >
-            {#each employmentTypeOptions as option}
+            {#each employmentTypeOptions as option, i (i)}
               <option value={option.value}>{option.label}</option>
             {/each}
           </select>

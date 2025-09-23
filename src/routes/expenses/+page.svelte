@@ -114,7 +114,7 @@
         </tr>
       </thead>
       <tbody class="divide-y">
-        {#each filtered as d}
+        {#each filtered as d, i (i)}
           <tr
             class="hover:bg-gray-50 cursor-pointer"
             onclick={() => (selectedId = d.id)}>
@@ -209,7 +209,7 @@
         <div class="text-caption mb-1">결재 이력</div>
         {#if $expenseHistories[selected.id]?.length}
           <ul class="space-y-1">
-            {#each $expenseHistories[selected.id] as h}
+            {#each $expenseHistories[selected.id] as h (h.id)}
               <li class="flex items-center justify-between">
                 <span>{new Date(h.at).toLocaleString('ko-KR')}</span>
                 <Badge color={h.status === '반려' ? 'red' : h.status === '대기' ? 'yellow' : 'green'}

@@ -210,7 +210,7 @@ import { logger } from '$lib/utils/logger';
 
           <!-- 부서들 -->
           <div class="p-2">
-            {#each executive.children as department}
+            {#each executive.children as department, i (i)}
               <div class="mb-2 last:mb-0">
                 <!-- 부서명 -->
                 <div class="flex items-center gap-2 mb-1">

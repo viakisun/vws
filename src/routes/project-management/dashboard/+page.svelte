@@ -234,7 +234,7 @@
     class="rounded-md border border-gray-200 px-2 py-1 text-sm"
     bind:value={selectedQuarter}
   >
-    {#each quarters as q}
+    {#each quarters as q, i (i)}
       <option value={q}>{q}</option>
     {/each}
   </select>
@@ -295,7 +295,7 @@
   <Card header="예산 경보">
     {#snippet children()}
       <ul class="space-y-2 text-sm">
-        {#each alertDetails as a}
+        {#each alertDetails as a, i (i)}
           <li class="flex items-center justify-between">
             <div class="flex items-center gap-3">
               <span class="font-medium">{a.name}</span>
@@ -448,7 +448,7 @@
           </tr>
         </thead>
         <tbody class="divide-y">
-          {#each burnVariance as b}
+          {#each burnVariance as b, i (i)}
             <tr>
               <td class="px-3 py-2">{b.name}</td>
               <td class="px-3 py-2 tabular-nums">{b.expected.toLocaleString()}원</td>
@@ -475,7 +475,7 @@
           </tr>
         </thead>
         <tbody class="divide-y">
-          {#each churnData as r}
+          {#each churnData as r, i (i)}
             <tr>
               <td class="px-3 py-2">{r.q}</td>
               <td class="px-3 py-2 tabular-nums">{r.headcount}</td>

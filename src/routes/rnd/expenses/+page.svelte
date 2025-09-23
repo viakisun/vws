@@ -347,7 +347,7 @@
           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           <option value="all">전체</option>
-          {#each $activeBudgetCategories as category}
+          {#each $activeBudgetCategories as category, i (i)}
             <option value={category.code}>{category.nameKo}</option>
           {/each}
         </select>
@@ -495,7 +495,7 @@
         class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
       >
         <option value="">카테고리 선택</option>
-        {#each $activeBudgetCategories as category}
+        {#each $activeBudgetCategories as category, i (i)}
           <option value={category.code}>{category.nameKo}</option>
         {/each}
       </select>

@@ -108,7 +108,7 @@
             </tr>
           </thead>
           <tbody class="divide-y">
-            {#each people as p}
+            {#each people as p, i (i)}
               {@const alloc = allocOf(p)}
               {@const qc = quarterCost(p)}
               {@const qb = quarterBudget(p)}

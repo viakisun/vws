@@ -22,7 +22,7 @@
 </div>
 
 <div class="space-y-3">
-  {#each projects as p}
+  {#each projects as p, i (i)}
     <Card>
       <a
         class="flex items-center justify-between gap-4 hover:bg-gray-50 rounded-md px-2 py-2 transition-colors"

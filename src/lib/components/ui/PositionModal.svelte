@@ -108,7 +108,7 @@
           required
         >
           <option value="">부서를 선택하세요</option>
-          {#each departments as dept}
+          {#each departments as dept, i (i)}
             <option value={dept.name}>{dept.name}</option>
           {/each}
         </select>

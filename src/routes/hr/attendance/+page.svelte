@@ -514,7 +514,7 @@
             <div class="mb-4">
               <h4 class="text-sm font-medium text-gray-700 mb-2">잔여 휴가</h4>
               <div class="space-y-2">
-                {#each employeeLeaveBalance as balance}
+                {#each employeeLeaveBalance as balance, i (i)}
                   <div class="flex justify-between items-center">
                     <span class="text-sm text-gray-600">
                       {$leaveTypes.find(type => type.id === balance.leaveTypeId)?.name ||
@@ -611,7 +611,7 @@
                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">휴가 유형을 선택하세요</option>
-                {#each $leaveTypes as leaveType}
+                {#each $leaveTypes as leaveType, i (i)}
                   <option value={leaveType.id}>{leaveType.name}</option>
                 {/each}
               </select>

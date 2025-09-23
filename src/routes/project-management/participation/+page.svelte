@@ -368,7 +368,7 @@ import { logger } from '$lib/utils/logger';
               style:color="var(--color-text)"
             >
               <option value="all">전체 프로젝트</option>
-              {#each $projects as project}
+              {#each $projects as project, i (i)}
                 <option value={project.id}>{project.name}</option>
               {/each}
             </select>
@@ -380,7 +380,7 @@ import { logger } from '$lib/utils/logger';
               style:color="var(--color-text)"
             >
               <option value="all">전체 직원</option>
-              {#each $employees as employee}
+              {#each $employees as employee, i (i)}
                 <option value={employee.id}>{employee.name}</option>
               {/each}
             </select>
@@ -623,7 +623,7 @@ import { logger } from '$lib/utils/logger';
       <div class="p-6">
         <ThemeSectionHeader title="프로젝트별 참여 현황" />
         <div class="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {#each projectParticipation as project}
+          {#each projectParticipation as project, i (i)}
             <div
               class="p-4 border rounded-lg"
               style:border-color="var(--color-border)"
@@ -670,7 +670,7 @@ import { logger } from '$lib/utils/logger';
       <div class="p-6">
         <ThemeSectionHeader title="직원별 참여 현황" />
         <div class="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {#each employeeParticipation as employee}
+          {#each employeeParticipation as employee, i (i)}
             <div
               class="p-4 border rounded-lg"
               style:border-color="var(--color-border)"
@@ -757,7 +757,7 @@ import { logger } from '$lib/utils/logger';
               required
             >
               <option value="">직원을 선택하세요</option>
-              {#each $employees as employee}
+              {#each $employees as employee, i (i)}
                 <option value={employee.id}>{employee.name}</option>
               {/each}
             </select>
@@ -778,7 +778,7 @@ import { logger } from '$lib/utils/logger';
               required
             >
               <option value="">프로젝트를 선택하세요</option>
-              {#each $projects as project}
+              {#each $projects as project, i (i)}
                 <option value={project.id}>{project.name}</option>
               {/each}
             </select>
@@ -889,7 +889,7 @@ import { logger } from '$lib/utils/logger';
               class="font-medium mb-2"
               style:color="var(--color-text)">AI 추천사항</h4>
             <div class="space-y-2">
-              {#each filteredRecommendations as recommendation}
+              {#each filteredRecommendations as recommendation, i (i)}
                 <div class="flex items-start gap-2">
                   <ZapIcon
                     size={16}

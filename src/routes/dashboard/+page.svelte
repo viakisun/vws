@@ -72,7 +72,7 @@
 
 <div class="space-y-6">
   <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-    {#each kpis as k}
+    {#each kpis as k, i (i)}
       <Card>
         <div class="kpi">
           <div>
@@ -113,7 +113,7 @@
       </select>
     </div>
     <div class="divide-y">
-      {#each filtered as p}
+      {#each filtered as p, i (i)}
         <button
           type="button"
           class="w-full text-left flex items-center justify-between gap-4 py-3 hover:bg-gray-50 rounded-md px-2"
@@ -147,7 +147,7 @@
   {#if $budgetAlerts.length}
     <Card header="예산 경보">
       <ul class="space-y-2 text-sm">
-        {#each $budgetAlerts as a}
+        {#each $budgetAlerts as a, i (i)}
           <li class="flex items-center justify-between">
             <span>{a.name}</span>
             <Badge color={a.level === 'over' ? 'red' : a.level === 'critical' ? 'yellow' : 'yellow'}
@@ -203,7 +203,7 @@
             <div class="text-sm text-gray-500">등록된 리스크 없음</div>
           {:else}
             <ul class="list-disc pl-5 text-sm space-y-1">
-              {#each selected.risks as r}
+              {#each selected.risks as r, i (i)}
                 <li>
                   <span class="font-medium">[{r.severity}]</span>
                   {r.description} <span class="text-caption">({r.impact}/{r.status})</span>

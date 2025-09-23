@@ -358,7 +358,7 @@
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">필수 요구사항</label>
               <div class="space-y-2">
-                {#each jobPostingForm.requirements as requirement, index}
+                {#each jobPostingForm.requirements as requirement, index, i (i)}
                   <div class="flex space-x-2">
                     <input
                       type="text"

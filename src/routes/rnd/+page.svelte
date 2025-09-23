@@ -505,7 +505,7 @@
       <div class="p-6">
         <h3 class="text-lg font-semibold text-gray-900 mb-4">알림 및 경고</h3>
         <div class="space-y-3">
-          {#each alerts as alert}
+          {#each alerts as alert, i (i)}
             <div class="p-3 rounded-lg border {getAlertColor(alert.type)}">
               <div class="flex items-start justify-between">
                 <div class="flex-1">
@@ -528,7 +528,7 @@
       <div class="p-6">
         <h3 class="text-lg font-semibold text-gray-900 mb-4">최근 활동</h3>
         <div class="space-y-3">
-          {#each recentActivities as activity}
+          {#each recentActivities as activity, i (i)}
             <div class="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors"
             >
               <div class="text-2xl">{getActivityIcon(activity.type)}</div>

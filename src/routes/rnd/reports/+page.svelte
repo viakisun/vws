@@ -414,7 +414,7 @@ import { logger } from '$lib/utils/logger';
           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           <option value="all">전체</option>
-          {#each $projects as project}
+          {#each $projects as project, i (i)}
             <option value={project.id}>{project.name}</option>
           {/each}
         </select>
@@ -616,7 +616,7 @@ import { logger } from '$lib/utils/logger';
       <div>
         <h4 class="font-medium text-gray-900 mb-3">주요 성과</h4>
         <ul class="space-y-2">
-          {#each selectedReport.summary.achievements as achievement}
+          {#each selectedReport.summary.achievements as achievement, i (i)}
             <li class="flex items-center gap-2 p-2 bg-green-50 rounded">
               <span class="text-green-500">✓</span>
               <span class="text-gray-900">{achievement}</span>
@@ -629,7 +629,7 @@ import { logger } from '$lib/utils/logger';
       <div>
         <h4 class="font-medium text-gray-900 mb-3">다음 주 목표</h4>
         <ul class="space-y-2">
-          {#each selectedReport.summary.nextWeekGoals as goal}
+          {#each selectedReport.summary.nextWeekGoals as goal, i (i)}
             <li class="flex items-center gap-2 p-2 bg-blue-50 rounded">
               <span class="text-blue-500">→</span>
               <span class="text-gray-900">{goal}</span>
@@ -642,7 +642,7 @@ import { logger } from '$lib/utils/logger';
       <div>
         <h4 class="font-medium text-gray-900 mb-3">리스크 및 이슈</h4>
         <ul class="space-y-2">
-          {#each selectedReport.summary.risks as risk}
+          {#each selectedReport.summary.risks as risk, i (i)}
             <li class="flex items-center gap-2 p-2 bg-red-50 rounded">
               <span class="text-red-500">⚠</span>
               <span class="text-gray-900">{risk}</span>
@@ -681,7 +681,7 @@ import { logger } from '$lib/utils/logger';
           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           <option value="">프로젝트 선택</option>
-          {#each $projects as project}
+          {#each $projects as project, i (i)}
             <option value={project.id}>{project.name}</option>
           {/each}
         </select>

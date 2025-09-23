@@ -342,7 +342,7 @@
           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           <option value="all">전체</option>
-          {#each $projects as project}
+          {#each $projects as project, i (i)}
             <option value={project.id}>{project.name}</option>
           {/each}
         </select>
@@ -460,7 +460,7 @@
           <div class="mb-4">
             <h4 class="font-medium text-gray-900 mb-2">KPI 현황</h4>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-              {#each milestone.kpis as kpi}
+              {#each milestone.kpis as kpi, i (i)}
                 <div class="bg-gray-50 p-3 rounded-md">
                   <div class="text-sm font-medium text-gray-900">{kpi.name}</div>
                   <div class="text-sm text-gray-600">
@@ -476,7 +476,7 @@
         <div>
           <h4 class="font-medium text-gray-900 mb-2">산출물 현황</h4>
           <div class="space-y-2">
-            {#each milestone.deliverables as deliverable}
+            {#each milestone.deliverables as deliverable, i (i)}
               <div class="flex items-center justify-between p-2 bg-gray-50 rounded">
                 <span class="text-sm text-gray-900">{deliverable.name}</span>
                 <div class="flex items-center gap-2">
@@ -536,7 +536,7 @@
         <div>
           <h4 class="font-medium text-gray-900 mb-3">KPI 현황</h4>
           <div class="space-y-3">
-            {#each selectedMilestone.kpis as kpi}
+            {#each selectedMilestone.kpis as kpi, i (i)}
               <div class="bg-gray-50 p-4 rounded-md">
                 <div class="flex justify-between items-center mb-2">
                   <span class="font-medium text-gray-900">{kpi.name}</span>
@@ -556,7 +556,7 @@
       <div>
         <h4 class="font-medium text-gray-900 mb-3">산출물 현황</h4>
         <div class="space-y-2">
-          {#each selectedMilestone.deliverables as deliverable}
+          {#each selectedMilestone.deliverables as deliverable, i (i)}
             <div class="flex items-center justify-between p-3 bg-gray-50 rounded-md">
               <span class="text-gray-900">{deliverable.name}</span>
               <div class="flex items-center gap-3">
@@ -591,7 +591,7 @@
           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           <option value="">프로젝트 선택</option>
-          {#each $projects as project}
+          {#each $projects as project, i (i)}
             <option value={project.id}>{project.name}</option>
           {/each}
         </select>
@@ -650,7 +650,7 @@
           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           <option value="">담당자 선택</option>
-          {#each $employees as person}
+          {#each $employees as person, i (i)}
             <option value={person.id}>{person.name}</option>
           {/each}
         </select>
@@ -682,7 +682,7 @@
         </button>
       </div>
       <div class="space-y-2">
-        {#each formData.kpis as kpi, index}
+        {#each formData.kpis as kpi, index, i (i)}
           <div class="flex gap-2 items-center">
             <input
               type="text"
@@ -727,7 +727,7 @@
         </button>
       </div>
       <div class="space-y-2">
-        {#each formData.deliverables as deliverable, index}
+        {#each formData.deliverables as deliverable, index, i (i)}
           <div class="flex gap-2 items-center">
             <input
               type="text"

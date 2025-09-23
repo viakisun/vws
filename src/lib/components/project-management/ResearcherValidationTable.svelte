@@ -331,7 +331,7 @@ import { logger } from '$lib/utils/logger';
           </tr>
         </thead>
         <tbody>
-          {#each members as member}
+          {#each members as member, i (i)}
             {@const validationStatus = getMemberValidationStatus(member)}
             <tr
               class="border-b hover:bg-opacity-50"
@@ -485,7 +485,7 @@ import { logger } from '$lib/utils/logger';
         {#if memberIssues.length > 0}
           <div class="space-y-3">
             <h4 class="font-medium text-gray-900">발견된 이슈</h4>
-            {#each memberIssues as issue}
+            {#each memberIssues as issue, i (i)}
               <div
                 class="p-3 rounded-lg border {issue.severity === 'error'
                   ? 'border-red-200 bg-red-50'

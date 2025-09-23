@@ -489,7 +489,7 @@
           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           <option value="">직원을 선택하세요</option>
-          {#each employeeList as employee}
+          {#each employeeList as employee, i (i)}
             <option value={employee.id}>{employee.name}</option>
           {/each}
         </select>
@@ -589,7 +589,7 @@
                 </tr>
               </thead>
               <tbody class="bg-white divide-y divide-gray-200">
-                {#each payslipData as monthData}
+                {#each payslipData as monthData, i (i)}
                   {#if editingMonth === monthData.month}
                     <!-- 편집 모드 행 -->
                     <tr class="bg-blue-50 border-2 border-blue-200">
@@ -604,7 +604,7 @@
                           <div>
                             <h4 class="text-sm font-semibold text-gray-700 mb-2">지급사항</h4>
                             <div class="grid grid-cols-2 gap-2">
-                              {#each editingPayslip.allowances as allowance, index}
+                              {#each editingPayslip.allowances as allowance, index, i (i)}
                                 <div class="flex items-center space-x-2">
                                   <input
                                     type="text"
@@ -634,7 +634,7 @@
                           <div>
                             <h4 class="text-sm font-semibold text-gray-700 mb-2">공제사항</h4>
                             <div class="grid grid-cols-2 gap-2">
-                              {#each editingPayslip.deductions as deduction, index}
+                              {#each editingPayslip.deductions as deduction, index, i (i)}
                                 <div class="flex items-center space-x-2">
                                   <input
                                     type="text"

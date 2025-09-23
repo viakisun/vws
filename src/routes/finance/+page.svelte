@@ -319,7 +319,7 @@ import { logger } from '$lib/utils/logger';
           <ThemeCard class="p-6">
             <ThemeSectionHeader title="계좌별 잔고 현황" />
             <ThemeSpacer size={4}>
-              {#each fundsReport.accounts as account}
+              {#each fundsReport.accounts as account, i (i)}
                 <div
                   class="flex items-center justify-between p-4 rounded-lg border"
                   style:border-color="var(--color-border)"
@@ -359,7 +359,7 @@ import { logger } from '$lib/utils/logger';
           <ThemeCard class="p-6">
             <ThemeSectionHeader title="일일 거래내역" />
             <div class="space-y-3">
-              {#each fundsReport.transactions as transaction}
+              {#each fundsReport.transactions as transaction, i (i)}
                 {@const IconComponent = getTransactionTypeIcon(transaction.type)}
                 <div
                   class="flex items-center justify-between p-4 rounded-lg border"
@@ -445,7 +445,7 @@ import { logger } from '$lib/utils/logger';
             </div>
 
             <div class="space-y-4">
-              {#each fundsReport.accounts as account}
+              {#each fundsReport.accounts as account, i (i)}
                 <div
                   class="flex items-center justify-between p-4 rounded-lg border"
                   style:border-color="var(--color-border)"
@@ -501,7 +501,7 @@ import { logger } from '$lib/utils/logger';
             </div>
 
             <div class="space-y-4">
-              {#each fundsReport.transactions as transaction}
+              {#each fundsReport.transactions as transaction, i (i)}
                 {@const IconComponent = getTransactionTypeIcon(transaction.type)}
                 <div
                   class="flex items-center justify-between p-4 rounded-lg border"
