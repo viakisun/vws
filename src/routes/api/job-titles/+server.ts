@@ -12,7 +12,7 @@ export const GET: RequestHandler = async ({ url }) => {
     const level = searchParams.get('level')
 
     let whereClause = ''
-    const params: any[] = []
+    const params: unknown[] = []
 
     if (status === 'active') {
       whereClause = 'WHERE is_active = $1'

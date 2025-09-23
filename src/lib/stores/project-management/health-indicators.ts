@@ -7,7 +7,7 @@ import { logger } from '$lib/utils/logger';
 
 // 헬스 인디케이터 관리
 export const healthIndicators = writable<HealthIndicator[]>([])
-export const healthRules = writable<Record<string, any>>({})
+export const healthRules = writable<Record<string, unknown>>({})
 
 // 헬스 인디케이터 계산
 export function calculateHealthIndicator(projectId: string): HealthIndicator {

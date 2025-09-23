@@ -76,7 +76,7 @@ export interface AuditLog {
   ipAddress: string
   userAgent: string
   timestamp: string
-  details?: Record<string, any>
+  details?: Record<string, unknown>
 }
 
 export interface Person {
@@ -208,8 +208,8 @@ export interface Milestone {
   createdAt: string
   updatedAt: string
   // 추가 속성들
-  deliverables?: any[]
-  kpis?: any[]
+  deliverables?: unknown[]
+  kpis?: unknown[]
   quarter?: number
 }
 

@@ -107,7 +107,7 @@ export function updateNotificationSettings(settings: NotificationSettings) {
 }
 
 // 예산 초과 알림 체크
-export function checkBudgetOverage(budgetCategories: any[]) {
+export function checkBudgetOverage(budgetCategories: unknown[]) {
   budgetCategories.forEach(category => {
     const usage = (category.spent / category.amount) * 100
 
@@ -132,7 +132,7 @@ export function checkBudgetOverage(budgetCategories: any[]) {
 }
 
 // 목표 마감일 알림 체크
-export function checkGoalDeadlines(budgetGoals: any[]) {
+export function checkGoalDeadlines(budgetGoals: unknown[]) {
   const now = new Date()
   const oneWeekFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)
 
@@ -155,7 +155,7 @@ export function checkGoalDeadlines(budgetGoals: any[]) {
 }
 
 // 잔고 부족 알림 체크
-export function checkLowBalance(bankAccounts: any[], transactions: any[]) {
+export function checkLowBalance(bankAccounts: unknown[], transactions: unknown[]) {
   const monthlyExpense =
     transactions
       .filter((t: any) => t.type === 'expense')

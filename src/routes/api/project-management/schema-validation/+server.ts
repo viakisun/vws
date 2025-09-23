@@ -9,7 +9,7 @@ export const GET: RequestHandler = async ({ url }) => {
 
     logger.log(`🔍 [스키마 검증] ${validationType} 검증 시작`)
 
-    const results: any[] = []
+    const results: unknown[] = []
     const summary = {
       total: 0,
       valid: 0,

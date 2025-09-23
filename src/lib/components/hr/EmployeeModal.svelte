@@ -219,9 +219,7 @@
       <h2>
         {employee ? '직원 정보 수정' : '새 직원 추가'}
       </h2>
-      <button
-        type="button"
-        onclick={handleClose}>
+      <button type="button" onclick={handleClose}>
         <XIcon size={20} />
       </button>
     </div>
@@ -251,12 +249,7 @@
           </div>
           <div>
             <label for="name">이름 *</label>
-            <input
-              id="name"
-              type="text"
-              bind:value={formData.name}
-              placeholder="홍길동"
-              required />
+            <input id="name" type="text" bind:value={formData.name} placeholder="홍길동" required />
           </div>
           <div>
             <label for="email">이메일 *</label>
@@ -290,10 +283,7 @@
         <div>
           <div>
             <label for="department">부서 *</label>
-            <select
-              id="department"
-              bind:value={formData.department}
-              required>
+            <select id="department" bind:value={formData.department} required>
               <option value="">부서 선택</option>
               {#each departments as dept (dept)}
                 <option value={dept}>{dept}</option>
@@ -302,10 +292,7 @@
           </div>
           <div>
             <label for="position">직위 *</label>
-            <select
-              id="position"
-              bind:value={formData.position}
-              required>
+            <select id="position" bind:value={formData.position} required>
               <option value="">직위 선택</option>
               {#each positions as pos (pos)}
                 <option value={pos}>{pos}</option>
@@ -314,9 +301,7 @@
           </div>
           <div>
             <label for="level">레벨</label>
-            <select
-              id="level"
-              bind:value={formData.level}>
+            <select id="level" bind:value={formData.level}>
               <option value="">레벨 선택</option>
               {#each levelOptions as option (option.value)}
                 <option value={option.value}>{option.label}</option>
@@ -325,9 +310,7 @@
           </div>
           <div>
             <label for="employmentType">고용 형태</label>
-            <select
-              id="employmentType"
-              bind:value={formData.employmentType}>
+            <select id="employmentType" bind:value={formData.employmentType}>
               <option value="">고용 형태 선택</option>
               {#each employmentTypeOptions as option (option.value)}
                 <option value={option.value}>{option.label}</option>
@@ -336,18 +319,11 @@
           </div>
           <div>
             <label for="hireDate">입사일 *</label>
-            <input
-              id="hireDate"
-              type="date"
-              bind:value={formData.hireDate}
-              required />
+            <input id="hireDate" type="date" bind:value={formData.hireDate} required />
           </div>
           <div>
             <label for="birthDate">생년월일</label>
-            <input
-              id="birthDate"
-              type="date"
-              bind:value={formData.personalInfo.birthDate} />
+            <input id="birthDate" type="date" bind:value={formData.personalInfo.birthDate} />
           </div>
         </div>
       </div>
@@ -370,9 +346,7 @@
           </div>
           <div>
             <label for="relationship">관계</label>
-            <select
-              id="relationship"
-              bind:value={formData.emergencyContact.relationship}>
+            <select id="relationship" bind:value={formData.emergencyContact.relationship}>
               <option value="">관계 선택</option>
               {#each relationshipOptions as option (option.value)}
                 <option value={option.value}>{option.label}</option>
@@ -400,9 +374,7 @@
         <div>
           <div>
             <label for="gender">성별</label>
-            <select
-              id="gender"
-              bind:value={formData.personalInfo.gender}>
+            <select id="gender" bind:value={formData.personalInfo.gender}>
               <option value="">성별 선택</option>
               {#each genderOptions as option (option.value)}
                 <option value={option.value}>{option.label}</option>
@@ -420,9 +392,7 @@
           </div>
           <div>
             <label for="maritalStatus">결혼 상태</label>
-            <select
-              id="maritalStatus"
-              bind:value={formData.personalInfo.maritalStatus}>
+            <select id="maritalStatus" bind:value={formData.personalInfo.maritalStatus}>
               <option value="">결혼 상태 선택</option>
               {#each maritalStatusOptions as option (option.value)}
                 <option value={option.value}>{option.label}</option>
@@ -451,9 +421,7 @@
           <div>
             <div>
               <label for="status">상태</label>
-              <select
-                id="status"
-                bind:value={formData.status}>
+              <select id="status" bind:value={formData.status}>
                 <option value="">상태 선택</option>
                 {#each statusOptions as option (option.value)}
                   <option value={option.value}>{option.label}</option>
@@ -463,10 +431,7 @@
             {#if formData.status === 'terminated'}
               <div>
                 <label for="terminationDate">퇴사일</label>
-                <input
-                  id="terminationDate"
-                  type="date"
-                  bind:value={formData.terminationDate} />
+                <input id="terminationDate" type="date" bind:value={formData.terminationDate} />
               </div>
             {/if}
           </div>
@@ -475,13 +440,8 @@
 
       <!-- 버튼 영역 -->
       <div>
-        <ThemeButton
-          variant="ghost"
-          onclick={handleClose}
-          disabled={loading}>취소</ThemeButton>
-        <ThemeButton
-          variant="primary"
-          disabled={loading}>
+        <ThemeButton variant="ghost" onclick={handleClose} disabled={loading}>취소</ThemeButton>
+        <ThemeButton variant="primary" disabled={loading}>
           {#if loading}
             <div></div>
           {:else}

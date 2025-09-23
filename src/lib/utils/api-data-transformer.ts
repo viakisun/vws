@@ -232,7 +232,7 @@ export function transformEvidenceItemData(evidence: any) {
 /**
  * 배열 데이터 일괄 변환
  */
-export function transformArrayData<T>(data: any[], transformer: (item: any) => T): T[] {
+export function transformArrayData<T>(data: unknown[], transformer: (item: any) => T): T[] {
   return data.map(transformer)
 }
 

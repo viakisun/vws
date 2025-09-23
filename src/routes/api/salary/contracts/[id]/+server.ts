@@ -100,7 +100,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
 
     // 업데이트할 필드 구성
     const updateFields: string[] = []
-    const queryParams: any[] = []
+    const queryParams: unknown[] = []
     let paramIndex = 1
 
     if (updateData.startDate !== undefined) {

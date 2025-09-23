@@ -11,7 +11,7 @@ export const GET: RequestHandler = async ({ url }) => {
     const department = url.searchParams.get('department')
 
     let whereClause = ''
-    const params: any[] = []
+    const params: unknown[] = []
     let paramIndex = 1
 
     if (status && status !== 'all') {

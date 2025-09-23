@@ -18,10 +18,7 @@
   aria-label={alt}
 >
   {#if src}
-    <img
-      {src}
-      {alt}
-      class="w-full h-full object-cover" />
+    <img {src} {alt} class="w-full h-full object-cover" />
   {:else}
     <span class="font-medium text-gray-600 dark:text-gray-300">
       {fallback}

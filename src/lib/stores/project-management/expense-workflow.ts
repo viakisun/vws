@@ -3,7 +3,7 @@ import type { ExpenseItem, Approval, SLAAlert, Notification } from './types'
 import { logAudit } from './core'
 
 // 지출 워크플로우 상태
-export const expenseWorkflows = writable<Record<string, any>>({})
+export const expenseWorkflows = writable<Record<string, unknown>>({})
 
 // SLA 알림
 export const slaAlerts = writable<SLAAlert[]>([])
@@ -261,13 +261,13 @@ export function getExpenseWorkflow(expenseId: string): any {
 }
 
 // 지출 항목별 문서 목록 가져오기
-export function getExpenseDocuments(expenseId: string): any[] {
+export function getExpenseDocuments(expenseId: string): unknown[] {
   const workflow = getExpenseWorkflow(expenseId)
   return workflow?.documents || []
 }
 
 // 지출 항목별 승인 이력 가져오기
-export function getExpenseApprovals(expenseId: string): any[] {
+export function getExpenseApprovals(expenseId: string): unknown[] {
   const workflow = getExpenseWorkflow(expenseId)
   return workflow?.approvals || []
 }

@@ -24,7 +24,7 @@ export async function POST({ request }) {
     const isExcel = fileName.endsWith('.xlsx') || fileName.endsWith('.xls')
     const isCSV = fileName.endsWith('.csv')
 
-    let data: any[] = []
+    let data: unknown[] = []
     let headers: string[] = []
 
     if (isExcel) {
@@ -50,7 +50,7 @@ export async function POST({ request }) {
       // 데이터 추출
       data = rows.slice(1).map((row, index) => {
         const rowData: any = {}
-        const rowValues = row.values.slice(1) as any[] // ExcelJS는 1-based indexing
+        const rowValues = row.values.slice(1) as unknown[] // ExcelJS는 1-based indexing
         headers.forEach((header, headerIndex) => {
           rowData[header] = rowValues[headerIndex] || ''
         })

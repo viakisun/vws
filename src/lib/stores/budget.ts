@@ -13,9 +13,9 @@ export interface BudgetCategory {
   categoryCode?: string
   nameKo?: string
   description?: string
-  requiredDocuments?: any[]
-  requiredDocs?: any[]
-  defaultWorkflow?: any[]
+  requiredDocuments?: unknown[]
+  requiredDocs?: unknown[]
+  defaultWorkflow?: unknown[]
   defaultSlaDays?: number
   defaultOwners?: string[]
   active?: boolean

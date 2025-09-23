@@ -8,7 +8,7 @@ import { logger } from '$lib/utils/logger';
 
 // 업로드 번들 관리
 export const submissionBundles = writable<SubmissionBundle[]>([])
-export const bundleTemplates = writable<Record<string, any>>({})
+export const bundleTemplates = writable<Record<string, unknown>>({})
 
 // 국가R&D 업로드 번들 생성
 export function createSubmissionBundle(
@@ -475,7 +475,7 @@ export function createBundleTemplate(
   templateData: {
     requiredDocuments: string[]
     manifestStructure: any
-    validationRules: any[]
+    validationRules: unknown[]
   }
 ): void {
   const template = {

@@ -127,7 +127,7 @@ export function uploadDocument(documentData: {
   originalFilename: string
   storageUrl: string
   sha256: string
-  meta?: Record<string, any>
+  meta?: Record<string, unknown>
 }): Document {
   const newDocument: Document = {
     id: `doc-${Date.now()}`,
@@ -195,7 +195,7 @@ export function createDocumentVersion(
     filename: string
     storageUrl: string
     sha256: string
-    meta?: Record<string, any>
+    meta?: Record<string, unknown>
   }
 ): Document | null {
   let originalDoc: Document | undefined

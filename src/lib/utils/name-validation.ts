@@ -62,11 +62,11 @@ export function enforceStandardName(name: string, context: string = '이름'): S
 /**
  * 런타임 검증을 위한 데코레이터 함수
  */
-export function withNameValidation<T extends (...args: any[]) => any>(
+export function withNameValidation<T extends (...args: unknown[]) => any>(
   fn: T,
   context: string = '함수'
 ): T {
-  return ((...args: any[]) => {
+  return ((...args: unknown[]) => {
     const result = fn(...args)
 
     if (process.env.NODE_ENV === 'development') {

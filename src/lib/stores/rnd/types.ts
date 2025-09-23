@@ -123,7 +123,7 @@ export interface Milestone {
   quarter: number
   title: string
   description: string
-  kpis: Record<string, any>
+  kpis: Record<string, unknown>
   dueDate: DateString
   ownerId: UUID
   status: 'not_started' | 'in_progress' | 'completed' | 'delayed'
@@ -202,7 +202,7 @@ export interface Document {
   signedAt?: DateString
   verifiedBy?: UUID
   verifiedAt?: DateString
-  meta: Record<string, any>
+  meta: Record<string, unknown>
   createdAt: DateString
 }
 
@@ -274,7 +274,7 @@ export interface Report {
   type: 'weekly' | 'quarterly' | 'annual'
   periodStart: DateString
   periodEnd: DateString
-  summaryJson: Record<string, any>
+  summaryJson: Record<string, unknown>
   fileUrl?: string
   generatedBy: UUID
   generatedAt: DateString
@@ -300,7 +300,7 @@ export interface AuditLog {
   action: string
   entity: string
   entityId: UUID
-  diff: Record<string, any>
+  diff: Record<string, unknown>
   ipAddress?: string
   userAgent?: string
   createdAt: DateString
@@ -470,7 +470,7 @@ export interface MilestoneFormData {
   description: string
   dueDate: DateString
   ownerId: UUID
-  kpis: Record<string, any>
+  kpis: Record<string, unknown>
 }
 
 // ===== 대시보드 데이터 타입 =====

@@ -30,7 +30,7 @@ export const GET: RequestHandler = async () => {
     const employees = Array.isArray(employeesResult) ? employeesResult : employeesResult.rows || []
 
     // 부서별로 직원 그룹화
-    const departmentGroups: { [key: string]: any[] } = {}
+    const departmentGroups: { [key: string]: unknown[] } = {}
     employees.forEach((emp: any) => {
       const dept = emp.department || '기타'
       if (!departmentGroups[dept]) {
@@ -58,7 +58,7 @@ export const GET: RequestHandler = async () => {
 
     // 각 임원별로 구조 생성
     Object.entries(executiveDepartmentMapping).forEach(([executiveName, departments]) => {
-      const children: any[] = []
+      const children: unknown[] = []
 
       departments.forEach(deptName => {
         // 해당 부서에 직원이 있는지 확인
@@ -90,7 +90,7 @@ export const GET: RequestHandler = async () => {
     )
 
     if (unmappedDepartments.length > 0) {
-      const otherChildren: any[] = []
+      const otherChildren: unknown[] = []
       unmappedDepartments.forEach(deptName => {
         otherChildren.push({
           name: deptName,

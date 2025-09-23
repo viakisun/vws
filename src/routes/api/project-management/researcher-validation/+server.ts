@@ -214,7 +214,7 @@ export const POST: RequestHandler = async ({ request }) => {
 }
 
 // 검증 로직 실행
-async function performValidation(project: any, members: any[]): Promise<ValidationResult> {
+async function performValidation(project: any, members: unknown[]): Promise<ValidationResult> {
   const issues: ValidationIssue[] = []
   let validMembers = 0
 

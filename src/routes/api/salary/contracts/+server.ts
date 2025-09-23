@@ -27,7 +27,7 @@ export const GET: RequestHandler = async ({ url }) => {
 
     // WHERE 조건 구성
     const conditions: string[] = []
-    const params: any[] = []
+    const params: unknown[] = []
     let paramIndex = 1
 
     if (employeeId) {

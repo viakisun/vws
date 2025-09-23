@@ -11,7 +11,7 @@ export const GET: RequestHandler = async ({ url }) => {
     const department = searchParams.get('department')
 
     let whereClause = ''
-    const params: any[] = []
+    const params: unknown[] = []
 
     if (status === 'active') {
       whereClause = 'WHERE e.status = $1'

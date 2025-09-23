@@ -7,7 +7,7 @@ import { logger } from '$lib/utils/logger';
 
 // 리포트 관리
 export const reports = writable<Report[]>([])
-export const reportTemplates = writable<Record<string, any>>({})
+export const reportTemplates = writable<Record<string, unknown>>({})
 
 // 주간 리포트 생성
 export function generateWeeklyReport(

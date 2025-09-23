@@ -7,7 +7,7 @@ export const participationAssignments = writable<ParticipationAssignment[]>([])
 export const salaryHistory = writable<SalaryHistory[]>([])
 
 // 월별 인건비 배분표
-export const monthlySalaryAllocations = writable<Record<string, any[]>>({})
+export const monthlySalaryAllocations = writable<Record<string, unknown[]>>({})
 
 // 참여율 배정
 export function assignParticipation(
@@ -94,14 +94,14 @@ export function addSalaryChange(
 // 월별 인건비 배분표 계산
 export function recalculateMonthlyAllocations(): void {
   // 모든 프로젝트와 참여 배정을 가져와서 월별로 계산
-  const allocations: Record<string, any[]> = {}
+  const allocations: Record<string, unknown[]> = {}
 
   participationAssignments.subscribe(assignments => {
     salaryHistory.subscribe(salaries => {
       projects.subscribe(projectList => {
         persons.subscribe(personList => {
           // 월별로 그룹화하여 계산
-          const monthlyData: Record<string, any[]> = {}
+          const monthlyData: Record<string, unknown[]> = {}
 
           assignments.forEach(assignment => {
             const project = projectList.find(p => p.id === assignment.projectId)
@@ -190,8 +190,8 @@ function getDaysInMonth(month: Date): number {
 }
 
 // 프로젝트별 월별 인건비 집계
-export function getProjectMonthlyAllocations(projectId: string, month: string): any[] {
-  let allocations: any[] = []
+export function getProjectMonthlyAllocations(projectId: string, month: string): unknown[] {
+  let allocations: unknown[] = []
 
   monthlySalaryAllocations.subscribe(monthlyData => {
     allocations = monthlyData[month]?.filter(a => a.projectId === projectId) || []
@@ -230,8 +230,8 @@ export function getProjectTotalPersonnelCost(
 }
 
 // 개인별 월별 참여 현황
-export function getPersonMonthlyParticipation(personId: string, month: string): any[] {
-  let participations: any[] = []
+export function getPersonMonthlyParticipation(personId: string, month: string): unknown[] {
+  let participations: unknown[] = []
 
   monthlySalaryAllocations.subscribe(monthlyData => {
     participations = monthlyData[month]?.filter(a => a.personId === personId) || []

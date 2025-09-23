@@ -32,7 +32,7 @@ export const GET: RequestHandler = async ({ url }) => {
 			LEFT JOIN evidence_schedules es ON ei.id = es.evidence_item_id
 			WHERE 1=1
 		`
-    const params: any[] = []
+    const params: unknown[] = []
     let paramCount = 0
 
     if (projectBudgetId) {

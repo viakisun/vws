@@ -7,8 +7,8 @@ import { logger } from '$lib/utils/logger';
 
 // 대체 추천 시스템
 export const replacementRecommendations = writable<ReplacementRecommendation[]>([])
-export const skillMatrix = writable<Record<string, any[]>>({})
-export const availabilityMatrix = writable<Record<string, any>>({})
+export const skillMatrix = writable<Record<string, unknown[]>>({})
+export const availabilityMatrix = writable<Record<string, unknown>>({})
 
 // 인력 이탈 시 대체 추천 생성
 export function generateReplacementRecommendation(
@@ -493,7 +493,7 @@ function calculateAverageProcessingTime(history: ReplacementRecommendation[]): n
 }
 
 // 스킬 매트릭스 업데이트
-export function updateSkillMatrix(personId: string, skills: any[]): void {
+export function updateSkillMatrix(personId: string, skills: unknown[]): void {
   skillMatrix.update(matrix => ({
     ...matrix,
     [personId]: skills

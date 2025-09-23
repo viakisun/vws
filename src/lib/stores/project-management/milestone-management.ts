@@ -4,14 +4,14 @@ import { logAudit } from './core'
 
 // 마일스톤 관리
 export const milestones = writable<Milestone[]>([])
-export const milestoneDeliverables = writable<Record<string, any[]>>({})
+export const milestoneDeliverables = writable<Record<string, unknown[]>>({})
 
 // 분기 목표/산출물 생성
 export function createMilestone(
   projectId: string,
   quarter: number,
   title: string,
-  kpis: Record<string, any>,
+  kpis: Record<string, unknown>,
   dueDate: string,
   ownerId: string,
   deliverables: string[] = []
@@ -212,8 +212,8 @@ export function getMilestonesByQuarter(projectId: string, quarter: number): Mile
 }
 
 // 마일스톤별 산출물 목록
-export function getMilestoneDeliverables(milestoneId: string): any[] {
-  let deliverables: any[] = []
+export function getMilestoneDeliverables(milestoneId: string): unknown[] {
+  let deliverables: unknown[] = []
 
   milestoneDeliverables.subscribe(deliverableMap => {
     deliverables = deliverableMap[milestoneId] || []
@@ -230,7 +230,7 @@ export function calculateMilestoneProgress(milestoneId: string): {
   status: 'on-track' | 'at-risk' | 'delayed'
 } {
   let milestone: Milestone | undefined
-  let deliverables: any[] = []
+  let deliverables: unknown[] = []
 
   milestones.subscribe(list => {
     milestone = list.find(m => m.id === milestoneId)
@@ -267,11 +267,11 @@ export function calculateMilestoneProgress(milestoneId: string): {
 export function calculateProjectProgress(projectId: string): {
   overallProgress: number
   quarterProgress: Record<number, number>
-  milestoneStatus: Record<string, any>
+  milestoneStatus: Record<string, unknown>
 } {
   const projectMilestones = getMilestonesByProject(projectId)
   const quarterProgress: Record<number, number> = {}
-  const milestoneStatus: Record<string, any> = {}
+  const milestoneStatus: Record<string, unknown> = {}
 
   let totalProgress = 0
   let totalMilestones = 0
@@ -469,14 +469,14 @@ export function generateMilestoneReport(
 ): {
   summary: any
   milestones: Milestone[]
-  deliverables: Record<string, any[]>
+  deliverables: Record<string, unknown[]>
   progress: any
 } {
   const projectMilestones = quarter
     ? getMilestonesByQuarter(projectId, quarter)
     : getMilestonesByProject(projectId)
 
-  const deliverables: Record<string, any[]> = {}
+  const deliverables: Record<string, unknown[]> = {}
   const progress = calculateProjectProgress(projectId)
 
   projectMilestones.forEach(milestone => {

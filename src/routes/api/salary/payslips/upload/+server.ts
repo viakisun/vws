@@ -59,7 +59,7 @@ export async function POST({ request }) {
       success: 0,
       failed: 0,
       errors: [] as string[],
-      details: [] as any[]
+      details: [] as unknown[]
     }
 
     // 헤더 행 건너뛰고 데이터 행 처리

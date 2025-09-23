@@ -4,8 +4,8 @@ import { logger } from '$lib/utils/logger';
 
 // 감사 로그 관리
 export const auditLogs = writable<AuditLog[]>([])
-export const securityPolicies = writable<Record<string, any>>({})
-export const accessControl = writable<Record<string, any>>({})
+export const securityPolicies = writable<Record<string, unknown>>({})
+export const accessControl = writable<Record<string, unknown>>({})
 
 // 감사 로그 생성
 export function createAuditLog(
@@ -15,7 +15,7 @@ export function createAuditLog(
   entityId: string,
   oldData: any,
   newData: any,
-  metadata?: Record<string, any>
+  metadata?: Record<string, unknown>
 ): string {
   const auditLog: AuditLog = {
     id: crypto.randomUUID(),
@@ -119,7 +119,7 @@ export function defineSecurityPolicies(): void {
 
 // 접근 제어 정책 정의
 export function defineAccessControlPolicies(): void {
-  const policies: Record<string, any> = {
+  const policies: Record<string, unknown> = {
     roles: {
       R1: {
         // 연구원
@@ -320,7 +320,7 @@ function isMFARequired(action: string): boolean {
 export function logSecurityEvent(
   eventType: 'login' | 'logout' | 'access_denied' | 'data_export' | 'suspicious_activity',
   userId: string,
-  details: Record<string, any>
+  details: Record<string, unknown>
 ): void {
   const securityLog = {
     id: crypto.randomUUID(),
@@ -465,19 +465,19 @@ export function detectSecurityViolations(): {
 }
 
 // 비정상적인 접근 패턴 감지
-function detectSuspiciousAccess(): any[] {
+function detectSuspiciousAccess(): unknown[] {
   // 실제 구현에서는 접근 로그를 분석
   return []
 }
 
 // 권한 상승 시도 감지
-function detectPrivilegeEscalation(): any[] {
+function detectPrivilegeEscalation(): unknown[] {
   // 실제 구현에서는 권한 변경 로그를 분석
   return []
 }
 
 // 대량 데이터 접근 감지
-function detectBulkDataAccess(): any[] {
+function detectBulkDataAccess(): unknown[] {
   // 실제 구현에서는 데이터 접근 로그를 분석
   return []
 }

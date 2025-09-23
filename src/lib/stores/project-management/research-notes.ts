@@ -5,7 +5,7 @@ import { logAudit } from './core'
 // 연구노트 관리
 export const researchNotes = writable<ResearchNote[]>([])
 export const researchNoteAttachments = writable<Record<string, Document[]>>({})
-export const researchNoteSignatures = writable<Record<string, any[]>>({})
+export const researchNoteSignatures = writable<Record<string, unknown[]>>({})
 
 // 연구노트 생성
 export function createResearchNote(
@@ -214,8 +214,8 @@ export function getResearchNoteAttachments(noteId: string): Document[] {
 }
 
 // 연구노트별 서명 목록
-export function getResearchNoteSignatures(noteId: string): any[] {
-  let signatures: any[] = []
+export function getResearchNoteSignatures(noteId: string): unknown[] {
+  let signatures: unknown[] = []
 
   researchNoteSignatures.subscribe(signatureMap => {
     signatures = signatureMap[noteId] || []
@@ -541,12 +541,12 @@ export function exportResearchNotes(
 export function backupResearchNotes(projectId: string): {
   notes: ResearchNote[]
   attachments: Record<string, Document[]>
-  signatures: Record<string, any[]>
+  signatures: Record<string, unknown[]>
   backupDate: string
 } {
   const notes = getResearchNotesByProject(projectId)
   const attachments: Record<string, Document[]> = {}
-  const signatures: Record<string, any[]> = {}
+  const signatures: Record<string, unknown[]> = {}
 
   notes.forEach(note => {
     attachments[note.id] = getResearchNoteAttachments(note.id)

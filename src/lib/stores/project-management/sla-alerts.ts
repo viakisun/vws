@@ -7,7 +7,7 @@ import { logger } from '$lib/utils/logger';
 // SLA 알림 관리
 export const slaAlerts = writable<SLAAlert[]>([])
 export const notifications = writable<Notification[]>([])
-export const escalationPolicies = writable<Record<string, any>>({})
+export const escalationPolicies = writable<Record<string, unknown>>({})
 
 // SLA 정책 정의
 export function defineSlaPolicies(): void {
@@ -156,7 +156,7 @@ function checkStageSla(
   entityType: string,
   entityId: string,
   stage: any,
-  escalationPath: any[]
+  escalationPath: unknown[]
 ): void {
   const entityData = getEntityData(entityType, entityId)
   if (!entityData) return
@@ -246,15 +246,15 @@ function getSeverityFromAlertType(alertType: string): 'low' | 'medium' | 'high' 
 }
 
 // 할당된 사용자 가져오기
-function getAssignedUsers(entityType: string, entityId: string, escalationPath: any[]): string[] {
+function getAssignedUsers(entityType: string, entityId: string, escalationPath: unknown[]): string[] {
   // 실제 구현에서는 엔티티의 담당자와 에스컬레이션 경로를 기반으로 사용자 결정
   const users = ['PM', 'LAB_HEAD', 'EXECUTIVE']
   return users
 }
 
 // 에스컬레이션 정책 가져오기
-function getEscalationPolicies(): Record<string, any> {
-  let policies: Record<string, any> = {}
+function getEscalationPolicies(): Record<string, unknown> {
+  let policies: Record<string, unknown> = {}
   escalationPolicies.subscribe(p => {
     policies = p
   })()
@@ -485,8 +485,8 @@ export function exportSlaAlerts(format: 'json' | 'csv' | 'excel', period?: strin
 export function createSlaTemplate(
   templateName: string,
   entityType: string,
-  stages: any[],
-  escalationPath: any[]
+  stages: unknown[],
+  escalationPath: unknown[]
 ): void {
   const template = {
     name: templateName,

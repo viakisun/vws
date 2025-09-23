@@ -160,7 +160,7 @@ export const budgetCategoryMaster = writable<BudgetCategoryMaster[]>([
 ])
 
 // 워크플로우 상태
-export const workflowStates = writable<Record<string, any>>({})
+export const workflowStates = writable<Record<string, unknown>>({})
 
 // 카테고리별 필수 문서 체크리스트 생성
 export function generateDocumentChecklist(
@@ -357,13 +357,13 @@ export function getWorkflowState(expenseId: string): any {
 }
 
 // 지출 항목별 문서 체크리스트 가져오기
-export function getExpenseDocumentChecklist(expenseId: string): any[] {
+export function getExpenseDocumentChecklist(expenseId: string): unknown[] {
   const state = getWorkflowState(expenseId)
   return state?.documents || []
 }
 
 // 지출 항목별 승인 이력 가져오기
-export function getExpenseApprovalHistory(expenseId: string): any[] {
+export function getExpenseApprovalHistory(expenseId: string): unknown[] {
   const state = getWorkflowState(expenseId)
   return state?.approvals || []
 }

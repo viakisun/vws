@@ -25,7 +25,7 @@ export const GET: RequestHandler = async ({ url }) => {
 			LEFT JOIN employees reviewer ON ed.reviewer_id = reviewer.id
 			WHERE 1=1
 		`
-    const params: any[] = []
+    const params: unknown[] = []
     let paramCount = 0
 
     if (evidenceItemId) {

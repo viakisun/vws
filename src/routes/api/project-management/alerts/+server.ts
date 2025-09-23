@@ -87,7 +87,7 @@ export const GET: RequestHandler = async ({ url }) => {
 			SELECT * FROM deadline_alerts
 		`
 
-    const params: any[] = []
+    const params: unknown[] = []
     if (type && type !== 'all') {
       sqlQuery += ` WHERE alert_type = $1`
       params.push(type)

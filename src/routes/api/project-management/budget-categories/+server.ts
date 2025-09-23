@@ -10,7 +10,7 @@ export const GET: RequestHandler = async ({ url }) => {
     const type = url.searchParams.get('type')
 
     let sqlQuery = 'SELECT * FROM budget_categories WHERE 1=1'
-    const params: any[] = []
+    const params: unknown[] = []
     let paramIndex = 1
 
     if (active !== null) {

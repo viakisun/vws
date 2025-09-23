@@ -35,7 +35,7 @@ export const GET: RequestHandler = async ({ url }) => {
 			WHERE e.status = 'active'
 		`
 
-    const params: any[] = []
+    const params: unknown[] = []
     let paramIndex = 1
 
     if (department) {

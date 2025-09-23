@@ -63,9 +63,9 @@ export async function getConnection(): Promise<PoolClient> {
 }
 
 // Execute a query with parameters
-export async function query<T extends Record<string, any> = any>(
+export async function query<T extends Record<string, unknown> = any>(
   text: string,
-  params?: any[]
+  params?: unknown[]
 ): Promise<QueryResult<T>> {
   const client = await getConnection()
   try {
@@ -148,7 +148,7 @@ export interface DatabaseCompany {
   revenue?: number
   employees?: number
   notes?: string
-  tags: any[]
+  tags: unknown[]
   created_at: Date
   updated_at: Date
 }
@@ -221,7 +221,7 @@ export interface DatabaseTransaction {
 // Utility functions for common database operations
 export class DatabaseService {
   // 쿼리 메서드
-  static async query(text: string, params?: any[]) {
+  static async query(text: string, params?: unknown[]) {
     return await query(text, params)
   }
 
@@ -267,7 +267,7 @@ export class DatabaseService {
     offset?: number
   }): Promise<DatabaseUser[]> {
     let queryText = 'SELECT * FROM users WHERE 1=1'
-    const params: any[] = []
+    const params: unknown[] = []
     let paramCount = 0
 
     if (filters?.department) {
@@ -347,7 +347,7 @@ export class DatabaseService {
     offset?: number
   }): Promise<DatabaseCompany[]> {
     let queryText = 'SELECT * FROM companies WHERE 1=1'
-    const params: any[] = []
+    const params: unknown[] = []
     let paramCount = 0
 
     if (filters?.type) {
@@ -423,7 +423,7 @@ export class DatabaseService {
     offset?: number
   }): Promise<DatabaseProject[]> {
     let queryText = 'SELECT * FROM projects WHERE 1=1'
-    const params: any[] = []
+    const params: unknown[] = []
     let paramCount = 0
 
     if (filters?.status) {
@@ -496,7 +496,7 @@ export class DatabaseService {
     offset?: number
   }): Promise<DatabaseExpenseItem[]> {
     let queryText = 'SELECT * FROM expense_items WHERE 1=1'
-    const params: any[] = []
+    const params: unknown[] = []
     let paramCount = 0
 
     if (filters?.project_id) {
@@ -577,7 +577,7 @@ export class DatabaseService {
     offset?: number
   }): Promise<DatabaseEmployee[]> {
     let queryText = 'SELECT * FROM employees WHERE 1=1'
-    const params: any[] = []
+    const params: unknown[] = []
     let paramCount = 0
 
     if (filters?.department) {
@@ -652,7 +652,7 @@ export class DatabaseService {
     offset?: number
   }): Promise<DatabaseTransaction[]> {
     let queryText = 'SELECT * FROM transactions WHERE 1=1'
-    const params: any[] = []
+    const params: unknown[] = []
     let paramCount = 0
 
     if (filters?.bank_account_id) {

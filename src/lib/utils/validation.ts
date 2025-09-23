@@ -24,7 +24,7 @@ export interface ValidationResponse {
   success: boolean
   projectId: string
   projectTitle?: string
-  validationResults: any[]
+  validationResults: unknown[]
   overallValidation: {
     isValid: boolean
     totalItems: number
@@ -42,7 +42,7 @@ export class ValidationUtils {
   }
 
   // 쿼리 메서드
-  static async query(text: string, params?: any[]) {
+  static async query(text: string, params?: unknown[]) {
     return await pool.query(text, params)
   }
 
@@ -201,7 +201,7 @@ export class ValidationUtils {
   /**
    * 전체 검증 결과 생성
    */
-  static createOverallValidation(validationResults: any[]) {
+  static createOverallValidation(validationResults: unknown[]) {
     const validItems = validationResults.filter(result => result.validation.isValid).length
     const invalidItems = validationResults.filter(result => !result.validation.isValid).length
 
@@ -219,7 +219,7 @@ export class ValidationUtils {
   static createValidationResponse(
     projectId: string,
     projectTitle: string,
-    validationResults: any[],
+    validationResults: unknown[],
     overallValidation: any
   ): ValidationResponse {
     return {
@@ -321,7 +321,7 @@ export class PersonnelCostValidator {
   /**
    * 참여연구원의 실제 인건비 계산
    */
-  static calculateActualPersonnelCost(members: any[], budget: any): number {
+  static calculateActualPersonnelCost(members: unknown[], budget: any): number {
     const budgetStartDate = new Date(budget.start_date)
     const budgetEndDate = new Date(budget.end_date)
 
@@ -518,7 +518,7 @@ export class ParticipationRateValidator {
   /**
    * 참여율 검증
    */
-  static validateParticipationRate(members: any[]): ValidationResult {
+  static validateParticipationRate(members: unknown[]): ValidationResult {
     const issues: string[] = []
 
     // 1. 개별 참여율이 100%를 초과하는지 확인
@@ -565,7 +565,7 @@ export class BudgetConsistencyValidator {
   /**
    * 예산 일관성 검증
    */
-  static validateBudgetConsistency(project: any, budgets: any[]): ValidationResult {
+  static validateBudgetConsistency(project: any, budgets: unknown[]): ValidationResult {
     const totalBudgetFromBudgets = budgets.reduce((sum, budget) => {
       return sum + (parseFloat(budget.total_budget) || 0)
     }, 0)
@@ -598,7 +598,7 @@ export class UsageRateValidator {
   /**
    * 사용률 검증
    */
-  static validateUsageRate(budget: any, evidenceItems: any[]): ValidationResult {
+  static validateUsageRate(budget: any, evidenceItems: unknown[]): ValidationResult {
     const totalBudget = parseFloat(budget.total_budget) || 0
     const spentAmount = parseFloat(budget.spent_amount) || 0
     const overallUsageRate = totalBudget > 0 ? (spentAmount / totalBudget) * 100 : 0

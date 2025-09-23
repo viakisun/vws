@@ -1,4 +1,3 @@
-import { logger } from '$lib/utils/logger';
 <script lang="ts">
   import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
   import ThemeCard from '$lib/components/ui/ThemeCard.svelte'
@@ -62,20 +61,15 @@ import { logger } from '$lib/utils/logger';
   const allActions = [...defaultActions, ...actions]
 </script>
 
+import {logger} from '$lib/utils/logger';
+
 <div>
   <!-- 페이지 헤더 -->
-  <ThemePageHeader
-    {title}
-    {subtitle}
-    children={undefined} />
+  <ThemePageHeader {title} {subtitle} children={undefined} />
 
   <!-- 통계 카드들 -->
   {#if stats.length > 0}
-    <ThemeGrid
-      cols={1}
-      mdCols={2}
-      lgCols={4}
-      gap={6}>
+    <ThemeGrid cols={1} mdCols={2} lgCols={4} gap={6}>
       {#each stats as stat (stat.title)}
         <ThemeStatCard
           title={stat.title}

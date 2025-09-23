@@ -15,12 +15,12 @@ const pool = new Pool({
 // 간단한 프로젝트 검증 함수
 async function validateProject(projectId: string): Promise<{
   success: boolean
-  results: any[]
+  results: unknown[]
   errors: string[]
   fixedIssues: number
 }> {
   const client = await pool.connect()
-  const results: any[] = []
+  const results: unknown[] = []
   const errors: string[] = []
   let fixedIssues = 0
 
@@ -205,7 +205,7 @@ async function validateBudgetConsistency(client: any, projectId: string) {
 }
 
 // 인건비 자동 수정
-async function fixPersonnelCost(client: any, projectId: string, issues: any[]) {
+async function fixPersonnelCost(client: any, projectId: string, issues: unknown[]) {
   try {
     let fixedCount = 0
 
@@ -236,7 +236,7 @@ async function fixPersonnelCost(client: any, projectId: string, issues: any[]) {
 }
 
 // 예산 일관성 자동 수정
-async function fixBudgetConsistency(client: any, projectId: string, issues: any[]) {
+async function fixBudgetConsistency(client: any, projectId: string, issues: unknown[]) {
   try {
     let fixedCount = 0
 

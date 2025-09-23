@@ -329,7 +329,7 @@ export interface AuditLog {
   entityId: string
   diff: { old: any; new: any }
   at: string
-  metadata?: Record<string, any>
+  metadata?: Record<string, unknown>
 }
 
 export interface Person {
@@ -451,7 +451,7 @@ export interface Report {
   content: string
   generatedBy: string
   generatedAt: string
-  parameters?: Record<string, any>
+  parameters?: Record<string, unknown>
 }
 
 // BudgetCategoryMaster는 BudgetCategory의 별칭
