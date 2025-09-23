@@ -1,4 +1,5 @@
 import { json } from '@sveltejs/kit'
+import { logger } from '$lib/utils/logger';
 
 export async function GET() {
   try {
@@ -28,7 +29,7 @@ Smith,John,Michael,john.smith@company.com,010-5678-9012,개발팀,Senior Develop
       }
     })
   } catch (error) {
-    console.error('템플릿 생성 에러:', error)
+    logger.error('템플릿 생성 에러:', error)
     return json({ error: '템플릿 생성 중 오류가 발생했습니다.' }, { status: 500 })
   }
 }

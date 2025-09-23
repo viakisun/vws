@@ -1,6 +1,5 @@
 <script lang="ts">
   import Card from '$lib/components/ui/Card.svelte'
-  import Badge from '$lib/components/ui/Badge.svelte'
   import Progress from '$lib/components/ui/Progress.svelte'
   import { projectsStore, expenseDocsStore } from '$lib/stores/rnd'
   import { page } from '$app/state'

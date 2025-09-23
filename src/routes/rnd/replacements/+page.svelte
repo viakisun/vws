@@ -1,10 +1,10 @@
+import { logger } from '$lib/utils/logger';
 <script lang="ts">
   import { onMount } from 'svelte'
   import { employees, projects } from '$lib/stores/rd'
   import Badge from '$lib/components/ui/Badge.svelte'
   import Card from '$lib/components/ui/Card.svelte'
   import Modal from '$lib/components/ui/Modal.svelte'
-  import type { Employee, Project } from '$lib/stores/rd'
 
   interface ReplacementCandidate {
     id: string
@@ -309,7 +309,7 @@
       replacement.updatedAt = new Date().toISOString()
 
       // In real implementation, this would update project assignments
-      console.log(`Approved replacement: ${candidatePersonId} for ${replacement.originalPersonId}`)
+      logger.log(`Approved replacement: ${candidatePersonId} for ${replacement.originalPersonId}`)
     }
   }
 
@@ -401,7 +401,7 @@
   }
 
   onMount(() => {
-    // Initialize dummy data if needed
+  // Initialize dummy data if needed
   })
 </script>
 
@@ -413,13 +413,13 @@
 
   <!-- Action Buttons -->
   <div class="flex gap-4 mb-6">
-    <button
+    <button type="button"
       onclick={() => (showCreateModal = true)}
       class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
     >
       대체 요청 생성
     </button>
-    <button
+    <button type="button"
       onclick={() => alert('AI 추천 알고리즘을 실행합니다.')}
       class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
     >
@@ -431,7 +431,9 @@
   <div class="bg-white rounded-lg shadow-sm border p-4 mb-6">
     <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
       <div>
-        <label for="search" class="block text-sm font-medium text-gray-700 mb-1">검색</label>
+        <label
+          for="search"
+          class="block text-sm font-medium text-gray-700 mb-1">검색</label>
         <input
           id="search"
           type="text"
@@ -441,8 +443,10 @@
         />
       </div>
       <div>
-        <label for="project-filter" class="block text-sm font-medium text-gray-700 mb-1"
-          >프로젝트</label
+        <label
+          for="project-filter"
+          class="block text-sm font-medium text-gray-700 mb-1"
+        >프로젝트</label
         >
         <select
           id="project-filter"
@@ -456,8 +460,10 @@
         </select>
       </div>
       <div>
-        <label for="rnd-rep-status-filter" class="block text-sm font-medium text-gray-700 mb-1"
-          >상태</label
+        <label
+          for="rnd-rep-status-filter"
+          class="block text-sm font-medium text-gray-700 mb-1"
+        >상태</label
         >
         <select
           id="rnd-rep-status-filter"
@@ -472,7 +478,9 @@
         </select>
       </div>
       <div>
-        <label for="reason-filter" class="block text-sm font-medium text-gray-700 mb-1">사유</label>
+        <label
+          for="reason-filter"
+          class="block text-sm font-medium text-gray-700 mb-1">사유</label>
         <select
           id="reason-filter"
           bind:value={selectedReason}
@@ -513,7 +521,7 @@
             </div>
           </div>
           <div class="flex gap-2 ml-4">
-            <button
+            <button type="button"
               onclick={() => showReplacementDetail(replacement)}
               class="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500"
               aria-label="상세보기"
@@ -521,7 +529,7 @@
               상세보기
             </button>
             {#if replacement.status === 'pending'}
-              <button
+              <button type="button"
                 onclick={() => rejectReplacement(replacement.id)}
                 class="px-3 py-1 text-sm bg-red-100 text-red-700 rounded hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500"
               >
@@ -567,7 +575,7 @@
                   </div>
                 </div>
                 {#if replacement.status === 'pending'}
-                  <button
+                  <button type="button"
                     onclick={() => approveReplacement(replacement.id, candidate.personId)}
                     class="w-full mt-3 px-3 py-1 text-sm bg-green-100 text-green-700 rounded hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-green-500"
                   >
@@ -605,7 +613,9 @@
 </div>
 
 <!-- Detail Modal -->
-<Modal bind:open={showDetailModal} title="대체 요청 상세">
+<Modal
+  bind:open={showDetailModal}
+  title="대체 요청 상세">
   {#if selectedReplacement}
     <div class="space-y-6">
       <div>
@@ -616,7 +626,7 @@
           <div>
             <span class="font-medium text-gray-700">프로젝트:</span>
             <span class="ml-2"
-              >{selectedReplacement && getProjectName(selectedReplacement.projectId)}</span
+            >{selectedReplacement && getProjectName(selectedReplacement.projectId)}</span
             >
           </div>
           <div>
@@ -626,7 +636,7 @@
           <div>
             <span class="font-medium text-gray-700">효력일:</span>
             <span class="ml-2"
-              >{selectedReplacement && formatDate(selectedReplacement.effectiveDate)}</span
+            >{selectedReplacement && formatDate(selectedReplacement.effectiveDate)}</span
             >
           </div>
           <div>
@@ -688,10 +698,10 @@
                 </div>
               </div>
               {#if selectedReplacement && selectedReplacement.status === 'pending'}
-                <button
+                <button type="button"
                   onclick={() =>
                     selectedReplacement &&
-                    approveReplacement(selectedReplacement.id, candidate.personId)}
+                      approveReplacement(selectedReplacement.id, candidate.personId)}
                   class="w-full mt-3 px-3 py-2 text-sm bg-green-100 text-green-700 rounded hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-green-500"
                 >
                   이 후보자 승인
@@ -706,12 +716,16 @@
 </Modal>
 
 <!-- Create Modal -->
-<Modal bind:open={showCreateModal} title="대체 요청 생성">
+<Modal
+  bind:open={showCreateModal}
+  title="대체 요청 생성">
   <div class="space-y-4">
     <div class="grid grid-cols-2 gap-4">
       <div>
-        <label for="create-person" class="block text-sm font-medium text-gray-700 mb-1"
-          >대체 대상 *</label
+        <label
+          for="create-person"
+          class="block text-sm font-medium text-gray-700 mb-1"
+        >대체 대상 *</label
         >
         <select
           id="create-person"
@@ -725,8 +739,10 @@
         </select>
       </div>
       <div>
-        <label for="create-project" class="block text-sm font-medium text-gray-700 mb-1"
-          >프로젝트 *</label
+        <label
+          for="create-project"
+          class="block text-sm font-medium text-gray-700 mb-1"
+        >프로젝트 *</label
         >
         <select
           id="create-project"
@@ -742,8 +758,10 @@
     </div>
     <div class="grid grid-cols-2 gap-4">
       <div>
-        <label for="create-reason" class="block text-sm font-medium text-gray-700 mb-1"
-          >대체 사유 *</label
+        <label
+          for="create-reason"
+          class="block text-sm font-medium text-gray-700 mb-1"
+        >대체 사유 *</label
         >
         <select
           id="create-reason"
@@ -759,8 +777,10 @@
         </select>
       </div>
       <div>
-        <label for="create-date" class="block text-sm font-medium text-gray-700 mb-1"
-          >효력일 *</label
+        <label
+          for="create-date"
+          class="block text-sm font-medium text-gray-700 mb-1"
+        >효력일 *</label
         >
         <input
           id="create-date"
@@ -772,8 +792,10 @@
     </div>
     <div class="grid grid-cols-2 gap-4">
       <div>
-        <label for="create-priority" class="block text-sm font-medium text-gray-700 mb-1"
-          >우선순위</label
+        <label
+          for="create-priority"
+          class="block text-sm font-medium text-gray-700 mb-1"
+        >우선순위</label
         >
         <select
           id="create-priority"
@@ -786,8 +808,10 @@
         </select>
       </div>
       <div>
-        <label for="create-experience" class="block text-sm font-medium text-gray-700 mb-1"
-          >필요 경력</label
+        <label
+          for="create-experience"
+          class="block text-sm font-medium text-gray-700 mb-1"
+        >필요 경력</label
         >
         <select
           id="create-experience"
@@ -802,8 +826,10 @@
       </div>
     </div>
     <div>
-      <label for="create-salary" class="block text-sm font-medium text-gray-700 mb-1"
-        >급여 범위</label
+      <label
+        for="create-salary"
+        class="block text-sm font-medium text-gray-700 mb-1"
+      >급여 범위</label
       >
       <input
         id="create-salary"
@@ -845,13 +871,13 @@
       </div>
     </div>
     <div class="flex justify-end gap-2 pt-4">
-      <button
+      <button type="button"
         onclick={() => (showCreateModal = false)}
         class="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500"
       >
         취소
       </button>
-      <button
+      <button type="button"
         onclick={createReplacementRequest}
         class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
       >

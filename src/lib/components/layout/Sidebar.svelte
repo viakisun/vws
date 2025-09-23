@@ -44,13 +44,14 @@
   class="transition-all duration-300 {isCollapsed
     ? 'w-16'
     : 'w-64'} flex-shrink-0 h-screen sticky top-0"
-  style="background: var(--color-surface); border-right: 1px solid var(--color-border);"
+  style:background="var(--color-surface)"
+  style:border-right="1px solid var(--color-border)"
 >
   <div class="flex h-full flex-col">
     <!-- Toggle Button -->
     <div
       class="flex h-12 items-center justify-center"
-      style="border-bottom: 1px solid var(--color-border);"
+      style:border-bottom="1px solid var(--color-border)"
     >
       <ThemeButton
         variant="ghost"
@@ -68,33 +69,36 @@
 
     <!-- Navigation -->
     <nav class="flex-1 px-3 py-4 space-y-1">
-      {#each navigationItems as item}
+      {#each navigationItems as item (item.name)}
         {@const currentPath = $page.url.pathname}
         {@const isCurrent =
           (item.href === '/' && currentPath === '/') ||
-          (item.href !== '/' && currentPath.startsWith(item.href))}
+            (item.href !== '/' && currentPath.startsWith(item.href))}
         <a
           href={item.href}
           class="group flex items-center px-3 py-3 text-sm font-medium rounded-xl transition-all duration-200 relative
-						{isCurrent ? 'text-white shadow-lg' : 'hover:scale-[1.02] hover:shadow-md'}"
+            {isCurrent ? 'text-white shadow-lg' : 'hover:scale-[1.02] hover:shadow-md'}"
           style="
-						{isCurrent
-            ? 'background: var(--color-primary);'
-            : 'color: var(--color-text-secondary); background: transparent;'}
-						{isCurrent ? '' : 'hover:background: var(--color-surface-elevated);'}
-					"
+            {isCurrent
+              ? 'background: var(--color-primary);'
+              : 'color: var(--color-text-secondary); background: transparent;'}
+          "
+          style:hover={isCurrent ? null : 'background: var(--color-surface-elevated)'}
           title={isCollapsed ? item.name : ''}
         >
           {#if isCurrent}
-            <div
-              class="absolute left-0 top-1/2 transform -translate-y-1/2 w-1 h-8 bg-white rounded-r-full"
+            <div class="absolute left-0 top-1/2 transform -translate-y-1/2 w-1 h-8 bg-white rounded-r-full"
             ></div>
           {/if}
           {#if item.icon}
-            <item.icon size={20} class="flex-shrink-0 {isCurrent ? 'text-white' : ''}" />
+            <item.icon
+              size={20}
+              class="flex-shrink-0 {isCurrent ? 'text-white' : ''}" />
           {/if}
           {#if !isCollapsed}
-            <span class="ml-3 font-medium {isCurrent ? 'text-white' : ''}">{item.name}</span>
+            <span
+              class="ml-3 font-medium"
+              class:text-white={isCurrent}>{item.name}</span>
           {/if}
           {#if isCurrent && !isCollapsed}
             <div class="ml-auto">

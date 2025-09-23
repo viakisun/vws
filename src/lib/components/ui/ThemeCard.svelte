@@ -32,7 +32,9 @@
   }
 </script>
 
-<div class={getCardClasses()} {...restProps}>
+<div
+  class={getCardClasses()}
+  {...restProps}>
   {@render children?.()}
 </div>
 

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount, onDestroy } from 'svelte'
+  import { onMount } from 'svelte'
 
   // Props
   interface Props {
@@ -220,7 +220,9 @@
   {/if}
 {:else}
   <!-- Internal trigger mode -->
-  <div class="theme-dropdown-container" {...restProps}>
+  <div
+    class="theme-dropdown-container"
+    {...restProps}>
     <div
       class="theme-dropdown-trigger"
       bind:this={triggerElement}

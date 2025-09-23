@@ -1,3 +1,4 @@
+import { logger } from '$lib/utils/logger';
 <script lang="ts">
   import { page } from '$app/stores'
   import { goto } from '$app/navigation'
@@ -12,9 +13,7 @@
   import { DollarSignIcon, UsersIcon, FileTextIcon, CheckCircleIcon } from '@lucide/svelte'
   import {
     loadContracts,
-    loadContractStats,
-    isLoading,
-    error
+    loadContractStats
   } from '$lib/stores/salary/contract-store'
   import { loadPayslips } from '$lib/stores/salary/salary-store'
   import { formatCurrency } from '$lib/utils/format'
@@ -110,7 +109,7 @@
         ]
       }
     } catch (error) {
-      // 에러 처리
+    // 에러 처리
     }
   }
 
@@ -129,7 +128,7 @@
     if (!mounted) return
 
     const currentTab = activeTab
-    console.log('Salary tab changed to:', currentTab)
+    logger.log('Salary tab changed to:', currentTab)
 
     switch (currentTab) {
       case 'contracts':
@@ -147,7 +146,9 @@
 
 <svelte:head>
   <title>급여 관리 - VWS</title>
-  <meta name="description" content="전체 직원 급여 관리 및 급여명세서 출력" />
+  <meta
+    name="description"
+    content="전체 직원 급여 관리 및 급여명세서 출력" />
 </svelte:head>
 
 <PageLayout
@@ -165,7 +166,7 @@
     size="md"
     class="mb-6"
   >
-    {#snippet children(tab: any)}
+    {#snippet children(tab: { id: string; label: string })}
       {#if tab.id === 'overview'}
         <!-- 개요 탭 -->
         <ThemeSpacer size={6}>

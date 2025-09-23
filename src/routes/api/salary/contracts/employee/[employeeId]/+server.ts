@@ -3,7 +3,7 @@
 import { json } from '@sveltejs/kit'
 import { query } from '$lib/database/connection.js'
 import type { RequestHandler } from './$types'
-import type { ApiResponse, CurrentSalaryInfo, SalaryContract } from '$lib/types/salary-contracts'
+import type { CurrentSalaryInfo, SalaryContract } from '$lib/types/salary-contracts'
 
 // GET: 특정 직원의 급여 계약 정보 조회
 export const GET: RequestHandler = async ({ params }) => {

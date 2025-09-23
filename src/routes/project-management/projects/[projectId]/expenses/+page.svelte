@@ -46,7 +46,7 @@
     all.filter(
       d =>
         (status ? d.status === status : true) &&
-        (query ? d.title.includes(query) || d.id.includes(query) : true)
+          (query ? d.title.includes(query) || d.id.includes(query) : true)
     )
   )
 
@@ -129,10 +129,9 @@
               <td class="px-3 py-2">{d.amountKRW ? formatKRW(d.amountKRW) : '-'}</td>
               <td class="px-3 py-2">{d.attachments}</td>
               <td class="px-3 py-2"
-                ><Badge
-                  color={d.status === '대기' ? 'yellow' : d.status === '반려' ? 'red' : 'green'}
-                  >{d.status}</Badge
-                ></td
+              ><Badge color={d.status === '대기' ? 'yellow' : d.status === '반려' ? 'red' : 'green'}
+              >{d.status}</Badge
+              ></td
               >
               <td class="px-3 py-2">
                 {#if isCompliant(d)}

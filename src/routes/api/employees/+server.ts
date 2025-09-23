@@ -2,6 +2,7 @@ import { query } from '$lib/database/connection.js'
 import { formatDateForDisplay, toUTC } from '$lib/utils/date-handler.js'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger';
 
 // GET: 직원 목록 조회
 export const GET: RequestHandler = async ({ url }) => {
@@ -57,7 +58,7 @@ export const GET: RequestHandler = async ({ url }) => {
       data: employees
     })
   } catch (error) {
-    console.error('Error fetching employees:', error)
+    logger.error('Error fetching employees:', error)
     return json(
       {
         success: false,
@@ -191,7 +192,7 @@ export const POST: RequestHandler = async ({ request }) => {
       message: '직원이 성공적으로 추가되었습니다.'
     })
   } catch (error) {
-    console.error('Error adding employee:', error)
+    logger.error('Error adding employee:', error)
     return json(
       {
         success: false,
@@ -277,7 +278,7 @@ export const PUT: RequestHandler = async ({ request }) => {
     }
 
     // 상태는 사용자가 직접 설정한 값 사용 (퇴사일이 있어도 자동으로 terminated로 변경하지 않음)
-    let status = data.status || 'active'
+    const status = data.status || 'active'
 
     const result = await query(
       `
@@ -347,7 +348,7 @@ export const PUT: RequestHandler = async ({ request }) => {
       message: '직원 정보가 성공적으로 수정되었습니다.'
     })
   } catch (error) {
-    console.error('Error updating employee:', error)
+    logger.error('Error updating employee:', error)
     return json(
       {
         success: false,

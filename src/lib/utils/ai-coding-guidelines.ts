@@ -1,3 +1,4 @@
+import { logger } from '$lib/utils/logger';
 // AI 코딩 가이드라인 및 칼럼명 검증 도구
 
 export interface CodingGuideline {
@@ -140,7 +141,7 @@ export const AI_CODING_GUIDELINES: CodingGuideline[] = [
 					const result = await pool.query(query, params);
 					return result.rows;
 				} catch (error) {
-					console.error('Database query error:', error);
+					logger.error('Database query error:', error);
 					throw new Error('데이터베이스 쿼리 실패');
 				}`
       ],

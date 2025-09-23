@@ -1,15 +1,16 @@
 import { SchemaValidator } from '$lib/utils/schema-validation'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger';
 
 export const GET: RequestHandler = async ({ url }) => {
   try {
     const validationType = url.searchParams.get('type') || 'all'
 
-    console.log(`🔍 [스키마 검증] ${validationType} 검증 시작`)
+    logger.log(`🔍 [스키마 검증] ${validationType} 검증 시작`)
 
-    let results: any[] = []
-    let summary = {
+    const results: any[] = []
+    const summary = {
       total: 0,
       valid: 0,
       invalid: 0,
@@ -18,7 +19,7 @@ export const GET: RequestHandler = async ({ url }) => {
 
     // 1. 데이터베이스 스키마 검증
     if (validationType === 'all' || validationType === 'schema') {
-      console.log('📋 [데이터베이스 스키마 검증] 시작')
+      logger.log('📋 [데이터베이스 스키마 검증] 시작')
       const schemaResults = await SchemaValidator.validateDatabaseSchema()
       results.push(
         ...schemaResults.map(result => ({
@@ -30,7 +31,7 @@ export const GET: RequestHandler = async ({ url }) => {
 
     // 2. 칼럼명 일관성 검증
     if (validationType === 'all' || validationType === 'naming') {
-      console.log('📝 [칼럼명 일관성 검증] 시작')
+      logger.log('📝 [칼럼명 일관성 검증] 시작')
       const namingResults = await SchemaValidator.validateColumnNamingConsistency()
       results.push(
         ...namingResults.map(result => ({
@@ -42,7 +43,7 @@ export const GET: RequestHandler = async ({ url }) => {
 
     // 3. 스키마 규칙 조회
     if (validationType === 'rules') {
-      console.log('📚 [스키마 규칙 조회] 시작')
+      logger.log('📚 [스키마 규칙 조회] 시작')
       const rules = SchemaValidator.getSchemaRules()
       return json({
         success: true,
@@ -58,7 +59,7 @@ export const GET: RequestHandler = async ({ url }) => {
     summary.invalid = results.filter(r => !r.isValid).length
     summary.issues = results.filter(r => !r.isValid).flatMap(r => r.issues)
 
-    console.log(
+    logger.log(
       `✅ [스키마 검증] 완료 - ${summary.valid}/${summary.total}개 통과, ${summary.invalid}개 문제`
     )
 
@@ -70,7 +71,7 @@ export const GET: RequestHandler = async ({ url }) => {
       generatedAt: new Date().toISOString()
     })
   } catch (error) {
-    console.error('Schema validation error:', error)
+    logger.error('Schema validation error:', error)
     return json(
       {
         success: false,
@@ -90,7 +91,7 @@ export const POST: RequestHandler = async ({ request }) => {
       return json({ error: '쿼리와 테이블명이 필요합니다.' }, { status: 400 })
     }
 
-    console.log(`🔍 [쿼리 검증] 테이블 ${tableName} 쿼리 검증 시작`)
+    logger.log(`🔍 [쿼리 검증] 테이블 ${tableName} 쿼리 검증 시작`)
 
     // 쿼리 칼럼 검증
     const results = SchemaValidator.validateQueryColumns(query, tableName)
@@ -102,7 +103,7 @@ export const POST: RequestHandler = async ({ request }) => {
       issues: results.filter(r => !r.isValid).flatMap(r => r.issues)
     }
 
-    console.log(
+    logger.log(
       `✅ [쿼리 검증] 완료 - ${summary.valid}/${summary.total}개 통과, ${summary.invalid}개 문제`
     )
 
@@ -116,7 +117,7 @@ export const POST: RequestHandler = async ({ request }) => {
       generatedAt: new Date().toISOString()
     })
   } catch (error) {
-    console.error('Query validation error:', error)
+    logger.error('Query validation error:', error)
     return json(
       {
         success: false,

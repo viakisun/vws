@@ -1,3 +1,4 @@
+import { logger } from '$lib/utils/logger';
 <script lang="ts">
   import ThemeBadge from '$lib/components/ui/ThemeBadge.svelte'
   import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
@@ -166,7 +167,7 @@
         }
       }
     } catch (error) {
-      console.error('프로젝트 기간 업데이트 실패:', error)
+      logger.error('프로젝트 기간 업데이트 실패:', error)
       const periodElement = document.getElementById('project-period')
       if (periodElement) {
         periodElement.textContent = '기간 정보 로드 실패'
@@ -475,11 +476,11 @@
         const data = await response.json()
         evidenceValidation = data
       } else {
-        console.error('증빙 등록 검증 실패:', response.statusText)
+        logger.error('증빙 등록 검증 실패:', response.statusText)
         evidenceValidation = null
       }
     } catch (error) {
-      console.error('증빙 등록 검증 중 오류:', error)
+      logger.error('증빙 등록 검증 중 오류:', error)
       evidenceValidation = null
     } finally {
       isValidatingEvidence = false
@@ -505,10 +506,10 @@
           updateMemberValidationStatuses(data.data.validation.issues)
         }
       } else {
-        console.error('참여연구원 검증 실패:', response.statusText)
+        logger.error('참여연구원 검증 실패:', response.statusText)
       }
     } catch (error) {
-      console.error('참여연구원 검증 중 오류:', error)
+      logger.error('참여연구원 검증 중 오류:', error)
     } finally {
       isValidatingMembers = false
     }
@@ -561,22 +562,22 @@
   // 프로젝트 멤버 로드
   async function loadProjectMembers() {
     try {
-      console.log('참여연구원 목록 로드 시작, 프로젝트 ID:', selectedProject.id)
+      logger.log('참여연구원 목록 로드 시작, 프로젝트 ID:', selectedProject.id)
       const response = await fetch(
         `/api/project-management/project-members?projectId=${selectedProject.id}`
       )
       if (response.ok) {
         const data = await response.json()
-        console.log('참여연구원 목록 로드 성공:', data.data?.length, '명')
+        logger.log('참여연구원 목록 로드 성공:', data.data?.length, '명')
         projectMembers = data.data || []
-        console.log('참여연구원 상태 업데이트 완료:', projectMembers.length, '명')
+        logger.log('참여연구원 상태 업데이트 완료:', projectMembers.length, '명')
 
-        // 자동 검증 제거 - 수작업으로만 검증 실행
+      // 자동 검증 제거 - 수작업으로만 검증 실행
       } else {
-        console.error('참여연구원 목록 로드 실패, 응답 상태:', response.status)
+        logger.error('참여연구원 목록 로드 실패, 응답 상태:', response.status)
       }
     } catch (error) {
-      console.error('프로젝트 멤버 로드 실패:', error)
+      logger.error('프로젝트 멤버 로드 실패:', error)
     }
   }
 
@@ -591,7 +592,7 @@
         projectBudgets = data.data || []
       }
     } catch (error) {
-      console.error('프로젝트 사업비 로드 실패:', error)
+      logger.error('프로젝트 사업비 로드 실패:', error)
     }
   }
 
@@ -604,31 +605,31 @@
         budgetCategories = data.data || []
       }
     } catch (error) {
-      console.error('사업비 항목 로드 실패:', error)
+      logger.error('사업비 항목 로드 실패:', error)
     }
   }
 
   // 사용 가능한 직원 로드
   async function loadAvailableEmployees() {
     try {
-      console.log('직원 목록 로딩 시작, 프로젝트 ID:', selectedProject.id)
+      logger.log('직원 목록 로딩 시작, 프로젝트 ID:', selectedProject.id)
       const response = await fetch(
         `/api/project-management/employees?excludeProjectMembers=true&projectId=${selectedProject.id}`
       )
-      console.log('직원 목록 API 응답 상태:', response.status)
+      logger.log('직원 목록 API 응답 상태:', response.status)
 
       if (response.ok) {
         const data = await response.json()
-        console.log('직원 목록 API 응답 데이터:', data)
+        logger.log('직원 목록 API 응답 데이터:', data)
         availableEmployees = data.data || []
-        console.log('로드된 직원 수:', availableEmployees.length)
+        logger.log('로드된 직원 수:', availableEmployees.length)
       } else {
-        console.error('직원 목록 API 오류:', response.status, response.statusText)
+        logger.error('직원 목록 API 오류:', response.status, response.statusText)
         const errorData = await response.text()
-        console.error('오류 상세:', errorData)
+        logger.error('오류 상세:', errorData)
       }
     } catch (error) {
-      console.error('직원 목록 로드 실패:', error)
+      logger.error('직원 목록 로드 실패:', error)
     }
   }
 
@@ -704,7 +705,7 @@
         alert(errorData.message || '사업비 추가에 실패했습니다.')
       }
     } catch (error) {
-      console.error('사업비 추가 실패:', error)
+      logger.error('사업비 추가 실패:', error)
       alert('사업비 추가 중 오류가 발생했습니다.')
     }
   }
@@ -742,7 +743,7 @@
         alert(errorData.message || '멤버 추가에 실패했습니다.')
       }
     } catch (error) {
-      console.error('멤버 추가 실패:', error)
+      logger.error('멤버 추가 실패:', error)
       alert('멤버 추가 중 오류가 발생했습니다.')
     }
   }
@@ -765,9 +766,9 @@
     editingMember = member
 
     // 디버깅: 멤버 데이터 확인
-    console.log('editMember - member data:', member)
-    console.log('editMember - startDate raw:', getMemberStartDate(member))
-    console.log('editMember - endDate raw:', getMemberEndDate(member))
+    logger.log('editMember - member data:', member)
+    logger.log('editMember - startDate raw:', getMemberStartDate(member))
+    logger.log('editMember - endDate raw:', getMemberEndDate(member))
 
     // 날짜 데이터 확인 및 안전한 처리
     const rawStartDate = getMemberStartDate(member)
@@ -784,7 +785,7 @@
     }
 
     // 디버깅: memberForm 확인
-    console.log('editMember - memberForm after setting:', memberForm)
+    logger.log('editMember - memberForm after setting:', memberForm)
 
     // 수정 시 월간금액 자동 계산 (수동 입력 플래그 초기화)
     isManualMonthlyAmount = false
@@ -823,14 +824,14 @@
     }
 
     // 디버깅: 필드 값 확인
-    console.log('updateMember - memberForm:', memberForm)
-    console.log(
+    logger.log('updateMember - memberForm:', memberForm)
+    logger.log(
       'updateMember - startDate:',
       memberForm.startDate,
       'type:',
       typeof memberForm.startDate
     )
-    console.log('updateMember - endDate:', memberForm.endDate, 'type:', typeof memberForm.endDate)
+    logger.log('updateMember - endDate:', memberForm.endDate, 'type:', typeof memberForm.endDate)
 
     // 필수 필드 검증
     if (!memberForm.startDate || !memberForm.endDate) {
@@ -839,7 +840,7 @@
     }
 
     try {
-      console.log('참여연구원 수정 요청 데이터:', {
+      logger.log('참여연구원 수정 요청 데이터:', {
         id: editingMember.id,
         role: memberForm.role,
         startDate: memberForm.startDate,
@@ -860,11 +861,11 @@
         })
       })
 
-      console.log('참여연구원 수정 응답 상태:', response.status)
+      logger.log('참여연구원 수정 응답 상태:', response.status)
 
       if (response.ok) {
         const result = await response.json()
-        console.log('참여연구원 수정 성공 응답:', result)
+        logger.log('참여연구원 수정 성공 응답:', result)
 
         editingMember = null
         addingMember = false
@@ -872,7 +873,7 @@
 
         // 데이터 새로고침
         await loadProjectMembers()
-        console.log('참여연구원 목록 새로고침 완료')
+        logger.log('참여연구원 목록 새로고침 완료')
 
         dispatch('refresh')
 
@@ -882,11 +883,11 @@
         }
       } else {
         const errorData = await response.json()
-        console.error('참여연구원 수정 API 에러 응답:', errorData)
+        logger.error('참여연구원 수정 API 에러 응답:', errorData)
         alert(errorData.message || '연구원 정보 수정에 실패했습니다.')
       }
     } catch (error) {
-      console.error('멤버 수정 실패:', error)
+      logger.error('멤버 수정 실패:', error)
       alert('연구원 정보 수정 중 오류가 발생했습니다.')
     }
   }
@@ -905,7 +906,7 @@
         dispatch('refresh')
       }
     } catch (error) {
-      console.error('멤버 삭제 실패:', error)
+      logger.error('멤버 삭제 실패:', error)
     }
   }
 
@@ -1009,7 +1010,7 @@
         alert(errorData.message || '사업비 수정에 실패했습니다.')
       }
     } catch (error) {
-      console.error('사업비 업데이트 실패:', error)
+      logger.error('사업비 업데이트 실패:', error)
       alert('사업비 수정 중 오류가 발생했습니다.')
     }
   }
@@ -1032,7 +1033,7 @@
         dispatch('refresh')
       }
     } catch (error) {
-      console.error('사업비 삭제 실패:', error)
+      logger.error('사업비 삭제 실패:', error)
     }
   }
 
@@ -1083,7 +1084,7 @@
         alert(result.message || '프로젝트 수정에 실패했습니다.')
       }
     } catch (error) {
-      console.error('프로젝트 수정 실패:', error)
+      logger.error('프로젝트 수정 실패:', error)
       alert('프로젝트 수정 중 오류가 발생했습니다.')
     } finally {
       isUpdating = false
@@ -1122,7 +1123,7 @@
         alert(result.message || '프로젝트 삭제에 실패했습니다.')
       }
     } catch (error) {
-      console.error('프로젝트 삭제 실패:', error)
+      logger.error('프로젝트 삭제 실패:', error)
       alert('프로젝트 삭제 중 오류가 발생했습니다.')
     } finally {
       isDeleting = false
@@ -1136,7 +1137,7 @@
     startDate?: string,
     endDate?: string
   ): Promise<number> {
-    console.log('calculateMonthlyAmount 호출:', {
+    logger.log('calculateMonthlyAmount 호출:', {
       employeeId,
       participationRate,
       startDate,
@@ -1149,13 +1150,13 @@
       typeof participationRate === 'string' ? parseFloat(participationRate) : participationRate
 
     if (!employeeId || !rate || isNaN(rate)) {
-      console.log('employeeId 또는 participationRate가 없거나 유효하지 않음:', { employeeId, rate })
+      logger.log('employeeId 또는 participationRate가 없거나 유효하지 않음:', { employeeId, rate })
       return 0
     }
 
     // 참여기간이 없으면 기본값 사용
     if (!startDate || !endDate) {
-      console.log('참여기간이 설정되지 않음')
+      logger.log('참여기간이 설정되지 않음')
       return 0
     }
 
@@ -1165,38 +1166,38 @@
         `/api/project-management/employees/${employeeId}/contract?startDate=${startDate}&endDate=${endDate}`
       )
       if (!response.ok) {
-        console.log('계약 정보 조회 실패:', response.status)
+        logger.log('계약 정보 조회 실패:', response.status)
         return 0
       }
 
       const contractData = await response.json()
-      console.log('계약 정보:', contractData)
+      logger.log('계약 정보:', contractData)
 
       if (!contractData.success || !contractData.data) {
-        console.log('계약 정보가 없음:', contractData.message)
+        logger.log('계약 정보가 없음:', contractData.message)
         if (contractData.debug) {
-          console.log('디버그 정보:', contractData.debug)
+          logger.log('디버그 정보:', contractData.debug)
         }
         return 0
       }
 
       const contract = contractData.data
       const annualSalary = parseFloat(contract.annual_salary) || 0
-      console.log('계약 연봉 (원본):', contract.annual_salary)
-      console.log('계약 연봉 (변환):', annualSalary)
+      logger.log('계약 연봉 (원본):', contract.annual_salary)
+      logger.log('계약 연봉 (변환):', annualSalary)
 
       if (annualSalary === 0) {
-        console.log('연봉이 0원임')
+        logger.log('연봉이 0원임')
         return 0
       }
 
       // 중앙화된 급여 계산 함수 사용
       const monthlyAmount = calculateMonthlySalary(annualSalary, rate)
-      console.log('계산된 월간금액:', monthlyAmount)
+      logger.log('계산된 월간금액:', monthlyAmount)
 
       return monthlyAmount
     } catch (error) {
-      console.error('월간금액 계산 중 오류:', error)
+      logger.error('월간금액 계산 중 오류:', error)
       return 0
     }
   }
@@ -1229,7 +1230,7 @@
       )
       calculatedMonthlyAmount = amount
     } catch (error) {
-      console.error('월간금액 계산 실패:', error)
+      logger.error('월간금액 계산 실패:', error)
       calculatedMonthlyAmount = 0
     } finally {
       isCalculatingMonthlyAmount = false
@@ -1263,7 +1264,7 @@
 
       showValidationModal = true
     } catch (error) {
-      console.error('검증 실행 실패:', error)
+      logger.error('검증 실행 실패:', error)
       alert('검증 실행 중 오류가 발생했습니다.')
     } finally {
       isRunningValidation = false
@@ -1291,7 +1292,7 @@
           selectedEvidenceItem = result.data
         }
       } catch (error) {
-        console.error('증빙 항목 상세 정보 로드 실패:', error)
+        logger.error('증빙 항목 상세 정보 로드 실패:', error)
       }
     }
   }
@@ -1306,7 +1307,7 @@
         evidenceCategories = result.data
       }
     } catch (error) {
-      console.error('증빙 카테고리 로드 실패:', error)
+      logger.error('증빙 카테고리 로드 실패:', error)
     }
   }
 
@@ -1332,7 +1333,7 @@
 
       evidenceItems = allEvidenceItems
     } catch (error) {
-      console.error('증빙 항목 로드 실패:', error)
+      logger.error('증빙 항목 로드 실패:', error)
     } finally {
       isLoadingEvidence = false
     }
@@ -1365,7 +1366,7 @@
         throw new Error(result.message)
       }
     } catch (error) {
-      console.error('증빙 항목 추가 실패:', error)
+      logger.error('증빙 항목 추가 실패:', error)
       throw error
     }
   }
@@ -1390,7 +1391,7 @@
         throw new Error(result.message)
       }
     } catch (error) {
-      console.error('증빙 항목 수정 실패:', error)
+      logger.error('증빙 항목 수정 실패:', error)
       throw error
     }
   }
@@ -1410,7 +1411,7 @@
         throw new Error(result.message)
       }
     } catch (error) {
-      console.error('증빙 항목 삭제 실패:', error)
+      logger.error('증빙 항목 삭제 실패:', error)
       throw error
     }
   }
@@ -1449,7 +1450,7 @@
 
       showEvidenceModal = false
     } catch (error) {
-      console.error('증빙 항목 추가 실패:', error)
+      logger.error('증빙 항목 추가 실패:', error)
       alert('증빙 항목 추가에 실패했습니다.')
     } finally {
       isUpdating = false
@@ -1467,7 +1468,7 @@
         evidenceList = data.data || []
       }
     } catch (error) {
-      console.error('증빙 내역 로드 실패:', error)
+      logger.error('증빙 내역 로드 실패:', error)
     }
   }
 
@@ -1480,7 +1481,7 @@
         evidenceTypes = data.data || []
       }
     } catch (error) {
-      console.error('증빙 유형 로드 실패:', error)
+      logger.error('증빙 유형 로드 실패:', error)
     }
   }
 
@@ -1822,16 +1823,24 @@
 
           <!-- 상태 및 우선순위 태그 -->
           <div class="flex items-center gap-2 mb-3">
-            <ThemeBadge variant={getStatusColor(selectedProject.status)} size="md">
+            <ThemeBadge
+              variant={getStatusColor(selectedProject.status)}
+              size="md">
               {getStatusText(selectedProject.status)}
             </ThemeBadge>
-            <ThemeBadge variant={getPriorityColor(selectedProject.priority)} size="md">
+            <ThemeBadge
+              variant={getPriorityColor(selectedProject.priority)}
+              size="md">
               {getPriorityText(selectedProject.priority)}
             </ThemeBadge>
-            <ThemeBadge variant="info" size="md">
+            <ThemeBadge
+              variant="info"
+              size="md">
               {getSponsorTypeText(selectedProject.sponsor_type || selectedProject.sponsorType)}
             </ThemeBadge>
-            <ThemeBadge variant="primary" size="md">
+            <ThemeBadge
+              variant="primary"
+              size="md">
               {getResearchTypeText(selectedProject.research_type || selectedProject.researchType)}
             </ThemeBadge>
           </div>
@@ -1842,7 +1851,9 @@
 
           <!-- 프로젝트 기간 (연차 정보 기반) -->
           <div class="flex items-center text-sm text-gray-600">
-            <CalendarIcon size={16} class="mr-2 text-orange-600" />
+            <CalendarIcon
+              size={16}
+              class="mr-2 text-orange-600" />
             <span id="project-period">연차 정보를 불러오는 중...</span>
           </div>
         </div>
@@ -1857,15 +1868,27 @@
               showEditProjectModal = true
             }}
           >
-            <EditIcon size={16} class="mr-2" />
+            <EditIcon
+              size={16}
+              class="mr-2" />
             정보 수정
           </ThemeButton>
-          <ThemeButton variant="primary" size="sm" onclick={() => dispatch('showBudgetModal')}>
-            <DollarSignIcon size={16} class="mr-2" />
+          <ThemeButton
+            variant="primary"
+            size="sm"
+            onclick={() => dispatch('showBudgetModal')}>
+            <DollarSignIcon
+              size={16}
+              class="mr-2" />
             예산 수정
           </ThemeButton>
-          <ThemeButton variant="error" size="sm" onclick={() => (showDeleteConfirmModal = true)}>
-            <TrashIcon size={16} class="mr-2" />
+          <ThemeButton
+            variant="error"
+            size="sm"
+            onclick={() => (showDeleteConfirmModal = true)}>
+            <TrashIcon
+              size={16}
+              class="mr-2" />
             삭제
           </ThemeButton>
         </div>
@@ -1902,11 +1925,17 @@
             size="sm"
             disabled={isRunningValidation}
           >
-            <ShieldCheckIcon size={16} class="mr-2" />
+            <ShieldCheckIcon
+              size={16}
+              class="mr-2" />
             {isRunningValidation ? '검증 중...' : '검증 실행'}
           </ThemeButton>
-          <ThemeButton onclick={() => (showBudgetModal = true)} size="sm">
-            <PlusIcon size={16} class="mr-2" />
+          <ThemeButton
+            onclick={() => (showBudgetModal = true)}
+            size="sm">
+            <PlusIcon
+              size={16}
+              class="mr-2" />
             사업비 추가
           </ThemeButton>
         </div>
@@ -1924,46 +1953,40 @@
       </div>
 
       <div class="overflow-x-auto">
-        <table class="w-full divide-y divide-gray-200" style:min-width="100%">
+        <table
+          class="w-full divide-y divide-gray-200"
+          style:min-width="100%">
           <thead class="bg-gray-50">
             <tr>
-              <th
-                class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24"
-                >연차</th
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24"
+              >연차</th
               >
-              <th
-                class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
+              <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
               >
                 <div>인건비</div>
               </th>
-              <th
-                class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
+              <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
               >
                 <div>연구재료비</div>
               </th>
-              <th
-                class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
+              <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
               >
                 <div>연구활동비</div>
               </th>
-              <th
-                class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
+              <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
               >
                 <div>연구수당</div>
               </th>
-              <th
-                class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
+              <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
               >
                 <div>간접비</div>
               </th>
-              <th
-                class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
+              <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
               >
                 <div>총 예산</div>
               </th>
-              <th
-                class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-32"
-                >액션</th
+              <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-32"
+              >액션</th
               >
             </tr>
           </thead>
@@ -1971,15 +1994,15 @@
             {#each projectBudgets as budget}
               {@const totalBudget =
                 getPersonnelCostCash(budget) +
-                getPersonnelCostInKind(budget) +
-                getResearchMaterialCostCash(budget) +
-                getResearchMaterialCostInKind(budget) +
-                getResearchActivityCostCash(budget) +
-                getResearchActivityCostInKind(budget) +
-                getResearchStipendCash(budget) +
-                getResearchStipendInKind(budget) +
-                getIndirectCostCash(budget) +
-                getIndirectCostInKind(budget)}
+                  getPersonnelCostInKind(budget) +
+                  getResearchMaterialCostCash(budget) +
+                  getResearchMaterialCostInKind(budget) +
+                  getResearchActivityCostCash(budget) +
+                  getResearchActivityCostInKind(budget) +
+                  getResearchStipendCash(budget) +
+                  getResearchStipendInKind(budget) +
+                  getIndirectCostCash(budget) +
+                  getIndirectCostInKind(budget)}
               {@const personnelCash = Number(getPersonnelCostCash(budget)) || 0}
               {@const materialCash = Number(getResearchMaterialCostCash(budget)) || 0}
               {@const activityCash = Number(getResearchActivityCostCash(budget)) || 0}
@@ -1997,7 +2020,9 @@
               <tr class="hover:bg-gray-50">
                 <!-- 연차 -->
                 <td class="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900 w-24">
-                  <div class="text-sm cursor-help" title={formatPeriodTooltip(budget)}>
+                  <div
+                    class="text-sm cursor-help"
+                    title={formatPeriodTooltip(budget)}>
                     <div class="font-medium">{formatPeriodDisplay(budget)}</div>
                     <div class="text-xs text-gray-500 mt-1">현금 | 현물</div>
                   </div>
@@ -2050,8 +2075,7 @@
                   </div>
                 </td>
                 <!-- 총 예산 (현금/현물) -->
-                <td
-                  class="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900 text-right"
+                <td class="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900 text-right"
                 >
                   <div class="space-y-2">
                     <div class="text-sm text-blue-600 font-semibold">
@@ -2065,12 +2089,22 @@
                 <!-- 액션 -->
                 <td class="px-4 py-4 whitespace-nowrap text-sm font-medium w-32">
                   <div class="flex space-x-1 justify-center">
-                    <ThemeButton variant="ghost" size="sm" onclick={() => editBudget(budget)}>
-                      <EditIcon size={16} class="text-blue-600 mr-1" />
+                    <ThemeButton
+                      variant="ghost"
+                      size="sm"
+                      onclick={() => editBudget(budget)}>
+                      <EditIcon
+                        size={16}
+                        class="text-blue-600 mr-1" />
                       수정
                     </ThemeButton>
-                    <ThemeButton variant="ghost" size="sm" onclick={() => removeBudget(budget.id)}>
-                      <TrashIcon size={16} class="text-red-600 mr-1" />
+                    <ThemeButton
+                      variant="ghost"
+                      size="sm"
+                      onclick={() => removeBudget(budget.id)}>
+                      <TrashIcon
+                        size={16}
+                        class="text-red-600 mr-1" />
                       삭제
                     </ThemeButton>
                   </div>
@@ -2078,8 +2112,12 @@
               </tr>
             {:else}
               <tr>
-                <td colspan="7" class="px-4 py-12 text-center text-gray-500">
-                  <DollarSignIcon size={48} class="mx-auto mb-2 text-gray-300" />
+                <td
+                  colspan="7"
+                  class="px-4 py-12 text-center text-gray-500">
+                  <DollarSignIcon
+                    size={48}
+                    class="mx-auto mb-2 text-gray-300" />
                   <p>등록된 사업비가 없습니다.</p>
                 </td>
               </tr>
@@ -2257,8 +2295,10 @@
             />
           </div>
           <div>
-            <label for="pm-budget-start-date" class="block text-sm font-medium text-gray-700 mb-1"
-              >시작일 *</label
+            <label
+              for="pm-budget-start-date"
+              class="block text-sm font-medium text-gray-700 mb-1"
+            >시작일 *</label
             >
             <input
               id="pm-budget-start-date"
@@ -2268,8 +2308,10 @@
             />
           </div>
           <div>
-            <label for="pm-budget-end-date" class="block text-sm font-medium text-gray-700 mb-1"
-              >종료일 *</label
+            <label
+              for="pm-budget-end-date"
+              class="block text-sm font-medium text-gray-700 mb-1"
+            >종료일 *</label
             >
             <input
               id="pm-budget-end-date"
@@ -2290,8 +2332,10 @@
           <div class="block text-sm font-medium text-gray-700">인건비</div>
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label for="pm-budget-personnel-cash" class="block text-xs text-gray-500 mb-1"
-                >현금 (천원)</label
+              <label
+                for="pm-budget-personnel-cash"
+                class="block text-xs text-gray-500 mb-1"
+              >현금 (천원)</label
               >
               <input
                 id="pm-budget-personnel-cash"
@@ -2302,8 +2346,10 @@
               />
             </div>
             <div>
-              <label for="pm-budget-personnel-in-kind" class="block text-xs text-gray-500 mb-1"
-                >현물 (천원)</label
+              <label
+                for="pm-budget-personnel-in-kind"
+                class="block text-xs text-gray-500 mb-1"
+              >현물 (천원)</label
               >
               <input
                 id="pm-budget-personnel-in-kind"
@@ -2321,8 +2367,10 @@
           <div class="block text-sm font-medium text-gray-700">연구재료비</div>
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label for="pm-budget-research-material-cash" class="block text-xs text-gray-500 mb-1"
-                >현금 (천원)</label
+              <label
+                for="pm-budget-research-material-cash"
+                class="block text-xs text-gray-500 mb-1"
+              >현금 (천원)</label
               >
               <input
                 id="pm-budget-research-material-cash"
@@ -2353,8 +2401,10 @@
           <div class="block text-sm font-medium text-gray-700">연구활동비</div>
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label for="pm-budget-research-activity-cash" class="block text-xs text-gray-500 mb-1"
-                >현금 (천원)</label
+              <label
+                for="pm-budget-research-activity-cash"
+                class="block text-xs text-gray-500 mb-1"
+              >현금 (천원)</label
               >
               <input
                 id="pm-budget-research-activity-cash"
@@ -2426,8 +2476,10 @@
         <div class="space-y-2">
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label for="pm-budget-indirect-cash" class="block text-xs text-gray-500 mb-1"
-                >현금 (천원)</label
+              <label
+                for="pm-budget-indirect-cash"
+                class="block text-xs text-gray-500 mb-1"
+              >현금 (천원)</label
               >
               <input
                 id="pm-budget-indirect-cash"
@@ -2438,8 +2490,10 @@
               />
             </div>
             <div>
-              <label for="pm-budget-indirect-in-kind" class="block text-xs text-gray-500 mb-1"
-                >현물 (천원)</label
+              <label
+                for="pm-budget-indirect-in-kind"
+                class="block text-xs text-gray-500 mb-1"
+              >현물 (천원)</label
               >
               <input
                 id="pm-budget-indirect-in-kind"
@@ -2496,8 +2550,10 @@
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <!-- 연구원 선택 -->
         <div>
-          <label for="member-employee-select" class="block text-sm font-medium text-gray-700 mb-2"
-            >연구원</label
+          <label
+            for="member-employee-select"
+            class="block text-sm font-medium text-gray-700 mb-2"
+          >연구원</label
           >
           <select
             id="member-employee-select"
@@ -2511,7 +2567,7 @@
             <option value="">👥 연구원 선택 ({availableEmployees.length}명)</option>
             {#each availableEmployees as employee}
               <option value={employee.id}
-                >{formatKoreanName(employee.name)} ({employee.department})</option
+              >{formatKoreanName(employee.name)} ({employee.department})</option
               >
             {/each}
           </select>
@@ -2519,8 +2575,10 @@
 
         <!-- 역할 -->
         <div>
-          <label for="member-role-select" class="block text-sm font-medium text-gray-700 mb-2"
-            >역할</label
+          <label
+            for="member-role-select"
+            class="block text-sm font-medium text-gray-700 mb-2"
+          >역할</label
           >
           <select
             id="member-role-select"
@@ -2558,17 +2616,18 @@
                 updateMonthlyAmount()
               }}
             />
-            <span
-              class="absolute right-2 top-1/2 transform -translate-y-1/2 text-xs text-gray-500 pointer-events-none"
-              >%</span
+            <span class="absolute right-2 top-1/2 transform -translate-y-1/2 text-xs text-gray-500 pointer-events-none"
+            >%</span
             >
           </div>
         </div>
 
         <!-- 기여 유형 -->
         <div>
-          <label for="member-contribution-type" class="block text-sm font-medium text-gray-700 mb-2"
-            >기여 유형</label
+          <label
+            for="member-contribution-type"
+            class="block text-sm font-medium text-gray-700 mb-2"
+          >기여 유형</label
           >
           <select
             id="member-contribution-type"
@@ -2584,8 +2643,10 @@
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
         <!-- 월간금액 -->
         <div>
-          <label for="member-monthly-amount" class="block text-sm font-medium text-gray-700 mb-2"
-            >월간금액</label
+          <label
+            for="member-monthly-amount"
+            class="block text-sm font-medium text-gray-700 mb-2"
+          >월간금액</label
           >
           <div class="flex items-center space-x-2">
             <input
@@ -2602,8 +2663,7 @@
             <div class="text-sm min-w-0">
               {#if isCalculatingMonthlyAmount}
                 <div class="flex items-center text-blue-600">
-                  <div
-                    class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"
+                  <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"
                   ></div>
                   계산 중...
                 </div>
@@ -2637,7 +2697,9 @@
           <div class="block text-sm font-medium text-gray-700 mb-2">참여기간</div>
           <div class="flex space-x-2">
             <div class="flex-1">
-              <label for="member-start-date" class="sr-only">시작일</label>
+              <label
+                for="member-start-date"
+                class="sr-only">시작일</label>
               <input
                 id="member-start-date"
                 type="date"
@@ -2650,7 +2712,9 @@
               />
             </div>
             <div class="flex-1">
-              <label for="member-end-date" class="sr-only">종료일</label>
+              <label
+                for="member-end-date"
+                class="sr-only">종료일</label>
               <input
                 id="member-end-date"
                 type="date"
@@ -2684,8 +2748,13 @@
 
       <!-- 액션 버튼 -->
       <div class="flex justify-end space-x-3 mt-6">
-        <ThemeButton variant="secondary" onclick={cancelAddMember} class="px-6 py-2">
-          <XIcon size={16} class="mr-2" />
+        <ThemeButton
+          variant="secondary"
+          onclick={cancelAddMember}
+          class="px-6 py-2">
+          <XIcon
+            size={16}
+            class="mr-2" />
           취소
         </ThemeButton>
         <ThemeButton
@@ -2694,7 +2763,9 @@
           disabled={!memberForm.employeeId || !memberForm.startDate || !memberForm.endDate}
           class="px-6 py-2"
         >
-          <CheckIcon size={16} class="mr-2" />
+          <CheckIcon
+            size={16}
+            class="mr-2" />
           추가
         </ThemeButton>
       </div>
@@ -2714,10 +2785,14 @@
             disabled={isValidatingMembers}
           >
             {#if isValidatingMembers}
-              <RefreshCwIcon size={14} class="mr-2 animate-spin" />
+              <RefreshCwIcon
+                size={14}
+                class="mr-2 animate-spin" />
               검증 중...
             {:else}
-              <ShieldCheckIcon size={14} class="mr-2" />
+              <ShieldCheckIcon
+                size={14}
+                class="mr-2" />
               검증 실행
             {/if}
           </ThemeButton>
@@ -2727,43 +2802,40 @@
           size="sm"
           disabled={addingMember || editingMember !== null}
         >
-          <PlusIcon size={16} class="mr-2" />
+          <PlusIcon
+            size={16}
+            class="mr-2" />
           연구원 추가
         </ThemeButton>
       </div>
     </div>
 
     <div class="overflow-x-auto">
-      <table class="min-w-full divide-y divide-gray-200" style:min-width="1000px">
+      <table
+        class="min-w-full divide-y divide-gray-200"
+        style:min-width="1000px">
         <thead class="bg-gray-50">
           <tr>
-            <th
-              class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-48"
-              >연구원</th
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-48"
+            >연구원</th
             >
-            <th
-              class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24"
-              >참여율</th
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24"
+            >참여율</th
             >
-            <th
-              class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-40"
-              >월간금액</th
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-40"
+            >월간금액</th
             >
-            <th
-              class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-56"
-              >참여기간</th
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-56"
+            >참여기간</th
             >
-            <th
-              class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32"
-              >기여 유형</th
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32"
+            >기여 유형</th
             >
-            <th
-              class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32"
-              >검증 상태</th
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32"
+            >검증 상태</th
             >
-            <th
-              class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-40"
-              >액션</th
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-40"
+            >액션</th
             >
           </tr>
         </thead>
@@ -2776,13 +2848,17 @@
             >
               <td class="px-4 py-4 whitespace-nowrap w-48">
                 <div class="flex items-center">
-                  <UserIcon size={20} class="text-gray-400 mr-2" />
+                  <UserIcon
+                    size={20}
+                    class="text-gray-400 mr-2" />
                   <div class="flex-1 min-w-0">
                     <div class="flex items-center gap-2 mb-1">
                       <div class="text-sm font-medium text-gray-900 truncate">
                         {formatKoreanName(getMemberEmployeeName(member))}
                       </div>
-                      <ThemeBadge variant="info" size="sm">{member.role}</ThemeBadge>
+                      <ThemeBadge
+                        variant="info"
+                        size="sm">{member.role}</ThemeBadge>
                     </div>
                     <div class="text-xs text-gray-500 truncate">
                       {member.employee_department} / {member.employee_position}
@@ -2805,9 +2881,8 @@
                         updateMonthlyAmount()
                       }}
                     />
-                    <span
-                      class="absolute right-2 top-1/2 transform -translate-y-1/2 text-xs text-gray-500 pointer-events-none"
-                      >%</span
+                    <span class="absolute right-2 top-1/2 transform -translate-y-1/2 text-xs text-gray-500 pointer-events-none"
+                    >%</span
                     >
                   </div>
                 {:else}
@@ -2900,11 +2975,9 @@
                     {@const validationStatus = memberValidationStatuses[member.id]}
                     {#if validationStatus.status === 'valid'}
                       <div class="relative inline-block group">
-                        <CheckCircleIcon
-                          class="h-6 w-6 text-green-500 cursor-help hover:text-green-600 transition-colors"
+                        <CheckCircleIcon class="h-6 w-6 text-green-500 cursor-help hover:text-green-600 transition-colors"
                         />
-                        <div
-                          class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-4 py-3 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-20 max-w-xs"
+                        <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-4 py-3 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-20 max-w-xs"
                         >
                           <div class="font-semibold text-green-400 mb-1">✅ 검증 완료</div>
                           <div class="text-gray-300">모든 검증 항목이 정상입니다.</div>
@@ -2915,11 +2988,9 @@
                       </div>
                     {:else if validationStatus.status === 'warning'}
                       <div class="relative inline-block group">
-                        <AlertTriangleIcon
-                          class="h-6 w-6 text-yellow-500 cursor-help hover:text-yellow-600 transition-colors"
+                        <AlertTriangleIcon class="h-6 w-6 text-yellow-500 cursor-help hover:text-yellow-600 transition-colors"
                         />
-                        <div
-                          class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-4 py-3 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-20 max-w-sm"
+                        <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-4 py-3 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-20 max-w-sm"
                         >
                           <div class="font-semibold text-yellow-400 mb-2">⚠️ 경고 사항</div>
                           <div class="text-gray-300 mb-1">{validationStatus.message}</div>
@@ -2957,11 +3028,9 @@
                       </div>
                     {:else if validationStatus.status === 'error'}
                       <div class="relative inline-block group">
-                        <XCircleIcon
-                          class="h-6 w-6 text-red-500 cursor-help hover:text-red-600 transition-colors"
+                        <XCircleIcon class="h-6 w-6 text-red-500 cursor-help hover:text-red-600 transition-colors"
                         />
-                        <div
-                          class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-4 py-3 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-20 max-w-sm"
+                        <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-4 py-3 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-20 max-w-sm"
                         >
                           <div class="font-semibold text-red-400 mb-2">❌ 검증 실패</div>
                           <div class="text-gray-300 mb-1">{validationStatus.message}</div>
@@ -3000,11 +3069,9 @@
                     {/if}
                   {:else}
                     <div class="relative inline-block group">
-                      <div
-                        class="animate-pulse bg-gray-300 rounded-full w-6 h-6 cursor-help hover:bg-gray-400 transition-colors"
+                      <div class="animate-pulse bg-gray-300 rounded-full w-6 h-6 cursor-help hover:bg-gray-400 transition-colors"
                       ></div>
-                      <div
-                        class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-10"
+                      <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-10"
                       >
                         <div class="font-semibold text-gray-400">⏳ 검증 대기 중</div>
                         <div class="text-gray-500">아직 검증되지 않았습니다.</div>
@@ -3017,14 +3084,14 @@
                 <div class="flex space-x-1 justify-center">
                   {#if editingMember && editingMember.id === member.id}
                     <div class="flex space-x-1">
-                      <button
+                      <button type="button"
                         onclick={updateMember}
                         class="p-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors duration-200 shadow-sm"
                         title="저장"
                       >
                         <CheckIcon size={14} />
                       </button>
-                      <button
+                      <button type="button"
                         onclick={cancelEditMember}
                         class="p-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors duration-200 shadow-sm"
                         title="취소"
@@ -3039,7 +3106,9 @@
                       onclick={() => editMember(member)}
                       disabled={editingMember !== null}
                     >
-                      <EditIcon size={16} class="text-blue-600 mr-1" />
+                      <EditIcon
+                        size={16}
+                        class="text-blue-600 mr-1" />
                       수정
                     </ThemeButton>
                     <ThemeButton
@@ -3048,7 +3117,9 @@
                       onclick={() => removeMember(member.id)}
                       disabled={editingMember !== null}
                     >
-                      <TrashIcon size={16} class="text-red-600 mr-1" />
+                      <TrashIcon
+                        size={16}
+                        class="text-red-600 mr-1" />
                       삭제
                     </ThemeButton>
                   {/if}
@@ -3059,8 +3130,12 @@
 
           {#if projectMembers.length === 0 && !addingMember}
             <tr>
-              <td colspan="7" class="px-6 py-12 text-center text-gray-500">
-                <UsersIcon size={48} class="mx-auto mb-2 text-gray-300" />
+              <td
+                colspan="7"
+                class="px-6 py-12 text-center text-gray-500">
+                <UsersIcon
+                  size={48}
+                  class="mx-auto mb-2 text-gray-300" />
                 <p>참여 연구원이 없습니다.</p>
               </td>
             </tr>
@@ -3082,7 +3157,7 @@
               </span>
             {/if}
           </h4>
-          <button
+          <button type="button"
             onclick={() => (isPersonnelSummaryExpanded = !isPersonnelSummaryExpanded)}
             class="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700"
           >
@@ -3126,21 +3201,17 @@
               <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-100">
                   <tr>
-                    <th
-                      class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                      >월</th
+                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >월</th
                     >
-                    <th
-                      class="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
-                      >현금</th
+                    <th class="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >현금</th
                     >
-                    <th
-                      class="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
-                      >현물</th
+                    <th class="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >현물</th
                     >
-                    <th
-                      class="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
-                      >합계</th
+                    <th class="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >합계</th
                     >
                   </tr>
                 </thead>
@@ -3156,8 +3227,7 @@
                       <td class="px-3 py-2 whitespace-nowrap text-sm text-right text-orange-600">
                         {formatCurrency(monthData.inKind)}
                       </td>
-                      <td
-                        class="px-3 py-2 whitespace-nowrap text-sm text-right font-medium text-gray-900"
+                      <td class="px-3 py-2 whitespace-nowrap text-sm text-right font-medium text-gray-900"
                       >
                         {formatCurrency(monthData.total)}
                       </td>
@@ -3168,18 +3238,15 @@
                     <td class="px-3 py-2 whitespace-nowrap text-sm font-bold text-gray-900">
                       연차 합계
                     </td>
-                    <td
-                      class="px-3 py-2 whitespace-nowrap text-sm text-right font-bold text-green-600"
+                    <td class="px-3 py-2 whitespace-nowrap text-sm text-right font-bold text-green-600"
                     >
                       {formatCurrency(personnelSummary.totalCash)}
                     </td>
-                    <td
-                      class="px-3 py-2 whitespace-nowrap text-sm text-right font-bold text-orange-600"
+                    <td class="px-3 py-2 whitespace-nowrap text-sm text-right font-bold text-orange-600"
                     >
                       {formatCurrency(personnelSummary.totalInKind)}
                     </td>
-                    <td
-                      class="px-3 py-2 whitespace-nowrap text-sm text-right font-bold text-blue-600"
+                    <td class="px-3 py-2 whitespace-nowrap text-sm text-right font-bold text-blue-600"
                     >
                       {formatCurrency(personnelSummary.totalCost)}
                     </td>
@@ -3211,8 +3278,12 @@
           </select>
         {/if}
       </div>
-      <ThemeButton onclick={() => (showEvidenceModal = true)} size="sm">
-        <PlusIcon size={16} class="mr-2" />
+      <ThemeButton
+        onclick={() => (showEvidenceModal = true)}
+        size="sm">
+        <PlusIcon
+          size={16}
+          class="mr-2" />
         증빙 추가
       </ThemeButton>
     </div>
@@ -3220,7 +3291,7 @@
     {#if projectBudgets.length > 0}
       {@const currentBudget =
         projectBudgets.find(b => getPeriodNumber(b) === selectedEvidencePeriod) ||
-        projectBudgets[0]}
+          projectBudgets[0]}
       {@const budgetCategories = [
         {
           id: 'personnel',
@@ -3261,8 +3332,7 @@
 
       {#if isLoadingEvidence}
         <div class="text-center py-8">
-          <div
-            class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"
+          <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"
           ></div>
           <p class="mt-2 text-sm text-gray-500">증빙 데이터를 로드하는 중...</p>
         </div>
@@ -3293,14 +3363,18 @@
                     !expandedEvidenceSections[budgetCategory.type])}
                 onkeydown={e =>
                   e.key === 'Enter' &&
-                  (expandedEvidenceSections[budgetCategory.type] =
-                    !expandedEvidenceSections[budgetCategory.type])}
+                    (expandedEvidenceSections[budgetCategory.type] =
+                      !expandedEvidenceSections[budgetCategory.type])}
               >
                 <div class="flex items-center space-x-3">
                   {#if expandedEvidenceSections[budgetCategory.type]}
-                    <ChevronDownIcon size={16} class="text-gray-500" />
+                    <ChevronDownIcon
+                      size={16}
+                      class="text-gray-500" />
                   {:else}
-                    <ChevronRightIcon size={16} class="text-gray-500" />
+                    <ChevronRightIcon
+                      size={16}
+                      class="text-gray-500" />
                   {/if}
                   <div>
                     <h4 class="text-md font-medium text-gray-900">{budgetCategory.name}</h4>
@@ -3317,10 +3391,10 @@
                         class="h-2 rounded-full {overallProgress >= 100
                           ? 'bg-green-600'
                           : overallProgress >= 70
-                            ? 'bg-blue-600'
-                            : overallProgress >= 30
-                              ? 'bg-yellow-500'
-                              : 'bg-red-500'}"
+                          ? 'bg-blue-600'
+                          : overallProgress >= 30
+                          ? 'bg-yellow-500'
+                          : 'bg-red-500'}"
                         style:width="{Math.min(overallProgress, 100)}%"
                       ></div>
                     </div>
@@ -3331,7 +3405,9 @@
                     size="sm"
                     onclick={() => openEvidenceDetail(budgetCategory)}
                   >
-                    <PlusIcon size={14} class="mr-1" />
+                    <PlusIcon
+                      size={14}
+                      class="mr-1" />
                     추가
                   </ThemeButton>
                 </div>
@@ -3345,33 +3421,26 @@
                       <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50">
                           <tr>
-                            <th
-                              class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-48"
-                              >증빙 항목</th
+                            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-48"
+                            >증빙 항목</th
                             >
-                            <th
-                              class="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-32"
-                              >금액</th
+                            <th class="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-32"
+                            >금액</th
                             >
-                            <th
-                              class="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-24"
-                              >담당자</th
+                            <th class="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-24"
+                            >담당자</th
                             >
-                            <th
-                              class="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-24"
-                              >진행률</th
+                            <th class="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-24"
+                            >진행률</th
                             >
-                            <th
-                              class="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-24"
-                              >마감일</th
+                            <th class="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-24"
+                            >마감일</th
                             >
-                            <th
-                              class="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-24"
-                              >상태</th
+                            <th class="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-24"
+                            >상태</th
                             >
-                            <th
-                              class="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-32"
-                              >액션</th
+                            <th class="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-32"
+                            >액션</th
                             >
                           </tr>
                         </thead>
@@ -3381,26 +3450,23 @@
                               new Date(item.due_date) < new Date() && item.status !== 'completed'}
                             <tr class="hover:bg-gray-50">
                               <!-- 증빙 항목 -->
-                              <td
-                                class="px-3 py-3 whitespace-nowrap text-sm font-medium text-gray-900"
+                              <td class="px-3 py-3 whitespace-nowrap text-sm font-medium text-gray-900"
                               >
                                 {item.name}
                               </td>
 
                               <!-- 금액 -->
-                              <td
-                                class="px-3 py-3 whitespace-nowrap text-sm text-gray-900 text-center"
+                              <td class="px-3 py-3 whitespace-nowrap text-sm text-gray-900 text-center"
                               >
                                 <span class="font-medium">{formatCurrency(item.budget_amount)}</span
                                 >
                               </td>
 
                               <!-- 담당자 -->
-                              <td
-                                class="px-3 py-3 whitespace-nowrap text-sm text-gray-900 text-center"
+                              <td class="px-3 py-3 whitespace-nowrap text-sm text-gray-900 text-center"
                               >
                                 <span class="text-gray-600"
-                                  >{formatAssigneeNameFromFields(item)}</span
+                                >{formatAssigneeNameFromFields(item)}</span
                                 >
                               </td>
 
@@ -3412,10 +3478,10 @@
                                       class="h-2 rounded-full {item.progress >= 100
                                         ? 'bg-green-600'
                                         : item.progress >= 70
-                                          ? 'bg-blue-600'
-                                          : item.progress >= 30
-                                            ? 'bg-yellow-500'
-                                            : 'bg-red-500'}"
+                                        ? 'bg-blue-600'
+                                        : item.progress >= 30
+                                        ? 'bg-yellow-500'
+                                        : 'bg-red-500'}"
                                       style:width="{Math.min(item.progress, 100)}%"
                                     ></div>
                                   </div>
@@ -3438,27 +3504,26 @@
                               <td class="px-3 py-3 whitespace-nowrap text-sm text-center">
                                 <span
                                   class="px-2 py-1 text-xs font-medium rounded-full {item.status ===
-                                  'completed'
+                                    'completed'
                                     ? 'bg-green-100 text-green-800'
                                     : item.status === 'in_progress'
-                                      ? 'bg-blue-100 text-blue-800'
-                                      : item.status === 'planned'
-                                        ? 'bg-gray-100 text-gray-800'
-                                        : 'bg-yellow-100 text-yellow-800'}"
+                                    ? 'bg-blue-100 text-blue-800'
+                                    : item.status === 'planned'
+                                    ? 'bg-gray-100 text-gray-800'
+                                    : 'bg-yellow-100 text-yellow-800'}"
                                 >
                                   {item.status === 'completed'
                                     ? '완료'
                                     : item.status === 'in_progress'
-                                      ? '진행중'
-                                      : item.status === 'planned'
-                                        ? '계획'
-                                        : '검토중'}
+                                    ? '진행중'
+                                    : item.status === 'planned'
+                                    ? '계획'
+                                    : '검토중'}
                                 </span>
                               </td>
 
                               <!-- 액션 -->
-                              <td
-                                class="px-3 py-3 whitespace-nowrap text-sm font-medium text-center"
+                              <td class="px-3 py-3 whitespace-nowrap text-sm font-medium text-center"
                               >
                                 <div class="flex space-x-1 justify-center">
                                   <ThemeButton
@@ -3466,7 +3531,9 @@
                                     size="sm"
                                     onclick={() => openEvidenceDetail(item)}
                                   >
-                                    <EditIcon size={12} class="mr-1" />
+                                    <EditIcon
+                                      size={12}
+                                      class="mr-1" />
                                     상세
                                   </ThemeButton>
                                 </div>
@@ -3478,7 +3545,9 @@
                     </div>
                   {:else}
                     <div class="text-center py-8 text-gray-500">
-                      <FileTextIcon size={48} class="mx-auto mb-2 text-gray-300" />
+                      <FileTextIcon
+                        size={48}
+                        class="mx-auto mb-2 text-gray-300" />
                       <p>등록된 증빙 항목이 없습니다.</p>
                       <ThemeButton
                         variant="ghost"
@@ -3486,7 +3555,9 @@
                         class="mt-2"
                         onclick={() => openEvidenceDetail(budgetCategory)}
                       >
-                        <PlusIcon size={14} class="mr-1" />
+                        <PlusIcon
+                          size={14}
+                          class="mr-1" />
                         첫 번째 증빙 추가
                       </ThemeButton>
                     </div>
@@ -3499,7 +3570,9 @@
       {/if}
     {:else}
       <div class="text-center py-8 text-gray-500">
-        <FileTextIcon size={48} class="mx-auto mb-2 text-gray-300" />
+        <FileTextIcon
+          size={48}
+          class="mx-auto mb-2 text-gray-300" />
         <p>등록된 사업비가 없어 증빙을 관리할 수 없습니다.</p>
       </div>
     {/if}
@@ -3507,13 +3580,15 @@
 
   <!-- 증빙 상세 모달 -->
   {#if showEvidenceDetailModal}
-    <ThemeModal open={showEvidenceDetailModal} onclose={() => (showEvidenceDetailModal = false)}>
+    <ThemeModal
+      open={showEvidenceDetailModal}
+      onclose={() => (showEvidenceDetailModal = false)}>
       <div class="p-6 max-w-4xl">
         <div class="flex items-center justify-between mb-4">
           <h3 class="text-lg font-medium text-gray-900">
             {selectedEvidenceItem?.name} 증빙 관리
           </h3>
-          <button
+          <button type="button"
             onclick={() => (showEvidenceDetailModal = false)}
             class="text-gray-400 hover:text-gray-600"
           >
@@ -3536,7 +3611,7 @@
                 <div>
                   <span class="text-gray-600">담당자:</span>
                   <span class="ml-2"
-                    >{formatAssigneeNameFromFields(selectedEvidenceItem, '미지정')}</span
+                  >{formatAssigneeNameFromFields(selectedEvidenceItem, '미지정')}</span
                   >
                 </div>
                 <div>
@@ -3546,33 +3621,29 @@
                 <div>
                   <span class="text-gray-600">마감일:</span>
                   <span class="ml-2"
-                    >{selectedEvidenceItem.due_date
-                      ? formatDate(selectedEvidenceItem.due_date)
-                      : '미설정'}</span
+                  >{selectedEvidenceItem.due_date
+                    ? formatDate(selectedEvidenceItem.due_date)
+                    : '미설정'}</span
                   >
                 </div>
                 <div>
                   <span class="text-gray-600">상태:</span>
                   <span class="ml-2">
                     {#if selectedEvidenceItem.status === 'completed'}
-                      <span
-                        class="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800"
-                        >완료</span
+                      <span class="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800"
+                      >완료</span
                       >
                     {:else if selectedEvidenceItem.status === 'in_progress'}
-                      <span
-                        class="px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800"
-                        >진행중</span
+                      <span class="px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800"
+                      >진행중</span
                       >
                     {:else if selectedEvidenceItem.status === 'planned'}
-                      <span
-                        class="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-800"
-                        >계획</span
+                      <span class="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-800"
+                      >계획</span
                       >
                     {:else}
-                      <span
-                        class="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800"
-                        >{selectedEvidenceItem.status}</span
+                      <span class="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800"
+                      >{selectedEvidenceItem.status}</span
                       >
                     {/if}
                   </span>
@@ -3589,7 +3660,9 @@
               <div class="flex items-center justify-between">
                 <h5 class="text-md font-medium text-gray-900">증빙 서류</h5>
                 <ThemeButton size="sm">
-                  <PlusIcon size={14} class="mr-1" />
+                  <PlusIcon
+                    size={14}
+                    class="mr-1" />
                   서류 추가
                 </ThemeButton>
               </div>
@@ -3597,8 +3670,7 @@
               <div class="space-y-2">
                 {#if selectedEvidenceItem.documents && selectedEvidenceItem.documents.length > 0}
                   {#each selectedEvidenceItem.documents as document}
-                    <div
-                      class="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg"
+                    <div class="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg"
                     >
                       <div class="flex items-center space-x-3">
                         <div>
@@ -3618,32 +3690,32 @@
                       </div>
                       <div class="flex items-center space-x-2">
                         {#if document.status === 'approved'}
-                          <span
-                            class="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800"
+                          <span class="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800"
                           >
                             승인됨
                           </span>
                         {:else if document.status === 'reviewed'}
-                          <span
-                            class="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800"
+                          <span class="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800"
                           >
                             검토됨
                           </span>
                         {:else if document.status === 'rejected'}
-                          <span
-                            class="px-2 py-1 text-xs font-medium rounded-full bg-red-100 text-red-800"
+                          <span class="px-2 py-1 text-xs font-medium rounded-full bg-red-100 text-red-800"
                           >
                             거부됨
                           </span>
                         {:else}
-                          <span
-                            class="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-800"
+                          <span class="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-800"
                           >
                             업로드됨
                           </span>
                         {/if}
-                        <ThemeButton variant="ghost" size="sm">
-                          <FileTextIcon size={12} class="mr-1" />
+                        <ThemeButton
+                          variant="ghost"
+                          size="sm">
+                          <FileTextIcon
+                            size={12}
+                            class="mr-1" />
                           보기
                         </ThemeButton>
                       </div>
@@ -3651,7 +3723,9 @@
                   {/each}
                 {:else}
                   <div class="text-center py-8 text-gray-500">
-                    <FileTextIcon size={48} class="mx-auto mb-2 text-gray-300" />
+                    <FileTextIcon
+                      size={48}
+                      class="mx-auto mb-2 text-gray-300" />
                     <p>등록된 증빙 서류가 없습니다.</p>
                   </div>
                 {/if}
@@ -3663,7 +3737,9 @@
               <div class="flex items-center justify-between">
                 <h5 class="text-md font-medium text-gray-900">증빙 일정</h5>
                 <ThemeButton size="sm">
-                  <PlusIcon size={14} class="mr-1" />
+                  <PlusIcon
+                    size={14}
+                    class="mr-1" />
                   일정 추가
                 </ThemeButton>
               </div>
@@ -3671,8 +3747,7 @@
               <div class="space-y-2">
                 {#if selectedEvidenceItem.schedules && selectedEvidenceItem.schedules.length > 0}
                   {#each selectedEvidenceItem.schedules as schedule}
-                    <div
-                      class="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg"
+                    <div class="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg"
                     >
                       <div class="flex items-center space-x-3">
                         <div>
@@ -3690,39 +3765,33 @@
                       </div>
                       <div class="flex items-center space-x-2">
                         {#if schedule.status === 'completed'}
-                          <span
-                            class="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800"
+                          <span class="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800"
                           >
                             완료
                           </span>
                         {:else if schedule.status === 'in_progress'}
-                          <span
-                            class="px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800"
+                          <span class="px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800"
                           >
                             진행중
                           </span>
                         {:else if schedule.status === 'overdue'}
-                          <span
-                            class="px-2 py-1 text-xs font-medium rounded-full bg-red-100 text-red-800"
+                          <span class="px-2 py-1 text-xs font-medium rounded-full bg-red-100 text-red-800"
                           >
                             지연
                           </span>
                         {:else}
-                          <span
-                            class="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-800"
+                          <span class="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-800"
                           >
                             대기
                           </span>
                         {/if}
                         {#if schedule.priority === 'high'}
-                          <span
-                            class="px-1 py-1 text-xs font-medium rounded-full bg-red-100 text-red-800"
+                          <span class="px-1 py-1 text-xs font-medium rounded-full bg-red-100 text-red-800"
                           >
                             높음
                           </span>
                         {:else if schedule.priority === 'urgent'}
-                          <span
-                            class="px-1 py-1 text-xs font-medium rounded-full bg-red-200 text-red-900"
+                          <span class="px-1 py-1 text-xs font-medium rounded-full bg-red-200 text-red-900"
                           >
                             긴급
                           </span>
@@ -3732,7 +3801,9 @@
                   {/each}
                 {:else}
                   <div class="text-center py-8 text-gray-500">
-                    <CalendarIcon size={48} class="mx-auto mb-2 text-gray-300" />
+                    <CalendarIcon
+                      size={48}
+                      class="mx-auto mb-2 text-gray-300" />
                     <p>등록된 증빙 일정이 없습니다.</p>
                   </div>
                 {/if}
@@ -3741,7 +3812,9 @@
 
             <!-- 액션 버튼 -->
             <div class="flex justify-end space-x-3 pt-4 border-t border-gray-200">
-              <ThemeButton variant="ghost" onclick={() => (showEvidenceDetailModal = false)}>
+              <ThemeButton
+                variant="ghost"
+                onclick={() => (showEvidenceDetailModal = false)}>
                 닫기
               </ThemeButton>
               <ThemeButton>저장</ThemeButton>
@@ -3754,11 +3827,13 @@
 
   <!-- 증빙 추가 모달 -->
   {#if showEvidenceModal}
-    <ThemeModal open={showEvidenceModal} onclose={() => (showEvidenceModal = false)}>
+    <ThemeModal
+      open={showEvidenceModal}
+      onclose={() => (showEvidenceModal = false)}>
       <div class="p-6 max-w-2xl">
         <div class="flex items-center justify-between mb-4">
           <h3 class="text-lg font-medium text-gray-900">증빙 항목 추가</h3>
-          <button
+          <button type="button"
             onclick={() => (showEvidenceModal = false)}
             class="text-gray-400 hover:text-gray-600"
           >
@@ -3769,7 +3844,9 @@
         <div class="space-y-4">
           <!-- 증빙 카테고리 선택 -->
           <div>
-            <label for="evidence-category" class="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              for="evidence-category"
+              class="block text-sm font-medium text-gray-700 mb-1">
               증빙 카테고리 *
             </label>
             <select
@@ -3787,7 +3864,9 @@
 
           <!-- 증빙 항목명 -->
           <div>
-            <label for="evidence-name" class="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              for="evidence-name"
+              class="block text-sm font-medium text-gray-700 mb-1">
               증빙 항목명 *
             </label>
             <input
@@ -3802,7 +3881,9 @@
 
           <!-- 설명 -->
           <div>
-            <label for="evidence-description" class="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              for="evidence-description"
+              class="block text-sm font-medium text-gray-700 mb-1">
               설명
             </label>
             <textarea
@@ -3834,7 +3915,9 @@
 
           <!-- 담당자 -->
           <div>
-            <label for="evidence-assignee" class="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              for="evidence-assignee"
+              class="block text-sm font-medium text-gray-700 mb-1">
               담당자
             </label>
             <select
@@ -3854,7 +3937,9 @@
 
           <!-- 마감일 -->
           <div>
-            <label for="evidence-due-date" class="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              for="evidence-due-date"
+              class="block text-sm font-medium text-gray-700 mb-1">
               마감일
             </label>
             <input
@@ -3911,7 +3996,9 @@
 
         <!-- 액션 버튼 -->
         <div class="flex justify-end space-x-3 pt-4 border-t border-gray-200 mt-6">
-          <ThemeButton variant="ghost" onclick={() => (showEvidenceModal = false)}>
+          <ThemeButton
+            variant="ghost"
+            onclick={() => (showEvidenceModal = false)}>
             취소
           </ThemeButton>
           <ThemeButton
@@ -3927,14 +4014,18 @@
 
   <!-- 프로젝트 수정 모달 -->
   {#if showEditProjectModal}
-    <ThemeModal open={showEditProjectModal} onclose={() => (showEditProjectModal = false)}>
+    <ThemeModal
+      open={showEditProjectModal}
+      onclose={() => (showEditProjectModal = false)}>
       <div class="p-6">
         <h3 class="text-lg font-medium text-gray-900 mb-4">프로젝트 수정</h3>
 
         <div class="space-y-4">
           <!-- 프로젝트 제목 -->
           <div>
-            <label for="edit-project-title" class="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              for="edit-project-title"
+              class="block text-sm font-medium text-gray-700 mb-1">
               프로젝트 제목 *
             </label>
             <input
@@ -3949,7 +4040,9 @@
 
           <!-- 프로젝트 코드 -->
           <div>
-            <label for="edit-project-code" class="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              for="edit-project-code"
+              class="block text-sm font-medium text-gray-700 mb-1">
               프로젝트 코드 *
             </label>
             <input
@@ -3982,7 +4075,9 @@
           <!-- 프로젝트 상태 및 우선순위 -->
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label for="edit-project-status" class="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                for="edit-project-status"
+                class="block text-sm font-medium text-gray-700 mb-1">
                 상태 *
               </label>
               <select
@@ -4069,7 +4164,9 @@
           >
             취소
           </ThemeButton>
-          <ThemeButton onclick={updateProject} disabled={isUpdating}>
+          <ThemeButton
+            onclick={updateProject}
+            disabled={isUpdating}>
             {#if isUpdating}
               수정 중...
             {:else}
@@ -4171,11 +4268,15 @@
   {/if}
 
   <!-- 검증 결과 모달 -->
-  <ThemeModal open={showValidationModal} onclose={() => (showValidationModal = false)}>
+  <ThemeModal
+    open={showValidationModal}
+    onclose={() => (showValidationModal = false)}>
     <div class="max-w-4xl">
       <div class="flex justify-between items-center mb-4">
         <h3 class="text-lg font-semibold text-gray-900">프로젝트 검증 결과</h3>
-        <ThemeButton variant="ghost" onclick={() => (showValidationModal = false)}>
+        <ThemeButton
+          variant="ghost"
+          onclick={() => (showValidationModal = false)}>
           <XIcon size={16} />
         </ThemeButton>
       </div>
@@ -4193,13 +4294,13 @@
               <div>
                 <span class="text-gray-600">유효:</span>
                 <span class="font-medium text-green-600 ml-2"
-                  >{validationResults.summary?.valid || 0}</span
+                >{validationResults.summary?.valid || 0}</span
                 >
               </div>
               <div>
                 <span class="text-gray-600">문제:</span>
                 <span class="font-medium text-red-600 ml-2"
-                  >{validationResults.summary?.invalid || 0}</span
+                >{validationResults.summary?.invalid || 0}</span
                 >
               </div>
             </div>

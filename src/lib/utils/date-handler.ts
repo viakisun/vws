@@ -1,3 +1,4 @@
+import { logger } from '$lib/utils/logger';
 /**
  * 통일된 날짜 처리 유틸리티
  *
@@ -47,7 +48,7 @@ export const DATE_FORMATS = {
 /**
  * 시간대 설정 import
  */
-import { getCurrentTimezone, getTimezoneOffsetString } from './timezone-config.js'
+// timezone-config.js 파일이 삭제되어 import 제거됨
 
 /**
  * 시간대 상수 (하위 호환성을 위해 유지)
@@ -59,7 +60,7 @@ export const UTC_TIMEZONE = 'UTC'
  * 현재 설정된 시간대를 가져옵니다.
  */
 function getCurrentAppTimezone(): string {
-  return getCurrentTimezone()
+  return SEOUL_TIMEZONE // 기본값으로 서울 시간대 사용
 }
 
 /**
@@ -72,7 +73,7 @@ export function toUTC(date: DateInputFormat): StandardDate {
   try {
     let dateObj: Date
     const currentTimezone = getCurrentAppTimezone()
-    const timezoneOffset = getTimezoneOffsetString(currentTimezone as any)
+    const timezoneOffset = '+09:00' // 서울 시간대 오프셋
 
     if (date instanceof Date) {
       // Date 객체는 이미 올바른 시간대로 간주
@@ -146,7 +147,7 @@ export function toUTC(date: DateInputFormat): StandardDate {
     // UTC로 변환하여 ISO 문자열 반환
     return dateObj.toISOString() as StandardDate
   } catch (error) {
-    console.error('Date conversion error:', error, 'for input:', date)
+    logger.error('Date conversion error:', error, 'for input:', date)
     return '' as StandardDate
   }
 }
@@ -164,7 +165,7 @@ export function formatDateForDisplay(
     const date = new Date(utcDate)
 
     if (isNaN(date.getTime())) {
-      console.warn('Invalid UTC date for display:', utcDate)
+      logger.warn('Invalid UTC date for display:', utcDate)
       return ''
     }
 
@@ -193,7 +194,7 @@ export function formatDateForDisplay(
         return `${year}. ${month}. ${day}.`
     }
   } catch (error) {
-    console.error('Date display formatting error:', error, 'for date:', utcDate)
+    logger.error('Date display formatting error:', error, 'for date:', utcDate)
     return ''
   }
 }
@@ -221,7 +222,7 @@ export function formatDateForInput(utcDate: StandardDate | string): string {
 
     return `${year}-${month}-${day}`
   } catch (error) {
-    console.error('Date input formatting error:', error, 'for date:', utcDate)
+    logger.error('Date input formatting error:', error, 'for date:', utcDate)
     return ''
   }
 }
@@ -251,7 +252,7 @@ export function formatDateTimeForInput(utcDate: StandardDate | string): string {
 
     return `${year}-${month}-${day}T${hours}:${minutes}`
   } catch (error) {
-    console.error('DateTime input formatting error:', error, 'for date:', utcDate)
+    logger.error('DateTime input formatting error:', error, 'for date:', utcDate)
     return ''
   }
 }
@@ -361,7 +362,7 @@ export function isValidDateRange(
 export function enforceStandardDate(date: DateInputFormat, context: string = '날짜'): StandardDate {
   if (process.env.NODE_ENV === 'development') {
     if (!isValidDate(date)) {
-      console.warn(`⚠️ [날짜 처리 강제] ${context}에서 유효하지 않은 날짜 발견: "${date}"`)
+      logger.warn(`⚠️ [날짜 처리 강제] ${context}에서 유효하지 않은 날짜 발견: "${date}"`)
     }
   }
 

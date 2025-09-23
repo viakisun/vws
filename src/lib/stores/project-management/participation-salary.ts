@@ -1,5 +1,5 @@
 import { writable } from 'svelte/store'
-import type { ParticipationAssignment, SalaryHistory, Project, Person } from './types'
+import type { ParticipationAssignment, SalaryHistory } from './types'
 import { logAudit } from './core'
 
 // 참여율 및 급여 변동 관리
@@ -94,7 +94,7 @@ export function addSalaryChange(
 // 월별 인건비 배분표 계산
 export function recalculateMonthlyAllocations(): void {
   // 모든 프로젝트와 참여 배정을 가져와서 월별로 계산
-  let allocations: Record<string, any[]> = {}
+  const allocations: Record<string, any[]> = {}
 
   participationAssignments.subscribe(assignments => {
     salaryHistory.subscribe(salaries => {
@@ -113,7 +113,7 @@ export function recalculateMonthlyAllocations(): void {
             const startDate = new Date(assignment.dateFrom)
             const endDate = new Date(assignment.dateTo)
 
-            let currentDate = new Date(startDate.getFullYear(), startDate.getMonth(), 1)
+            const currentDate = new Date(startDate.getFullYear(), startDate.getMonth(), 1)
             const endMonth = new Date(endDate.getFullYear(), endDate.getMonth(), 1)
 
             while (currentDate <= endMonth) {
@@ -212,7 +212,7 @@ export function getProjectTotalPersonnelCost(
     const startDate = new Date(startMonth + '-01')
     const endDate = new Date(endMonth + '-01')
 
-    let currentDate = new Date(startDate)
+    const currentDate = new Date(startDate)
     while (currentDate <= endDate) {
       const monthKey = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`
       const monthAllocations = monthlyData[monthKey] || []

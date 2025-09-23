@@ -1,3 +1,4 @@
+import { logger } from '$lib/utils/logger';
 <script lang="ts">
   import { page } from '$app/stores'
   import { onMount } from 'svelte'
@@ -58,7 +59,7 @@
 
   onMount(() => {
     // 사용자 정보 로드 및 권한 확인
-    console.log('R&D 시스템 초기화:', currentUser)
+    logger.log('R&D 시스템 초기화:', currentUser)
   })
 </script>
 
@@ -76,9 +77,9 @@
               <a
                 href={item.href}
                 class="inline-flex items-center px-1 pt-1 text-sm font-medium border-b-2 transition-colors duration-200
-									{currentPath === item.href
-                  ? 'border-blue-500 text-gray-900'
-                  : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'}"
+                  {currentPath === item.href
+                    ? 'border-blue-500 text-gray-900'
+                    : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'}"
               >
                 <span class="mr-2">{item.icon}</span>
                 {item.name}
@@ -89,18 +90,21 @@
 
         <div class="flex items-center space-x-4">
           <!-- 알림 -->
-          <button class="p-2 text-gray-400 hover:text-gray-500 relative">
-            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <button type="button" class="p-2 text-gray-400 hover:text-gray-500 relative">
+            <svg
+              class="h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor">
               <path
                 stroke-linecap="round"
                 stroke-linejoin="round"
                 stroke-width="2"
                 d="M15 17h5l-5 5v-5zM4.5 5.5L9 10l-4.5 4.5L1 10l3.5-4.5z"
-              ></path>
+              />
             </svg>
-            <span
-              class="absolute -top-1 -right-1 h-4 w-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center"
-              >3</span
+            <span class="absolute -top-1 -right-1 h-4 w-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center"
+            >3</span
             >
           </button>
 
@@ -126,9 +130,9 @@
         <a
           href={item.href}
           class="flex items-center px-3 py-2 text-base font-medium rounded-md transition-colors duration-200
-						{currentPath === item.href
-            ? 'bg-blue-50 text-blue-700'
-            : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}"
+            {currentPath === item.href
+              ? 'bg-blue-50 text-blue-700'
+              : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}"
         >
           <span class="mr-3">{item.icon}</span>
           {item.name}

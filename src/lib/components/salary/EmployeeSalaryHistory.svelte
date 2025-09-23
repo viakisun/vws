@@ -2,12 +2,8 @@
   import { onMount } from 'svelte'
   import {
     payslips,
-    filteredSalaryHistory,
-    selectedEmployee,
     loadPayslips,
-    loadSalaryHistory,
-    isLoading,
-    error
+    loadSalaryHistory
   } from '$lib/stores/salary/salary-store'
   import { formatCurrency, formatDate } from '$lib/utils/format'
   import {
@@ -54,9 +50,9 @@
       filtered = filtered.filter(
         payroll =>
           payroll.employeeName.toLowerCase().includes(query) ||
-          payroll.employeeIdNumber.toLowerCase().includes(query) ||
-          payroll.department.toLowerCase().includes(query) ||
-          payroll.position.toLowerCase().includes(query)
+            payroll.employeeIdNumber.toLowerCase().includes(query) ||
+            payroll.department.toLowerCase().includes(query) ||
+            payroll.position.toLowerCase().includes(query)
       )
     }
 
@@ -155,7 +151,7 @@
 
   // 급여명세서 다운로드
   async function downloadPayslip(payroll: any) {
-    // 급여명세서 다운로드 기능은 PayslipGenerator에서 구현됨
+  // 급여명세서 다운로드 기능은 PayslipGenerator에서 구현됨
   }
 
   // 상태별 색상 반환
@@ -217,14 +213,14 @@
       <p class="mt-1 text-sm text-gray-500">전체 직원의 급여 지급 이력 및 상세 정보</p>
     </div>
     <div class="flex items-center space-x-3">
-      <button
-        class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+      <button type="button" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
       >
-        <DownloadIcon size={16} class="mr-2" />
+        <DownloadIcon
+          size={16}
+          class="mr-2" />
         엑셀 다운로드
       </button>
-      <button
-        class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
+      <button type="button" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
       >
         급여 계산
       </button>
@@ -240,7 +236,9 @@
           <p class="text-2xl font-bold text-gray-900">{$statistics.total}건</p>
         </div>
         <div class="p-2 bg-blue-100 rounded-full">
-          <FileTextIcon size={20} class="text-blue-600" />
+          <FileTextIcon
+            size={20}
+            class="text-blue-600" />
         </div>
       </div>
     </div>
@@ -254,7 +252,9 @@
           </p>
         </div>
         <div class="p-2 bg-green-100 rounded-full">
-          <DollarSignIcon size={20} class="text-green-600" />
+          <DollarSignIcon
+            size={20}
+            class="text-green-600" />
         </div>
       </div>
     </div>
@@ -268,7 +268,9 @@
           </p>
         </div>
         <div class="p-2 bg-purple-100 rounded-full">
-          <TrendingUpIcon size={20} class="text-purple-600" />
+          <TrendingUpIcon
+            size={20}
+            class="text-purple-600" />
         </div>
       </div>
     </div>
@@ -282,7 +284,9 @@
           </p>
         </div>
         <div class="p-2 bg-yellow-100 rounded-full">
-          <CalendarIcon size={20} class="text-yellow-600" />
+          <CalendarIcon
+            size={20}
+            class="text-yellow-600" />
         </div>
       </div>
     </div>
@@ -292,7 +296,9 @@
   <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
       <div class="relative">
-        <SearchIcon size={20} class="absolute left-3 top-3 text-gray-400" />
+        <SearchIcon
+          size={20}
+          class="absolute left-3 top-3 text-gray-400" />
         <input
           type="text"
           placeholder="직원명, 사번, 부서로 검색..."
@@ -302,7 +308,9 @@
       </div>
 
       <div class="relative">
-        <CalendarIcon size={20} class="absolute left-3 top-3 text-gray-400" />
+        <CalendarIcon
+          size={20}
+          class="absolute left-3 top-3 text-gray-400" />
         <select
           bind:value={selectedPeriod}
           class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -315,7 +323,9 @@
       </div>
 
       <div class="relative">
-        <FilterIcon size={20} class="absolute left-3 top-3 text-gray-400" />
+        <FilterIcon
+          size={20}
+          class="absolute left-3 top-3 text-gray-400" />
         <select
           bind:value={selectedStatus}
           class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -330,13 +340,13 @@
       </div>
 
       <div class="flex items-center space-x-2">
-        <button
+        <button type="button"
           onclick={() => handleSort('period')}
           class="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           기간 {sortBy === 'period' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}
         </button>
-        <button
+        <button type="button"
           onclick={() => handleSort('netSalary')}
           class="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
@@ -352,48 +362,39 @@
       <table class="min-w-full divide-y divide-gray-200">
         <thead class="bg-gray-50">
           <tr>
-            <th
-              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
             >
               직원 정보
             </th>
-            <th
-              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
             >
               부서/직위
             </th>
-            <th
-              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
             >
               지급 기간
             </th>
-            <th
-              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
             >
               기본급
             </th>
-            <th
-              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
             >
               수당
             </th>
-            <th
-              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
             >
               공제
             </th>
-            <th
-              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
             >
               실지급액
             </th>
-            <th
-              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
             >
               상태
             </th>
-            <th
-              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
             >
               작업
             </th>
@@ -405,8 +406,7 @@
               <td class="px-6 py-4 whitespace-nowrap">
                 <div class="flex items-center">
                   <div class="flex-shrink-0 h-10 w-10">
-                    <div
-                      class="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center"
+                    <div class="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center"
                     >
                       <span class="text-sm font-medium text-blue-600">
                         {payroll.employeeName.charAt(0)}
@@ -455,13 +455,13 @@
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                 <div class="flex items-center space-x-2">
-                  <button
+                  <button type="button"
                     onclick={() => viewPayrollDetails(payroll)}
                     class="text-blue-600 hover:text-blue-900"
                   >
                     <EyeIcon size={16} />
                   </button>
-                  <button
+                  <button type="button"
                     onclick={() => downloadPayslip(payroll)}
                     class="text-green-600 hover:text-green-900"
                   >
@@ -478,7 +478,9 @@
     <!-- 결과가 없을 때 -->
     {#if filteredHistory.length === 0}
       <div class="text-center py-12">
-        <FileTextIcon size={48} class="mx-auto text-gray-400" />
+        <FileTextIcon
+          size={48}
+          class="mx-auto text-gray-400" />
         <h3 class="mt-2 text-sm font-medium text-gray-900">급여 이력이 없습니다</h3>
         <p class="mt-1 text-sm text-gray-500">검색 조건을 변경하거나 급여를 계산해보세요.</p>
       </div>
@@ -494,18 +496,22 @@
       <div class="mt-3">
         <div class="flex items-center justify-between mb-4">
           <h3 class="text-lg font-medium text-gray-900">급여 상세 정보</h3>
-          <button
+          <button type="button"
             onclick={() => (showDetailsModal = false)}
             class="text-gray-400 hover:text-gray-600"
             aria-label="모달 닫기"
           >
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg
+              class="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24">
               <path
                 stroke-linecap="round"
                 stroke-linejoin="round"
                 stroke-width="2"
                 d="M6 18L18 6M6 6l12 12"
-              ></path>
+              />
             </svg>
           </button>
         </div>
@@ -564,13 +570,13 @@
 
           <!-- 액션 버튼 -->
           <div class="flex justify-end space-x-3 pt-4 border-t">
-            <button
+            <button type="button"
               onclick={() => (showDetailsModal = false)}
               class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
             >
               닫기
             </button>
-            <button
+            <button type="button"
               onclick={() => downloadPayslip(selectedPayroll)}
               class="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700"
             >

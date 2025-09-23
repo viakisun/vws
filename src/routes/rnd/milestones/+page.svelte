@@ -4,7 +4,6 @@
   import Badge from '$lib/components/ui/Badge.svelte'
   import Card from '$lib/components/ui/Card.svelte'
   import Modal from '$lib/components/ui/Modal.svelte'
-  import type { Project, Employee } from '$lib/stores/rd'
 
   interface Milestone {
     id: string
@@ -140,7 +139,7 @@
       filtered = filtered.filter(
         milestone =>
           milestone.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          milestone.description.toLowerCase().includes(searchTerm.toLowerCase())
+            milestone.description.toLowerCase().includes(searchTerm.toLowerCase())
       )
     }
 
@@ -306,7 +305,7 @@
   }
 
   onMount(() => {
-    // Initialize dummy data if needed
+  // Initialize dummy data if needed
   })
 </script>
 
@@ -320,7 +319,9 @@
   <div class="bg-white rounded-lg shadow-sm border p-4 mb-6">
     <div class="grid grid-cols-1 md:grid-cols-6 gap-4">
       <div>
-        <label for="search" class="block text-sm font-medium text-gray-700 mb-1">검색</label>
+        <label
+          for="search"
+          class="block text-sm font-medium text-gray-700 mb-1">검색</label>
         <input
           id="search"
           type="text"
@@ -330,8 +331,10 @@
         />
       </div>
       <div>
-        <label for="project-filter" class="block text-sm font-medium text-gray-700 mb-1"
-          >프로젝트</label
+        <label
+          for="project-filter"
+          class="block text-sm font-medium text-gray-700 mb-1"
+        >프로젝트</label
         >
         <select
           id="project-filter"
@@ -345,7 +348,9 @@
         </select>
       </div>
       <div>
-        <label for="quarter-filter" class="block text-sm font-medium text-gray-700 mb-1">분기</label
+        <label
+          for="quarter-filter"
+          class="block text-sm font-medium text-gray-700 mb-1">분기</label
         >
         <select
           id="quarter-filter"
@@ -359,8 +364,10 @@
         </select>
       </div>
       <div>
-        <label for="rnd-mil-status-filter" class="block text-sm font-medium text-gray-700 mb-1"
-          >상태</label
+        <label
+          for="rnd-mil-status-filter"
+          class="block text-sm font-medium text-gray-700 mb-1"
+        >상태</label
         >
         <select
           id="rnd-mil-status-filter"
@@ -374,7 +381,7 @@
         </select>
       </div>
       <div class="flex items-end">
-        <button
+        <button type="button"
           onclick={() => (showCreateModal = true)}
           class="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
@@ -393,7 +400,7 @@
             <div class="flex items-center gap-3 mb-2">
               <h3 class="text-xl font-semibold text-gray-900">{milestone.title}</h3>
               <Badge variant={getStatusVariant(milestone.status)}
-                >{getStatusText(milestone.status)}</Badge
+              >{getStatusText(milestone.status)}</Badge
               >
             </div>
             <p class="text-gray-600 mb-3">{milestone.description}</p>
@@ -408,7 +415,7 @@
             </div>
           </div>
           <div class="flex gap-2 ml-4">
-            <button
+            <button type="button"
               onclick={() => showMilestoneDetail(milestone)}
               class="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500"
               aria-label="상세보기"
@@ -416,7 +423,7 @@
               상세보기
             </button>
             {#if milestone.status === 'pending'}
-              <button
+              <button type="button"
                 onclick={() => updateMilestoneStatus(milestone.id, 'in_progress')}
                 class="px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
@@ -424,7 +431,7 @@
               </button>
             {/if}
             {#if milestone.status === 'in_progress'}
-              <button
+              <button type="button"
                 onclick={() => updateMilestoneStatus(milestone.id, 'completed')}
                 class="px-3 py-1 text-sm bg-green-100 text-green-700 rounded hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-green-500"
               >
@@ -443,7 +450,7 @@
           <div class="w-full bg-gray-200 rounded-full h-2">
             <div
               class="bg-blue-600 h-2 rounded-full transition-all duration-300"
-              style="width: {calculateProgress(milestone)}%"
+              style:width="{calculateProgress(milestone)}%"
             ></div>
           </div>
         </div>
@@ -496,7 +503,9 @@
 </div>
 
 <!-- Detail Modal -->
-<Modal bind:open={showDetailModal} title="마일스톤 상세">
+<Modal
+  bind:open={showDetailModal}
+  title="마일스톤 상세">
   {#if selectedMilestone}
     <div class="space-y-6">
       <div>
@@ -565,12 +574,16 @@
 </Modal>
 
 <!-- Create Modal -->
-<Modal bind:open={showCreateModal} title="새 마일스톤 추가">
+<Modal
+  bind:open={showCreateModal}
+  title="새 마일스톤 추가">
   <div class="space-y-4">
     <div class="grid grid-cols-2 gap-4">
       <div>
-        <label for="create-project" class="block text-sm font-medium text-gray-700 mb-1"
-          >프로젝트 *</label
+        <label
+          for="create-project"
+          class="block text-sm font-medium text-gray-700 mb-1"
+        >프로젝트 *</label
         >
         <select
           id="create-project"
@@ -584,8 +597,10 @@
         </select>
       </div>
       <div>
-        <label for="create-quarter" class="block text-sm font-medium text-gray-700 mb-1"
-          >분기 *</label
+        <label
+          for="create-quarter"
+          class="block text-sm font-medium text-gray-700 mb-1"
+        >분기 *</label
         >
         <input
           id="create-quarter"
@@ -597,7 +612,9 @@
       </div>
     </div>
     <div>
-      <label for="create-title" class="block text-sm font-medium text-gray-700 mb-1">제목 *</label>
+      <label
+        for="create-title"
+        class="block text-sm font-medium text-gray-700 mb-1">제목 *</label>
       <input
         id="create-title"
         type="text"
@@ -607,8 +624,10 @@
       />
     </div>
     <div>
-      <label for="create-description" class="block text-sm font-medium text-gray-700 mb-1"
-        >설명</label
+      <label
+        for="create-description"
+        class="block text-sm font-medium text-gray-700 mb-1"
+      >설명</label
       >
       <textarea
         id="create-description"
@@ -620,8 +639,10 @@
     </div>
     <div class="grid grid-cols-2 gap-4">
       <div>
-        <label for="create-owner" class="block text-sm font-medium text-gray-700 mb-1"
-          >담당자 *</label
+        <label
+          for="create-owner"
+          class="block text-sm font-medium text-gray-700 mb-1"
+        >담당자 *</label
         >
         <select
           id="create-owner"
@@ -635,8 +656,10 @@
         </select>
       </div>
       <div>
-        <label for="create-due-date" class="block text-sm font-medium text-gray-700 mb-1"
-          >마감일 *</label
+        <label
+          for="create-due-date"
+          class="block text-sm font-medium text-gray-700 mb-1"
+        >마감일 *</label
         >
         <input
           id="create-due-date"
@@ -651,7 +674,10 @@
     <div>
       <div class="flex justify-between items-center mb-2">
         <div class="block text-sm font-medium text-gray-700">KPI</div>
-        <button type="button" onclick={addKPI} class="text-sm text-blue-600 hover:text-blue-700">
+        <button
+          type="button"
+          onclick={addKPI}
+          class="text-sm text-blue-600 hover:text-blue-700">
           + KPI 추가
         </button>
       </div>
@@ -727,13 +753,13 @@
     </div>
 
     <div class="flex justify-end gap-2 pt-4">
-      <button
+      <button type="button"
         onclick={() => (showCreateModal = false)}
         class="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500"
       >
         취소
       </button>
-      <button
+      <button type="button"
         onclick={createMilestone}
         class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
       >

@@ -1,6 +1,7 @@
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
 import { query } from '$lib/database/connection'
+import { logger } from '$lib/utils/logger';
 
 // 부서 테이블에 T/O 컬럼 추가
 export const POST: RequestHandler = async () => {
@@ -28,7 +29,7 @@ export const POST: RequestHandler = async () => {
       message: '부서 테이블에 T/O 컬럼이 성공적으로 추가되었습니다.'
     })
   } catch (error: any) {
-    console.error('Error adding TO column to departments:', error)
+    logger.error('Error adding TO column to departments:', error)
     return json(
       {
         success: false,

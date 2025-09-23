@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
   import ThemeBadge from '$lib/components/ui/ThemeBadge.svelte'
   import ThemeCard from '$lib/components/ui/ThemeCard.svelte'
   import { formatCurrency, formatDate } from '$lib/utils/format'

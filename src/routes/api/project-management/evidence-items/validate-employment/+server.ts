@@ -2,6 +2,7 @@ import { formatDateForDisplay } from '$lib/utils/date-handler'
 import { json } from '@sveltejs/kit'
 import { Pool } from 'pg'
 import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger';
 
 const pool = new Pool({
   host: 'db-viahub.cdgqkcss8mpj.ap-northeast-2.rds.amazonaws.com',
@@ -79,7 +80,7 @@ export const POST: RequestHandler = async ({ request }) => {
     let isValid = true
     let reason = 'VALID'
     let message = '재직 기간이 유효합니다.'
-    let warnings = []
+    const warnings = []
 
     // 1. 퇴사한 직원인지 확인
     if (employee.status === 'terminated' || terminationDate) {
@@ -161,7 +162,7 @@ export const POST: RequestHandler = async ({ request }) => {
       dueDate: dueDate
     })
   } catch (error) {
-    console.error('Employment validation error:', error)
+    logger.error('Employment validation error:', error)
     return json(
       {
         success: false,

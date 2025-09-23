@@ -127,6 +127,6 @@ jobs:
         with:
           status: failure
           channel: '#vws_action'
-          text: '❌ 검증 실패: ${{ github.ref_name }} 브랜치 - 실패한 작업: ${{ needs.code-quality.result == 'failure' && 'code-quality' || '' }} ${{ needs.security-scan.result == 'failure' && 'security-scan' || '' }} ${{ needs.auto-validation.result == 'failure' && 'auto-validation' || '' }} ${{ needs.dependency-analysis.result == 'failure' && 'dependency-analysis' || '' }}'
+          text: '❌ 검증 실패: ${{ github.ref_name }} 브랜치'
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}

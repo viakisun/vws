@@ -1,3 +1,4 @@
+import { logger } from '$lib/utils/logger';
 <script lang="ts">
   import { onMount } from 'svelte'
   import PageLayout from '$lib/components/layout/PageLayout.svelte'
@@ -7,13 +8,10 @@
   import ThemeGrid from '$lib/components/ui/ThemeGrid.svelte'
   import ThemeSpacer from '$lib/components/ui/ThemeSpacer.svelte'
   import ThemeSectionHeader from '$lib/components/ui/ThemeSectionHeader.svelte'
-  import ThemeStatCard from '$lib/components/ui/ThemeStatCard.svelte'
   import ThemeChartPlaceholder from '$lib/components/ui/ThemeChartPlaceholder.svelte'
   import ThemeTabs from '$lib/components/ui/ThemeTabs.svelte'
-  import ThemeInput from '$lib/components/ui/ThemeInput.svelte'
   import { formatCurrency, formatDate } from '$lib/utils/format'
   import {
-    BanknoteIcon,
     TrendingUpIcon,
     TrendingDownIcon,
     PlusIcon,
@@ -182,12 +180,12 @@
 
   // 자금일보 생성
   function generateFundsReport() {
-    console.log('자금일보 생성')
+    logger.log('자금일보 생성')
   }
 
   // AI 분석
   function analyzeWithAI() {
-    console.log('AI 분석 실행')
+    logger.log('AI 분석 실행')
   }
 
   // 거래 타입별 색상
@@ -201,7 +199,7 @@
   }
 
   onMount(() => {
-    console.log('Finance 페이지 로드됨')
+    logger.log('Finance 페이지 로드됨')
   })
 </script>
 
@@ -213,7 +211,12 @@
   searchPlaceholder="거래내역, 계좌명으로 검색..."
 >
   <!-- 탭 시스템 -->
-  <ThemeTabs {tabs} bind:activeTab variant="underline" size="md" class="mb-6">
+  <ThemeTabs
+    {tabs}
+    bind:activeTab
+    variant="underline"
+    size="md"
+    class="mb-6">
     {#snippet children(tab: any)}
       {#if tab.id === 'funds-report'}
         <!-- 자금일보 탭 -->
@@ -222,8 +225,12 @@
           <ThemeCard class="p-6">
             <div class="flex items-center justify-between mb-6">
               <div>
-                <h3 class="text-xl font-bold" style="color: var(--color-text);">자금일보</h3>
-                <p class="text-sm" style="color: var(--color-text-secondary);">
+                <h3
+                  class="text-xl font-bold"
+                  style:color="var(--color-text)">자금일보</h3>
+                <p
+                  class="text-sm"
+                  style:color="var(--color-text-secondary)">
                   {formatDate(fundsReport.date)} 기준
                 </p>
               </div>
@@ -232,50 +239,76 @@
                   type="date"
                   bind:value={fundsReport.date}
                   class="px-3 py-2 border rounded-md w-auto"
-                  style="background: var(--color-surface); border-color: var(--color-border); color: var(--color-text);"
+                  style:background="var(--color-surface)"
+                  style:border-color="var(--color-border)"
+                  style:color="var(--color-text)"
                 />
-                <ThemeButton variant="primary" size="sm" onclick={generateFundsReport}>
-                  <FileTextIcon size={16} class="mr-2" />
+                <ThemeButton
+                  variant="primary"
+                  size="sm"
+                  onclick={generateFundsReport}>
+                  <FileTextIcon
+                    size={16}
+                    class="mr-2" />
                   일보 생성
                 </ThemeButton>
               </div>
             </div>
 
             <!-- 자금 현황 요약 -->
-            <ThemeGrid cols={1} mdCols={4} gap={4}>
+            <ThemeGrid
+              cols={1}
+              mdCols={4}
+              gap={4}>
               <div
                 class="p-4 rounded-lg text-center"
-                style="background: var(--color-surface-elevated);"
+                style:background="var(--color-surface-elevated)"
               >
-                <p class="text-sm" style="color: var(--color-text-secondary);">시작 잔고</p>
-                <p class="text-lg font-bold" style="color: var(--color-text);">
+                <p
+                  class="text-sm"
+                  style:color="var(--color-text-secondary)">시작 잔고</p>
+                <p
+                  class="text-lg font-bold"
+                  style:color="var(--color-text)">
                   {formatCurrency(fundsReport.openingBalance)}
                 </p>
               </div>
               <div
                 class="p-4 rounded-lg text-center"
-                style="background: var(--color-surface-elevated);"
+                style:background="var(--color-surface-elevated)"
               >
-                <p class="text-sm" style="color: var(--color-text-secondary);">일일 유입</p>
-                <p class="text-lg font-bold" style="color: var(--color-success);">
+                <p
+                  class="text-sm"
+                  style:color="var(--color-text-secondary)">일일 유입</p>
+                <p
+                  class="text-lg font-bold"
+                  style:color="var(--color-success)">
                   +{formatCurrency(fundsReport.dailyInflow)}
                 </p>
               </div>
               <div
                 class="p-4 rounded-lg text-center"
-                style="background: var(--color-surface-elevated);"
+                style:background="var(--color-surface-elevated)"
               >
-                <p class="text-sm" style="color: var(--color-text-secondary);">일일 유출</p>
-                <p class="text-lg font-bold" style="color: var(--color-error);">
+                <p
+                  class="text-sm"
+                  style:color="var(--color-text-secondary)">일일 유출</p>
+                <p
+                  class="text-lg font-bold"
+                  style:color="var(--color-error)">
                   -{formatCurrency(fundsReport.dailyOutflow)}
                 </p>
               </div>
               <div
                 class="p-4 rounded-lg text-center"
-                style="background: var(--color-surface-elevated);"
+                style:background="var(--color-surface-elevated)"
               >
-                <p class="text-sm" style="color: var(--color-text-secondary);">종료 잔고</p>
-                <p class="text-lg font-bold" style="color: var(--color-primary);">
+                <p
+                  class="text-sm"
+                  style:color="var(--color-text-secondary)">종료 잔고</p>
+                <p
+                  class="text-lg font-bold"
+                  style:color="var(--color-primary)">
                   {formatCurrency(fundsReport.closingBalance)}
                 </p>
               </div>
@@ -289,19 +322,28 @@
               {#each fundsReport.accounts as account}
                 <div
                   class="flex items-center justify-between p-4 rounded-lg border"
-                  style="border-color: var(--color-border); background: var(--color-surface-elevated);"
+                  style:border-color="var(--color-border)"
+                  style:background="var(--color-surface-elevated)"
                 >
                   <div class="flex items-center gap-3">
-                    <CreditCardIcon size={20} style="color: var(--color-primary);" />
+                    <CreditCardIcon
+                      size={20}
+                      style="color: var(--color-primary);" />
                     <div>
-                      <h4 class="font-medium" style="color: var(--color-text);">{account.name}</h4>
-                      <p class="text-sm" style="color: var(--color-text-secondary);">
+                      <h4
+                        class="font-medium"
+                        style:color="var(--color-text)">{account.name}</h4>
+                      <p
+                        class="text-sm"
+                        style:color="var(--color-text-secondary)">
                         {account.bank}
                       </p>
                     </div>
                   </div>
                   <div class="text-right">
-                    <p class="text-lg font-bold" style="color: var(--color-text);">
+                    <p
+                      class="text-lg font-bold"
+                      style:color="var(--color-text)">
                       {formatCurrency(account.balance)}
                     </p>
                     <ThemeBadge variant={account.type === 'checking' ? 'primary' : 'success'}>
@@ -321,19 +363,26 @@
                 {@const IconComponent = getTransactionTypeIcon(transaction.type)}
                 <div
                   class="flex items-center justify-between p-4 rounded-lg border"
-                  style="border-color: var(--color-border); background: var(--color-surface-elevated);"
+                  style:border-color="var(--color-border)"
+                  style:background="var(--color-surface-elevated)"
                 >
                   <div class="flex items-center gap-3">
-                    <div class="p-2 rounded-full" style="background: var(--color-surface);">
-                      <IconComponent size={16} style="color: var(--color-primary);" />
+                    <div
+                      class="p-2 rounded-full"
+                      style:background="var(--color-surface)">
+                      <IconComponent
+                        size={16}
+                        style="color: var(--color-primary);" />
                     </div>
                     <div>
-                      <h4 class="font-medium" style="color: var(--color-text);">
+                      <h4
+                        class="font-medium"
+                        style:color="var(--color-text)">
                         {transaction.description}
                       </h4>
                       <div
                         class="flex items-center gap-2 text-sm"
-                        style="color: var(--color-text-secondary);"
+                        style:color="var(--color-text-secondary)"
                       >
                         <span>{transaction.category}</span>
                         <span>•</span>
@@ -346,7 +395,7 @@
                   <div class="text-right">
                     <p
                       class="text-lg font-bold"
-                      style="color: var(--color-{getTransactionTypeColor(transaction.type)});"
+                      style:color="var(--color-{getTransactionTypeColor(transaction.type)})"
                     >
                       {transaction.type === 'inflow' ? '+' : '-'}{formatCurrency(
                         transaction.amount
@@ -359,15 +408,22 @@
           </ThemeCard>
 
           <!-- 자금 흐름 차트 -->
-          <ThemeGrid cols={1} lgCols={2} gap={6}>
+          <ThemeGrid
+            cols={1}
+            lgCols={2}
+            gap={6}>
             <ThemeCard class="p-6">
               <ThemeSectionHeader title="자금 흐름 분석" />
-              <ThemeChartPlaceholder title="일일 자금 흐름" icon={BarChart3Icon} />
+              <ThemeChartPlaceholder
+                title="일일 자금 흐름"
+                icon={BarChart3Icon} />
             </ThemeCard>
 
             <ThemeCard class="p-6">
               <ThemeSectionHeader title="계좌별 분포" />
-              <ThemeChartPlaceholder title="계좌별 잔고 분포" icon={PieChartIcon} />
+              <ThemeChartPlaceholder
+                title="계좌별 잔고 분포"
+                icon={PieChartIcon} />
             </ThemeCard>
           </ThemeGrid>
         </ThemeSpacer>
@@ -376,8 +432,13 @@
         <ThemeSpacer size={6}>
           <ThemeCard class="p-6">
             <div class="flex items-center justify-between mb-6">
-              <h3 class="text-lg font-semibold" style="color: var(--color-text);">계좌 관리</h3>
-              <ThemeButton variant="primary" size="sm" class="flex items-center gap-2">
+              <h3
+                class="text-lg font-semibold"
+                style:color="var(--color-text)">계좌 관리</h3>
+              <ThemeButton
+                variant="primary"
+                size="sm"
+                class="flex items-center gap-2">
                 <PlusIcon size={16} />
                 계좌 추가
               </ThemeButton>
@@ -387,22 +448,33 @@
               {#each fundsReport.accounts as account}
                 <div
                   class="flex items-center justify-between p-4 rounded-lg border"
-                  style="border-color: var(--color-border); background: var(--color-surface-elevated);"
+                  style:border-color="var(--color-border)"
+                  style:background="var(--color-surface-elevated)"
                 >
                   <div class="flex items-center gap-3">
-                    <CreditCardIcon size={20} style="color: var(--color-primary);" />
+                    <CreditCardIcon
+                      size={20}
+                      style="color: var(--color-primary);" />
                     <div>
-                      <h4 class="font-medium" style="color: var(--color-text);">{account.name}</h4>
-                      <p class="text-sm" style="color: var(--color-text-secondary);">
+                      <h4
+                        class="font-medium"
+                        style:color="var(--color-text)">{account.name}</h4>
+                      <p
+                        class="text-sm"
+                        style:color="var(--color-text-secondary)">
                         {account.bank}
                       </p>
                     </div>
                   </div>
                   <div class="flex items-center gap-2">
-                    <span class="text-lg font-bold" style="color: var(--color-text);">
+                    <span
+                      class="text-lg font-bold"
+                      style:color="var(--color-text)">
                       {formatCurrency(account.balance)}
                     </span>
-                    <ThemeButton variant="ghost" size="sm">
+                    <ThemeButton
+                      variant="ghost"
+                      size="sm">
                       <EditIcon size={16} />
                     </ThemeButton>
                   </div>
@@ -416,8 +488,13 @@
         <ThemeSpacer size={6}>
           <ThemeCard class="p-6">
             <div class="flex items-center justify-between mb-6">
-              <h3 class="text-lg font-semibold" style="color: var(--color-text);">거래내역</h3>
-              <ThemeButton variant="primary" size="sm" class="flex items-center gap-2">
+              <h3
+                class="text-lg font-semibold"
+                style:color="var(--color-text)">거래내역</h3>
+              <ThemeButton
+                variant="primary"
+                size="sm"
+                class="flex items-center gap-2">
                 <PlusIcon size={16} />
                 거래 추가
               </ThemeButton>
@@ -428,17 +505,26 @@
                 {@const IconComponent = getTransactionTypeIcon(transaction.type)}
                 <div
                   class="flex items-center justify-between p-4 rounded-lg border"
-                  style="border-color: var(--color-border); background: var(--color-surface-elevated);"
+                  style:border-color="var(--color-border)"
+                  style:background="var(--color-surface-elevated)"
                 >
                   <div class="flex items-center gap-3">
-                    <div class="p-2 rounded-full" style="background: var(--color-surface);">
-                      <IconComponent size={16} style="color: var(--color-primary);" />
+                    <div
+                      class="p-2 rounded-full"
+                      style:background="var(--color-surface)">
+                      <IconComponent
+                        size={16}
+                        style="color: var(--color-primary);" />
                     </div>
                     <div>
-                      <h4 class="font-medium" style="color: var(--color-text);">
+                      <h4
+                        class="font-medium"
+                        style:color="var(--color-text)">
                         {transaction.description}
                       </h4>
-                      <p class="text-sm" style="color: var(--color-text-secondary);">
+                      <p
+                        class="text-sm"
+                        style:color="var(--color-text-secondary)">
                         {transaction.category} • {transaction.time} • {transaction.account}
                       </p>
                     </div>
@@ -446,13 +532,15 @@
                   <div class="flex items-center gap-2">
                     <span
                       class="text-lg font-bold"
-                      style="color: var(--color-{getTransactionTypeColor(transaction.type)});"
+                      style:color="var(--color-{getTransactionTypeColor(transaction.type)})"
                     >
                       {transaction.type === 'inflow' ? '+' : '-'}{formatCurrency(
                         transaction.amount
                       )}
                     </span>
-                    <ThemeButton variant="ghost" size="sm">
+                    <ThemeButton
+                      variant="ghost"
+                      size="sm">
                       <EditIcon size={16} />
                     </ThemeButton>
                   </div>
@@ -466,7 +554,9 @@
         <ThemeSpacer size={6}>
           <ThemeCard class="p-6">
             <ThemeSectionHeader title="예산 관리" />
-            <ThemeChartPlaceholder title="예산 현황" icon={TargetIcon} />
+            <ThemeChartPlaceholder
+              title="예산 현황"
+              icon={TargetIcon} />
           </ThemeCard>
         </ThemeSpacer>
       {:else if tab.id === 'reports'}
@@ -474,15 +564,22 @@
         <ThemeSpacer size={6}>
           <ThemeCard class="p-6">
             <ThemeSectionHeader title="재무 보고서" />
-            <ThemeGrid cols={1} mdCols={2} gap={4}>
-              <ThemeButton variant="secondary" class="flex items-center gap-2 p-4 h-auto">
+            <ThemeGrid
+              cols={1}
+              mdCols={2}
+              gap={4}>
+              <ThemeButton
+                variant="secondary"
+                class="flex items-center gap-2 p-4 h-auto">
                 <FileTextIcon size={20} />
                 <div class="text-left">
                   <div class="font-medium">월간 재무보고서</div>
                   <div class="text-sm opacity-70">월별 수입/지출 분석</div>
                 </div>
               </ThemeButton>
-              <ThemeButton variant="secondary" class="flex items-center gap-2 p-4 h-auto">
+              <ThemeButton
+                variant="secondary"
+                class="flex items-center gap-2 p-4 h-auto">
                 <BarChart3Icon size={20} />
                 <div class="text-left">
                   <div class="font-medium">자금흐름표</div>

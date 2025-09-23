@@ -1,3 +1,4 @@
+import { logger } from '$lib/utils/logger';
 <script lang="ts">
   import { CheckIcon, XIcon } from '@lucide/svelte'
   import { createEventDispatcher } from 'svelte'
@@ -44,8 +45,8 @@
     validationErrors = []
 
     try {
-      console.log('🚀 [UI] 프로젝트 생성 요청 시작')
-      console.log('📋 [UI] 전송 데이터:', JSON.stringify(projectData, null, 2))
+      logger.log('🚀 [UI] 프로젝트 생성 요청 시작')
+      logger.log('📋 [UI] 전송 데이터:', JSON.stringify(projectData, null, 2))
 
       const response = await fetch('/api/project-management/projects', {
         method: 'POST',
@@ -58,7 +59,7 @@
       const result = await response.json()
 
       if (result.success) {
-        console.log('✅ [UI] 프로젝트 생성 성공:', result)
+        logger.log('✅ [UI] 프로젝트 생성 성공:', result)
         createdProjectId = result.data?.id
 
         if (createdProjectId) {
@@ -70,11 +71,11 @@
           resetForm()
         }
       } else {
-        console.log('❌ [UI] 프로젝트 생성 실패:', result.error)
+        logger.log('❌ [UI] 프로젝트 생성 실패:', result.error)
         validationErrors = [result.error || '프로젝트 생성 중 오류가 발생했습니다.']
       }
     } catch (error) {
-      console.error('💥 [UI] 프로젝트 생성 중 오류:', error)
+      logger.error('💥 [UI] 프로젝트 생성 중 오류:', error)
       validationErrors = ['프로젝트 생성 중 오류가 발생했습니다.']
     } finally {
       isSubmitting = false
@@ -133,7 +134,9 @@
     <!-- 1단계: 기본 프로젝트 정보 입력 -->
     <div class="space-y-6">
       <div>
-        <label for="projectTitle" class="block text-sm font-medium text-gray-700 mb-2">
+        <label
+          for="projectTitle"
+          class="block text-sm font-medium text-gray-700 mb-2">
           프로젝트명 *
         </label>
         <input
@@ -146,7 +149,9 @@
       </div>
 
       <div>
-        <label for="projectCode" class="block text-sm font-medium text-gray-700 mb-2">
+        <label
+          for="projectCode"
+          class="block text-sm font-medium text-gray-700 mb-2">
           프로젝트 코드 *
         </label>
         <input
@@ -159,7 +164,9 @@
       </div>
 
       <div>
-        <label for="description" class="block text-sm font-medium text-gray-700 mb-2">
+        <label
+          for="description"
+          class="block text-sm font-medium text-gray-700 mb-2">
           프로젝트 설명 (선택사항)
         </label>
         <textarea
@@ -172,7 +179,9 @@
       </div>
 
       <div>
-        <label for="status" class="block text-sm font-medium text-gray-700 mb-2">
+        <label
+          for="status"
+          class="block text-sm font-medium text-gray-700 mb-2">
           프로젝트 상태
         </label>
         <select

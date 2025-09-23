@@ -4,6 +4,7 @@
 import { query } from '$lib/database/connection'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger';
 
 // 증빙 항목 상세 조회
 export const GET: RequestHandler = async ({ params }) => {
@@ -102,7 +103,7 @@ export const GET: RequestHandler = async ({ params }) => {
       }
     })
   } catch (error) {
-    console.error('증빙 항목 조회 실패:', error)
+    logger.error('증빙 항목 조회 실패:', error)
     return json(
       {
         success: false,
@@ -220,7 +221,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
       message: '증빙 항목이 성공적으로 수정되었습니다.'
     })
   } catch (error) {
-    console.error('증빙 항목 수정 실패:', error)
+    logger.error('증빙 항목 수정 실패:', error)
     return json(
       {
         success: false,
@@ -257,7 +258,7 @@ export const DELETE: RequestHandler = async ({ params }) => {
       message: '증빙 항목이 성공적으로 삭제되었습니다.'
     })
   } catch (error) {
-    console.error('증빙 항목 삭제 실패:', error)
+    logger.error('증빙 항목 삭제 실패:', error)
     return json(
       {
         success: false,

@@ -1,4 +1,5 @@
 import { Pool } from 'pg'
+import { logger } from '$lib/utils/logger';
 
 // 데이터베이스 연결 풀
 const pool = new Pool({
@@ -255,7 +256,7 @@ export class ValidationUtils {
       await ValidationUtils.query(query, [budgetId, ...values])
       return true
     } catch (error) {
-      console.error('❌ [ValidationUtils] 프로젝트 예산 업데이트 실패:', error)
+      logger.error('❌ [ValidationUtils] 프로젝트 예산 업데이트 실패:', error)
       return false
     }
   }
@@ -273,7 +274,7 @@ export class ValidationUtils {
       await ValidationUtils.query(query, [projectId, ...values])
       return true
     } catch (error) {
-      console.error('❌ [ValidationUtils] 프로젝트 업데이트 실패:', error)
+      logger.error('❌ [ValidationUtils] 프로젝트 업데이트 실패:', error)
       return false
     }
   }
@@ -291,7 +292,7 @@ export class ValidationUtils {
       await ValidationUtils.query(query, [memberId, ...values])
       return true
     } catch (error) {
-      console.error('❌ [ValidationUtils] 프로젝트 멤버 업데이트 실패:', error)
+      logger.error('❌ [ValidationUtils] 프로젝트 멤버 업데이트 실패:', error)
       return false
     }
   }
@@ -309,7 +310,7 @@ export class ValidationUtils {
       await ValidationUtils.query(query, [itemId, ...values])
       return true
     } catch (error) {
-      console.error('❌ [ValidationUtils] 증빙 항목 업데이트 실패:', error)
+      logger.error('❌ [ValidationUtils] 증빙 항목 업데이트 실패:', error)
       return false
     }
   }

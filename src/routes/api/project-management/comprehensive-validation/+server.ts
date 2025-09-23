@@ -10,13 +10,14 @@ import {
 } from '$lib/utils/validation'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger';
 
 export const GET: RequestHandler = async ({ url }) => {
   try {
     const projectId = url.searchParams.get('projectId')
     const validationScope = url.searchParams.get('scope') || 'all'
 
-    console.log(
+    logger.log(
       `🔍 [종합 검증] ${validationScope} 검증 시작${projectId ? ` - 프로젝트: ${projectId}` : ''}`
     )
 
@@ -34,7 +35,7 @@ export const GET: RequestHandler = async ({ url }) => {
 
     // 1. 스키마 검증
     if (validationScope === 'all' || validationScope === 'schema') {
-      console.log('📋 [스키마 검증] 시작')
+      logger.log('📋 [스키마 검증] 시작')
       try {
         const [schemaResults, namingResults] = await Promise.all([
           SchemaValidator.validateDatabaseSchema(),
@@ -55,14 +56,14 @@ export const GET: RequestHandler = async ({ url }) => {
           }
         }
       } catch (error) {
-        console.error('스키마 검증 실패:', error)
+        logger.error('스키마 검증 실패:', error)
         results.schema = { error: '스키마 검증 실패' }
       }
     }
 
     // 2. 코딩 가이드라인 검증
     if (validationScope === 'all' || validationScope === 'coding') {
-      console.log('📝 [코딩 가이드라인 검증] 시작')
+      logger.log('📝 [코딩 가이드라인 검증] 시작')
       try {
         const guidelines = AICodingValidator.getGuidelines()
         const validationRules = AICodingValidator.getValidationRules()
@@ -122,14 +123,14 @@ export const GET: RequestHandler = async ({ url }) => {
           }
         }
       } catch (error) {
-        console.error('코딩 가이드라인 검증 실패:', error)
+        logger.error('코딩 가이드라인 검증 실패:', error)
         results.coding = { error: '코딩 가이드라인 검증 실패' }
       }
     }
 
     // 3. 프로젝트 검증 (프로젝트 ID가 있는 경우)
     if (projectId && (validationScope === 'all' || validationScope === 'project')) {
-      console.log(`📊 [프로젝트 검증] 시작 - 프로젝트: ${projectId}`)
+      logger.log(`📊 [프로젝트 검증] 시작 - 프로젝트: ${projectId}`)
       try {
         const project = await ValidationUtils.getProjectInfo(projectId)
         const [budgets, members, evidenceItems] = await Promise.all([
@@ -210,7 +211,7 @@ export const GET: RequestHandler = async ({ url }) => {
           }
         }
       } catch (error) {
-        console.error('프로젝트 검증 실패:', error)
+        logger.error('프로젝트 검증 실패:', error)
         results.project = { error: '프로젝트 검증 실패' }
       }
     }
@@ -247,7 +248,7 @@ export const GET: RequestHandler = async ({ url }) => {
       )
     }
 
-    console.log(
+    logger.log(
       `✅ [종합 검증] 완료 - ${results.summary.valid}/${results.summary.total}개 통과, ${results.summary.invalid}개 문제`
     )
 
@@ -259,7 +260,7 @@ export const GET: RequestHandler = async ({ url }) => {
       generatedAt: new Date().toISOString()
     })
   } catch (error) {
-    console.error('Comprehensive validation error:', error)
+    logger.error('Comprehensive validation error:', error)
     return json(
       {
         success: false,
@@ -275,7 +276,7 @@ export const POST: RequestHandler = async ({ request }) => {
   try {
     const { validationType, name, code, language, tableName, query } = await request.json()
 
-    console.log(`🔍 [종합 검증] ${validationType} 검증 시작`)
+    logger.log(`🔍 [종합 검증] ${validationType} 검증 시작`)
 
     let validationResult: any = null
 
@@ -309,7 +310,7 @@ export const POST: RequestHandler = async ({ request }) => {
         return json({ error: '지원하지 않는 검증 타입입니다.' }, { status: 400 })
     }
 
-    console.log(`✅ [종합 검증] 완료 - ${validationResult.isValid ? '통과' : '실패'}`)
+    logger.log(`✅ [종합 검증] 완료 - ${validationResult.isValid ? '통과' : '실패'}`)
 
     return json({
       success: true,
@@ -323,7 +324,7 @@ export const POST: RequestHandler = async ({ request }) => {
       generatedAt: new Date().toISOString()
     })
   } catch (error) {
-    console.error('Comprehensive validation error:', error)
+    logger.error('Comprehensive validation error:', error)
     return json(
       {
         success: false,

@@ -8,14 +8,10 @@
   import {
     jobPostings,
     candidates,
-    interviewSchedules,
     addJobPosting,
     updateJobPosting,
     publishJobPosting,
     closeJobPosting,
-    addCandidate,
-    updateCandidateStatus,
-    scheduleInterview,
     getRecruitmentStats,
     type JobPosting,
     type Candidate
@@ -168,7 +164,7 @@
   }
 
   onMount(() => {
-    // 초기 데이터 로드
+  // 초기 데이터 로드
   })
 </script>
 
@@ -180,7 +176,7 @@
         <h1 class="text-3xl font-bold text-gray-900">채용 관리</h1>
         <p class="text-gray-600 mt-1">채용 공고 및 지원자 관리를 합니다</p>
       </div>
-      <button
+      <button type="button"
         onclick={() => openJobPostingModal()}
         class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
       >
@@ -220,7 +216,7 @@
             </select>
           </div>
           <div class="flex items-end">
-            <button
+            <button type="button"
               onclick={() => {
                 statusFilter = ''
                 departmentFilter = ''
@@ -269,21 +265,21 @@
                 지원자: {getRecruitmentStats(jobPosting.id, $candidates).totalApplications}명
               </div>
               <div class="flex space-x-2">
-                <button
+                <button type="button"
                   onclick={() => openJobPostingModal(jobPosting)}
                   class="text-blue-600 hover:text-blue-900 text-sm"
                 >
                   수정
                 </button>
                 {#if jobPosting.status === 'draft'}
-                  <button
+                  <button type="button"
                     onclick={() => publishJob(jobPosting.id)}
                     class="text-green-600 hover:text-green-900 text-sm"
                   >
                     게시
                   </button>
                 {:else if jobPosting.status === 'published'}
-                  <button
+                  <button type="button"
                     onclick={() => closeJob(jobPosting.id)}
                     class="text-red-600 hover:text-red-900 text-sm"
                   >

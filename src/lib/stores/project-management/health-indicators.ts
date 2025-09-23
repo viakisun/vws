@@ -1,12 +1,9 @@
 import { writable } from 'svelte/store'
 import type {
-  HealthIndicator,
-  Project,
-  Milestone,
-  ExpenseItem,
-  ParticipationAssignment
+  HealthIndicator
 } from './types'
 import { logAudit } from './core'
+import { logger } from '$lib/utils/logger';
 
 // 헬스 인디케이터 관리
 export const healthIndicators = writable<HealthIndicator[]>([])
@@ -477,7 +474,7 @@ export function createHealthAlert(projectId: string, indicator: HealthIndicator)
 
   // 알림 발송 (실제 구현에서는 알림 시스템에 전송)
   alerts.forEach(alert => {
-    console.log(`Health Alert for ${projectId}:`, alert)
+    logger.log(`Health Alert for ${projectId}:`, alert)
   })
 }
 
@@ -533,7 +530,7 @@ export function scheduleHealthIndicatorUpdates(): void {
   setInterval(
     () => {
       // 모든 활성 프로젝트에 대해 헬스 인디케이터 계산
-      console.log('Updating health indicators...')
+      logger.log('Updating health indicators...')
     },
     24 * 60 * 60 * 1000
   ) // 24시간마다

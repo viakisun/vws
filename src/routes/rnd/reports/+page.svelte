@@ -1,3 +1,4 @@
+import { logger } from '$lib/utils/logger';
 <script lang="ts">
   import { onMount } from 'svelte'
   import { projects, employees } from '$lib/stores/rd'
@@ -5,7 +6,7 @@
   import Badge from '$lib/components/ui/Badge.svelte'
   import Card from '$lib/components/ui/Card.svelte'
   import Modal from '$lib/components/ui/Modal.svelte'
-  import type { Project, Person, ExpenseItem, Report } from '$lib/stores/rnd/types'
+  import type { Report } from '$lib/stores/rnd/types'
 
   // Extended Report interface for this page
   interface ExtendedReport extends Omit<Report, 'summaryJson'> {
@@ -137,7 +138,7 @@
       filtered = filtered.filter(
         (report: any) =>
           report.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          report.type.toLowerCase().includes(searchTerm.toLowerCase())
+            report.type.toLowerCase().includes(searchTerm.toLowerCase())
       )
     }
 
@@ -153,7 +154,7 @@
       filtered = filtered.filter(
         (report: any) =>
           report.periodStart.startsWith(selectedPeriod) ||
-          report.periodEnd.startsWith(selectedPeriod)
+            report.periodEnd.startsWith(selectedPeriod)
       )
     }
 
@@ -252,7 +253,7 @@
   // Download report
   function downloadReport(report: ExtendedReport) {
     // In real implementation, this would download the actual file
-    console.log('Downloading report:', report.fileUrl)
+    logger.log('Downloading report:', report.fileUrl)
     alert(`리포트 다운로드: ${report.fileUrl}`)
   }
 
@@ -311,8 +312,8 @@
       const existingReport = $reports.find(
         (r: any) =>
           r.projectId === project.id &&
-          r.type === 'weekly' &&
-          r.periodStart === weekStart.toISOString().split('T')[0]
+            r.type === 'weekly' &&
+            r.periodStart === weekStart.toISOString().split('T')[0]
       )
 
       if (!existingReport) {
@@ -358,7 +359,7 @@
   }
 
   onMount(() => {
-    // Initialize dummy data if needed
+  // Initialize dummy data if needed
   })
 </script>
 
@@ -372,13 +373,13 @@
 
   <!-- Action Buttons -->
   <div class="flex gap-4 mb-6">
-    <button
+    <button type="button"
       onclick={() => (showGenerateModal = true)}
       class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
     >
       리포트 생성
     </button>
-    <button
+    <button type="button"
       onclick={generateWeeklyReports}
       class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
     >
@@ -390,7 +391,9 @@
   <div class="bg-white rounded-lg shadow-sm border p-4 mb-6">
     <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
       <div>
-        <label for="search" class="block text-sm font-medium text-gray-700 mb-1">검색</label>
+        <label
+          for="search"
+          class="block text-sm font-medium text-gray-700 mb-1">검색</label>
         <input
           id="search"
           type="text"
@@ -400,8 +403,10 @@
         />
       </div>
       <div>
-        <label for="project-filter" class="block text-sm font-medium text-gray-700 mb-1"
-          >프로젝트</label
+        <label
+          for="project-filter"
+          class="block text-sm font-medium text-gray-700 mb-1"
+        >프로젝트</label
         >
         <select
           id="project-filter"
@@ -415,7 +420,9 @@
         </select>
       </div>
       <div>
-        <label for="type-filter" class="block text-sm font-medium text-gray-700 mb-1">타입</label>
+        <label
+          for="type-filter"
+          class="block text-sm font-medium text-gray-700 mb-1">타입</label>
         <select
           id="type-filter"
           bind:value={selectedType}
@@ -427,7 +434,9 @@
         </select>
       </div>
       <div>
-        <label for="period-filter" class="block text-sm font-medium text-gray-700 mb-1">기간</label>
+        <label
+          for="period-filter"
+          class="block text-sm font-medium text-gray-700 mb-1">기간</label>
         <select
           id="period-filter"
           bind:value={selectedPeriod}
@@ -468,14 +477,14 @@
             </div>
           </div>
           <div class="flex gap-2 ml-4">
-            <button
+            <button type="button"
               onclick={() => showReportDetail(report as any)}
               class="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500"
               aria-label="상세보기"
             >
               상세보기
             </button>
-            <button
+            <button type="button"
               onclick={() => downloadReport(report as any)}
               class="px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
@@ -494,8 +503,7 @@
           </div>
           <div class="bg-gray-50 p-4 rounded-md">
             <div class="text-sm text-gray-600 mb-1">예산 집행률</div>
-            <div
-              class="text-2xl font-bold {getBudgetColor((report as any).summary.budgetUtilization)}"
+            <div class="text-2xl font-bold {getBudgetColor((report as any).summary.budgetUtilization)}"
             >
               {(report as any).summary.budgetUtilization}%
             </div>
@@ -554,7 +562,9 @@
 </div>
 
 <!-- Detail Modal -->
-<Modal bind:open={showDetailModal} title="리포트 상세">
+<Modal
+  bind:open={showDetailModal}
+  title="리포트 상세">
   {#if selectedReport}
     <div class="space-y-6">
       <div>
@@ -569,9 +579,9 @@
           <div>
             <span class="font-medium text-gray-700">기간:</span>
             <span class="ml-2"
-              >{formatDate(selectedReport.periodStart)} ~ {formatDate(
-                selectedReport.periodEnd
-              )}</span
+            >{formatDate(selectedReport.periodStart)} ~ {formatDate(
+              selectedReport.periodEnd
+            )}</span
             >
           </div>
           <div>
@@ -595,8 +605,7 @@
         </div>
         <div class="bg-gray-50 p-4 rounded-md">
           <div class="text-sm text-gray-600 mb-1">예산 집행률</div>
-          <div
-            class="text-3xl font-bold {getBudgetColor(selectedReport.summary.budgetUtilization)}"
+          <div class="text-3xl font-bold {getBudgetColor(selectedReport.summary.budgetUtilization)}"
           >
             {selectedReport.summary.budgetUtilization}%
           </div>
@@ -643,7 +652,7 @@
       </div>
 
       <div class="flex justify-end">
-        <button
+        <button type="button"
           onclick={() => selectedReport && downloadReport(selectedReport)}
           class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
@@ -655,12 +664,16 @@
 </Modal>
 
 <!-- Generate Modal -->
-<Modal bind:open={showGenerateModal} title="리포트 생성">
+<Modal
+  bind:open={showGenerateModal}
+  title="리포트 생성">
   <div class="space-y-4">
     <div class="grid grid-cols-2 gap-4">
       <div>
-        <label for="generate-project" class="block text-sm font-medium text-gray-700 mb-1"
-          >프로젝트 *</label
+        <label
+          for="generate-project"
+          class="block text-sm font-medium text-gray-700 mb-1"
+        >프로젝트 *</label
         >
         <select
           id="generate-project"
@@ -674,8 +687,10 @@
         </select>
       </div>
       <div>
-        <label for="generate-type" class="block text-sm font-medium text-gray-700 mb-1"
-          >리포트 타입 *</label
+        <label
+          for="generate-type"
+          class="block text-sm font-medium text-gray-700 mb-1"
+        >리포트 타입 *</label
         >
         <select
           id="generate-type"
@@ -689,8 +704,10 @@
     </div>
     <div class="grid grid-cols-2 gap-4">
       <div>
-        <label for="generate-start" class="block text-sm font-medium text-gray-700 mb-1"
-          >시작일 *</label
+        <label
+          for="generate-start"
+          class="block text-sm font-medium text-gray-700 mb-1"
+        >시작일 *</label
         >
         <input
           id="generate-start"
@@ -700,8 +717,10 @@
         />
       </div>
       <div>
-        <label for="generate-end" class="block text-sm font-medium text-gray-700 mb-1"
-          >종료일 *</label
+        <label
+          for="generate-end"
+          class="block text-sm font-medium text-gray-700 mb-1"
+        >종료일 *</label
         >
         <input
           id="generate-end"
@@ -715,31 +734,43 @@
       <div class="block text-sm font-medium text-gray-700 mb-2">포함할 내용</div>
       <div class="space-y-2">
         <label class="flex items-center">
-          <input type="checkbox" bind:checked={formData.includeBudget} class="mr-2" />
+          <input
+            type="checkbox"
+            bind:checked={formData.includeBudget}
+            class="mr-2" />
           <span class="text-sm text-gray-700">예산 집행 현황</span>
         </label>
         <label class="flex items-center">
-          <input type="checkbox" bind:checked={formData.includeDeliverables} class="mr-2" />
+          <input
+            type="checkbox"
+            bind:checked={formData.includeDeliverables}
+            class="mr-2" />
           <span class="text-sm text-gray-700">산출물 현황</span>
         </label>
         <label class="flex items-center">
-          <input type="checkbox" bind:checked={formData.includeRisks} class="mr-2" />
+          <input
+            type="checkbox"
+            bind:checked={formData.includeRisks}
+            class="mr-2" />
           <span class="text-sm text-gray-700">리스크 및 이슈</span>
         </label>
         <label class="flex items-center">
-          <input type="checkbox" bind:checked={formData.includeAchievements} class="mr-2" />
+          <input
+            type="checkbox"
+            bind:checked={formData.includeAchievements}
+            class="mr-2" />
           <span class="text-sm text-gray-700">주요 성과</span>
         </label>
       </div>
     </div>
     <div class="flex justify-end gap-2 pt-4">
-      <button
+      <button type="button"
         onclick={() => (showGenerateModal = false)}
         class="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500"
       >
         취소
       </button>
-      <button
+      <button type="button"
         onclick={generateReport}
         class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
       >

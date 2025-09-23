@@ -1,5 +1,4 @@
 import { writable } from 'svelte/store'
-import { formatCurrency, formatDate } from '$lib/utils/format'
 
 // 타입 정의
 export interface Employee {
@@ -660,7 +659,7 @@ export function getDocumentSubmissionStatus(projectId: string): {
   total: number
   pending: number
 } {
-  let status = { submitted: 0, total: 0, pending: 0 }
+  const status = { submitted: 0, total: 0, pending: 0 }
 
   documentTemplates.subscribe(templates => {
     documentSubmissions.subscribe(submissions => {

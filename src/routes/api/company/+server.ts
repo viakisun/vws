@@ -1,6 +1,7 @@
 import { json } from '@sveltejs/kit'
 import { query } from '$lib/database/connection.js'
 import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger';
 
 // GET /api/company - 회사 정보 조회
 export const GET: RequestHandler = async () => {
@@ -23,7 +24,7 @@ export const GET: RequestHandler = async () => {
       message: company ? '회사 정보를 성공적으로 조회했습니다.' : '등록된 회사 정보가 없습니다.'
     })
   } catch (error: any) {
-    console.error('Error fetching company:', error)
+    logger.error('Error fetching company:', error)
     return json(
       {
         success: false,
@@ -128,7 +129,7 @@ export const POST: RequestHandler = async ({ request }) => {
         : '회사 정보가 성공적으로 등록되었습니다.'
     })
   } catch (error: any) {
-    console.error('Error saving company:', error)
+    logger.error('Error saving company:', error)
     return json(
       {
         success: false,

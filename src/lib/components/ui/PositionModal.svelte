@@ -2,7 +2,6 @@
   import { createEventDispatcher } from 'svelte'
   import ThemeModal from './ThemeModal.svelte'
   import ThemeButton from './ThemeButton.svelte'
-  import { XIcon } from '@lucide/svelte'
 
   interface Position {
     id?: string
@@ -70,10 +69,15 @@
   }
 </script>
 
-<ThemeModal {open} onclose={handleClose} size="md">
+<ThemeModal
+  {open}
+  onclose={handleClose}
+  size="md">
   <div class="space-y-6">
     <div class="flex items-center justify-between">
-      <h2 class="text-xl font-semibold" style="color: var(--color-text);">
+      <h2
+        class="text-xl font-semibold"
+        style:color="var(--color-text)">
         {position ? '직급 수정' : '새 직급 추가'}
       </h2>
     </div>
@@ -90,7 +94,7 @@
         <label
           for="pos-department"
           class="block text-sm font-medium mb-2"
-          style="color: var(--color-text);"
+          style:color="var(--color-text)"
         >
           부서 *
         </label>
@@ -98,7 +102,9 @@
           id="pos-department"
           bind:value={formData.department}
           class="w-full px-3 py-2 border rounded-md text-sm"
-          style="border-color: var(--color-border); background: var(--color-surface); color: var(--color-text);"
+          style:border-color="var(--color-border)"
+          style:background="var(--color-surface)"
+          style:color="var(--color-text)"
           required
         >
           <option value="">부서를 선택하세요</option>
@@ -113,7 +119,7 @@
         <label
           for="pos-name"
           class="block text-sm font-medium mb-2"
-          style="color: var(--color-text);"
+          style:color="var(--color-text)"
         >
           직급명 *
         </label>
@@ -123,7 +129,9 @@
           bind:value={formData.name}
           placeholder="예: 연구원, 선임연구원, 책임연구원, 행정원"
           class="w-full px-3 py-2 border rounded-md text-sm"
-          style="border-color: var(--color-border); background: var(--color-surface); color: var(--color-text);"
+          style:border-color="var(--color-border)"
+          style:background="var(--color-surface)"
+          style:color="var(--color-text)"
           required
         />
       </div>
@@ -133,7 +141,7 @@
         <label
           for="pos-description"
           class="block text-sm font-medium mb-2"
-          style="color: var(--color-text);"
+          style:color="var(--color-text)"
         >
           직급 설명
         </label>
@@ -143,7 +151,9 @@
           placeholder="직급의 역할과 책임을 설명해주세요"
           rows="3"
           class="w-full px-3 py-2 border rounded-md text-sm resize-none"
-          style="border-color: var(--color-border); background: var(--color-surface); color: var(--color-text);"
+          style:border-color="var(--color-border)"
+          style:background="var(--color-surface)"
+          style:color="var(--color-text)"
         ></textarea>
       </div>
 
@@ -152,7 +162,7 @@
         <label
           for="pos-level"
           class="block text-sm font-medium mb-2"
-          style="color: var(--color-text);"
+          style:color="var(--color-text)"
         >
           직급 레벨
         </label>
@@ -163,9 +173,13 @@
           min="1"
           max="10"
           class="w-full px-3 py-2 border rounded-md text-sm"
-          style="border-color: var(--color-border); background: var(--color-surface); color: var(--color-text);"
+          style:border-color="var(--color-border)"
+          style:background="var(--color-surface)"
+          style:color="var(--color-text)"
         />
-        <p class="text-xs mt-1" style="color: var(--color-text-secondary);">
+        <p
+          class="text-xs mt-1"
+          style:color="var(--color-text-secondary)">
           숫자가 높을수록 상위 직급입니다 (1-10)
         </p>
       </div>
@@ -175,7 +189,7 @@
         <label
           for="pos-status"
           class="block text-sm font-medium mb-2"
-          style="color: var(--color-text);"
+          style:color="var(--color-text)"
         >
           상태
         </label>
@@ -183,7 +197,9 @@
           id="pos-status"
           bind:value={formData.status}
           class="w-full px-3 py-2 border rounded-md text-sm"
-          style="border-color: var(--color-border); background: var(--color-surface); color: var(--color-text);"
+          style:border-color="var(--color-border)"
+          style:background="var(--color-surface)"
+          style:color="var(--color-text)"
         >
           <option value="active">활성</option>
           <option value="inactive">비활성</option>
@@ -193,9 +209,17 @@
   </div>
 
   <!-- 모달 액션 버튼 -->
-  <div class="flex justify-end gap-2 pt-4 border-t" style="border-color: var(--color-border);">
-    <ThemeButton variant="ghost" onclick={handleClose} disabled={loading}>취소</ThemeButton>
-    <ThemeButton variant="primary" onclick={handleSave} disabled={loading}>
+  <div
+    class="flex justify-end gap-2 pt-4 border-t"
+    style:border-color="var(--color-border)">
+    <ThemeButton
+      variant="ghost"
+      onclick={handleClose}
+      disabled={loading}>취소</ThemeButton>
+    <ThemeButton
+      variant="primary"
+      onclick={handleSave}
+      disabled={loading}>
       {loading ? '저장 중...' : position ? '수정' : '추가'}
     </ThemeButton>
   </div>

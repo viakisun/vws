@@ -4,7 +4,7 @@
   import Progress from '$lib/components/ui/Progress.svelte'
   import Modal from '$lib/components/ui/Modal.svelte'
   import { TrendingUpIcon, BriefcaseIcon, CoinsIcon, AlertTriangleIcon } from '@lucide/svelte'
-  import { projectsStore, budgetAlerts, overallBudget, getQuarterSummary } from '$lib/stores/rnd'
+  import { projectsStore, budgetAlerts, overallBudget } from '$lib/stores/rnd'
   import { personnelStore, estimateMonthlyCostKRW } from '$lib/stores/personnel'
   import { formatKRW } from '$lib/utils/format'
 
@@ -42,7 +42,7 @@
     allProjects.filter(
       p =>
         (statusFilter ? p.status === statusFilter : true) &&
-        (query ? p.name.toLowerCase().includes(query.toLowerCase()) : true)
+          (query ? p.name.toLowerCase().includes(query.toLowerCase()) : true)
     )
   )
   const selected = $derived(allProjects.find(p => p.id === selectedId))
@@ -134,10 +134,10 @@
             color={p.status === '지연'
               ? 'yellow'
               : p.status === '진행중'
-                ? 'blue'
-                : p.status === '위험'
-                  ? 'red'
-                  : 'green'}>{p.status}</Badge
+              ? 'blue'
+              : p.status === '위험'
+              ? 'red'
+              : 'green'}>{p.status}</Badge
           >
         </button>
       {/each}
@@ -150,8 +150,7 @@
         {#each $budgetAlerts as a}
           <li class="flex items-center justify-between">
             <span>{a.name}</span>
-            <Badge
-              color={a.level === 'over' ? 'red' : a.level === 'critical' ? 'yellow' : 'yellow'}
+            <Badge color={a.level === 'over' ? 'red' : a.level === 'critical' ? 'yellow' : 'yellow'}
             >
               {(a.utilization * 100).toFixed(1)}%
             </Badge>
@@ -161,7 +160,11 @@
     </Card>
   {/if}
 
-  <Modal open={!!selected} title={selected?.name ?? ''} maxWidth="max-w-2xl" onClose={closeDetail}>
+  <Modal
+    open={!!selected}
+    title={selected?.name ?? ''}
+    maxWidth="max-w-2xl"
+    onClose={closeDetail}>
     {#if selected}
       <div class="space-y-4">
         <div class="flex items-center justify-between">
@@ -169,10 +172,10 @@
             color={selected.status === '지연'
               ? 'yellow'
               : selected.status === '진행중'
-                ? 'blue'
-                : selected.status === '위험'
-                  ? 'red'
-                  : 'green'}>{selected.status}</Badge
+              ? 'blue'
+              : selected.status === '위험'
+              ? 'red'
+              : 'green'}>{selected.status}</Badge
           >
           <div class="w-52"><Progress value={selected.progressPct} /></div>
         </div>
@@ -216,8 +219,10 @@
             참여 인원 {selectedMembers.length}명 · 월 추정 {formatKRW(selectedCostMonthly)}
           </div>
           <div class="mt-2">
-            <a class="text-primary hover:underline" href={`/personnel?projectId=${selected.id}`}
-              >상세 보기 (인건비 관리로 이동)</a
+            <a
+              class="text-primary hover:underline"
+              href={`/personnel?projectId=${selected.id}`}
+            >상세 보기 (인건비 관리로 이동)</a
             >
           </div>
         </div>

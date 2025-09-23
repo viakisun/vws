@@ -75,14 +75,22 @@
   {...restProps}
 >
   {#if href}
-    <a {href} class="block">
+    <a
+      {href}
+      class="block">
       <div class="flex items-center justify-between">
         <div class="flex-1 min-w-0">
-          <p class="text-sm font-medium" style="color: var(--color-text-secondary);">{title}</p>
-          <p class="text-2xl font-bold mt-1" style="color: var(--color-text);">{value}</p>
+          <p
+            class="text-sm font-medium"
+            style:color="var(--color-text-secondary)">{title}</p>
+          <p
+            class="text-2xl font-bold mt-1"
+            style:color="var(--color-text)">{value}</p>
           {#if badge}
             <div class="mt-2">
-              <ThemeBadge variant="default" size="sm">{badge}</ThemeBadge>
+              <ThemeBadge
+                variant="default"
+                size="sm">{badge}</ThemeBadge>
             </div>
           {/if}
         </div>
@@ -93,14 +101,12 @@
               color
             ].bg} dark:{colorClasses[color].dark.bg}"
           >
-            <IconComponent
-              class="h-6 w-6 {colorClasses[color].text} dark:{colorClasses[color].dark.text}"
+            <IconComponent class="h-6 w-6 {colorClasses[color].text} dark:{colorClasses[color].dark.text}"
             />
           </div>
         {:else}
           <!-- 아이콘이 없을 때 대체 아이콘 -->
-          <div
-            class="h-12 w-12 rounded-xl flex items-center justify-center transition-all duration-200 group-hover:scale-110 bg-gray-100 dark:bg-gray-800"
+          <div class="h-12 w-12 rounded-xl flex items-center justify-center transition-all duration-200 group-hover:scale-110 bg-gray-100 dark:bg-gray-800"
           >
             <div class="h-6 w-6 bg-gray-400 dark:bg-gray-500 rounded"></div>
           </div>
@@ -110,11 +116,17 @@
   {:else}
     <div class="flex items-center justify-between">
       <div class="flex-1 min-w-0">
-        <p class="text-sm font-medium" style="color: var(--color-text-secondary);">{title}</p>
-        <p class="text-2xl font-bold mt-1" style="color: var(--color-text);">{value}</p>
+        <p
+          class="text-sm font-medium"
+          style:color="var(--color-text-secondary)">{title}</p>
+        <p
+          class="text-2xl font-bold mt-1"
+          style:color="var(--color-text)">{value}</p>
         {#if badge}
           <div class="mt-2">
-            <ThemeBadge variant="default" size="sm">{badge}</ThemeBadge>
+            <ThemeBadge
+              variant="default"
+              size="sm">{badge}</ThemeBadge>
           </div>
         {/if}
       </div>
@@ -125,14 +137,12 @@
             color
           ].bg} dark:{colorClasses[color].dark.bg}"
         >
-          <IconComponent
-            class="h-6 w-6 {colorClasses[color].text} dark:{colorClasses[color].dark.text}"
+          <IconComponent class="h-6 w-6 {colorClasses[color].text} dark:{colorClasses[color].dark.text}"
           />
         </div>
       {:else}
         <!-- 아이콘이 없을 때 대체 아이콘 -->
-        <div
-          class="h-12 w-12 rounded-xl flex items-center justify-center transition-all duration-200 group-hover:scale-110 bg-gray-100 dark:bg-gray-800"
+        <div class="h-12 w-12 rounded-xl flex items-center justify-center transition-all duration-200 group-hover:scale-110 bg-gray-100 dark:bg-gray-800"
         >
           <div class="h-6 w-6 bg-gray-400 dark:bg-gray-500 rounded"></div>
         </div>

@@ -3,6 +3,7 @@ import { json } from '@sveltejs/kit'
 import { readFileSync } from 'fs'
 import { join } from 'path'
 import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger';
 
 export const POST: RequestHandler = async () => {
   try {
@@ -29,7 +30,7 @@ export const POST: RequestHandler = async () => {
       throw error
     }
   } catch (error) {
-    console.error('글로벌 팩터 테이블 생성 실패:', error)
+    logger.error('글로벌 팩터 테이블 생성 실패:', error)
     return json(
       {
         success: false,

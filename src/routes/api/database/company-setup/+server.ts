@@ -1,6 +1,7 @@
 import { json } from '@sveltejs/kit'
 import { query } from '$lib/database/connection.js'
 import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger';
 
 export const POST: RequestHandler = async () => {
   try {
@@ -87,7 +88,7 @@ export const POST: RequestHandler = async () => {
       message: '회사 정보 테이블이 생성되고 기본 데이터가 등록되었습니다.'
     })
   } catch (error: any) {
-    console.error('Error setting up company table:', error)
+    logger.error('Error setting up company table:', error)
     return json(
       {
         success: false,

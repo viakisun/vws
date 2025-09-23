@@ -121,14 +121,21 @@
             {type === 'category' ? '예산 카테고리' : '예산 목표'}
             {budgetItem ? '수정' : '추가'}
           </h2>
-          <button onclick={closeModal} class="text-gray-400 hover:text-gray-600" aria-label="닫기">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <button type="button"
+            onclick={closeModal}
+            class="text-gray-400 hover:text-gray-600"
+            aria-label="닫기">
+            <svg
+              class="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24">
               <path
                 stroke-linecap="round"
                 stroke-linejoin="round"
                 stroke-width="2"
                 d="M6 18L18 6M6 6l12 12"
-              ></path>
+              />
             </svg>
           </button>
         </div>
@@ -142,7 +149,9 @@
         >
           <!-- 이름 -->
           <div>
-            <label for="name" class="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              for="name"
+              class="block text-sm font-medium text-gray-700 mb-1">
               {type === 'category' ? '카테고리명' : '목표명'} *
             </label>
             <input
@@ -157,7 +166,9 @@
 
           <!-- 금액 -->
           <div>
-            <label for="amount" class="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              for="amount"
+              class="block text-sm font-medium text-gray-700 mb-1">
               {type === 'category' ? '예산 금액' : '목표 금액'} *
             </label>
             <div class="relative">
@@ -177,7 +188,9 @@
           {#if type === 'category'}
             <!-- 기간 -->
             <div>
-              <label for="period" class="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                for="period"
+                class="block text-sm font-medium text-gray-700 mb-1">
                 예산 기간
               </label>
               <select
@@ -193,7 +206,9 @@
           {:else}
             <!-- 마감일 -->
             <div>
-              <label for="deadline" class="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                for="deadline"
+                class="block text-sm font-medium text-gray-700 mb-1">
                 목표 마감일 *
               </label>
               <input
@@ -207,7 +222,9 @@
 
             <!-- 상태 -->
             <div>
-              <label for="status" class="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                for="status"
+                class="block text-sm font-medium text-gray-700 mb-1">
                 상태
               </label>
               <select

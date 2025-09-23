@@ -1,0 +1,66 @@
+[
+  {
+    "rule": "no-undef",
+    "count": 749
+  },
+  {
+    "rule": "no-restricted-syntax",
+    "count": 414
+  },
+  {
+    "rule": "@typescript-eslint/no-explicit-any",
+    "count": 351
+  },
+  {
+    "rule": "no-console",
+    "count": 328
+  },
+  {
+    "rule": "svelte/require-each-key",
+    "count": 199
+  },
+  {
+    "rule": "no-unused-vars",
+    "count": 127
+  },
+  {
+    "rule": "@typescript-eslint/no-unused-vars",
+    "count": 119
+  },
+  {
+    "rule": "svelte/first-attribute-linebreak",
+    "count": 112
+  },
+  {
+    "rule": "svelte/max-attributes-per-line",
+    "count": 12
+  },
+  {
+    "rule": "no-dupe-keys",
+    "count": 9
+  },
+  {
+    "rule": "svelte/require-optimized-style-attribute",
+    "count": 4
+  },
+  {
+    "rule": "no-empty",
+    "count": 3
+  },
+  {
+    "rule": "no-useless-escape",
+    "count": 3
+  },
+  {
+    "rule": "no-redeclare",
+    "count": 2
+  },
+  {
+    "rule": "svelte/no-at-html-tags",
+    "count": 1
+  },
+  {
+    "rule": "svelte/no-unknown-style-directive-property",
+    "count": 1
+  }
+]

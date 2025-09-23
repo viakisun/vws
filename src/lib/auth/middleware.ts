@@ -3,6 +3,7 @@ import { config } from '$lib/utils/config'
 import type { RequestEvent, RequestHandler } from '@sveltejs/kit'
 import { error, redirect } from '@sveltejs/kit'
 import jwt from 'jsonwebtoken'
+import { logger } from '$lib/utils/logger';
 
 // JWT token interface
 export interface JWTPayload {
@@ -63,7 +64,7 @@ export function authenticate(requiredRoles?: string[]): RequestHandler {
 
       return new Response() // Continue to the next handler
     } catch {
-      // console.error('Authentication error:', err)
+      // logger.error('Authentication error:', err)
 
       if (url.pathname.startsWith('/api/')) {
         return error(401, { message: 'Invalid token' })
@@ -294,7 +295,7 @@ export function auditLog(action: string, entity: string): RequestHandler {
           [user.id, action, entity, 'unknown', clientIP, userAgent]
         )
       } catch {
-        // console.error('Audit log error:', err)
+        // logger.error('Audit log error:', err)
       }
     }
 

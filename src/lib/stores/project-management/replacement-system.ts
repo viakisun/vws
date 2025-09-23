@@ -1,12 +1,9 @@
 import { writable } from 'svelte/store'
 import type {
-  ReplacementRecommendation,
-  Person,
-  Project,
-  ParticipationAssignment,
-  SalaryHistory
+  ReplacementRecommendation
 } from './types'
 import { logAudit } from './core'
+import { logger } from '$lib/utils/logger';
 
 // 대체 추천 시스템
 export const replacementRecommendations = writable<ReplacementRecommendation[]>([])
@@ -526,7 +523,7 @@ export function createReplacementNotification(
   }
 
   // 실제 구현에서는 알림 시스템에 전송
-  console.log('Replacement notification:', notification)
+  logger.log('Replacement notification:', notification)
 }
 
 // 대체 추천 대시보드 데이터

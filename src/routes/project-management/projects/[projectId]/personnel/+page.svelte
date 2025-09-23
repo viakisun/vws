@@ -6,7 +6,7 @@
   import { projectsStore, quarterlyPersonnelBudgets } from '$lib/stores/rnd'
   import { personnelStore } from '$lib/stores/personnel'
   import { formatKRW } from '$lib/utils/format'
-  import type { Personnel, Participation } from '$lib/types'
+  import type { Personnel } from '$lib/types'
 
   const projectId = page.params.projectId as string
   const project = $derived($projectsStore.find(p => p.id === projectId))
@@ -124,10 +124,10 @@
                       color={ratio >= 100
                         ? 'red'
                         : ratio >= 95
-                          ? 'yellow'
-                          : ratio >= 80
-                            ? 'yellow'
-                            : 'green'}>{ratio}%</Badge
+                        ? 'yellow'
+                        : ratio >= 80
+                        ? 'yellow'
+                        : 'green'}>{ratio}%</Badge
                     >
                   {:else}
                     -

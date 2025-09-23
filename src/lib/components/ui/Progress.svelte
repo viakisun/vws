@@ -10,5 +10,7 @@
   aria-valuemax="100"
   aria-valuenow={clamped}
 >
-  <div class="h-full bg-primary transition-all duration-300" style={`width: ${clamped}%`}></div>
+  <div
+    class="h-full bg-primary transition-all duration-300"
+    style={`width: ${clamped}%`}></div>
 </div>

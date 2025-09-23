@@ -3,6 +3,7 @@
 import { toUTC } from '$lib/utils/date-handler'
 import { approvalWorkflows, approvals, documents, expenseItems } from './expense-workflow'
 import type { Approval, ApprovalWorkflow, Document, ExpenseItem } from './types'
+import { logger } from '$lib/utils/logger';
 
 // ===== 더미 지출 항목 생성 =====
 function generateDummyExpenses(): ExpenseItem[] {
@@ -165,29 +166,29 @@ function generateDummyWorkflows(): ApprovalWorkflow[] {
 
 // ===== 더미데이터 초기화 함수 =====
 export function initializeDummyData(): void {
-  console.log('R&D 시스템 더미데이터 초기화 시작...')
+  logger.log('R&D 시스템 더미데이터 초기화 시작...')
 
   // 지출 항목 초기화
   const dummyExpenses = generateDummyExpenses()
   expenseItems.set(dummyExpenses)
-  console.log(`${dummyExpenses.length}개의 지출 항목 생성 완료`)
+  logger.log(`${dummyExpenses.length}개의 지출 항목 생성 완료`)
 
   // 문서 초기화
   const dummyDocuments = generateDummyDocuments()
   documents.set(dummyDocuments)
-  console.log(`${dummyDocuments.length}개의 문서 생성 완료`)
+  logger.log(`${dummyDocuments.length}개의 문서 생성 완료`)
 
   // 결재 초기화
   const dummyApprovals = generateDummyApprovals()
   approvals.set(dummyApprovals)
-  console.log(`${dummyApprovals.length}개의 결재 생성 완료`)
+  logger.log(`${dummyApprovals.length}개의 결재 생성 완료`)
 
   // 결재 워크플로우 초기화
   const dummyWorkflows = generateDummyWorkflows()
   approvalWorkflows.set(dummyWorkflows)
-  console.log(`${dummyWorkflows.length}개의 결재 워크플로우 생성 완료`)
+  logger.log(`${dummyWorkflows.length}개의 결재 워크플로우 생성 완료`)
 
-  console.log('R&D 시스템 더미데이터 초기화 완료!')
+  logger.log('R&D 시스템 더미데이터 초기화 완료!')
 }
 
 // ===== 통계 데이터 생성 =====

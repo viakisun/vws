@@ -1,6 +1,7 @@
 import { json, error } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
 import { DatabaseService } from '$lib/database/connection'
+import { logger } from '$lib/utils/logger';
 
 // GET /api/companies - Get all companies
 export const GET: RequestHandler = async ({ url }) => {
@@ -25,7 +26,7 @@ export const GET: RequestHandler = async ({ url }) => {
       count: companies.length
     })
   } catch (err) {
-    console.error('Get companies error:', err)
+    logger.error('Get companies error:', err)
     return error(500, { message: 'Internal server error' })
   }
 }
@@ -60,7 +61,7 @@ export const POST: RequestHandler = async ({ request }) => {
       { status: 201 }
     )
   } catch (err) {
-    console.error('Create company error:', err)
+    logger.error('Create company error:', err)
     return error(500, { message: 'Internal server error' })
   }
 }

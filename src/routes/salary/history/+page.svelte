@@ -4,7 +4,9 @@
 
 <svelte:head>
   <title>급여 이력 - VWS</title>
-  <meta name="description" content="직원별 급여 이력 조회 및 관리" />
+  <meta
+    name="description"
+    content="직원별 급여 이력 조회 및 관리" />
 </svelte:head>
 
 <div class="min-h-screen bg-gray-50">

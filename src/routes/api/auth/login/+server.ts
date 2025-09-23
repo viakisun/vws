@@ -4,6 +4,7 @@ import { DatabaseService } from '$lib/database/connection'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import { config } from '$lib/utils/config'
+import { logger } from '$lib/utils/logger';
 
 export const POST: RequestHandler = async ({ request }) => {
   try {
@@ -55,7 +56,7 @@ export const POST: RequestHandler = async ({ request }) => {
       token
     })
   } catch (err) {
-    console.error('Login error:', err)
+    logger.error('Login error:', err)
     return error(500, 'Internal server error')
   }
 }

@@ -21,6 +21,8 @@
   const gridClass = `grid grid-cols-${cols} md:grid-cols-${mdCols} lg:grid-cols-${lgCols} gap-${gap}`
 </script>
 
-<div class="{gridClass} {className}" {...restProps}>
+<div
+  class="{gridClass} {className}"
+  {...restProps}>
   {@render children?.()}
 </div>

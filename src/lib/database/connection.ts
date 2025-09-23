@@ -1,6 +1,7 @@
 import { config } from 'dotenv'
 import type { PoolClient, QueryResult } from 'pg'
 import { Pool } from 'pg'
+import { logger } from '$lib/utils/logger';
 
 // Load environment variables
 config()
@@ -37,7 +38,7 @@ export function initializeDatabase(): Pool {
 
     // Handle pool errors
     pool.on('error', err => {
-      console.error('Unexpected error on idle client', err)
+      logger.error('Unexpected error on idle client', err)
       process.exit(-1)
     })
 
@@ -53,7 +54,7 @@ export async function getConnection(): Promise<PoolClient> {
     try {
       initializeDatabase()
     } catch (error) {
-      console.error('Failed to initialize database connection:', error)
+      logger.error('Failed to initialize database connection:', error)
       throw error
     }
   }
@@ -109,8 +110,8 @@ export async function healthCheck(): Promise<boolean> {
 
     return isHealthy
   } catch (error) {
-    console.error('Database health check failed:', error)
-    console.error('Error details:', {
+    logger.error('Database health check failed:', error)
+    logger.error('Error details:', {
       message: error instanceof Error ? error.message : 'Unknown error',
       code: (error as any)?.code,
       detail: (error as any)?.detail

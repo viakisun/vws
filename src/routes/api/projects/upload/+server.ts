@@ -8,6 +8,7 @@ import {
 } from '$lib/utils/date-handler'
 import { json } from '@sveltejs/kit'
 import * as ExcelJS from 'exceljs'
+import { logger } from '$lib/utils/logger';
 
 export async function POST({ request }) {
   try {
@@ -44,7 +45,7 @@ export async function POST({ request }) {
 
       // 헤더 추출 (첫 번째 행)
       headers = rows[0].values.slice(1) as string[] // ExcelJS는 1-based indexing
-      console.log('프로젝트 Excel 파싱된 헤더:', headers)
+      logger.log('프로젝트 Excel 파싱된 헤더:', headers)
 
       // 데이터 추출
       data = rows.slice(1).map((row, index) => {
@@ -53,7 +54,7 @@ export async function POST({ request }) {
         headers.forEach((header, headerIndex) => {
           rowData[header] = rowValues[headerIndex] || ''
         })
-        console.log(`프로젝트 Excel 행 ${index + 2} 파싱 결과:`, rowData)
+        logger.log(`프로젝트 Excel 행 ${index + 2} 파싱 결과:`, rowData)
         return rowData
       })
     } else if (isCSV) {
@@ -90,7 +91,7 @@ export async function POST({ request }) {
 
       // 헤더 파싱
       headers = parseCSVLine(lines[0])
-      console.log('프로젝트 CSV 파싱된 헤더:', headers)
+      logger.log('프로젝트 CSV 파싱된 헤더:', headers)
 
       // 데이터 파싱
       data = lines.slice(1).map((line, index) => {
@@ -99,7 +100,7 @@ export async function POST({ request }) {
         headers.forEach((header, headerIndex) => {
           row[header] = values[headerIndex] || ''
         })
-        console.log(`프로젝트 CSV 행 ${index + 2} 파싱 결과:`, row)
+        logger.log(`프로젝트 CSV 행 ${index + 2} 파싱 결과:`, row)
         return row
       })
     } else {
@@ -247,7 +248,7 @@ export async function POST({ request }) {
         )
         successCount++
       } catch (error) {
-        console.error('프로젝트 저장 실패:', error)
+        logger.error('프로젝트 저장 실패:', error)
       }
     }
 
@@ -258,7 +259,7 @@ export async function POST({ request }) {
       message: `${successCount}개의 프로젝트가 성공적으로 업로드되었습니다.`
     })
   } catch (error) {
-    console.error('업로드 에러:', error)
+    logger.error('업로드 에러:', error)
     return json(
       {
         error: error instanceof Error ? error.message : '업로드 중 오류가 발생했습니다.'

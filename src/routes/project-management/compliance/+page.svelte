@@ -115,7 +115,7 @@
             <td class="px-3 py-2">{r.title}</td>
             <td class="px-3 py-2">{r.required ? '예' : '권장'}</td>
             <td class="px-3 py-2"
-              ><Badge color={color(r.status)}>{r.status.toUpperCase()}</Badge></td
+            ><Badge color={color(r.status)}>{r.status.toUpperCase()}</Badge></td
             >
             <td class="px-3 py-2">{r.lastChecked}</td>
           </tr>

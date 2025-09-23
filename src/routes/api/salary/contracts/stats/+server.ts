@@ -3,7 +3,7 @@
 import { json } from '@sveltejs/kit'
 import { query } from '$lib/database/connection.js'
 import type { RequestHandler } from './$types'
-import type { ApiResponse, SalaryContractStats } from '$lib/types/salary-contracts'
+import type { SalaryContractStats } from '$lib/types/salary-contracts'
 
 // GET: 급여 계약 통계 조회
 export const GET: RequestHandler = async () => {

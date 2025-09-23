@@ -26,7 +26,7 @@
     const est =
       ((p.annualSalaryKRW ?? 0) *
         (p.participations.reduce((s, pp) => s + pp.allocationPct, 0) / 100)) /
-      4
+        4
     return Math.round(est)
   }
   function personQuarterBudget(p: Personnel): number {
@@ -193,7 +193,9 @@
         </thead>
         <tbody class="divide-y">
           {#each filtered as p}
-            <tr class="hover:bg-gray-50 cursor-pointer" onclick={() => (selectedId = p.id)}>
+            <tr
+              class="hover:bg-gray-50 cursor-pointer"
+              onclick={() => (selectedId = p.id)}>
               <td class="px-3 py-2">{p.id}</td>
               <td class="px-3 py-2">{p.name}</td>
               <td class="px-3 py-2">{p.organization}</td>
@@ -208,17 +210,17 @@
                     color={util >= budgetThresholds.over
                       ? 'red'
                       : util >= budgetThresholds.critical
-                        ? 'yellow'
-                        : util >= budgetThresholds.warning
-                          ? 'yellow'
-                          : 'green'}>{Math.round(util * 100)}%</Badge
+                      ? 'yellow'
+                      : util >= budgetThresholds.warning
+                      ? 'yellow'
+                      : 'green'}>{Math.round(util * 100)}%</Badge
                   >
                 {:else}
                   -
                 {/if}
               </td>
               <td class="px-3 py-2"
-                ><Badge color={p.status === '퇴사예정' ? 'yellow' : 'green'}>{p.status}</Badge></td
+              ><Badge color={p.status === '퇴사예정' ? 'yellow' : 'green'}>{p.status}</Badge></td
               >
             </tr>
           {/each}
@@ -228,7 +230,10 @@
   {/if}
 </Card>
 
-<Modal open={!!selected} title={selected?.name ?? ''} onClose={() => (selectedId = null)}>
+<Modal
+  open={!!selected}
+  title={selected?.name ?? ''}
+  onClose={() => (selectedId = null)}>
   {#if selected}
     <div class="space-y-3 text-sm">
       <div class="grid grid-cols-2 gap-3">

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount, onDestroy } from 'svelte'
+  import { onMount } from 'svelte'
 
   // Props
   interface Props {
@@ -117,11 +117,20 @@
     aria-modal="true"
     tabindex="-1"
   >
-    <div class={getModalClasses()} {...restProps}>
+    <div
+      class={getModalClasses()}
+      {...restProps}>
       {#if closable}
-        <button class="theme-modal-close" onclick={handleCloseClick} aria-label="Close modal">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M18 6L6 18M6 6l12 12"></path>
+        <button type="button"
+          class="theme-modal-close"
+          onclick={handleCloseClick}
+          aria-label="Close modal">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2">
+            <path d="M18 6L6 18M6 6l12 12" />
           </svg>
         </button>
       {/if}

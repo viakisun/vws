@@ -4,6 +4,7 @@ import { formatDateForAPI, formatDateForKorean } from '$lib/utils/date-calculato
 import { calculateMonthlySalary } from '$lib/utils/salary-calculator'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger';
 
 // GET /api/project-management/project-members - 프로젝트 멤버 목록 조회
 export const GET: RequestHandler = async ({ url }) => {
@@ -73,7 +74,7 @@ export const GET: RequestHandler = async ({ url }) => {
       data: transformedData
     })
   } catch (error) {
-    console.error('프로젝트 멤버 조회 실패:', error)
+    logger.error('프로젝트 멤버 조회 실패:', error)
     return json(
       {
         success: false,
@@ -303,7 +304,7 @@ export const POST: RequestHandler = async ({ request }) => {
       message: '프로젝트 멤버가 성공적으로 추가되었습니다.'
     })
   } catch (error) {
-    console.error('프로젝트 멤버 추가 실패:', error)
+    logger.error('프로젝트 멤버 추가 실패:', error)
     return json(
       {
         success: false,

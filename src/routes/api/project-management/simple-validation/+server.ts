@@ -1,6 +1,7 @@
 import { json } from '@sveltejs/kit'
 import { Pool } from 'pg'
 import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger';
 
 const pool = new Pool({
   host: 'db-viahub.cdgqkcss8mpj.ap-northeast-2.rds.amazonaws.com',
@@ -24,44 +25,44 @@ async function validateProject(projectId: string): Promise<{
   let fixedIssues = 0
 
   try {
-    console.log(`🔍 [간단 검증] 프로젝트 검증 시작: ${projectId}`)
+    logger.log(`🔍 [간단 검증] 프로젝트 검증 시작: ${projectId}`)
 
     await client.query('BEGIN')
 
     // 1. 인건비 검증 및 수정
-    console.log('🔍 [인건비 검증] 시작')
+    logger.log('🔍 [인건비 검증] 시작')
     const personnelResult = await validatePersonnelCost(client, projectId)
     results.push(personnelResult)
 
     if (personnelResult.hasIssues) {
-      console.log('🔧 [인건비 수정] 자동 수정 시작')
+      logger.log('🔧 [인건비 수정] 자동 수정 시작')
       const fixResult = await fixPersonnelCost(client, projectId, personnelResult.issues)
       if (fixResult.success) {
         fixedIssues += fixResult.fixedCount
-        console.log(`✅ [인건비 수정] 완료: ${fixResult.fixedCount}개 연차 수정`)
+        logger.log(`✅ [인건비 수정] 완료: ${fixResult.fixedCount}개 연차 수정`)
       } else {
         errors.push(`인건비 수정 실패: ${fixResult.error}`)
       }
     }
 
     // 2. 예산 일관성 검증 및 수정
-    console.log('🔍 [예산 일관성 검증] 시작')
+    logger.log('🔍 [예산 일관성 검증] 시작')
     const budgetResult = await validateBudgetConsistency(client, projectId)
     results.push(budgetResult)
 
     if (budgetResult.hasIssues) {
-      console.log('🔧 [예산 일관성 수정] 자동 수정 시작')
+      logger.log('🔧 [예산 일관성 수정] 자동 수정 시작')
       const fixResult = await fixBudgetConsistency(client, projectId, budgetResult.issues)
       if (fixResult.success) {
         fixedIssues += fixResult.fixedCount
-        console.log(`✅ [예산 일관성 수정] 완료: ${fixResult.fixedCount}개 이슈 수정`)
+        logger.log(`✅ [예산 일관성 수정] 완료: ${fixResult.fixedCount}개 이슈 수정`)
       } else {
         errors.push(`예산 일관성 수정 실패: ${fixResult.error}`)
       }
     }
 
     await client.query('COMMIT')
-    console.log(`✅ [간단 검증] 완료 - ${fixedIssues}개 이슈 수정됨`)
+    logger.log(`✅ [간단 검증] 완료 - ${fixedIssues}개 이슈 수정됨`)
 
     return {
       success: errors.length === 0,
@@ -72,7 +73,7 @@ async function validateProject(projectId: string): Promise<{
   } catch (error) {
     await client.query('ROLLBACK')
     const errorMsg = `프로젝트 검증 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`
-    console.error(`💥 ${errorMsg}`)
+    logger.error(`💥 ${errorMsg}`)
     errors.push(errorMsg)
 
     return {
@@ -277,7 +278,7 @@ export const GET: RequestHandler = async ({ url }) => {
     const result = await validateProject(projectId)
     return json(result)
   } catch (error) {
-    console.error('💥 [간단 검증] GET 오류:', error)
+    logger.error('💥 [간단 검증] GET 오류:', error)
     return json(
       {
         success: false,
@@ -299,7 +300,7 @@ export const POST: RequestHandler = async ({ request }) => {
     const result = await validateProject(projectId)
     return json(result)
   } catch (error) {
-    console.error('💥 [간단 검증] POST 오류:', error)
+    logger.error('💥 [간단 검증] POST 오류:', error)
     return json(
       {
         success: false,

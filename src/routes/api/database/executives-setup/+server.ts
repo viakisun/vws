@@ -1,6 +1,7 @@
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
 import { query } from '$lib/database/connection'
+import { logger } from '$lib/utils/logger';
 
 // 이사 명부 및 직책 체계 테이블 생성
 export const POST: RequestHandler = async () => {
@@ -84,7 +85,7 @@ export const POST: RequestHandler = async () => {
       message: '이사 명부 및 직책 체계 테이블이 성공적으로 생성되었습니다.'
     })
   } catch (error: any) {
-    console.error('Error setting up executives tables:', error)
+    logger.error('Error setting up executives tables:', error)
     return json(
       {
         success: false,

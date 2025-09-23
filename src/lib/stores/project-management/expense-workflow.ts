@@ -1,5 +1,5 @@
 import { writable } from 'svelte/store'
-import type { ExpenseItem, Document, Approval, SLAAlert, Notification } from './types'
+import type { ExpenseItem, Approval, SLAAlert, Notification } from './types'
 import { logAudit } from './core'
 
 // 지출 워크플로우 상태

@@ -1,6 +1,7 @@
 import { query } from '$lib/database/connection'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger';
 
 // POST /api/project-management/setup-evidence - 증빙 내역 테이블 설정
 export const POST: RequestHandler = async () => {
@@ -121,7 +122,7 @@ export const POST: RequestHandler = async () => {
       message: '증빙 내역 테이블이 성공적으로 설정되었습니다.'
     })
   } catch (error) {
-    console.error('증빙 내역 테이블 설정 실패:', error)
+    logger.error('증빙 내역 테이블 설정 실패:', error)
     return json(
       {
         success: false,

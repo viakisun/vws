@@ -4,6 +4,7 @@
 import { query } from '$lib/database/connection'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger';
 
 export const GET: RequestHandler = async () => {
   try {
@@ -233,7 +234,7 @@ export const GET: RequestHandler = async () => {
       data: summary
     })
   } catch (error) {
-    console.error('프로젝트 요약 정보 조회 실패:', error)
+    logger.error('프로젝트 요약 정보 조회 실패:', error)
     return json(
       {
         success: false,

@@ -1,3 +1,4 @@
+import { logger } from '$lib/utils/logger';
 <script lang="ts">
   import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
   import ThemeCard from '$lib/components/ui/ThemeCard.svelte'
@@ -36,8 +37,7 @@
     showActions = true,
     searchPlaceholder = '검색...',
     actions = [],
-    stats = [],
-    ...restProps
+    stats = []
   }: Props = $props()
 
   let searchTerm = $state('')
@@ -54,7 +54,7 @@
     {
       label: '설정',
       icon: SettingsIcon,
-      onclick: () => console.log('Settings clicked'),
+      onclick: () => logger.log('Settings clicked'),
       variant: 'ghost' as const
     }
   ]
@@ -62,14 +62,21 @@
   const allActions = [...defaultActions, ...actions]
 </script>
 
-<div class="max-w-7xl mx-auto px-4 py-8 space-y-6">
+<div>
   <!-- 페이지 헤더 -->
-  <ThemePageHeader {title} {subtitle} />
+  <ThemePageHeader
+    {title}
+    {subtitle}
+    children={undefined} />
 
   <!-- 통계 카드들 -->
   {#if stats.length > 0}
-    <ThemeGrid cols={1} mdCols={2} lgCols={4} gap={6}>
-      {#each stats as stat}
+    <ThemeGrid
+      cols={1}
+      mdCols={2}
+      lgCols={4}
+      gap={6}>
+      {#each stats as stat (stat.title)}
         <ThemeStatCard
           title={stat.title}
           value={String(stat.value)}
@@ -85,11 +92,11 @@
   <!-- 검색 및 필터 섹션 -->
   {#if showSearch || showFilters || showActions}
     <ThemeCard class="p-4">
-      <div class="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+      <div>
         <!-- 검색 및 필터 -->
-        <div class="flex flex-col sm:flex-row gap-4 flex-1">
+        <div>
           {#if showSearch}
-            <div class="relative flex-1 max-w-md">
+            <div>
               <SearchIcon
                 size={20}
                 class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
@@ -104,7 +111,7 @@
           {/if}
 
           {#if showFilters}
-            <div class="relative">
+            <div>
               <ThemeButton
                 variant="ghost"
                 size="sm"
@@ -117,11 +124,12 @@
 
               {#if showFiltersDropdown}
                 <div
-                  class="absolute right-0 mt-2 w-48 rounded-md shadow-lg border z-10"
-                  style="background: var(--color-surface); border-color: var(--color-border);"
+                  style:background="var(--color-surface)"
+                  style:border-color="var(--color-border)"
                 >
-                  <div class="py-1">
+                  <div>
                     <button
+                      type="button"
                       onclick={() => {
                         selectedFilter = 'all'
                         showFiltersDropdown = false
@@ -129,11 +137,12 @@
                       class="block w-full text-left px-4 py-2 text-sm hover:opacity-80 transition-opacity"
                       class:bg-blue-50={selectedFilter === 'all'}
                       class:dark:bg-blue-900={selectedFilter === 'all'}
-                      style="color: var(--color-text);"
+                      style:color="var(--color-text)"
                     >
                       전체
                     </button>
                     <button
+                      type="button"
                       onclick={() => {
                         selectedFilter = 'active'
                         showFiltersDropdown = false
@@ -141,11 +150,12 @@
                       class="block w-full text-left px-4 py-2 text-sm hover:opacity-80 transition-opacity"
                       class:bg-blue-50={selectedFilter === 'active'}
                       class:dark:bg-blue-900={selectedFilter === 'active'}
-                      style="color: var(--color-text);"
+                      style:color="var(--color-text)"
                     >
                       활성
                     </button>
                     <button
+                      type="button"
                       onclick={() => {
                         selectedFilter = 'inactive'
                         showFiltersDropdown = false
@@ -153,7 +163,7 @@
                       class="block w-full text-left px-4 py-2 text-sm hover:opacity-80 transition-opacity"
                       class:bg-blue-50={selectedFilter === 'inactive'}
                       class:dark:bg-blue-900={selectedFilter === 'inactive'}
-                      style="color: var(--color-text);"
+                      style:color="var(--color-text)"
                     >
                       비활성
                     </button>
@@ -167,7 +177,7 @@
         <!-- 액션 버튼들 -->
         {#if showActions && allActions.length > 0}
           <div class="flex gap-2">
-            {#each allActions as action}
+            {#each allActions as action (action.label)}
               <ThemeButton
                 variant={action.variant || 'primary'}
                 size="sm"

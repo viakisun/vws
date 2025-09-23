@@ -4,6 +4,7 @@
 import { json } from '@sveltejs/kit'
 import { query } from '$lib/database/connection'
 import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger';
 
 export const GET: RequestHandler = async () => {
   try {
@@ -96,7 +97,7 @@ export const GET: RequestHandler = async () => {
       }
     })
   } catch (error) {
-    console.error('참여율 요약 조회 실패:', error)
+    logger.error('참여율 요약 조회 실패:', error)
     return json(
       {
         success: false,

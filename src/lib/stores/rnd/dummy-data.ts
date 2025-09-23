@@ -1,14 +1,8 @@
 // R&D 통합관리 시스템 더미데이터 생성
 
 import {
-  UserRole,
   type Person,
-  type Project,
-  type ExpenseItem,
-  type Document,
-  type ResearchNote,
-  type Milestone,
-  type ParticipationAssignment
+  type Project
 } from './types'
 
 // ===== 더미 데이터 생성 함수들 =====

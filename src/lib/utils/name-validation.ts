@@ -6,6 +6,7 @@
 
 import { formatEmployeeName } from './format'
 import { formatKoreanNameStandard } from './korean-name'
+import { logger } from '$lib/utils/logger';
 
 /**
  * 이름 표시를 위한 타입 가드
@@ -50,8 +51,8 @@ export function isValidStandardName(name: string): name is StandardizedName {
 export function enforceStandardName(name: string, context: string = '이름'): StandardizedName {
   if (process.env.NODE_ENV === 'development') {
     if (!isValidStandardName(name)) {
-      console.warn(`⚠️ [이름 표시 강제] ${context}에서 비표준 형식 발견: "${name}"`)
-      console.warn('표준 형식으로 변환 중...')
+      logger.warn(`⚠️ [이름 표시 강제] ${context}에서 비표준 형식 발견: "${name}"`)
+      logger.warn('표준 형식으로 변환 중...')
     }
   }
 
@@ -74,8 +75,8 @@ export function withNameValidation<T extends (...args: any[]) => any>(
         // 한국 이름 패턴이 있는지 확인
         const koreanRegex = /[가-힣]/
         if (koreanRegex.test(result) && result.includes(' ')) {
-          console.warn(`⚠️ [이름 검증] ${context}에서 비표준 형식 반환: "${result}"`)
-          console.warn('표준 형식: (성)(이름) - 공백 없음')
+          logger.warn(`⚠️ [이름 검증] ${context}에서 비표준 형식 반환: "${result}"`)
+          logger.warn('표준 형식: (성)(이름) - 공백 없음')
         }
       }
     }

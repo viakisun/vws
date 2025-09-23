@@ -4,6 +4,7 @@
 import { json } from '@sveltejs/kit'
 import { query } from '$lib/database/connection'
 import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger';
 
 // 참여율 현황 조회
 export const GET: RequestHandler = async ({ url }) => {
@@ -96,7 +97,7 @@ export const GET: RequestHandler = async ({ url }) => {
       total: participationRates.length
     })
   } catch (error) {
-    console.error('참여율 현황 조회 실패:', error)
+    logger.error('참여율 현황 조회 실패:', error)
     return json(
       {
         success: false,
@@ -213,7 +214,7 @@ export const PUT: RequestHandler = async ({ request }) => {
       throw error
     }
   } catch (error) {
-    console.error('참여율 업데이트 실패:', error)
+    logger.error('참여율 업데이트 실패:', error)
     return json(
       {
         success: false,

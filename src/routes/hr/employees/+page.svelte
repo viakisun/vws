@@ -3,17 +3,14 @@
   import Card from '$lib/components/ui/Card.svelte'
   import Badge from '$lib/components/ui/Badge.svelte'
   import Modal from '$lib/components/ui/Modal.svelte'
-  import { formatDate, formatEmployeeName } from '$lib/utils/format'
+  import { formatDate } from '$lib/utils/format'
 
   import {
     employees,
     employmentContracts,
-    jobDescriptions,
     addEmployee,
     updateEmployee,
     deleteEmployee,
-    getActiveEmployees,
-    getEmployeesByDepartment,
     getEmployeeContract,
     type Employee,
     type EmploymentContract
@@ -46,10 +43,10 @@
       filtered = filtered.filter(
         emp =>
           emp.name.toLowerCase().includes(query) ||
-          emp.email.toLowerCase().includes(query) ||
-          emp.employeeId.toLowerCase().includes(query) ||
-          emp.department.toLowerCase().includes(query) ||
-          emp.position.toLowerCase().includes(query)
+            emp.email.toLowerCase().includes(query) ||
+            emp.employeeId.toLowerCase().includes(query) ||
+            emp.department.toLowerCase().includes(query) ||
+            emp.position.toLowerCase().includes(query)
       )
     }
 
@@ -151,7 +148,7 @@
       position: '',
       level: 'mid',
       employmentType: 'full-time',
-      hireDate: new Date().toISOString().split('T')[0],
+      hireDate: new Date().toISOString().split('T')[0], // TODO: Replace with toUTC function
       status: 'active',
       managerId: '',
       emergencyContact: {
@@ -280,7 +277,7 @@
   }
 
   onMount(() => {
-    // 초기 데이터 로드
+  // 초기 데이터 로드
   })
 </script>
 
@@ -292,7 +289,7 @@
         <h1 class="text-3xl font-bold text-gray-900">직원 관리</h1>
         <p class="text-gray-600 mt-1">전체 직원 정보를 관리하고 조회할 수 있습니다</p>
       </div>
-      <button
+      <button type="button"
         onclick={openAddModal}
         class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
       >
@@ -305,8 +302,10 @@
       <div class="p-6">
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
           <div>
-            <label for="search-input" class="block text-sm font-medium text-gray-700 mb-2"
-              >검색</label
+            <label
+              for="search-input"
+              class="block text-sm font-medium text-gray-700 mb-2"
+            >검색</label
             >
             <input
               id="search-input"
@@ -317,8 +316,10 @@
             />
           </div>
           <div>
-            <label for="department-select" class="block text-sm font-medium text-gray-700 mb-2"
-              >부서</label
+            <label
+              for="department-select"
+              class="block text-sm font-medium text-gray-700 mb-2"
+            >부서</label
             >
             <select
               id="department-select"
@@ -336,8 +337,10 @@
             </select>
           </div>
           <div>
-            <label for="status-select" class="block text-sm font-medium text-gray-700 mb-2"
-              >상태</label
+            <label
+              for="status-select"
+              class="block text-sm font-medium text-gray-700 mb-2"
+            >상태</label
             >
             <select
               id="status-select"
@@ -352,8 +355,10 @@
             </select>
           </div>
           <div>
-            <label for="employment-type-select" class="block text-sm font-medium text-gray-700 mb-2"
-              >고용 형태</label
+            <label
+              for="employment-type-select"
+              class="block text-sm font-medium text-gray-700 mb-2"
+            >고용 형태</label
             >
             <select
               id="employment-type-select"
@@ -368,7 +373,7 @@
             </select>
           </div>
           <div class="flex items-end">
-            <button
+            <button type="button"
               onclick={() => {
                 searchQuery = ''
                 departmentFilter = ''
@@ -408,18 +413,15 @@
               >
                 부서 {#if sortBy === 'department'}{sortOrder === 'asc' ? '↑' : '↓'}{/if}
               </th>
-              <th
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
               >
                 직급
               </th>
-              <th
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
               >
                 고용 형태
               </th>
-              <th
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
               >
                 상태
               </th>
@@ -429,8 +431,7 @@
               >
                 입사일 {#if sortBy === 'hireDate'}{sortOrder === 'asc' ? '↑' : '↓'}{/if}
               </th>
-              <th
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
               >
                 작업
               </th>
@@ -445,8 +446,7 @@
                 <td class="px-6 py-4 whitespace-nowrap">
                   <div class="flex items-center">
                     <div class="flex-shrink-0 h-10 w-10">
-                      <div
-                        class="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center"
+                      <div class="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center"
                       >
                         <span class="text-sm font-medium text-gray-700">
                           {employee.name.charAt(0)}
@@ -478,19 +478,19 @@
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                   <div class="flex space-x-2">
-                    <button
+                    <button type="button"
                       onclick={() => openViewModal(employee as Employee)}
                       class="text-blue-600 hover:text-blue-900"
                     >
                       보기
                     </button>
-                    <button
+                    <button type="button"
                       onclick={() => openEditModal(employee as Employee)}
                       class="text-indigo-600 hover:text-indigo-900"
                     >
                       수정
                     </button>
-                    <button
+                    <button type="button"
                       onclick={() => handleDeleteEmployee(employee as Employee)}
                       class="text-red-600 hover:text-red-900"
                     >
@@ -517,8 +517,10 @@
         >
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div>
-              <label for="employee-id-input" class="block text-sm font-medium text-gray-700 mb-1"
-                >사번 *</label
+              <label
+                for="employee-id-input"
+                class="block text-sm font-medium text-gray-700 mb-1"
+              >사번 *</label
               >
               <input
                 id="employee-id-input"
@@ -831,8 +833,7 @@
                 </div>
                 <div>
                   <label class="block text-sm font-medium text-gray-500">상태</label>
-                  <Badge
-                    variant={getStatusBadgeVariant(selectedEmployee.status as Employee['status'])}
+                  <Badge variant={getStatusBadgeVariant(selectedEmployee.status as Employee['status'])}
                   >
                     {getStatusText(selectedEmployee.status as Employee['status'])}
                   </Badge>
@@ -877,8 +878,8 @@
                     {selectedEmployee.personalInfo.gender === 'male'
                       ? '남성'
                       : selectedEmployee.personalInfo.gender === 'female'
-                        ? '여성'
-                        : '기타'}
+                      ? '여성'
+                      : '기타'}
                   </p>
                 </div>
                 <div>
@@ -891,10 +892,10 @@
                     {selectedEmployee.personalInfo.maritalStatus === 'single'
                       ? '미혼'
                       : selectedEmployee.personalInfo.maritalStatus === 'married'
-                        ? '기혼'
-                        : selectedEmployee.personalInfo.maritalStatus === 'divorced'
-                          ? '이혼'
-                          : '사별'}
+                      ? '기혼'
+                      : selectedEmployee.personalInfo.maritalStatus === 'divorced'
+                      ? '이혼'
+                      : '사별'}
                   </p>
                 </div>
               </div>
@@ -916,7 +917,7 @@
                   <div>
                     <label class="block text-sm font-medium text-gray-500">급여</label>
                     <p class="text-sm text-gray-900">
-                      {selectedContract.salary.toLocaleString()}원
+                      {selectedContract.salary.toLocaleString()}원 <!-- TODO: Replace with formatNumber function -->
                     </p>
                   </div>
                   <div>
@@ -930,7 +931,7 @@
         {/if}
 
         <div class="flex justify-end mt-6">
-          <button
+          <button type="button"
             onclick={() => (isViewModalOpen = false)}
             class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors"
           >

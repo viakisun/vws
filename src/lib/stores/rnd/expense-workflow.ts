@@ -8,12 +8,10 @@ import type {
   ApprovalWorkflow,
   ApprovalStatus,
   DocumentType,
-  UUID,
-  UserRole
+  UUID
 } from './types'
 import {
   getDefaultWorkflow,
-  getRequiredDocuments,
   checkDocumentCompleteness
 } from './budget-categories'
 

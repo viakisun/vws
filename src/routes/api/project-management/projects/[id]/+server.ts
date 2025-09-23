@@ -12,6 +12,7 @@ import {
 } from '$lib/utils/api-data-transformer'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger';
 
 // 개별 프로젝트 조회
 export const GET: RequestHandler = async ({ params }) => {
@@ -114,7 +115,7 @@ export const GET: RequestHandler = async ({ params }) => {
       }
     })
   } catch (error) {
-    console.error('프로젝트 조회 실패:', error)
+    logger.error('프로젝트 조회 실패:', error)
     return json(
       {
         success: false,
@@ -259,7 +260,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
       message: '프로젝트가 성공적으로 수정되었습니다.'
     })
   } catch (error) {
-    console.error('프로젝트 수정 실패:', error)
+    logger.error('프로젝트 수정 실패:', error)
     return json(
       {
         success: false,
@@ -336,7 +337,7 @@ export const DELETE: RequestHandler = async ({ params }) => {
       throw error
     }
   } catch (error) {
-    console.error('프로젝트 삭제 실패:', error)
+    logger.error('프로젝트 삭제 실패:', error)
     return json(
       {
         success: false,

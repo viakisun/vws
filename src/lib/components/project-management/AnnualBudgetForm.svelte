@@ -1,3 +1,4 @@
+import { logger } from '$lib/utils/logger';
 <script lang="ts">
   import type { AnnualBudget, AnnualBudgetFormData, BudgetSummary } from '$lib/types/project-budget'
   import { CheckIcon, PlusIcon, TrashIcon, XIcon } from '@lucide/svelte'
@@ -101,7 +102,7 @@
       errors.push('최소 1개 연차의 예산을 입력해주세요.')
     }
 
-    budgetData.forEach((budget, index) => {
+    budgetData.forEach(budget => {
       const yearLabel = `${budget.year}차년도`
 
       if (budget.governmentFunding < 0) {
@@ -143,13 +144,16 @@
     isSubmitting = true
 
     try {
-      const response = await fetch(`/api/project-management/projects/${projectId}/annual-budgets`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ budgets: budgetData })
-      })
+      const response = await window.fetch(
+        `/api/project-management/projects/${projectId}/annual-budgets`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ budgets: budgetData })
+        }
+      )
 
       const result = await response.json()
 
@@ -159,7 +163,7 @@
         validationErrors = [result.error || '예산 저장에 실패했습니다.']
       }
     } catch (error) {
-      console.error('예산 저장 오류:', error)
+      logger.error('예산 저장 오류:', error)
       validationErrors = ['예산 저장 중 오류가 발생했습니다.']
     } finally {
       isSubmitting = false
@@ -184,7 +188,7 @@
           <h3 class="text-sm font-medium text-red-800">검증 오류</h3>
         </div>
         <ul class="mt-2 text-sm text-red-700">
-          {#each validationErrors as error}
+          {#each validationErrors as error (error)}
             <li>• {error}</li>
           {/each}
         </ul>
@@ -206,7 +210,7 @@
           <div class="text-lg font-semibold text-green-800">
             {formatCurrency(budgetSummary.totalGovernmentFunding)}원
             <span class="text-sm text-green-600"
-              >({budgetSummary.governmentFundingRatio.toFixed(1)}%)</span
+            >({budgetSummary.governmentFundingRatio.toFixed(1)}%)</span
             >
           </div>
         </div>
@@ -228,17 +232,17 @@
           <div>
             <span class="text-blue-700 font-medium">현금 총액:</span>
             <span class="ml-2 font-semibold"
-              >{formatCurrency(budgetSummary.totalCash)}원 ({budgetSummary.cashRatio.toFixed(
-                1
-              )}%)</span
+            >{formatCurrency(budgetSummary.totalCash)}원 ({budgetSummary.cashRatio.toFixed(
+              1
+            )}%)</span
             >
           </div>
           <div>
             <span class="text-blue-700 font-medium">현물 총액:</span>
             <span class="ml-2 font-semibold"
-              >{formatCurrency(budgetSummary.totalInKind)}원 ({budgetSummary.inKindRatio.toFixed(
-                1
-              )}%)</span
+            >{formatCurrency(budgetSummary.totalInKind)}원 ({budgetSummary.inKindRatio.toFixed(
+              1
+            )}%)</span
             >
           </div>
         </div>
@@ -261,7 +265,7 @@
         {/if}
       </div>
 
-      {#each budgetData as budget, index}
+      {#each budgetData as budget, index (budget.year)}
         <div class="border border-gray-200 rounded-lg p-6">
           <div class="flex items-center justify-between mb-4">
             <h4 class="text-lg font-medium text-gray-900">{budget.year}차년도</h4>
@@ -279,7 +283,9 @@
           <!-- 날짜 입력 -->
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             <div>
-              <label for="start-date-{index}" class="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                for="start-date-{index}"
+                class="block text-sm font-medium text-gray-700 mb-1">
                 시작일 (선택사항)
               </label>
               <input
@@ -291,7 +297,9 @@
               />
             </div>
             <div>
-              <label for="end-date-{index}" class="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                for="end-date-{index}"
+                class="block text-sm font-medium text-gray-700 mb-1">
                 종료일 (선택사항)
               </label>
               <input
@@ -380,8 +388,8 @@
                 <span>
                   {formatCurrency(
                     (budget.governmentFunding || 0) +
-                      (budget.companyCash || 0) +
-                      (budget.companyInKind || 0)
+                    (budget.companyCash || 0) +
+                    (budget.companyInKind || 0)
                   )}원
                 </span>
               </div>
@@ -390,7 +398,9 @@
 
           <!-- 메모 -->
           <div>
-            <label for="notes-{index}" class="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              for="notes-{index}"
+              class="block text-sm font-medium text-gray-700 mb-1">
               메모 (선택사항)
             </label>
             <textarea

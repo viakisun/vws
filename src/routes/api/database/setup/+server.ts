@@ -1,6 +1,7 @@
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
 import { query } from '$lib/database/connection'
+import { logger } from '$lib/utils/logger';
 
 // 데이터베이스 테이블 생성
 export const POST: RequestHandler = async ({ request }) => {
@@ -65,7 +66,7 @@ export const POST: RequestHandler = async ({ request }) => {
       message: '데이터베이스 설정이 완료되었습니다.'
     })
   } catch (error: any) {
-    console.error('Error setting up database:', error)
+    logger.error('Error setting up database:', error)
     return json(
       {
         success: false,

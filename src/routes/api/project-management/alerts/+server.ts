@@ -1,6 +1,7 @@
 import { query } from '$lib/database/connection'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger';
 
 // GET /api/project-management/alerts - 프로젝트 관리 알림 조회
 export const GET: RequestHandler = async ({ url }) => {
@@ -102,7 +103,7 @@ export const GET: RequestHandler = async ({ url }) => {
       data: result.rows
     })
   } catch (error) {
-    console.error('프로젝트 관리 알림 조회 실패:', error)
+    logger.error('프로젝트 관리 알림 조회 실패:', error)
     return json(
       {
         success: false,

@@ -1,6 +1,7 @@
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
 import { query } from '$lib/database/connection'
+import { logger } from '$lib/utils/logger';
 
 // 조직도 데이터 생성 (동적)
 export const GET: RequestHandler = async () => {
@@ -119,7 +120,7 @@ export const GET: RequestHandler = async () => {
       message: '조직도 데이터가 성공적으로 생성되었습니다.'
     })
   } catch (error: any) {
-    console.error('Error generating organization chart:', error)
+    logger.error('Error generating organization chart:', error)
     return json(
       {
         success: false,

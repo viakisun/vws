@@ -1,6 +1,7 @@
 import { json } from '@sveltejs/kit'
 import { Pool } from 'pg'
 import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger';
 
 const pool = new Pool({
   host: 'db-viahub.cdgqkcss8mpj.ap-northeast-2.rds.amazonaws.com',
@@ -41,7 +42,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
       data: result.rows[0]
     })
   } catch (error) {
-    console.error('Evidence name update error:', error)
+    logger.error('Evidence name update error:', error)
     return json(
       {
         error: '증빙 항목 이름 업데이트 중 오류가 발생했습니다.',

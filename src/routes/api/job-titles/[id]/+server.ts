@@ -1,6 +1,7 @@
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
 import { query } from '$lib/database/connection'
+import { logger } from '$lib/utils/logger';
 
 // 특정 직책 조회
 export const GET: RequestHandler = async ({ params }) => {
@@ -29,7 +30,7 @@ export const GET: RequestHandler = async ({ params }) => {
       data: result.rows[0]
     })
   } catch (error: any) {
-    console.error('Error fetching job title:', error)
+    logger.error('Error fetching job title:', error)
     return json(
       {
         success: false,
@@ -131,7 +132,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
       message: '직책 정보가 성공적으로 수정되었습니다.'
     })
   } catch (error: any) {
-    console.error('Error updating job title:', error)
+    logger.error('Error updating job title:', error)
     return json(
       {
         success: false,
@@ -187,7 +188,7 @@ export const DELETE: RequestHandler = async ({ params }) => {
       message: '직책이 비활성화되었습니다.'
     })
   } catch (error: any) {
-    console.error('Error deleting job title:', error)
+    logger.error('Error deleting job title:', error)
     return json(
       {
         success: false,

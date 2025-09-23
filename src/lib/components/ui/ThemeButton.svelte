@@ -1,6 +1,4 @@
 <script lang="ts">
-  import { themeManager, currentTheme, isDark, isAuto } from '$lib/stores/theme'
-
   // Props
   interface Props {
     variant?: 'primary' | 'secondary' | 'success' | 'warning' | 'error' | 'info' | 'ghost'
@@ -166,7 +164,7 @@
   }
 </script>
 
-<button
+<button type="button"
   class={getButtonClasses()}
   onclick={handleClick}
   disabled={disabled || loading}

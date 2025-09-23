@@ -3,7 +3,8 @@
 import { json } from '@sveltejs/kit'
 import { query } from '$lib/database/connection.js'
 import type { RequestHandler } from './$types'
-import type { Employee, ApiResponse, PaginatedResponse } from '$lib/types/hr'
+import type { Employee, PaginatedResponse } from '$lib/types/hr'
+import { logger } from '$lib/utils/logger';
 
 // GET: 직원 목록 조회 (페이지네이션 및 필터링 지원)
 export const GET: RequestHandler = async ({ url }) => {
@@ -172,7 +173,7 @@ export const GET: RequestHandler = async ({ url }) => {
       data: response
     })
   } catch (error) {
-    console.error('Error fetching employees:', error)
+    logger.error('Error fetching employees:', error)
     return json(
       {
         success: false,
@@ -303,7 +304,7 @@ export const POST: RequestHandler = async ({ request }) => {
       { status: 201 }
     )
   } catch (error) {
-    console.error('Error creating employee:', error)
+    logger.error('Error creating employee:', error)
     return json(
       {
         success: false,

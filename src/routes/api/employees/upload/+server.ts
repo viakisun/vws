@@ -2,6 +2,7 @@ import { query } from '$lib/database/connection.js'
 import { formatDateForDisplay, getCurrentUTC, isValidDate, toUTC } from '$lib/utils/date-handler'
 import { json } from '@sveltejs/kit'
 import * as ExcelJS from 'exceljs'
+import { logger } from '$lib/utils/logger';
 
 export async function POST({ request }) {
   try {
@@ -256,8 +257,8 @@ export async function POST({ request }) {
         // 직원 저장/업데이트 성공
         successCount++
       } catch (error) {
-        console.error('직원 저장 실패:', error)
-        console.error('직원 데이터:', employee)
+        logger.error('직원 저장 실패:', error)
+        logger.error('직원 데이터:', employee)
       }
     }
 
@@ -268,7 +269,7 @@ export async function POST({ request }) {
       message: `${successCount}명의 직원이 성공적으로 업로드되었습니다.`
     })
   } catch (error) {
-    console.error('업로드 에러:', error)
+    logger.error('업로드 에러:', error)
     return json(
       {
         error: error instanceof Error ? error.message : '업로드 중 오류가 발생했습니다.'

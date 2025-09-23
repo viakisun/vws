@@ -10,12 +10,8 @@
     {
       "name": "app",
       "image": "${IMAGE_URI}",
-      "portMappings": [
-        { "containerPort": 3000, "hostPort": 3000, "protocol": "tcp" }
-      ],
-      "environment": [
-        { "name": "PORT", "value": "3000" }
-      ],
+      "portMappings": [{ "containerPort": 3000, "hostPort": 3000, "protocol": "tcp" }],
+      "environment": [{ "name": "PORT", "value": "3000" }],
       "essential": true
     }
   ]

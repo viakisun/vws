@@ -34,25 +34,36 @@
 
 <div
   class="flex items-center space-x-4 p-4 rounded-xl transition-all duration-200 hover:scale-[1.01] {className}"
-  style="background: var(--color-surface); border: 1px solid var(--color-border);"
+  style:background="var(--color-surface)"
+  style:border="1px solid var(--color-border)"
   {...restProps}
 >
   {#if icon}
     <div
       class="h-10 w-10 rounded-full flex items-center justify-center"
-      style="background: var(--color-primary-light);"
+      style:background="var(--color-primary-light)"
     >
-      <icon class="h-5 w-5" style="color: var(--color-primary);"></icon>
+      <icon
+        class="h-5 w-5"
+        style:color="var(--color-primary)"></icon>
     </div>
   {/if}
   <div class="flex-1 min-w-0">
-    <p class="text-sm font-medium" style="color: var(--color-text);">{title}</p>
+    <p
+      class="text-sm font-medium"
+      style:color="var(--color-text)">{title}</p>
     {#if description}
-      <p class="text-xs mt-1" style="color: var(--color-text-secondary);">{description}</p>
+      <p
+        class="text-xs mt-1"
+        style:color="var(--color-text-secondary)">{description}</p>
     {/if}
-    <p class="text-xs mt-1" style="color: var(--color-text-secondary);">{formattedTime}</p>
+    <p
+      class="text-xs mt-1"
+      style:color="var(--color-text-secondary)">{formattedTime}</p>
   </div>
-  <ThemeBadge variant={typeConfig[type].variant} size="sm">
+  <ThemeBadge
+    variant={typeConfig[type].variant}
+    size="sm">
     {typeConfig[type].label}
   </ThemeBadge>
 </div>

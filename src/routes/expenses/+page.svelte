@@ -23,7 +23,7 @@
     all.filter(
       d =>
         (status ? d.status === status : true) &&
-        (query ? d.title.includes(query) || d.id.includes(query) : true)
+          (query ? d.title.includes(query) || d.id.includes(query) : true)
     )
   )
   const selected = $derived(all.find(d => d.id === selectedId))
@@ -115,7 +115,9 @@
       </thead>
       <tbody class="divide-y">
         {#each filtered as d}
-          <tr class="hover:bg-gray-50 cursor-pointer" onclick={() => (selectedId = d.id)}>
+          <tr
+            class="hover:bg-gray-50 cursor-pointer"
+            onclick={() => (selectedId = d.id)}>
             <td class="px-3 py-2">{d.id}</td>
             <td class="px-3 py-2">{d.title}</td>
             <td class="px-3 py-2">{d.category}</td>
@@ -127,10 +129,10 @@
                 color={!isCompliant(d)
                   ? 'red'
                   : d.status === '대기'
-                    ? 'yellow'
-                    : d.status === '반려'
-                      ? 'red'
-                      : 'green'}
+                  ? 'yellow'
+                  : d.status === '반려'
+                  ? 'red'
+                  : 'green'}
               >
                 {!isCompliant(d) ? '미비' : d.status}
               </Badge>
@@ -142,7 +144,10 @@
   </div>
 </Card>
 
-<Modal open={!!selected} title={selected?.title ?? ''} onClose={() => (selectedId = null)}>
+<Modal
+  open={!!selected}
+  title={selected?.title ?? ''}
+  onClose={() => (selectedId = null)}>
   {#if selected}
     <div class="space-y-3 text-sm">
       <div class="flex items-center justify-between">
@@ -150,8 +155,8 @@
           color={selected.status === '대기'
             ? 'yellow'
             : selected.status === '반려'
-              ? 'red'
-              : 'green'}>{selected.status}</Badge
+            ? 'red'
+            : 'green'}>{selected.status}</Badge
         >
         <div>{selected.quarter}Q · {selected.category}</div>
       </div>
@@ -207,9 +212,8 @@
             {#each $expenseHistories[selected.id] as h}
               <li class="flex items-center justify-between">
                 <span>{new Date(h.at).toLocaleString('ko-KR')}</span>
-                <Badge
-                  color={h.status === '반려' ? 'red' : h.status === '대기' ? 'yellow' : 'green'}
-                  >{h.status}</Badge
+                <Badge color={h.status === '반려' ? 'red' : h.status === '대기' ? 'yellow' : 'green'}
+                >{h.status}</Badge
                 >
               </li>
               {#if h.reason}
@@ -228,11 +232,11 @@
             placeholder="사유(선택)"
             bind:value={reason}
           />
-          <button
+          <button type="button"
             class="px-3 py-1.5 rounded-md bg-success text-white hover:brightness-95"
             onclick={approve}>승인</button
           >
-          <button
+          <button type="button"
             class="px-3 py-1.5 rounded-md bg-danger text-white hover:brightness-95"
             onclick={reject}>반려</button
           >

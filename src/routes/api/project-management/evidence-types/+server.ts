@@ -1,6 +1,7 @@
 import { query } from '$lib/database/connection'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger';
 
 // GET /api/project-management/evidence-types - 증빙 유형 목록 조회
 export const GET: RequestHandler = async () => {
@@ -24,7 +25,7 @@ export const GET: RequestHandler = async () => {
       data: result.rows
     })
   } catch (error) {
-    console.error('증빙 유형 조회 실패:', error)
+    logger.error('증빙 유형 조회 실패:', error)
     return json(
       {
         success: false,

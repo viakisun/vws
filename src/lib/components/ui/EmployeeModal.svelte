@@ -1,3 +1,4 @@
+import { logger } from '$lib/utils/logger';
 <script lang="ts">
   import { formatEmployeeName } from '$lib/utils/format'
   import { splitKoreanName } from '$lib/utils/korean-name'
@@ -85,8 +86,8 @@
   // 직원 데이터가 변경될 때 폼 데이터 업데이트
   $effect(() => {
     if (employee) {
-      console.log('Employee data loaded:', employee)
-      console.log('Available positions:', positions)
+      logger.log('Employee data loaded:', employee)
+      logger.log('Available positions:', positions)
 
       formData.first_name = String(employee.first_name || '')
       formData.last_name = String(employee.last_name || '')
@@ -110,8 +111,8 @@
       // 수정 모드에서는 전체 이름을 조합해서 표시
       fullName = formatEmployeeName(employee)
 
-      console.log('Form data set:', formData)
-      console.log('Filtered positions:', filteredPositions())
+      logger.log('Form data set:', formData)
+      logger.log('Filtered positions:', filteredPositions())
     } else {
       // 새 직원 추가 시 기본값으로 리셋
       formData.first_name = ''
@@ -142,7 +143,7 @@
 
   // 모든 직급 표시 (임시로 필터링 제거)
   let filteredPositions = $derived(() => {
-    console.log('All positions:', positions)
+    logger.log('All positions:', positions)
     return positions
   })
 
@@ -210,10 +211,15 @@
   let title = $derived(isEdit ? '직원 정보 수정' : '새 직원 추가')
 </script>
 
-<ThemeModal {open} size="lg" onclose={handleClose}>
+<ThemeModal
+  {open}
+  size="lg"
+  onclose={handleClose}>
   <div class="p-6">
     <div class="mb-6">
-      <h2 class="text-xl font-semibold" style="color: var(--color-text);">{title}</h2>
+      <h2
+        class="text-xl font-semibold"
+        style:color="var(--color-text)">{title}</h2>
     </div>
 
     <form
@@ -230,7 +236,7 @@
             <label
               for="full-name"
               class="block text-sm font-medium mb-2"
-              style="color: var(--color-text);">전체 이름 *</label
+              style:color="var(--color-text)">전체 이름 *</label
             >
             <input
               id="full-name"
@@ -239,9 +245,13 @@
               placeholder="예: 김철수, John Smith"
               required
               class="w-full px-3 py-2 border rounded-md text-sm"
-              style="background: var(--color-surface); border-color: var(--color-border); color: var(--color-text);"
+              style:background="var(--color-surface)"
+              style:border-color="var(--color-border)"
+              style:color="var(--color-text)"
             />
-            <p class="text-xs mt-1" style="color: var(--color-text-secondary);">
+            <p
+              class="text-xs mt-1"
+              style:color="var(--color-text-secondary)">
               한글 이름은 첫 글자가 성으로 자동 분리됩니다.
             </p>
           </div>
@@ -252,7 +262,7 @@
           <label
             for="last-name"
             class="block text-sm font-medium mb-2"
-            style="color: var(--color-text);">성 *</label
+            style:color="var(--color-text)">성 *</label
           >
           <input
             id="last-name"
@@ -261,7 +271,9 @@
             placeholder="성을 입력하세요"
             required
             class="w-full px-3 py-2 border rounded-md text-sm"
-            style="background: var(--color-surface); border-color: var(--color-border); color: var(--color-text);"
+            style:background="var(--color-surface)"
+            style:border-color="var(--color-border)"
+            style:color="var(--color-text)"
           />
         </div>
 
@@ -270,7 +282,7 @@
           <label
             for="first-name"
             class="block text-sm font-medium mb-2"
-            style="color: var(--color-text);">이름 *</label
+            style:color="var(--color-text)">이름 *</label
           >
           <input
             id="first-name"
@@ -279,7 +291,9 @@
             placeholder="이름을 입력하세요"
             required
             class="w-full px-3 py-2 border rounded-md text-sm"
-            style="background: var(--color-surface); border-color: var(--color-border); color: var(--color-text);"
+            style:background="var(--color-surface)"
+            style:border-color="var(--color-border)"
+            style:color="var(--color-text)"
           />
         </div>
 
@@ -288,7 +302,8 @@
           <label
             for="email"
             class="block text-sm font-medium mb-2"
-            style="color: var(--color-text);">이메일 *</label
+            style:color="var(--color-text)"
+          >이메일 *</label
           >
           <input
             id="email"
@@ -297,7 +312,9 @@
             placeholder="이메일을 입력하세요"
             required
             class="w-full px-3 py-2 border rounded-md text-sm"
-            style="background: var(--color-surface); border-color: var(--color-border); color: var(--color-text);"
+            style:background="var(--color-surface)"
+            style:border-color="var(--color-border)"
+            style:color="var(--color-text)"
           />
         </div>
 
@@ -306,7 +323,8 @@
           <label
             for="phone"
             class="block text-sm font-medium mb-2"
-            style="color: var(--color-text);">전화번호</label
+            style:color="var(--color-text)"
+          >전화번호</label
           >
           <input
             id="phone"
@@ -314,7 +332,9 @@
             bind:value={formData.phone}
             placeholder="전화번호를 입력하세요"
             class="w-full px-3 py-2 border rounded-md text-sm"
-            style="background: var(--color-surface); border-color: var(--color-border); color: var(--color-text);"
+            style:background="var(--color-surface)"
+            style:border-color="var(--color-border)"
+            style:color="var(--color-text)"
           />
         </div>
 
@@ -323,14 +343,16 @@
           <label
             for="department"
             class="block text-sm font-medium mb-2"
-            style="color: var(--color-text);">부서 *</label
+            style:color="var(--color-text)">부서 *</label
           >
           <select
             id="department"
             bind:value={formData.department}
             required
             class="w-full px-3 py-2 border rounded-md text-sm"
-            style="background: var(--color-surface); border-color: var(--color-border); color: var(--color-text);"
+            style:background="var(--color-surface)"
+            style:border-color="var(--color-border)"
+            style:color="var(--color-text)"
           >
             <option value="">부서를 선택하세요</option>
             <option value="대표">대표</option>
@@ -348,14 +370,16 @@
           <label
             for="position"
             class="block text-sm font-medium mb-2"
-            style="color: var(--color-text);">직급 *</label
+            style:color="var(--color-text)">직급 *</label
           >
           <select
             id="position"
             bind:value={formData.position}
             required
             class="w-full px-3 py-2 border rounded-md text-sm"
-            style="background: var(--color-surface); border-color: var(--color-border); color: var(--color-text);"
+            style:background="var(--color-surface)"
+            style:border-color="var(--color-border)"
+            style:color="var(--color-text)"
           >
             <option value="">직급을 선택하세요</option>
             {#each filteredPositions() as pos}
@@ -377,20 +401,24 @@
           <label
             for="job-title"
             class="block text-sm font-medium mb-2"
-            style="color: var(--color-text);">직책</label
+            style:color="var(--color-text)">직책</label
           >
           <select
             id="job-title"
             bind:value={formData.job_title_id}
             class="w-full px-3 py-2 border rounded-md text-sm"
-            style="background: var(--color-surface); border-color: var(--color-border); color: var(--color-text);"
+            style:background="var(--color-surface)"
+            style:border-color="var(--color-border)"
+            style:color="var(--color-text)"
           >
             <option value="">직책을 선택하세요 (선택사항)</option>
             {#each jobTitles as jobTitle}
               <option value={jobTitle.id}>{jobTitle.name} ({jobTitle.category})</option>
             {/each}
           </select>
-          <p class="text-xs mt-1" style="color: var(--color-text-secondary);">
+          <p
+            class="text-xs mt-1"
+            style:color="var(--color-text-secondary)">
             직책이 있으면 직급 대신 직책으로 표시됩니다.
           </p>
         </div>
@@ -400,7 +428,8 @@
           <label
             for="salary"
             class="block text-sm font-medium mb-2"
-            style="color: var(--color-text);">급여 *</label
+            style:color="var(--color-text)"
+          >급여 *</label
           >
           <input
             id="salary"
@@ -409,7 +438,9 @@
             placeholder="급여를 입력하세요"
             required
             class="w-full px-3 py-2 border rounded-md text-sm"
-            style="background: var(--color-surface); border-color: var(--color-border); color: var(--color-text);"
+            style:background="var(--color-surface)"
+            style:border-color="var(--color-border)"
+            style:color="var(--color-text)"
           />
         </div>
 
@@ -418,7 +449,7 @@
           <label
             for="hire-date"
             class="block text-sm font-medium mb-2"
-            style="color: var(--color-text);">입사일 *</label
+            style:color="var(--color-text)">입사일 *</label
           >
           <input
             id="hire-date"
@@ -426,7 +457,9 @@
             bind:value={formData.hire_date}
             required
             class="w-full px-3 py-2 border rounded-md text-sm"
-            style="background: var(--color-surface); border-color: var(--color-border); color: var(--color-text);"
+            style:background="var(--color-surface)"
+            style:border-color="var(--color-border)"
+            style:color="var(--color-text)"
           />
         </div>
 
@@ -435,14 +468,16 @@
           <label
             for="birth-date"
             class="block text-sm font-medium mb-2"
-            style="color: var(--color-text);">생일</label
+            style:color="var(--color-text)">생일</label
           >
           <input
             id="birth-date"
             type="date"
             bind:value={formData.birth_date}
             class="w-full px-3 py-2 border rounded-md text-sm"
-            style="background: var(--color-surface); border-color: var(--color-border); color: var(--color-text);"
+            style:background="var(--color-surface)"
+            style:border-color="var(--color-border)"
+            style:color="var(--color-text)"
           />
         </div>
 
@@ -451,14 +486,16 @@
           <label
             for="termination-date"
             class="block text-sm font-medium mb-2"
-            style="color: var(--color-text);">퇴사일</label
+            style:color="var(--color-text)">퇴사일</label
           >
           <input
             id="termination-date"
             type="date"
             bind:value={formData.termination_date}
             class="w-full px-3 py-2 border rounded-md text-sm"
-            style="background: var(--color-surface); border-color: var(--color-border); color: var(--color-text);"
+            style:background="var(--color-surface)"
+            style:border-color="var(--color-border)"
+            style:color="var(--color-text)"
           />
         </div>
 
@@ -467,13 +504,16 @@
           <label
             for="status"
             class="block text-sm font-medium mb-2"
-            style="color: var(--color-text);">상태</label
+            style:color="var(--color-text)"
+          >상태</label
           >
           <select
             id="status"
             bind:value={formData.status}
             class="w-full px-3 py-2 border rounded-md text-sm"
-            style="background: var(--color-surface); border-color: var(--color-border); color: var(--color-text);"
+            style:background="var(--color-surface)"
+            style:border-color="var(--color-border)"
+            style:color="var(--color-text)"
           >
             {#each statusOptions as option}
               <option value={option.value}>{option.label}</option>
@@ -486,13 +526,15 @@
           <label
             for="employment-type"
             class="block text-sm font-medium mb-2"
-            style="color: var(--color-text);">고용 형태</label
+            style:color="var(--color-text)">고용 형태</label
           >
           <select
             id="employment-type"
             bind:value={formData.employment_type}
             class="w-full px-3 py-2 border rounded-md text-sm"
-            style="background: var(--color-surface); border-color: var(--color-border); color: var(--color-text);"
+            style:background="var(--color-surface)"
+            style:border-color="var(--color-border)"
+            style:color="var(--color-text)"
           >
             {#each employmentTypeOptions as option}
               <option value={option.value}>{option.label}</option>
@@ -503,14 +545,16 @@
 
       <div
         class="flex items-center justify-end gap-3 pt-6 border-t"
-        style="border-color: var(--color-border);"
+        style:border-color="var(--color-border)"
       >
         <button
           type="button"
           onclick={handleClose}
           disabled={loading}
           class="px-4 py-2 text-sm font-medium rounded-md border transition-colors"
-          style="border-color: var(--color-border); color: var(--color-text); background: var(--color-surface);"
+          style:border-color="var(--color-border)"
+          style:color="var(--color-text)"
+          style:background="var(--color-surface)"
         >
           취소
         </button>
@@ -518,11 +562,10 @@
           type="submit"
           disabled={loading}
           class="px-4 py-2 text-sm font-medium rounded-md text-white transition-colors flex items-center gap-2"
-          style="background: var(--color-primary);"
+          style:background="var(--color-primary)"
         >
           {#if loading}
-            <div
-              class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"
+            <div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"
             ></div>
           {:else}
             <SaveIcon size={16} />

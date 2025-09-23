@@ -1,5 +1,6 @@
-<script>
-  /* global console, fetch, URL */
+import { logger } from '$lib/utils/logger';
+<script lang="ts">
+  /* global fetch */
   import { goto } from '$app/navigation'
   import { page } from '$app/stores'
   import PageLayout from '$lib/components/layout/PageLayout.svelte'
@@ -122,7 +123,7 @@
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.'
       tabErrors[tabName] = errorMessage
-      console.error(`${tabName} 탭 데이터 로딩 실패:`, err)
+      logger.error(`${tabName} 탭 데이터 로딩 실패:`, err)
     } finally {
       tabLoadingStates[tabName] = false
     }
@@ -158,18 +159,18 @@
   // API 호출 함수들
   async function loadProjectData() {
     try {
-      console.log('🔍 프로젝트 데이터 로딩 시작...')
+      logger.log('🔍 프로젝트 데이터 로딩 시작...')
 
       // API 응답 시간 측정
       const startTime = Date.now()
       const response = await fetch('/api/project-management/projects')
       const responseTime = Date.now() - startTime
 
-      console.log(`⏱️ API 응답 시간: ${responseTime}ms`)
+      logger.log(`⏱️ API 응답 시간: ${responseTime}ms`)
 
       if (response.ok) {
         const data = await response.json()
-        console.log('📊 API 응답 데이터:', data)
+        logger.log('📊 API 응답 데이터:', data)
 
         if (data.success) {
           const projectData = data.data || []
@@ -177,14 +178,14 @@
           // 프로젝트 데이터 검증
           const validationResult = validateProjectData(projectData)
           if (!validationResult.isValid) {
-            console.error('❌ 프로젝트 데이터 검증 실패:', validationResult.issues)
+            logger.error('❌ 프로젝트 데이터 검증 실패:', validationResult.issues)
             // 검증 실패 시 빈 배열로 설정하여 무한 루프 방지
             projects = []
             return // throw 대신 return으로 함수 종료
           }
 
           projects = projectData
-          console.log(`✅ ${projectData.length}개 프로젝트 로드 완료`)
+          logger.log(`✅ ${projectData.length}개 프로젝트 로드 완료`)
         } else {
           throw new Error(data.message || '프로젝트 데이터를 불러오는데 실패했습니다.')
         }
@@ -200,9 +201,9 @@
     } catch (err) {
       // Failed to fetch 오류 특별 처리
       if (err instanceof Error && err.message && err.message.includes('Failed to fetch')) {
-        console.error('❌ 네트워크 연결 실패:', err.message)
+        logger.error('❌ 네트워크 연결 실패:', err.message)
       } else {
-        console.error('❌ 프로젝트 데이터 로드 실패:', err)
+        logger.error('❌ 프로젝트 데이터 로드 실패:', err)
       }
 
       projects = []
@@ -286,7 +287,7 @@
 
     // 경고가 있으면 콘솔에 출력
     if (warnings.length > 0) {
-      console.warn('⚠️ 프로젝트 데이터 경고:', warnings)
+      logger.warn('⚠️ 프로젝트 데이터 경고:', warnings)
     }
 
     return {
@@ -303,7 +304,7 @@
         projectSummary = data.data
       }
     } catch (err) {
-      console.error('프로젝트 요약 로드 실패:', err)
+      logger.error('프로젝트 요약 로드 실패:', err)
     }
   }
 
@@ -315,7 +316,7 @@
         employeeParticipationSummary = data.data || []
       }
     } catch {
-      // 직원 참여율 데이터 로드 실패 - 조용히 처리
+    // 직원 참여율 데이터 로드 실패 - 조용히 처리
     }
   }
 
@@ -323,11 +324,11 @@
     try {
       const response = await fetch('/api/project-management/budgets/summary-by-year')
       if (response.ok) {
-        // const data = await response.json()
+      // const data = await response.json()
         // budgetSummaryByYear = data.data || []
       }
     } catch {
-      // 연도별 예산 데이터 로드 실패 - 조용히 처리
+    // 연도별 예산 데이터 로드 실패 - 조용히 처리
     }
   }
 
@@ -339,7 +340,7 @@
         alerts = data.data || []
       }
     } catch {
-      // 알림 데이터 로드 실패 - 조용히 처리
+    // 알림 데이터 로드 실패 - 조용히 처리
     }
   }
 
@@ -377,16 +378,23 @@
   })
 </script>
 
-<PageLayout title="프로젝트 관리" subtitle="연구개발 프로젝트 및 참여율 관리 시스템">
+<PageLayout
+  title="프로젝트 관리"
+  subtitle="연구개발 프로젝트 및 참여율 관리 시스템">
   <div>
     <!-- 탭 네비게이션 -->
-    <ThemeTabs {tabs} {activeTab} onTabChange={handleTabChange} />
+    <ThemeTabs
+      {tabs}
+      {activeTab}
+      onTabChange={handleTabChange} />
 
     <!-- 개요 탭 -->
     {#if activeTab === 'overview'}
       <div>
         <!-- 프로젝트 개요 카드 -->
-        <ProjectOverviewCard {projectSummary} {alerts} />
+        <ProjectOverviewCard
+          {projectSummary}
+          {alerts} />
       </div>
     {/if}
 
@@ -422,6 +430,8 @@
 </PageLayout>
 
 <!-- 프로젝트 생성 모달 -->
-<ThemeModal open={showCreateProjectModal} onclose={() => (showCreateProjectModal = false)}>
+<ThemeModal
+  open={showCreateProjectModal}
+  onclose={() => (showCreateProjectModal = false)}>
   <ProjectCreationForm on:projectCreated={handleProjectCreated} />
 </ThemeModal>

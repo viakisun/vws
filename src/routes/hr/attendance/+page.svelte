@@ -329,14 +329,14 @@
               </div>
             </div>
             <div class="flex space-x-2">
-              <button
+              <button type="button"
                 onclick={handleCheckIn}
                 disabled={!!todayAttendance?.checkIn}
                 class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
               >
                 출근 체크
               </button>
-              <button
+              <button type="button"
                 onclick={handleCheckOut}
                 disabled={!todayAttendance?.checkIn || !!todayAttendance?.checkOut}
                 class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
@@ -365,7 +365,7 @@
                     stroke-linejoin="round"
                     stroke-width="2"
                     d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                  ></path>
+                  />
                 </svg>
               </div>
               <div class="ml-4">
@@ -391,7 +391,7 @@
                     stroke-linejoin="round"
                     stroke-width="2"
                     d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                  ></path>
+                  />
                 </svg>
               </div>
               <div class="ml-4">
@@ -417,7 +417,7 @@
                     stroke-linejoin="round"
                     stroke-width="2"
                     d="M6 18L18 6M6 6l12 12"
-                  ></path>
+                  />
                 </svg>
               </div>
               <div class="ml-4">
@@ -443,7 +443,7 @@
                     stroke-linejoin="round"
                     stroke-width="2"
                     d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                  ></path>
+                  />
                 </svg>
               </div>
               <div class="ml-4">
@@ -462,7 +462,7 @@
           <div class="p-6">
             <div class="flex justify-between items-center mb-4">
               <h3 class="text-lg font-semibold text-gray-900">근태 기록</h3>
-              <button
+              <button type="button"
                 onclick={() => openAttendanceModal()}
                 class="px-3 py-1 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 transition-colors"
               >
@@ -484,7 +484,7 @@
                     <Badge variant={getStatusBadgeVariant(record.status)}>
                       {getStatusText(record.status)}
                     </Badge>
-                    <button
+                    <button type="button"
                       onclick={() => openAttendanceModal(record)}
                       class="text-blue-600 hover:text-blue-900 text-sm"
                     >
@@ -502,7 +502,7 @@
           <div class="p-6">
             <div class="flex justify-between items-center mb-4">
               <h3 class="text-lg font-semibold text-gray-900">휴가 관리</h3>
-              <button
+              <button type="button"
                 onclick={openLeaveRequestModal}
                 class="px-3 py-1 bg-green-600 text-white text-sm rounded-md hover:bg-green-700 transition-colors"
               >
@@ -548,13 +548,13 @@
                       </Badge>
                       {#if request.status === 'pending'}
                         <div class="flex space-x-1">
-                          <button
+                          <button type="button"
                             onclick={() => approveLeave(request.id)}
                             class="text-green-600 hover:text-green-900 text-xs"
                           >
                             승인
                           </button>
-                          <button
+                          <button type="button"
                             onclick={() => rejectLeave(request.id)}
                             class="text-red-600 hover:text-red-900 text-xs"
                           >
@@ -584,7 +584,7 @@
               stroke-linejoin="round"
               stroke-width="2"
               d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-            ></path>
+            />
           </svg>
           <h3 class="text-lg font-medium text-gray-900 mb-2">직원을 선택하세요</h3>
           <p class="text-gray-500">근태 관리를 위해 직원을 선택해주세요.</p>

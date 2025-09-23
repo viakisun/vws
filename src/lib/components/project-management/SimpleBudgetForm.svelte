@@ -1,3 +1,4 @@
+import { logger } from '$lib/utils/logger';
 <script lang="ts">
   import type { AnnualBudgetFormData } from '$lib/types/project-budget'
   import { toUTC } from '$lib/utils/date-handler'
@@ -38,7 +39,7 @@
 
       if (result.success && result.data?.budgets && result.data.budgets.length > 0) {
         // 기존 예산 데이터가 있으면 로드 (UTC 날짜 처리 함수 사용)
-        console.log('기존 예산 데이터 로드:', result.data.budgets)
+        logger.log('기존 예산 데이터 로드:', result.data.budgets)
         budgets = result.data.budgets.map(budget => ({
           year: budget.year,
           startDate: budget.startDate ? formatDateForInput(budget.startDate) : '',
@@ -48,12 +49,12 @@
           companyInKind: budget.companyInKind || 0,
           notes: budget.notes || ''
         }))
-        console.log('변환된 예산 데이터:', budgets)
+        logger.log('변환된 예산 데이터:', budgets)
       } else {
-        console.log('기존 예산 데이터 없음 - 기본값 사용')
+        logger.log('기존 예산 데이터 없음 - 기본값 사용')
       }
     } catch (error) {
-      console.error('기존 예산 데이터 로드 실패:', error)
+      logger.error('기존 예산 데이터 로드 실패:', error)
     } finally {
       isLoading = false
     }
@@ -222,7 +223,7 @@
         validationErrors = [result.error || '예산 저장에 실패했습니다.']
       }
     } catch (error) {
-      console.error('예산 저장 오류:', error)
+      logger.error('예산 저장 오류:', error)
       validationErrors = ['예산 저장 중 오류가 발생했습니다.']
     } finally {
       isSubmitting = false
@@ -278,7 +279,9 @@
           <!-- 기간 설정 -->
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div>
-              <label for="start-date-{index}" class="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                for="start-date-{index}"
+                class="block text-sm font-medium text-gray-700 mb-1">
                 시작일 *
               </label>
               <input
@@ -289,7 +292,9 @@
               />
             </div>
             <div>
-              <label for="end-date-{index}" class="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                for="end-date-{index}"
+                class="block text-sm font-medium text-gray-700 mb-1">
                 종료일 *
               </label>
               <input
@@ -326,8 +331,7 @@
                     class="w-full px-3 py-2 pr-12 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
                     placeholder="0"
                   />
-                  <div
-                    class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none"
+                  <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none"
                   >
                     <span class="text-gray-500 text-sm">천원</span>
                   </div>
@@ -350,8 +354,7 @@
                     class="w-full px-3 py-2 pr-12 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
                     placeholder="0"
                   />
-                  <div
-                    class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none"
+                  <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none"
                   >
                     <span class="text-gray-500 text-sm">천원</span>
                   </div>
@@ -374,8 +377,7 @@
                     class="w-full px-3 py-2 pr-12 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
                     placeholder="0"
                   />
-                  <div
-                    class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none"
+                  <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none"
                   >
                     <span class="text-gray-500 text-sm">천원</span>
                   </div>

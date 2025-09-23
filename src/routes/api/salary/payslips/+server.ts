@@ -8,8 +8,8 @@ export async function GET({ url }) {
     const period = url.searchParams.get('period') // YYYY-MM 형식
     const status = url.searchParams.get('status')
 
-    let conditions: string[] = []
-    let params: (string | number)[] = []
+    const conditions: string[] = []
+    const params: (string | number)[] = []
     let paramIndex = 1
 
     if (employeeId) {

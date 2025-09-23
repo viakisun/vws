@@ -1,6 +1,7 @@
 import { query } from '$lib/database/connection'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger';
 
 // GET /api/project-management/employees - 직원 목록 조회 (프로젝트 멤버 추가용)
 export const GET: RequestHandler = async ({ url }) => {
@@ -87,7 +88,7 @@ export const GET: RequestHandler = async ({ url }) => {
       data: result.rows
     })
   } catch (error) {
-    console.error('직원 목록 조회 실패:', error)
+    logger.error('직원 목록 조회 실패:', error)
     return json(
       {
         success: false,

@@ -3,6 +3,7 @@ import type { AnnualBudget, AnnualBudgetFormData, BudgetSummary } from '$lib/typ
 import { formatDateForDisplay, toUTC } from '$lib/utils/date-handler.js'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger';
 
 // GET: 연차별 예산 조회 (project_budgets 테이블 사용)
 export const GET: RequestHandler = async ({ params }) => {
@@ -88,7 +89,7 @@ export const GET: RequestHandler = async ({ params }) => {
       }
     })
   } catch (error) {
-    console.error('연차별 예산 조회 실패:', error)
+    logger.error('연차별 예산 조회 실패:', error)
     return json(
       {
         success: false,
@@ -193,7 +194,7 @@ export const POST: RequestHandler = async ({ params, request }) => {
       message: '연차별 예산이 성공적으로 생성되었습니다.'
     })
   } catch (error) {
-    console.error('연차별 예산 생성 실패:', error)
+    logger.error('연차별 예산 생성 실패:', error)
     return json(
       {
         success: false,
@@ -298,7 +299,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
       message: '연차별 예산이 성공적으로 수정되었습니다.'
     })
   } catch (error) {
-    console.error('연차별 예산 수정 실패:', error)
+    logger.error('연차별 예산 수정 실패:', error)
     return json(
       {
         success: false,
@@ -345,7 +346,7 @@ export const DELETE: RequestHandler = async ({ params, request }) => {
       message: '연차별 예산이 성공적으로 삭제되었습니다.'
     })
   } catch (error) {
-    console.error('연차별 예산 삭제 실패:', error)
+    logger.error('연차별 예산 삭제 실패:', error)
     return json(
       {
         success: false,

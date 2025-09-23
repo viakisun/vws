@@ -1,10 +1,9 @@
 // 인사 관리 시스템 - 직원 스토어
 
-import { writable, derived, get } from 'svelte/store'
+import { writable, derived } from 'svelte/store'
 import type {
   Employee,
   EmployeeSearchFilter,
-  EmployeeSearchResult,
   EmployeeStatistics,
   ApiResponse
 } from '$lib/types/hr'

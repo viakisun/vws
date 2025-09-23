@@ -10,6 +10,8 @@
   const spacerClass = `space-y-${size}`
 </script>
 
-<div class="{spacerClass} {className}" {...restProps}>
+<div
+  class="{spacerClass} {className}"
+  {...restProps}>
   {@render children?.()}
 </div>

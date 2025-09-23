@@ -3,6 +3,7 @@
 
 import { derived, writable } from 'svelte/store'
 import type {
+import { logger } from '$lib/utils/logger';
   BudgetAlert,
   BudgetSummaryByYear,
   EmployeeParticipationSummary,
@@ -74,7 +75,7 @@ export const projectActions = {
     projectStore.update(state => ({ ...state, loading: true, error: null }))
 
     try {
-      console.log('프로젝트 생성 요청 데이터:', projectData)
+      logger.log('프로젝트 생성 요청 데이터:', projectData)
 
       const response = await fetch('/api/project-management/projects', {
         method: 'POST',
@@ -82,16 +83,16 @@ export const projectActions = {
         body: JSON.stringify(projectData)
       })
 
-      console.log('프로젝트 생성 응답 상태:', response.status)
+      logger.log('프로젝트 생성 응답 상태:', response.status)
 
       if (!response.ok) {
         const errorData = await response.json()
-        console.error('프로젝트 생성 API 에러 응답:', errorData)
+        logger.error('프로젝트 생성 API 에러 응답:', errorData)
         throw new Error(errorData.message || '프로젝트 생성에 실패했습니다.')
       }
 
       const data = await response.json()
-      console.log('프로젝트 생성 성공 응답:', data)
+      logger.log('프로젝트 생성 성공 응답:', data)
 
       projectStore.update(state => ({
         ...state,
@@ -101,8 +102,8 @@ export const projectActions = {
 
       return data.data
     } catch (error) {
-      console.error('프로젝트 생성 API 호출 실패:', error)
-      console.error('요청 데이터:', projectData)
+      logger.error('프로젝트 생성 API 호출 실패:', error)
+      logger.error('요청 데이터:', projectData)
 
       projectStore.update(state => ({
         ...state,
@@ -188,7 +189,7 @@ export const projectActions = {
         summary: data.data
       }))
     } catch (error) {
-      console.error('프로젝트 요약 정보 로드 실패:', error)
+      logger.error('프로젝트 요약 정보 로드 실패:', error)
     }
   }
 }
@@ -207,7 +208,7 @@ export const projectMemberActions = {
         projectMembers: data.data || []
       }))
     } catch (error) {
-      console.error('프로젝트 멤버 목록 로드 실패:', error)
+      logger.error('프로젝트 멤버 목록 로드 실패:', error)
     }
   },
 
@@ -330,7 +331,7 @@ export const participationRateActions = {
         participationRates: data.data || []
       }))
     } catch (error) {
-      console.error('참여율 현황 로드 실패:', error)
+      logger.error('참여율 현황 로드 실패:', error)
     }
   },
 
@@ -346,7 +347,7 @@ export const participationRateActions = {
         employeeParticipationSummary: data.data || []
       }))
     } catch (error) {
-      console.error('개인별 참여율 요약 로드 실패:', error)
+      logger.error('개인별 참여율 요약 로드 실패:', error)
     }
   },
 
@@ -404,7 +405,7 @@ export const participationRateActions = {
         participationRateHistory: data.data || []
       }))
     } catch (error) {
-      console.error('참여율 변경 이력 로드 실패:', error)
+      logger.error('참여율 변경 이력 로드 실패:', error)
     }
   }
 }
@@ -423,7 +424,7 @@ export const budgetActions = {
         projectBudgets: data.data || []
       }))
     } catch (error) {
-      console.error('프로젝트 사업비 로드 실패:', error)
+      logger.error('프로젝트 사업비 로드 실패:', error)
     }
   },
 
@@ -439,7 +440,7 @@ export const budgetActions = {
         budgetSummaryByYear: data.data || []
       }))
     } catch (error) {
-      console.error('연차별 사업비 요약 로드 실패:', error)
+      logger.error('연차별 사업비 요약 로드 실패:', error)
     }
   },
 
@@ -500,7 +501,7 @@ export const alertActions = {
         alerts: data.data || []
       }))
     } catch (error) {
-      console.error('알림 로드 실패:', error)
+      logger.error('알림 로드 실패:', error)
     }
   }
 }

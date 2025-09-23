@@ -1,13 +1,9 @@
 import { writable } from 'svelte/store'
 import type {
-  Report,
-  Project,
-  Milestone,
-  ExpenseItem,
-  ParticipationAssignment,
-  ResearchNote
+  Report
 } from './types'
 import { logAudit } from './core'
+import { logger } from '$lib/utils/logger';
 
 // 리포트 관리
 export const reports = writable<Report[]>([])
@@ -674,7 +670,7 @@ export function scheduleAutoReports(
   }
 
   // 스케줄 저장 (실제로는 별도 스토어에 저장)
-  console.log('Auto report scheduled:', schedule)
+  logger.log('Auto report scheduled:', schedule)
 }
 
 // 리포트 통계

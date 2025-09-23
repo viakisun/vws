@@ -1,4 +1,5 @@
 import { json } from '@sveltejs/kit'
+import { logger } from '$lib/utils/logger';
 
 export async function GET() {
   try {
@@ -25,7 +26,7 @@ AI 기반 데이터 분석 시스템,머신러닝을 활용한 데이터 분석 
       }
     })
   } catch (error) {
-    console.error('템플릿 생성 에러:', error)
+    logger.error('템플릿 생성 에러:', error)
     return json({ error: '템플릿 생성 중 오류가 발생했습니다.' }, { status: 500 })
   }
 }

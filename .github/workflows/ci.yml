@@ -2,102 +2,102 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [main, develop]
   pull_request:
-    branches: [ main, develop ]
+    branches: [main, develop]
 
 jobs:
   # === 코드 품질 체크 ===
   quality-check:
     name: 코드 품질 체크
     runs-on: ubuntu-latest
-    
+
     steps:
-    - name: Checkout 코드
-      uses: actions/checkout@v4
-      
-    - name: Node.js 설정
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20'
-        cache: 'npm'
-        
-    - name: 의존성 설치
-      run: npm ci
-      
-    - name: TypeScript 타입 체크
-      run: npm run check
-      
-    - name: ESLint 체크
-      run: npx eslint src/ --ext .ts,.svelte --max-warnings 0
-      
-    - name: 빌드 테스트
-      run: npm run build
-      
-    - name: 테스트 실행 (있는 경우)
-      run: npm test || echo "테스트 스크립트가 없습니다."
-      continue-on-error: true
-      
-    - name: 보안 취약점 체크
-      run: npm audit --audit-level=high
-      continue-on-error: true
+      - name: Checkout 코드
+        uses: actions/checkout@v4
+
+      - name: Node.js 설정
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: 의존성 설치
+        run: npm ci
+
+      - name: TypeScript 타입 체크
+        run: npm run check
+
+      - name: ESLint 체크
+        run: npx eslint src/ --ext .ts,.svelte --max-warnings 0
+
+      - name: 빌드 테스트
+        run: npm run build
+
+      - name: 테스트 실행 (있는 경우)
+        run: npm test || echo "테스트 스크립트가 없습니다."
+        continue-on-error: true
+
+      - name: 보안 취약점 체크
+        run: npm audit --audit-level=high
+        continue-on-error: true
 
   # === 성능 테스트 ===
   performance-test:
     name: 성능 테스트
     runs-on: ubuntu-latest
     needs: quality-check
-    
+
     steps:
-    - name: Checkout 코드
-      uses: actions/checkout@v4
-      
-    - name: Node.js 설정
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20'
-        cache: 'npm'
-        
-    - name: 의존성 설치
-      run: npm ci
-      
-    - name: 빌드
-      run: npm run build
-      
-    - name: 번들 크기 체크
-      run: |
-        echo "번들 크기 체크..."
-        find .svelte-kit -name "*.js" -exec ls -lh {} \; | head -10
-        echo "번들 크기 체크 완료"
+      - name: Checkout 코드
+        uses: actions/checkout@v4
+
+      - name: Node.js 설정
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: 의존성 설치
+        run: npm ci
+
+      - name: 빌드
+        run: npm run build
+
+      - name: 번들 크기 체크
+        run: |
+          echo "번들 크기 체크..."
+          find .svelte-kit -name "*.js" -exec ls -lh {} \; | head -10
+          echo "번들 크기 체크 완료"
 
   # === 보안 스캔 ===
   security-scan:
     name: 보안 스캔
     runs-on: ubuntu-latest
-    
+
     steps:
-    - name: Checkout 코드
-      uses: actions/checkout@v4
-      
-    - name: Node.js 설정
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20'
-        cache: 'npm'
-        
-    - name: 의존성 설치
-      run: npm ci
-      
-    - name: npm audit
-      run: npm audit --audit-level=moderate
-      
-    - name: CodeQL 분석
-      uses: github/codeql-action/init@v3
-      with:
-        languages: javascript
-        
-    - name: CodeQL 분석 실행
-      uses: github/codeql-action/analyze@v3
+      - name: Checkout 코드
+        uses: actions/checkout@v4
+
+      - name: Node.js 설정
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: 의존성 설치
+        run: npm ci
+
+      - name: npm audit
+        run: npm audit --audit-level=moderate
+
+      - name: CodeQL 분석
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript
+
+      - name: CodeQL 분석 실행
+        uses: github/codeql-action/analyze@v3
 
   # === 배포 준비 ===
   deploy-prep:
@@ -105,61 +105,61 @@ jobs:
     runs-on: ubuntu-latest
     needs: [quality-check, performance-test, security-scan]
     if: github.ref == 'refs/heads/main'
-    
+
     steps:
-    - name: Checkout 코드
-      uses: actions/checkout@v4
-      
-    - name: Node.js 설정
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20'
-        cache: 'npm'
-        
-    - name: 의존성 설치
-      run: npm ci
-      
-    - name: 프로덕션 빌드
-      run: npm run build
-      
-    - name: 빌드 아티팩트 업로드
-      uses: actions/upload-artifact@v4
-      with:
-        name: build-artifacts
-        path: .svelte-kit/
-        retention-days: 30
-        
-    - name: 배포 준비 완료 알림
-      run: |
-        echo "✅ 모든 체크 통과! 배포 준비 완료"
-        echo "🚀 빌드 아티팩트가 업로드되었습니다."
+      - name: Checkout 코드
+        uses: actions/checkout@v4
+
+      - name: Node.js 설정
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: 의존성 설치
+        run: npm ci
+
+      - name: 프로덕션 빌드
+        run: npm run build
+
+      - name: 빌드 아티팩트 업로드
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts
+          path: .svelte-kit/
+          retention-days: 30
+
+      - name: 배포 준비 완료 알림
+        run: |
+          echo "✅ 모든 체크 통과! 배포 준비 완료"
+          echo "🚀 빌드 아티팩트가 업로드되었습니다."
 
   # === 코드 커버리지 (선택사항) ===
   coverage:
     name: 코드 커버리지
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
-    
+
     steps:
-    - name: Checkout 코드
-      uses: actions/checkout@v4
-      
-    - name: Node.js 설정
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20'
-        cache: 'npm'
-        
-    - name: 의존성 설치
-      run: npm ci
-      
-    - name: 테스트 실행 및 커버리지 수집
-      run: npm run test:coverage || echo "커버리지 테스트가 설정되지 않았습니다."
-      continue-on-error: true
-      
-    - name: 커버리지 리포트 업로드
-      uses: codecov/codecov-action@v4
-      with:
-        token: ${{ secrets.CODECOV_TOKEN }}
-        fail_ci_if_error: false
-      continue-on-error: true
+      - name: Checkout 코드
+        uses: actions/checkout@v4
+
+      - name: Node.js 설정
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: 의존성 설치
+        run: npm ci
+
+      - name: 테스트 실행 및 커버리지 수집
+        run: npm run test:coverage || echo "커버리지 테스트가 설정되지 않았습니다."
+        continue-on-error: true
+
+      - name: 커버리지 리포트 업로드
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: false
+        continue-on-error: true

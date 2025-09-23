@@ -277,16 +277,16 @@
         href="/rnd/rnd-asw"
         class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
       >
-        <ExternalLinkIcon size={16} class="mr-2" />
+        <ExternalLinkIcon
+          size={16}
+          class="mr-2" />
         RND-ASW 프로젝트
       </a>
-      <button
-        class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+      <button type="button" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
       >
         새 프로젝트 생성
       </button>
-      <button
-        class="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
+      <button type="button" class="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
       >
         리포트 생성
       </button>
@@ -367,13 +367,13 @@
           <div class="flex justify-between items-center">
             <span class="text-sm text-gray-600">진행중</span>
             <span class="text-lg font-semibold text-blue-600"
-              >{dashboardData.projects.active}개</span
+            >{dashboardData.projects.active}개</span
             >
           </div>
           <div class="flex justify-between items-center">
             <span class="text-sm text-gray-600">완료</span>
             <span class="text-lg font-semibold text-green-600"
-              >{dashboardData.projects.completed}개</span
+            >{dashboardData.projects.completed}개</span
             >
           </div>
           <div class="flex justify-between items-center">
@@ -383,7 +383,9 @@
           </div>
         </div>
         <div class="mt-4">
-          <SimpleChart data={projectStatusData()} type="pie" />
+          <SimpleChart
+            data={projectStatusData()}
+            type="pie" />
         </div>
       </div>
     </Card>
@@ -396,30 +398,32 @@
           <div class="flex justify-between items-center">
             <span class="text-sm text-gray-600">총 배정 예산</span>
             <span class="text-lg font-semibold text-gray-900"
-              >{formatCurrency(dashboardData.budget.totalAllocated)}</span
+            >{formatCurrency(dashboardData.budget.totalAllocated)}</span
             >
           </div>
           <div class="flex justify-between items-center">
             <span class="text-sm text-gray-600">사용 금액</span>
             <span class="text-lg font-semibold text-blue-600"
-              >{formatCurrency(dashboardData.budget.spent)}</span
+            >{formatCurrency(dashboardData.budget.spent)}</span
             >
           </div>
           <div class="flex justify-between items-center">
             <span class="text-sm text-gray-600">잔여 금액</span>
             <span class="text-lg font-semibold text-green-600"
-              >{formatCurrency(dashboardData.budget.remaining)}</span
+            >{formatCurrency(dashboardData.budget.remaining)}</span
             >
           </div>
           <div class="flex justify-between items-center">
             <span class="text-sm text-gray-600">사용률</span>
             <span class="text-lg font-semibold text-orange-600"
-              >{dashboardData.budget.utilizationRate}%</span
+            >{dashboardData.budget.utilizationRate}%</span
             >
           </div>
         </div>
         <div class="mt-4">
-          <SimpleChart data={budgetUtilizationData()} type="pie" />
+          <SimpleChart
+            data={budgetUtilizationData()}
+            type="pie" />
         </div>
       </div>
     </Card>
@@ -435,25 +439,25 @@
           <div class="flex justify-between items-center">
             <span class="text-sm text-gray-600">전체 인력</span>
             <span class="text-lg font-semibold text-gray-900"
-              >{dashboardData.personnel.total}명</span
+            >{dashboardData.personnel.total}명</span
             >
           </div>
           <div class="flex justify-between items-center">
             <span class="text-sm text-gray-600">활성 인력</span>
             <span class="text-lg font-semibold text-green-600"
-              >{dashboardData.personnel.active}명</span
+            >{dashboardData.personnel.active}명</span
             >
           </div>
           <div class="flex justify-between items-center">
             <span class="text-sm text-gray-600">휴가/부재</span>
             <span class="text-lg font-semibold text-yellow-600"
-              >{dashboardData.personnel.onLeave}명</span
+            >{dashboardData.personnel.onLeave}명</span
             >
           </div>
           <div class="flex justify-between items-center">
             <span class="text-sm text-gray-600">활용률</span>
             <span class="text-lg font-semibold text-blue-600"
-              >{dashboardData.personnel.utilizationRate}%</span
+            >{dashboardData.personnel.utilizationRate}%</span
             >
           </div>
         </div>
@@ -468,25 +472,25 @@
           <div class="flex justify-between items-center">
             <span class="text-sm text-gray-600">대기중</span>
             <span class="text-lg font-semibold text-yellow-600"
-              >{dashboardData.expenses.pending}건</span
+            >{dashboardData.expenses.pending}건</span
             >
           </div>
           <div class="flex justify-between items-center">
             <span class="text-sm text-gray-600">승인</span>
             <span class="text-lg font-semibold text-green-600"
-              >{dashboardData.expenses.approved}건</span
+            >{dashboardData.expenses.approved}건</span
             >
           </div>
           <div class="flex justify-between items-center">
             <span class="text-sm text-gray-600">거부</span>
             <span class="text-lg font-semibold text-red-600"
-              >{dashboardData.expenses.rejected}건</span
+            >{dashboardData.expenses.rejected}건</span
             >
           </div>
           <div class="flex justify-between items-center">
             <span class="text-sm text-gray-600">총 지출액</span>
             <span class="text-lg font-semibold text-gray-900"
-              >{formatCurrency(dashboardData.expenses.totalAmount)}</span
+            >{formatCurrency(dashboardData.expenses.totalAmount)}</span
             >
           </div>
         </div>
@@ -525,8 +529,7 @@
         <h3 class="text-lg font-semibold text-gray-900 mb-4">최근 활동</h3>
         <div class="space-y-3">
           {#each recentActivities as activity}
-            <div
-              class="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors"
+            <div class="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors"
             >
               <div class="text-2xl">{getActivityIcon(activity.type)}</div>
               <div class="flex-1">
@@ -541,12 +544,12 @@
                 {activity.status === 'approved'
                   ? '승인'
                   : activity.status === 'completed'
-                    ? '완료'
-                    : activity.status === 'submitted'
-                      ? '제출'
-                      : activity.status === 'warning'
-                        ? '경고'
-                        : '대기'}
+                  ? '완료'
+                  : activity.status === 'submitted'
+                  ? '제출'
+                  : activity.status === 'warning'
+                  ? '경고'
+                  : '대기'}
               </Badge>
             </div>
           {/each}

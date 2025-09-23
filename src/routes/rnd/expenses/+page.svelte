@@ -8,18 +8,14 @@
     pendingExpenses,
     approvedExpenses,
     rejectedExpenses,
-    createExpenseRequest,
-    searchExpenseItems,
-    getProjectExpenseStatistics,
-    getPendingApprovalExpenses
+    createExpenseRequest
   } from '$lib/stores/rnd/expense-workflow'
   import {
     activeBudgetCategories,
-    getRequiredDocuments,
-    generateDocumentChecklist
+    getRequiredDocuments
   } from '$lib/stores/rnd/budget-categories'
   import { currentUser } from '$lib/stores/rnd/rbac'
-  import type { ExpenseItem, UUID } from '$lib/stores/rnd/types'
+  import type { ExpenseItem } from '$lib/stores/rnd/types'
 
   // 상태 관리
   let selectedTab = $state('all')
@@ -63,7 +59,7 @@
       filtered = filtered.filter(
         item =>
           item.description.toLowerCase().includes(query) ||
-          item.categoryCode.toLowerCase().includes(query)
+            item.categoryCode.toLowerCase().includes(query)
       )
     }
 
@@ -236,7 +232,7 @@
       <h1 class="text-3xl font-bold text-gray-900">지출 관리</h1>
       <p class="mt-2 text-gray-600">지출 요청, 증빙 관리, 결재 워크플로우</p>
     </div>
-    <button
+    <button type="button"
       onclick={() => (showCreateModal = true)}
       class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
     >
@@ -375,39 +371,39 @@
   <div class="bg-white rounded-lg shadow">
     <div class="border-b border-gray-200">
       <nav class="-mb-px flex space-x-8 px-6">
-        <button
+        <button type="button"
           onclick={() => (selectedTab = 'all')}
           class="py-4 px-1 border-b-2 font-medium text-sm transition-colors
-						{selectedTab === 'all'
-            ? 'border-blue-500 text-blue-600'
-            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}"
+            {selectedTab === 'all'
+              ? 'border-blue-500 text-blue-600'
+              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}"
         >
           전체 ({statistics.total})
         </button>
-        <button
+        <button type="button"
           onclick={() => (selectedTab = 'pending')}
           class="py-4 px-1 border-b-2 font-medium text-sm transition-colors
-						{selectedTab === 'pending'
-            ? 'border-blue-500 text-blue-600'
-            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}"
+            {selectedTab === 'pending'
+              ? 'border-blue-500 text-blue-600'
+              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}"
         >
           승인대기 ({statistics.pending})
         </button>
-        <button
+        <button type="button"
           onclick={() => (selectedTab = 'approved')}
           class="py-4 px-1 border-b-2 font-medium text-sm transition-colors
-						{selectedTab === 'approved'
-            ? 'border-blue-500 text-blue-600'
-            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}"
+            {selectedTab === 'approved'
+              ? 'border-blue-500 text-blue-600'
+              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}"
         >
           승인됨 ({statistics.approved})
         </button>
-        <button
+        <button type="button"
           onclick={() => (selectedTab = 'rejected')}
           class="py-4 px-1 border-b-2 font-medium text-sm transition-colors
-						{selectedTab === 'rejected'
-            ? 'border-blue-500 text-blue-600'
-            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}"
+            {selectedTab === 'rejected'
+              ? 'border-blue-500 text-blue-600'
+              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}"
         >
           반려됨 ({statistics.rejected})
         </button>
@@ -448,14 +444,20 @@
                   </div>
                 </div>
                 <div class="flex items-center space-x-2">
-                  <button class="p-2 text-gray-400 hover:text-gray-600" aria-label="상세보기">
-                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <button type="button"
+                    class="p-2 text-gray-400 hover:text-gray-600"
+                    aria-label="상세보기">
+                    <svg
+                      class="h-5 w-5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor">
                       <path
                         stroke-linecap="round"
                         stroke-linejoin="round"
                         stroke-width="2"
                         d="M9 5l7 7-7 7"
-                      ></path>
+                      />
                     </svg>
                   </button>
                 </div>
@@ -469,7 +471,9 @@
 </div>
 
 <!-- 지출 요청 생성 모달 -->
-<Modal bind:open={showCreateModal} title="새 지출 요청">
+<Modal
+  bind:open={showCreateModal}
+  title="새 지출 요청">
   <div class="space-y-4">
     <div>
       <label class="block text-sm font-medium text-gray-700 mb-1">프로젝트 *</label>
@@ -542,13 +546,13 @@
   </div>
 
   <div class="flex justify-end space-x-3 mt-6">
-    <button
+    <button type="button"
       onclick={() => (showCreateModal = false)}
       class="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
     >
       취소
     </button>
-    <button
+    <button type="button"
       onclick={handleCreateExpense}
       class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
     >
@@ -558,7 +562,9 @@
 </Modal>
 
 <!-- 지출 항목 상세 모달 -->
-<Modal bind:open={showDetailModal} title="지출 항목 상세">
+<Modal
+  bind:open={showDetailModal}
+  title="지출 항목 상세">
   {#if selectedExpense}
     <div class="space-y-6">
       <!-- 기본 정보 -->
@@ -656,20 +662,18 @@
     </div>
 
     <div class="flex justify-end space-x-3 mt-6">
-      <button
+      <button type="button"
         onclick={() => (showDetailModal = false)}
         class="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
       >
         닫기
       </button>
       {#if selectedExpense.status === 'pending_approval'}
-        <button
-          class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+        <button type="button" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
         >
           승인
         </button>
-        <button
-          class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+        <button type="button" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
         >
           반려
         </button>

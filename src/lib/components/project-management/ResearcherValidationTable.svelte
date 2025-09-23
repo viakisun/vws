@@ -1,3 +1,4 @@
+import { logger } from '$lib/utils/logger';
 <script lang="ts">
   import ThemeBadge from '$lib/components/ui/ThemeBadge.svelte'
   import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
@@ -119,10 +120,10 @@
         validationState.summary = result.data.validation.summary
         validationState.lastValidated = new Date().toISOString()
       } else {
-        console.error('검증 실패:', result.error)
+        logger.error('검증 실패:', result.error)
       }
     } catch (error) {
-      console.error('검증 오류:', error)
+      logger.error('검증 오류:', error)
     } finally {
       validationState.isValidating = false
     }
@@ -168,7 +169,7 @@
         onMemberUpdate('refresh', {})
       }
     } catch (error) {
-      console.error('자동 수정 오류:', error)
+      logger.error('자동 수정 오류:', error)
     }
   }
 
@@ -215,12 +216,19 @@
     <div class="p-4">
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-3">
-          <svelte:component this={getValidationIcon()} size={24} class={getValidationColor()} />
+          <svelte:component
+            this={getValidationIcon()}
+            size={24}
+            class={getValidationColor()} />
           <div>
-            <h3 class="text-lg font-semibold" style="color: var(--color-text);">
+            <h3
+              class="text-lg font-semibold"
+              style:color="var(--color-text)">
               참여연구원 검증 상태
             </h3>
-            <p class="text-sm" style="color: var(--color-text-secondary);">
+            <p
+              class="text-sm"
+              style:color="var(--color-text-secondary)">
               {getValidationText()}
               {#if validationState.lastValidated}
                 • 마지막 검증: {new Date(validationState.lastValidated).toLocaleString('ko-KR')}
@@ -237,7 +245,9 @@
               onclick={runAutoFix}
               disabled={validationState.isValidating}
             >
-              <WrenchIcon size={16} class="mr-1" />
+              <WrenchIcon
+                size={16}
+                class="mr-1" />
               자동 수정
             </ThemeButton>
           {/if}
@@ -288,39 +298,59 @@
     <div class="overflow-x-auto">
       <table class="w-full">
         <thead>
-          <tr class="border-b" style="border-color: var(--color-border);">
-            <th class="text-left py-3 px-4 font-medium" style="color: var(--color-text);">연구원</th
+          <tr
+            class="border-b"
+            style:border-color="var(--color-border)">
+            <th
+              class="text-left py-3 px-4 font-medium"
+              style:color="var(--color-text)">연구원</th>
+            <th
+              class="text-left py-3 px-4 font-medium"
+              style:color="var(--color-text)">참여율</th>
+            <th
+              class="text-left py-3 px-4 font-medium"
+              style:color="var(--color-text)">월간금액</th
             >
-            <th class="text-left py-3 px-4 font-medium" style="color: var(--color-text);">참여율</th
+            <th
+              class="text-left py-3 px-4 font-medium"
+              style:color="var(--color-text)">참여기간</th
             >
-            <th class="text-left py-3 px-4 font-medium" style="color: var(--color-text);"
-              >월간금액</th
+            <th
+              class="text-left py-3 px-4 font-medium"
+              style:color="var(--color-text)"
+            >기여 유형</th
             >
-            <th class="text-left py-3 px-4 font-medium" style="color: var(--color-text);"
-              >참여기간</th
+            <th
+              class="text-left py-3 px-4 font-medium"
+              style:color="var(--color-text)"
+            >검증 상태</th
             >
-            <th class="text-left py-3 px-4 font-medium" style="color: var(--color-text);"
-              >기여 유형</th
-            >
-            <th class="text-left py-3 px-4 font-medium" style="color: var(--color-text);"
-              >검증 상태</th
-            >
-            <th class="text-left py-3 px-4 font-medium" style="color: var(--color-text);">액션</th>
+            <th
+              class="text-left py-3 px-4 font-medium"
+              style:color="var(--color-text)">액션</th>
           </tr>
         </thead>
         <tbody>
           {#each members as member}
             {@const validationStatus = getMemberValidationStatus(member)}
-            <tr class="border-b hover:bg-opacity-50" style="border-color: var(--color-border);">
+            <tr
+              class="border-b hover:bg-opacity-50"
+              style:border-color="var(--color-border)">
               <!-- 연구원 정보 -->
               <td class="py-3 px-4">
                 <div class="flex items-center gap-2">
-                  <UserIcon size={16} style="color: var(--color-primary);" />
+                  <UserIcon
+                    size={16}
+                    style="color: var(--color-primary);" />
                   <div>
-                    <div class="font-medium" style="color: var(--color-text);">
+                    <div
+                      class="font-medium"
+                      style:color="var(--color-text)">
                       {member.employee_name}
                     </div>
-                    <div class="text-sm" style="color: var(--color-text-secondary);">
+                    <div
+                      class="text-sm"
+                      style:color="var(--color-text-secondary)">
                       {member.employee_department} / {member.employee_position}
                     </div>
                   </div>
@@ -339,12 +369,16 @@
               </td>
 
               <!-- 월간금액 -->
-              <td class="py-3 px-4" style="color: var(--color-text);">
+              <td
+                class="py-3 px-4"
+                style:color="var(--color-text)">
                 {formatCurrency(parseFloat(member.monthly_amount) || 0)}
               </td>
 
               <!-- 참여기간 -->
-              <td class="py-3 px-4" style="color: var(--color-text);">
+              <td
+                class="py-3 px-4"
+                style:color="var(--color-text)">
                 <div class="text-sm">
                   <div>시작: {formatDate(member.start_date)}</div>
                   <div>종료: {formatDate(member.end_date)}</div>
@@ -366,7 +400,9 @@
                     size={16}
                     class={validationStatus.color}
                   />
-                  <span class="text-sm" style="color: var(--color-text);">
+                  <span
+                    class="text-sm"
+                    style:color="var(--color-text)">
                     {validationStatus.text}
                   </span>
                 </div>
@@ -380,7 +416,9 @@
                     size="sm"
                     onclick={() => showMemberDetails(member)}
                   >
-                    <SettingsIcon size={14} class="mr-1" />
+                    <SettingsIcon
+                      size={14}
+                      class="mr-1" />
                     상세
                   </ThemeButton>
                 </div>
@@ -400,7 +438,7 @@
           <h3 class="text-lg font-semibold text-gray-900">
             {selectedMember.employee_name} 검증 상세
           </h3>
-          <button
+          <button type="button"
             onclick={() => (showValidationDetails = false)}
             class="text-gray-400 hover:text-gray-600"
           >
@@ -415,7 +453,7 @@
             <div>
               <span class="text-gray-600">부서/직급:</span>
               <span class="ml-2"
-                >{selectedMember.employee_department} / {selectedMember.employee_position}</span
+              >{selectedMember.employee_department} / {selectedMember.employee_position}</span
               >
             </div>
             <div>
@@ -425,15 +463,15 @@
             <div>
               <span class="text-gray-600">월간금액:</span>
               <span class="ml-2"
-                >{formatCurrency(parseFloat(selectedMember.monthly_amount) || 0)}</span
+              >{formatCurrency(parseFloat(selectedMember.monthly_amount) || 0)}</span
               >
             </div>
             <div>
               <span class="text-gray-600">참여기간:</span>
               <span class="ml-2"
-                >{formatDate(selectedMember.start_date)} ~ {formatDate(
-                  selectedMember.end_date
-                )}</span
+              >{formatDate(selectedMember.start_date)} ~ {formatDate(
+                selectedMember.end_date
+              )}</span
               >
             </div>
           </div>
@@ -473,14 +511,18 @@
           </div>
         {:else}
           <div class="text-center py-8">
-            <CheckCircleIcon size={48} class="text-green-600 mx-auto mb-2" />
+            <CheckCircleIcon
+              size={48}
+              class="text-green-600 mx-auto mb-2" />
             <div class="text-lg font-medium text-gray-900">검증 통과</div>
             <div class="text-sm text-gray-600">이 연구원의 모든 검증 항목이 정상입니다.</div>
           </div>
         {/if}
 
         <div class="flex justify-end gap-2 mt-6">
-          <ThemeButton variant="secondary" onclick={() => (showValidationDetails = false)}>
+          <ThemeButton
+            variant="secondary"
+            onclick={() => (showValidationDetails = false)}>
             닫기
           </ThemeButton>
         </div>

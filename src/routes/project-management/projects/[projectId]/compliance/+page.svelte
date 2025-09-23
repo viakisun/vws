@@ -63,8 +63,8 @@
     rules.filter(
       r =>
         (cat ? r.category === cat : true) &&
-        (status ? r.status === status : true) &&
-        (query ? r.title.includes(query) : true)
+          (status ? r.status === status : true) &&
+          (query ? r.title.includes(query) : true)
     )
   )
 
@@ -89,7 +89,9 @@
       placeholder="규정 검색"
       bind:value={query}
     />
-    <select class="rounded-md border border-gray-200 px-2 py-1" bind:value={cat}>
+    <select
+      class="rounded-md border border-gray-200 px-2 py-1"
+      bind:value={cat}>
       <option value="">카테고리: 전체</option>
       <option value="인건비">인건비</option>
       <option value="재료비">재료비</option>
@@ -97,7 +99,9 @@
       <option value="여비">여비</option>
       <option value="보고">보고</option>
     </select>
-    <select class="rounded-md border border-gray-200 px-2 py-1" bind:value={status}>
+    <select
+      class="rounded-md border border-gray-200 px-2 py-1"
+      bind:value={status}>
       <option value="">상태: 전체</option>
       <option value="충족">충족</option>
       <option value="검토중">검토중</option>

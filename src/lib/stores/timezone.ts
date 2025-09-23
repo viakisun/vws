@@ -2,6 +2,7 @@ import { browser } from '$app/environment'
 import { formatDateForDisplay } from '$lib/utils/date-handler'
 import { DEFAULT_TIMEZONE, SUPPORTED_TIMEZONES, type Timezone } from '$lib/utils/timezone'
 import { derived, writable } from 'svelte/store'
+import { logger } from '$lib/utils/logger';
 
 // 타임존 설정 스토어
 export const userTimezone = writable<Timezone>(DEFAULT_TIMEZONE)
@@ -93,7 +94,7 @@ export function setUserTimezone(timezone: Timezone) {
   if (SUPPORTED_TIMEZONES[timezone]) {
     userTimezone.set(timezone)
   } else {
-    console.warn(`Unsupported timezone: ${timezone}`)
+    logger.warn(`Unsupported timezone: ${timezone}`)
   }
 }
 

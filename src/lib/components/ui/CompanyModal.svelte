@@ -1,3 +1,4 @@
+import { logger } from '$lib/utils/logger';
 <script lang="ts">
   import { XIcon } from '@lucide/svelte'
 
@@ -94,7 +95,7 @@
         alert('오류: ' + result.error)
       }
     } catch (error) {
-      console.error('Error saving company:', error)
+      logger.error('Error saving company:', error)
       alert('회사 정보 저장 중 오류가 발생했습니다.')
     }
   }
@@ -115,7 +116,9 @@
         <h2 class="text-xl font-semibold text-gray-900">
           {company ? '회사 정보 수정' : '회사 정보 등록'}
         </h2>
-        <button onclick={handleClose} class="text-gray-400 hover:text-gray-600 transition-colors">
+        <button type="button"
+          onclick={handleClose}
+          class="text-gray-400 hover:text-gray-600 transition-colors">
           <XIcon class="w-6 h-6" />
         </button>
       </div>
@@ -124,7 +127,9 @@
       <div class="p-6 space-y-4">
         <!-- 회사명 -->
         <div>
-          <label for="name" class="block text-sm font-medium text-gray-700 mb-1">회사명 *</label>
+          <label
+            for="name"
+            class="block text-sm font-medium text-gray-700 mb-1">회사명 *</label>
           <input
             type="text"
             id="name"
@@ -137,8 +142,10 @@
 
         <!-- 설립일 -->
         <div>
-          <label for="establishment_date" class="block text-sm font-medium text-gray-700 mb-1"
-            >설립일</label
+          <label
+            for="establishment_date"
+            class="block text-sm font-medium text-gray-700 mb-1"
+          >설립일</label
           >
           <input
             type="date"
@@ -150,7 +157,9 @@
 
         <!-- 대표이사 -->
         <div>
-          <label for="ceo_name" class="block text-sm font-medium text-gray-700 mb-1">대표이사</label
+          <label
+            for="ceo_name"
+            class="block text-sm font-medium text-gray-700 mb-1">대표이사</label
           >
           <input
             type="text"
@@ -163,8 +172,10 @@
 
         <!-- 업종 -->
         <div>
-          <label for="business_type" class="block text-sm font-medium text-gray-700 mb-1"
-            >업종</label
+          <label
+            for="business_type"
+            class="block text-sm font-medium text-gray-700 mb-1"
+          >업종</label
           >
           <input
             type="text"
@@ -177,7 +188,9 @@
 
         <!-- 주소 -->
         <div>
-          <label for="address" class="block text-sm font-medium text-gray-700 mb-1">주소</label>
+          <label
+            for="address"
+            class="block text-sm font-medium text-gray-700 mb-1">주소</label>
           <textarea
             id="address"
             bind:value={formData.address}
@@ -189,7 +202,9 @@
 
         <!-- 전화번호 -->
         <div>
-          <label for="phone" class="block text-sm font-medium text-gray-700 mb-1">전화번호</label>
+          <label
+            for="phone"
+            class="block text-sm font-medium text-gray-700 mb-1">전화번호</label>
           <input
             type="tel"
             id="phone"
@@ -201,7 +216,9 @@
 
         <!-- 팩스번호 -->
         <div>
-          <label for="fax" class="block text-sm font-medium text-gray-700 mb-1">팩스번호</label>
+          <label
+            for="fax"
+            class="block text-sm font-medium text-gray-700 mb-1">팩스번호</label>
           <input
             type="tel"
             id="fax"
@@ -213,7 +230,9 @@
 
         <!-- 이메일 -->
         <div>
-          <label for="email" class="block text-sm font-medium text-gray-700 mb-1">이메일</label>
+          <label
+            for="email"
+            class="block text-sm font-medium text-gray-700 mb-1">이메일</label>
           <input
             type="email"
             id="email"
@@ -225,7 +244,9 @@
 
         <!-- 웹사이트 -->
         <div>
-          <label for="website" class="block text-sm font-medium text-gray-700 mb-1">웹사이트</label>
+          <label
+            for="website"
+            class="block text-sm font-medium text-gray-700 mb-1">웹사이트</label>
           <input
             type="url"
             id="website"
@@ -237,8 +258,10 @@
 
         <!-- 사업자등록번호 -->
         <div>
-          <label for="registration_number" class="block text-sm font-medium text-gray-700 mb-1"
-            >사업자등록번호</label
+          <label
+            for="registration_number"
+            class="block text-sm font-medium text-gray-700 mb-1"
+          >사업자등록번호</label
           >
           <input
             type="text"
@@ -252,13 +275,13 @@
 
       <!-- 푸터 -->
       <div class="flex items-center justify-end gap-3 p-6 border-t bg-gray-50">
-        <button
+        <button type="button"
           onclick={handleClose}
           class="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
         >
           취소
         </button>
-        <button
+        <button type="button"
           onclick={handleSave}
           disabled={loading || !formData.name}
           class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"

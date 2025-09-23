@@ -3,7 +3,6 @@
   import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
   import ThemeModal from '$lib/components/ui/ThemeModal.svelte'
   import ThemeBadge from '$lib/components/ui/ThemeBadge.svelte'
-  import ThemeSpacer from '$lib/components/ui/ThemeSpacer.svelte'
   import ThemeSectionHeader from '$lib/components/ui/ThemeSectionHeader.svelte'
   import { createContract, updateContract, deleteContract } from '$lib/stores/salary/contract-store'
   import { formatCurrency, formatDate, formatDateForInput } from '$lib/utils/format'
@@ -12,15 +11,12 @@
     PlusIcon,
     SearchIcon,
     FilterIcon,
-    EyeIcon,
     PencilIcon,
     TrashIcon,
     CalendarIcon,
     DollarSignIcon,
     FileTextIcon,
-    UserIcon,
-    BuildingIcon,
-    BriefcaseIcon
+    UserIcon
   } from '@lucide/svelte'
 
   let mounted = $state(false)
@@ -285,7 +281,7 @@
         localStats = statsResult.data
       }
     } catch (error) {
-      // 에러는 조용히 처리
+    // 에러는 조용히 처리
     }
   }
 
@@ -303,7 +299,7 @@
 
   // 필터 적용
   function applyFilter() {
-    // 로컬 필터링 로직 (필요시 구현)
+  // 로컬 필터링 로직 (필요시 구현)
   }
 
   // 필터 초기화
@@ -338,7 +334,9 @@
     <ThemeCard class="p-6">
       <div class="flex items-center">
         <div class="p-3 bg-blue-100 rounded-full">
-          <FileTextIcon size={24} class="text-blue-600" />
+          <FileTextIcon
+            size={24}
+            class="text-blue-600" />
         </div>
         <div class="ml-4">
           <p class="text-sm font-medium text-gray-600">총 계약 수</p>
@@ -350,7 +348,9 @@
     <ThemeCard class="p-6">
       <div class="flex items-center">
         <div class="p-3 bg-green-100 rounded-full">
-          <UserIcon size={24} class="text-green-600" />
+          <UserIcon
+            size={24}
+            class="text-green-600" />
         </div>
         <div class="ml-4">
           <p class="text-sm font-medium text-gray-600">진행중 계약</p>
@@ -362,7 +362,9 @@
     <ThemeCard class="p-6">
       <div class="flex items-center">
         <div class="p-3 bg-purple-100 rounded-full">
-          <DollarSignIcon size={24} class="text-purple-600" />
+          <DollarSignIcon
+            size={24}
+            class="text-purple-600" />
         </div>
         <div class="ml-4">
           <p class="text-sm font-medium text-gray-600">평균 연봉</p>
@@ -376,7 +378,9 @@
     <ThemeCard class="p-6">
       <div class="flex items-center">
         <div class="p-3 bg-yellow-100 rounded-full">
-          <CalendarIcon size={24} class="text-yellow-600" />
+          <CalendarIcon
+            size={24}
+            class="text-yellow-600" />
         </div>
         <div class="ml-4">
           <p class="text-sm font-medium text-gray-600">총 급여</p>
@@ -393,12 +397,22 @@
     <div class="flex items-center justify-between mb-4">
       <ThemeSectionHeader title="급여 계약 목록" />
       <div class="flex items-center space-x-3">
-        <ThemeButton variant="outline" size="sm" onclick={() => (showFilters = !showFilters)}>
-          <FilterIcon size={16} class="mr-2" />
+        <ThemeButton
+          variant="outline"
+          size="sm"
+          onclick={() => (showFilters = !showFilters)}>
+          <FilterIcon
+            size={16}
+            class="mr-2" />
           필터
         </ThemeButton>
-        <ThemeButton variant="primary" size="sm" onclick={openCreateModal}>
-          <PlusIcon size={16} class="mr-2" />
+        <ThemeButton
+          variant="primary"
+          size="sm"
+          onclick={openCreateModal}>
+          <PlusIcon
+            size={16}
+            class="mr-2" />
           새 계약
         </ThemeButton>
       </div>
@@ -406,12 +420,13 @@
 
     <!-- 필터 영역 -->
     {#if showFilters}
-      <div
-        class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-4 p-4 bg-gray-50 rounded-lg"
+      <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-4 p-4 bg-gray-50 rounded-lg"
       >
         <div>
-          <label for="employee-search" class="block text-sm font-medium text-gray-700 mb-1"
-            >직원 검색</label
+          <label
+            for="employee-search"
+            class="block text-sm font-medium text-gray-700 mb-1"
+          >직원 검색</label
           >
           <input
             id="employee-search"
@@ -422,8 +437,10 @@
           />
         </div>
         <div>
-          <label for="department-filter" class="block text-sm font-medium text-gray-700 mb-1"
-            >부서</label
+          <label
+            for="department-filter"
+            class="block text-sm font-medium text-gray-700 mb-1"
+          >부서</label
           >
           <select
             id="department-filter"
@@ -438,8 +455,10 @@
           </select>
         </div>
         <div>
-          <label for="contract-type-filter" class="block text-sm font-medium text-gray-700 mb-1"
-            >계약 유형</label
+          <label
+            for="contract-type-filter"
+            class="block text-sm font-medium text-gray-700 mb-1"
+          >계약 유형</label
           >
           <select
             id="contract-type-filter"
@@ -454,8 +473,10 @@
           </select>
         </div>
         <div>
-          <label for="sc-status-filter" class="block text-sm font-medium text-gray-700 mb-1"
-            >상태</label
+          <label
+            for="sc-status-filter"
+            class="block text-sm font-medium text-gray-700 mb-1"
+          >상태</label
           >
           <select
             id="sc-status-filter"
@@ -470,8 +491,10 @@
           </select>
         </div>
         <div>
-          <label for="start-date-filter" class="block text-sm font-medium text-gray-700 mb-1"
-            >시작일 (부터)</label
+          <label
+            for="start-date-filter"
+            class="block text-sm font-medium text-gray-700 mb-1"
+          >시작일 (부터)</label
           >
           <input
             id="start-date-filter"
@@ -481,11 +504,19 @@
           />
         </div>
         <div class="flex items-end space-x-2">
-          <ThemeButton variant="primary" size="sm" onclick={applyFilter}>
-            <SearchIcon size={16} class="mr-1" />
+          <ThemeButton
+            variant="primary"
+            size="sm"
+            onclick={applyFilter}>
+            <SearchIcon
+              size={16}
+              class="mr-1" />
             검색
           </ThemeButton>
-          <ThemeButton variant="outline" size="sm" onclick={clearFilters}>초기화</ThemeButton>
+          <ThemeButton
+            variant="outline"
+            size="sm"
+            onclick={clearFilters}>초기화</ThemeButton>
         </div>
       </div>
     {/if}
@@ -502,7 +533,9 @@
       </div>
     {:else if localContracts.length === 0}
       <div class="text-center py-12">
-        <FileTextIcon size={48} class="mx-auto text-gray-400 mb-4" />
+        <FileTextIcon
+          size={48}
+          class="mx-auto text-gray-400 mb-4" />
         <p class="text-gray-500">급여 계약이 없습니다.</p>
       </div>
     {:else}
@@ -510,29 +543,23 @@
         <table class="min-w-full divide-y divide-gray-200">
           <thead class="bg-gray-50">
             <tr>
-              <th
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >직원 정보</th
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >직원 정보</th
               >
-              <th
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >계약 기간</th
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >계약 기간</th
               >
-              <th
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >급여</th
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >급여</th
               >
-              <th
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >계약 유형</th
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >계약 유형</th
               >
-              <th
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >상태</th
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >상태</th
               >
-              <th
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >액션</th
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >액션</th
               >
             </tr>
           </thead>
@@ -572,7 +599,7 @@
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                   <div class="flex items-center space-x-2">
-                    <button
+                    <button type="button"
                       onclick={() => {
                         openEditModal(contract)
                       }}
@@ -580,7 +607,7 @@
                     >
                       <PencilIcon size={16} />
                     </button>
-                    <button
+                    <button type="button"
                       onclick={() => openDeleteModal(contract)}
                       class="text-red-600 hover:text-red-900"
                     >
@@ -598,12 +625,17 @@
 </div>
 
 <!-- 새 계약 생성 모달 -->
-<ThemeModal open={showCreateModal} onclose={() => (showCreateModal = false)} title="새 급여 계약">
+<ThemeModal
+  open={showCreateModal}
+  onclose={() => (showCreateModal = false)}
+  title="새 급여 계약">
   <div class="space-y-4">
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div>
-        <label for="create-employee" class="block text-sm font-medium text-gray-700 mb-1"
-          >직원 선택 *</label
+        <label
+          for="create-employee"
+          class="block text-sm font-medium text-gray-700 mb-1"
+        >직원 선택 *</label
         >
         <select
           id="create-employee"
@@ -617,8 +649,10 @@
         </select>
       </div>
       <div>
-        <label for="create-contractType" class="block text-sm font-medium text-gray-700 mb-1"
-          >계약 유형 *</label
+        <label
+          for="create-contractType"
+          class="block text-sm font-medium text-gray-700 mb-1"
+        >계약 유형 *</label
         >
         <select
           id="create-contractType"
@@ -632,8 +666,10 @@
         </select>
       </div>
       <div>
-        <label for="create-startDate" class="block text-sm font-medium text-gray-700 mb-1"
-          >시작일 *</label
+        <label
+          for="create-startDate"
+          class="block text-sm font-medium text-gray-700 mb-1"
+        >시작일 *</label
         >
         <input
           id="create-startDate"
@@ -643,8 +679,10 @@
         />
       </div>
       <div>
-        <label for="create-endDate" class="block text-sm font-medium text-gray-700 mb-1"
-          >종료일</label
+        <label
+          for="create-endDate"
+          class="block text-sm font-medium text-gray-700 mb-1"
+        >종료일</label
         >
         <input
           id="create-endDate"
@@ -654,8 +692,10 @@
         />
       </div>
       <div>
-        <label for="create-annualSalary" class="block text-sm font-medium text-gray-700 mb-1"
-          >연봉 (원) *</label
+        <label
+          for="create-annualSalary"
+          class="block text-sm font-medium text-gray-700 mb-1"
+        >연봉 (원) *</label
         >
         <input
           id="create-annualSalary"
@@ -667,8 +707,10 @@
         />
       </div>
       <div>
-        <label for="create-monthlySalary" class="block text-sm font-medium text-gray-700 mb-1"
-          >월급 (원) *</label
+        <label
+          for="create-monthlySalary"
+          class="block text-sm font-medium text-gray-700 mb-1"
+        >월급 (원) *</label
         >
         <input
           id="create-monthlySalary"
@@ -681,7 +723,9 @@
       </div>
     </div>
     <div>
-      <label for="create-notes" class="block text-sm font-medium text-gray-700 mb-1">비고</label>
+      <label
+        for="create-notes"
+        class="block text-sm font-medium text-gray-700 mb-1">비고</label>
       <textarea
         id="create-notes"
         bind:value={formData.notes}
@@ -693,18 +737,27 @@
   </div>
 
   <div class="flex justify-end space-x-3 mt-6">
-    <ThemeButton variant="outline" onclick={() => (showCreateModal = false)}>취소</ThemeButton>
-    <ThemeButton variant="primary" onclick={saveContract}>생성</ThemeButton>
+    <ThemeButton
+      variant="outline"
+      onclick={() => (showCreateModal = false)}>취소</ThemeButton>
+    <ThemeButton
+      variant="primary"
+      onclick={saveContract}>생성</ThemeButton>
   </div>
 </ThemeModal>
 
 <!-- 계약 수정 모달 -->
-<ThemeModal open={showEditModal} onclose={() => (showEditModal = false)} title="급여 계약 수정">
+<ThemeModal
+  open={showEditModal}
+  onclose={() => (showEditModal = false)}
+  title="급여 계약 수정">
   <div class="space-y-4">
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div>
-        <label for="edit-contractType" class="block text-sm font-medium text-gray-700 mb-1"
-          >계약 유형</label
+        <label
+          for="edit-contractType"
+          class="block text-sm font-medium text-gray-700 mb-1"
+        >계약 유형</label
         >
         <select
           id="edit-contractType"
@@ -718,7 +771,9 @@
         </select>
       </div>
       <div>
-        <label for="edit-status" class="block text-sm font-medium text-gray-700 mb-1">상태</label>
+        <label
+          for="edit-status"
+          class="block text-sm font-medium text-gray-700 mb-1">상태</label>
         <select
           id="edit-status"
           bind:value={formData.status}
@@ -731,8 +786,10 @@
         </select>
       </div>
       <div>
-        <label for="edit-startDate" class="block text-sm font-medium text-gray-700 mb-1"
-          >시작일</label
+        <label
+          for="edit-startDate"
+          class="block text-sm font-medium text-gray-700 mb-1"
+        >시작일</label
         >
         <input
           id="edit-startDate"
@@ -742,7 +799,9 @@
         />
       </div>
       <div>
-        <label for="edit-endDate" class="block text-sm font-medium text-gray-700 mb-1">종료일</label
+        <label
+          for="edit-endDate"
+          class="block text-sm font-medium text-gray-700 mb-1">종료일</label
         >
         <input
           id="edit-endDate"
@@ -752,8 +811,10 @@
         />
       </div>
       <div>
-        <label for="edit-annualSalary" class="block text-sm font-medium text-gray-700 mb-1"
-          >연봉 (원)</label
+        <label
+          for="edit-annualSalary"
+          class="block text-sm font-medium text-gray-700 mb-1"
+        >연봉 (원)</label
         >
         <input
           id="edit-annualSalary"
@@ -764,8 +825,10 @@
         />
       </div>
       <div>
-        <label for="edit-monthlySalary" class="block text-sm font-medium text-gray-700 mb-1"
-          >월급 (원)</label
+        <label
+          for="edit-monthlySalary"
+          class="block text-sm font-medium text-gray-700 mb-1"
+        >월급 (원)</label
         >
         <input
           id="edit-monthlySalary"
@@ -777,7 +840,9 @@
       </div>
     </div>
     <div>
-      <label for="edit-notes" class="block text-sm font-medium text-gray-700 mb-1">비고</label>
+      <label
+        for="edit-notes"
+        class="block text-sm font-medium text-gray-700 mb-1">비고</label>
       <textarea
         id="edit-notes"
         bind:value={formData.notes}
@@ -788,13 +853,20 @@
   </div>
 
   <div class="flex justify-end space-x-3 mt-6">
-    <ThemeButton variant="outline" onclick={() => (showEditModal = false)}>취소</ThemeButton>
-    <ThemeButton variant="primary" onclick={saveContract}>수정</ThemeButton>
+    <ThemeButton
+      variant="outline"
+      onclick={() => (showEditModal = false)}>취소</ThemeButton>
+    <ThemeButton
+      variant="primary"
+      onclick={saveContract}>수정</ThemeButton>
   </div>
 </ThemeModal>
 
 <!-- 계약 삭제 확인 모달 -->
-<ThemeModal open={showDeleteModal} onclose={() => (showDeleteModal = false)} title="급여 계약 삭제">
+<ThemeModal
+  open={showDeleteModal}
+  onclose={() => (showDeleteModal = false)}
+  title="급여 계약 삭제">
   <div class="space-y-4">
     <p class="text-gray-700">정말로 이 급여 계약을 삭제하시겠습니까?</p>
     {#if selectedContract}
@@ -812,7 +884,11 @@
   </div>
 
   <div class="flex justify-end space-x-3 mt-6">
-    <ThemeButton variant="outline" onclick={() => (showDeleteModal = false)}>취소</ThemeButton>
-    <ThemeButton variant="danger" onclick={confirmDelete}>삭제</ThemeButton>
+    <ThemeButton
+      variant="outline"
+      onclick={() => (showDeleteModal = false)}>취소</ThemeButton>
+    <ThemeButton
+      variant="danger"
+      onclick={confirmDelete}>삭제</ThemeButton>
   </div>
 </ThemeModal>

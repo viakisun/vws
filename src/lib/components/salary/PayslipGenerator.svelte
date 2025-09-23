@@ -1,29 +1,16 @@
 <script lang="ts">
-  import {
-    employees as employeeStore,
-    loadEmployees,
-    isLoading as isLoadingEmployees,
-    error as employeesError
-  } from '$lib/stores/hr/employee-store'
-  import {
-    currentSalaryInfo,
-    loadEmployeeSalaryInfo,
-    isLoading as isLoadingContracts,
-    error as contractsError
-  } from '$lib/stores/salary/contract-store'
-  import { formatCurrency, formatDate } from '$lib/utils/format'
+
+
+
+
+  import { formatCurrency } from '$lib/utils/format'
   import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
-  import ThemeModal from '$lib/components/ui/ThemeModal.svelte'
   import {
-    FileTextIcon,
-    CalendarIcon,
     UserIcon,
     PlusIcon,
     AlertCircleIcon,
-    CheckCircleIcon,
     EditIcon,
     SaveIcon,
-    XIcon,
     PrinterIcon
   } from '@lucide/svelte'
 
@@ -83,7 +70,7 @@
           // 입사일 이전 월인지 확인
           const isBeforeHire =
             hireDate &&
-            (selectedYear < hireYear || (selectedYear === hireYear && month < hireMonth))
+              (selectedYear < hireYear || (selectedYear === hireYear && month < hireMonth))
 
           return {
             month,
@@ -108,7 +95,7 @@
           // 입사일 이전 월인지 확인
           const isBeforeHire =
             hireDate &&
-            (selectedYear < hireYear || (selectedYear === hireYear && month < hireMonth))
+              (selectedYear < hireYear || (selectedYear === hireYear && month < hireMonth))
 
           return {
             month,
@@ -491,8 +478,10 @@
     <!-- 직원 선택 및 연도 선택 -->
     <div class="flex items-center space-x-4">
       <div class="flex-1">
-        <label for="employee-select" class="block text-sm font-medium text-gray-700 mb-2"
-          >직원 선택</label
+        <label
+          for="employee-select"
+          class="block text-sm font-medium text-gray-700 mb-2"
+        >직원 선택</label
         >
         <select
           id="employee-select"
@@ -506,7 +495,9 @@
         </select>
       </div>
       <div class="w-32">
-        <label for="year-select" class="block text-sm font-medium text-gray-700 mb-2">연도</label>
+        <label
+          for="year-select"
+          class="block text-sm font-medium text-gray-700 mb-2">연도</label>
         <select
           id="year-select"
           bind:value={selectedYear}
@@ -528,7 +519,9 @@
       {#if missingCount > 0 || contractMissingPeriods.length > 0}
         <div class="bg-amber-50 border border-amber-200 rounded-lg p-6">
           <div class="flex items-start">
-            <AlertCircleIcon size={24} class="text-amber-600 mr-3 mt-0.5" />
+            <AlertCircleIcon
+              size={24}
+              class="text-amber-600 mr-3 mt-0.5" />
             <div class="flex-1">
               <h3 class="text-lg font-semibold text-amber-800 mb-2">급여명세서 작성 필요</h3>
               <p class="text-amber-700 mb-4">
@@ -569,37 +562,29 @@
             <table class="min-w-full divide-y divide-gray-200">
               <thead class="bg-gray-50">
                 <tr>
-                  <th
-                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                    >월</th
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >월</th
                   >
-                  <th
-                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                    >기본급</th
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >기본급</th
                   >
-                  <th
-                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                    >수당</th
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >수당</th
                   >
-                  <th
-                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                    >지급총액</th
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >지급총액</th
                   >
-                  <th
-                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                    >공제총액</th
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >공제총액</th
                   >
-                  <th
-                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                    >실지급액</th
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >실지급액</th
                   >
-                  <th
-                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                    >상태</th
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >상태</th
                   >
-                  <th
-                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                    >액션</th
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >액션</th
                   >
                 </tr>
               </thead>
@@ -611,7 +596,9 @@
                       <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-900">
                         {monthData.label} (편집 중)
                       </td>
-                      <td colspan="7" class="px-6 py-4">
+                      <td
+                        colspan="7"
+                        class="px-6 py-4">
                         <div class="space-y-4">
                           <!-- 지급사항 편집 -->
                           <div>
@@ -679,19 +666,19 @@
                               <div>
                                 <span class="font-medium">지급총액:</span>
                                 <span class="ml-2 font-semibold text-green-600"
-                                  >{formatCurrency(editingPayslip.totalPayments)}</span
+                                >{formatCurrency(editingPayslip.totalPayments)}</span
                                 >
                               </div>
                               <div>
                                 <span class="font-medium">공제총액:</span>
                                 <span class="ml-2 font-semibold text-red-600"
-                                  >{formatCurrency(editingPayslip.totalDeductions)}</span
+                                >{formatCurrency(editingPayslip.totalDeductions)}</span
                                 >
                               </div>
                               <div>
                                 <span class="font-medium">실지급액:</span>
                                 <span class="ml-2 font-semibold text-blue-600"
-                                  >{formatCurrency(editingPayslip.netSalary)}</span
+                                >{formatCurrency(editingPayslip.netSalary)}</span
                                 >
                               </div>
                             </div>
@@ -699,7 +686,10 @@
 
                           <!-- 액션 버튼 -->
                           <div class="flex justify-end space-x-2">
-                            <ThemeButton variant="ghost" size="sm" onclick={cancelEdit}>
+                            <ThemeButton
+                              variant="ghost"
+                              size="sm"
+                              onclick={cancelEdit}>
                               취소
                             </ThemeButton>
                             <ThemeButton
@@ -707,7 +697,9 @@
                               onclick={savePayslip}
                               class="bg-blue-600 hover:bg-blue-700"
                             >
-                              <SaveIcon size={16} class="mr-1" />
+                              <SaveIcon
+                                size={16}
+                                class="mr-1" />
                               저장
                             </ThemeButton>
                           </div>
@@ -717,9 +709,9 @@
                   {:else}
                     <!-- 일반 표시 행 -->
                     <tr
-                      class="hover:bg-gray-50 {!monthData.hasData && !monthData.isLocked
-                        ? 'bg-red-50'
-                        : ''} {monthData.isLocked ? 'bg-gray-100' : ''}"
+                      class="hover:bg-gray-50"
+                      class:bg-gray-100={monthData.isLocked}
+                      class:bg-red-50={!monthData.hasData && !monthData.isLocked}
                     >
                       <td
                         class="px-6 py-4 whitespace-nowrap text-sm font-medium {monthData.isLocked
@@ -741,8 +733,8 @@
                         {monthData.hasData
                           ? formatCurrency(monthData.payslip?.baseSalary || 0)
                           : monthData.isLocked
-                            ? '잠금'
-                            : '-'}
+                          ? '잠금'
+                          : '-'}
                       </td>
                       <td
                         class="px-6 py-4 whitespace-nowrap text-sm {monthData.isLocked
@@ -751,12 +743,12 @@
                       >
                         {monthData.hasData
                           ? formatCurrency(
-                              (monthData.payslip?.totalPayments || 0) -
-                                (monthData.payslip?.baseSalary || 0)
-                            )
+                            (monthData.payslip?.totalPayments || 0) -
+                            (monthData.payslip?.baseSalary || 0)
+                          )
                           : monthData.isLocked
-                            ? '잠금'
-                            : '-'}
+                          ? '잠금'
+                          : '-'}
                       </td>
                       <td
                         class="px-6 py-4 whitespace-nowrap text-sm {monthData.isLocked
@@ -766,8 +758,8 @@
                         {monthData.hasData
                           ? formatCurrency(monthData.payslip?.totalPayments || 0)
                           : monthData.isLocked
-                            ? '잠금'
-                            : '-'}
+                          ? '잠금'
+                          : '-'}
                       </td>
                       <td
                         class="px-6 py-4 whitespace-nowrap text-sm {monthData.isLocked
@@ -777,8 +769,8 @@
                         {monthData.hasData
                           ? formatCurrency(monthData.payslip?.totalDeductions || 0)
                           : monthData.isLocked
-                            ? '잠금'
-                            : '-'}
+                          ? '잠금'
+                          : '-'}
                       </td>
                       <td
                         class="px-6 py-4 whitespace-nowrap text-sm font-medium {monthData.isLocked
@@ -788,25 +780,22 @@
                         {monthData.hasData
                           ? formatCurrency(monthData.payslip?.netSalary || 0)
                           : monthData.isLocked
-                            ? '잠금'
-                            : '-'}
+                          ? '잠금'
+                          : '-'}
                       </td>
                       <td class="px-6 py-4 whitespace-nowrap">
                         {#if monthData.isLocked}
-                          <span
-                            class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-600"
+                          <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-600"
                           >
                             {monthData.isBeforeHire ? '입사전' : '잠금'}
                           </span>
                         {:else if monthData.hasData}
-                          <span
-                            class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800"
+                          <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800"
                           >
                             완료
                           </span>
                         {:else}
-                          <span
-                            class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800"
+                          <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800"
                           >
                             미작성
                           </span>
@@ -823,7 +812,9 @@
                             size="sm"
                             onclick={() => enterEditMode(monthData.month, monthData.payslip)}
                           >
-                            <EditIcon size={16} class="mr-1" />
+                            <EditIcon
+                              size={16}
+                              class="mr-1" />
                             편집
                           </ThemeButton>
                         {:else}
@@ -833,7 +824,9 @@
                             onclick={() => enterEditMode(monthData.month)}
                             class="border-red-300 text-red-700 hover:bg-red-50"
                           >
-                            <PlusIcon size={16} class="mr-1" />
+                            <PlusIcon
+                              size={16}
+                              class="mr-1" />
                             작성
                           </ThemeButton>
                         {/if}
@@ -848,7 +841,9 @@
       </div>
     {:else}
       <div class="text-center py-12 bg-gray-50 rounded-lg border border-gray-200">
-        <UserIcon size={48} class="mx-auto text-gray-400 mb-4" />
+        <UserIcon
+          size={48}
+          class="mx-auto text-gray-400 mb-4" />
         <p class="text-gray-500">급여명세서를 조회하려면 직원을 선택해주세요.</p>
       </div>
     {/if}
@@ -864,7 +859,9 @@
         </p>
       </div>
       <ThemeButton onclick={() => window.print()}>
-        <PrinterIcon size={16} class="mr-1" />
+        <PrinterIcon
+          size={16}
+          class="mr-1" />
         출력
       </ThemeButton>
     </div>

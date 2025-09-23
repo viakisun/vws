@@ -2,6 +2,7 @@ import { getCurrentUTC } from '$lib/utils/date-handler'
 import { writable } from 'svelte/store'
 import { logAudit } from './core'
 import type { Notification, SLAAlert } from './types'
+import { logger } from '$lib/utils/logger';
 
 // SLA 알림 관리
 export const slaAlerts = writable<SLAAlert[]>([])
@@ -426,7 +427,7 @@ export function scheduleSlaChecks(): void {
   // 매시간 SLA 체크 실행
   setInterval(
     () => {
-      console.log('Running SLA checks...')
+      logger.log('Running SLA checks...')
 
       // 모든 활성 엔티티에 대해 SLA 체크
       checkAllActiveEntities()
@@ -512,5 +513,5 @@ export function updateSlaSettings(
   }
 ): void {
   // 실제 구현에서는 SLA 설정을 저장
-  console.log(`SLA settings updated for ${entityType}:`, settings)
+  logger.log(`SLA settings updated for ${entityType}:`, settings)
 }

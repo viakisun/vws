@@ -32,11 +32,11 @@
   const avgAlloc = $derived(
     $personnelStore.length
       ? Math.round(
-          $personnelStore.reduce(
-            (sum, pr) => sum + pr.participations.reduce((s, pp) => s + pp.allocationPct, 0),
-            0
-          ) / $personnelStore.length
-        )
+        $personnelStore.reduce(
+          (sum, pr) => sum + pr.participations.reduce((s, pp) => s + pp.allocationPct, 0),
+          0
+        ) / $personnelStore.length
+      )
       : 0
   )
 
@@ -87,8 +87,8 @@
         a.level === 'over'
           ? `집행률 ${pct}% ≥ 100%`
           : a.level === 'critical'
-            ? `집행률 ${pct}% ≥ 95%`
-            : `집행률 ${pct}% ≥ 80%`
+          ? `집행률 ${pct}% ≥ 95%`
+          : `집행률 ${pct}% ≥ 80%`
       return { ...a, reason }
     })
   )
@@ -226,7 +226,9 @@
 <h2 class="text-lg font-semibold mb-4">Project Overview Dashboard</h2>
 
 <div class="mb-3 flex items-center gap-2">
-  <label for="qsel" class="text-sm text-gray-600">분기</label>
+  <label
+    for="qsel"
+    class="text-sm text-gray-600">분기</label>
   <select
     id="qsel"
     class="rounded-md border border-gray-200 px-2 py-1 text-sm"
@@ -300,7 +302,7 @@
               <span class="text-caption">{a.reason}</span>
             </div>
             <Badge color={a.level === 'over' ? 'red' : a.level === 'critical' ? 'yellow' : 'yellow'}
-              >{(a.utilization * 100).toFixed(1)}%</Badge
+            >{(a.utilization * 100).toFixed(1)}%</Badge
             >
           </li>
         {/each}
@@ -389,22 +391,22 @@
       <div class="grid grid-cols-2 gap-3 text-sm">
         <div class="flex items-center justify-between">
           <span>인건비</span><span class="tabular-nums"
-            >{categoryTotals['인건비'].toLocaleString()}원</span
+          >{categoryTotals['인건비'].toLocaleString()}원</span
           >
         </div>
         <div class="flex items-center justify-between">
           <span>재료비</span><span class="tabular-nums"
-            >{categoryTotals['재료비'].toLocaleString()}원</span
+          >{categoryTotals['재료비'].toLocaleString()}원</span
           >
         </div>
         <div class="flex items-center justify-between">
           <span>연구활동비</span><span class="tabular-nums"
-            >{categoryTotals['연구활동비'].toLocaleString()}원</span
+          >{categoryTotals['연구활동비'].toLocaleString()}원</span
           >
         </div>
         <div class="flex items-center justify-between">
           <span>여비</span><span class="tabular-nums"
-            >{categoryTotals['여비'].toLocaleString()}원</span
+          >{categoryTotals['여비'].toLocaleString()}원</span
           >
         </div>
       </div>
@@ -416,12 +418,12 @@
       <div class="grid grid-cols-1 gap-2 text-sm">
         <div class="flex items-center justify-between">
           <span>총 예산</span><span class="tabular-nums"
-            >{portfolioProjection.totalBudget.toLocaleString()}원</span
+          >{portfolioProjection.totalBudget.toLocaleString()}원</span
           >
         </div>
         <div class="flex items-center justify-between">
           <span>예상 집행</span><span class="tabular-nums"
-            >{portfolioProjection.totalProjected.toLocaleString()}원</span
+          >{portfolioProjection.totalProjected.toLocaleString()}원</span
           >
         </div>
         <div>

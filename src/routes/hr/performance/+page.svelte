@@ -17,21 +17,13 @@
     completePerformanceReview,
     approvePerformanceReview,
     addFeedback360,
-    completeFeedback360,
-    addCompetencyMatrix,
-    updateCompetencyMatrix,
-    addTrainingRecord,
-    completeTraining,
     getPerformanceReviewsByEmployee,
     getFeedback360ByReviewee,
     getCompetencyMatrixByEmployee,
     getTrainingRecordsByEmployee,
-    calculateOverallRating,
     calculateAverageFeedback360,
     type PerformanceReview,
-    type Feedback360,
-    type CompetencyMatrix,
-    type TrainingRecord
+    type Feedback360
   } from '$lib/stores/performance'
 
   // 현재 선택된 직원
@@ -303,7 +295,9 @@
     <Card class="mb-6">
       <div class="p-6">
         <div class="flex items-center space-x-4">
-          <label for="employee-select" class="text-sm font-medium text-gray-700">직원 선택:</label>
+          <label
+            for="employee-select"
+            class="text-sm font-medium text-gray-700">직원 선택:</label>
           <select
             id="employee-select"
             bind:value={selectedEmployeeId}
@@ -314,7 +308,9 @@
               <option value={employee.id}>{employee.name} ({employee.employeeId})</option>
             {/each}
           </select>
-          <label for="year-select" class="text-sm font-medium text-gray-700">평가 연도:</label>
+          <label
+            for="year-select"
+            class="text-sm font-medium text-gray-700">평가 연도:</label>
           <select
             id="year-select"
             bind:value={selectedYear}
@@ -370,7 +366,7 @@
           <div class="p-6">
             <div class="flex justify-between items-center mb-4">
               <h3 class="text-lg font-semibold text-gray-900">성과 평가</h3>
-              <button
+              <button type="button"
                 onclick={() => openReviewModal()}
                 class="px-3 py-1 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 transition-colors"
               >
@@ -385,8 +381,8 @@
                       {review.reviewType === 'annual'
                         ? '연간'
                         : review.reviewType === 'quarterly'
-                          ? '분기'
-                          : '프로젝트'} 평가
+                        ? '분기'
+                        : '프로젝트'} 평가
                     </p>
                     <p class="text-xs text-gray-500">
                       {formatDate(review.reviewPeriod.startDate)} - {formatDate(
@@ -399,21 +395,21 @@
                       {getStatusText(review.status)}
                     </Badge>
                     <div class="flex space-x-1">
-                      <button
+                      <button type="button"
                         onclick={() => openReviewModal(review)}
                         class="text-blue-600 hover:text-blue-900 text-sm"
                       >
                         보기
                       </button>
                       {#if review.status === 'completed'}
-                        <button
+                        <button type="button"
                           onclick={() => approveReview(review.id)}
                           class="text-green-600 hover:text-green-900 text-sm"
                         >
                           승인
                         </button>
                       {:else if review.status === 'draft'}
-                        <button
+                        <button type="button"
                           onclick={() => completeReview(review.id)}
                           class="text-yellow-600 hover:text-yellow-900 text-sm"
                         >
@@ -433,7 +429,7 @@
           <div class="p-6">
             <div class="flex justify-between items-center mb-4">
               <h3 class="text-lg font-semibold text-gray-900">360도 피드백</h3>
-              <button
+              <button type="button"
                 onclick={openFeedbackModal}
                 class="px-3 py-1 bg-green-600 text-white text-sm rounded-md hover:bg-green-700 transition-colors"
               >
@@ -448,10 +444,10 @@
                       {feedback.reviewerType === 'manager'
                         ? '상사'
                         : feedback.reviewerType === 'peer'
-                          ? '동료'
-                          : feedback.reviewerType === 'subordinate'
-                            ? '부하직원'
-                            : '자기평가'}
+                        ? '동료'
+                        : feedback.reviewerType === 'subordinate'
+                        ? '부하직원'
+                        : '자기평가'}
                     </p>
                     <p class="text-xs text-gray-500">
                       종합점수: {feedback.leadership +
@@ -526,14 +522,14 @@
                       variant={training.status === 'completed'
                         ? 'success'
                         : training.status === 'in-progress'
-                          ? 'warning'
-                          : 'secondary'}
+                        ? 'warning'
+                        : 'secondary'}
                     >
                       {training.status === 'completed'
                         ? '완료'
                         : training.status === 'in-progress'
-                          ? '진행중'
-                          : '예정'}
+                        ? '진행중'
+                        : '예정'}
                     </Badge>
                     {#if training.score}
                       <span class="text-sm font-medium text-gray-900">{training.score}점</span>
@@ -559,7 +555,7 @@
               stroke-linejoin="round"
               stroke-width="2"
               d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-            ></path>
+            />
           </svg>
           <h3 class="text-lg font-medium text-gray-900 mb-2">직원을 선택하세요</h3>
           <p class="text-gray-500">성과 평가를 위해 직원을 선택해주세요.</p>
@@ -582,8 +578,10 @@
           <div class="space-y-6">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label for="review-type" class="block text-sm font-medium text-gray-700 mb-1"
-                  >평가 유형 *</label
+                <label
+                  for="review-type"
+                  class="block text-sm font-medium text-gray-700 mb-1"
+                >평가 유형 *</label
                 >
                 <select
                   id="review-type"
@@ -598,8 +596,10 @@
                 </select>
               </div>
               <div>
-                <label for="overall-rating" class="block text-sm font-medium text-gray-700 mb-1"
-                  >종합 평가 점수 *</label
+                <label
+                  for="overall-rating"
+                  class="block text-sm font-medium text-gray-700 mb-1"
+                >종합 평가 점수 *</label
                 >
                 <select
                   id="overall-rating"
@@ -617,8 +617,10 @@
             </div>
 
             <div>
-              <label for="strengths" class="block text-sm font-medium text-gray-700 mb-1"
-                >강점</label
+              <label
+                for="strengths"
+                class="block text-sm font-medium text-gray-700 mb-1"
+              >강점</label
               >
               <div class="space-y-2">
                 {#each reviewForm.strengths as strength, index}
@@ -649,8 +651,10 @@
             </div>
 
             <div>
-              <label for="improvement-areas" class="block text-sm font-medium text-gray-700 mb-1"
-                >개선 영역</label
+              <label
+                for="improvement-areas"
+                class="block text-sm font-medium text-gray-700 mb-1"
+              >개선 영역</label
               >
               <div class="space-y-2">
                 {#each reviewForm.improvementAreas as area, index}
@@ -681,8 +685,10 @@
             </div>
 
             <div>
-              <label for="development-plan" class="block text-sm font-medium text-gray-700 mb-1"
-                >개발 계획</label
+              <label
+                for="development-plan"
+                class="block text-sm font-medium text-gray-700 mb-1"
+              >개발 계획</label
               >
               <textarea
                 id="development-plan"
@@ -694,8 +700,10 @@
             </div>
 
             <div>
-              <label for="career-goals" class="block text-sm font-medium text-gray-700 mb-1"
-                >경력 목표</label
+              <label
+                for="career-goals"
+                class="block text-sm font-medium text-gray-700 mb-1"
+              >경력 목표</label
               >
               <textarea
                 id="career-goals"
@@ -724,7 +732,10 @@
                 <span class="text-sm text-gray-700">급여 인상 추천</span>
               </label>
               <label class="flex items-center">
-                <input type="checkbox" bind:checked={reviewForm.bonusRecommendation} class="mr-2" />
+                <input
+                  type="checkbox"
+                  bind:checked={reviewForm.bonusRecommendation}
+                  class="mr-2" />
                 <span class="text-sm text-gray-700">보너스 추천</span>
               </label>
             </div>
@@ -761,8 +772,10 @@
         >
           <div class="space-y-6">
             <div>
-              <label for="reviewer-type" class="block text-sm font-medium text-gray-700 mb-1"
-                >평가자 유형 *</label
+              <label
+                for="reviewer-type"
+                class="block text-sm font-medium text-gray-700 mb-1"
+              >평가자 유형 *</label
               >
               <select
                 id="reviewer-type"
@@ -781,8 +794,10 @@
               <h4 class="text-md font-medium text-gray-900">역량 평가 (1-5점)</h4>
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label for="leadership" class="block text-sm font-medium text-gray-700 mb-1"
-                    >리더십</label
+                  <label
+                    for="leadership"
+                    class="block text-sm font-medium text-gray-700 mb-1"
+                  >리더십</label
                   >
                   <select
                     id="leadership"
@@ -797,8 +812,10 @@
                   </select>
                 </div>
                 <div>
-                  <label for="communication" class="block text-sm font-medium text-gray-700 mb-1"
-                    >커뮤니케이션</label
+                  <label
+                    for="communication"
+                    class="block text-sm font-medium text-gray-700 mb-1"
+                  >커뮤니케이션</label
                   >
                   <select
                     id="communication"
@@ -813,8 +830,10 @@
                   </select>
                 </div>
                 <div>
-                  <label for="teamwork" class="block text-sm font-medium text-gray-700 mb-1"
-                    >팀워크</label
+                  <label
+                    for="teamwork"
+                    class="block text-sm font-medium text-gray-700 mb-1"
+                  >팀워크</label
                   >
                   <select
                     id="teamwork"
@@ -829,8 +848,10 @@
                   </select>
                 </div>
                 <div>
-                  <label for="problem-solving" class="block text-sm font-medium text-gray-700 mb-1"
-                    >문제 해결</label
+                  <label
+                    for="problem-solving"
+                    class="block text-sm font-medium text-gray-700 mb-1"
+                  >문제 해결</label
                   >
                   <select
                     id="problem-solving"
@@ -848,8 +869,10 @@
             </div>
 
             <div>
-              <label for="feedback-strengths" class="block text-sm font-medium text-gray-700 mb-1"
-                >강점</label
+              <label
+                for="feedback-strengths"
+                class="block text-sm font-medium text-gray-700 mb-1"
+              >강점</label
               >
               <textarea
                 id="feedback-strengths"
@@ -861,8 +884,10 @@
             </div>
 
             <div>
-              <label for="feedback-improvement" class="block text-sm font-medium text-gray-700 mb-1"
-                >개선 영역</label
+              <label
+                for="feedback-improvement"
+                class="block text-sm font-medium text-gray-700 mb-1"
+              >개선 영역</label
               >
               <textarea
                 id="feedback-improvement"
@@ -874,8 +899,10 @@
             </div>
 
             <div>
-              <label for="recommendations" class="block text-sm font-medium text-gray-700 mb-1"
-                >추천사항</label
+              <label
+                for="recommendations"
+                class="block text-sm font-medium text-gray-700 mb-1"
+              >추천사항</label
               >
               <textarea
                 id="recommendations"
@@ -888,7 +915,10 @@
 
             <div>
               <label class="flex items-center">
-                <input type="checkbox" bind:checked={feedbackForm.isAnonymous} class="mr-2" />
+                <input
+                  type="checkbox"
+                  bind:checked={feedbackForm.isAnonymous}
+                  class="mr-2" />
                 <span class="text-sm text-gray-700">익명으로 제출</span>
               </label>
             </div>

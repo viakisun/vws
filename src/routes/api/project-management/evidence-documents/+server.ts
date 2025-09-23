@@ -4,6 +4,7 @@
 import { query } from '$lib/database/connection'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger';
 
 // 증빙 서류 목록 조회
 export const GET: RequestHandler = async ({ url }) => {
@@ -55,7 +56,7 @@ export const GET: RequestHandler = async ({ url }) => {
       count: result.rows.length
     })
   } catch (error) {
-    console.error('증빙 서류 조회 실패:', error)
+    logger.error('증빙 서류 조회 실패:', error)
     return json(
       {
         success: false,
@@ -134,7 +135,7 @@ export const POST: RequestHandler = async ({ request }) => {
       message: '증빙 서류가 성공적으로 등록되었습니다.'
     })
   } catch (error) {
-    console.error('증빙 서류 생성 실패:', error)
+    logger.error('증빙 서류 생성 실패:', error)
     return json(
       {
         success: false,

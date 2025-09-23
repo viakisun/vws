@@ -1,3 +1,4 @@
+import { logger } from '$lib/utils/logger';
 <script lang="ts">
   import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
   import ThemeCard from '$lib/components/ui/ThemeCard.svelte'
@@ -92,16 +93,16 @@
           // 증빙 정보 로드
           await loadEvidenceItems()
         } else {
-          console.log('RND-ASW 프로젝트를 찾을 수 없습니다.')
+          logger.log('RND-ASW 프로젝트를 찾을 수 없습니다.')
         }
       } else {
-        console.error('프로젝트 정보 로드 실패:', projectResponse.status)
+        logger.error('프로젝트 정보 로드 실패:', projectResponse.status)
       }
 
       // 직원 목록 로드
       await loadEmployees()
     } catch (error) {
-      console.error('프로젝트 데이터 로드 실패:', error)
+      logger.error('프로젝트 데이터 로드 실패:', error)
     } finally {
       isLoading = false
     }
@@ -120,7 +121,7 @@
         projectBudgets = result.data
       }
     } catch (error) {
-      console.error('예산 데이터 로드 실패:', error)
+      logger.error('예산 데이터 로드 실패:', error)
     }
   }
 
@@ -137,7 +138,7 @@
         projectMembers = result.data
       }
     } catch (error) {
-      console.error('멤버 데이터 로드 실패:', error)
+      logger.error('멤버 데이터 로드 실패:', error)
     }
   }
 
@@ -155,7 +156,7 @@
         evidenceItems = result.data
       }
     } catch (error) {
-      console.error('증빙 데이터 로드 실패:', error)
+      logger.error('증빙 데이터 로드 실패:', error)
     }
   }
 
@@ -168,7 +169,7 @@
         availableEmployees = result.data
       }
     } catch (error) {
-      console.error('직원 데이터 로드 실패:', error)
+      logger.error('직원 데이터 로드 실패:', error)
     }
   }
 
@@ -216,7 +217,7 @@
         alert('저장에 실패했습니다: ' + result.message)
       }
     } catch (error) {
-      console.error('프로젝트 저장 실패:', error)
+      logger.error('프로젝트 저장 실패:', error)
       alert('저장 중 오류가 발생했습니다.')
     }
   }
@@ -247,7 +248,7 @@
         alert('예산 추가에 실패했습니다: ' + result.message)
       }
     } catch (error) {
-      console.error('예산 추가 실패:', error)
+      logger.error('예산 추가 실패:', error)
       alert('예산 추가 중 오류가 발생했습니다.')
     }
   }
@@ -278,7 +279,7 @@
         alert('멤버 추가에 실패했습니다: ' + result.message)
       }
     } catch (error) {
-      console.error('멤버 추가 실패:', error)
+      logger.error('멤버 추가 실패:', error)
       alert('멤버 추가 중 오류가 발생했습니다.')
     }
   }
@@ -296,7 +297,9 @@
       <p class="text-gray-600">A-SW 플랫폼 기술 개발 프로젝트</p>
     </div>
     <ThemeButton onclick={() => (showEditModal = true)}>
-      <EditIcon size={16} class="mr-2" />
+      <EditIcon
+        size={16}
+        class="mr-2" />
       프로젝트 편집
     </ThemeButton>
   </div>
@@ -332,7 +335,9 @@
             <div class="block text-sm font-medium text-gray-700 mb-1">상태</div>
             <span
               class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-							{project.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}"
+                {project.status === 'active'
+                  ? 'bg-green-100 text-green-800'
+                  : 'bg-gray-100 text-gray-800'}"
             >
               {project.status || 'active'}
             </span>
@@ -354,8 +359,12 @@
       <div class="p-6">
         <div class="flex items-center justify-between mb-4">
           <h2 class="text-lg font-semibold text-gray-900">예산 정보</h2>
-          <ThemeButton size="sm" onclick={() => (showBudgetModal = true)}>
-            <PlusIcon size={14} class="mr-1" />
+          <ThemeButton
+            size="sm"
+            onclick={() => (showBudgetModal = true)}>
+            <PlusIcon
+              size={14}
+              class="mr-1" />
             예산 추가
           </ThemeButton>
         </div>
@@ -376,33 +385,33 @@
                   <div>
                     <span class="text-gray-600">인건비:</span>
                     <span class="ml-2 font-medium"
-                      >{formatCurrency(
-                        budget.personnel_cost_cash + budget.personnel_cost_in_kind
-                      )}</span
+                    >{formatCurrency(
+                      budget.personnel_cost_cash + budget.personnel_cost_in_kind
+                    )}</span
                     >
                   </div>
                   <div>
                     <span class="text-gray-600">연구재료비:</span>
                     <span class="ml-2 font-medium"
-                      >{formatCurrency(
-                        budget.research_material_cost_cash + budget.research_material_cost_in_kind
-                      )}</span
+                    >{formatCurrency(
+                      budget.research_material_cost_cash + budget.research_material_cost_in_kind
+                    )}</span
                     >
                   </div>
                   <div>
                     <span class="text-gray-600">연구활동비:</span>
                     <span class="ml-2 font-medium"
-                      >{formatCurrency(
-                        budget.research_activity_cost_cash + budget.research_activity_cost_in_kind
-                      )}</span
+                    >{formatCurrency(
+                      budget.research_activity_cost_cash + budget.research_activity_cost_in_kind
+                    )}</span
                     >
                   </div>
                   <div>
                     <span class="text-gray-600">간접비:</span>
                     <span class="ml-2 font-medium"
-                      >{formatCurrency(
-                        budget.indirect_cost_cash + budget.indirect_cost_in_kind
-                      )}</span
+                    >{formatCurrency(
+                      budget.indirect_cost_cash + budget.indirect_cost_in_kind
+                    )}</span
                     >
                   </div>
                 </div>
@@ -411,7 +420,9 @@
           </div>
         {:else}
           <div class="text-center py-8 text-gray-500">
-            <DollarSignIcon size={48} class="mx-auto mb-2 text-gray-300" />
+            <DollarSignIcon
+              size={48}
+              class="mx-auto mb-2 text-gray-300" />
             <p>등록된 예산이 없습니다.</p>
           </div>
         {/if}
@@ -423,8 +434,12 @@
       <div class="p-6">
         <div class="flex items-center justify-between mb-4">
           <h2 class="text-lg font-semibold text-gray-900">프로젝트 멤버</h2>
-          <ThemeButton size="sm" onclick={() => (showMemberModal = true)}>
-            <PlusIcon size={14} class="mr-1" />
+          <ThemeButton
+            size="sm"
+            onclick={() => (showMemberModal = true)}>
+            <PlusIcon
+              size={14}
+              class="mr-1" />
             멤버 추가
           </ThemeButton>
         </div>
@@ -434,25 +449,20 @@
             <table class="min-w-full divide-y divide-gray-200">
               <thead class="bg-gray-50">
                 <tr>
-                  <th
-                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                    >이름</th
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >이름</th
                   >
-                  <th
-                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                    >역할</th
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >역할</th
                   >
-                  <th
-                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                    >참여율</th
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >참여율</th
                   >
-                  <th
-                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                    >월간 금액</th
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >월간 금액</th
                   >
-                  <th
-                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                    >기여 유형</th
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >기여 유형</th
                   >
                 </tr>
               </thead>
@@ -465,13 +475,13 @@
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{member.role}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"
-                      >{member.participation_rate}%</td
+                    >{member.participation_rate}%</td
                     >
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"
-                      >{formatCurrency(member.monthly_amount)}</td
+                    >{formatCurrency(member.monthly_amount)}</td
                     >
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"
-                      >{member.contribution_type}</td
+                    >{member.contribution_type}</td
                     >
                   </tr>
                 {/each}
@@ -480,7 +490,9 @@
           </div>
         {:else}
           <div class="text-center py-8 text-gray-500">
-            <UsersIcon size={48} class="mx-auto mb-2 text-gray-300" />
+            <UsersIcon
+              size={48}
+              class="mx-auto mb-2 text-gray-300" />
             <p>등록된 멤버가 없습니다.</p>
           </div>
         {/if}
@@ -493,7 +505,9 @@
         <div class="flex items-center justify-between mb-4">
           <h2 class="text-lg font-semibold text-gray-900">증빙 관리</h2>
           <ThemeButton size="sm">
-            <PlusIcon size={14} class="mr-1" />
+            <PlusIcon
+              size={14}
+              class="mr-1" />
             증빙 추가
           </ThemeButton>
         </div>
@@ -511,9 +525,9 @@
                 <div class="flex items-center space-x-2">
                   <span
                     class="px-2 py-1 text-xs font-medium rounded-full
-										{item.status === 'completed'
-                      ? 'bg-green-100 text-green-800'
-                      : item.status === 'in_progress'
+                      {item.status === 'completed'
+                        ? 'bg-green-100 text-green-800'
+                        : item.status === 'in_progress'
                         ? 'bg-yellow-100 text-yellow-800'
                         : 'bg-gray-100 text-gray-800'}"
                   >
@@ -526,7 +540,9 @@
           </div>
         {:else}
           <div class="text-center py-8 text-gray-500">
-            <FileTextIcon size={48} class="mx-auto mb-2 text-gray-300" />
+            <FileTextIcon
+              size={48}
+              class="mx-auto mb-2 text-gray-300" />
             <p>등록된 증빙이 없습니다.</p>
           </div>
         {/if}
@@ -541,11 +557,15 @@
 
 <!-- 프로젝트 편집 모달 -->
 {#if showEditModal}
-  <ThemeModal open={showEditModal} onclose={() => (showEditModal = false)}>
+  <ThemeModal
+    open={showEditModal}
+    onclose={() => (showEditModal = false)}>
     <div class="p-6 max-w-2xl">
       <div class="flex items-center justify-between mb-4">
         <h3 class="text-lg font-medium text-gray-900">프로젝트 편집</h3>
-        <button onclick={() => (showEditModal = false)} class="text-gray-400 hover:text-gray-600">
+        <button type="button"
+          onclick={() => (showEditModal = false)}
+          class="text-gray-400 hover:text-gray-600">
           <XIcon size={20} />
         </button>
       </div>
@@ -553,8 +573,10 @@
       <div class="space-y-4">
         <div class="grid grid-cols-2 gap-4">
           <div>
-            <label for="edit-code" class="block text-sm font-medium text-gray-700 mb-1"
-              >프로젝트 코드</label
+            <label
+              for="edit-code"
+              class="block text-sm font-medium text-gray-700 mb-1"
+            >프로젝트 코드</label
             >
             <input
               id="edit-code"
@@ -564,8 +586,10 @@
             />
           </div>
           <div>
-            <label for="edit-status" class="block text-sm font-medium text-gray-700 mb-1"
-              >상태</label
+            <label
+              for="edit-status"
+              class="block text-sm font-medium text-gray-700 mb-1"
+            >상태</label
             >
             <select
               id="edit-status"
@@ -581,8 +605,10 @@
         </div>
 
         <div>
-          <label for="edit-title" class="block text-sm font-medium text-gray-700 mb-1"
-            >프로젝트 제목</label
+          <label
+            for="edit-title"
+            class="block text-sm font-medium text-gray-700 mb-1"
+          >프로젝트 제목</label
           >
           <input
             id="edit-title"
@@ -593,8 +619,10 @@
         </div>
 
         <div>
-          <label for="edit-description" class="block text-sm font-medium text-gray-700 mb-1"
-            >설명</label
+          <label
+            for="edit-description"
+            class="block text-sm font-medium text-gray-700 mb-1"
+          >설명</label
           >
           <textarea
             id="edit-description"
@@ -606,8 +634,10 @@
 
         <div class="grid grid-cols-2 gap-4">
           <div>
-            <label for="edit-start-date" class="block text-sm font-medium text-gray-700 mb-1"
-              >시작일</label
+            <label
+              for="edit-start-date"
+              class="block text-sm font-medium text-gray-700 mb-1"
+            >시작일</label
             >
             <input
               id="edit-start-date"
@@ -617,8 +647,10 @@
             />
           </div>
           <div>
-            <label for="edit-end-date" class="block text-sm font-medium text-gray-700 mb-1"
-              >종료일</label
+            <label
+              for="edit-end-date"
+              class="block text-sm font-medium text-gray-700 mb-1"
+            >종료일</label
             >
             <input
               id="edit-end-date"
@@ -631,8 +663,10 @@
 
         <div class="grid grid-cols-2 gap-4">
           <div>
-            <label for="edit-sponsor-type" class="block text-sm font-medium text-gray-700 mb-1"
-              >스폰서 유형</label
+            <label
+              for="edit-sponsor-type"
+              class="block text-sm font-medium text-gray-700 mb-1"
+            >스폰서 유형</label
             >
             <select
               id="edit-sponsor-type"
@@ -645,8 +679,10 @@
             </select>
           </div>
           <div>
-            <label for="edit-budget-total" class="block text-sm font-medium text-gray-700 mb-1"
-              >총 예산</label
+            <label
+              for="edit-budget-total"
+              class="block text-sm font-medium text-gray-700 mb-1"
+            >총 예산</label
             >
             <input
               id="edit-budget-total"
@@ -659,9 +695,13 @@
       </div>
 
       <div class="flex justify-end space-x-3 pt-4 border-t border-gray-200 mt-6">
-        <ThemeButton variant="ghost" onclick={() => (showEditModal = false)}>취소</ThemeButton>
+        <ThemeButton
+          variant="ghost"
+          onclick={() => (showEditModal = false)}>취소</ThemeButton>
         <ThemeButton onclick={saveProject}>
-          <SaveIcon size={16} class="mr-2" />
+          <SaveIcon
+            size={16}
+            class="mr-2" />
           저장
         </ThemeButton>
       </div>
@@ -671,11 +711,15 @@
 
 <!-- 예산 추가 모달 -->
 {#if showBudgetModal}
-  <ThemeModal open={showBudgetModal} onclose={() => (showBudgetModal = false)}>
+  <ThemeModal
+    open={showBudgetModal}
+    onclose={() => (showBudgetModal = false)}>
     <div class="p-6 max-w-2xl">
       <div class="flex items-center justify-between mb-4">
         <h3 class="text-lg font-medium text-gray-900">예산 추가</h3>
-        <button onclick={() => (showBudgetModal = false)} class="text-gray-400 hover:text-gray-600">
+        <button type="button"
+          onclick={() => (showBudgetModal = false)}
+          class="text-gray-400 hover:text-gray-600">
           <XIcon size={20} />
         </button>
       </div>
@@ -683,8 +727,10 @@
       <div class="space-y-4">
         <div class="grid grid-cols-2 gap-4">
           <div>
-            <label for="budget-period" class="block text-sm font-medium text-gray-700 mb-1"
-              >연차</label
+            <label
+              for="budget-period"
+              class="block text-sm font-medium text-gray-700 mb-1"
+            >연차</label
             >
             <input
               id="budget-period"
@@ -694,8 +740,10 @@
             />
           </div>
           <div>
-            <label for="budget-fiscal-year" class="block text-sm font-medium text-gray-700 mb-1"
-              >회계연도</label
+            <label
+              for="budget-fiscal-year"
+              class="block text-sm font-medium text-gray-700 mb-1"
+            >회계연도</label
             >
             <input
               id="budget-fiscal-year"
@@ -708,8 +756,10 @@
 
         <div class="grid grid-cols-2 gap-4">
           <div>
-            <label for="budget-start-date" class="block text-sm font-medium text-gray-700 mb-1"
-              >시작일</label
+            <label
+              for="budget-start-date"
+              class="block text-sm font-medium text-gray-700 mb-1"
+            >시작일</label
             >
             <input
               id="budget-start-date"
@@ -719,8 +769,10 @@
             />
           </div>
           <div>
-            <label for="budget-end-date" class="block text-sm font-medium text-gray-700 mb-1"
-              >종료일</label
+            <label
+              for="budget-end-date"
+              class="block text-sm font-medium text-gray-700 mb-1"
+            >종료일</label
             >
             <input
               id="budget-end-date"
@@ -735,8 +787,10 @@
           <h4 class="font-medium text-gray-900">인건비</h4>
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label for="personnel-cash" class="block text-sm font-medium text-gray-700 mb-1"
-                >현금</label
+              <label
+                for="personnel-cash"
+                class="block text-sm font-medium text-gray-700 mb-1"
+              >현금</label
               >
               <input
                 id="personnel-cash"
@@ -746,8 +800,10 @@
               />
             </div>
             <div>
-              <label for="personnel-kind" class="block text-sm font-medium text-gray-700 mb-1"
-                >현물</label
+              <label
+                for="personnel-kind"
+                class="block text-sm font-medium text-gray-700 mb-1"
+              >현물</label
               >
               <input
                 id="personnel-kind"
@@ -763,8 +819,10 @@
           <h4 class="font-medium text-gray-900">연구재료비</h4>
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label for="material-cash" class="block text-sm font-medium text-gray-700 mb-1"
-                >현금</label
+              <label
+                for="material-cash"
+                class="block text-sm font-medium text-gray-700 mb-1"
+              >현금</label
               >
               <input
                 id="material-cash"
@@ -774,8 +832,10 @@
               />
             </div>
             <div>
-              <label for="material-kind" class="block text-sm font-medium text-gray-700 mb-1"
-                >현물</label
+              <label
+                for="material-kind"
+                class="block text-sm font-medium text-gray-700 mb-1"
+              >현물</label
               >
               <input
                 id="material-kind"
@@ -791,8 +851,10 @@
           <h4 class="font-medium text-gray-900">연구활동비</h4>
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label for="activity-cash" class="block text-sm font-medium text-gray-700 mb-1"
-                >현금</label
+              <label
+                for="activity-cash"
+                class="block text-sm font-medium text-gray-700 mb-1"
+              >현금</label
               >
               <input
                 id="activity-cash"
@@ -802,8 +864,10 @@
               />
             </div>
             <div>
-              <label for="activity-kind" class="block text-sm font-medium text-gray-700 mb-1"
-                >현물</label
+              <label
+                for="activity-kind"
+                class="block text-sm font-medium text-gray-700 mb-1"
+              >현물</label
               >
               <input
                 id="activity-kind"
@@ -819,8 +883,10 @@
           <h4 class="font-medium text-gray-900">간접비</h4>
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label for="indirect-cash" class="block text-sm font-medium text-gray-700 mb-1"
-                >현금</label
+              <label
+                for="indirect-cash"
+                class="block text-sm font-medium text-gray-700 mb-1"
+              >현금</label
               >
               <input
                 id="indirect-cash"
@@ -830,8 +896,10 @@
               />
             </div>
             <div>
-              <label for="indirect-kind" class="block text-sm font-medium text-gray-700 mb-1"
-                >현물</label
+              <label
+                for="indirect-kind"
+                class="block text-sm font-medium text-gray-700 mb-1"
+              >현물</label
               >
               <input
                 id="indirect-kind"
@@ -845,9 +913,13 @@
       </div>
 
       <div class="flex justify-end space-x-3 pt-4 border-t border-gray-200 mt-6">
-        <ThemeButton variant="ghost" onclick={() => (showBudgetModal = false)}>취소</ThemeButton>
+        <ThemeButton
+          variant="ghost"
+          onclick={() => (showBudgetModal = false)}>취소</ThemeButton>
         <ThemeButton onclick={addBudget}>
-          <SaveIcon size={16} class="mr-2" />
+          <SaveIcon
+            size={16}
+            class="mr-2" />
           추가
         </ThemeButton>
       </div>
@@ -857,19 +929,25 @@
 
 <!-- 멤버 추가 모달 -->
 {#if showMemberModal}
-  <ThemeModal open={showMemberModal} onclose={() => (showMemberModal = false)}>
+  <ThemeModal
+    open={showMemberModal}
+    onclose={() => (showMemberModal = false)}>
     <div class="p-6 max-w-lg">
       <div class="flex items-center justify-between mb-4">
         <h3 class="text-lg font-medium text-gray-900">멤버 추가</h3>
-        <button onclick={() => (showMemberModal = false)} class="text-gray-400 hover:text-gray-600">
+        <button type="button"
+          onclick={() => (showMemberModal = false)}
+          class="text-gray-400 hover:text-gray-600">
           <XIcon size={20} />
         </button>
       </div>
 
       <div class="space-y-4">
         <div>
-          <label for="member-employee" class="block text-sm font-medium text-gray-700 mb-1"
-            >직원</label
+          <label
+            for="member-employee"
+            class="block text-sm font-medium text-gray-700 mb-1"
+          >직원</label
           >
           <select
             id="member-employee"
@@ -884,7 +962,9 @@
         </div>
 
         <div>
-          <label for="member-role" class="block text-sm font-medium text-gray-700 mb-1">역할</label>
+          <label
+            for="member-role"
+            class="block text-sm font-medium text-gray-700 mb-1">역할</label>
           <select
             id="member-role"
             bind:value={memberForm.role}
@@ -897,8 +977,10 @@
         </div>
 
         <div>
-          <label for="member-participation" class="block text-sm font-medium text-gray-700 mb-1"
-            >참여율 (%)</label
+          <label
+            for="member-participation"
+            class="block text-sm font-medium text-gray-700 mb-1"
+          >참여율 (%)</label
           >
           <input
             id="member-participation"
@@ -911,8 +993,10 @@
         </div>
 
         <div>
-          <label for="member-monthly-amount" class="block text-sm font-medium text-gray-700 mb-1"
-            >월간 금액</label
+          <label
+            for="member-monthly-amount"
+            class="block text-sm font-medium text-gray-700 mb-1"
+          >월간 금액</label
           >
           <input
             id="member-monthly-amount"
@@ -923,8 +1007,10 @@
         </div>
 
         <div>
-          <label for="member-contribution-type" class="block text-sm font-medium text-gray-700 mb-1"
-            >기여 유형</label
+          <label
+            for="member-contribution-type"
+            class="block text-sm font-medium text-gray-700 mb-1"
+          >기여 유형</label
           >
           <select
             id="member-contribution-type"
@@ -938,9 +1024,13 @@
       </div>
 
       <div class="flex justify-end space-x-3 pt-4 border-t border-gray-200 mt-6">
-        <ThemeButton variant="ghost" onclick={() => (showMemberModal = false)}>취소</ThemeButton>
+        <ThemeButton
+          variant="ghost"
+          onclick={() => (showMemberModal = false)}>취소</ThemeButton>
         <ThemeButton onclick={addMember}>
-          <SaveIcon size={16} class="mr-2" />
+          <SaveIcon
+            size={16}
+            class="mr-2" />
           추가
         </ThemeButton>
       </div>

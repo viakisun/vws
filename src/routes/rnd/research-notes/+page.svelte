@@ -5,7 +5,7 @@
   import Badge from '$lib/components/ui/Badge.svelte'
   import Card from '$lib/components/ui/Card.svelte'
   import Modal from '$lib/components/ui/Modal.svelte'
-  import type { ResearchNote, Person, Project } from '$lib/stores/rnd/types'
+  import type { ResearchNote } from '$lib/stores/rnd/types'
 
   let selectedNote = $state<ResearchNote | null>(null)
   let showDetailModal = $state(false)
@@ -32,7 +32,7 @@
       notes = notes.filter(
         (note: any) =>
           note.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          note.contentMd.toLowerCase().includes(searchTerm.toLowerCase())
+            note.contentMd.toLowerCase().includes(searchTerm.toLowerCase())
       )
     }
 
@@ -150,7 +150,7 @@
   onMount(() => {
     // Initialize dummy data if needed
     if ($researchNotes.length === 0) {
-      // Dummy data will be loaded from init-dummy-data.ts
+    // Dummy data will be loaded from init-dummy-data.ts
     }
   })
 </script>
@@ -165,7 +165,9 @@
   <div class="bg-white rounded-lg shadow-sm border p-4 mb-6">
     <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
       <div>
-        <label for="search" class="block text-sm font-medium text-gray-700 mb-1">검색</label>
+        <label
+          for="search"
+          class="block text-sm font-medium text-gray-700 mb-1">검색</label>
         <input
           id="search"
           type="text"
@@ -175,8 +177,10 @@
         />
       </div>
       <div>
-        <label for="project-filter" class="block text-sm font-medium text-gray-700 mb-1"
-          >프로젝트</label
+        <label
+          for="project-filter"
+          class="block text-sm font-medium text-gray-700 mb-1"
+        >프로젝트</label
         >
         <select
           id="project-filter"
@@ -190,8 +194,10 @@
         </select>
       </div>
       <div>
-        <label for="author-filter" class="block text-sm font-medium text-gray-700 mb-1"
-          >작성자</label
+        <label
+          for="author-filter"
+          class="block text-sm font-medium text-gray-700 mb-1"
+        >작성자</label
         >
         <select
           id="author-filter"
@@ -205,7 +211,9 @@
         </select>
       </div>
       <div>
-        <label for="week-filter" class="block text-sm font-medium text-gray-700 mb-1">주차</label>
+        <label
+          for="week-filter"
+          class="block text-sm font-medium text-gray-700 mb-1">주차</label>
         <select
           id="week-filter"
           bind:value={selectedWeek}
@@ -218,7 +226,7 @@
         </select>
       </div>
       <div class="flex items-end">
-        <button
+        <button type="button"
           onclick={() => (showCreateModal = true)}
           class="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
@@ -256,7 +264,7 @@
             {/if}
           </div>
           <div class="flex gap-2 ml-4">
-            <button
+            <button type="button"
               onclick={() => showNoteDetail(note)}
               class="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500"
               aria-label="상세보기"
@@ -264,7 +272,7 @@
               상세보기
             </button>
             {#if !note.signedAt}
-              <button
+              <button type="button"
                 onclick={() => signNote(note.id)}
                 class="px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
@@ -272,7 +280,7 @@
               </button>
             {/if}
             {#if note.signedAt && !note.verifiedBy}
-              <button
+              <button type="button"
                 onclick={() => verifyNote(note.id)}
                 class="px-3 py-1 text-sm bg-green-100 text-green-700 rounded hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-green-500"
               >
@@ -295,7 +303,9 @@
 </div>
 
 <!-- Detail Modal -->
-<Modal bind:open={showDetailModal} title="연구노트 상세">
+<Modal
+  bind:open={showDetailModal}
+  title="연구노트 상세">
   {#if selectedNote}
     <div class="space-y-4">
       <div>
@@ -336,11 +346,15 @@
 </Modal>
 
 <!-- Create Modal -->
-<Modal bind:open={showCreateModal} title="새 연구노트 작성">
+<Modal
+  bind:open={showCreateModal}
+  title="새 연구노트 작성">
   <div class="space-y-4">
     <div>
-      <label for="create-project" class="block text-sm font-medium text-gray-700 mb-1"
-        >프로젝트 *</label
+      <label
+        for="create-project"
+        class="block text-sm font-medium text-gray-700 mb-1"
+      >프로젝트 *</label
       >
       <select
         id="create-project"
@@ -354,7 +368,9 @@
       </select>
     </div>
     <div>
-      <label for="create-week" class="block text-sm font-medium text-gray-700 mb-1">주차 *</label>
+      <label
+        for="create-week"
+        class="block text-sm font-medium text-gray-700 mb-1">주차 *</label>
       <input
         id="create-week"
         type="text"
@@ -364,7 +380,9 @@
       />
     </div>
     <div>
-      <label for="create-title" class="block text-sm font-medium text-gray-700 mb-1">제목 *</label>
+      <label
+        for="create-title"
+        class="block text-sm font-medium text-gray-700 mb-1">제목 *</label>
       <input
         id="create-title"
         type="text"
@@ -374,7 +392,9 @@
       />
     </div>
     <div>
-      <label for="create-content" class="block text-sm font-medium text-gray-700 mb-1">내용 *</label
+      <label
+        for="create-content"
+        class="block text-sm font-medium text-gray-700 mb-1">내용 *</label
       >
       <textarea
         id="create-content"
@@ -385,13 +405,13 @@
       ></textarea>
     </div>
     <div class="flex justify-end gap-2">
-      <button
+      <button type="button"
         onclick={() => (showCreateModal = false)}
         class="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500"
       >
         취소
       </button>
-      <button
+      <button type="button"
         onclick={createNote}
         class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
       >

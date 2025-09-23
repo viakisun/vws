@@ -1,5 +1,5 @@
 import { writable } from 'svelte/store'
-import type { BudgetCategoryMaster, ExpenseItem, Document, Approval } from './types'
+import type { BudgetCategoryMaster, ExpenseItem, Approval } from './types'
 
 // 예산 카테고리 마스터 데이터
 export const budgetCategoryMaster = writable<BudgetCategoryMaster[]>([

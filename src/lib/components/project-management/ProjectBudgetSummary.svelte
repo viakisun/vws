@@ -1,3 +1,4 @@
+import { logger } from '$lib/utils/logger';
 <script lang="ts">
   import type { BudgetSummary } from '$lib/types/project-budget'
   import { formatDate } from '$lib/utils/format'
@@ -27,7 +28,9 @@
       loading = true
       error = null
 
-      const response = await fetch(`/api/project-management/projects/${projectId}/annual-budgets`)
+      const response = await window.fetch(
+        `/api/project-management/projects/${projectId}/annual-budgets`
+      )
       const result = await response.json()
 
       if (result.success && result.data) {
@@ -35,7 +38,7 @@
         budgetDetails = result.data.budgets || null
 
         // 디버깅: 받은 데이터 확인
-        console.log('ProjectBudgetSummary - 받은 데이터:', {
+        logger.log('ProjectBudgetSummary - 받은 데이터:', {
           summary: budgetSummary,
           budgets: budgetDetails,
           첫번째예산: budgetDetails?.[0]
@@ -43,10 +46,10 @@
       } else {
         budgetSummary = null
         budgetDetails = null
-        console.log('ProjectBudgetSummary - 데이터 로드 실패:', result)
+        logger.log('ProjectBudgetSummary - 데이터 로드 실패:', result)
       }
     } catch (err) {
-      console.error('예산 요약 로드 실패:', err)
+      logger.error('예산 요약 로드 실패:', err)
       error = '예산 정보를 불러올 수 없습니다.'
     } finally {
       loading = false
@@ -70,13 +73,13 @@
     return thousands.toLocaleString()
   }
 
-  // 비율 색상
-  function getRatioColor(ratio: number): string {
-    if (ratio >= 70) return 'text-green-600'
-    if (ratio >= 50) return 'text-blue-600'
-    if (ratio >= 30) return 'text-orange-600'
-    return 'text-red-600'
-  }
+// 비율 색상
+  // function getRatioColor(ratio: number): string {
+  //   if (ratio >= 70) return 'text-green-600'
+  //   if (ratio >= 50) return 'text-blue-600'
+  //   if (ratio >= 30) return 'text-orange-600'
+  //   return 'text-red-600'
+  // }
 </script>
 
 {#if loading}
@@ -101,28 +104,28 @@
             <thead class="bg-gray-50">
               <tr>
                 <th class="px-4 py-3 text-left font-medium text-gray-700 border-b min-w-[80px]"
-                  >연차</th
+                >연차</th
                 >
                 <th class="px-4 py-3 text-center font-medium text-gray-700 border-b min-w-[200px]"
-                  >사업기간</th
+                >사업기간</th
                 >
                 <th class="px-4 py-3 text-right font-medium text-green-700 border-b min-w-[120px]"
-                  >정부지원금</th
+                >정부지원금</th
                 >
                 <th class="px-4 py-3 text-right font-medium text-orange-700 border-b min-w-[130px]"
-                  >기업부담금(현금)</th
+                >기업부담금(현금)</th
                 >
                 <th class="px-4 py-3 text-right font-medium text-purple-700 border-b min-w-[130px]"
-                  >기업부담금(현물)</th
+                >기업부담금(현물)</th
                 >
                 <th class="px-4 py-3 text-right font-medium text-blue-700 border-b min-w-[120px]"
-                  >합계 현금</th
+                >합계 현금</th
                 >
                 <th class="px-4 py-3 text-right font-medium text-purple-700 border-b min-w-[120px]"
-                  >합계 현물</th
+                >합계 현물</th
                 >
                 <th class="px-4 py-3 text-right font-medium text-gray-900 border-b min-w-[120px]"
-                  >총 합계</th
+                >총 합계</th
                 >
               </tr>
             </thead>
@@ -138,22 +141,22 @@
                     {/if}
                   </td>
                   <td class="px-4 py-3 text-right text-green-800"
-                    >{formatCurrency(budget.governmentFunding)}</td
+                  >{formatCurrency(budget.governmentFunding)}</td
                   >
                   <td class="px-4 py-3 text-right text-orange-800"
-                    >{formatCurrency(budget.companyCash)}</td
+                  >{formatCurrency(budget.companyCash)}</td
                   >
                   <td class="px-4 py-3 text-right text-purple-800"
-                    >{formatCurrency(budget.companyInKind)}</td
+                  >{formatCurrency(budget.companyInKind)}</td
                   >
                   <td class="px-4 py-3 text-right text-blue-800 font-medium"
-                    >{formatCurrency(budget.totalCash)}</td
+                  >{formatCurrency(budget.totalCash)}</td
                   >
                   <td class="px-4 py-3 text-right text-purple-800 font-medium"
-                    >{formatCurrency(budget.totalInKind)}</td
+                  >{formatCurrency(budget.totalInKind)}</td
                   >
                   <td class="px-4 py-3 text-right text-gray-900 font-bold"
-                    >{formatCurrency(budget.yearlyTotal)}</td
+                  >{formatCurrency(budget.yearlyTotal)}</td
                   >
                 </tr>
               {/each}
@@ -174,22 +177,22 @@
                   {/if}
                 </td>
                 <td class="px-4 py-3 text-right text-green-800"
-                  >{formatCurrency(budgetSummary.totalGovernmentFunding)}</td
+                >{formatCurrency(budgetSummary.totalGovernmentFunding)}</td
                 >
                 <td class="px-4 py-3 text-right text-orange-800"
-                  >{formatCurrency(budgetSummary.totalCompanyCash)}</td
+                >{formatCurrency(budgetSummary.totalCompanyCash)}</td
                 >
                 <td class="px-4 py-3 text-right text-purple-800"
-                  >{formatCurrency(budgetSummary.totalCompanyInKind)}</td
+                >{formatCurrency(budgetSummary.totalCompanyInKind)}</td
                 >
                 <td class="px-4 py-3 text-right text-blue-800"
-                  >{formatCurrency(budgetSummary.totalCash)}</td
+                >{formatCurrency(budgetSummary.totalCash)}</td
                 >
                 <td class="px-4 py-3 text-right text-purple-800"
-                  >{formatCurrency(budgetSummary.totalInKind)}</td
+                >{formatCurrency(budgetSummary.totalInKind)}</td
                 >
                 <td class="px-4 py-3 text-right text-gray-900"
-                  >{formatCurrency(budgetSummary.totalBudget)}</td
+                >{formatCurrency(budgetSummary.totalBudget)}</td
                 >
               </tr>
             </tbody>
@@ -200,12 +203,12 @@
         <div class="grid grid-cols-2 gap-3 text-xs text-center mt-3">
           <div class="p-2 bg-green-50 rounded">
             <span class="text-green-700"
-              >지원금 비율: {budgetSummary.governmentFundingRatio.toFixed(1)}%</span
+            >지원금 비율: {budgetSummary.governmentFundingRatio.toFixed(1)}%</span
             >
           </div>
           <div class="p-2 bg-orange-50 rounded">
             <span class="text-orange-700"
-              >기업부담 비율: {budgetSummary.companyBurdenRatio.toFixed(1)}%</span
+            >기업부담 비율: {budgetSummary.companyBurdenRatio.toFixed(1)}%</span
             >
           </div>
         </div>

@@ -1,11 +1,12 @@
+import { logger } from '$lib/utils/logger';
 <script lang="ts">
-  import { onMount } from 'svelte'
-  import { projects, employees } from '$lib/stores/rd'
-  import { submissionBundles, documents, expenseItems } from '$lib/stores/rnd/mock-data'
   import Badge from '$lib/components/ui/Badge.svelte'
   import Card from '$lib/components/ui/Card.svelte'
   import Modal from '$lib/components/ui/Modal.svelte'
-  import type { Project, Person, SubmissionBundle, Document } from '$lib/stores/rnd/types'
+  import { employees, projects } from '$lib/stores/rd'
+  import { documents, expenseItems, submissionBundles } from '$lib/stores/rnd/mock-data'
+  import type { SubmissionBundle } from '$lib/stores/rnd/types'
+  import { onMount } from 'svelte'
 
   // Extended SubmissionBundle interface for this page
   interface ExtendedSubmissionBundle extends SubmissionBundle {
@@ -109,7 +110,7 @@
       filtered = filtered.filter(
         (bundle: any) =>
           bundle.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          bundle.period.toLowerCase().includes(searchTerm.toLowerCase())
+            bundle.period.toLowerCase().includes(searchTerm.toLowerCase())
       )
     }
 
@@ -194,7 +195,7 @@
     $submissionBundles.push(newBundle)
 
     // Simulate bundle generation
-    setTimeout(() => {
+    window.setTimeout(() => {
       generateBundleContent(newBundle.id)
     }, 2000)
 
@@ -229,7 +230,7 @@
       bundle.status = 'ready'
 
       // Simulate validation
-      setTimeout(() => {
+      window.setTimeout(() => {
         validateBundle(bundleId)
       }, 3000)
     }
@@ -262,7 +263,7 @@
     }
 
     // In real implementation, this would download the actual file
-    console.log('Downloading bundle:', bundle.fileUrl)
+    logger.log('Downloading bundle:', bundle.fileUrl)
     alert(`번들 다운로드: ${bundle.fileUrl}`)
   }
 
@@ -272,7 +273,7 @@
     if (bundle) {
       bundle.status = 'generating'
 
-      setTimeout(() => {
+      window.setTimeout(() => {
         validateBundle(bundleId)
       }, 2000)
     }
@@ -338,7 +339,7 @@
   }
 
   onMount(() => {
-    // Initialize dummy data if needed
+  // Initialize dummy data if needed
   })
 </script>
 
@@ -352,13 +353,13 @@
 
   <!-- Action Buttons -->
   <div class="flex gap-4 mb-6">
-    <button
+    <button type="button"
       onclick={() => (showCreateModal = true)}
       class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
     >
       번들 생성
     </button>
-    <button
+    <button type="button"
       onclick={() => alert('모든 프로젝트의 분기별 번들을 자동 생성합니다.')}
       class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
     >
@@ -370,7 +371,9 @@
   <div class="bg-white rounded-lg shadow-sm border p-4 mb-6">
     <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
       <div>
-        <label for="search" class="block text-sm font-medium text-gray-700 mb-1">검색</label>
+        <label
+          for="search"
+          class="block text-sm font-medium text-gray-700 mb-1">검색</label>
         <input
           id="search"
           type="text"
@@ -380,8 +383,10 @@
         />
       </div>
       <div>
-        <label for="project-filter" class="block text-sm font-medium text-gray-700 mb-1"
-          >프로젝트</label
+        <label
+          for="project-filter"
+          class="block text-sm font-medium text-gray-700 mb-1"
+        >프로젝트</label
         >
         <select
           id="project-filter"
@@ -395,7 +400,9 @@
         </select>
       </div>
       <div>
-        <label for="period-filter" class="block text-sm font-medium text-gray-700 mb-1">기간</label>
+        <label
+          for="period-filter"
+          class="block text-sm font-medium text-gray-700 mb-1">기간</label>
         <select
           id="period-filter"
           bind:value={selectedPeriod}
@@ -408,8 +415,10 @@
         </select>
       </div>
       <div>
-        <label for="rnd-sub-status-filter" class="block text-sm font-medium text-gray-700 mb-1"
-          >상태</label
+        <label
+          for="rnd-sub-status-filter"
+          class="block text-sm font-medium text-gray-700 mb-1"
+        >상태</label
         >
         <select
           id="rnd-sub-status-filter"
@@ -453,7 +462,7 @@
             </div>
           </div>
           <div class="flex gap-2 ml-4">
-            <button
+            <button type="button"
               onclick={() => showBundleDetail(bundle)}
               class="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500"
               aria-label="상세보기"
@@ -461,7 +470,7 @@
               상세보기
             </button>
             {#if bundle.status === 'uploaded'}
-              <button
+              <button type="button"
                 onclick={() => downloadBundle(bundle)}
                 class="px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
@@ -469,14 +478,14 @@
               </button>
             {/if}
             {#if bundle.status === 'failed' || bundle.status === 'ready'}
-              <button
+              <button type="button"
                 onclick={() => revalidateBundle(bundle.id)}
                 class="px-3 py-1 text-sm bg-yellow-100 text-yellow-700 rounded hover:bg-yellow-200 focus:outline-none focus:ring-2 focus:ring-yellow-500"
               >
                 재검증
               </button>
             {/if}
-            <button
+            <button type="button"
               onclick={() => showValidationDetails(bundle)}
               class="px-3 py-1 text-sm bg-green-100 text-green-700 rounded hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-green-500"
             >
@@ -552,7 +561,9 @@
 </div>
 
 <!-- Detail Modal -->
-<Modal bind:open={showDetailModal} title="번들 상세">
+<Modal
+  bind:open={showDetailModal}
+  title="번들 상세">
   {#if selectedBundle}
     <div class="space-y-6">
       <div>
@@ -617,7 +628,7 @@
 
       <div class="flex justify-end">
         {#if selectedBundle.status === 'uploaded'}
-          <button
+          <button type="button"
             onclick={() => selectedBundle && downloadBundle(selectedBundle)}
             class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
@@ -630,7 +641,9 @@
 </Modal>
 
 <!-- Validation Modal -->
-<Modal bind:open={showValidationModal} title="검증 상세">
+<Modal
+  bind:open={showValidationModal}
+  title="검증 상세">
   {#if selectedBundle}
     <div class="space-y-6">
       <div>
@@ -687,8 +700,7 @@
         <div class="grid grid-cols-2 gap-4 text-sm">
           <div>
             <span class="font-medium text-gray-700">검증 상태:</span>
-            <span
-              class="ml-2 {getValidationColor((selectedBundle as any).validationResults.valid)}"
+            <span class="ml-2 {getValidationColor((selectedBundle as any).validationResults.valid)}"
             >
               {(selectedBundle as any).validationResults.valid ? '통과' : '실패'}
             </span>
@@ -706,13 +718,13 @@
           <div>
             <span class="font-medium text-gray-700">에러 수:</span>
             <span class="ml-2 text-red-600"
-              >{(selectedBundle as any).validationResults.errors.length}개</span
+            >{(selectedBundle as any).validationResults.errors.length}개</span
             >
           </div>
           <div>
             <span class="font-medium text-gray-700">경고 수:</span>
             <span class="ml-2 text-yellow-600"
-              >{(selectedBundle as any).validationResults.warnings.length}개</span
+            >{(selectedBundle as any).validationResults.warnings.length}개</span
             >
           </div>
         </div>
@@ -720,7 +732,7 @@
 
       <div class="flex justify-end gap-2">
         {#if selectedBundle.status === 'failed' || selectedBundle.status === 'ready'}
-          <button
+          <button type="button"
             onclick={() => selectedBundle && revalidateBundle(selectedBundle.id)}
             class="px-4 py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-500"
           >
@@ -728,7 +740,7 @@
           </button>
         {/if}
         {#if selectedBundle.status === 'uploaded'}
-          <button
+          <button type="button"
             onclick={() => selectedBundle && downloadBundle(selectedBundle)}
             class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
@@ -741,12 +753,16 @@
 </Modal>
 
 <!-- Create Modal -->
-<Modal bind:open={showCreateModal} title="번들 생성">
+<Modal
+  bind:open={showCreateModal}
+  title="번들 생성">
   <div class="space-y-4">
     <div class="grid grid-cols-2 gap-4">
       <div>
-        <label for="create-project" class="block text-sm font-medium text-gray-700 mb-1"
-          >프로젝트 *</label
+        <label
+          for="create-project"
+          class="block text-sm font-medium text-gray-700 mb-1"
+        >프로젝트 *</label
         >
         <select
           id="create-project"
@@ -760,8 +776,10 @@
         </select>
       </div>
       <div>
-        <label for="create-period" class="block text-sm font-medium text-gray-700 mb-1"
-          >기간 *</label
+        <label
+          for="create-period"
+          class="block text-sm font-medium text-gray-700 mb-1"
+        >기간 *</label
         >
         <input
           id="create-period"
@@ -776,27 +794,41 @@
       <div class="block text-sm font-medium text-gray-700 mb-2">포함할 내용</div>
       <div class="space-y-2">
         <label class="flex items-center">
-          <input type="checkbox" bind:checked={formData.includeDocuments} class="mr-2" />
+          <input
+            type="checkbox"
+            bind:checked={formData.includeDocuments}
+            class="mr-2" />
           <span class="text-sm text-gray-700">문서 (계약서, 견적서 등)</span>
         </label>
         <label class="flex items-center">
-          <input type="checkbox" bind:checked={formData.includeExpenses} class="mr-2" />
+          <input
+            type="checkbox"
+            bind:checked={formData.includeExpenses}
+            class="mr-2" />
           <span class="text-sm text-gray-700">지출 내역</span>
         </label>
         <label class="flex items-center">
-          <input type="checkbox" bind:checked={formData.includeReports} class="mr-2" />
+          <input
+            type="checkbox"
+            bind:checked={formData.includeReports}
+            class="mr-2" />
           <span class="text-sm text-gray-700">진도보고서</span>
         </label>
         <label class="flex items-center">
-          <input type="checkbox" bind:checked={formData.includeResearchNotes} class="mr-2" />
+          <input
+            type="checkbox"
+            bind:checked={formData.includeResearchNotes}
+            class="mr-2" />
           <span class="text-sm text-gray-700">연구노트</span>
         </label>
       </div>
     </div>
     <div class="grid grid-cols-2 gap-4">
       <div>
-        <label for="create-compression" class="block text-sm font-medium text-gray-700 mb-1"
-          >압축 수준</label
+        <label
+          for="create-compression"
+          class="block text-sm font-medium text-gray-700 mb-1"
+        >압축 수준</label
         >
         <select
           id="create-compression"
@@ -810,19 +842,22 @@
       </div>
       <div class="flex items-end">
         <label class="flex items-center">
-          <input type="checkbox" bind:checked={formData.generateManifest} class="mr-2" />
+          <input
+            type="checkbox"
+            bind:checked={formData.generateManifest}
+            class="mr-2" />
           <span class="text-sm text-gray-700">매니페스트 생성</span>
         </label>
       </div>
     </div>
     <div class="flex justify-end gap-2 pt-4">
-      <button
+      <button type="button"
         onclick={() => (showCreateModal = false)}
         class="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500"
       >
         취소
       </button>
-      <button
+      <button type="button"
         onclick={createBundle}
         class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
       >

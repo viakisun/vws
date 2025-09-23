@@ -51,9 +51,13 @@
   }
 </script>
 
-<span class={getBadgeClasses()} {...restProps}>
+<span
+  class={getBadgeClasses()}
+  {...restProps}>
   {#if dot}
-    <span class="theme-badge-dot" style="background: {getColor()};"></span>
+    <span
+      class="theme-badge-dot"
+      style:background={getColor()}></span>
   {/if}
   <span class="theme-badge-content">
     {@render children?.()}

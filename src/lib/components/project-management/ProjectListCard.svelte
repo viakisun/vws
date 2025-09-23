@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
   import ProjectDetailView from '$lib/components/project-management/ProjectDetailView.svelte'
   import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
   import ThemeCard from '$lib/components/ui/ThemeCard.svelte'
@@ -130,8 +130,14 @@
         {/if}
       </div>
       <div class="flex gap-2">
-        <ThemeButton variant="primary" size="sm" onclick={handleCreateProject} disabled={loading}>
-          <PlusIcon size={16} class="mr-2" />
+        <ThemeButton
+          variant="primary"
+          size="sm"
+          onclick={handleCreateProject}
+          disabled={loading}>
+          <PlusIcon
+            size={16}
+            class="mr-2" />
           새 프로젝트
         </ThemeButton>
       </div>
@@ -156,8 +162,12 @@
         <h3 class="mt-2 text-sm font-medium text-gray-900">프로젝트가 없습니다</h3>
         <p class="mt-1 text-sm text-gray-500">새 프로젝트를 생성하여 시작하세요.</p>
         <div class="mt-6">
-          <ThemeButton variant="primary" onclick={handleCreateProject}>
-            <PlusIcon size={16} class="mr-2" />
+          <ThemeButton
+            variant="primary"
+            onclick={handleCreateProject}>
+            <PlusIcon
+              size={16}
+              class="mr-2" />
             첫 프로젝트 생성
           </ThemeButton>
         </div>

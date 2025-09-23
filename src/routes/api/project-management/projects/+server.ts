@@ -5,6 +5,7 @@ import { query } from '$lib/database/connection'
 import { transformArrayData, transformProjectData } from '$lib/utils/api-data-transformer'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger';
 
 // 프로젝트 목록 조회
 export const GET: RequestHandler = async ({ url }) => {
@@ -97,7 +98,7 @@ export const GET: RequestHandler = async ({ url }) => {
       total: transformedData.length
     })
   } catch (error) {
-    console.error('프로젝트 목록 조회 실패:', error)
+    logger.error('프로젝트 목록 조회 실패:', error)
     return json(
       {
         success: false,
@@ -178,7 +179,7 @@ export const POST: RequestHandler = async ({ request }) => {
       message: '프로젝트가 성공적으로 생성되었습니다.'
     })
   } catch (error) {
-    console.error('프로젝트 생성 실패:', error)
+    logger.error('프로젝트 생성 실패:', error)
     return json(
       {
         success: false,

@@ -1,13 +1,10 @@
 import { writable } from 'svelte/store'
 import type {
   SubmissionBundle,
-  Project,
-  Document,
-  ExpenseItem,
-  Milestone,
-  ResearchNote
+  Document
 } from './types'
 import { logAudit } from './core'
+import { logger } from '$lib/utils/logger';
 
 // 업로드 번들 관리
 export const submissionBundles = writable<SubmissionBundle[]>([])
@@ -80,7 +77,7 @@ async function generateBundleContent(
     // 10. 번들 상태 업데이트
     updateBundleStatus(bundleId, 'ready', bundleFile.url, manifestXml, checksum)
   } catch (error) {
-    console.error('Bundle generation failed:', error)
+    logger.error('Bundle generation failed:', error)
     updateBundleStatus(bundleId, 'failed', '', '', '')
   }
 }
@@ -398,7 +395,7 @@ export function downloadBundle(bundleId: string): void {
   }
 
   // 실제 구현에서는 파일 다운로드 처리
-  console.log(`Downloading bundle: ${bundle.fileUrl}`)
+  logger.log(`Downloading bundle: ${bundle.fileUrl}`)
 
   // 다운로드 이력 기록
   logAudit('download', 'submission_bundle', bundleId, { fileUrl: bundle.fileUrl }, {})
@@ -605,7 +602,7 @@ export function scheduleAutoBundleGeneration(
     createdAt: new Date().toISOString()
   }
 
-  console.log('Auto bundle generation scheduled:', scheduleConfig)
+  logger.log('Auto bundle generation scheduled:', scheduleConfig)
 }
 
 // 번들 내보내기

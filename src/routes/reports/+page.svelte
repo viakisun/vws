@@ -1,6 +1,8 @@
 <svelte:head>
   <title>Reports</title>
-  <meta name="description" content="Reports and analytics" />
+  <meta
+    name="description"
+    content="Reports and analytics" />
 </svelte:head>
 
 <div class="container mx-auto px-4 py-8">

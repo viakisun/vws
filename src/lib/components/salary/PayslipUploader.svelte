@@ -122,17 +122,25 @@
 </script>
 
 <!-- 업로드 버튼 -->
-<ThemeButton onclick={() => (showUploadModal = true)} class="bg-green-600 hover:bg-green-700">
-  <UploadIcon size={16} class="mr-2" />
+<ThemeButton
+  onclick={() => (showUploadModal = true)}
+  class="bg-green-600 hover:bg-green-700">
+  <UploadIcon
+    size={16}
+    class="mr-2" />
   엑셀 일괄 업로드
 </ThemeButton>
 
 <!-- 업로드 모달 -->
-<ThemeModal bind:open={showUploadModal} size="lg">
+<ThemeModal
+  bind:open={showUploadModal}
+  size="lg">
   <div class="p-6">
     <div class="flex items-center justify-between mb-6">
       <h2 class="text-xl font-semibold text-gray-900">급여명세서 엑셀 업로드</h2>
-      <button onclick={closeUploadModal} class="p-2 text-gray-400 hover:text-gray-600">
+      <button type="button"
+        onclick={closeUploadModal}
+        class="p-2 text-gray-400 hover:text-gray-600">
         <XCircleIcon size={20} />
       </button>
     </div>
@@ -141,13 +149,17 @@
       <!-- 기간 선택 -->
       <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
         <h3 class="text-lg font-semibold text-blue-800 mb-3 flex items-center">
-          <CalendarIcon size={20} class="mr-2" />
+          <CalendarIcon
+            size={20}
+            class="mr-2" />
           급여 기간 선택
         </h3>
         <div class="grid grid-cols-2 gap-4">
           <div>
-            <label for="upload-year" class="block text-sm font-medium text-blue-700 mb-2"
-              >연도</label
+            <label
+              for="upload-year"
+              class="block text-sm font-medium text-blue-700 mb-2"
+            >연도</label
             >
             <select
               id="upload-year"
@@ -160,7 +172,9 @@
             </select>
           </div>
           <div>
-            <label for="upload-month" class="block text-sm font-medium text-blue-700 mb-2">월</label
+            <label
+              for="upload-month"
+              class="block text-sm font-medium text-blue-700 mb-2">월</label
             >
             <select
               id="upload-month"
@@ -178,7 +192,9 @@
       <!-- 템플릿 다운로드 -->
       <div class="bg-amber-50 border border-amber-200 rounded-lg p-4">
         <h3 class="text-lg font-semibold text-amber-800 mb-3 flex items-center">
-          <FileSpreadsheetIcon size={20} class="mr-2" />
+          <FileSpreadsheetIcon
+            size={20}
+            class="mr-2" />
           엑셀 템플릿 다운로드
         </h3>
         <p class="text-amber-700 mb-3">
@@ -189,7 +205,9 @@
           variant="ghost"
           class="border-amber-300 text-amber-700 hover:bg-amber-100"
         >
-          <DownloadIcon size={16} class="mr-2" />
+          <DownloadIcon
+            size={16}
+            class="mr-2" />
           템플릿 다운로드
         </ThemeButton>
       </div>
@@ -197,12 +215,16 @@
       <!-- 파일 업로드 -->
       <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
         <h3 class="text-lg font-semibold text-gray-800 mb-3 flex items-center">
-          <UploadIcon size={20} class="mr-2" />
+          <UploadIcon
+            size={20}
+            class="mr-2" />
           엑셀 파일 업로드
         </h3>
         <div class="space-y-4">
           <div>
-            <label for="file-upload" class="block text-sm font-medium text-gray-700 mb-2">
+            <label
+              for="file-upload"
+              class="block text-sm font-medium text-gray-700 mb-2">
               파일 선택
             </label>
             <input
@@ -216,14 +238,18 @@
 
           {#if selectedFile}
             <div class="flex items-center p-3 bg-green-50 border border-green-200 rounded-md">
-              <CheckCircleIcon size={20} class="text-green-600 mr-2" />
+              <CheckCircleIcon
+                size={20}
+                class="text-green-600 mr-2" />
               <span class="text-green-700 font-medium">{selectedFile.name}</span>
             </div>
           {/if}
 
           <div class="bg-yellow-50 border border-yellow-200 rounded-md p-3">
             <div class="flex items-start">
-              <AlertCircleIcon size={20} class="text-yellow-600 mr-2 mt-0.5" />
+              <AlertCircleIcon
+                size={20}
+                class="text-yellow-600 mr-2 mt-0.5" />
               <div class="text-yellow-700 text-sm">
                 <p class="font-medium mb-1">주의사항:</p>
                 <ul class="list-disc list-inside space-y-1">
@@ -239,7 +265,9 @@
 
       <!-- 액션 버튼 -->
       <div class="flex justify-end space-x-3">
-        <ThemeButton variant="ghost" onclick={closeUploadModal}>취소</ThemeButton>
+        <ThemeButton
+          variant="ghost"
+          onclick={closeUploadModal}>취소</ThemeButton>
         <ThemeButton
           onclick={uploadFile}
           disabled={!selectedFile || isUploading}
@@ -249,7 +277,9 @@
             <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
             업로드 중...
           {:else}
-            <UploadIcon size={16} class="mr-2" />
+            <UploadIcon
+              size={16}
+              class="mr-2" />
             업로드
           {/if}
         </ThemeButton>
@@ -259,11 +289,15 @@
 </ThemeModal>
 
 <!-- 결과 모달 -->
-<ThemeModal bind:open={showResultModal} size="xl">
+<ThemeModal
+  bind:open={showResultModal}
+  size="xl">
   <div class="p-6">
     <div class="flex items-center justify-between mb-6">
       <h2 class="text-xl font-semibold text-gray-900">업로드 결과</h2>
-      <button onclick={closeResultModal} class="p-2 text-gray-400 hover:text-gray-600">
+      <button type="button"
+        onclick={closeResultModal}
+        class="p-2 text-gray-400 hover:text-gray-600">
         <XCircleIcon size={20} />
       </button>
     </div>
@@ -273,17 +307,23 @@
         <!-- 요약 정보 -->
         <div class="grid grid-cols-3 gap-4">
           <div class="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
-            <CheckCircleIcon size={32} class="text-green-600 mx-auto mb-2" />
+            <CheckCircleIcon
+              size={32}
+              class="text-green-600 mx-auto mb-2" />
             <div class="text-2xl font-bold text-green-700">{uploadResult.results.success}</div>
             <div class="text-sm text-green-600">성공</div>
           </div>
           <div class="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
-            <XCircleIcon size={32} class="text-red-600 mx-auto mb-2" />
+            <XCircleIcon
+              size={32}
+              class="text-red-600 mx-auto mb-2" />
             <div class="text-2xl font-bold text-red-700">{uploadResult.results.failed}</div>
             <div class="text-sm text-red-600">실패</div>
           </div>
           <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
-            <FileSpreadsheetIcon size={32} class="text-blue-600 mx-auto mb-2" />
+            <FileSpreadsheetIcon
+              size={32}
+              class="text-blue-600 mx-auto mb-2" />
             <div class="text-2xl font-bold text-blue-700">
               {uploadResult.results.success + uploadResult.results.failed}
             </div>
@@ -328,11 +368,11 @@
                       <td class="px-3 py-2">
                         {#if detail.status === 'success'}
                           <span class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs"
-                            >성공</span
+                          >성공</span
                           >
                         {:else}
                           <span class="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs"
-                            >실패</span
+                          >실패</span
                           >
                         {/if}
                       </td>
@@ -356,7 +396,9 @@
 
         <!-- 액션 버튼 -->
         <div class="flex justify-end">
-          <ThemeButton onclick={closeResultModal} class="bg-blue-600 hover:bg-blue-700">
+          <ThemeButton
+            onclick={closeResultModal}
+            class="bg-blue-600 hover:bg-blue-700">
             확인
           </ThemeButton>
         </div>

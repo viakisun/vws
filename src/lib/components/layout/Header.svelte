@@ -1,26 +1,27 @@
+import { logger } from '$lib/utils/logger';
 <script lang="ts">
-  import { onMount } from 'svelte'
-  import { themeManager, isDark } from '$lib/stores/theme'
-  import {
-    SearchIcon,
-    BellIcon,
-    SunIcon,
-    MoonIcon,
-    SettingsIcon,
-    LogOutIcon,
-    UserIcon,
-    BuildingIcon
-  } from '@lucide/svelte'
-  import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
   import ThemeAvatar from '$lib/components/ui/ThemeAvatar.svelte'
+  import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
   import ThemeDropdown from '$lib/components/ui/ThemeDropdown.svelte'
+  import { isDark, themeManager } from '$lib/stores/theme'
+  import {
+    BellIcon,
+    BuildingIcon,
+    LogOutIcon,
+    MoonIcon,
+    SearchIcon,
+    SettingsIcon,
+    SunIcon,
+    UserIcon
+  } from '@lucide/svelte'
+  import { onMount } from 'svelte'
 
   // Search and notification state
   let searchQuery = $state('')
   let showNotifications = $state(false)
   let showUserMenu = $state(false)
-  let notificationsContainer: HTMLElement
-  let userMenuContainer: HTMLElement
+  let notificationsContainer: HTMLElement | undefined
+  let userMenuContainer: HTMLElement | undefined
   let unreadCount = $state(3)
 
   // Company information
@@ -41,19 +42,25 @@
 
   // Close dropdowns when clicking outside
   function handleClickOutside(event: MouseEvent) {
-    if (notificationsContainer && !notificationsContainer.contains(event.target as Node)) {
+    if (notificationsContainer && !notificationsContainer.contains(event.target as HTMLElement)) {
       showNotifications = false
     }
-    if (userMenuContainer && !userMenuContainer.contains(event.target as Node)) {
+    if (userMenuContainer && !userMenuContainer.contains(event.target as HTMLElement)) {
       showUserMenu = false
     }
   }
+
+  onMount(() => {
+    fetchCompanyName()
+    document.addEventListener('click', handleClickOutside)
+    return () => document.removeEventListener('click', handleClickOutside)
+  })
 
   // 회사 정보 가져오기
   async function fetchCompanyName() {
     try {
       companyLoading = true
-      const response = await fetch('/api/company')
+      const response = await window.fetch('/api/company')
       if (response.ok) {
         const result = await response.json()
         if (result.data && result.data.name) {
@@ -61,33 +68,33 @@
         }
       }
     } catch (err) {
-      console.error('Error fetching company name:', err)
+      logger.error('Error fetching company name:', err)
     } finally {
       companyLoading = false
     }
   }
-
-  onMount(() => {
-    fetchCompanyName()
-  })
 </script>
 
 <header
   class="h-16 flex items-center justify-between px-6 border-b"
-  style="background: var(--color-surface); border-color: var(--color-border);"
+  style:background="var(--color-surface)"
+  style:border-color="var(--color-border)"
 >
   <!-- Left Section: Logo & Brand -->
   <div class="flex items-center space-x-4">
     <!-- Logo -->
     <div class="flex items-center space-x-3">
-      <div
-        class="h-10 w-10 rounded-xl flex items-center justify-center bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 shadow-lg"
+      <div class="h-10 w-10 rounded-xl flex items-center justify-center bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 shadow-lg"
       >
         <BuildingIcon class="h-6 w-6 text-white" />
       </div>
       <div class="flex flex-col">
-        <span class="text-lg font-bold" style="color: var(--color-text);"> WorkStream </span>
-        <span class="text-xs" style="color: var(--color-text-secondary);">
+        <span
+          class="text-lg font-bold"
+          style:color="var(--color-text)"> WorkStream </span>
+        <span
+          class="text-xs"
+          style:color="var(--color-text-secondary)">
           {companyLoading ? '로딩 중...' : companyName}
         </span>
       </div>
@@ -139,7 +146,9 @@
     </ThemeButton>
 
     <!-- Notifications -->
-    <div class="relative" bind:this={notificationsContainer}>
+    <div
+      class="relative"
+      bind:this={notificationsContainer}>
       <ThemeButton
         variant="ghost"
         size="sm"
@@ -156,8 +165,7 @@
               : 'group-hover:scale-110'}"
           />
           {#if unreadCount > 0}
-            <span
-              class="absolute -top-2 -right-2 h-6 w-6 bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs rounded-full flex items-center justify-center font-bold shadow-lg animate-bounce"
+            <span class="absolute -top-2 -right-2 h-6 w-6 bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs rounded-full flex items-center justify-center font-bold shadow-lg animate-bounce"
             >
               {unreadCount > 9 ? '9+' : unreadCount}
             </span>
@@ -172,8 +180,7 @@
           open={showNotifications}
           onchange={open => (showNotifications = open)}
         >
-          <div
-            class="px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-700"
+          <div class="px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-700"
           >
             <div class="flex items-center justify-between">
               <h3 class="text-lg font-semibold text-gray-900 dark:text-white">알림</h3>
@@ -182,16 +189,13 @@
             </div>
           </div>
           <div class="max-h-80 overflow-y-auto">
-            <div
-              class="px-6 py-4 hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 dark:hover:from-gray-800 dark:hover:to-gray-700 border-b border-gray-100 transition-all duration-200 cursor-pointer group"
+            <div class="px-6 py-4 hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 dark:hover:from-gray-800 dark:hover:to-gray-700 border-b border-gray-100 transition-all duration-200 cursor-pointer group"
             >
               <div class="flex items-start space-x-3">
-                <div
-                  class="flex-shrink-0 w-2 h-2 bg-blue-500 rounded-full mt-2 animate-pulse"
+                <div class="flex-shrink-0 w-2 h-2 bg-blue-500 rounded-full mt-2 animate-pulse"
                 ></div>
                 <div class="flex-1 min-w-0">
-                  <p
-                    class="text-sm font-medium text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors"
+                  <p class="text-sm font-medium text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors"
                   >
                     새로운 프로젝트 승인 요청
                   </p>
@@ -202,14 +206,12 @@
                 </div>
               </div>
             </div>
-            <div
-              class="px-6 py-4 hover:bg-gradient-to-r hover:from-orange-50 hover:to-red-50 dark:hover:from-gray-800 dark:hover:to-gray-700 border-b border-gray-100 transition-all duration-200 cursor-pointer group"
+            <div class="px-6 py-4 hover:bg-gradient-to-r hover:from-orange-50 hover:to-red-50 dark:hover:from-gray-800 dark:hover:to-gray-700 border-b border-gray-100 transition-all duration-200 cursor-pointer group"
             >
               <div class="flex items-start space-x-3">
                 <div class="flex-shrink-0 w-2 h-2 bg-orange-500 rounded-full mt-2"></div>
                 <div class="flex-1 min-w-0">
-                  <p
-                    class="text-sm font-medium text-gray-900 dark:text-white group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors"
+                  <p class="text-sm font-medium text-gray-900 dark:text-white group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors"
                   >
                     월간 보고서 제출 마감
                   </p>
@@ -220,14 +222,12 @@
                 </div>
               </div>
             </div>
-            <div
-              class="px-6 py-4 hover:bg-gradient-to-r hover:from-green-50 hover:to-emerald-50 dark:hover:from-gray-800 dark:hover:to-gray-700 transition-all duration-200 cursor-pointer group"
+            <div class="px-6 py-4 hover:bg-gradient-to-r hover:from-green-50 hover:to-emerald-50 dark:hover:from-gray-800 dark:hover:to-gray-700 transition-all duration-200 cursor-pointer group"
             >
               <div class="flex items-start space-x-3">
                 <div class="flex-shrink-0 w-2 h-2 bg-green-500 rounded-full mt-2"></div>
                 <div class="flex-1 min-w-0">
-                  <p
-                    class="text-sm font-medium text-gray-900 dark:text-white group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors"
+                  <p class="text-sm font-medium text-gray-900 dark:text-white group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors"
                   >
                     팀 회의 일정 변경
                   </p>
@@ -241,6 +241,7 @@
           </div>
           <div class="px-6 py-3 border-t border-gray-100 bg-gray-50 dark:bg-gray-800">
             <button
+              type="button"
               class="w-full text-center text-sm font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
             >
               모든 알림 보기
@@ -251,7 +252,9 @@
     </div>
 
     <!-- User Profile -->
-    <div class="relative" bind:this={userMenuContainer}>
+    <div
+      class="relative"
+      bind:this={userMenuContainer}>
       <ThemeButton
         variant="ghost"
         size="sm"
@@ -262,22 +265,20 @@
       >
         <div class="relative">
           <ThemeAvatar
+            src=""
             size="md"
             fallback="김"
             class="ring-2 ring-transparent group-hover:ring-blue-200 dark:group-hover:ring-blue-800 transition-all duration-300"
           />
-          <div
-            class="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white dark:border-gray-900 rounded-full animate-pulse"
+          <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white dark:border-gray-900 rounded-full animate-pulse"
           ></div>
         </div>
         <div class="text-left hidden sm:block">
-          <p
-            class="text-sm font-semibold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors"
+          <p class="text-sm font-semibold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors"
           >
             김개발
           </p>
-          <p
-            class="text-xs text-gray-500 dark:text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors"
+          <p class="text-xs text-gray-500 dark:text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors"
           >
             개발팀 • 온라인
           </p>
@@ -291,18 +292,17 @@
           open={showUserMenu}
           onchange={open => (showUserMenu = open)}
         >
-          <div
-            class="px-6 py-5 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-700"
+          <div class="px-6 py-5 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-700"
           >
             <div class="flex items-center space-x-4">
               <div class="relative">
                 <ThemeAvatar
+                  src=""
                   size="lg"
                   fallback="김"
                   class="ring-4 ring-white dark:ring-gray-700 shadow-lg"
                 />
-                <div
-                  class="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 border-2 border-white dark:border-gray-700 rounded-full"
+                <div class="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 border-2 border-white dark:border-gray-700 rounded-full"
                 ></div>
               </div>
               <div class="flex-1 min-w-0">
@@ -317,8 +317,7 @@
               href="/profile"
               class="flex items-center px-6 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 dark:hover:from-gray-800 dark:hover:to-gray-700 transition-all duration-200 group"
             >
-              <div
-                class="flex items-center justify-center w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-900 mr-3 group-hover:bg-blue-200 dark:group-hover:bg-blue-800 transition-colors"
+              <div class="flex items-center justify-center w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-900 mr-3 group-hover:bg-blue-200 dark:group-hover:bg-blue-800 transition-colors"
               >
                 <UserIcon class="h-4 w-4 text-blue-600 dark:text-blue-400" />
               </div>
@@ -331,8 +330,7 @@
               href="/settings"
               class="flex items-center px-6 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-gray-50 hover:to-slate-50 dark:hover:from-gray-800 dark:hover:to-gray-700 transition-all duration-200 group"
             >
-              <div
-                class="flex items-center justify-center w-8 h-8 rounded-lg bg-gray-100 dark:bg-gray-700 mr-3 group-hover:bg-gray-200 dark:group-hover:bg-gray-600 transition-colors"
+              <div class="flex items-center justify-center w-8 h-8 rounded-lg bg-gray-100 dark:bg-gray-700 mr-3 group-hover:bg-gray-200 dark:group-hover:bg-gray-600 transition-colors"
               >
                 <SettingsIcon class="h-4 w-4 text-gray-600 dark:text-gray-400" />
               </div>
@@ -346,8 +344,7 @@
               href="/logout"
               class="flex items-center px-6 py-3 text-sm text-red-600 dark:text-red-400 hover:bg-gradient-to-r hover:from-red-50 hover:to-pink-50 dark:hover:from-red-900/20 dark:hover:to-pink-900/20 transition-all duration-200 group"
             >
-              <div
-                class="flex items-center justify-center w-8 h-8 rounded-lg bg-red-100 dark:bg-red-900/30 mr-3 group-hover:bg-red-200 dark:group-hover:bg-red-900/50 transition-colors"
+              <div class="flex items-center justify-center w-8 h-8 rounded-lg bg-red-100 dark:bg-red-900/30 mr-3 group-hover:bg-red-200 dark:group-hover:bg-red-900/50 transition-colors"
               >
                 <LogOutIcon class="h-4 w-4 text-red-600 dark:text-red-400" />
               </div>

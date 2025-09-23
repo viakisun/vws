@@ -5,6 +5,7 @@ import { extname, join } from 'path'
 import { AICodingValidator } from './ai-coding-guidelines'
 import { SafeChangeManager } from './safe-change-manager'
 import { SchemaValidator } from './schema-validation'
+import { logger } from '$lib/utils/logger';
 
 // 파일 변경 감지 및 자동 검증
 export class AutoValidationHooks {
@@ -18,11 +19,11 @@ export class AutoValidationHooks {
    */
   static enable(): void {
     if (this.isEnabled) {
-      console.log('⚠️ [자동 검증] 이미 활성화되어 있습니다.')
+      logger.log('⚠️ [자동 검증] 이미 활성화되어 있습니다.')
       return
     }
 
-    console.log('🚀 [자동 검증] 시스템 활성화 시작')
+    logger.log('🚀 [자동 검증] 시스템 활성화 시작')
 
     // 파일 변경 감지 시작
     this.startFileWatching()
@@ -34,7 +35,7 @@ export class AutoValidationHooks {
     this.setupIDEIntegration()
 
     this.isEnabled = true
-    console.log('✅ [자동 검증] 시스템 활성화 완료')
+    logger.log('✅ [자동 검증] 시스템 활성화 완료')
   }
 
   /**
@@ -42,17 +43,17 @@ export class AutoValidationHooks {
    */
   static disable(): void {
     if (!this.isEnabled) {
-      console.log('⚠️ [자동 검증] 이미 비활성화되어 있습니다.')
+      logger.log('⚠️ [자동 검증] 이미 비활성화되어 있습니다.')
       return
     }
 
-    console.log('🛑 [자동 검증] 시스템 비활성화 시작')
+    logger.log('🛑 [자동 검증] 시스템 비활성화 시작')
 
     // 파일 감지 중지
     this.stopFileWatching()
 
     this.isEnabled = false
-    console.log('✅ [자동 검증] 시스템 비활성화 완료')
+    logger.log('✅ [자동 검증] 시스템 비활성화 완료')
   }
 
   /**
@@ -69,9 +70,9 @@ export class AutoValidationHooks {
         })
 
         this.watchers.set(dir, watcher)
-        console.log(`👀 [파일 감지] ${dir} 감시 시작`)
+        logger.log(`👀 [파일 감지] ${dir} 감시 시작`)
       } catch (error) {
-        console.error(`❌ [파일 감지] ${dir} 감시 실패:`, error)
+        logger.error(`❌ [파일 감지] ${dir} 감시 실패:`, error)
       }
     }
   }
@@ -82,7 +83,7 @@ export class AutoValidationHooks {
   private static stopFileWatching(): void {
     for (const [dir, watcher] of this.watchers) {
       watcher.close()
-      console.log(`👀 [파일 감지] ${dir} 감시 중지`)
+      logger.log(`👀 [파일 감지] ${dir} 감시 중지`)
     }
     this.watchers.clear()
   }
@@ -91,7 +92,7 @@ export class AutoValidationHooks {
    * 파일 변경 처리
    */
   private static async handleFileChange(eventType: string, filePath: string): Promise<void> {
-    console.log(`📝 [파일 변경] ${eventType}: ${filePath}`)
+    logger.log(`📝 [파일 변경] ${eventType}: ${filePath}`)
 
     try {
       // 1. 파일 내용 읽기
@@ -103,7 +104,7 @@ export class AutoValidationHooks {
       // 3. 검증 결과 처리
       await this.handleValidationResult(filePath, validation)
     } catch (error) {
-      console.error(`❌ [파일 변경 처리] ${filePath} 오류:`, error)
+      logger.error(`❌ [파일 변경 처리] ${filePath} 오류:`, error)
     }
   }
 
@@ -136,7 +137,7 @@ export class AutoValidationHooks {
       // 3. 의존성 분석
       results.dependency = await this.analyzeDependencies(filePath)
     } catch (error) {
-      console.error(`❌ [자동 검증] ${filePath} 오류:`, error)
+      logger.error(`❌ [자동 검증] ${filePath} 오류:`, error)
     }
 
     return results
@@ -150,20 +151,20 @@ export class AutoValidationHooks {
     const hasWarnings = validation.coding?.warnings?.length > 0
 
     if (hasErrors) {
-      console.log(`❌ [검증 실패] ${filePath}`)
+      logger.log(`❌ [검증 실패] ${filePath}`)
       validation.coding.errors.forEach((error: string) => {
-        console.log(`  - ${error}`)
+        logger.log(`  - ${error}`)
       })
 
       // 자동 수정 시도
       await this.attemptAutoFix(filePath, validation)
     } else if (hasWarnings) {
-      console.log(`⚠️ [검증 경고] ${filePath}`)
+      logger.log(`⚠️ [검증 경고] ${filePath}`)
       validation.coding.warnings.forEach((warning: string) => {
-        console.log(`  - ${warning}`)
+        logger.log(`  - ${warning}`)
       })
     } else {
-      console.log(`✅ [검증 통과] ${filePath}`)
+      logger.log(`✅ [검증 통과] ${filePath}`)
     }
   }
 
@@ -171,7 +172,7 @@ export class AutoValidationHooks {
    * 자동 수정 시도
    */
   private static async attemptAutoFix(filePath: string, validation: any): Promise<void> {
-    console.log(`🔧 [자동 수정] ${filePath} 시도`)
+    logger.log(`🔧 [자동 수정] ${filePath} 시도`)
 
     try {
       // 변경 계획 생성
@@ -180,7 +181,7 @@ export class AutoValidationHooks {
       // 자동 수정 로직 실행
       await this.executeAutoFix(plan, validation)
     } catch (error) {
-      console.error(`❌ [자동 수정] ${filePath} 실패:`, error)
+      logger.error(`❌ [자동 수정] ${filePath} 실패:`, error)
     }
   }
 
@@ -190,7 +191,7 @@ export class AutoValidationHooks {
   private static async executeAutoFix(plan: any, validation: any): Promise<void> {
     // 실제 자동 수정 로직은 여기에 구현
     // 예: 코드 포맷팅, 타입 수정, import 정리 등
-    console.log(`🔧 [자동 수정] 계획 ID: ${plan.id}`)
+    logger.log(`🔧 [자동 수정] 계획 ID: ${plan.id}`)
   }
 
   /**
@@ -209,7 +210,7 @@ export class AutoValidationHooks {
    * Git 훅 설정
    */
   private static setupGitHooks(): void {
-    console.log('🔗 [Git 훅] 설정 시작')
+    logger.log('🔗 [Git 훅] 설정 시작')
 
     // pre-commit 훅 설정
     const preCommitHook = `#!/bin/sh
@@ -230,9 +231,9 @@ echo "✅ [Git 훅] 커밋 후 검증 완료"
     try {
       writeFileSync('.git/hooks/pre-commit', preCommitHook)
       writeFileSync('.git/hooks/post-commit', postCommitHook)
-      console.log('✅ [Git 훅] 설정 완료')
+      logger.log('✅ [Git 훅] 설정 완료')
     } catch (error) {
-      console.error('❌ [Git 훅] 설정 실패:', error)
+      logger.error('❌ [Git 훅] 설정 실패:', error)
     }
   }
 
@@ -240,7 +241,7 @@ echo "✅ [Git 훅] 커밋 후 검증 완료"
    * IDE 확장 프로그램 연동
    */
   private static setupIDEIntegration(): void {
-    console.log('🔌 [IDE 연동] 설정 시작')
+    logger.log('🔌 [IDE 연동] 설정 시작')
 
     // VS Code 설정
     const vscodeSettings = {
@@ -257,9 +258,9 @@ echo "✅ [Git 훅] 커밋 후 검증 완료"
 
     try {
       writeFileSync('.vscode/settings.json', JSON.stringify(vscodeSettings, null, 2))
-      console.log('✅ [IDE 연동] VS Code 설정 완료')
+      logger.log('✅ [IDE 연동] VS Code 설정 완료')
     } catch (error) {
-      console.error('❌ [IDE 연동] 설정 실패:', error)
+      logger.error('❌ [IDE 연동] 설정 실패:', error)
     }
   }
 
@@ -267,7 +268,7 @@ echo "✅ [Git 훅] 커밋 후 검증 완료"
    * 커밋 전 검증 실행
    */
   static async runPreCommitValidation(): Promise<boolean> {
-    console.log('🔍 [커밋 전 검증] 시작')
+    logger.log('🔍 [커밋 전 검증] 시작')
 
     try {
       // 변경된 파일들 검증
@@ -279,20 +280,20 @@ echo "✅ [Git 훅] 커밋 후 검증 완료"
         const validation = await this.runAutoValidation(file, content)
 
         if (validation.coding?.errors?.length > 0) {
-          console.log(`❌ [커밋 전 검증] ${file} 실패`)
+          logger.log(`❌ [커밋 전 검증] ${file} 실패`)
           allValid = false
         }
       }
 
       if (allValid) {
-        console.log('✅ [커밋 전 검증] 모든 파일 통과')
+        logger.log('✅ [커밋 전 검증] 모든 파일 통과')
       } else {
-        console.log('❌ [커밋 전 검증] 일부 파일 실패 - 커밋 중단')
+        logger.log('❌ [커밋 전 검증] 일부 파일 실패 - 커밋 중단')
       }
 
       return allValid
     } catch (error) {
-      console.error('❌ [커밋 전 검증] 오류:', error)
+      logger.error('❌ [커밋 전 검증] 오류:', error)
       return false
     }
   }

@@ -3,6 +3,7 @@ import { getCurrentDateForAPI } from '$lib/utils/date-calculator'
 import { calculateMonthlySalary } from '$lib/utils/salary-calculator'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger';
 
 interface ValidationResult {
   isValid: boolean
@@ -45,7 +46,7 @@ export const GET: RequestHandler = async ({ url }) => {
       )
     }
 
-    console.log(`🔍 [참여연구원 검증] 프로젝트 ${projectId} 검증 시작`)
+    logger.log(`🔍 [참여연구원 검증] 프로젝트 ${projectId} 검증 시작`)
 
     // 1. 프로젝트 기본 정보 조회
     const projectResult = await query(
@@ -93,12 +94,12 @@ export const GET: RequestHandler = async ({ url }) => {
     )
 
     const members = membersResult.rows
-    console.log(`📋 참여연구원 ${members.length}명 검증 시작`)
+    logger.log(`📋 참여연구원 ${members.length}명 검증 시작`)
 
     // 3. 검증 실행
     const validationResult = await performValidation(project, members)
 
-    console.log(
+    logger.log(
       `✅ [참여연구원 검증] 완료 - ${validationResult.isValid ? '✅ 통과' : '❌ 실패'} (${validationResult.issues.length}개 이슈)`
     )
 
@@ -114,7 +115,7 @@ export const GET: RequestHandler = async ({ url }) => {
       }
     })
   } catch (error) {
-    console.error('참여연구원 검증 오류:', error)
+    logger.error('참여연구원 검증 오류:', error)
     return json(
       {
         success: false,
@@ -141,7 +142,7 @@ export const POST: RequestHandler = async ({ request }) => {
       )
     }
 
-    console.log(`🔧 [참여연구원 자동 수정] 프로젝트 ${projectId} 수정 시작`)
+    logger.log(`🔧 [참여연구원 자동 수정] 프로젝트 ${projectId} 수정 시작`)
 
     const appliedFixes = []
 
@@ -173,7 +174,7 @@ export const POST: RequestHandler = async ({ request }) => {
             })
         }
       } catch (fixError) {
-        console.error(`수정 실패 (${fix.type}):`, fixError)
+        logger.error(`수정 실패 (${fix.type}):`, fixError)
         appliedFixes.push({
           memberId: fix.memberId,
           type: fix.type,
@@ -184,7 +185,7 @@ export const POST: RequestHandler = async ({ request }) => {
       }
     }
 
-    console.log(
+    logger.log(
       `✅ [참여연구원 자동 수정] 완료 - ${appliedFixes.filter(f => f.success).length}/${appliedFixes.length}개 성공`
     )
 
@@ -200,7 +201,7 @@ export const POST: RequestHandler = async ({ request }) => {
       }
     })
   } catch (error) {
-    console.error('자동 수정 오류:', error)
+    logger.error('자동 수정 오류:', error)
     return json(
       {
         success: false,

@@ -2,13 +2,11 @@
   import {
     salaryStatistics,
     departmentSalaryStats,
-    currentPeriod,
     loadPayslips,
-    isLoading,
     error
   } from '$lib/stores/salary/salary-store'
   import { formatCurrency, formatPercentage } from '$lib/utils/format'
-  import { TrendingUpIcon, TrendingDownIcon, AlertCircleIcon } from '@lucide/svelte'
+  import { AlertCircleIcon } from '@lucide/svelte'
 
   let mounted = $state(false)
 
@@ -72,7 +70,9 @@
   {:else if $error}
     <div class="bg-red-50 border border-red-200 rounded-lg p-4">
       <div class="flex items-center">
-        <AlertCircleIcon size={20} class="text-red-600 mr-2" />
+        <AlertCircleIcon
+          size={20}
+          class="text-red-600 mr-2" />
         <span class="text-red-800">{$error}</span>
       </div>
     </div>
@@ -141,8 +141,8 @@
                 {formatPercentage(
                   $salaryStatistics.currentMonth.totalGrossSalary > 0
                     ? ($salaryStatistics.currentMonth.totalDeductions /
-                        $salaryStatistics.currentMonth.totalGrossSalary) *
-                        100
+                      $salaryStatistics.currentMonth.totalGrossSalary) *
+                      100
                     : 0
                 )}
               </span>
@@ -150,11 +150,11 @@
             <div class="w-full bg-gray-200 rounded-full h-2">
               <div
                 class="bg-red-500 h-2 rounded-full transition-all duration-300"
-                style="width: {Math.min(
+                style:width="{Math.min(
                   $salaryStatistics.currentMonth.totalGrossSalary > 0
                     ? ($salaryStatistics.currentMonth.totalDeductions /
-                        $salaryStatistics.currentMonth.totalGrossSalary) *
-                        100
+                      $salaryStatistics.currentMonth.totalGrossSalary) *
+                      100
                     : 0,
                   100
                 )}%"
@@ -169,34 +169,29 @@
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
       <div class="flex items-center justify-between mb-4">
         <h3 class="text-lg font-semibold text-gray-900">최근 급여 이력</h3>
-        <button class="text-sm text-blue-600 hover:text-blue-800 font-medium"> 전체 보기 </button>
+        <button type="button" class="text-sm text-blue-600 hover:text-blue-800 font-medium"> 전체 보기 </button>
       </div>
       <div class="overflow-x-auto">
         <table class="min-w-full divide-y divide-gray-200">
           <thead class="bg-gray-50">
             <tr>
-              <th
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
               >
                 기간
               </th>
-              <th
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
               >
                 직원 수
               </th>
-              <th
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
               >
                 총 지급액
               </th>
-              <th
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
               >
                 실지급액
               </th>
-              <th
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
               >
                 상태
               </th>

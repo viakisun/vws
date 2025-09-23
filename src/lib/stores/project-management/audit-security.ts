@@ -1,5 +1,6 @@
 import { writable } from 'svelte/store'
-import type { AuditLog, Person, Document } from './types'
+import type { AuditLog, Person } from './types'
+import { logger } from '$lib/utils/logger';
 
 // 감사 로그 관리
 export const auditLogs = writable<AuditLog[]>([])
@@ -332,7 +333,7 @@ export function logSecurityEvent(
   }
 
   // 보안 로그는 별도 스토어에 저장 (실제 구현)
-  console.log('Security Event:', securityLog)
+  logger.log('Security Event:', securityLog)
 
   // 감사 로그에도 기록
   createAuditLog(userId, `security_${eventType}`, 'security', securityLog.id, {}, details, {

@@ -1,4 +1,5 @@
 import { Pool } from 'pg'
+import { logger } from '$lib/utils/logger';
 
 // 데이터베이스 연결 풀
 const pool = new Pool({
@@ -393,7 +394,7 @@ export class SchemaValidator {
 
       return results
     } catch (error) {
-      console.error('스키마 검증 중 오류:', error)
+      logger.error('스키마 검증 중 오류:', error)
       throw error
     }
   }
@@ -503,7 +504,7 @@ export class SchemaValidator {
 
       return results
     } catch (error) {
-      console.error('칼럼명 일관성 검증 중 오류:', error)
+      logger.error('칼럼명 일관성 검증 중 오류:', error)
       throw error
     }
   }
@@ -585,7 +586,7 @@ export class SchemaValidator {
 
       return results
     } catch (error) {
-      console.error('쿼리 칼럼 검증 중 오류:', error)
+      logger.error('쿼리 칼럼 검증 중 오류:', error)
       return [
         {
           isValid: false,

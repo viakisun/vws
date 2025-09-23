@@ -1,9 +1,9 @@
 <script lang="ts">
-  import { createEventDispatcher } from 'svelte'
-  import ThemeModal from '$lib/components/ui/ThemeModal.svelte'
   import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
-  import { XIcon, SaveIcon, UserIcon, MailIcon, PhoneIcon, CalendarIcon } from '@lucide/svelte'
-  import type { Employee, EmployeeLevel, EmploymentType, EmployeeStatus } from '$lib/types/hr'
+  import ThemeModal from '$lib/components/ui/ThemeModal.svelte'
+  import type { Employee, EmployeeLevel, EmployeeStatus, EmploymentType } from '$lib/types/hr'
+  import { CalendarIcon, MailIcon, PhoneIcon, SaveIcon, UserIcon, XIcon } from '@lucide/svelte'
+  import { createEventDispatcher } from 'svelte'
 
   interface Props {
     open: boolean
@@ -157,7 +157,7 @@
 
     for (const field of requiredFields) {
       if (!formData[field as keyof Employee]) {
-        alert(`${getFieldLabel(field)}은(는) 필수 입력 항목입니다.`)
+        // alert(`${getFieldLabel(field)}은(는) 필수 입력 항목입니다.`)
         return false
       }
     }
@@ -165,14 +165,14 @@
     // 이메일 형식 검사
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(formData.email!)) {
-      alert('올바른 이메일 형식을 입력해주세요.')
+      // alert('올바른 이메일 형식을 입력해주세요.')
       return false
     }
 
     // 전화번호 형식 검사
     const phoneRegex = /^[0-9-+\s()]+$/
     if (!phoneRegex.test(formData.phone!)) {
-      alert('올바른 전화번호 형식을 입력해주세요.')
+      // alert('올바른 전화번호 형식을 입력해주세요.')
       return false
     }
 
@@ -180,18 +180,18 @@
   }
 
   // 필드 라벨 가져오기
-  function getFieldLabel(field: string): string {
-    const labels: Record<string, string> = {
-      employeeId: '사번',
-      name: '이름',
-      email: '이메일',
-      phone: '전화번호',
-      department: '부서',
-      position: '직위',
-      hireDate: '입사일'
-    }
-    return labels[field] || field
-  }
+  // function getFieldLabel(field: string): string {
+  //   const labels: Record<string, string> = {
+  //     employeeId: '사번',
+  //     name: '이름',
+  //     email: '이메일',
+  //     phone: '전화번호',
+  //     department: '부서',
+  //     position: '직위',
+  //     hireDate: '입사일'
+  //   }
+  //   return labels[field] || field
+  // }
 
   // 저장 버튼 클릭
   function handleSave() {
@@ -214,12 +214,14 @@
 </script>
 
 <ThemeModal {open}>
-  <div class="p-6 max-w-4xl mx-auto">
-    <div class="flex items-center justify-between mb-6">
-      <h2 class="text-2xl font-bold text-gray-900">
+  <div>
+    <div>
+      <h2>
         {employee ? '직원 정보 수정' : '새 직원 추가'}
       </h2>
-      <button onclick={handleClose} class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+      <button
+        type="button"
+        onclick={handleClose}>
         <XIcon size={20} />
       </button>
     </div>
@@ -229,262 +231,211 @@
         e.preventDefault()
         handleSave()
       }}
-      class="space-y-6"
     >
       <!-- 기본 정보 섹션 -->
-      <div class="bg-gray-50 p-4 rounded-lg">
-        <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-          <UserIcon size={20} class="mr-2" />
+      <div>
+        <h3>
+          <UserIcon size={20} />
           기본 정보
         </h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
           <div>
-            <label for="employeeId" class="block text-sm font-medium text-gray-700 mb-2"
-              >사번 *</label
-            >
+            <label for="employeeId">사번 *</label>
             <input
               id="employeeId"
               type="text"
               bind:value={formData.employeeId}
               placeholder="예: EMP001"
               required
-              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
           <div>
-            <label for="name" class="block text-sm font-medium text-gray-700 mb-2">이름 *</label>
+            <label for="name">이름 *</label>
             <input
               id="name"
               type="text"
               bind:value={formData.name}
               placeholder="홍길동"
-              required
-              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            />
+              required />
           </div>
           <div>
-            <label for="email" class="block text-sm font-medium text-gray-700 mb-2">이메일 *</label>
+            <label for="email">이메일 *</label>
             <input
               id="email"
               type="email"
               bind:value={formData.email}
               placeholder="hong@company.com"
               required
-              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
           <div>
-            <label for="phone" class="block text-sm font-medium text-gray-700 mb-2"
-              >전화번호 *</label
-            >
+            <label for="phone">전화번호 *</label>
             <input
               id="phone"
               type="tel"
               bind:value={formData.phone}
               placeholder="010-1234-5678"
               required
-              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
         </div>
       </div>
 
       <!-- 직무 정보 섹션 -->
-      <div class="bg-gray-50 p-4 rounded-lg">
-        <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-          <CalendarIcon size={20} class="mr-2" />
+      <div>
+        <h3>
+          <CalendarIcon size={20} />
           직무 정보
         </h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
           <div>
-            <label for="department" class="block text-sm font-medium text-gray-700 mb-2"
-              >부서 *</label
-            >
+            <label for="department">부서 *</label>
             <select
               id="department"
               bind:value={formData.department}
-              required
-              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            >
+              required>
               <option value="">부서 선택</option>
-              {#each departments as dept}
+              {#each departments as dept (dept)}
                 <option value={dept}>{dept}</option>
               {/each}
             </select>
           </div>
           <div>
-            <label for="position" class="block text-sm font-medium text-gray-700 mb-2">직위 *</label
-            >
+            <label for="position">직위 *</label>
             <select
               id="position"
               bind:value={formData.position}
-              required
-              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            >
+              required>
               <option value="">직위 선택</option>
-              {#each positions as pos}
+              {#each positions as pos (pos)}
                 <option value={pos}>{pos}</option>
               {/each}
             </select>
           </div>
           <div>
-            <label for="level" class="block text-sm font-medium text-gray-700 mb-2">레벨</label>
+            <label for="level">레벨</label>
             <select
               id="level"
-              bind:value={formData.level}
-              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            >
+              bind:value={formData.level}>
               <option value="">레벨 선택</option>
-              {#each levelOptions as option}
+              {#each levelOptions as option (option.value)}
                 <option value={option.value}>{option.label}</option>
               {/each}
             </select>
           </div>
           <div>
-            <label for="employmentType" class="block text-sm font-medium text-gray-700 mb-2"
-              >고용 형태</label
-            >
+            <label for="employmentType">고용 형태</label>
             <select
               id="employmentType"
-              bind:value={formData.employmentType}
-              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            >
+              bind:value={formData.employmentType}>
               <option value="">고용 형태 선택</option>
-              {#each employmentTypeOptions as option}
+              {#each employmentTypeOptions as option (option.value)}
                 <option value={option.value}>{option.label}</option>
               {/each}
             </select>
           </div>
           <div>
-            <label for="hireDate" class="block text-sm font-medium text-gray-700 mb-2"
-              >입사일 *</label
-            >
+            <label for="hireDate">입사일 *</label>
             <input
               id="hireDate"
               type="date"
               bind:value={formData.hireDate}
-              required
-              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            />
+              required />
           </div>
           <div>
-            <label for="birthDate" class="block text-sm font-medium text-gray-700 mb-2"
-              >생년월일</label
-            >
+            <label for="birthDate">생년월일</label>
             <input
               id="birthDate"
               type="date"
-              bind:value={formData.personalInfo.birthDate}
-              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            />
+              bind:value={formData.personalInfo.birthDate} />
           </div>
         </div>
       </div>
 
       <!-- 비상 연락처 섹션 -->
-      <div class="bg-gray-50 p-4 rounded-lg">
-        <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-          <PhoneIcon size={20} class="mr-2" />
+      <div>
+        <h3>
+          <PhoneIcon size={20} />
           비상 연락처
         </h3>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div>
           <div>
-            <label for="emergencyName" class="block text-sm font-medium text-gray-700 mb-2"
-              >이름</label
-            >
+            <label for="emergencyName">이름</label>
             <input
               id="emergencyName"
               type="text"
               bind:value={formData.emergencyContact.name}
               placeholder="홍길순"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
           <div>
-            <label for="relationship" class="block text-sm font-medium text-gray-700 mb-2"
-              >관계</label
-            >
+            <label for="relationship">관계</label>
             <select
               id="relationship"
-              bind:value={formData.emergencyContact.relationship}
-              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            >
+              bind:value={formData.emergencyContact.relationship}>
               <option value="">관계 선택</option>
-              {#each relationshipOptions as option}
+              {#each relationshipOptions as option (option.value)}
                 <option value={option.value}>{option.label}</option>
               {/each}
             </select>
           </div>
           <div>
-            <label for="emergencyPhone" class="block text-sm font-medium text-gray-700 mb-2"
-              >전화번호</label
-            >
+            <label for="emergencyPhone">전화번호</label>
             <input
               id="emergencyPhone"
               type="tel"
               bind:value={formData.emergencyContact.phone}
               placeholder="010-9876-5432"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
         </div>
       </div>
 
       <!-- 개인 정보 섹션 -->
-      <div class="bg-gray-50 p-4 rounded-lg">
-        <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-          <UserIcon size={20} class="mr-2" />
+      <div>
+        <h3>
+          <UserIcon size={20} />
           개인 정보
         </h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
           <div>
-            <label for="gender" class="block text-sm font-medium text-gray-700 mb-2">성별</label>
+            <label for="gender">성별</label>
             <select
               id="gender"
-              bind:value={formData.personalInfo.gender}
-              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            >
+              bind:value={formData.personalInfo.gender}>
               <option value="">성별 선택</option>
-              {#each genderOptions as option}
+              {#each genderOptions as option (option.value)}
                 <option value={option.value}>{option.label}</option>
               {/each}
             </select>
           </div>
           <div>
-            <label for="nationality" class="block text-sm font-medium text-gray-700 mb-2"
-              >국적</label
-            >
+            <label for="nationality">국적</label>
             <input
               id="nationality"
               type="text"
               bind:value={formData.personalInfo.nationality}
               placeholder="한국"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
           <div>
-            <label for="maritalStatus" class="block text-sm font-medium text-gray-700 mb-2"
-              >결혼 상태</label
-            >
+            <label for="maritalStatus">결혼 상태</label>
             <select
               id="maritalStatus"
-              bind:value={formData.personalInfo.maritalStatus}
-              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            >
+              bind:value={formData.personalInfo.maritalStatus}>
               <option value="">결혼 상태 선택</option>
-              {#each maritalStatusOptions as option}
+              {#each maritalStatusOptions as option (option.value)}
                 <option value={option.value}>{option.label}</option>
               {/each}
             </select>
           </div>
           <div>
-            <label for="address" class="block text-sm font-medium text-gray-700 mb-2">주소</label>
+            <label for="address">주소</label>
             <input
               id="address"
               type="text"
               bind:value={formData.address}
               placeholder="서울시 강남구..."
-              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
         </div>
@@ -492,36 +443,30 @@
 
       <!-- 상태 정보 섹션 -->
       {#if employee}
-        <div class="bg-gray-50 p-4 rounded-lg">
-          <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-            <MailIcon size={20} class="mr-2" />
+        <div>
+          <h3>
+            <MailIcon size={20} />
             상태 정보
           </h3>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
             <div>
-              <label for="status" class="block text-sm font-medium text-gray-700 mb-2">상태</label>
+              <label for="status">상태</label>
               <select
                 id="status"
-                bind:value={formData.status}
-                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              >
+                bind:value={formData.status}>
                 <option value="">상태 선택</option>
-                {#each statusOptions as option}
+                {#each statusOptions as option (option.value)}
                   <option value={option.value}>{option.label}</option>
                 {/each}
               </select>
             </div>
             {#if formData.status === 'terminated'}
               <div>
-                <label for="terminationDate" class="block text-sm font-medium text-gray-700 mb-2"
-                  >퇴사일</label
-                >
+                <label for="terminationDate">퇴사일</label>
                 <input
                   id="terminationDate"
                   type="date"
-                  bind:value={formData.terminationDate}
-                  class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
+                  bind:value={formData.terminationDate} />
               </div>
             {/if}
           </div>
@@ -529,13 +474,18 @@
       {/if}
 
       <!-- 버튼 영역 -->
-      <div class="flex justify-end space-x-3 pt-6 border-t">
-        <ThemeButton variant="ghost" onclick={handleClose} disabled={loading}>취소</ThemeButton>
-        <ThemeButton type="submit" variant="primary" disabled={loading}>
+      <div>
+        <ThemeButton
+          variant="ghost"
+          onclick={handleClose}
+          disabled={loading}>취소</ThemeButton>
+        <ThemeButton
+          variant="primary"
+          disabled={loading}>
           {#if loading}
-            <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+            <div></div>
           {:else}
-            <SaveIcon size={16} class="mr-2" />
+            <SaveIcon size={16} />
           {/if}
           {employee ? '수정' : '추가'}
         </ThemeButton>

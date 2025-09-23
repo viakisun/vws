@@ -2,6 +2,7 @@ import { browser } from '$app/environment'
 import type { Writable } from 'svelte/store'
 import { writable } from 'svelte/store'
 import type { RequestInit } from 'undici'
+import { logger } from '$lib/utils/logger';
 
 // User interface
 export interface User {
@@ -79,7 +80,7 @@ export class SessionManager {
         }))
       }
     } catch {
-      // console.error('Error initializing session from storage:', error)
+      // logger.error('Error initializing session from storage:', error)
       this.clearSession()
     }
   }
@@ -221,7 +222,7 @@ export class SessionManager {
         return { success: false, message: data.message || 'Login failed' }
       }
     } catch {
-      // console.error('Login error:', error)
+      // logger.error('Login error:', error)
       return { success: false, message: 'Network error' }
     }
   }
@@ -240,7 +241,7 @@ export class SessionManager {
         })
       }
     } catch {
-      // console.error('Logout API error:', error)
+      // logger.error('Logout API error:', error)
     } finally {
       this.clearSession()
     }
@@ -274,7 +275,7 @@ export class SessionManager {
         }
       }
     } catch {
-      // console.error('Token refresh error:', error)
+      // logger.error('Token refresh error:', error)
     }
 
     // If refresh fails, clear session

@@ -1,5 +1,5 @@
 import { writable } from 'svelte/store'
-import type { Milestone, Project, Person, Document, Approval } from './types'
+import type { Milestone, Approval } from './types'
 import { logAudit } from './core'
 
 // 마일스톤 관리

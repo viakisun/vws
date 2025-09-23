@@ -4,6 +4,7 @@
 import { query } from '$lib/database/connection'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger';
 
 export const POST: RequestHandler = async () => {
   try {
@@ -48,7 +49,7 @@ export const POST: RequestHandler = async () => {
       throw error
     }
   } catch (error) {
-    console.error('프로젝트 관리 시스템 마이그레이션 실패:', error)
+    logger.error('프로젝트 관리 시스템 마이그레이션 실패:', error)
     return json(
       {
         success: false,

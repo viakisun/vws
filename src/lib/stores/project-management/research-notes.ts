@@ -1,5 +1,5 @@
 import { writable } from 'svelte/store'
-import type { ResearchNote, Person, Project, Document } from './types'
+import type { ResearchNote, Document } from './types'
 import { logAudit } from './core'
 
 // 연구노트 관리
@@ -239,7 +239,7 @@ export function getMissingResearchNotes(
   const missingAuthors: string[] = []
 
   // 주차별로 체크
-  let currentDate = new Date(start)
+  const currentDate = new Date(start)
   while (currentDate <= end) {
     const weekOf = getWeekOfYear(currentDate)
     const weekNotes = getResearchNotesByWeek(projectId, weekOf)

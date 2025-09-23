@@ -2,6 +2,7 @@
 import { query } from '$lib/database/connection'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger';
 
 // GET /api/project-management/global-factors - 글로벌 팩터 조회
 export const GET: RequestHandler = async () => {
@@ -45,7 +46,7 @@ export const GET: RequestHandler = async () => {
       }
     })
   } catch (error) {
-    console.error('글로벌 팩터 조회 실패:', error)
+    logger.error('글로벌 팩터 조회 실패:', error)
     return json(
       {
         success: false,
@@ -99,7 +100,7 @@ export const PUT: RequestHandler = async ({ request }) => {
       data: result.rows[0]
     })
   } catch (error) {
-    console.error('글로벌 팩터 업데이트 실패:', error)
+    logger.error('글로벌 팩터 업데이트 실패:', error)
     return json(
       {
         success: false,

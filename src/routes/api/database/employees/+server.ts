@@ -1,6 +1,7 @@
 import { json } from '@sveltejs/kit'
 import { DatabaseService } from '$lib/database/connection'
 import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger';
 
 export const GET: RequestHandler = async ({ url }) => {
   try {
@@ -26,7 +27,7 @@ export const GET: RequestHandler = async ({ url }) => {
       }
     })
   } catch (error) {
-    console.error('Get employees error:', error)
+    logger.error('Get employees error:', error)
     return json(
       {
         success: false,
@@ -52,7 +53,7 @@ export const POST: RequestHandler = async ({ request }) => {
       { status: 201 }
     )
   } catch (error) {
-    console.error('Create employee error:', error)
+    logger.error('Create employee error:', error)
     return json(
       {
         success: false,

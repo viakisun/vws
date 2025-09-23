@@ -1,6 +1,7 @@
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
 import { query } from '$lib/database/connection'
+import { logger } from '$lib/utils/logger';
 
 // 직급 목록 조회
 export const GET: RequestHandler = async ({ url }) => {
@@ -43,7 +44,7 @@ export const GET: RequestHandler = async ({ url }) => {
       data: result.rows
     })
   } catch (error: any) {
-    console.error('Error fetching positions:', error)
+    logger.error('Error fetching positions:', error)
     return json(
       {
         success: false,
@@ -119,7 +120,7 @@ export const POST: RequestHandler = async ({ request }) => {
       message: '직급이 성공적으로 생성되었습니다.'
     })
   } catch (error: any) {
-    console.error('Error creating position:', error)
+    logger.error('Error creating position:', error)
     return json(
       {
         success: false,
@@ -141,7 +142,7 @@ export const DELETE: RequestHandler = async () => {
       message: '모든 직급이 삭제되었습니다.'
     })
   } catch (error: any) {
-    console.error('Error deleting all positions:', error)
+    logger.error('Error deleting all positions:', error)
     return json(
       {
         success: false,

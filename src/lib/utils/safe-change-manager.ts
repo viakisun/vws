@@ -1,5 +1,6 @@
 import type { ChangeImpact, DependencyAnalysis } from './code-dependency-analyzer'
 import { CodeDependencyAnalyzer } from './code-dependency-analyzer'
+import { logger } from '$lib/utils/logger';
 
 // 변경 타입 정의
 export type ChangeType = 'modify' | 'delete' | 'rename' | 'move' | 'add'
@@ -76,7 +77,7 @@ export class SafeChangeManager {
     changeType: ChangeType,
     description: string
   ): Promise<SafeChangePlan> {
-    console.log(`📋 [변경 계획 생성] ${changeType}: ${filePath}`)
+    logger.log(`📋 [변경 계획 생성] ${changeType}: ${filePath}`)
 
     // 의존성 분석
     const analysis = await CodeDependencyAnalyzer.analyzeProjectDependencies()
@@ -120,7 +121,7 @@ export class SafeChangeManager {
     }
 
     this.changePlans.set(plan.id, plan)
-    console.log(`✅ [변경 계획 생성] 완료 - ID: ${plan.id}`)
+    logger.log(`✅ [변경 계획 생성] 완료 - ID: ${plan.id}`)
 
     return plan
   }
@@ -138,7 +139,7 @@ export class SafeChangeManager {
       return { success: false, message: '변경 계획을 찾을 수 없습니다.' }
     }
 
-    console.log(`🚀 [변경 실행] ${plan.changeType}: ${plan.filePath}`)
+    logger.log(`🚀 [변경 실행] ${plan.changeType}: ${plan.filePath}`)
 
     try {
       plan.status = 'in_progress'
@@ -183,12 +184,12 @@ export class SafeChangeManager {
       return { success: false, message: '변경 계획을 찾을 수 없습니다.' }
     }
 
-    console.log(`🔄 [변경 롤백] ${plan.changeType}: ${plan.filePath}`)
+    logger.log(`🔄 [변경 롤백] ${plan.changeType}: ${plan.filePath}`)
 
     try {
       // 롤백 계획 실행
       for (const rollbackStep of plan.rollbackPlan) {
-        console.log(`  🔄 ${rollbackStep}`)
+        logger.log(`  🔄 ${rollbackStep}`)
         // 실제 롤백 로직 구현
       }
 
@@ -490,7 +491,7 @@ export class SafeChangeManager {
     message: string
     nextStep?: ChangeStep
   }> {
-    console.log('  📊 의존성 분석 완료')
+    logger.log('  📊 의존성 분석 완료')
     plan.currentStep = 'backup'
     plan.updatedAt = new Date()
     return { success: true, message: '분석 완료', nextStep: 'backup' }
@@ -504,7 +505,7 @@ export class SafeChangeManager {
     message: string
     nextStep?: ChangeStep
   }> {
-    console.log('  💾 백업 생성 완료')
+    logger.log('  💾 백업 생성 완료')
     plan.currentStep = 'preparation'
     plan.updatedAt = new Date()
     return { success: true, message: '백업 완료', nextStep: 'preparation' }
@@ -518,7 +519,7 @@ export class SafeChangeManager {
     message: string
     nextStep?: ChangeStep
   }> {
-    console.log('  🔧 변경 준비 완료')
+    logger.log('  🔧 변경 준비 완료')
     plan.currentStep = 'execution'
     plan.updatedAt = new Date()
     return { success: true, message: '준비 완료', nextStep: 'execution' }
@@ -532,7 +533,7 @@ export class SafeChangeManager {
     message: string
     nextStep?: ChangeStep
   }> {
-    console.log('  ⚡ 변경 실행 완료')
+    logger.log('  ⚡ 변경 실행 완료')
     plan.currentStep = 'validation'
     plan.updatedAt = new Date()
     return { success: true, message: '실행 완료', nextStep: 'validation' }
@@ -546,7 +547,7 @@ export class SafeChangeManager {
     message: string
     nextStep?: ChangeStep
   }> {
-    console.log('  ✅ 검증 완료')
+    logger.log('  ✅ 검증 완료')
     plan.currentStep = 'cleanup'
     plan.updatedAt = new Date()
     return { success: true, message: '검증 완료', nextStep: 'cleanup' }
@@ -560,7 +561,7 @@ export class SafeChangeManager {
     message: string
     nextStep?: ChangeStep
   }> {
-    console.log('  🧹 정리 완료')
+    logger.log('  🧹 정리 완료')
     plan.status = 'completed'
     plan.updatedAt = new Date()
     return { success: true, message: '모든 단계 완료' }

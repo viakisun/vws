@@ -1,6 +1,7 @@
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
 import { query } from '$lib/database/connection'
+import { logger } from '$lib/utils/logger';
 
 // 직책 목록 조회
 export const GET: RequestHandler = async ({ url }) => {
@@ -53,7 +54,7 @@ export const GET: RequestHandler = async ({ url }) => {
       data: result.rows
     })
   } catch (error: any) {
-    console.error('Error fetching job titles:', error)
+    logger.error('Error fetching job titles:', error)
     return json(
       {
         success: false,
@@ -138,7 +139,7 @@ export const POST: RequestHandler = async ({ request }) => {
       message: '직책이 성공적으로 생성되었습니다.'
     })
   } catch (error: any) {
-    console.error('Error creating job title:', error)
+    logger.error('Error creating job title:', error)
     return json(
       {
         success: false,

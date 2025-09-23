@@ -1,6 +1,7 @@
 import { json, error } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
 import { DatabaseService } from '$lib/database/connection'
+import { logger } from '$lib/utils/logger';
 
 // GET /api/expenses - Get all expense items
 export const GET: RequestHandler = async ({ url }) => {
@@ -25,7 +26,7 @@ export const GET: RequestHandler = async ({ url }) => {
       count: expenses.length
     })
   } catch (err) {
-    console.error('Get expenses error:', err)
+    logger.error('Get expenses error:', err)
     return error(500, { message: 'Internal server error' })
   }
 }
@@ -68,7 +69,7 @@ export const POST: RequestHandler = async ({ request }) => {
       { status: 201 }
     )
   } catch (err) {
-    console.error('Create expense error:', err)
+    logger.error('Create expense error:', err)
     return error(500, { message: 'Internal server error' })
   }
 }

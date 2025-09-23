@@ -1,6 +1,7 @@
 import { query } from '$lib/database/connection'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger';
 
 // 이사급 직원들을 이사 명부로 이관하고 직원 명부에서 제외
 export const POST: RequestHandler = async () => {
@@ -110,7 +111,7 @@ export const POST: RequestHandler = async () => {
       }
     })
   } catch (error: any) {
-    console.error('Error migrating executives:', error)
+    logger.error('Error migrating executives:', error)
     return json(
       {
         success: false,

@@ -1,6 +1,7 @@
 import { json } from '@sveltejs/kit'
 import { query } from '$lib/database/connection'
 import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger';
 
 export const GET: RequestHandler = async ({ url }) => {
   try {
@@ -70,7 +71,7 @@ export const GET: RequestHandler = async ({ url }) => {
       }
     })
   } catch (error) {
-    console.error('Get R&D projects error:', error)
+    logger.error('Get R&D projects error:', error)
     return json(
       {
         success: false,

@@ -1,6 +1,7 @@
 import { query } from '$lib/database/connection'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger';
 
 // GET /api/project-management/employees/[id]/contract - 특정 직원의 참여기간 내 계약 정보 조회
 export const GET: RequestHandler = async ({ params, url }) => {
@@ -110,7 +111,7 @@ export const GET: RequestHandler = async ({ params, url }) => {
       }
     })
   } catch (error) {
-    console.error('계약 정보 조회 실패:', error)
+    logger.error('계약 정보 조회 실패:', error)
     return json(
       {
         success: false,

@@ -1,6 +1,7 @@
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
 import { query } from '$lib/database/connection'
+import { logger } from '$lib/utils/logger';
 
 // 직원 테이블에 직책 필드 추가
 export const POST: RequestHandler = async () => {
@@ -19,9 +20,9 @@ export const POST: RequestHandler = async () => {
 				ADD COLUMN job_title_id UUID REFERENCES job_titles(id)
 			`)
 
-      console.log('job_title_id column added to employees table')
+      logger.log('job_title_id column added to employees table')
     } else {
-      console.log('job_title_id column already exists in employees table')
+      logger.log('job_title_id column already exists in employees table')
     }
 
     return json({
@@ -29,7 +30,7 @@ export const POST: RequestHandler = async () => {
       message: '직책 필드가 성공적으로 추가되었습니다.'
     })
   } catch (error: any) {
-    console.error('Error adding job_title_id field:', error)
+    logger.error('Error adding job_title_id field:', error)
     return json(
       {
         success: false,

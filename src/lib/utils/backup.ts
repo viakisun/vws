@@ -1,6 +1,7 @@
 import type { BankAccount, Transaction, ExpectedTransaction } from '$lib/stores/funds'
 import type { BudgetCategory, BudgetGoal } from '$lib/stores/budget'
 import type { Notification, NotificationSettings } from '$lib/stores/notifications'
+import { logger } from '$lib/utils/logger';
 
 export interface BackupData {
   version: string
@@ -104,7 +105,7 @@ export function autoBackup(
     localStorage.setItem('workstream-auto-backup', JSON.stringify(backupData))
     localStorage.setItem('workstream-backup-timestamp', backupData.timestamp)
   } catch (error) {
-    console.error('자동 백업 실패:', error)
+    logger.error('자동 백업 실패:', error)
   }
 }
 
@@ -121,7 +122,7 @@ export function loadAutoBackup(): BackupData | null {
       return backupData
     }
   } catch (error) {
-    console.error('자동 백업 로드 실패:', error)
+    logger.error('자동 백업 로드 실패:', error)
   }
 
   return null

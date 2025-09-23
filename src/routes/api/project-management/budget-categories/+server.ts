@@ -1,6 +1,7 @@
 import { query } from '$lib/database/connection'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger';
 
 // GET /api/project-management/budget-categories - 사업비 항목 목록 조회
 export const GET: RequestHandler = async ({ url }) => {
@@ -33,7 +34,7 @@ export const GET: RequestHandler = async ({ url }) => {
       data: result.rows
     })
   } catch (error) {
-    console.error('사업비 항목 조회 실패:', error)
+    logger.error('사업비 항목 조회 실패:', error)
     return json(
       {
         success: false,

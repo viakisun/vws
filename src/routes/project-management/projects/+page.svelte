@@ -41,10 +41,10 @@
           color={p.status === '지연'
             ? 'yellow'
             : p.status === '위험'
-              ? 'red'
-              : p.status === '진행중'
-                ? 'blue'
-                : 'green'}>{p.status}</Badge
+            ? 'red'
+            : p.status === '진행중'
+            ? 'blue'
+            : 'green'}>{p.status}</Badge
         >
       </a>
     </Card>

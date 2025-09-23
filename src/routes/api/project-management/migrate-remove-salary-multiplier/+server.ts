@@ -1,9 +1,10 @@
 import { query } from '$lib/database/connection'
 import { json } from '@sveltejs/kit'
+import { logger } from '$lib/utils/logger';
 
 export async function POST() {
   try {
-    console.log('🔄 급여 배수 제거 마이그레이션 시작...')
+    logger.log('🔄 급여 배수 제거 마이그레이션 시작...')
 
     // global_factors 테이블에서 salary_multiplier 제거
     const deleteResult = await query(`
@@ -11,7 +12,7 @@ export async function POST() {
 			WHERE factor_name = 'salary_multiplier'
 		`)
 
-    console.log('✅ 급여 배수 제거 완료')
+    logger.log('✅ 급여 배수 제거 완료')
 
     // 제거 확인
     const checkResult = await query(`
@@ -20,7 +21,7 @@ export async function POST() {
 			WHERE factor_name = 'salary_multiplier'
 		`)
 
-    console.log('📋 제거 확인 결과:', checkResult.rows)
+    logger.log('📋 제거 확인 결과:', checkResult.rows)
 
     return json({
       success: true,
@@ -29,7 +30,7 @@ export async function POST() {
       remainingSalaryMultiplier: checkResult.rows.length
     })
   } catch (error) {
-    console.error('❌ 급여 배수 제거 실패:', error)
+    logger.error('❌ 급여 배수 제거 실패:', error)
 
     return json(
       {

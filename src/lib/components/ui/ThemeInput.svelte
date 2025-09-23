@@ -119,7 +119,9 @@
 
 <div class={getContainerClasses()}>
   {#if label}
-    <label class="theme-input-label" for={id}>
+    <label
+      class="theme-input-label"
+      for={id}>
       {label}
       {#if required}
         <span class="theme-input-required">*</span>

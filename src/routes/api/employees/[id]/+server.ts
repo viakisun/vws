@@ -2,6 +2,7 @@ import { query } from '$lib/database/connection.js'
 import { formatDateForDisplay, toUTC } from '$lib/utils/date-handler.js'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger';
 
 // GET: 특정 직원 조회
 export const GET: RequestHandler = async ({ params }) => {
@@ -46,7 +47,7 @@ export const GET: RequestHandler = async ({ params }) => {
       data: formattedEmployee
     })
   } catch (error) {
-    console.error('Error fetching employee:', error)
+    logger.error('Error fetching employee:', error)
     return json(
       {
         success: false,
@@ -155,7 +156,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
       message: '직원 정보가 성공적으로 수정되었습니다.'
     })
   } catch (error) {
-    console.error('Error updating employee:', error)
+    logger.error('Error updating employee:', error)
     return json(
       {
         success: false,
@@ -270,7 +271,7 @@ export const DELETE: RequestHandler = async ({ params, url }) => {
       })
     }
   } catch (error) {
-    console.error('Error deleting employee:', error)
+    logger.error('Error deleting employee:', error)
     return json(
       {
         success: false,

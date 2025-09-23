@@ -1,6 +1,7 @@
 import { BudgetConsistencyValidator, ValidationUtils } from '$lib/utils/validation'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger';
 
 export const GET: RequestHandler = async ({ url }) => {
   try {
@@ -10,7 +11,7 @@ export const GET: RequestHandler = async ({ url }) => {
       return json({ error: '프로젝트 ID가 필요합니다.' }, { status: 400 })
     }
 
-    console.log(`🔍 [예산 일관성 검증] 프로젝트 ${projectId} 검증 시작`)
+    logger.log(`🔍 [예산 일관성 검증] 프로젝트 ${projectId} 검증 시작`)
 
     // 프로젝트 기본 정보 및 예산 조회
     const [project, budgets] = await Promise.all([
@@ -18,7 +19,7 @@ export const GET: RequestHandler = async ({ url }) => {
       ValidationUtils.getProjectBudgets(projectId)
     ])
 
-    console.log(`📋 프로젝트: ${project.title}`)
+    logger.log(`📋 프로젝트: ${project.title}`)
 
     // 예산 일관성 검증
     const validation = BudgetConsistencyValidator.validateBudgetConsistency(project, budgets)
@@ -49,7 +50,7 @@ export const GET: RequestHandler = async ({ url }) => {
     // 전체 검증 결과 생성
     const overallValidation = ValidationUtils.createOverallValidation(validationResults)
 
-    console.log(`✅ [예산 일관성 검증] 완료 - ${validation.isValid ? '✅ 통과' : '❌ 실패'}`)
+    logger.log(`✅ [예산 일관성 검증] 완료 - ${validation.isValid ? '✅ 통과' : '❌ 실패'}`)
 
     return json(
       ValidationUtils.createValidationResponse(
@@ -60,7 +61,7 @@ export const GET: RequestHandler = async ({ url }) => {
       )
     )
   } catch (error) {
-    console.error('Budget validation error:', error)
+    logger.error('Budget validation error:', error)
     return json(
       ValidationUtils.createErrorResponse(error, '예산 일관성 검증 중 오류가 발생했습니다.'),
       { status: 500 }
@@ -76,7 +77,7 @@ export const POST: RequestHandler = async ({ request }) => {
       return json({ error: '프로젝트 ID가 필요합니다.' }, { status: 400 })
     }
 
-    console.log(
+    logger.log(
       `🔧 [예산 일관성 검증] 프로젝트 ${projectId} ${autoFix ? '자동 수정' : '검증'} 시작`
     )
 
@@ -86,7 +87,7 @@ export const POST: RequestHandler = async ({ request }) => {
       ValidationUtils.getProjectBudgets(projectId)
     ])
 
-    console.log(`📋 프로젝트: ${project.title}`)
+    logger.log(`📋 프로젝트: ${project.title}`)
 
     // 예산 일관성 검증
     const validation = BudgetConsistencyValidator.validateBudgetConsistency(project, budgets)
@@ -112,7 +113,7 @@ export const POST: RequestHandler = async ({ request }) => {
         newValue: totalBudgetFromBudgets
       })
 
-      console.log(
+      logger.log(
         `🔧 프로젝트 총 예산 수정: ${(parseFloat(project.budget_total) || 0).toLocaleString()}원 → ${totalBudgetFromBudgets.toLocaleString()}원`
       )
     }
@@ -144,7 +145,7 @@ export const POST: RequestHandler = async ({ request }) => {
     // 전체 검증 결과 생성
     const overallValidation = ValidationUtils.createOverallValidation(validationResults)
 
-    console.log(
+    logger.log(
       `✅ [예산 일관성 검증] 완료 - ${validation.isValid ? '✅ 통과' : '❌ 실패'}${fixes.length > 0 ? `, ${fixes.length}개 수정` : ''}`
     )
 
@@ -158,7 +159,7 @@ export const POST: RequestHandler = async ({ request }) => {
       fixes: fixes.length > 0 ? fixes : undefined
     })
   } catch (error) {
-    console.error('Budget validation error:', error)
+    logger.error('Budget validation error:', error)
     return json(
       ValidationUtils.createErrorResponse(error, '예산 일관성 검증 중 오류가 발생했습니다.'),
       { status: 500 }

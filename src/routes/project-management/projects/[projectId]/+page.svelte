@@ -25,10 +25,10 @@
           color={project.status === '지연'
             ? 'yellow'
             : project.status === '위험'
-              ? 'red'
-              : project.status === '진행중'
-                ? 'blue'
-                : 'green'}>{project.status}</Badge
+            ? 'red'
+            : project.status === '진행중'
+            ? 'blue'
+            : 'green'}>{project.status}</Badge
         >
       </div>
       <div>
@@ -51,10 +51,22 @@
   </Card>
 {/if}
 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4">
-  <a class="card hover:bg-gray-50" href="budget">Budget</a>
-  <a class="card hover:bg-gray-50" href="personnel">Personnel</a>
-  <a class="card hover:bg-gray-50" href="expenses">Expenses</a>
-  <a class="card hover:bg-gray-50" href="deliverables">Deliverables</a>
-  <a class="card hover:bg-gray-50" href="reports">Reports</a>
-  <a class="card hover:bg-gray-50" href="compliance">Compliance</a>
+  <a
+    class="card hover:bg-gray-50"
+    href="budget">Budget</a>
+  <a
+    class="card hover:bg-gray-50"
+    href="personnel">Personnel</a>
+  <a
+    class="card hover:bg-gray-50"
+    href="expenses">Expenses</a>
+  <a
+    class="card hover:bg-gray-50"
+    href="deliverables">Deliverables</a>
+  <a
+    class="card hover:bg-gray-50"
+    href="reports">Reports</a>
+  <a
+    class="card hover:bg-gray-50"
+    href="compliance">Compliance</a>
 </div>

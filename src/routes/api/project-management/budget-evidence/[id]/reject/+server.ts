@@ -1,6 +1,7 @@
 import { query } from '$lib/database/connection'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger';
 
 // PUT /api/project-management/budget-evidence/[id]/reject - 증빙 내역 거부
 export const PUT: RequestHandler = async ({ params, request }) => {
@@ -42,7 +43,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
       message: '증빙 내역이 거부되었습니다.'
     })
   } catch (error) {
-    console.error('증빙 내역 거부 실패:', error)
+    logger.error('증빙 내역 거부 실패:', error)
     return json(
       {
         success: false,

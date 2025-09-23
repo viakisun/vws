@@ -2,20 +2,16 @@
   import ThemeCard from '$lib/components/ui/ThemeCard.svelte'
   import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
   import ThemeBadge from '$lib/components/ui/ThemeBadge.svelte'
-  import ThemeSpacer from '$lib/components/ui/ThemeSpacer.svelte'
   import ThemeSectionHeader from '$lib/components/ui/ThemeSectionHeader.svelte'
   import { payslips, isLoading, error, loadPayslips } from '$lib/stores/salary/salary-store'
   import { formatCurrency, formatDate } from '$lib/utils/format'
   import {
-    SearchIcon,
     FilterIcon,
     CalendarIcon,
     TrendingUpIcon,
     TrendingDownIcon,
     MinusIcon,
     UserIcon,
-    BuildingIcon,
-    BriefcaseIcon,
     ClockIcon
   } from '@lucide/svelte'
 
@@ -203,7 +199,7 @@
 
   // 필터 적용
   function applyFilter() {
-    // 필터가 변경되면 자동으로 반영됨 (reactive)
+  // 필터가 변경되면 자동으로 반영됨 (reactive)
   }
 </script>
 
@@ -213,8 +209,13 @@
     <div class="flex items-center justify-between mb-4">
       <ThemeSectionHeader title="급여 이력 추적" />
       <div class="flex items-center space-x-3">
-        <ThemeButton variant="outline" size="sm" onclick={() => (showFilters = !showFilters)}>
-          <FilterIcon size={16} class="mr-2" />
+        <ThemeButton
+          variant="outline"
+          size="sm"
+          onclick={() => (showFilters = !showFilters)}>
+          <FilterIcon
+            size={16}
+            class="mr-2" />
           필터
         </ThemeButton>
       </div>
@@ -225,7 +226,7 @@
       <label class="block text-sm font-medium text-gray-700 mb-2">직원 선택</label>
       <div class="flex flex-wrap gap-2">
         {#each employees as employee}
-          <button
+          <button type="button"
             onclick={() => selectEmployee(employee.id)}
             class="px-4 py-2 rounded-lg border transition-colors {selectedEmployee === employee.id
               ? 'bg-blue-100 border-blue-500 text-blue-700'
@@ -239,12 +240,13 @@
 
     <!-- 필터 영역 -->
     {#if showFilters}
-      <div
-        class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-4 p-4 bg-gray-50 rounded-lg"
+      <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-4 p-4 bg-gray-50 rounded-lg"
       >
         <div>
-          <label for="history-department" class="block text-sm font-medium text-gray-700 mb-1"
-            >부서</label
+          <label
+            for="history-department"
+            class="block text-sm font-medium text-gray-700 mb-1"
+          >부서</label
           >
           <select
             id="history-department"
@@ -264,8 +266,10 @@
           </select>
         </div>
         <div>
-          <label for="history-period" class="block text-sm font-medium text-gray-700 mb-1"
-            >급여 기간</label
+          <label
+            for="history-period"
+            class="block text-sm font-medium text-gray-700 mb-1"
+          >급여 기간</label
           >
           <select
             id="history-period"
@@ -279,8 +283,10 @@
           </select>
         </div>
         <div>
-          <label for="history-status" class="block text-sm font-medium text-gray-700 mb-1"
-            >상태</label
+          <label
+            for="history-status"
+            class="block text-sm font-medium text-gray-700 mb-1"
+          >상태</label
           >
           <select
             id="history-status"
@@ -295,7 +301,10 @@
           </select>
         </div>
         <div class="flex items-end space-x-2">
-          <ThemeButton variant="outline" size="sm" onclick={clearFilters}>초기화</ThemeButton>
+          <ThemeButton
+            variant="outline"
+            size="sm"
+            onclick={clearFilters}>초기화</ThemeButton>
         </div>
       </div>
     {/if}
@@ -313,7 +322,9 @@
     </div>
   {:else if selectedEmployeeHistory.length === 0}
     <div class="text-center py-12">
-      <ClockIcon size={48} class="mx-auto text-gray-400 mb-4" />
+      <ClockIcon
+        size={48}
+        class="mx-auto text-gray-400 mb-4" />
       <p class="text-gray-500">
         {selectedEmployee ? '선택한 직원의 급여 이력이 없습니다.' : '급여 이력이 없습니다.'}
       </p>
@@ -326,16 +337,20 @@
           <div class="flex-1">
             <div class="flex items-center space-x-4 mb-4">
               <div class="flex items-center space-x-2">
-                <CalendarIcon size={20} class="text-gray-400" />
+                <CalendarIcon
+                  size={20}
+                  class="text-gray-400" />
                 <span class="text-lg font-semibold text-gray-900">
                   {formatDate(payroll.payDate)} 지급분
                 </span>
               </div>
               {#if !selectedEmployee}
                 <div class="flex items-center space-x-2">
-                  <UserIcon size={16} class="text-gray-400" />
+                  <UserIcon
+                    size={16}
+                    class="text-gray-400" />
                   <span class="text-sm text-gray-600"
-                    >{payroll.employeeName} ({payroll.department})</span
+                  >{payroll.employeeName} ({payroll.department})</span
                   >
                 </div>
               {/if}
@@ -378,17 +393,23 @@
                 <div class="text-sm text-gray-500 mb-2">이전 급여 대비 변화</div>
                 <div class="flex items-center space-x-2">
                   {#if change.direction === 'up'}
-                    <TrendingUpIcon size={20} class="text-green-500" />
+                    <TrendingUpIcon
+                      size={20}
+                      class="text-green-500" />
                     <span class="text-green-600 font-semibold">
                       +{formatCurrency(change.change)} (+{change.percentage.toFixed(1)}%)
                     </span>
                   {:else if change.direction === 'down'}
-                    <TrendingDownIcon size={20} class="text-red-500" />
+                    <TrendingDownIcon
+                      size={20}
+                      class="text-red-500" />
                     <span class="text-red-600 font-semibold">
                       -{formatCurrency(Math.abs(change.change))} (-{change.percentage.toFixed(1)}%)
                     </span>
                   {:else}
-                    <MinusIcon size={20} class="text-gray-500" />
+                    <MinusIcon
+                      size={20}
+                      class="text-gray-500" />
                     <span class="text-gray-500 font-semibold">변화 없음</span>
                   {/if}
                 </div>
@@ -428,17 +449,23 @@
               <div class="text-sm text-gray-600">총 변화</div>
               <div class="flex items-center justify-center space-x-1">
                 {#if totalChange > 0}
-                  <TrendingUpIcon size={20} class="text-green-500" />
+                  <TrendingUpIcon
+                    size={20}
+                    class="text-green-500" />
                   <span class="text-xl font-bold text-green-600">
                     +{formatCurrency(totalChange)}
                   </span>
                 {:else if totalChange < 0}
-                  <TrendingDownIcon size={20} class="text-red-500" />
+                  <TrendingDownIcon
+                    size={20}
+                    class="text-red-500" />
                   <span class="text-xl font-bold text-red-600">
                     -{formatCurrency(Math.abs(totalChange))}
                   </span>
                 {:else}
-                  <MinusIcon size={20} class="text-gray-500" />
+                  <MinusIcon
+                    size={20}
+                    class="text-gray-500" />
                   <span class="text-xl font-bold text-gray-500">변화 없음</span>
                 {/if}
               </div>
