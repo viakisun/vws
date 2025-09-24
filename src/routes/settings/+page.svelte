@@ -1,6 +1,7 @@
 <script lang="ts">
   import { logger } from '$lib/utils/logger'
 
+  import PageLayout from '$lib/components/layout/PageLayout.svelte'
   import CompanyModal from '$lib/components/ui/CompanyModal.svelte'
   import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
   import ThemeCard from '$lib/components/ui/ThemeCard.svelte'
@@ -105,7 +106,7 @@
   }
 
   // 회사 정보 저장 핸들러
-  async function handleCompanySave(_event: CustomEvent) {
+  async function handleCompanySave() {
     await fetchCompany()
   }
 

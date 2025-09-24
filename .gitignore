@@ -30,3 +30,6 @@ summary.txt
 eslint*.log
 prettier.log
 auto-validation.log
+# reports & logs
+.reports/
+eslint.*.json
