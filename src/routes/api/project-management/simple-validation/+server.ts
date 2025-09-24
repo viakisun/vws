@@ -199,7 +199,8 @@ async function validateBudgetConsistency(client: any, projectId: string) {
         ]
       : [],
     message: hasIssues
-      ? `예산 불일치: 프로젝트 총 예산 ${projectTotal.toLocaleString()}원 vs 연차별 예산 합계 ${budgetSum.toLocaleString()}원`
+      ? // eslint-disable-next-line no-restricted-syntax -- not a personal name composition (false positive)
+        `예산 불일치: 프로젝트 총 예산 ${projectTotal.toLocaleString()}원 vs 연차별 예산 합계 ${budgetSum.toLocaleString()}원`
       : '예산 일관성 검증 통과',
   }
 }

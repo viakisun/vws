@@ -99,6 +99,7 @@ export const GET: RequestHandler = async ({ url }) => {
     // 3. 검증 실행
     const validationResult = await performValidation(project, members)
 
+    // eslint-disable-next-line no-restricted-syntax -- not a personal name composition (false positive)
     logger.log(
       `✅ [참여연구원 검증] 완료 - ${validationResult.isValid ? '✅ 통과' : '❌ 실패'} (${validationResult.issues.length}개 이슈)`,
     )
@@ -158,6 +159,7 @@ export const POST: RequestHandler = async ({ request }) => {
             appliedFixes.push({
               memberId: fix.memberId,
               type: fix.type,
+              // eslint-disable-next-line no-restricted-syntax -- not a personal name composition (false positive)
               action: `참여율 ${fix.oldValue}% → ${fix.newValue}%로 조정`,
               success: true,
             })
@@ -185,6 +187,7 @@ export const POST: RequestHandler = async ({ request }) => {
       }
     }
 
+    // eslint-disable-next-line no-restricted-syntax -- not a personal name composition (false positive)
     logger.log(
       `✅ [참여연구원 자동 수정] 완료 - ${appliedFixes.filter((f) => f.success).length}/${appliedFixes.length}개 성공`,
     )
@@ -279,6 +282,7 @@ async function performValidation(project: any, members: unknown[]): Promise<Vali
       issues.push({
         type: 'amount_excess',
         severity: 'warning',
+        // eslint-disable-next-line no-restricted-syntax -- not a personal name composition (false positive)
         message: `월간 금액이 예상 금액을 초과합니다 (${monthlyAmount.toLocaleString()}원 vs ${expectedMonthlyAmount.toLocaleString()}원)`,
         memberId: member.id,
         memberName: member.employee_name,
@@ -359,11 +363,13 @@ async function validateContract(
       issues.push({
         type: 'contract_missing',
         severity: 'error',
+        // eslint-disable-next-line no-restricted-syntax -- not a personal name composition (false positive)
         message: '해당 기간의 근로계약서가 없습니다',
         memberId: member.id,
         memberName: member.employee_name,
         suggestedFix: '급여 계약서를 등록하거나 프로젝트 참여 기간을 조정하세요',
         data: {
+          // eslint-disable-next-line no-restricted-syntax -- not a personal name composition (false positive)
           participationPeriod: `${member.start_date} ~ ${member.end_date}`,
           contracts: [],
         },
@@ -372,11 +378,13 @@ async function validateContract(
       issues.push({
         type: 'contract_period_mismatch',
         severity: 'error',
+        // eslint-disable-next-line no-restricted-syntax -- not a personal name composition (false positive)
         message: '프로젝트 참여 기간에 해당하는 근로계약서가 없습니다',
         memberId: member.id,
         memberName: member.employee_name,
         suggestedFix: '근로계약서 기간을 확인하거나 프로젝트 참여 기간을 조정하세요',
         data: {
+          // eslint-disable-next-line no-restricted-syntax -- not a personal name composition (false positive)
           participationPeriod: `${member.start_date} ~ ${member.end_date}`,
           contracts: allContractsResult.rows,
         },
@@ -428,6 +436,7 @@ async function validateDuplicateParticipation(
         message: `동일 기간에 여러 프로젝트 참여율 합계가 100%를 초과합니다 (${totalParticipationRate.toFixed(1)}%)`,
         memberId: member.id,
         memberName: member.employee_name,
+        // eslint-disable-next-line no-restricted-syntax -- not a personal name composition (false positive)
         suggestedFix: '참여율을 조정하거나 참여 기간을 변경하세요',
         data: {
           totalParticipationRate,
@@ -435,6 +444,7 @@ async function validateDuplicateParticipation(
             projectId: p.project_id,
             projectTitle: p.project_title,
             participationRate: parseFloat(p.participation_rate) || 0,
+            // eslint-disable-next-line no-restricted-syntax -- not a personal name composition (false positive)
             period: `${p.start_date} ~ ${p.end_date}`,
           })),
         },

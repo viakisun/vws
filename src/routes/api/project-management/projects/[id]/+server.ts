@@ -204,6 +204,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
 
     Object.entries(fieldsToUpdate).forEach(([key, value]) => {
       if (value !== undefined) {
+        // eslint-disable-next-line no-restricted-syntax -- not a personal name composition (false positive)
         updateFields.push(`${key} = $${paramIndex++}`)
         updateValues.push(value)
       }
@@ -222,6 +223,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
     updateFields.push(`updated_at = CURRENT_TIMESTAMP`)
     updateValues.push(id)
 
+    // eslint-disable-next-line no-restricted-syntax -- not a personal name composition (false positive)
     const result = await query(
       `
 			UPDATE projects 

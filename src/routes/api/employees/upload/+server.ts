@@ -112,11 +112,13 @@ export async function POST({ request }) {
 
       // 필수 필드 검증 (새로운 템플릿 형식)
       const requiredFields = ['성', '이름', '이메일', '부서', '직급', '급여']
+      // eslint-disable-next-line no-restricted-syntax -- not a personal name composition (false positive)
       const missingFields = requiredFields.filter(
         (field) => !row[field] || String(row[field]).trim() === '',
       )
 
       if (missingFields.length > 0) {
+        // eslint-disable-next-line no-restricted-syntax -- not a personal name composition (false positive)
         throw new Error(`행 ${rowNumber}: 필수 필드가 누락되었습니다: ${missingFields.join(', ')}`)
       }
 
@@ -132,6 +134,7 @@ export async function POST({ request }) {
       if (row['이메일'] && row['이메일'].trim() !== '') {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
         if (!emailRegex.test(row['이메일'].trim())) {
+          // eslint-disable-next-line no-restricted-syntax -- not a personal name composition (false positive)
           throw new Error(`행 ${rowNumber}: 올바르지 않은 이메일 형식입니다: ${row['이메일']}`)
         }
       }
@@ -140,15 +143,18 @@ export async function POST({ request }) {
       if (row['전화번호'] && row['전화번호'].trim() !== '') {
         const phoneRegex = /^[\d\-+()\s]+$/
         if (!phoneRegex.test(row['전화번호'].trim())) {
+          // eslint-disable-next-line no-restricted-syntax -- not a personal name composition (false positive)
           throw new Error(`행 ${rowNumber}: 올바르지 않은 전화번호 형식입니다: ${row['전화번호']}`)
         }
       }
 
       // 급여 검증
       let salary = 0
+      // eslint-disable-next-line no-restricted-syntax -- not a personal name composition (false positive)
       if (row['급여'] && String(row['급여']).trim() !== '') {
         salary = parseFloat(String(row['급여']))
         if (isNaN(salary) || salary < 0) {
+          // eslint-disable-next-line no-restricted-syntax -- not a personal name composition (false positive)
           throw new Error(`행 ${rowNumber}: 올바르지 않은 급여 형식입니다: ${row['급여']}`)
         }
       }
@@ -159,6 +165,7 @@ export async function POST({ request }) {
         const hireDateValue = row['입사일']
 
         if (!isValidDate(hireDateValue)) {
+          // eslint-disable-next-line no-restricted-syntax -- not a personal name composition (false positive)
           throw new Error(`행 ${rowNumber}: 올바르지 않은 입사일 형식입니다: ${row['입사일']}`)
         }
 

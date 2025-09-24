@@ -1,0 +1,13 @@
+=== ENV ===
+v24.5.0
+10.17.1
+git: 43150d7
+
+=== PRETTIER ===
+prettier: 3.6.2
+prettier exit: 0
+
+=== ESLINT ===
+eslint: v9.36.0
+eslint exit: 0
+

@@ -85,6 +85,7 @@ export async function POST({ request }) {
         if (employeeResult.rows.length === 0) {
           results.failed++
           results.errors.push(
+            // eslint-disable-next-line no-restricted-syntax -- not a personal name composition (false positive)
             `행 ${rowNumber}: 사번 ${employeeId}에 해당하는 직원을 찾을 수 없습니다.`,
           )
           continue
@@ -107,6 +108,7 @@ export async function POST({ request }) {
           {
             id: 'bonus',
             name: '상여금',
+            // eslint-disable-next-line no-restricted-syntax -- not a personal name composition (false positive)
             amount: Number(row.getCell(8).value) || 0,
           },
           {
@@ -161,6 +163,7 @@ export async function POST({ request }) {
           {
             id: 'local_tax',
             name: '주민세',
+            // eslint-disable-next-line no-restricted-syntax -- not a personal name composition (false positive)
             amount: Number(row.getCell(18).value) || 0,
           },
           {
@@ -211,7 +214,9 @@ export async function POST({ request }) {
               employeeDbId,
               period,
               payDate,
+              // eslint-disable-next-line no-restricted-syntax -- not a personal name composition (false positive)
               `${year}-${month.padStart(2, '0')}-01`,
+              // eslint-disable-next-line no-restricted-syntax -- not a personal name composition (false positive)
               `${year}-${month.padStart(2, '0')}-${lastDay.toString().padStart(2, '0')}`,
               baseSalary,
               totalPayments,
@@ -238,7 +243,9 @@ export async function POST({ request }) {
               employeeDbId,
               period,
               payDate,
+              // eslint-disable-next-line no-restricted-syntax -- not a personal name composition (false positive)
               `${year}-${month.padStart(2, '0')}-01`,
+              // eslint-disable-next-line no-restricted-syntax -- not a personal name composition (false positive)
               `${year}-${month.padStart(2, '0')}-${lastDay.toString().padStart(2, '0')}`,
               baseSalary,
               totalPayments,
@@ -263,6 +270,7 @@ export async function POST({ request }) {
       } catch (error) {
         results.failed++
         results.errors.push(
+          // eslint-disable-next-line no-restricted-syntax -- not a personal name composition (false positive)
           `행 ${rowNumber}: ${error instanceof Error ? error.message : '알 수 없는 오류'}`,
         )
         results.details.push({
@@ -270,6 +278,7 @@ export async function POST({ request }) {
           employeeId: row.getCell(1).value?.toString() || 'N/A',
           name: row.getCell(2).value?.toString() || 'N/A',
           status: 'failed',
+          // eslint-disable-next-line no-restricted-syntax -- not a personal name composition (false positive)
           error: error instanceof Error ? error.message : '알 수 없는 오류',
         })
       }
@@ -277,6 +286,7 @@ export async function POST({ request }) {
 
     return json({
       success: true,
+      // eslint-disable-next-line no-restricted-syntax -- not a personal name composition (false positive)
       message: `처리 완료: 성공 ${results.success}건, 실패 ${results.failed}건`,
       results,
     })

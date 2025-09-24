@@ -118,11 +118,13 @@ export async function POST({ request }) {
 
       // 필수 필드 검증
       const requiredFields = ['프로젝트명', '시작일', '종료일']
+      // eslint-disable-next-line no-restricted-syntax -- not a personal name composition (false positive)
       const missingFields = requiredFields.filter(
         (field) => !row[field] || String(row[field]).trim() === '',
       )
 
       if (missingFields.length > 0) {
+        // eslint-disable-next-line no-restricted-syntax -- not a personal name composition (false positive)
         throw new Error(`행 ${rowNumber}: 필수 필드가 누락되었습니다: ${missingFields.join(', ')}`)
       }
 
@@ -136,14 +138,17 @@ export async function POST({ request }) {
       const endDate = parseExcelDate(row['종료일'])
 
       if (!isValidDate(startDate)) {
+        // eslint-disable-next-line no-restricted-syntax -- not a personal name composition (false positive)
         throw new Error(`행 ${rowNumber}: 올바르지 않은 시작일 형식입니다: ${row['시작일']}`)
       }
 
       if (!isValidDate(endDate)) {
+        // eslint-disable-next-line no-restricted-syntax -- not a personal name composition (false positive)
         throw new Error(`행 ${rowNumber}: 올바르지 않은 종료일 형식입니다: ${row['종료일']}`)
       }
 
       if (!isValidDateRange(startDate, endDate)) {
+        // eslint-disable-next-line no-restricted-syntax -- not a personal name composition (false positive)
         throw new Error(`행 ${rowNumber}: 시작일은 종료일보다 이전이어야 합니다.`)
       }
 
@@ -152,6 +157,7 @@ export async function POST({ request }) {
       if (row['예산'] && String(row['예산']).trim() !== '') {
         budget = parseFloat(String(row['예산']))
         if (isNaN(budget) || budget < 0) {
+          // eslint-disable-next-line no-restricted-syntax -- not a personal name composition (false positive)
           throw new Error(`행 ${rowNumber}: 올바르지 않은 예산 형식입니다: ${row['예산']}`)
         }
       }

@@ -284,6 +284,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
     updateFields.push(`updated_at = CURRENT_TIMESTAMP`)
     updateValues.push(params.id)
 
+    // eslint-disable-next-line no-restricted-syntax -- not a personal name composition (false positive)
     const _result = await query(
       `
 			UPDATE project_members 

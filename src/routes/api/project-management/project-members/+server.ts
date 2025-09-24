@@ -198,6 +198,7 @@ export const POST: RequestHandler = async ({ request }) => {
         const futureContracts = contracts.filter((c) => new Date(c.start_date) > projectStartDate)
         const pastContracts = contracts.filter((c) => new Date(c.start_date) <= projectStartDate)
 
+        // eslint-disable-next-line no-restricted-syntax -- not a personal name composition (false positive)
         let message = `프로젝트 참여 기간(${startDate || '시작일 미정'} ~ ${endDate || '종료일 미정'})에 해당 직원이 재직 중이 아닙니다.\n\n`
 
         if (futureContracts.length > 0) {

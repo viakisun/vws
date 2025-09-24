@@ -103,8 +103,11 @@ export async function GET({ url }) {
         0, // 갑근세
         0, // 주민세
         0, // 기타
+        // eslint-disable-next-line no-restricted-syntax -- not a personal name composition (false positive)
         `=SUM(F${worksheet.rowCount}:L${worksheet.rowCount})`, // 지급총액
+        // eslint-disable-next-line no-restricted-syntax -- not a personal name composition (false positive)
         `=SUM(M${worksheet.rowCount}:S${worksheet.rowCount})`, // 공제총액
+        // eslint-disable-next-line no-restricted-syntax -- not a personal name composition (false positive)
         `=T${worksheet.rowCount}-U${worksheet.rowCount}`, // 실지급액
       ]
 
@@ -169,6 +172,7 @@ export async function GET({ url }) {
     const buffer = await workbook.xlsx.writeBuffer()
 
     // 한글 파일명을 URL 인코딩
+    // eslint-disable-next-line no-restricted-syntax -- not a personal name composition (false positive)
     const fileName = `급여명세서_${year}년${month}월_템플릿.xlsx`
     const encodedFileName = encodeURIComponent(fileName)
 

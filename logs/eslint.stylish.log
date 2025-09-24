@@ -1,0 +1,438 @@
+
+/Users/adminvia/devwork/_viahub/vws/src/lib/components/layout/Sidebar.svelte
+  82:13  warning  It cannot be optimized because too complex  svelte/require-optimized-style-attribute
+
+/Users/adminvia/devwork/_viahub/vws/src/lib/components/ui/Progress.svelte
+  16:68  warning  It cannot be optimized because too complex  svelte/require-optimized-style-attribute
+
+/Users/adminvia/devwork/_viahub/vws/src/lib/components/ui/ThemeButton.svelte
+  176:7  warning  `{@html}` can lead to XSS attack  svelte/no-at-html-tags
+
+/Users/adminvia/devwork/_viahub/vws/src/lib/components/ui/ThemeTabs.svelte
+  195:17  warning  It cannot be optimized because too complex  svelte/require-optimized-style-attribute
+
+/Users/adminvia/devwork/_viahub/vws/src/lib/database/connection.ts
+   66:65  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  116:23  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  117:25  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  202:23  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  236:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/adminvia/devwork/_viahub/vws/src/lib/stores/attendance.ts
+  303:23  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/adminvia/devwork/_viahub/vws/src/lib/stores/notifications.ts
+  163:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  164:32  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  166:67  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/adminvia/devwork/_viahub/vws/src/lib/stores/onboarding.ts
+  253:42  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/adminvia/devwork/_viahub/vws/src/lib/stores/project-management/audit-security.ts
+   16:12  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   17:12  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  176:13  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  254:39  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  269:33  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  284:12  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  322:17  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  358:41  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  358:65  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  361:17  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  498:70  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  516:75  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  534:45  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/adminvia/devwork/_viahub/vws/src/lib/stores/project-management/budget-workflow.ts
+  213:61  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  342:53  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  368:54  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  369:14  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/adminvia/devwork/_viahub/vws/src/lib/stores/project-management/core.ts
+  301:12  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  302:12  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/adminvia/devwork/_viahub/vws/src/lib/stores/project-management/expense-workflow.ts
+  147:53  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  255:56  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  256:17  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  402:53  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/adminvia/devwork/_viahub/vws/src/lib/stores/project-management/health-indicators.ts
+  416:94  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  555:43  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/adminvia/devwork/_viahub/vws/src/lib/stores/project-management/milestone-management.ts
+  157:10  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  475:12  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  478:13  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/adminvia/devwork/_viahub/vws/src/lib/stores/project-management/project-store.ts
+   74:36  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  118:48  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  216:38  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  250:53  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  355:43  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  448:39  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/adminvia/devwork/_viahub/vws/src/lib/stores/project-management/replacement-system.ts
+   79:58  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   93:51  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  108:24  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  109:27  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  175:14  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  176:24  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  177:27  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  405:17  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  451:62  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  502:74  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  528:48  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/adminvia/devwork/_viahub/vws/src/lib/stores/project-management/reporting.ts
+   40:86  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   71:95  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  103:94  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  134:96  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  165:4   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  183:91  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  216:52  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  283:92  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  298:96  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  310:91  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  345:89  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  375:95  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  409:95  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  436:55  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  473:55  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  506:17  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  525:17  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  596:41  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  625:44  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  638:28  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  675:58  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/adminvia/devwork/_viahub/vws/src/lib/stores/project-management/sla-alerts.ts
+  205:33  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  214:10  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  226:32  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  242:63  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  293:57  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  382:69  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  463:40  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/adminvia/devwork/_viahub/vws/src/lib/stores/project-management/submission-bundles.ts
+   83:63   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  124:80   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  153:83   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  177:85   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  211:16   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  212:15   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  213:18   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  214:20   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  237:17   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  255:20   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  273:23   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  287:25   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  310:41   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  310:61   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  310:83   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  317:88   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  317:172  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  318:91   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  318:177  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  474:24   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  498:17   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  526:57   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  564:43   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/adminvia/devwork/_viahub/vws/src/lib/stores/project-management/types.ts
+  330:16  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  330:26  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/adminvia/devwork/_viahub/vws/src/lib/stores/rnd/init-dummy-data.ts
+   60:25  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   96:24  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  132:29  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  158:25  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/adminvia/devwork/_viahub/vws/src/lib/stores/rnd/participation-manager.ts
+  414:42  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  418:51  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/adminvia/devwork/_viahub/vws/src/lib/stores/rnd/rbac.ts
+  280:41  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  280:66  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/adminvia/devwork/_viahub/vws/src/lib/types/common.ts
+  39:34  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  46:40  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/adminvia/devwork/_viahub/vws/src/lib/types/project-budget.ts
+  66:40  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/adminvia/devwork/_viahub/vws/src/lib/utils/api-data-transformer.ts
+   46:47  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   92:52  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  127:52  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  155:51  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  168:41  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  182:49  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  216:53  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  237:76  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  251:42  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  251:48  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  256:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/adminvia/devwork/_viahub/vws/src/lib/utils/auto-validation-hooks.ts
+   14:40  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  118:13  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  119:13  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  120:17  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  123:23  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  124:23  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  125:27  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  149:77  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  174:69  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  191:45  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  191:63  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  200:72  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/adminvia/devwork/_viahub/vws/src/lib/utils/backup.ts
+  60:38  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/adminvia/devwork/_viahub/vws/src/lib/utils/keyOf.ts
+  3:28  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  3:58  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  4:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  4:62  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  5:29  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  5:60  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/adminvia/devwork/_viahub/vws/src/lib/utils/logger.ts
+   6:32  warning  Unexpected console statement  no-console
+   7:33  warning  Unexpected console statement  no-console
+   8:33  warning  Unexpected console statement  no-console
+   9:34  warning  Unexpected console statement  no-console
+  10:34  warning  Unexpected console statement  no-console
+  11:34  warning  Unexpected console statement  no-console
+
+/Users/adminvia/devwork/_viahub/vws/src/lib/utils/name-validation.ts
+  67:70  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/adminvia/devwork/_viahub/vws/src/lib/utils/validation.ts
+   20:13  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   60:15  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  223:24  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  238:37  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  249:60  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  267:55  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  285:60  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  303:57  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  324:67  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  361:40  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  388:49  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  388:63  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  457:53  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  457:68  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  572:45  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  605:36  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/adminvia/devwork/_viahub/vws/src/routes/api/auth/login/+server.ts
+  30:69  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/adminvia/devwork/_viahub/vws/src/routes/api/company/+server.ts
+   26:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  131:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/adminvia/devwork/_viahub/vws/src/routes/api/database/add-job-title-field/+server.ts
+  32:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/adminvia/devwork/_viahub/vws/src/routes/api/database/company-setup/+server.ts
+  90:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/adminvia/devwork/_viahub/vws/src/routes/api/database/executives-setup/+server.ts
+  87:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/adminvia/devwork/_viahub/vws/src/routes/api/database/setup/+server.ts
+  54:23  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  68:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/adminvia/devwork/_viahub/vws/src/routes/api/departments/+server.ts
+  33:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  97:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/adminvia/devwork/_viahub/vws/src/routes/api/departments/[id]/+server.ts
+   32:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  112:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  194:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/adminvia/devwork/_viahub/vws/src/routes/api/employees/migrate-executives/+server.ts
+  113:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/adminvia/devwork/_viahub/vws/src/routes/api/employees/upload/+server.ts
+   46:24  warning  Unexpected any. Specify a different type                          @typescript-eslint/no-explicit-any
+   93:20  warning  Unexpected any. Specify a different type                          @typescript-eslint/no-explicit-any
+  110:38  warning  Unexpected any. Specify a different type                          @typescript-eslint/no-explicit-any
+  120:25  error    이름 조합 시 formatEmployeeName 또는 formatKoreanNameStandard 함수를 사용하세요  no-restricted-syntax
+  135:27  error    이름 조합 시 formatEmployeeName 또는 formatKoreanNameStandard 함수를 사용하세요  no-restricted-syntax
+  143:27  error    이름 조합 시 formatEmployeeName 또는 formatKoreanNameStandard 함수를 사용하세요  no-restricted-syntax
+  152:27  error    이름 조합 시 formatEmployeeName 또는 formatKoreanNameStandard 함수를 사용하세요  no-restricted-syntax
+  162:27  error    이름 조합 시 formatEmployeeName 또는 formatKoreanNameStandard 함수를 사용하세요  no-restricted-syntax
+
+/Users/adminvia/devwork/_viahub/vws/src/routes/api/executives/+server.ts
+   51:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  153:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/adminvia/devwork/_viahub/vws/src/routes/api/executives/[id]/+server.ts
+   37:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  152:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  192:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/adminvia/devwork/_viahub/vws/src/routes/api/job-titles/+server.ts
+   56:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  141:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/adminvia/devwork/_viahub/vws/src/routes/api/job-titles/[id]/+server.ts
+   32:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  134:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  190:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/adminvia/devwork/_viahub/vws/src/routes/api/migrate/add-department-to/+server.ts
+  31:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/adminvia/devwork/_viahub/vws/src/routes/api/organization/chart/+server.ts
+   35:29  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   58:42  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  123:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/adminvia/devwork/_viahub/vws/src/routes/api/organization/chart/download/+server.ts
+  32:18  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  46:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/adminvia/devwork/_viahub/vws/src/routes/api/positions/+server.ts
+   46:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  122:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  144:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/adminvia/devwork/_viahub/vws/src/routes/api/positions/[id]/+server.ts
+   32:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  124:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  206:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/adminvia/devwork/_viahub/vws/src/routes/api/project-management/budget-validation/+server.ts
+   80:16  error  이름 조합 시 formatEmployeeName 또는 formatKoreanNameStandard 함수를 사용하세요  no-restricted-syntax
+  115:9   error  이름 조합 시 formatEmployeeName 또는 formatKoreanNameStandard 함수를 사용하세요  no-restricted-syntax
+  147:7   error  이름 조합 시 formatEmployeeName 또는 formatKoreanNameStandard 함수를 사용하세요  no-restricted-syntax
+
+/Users/adminvia/devwork/_viahub/vws/src/routes/api/project-management/comprehensive-validation/+server.ts
+   23:7   error    이름 조합 시 formatEmployeeName 또는 formatKoreanNameStandard 함수를 사용하세요  no-restricted-syntax
+   27:23  warning  Unexpected any. Specify a different type                          @typescript-eslint/no-explicit-any
+   28:23  warning  Unexpected any. Specify a different type                          @typescript-eslint/no-explicit-any
+   29:24  warning  Unexpected any. Specify a different type                          @typescript-eslint/no-explicit-any
+  233:49  warning  Unexpected any. Specify a different type                          @typescript-eslint/no-explicit-any
+  233:81  warning  Unexpected any. Specify a different type                          @typescript-eslint/no-explicit-any
+  234:47  warning  Unexpected any. Specify a different type                          @typescript-eslint/no-explicit-any
+  234:79  warning  Unexpected any. Specify a different type                          @typescript-eslint/no-explicit-any
+  242:23  warning  Unexpected any. Specify a different type                          @typescript-eslint/no-explicit-any
+  243:24  warning  Unexpected any. Specify a different type                          @typescript-eslint/no-explicit-any
+  250:23  warning  Unexpected any. Specify a different type                          @typescript-eslint/no-explicit-any
+  251:20  warning  Unexpected any. Specify a different type                          @typescript-eslint/no-explicit-any
+  285:27  warning  Unexpected any. Specify a different type                          @typescript-eslint/no-explicit-any
+
+/Users/adminvia/devwork/_viahub/vws/src/routes/api/project-management/create-project/+server.ts
+  167:7   error    이름 조합 시 formatEmployeeName 또는 formatKoreanNameStandard 함수를 사용하세요  no-restricted-syntax
+  201:9   error    이름 조합 시 formatEmployeeName 또는 formatKoreanNameStandard 함수를 사용하세요  no-restricted-syntax
+  210:38  warning  Unexpected any. Specify a different type                          @typescript-eslint/no-explicit-any
+  237:45  warning  Unexpected any. Specify a different type                          @typescript-eslint/no-explicit-any
+  313:16  error    이름 조합 시 formatEmployeeName 또는 formatKoreanNameStandard 함수를 사용하세요  no-restricted-syntax
+  320:45  warning  Unexpected any. Specify a different type                          @typescript-eslint/no-explicit-any
+  360:16  error    이름 조합 시 formatEmployeeName 또는 formatKoreanNameStandard 함수를 사용하세요  no-restricted-syntax
+  367:44  warning  Unexpected any. Specify a different type                          @typescript-eslint/no-explicit-any
+  446:47  warning  Unexpected any. Specify a different type                          @typescript-eslint/no-explicit-any
+  483:7   error    이름 조합 시 formatEmployeeName 또는 formatKoreanNameStandard 함수를 사용하세요  no-restricted-syntax
+
+/Users/adminvia/devwork/_viahub/vws/src/routes/api/project-management/evidence-items/validate-employment/+server.ts
+  112:17  error  이름 조합 시 formatEmployeeName 또는 formatKoreanNameStandard 함수를 사용하세요  no-restricted-syntax
+  118:17  error  이름 조합 시 formatEmployeeName 또는 formatKoreanNameStandard 함수를 사용하세요  no-restricted-syntax
+
+/Users/adminvia/devwork/_viahub/vws/src/routes/api/project-management/evidence/[id]/+server.ts
+  169:27  error  이름 조합 시 formatEmployeeName 또는 formatKoreanNameStandard 함수를 사용하세요  no-restricted-syntax
+  188:7   error  이름 조합 시 formatEmployeeName 또는 formatKoreanNameStandard 함수를 사용하세요  no-restricted-syntax
+
+/Users/adminvia/devwork/_viahub/vws/src/routes/api/project-management/project-members/+server.ts
+  201:23  error  이름 조합 시 formatEmployeeName 또는 formatKoreanNameStandard 함수를 사용하세요  no-restricted-syntax
+
+/Users/adminvia/devwork/_viahub/vws/src/routes/api/project-management/project-members/[id]/+server.ts
+  288:7  error  이름 조합 시 formatEmployeeName 또는 formatKoreanNameStandard 함수를 사용하세요  no-restricted-syntax
+
+/Users/adminvia/devwork/_viahub/vws/src/routes/api/project-management/projects/[id]/+server.ts
+  207:27  error  이름 조합 시 formatEmployeeName 또는 formatKoreanNameStandard 함수를 사용하세요  no-restricted-syntax
+  226:7   error  이름 조합 시 formatEmployeeName 또는 formatKoreanNameStandard 함수를 사용하세요  no-restricted-syntax
+
+/Users/adminvia/devwork/_viahub/vws/src/routes/api/project-management/researcher-validation/+server.ts
+   31:10  warning  Unexpected any. Specify a different type                          @typescript-eslint/no-explicit-any
+  103:7   error    이름 조합 시 formatEmployeeName 또는 formatKoreanNameStandard 함수를 사용하세요  no-restricted-syntax
+  161:23  error    이름 조합 시 formatEmployeeName 또는 formatKoreanNameStandard 함수를 사용하세요  no-restricted-syntax
+  189:7   error    이름 조합 시 formatEmployeeName 또는 formatKoreanNameStandard 함수를 사용하세요  no-restricted-syntax
+  217:43  warning  Unexpected any. Specify a different type                          @typescript-eslint/no-explicit-any
+  282:18  error    이름 조합 시 formatEmployeeName 또는 formatKoreanNameStandard 함수를 사용하세요  no-restricted-syntax
+  323:11  warning  Unexpected any. Specify a different type                          @typescript-eslint/no-explicit-any
+  324:13  warning  Unexpected any. Specify a different type                          @typescript-eslint/no-explicit-any
+  367:32  error    이름 조합 시 formatEmployeeName 또는 formatKoreanNameStandard 함수를 사용하세요  no-restricted-syntax
+  380:32  error    이름 조합 시 formatEmployeeName 또는 formatKoreanNameStandard 함수를 사용하세요  no-restricted-syntax
+  395:11  warning  Unexpected any. Specify a different type                          @typescript-eslint/no-explicit-any
+  438:21  error    이름 조합 시 formatEmployeeName 또는 formatKoreanNameStandard 함수를 사용하세요  no-restricted-syntax
+
+/Users/adminvia/devwork/_viahub/vws/src/routes/api/project-management/simple-validation/+server.ts
+   91:46  warning  Unexpected any. Specify a different type                          @typescript-eslint/no-explicit-any
+  170:50  warning  Unexpected any. Specify a different type                          @typescript-eslint/no-explicit-any
+  202:9   error    이름 조합 시 formatEmployeeName 또는 formatKoreanNameStandard 함수를 사용하세요  no-restricted-syntax
+  208:41  warning  Unexpected any. Specify a different type                          @typescript-eslint/no-explicit-any
+  239:45  warning  Unexpected any. Specify a different type                          @typescript-eslint/no-explicit-any
+
+/Users/adminvia/devwork/_viahub/vws/src/routes/api/projects/upload/+server.ts
+   52:24  warning  Unexpected any. Specify a different type                          @typescript-eslint/no-explicit-any
+   99:20  warning  Unexpected any. Specify a different type                          @typescript-eslint/no-explicit-any
+  116:37  warning  Unexpected any. Specify a different type                          @typescript-eslint/no-explicit-any
+  126:25  error    이름 조합 시 formatEmployeeName 또는 formatKoreanNameStandard 함수를 사용하세요  no-restricted-syntax
+  130:42  warning  Unexpected any. Specify a different type                          @typescript-eslint/no-explicit-any
+  139:25  error    이름 조합 시 formatEmployeeName 또는 formatKoreanNameStandard 함수를 사용하세요  no-restricted-syntax
+  143:25  error    이름 조합 시 formatEmployeeName 또는 formatKoreanNameStandard 함수를 사용하세요  no-restricted-syntax
+  155:27  error    이름 조합 시 formatEmployeeName 또는 formatKoreanNameStandard 함수를 사용하세요  no-restricted-syntax
+
+/Users/adminvia/devwork/_viahub/vws/src/routes/api/salary/contracts/[id]/+server.ts
+  164:7  error  이름 조합 시 formatEmployeeName 또는 formatKoreanNameStandard 함수를 사용하세요  no-restricted-syntax
+
+/Users/adminvia/devwork/_viahub/vws/src/routes/api/salary/payslips/+server.ts
+  112:28  error  이름 조합 시 formatEmployeeName 또는 formatKoreanNameStandard 함수를 사용하세요  no-restricted-syntax
+
+/Users/adminvia/devwork/_viahub/vws/src/routes/api/salary/payslips/template/+server.ts
+   82:34  warning  Unexpected any. Specify a different type                          @typescript-eslint/no-explicit-any
+  106:9   error    이름 조합 시 formatEmployeeName 또는 formatKoreanNameStandard 함수를 사용하세요  no-restricted-syntax
+  107:9   error    이름 조합 시 formatEmployeeName 또는 formatKoreanNameStandard 함수를 사용하세요  no-restricted-syntax
+  108:9   error    이름 조합 시 formatEmployeeName 또는 formatKoreanNameStandard 함수를 사용하세요  no-restricted-syntax
+  172:22  error    이름 조합 시 formatEmployeeName 또는 formatKoreanNameStandard 함수를 사용하세요  no-restricted-syntax
+
+/Users/adminvia/devwork/_viahub/vws/src/routes/api/salary/payslips/upload/+server.ts
+   88:13  error  이름 조합 시 formatEmployeeName 또는 formatKoreanNameStandard 함수를 사용하세요  no-restricted-syntax
+  214:15  error  이름 조합 시 formatEmployeeName 또는 formatKoreanNameStandard 함수를 사용하세요  no-restricted-syntax
+  241:15  error  이름 조합 시 formatEmployeeName 또는 formatKoreanNameStandard 함수를 사용하세요  no-restricted-syntax
+  266:11  error  이름 조합 시 formatEmployeeName 또는 formatKoreanNameStandard 함수를 사용하세요  no-restricted-syntax
+  280:16  error  이름 조합 시 formatEmployeeName 또는 formatKoreanNameStandard 함수를 사용하세요  no-restricted-syntax
+
+/Users/adminvia/devwork/_viahub/vws/src/routes/hr/+page.svelte
+  1567:17  warning  Each block should have a key                svelte/require-each-key
+  1601:33  warning  It cannot be optimized because too complex  svelte/require-optimized-style-attribute
+  1901:19  warning  Each block should have a key                svelte/require-each-key
+  2159:13  warning  Each block should have a key                svelte/require-each-key
+
+/Users/adminvia/devwork/_viahub/vws/src/routes/project-management/+page.svelte
+  4:13  error  '_fetch' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/adminvia/devwork/_viahub/vws/src/routes/project-management/projects/[projectId]/budget/+page.svelte
+  72:11  warning  Each block should have a key  svelte/require-each-key
+
+✖ 297 problems (46 errors, 251 warnings)
+
