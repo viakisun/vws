@@ -14,7 +14,7 @@
     MessageSquareIcon,
     ChevronLeftIcon,
     ChevronRightIcon,
-    DollarSignIcon
+    DollarSignIcon,
   } from '@lucide/svelte'
   import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
 
@@ -32,7 +32,7 @@
     { name: '보고서', href: '/reports', icon: FileTextIcon },
     { name: '분석', href: '/analytics', icon: BarChart3Icon },
     { name: '메시지', href: '/messages', icon: MessageSquareIcon },
-    { name: '설정', href: '/settings', icon: SettingsIcon }
+    { name: '설정', href: '/settings', icon: SettingsIcon },
   ]
 
   function toggleCollapse() {
@@ -44,13 +44,14 @@
   class="transition-all duration-300 {isCollapsed
     ? 'w-16'
     : 'w-64'} flex-shrink-0 h-screen sticky top-0"
-  style="background: var(--color-surface); border-right: 1px solid var(--color-border);"
+  style:background="var(--color-surface)"
+  style:border-right="1px solid var(--color-border)"
 >
   <div class="flex h-full flex-col">
     <!-- Toggle Button -->
     <div
       class="flex h-12 items-center justify-center"
-      style="border-bottom: 1px solid var(--color-border);"
+      style:border-bottom="1px solid var(--color-border)"
     >
       <ThemeButton
         variant="ghost"
@@ -68,7 +69,7 @@
 
     <!-- Navigation -->
     <nav class="flex-1 px-3 py-4 space-y-1">
-      {#each navigationItems as item}
+      {#each navigationItems as item (item.name)}
         {@const currentPath = $page.url.pathname}
         {@const isCurrent =
           (item.href === '/' && currentPath === '/') ||
@@ -76,13 +77,12 @@
         <a
           href={item.href}
           class="group flex items-center px-3 py-3 text-sm font-medium rounded-xl transition-all duration-200 relative
-						{isCurrent ? 'text-white shadow-lg' : 'hover:scale-[1.02] hover:shadow-md'}"
+            {isCurrent ? 'text-white shadow-lg' : 'hover:scale-[1.02] hover:shadow-md'}"
           style="
-						{isCurrent
+            {isCurrent
             ? 'background: var(--color-primary);'
             : 'color: var(--color-text-secondary); background: transparent;'}
-						{isCurrent ? '' : 'hover:background: var(--color-surface-elevated);'}
-					"
+          "
           title={isCollapsed ? item.name : ''}
         >
           {#if isCurrent}
@@ -94,7 +94,7 @@
             <item.icon size={20} class="flex-shrink-0 {isCurrent ? 'text-white' : ''}" />
           {/if}
           {#if !isCollapsed}
-            <span class="ml-3 font-medium {isCurrent ? 'text-white' : ''}">{item.name}</span>
+            <span class="ml-3 font-medium" class:text-white={isCurrent}>{item.name}</span>
           {/if}
           {#if isCurrent && !isCollapsed}
             <div class="ml-auto">

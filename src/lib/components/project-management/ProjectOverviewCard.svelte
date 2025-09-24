@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
   import ThemeBadge from '$lib/components/ui/ThemeBadge.svelte'
   import ThemeCard from '$lib/components/ui/ThemeCard.svelte'
   import { formatCurrency, formatDate } from '$lib/utils/format'
@@ -7,7 +7,7 @@
     AlertTriangleIcon,
     DollarSignIcon,
     FlaskConicalIcon,
-    UsersIcon
+    UsersIcon,
   } from '@lucide/svelte'
 
   /**
@@ -158,7 +158,9 @@
                   {getStatusLabel(activity.status)}
                 </ThemeBadge>
                 <div class="ml-4">
-                  <p class="text-sm font-medium text-gray-900">{activity.title}</p>
+                  <p class="text-sm font-medium text-gray-900">
+                    {activity.title}
+                  </p>
                   <p class="text-sm text-gray-500">{activity.code}</p>
                 </div>
               </div>

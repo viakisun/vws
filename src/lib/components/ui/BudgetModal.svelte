@@ -7,7 +7,7 @@
   let {
     isOpen = $bindable(false),
     budgetItem = null,
-    type = 'category' // 'category' | 'goal'
+    type = 'category', // 'category' | 'goal'
   } = $props<{
     isOpen?: boolean
     budgetItem?: BudgetCategory | BudgetGoal | null
@@ -19,7 +19,7 @@
     amount: 0,
     period: 'monthly' as 'monthly' | 'quarterly' | 'yearly',
     deadline: '',
-    status: 'active' as 'active' | 'completed' | 'paused'
+    status: 'active' as 'active' | 'completed' | 'paused',
   })
 
   function initializeForm() {
@@ -31,7 +31,7 @@
           amount: category.amount,
           period: category.period,
           deadline: '',
-          status: 'active'
+          status: 'active',
         }
       } else {
         const goal = budgetItem as BudgetGoal
@@ -40,7 +40,7 @@
           amount: goal.targetAmount,
           period: 'monthly',
           deadline: goal.deadline,
-          status: goal.status
+          status: goal.status,
         }
       }
     } else {
@@ -49,7 +49,7 @@
         amount: 0,
         period: 'monthly',
         deadline: '',
-        status: 'active'
+        status: 'active',
       }
     }
   }
@@ -70,7 +70,7 @@
       amount: Number(formData.amount),
       id: budgetItem?.id || `${type}-${Date.now()}`,
       createdAt: budgetItem?.createdAt || new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      updatedAt: new Date().toISOString(),
     }
 
     dispatch('submit', itemData)
@@ -88,7 +88,7 @@
       amount: 0,
       period: 'monthly',
       deadline: '',
-      status: 'active'
+      status: 'active',
     }
   }
 
@@ -108,7 +108,7 @@
       role="button"
       tabindex="0"
       onclick={closeModal}
-      onkeydown={e => (e.key === 'Escape' || e.key === 'Enter' || e.key === ' ') && closeModal()}
+      onkeydown={(e) => (e.key === 'Escape' || e.key === 'Enter' || e.key === ' ') && closeModal()}
     ></div>
     <div
       class="relative w-full max-w-2xl mx-4 rounded-xl bg-white shadow-lg border border-gray-200"
@@ -121,20 +121,25 @@
             {type === 'category' ? '예산 카테고리' : '예산 목표'}
             {budgetItem ? '수정' : '추가'}
           </h2>
-          <button onclick={closeModal} class="text-gray-400 hover:text-gray-600" aria-label="닫기">
+          <button
+            type="button"
+            onclick={closeModal}
+            class="text-gray-400 hover:text-gray-600"
+            aria-label="닫기"
+          >
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 stroke-linecap="round"
                 stroke-linejoin="round"
                 stroke-width="2"
                 d="M6 18L18 6M6 6l12 12"
-              ></path>
+              />
             </svg>
           </button>
         </div>
 
         <form
-          onsubmit={e => {
+          onsubmit={(e) => {
             e.preventDefault()
             handleSubmit()
           }}

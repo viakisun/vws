@@ -4,10 +4,11 @@ import {
   getCurrentUTC,
   isValidDate,
   isValidDateRange,
-  toUTC
+  toUTC,
 } from '$lib/utils/date-handler'
 import { json } from '@sveltejs/kit'
 import * as ExcelJS from 'exceljs'
+import { logger } from '$lib/utils/logger'
 
 export async function POST({ request }) {
   try {
@@ -23,7 +24,7 @@ export async function POST({ request }) {
     const isExcel = fileName.endsWith('.xlsx') || fileName.endsWith('.xls')
     const isCSV = fileName.endsWith('.csv')
 
-    let data: any[] = []
+    let data: unknown[] = []
     let headers: string[] = []
 
     if (isExcel) {
@@ -44,22 +45,22 @@ export async function POST({ request }) {
 
       // 헤더 추출 (첫 번째 행)
       headers = rows[0].values.slice(1) as string[] // ExcelJS는 1-based indexing
-      console.log('프로젝트 Excel 파싱된 헤더:', headers)
+      logger.log('프로젝트 Excel 파싱된 헤더:', headers)
 
       // 데이터 추출
       data = rows.slice(1).map((row, index) => {
         const rowData: any = {}
-        const rowValues = row.values.slice(1) as any[] // ExcelJS는 1-based indexing
+        const rowValues = row.values.slice(1) as unknown[] // ExcelJS는 1-based indexing
         headers.forEach((header, headerIndex) => {
           rowData[header] = rowValues[headerIndex] || ''
         })
-        console.log(`프로젝트 Excel 행 ${index + 2} 파싱 결과:`, rowData)
+        logger.log(`프로젝트 Excel 행 ${index + 2} 파싱 결과:`, rowData)
         return rowData
       })
     } else if (isCSV) {
       // CSV 파일 파싱
       const text = await file.text()
-      const lines = text.split('\n').filter(line => line.trim())
+      const lines = text.split('\n').filter((line) => line.trim())
 
       if (lines.length < 2) {
         return json({ error: '파일에 데이터가 없습니다.' }, { status: 400 })
@@ -90,7 +91,7 @@ export async function POST({ request }) {
 
       // 헤더 파싱
       headers = parseCSVLine(lines[0])
-      console.log('프로젝트 CSV 파싱된 헤더:', headers)
+      logger.log('프로젝트 CSV 파싱된 헤더:', headers)
 
       // 데이터 파싱
       data = lines.slice(1).map((line, index) => {
@@ -99,13 +100,15 @@ export async function POST({ request }) {
         headers.forEach((header, headerIndex) => {
           row[header] = values[headerIndex] || ''
         })
-        console.log(`프로젝트 CSV 행 ${index + 2} 파싱 결과:`, row)
+        logger.log(`프로젝트 CSV 행 ${index + 2} 파싱 결과:`, row)
         return row
       })
     } else {
       return json(
-        { error: '지원하지 않는 파일 형식입니다. CSV 또는 Excel 파일을 업로드해주세요.' },
-        { status: 400 }
+        {
+          error: '지원하지 않는 파일 형식입니다. CSV 또는 Excel 파일을 업로드해주세요.',
+        },
+        { status: 400 },
       )
     }
 
@@ -116,7 +119,7 @@ export async function POST({ request }) {
       // 필수 필드 검증
       const requiredFields = ['프로젝트명', '시작일', '종료일']
       const missingFields = requiredFields.filter(
-        field => !row[field] || String(row[field]).trim() === ''
+        (field) => !row[field] || String(row[field]).trim() === '',
       )
 
       if (missingFields.length > 0) {
@@ -158,7 +161,7 @@ export async function POST({ request }) {
       const status = row['상태'] || 'planning'
       if (!validStatuses.includes(status)) {
         throw new Error(
-          `행 ${rowNumber}: 올바르지 않은 상태입니다: ${status}. 허용된 값: ${validStatuses.join(', ')}`
+          `행 ${rowNumber}: 올바르지 않은 상태입니다: ${status}. 허용된 값: ${validStatuses.join(', ')}`,
         )
       }
 
@@ -167,7 +170,7 @@ export async function POST({ request }) {
       const category = row['카테고리'] || 'development'
       if (!validCategories.includes(category)) {
         throw new Error(
-          `행 ${rowNumber}: 올바르지 않은 카테고리입니다: ${category}. 허용된 값: ${validCategories.join(', ')}`
+          `행 ${rowNumber}: 올바르지 않은 카테고리입니다: ${category}. 허용된 값: ${validCategories.join(', ')}`,
         )
       }
 
@@ -176,7 +179,7 @@ export async function POST({ request }) {
       const priority = row['우선순위'] || 'medium'
       if (!validPriorities.includes(priority)) {
         throw new Error(
-          `행 ${rowNumber}: 올바르지 않은 우선순위입니다: ${priority}. 허용된 값: ${validPriorities.join(', ')}`
+          `행 ${rowNumber}: 올바르지 않은 우선순위입니다: ${priority}. 허용된 값: ${validPriorities.join(', ')}`,
         )
       }
 
@@ -202,7 +205,7 @@ export async function POST({ request }) {
         sponsor: row['담당자'] ? String(row['담당자']).trim() : '',
         sponsor_type: 'internal',
         created_at: getCurrentUTC(),
-        updated_at: getCurrentUTC()
+        updated_at: getCurrentUTC(),
       }
     })
 
@@ -242,12 +245,12 @@ export async function POST({ request }) {
             project.sponsor,
             project.sponsor_type,
             project.created_at,
-            project.updated_at
-          ]
+            project.updated_at,
+          ],
         )
         successCount++
       } catch (error) {
-        console.error('프로젝트 저장 실패:', error)
+        logger.error('프로젝트 저장 실패:', error)
       }
     }
 
@@ -255,15 +258,15 @@ export async function POST({ request }) {
       success: true,
       count: successCount,
       total: projects.length,
-      message: `${successCount}개의 프로젝트가 성공적으로 업로드되었습니다.`
+      message: `${successCount}개의 프로젝트가 성공적으로 업로드되었습니다.`,
     })
   } catch (error) {
-    console.error('업로드 에러:', error)
+    logger.error('업로드 에러:', error)
     return json(
       {
-        error: error instanceof Error ? error.message : '업로드 중 오류가 발생했습니다.'
+        error: error instanceof Error ? error.message : '업로드 중 오류가 발생했습니다.',
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

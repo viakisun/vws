@@ -1,6 +1,7 @@
 import { json } from '@sveltejs/kit'
 import { query } from '$lib/database/connection.js'
 import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger'
 
 // GET /api/company - 회사 정보 조회
 export const GET: RequestHandler = async () => {
@@ -20,16 +21,16 @@ export const GET: RequestHandler = async () => {
     return json({
       success: true,
       data: company,
-      message: company ? '회사 정보를 성공적으로 조회했습니다.' : '등록된 회사 정보가 없습니다.'
+      message: company ? '회사 정보를 성공적으로 조회했습니다.' : '등록된 회사 정보가 없습니다.',
     })
   } catch (error: any) {
-    console.error('Error fetching company:', error)
+    logger.error('Error fetching company:', error)
     return json(
       {
         success: false,
-        error: error.message || '회사 정보 조회에 실패했습니다.'
+        error: error.message || '회사 정보 조회에 실패했습니다.',
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
@@ -44,9 +45,9 @@ export const POST: RequestHandler = async ({ request }) => {
       return json(
         {
           success: false,
-          error: '회사명은 필수입니다.'
+          error: '회사명은 필수입니다.',
         },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -87,8 +88,8 @@ export const POST: RequestHandler = async ({ request }) => {
           data.email || null,
           data.website || null,
           data.registration_number || null,
-          new Date()
-        ]
+          new Date(),
+        ],
       )
     } else {
       // 새 회사 정보 등록
@@ -115,8 +116,8 @@ export const POST: RequestHandler = async ({ request }) => {
           data.website || null,
           data.registration_number || null,
           new Date(),
-          new Date()
-        ]
+          new Date(),
+        ],
       )
     }
 
@@ -125,16 +126,16 @@ export const POST: RequestHandler = async ({ request }) => {
       data: result.rows[0],
       message: existingCompany
         ? '회사 정보가 성공적으로 수정되었습니다.'
-        : '회사 정보가 성공적으로 등록되었습니다.'
+        : '회사 정보가 성공적으로 등록되었습니다.',
     })
   } catch (error: any) {
-    console.error('Error saving company:', error)
+    logger.error('Error saving company:', error)
     return json(
       {
         success: false,
-        error: error.message || '회사 정보 저장에 실패했습니다.'
+        error: error.message || '회사 정보 저장에 실패했습니다.',
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

@@ -1,4 +1,5 @@
 import { query } from '$lib/database/connection'
+import { logger } from '$lib/utils/logger'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
 
@@ -15,32 +16,32 @@ export const GET: RequestHandler = async ({ params }) => {
 			JOIN projects p ON pb.project_id = p.id
 			WHERE pb.id = $1
 		`,
-      [params.id]
+      [params.id],
     )
 
     if (result.rows.length === 0) {
       return json(
         {
           success: false,
-          message: '프로젝트 사업비를 찾을 수 없습니다.'
+          message: '프로젝트 사업비를 찾을 수 없습니다.',
         },
-        { status: 404 }
+        { status: 404 },
       )
     }
 
     return json({
       success: true,
-      data: result.rows[0]
+      data: result.rows[0],
     })
   } catch (error) {
-    console.error('프로젝트 사업비 조회 실패:', error)
+    logger.error('프로젝트 사업비 조회 실패:', error)
     return json(
       {
         success: false,
         message: '프로젝트 사업비를 불러오는데 실패했습니다.',
-        error: (error as Error).message
+        error: (error as Error).message,
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
@@ -64,7 +65,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
       researchMaterialCostInKind = 0,
       researchActivityCostInKind = 0,
       researchStipendInKind = 0,
-      indirectCostInKind = 0
+      indirectCostInKind = 0,
     } = data
 
     // 사업비 존재 확인
@@ -74,9 +75,9 @@ export const PUT: RequestHandler = async ({ params, request }) => {
       return json(
         {
           success: false,
-          message: '프로젝트 사업비를 찾을 수 없습니다.'
+          message: '프로젝트 사업비를 찾을 수 없습니다.',
         },
-        { status: 404 }
+        { status: 404 },
       )
     }
 
@@ -88,7 +89,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
     const indirectCost = indirectCostCash + indirectCostInKind
 
     // 사업비 수정
-    const result = await query(
+    const _result = await query(
       `
 			UPDATE project_budgets 
 			SET 
@@ -133,8 +134,8 @@ export const PUT: RequestHandler = async ({ params, request }) => {
         researchStipendInKind,
         indirectCostCash,
         indirectCostInKind,
-        params.id
-      ]
+        params.id,
+      ],
     )
 
     // 수정된 사업비 정보와 관련 정보 조회
@@ -148,23 +149,23 @@ export const PUT: RequestHandler = async ({ params, request }) => {
 			JOIN projects p ON pb.project_id = p.id
 			WHERE pb.id = $1
 		`,
-      [params.id]
+      [params.id],
     )
 
     return json({
       success: true,
       data: budgetWithDetails.rows[0],
-      message: '프로젝트 사업비가 성공적으로 수정되었습니다.'
+      message: '프로젝트 사업비가 성공적으로 수정되었습니다.',
     })
   } catch (error) {
-    console.error('프로젝트 사업비 수정 실패:', error)
+    logger.error('프로젝트 사업비 수정 실패:', error)
     return json(
       {
         success: false,
         message: '프로젝트 사업비 수정에 실패했습니다.',
-        error: (error as Error).message
+        error: (error as Error).message,
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
@@ -179,9 +180,9 @@ export const DELETE: RequestHandler = async ({ params }) => {
       return json(
         {
           success: false,
-          message: '프로젝트 사업비를 찾을 수 없습니다.'
+          message: '프로젝트 사업비를 찾을 수 없습니다.',
         },
-        { status: 404 }
+        { status: 404 },
       )
     }
 
@@ -190,17 +191,17 @@ export const DELETE: RequestHandler = async ({ params }) => {
 
     return json({
       success: true,
-      message: '프로젝트 사업비가 성공적으로 삭제되었습니다.'
+      message: '프로젝트 사업비가 성공적으로 삭제되었습니다.',
     })
   } catch (error) {
-    console.error('프로젝트 사업비 삭제 실패:', error)
+    logger.error('프로젝트 사업비 삭제 실패:', error)
     return json(
       {
         success: false,
         message: '프로젝트 사업비 삭제에 실패했습니다.',
-        error: (error as Error).message
+        error: (error as Error).message,
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

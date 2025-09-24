@@ -98,7 +98,7 @@ const initialLeaveTypes: LeaveType[] = [
     maxCarryOverDays: 5,
     isPaid: true,
     color: '#3B82F6',
-    createdAt: '2023-01-01T00:00:00Z'
+    createdAt: '2023-01-01T00:00:00Z',
   },
   {
     id: 'leave-2',
@@ -111,7 +111,7 @@ const initialLeaveTypes: LeaveType[] = [
     canCarryOver: false,
     isPaid: true,
     color: '#EF4444',
-    createdAt: '2023-01-01T00:00:00Z'
+    createdAt: '2023-01-01T00:00:00Z',
   },
   {
     id: 'leave-3',
@@ -124,7 +124,7 @@ const initialLeaveTypes: LeaveType[] = [
     canCarryOver: false,
     isPaid: false,
     color: '#F59E0B',
-    createdAt: '2023-01-01T00:00:00Z'
+    createdAt: '2023-01-01T00:00:00Z',
   },
   {
     id: 'leave-4',
@@ -137,7 +137,7 @@ const initialLeaveTypes: LeaveType[] = [
     canCarryOver: false,
     isPaid: true,
     color: '#EC4899',
-    createdAt: '2023-01-01T00:00:00Z'
+    createdAt: '2023-01-01T00:00:00Z',
   },
   {
     id: 'leave-5',
@@ -150,8 +150,8 @@ const initialLeaveTypes: LeaveType[] = [
     canCarryOver: false,
     isPaid: true,
     color: '#6B7280',
-    createdAt: '2023-01-01T00:00:00Z'
-  }
+    createdAt: '2023-01-01T00:00:00Z',
+  },
 ]
 
 const initialAttendanceRecords: AttendanceRecord[] = [
@@ -165,7 +165,7 @@ const initialAttendanceRecords: AttendanceRecord[] = [
     overtimeHours: 0,
     status: 'present',
     createdAt: '2024-01-15T09:00:00Z',
-    updatedAt: '2024-01-15T18:00:00Z'
+    updatedAt: '2024-01-15T18:00:00Z',
   },
   {
     id: 'attendance-2',
@@ -178,7 +178,7 @@ const initialAttendanceRecords: AttendanceRecord[] = [
     status: 'late',
     notes: '지각 15분',
     createdAt: '2024-01-16T09:15:00Z',
-    updatedAt: '2024-01-16T18:30:00Z'
+    updatedAt: '2024-01-16T18:30:00Z',
   },
   {
     id: 'attendance-3',
@@ -191,8 +191,8 @@ const initialAttendanceRecords: AttendanceRecord[] = [
     status: 'early-leave',
     notes: '조퇴 30분',
     createdAt: '2024-01-15T09:00:00Z',
-    updatedAt: '2024-01-15T17:30:00Z'
-  }
+    updatedAt: '2024-01-15T17:30:00Z',
+  },
 ]
 
 const initialLeaveRequests: LeaveRequest[] = [
@@ -207,7 +207,7 @@ const initialLeaveRequests: LeaveRequest[] = [
     status: 'approved',
     requestedAt: '2024-01-20T10:00:00Z',
     approvedBy: 'emp-3',
-    approvedAt: '2024-01-21T14:00:00Z'
+    approvedAt: '2024-01-21T14:00:00Z',
   },
   {
     id: 'leave-req-2',
@@ -218,8 +218,8 @@ const initialLeaveRequests: LeaveRequest[] = [
     days: 1,
     reason: '감기로 인한 휴가',
     status: 'pending',
-    requestedAt: '2024-01-24T16:00:00Z'
-  }
+    requestedAt: '2024-01-24T16:00:00Z',
+  },
 ]
 
 const initialLeaveBalances: LeaveBalance[] = [
@@ -233,7 +233,7 @@ const initialLeaveBalances: LeaveBalance[] = [
     remainingDays: 12,
     carriedOverDays: 2,
     createdAt: '2024-01-01T00:00:00Z',
-    updatedAt: '2024-01-20T00:00:00Z'
+    updatedAt: '2024-01-20T00:00:00Z',
   },
   {
     id: 'balance-2',
@@ -245,8 +245,8 @@ const initialLeaveBalances: LeaveBalance[] = [
     remainingDays: 10,
     carriedOverDays: 0,
     createdAt: '2024-01-01T00:00:00Z',
-    updatedAt: '2024-01-15T00:00:00Z'
-  }
+    updatedAt: '2024-01-15T00:00:00Z',
+  },
 ]
 
 const initialWorkSchedules: WorkSchedule[] = [
@@ -258,8 +258,8 @@ const initialWorkSchedules: WorkSchedule[] = [
     startTime: '09:00',
     endTime: '18:00',
     workHours: 8,
-    createdAt: '2024-01-15T00:00:00Z'
-  }
+    createdAt: '2024-01-15T00:00:00Z',
+  },
 ]
 
 // 스토어 생성
@@ -271,45 +271,55 @@ export const workSchedules = writable<WorkSchedule[]>(initialWorkSchedules)
 
 // 근태 기록 관리 함수들
 export function addAttendanceRecord(
-  record: Omit<AttendanceRecord, 'id' | 'createdAt' | 'updatedAt'>
+  record: Omit<AttendanceRecord, 'id' | 'createdAt' | 'updatedAt'>,
 ) {
   const newRecord: AttendanceRecord = {
     ...record,
     id: `attendance-${Date.now()}`,
     createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    updatedAt: new Date().toISOString(),
   }
-  attendanceRecords.update(current => [...current, newRecord])
+  attendanceRecords.update((current) => [...current, newRecord])
 }
 
 export function updateAttendanceRecord(id: string, updates: Partial<AttendanceRecord>) {
-  attendanceRecords.update(current =>
-    current.map(record =>
-      record.id === id ? { ...record, ...updates, updatedAt: new Date().toISOString() } : record
-    )
+  attendanceRecords.update((current) =>
+    current.map((record) =>
+      record.id === id ? { ...record, ...updates, updatedAt: new Date().toISOString() } : record,
+    ),
   )
 }
 
 export function checkIn(employeeId: string, time?: string) {
-  const now = time || new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })
+  const now =
+    time ||
+    new Date().toLocaleTimeString('ko-KR', {
+      hour: '2-digit',
+      minute: '2-digit',
+    })
   const today = new Date().toISOString().split('T')[0]
 
   // 오늘의 근태 기록이 있는지 확인
   let existingRecord: any = null
-  attendanceRecords.subscribe(records => {
+  attendanceRecords.subscribe((records) => {
     existingRecord = records.find(
-      record => record.employeeId === employeeId && record.date === today
+      (record) => record.employeeId === employeeId && record.date === today,
     )
   })
 
   if (existingRecord) {
     // 기존 기록 업데이트
-    attendanceRecords.update(current =>
-      current.map(record =>
+    attendanceRecords.update((current) =>
+      current.map((record) =>
         record.employeeId === employeeId && record.date === today
-          ? { ...record, checkIn: now, status: 'present', updatedAt: new Date().toISOString() }
-          : record
-      )
+          ? {
+              ...record,
+              checkIn: now,
+              status: 'present',
+              updatedAt: new Date().toISOString(),
+            }
+          : record,
+      ),
     )
   } else {
     // 새 기록 생성
@@ -317,17 +327,22 @@ export function checkIn(employeeId: string, time?: string) {
       employeeId: employeeId || '',
       date: today,
       checkIn: now,
-      status: 'present'
+      status: 'present',
     })
   }
 }
 
 export function checkOut(employeeId: string, time?: string) {
-  const now = time || new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })
+  const now =
+    time ||
+    new Date().toLocaleTimeString('ko-KR', {
+      hour: '2-digit',
+      minute: '2-digit',
+    })
   const today = new Date().toISOString().split('T')[0]
 
-  attendanceRecords.update(current =>
-    current.map(record => {
+  attendanceRecords.update((current) =>
+    current.map((record) => {
       if (record.employeeId === employeeId && record.date === today) {
         const checkInTime = record.checkIn
         if (checkInTime) {
@@ -339,12 +354,12 @@ export function checkOut(employeeId: string, time?: string) {
             checkOut: now,
             workHours,
             overtimeHours,
-            updatedAt: new Date().toISOString()
+            updatedAt: new Date().toISOString(),
           }
         }
       }
       return record
-    })
+    }),
   )
 }
 
@@ -353,14 +368,14 @@ export function addLeaveType(leaveType: Omit<LeaveType, 'id' | 'createdAt'>) {
   const newLeaveType: LeaveType = {
     ...leaveType,
     id: `leave-${Date.now()}`,
-    createdAt: new Date().toISOString()
+    createdAt: new Date().toISOString(),
   }
-  leaveTypes.update(current => [...current, newLeaveType])
+  leaveTypes.update((current) => [...current, newLeaveType])
 }
 
 export function updateLeaveType(id: string, updates: Partial<LeaveType>) {
-  leaveTypes.update(current =>
-    current.map(leaveType => (leaveType.id === id ? { ...leaveType, ...updates } : leaveType))
+  leaveTypes.update((current) =>
+    current.map((leaveType) => (leaveType.id === id ? { ...leaveType, ...updates } : leaveType)),
   )
 }
 
@@ -369,37 +384,37 @@ export function requestLeave(request: Omit<LeaveRequest, 'id' | 'requestedAt'>) 
   const newRequest: LeaveRequest = {
     ...request,
     id: `leave-req-${Date.now()}`,
-    requestedAt: new Date().toISOString()
+    requestedAt: new Date().toISOString(),
   }
-  leaveRequests.update(current => [...current, newRequest])
+  leaveRequests.update((current) => [...current, newRequest])
 }
 
 export function approveLeaveRequest(id: string, approvedBy: string) {
-  leaveRequests.update(current =>
-    current.map(request =>
+  leaveRequests.update((current) =>
+    current.map((request) =>
       request.id === id
         ? {
             ...request,
             status: 'approved',
             approvedBy,
-            approvedAt: new Date().toISOString()
+            approvedAt: new Date().toISOString(),
           }
-        : request
-    )
+        : request,
+    ),
   )
 }
 
 export function rejectLeaveRequest(id: string, rejectionReason: string) {
-  leaveRequests.update(current =>
-    current.map(request =>
+  leaveRequests.update((current) =>
+    current.map((request) =>
       request.id === id
         ? {
             ...request,
             status: 'rejected',
-            rejectionReason
+            rejectionReason,
           }
-        : request
-    )
+        : request,
+    ),
   )
 }
 
@@ -408,10 +423,10 @@ export function updateLeaveBalance(
   employeeId: string,
   leaveTypeId: string,
   year: number,
-  usedDays: number
+  usedDays: number,
 ) {
-  leaveBalances.update(current =>
-    current.map(balance => {
+  leaveBalances.update((current) =>
+    current.map((balance) => {
       if (
         balance.employeeId === employeeId &&
         balance.leaveTypeId === leaveTypeId &&
@@ -424,11 +439,11 @@ export function updateLeaveBalance(
           ...balance,
           usedDays: newUsedDays,
           remainingDays: newRemainingDays,
-          updatedAt: new Date().toISOString()
+          updatedAt: new Date().toISOString(),
         }
       }
       return balance
-    })
+    }),
   )
 }
 
@@ -436,15 +451,15 @@ export function initializeLeaveBalance(employeeId: string, year: number) {
   const currentYear = new Date().getFullYear()
   if (year !== currentYear) return
 
-  leaveTypes.subscribe(types => {
-    leaveBalances.update(current => {
+  leaveTypes.subscribe((types) => {
+    leaveBalances.update((current) => {
       const existingBalances = current.filter(
-        balance => balance.employeeId === employeeId && balance.year === year
+        (balance) => balance.employeeId === employeeId && balance.year === year,
       )
 
       const newBalances = types
-        .filter(type => !existingBalances.some(balance => balance.leaveTypeId === type.id))
-        .map(type => ({
+        .filter((type) => !existingBalances.some((balance) => balance.leaveTypeId === type.id))
+        .map((type) => ({
           id: `balance-${Date.now()}-${Math.random()}`,
           employeeId,
           year,
@@ -454,7 +469,7 @@ export function initializeLeaveBalance(employeeId: string, year: number) {
           remainingDays: type.maxDaysPerYear || 0,
           carriedOverDays: 0,
           createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
+          updatedAt: new Date().toISOString(),
         }))
 
       return [...current, ...newBalances]
@@ -467,9 +482,9 @@ export function addWorkSchedule(schedule: Omit<WorkSchedule, 'id' | 'createdAt'>
   const newSchedule: WorkSchedule = {
     ...schedule,
     id: `schedule-${Date.now()}`,
-    createdAt: new Date().toISOString()
+    createdAt: new Date().toISOString(),
   }
-  workSchedules.update(current => [...current, newSchedule])
+  workSchedules.update((current) => [...current, newSchedule])
 }
 
 // 유틸리티 함수들
@@ -486,38 +501,38 @@ export function calculateWorkHours(checkIn: string, checkOut: string): number {
 
 export function getAttendanceByEmployee(
   employeeId: string,
-  records: AttendanceRecord[]
+  records: AttendanceRecord[],
 ): AttendanceRecord[] {
-  return records.filter(record => record.employeeId === employeeId)
+  return records.filter((record) => record.employeeId === employeeId)
 }
 
 export function getAttendanceByDateRange(
   startDate: string,
   endDate: string,
-  records: AttendanceRecord[]
+  records: AttendanceRecord[],
 ): AttendanceRecord[] {
-  return records.filter(record => record.date >= startDate && record.date <= endDate)
+  return records.filter((record) => record.date >= startDate && record.date <= endDate)
 }
 
 export function getLeaveRequestsByEmployee(
   employeeId: string,
-  requests: LeaveRequest[]
+  requests: LeaveRequest[],
 ): LeaveRequest[] {
-  return requests.filter(request => request.employeeId === employeeId)
+  return requests.filter((request) => request.employeeId === employeeId)
 }
 
 export function getLeaveBalanceByEmployee(
   employeeId: string,
-  balances: LeaveBalance[]
+  balances: LeaveBalance[],
 ): LeaveBalance[] {
-  return balances.filter(balance => balance.employeeId === employeeId)
+  return balances.filter((balance) => balance.employeeId === employeeId)
 }
 
 export function calculateMonthlyAttendance(
   employeeId: string,
   year: number,
   month: number,
-  records: AttendanceRecord[]
+  records: AttendanceRecord[],
 ): {
   totalDays: number
   presentDays: number
@@ -526,7 +541,7 @@ export function calculateMonthlyAttendance(
   totalWorkHours: number
   totalOvertimeHours: number
 } {
-  const monthRecords = records.filter(record => {
+  const monthRecords = records.filter((record) => {
     const recordDate = new Date(record.date)
     return (
       record.employeeId === employeeId &&
@@ -536,13 +551,13 @@ export function calculateMonthlyAttendance(
   })
 
   const totalDays = monthRecords.length
-  const presentDays = monthRecords.filter(record => record.status === 'present').length
-  const absentDays = monthRecords.filter(record => record.status === 'absent').length
-  const lateDays = monthRecords.filter(record => record.status === 'late').length
+  const presentDays = monthRecords.filter((record) => record.status === 'present').length
+  const absentDays = monthRecords.filter((record) => record.status === 'absent').length
+  const lateDays = monthRecords.filter((record) => record.status === 'late').length
   const totalWorkHours = monthRecords.reduce((sum, record) => sum + (record.workHours || 0), 0)
   const totalOvertimeHours = monthRecords.reduce(
     (sum, record) => sum + (record.overtimeHours || 0),
-    0
+    0,
   )
 
   return {
@@ -551,6 +566,6 @@ export function calculateMonthlyAttendance(
     absentDays,
     lateDays,
     totalWorkHours,
-    totalOvertimeHours
+    totalOvertimeHours,
   }
 }

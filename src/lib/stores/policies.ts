@@ -127,7 +127,7 @@ const initialHRPolicies: HRPolicy[] = [
     approvedBy: 'emp-3',
     createdBy: 'emp-3',
     createdAt: '2023-01-01T00:00:00Z',
-    updatedAt: '2023-01-01T00:00:00Z'
+    updatedAt: '2023-01-01T00:00:00Z',
   },
   {
     id: 'hr-policy-2',
@@ -157,8 +157,8 @@ const initialHRPolicies: HRPolicy[] = [
     approvedBy: 'emp-3',
     createdBy: 'emp-3',
     createdAt: '2023-01-01T00:00:00Z',
-    updatedAt: '2023-01-01T00:00:00Z'
-  }
+    updatedAt: '2023-01-01T00:00:00Z',
+  },
 ]
 
 const initialCodeOfConduct: CodeOfConduct[] = [
@@ -187,8 +187,8 @@ const initialCodeOfConduct: CodeOfConduct[] = [
     status: 'active',
     createdBy: 'emp-3',
     createdAt: '2023-01-01T00:00:00Z',
-    updatedAt: '2023-01-01T00:00:00Z'
-  }
+    updatedAt: '2023-01-01T00:00:00Z',
+  },
 ]
 
 const initialSecurityPolicies: SecurityPolicy[] = [
@@ -218,8 +218,8 @@ const initialSecurityPolicies: SecurityPolicy[] = [
     severity: 'high',
     createdBy: 'emp-3',
     createdAt: '2023-01-01T00:00:00Z',
-    updatedAt: '2023-01-01T00:00:00Z'
-  }
+    updatedAt: '2023-01-01T00:00:00Z',
+  },
 ]
 
 const initialFAQs: FAQ[] = [
@@ -235,7 +235,7 @@ const initialFAQs: FAQ[] = [
     status: 'active',
     createdBy: 'emp-3',
     createdAt: '2023-01-01T00:00:00Z',
-    updatedAt: '2023-01-01T00:00:00Z'
+    updatedAt: '2023-01-01T00:00:00Z',
   },
   {
     id: 'faq-2',
@@ -249,8 +249,8 @@ const initialFAQs: FAQ[] = [
     status: 'active',
     createdBy: 'emp-3',
     createdAt: '2023-01-01T00:00:00Z',
-    updatedAt: '2023-01-01T00:00:00Z'
-  }
+    updatedAt: '2023-01-01T00:00:00Z',
+  },
 ]
 
 const initialGuidelines: Guideline[] = [
@@ -279,8 +279,8 @@ const initialGuidelines: Guideline[] = [
     applicableRoles: ['신입사원', '인턴'],
     createdBy: 'emp-3',
     createdAt: '2023-01-01T00:00:00Z',
-    updatedAt: '2023-01-01T00:00:00Z'
-  }
+    updatedAt: '2023-01-01T00:00:00Z',
+  },
 ]
 
 const initialPolicyAgreements: PolicyAgreement[] = [
@@ -293,8 +293,8 @@ const initialPolicyAgreements: PolicyAgreement[] = [
     version: '1.0',
     agreedAt: '2023-01-15T00:00:00Z',
     ipAddress: '192.168.1.100',
-    userAgent: 'Mozilla/5.0...'
-  }
+    userAgent: 'Mozilla/5.0...',
+  },
 ]
 
 // 스토어 생성
@@ -311,26 +311,26 @@ export function addHRPolicy(policy: Omit<HRPolicy, 'id' | 'createdAt' | 'updated
     ...policy,
     id: `hr-policy-${Date.now()}`,
     createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    updatedAt: new Date().toISOString(),
   }
-  hrPolicies.update(current => [...current, newPolicy])
+  hrPolicies.update((current) => [...current, newPolicy])
 }
 
 export function updateHRPolicy(id: string, updates: Partial<HRPolicy>) {
-  hrPolicies.update(current =>
-    current.map(policy =>
-      policy.id === id ? { ...policy, ...updates, updatedAt: new Date().toISOString() } : policy
-    )
+  hrPolicies.update((current) =>
+    current.map((policy) =>
+      policy.id === id ? { ...policy, ...updates, updatedAt: new Date().toISOString() } : policy,
+    ),
   )
 }
 
 export function archiveHRPolicy(id: string) {
-  hrPolicies.update(current =>
-    current.map(policy =>
+  hrPolicies.update((current) =>
+    current.map((policy) =>
       policy.id === id
         ? { ...policy, status: 'archived', updatedAt: new Date().toISOString() }
-        : policy
-    )
+        : policy,
+    ),
   )
 }
 
@@ -340,16 +340,16 @@ export function addCodeOfConduct(conduct: Omit<CodeOfConduct, 'id' | 'createdAt'
     ...conduct,
     id: `conduct-${Date.now()}`,
     createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    updatedAt: new Date().toISOString(),
   }
-  codeOfConduct.update(current => [...current, newConduct])
+  codeOfConduct.update((current) => [...current, newConduct])
 }
 
 export function updateCodeOfConduct(id: string, updates: Partial<CodeOfConduct>) {
-  codeOfConduct.update(current =>
-    current.map(conduct =>
-      conduct.id === id ? { ...conduct, ...updates, updatedAt: new Date().toISOString() } : conduct
-    )
+  codeOfConduct.update((current) =>
+    current.map((conduct) =>
+      conduct.id === id ? { ...conduct, ...updates, updatedAt: new Date().toISOString() } : conduct,
+    ),
   )
 }
 
@@ -359,16 +359,16 @@ export function addSecurityPolicy(policy: Omit<SecurityPolicy, 'id' | 'createdAt
     ...policy,
     id: `security-${Date.now()}`,
     createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    updatedAt: new Date().toISOString(),
   }
-  securityPolicies.update(current => [...current, newPolicy])
+  securityPolicies.update((current) => [...current, newPolicy])
 }
 
 export function updateSecurityPolicy(id: string, updates: Partial<SecurityPolicy>) {
-  securityPolicies.update(current =>
-    current.map(policy =>
-      policy.id === id ? { ...policy, ...updates, updatedAt: new Date().toISOString() } : policy
-    )
+  securityPolicies.update((current) =>
+    current.map((policy) =>
+      policy.id === id ? { ...policy, ...updates, updatedAt: new Date().toISOString() } : policy,
+    ),
   )
 }
 
@@ -378,26 +378,30 @@ export function addFAQ(faq: Omit<FAQ, 'id' | 'createdAt' | 'updatedAt'>) {
     ...faq,
     id: `faq-${Date.now()}`,
     createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    updatedAt: new Date().toISOString(),
   }
-  faqs.update(current => [...current, newFAQ])
+  faqs.update((current) => [...current, newFAQ])
 }
 
 export function updateFAQ(id: string, updates: Partial<FAQ>) {
-  faqs.update(current =>
-    current.map(faq =>
-      faq.id === id ? { ...faq, ...updates, updatedAt: new Date().toISOString() } : faq
-    )
+  faqs.update((current) =>
+    current.map((faq) =>
+      faq.id === id ? { ...faq, ...updates, updatedAt: new Date().toISOString() } : faq,
+    ),
   )
 }
 
 export function incrementFAQViewCount(id: string) {
-  faqs.update(current =>
-    current.map(faq =>
+  faqs.update((current) =>
+    current.map((faq) =>
       faq.id === id
-        ? { ...faq, viewCount: faq.viewCount + 1, updatedAt: new Date().toISOString() }
-        : faq
-    )
+        ? {
+            ...faq,
+            viewCount: faq.viewCount + 1,
+            updatedAt: new Date().toISOString(),
+          }
+        : faq,
+    ),
   )
 }
 
@@ -407,18 +411,18 @@ export function addGuideline(guideline: Omit<Guideline, 'id' | 'createdAt' | 'up
     ...guideline,
     id: `guideline-${Date.now()}`,
     createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    updatedAt: new Date().toISOString(),
   }
-  guidelines.update(current => [...current, newGuideline])
+  guidelines.update((current) => [...current, newGuideline])
 }
 
 export function updateGuideline(id: string, updates: Partial<Guideline>) {
-  guidelines.update(current =>
-    current.map(guideline =>
+  guidelines.update((current) =>
+    current.map((guideline) =>
       guideline.id === id
         ? { ...guideline, ...updates, updatedAt: new Date().toISOString() }
-        : guideline
-    )
+        : guideline,
+    ),
   )
 }
 
@@ -426,70 +430,70 @@ export function updateGuideline(id: string, updates: Partial<Guideline>) {
 export function recordPolicyAgreement(agreement: Omit<PolicyAgreement, 'id'>) {
   const newAgreement: PolicyAgreement = {
     ...agreement,
-    id: `agreement-${Date.now()}`
+    id: `agreement-${Date.now()}`,
   }
-  policyAgreements.update(current => [...current, newAgreement])
+  policyAgreements.update((current) => [...current, newAgreement])
 }
 
 // 유틸리티 함수들
 export function getHRPoliciesByCategory(
   category: HRPolicy['category'],
-  policyList: HRPolicy[]
+  policyList: HRPolicy[],
 ): HRPolicy[] {
-  return policyList.filter(policy => policy.category === category && policy.status === 'active')
+  return policyList.filter((policy) => policy.category === category && policy.status === 'active')
 }
 
 export function getSecurityPoliciesByCategory(
   category: SecurityPolicy['category'],
-  policyList: SecurityPolicy[]
+  policyList: SecurityPolicy[],
 ): SecurityPolicy[] {
-  return policyList.filter(policy => policy.category === category && policy.status === 'active')
+  return policyList.filter((policy) => policy.category === category && policy.status === 'active')
 }
 
 export function getFAQsByCategory(category: FAQ['category'], faqList: FAQ[]): FAQ[] {
-  return faqList.filter(faq => faq.category === category && faq.status === 'active')
+  return faqList.filter((faq) => faq.category === category && faq.status === 'active')
 }
 
 export function getGuidelinesByCategory(
   category: Guideline['category'],
-  guidelineList: Guideline[]
+  guidelineList: Guideline[],
 ): Guideline[] {
   return guidelineList.filter(
-    guideline => guideline.category === category && guideline.status === 'active'
+    (guideline) => guideline.category === category && guideline.status === 'active',
   )
 }
 
 export function getPolicyAgreementsByEmployee(
   employeeId: string,
-  agreementList: PolicyAgreement[]
+  agreementList: PolicyAgreement[],
 ): PolicyAgreement[] {
-  return agreementList.filter(agreement => agreement.employeeId === employeeId)
+  return agreementList.filter((agreement) => agreement.employeeId === employeeId)
 }
 
 export function hasEmployeeAgreedToPolicy(
   employeeId: string,
   policyId: string,
-  agreementList: PolicyAgreement[]
+  agreementList: PolicyAgreement[],
 ): boolean {
   return agreementList.some(
-    agreement => agreement.employeeId === employeeId && agreement.policyId === policyId
+    (agreement) => agreement.employeeId === employeeId && agreement.policyId === policyId,
   )
 }
 
 export function searchFAQs(query: string, faqList: FAQ[]): FAQ[] {
   const lowercaseQuery = query.toLowerCase()
   return faqList.filter(
-    faq =>
+    (faq) =>
       faq.status === 'active' &&
       (faq.question.toLowerCase().includes(lowercaseQuery) ||
         faq.answer.toLowerCase().includes(lowercaseQuery) ||
-        faq.tags.some(tag => tag.toLowerCase().includes(lowercaseQuery)))
+        faq.tags.some((tag) => tag.toLowerCase().includes(lowercaseQuery))),
   )
 }
 
 export function getPopularFAQs(faqList: FAQ[], limit: number = 5): FAQ[] {
   return faqList
-    .filter(faq => faq.status === 'active')
+    .filter((faq) => faq.status === 'active')
     .sort((a, b) => b.viewCount - a.viewCount)
     .slice(0, limit)
 }

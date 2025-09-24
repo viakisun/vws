@@ -1,6 +1,7 @@
 import { query } from '$lib/database/connection'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger'
 
 // GET /api/project-management/budget-evidence/[id] - 특정 증빙 내역 조회
 export const GET: RequestHandler = async ({ params }) => {
@@ -11,7 +12,7 @@ export const GET: RequestHandler = async ({ params }) => {
 			SELECT 
 				be.*,
 				et.name as evidence_type_name,
-				pb.fiscal_year,
+				pb.period_number,
 				p.title as project_title,
 				creator.first_name as created_by_name,
 				approver.first_name as approved_by_name
@@ -30,25 +31,25 @@ export const GET: RequestHandler = async ({ params }) => {
       return json(
         {
           success: false,
-          message: '증빙 내역을 찾을 수 없습니다.'
+          message: '증빙 내역을 찾을 수 없습니다.',
         },
-        { status: 404 }
+        { status: 404 },
       )
     }
 
     return json({
       success: true,
-      data: result.rows[0]
+      data: result.rows[0],
     })
   } catch (error) {
-    console.error('증빙 내역 조회 실패:', error)
+    logger.error('증빙 내역 조회 실패:', error)
     return json(
       {
         success: false,
         message: '증빙 내역을 불러오는데 실패했습니다.',
-        error: (error as Error).message
+        error: (error as Error).message,
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
@@ -67,7 +68,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
       filePath,
       fileName,
       fileSize,
-      mimeType
+      mimeType,
     } = data
 
     // 증빙 내역 존재 확인
@@ -76,9 +77,9 @@ export const PUT: RequestHandler = async ({ params, request }) => {
       return json(
         {
           success: false,
-          message: '증빙 내역을 찾을 수 없습니다.'
+          message: '증빙 내역을 찾을 수 없습니다.',
         },
-        { status: 404 }
+        { status: 404 },
       )
     }
 
@@ -110,23 +111,23 @@ export const PUT: RequestHandler = async ({ params, request }) => {
       filePath,
       fileName,
       fileSize,
-      mimeType
+      mimeType,
     ])
 
     return json({
       success: true,
       data: result.rows[0],
-      message: '증빙 내역이 수정되었습니다.'
+      message: '증빙 내역이 수정되었습니다.',
     })
   } catch (error) {
-    console.error('증빙 내역 수정 실패:', error)
+    logger.error('증빙 내역 수정 실패:', error)
     return json(
       {
         success: false,
         message: '증빙 내역 수정에 실패했습니다.',
-        error: (error as Error).message
+        error: (error as Error).message,
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
@@ -142,9 +143,9 @@ export const DELETE: RequestHandler = async ({ params }) => {
       return json(
         {
           success: false,
-          message: '증빙 내역을 찾을 수 없습니다.'
+          message: '증빙 내역을 찾을 수 없습니다.',
         },
-        { status: 404 }
+        { status: 404 },
       )
     }
 
@@ -153,17 +154,17 @@ export const DELETE: RequestHandler = async ({ params }) => {
 
     return json({
       success: true,
-      message: '증빙 내역이 삭제되었습니다.'
+      message: '증빙 내역이 삭제되었습니다.',
     })
   } catch (error) {
-    console.error('증빙 내역 삭제 실패:', error)
+    logger.error('증빙 내역 삭제 실패:', error)
     return json(
       {
         success: false,
         message: '증빙 내역 삭제에 실패했습니다.',
-        error: (error as Error).message
+        error: (error as Error).message,
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

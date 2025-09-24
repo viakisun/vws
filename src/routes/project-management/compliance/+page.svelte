@@ -17,42 +17,42 @@
       title: '국가연구개발혁신법 고지 필수항목 준수',
       required: true,
       status: 'pass',
-      lastChecked: '2025-09-10'
+      lastChecked: '2025-09-10',
     },
     {
       id: 'R-002',
       title: '인건비 증빙(급여명세/4대보험) 구비',
       required: true,
       status: 'warn',
-      lastChecked: '2025-09-09'
+      lastChecked: '2025-09-09',
     },
     {
       id: 'R-003',
       title: '여비·재료비 세금계산서/영수증 첨부',
       required: true,
       status: 'pass',
-      lastChecked: '2025-09-11'
+      lastChecked: '2025-09-11',
     },
     {
       id: 'R-004',
       title: '과제보고서 분기 제출 기한 준수',
       required: true,
       status: 'fail',
-      lastChecked: '2025-09-08'
+      lastChecked: '2025-09-08',
     },
     {
       id: 'R-005',
       title: 'NTIS 과제정보 최신화',
       required: false,
       status: 'warn',
-      lastChecked: '2025-09-07'
-    }
+      lastChecked: '2025-09-07',
+    },
   ]
 
   const total = rules.length
-  const passCnt = rules.filter(r => r.status === 'pass').length
-  const warnCnt = rules.filter(r => r.status === 'warn').length
-  const failCnt = rules.filter(r => r.status === 'fail').length
+  const passCnt = rules.filter((r) => r.status === 'pass').length
+  const warnCnt = rules.filter((r) => r.status === 'warn').length
+  const failCnt = rules.filter((r) => r.status === 'fail').length
   const score = Math.round((passCnt / total) * 100)
 
   function color(status: Rule['status']): 'green' | 'yellow' | 'red' {
@@ -110,7 +110,7 @@
         </tr>
       </thead>
       <tbody class="divide-y">
-        {#each rules as r}
+        {#each rules as r, i (i)}
           <tr>
             <td class="px-3 py-2">{r.title}</td>
             <td class="px-3 py-2">{r.required ? '예' : '권장'}</td>

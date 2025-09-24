@@ -1,9 +1,9 @@
 import { writable } from 'svelte/store'
-import type { ExpenseItem, Document, Approval, SLAAlert, Notification } from './types'
+import type { ExpenseItem, Approval, SLAAlert, Notification } from './types'
 import { logAudit } from './core'
 
 // 지출 워크플로우 상태
-export const expenseWorkflows = writable<Record<string, any>>({})
+export const expenseWorkflows = writable<Record<string, unknown>>({})
 
 // SLA 알림
 export const slaAlerts = writable<SLAAlert[]>([])
@@ -19,7 +19,7 @@ export const EXPENSE_WORKFLOW_STEPS = {
   EXECUTED: 'executed',
   COMPLETED: 'completed',
   REJECTED: 'rejected',
-  RETURNED: 'returned'
+  RETURNED: 'returned',
 } as const
 
 // 지출 워크플로우 시작
@@ -28,7 +28,7 @@ export function startExpenseWorkflow(
   categoryCode: string,
   requesterId: string,
   amount: number,
-  description?: string
+  description?: string,
 ): void {
   const workflow = {
     expenseId,
@@ -40,18 +40,18 @@ export function startExpenseWorkflow(
     currentStep: 'PM_APPROVAL',
     workflow: {
       steps: ['PM_APPROVAL', 'SUPPORT_REVIEW'],
-      sla: 5
+      sla: 5,
     },
     documents: [],
     approvals: [],
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
-    slaDeadline: calculateSlaDeadline(categoryCode)
+    slaDeadline: calculateSlaDeadline(categoryCode),
   }
 
-  expenseWorkflows.update(workflows => ({
+  expenseWorkflows.update((workflows) => ({
     ...workflows,
-    [expenseId]: workflow
+    [expenseId]: workflow,
   }))
 
   logAudit('create', 'expense_workflow', expenseId, {}, workflow)
@@ -63,7 +63,7 @@ export function uploadDocument(
   documentType: string,
   filename: string,
   storageUrl: string,
-  sha256: string
+  sha256: string,
 ): void {
   const document = {
     id: crypto.randomUUID(),
@@ -73,22 +73,22 @@ export function uploadDocument(
     sha256,
     version: 1,
     uploadedAt: new Date().toISOString(),
-    uploadedBy: 'current-user'
+    uploadedBy: 'current-user',
   }
 
-  expenseWorkflows.update(workflows => {
+  expenseWorkflows.update((workflows) => {
     const workflow = workflows[expenseId]
     if (!workflow) return workflows
 
     const updatedWorkflow = {
       ...workflow,
       documents: [...workflow.documents, document],
-      updatedAt: new Date().toISOString()
+      updatedAt: new Date().toISOString(),
     }
 
     return {
       ...workflows,
-      [expenseId]: updatedWorkflow
+      [expenseId]: updatedWorkflow,
     }
   })
 
@@ -100,24 +100,24 @@ export function processApproval(
   expenseId: string,
   approverId: string,
   decision: Approval['decision'],
-  comment?: string
+  comment?: string,
 ): void {
   const approval = {
     id: crypto.randomUUID(),
     approverId,
     decision,
     comment,
-    decidedAt: new Date().toISOString()
+    decidedAt: new Date().toISOString(),
   }
 
-  expenseWorkflows.update(workflows => {
+  expenseWorkflows.update((workflows) => {
     const workflow = workflows[expenseId]
     if (!workflow) return workflows
 
     const updatedWorkflow = {
       ...workflow,
       approvals: [...workflow.approvals, approval],
-      updatedAt: new Date().toISOString()
+      updatedAt: new Date().toISOString(),
     }
 
     // 다음 단계 결정
@@ -133,7 +133,7 @@ export function processApproval(
 
     return {
       ...workflows,
-      [expenseId]: updatedWorkflow
+      [expenseId]: updatedWorkflow,
     }
   })
 
@@ -187,7 +187,7 @@ function getSlaDaysForCategory(categoryCode: string): number {
     TRAVEL: 3,
     MEETING: 3,
     PATENT: 5,
-    OFFICE_SUPPLIES: 3
+    OFFICE_SUPPLIES: 3,
   }
 
   return slaMap[categoryCode] || 5
@@ -198,7 +198,7 @@ export function createSlaAlert(
   expenseId: string,
   alertType: 'sla-warning' | 'sla-breach' | 'escalation',
   message: string,
-  severity: 'low' | 'medium' | 'high' | 'critical'
+  severity: 'low' | 'medium' | 'high' | 'critical',
 ): void {
   const alert: SLAAlert = {
     id: crypto.randomUUID(),
@@ -209,17 +209,17 @@ export function createSlaAlert(
     severity,
     assignedTo: getAssignedUsersForAlert(expenseId, alertType),
     status: 'active',
-    createdAt: new Date().toISOString()
+    createdAt: new Date().toISOString(),
   }
 
-  slaAlerts.update(alerts => [...alerts, alert])
+  slaAlerts.update((alerts) => [...alerts, alert])
 }
 
 // 알림 생성
 function createApprovalNotification(
   expenseId: string,
   decision: Approval['decision'],
-  comment?: string
+  comment?: string,
 ): void {
   const notification: Notification = {
     id: crypto.randomUUID(),
@@ -230,10 +230,10 @@ function createApprovalNotification(
     priority: 'medium',
     read: false,
     actionUrl: `/project-management/expenses/${expenseId}`,
-    createdAt: new Date().toISOString()
+    createdAt: new Date().toISOString(),
   }
 
-  notifications.update(notifications => [...notifications, notification])
+  notifications.update((notifications) => [...notifications, notification])
 }
 
 // 알림 대상자 결정
@@ -254,20 +254,20 @@ function getAssignedUsersForAlert(expenseId: string, alertType: string): string[
 // 지출 워크플로우 상태 가져오기
 export function getExpenseWorkflow(expenseId: string): any {
   let workflow: any = null
-  expenseWorkflows.subscribe(workflows => {
+  expenseWorkflows.subscribe((workflows) => {
     workflow = workflows[expenseId]
   })()
   return workflow
 }
 
 // 지출 항목별 문서 목록 가져오기
-export function getExpenseDocuments(expenseId: string): any[] {
+export function getExpenseDocuments(expenseId: string): unknown[] {
   const workflow = getExpenseWorkflow(expenseId)
   return workflow?.documents || []
 }
 
 // 지출 항목별 승인 이력 가져오기
-export function getExpenseApprovals(expenseId: string): any[] {
+export function getExpenseApprovals(expenseId: string): unknown[] {
   const workflow = getExpenseWorkflow(expenseId)
   return workflow?.approvals || []
 }
@@ -300,9 +300,9 @@ export function checkSlaStatus(expenseId: string): {
 export function updateExpenseStatus(
   expenseId: string,
   status: ExpenseItem['status'],
-  comment?: string
+  comment?: string,
 ): void {
-  expenseWorkflows.update(workflows => {
+  expenseWorkflows.update((workflows) => {
     const workflow = workflows[expenseId]
     if (!workflow) return workflows
 
@@ -311,12 +311,12 @@ export function updateExpenseStatus(
       status,
       statusUpdatedAt: new Date().toISOString(),
       statusComment: comment,
-      updatedAt: new Date().toISOString()
+      updatedAt: new Date().toISOString(),
     }
 
     return {
       ...workflows,
-      [expenseId]: updatedWorkflow
+      [expenseId]: updatedWorkflow,
     }
   })
 
@@ -337,10 +337,10 @@ export function completeExpense(expenseId: string, comment?: string): void {
     priority: 'low',
     read: false,
     actionUrl: `/project-management/expenses/${expenseId}`,
-    createdAt: new Date().toISOString()
+    createdAt: new Date().toISOString(),
   }
 
-  notifications.update(notifications => [...notifications, notification])
+  notifications.update((notifications) => [...notifications, notification])
 }
 
 // 지출 항목 거부 처리
@@ -357,10 +357,10 @@ export function rejectExpense(expenseId: string, reason: string): void {
     priority: 'high',
     read: false,
     actionUrl: `/project-management/expenses/${expenseId}`,
-    createdAt: new Date().toISOString()
+    createdAt: new Date().toISOString(),
   }
 
-  notifications.update(notifications => [...notifications, notification])
+  notifications.update((notifications) => [...notifications, notification])
 }
 
 // 지출 항목 반려 처리
@@ -377,16 +377,16 @@ export function returnExpense(expenseId: string, reason: string): void {
     priority: 'medium',
     read: false,
     actionUrl: `/project-management/expenses/${expenseId}`,
-    createdAt: new Date().toISOString()
+    createdAt: new Date().toISOString(),
   }
 
-  notifications.update(notifications => [...notifications, notification])
+  notifications.update((notifications) => [...notifications, notification])
 }
 
 // 지출 항목별 필수 문서 체크
 export function checkRequiredDocuments(
   expenseId: string,
-  categoryCode: string
+  categoryCode: string,
 ): {
   complete: boolean
   missing: string[]
@@ -401,7 +401,7 @@ export function checkRequiredDocuments(
   const requiredDocs = getRequiredDocumentsForCategory(categoryCode)
   const uploadedDocs = workflow.documents.map((doc: any) => doc.type)
 
-  const missing = requiredDocs.filter(doc => !uploadedDocs.includes(doc))
+  const missing = requiredDocs.filter((doc) => !uploadedDocs.includes(doc))
   const complete = missing.length === 0
 
   return { complete, missing, uploaded: uploadedDocs }
@@ -414,13 +414,13 @@ function getRequiredDocumentsForCategory(categoryCode: string): string[] {
       'participation_assignment',
       'salary_statement',
       'insurance_tax',
-      'salary_allocation'
+      'salary_allocation',
     ],
     PERSONNEL_IN_KIND: [
       'participation_assignment',
       'salary_statement',
       'insurance_tax',
-      'salary_allocation'
+      'salary_allocation',
     ],
     MATERIAL: [
       'requisition',
@@ -428,13 +428,13 @@ function getRequiredDocumentsForCategory(categoryCode: string): string[] {
       'purchase_order',
       'tax_invoice',
       'delivery_note',
-      'inspection_report'
+      'inspection_report',
     ],
     RESEARCH_ACTIVITY: ['requisition', 'activity_plan', 'activity_report', 'receipt'],
     TRAVEL: ['travel_plan', 'transport_receipt', 'accommodation_receipt', 'travel_report'],
     MEETING: ['requisition', 'attendee_list', 'receipt', 'meeting_minutes'],
     PATENT: ['requisition', 'patent_specification', 'power_of_attorney', 'fee_receipt'],
-    OFFICE_SUPPLIES: ['requisition', 'quote', 'receipt', 'receipt_confirmation']
+    OFFICE_SUPPLIES: ['requisition', 'quote', 'receipt', 'receipt_confirmation'],
   }
 
   return docMap[categoryCode] || []

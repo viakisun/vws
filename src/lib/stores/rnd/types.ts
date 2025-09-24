@@ -17,7 +17,7 @@ export enum UserRole {
   MANAGEMENT_SUPPORT = 'MANAGEMENT_SUPPORT', // 경영지원(회계·총무)
   LAB_HEAD = 'LAB_HEAD', // 연구소장
   EXECUTIVE = 'EXECUTIVE', // 경영진
-  AUDITOR = 'AUDITOR' // 감사/외부평가
+  AUDITOR = 'AUDITOR', // 감사/외부평가
 }
 
 export enum Permission {
@@ -32,7 +32,7 @@ export enum Permission {
   MANAGE_PERSONNEL = 'MANAGE_PERSONNEL',
   CREATE_REPORT = 'CREATE_REPORT',
   UPLOAD_DOCUMENT = 'UPLOAD_DOCUMENT',
-  VIEW_AUDIT_LOG = 'VIEW_AUDIT_LOG'
+  VIEW_AUDIT_LOG = 'VIEW_AUDIT_LOG',
 }
 
 // ===== 사람(Person) 도메인 =====
@@ -123,7 +123,7 @@ export interface Milestone {
   quarter: number
   title: string
   description: string
-  kpis: Record<string, any>
+  kpis: Record<string, unknown>
   dueDate: DateString
   ownerId: UUID
   status: 'not_started' | 'in_progress' | 'completed' | 'delayed'
@@ -202,7 +202,7 @@ export interface Document {
   signedAt?: DateString
   verifiedBy?: UUID
   verifiedAt?: DateString
-  meta: Record<string, any>
+  meta: Record<string, unknown>
   createdAt: DateString
 }
 
@@ -220,7 +220,7 @@ export enum DocumentType {
   RESEARCH_NOTE = 'RESEARCH_NOTE', // 연구노트
   DELIVERABLE = 'DELIVERABLE', // 산출물
   CONTRACT = 'CONTRACT', // 계약서
-  OTHER = 'OTHER' // 기타
+  OTHER = 'OTHER', // 기타
 }
 
 // ===== 결재 시스템 =====
@@ -274,7 +274,7 @@ export interface Report {
   type: 'weekly' | 'quarterly' | 'annual'
   periodStart: DateString
   periodEnd: DateString
-  summaryJson: Record<string, any>
+  summaryJson: Record<string, unknown>
   fileUrl?: string
   generatedBy: UUID
   generatedAt: DateString
@@ -300,7 +300,7 @@ export interface AuditLog {
   action: string
   entity: string
   entityId: UUID
-  diff: Record<string, any>
+  diff: Record<string, unknown>
   ipAddress?: string
   userAgent?: string
   createdAt: DateString
@@ -470,7 +470,7 @@ export interface MilestoneFormData {
   description: string
   dueDate: DateString
   ownerId: UUID
-  kpis: Record<string, any>
+  kpis: Record<string, unknown>
 }
 
 // ===== 대시보드 데이터 타입 =====

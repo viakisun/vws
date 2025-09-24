@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { logger } from '$lib/utils/logger'
+
   import { goto } from '$app/navigation'
   import { page } from '$app/stores'
   import PageLayout from '$lib/components/layout/PageLayout.svelte'
@@ -13,7 +15,7 @@
     recommendations as aiRecommendations,
     employees,
     participations,
-    projects
+    projects,
   } from '$lib/stores/rd'
   import { initializeParticipationManager } from '$lib/stores/rnd/participation-manager'
   import { formatCurrency } from '$lib/utils/format'
@@ -28,7 +30,7 @@
     UserIcon,
     UsersIcon,
     XCircleIcon,
-    ZapIcon
+    ZapIcon,
   } from '@lucide/svelte'
   import { onMount } from 'svelte'
 
@@ -41,7 +43,7 @@
   let selectedProject = $state('all')
   let selectedEmployee = $state('all')
   let selectedStatus = $state('all')
-  let selectedTimeframe = $state('current')
+  let _selectedTimeframe = $state('current')
   let showAdvancedFilters = $state(false)
   let showParticipationModal = $state(false)
   let showAnalyticsModal = $state(false)
@@ -61,12 +63,12 @@
   // 통계 데이터
   let totalEmployees = $derived($employees.length)
   let totalProjects = $derived($projects.length)
-  let totalParticipations = $derived($participations.length)
+  let _totalParticipations = $derived($participations.length)
   let averageParticipationRate = $derived(
     $participations.length > 0
       ? $participations.reduce((sum: number, p: any) => sum + p.participationRate, 0) /
           $participations.length
-      : 0
+      : 0,
   )
 
   // 필터링된 참여 데이터
@@ -103,7 +105,7 @@
         matchesDepartment &&
         matchesRole
       )
-    })
+    }),
   )
 
   // 정렬된 참여 데이터
@@ -147,31 +149,31 @@
       } else {
         return valueA < valueB ? 1 : -1
       }
-    })
+    }),
   )
 
   // 참여율 분석 데이터
   let participationAnalytics = $derived({
     overloaded: filteredParticipations.filter((p: any) => p.participationRate > 100).length,
     optimal: filteredParticipations.filter(
-      (p: any) => p.participationRate >= 80 && p.participationRate <= 100
+      (p: any) => p.participationRate >= 80 && p.participationRate <= 100,
     ).length,
     underutilized: filteredParticipations.filter((p: any) => p.participationRate < 50).length,
     totalCost: filteredParticipations.reduce((sum: number, p: any) => {
       const employee = $employees.find((e: any) => e.id === p.employeeId)
       return sum + (employee?.salary || 0) * (p.participationRate / 100)
-    }, 0)
+    }, 0),
   })
 
   // 프로젝트별 참여 현황
   let projectParticipation = $derived(
     $projects.map((project: any) => {
       const projectParticipations = filteredParticipations.filter(
-        (p: any) => p.projectId === project.id
+        (p: any) => p.projectId === project.id,
       )
       const totalParticipation = projectParticipations.reduce(
         (sum: number, p: any) => sum + p.participationRate,
-        0
+        0,
       )
       const totalCost = projectParticipations.reduce((sum: number, p: any) => {
         const employee = $employees.find((e: any) => e.id === p.employeeId)
@@ -184,20 +186,20 @@
         totalParticipation,
         totalCost,
         averageParticipation:
-          projectParticipations.length > 0 ? totalParticipation / projectParticipations.length : 0
+          projectParticipations.length > 0 ? totalParticipation / projectParticipations.length : 0,
       }
-    })
+    }),
   )
 
   // 직원별 참여 현황
   let employeeParticipation = $derived(
     $employees.map((employee: any) => {
       const employeeParticipations = filteredParticipations.filter(
-        (p: any) => p.employeeId === employee.id
+        (p: any) => p.employeeId === employee.id,
       )
       const totalParticipation = employeeParticipations.reduce(
         (sum: number, p: any) => sum + p.participationRate,
-        0
+        0,
       )
       const totalCost = employeeParticipations.reduce((sum: number, p: any) => {
         return sum + employee.salary * (p.participationRate / 100)
@@ -212,28 +214,28 @@
           employeeParticipations.length > 0
             ? totalParticipation / employeeParticipations.length
             : 0,
-        isOverloaded: totalParticipation > 100
+        isOverloaded: totalParticipation > 100,
       }
-    })
+    }),
   )
 
   // AI 추천사항
   let filteredRecommendations = $derived(
-    $aiRecommendations.filter((rec: any) => rec.type === 'participation_optimization')
+    $aiRecommendations.filter((rec: any) => rec.type === 'participation_optimization'),
   )
 
   // 함수들
-  const getStatusColor = (status: string) => {
+  const _getStatusColor = (status: string) => {
     const colors: Record<string, string> = {
       active: 'success',
       inactive: 'secondary',
       pending: 'warning',
-      completed: 'info'
+      completed: 'info',
     }
     return colors[status] || 'secondary'
   }
 
-  const getParticipationRateColor = (rate: number) => {
+  const _getParticipationRateColor = (rate: number) => {
     if (rate > 100) return 'danger'
     if (rate >= 80) return 'success'
     if (rate >= 50) return 'warning'
@@ -250,7 +252,7 @@
     return project?.name || 'Unknown'
   }
 
-  const updateSort = (newSortBy: string) => {
+  const _updateSort = (newSortBy: string) => {
     const newSortOrder = sortBy === newSortBy && sortOrder === 'desc' ? 'asc' : 'desc'
     goto(`/project-management/participation?sort=${newSortOrder}&sortBy=${newSortBy}`)
   }
@@ -263,14 +265,14 @@
       role: p.role,
       startDate: p.startDate,
       endDate: p.endDate,
-      status: p.status
+      status: p.status,
     }))
 
     const csv = [
       ['직원', '프로젝트', '참여율(%)', '역할', '시작일', '종료일', '상태'],
-      ...data.map(row => Object.values(row))
+      ...data.map((row) => Object.values(row)),
     ]
-      .map(row => row.join(','))
+      .map((row) => row.join(','))
       .join('\n')
 
     const blob = new Blob([csv], { type: 'text/csv' })
@@ -308,7 +310,7 @@
     } else {
       // 특정 멤버 업데이트
       // TODO: 실제 업데이트 로직 구현
-      console.log('Member update:', memberId, updates)
+      logger.log('Member update:', memberId, updates)
     }
   }
 
@@ -345,34 +347,42 @@
               placeholder="직원명 또는 프로젝트명으로 검색..."
               bind:value={searchTerm}
               class="w-full px-3 py-2 border rounded-md text-sm"
-              style="background: var(--color-surface); border-color: var(--color-border); color: var(--color-text);"
+              style:background="var(--color-surface)"
+              style:border-color="var(--color-border)"
+              style:color="var(--color-text)"
             />
           </div>
           <div class="flex gap-2">
             <select
               bind:value={selectedProject}
               class="px-3 py-2 border rounded-md text-sm"
-              style="background: var(--color-surface); border-color: var(--color-border); color: var(--color-text);"
+              style:background="var(--color-surface)"
+              style:border-color="var(--color-border)"
+              style:color="var(--color-text)"
             >
               <option value="all">전체 프로젝트</option>
-              {#each $projects as project}
+              {#each $projects as project, i (i)}
                 <option value={project.id}>{project.name}</option>
               {/each}
             </select>
             <select
               bind:value={selectedEmployee}
               class="px-3 py-2 border rounded-md text-sm"
-              style="background: var(--color-surface); border-color: var(--color-border); color: var(--color-text);"
+              style:background="var(--color-surface)"
+              style:border-color="var(--color-border)"
+              style:color="var(--color-text)"
             >
               <option value="all">전체 직원</option>
-              {#each $employees as employee}
+              {#each $employees as employee, i (i)}
                 <option value={employee.id}>{employee.name}</option>
               {/each}
             </select>
             <select
               bind:value={selectedStatus}
               class="px-3 py-2 border rounded-md text-sm"
-              style="background: var(--color-surface); border-color: var(--color-border); color: var(--color-text);"
+              style:background="var(--color-surface)"
+              style:border-color="var(--color-border)"
+              style:color="var(--color-text)"
             >
               <option value="all">전체 상태</option>
               <option value="active">활성</option>
@@ -408,11 +418,12 @@
         {#if showAdvancedFilters}
           <div
             class="mt-4 p-4 border rounded-lg"
-            style="border-color: var(--color-border); background: var(--color-surface-elevated);"
+            style:border-color="var(--color-border)"
+            style:background="var(--color-surface-elevated)"
           >
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <div class="block text-sm font-medium mb-2" style="color: var(--color-text);">
+                <div class="block text-sm font-medium mb-2" style:color="var(--color-text)">
                   참여율 범위
                 </div>
                 <div class="flex gap-2">
@@ -423,7 +434,9 @@
                     min="0"
                     max="100"
                     class="px-3 py-2 border rounded-md text-sm"
-                    style="background: var(--color-surface); border-color: var(--color-border); color: var(--color-text);"
+                    style:background="var(--color-surface)"
+                    style:border-color="var(--color-border)"
+                    style:color="var(--color-text)"
                   />
                   <input
                     type="number"
@@ -432,12 +445,14 @@
                     min="0"
                     max="100"
                     class="px-3 py-2 border rounded-md text-sm"
-                    style="background: var(--color-surface); border-color: var(--color-border); color: var(--color-text);"
+                    style:background="var(--color-surface)"
+                    style:border-color="var(--color-border)"
+                    style:color="var(--color-text)"
                   />
                 </div>
               </div>
               <div>
-                <div class="block text-sm font-medium mb-2" style="color: var(--color-text);">
+                <div class="block text-sm font-medium mb-2" style:color="var(--color-text)">
                   급여 범위
                 </div>
                 <div class="flex gap-2">
@@ -447,7 +462,9 @@
                     bind:value={minSalary}
                     min="0"
                     class="px-3 py-2 border rounded-md text-sm"
-                    style="background: var(--color-surface); border-color: var(--color-border); color: var(--color-text);"
+                    style:background="var(--color-surface)"
+                    style:border-color="var(--color-border)"
+                    style:color="var(--color-text)"
                   />
                   <input
                     type="number"
@@ -455,18 +472,22 @@
                     bind:value={maxSalary}
                     min="0"
                     class="px-3 py-2 border rounded-md text-sm"
-                    style="background: var(--color-surface); border-color: var(--color-border); color: var(--color-text);"
+                    style:background="var(--color-surface)"
+                    style:border-color="var(--color-border)"
+                    style:color="var(--color-text)"
                   />
                 </div>
               </div>
               <div>
-                <div class="block text-sm font-medium mb-2" style="color: var(--color-text);">
+                <div class="block text-sm font-medium mb-2" style:color="var(--color-text)">
                   부서
                 </div>
                 <select
                   bind:value={selectedDepartment}
                   class="w-full px-3 py-2 border rounded-md text-sm"
-                  style="background: var(--color-surface); border-color: var(--color-border); color: var(--color-text);"
+                  style:background="var(--color-surface)"
+                  style:border-color="var(--color-border)"
+                  style:color="var(--color-text)"
                 >
                   <option value="all">전체 부서</option>
                   <option value="부서없음">부서없음</option>
@@ -491,27 +512,27 @@
             <div class="flex justify-between items-center">
               <div class="flex items-center gap-2">
                 <div class="w-3 h-3 rounded-full bg-red-500"></div>
-                <span class="text-sm" style="color: var(--color-text);">과부하 (100% 초과)</span>
+                <span class="text-sm" style:color="var(--color-text)">과부하 (100% 초과)</span>
               </div>
-              <span class="font-medium" style="color: var(--color-text);"
+              <span class="font-medium" style:color="var(--color-text)"
                 >{participationAnalytics.overloaded}</span
               >
             </div>
             <div class="flex justify-between items-center">
               <div class="flex items-center gap-2">
                 <div class="w-3 h-3 rounded-full bg-green-500"></div>
-                <span class="text-sm" style="color: var(--color-text);">최적 (80-100%)</span>
+                <span class="text-sm" style:color="var(--color-text)">최적 (80-100%)</span>
               </div>
-              <span class="font-medium" style="color: var(--color-text);"
+              <span class="font-medium" style:color="var(--color-text)"
                 >{participationAnalytics.optimal}</span
               >
             </div>
             <div class="flex justify-between items-center">
               <div class="flex items-center gap-2">
                 <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
-                <span class="text-sm" style="color: var(--color-text);">미활용 (50% 미만)</span>
+                <span class="text-sm" style:color="var(--color-text)">미활용 (50% 미만)</span>
               </div>
-              <span class="font-medium" style="color: var(--color-text);"
+              <span class="font-medium" style:color="var(--color-text)"
                 >{participationAnalytics.underutilized}</span
               >
             </div>
@@ -523,18 +544,20 @@
         <div class="p-6">
           <ThemeSectionHeader title="AI 추천사항" />
           <div class="mt-4 space-y-3">
-            {#each filteredRecommendations.slice(0, 3) as recommendation}
+            {#each filteredRecommendations.slice(0, 3) as recommendation, idx (idx)}
+              <!-- TODO: replace index key with a stable id when model provides one -->
               <div
                 class="p-3 rounded-lg border"
-                style="border-color: var(--color-border); background: var(--color-surface-elevated);"
+                style:border-color="var(--color-border)"
+                style:background="var(--color-surface-elevated)"
               >
                 <div class="flex items-start gap-2">
                   <ZapIcon size={16} class="mt-0.5" style="color: var(--color-primary);" />
                   <div class="flex-1">
-                    <p class="text-sm font-medium" style="color: var(--color-text);">
+                    <p class="text-sm font-medium" style:color="var(--color-text)">
                       {(recommendation as any).title}
                     </p>
-                    <p class="text-xs mt-1" style="color: var(--color-text-secondary);">
+                    <p class="text-xs mt-1" style:color="var(--color-text-secondary)">
                       {(recommendation as any).description}
                     </p>
                   </div>
@@ -558,35 +581,38 @@
       <div class="p-6">
         <ThemeSectionHeader title="프로젝트별 참여 현황" />
         <div class="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {#each projectParticipation as project}
+          {#each projectParticipation as project, i (i)}
             <div
               class="p-4 border rounded-lg"
-              style="border-color: var(--color-border); background: var(--color-surface-elevated);"
+              style:border-color="var(--color-border)"
+              style:background="var(--color-surface-elevated)"
             >
               <div class="flex items-center gap-2 mb-2">
                 <TargetIcon size={16} style="color: var(--color-primary);" />
-                <h4 class="font-medium" style="color: var(--color-text);">{project.name}</h4>
+                <h4 class="font-medium" style:color="var(--color-text)">
+                  {project.name}
+                </h4>
               </div>
               <div class="space-y-1 text-sm">
                 <div class="flex justify-between">
-                  <span style="color: var(--color-text-secondary);">참여자 수:</span>
-                  <span style="color: var(--color-text);">{project.participantCount}명</span>
+                  <span style:color="var(--color-text-secondary)">참여자 수:</span>
+                  <span style:color="var(--color-text)">{project.participantCount}명</span>
                 </div>
                 <div class="flex justify-between">
-                  <span style="color: var(--color-text-secondary);">총 참여율:</span>
-                  <span style="color: var(--color-text);"
+                  <span style:color="var(--color-text-secondary)">총 참여율:</span>
+                  <span style:color="var(--color-text)"
                     >{project.totalParticipation.toFixed(1)}%</span
                   >
                 </div>
                 <div class="flex justify-between">
-                  <span style="color: var(--color-text-secondary);">평균 참여율:</span>
-                  <span style="color: var(--color-text);"
+                  <span style:color="var(--color-text-secondary)">평균 참여율:</span>
+                  <span style:color="var(--color-text)"
                     >{project.averageParticipation.toFixed(1)}%</span
                   >
                 </div>
                 <div class="flex justify-between">
-                  <span style="color: var(--color-text-secondary);">총 비용:</span>
-                  <span style="color: var(--color-text);">{formatCurrency(project.totalCost)}</span>
+                  <span style:color="var(--color-text-secondary)">총 비용:</span>
+                  <span style:color="var(--color-text)">{formatCurrency(project.totalCost)}</span>
                 </div>
               </div>
             </div>
@@ -600,39 +626,41 @@
       <div class="p-6">
         <ThemeSectionHeader title="직원별 참여 현황" />
         <div class="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {#each employeeParticipation as employee}
+          {#each employeeParticipation as employee, i (i)}
             <div
               class="p-4 border rounded-lg"
-              style="border-color: var(--color-border); background: var(--color-surface-elevated);"
+              style:border-color="var(--color-border)"
+              style:background="var(--color-surface-elevated)"
             >
               <div class="flex items-center gap-2 mb-2">
                 <UserIcon size={16} style="color: var(--color-primary);" />
-                <h4 class="font-medium" style="color: var(--color-text);">{employee.name}</h4>
+                <h4 class="font-medium" style:color="var(--color-text)">
+                  {employee.name}
+                </h4>
                 {#if employee.isOverloaded}
                   <AlertTriangleIcon size={14} style="color: var(--color-danger);" />
                 {/if}
               </div>
               <div class="space-y-1 text-sm">
                 <div class="flex justify-between">
-                  <span style="color: var(--color-text-secondary);">프로젝트 수:</span>
-                  <span style="color: var(--color-text);">{employee.projectCount}개</span>
+                  <span style:color="var(--color-text-secondary)">프로젝트 수:</span>
+                  <span style:color="var(--color-text)">{employee.projectCount}개</span>
                 </div>
                 <div class="flex justify-between">
-                  <span style="color: var(--color-text-secondary);">총 참여율:</span>
-                  <span style="color: var(--color-text);"
+                  <span style:color="var(--color-text-secondary)">총 참여율:</span>
+                  <span style:color="var(--color-text)"
                     >{employee.totalParticipation.toFixed(1)}%</span
                   >
                 </div>
                 <div class="flex justify-between">
-                  <span style="color: var(--color-text-secondary);">평균 참여율:</span>
-                  <span style="color: var(--color-text);"
+                  <span style:color="var(--color-text-secondary)">평균 참여율:</span>
+                  <span style:color="var(--color-text)"
                     >{employee.averageParticipation.toFixed(1)}%</span
                   >
                 </div>
                 <div class="flex justify-between">
-                  <span style="color: var(--color-text-secondary);">총 비용:</span>
-                  <span style="color: var(--color-text);">{formatCurrency(employee.totalCost)}</span
-                  >
+                  <span style:color="var(--color-text-secondary)">총 비용:</span>
+                  <span style:color="var(--color-text)">{formatCurrency(employee.totalCost)}</span>
                 </div>
               </div>
             </div>
@@ -647,52 +675,57 @@
     <ThemeModal>
       <div class="p-6">
         <div class="flex justify-between items-center mb-4">
-          <h3 class="text-lg font-semibold" style="color: var(--color-text);">
+          <h3 class="text-lg font-semibold" style:color="var(--color-text)">
             {selectedParticipation ? '참여 편집' : '참여 추가'}
           </h3>
           <button
+            type="button"
             onclick={closeParticipationModal}
             class="p-1 rounded hover:bg-opacity-20"
-            style="color: var(--color-text-secondary);"
+            style:color="var(--color-text-secondary)"
           >
             <XCircleIcon size={20} />
           </button>
         </div>
 
         <form
-          onsubmit={e => {
+          onsubmit={(e) => {
             e.preventDefault()
             saveParticipation()
           }}
           class="space-y-4"
         >
           <div>
-            <div class="block text-sm font-medium mb-2" style="color: var(--color-text);">직원</div>
+            <div class="block text-sm font-medium mb-2" style:color="var(--color-text)">직원</div>
             <select
               bind:value={selectedEmployeeForModal}
               class="w-full px-3 py-2 border rounded-md"
-              style="background: var(--color-surface); border-color: var(--color-border); color: var(--color-text);"
+              style:background="var(--color-surface)"
+              style:border-color="var(--color-border)"
+              style:color="var(--color-text)"
               required
             >
               <option value="">직원을 선택하세요</option>
-              {#each $employees as employee}
+              {#each $employees as employee, i (i)}
                 <option value={employee.id}>{employee.name}</option>
               {/each}
             </select>
           </div>
 
           <div>
-            <div class="block text-sm font-medium mb-2" style="color: var(--color-text);">
+            <div class="block text-sm font-medium mb-2" style:color="var(--color-text)">
               프로젝트
             </div>
             <select
               bind:value={selectedProjectForModal}
               class="w-full px-3 py-2 border rounded-md"
-              style="background: var(--color-surface); border-color: var(--color-border); color: var(--color-text);"
+              style:background="var(--color-surface)"
+              style:border-color="var(--color-border)"
+              style:color="var(--color-text)"
               required
             >
               <option value="">프로젝트를 선택하세요</option>
-              {#each $projects as project}
+              {#each $projects as project, i (i)}
                 <option value={project.id}>{project.name}</option>
               {/each}
             </select>
@@ -716,11 +749,12 @@
     <ThemeModal>
       <div class="p-6">
         <div class="flex justify-between items-center mb-4">
-          <h3 class="text-lg font-semibold" style="color: var(--color-text);">상세 분석</h3>
+          <h3 class="text-lg font-semibold" style:color="var(--color-text)">상세 분석</h3>
           <button
+            type="button"
             onclick={() => (showAnalyticsModal = false)}
             class="p-1 rounded hover:bg-opacity-20"
-            style="color: var(--color-text-secondary);"
+            style:color="var(--color-text-secondary)"
           >
             <XCircleIcon size={20} />
           </button>
@@ -729,27 +763,30 @@
         <div class="space-y-6">
           <div
             class="p-4 border rounded-lg"
-            style="border-color: var(--color-border); background: var(--color-surface-elevated);"
+            style:border-color="var(--color-border)"
+            style:background="var(--color-surface-elevated)"
           >
-            <h4 class="font-medium mb-2" style="color: var(--color-text);">참여율 분포</h4>
+            <h4 class="font-medium mb-2" style:color="var(--color-text)">참여율 분포</h4>
             <div class="h-32 bg-gray-100 rounded flex items-center justify-center">
               <span class="text-gray-500">차트 영역</span>
             </div>
           </div>
           <div
             class="p-4 border rounded-lg"
-            style="border-color: var(--color-border); background: var(--color-surface-elevated);"
+            style:border-color="var(--color-border)"
+            style:background="var(--color-surface-elevated)"
           >
-            <h4 class="font-medium mb-2" style="color: var(--color-text);">프로젝트별 비용 분석</h4>
+            <h4 class="font-medium mb-2" style:color="var(--color-text)">프로젝트별 비용 분석</h4>
             <div class="h-32 bg-gray-100 rounded flex items-center justify-center">
               <span class="text-gray-500">차트 영역</span>
             </div>
           </div>
           <div
             class="p-4 border rounded-lg"
-            style="border-color: var(--color-border); background: var(--color-surface-elevated);"
+            style:border-color="var(--color-border)"
+            style:background="var(--color-surface-elevated)"
           >
-            <h4 class="font-medium mb-2" style="color: var(--color-text);">시간별 참여 추이</h4>
+            <h4 class="font-medium mb-2" style:color="var(--color-text)">시간별 참여 추이</h4>
             <div class="h-32 bg-gray-100 rounded flex items-center justify-center">
               <span class="text-gray-500">차트 영역</span>
             </div>
@@ -764,11 +801,12 @@
     <ThemeModal>
       <div class="p-6">
         <div class="flex justify-between items-center mb-4">
-          <h3 class="text-lg font-semibold" style="color: var(--color-text);">참여율 최적화</h3>
+          <h3 class="text-lg font-semibold" style:color="var(--color-text)">참여율 최적화</h3>
           <button
+            type="button"
             onclick={() => (showOptimizationModal = false)}
             class="p-1 rounded hover:bg-opacity-20"
-            style="color: var(--color-text-secondary);"
+            style:color="var(--color-text-secondary)"
           >
             <XCircleIcon size={20} />
           </button>
@@ -777,18 +815,19 @@
         <div class="space-y-4">
           <div
             class="p-4 border rounded-lg"
-            style="border-color: var(--color-border); background: var(--color-surface-elevated);"
+            style:border-color="var(--color-border)"
+            style:background="var(--color-surface-elevated)"
           >
-            <h4 class="font-medium mb-2" style="color: var(--color-text);">AI 추천사항</h4>
+            <h4 class="font-medium mb-2" style:color="var(--color-text)">AI 추천사항</h4>
             <div class="space-y-2">
-              {#each filteredRecommendations as recommendation}
+              {#each filteredRecommendations as recommendation, i (i)}
                 <div class="flex items-start gap-2">
                   <ZapIcon size={16} class="mt-0.5" style="color: var(--color-primary);" />
                   <div>
-                    <p class="text-sm font-medium" style="color: var(--color-text);">
+                    <p class="text-sm font-medium" style:color="var(--color-text)">
                       {(recommendation as any).title}
                     </p>
-                    <p class="text-xs" style="color: var(--color-text-secondary);">
+                    <p class="text-xs" style:color="var(--color-text-secondary)">
                       {(recommendation as any).description}
                     </p>
                   </div>

@@ -1,6 +1,7 @@
 import { query } from '$lib/database/connection'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger'
 
 // 사업비 테이블을 간소화된 구조로 변경
 export const POST: RequestHandler = async () => {
@@ -37,17 +38,17 @@ export const POST: RequestHandler = async () => {
 
     return json({
       success: true,
-      message: '사업비 구조가 간소화되었습니다.'
+      message: '사업비 구조가 간소화되었습니다.',
     })
   } catch (error) {
-    console.error('사업비 구조 간소화 실패:', error)
+    logger.error('사업비 구조 간소화 실패:', error)
     return json(
       {
         success: false,
         message: '사업비 구조 간소화에 실패했습니다.',
-        error: (error as Error).message
+        error: (error as Error).message,
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

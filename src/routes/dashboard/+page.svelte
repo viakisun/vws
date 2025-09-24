@@ -4,11 +4,16 @@
   import Progress from '$lib/components/ui/Progress.svelte'
   import Modal from '$lib/components/ui/Modal.svelte'
   import { TrendingUpIcon, BriefcaseIcon, CoinsIcon, AlertTriangleIcon } from '@lucide/svelte'
-  import { projectsStore, budgetAlerts, overallBudget, getQuarterSummary } from '$lib/stores/rnd'
+  import { projectsStore, budgetAlerts, overallBudget } from '$lib/stores/rnd'
   import { personnelStore, estimateMonthlyCostKRW } from '$lib/stores/personnel'
   import { formatKRW } from '$lib/utils/format'
 
-  type Kpi = { label: string; value: number | string; icon: any; numeric?: number }
+  type Kpi = {
+    label: string
+    value: number | string
+    icon: any
+    numeric?: number
+  }
 
   let statusFilter = $state('') as '' | '정상' | '진행중' | '지연' | '위험' | '완료'
   let query = $state('')
@@ -21,46 +26,46 @@
       label: '예산 집행률',
       value: `${(ob.utilization * 100).toFixed(1)}%`,
       numeric: ob.utilization * 100,
-      icon: CoinsIcon
+      icon: CoinsIcon,
     },
     {
       label: '평균 진행률',
       value: `${Math.round($projectsStore.reduce((s, p) => s + p.progressPct, 0) / Math.max($projectsStore.length, 1))}%`,
       numeric:
         $projectsStore.reduce((s, p) => s + p.progressPct, 0) / Math.max($projectsStore.length, 1),
-      icon: TrendingUpIcon
+      icon: TrendingUpIcon,
     },
     {
       label: '리스크 경고',
-      value: $projectsStore.filter(p => p.status === '위험' || p.status === '지연').length,
-      icon: AlertTriangleIcon
-    }
+      value: $projectsStore.filter((p) => p.status === '위험' || p.status === '지연').length,
+      icon: AlertTriangleIcon,
+    },
   ] as Kpi[])
 
   const allProjects = $derived($projectsStore)
   const filtered = $derived(
     allProjects.filter(
-      p =>
+      (p) =>
         (statusFilter ? p.status === statusFilter : true) &&
-        (query ? p.name.toLowerCase().includes(query.toLowerCase()) : true)
-    )
+        (query ? p.name.toLowerCase().includes(query.toLowerCase()) : true),
+    ),
   )
-  const selected = $derived(allProjects.find(p => p.id === selectedId))
+  const selected = $derived(allProjects.find((p) => p.id === selectedId))
   const selectedMembers = $derived(
     selected
-      ? $personnelStore.filter(pr => pr.participations.some(pp => pp.projectId === selected.id))
-      : []
+      ? $personnelStore.filter((pr) => pr.participations.some((pp) => pp.projectId === selected.id))
+      : [],
   )
   const selectedCostMonthly = $derived(
     selectedMembers.reduce((sum, pr) => {
-      const part = pr.participations.find(pp => pp.projectId === selected?.id)
+      const part = pr.participations.find((pp) => pp.projectId === selected?.id)
       return (
         sum +
         (pr.annualSalaryKRW && part
           ? estimateMonthlyCostKRW(pr.annualSalaryKRW, part.allocationPct)
           : 0)
       )
-    }, 0)
+    }, 0),
   )
   function openDetail(id: string) {
     selectedId = id
@@ -72,7 +77,7 @@
 
 <div class="space-y-6">
   <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-    {#each kpis as k}
+    {#each kpis as k, i (i)}
       <Card>
         <div class="kpi">
           <div>
@@ -113,7 +118,7 @@
       </select>
     </div>
     <div class="divide-y">
-      {#each filtered as p}
+      {#each filtered as p, i (i)}
         <button
           type="button"
           class="w-full text-left flex items-center justify-between gap-4 py-3 hover:bg-gray-50 rounded-md px-2"
@@ -147,7 +152,7 @@
   {#if $budgetAlerts.length}
     <Card header="예산 경보">
       <ul class="space-y-2 text-sm">
-        {#each $budgetAlerts as a}
+        {#each $budgetAlerts as a, i (i)}
           <li class="flex items-center justify-between">
             <span>{a.name}</span>
             <Badge
@@ -187,7 +192,9 @@
           </div>
           <div>
             <div class="text-caption">기간</div>
-            <div class="font-semibold">{selected.startDate} ~ {selected.dueDate}</div>
+            <div class="font-semibold">
+              {selected.startDate} ~ {selected.dueDate}
+            </div>
           </div>
           <div>
             <div class="text-caption">부서</div>
@@ -200,10 +207,11 @@
             <div class="text-sm text-gray-500">등록된 리스크 없음</div>
           {:else}
             <ul class="list-disc pl-5 text-sm space-y-1">
-              {#each selected.risks as r}
+              {#each selected.risks as r, i (i)}
                 <li>
                   <span class="font-medium">[{r.severity}]</span>
-                  {r.description} <span class="text-caption">({r.impact}/{r.status})</span>
+                  {r.description}
+                  <span class="text-caption">({r.impact}/{r.status})</span>
                 </li>
               {/each}
             </ul>

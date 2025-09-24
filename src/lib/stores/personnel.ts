@@ -33,7 +33,7 @@ const NAMES = [
   '배',
   '노',
   '유',
-  '천'
+  '천',
 ]
 const GIVEN = [
   '민수',
@@ -53,7 +53,7 @@ const GIVEN = [
   '유진',
   '시우',
   '민준',
-  '수현'
+  '수현',
 ]
 
 // Projects P-001..P-010
@@ -86,18 +86,18 @@ const initialPersonnel: Personnel[] = Array.from({ length: 30 }).map((_, i) => {
       // quarterly breakdown for current + next quarters with small variance
       quarterlyBreakdown: {
         '2025-Q3': Math.round(
-          (annualSalaryKRW * (allocation / 100)) / 4 + randInt(-300_000, 300_000)
+          (annualSalaryKRW * (allocation / 100)) / 4 + randInt(-300_000, 300_000),
         ),
         '2025-Q4': Math.round(
-          (annualSalaryKRW * (allocation / 100)) / 4 + randInt(-300_000, 300_000)
+          (annualSalaryKRW * (allocation / 100)) / 4 + randInt(-300_000, 300_000),
         ),
         '2026-Q1': Math.round(
-          (annualSalaryKRW * (allocation / 100)) / 4 + randInt(-300_000, 300_000)
+          (annualSalaryKRW * (allocation / 100)) / 4 + randInt(-300_000, 300_000),
         ),
         '2026-Q2': Math.round(
-          (annualSalaryKRW * (allocation / 100)) / 4 + randInt(-300_000, 300_000)
-        )
-      }
+          (annualSalaryKRW * (allocation / 100)) / 4 + randInt(-300_000, 300_000),
+        ),
+      },
     }
   })
   return {
@@ -108,7 +108,7 @@ const initialPersonnel: Personnel[] = Array.from({ length: 30 }).map((_, i) => {
     employmentType,
     status,
     annualSalaryKRW,
-    participations
+    participations,
   } as Personnel
 })
 

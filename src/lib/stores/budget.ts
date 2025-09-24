@@ -13,9 +13,9 @@ export interface BudgetCategory {
   categoryCode?: string
   nameKo?: string
   description?: string
-  requiredDocuments?: any[]
-  requiredDocs?: any[]
-  defaultWorkflow?: any[]
+  requiredDocuments?: unknown[]
+  requiredDocs?: unknown[]
+  defaultWorkflow?: unknown[]
   defaultSlaDays?: number
   defaultOwners?: string[]
   active?: boolean
@@ -41,7 +41,7 @@ const initialBudgetCategories: BudgetCategory[] = [
     spent: 8000000,
     period: 'monthly',
     createdAt: '2024-01-01T00:00:00Z',
-    updatedAt: '2024-01-15T00:00:00Z'
+    updatedAt: '2024-01-15T00:00:00Z',
   },
   {
     id: '2',
@@ -50,7 +50,7 @@ const initialBudgetCategories: BudgetCategory[] = [
     spent: 2000000,
     period: 'monthly',
     createdAt: '2024-01-01T00:00:00Z',
-    updatedAt: '2024-01-15T00:00:00Z'
+    updatedAt: '2024-01-15T00:00:00Z',
   },
   {
     id: '3',
@@ -59,8 +59,8 @@ const initialBudgetCategories: BudgetCategory[] = [
     spent: 1500000,
     period: 'monthly',
     createdAt: '2024-01-01T00:00:00Z',
-    updatedAt: '2024-01-15T00:00:00Z'
-  }
+    updatedAt: '2024-01-15T00:00:00Z',
+  },
 ]
 
 const initialBudgetGoals: BudgetGoal[] = [
@@ -72,7 +72,7 @@ const initialBudgetGoals: BudgetGoal[] = [
     deadline: '2024-03-31',
     status: 'active',
     createdAt: '2024-01-01T00:00:00Z',
-    updatedAt: '2024-01-15T00:00:00Z'
+    updatedAt: '2024-01-15T00:00:00Z',
   },
   {
     id: '2',
@@ -82,8 +82,8 @@ const initialBudgetGoals: BudgetGoal[] = [
     deadline: '2024-12-31',
     status: 'completed',
     createdAt: '2024-01-01T00:00:00Z',
-    updatedAt: '2024-01-15T00:00:00Z'
-  }
+    updatedAt: '2024-01-15T00:00:00Z',
+  },
 ]
 
 // 스토어 생성
@@ -92,32 +92,32 @@ export const budgetGoals = writable<BudgetGoal[]>(initialBudgetGoals)
 
 // 예산 카테고리 추가 함수
 export function addBudgetCategory(
-  category: Omit<BudgetCategory, 'id' | 'createdAt' | 'updatedAt'>
+  category: Omit<BudgetCategory, 'id' | 'createdAt' | 'updatedAt'>,
 ) {
   const newCategory: BudgetCategory = {
     ...category,
     id: `budget-category-${Date.now()}`,
     createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    updatedAt: new Date().toISOString(),
   }
 
-  budgetCategories.update(current => [...current, newCategory])
+  budgetCategories.update((current) => [...current, newCategory])
 }
 
 // 예산 카테고리 수정 함수
 export function updateBudgetCategory(updatedCategory: BudgetCategory) {
-  budgetCategories.update(current =>
-    current.map(category =>
+  budgetCategories.update((current) =>
+    current.map((category) =>
       category.id === updatedCategory.id
         ? { ...updatedCategory, updatedAt: new Date().toISOString() }
-        : category
-    )
+        : category,
+    ),
   )
 }
 
 // 예산 카테고리 삭제 함수
 export function deleteBudgetCategory(categoryId: string) {
-  budgetCategories.update(current => current.filter(category => category.id !== categoryId))
+  budgetCategories.update((current) => current.filter((category) => category.id !== categoryId))
 }
 
 // 예산 목표 추가 함수
@@ -126,24 +126,24 @@ export function addBudgetGoal(goal: Omit<BudgetGoal, 'id' | 'createdAt' | 'updat
     ...goal,
     id: `budget-goal-${Date.now()}`,
     createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    updatedAt: new Date().toISOString(),
   }
 
-  budgetGoals.update(current => [...current, newGoal])
+  budgetGoals.update((current) => [...current, newGoal])
 }
 
 // 예산 목표 수정 함수
 export function updateBudgetGoal(updatedGoal: BudgetGoal) {
-  budgetGoals.update(current =>
-    current.map(goal =>
-      goal.id === updatedGoal.id ? { ...updatedGoal, updatedAt: new Date().toISOString() } : goal
-    )
+  budgetGoals.update((current) =>
+    current.map((goal) =>
+      goal.id === updatedGoal.id ? { ...updatedGoal, updatedAt: new Date().toISOString() } : goal,
+    ),
   )
 }
 
 // 예산 목표 삭제 함수
 export function deleteBudgetGoal(goalId: string) {
-  budgetGoals.update(current => current.filter(goal => goal.id !== goalId))
+  budgetGoals.update((current) => current.filter((goal) => goal.id !== goalId))
 }
 
 // 예산 사용률 계산 함수

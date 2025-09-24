@@ -19,7 +19,7 @@
     // 우선 순위: 참여 항목별 quarterlyBreakdown → 연봉 기반 추정치(분기)
     const breakdownSum = p.participations.reduce<number>(
       (sum: number, pp: Participation) => sum + (pp.quarterlyBreakdown?.[quarter] ?? 0),
-      0
+      0,
     )
     if (breakdownSum > 0) return breakdownSum
     // fallback: 연봉 * 참여율 / 4
@@ -34,15 +34,15 @@
     return p.participations.reduce<number>(
       (sum: number, pp: Participation) =>
         sum + (map[pp.projectId]?.[quarter] ?? 0) * (pp.allocationPct / 100),
-      0
+      0,
     )
   }
 
   // available quarters
   const quarters = $derived(
     Array.from(
-      new Set(Object.values($quarterlyPersonnelBudgets).flatMap(m => Object.keys(m)))
-    ).sort()
+      new Set(Object.values($quarterlyPersonnelBudgets).flatMap((m) => Object.keys(m))),
+    ).sort(),
   )
 
   // read initial quarter from URL if present
@@ -58,34 +58,34 @@
   const projectId = page.url.searchParams.get('projectId')
   const all = $derived($personnelStore)
   const filtered = $derived(
-    all.filter(p => {
+    all.filter((p) => {
       const matchQuery = query
         ? p.name.includes(query) || p.id.includes(query) || p.organization.includes(query)
         : true
       const matchProject = projectId
-        ? p.participations.some(pp => pp.projectId === projectId)
+        ? p.participations.some((pp) => pp.projectId === projectId)
         : true
       const matchOrg = orgFilter ? p.organization === orgFilter : true
       const matchStatus = statusFilter ? p.status === statusFilter : true
       return matchQuery && matchProject && matchOrg && matchStatus
-    })
+    }),
   )
-  const selected = $derived(all.find(p => p.id === selectedId))
-  const orgOptions = $derived(Array.from(new Set(all.map(p => p.organization))))
-  const totalCount = $derived(all.length)
-  const activeCount = $derived(all.filter(p => p.status === '재직').length)
+  const selected = $derived(all.find((p) => p.id === selectedId))
+  const orgOptions = $derived(Array.from(new Set(all.map((p) => p.organization))))
+  const _totalCount = $derived(all.length)
+  const _activeCount = $derived(all.filter((p) => p.status === '재직').length)
 
   // KPI summary for selected quarter and current filter
   const kpiTotalCost = $derived(filtered.reduce((s, p) => s + personQuarterCost(p), 0))
   const kpiTotalBudget = $derived(filtered.reduce((s, p) => s + personQuarterBudget(p), 0))
   const kpiUtil = $derived(
-    kpiTotalBudget > 0 ? Math.round((kpiTotalCost / kpiTotalBudget) * 100) : 0
+    kpiTotalBudget > 0 ? Math.round((kpiTotalCost / kpiTotalBudget) * 100) : 0,
   )
   const overCount = $derived(
-    filtered.filter(p => {
+    filtered.filter((p) => {
       const b = personQuarterBudget(p)
       return b > 0 && personQuarterCost(p) / b >= budgetThresholds.critical
-    }).length
+    }).length,
   )
 
   // URL sync for quarter only (q)
@@ -100,7 +100,7 @@
         goto(`${window.location.pathname}${newQuery ? `?${newQuery}` : ''}`, {
           replaceState: true,
           keepFocus: true,
-          noScroll: true
+          noScroll: true,
         })
       }
     }
@@ -125,7 +125,7 @@
       bind:value={orgFilter}
     >
       <option value="">전체 부서</option>
-      {#each orgOptions as o}
+      {#each orgOptions as o, i (i)}
         <option value={o}>{o}</option>
       {/each}
     </select>
@@ -142,7 +142,7 @@
       class="w-full sm:w-40 rounded-md border border-gray-200 bg-white px-2 py-1.5 text-sm"
       bind:value={quarter}
     >
-      {#each quarters as q}
+      {#each quarters as q, i (i)}
         <option value={q}>{q}</option>
       {/each}
     </select>
@@ -157,7 +157,9 @@
     </div>
     <div class="card">
       <div class="text-caption">분기 예산 합계</div>
-      <div class="text-lg font-semibold">{kpiTotalBudget.toLocaleString()}원</div>
+      <div class="text-lg font-semibold">
+        {kpiTotalBudget.toLocaleString()}원
+      </div>
     </div>
     <div class="card">
       <div class="text-caption">예산 대비 집행률</div>
@@ -166,12 +168,13 @@
   </div>
   <div class="text-caption mb-2">
     임계치 {Math.round(budgetThresholds.warning * 100)}%/{Math.round(
-      budgetThresholds.critical * 100
+      budgetThresholds.critical * 100,
     )}% 기준, 위험 인원 {overCount}명
   </div>
   {#if loading}
     <div class="space-y-2">
-      {#each Array(8) as _}
+      {#each Array(8) as _, idx (idx)}
+        <!-- TODO: replace index key with a stable id when model provides one -->
         <div class="h-8 bg-gray-100 animate-pulse rounded"></div>
       {/each}
     </div>
@@ -192,7 +195,7 @@
           </tr>
         </thead>
         <tbody class="divide-y">
-          {#each filtered as p}
+          {#each filtered as p, i (i)}
             <tr class="hover:bg-gray-50 cursor-pointer" onclick={() => (selectedId = p.id)}>
               <td class="px-3 py-2">{p.id}</td>
               <td class="px-3 py-2">{p.name}</td>
@@ -238,7 +241,9 @@
         </div>
         <div>
           <div class="text-caption">부서/직급</div>
-          <div class="font-semibold">{selected.organization} · {selected.role}</div>
+          <div class="font-semibold">
+            {selected.organization} · {selected.role}
+          </div>
         </div>
         <div>
           <div class="text-caption">연봉</div>
@@ -250,7 +255,7 @@
       <div>
         <div class="text-caption mb-1">프로젝트 참여</div>
         <ul class="list-disc pl-5 space-y-1">
-          {#each selected.participations as pp}
+          {#each selected.participations as pp, i (i)}
             <li>
               {pp.projectId} · {pp.allocationPct}% · {pp.startDate}{pp.endDate
                 ? ` ~ ${pp.endDate}`

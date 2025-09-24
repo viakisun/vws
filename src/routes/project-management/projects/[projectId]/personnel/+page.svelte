@@ -6,12 +6,12 @@
   import { projectsStore, quarterlyPersonnelBudgets } from '$lib/stores/rnd'
   import { personnelStore } from '$lib/stores/personnel'
   import { formatKRW } from '$lib/utils/format'
-  import type { Personnel, Participation } from '$lib/types'
+  import type { Personnel } from '$lib/types'
 
   const projectId = page.params.projectId as string
-  const project = $derived($projectsStore.find(p => p.id === projectId))
+  const project = $derived($projectsStore.find((p) => p.id === projectId))
   const people = $derived(
-    $personnelStore.filter(p => p.participations.some(pp => pp.projectId === projectId))
+    $personnelStore.filter((p) => p.participations.some((pp) => pp.projectId === projectId)),
   )
 
   function currentQuarterLabel(): string {
@@ -22,16 +22,17 @@
   }
   let quarter = $state(currentQuarterLabel())
   const budgetMap = $derived(
-    ($quarterlyPersonnelBudgets[projectId as string] ?? {}) as Record<string, number>
+    ($quarterlyPersonnelBudgets[projectId as string] ?? {}) as Record<string, number>,
   )
 
   function allocOf(person: Personnel): number {
-    const pp = person.participations.find(x => x.projectId === projectId)
+    const pp = person.participations.find((x) => x.projectId === projectId)
     return pp ? pp.allocationPct : 0
   }
   function quarterCost(person: Personnel): number {
     const breakdown =
-      person.participations.find(x => x.projectId === projectId)?.quarterlyBreakdown?.[quarter] ?? 0
+      person.participations.find((x) => x.projectId === projectId)?.quarterlyBreakdown?.[quarter] ??
+      0
     if (breakdown > 0) return breakdown
     const alloc = allocOf(person)
     const est = ((person.annualSalaryKRW ?? 0) * (alloc / 100)) / 4
@@ -44,7 +45,7 @@
   }
 
   const totalBudget = $derived(
-    Object.entries(budgetMap).reduce((s, [k, v]) => (k === quarter ? s + v : s), 0)
+    Object.entries(budgetMap).reduce((s, [k, v]) => (k === quarter ? s + v : s), 0),
   )
   const totalCost = $derived(people.reduce((s, p) => s + quarterCost(p), 0))
   const util = $derived(totalBudget > 0 ? Math.round((totalCost / totalBudget) * 100) : 0)
@@ -65,7 +66,9 @@
       <div class="kpi">
         <div>
           <div class="text-caption">분기 예산</div>
-          <div class="text-2xl font-bold">{formatKRW(budgetMap?.[quarter] ?? 0)}</div>
+          <div class="text-2xl font-bold">
+            {formatKRW(budgetMap?.[quarter] ?? 0)}
+          </div>
         </div>
       </div>
     </Card>
@@ -91,7 +94,8 @@
   <Card header="참여 인력">
     {#if loading}
       <div class="space-y-2">
-        {#each Array(8) as _}
+        {#each Array(8) as _, idx (idx)}
+          <!-- TODO: replace index key with a stable id when model provides one -->
           <div class="h-8 bg-gray-100 animate-pulse rounded"></div>
         {/each}
       </div>
@@ -108,7 +112,7 @@
             </tr>
           </thead>
           <tbody class="divide-y">
-            {#each people as p}
+            {#each people as p, i (i)}
               {@const alloc = allocOf(p)}
               {@const qc = quarterCost(p)}
               {@const qb = quarterBudget(p)}

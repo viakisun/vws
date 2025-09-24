@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { logger } from '$lib/utils/logger'
+
   import { CheckIcon, XIcon } from '@lucide/svelte'
   import { createEventDispatcher } from 'svelte'
 
@@ -9,7 +11,7 @@
     title: '',
     code: '',
     description: '',
-    status: 'planning' // 기본값을 '기획'으로 설정
+    status: 'planning', // 기본값을 '기획'으로 설정
   })
 
   // 예산 입력 단계 관리
@@ -44,21 +46,21 @@
     validationErrors = []
 
     try {
-      console.log('🚀 [UI] 프로젝트 생성 요청 시작')
-      console.log('📋 [UI] 전송 데이터:', JSON.stringify(projectData, null, 2))
+      logger.log('🚀 [UI] 프로젝트 생성 요청 시작')
+      logger.log('📋 [UI] 전송 데이터:', JSON.stringify(projectData, null, 2))
 
       const response = await fetch('/api/project-management/projects', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
-        body: JSON.stringify(projectData)
+        body: JSON.stringify(projectData),
       })
 
       const result = await response.json()
 
       if (result.success) {
-        console.log('✅ [UI] 프로젝트 생성 성공:', result)
+        logger.log('✅ [UI] 프로젝트 생성 성공:', result)
         createdProjectId = result.data?.id
 
         if (createdProjectId) {
@@ -70,11 +72,11 @@
           resetForm()
         }
       } else {
-        console.log('❌ [UI] 프로젝트 생성 실패:', result.error)
+        logger.log('❌ [UI] 프로젝트 생성 실패:', result.error)
         validationErrors = [result.error || '프로젝트 생성 중 오류가 발생했습니다.']
       }
     } catch (error) {
-      console.error('💥 [UI] 프로젝트 생성 중 오류:', error)
+      logger.error('💥 [UI] 프로젝트 생성 중 오류:', error)
       validationErrors = ['프로젝트 생성 중 오류가 발생했습니다.']
     } finally {
       isSubmitting = false
@@ -92,11 +94,11 @@
   }
 
   // 예산 저장 완료 핸들러
-  function handleBudgetSaved(event: CustomEvent) {
+  function handleBudgetSaved(_event: CustomEvent) {
     dispatch('projectCreated', {
       success: true,
       data: { id: createdProjectId },
-      message: '프로젝트와 예산이 성공적으로 생성되었습니다.'
+      message: '프로젝트와 예산이 성공적으로 생성되었습니다.',
     })
     resetForm()
   }
@@ -106,7 +108,7 @@
     dispatch('projectCreated', {
       success: true,
       data: { id: createdProjectId },
-      message: '프로젝트가 성공적으로 생성되었습니다. 예산은 나중에 설정할 수 있습니다.'
+      message: '프로젝트가 성공적으로 생성되었습니다. 예산은 나중에 설정할 수 있습니다.',
     })
     resetForm()
   }
@@ -123,7 +125,7 @@
         <h3 class="text-sm font-medium text-red-800">검증 오류</h3>
       </div>
       <ul class="mt-2 text-sm text-red-700">
-        {#each validationErrors as error}
+        {#each validationErrors as error, i (i)}
           <li>• {error}</li>
         {/each}
       </ul>
@@ -212,7 +214,7 @@
         readonly={false}
         onbudgetSaved={handleBudgetSaved}
       />
-    {:catch error}
+    {:catch _error}
       <div class="bg-red-50 border border-red-200 rounded-lg p-4">
         <div class="flex items-center">
           <XIcon class="w-5 h-5 text-red-500 mr-2" />

@@ -1,6 +1,7 @@
 import type { BankAccount, Transaction, ExpectedTransaction } from '$lib/stores/funds'
 import type { BudgetCategory, BudgetGoal } from '$lib/stores/budget'
 import type { Notification, NotificationSettings } from '$lib/stores/notifications'
+import { logger } from '$lib/utils/logger'
 
 export interface BackupData {
   version: string
@@ -24,7 +25,7 @@ export function createBackup(
   budgetCategories: BudgetCategory[],
   budgetGoals: BudgetGoal[],
   notifications: Notification[],
-  notificationSettings: NotificationSettings
+  notificationSettings: NotificationSettings,
 ): BackupData {
   return {
     version: '1.0.0',
@@ -36,8 +37,8 @@ export function createBackup(
       budgetCategories,
       budgetGoals,
       notifications,
-      notificationSettings
-    }
+      notificationSettings,
+    },
   }
 }
 
@@ -72,11 +73,11 @@ export function validateBackup(data: any): data is BackupData {
     'budgetCategories',
     'budgetGoals',
     'notifications',
-    'notificationSettings'
+    'notificationSettings',
   ]
 
   return requiredFields.every(
-    field => Array.isArray(data.data[field]) || typeof data.data[field] === 'object'
+    (field) => Array.isArray(data.data[field]) || typeof data.data[field] === 'object',
   )
 }
 
@@ -88,7 +89,7 @@ export function autoBackup(
   budgetCategories: BudgetCategory[],
   budgetGoals: BudgetGoal[],
   notifications: Notification[],
-  notificationSettings: NotificationSettings
+  notificationSettings: NotificationSettings,
 ) {
   const backupData = createBackup(
     bankAccounts,
@@ -97,14 +98,14 @@ export function autoBackup(
     budgetCategories,
     budgetGoals,
     notifications,
-    notificationSettings
+    notificationSettings,
   )
 
   try {
     localStorage.setItem('workstream-auto-backup', JSON.stringify(backupData))
     localStorage.setItem('workstream-backup-timestamp', backupData.timestamp)
   } catch (error) {
-    console.error('자동 백업 실패:', error)
+    logger.error('자동 백업 실패:', error)
   }
 }
 
@@ -121,7 +122,7 @@ export function loadAutoBackup(): BackupData | null {
       return backupData
     }
   } catch (error) {
-    console.error('자동 백업 로드 실패:', error)
+    logger.error('자동 백업 로드 실패:', error)
   }
 
   return null
@@ -132,7 +133,7 @@ export function readBackupFile(file: File): Promise<BackupData> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
 
-    reader.onload = e => {
+    reader.onload = (e) => {
       try {
         const result = e.target?.result
         if (typeof result !== 'string') {
@@ -166,7 +167,7 @@ export function getRestoreConfirmMessage(backupData: BackupData): string {
     transactions: backupData.data.transactions.length,
     expectedTransactions: backupData.data.expectedTransactions.length,
     budgetCategories: backupData.data.budgetCategories.length,
-    budgetGoals: backupData.data.budgetGoals.length
+    budgetGoals: backupData.data.budgetGoals.length,
   }
 
   return `
@@ -198,7 +199,7 @@ export function getBackupStats(
   transactions: Transaction[],
   expectedTransactions: ExpectedTransaction[],
   budgetCategories: BudgetCategory[],
-  budgetGoals: BudgetGoal[]
+  budgetGoals: BudgetGoal[],
 ): BackupStats {
   const lastBackupTime = localStorage.getItem('workstream-backup-timestamp')
   const totalRecords =
@@ -215,13 +216,13 @@ export function getBackupStats(
     budgetCategories,
     budgetGoals,
     [],
-    {} as NotificationSettings
+    {} as NotificationSettings,
   )
   const backupSize = JSON.stringify(backupData).length
 
   return {
     lastBackupTime,
     backupSize,
-    totalRecords
+    totalRecords,
   }
 }

@@ -1,9 +1,9 @@
 // 직원별 급여 계약 정보 API 엔드포인트
 
-import { json } from '@sveltejs/kit'
 import { query } from '$lib/database/connection.js'
+import type { CurrentSalaryInfo, SalaryContract } from '$lib/types/salary-contracts'
+import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
-import type { ApiResponse, CurrentSalaryInfo, SalaryContract } from '$lib/types/salary-contracts'
 
 // GET: 특정 직원의 급여 계약 정보 조회
 export const GET: RequestHandler = async ({ params }) => {
@@ -23,16 +23,16 @@ export const GET: RequestHandler = async ({ params }) => {
 			FROM employees e
 			WHERE e.id = $1
 		`,
-      [employeeId]
+      [employeeId],
     )
 
     if (employeeResult.rows.length === 0) {
       return json(
         {
           success: false,
-          error: '직원을 찾을 수 없습니다.'
+          error: '직원을 찾을 수 없습니다.',
         },
-        { status: 404 }
+        { status: 404 },
       )
     }
 
@@ -61,7 +61,7 @@ export const GET: RequestHandler = async ({ params }) => {
 			ORDER BY sc.start_date DESC
 			LIMIT 1
 		`,
-      [employeeId]
+      [employeeId],
     )
 
     // 급여 계약 이력 조회
@@ -83,7 +83,7 @@ export const GET: RequestHandler = async ({ params }) => {
 			WHERE sc.employee_id = $1
 			ORDER BY sc.start_date DESC
 		`,
-      [employeeId]
+      [employeeId],
     )
 
     // 현재 계약 데이터 변환
@@ -104,12 +104,12 @@ export const GET: RequestHandler = async ({ params }) => {
         updatedAt: contract.updated_at,
         createdBy: contract.created_by,
         contractEndDisplay: contract.contract_end_display,
-        statusDisplay: contract.status_display
+        statusDisplay: contract.status_display,
       }
     }
 
     // 계약 이력 데이터 변환
-    const contractHistory: SalaryContract[] = historyResult.rows.map(contract => ({
+    const contractHistory: SalaryContract[] = historyResult.rows.map((contract) => ({
       id: contract.id,
       employeeId: contract.employee_id,
       startDate: contract.start_date,
@@ -123,7 +123,7 @@ export const GET: RequestHandler = async ({ params }) => {
       updatedAt: contract.updated_at,
       createdBy: contract.created_by,
       contractEndDisplay: contract.contract_end_display,
-      statusDisplay: contract.status_display
+      statusDisplay: contract.status_display,
     }))
 
     const currentSalaryInfo: CurrentSalaryInfo = {
@@ -133,20 +133,20 @@ export const GET: RequestHandler = async ({ params }) => {
       department: employee.department,
       position: employee.position,
       currentContract: currentContract!,
-      contractHistory
+      contractHistory,
     }
 
     return json({
       success: true,
-      data: currentSalaryInfo
+      data: currentSalaryInfo,
     })
-  } catch (error) {
+  } catch (_error) {
     return json(
       {
         success: false,
-        error: '직원 급여 정보 조회에 실패했습니다.'
+        error: '직원 급여 정보 조회에 실패했습니다.',
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

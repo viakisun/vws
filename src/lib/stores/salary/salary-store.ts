@@ -5,7 +5,7 @@ import type {
   Payslip,
   SalaryHistory,
   SalarySearchFilter,
-  SalaryStructure
+  SalaryStructure,
 } from '$lib/types/salary'
 import { derived, writable } from 'svelte/store'
 
@@ -45,21 +45,21 @@ export const previousPeriod = derived([], () => {
 export const salaryStatistics = derived(
   [payslips, currentPeriod, previousPeriod],
   ([$payslips, $currentPeriod, $previousPeriod]) => {
-    const currentPayslips = $payslips.filter(p => p.period === $currentPeriod)
-    const previousPayslips = $payslips.filter(p => p.period === $previousPeriod)
+    const currentPayslips = $payslips.filter((p) => p.period === $currentPeriod)
+    const previousPayslips = $payslips.filter((p) => p.period === $previousPeriod)
 
     const currentTotalGross = currentPayslips.reduce((sum, p) => sum + (p.totalPayments || 0), 0)
     const currentTotalNet = currentPayslips.reduce((sum, p) => sum + (p.netSalary || 0), 0)
     const currentTotalDeductions = currentPayslips.reduce(
       (sum, p) => sum + (p.totalDeductions || 0),
-      0
+      0,
     )
 
     const previousTotalGross = previousPayslips.reduce((sum, p) => sum + (p.totalPayments || 0), 0)
     const previousTotalNet = previousPayslips.reduce((sum, p) => sum + (p.netSalary || 0), 0)
     const previousTotalDeductions = previousPayslips.reduce(
       (sum, p) => sum + (p.totalDeductions || 0),
-      0
+      0,
     )
 
     return {
@@ -70,22 +70,22 @@ export const salaryStatistics = derived(
         totalGrossSalary: currentTotalGross,
         totalNetSalary: currentTotalNet,
         totalDeductions: currentTotalDeductions,
-        status: currentPayslips.length > 0 ? 'calculated' : 'draft'
+        status: currentPayslips.length > 0 ? 'calculated' : 'draft',
       },
       previousMonth: {
         totalEmployees: previousPayslips.length,
         totalGrossSalary: previousTotalGross,
         totalNetSalary: previousTotalNet,
         totalDeductions: previousTotalDeductions,
-        status: previousPayslips.length > 0 ? 'calculated' : 'draft'
+        status: previousPayslips.length > 0 ? 'calculated' : 'draft',
       },
       changes: {
         employeeChange: currentPayslips.length - previousPayslips.length,
         salaryChange: currentTotalGross - previousTotalGross,
-        netSalaryChange: currentTotalNet - previousTotalNet
-      }
+        netSalaryChange: currentTotalNet - previousTotalNet,
+      },
     }
-  }
+  },
 )
 
 // ===== 직원별 급여 현황 =====
@@ -95,7 +95,7 @@ export const employeeSalaryStatus = derived(
     if (!$selectedEmployee) return null
 
     const currentPayslip = $payslips.find(
-      p => p.employeeId === $selectedEmployee && p.period === $currentPeriod
+      (p) => p.employeeId === $selectedEmployee && p.period === $currentPeriod,
     )
 
     return currentPayslip
@@ -110,14 +110,14 @@ export const employeeSalaryStatus = derived(
           grossSalary: currentPayslip.totals?.totalPayments || 0,
           netSalary: currentPayslip.totals?.netSalary || 0,
           status: currentPayslip.status,
-          payDate: currentPayslip.payDate
+          payDate: currentPayslip.payDate,
         }
       : null
-  }
+  },
 )
 
 // ===== 부서별 급여 통계 =====
-export const departmentSalaryStats = derived(payslips, $payslips => {
+export const departmentSalaryStats = derived(payslips, ($payslips) => {
   const stats: Record<
     string,
     {
@@ -129,7 +129,7 @@ export const departmentSalaryStats = derived(payslips, $payslips => {
     }
   > = {}
 
-  $payslips.forEach(payslip => {
+  $payslips.forEach((payslip) => {
     const department = payslip.employeeInfo?.department || '부서없음'
     if (!stats[department]) {
       stats[department] = {
@@ -137,7 +137,7 @@ export const departmentSalaryStats = derived(payslips, $payslips => {
         totalGrossSalary: 0,
         totalNetSalary: 0,
         averageGrossSalary: 0,
-        averageNetSalary: 0
+        averageNetSalary: 0,
       }
     }
 
@@ -150,7 +150,7 @@ export const departmentSalaryStats = derived(payslips, $payslips => {
   })
 
   // 평균 계산
-  Object.keys(stats).forEach(dept => {
+  Object.keys(stats).forEach((dept) => {
     const stat = stats[dept]
     if (stat) {
       stat.averageGrossSalary =
@@ -168,8 +168,8 @@ export const filteredSalaryHistory = derived(
   ([$salaryHistory, $selectedEmployee]) => {
     if (!$selectedEmployee) return $salaryHistory
 
-    return $salaryHistory.filter(history => history.employeeId === $selectedEmployee)
-  }
+    return $salaryHistory.filter((history) => history.employeeId === $selectedEmployee)
+  },
 )
 
 // ===== 필터된 급여명세서 목록 =====
@@ -178,16 +178,16 @@ export const filteredPayslips = derived([payslips, searchFilter], ([$payslips, $
 
   // 기간 필터
   if ($filter.periodFrom) {
-    filtered = filtered.filter(p => p.period >= $filter.periodFrom!)
+    filtered = filtered.filter((p) => p.period >= $filter.periodFrom!)
   }
 
   if ($filter.periodTo) {
-    filtered = filtered.filter(p => p.period <= $filter.periodTo!)
+    filtered = filtered.filter((p) => p.period <= $filter.periodTo!)
   }
 
   // 상태 필터
   if ($filter.status) {
-    filtered = filtered.filter(p => p.status === $filter.status)
+    filtered = filtered.filter((p) => p.status === $filter.status)
   }
 
   return filtered.sort((a, b) => b.period.localeCompare(a.period))
@@ -200,7 +200,7 @@ export const paginatedPayslips = derived(
     const startIndex = ($currentPage - 1) * $pageSize
     const endIndex = startIndex + $pageSize
     return $filteredPayslips.slice(startIndex, endIndex)
-  }
+  },
 )
 
 // ===== 액션 함수들 =====
@@ -271,7 +271,7 @@ export async function loadSalaryHistory(employeeId?: string): Promise<void> {
 
 // 급여 구조 추가
 export async function addSalaryStructure(
-  structure: Omit<SalaryStructure, 'id' | 'createdAt' | 'updatedAt'>
+  structure: Omit<SalaryStructure, 'id' | 'createdAt' | 'updatedAt'>,
 ): Promise<boolean> {
   isLoading.set(true)
   error.set(null)
@@ -280,15 +280,15 @@ export async function addSalaryStructure(
     const response = await fetch('/api/salary/structures', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
       },
-      body: JSON.stringify(structure)
+      body: JSON.stringify(structure),
     })
 
     const result: ApiResponse<SalaryStructure> = await response.json()
 
     if (result.success && result.data) {
-      salaryStructures.update(current => [...current, result.data!])
+      salaryStructures.update((current) => [...current, result.data!])
       return true
     } else {
       error.set(result.error || '급여 구조 추가에 실패했습니다.')
@@ -305,7 +305,7 @@ export async function addSalaryStructure(
 // 급여 구조 수정
 export async function updateSalaryStructure(
   id: string,
-  updates: Partial<SalaryStructure>
+  updates: Partial<SalaryStructure>,
 ): Promise<boolean> {
   isLoading.set(true)
   error.set(null)
@@ -314,16 +314,16 @@ export async function updateSalaryStructure(
     const response = await fetch(`/api/salary/structures/${id}`, {
       method: 'PUT',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
       },
-      body: JSON.stringify(updates)
+      body: JSON.stringify(updates),
     })
 
     const result: ApiResponse<SalaryStructure> = await response.json()
 
     if (result.success && result.data) {
-      salaryStructures.update(current =>
-        current.map(structure => (structure.id === id ? result.data! : structure))
+      salaryStructures.update((current) =>
+        current.map((structure) => (structure.id === id ? result.data! : structure)),
       )
       return true
     } else {
@@ -349,15 +349,15 @@ export async function generatePayslip(employeeId: string, period: string): Promi
     const response = await fetch(`/api/salary/payslips`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ employeeId, period })
+      body: JSON.stringify({ employeeId, period }),
     })
 
     const result: ApiResponse<Payslip> = await response.json()
 
     if (result.success && result.data) {
-      payslips.update(current => [...current, result.data!])
+      payslips.update((current) => [...current, result.data!])
       return true
     } else {
       error.set(result.error || '급여명세서 생성에 실패했습니다.')
@@ -404,7 +404,7 @@ export async function downloadPayslip(payslipId: string): Promise<boolean> {
 
 // 검색 필터 설정
 export function setSearchFilter(filter: Partial<SalarySearchFilter>): void {
-  searchFilter.update(current => ({ ...current, ...filter }))
+  searchFilter.update((current) => ({ ...current, ...filter }))
 }
 
 // 페이지 설정

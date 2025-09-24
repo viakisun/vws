@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { logger } from '$lib/utils/logger'
+
   import { XIcon } from '@lucide/svelte'
 
   interface Company {
@@ -35,7 +37,7 @@
     fax: '',
     email: '',
     website: '',
-    registration_number: ''
+    registration_number: '',
   })
 
   // 회사 정보가 변경될 때 폼 데이터 업데이트
@@ -51,7 +53,7 @@
         fax: company.fax || '',
         email: company.email || '',
         website: company.website || '',
-        registration_number: company.registration_number || ''
+        registration_number: company.registration_number || '',
       }
     } else {
       formData = {
@@ -64,7 +66,7 @@
         fax: '',
         email: '',
         website: '',
-        registration_number: ''
+        registration_number: '',
       }
     }
   })
@@ -75,9 +77,9 @@
       const response = await fetch('/api/company', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(formData),
       })
 
       const result = await response.json()
@@ -94,7 +96,7 @@
         alert('오류: ' + result.error)
       }
     } catch (error) {
-      console.error('Error saving company:', error)
+      logger.error('Error saving company:', error)
       alert('회사 정보 저장 중 오류가 발생했습니다.')
     }
   }
@@ -115,7 +117,11 @@
         <h2 class="text-xl font-semibold text-gray-900">
           {company ? '회사 정보 수정' : '회사 정보 등록'}
         </h2>
-        <button onclick={handleClose} class="text-gray-400 hover:text-gray-600 transition-colors">
+        <button
+          type="button"
+          onclick={handleClose}
+          class="text-gray-400 hover:text-gray-600 transition-colors"
+        >
           <XIcon class="w-6 h-6" />
         </button>
       </div>
@@ -253,12 +259,14 @@
       <!-- 푸터 -->
       <div class="flex items-center justify-end gap-3 p-6 border-t bg-gray-50">
         <button
+          type="button"
           onclick={handleClose}
           class="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
         >
           취소
         </button>
         <button
+          type="button"
           onclick={handleSave}
           disabled={loading || !formData.name}
           class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"

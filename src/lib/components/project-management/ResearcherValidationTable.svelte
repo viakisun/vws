@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { logger } from '$lib/utils/logger'
+
   import ThemeBadge from '$lib/components/ui/ThemeBadge.svelte'
   import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
   import ThemeCard from '$lib/components/ui/ThemeCard.svelte'
@@ -9,7 +11,7 @@
     SettingsIcon,
     UserIcon,
     WrenchIcon,
-    XCircleIcon
+    XCircleIcon,
   } from '@lucide/svelte'
   import { onMount } from 'svelte'
 
@@ -17,11 +19,11 @@
   let {
     projectId,
     members = [],
-    onMemberUpdate
+    onMemberUpdate,
   }: {
     projectId: string
     members?: any[]
-    onMemberUpdate?: (memberId: string, updates: any) => void
+    onMemberUpdate?: (_memberId: string, _updates: any) => void
   } = $props()
 
   // Default function for onMemberUpdate
@@ -38,8 +40,8 @@
     summary: {
       totalMembers: 0,
       validMembers: 0,
-      invalidMembers: 0
-    }
+      invalidMembers: 0,
+    },
   })
 
   let showValidationDetails = $state(false)
@@ -73,23 +75,23 @@
 
   // 멤버별 검증 상태
   function getMemberValidationStatus(member: any) {
-    const memberIssues = validationState.issues.filter(issue => issue.memberId === member.id)
+    const memberIssues = validationState.issues.filter((issue) => issue.memberId === member.id)
 
     if (memberIssues.length === 0) {
       return {
         status: 'valid',
         icon: CheckCircleIcon,
         color: 'text-green-600',
-        text: '정상'
+        text: '정상',
       }
     }
 
-    const hasErrors = memberIssues.some(issue => issue.severity === 'error')
+    const hasErrors = memberIssues.some((issue) => issue.severity === 'error')
     return {
       status: hasErrors ? 'error' : 'warning',
       icon: hasErrors ? XCircleIcon : AlertTriangleIcon,
       color: hasErrors ? 'text-red-600' : 'text-yellow-600',
-      text: hasErrors ? '오류' : '주의'
+      text: hasErrors ? '오류' : '주의',
     }
   }
 
@@ -109,7 +111,7 @@
 
     try {
       const response = await fetch(
-        `/api/project-management/researcher-validation?projectId=${projectId}`
+        `/api/project-management/researcher-validation?projectId=${projectId}`,
       )
       const result = await response.json()
 
@@ -119,10 +121,10 @@
         validationState.summary = result.data.validation.summary
         validationState.lastValidated = new Date().toISOString()
       } else {
-        console.error('검증 실패:', result.error)
+        logger.error('검증 실패:', result.error)
       }
     } catch (error) {
-      console.error('검증 오류:', error)
+      logger.error('검증 오류:', error)
     } finally {
       validationState.isValidating = false
     }
@@ -134,12 +136,12 @@
 
     // 수정 가능한 이슈들 수집
     const fixes = validationState.issues
-      .filter(issue => issue.type === 'participation_rate_excess')
-      .map(issue => ({
+      .filter((issue) => issue.type === 'participation_rate_excess')
+      .map((issue) => ({
         type: 'participation_rate_adjustment',
         memberId: issue.memberId,
         oldValue: issue.data?.participationRate || 100,
-        newValue: 100
+        newValue: 100,
       }))
 
     if (fixes.length === 0) {
@@ -150,12 +152,12 @@
       const response = await fetch('/api/project-management/researcher-validation', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           projectId,
-          fixes
-        })
+          fixes,
+        }),
       })
 
       const result = await response.json()
@@ -168,7 +170,7 @@
         onMemberUpdate('refresh', {})
       }
     } catch (error) {
-      console.error('자동 수정 오류:', error)
+      logger.error('자동 수정 오류:', error)
     }
   }
 
@@ -190,7 +192,7 @@
     return new Intl.NumberFormat('ko-KR', {
       style: 'currency',
       currency: 'KRW',
-      minimumFractionDigits: 0
+      minimumFractionDigits: 0,
     }).format(amount)
   }
 
@@ -215,12 +217,15 @@
     <div class="p-4">
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-3">
-          <svelte:component this={getValidationIcon()} size={24} class={getValidationColor()} />
+          {#if true}
+            {@const ValidationIcon = getValidationIcon()}
+            <ValidationIcon size={24} class={getValidationColor()} />
+          {/if}
           <div>
-            <h3 class="text-lg font-semibold" style="color: var(--color-text);">
+            <h3 class="text-lg font-semibold" style:color="var(--color-text)">
               참여연구원 검증 상태
             </h3>
-            <p class="text-sm" style="color: var(--color-text-secondary);">
+            <p class="text-sm" style:color="var(--color-text-secondary)">
               {getValidationText()}
               {#if validationState.lastValidated}
                 • 마지막 검증: {new Date(validationState.lastValidated).toLocaleString('ko-KR')}
@@ -230,7 +235,7 @@
         </div>
 
         <div class="flex items-center gap-2">
-          {#if !validationState.isValid && validationState.issues.some(issue => issue.type === 'participation_rate_excess')}
+          {#if !validationState.isValid && validationState.issues.some((issue) => issue.type === 'participation_rate_excess')}
             <ThemeButton
               variant="warning"
               size="sm"
@@ -288,39 +293,35 @@
     <div class="overflow-x-auto">
       <table class="w-full">
         <thead>
-          <tr class="border-b" style="border-color: var(--color-border);">
-            <th class="text-left py-3 px-4 font-medium" style="color: var(--color-text);">연구원</th
+          <tr class="border-b" style:border-color="var(--color-border)">
+            <th class="text-left py-3 px-4 font-medium" style:color="var(--color-text)">연구원</th>
+            <th class="text-left py-3 px-4 font-medium" style:color="var(--color-text)">참여율</th>
+            <th class="text-left py-3 px-4 font-medium" style:color="var(--color-text)">월간금액</th
             >
-            <th class="text-left py-3 px-4 font-medium" style="color: var(--color-text);">참여율</th
+            <th class="text-left py-3 px-4 font-medium" style:color="var(--color-text)">참여기간</th
             >
-            <th class="text-left py-3 px-4 font-medium" style="color: var(--color-text);"
-              >월간금액</th
-            >
-            <th class="text-left py-3 px-4 font-medium" style="color: var(--color-text);"
-              >참여기간</th
-            >
-            <th class="text-left py-3 px-4 font-medium" style="color: var(--color-text);"
-              >기여 유형</th
-            >
-            <th class="text-left py-3 px-4 font-medium" style="color: var(--color-text);"
-              >검증 상태</th
-            >
-            <th class="text-left py-3 px-4 font-medium" style="color: var(--color-text);">액션</th>
+            <th class="text-left py-3 px-4 font-medium" style:color="var(--color-text)">
+              기여 유형
+            </th>
+            <th class="text-left py-3 px-4 font-medium" style:color="var(--color-text)">
+              검증 상태
+            </th>
+            <th class="text-left py-3 px-4 font-medium" style:color="var(--color-text)">액션</th>
           </tr>
         </thead>
         <tbody>
-          {#each members as member}
+          {#each members as member, i (i)}
             {@const validationStatus = getMemberValidationStatus(member)}
-            <tr class="border-b hover:bg-opacity-50" style="border-color: var(--color-border);">
+            <tr class="border-b hover:bg-opacity-50" style:border-color="var(--color-border)">
               <!-- 연구원 정보 -->
               <td class="py-3 px-4">
                 <div class="flex items-center gap-2">
                   <UserIcon size={16} style="color: var(--color-primary);" />
                   <div>
-                    <div class="font-medium" style="color: var(--color-text);">
+                    <div class="font-medium" style:color="var(--color-text)">
                       {member.employee_name}
                     </div>
-                    <div class="text-sm" style="color: var(--color-text-secondary);">
+                    <div class="text-sm" style:color="var(--color-text-secondary)">
                       {member.employee_department} / {member.employee_position}
                     </div>
                   </div>
@@ -331,7 +332,7 @@
               <td class="py-3 px-4">
                 <ThemeBadge
                   variant={getParticipationRateColor(
-                    parseFloat(member.participation_rate) || 0
+                    parseFloat(member.participation_rate) || 0,
                   ) as any}
                 >
                   {member.participation_rate}%
@@ -339,12 +340,12 @@
               </td>
 
               <!-- 월간금액 -->
-              <td class="py-3 px-4" style="color: var(--color-text);">
+              <td class="py-3 px-4" style:color="var(--color-text)">
                 {formatCurrency(parseFloat(member.monthly_amount) || 0)}
               </td>
 
               <!-- 참여기간 -->
-              <td class="py-3 px-4" style="color: var(--color-text);">
+              <td class="py-3 px-4" style:color="var(--color-text)">
                 <div class="text-sm">
                   <div>시작: {formatDate(member.start_date)}</div>
                   <div>종료: {formatDate(member.end_date)}</div>
@@ -361,12 +362,11 @@
               <!-- 검증 상태 -->
               <td class="py-3 px-4">
                 <div class="flex items-center gap-2">
-                  <svelte:component
-                    this={validationStatus.icon}
-                    size={16}
-                    class={validationStatus.color}
-                  />
-                  <span class="text-sm" style="color: var(--color-text);">
+                  {#if true}
+                    {@const StatusIcon = validationStatus.icon}
+                    <StatusIcon size={16} class={validationStatus.color} />
+                  {/if}
+                  <span class="text-sm" style:color="var(--color-text)">
                     {validationStatus.text}
                   </span>
                 </div>
@@ -401,6 +401,7 @@
             {selectedMember.employee_name} 검증 상세
           </h3>
           <button
+            type="button"
             onclick={() => (showValidationDetails = false)}
             class="text-gray-400 hover:text-gray-600"
           >
@@ -414,9 +415,9 @@
           <div class="grid grid-cols-2 gap-4 text-sm">
             <div>
               <span class="text-gray-600">부서/직급:</span>
-              <span class="ml-2"
-                >{selectedMember.employee_department} / {selectedMember.employee_position}</span
-              >
+              <span class="ml-2">
+                {selectedMember.employee_department} / {selectedMember.employee_position}
+              </span>
             </div>
             <div>
               <span class="text-gray-600">참여율:</span>
@@ -424,41 +425,41 @@
             </div>
             <div>
               <span class="text-gray-600">월간금액:</span>
-              <span class="ml-2"
-                >{formatCurrency(parseFloat(selectedMember.monthly_amount) || 0)}</span
-              >
+              <span class="ml-2">
+                {formatCurrency(parseFloat(selectedMember.monthly_amount) || 0)}
+              </span>
             </div>
             <div>
               <span class="text-gray-600">참여기간:</span>
-              <span class="ml-2"
-                >{formatDate(selectedMember.start_date)} ~ {formatDate(
-                  selectedMember.end_date
-                )}</span
-              >
+              <span class="ml-2">
+                {formatDate(selectedMember.start_date)} ~ {formatDate(selectedMember.end_date)}
+              </span>
             </div>
           </div>
         </div>
 
         <!-- 검증 이슈 -->
-        {@const memberIssues = validationState.issues.filter(
-          issue => issue.memberId === selectedMember.id
-        )}
-
-        {#if memberIssues.length > 0}
+        {#if validationState.issues.filter((issue) => issue.memberId === selectedMember.id).length > 0}
+          {@const memberIssues = validationState.issues.filter(
+            (issue) => issue.memberId === selectedMember.id,
+          )}
           <div class="space-y-3">
             <h4 class="font-medium text-gray-900">발견된 이슈</h4>
-            {#each memberIssues as issue}
+            {#each memberIssues as issue, i (i)}
               <div
                 class="p-3 rounded-lg border {issue.severity === 'error'
                   ? 'border-red-200 bg-red-50'
                   : 'border-yellow-200 bg-yellow-50'}"
               >
                 <div class="flex items-start gap-2">
-                  <svelte:component
-                    this={issue.severity === 'error' ? XCircleIcon : AlertTriangleIcon}
-                    size={20}
-                    class={issue.severity === 'error' ? 'text-red-600' : 'text-yellow-600'}
-                  />
+                  {#if true}
+                    {@const IssueIcon =
+                      issue.severity === 'error' ? XCircleIcon : AlertTriangleIcon}
+                    <IssueIcon
+                      size={20}
+                      class={issue.severity === 'error' ? 'text-red-600' : 'text-yellow-600'}
+                    />
+                  {/if}
                   <div class="flex-1">
                     <div class="font-medium text-gray-900">{issue.message}</div>
                     {#if issue.suggestedFix}

@@ -1,6 +1,7 @@
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
 import { query } from '$lib/database/connection'
+import { logger } from '$lib/utils/logger'
 
 // 특정 이사 조회
 export const GET: RequestHandler = async ({ params }) => {
@@ -16,31 +17,31 @@ export const GET: RequestHandler = async ({ params }) => {
 			LEFT JOIN job_titles jt ON e.job_title_id = jt.id
 			WHERE e.id = $1
 		`,
-      [params.id]
+      [params.id],
     )
 
     if (result.rows.length === 0) {
       return json(
         {
           success: false,
-          error: '이사를 찾을 수 없습니다.'
+          error: '이사를 찾을 수 없습니다.',
         },
-        { status: 404 }
+        { status: 404 },
       )
     }
 
     return json({
       success: true,
-      data: result.rows[0]
+      data: result.rows[0],
     })
   } catch (error: any) {
-    console.error('Error fetching executive:', error)
+    logger.error('Error fetching executive:', error)
     return json(
       {
         success: false,
-        error: error.message || '이사 정보를 가져오는데 실패했습니다.'
+        error: error.message || '이사 정보를 가져오는데 실패했습니다.',
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
@@ -55,9 +56,9 @@ export const PUT: RequestHandler = async ({ params, request }) => {
       return json(
         {
           success: false,
-          error: '이름은 필수 입력 항목입니다.'
+          error: '이름은 필수 입력 항목입니다.',
         },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -65,9 +66,9 @@ export const PUT: RequestHandler = async ({ params, request }) => {
       return json(
         {
           success: false,
-          error: '이메일은 필수 입력 항목입니다.'
+          error: '이메일은 필수 입력 항목입니다.',
         },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -75,25 +76,25 @@ export const PUT: RequestHandler = async ({ params, request }) => {
       return json(
         {
           success: false,
-          error: '직책은 필수 선택 항목입니다.'
+          error: '직책은 필수 선택 항목입니다.',
         },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
     // 이메일 중복 검증 (자신 제외)
     const existingExec = await query(
       'SELECT id FROM executives WHERE LOWER(email) = LOWER($1) AND id != $2',
-      [data.email.trim(), params.id]
+      [data.email.trim(), params.id],
     )
 
     if (existingExec.rows.length > 0) {
       return json(
         {
           success: false,
-          error: '이미 존재하는 이메일입니다.'
+          error: '이미 존재하는 이메일입니다.',
         },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -129,33 +130,33 @@ export const PUT: RequestHandler = async ({ params, request }) => {
         data.bio?.trim() || '',
         data.profile_image_url?.trim() || '',
         new Date(),
-        params.id
-      ]
+        params.id,
+      ],
     )
 
     if (result.rows.length === 0) {
       return json(
         {
           success: false,
-          error: '이사를 찾을 수 없습니다.'
+          error: '이사를 찾을 수 없습니다.',
         },
-        { status: 404 }
+        { status: 404 },
       )
     }
 
     return json({
       success: true,
       data: result.rows[0],
-      message: '이사 정보가 성공적으로 수정되었습니다.'
+      message: '이사 정보가 성공적으로 수정되었습니다.',
     })
   } catch (error: any) {
-    console.error('Error updating executive:', error)
+    logger.error('Error updating executive:', error)
     return json(
       {
         success: false,
-        error: error.message || '이사 정보 수정에 실패했습니다.'
+        error: error.message || '이사 정보 수정에 실패했습니다.',
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
@@ -171,31 +172,31 @@ export const DELETE: RequestHandler = async ({ params }) => {
 			WHERE id = $2
 			RETURNING id, executive_id, first_name, last_name
 		`,
-      [new Date(), params.id]
+      [new Date(), params.id],
     )
 
     if (result.rows.length === 0) {
       return json(
         {
           success: false,
-          error: '이사를 찾을 수 없습니다.'
+          error: '이사를 찾을 수 없습니다.',
         },
-        { status: 404 }
+        { status: 404 },
       )
     }
 
     return json({
       success: true,
-      message: '이사가 비활성화되었습니다.'
+      message: '이사가 비활성화되었습니다.',
     })
   } catch (error: any) {
-    console.error('Error deleting executive:', error)
+    logger.error('Error deleting executive:', error)
     return json(
       {
         success: false,
-        error: error.message || '이사 삭제에 실패했습니다.'
+        error: error.message || '이사 삭제에 실패했습니다.',
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

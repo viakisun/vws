@@ -1,4 +1,5 @@
 import { getCurrentUTC } from '$lib/utils/date-handler'
+import { logger } from '$lib/utils/logger'
 import { writable } from 'svelte/store'
 import { logAudit } from './core'
 import type { Notification, SLAAlert } from './types'
@@ -6,7 +7,7 @@ import type { Notification, SLAAlert } from './types'
 // SLA 알림 관리
 export const slaAlerts = writable<SLAAlert[]>([])
 export const notifications = writable<Notification[]>([])
-export const escalationPolicies = writable<Record<string, any>>({})
+export const escalationPolicies = writable<Record<string, unknown>>({})
 
 // SLA 정책 정의
 export function defineSlaPolicies(): void {
@@ -19,26 +20,46 @@ export function defineSlaPolicies(): void {
           stage: 'PM_APPROVAL',
           slaDays: 2,
           alerts: [
-            { daysBefore: 1, type: 'warning', message: 'PM 승인 마감 1일 전입니다.' },
+            {
+              daysBefore: 1,
+              type: 'warning',
+              message: 'PM 승인 마감 1일 전입니다.',
+            },
             { daysBefore: 0, type: 'breach', message: 'PM 승인 마감일입니다.' },
-            { daysAfter: 1, type: 'escalation', message: 'PM 승인 지연 1일 경과' }
-          ]
+            {
+              daysAfter: 1,
+              type: 'escalation',
+              message: 'PM 승인 지연 1일 경과',
+            },
+          ],
         },
         {
           stage: 'SUPPORT_REVIEW',
           slaDays: 3,
           alerts: [
-            { daysBefore: 1, type: 'warning', message: '경영지원 검토 마감 1일 전입니다.' },
-            { daysBefore: 0, type: 'breach', message: '경영지원 검토 마감일입니다.' },
-            { daysAfter: 1, type: 'escalation', message: '경영지원 검토 지연 1일 경과' }
-          ]
-        }
+            {
+              daysBefore: 1,
+              type: 'warning',
+              message: '경영지원 검토 마감 1일 전입니다.',
+            },
+            {
+              daysBefore: 0,
+              type: 'breach',
+              message: '경영지원 검토 마감일입니다.',
+            },
+            {
+              daysAfter: 1,
+              type: 'escalation',
+              message: '경영지원 검토 지연 1일 경과',
+            },
+          ],
+        },
       ],
       escalationPath: [
         { level: 1, role: 'PM', delayDays: 1 },
         { level: 2, role: 'LAB_HEAD', delayDays: 3 },
-        { level: 3, role: 'EXECUTIVE', delayDays: 5 }
-      ]
+        { level: 3, role: 'EXECUTIVE', delayDays: 5 },
+      ],
     },
     milestone_delivery: {
       name: '마일스톤 산출물 제출 SLA',
@@ -48,19 +69,39 @@ export function defineSlaPolicies(): void {
           stage: 'DELIVERY',
           slaDays: 0,
           alerts: [
-            { daysBefore: 7, type: 'warning', message: '마일스톤 산출물 제출 7일 전입니다.' },
-            { daysBefore: 3, type: 'warning', message: '마일스톤 산출물 제출 3일 전입니다.' },
-            { daysBefore: 1, type: 'warning', message: '마일스톤 산출물 제출 1일 전입니다.' },
-            { daysAfter: 0, type: 'breach', message: '마일스톤 산출물 제출 마감일입니다.' },
-            { daysAfter: 1, type: 'escalation', message: '마일스톤 산출물 제출 지연 1일 경과' }
-          ]
-        }
+            {
+              daysBefore: 7,
+              type: 'warning',
+              message: '마일스톤 산출물 제출 7일 전입니다.',
+            },
+            {
+              daysBefore: 3,
+              type: 'warning',
+              message: '마일스톤 산출물 제출 3일 전입니다.',
+            },
+            {
+              daysBefore: 1,
+              type: 'warning',
+              message: '마일스톤 산출물 제출 1일 전입니다.',
+            },
+            {
+              daysAfter: 0,
+              type: 'breach',
+              message: '마일스톤 산출물 제출 마감일입니다.',
+            },
+            {
+              daysAfter: 1,
+              type: 'escalation',
+              message: '마일스톤 산출물 제출 지연 1일 경과',
+            },
+          ],
+        },
       ],
       escalationPath: [
         { level: 1, role: 'PM', delayDays: 1 },
         { level: 2, role: 'LAB_HEAD', delayDays: 3 },
-        { level: 3, role: 'EXECUTIVE', delayDays: 7 }
-      ]
+        { level: 3, role: 'EXECUTIVE', delayDays: 7 },
+      ],
     },
     research_note_submission: {
       name: '연구노트 제출 SLA',
@@ -70,18 +111,34 @@ export function defineSlaPolicies(): void {
           stage: 'SUBMISSION',
           slaDays: 0,
           alerts: [
-            { daysBefore: 3, type: 'warning', message: '연구노트 제출 3일 전입니다.' },
-            { daysBefore: 1, type: 'warning', message: '연구노트 제출 1일 전입니다.' },
-            { daysAfter: 0, type: 'breach', message: '연구노트 제출 마감일입니다.' },
-            { daysAfter: 3, type: 'escalation', message: '연구노트 제출 지연 3일 경과' }
-          ]
-        }
+            {
+              daysBefore: 3,
+              type: 'warning',
+              message: '연구노트 제출 3일 전입니다.',
+            },
+            {
+              daysBefore: 1,
+              type: 'warning',
+              message: '연구노트 제출 1일 전입니다.',
+            },
+            {
+              daysAfter: 0,
+              type: 'breach',
+              message: '연구노트 제출 마감일입니다.',
+            },
+            {
+              daysAfter: 3,
+              type: 'escalation',
+              message: '연구노트 제출 지연 3일 경과',
+            },
+          ],
+        },
       ],
       escalationPath: [
         { level: 1, role: 'PM', delayDays: 3 },
-        { level: 2, role: 'LAB_HEAD', delayDays: 7 }
-      ]
-    }
+        { level: 2, role: 'LAB_HEAD', delayDays: 7 },
+      ],
+    },
   }
 
   escalationPolicies.set(policies)
@@ -94,7 +151,7 @@ export function createSlaAlert(
   alertType: 'sla-warning' | 'sla-breach' | 'escalation',
   message: string,
   severity: 'low' | 'medium' | 'high' | 'critical',
-  assignedTo: string[]
+  assignedTo: string[],
 ): string {
   const alert: SLAAlert = {
     id: crypto.randomUUID(),
@@ -105,10 +162,10 @@ export function createSlaAlert(
     severity,
     assignedTo,
     status: 'active',
-    createdAt: new Date().toISOString()
+    createdAt: new Date().toISOString(),
   }
 
-  slaAlerts.update(alerts => [...alerts, alert])
+  slaAlerts.update((alerts) => [...alerts, alert])
   logAudit('create', 'sla_alert', alert.id, {}, alert)
 
   // 알림 발송
@@ -128,10 +185,10 @@ function sendNotification(alert: SLAAlert): void {
     priority: alert.severity,
     read: false,
     actionUrl: `/project-management/${alert.entityType}/${alert.entityId}`,
-    createdAt: new Date().toISOString()
+    createdAt: new Date().toISOString(),
   }
 
-  notifications.update(notifications => [...notifications, notification])
+  notifications.update((notifications) => [...notifications, notification])
 }
 
 // SLA 체크 및 알림 생성
@@ -155,7 +212,7 @@ function checkStageSla(
   entityType: string,
   entityId: string,
   stage: any,
-  escalationPath: any[]
+  escalationPath: unknown[],
 ): void {
   const entityData = getEntityData(entityType, entityId)
   if (!entityData) return
@@ -175,7 +232,7 @@ function checkStageSla(
         alert.type,
         alert.message,
         getSeverityFromAlertType(alert.type),
-        assignedTo
+        assignedTo,
       )
     }
   })
@@ -186,18 +243,30 @@ function getEntityData(entityType: string, entityId: string): any {
   // 실제 구현에서는 해당 엔티티의 데이터를 가져옴
   switch (entityType) {
     case 'expense':
-      return { id: entityId, createdAt: '2024-01-20T00:00:00Z', status: 'pending-approval' }
+      return {
+        id: entityId,
+        createdAt: '2024-01-20T00:00:00Z',
+        status: 'pending-approval',
+      }
     case 'milestone':
-      return { id: entityId, createdAt: '2024-01-15T00:00:00Z', dueDate: '2024-01-30T00:00:00Z' }
+      return {
+        id: entityId,
+        createdAt: '2024-01-15T00:00:00Z',
+        dueDate: '2024-01-30T00:00:00Z',
+      }
     case 'research_note':
-      return { id: entityId, createdAt: '2024-01-22T00:00:00Z', weekOf: '2024-W04' }
+      return {
+        id: entityId,
+        createdAt: '2024-01-22T00:00:00Z',
+        weekOf: '2024-W04',
+      }
     default:
       return null
   }
 }
 
 // 현재 단계 가져오기
-function getCurrentStage(entityType: string, entityId: string): string {
+function getCurrentStage(entityType: string, _entityId: string): string {
   // 실제 구현에서는 엔티티의 현재 단계를 가져옴
   switch (entityType) {
     case 'expense':
@@ -245,16 +314,20 @@ function getSeverityFromAlertType(alertType: string): 'low' | 'medium' | 'high' 
 }
 
 // 할당된 사용자 가져오기
-function getAssignedUsers(entityType: string, entityId: string, escalationPath: any[]): string[] {
+function getAssignedUsers(
+  _entityType: string,
+  _entityId: string,
+  _escalationPath: unknown[],
+): string[] {
   // 실제 구현에서는 엔티티의 담당자와 에스컬레이션 경로를 기반으로 사용자 결정
   const users = ['PM', 'LAB_HEAD', 'EXECUTIVE']
   return users
 }
 
 // 에스컬레이션 정책 가져오기
-function getEscalationPolicies(): Record<string, any> {
-  let policies: Record<string, any> = {}
-  escalationPolicies.subscribe(p => {
+function getEscalationPolicies(): Record<string, unknown> {
+  let policies: Record<string, unknown> = {}
+  escalationPolicies.subscribe((p) => {
     policies = p
   })()
   return policies
@@ -262,15 +335,15 @@ function getEscalationPolicies(): Record<string, any> {
 
 // SLA 알림 해결
 export function resolveSlaAlert(alertId: string, resolvedBy: string, resolution: string): void {
-  slaAlerts.update(alerts => {
-    const index = alerts.findIndex(a => a.id === alertId)
+  slaAlerts.update((alerts) => {
+    const index = alerts.findIndex((a) => a.id === alertId)
     if (index === -1) return alerts
 
     const alert = alerts[index]
     const updatedAlert = {
       ...alert,
       status: 'resolved' as const,
-      resolvedAt: new Date().toISOString()
+      resolvedAt: new Date().toISOString(),
     }
 
     const newList = [...alerts]
@@ -284,8 +357,8 @@ export function resolveSlaAlert(alertId: string, resolvedBy: string, resolution:
 
 // SLA 알림 에스컬레이션
 export function escalateSlaAlert(alertId: string, escalatedBy: string, reason: string): void {
-  slaAlerts.update(alerts => {
-    const index = alerts.findIndex(a => a.id === alertId)
+  slaAlerts.update((alerts) => {
+    const index = alerts.findIndex((a) => a.id === alertId)
     if (index === -1) return alerts
 
     const alert = alerts[index]
@@ -293,7 +366,7 @@ export function escalateSlaAlert(alertId: string, escalatedBy: string, reason: s
       ...alert,
       status: 'escalated' as const,
       severity: 'critical' as const,
-      assignedTo: [...alert.assignedTo, 'EXECUTIVE'] // 상위 레벨로 에스컬레이션
+      assignedTo: [...alert.assignedTo, 'EXECUTIVE'], // 상위 레벨로 에스컬레이션
     }
 
     const newList = [...alerts]
@@ -309,31 +382,31 @@ export function escalateSlaAlert(alertId: string, escalatedBy: string, reason: s
 export function getSlaStatistics(period: 'day' | 'week' | 'month'): any {
   let allAlerts: SLAAlert[] = []
 
-  slaAlerts.subscribe(alerts => {
+  slaAlerts.subscribe((alerts) => {
     allAlerts = alerts
   })()
 
   const now = new Date()
   const periodStart = getPeriodStart(now, period)
 
-  const periodAlerts = allAlerts.filter(alert => new Date(alert.createdAt) >= periodStart)
+  const periodAlerts = allAlerts.filter((alert) => new Date(alert.createdAt) >= periodStart)
 
   const totalAlerts = periodAlerts.length
-  const activeAlerts = periodAlerts.filter(a => a.status === 'active').length
-  const resolvedAlerts = periodAlerts.filter(a => a.status === 'resolved').length
-  const escalatedAlerts = periodAlerts.filter(a => a.status === 'escalated').length
+  const activeAlerts = periodAlerts.filter((a) => a.status === 'active').length
+  const resolvedAlerts = periodAlerts.filter((a) => a.status === 'resolved').length
+  const escalatedAlerts = periodAlerts.filter((a) => a.status === 'escalated').length
 
   const severityBreakdown = {
-    critical: periodAlerts.filter(a => a.severity === 'critical').length,
-    high: periodAlerts.filter(a => a.severity === 'high').length,
-    medium: periodAlerts.filter(a => a.severity === 'medium').length,
-    low: periodAlerts.filter(a => a.severity === 'low').length
+    critical: periodAlerts.filter((a) => a.severity === 'critical').length,
+    high: periodAlerts.filter((a) => a.severity === 'high').length,
+    medium: periodAlerts.filter((a) => a.severity === 'medium').length,
+    low: periodAlerts.filter((a) => a.severity === 'low').length,
   }
 
   const typeBreakdown = {
-    warning: periodAlerts.filter(a => a.alertType === 'sla-warning').length,
-    breach: periodAlerts.filter(a => a.alertType === 'sla-breach').length,
-    escalation: periodAlerts.filter(a => a.alertType === 'escalation').length
+    warning: periodAlerts.filter((a) => a.alertType === 'sla-warning').length,
+    breach: periodAlerts.filter((a) => a.alertType === 'sla-breach').length,
+    escalation: periodAlerts.filter((a) => a.alertType === 'escalation').length,
   }
 
   const averageResolutionTime = calculateAverageResolutionTime(periodAlerts)
@@ -348,7 +421,7 @@ export function getSlaStatistics(period: 'day' | 'week' | 'month'): any {
     escalationRate: totalAlerts > 0 ? (escalatedAlerts / totalAlerts) * 100 : 0,
     severityBreakdown,
     typeBreakdown,
-    averageResolutionTime
+    averageResolutionTime,
   }
 }
 
@@ -373,7 +446,7 @@ function getPeriodStart(now: Date, period: string): Date {
 
 // 평균 해결 시간 계산
 function calculateAverageResolutionTime(alerts: SLAAlert[]): number {
-  const resolvedAlerts = alerts.filter(a => a.status === 'resolved' && a.resolvedAt)
+  const resolvedAlerts = alerts.filter((a) => a.status === 'resolved' && a.resolvedAt)
 
   if (resolvedAlerts.length === 0) return 0
 
@@ -393,7 +466,7 @@ export function getSlaDashboardData(): any {
   const monthStats = getSlaStatistics('month')
 
   let recentAlerts: SLAAlert[] = []
-  slaAlerts.subscribe(alerts => {
+  slaAlerts.subscribe((alerts) => {
     recentAlerts = alerts
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
       .slice(0, 10)
@@ -407,8 +480,8 @@ export function getSlaDashboardData(): any {
     trends: {
       alertsTrend: calculateTrend(dayStats.totalAlerts, weekStats.totalAlerts),
       resolutionTrend: calculateTrend(dayStats.resolutionRate, weekStats.resolutionRate),
-      escalationTrend: calculateTrend(dayStats.escalationRate, weekStats.escalationRate)
-    }
+      escalationTrend: calculateTrend(dayStats.escalationRate, weekStats.escalationRate),
+    },
   }
 }
 
@@ -426,12 +499,12 @@ export function scheduleSlaChecks(): void {
   // 매시간 SLA 체크 실행
   setInterval(
     () => {
-      console.log('Running SLA checks...')
+      logger.log('Running SLA checks...')
 
       // 모든 활성 엔티티에 대해 SLA 체크
       checkAllActiveEntities()
     },
-    60 * 60 * 1000
+    60 * 60 * 1000,
   ) // 1시간마다
 }
 
@@ -442,10 +515,10 @@ function checkAllActiveEntities(): void {
     { type: 'expense', id: 'expense-1' },
     { type: 'expense', id: 'expense-2' },
     { type: 'milestone', id: 'milestone-1' },
-    { type: 'research_note', id: 'note-1' }
+    { type: 'research_note', id: 'note-1' },
   ]
 
-  activeEntities.forEach(entity => {
+  activeEntities.forEach((entity) => {
     checkSlaCompliance(entity.type, entity.id)
   })
 }
@@ -454,10 +527,10 @@ function checkAllActiveEntities(): void {
 export function exportSlaAlerts(format: 'json' | 'csv' | 'excel', period?: string): string {
   let allAlerts: SLAAlert[] = []
 
-  slaAlerts.subscribe(alerts => {
+  slaAlerts.subscribe((alerts) => {
     if (period) {
       const periodStart = getPeriodStart(new Date(), period)
-      allAlerts = alerts.filter(alert => new Date(alert.createdAt) >= periodStart)
+      allAlerts = alerts.filter((alert) => new Date(alert.createdAt) >= periodStart)
     } else {
       allAlerts = alerts
     }
@@ -470,8 +543,8 @@ export function exportSlaAlerts(format: 'json' | 'csv' | 'excel', period?: strin
       'ID,Entity Type,Entity ID,Alert Type,Message,Severity,Status,Created At,Resolved At\n'
     const csvRows = allAlerts
       .map(
-        alert =>
-          `${alert.id},${alert.entityType},${alert.entityId},${alert.alertType},"${alert.message}",${alert.severity},${alert.status},${alert.createdAt},${alert.resolvedAt || ''}`
+        (alert) =>
+          `${alert.id},${alert.entityType},${alert.entityId},${alert.alertType},"${alert.message}",${alert.severity},${alert.status},${alert.createdAt},${alert.resolvedAt || ''}`,
       )
       .join('\n')
     return csvHeader + csvRows
@@ -484,20 +557,20 @@ export function exportSlaAlerts(format: 'json' | 'csv' | 'excel', period?: strin
 export function createSlaTemplate(
   templateName: string,
   entityType: string,
-  stages: any[],
-  escalationPath: any[]
+  stages: unknown[],
+  escalationPath: unknown[],
 ): void {
   const template = {
     name: templateName,
     entityType,
     stages,
     escalationPath,
-    createdAt: new Date().toISOString()
+    createdAt: new Date().toISOString(),
   }
 
-  escalationPolicies.update(policies => ({
+  escalationPolicies.update((policies) => ({
     ...policies,
-    [templateName]: template
+    [templateName]: template,
   }))
 }
 
@@ -509,8 +582,8 @@ export function updateSlaSettings(
     alertChannels: string[]
     escalationEnabled: boolean
     notificationFrequency: 'immediate' | 'daily' | 'weekly'
-  }
+  },
 ): void {
   // 실제 구현에서는 SLA 설정을 저장
-  console.log(`SLA settings updated for ${entityType}:`, settings)
+  logger.log(`SLA settings updated for ${entityType}:`, settings)
 }

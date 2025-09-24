@@ -1,38 +1,38 @@
 <script lang="ts">
-  import { onMount } from 'svelte'
+  import { keyOf } from '$lib/utils/keyOf'
+
+  import { logger } from '$lib/utils/logger'
+
   import PageLayout from '$lib/components/layout/PageLayout.svelte'
-  import ThemeCard from '$lib/components/ui/ThemeCard.svelte'
   import ThemeBadge from '$lib/components/ui/ThemeBadge.svelte'
   import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
+  import ThemeCard from '$lib/components/ui/ThemeCard.svelte'
   import ThemeGrid from '$lib/components/ui/ThemeGrid.svelte'
-  import ThemeSpacer from '$lib/components/ui/ThemeSpacer.svelte'
   import ThemeSectionHeader from '$lib/components/ui/ThemeSectionHeader.svelte'
-  import ThemeStatCard from '$lib/components/ui/ThemeStatCard.svelte'
+  import ThemeSpacer from '$lib/components/ui/ThemeSpacer.svelte'
+  import { onMount } from 'svelte'
+  // import ThemeStatCard from '$lib/components/ui/ThemeStatCard.svelte'
   import ThemeChartPlaceholder from '$lib/components/ui/ThemeChartPlaceholder.svelte'
-  import ThemeActivityItem from '$lib/components/ui/ThemeActivityItem.svelte'
-  import ThemeModal from '$lib/components/ui/ThemeModal.svelte'
+  // import ThemeActivityItem from '$lib/components/ui/ThemeActivityItem.svelte'
   import ThemeInput from '$lib/components/ui/ThemeInput.svelte'
-  import ThemeDropdown from '$lib/components/ui/ThemeDropdown.svelte'
+  import ThemeModal from '$lib/components/ui/ThemeModal.svelte'
+  // import ThemeDropdown from '$lib/components/ui/ThemeDropdown.svelte'
   import ThemeTabs from '$lib/components/ui/ThemeTabs.svelte'
   import { formatCurrency, formatDate } from '$lib/utils/format'
   import {
+    BarChart3Icon,
+    BuildingIcon,
+    CalendarIcon,
+    DollarSignIcon,
+    EditIcon,
+    EyeIcon,
+    FileTextIcon,
+    PieChartIcon,
+    PlusIcon,
+    TargetIcon,
+    TrashIcon,
     TrendingUpIcon,
     UsersIcon,
-    DollarSignIcon,
-    TargetIcon,
-    PlusIcon,
-    EyeIcon,
-    EditIcon,
-    TrashIcon,
-    PhoneIcon,
-    MailIcon,
-    CalendarIcon,
-    BuildingIcon,
-    SearchIcon,
-    FilterIcon,
-    BarChart3Icon,
-    FileTextIcon,
-    PieChartIcon
   } from '@lucide/svelte'
 
   // Mock sales data
@@ -52,7 +52,7 @@
         source: '웹사이트',
         createdAt: '2024-01-15',
         lastContact: '2024-01-20',
-        notes: '스마트팩토리 솔루션에 관심'
+        notes: '스마트팩토리 솔루션에 관심',
       },
       {
         id: 'lead-2',
@@ -68,8 +68,8 @@
         source: '추천',
         createdAt: '2024-01-10',
         lastContact: '2024-01-18',
-        notes: '자동화 시스템 도입 검토 중'
-      }
+        notes: '자동화 시스템 도입 검토 중',
+      },
     ],
     opportunities: [
       {
@@ -81,7 +81,7 @@
         probability: 70,
         expectedClose: '2024-02-15',
         owner: '김영희',
-        createdAt: '2024-01-15'
+        createdAt: '2024-01-15',
       },
       {
         id: 'opp-2',
@@ -92,8 +92,8 @@
         probability: 50,
         expectedClose: '2024-02-28',
         owner: '박민수',
-        createdAt: '2024-01-10'
-      }
+        createdAt: '2024-01-10',
+      },
     ],
     deals: [
       {
@@ -103,9 +103,9 @@
         value: 15000000,
         stage: 'closed-won',
         closedDate: '2024-01-20',
-        owner: '이지은'
-      }
-    ]
+        owner: '이지은',
+      },
+    ],
   })
 
   let selectedLead = $state<any>(null)
@@ -120,7 +120,7 @@
     { id: 'leads', label: '리드', icon: UsersIcon },
     { id: 'opportunities', label: '기회', icon: TargetIcon },
     { id: 'deals', label: '거래', icon: DollarSignIcon },
-    { id: 'reports', label: '보고서', icon: FileTextIcon }
+    { id: 'reports', label: '보고서', icon: FileTextIcon },
   ]
 
   let activeTab = $state('overview')
@@ -132,29 +132,29 @@
       value: salesData.leads.length,
       change: '+12%',
       changeType: 'positive' as const,
-      icon: UsersIcon
+      icon: UsersIcon,
     },
     {
       title: '진행중인 기회',
       value: salesData.opportunities.length,
       change: '+3',
       changeType: 'positive' as const,
-      icon: TargetIcon
+      icon: TargetIcon,
     },
     {
       title: '예상 매출',
       value: formatCurrency(salesData.opportunities.reduce((sum, opp) => sum + opp.value, 0)),
       change: '+25%',
       changeType: 'positive' as const,
-      icon: DollarSignIcon
+      icon: DollarSignIcon,
     },
     {
       title: '성공률',
       value: '68%',
       change: '+5%',
       changeType: 'positive' as const,
-      icon: TrendingUpIcon
-    }
+      icon: TrendingUpIcon,
+    },
   ]
 
   // 액션 버튼들
@@ -163,14 +163,14 @@
       label: '리드 추가',
       icon: PlusIcon,
       onclick: () => (showCreateModal = true),
-      variant: 'primary' as const
+      variant: 'primary' as const,
     },
     {
       label: '기회 생성',
       icon: TargetIcon,
-      onclick: () => console.log('Create opportunity'),
-      variant: 'success' as const
-    }
+      onclick: () => logger.log('Create opportunity'),
+      variant: 'success' as const,
+    },
   ]
 
   // 필터링된 리드 데이터
@@ -182,7 +182,7 @@
         (lead: any) =>
           lead.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
           lead.contact.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          lead.industry.toLowerCase().includes(searchTerm.toLowerCase())
+          lead.industry.toLowerCase().includes(searchTerm.toLowerCase()),
       )
     }
 
@@ -201,7 +201,7 @@
       proposal: 'warning',
       negotiation: 'success',
       'closed-won': 'success',
-      'closed-lost': 'error'
+      'closed-lost': 'error',
     }
     return colors[status] || 'default'
   }
@@ -214,7 +214,7 @@
       proposal: '제안',
       negotiation: '협상',
       'closed-won': '성사',
-      'closed-lost': '실패'
+      'closed-lost': '실패',
     }
     return labels[status] || status
   }
@@ -227,7 +227,7 @@
       proposal: 'warning',
       negotiation: 'success',
       'closed-won': 'success',
-      'closed-lost': 'error'
+      'closed-lost': 'error',
     }
     return colors[stage] || 'default'
   }
@@ -240,7 +240,7 @@
       proposal: '제안',
       negotiation: '협상',
       'closed-won': '성사',
-      'closed-lost': '실패'
+      'closed-lost': '실패',
     }
     return labels[stage] || stage
   }
@@ -253,11 +253,11 @@
 
   // 리드 삭제
   function deleteLead(leadId: string) {
-    salesData.leads = salesData.leads.filter(lead => lead.id !== leadId)
+    salesData.leads = salesData.leads.filter((lead) => lead.id !== leadId)
   }
 
   onMount(() => {
-    console.log('Sales 페이지 로드됨')
+    logger.log('Sales 페이지 로드됨')
   })
 </script>
 
@@ -270,7 +270,7 @@
 >
   <!-- 탭 시스템 -->
   <ThemeTabs {tabs} bind:activeTab variant="underline" size="md" class="mb-6">
-    {#snippet children(tab: any)}
+    {#snippet children(tab: { id: string; label: string })}
       {#if tab.id === 'overview'}
         <!-- 개요 탭 -->
         <ThemeSpacer size={6}>
@@ -295,30 +295,30 @@
             <ThemeCard class="p-6">
               <ThemeSectionHeader title="진행중인 기회" />
               <ThemeSpacer size={4}>
-                {#each salesData.opportunities as opportunity}
+                {#each salesData.opportunities as opportunity, i (i)}
                   <div
                     class="flex items-center justify-between p-3 rounded-lg"
-                    style="background: var(--color-surface-elevated);"
+                    style:background="var(--color-surface-elevated)"
                   >
                     <div class="flex-1">
-                      <h4 class="font-medium" style="color: var(--color-text);">
+                      <h4 class="font-medium" style:color="var(--color-text)">
                         {opportunity.title}
                       </h4>
-                      <p class="text-sm" style="color: var(--color-text-secondary);">
+                      <p class="text-sm" style:color="var(--color-text-secondary)">
                         {opportunity.company}
                       </p>
                       <div class="flex items-center gap-2 mt-1">
-                        <span class="text-sm font-medium" style="color: var(--color-primary);">
+                        <span class="text-sm font-medium" style:color="var(--color-primary)">
                           {formatCurrency(opportunity.value)}
                         </span>
                         <ThemeBadge variant="info">{opportunity.probability}%</ThemeBadge>
                       </div>
                     </div>
                     <div class="text-right">
-                      <p class="text-xs" style="color: var(--color-text-secondary);">
+                      <p class="text-xs" style:color="var(--color-text-secondary)">
                         예상 마감: {formatDate(opportunity.expectedClose)}
                       </p>
-                      <p class="text-xs" style="color: var(--color-text-secondary);">
+                      <p class="text-xs" style:color="var(--color-text-secondary)">
                         담당: {opportunity.owner}
                       </p>
                     </div>
@@ -331,28 +331,30 @@
             <ThemeCard class="p-6">
               <ThemeSectionHeader title="최근 성사된 거래" />
               <ThemeSpacer size={4}>
-                {#each salesData.deals as deal}
+                {#each salesData.deals as deal, i (i)}
                   <div
                     class="flex items-center justify-between p-3 rounded-lg"
-                    style="background: var(--color-surface-elevated);"
+                    style:background="var(--color-surface-elevated)"
                   >
                     <div class="flex-1">
-                      <h4 class="font-medium" style="color: var(--color-text);">{deal.title}</h4>
-                      <p class="text-sm" style="color: var(--color-text-secondary);">
+                      <h4 class="font-medium" style:color="var(--color-text)">
+                        {deal.title}
+                      </h4>
+                      <p class="text-sm" style:color="var(--color-text-secondary)">
                         {deal.company}
                       </p>
                       <div class="flex items-center gap-2 mt-1">
-                        <span class="text-sm font-medium" style="color: var(--color-success);">
+                        <span class="text-sm font-medium" style:color="var(--color-success)">
                           {formatCurrency(deal.value)}
                         </span>
                         <ThemeBadge variant="success">성사</ThemeBadge>
                       </div>
                     </div>
                     <div class="text-right">
-                      <p class="text-xs" style="color: var(--color-text-secondary);">
+                      <p class="text-xs" style:color="var(--color-text-secondary)">
                         성사일: {formatDate(deal.closedDate)}
                       </p>
-                      <p class="text-xs" style="color: var(--color-text-secondary);">
+                      <p class="text-xs" style:color="var(--color-text-secondary)">
                         담당: {deal.owner}
                       </p>
                     </div>
@@ -367,12 +369,14 @@
         <ThemeSpacer size={6}>
           <ThemeCard class="p-6">
             <div class="flex items-center justify-between mb-6">
-              <h3 class="text-lg font-semibold" style="color: var(--color-text);">리드 목록</h3>
+              <h3 class="text-lg font-semibold" style:color="var(--color-text)">리드 목록</h3>
               <div class="flex items-center gap-2">
                 <select
                   bind:value={selectedStatus}
                   class="px-3 py-2 border rounded-md text-sm"
-                  style="background: var(--color-surface); border-color: var(--color-border); color: var(--color-text);"
+                  style:background="var(--color-surface)"
+                  style:border-color="var(--color-border)"
+                  style:color="var(--color-text)"
                 >
                   <option value="all">전체</option>
                   <option value="new">신규</option>
@@ -384,22 +388,25 @@
             </div>
 
             <div class="space-y-4">
-              {#each filteredLeads() as lead}
+              {#each filteredLeads() as lead, i (keyOf(lead, i))}
                 <div
                   class="flex items-center justify-between p-4 rounded-lg border"
-                  style="border-color: var(--color-border); background: var(--color-surface-elevated);"
+                  style:border-color="var(--color-border)"
+                  style:background="var(--color-surface-elevated)"
                 >
                   <div class="flex-1">
                     <div class="flex items-center gap-3 mb-2">
                       <BuildingIcon size={20} style="color: var(--color-primary);" />
-                      <h4 class="font-medium" style="color: var(--color-text);">{lead.company}</h4>
+                      <h4 class="font-medium" style:color="var(--color-text)">
+                        {lead.company}
+                      </h4>
                       <ThemeBadge variant={getStatusColor(lead.status) as any}>
                         {getStatusLabel(lead.status)}
                       </ThemeBadge>
                     </div>
                     <div
                       class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm"
-                      style="color: var(--color-text-secondary);"
+                      style:color="var(--color-text-secondary)"
                     >
                       <div class="flex items-center gap-2">
                         <UsersIcon size={16} />
@@ -415,7 +422,7 @@
                       </div>
                     </div>
                     {#if lead.notes}
-                      <p class="text-sm mt-2" style="color: var(--color-text-secondary);">
+                      <p class="text-sm mt-2" style:color="var(--color-text-secondary)">
                         {lead.notes}
                       </p>
                     {/if}
@@ -442,29 +449,29 @@
           <ThemeCard class="p-6">
             <ThemeSectionHeader title="영업 기회" />
             <ThemeSpacer size={4}>
-              {#each salesData.opportunities as opportunity}
+              {#each salesData.opportunities as opportunity, i (i)}
                 <div
                   class="flex items-center justify-between p-3 rounded-lg"
-                  style="background: var(--color-surface-elevated);"
+                  style:background="var(--color-surface-elevated)"
                 >
                   <div class="flex-1">
-                    <h4 class="font-medium" style="color: var(--color-text);">
+                    <h4 class="font-medium" style:color="var(--color-text)">
                       {opportunity.title}
                     </h4>
-                    <p class="text-sm" style="color: var(--color-text-secondary);">
+                    <p class="text-sm" style:color="var(--color-text-secondary)">
                       {opportunity.company} • {opportunity.owner}
                     </p>
                     <div class="flex items-center gap-2 mt-1">
                       <ThemeBadge variant={getStageColor(opportunity.stage) as any}>
                         {getStageLabel(opportunity.stage)}
                       </ThemeBadge>
-                      <span class="text-sm font-medium" style="color: var(--color-primary);">
+                      <span class="text-sm font-medium" style:color="var(--color-primary)">
                         {formatCurrency(opportunity.value)} ({opportunity.probability}%)
                       </span>
                     </div>
                   </div>
                   <div class="text-right">
-                    <p class="text-xs" style="color: var(--color-text-secondary);">
+                    <p class="text-xs" style:color="var(--color-text-secondary)">
                       예상 마감: {formatDate(opportunity.expectedClose)}
                     </p>
                   </div>
@@ -479,28 +486,30 @@
           <ThemeCard class="p-6">
             <ThemeSectionHeader title="최근 거래" />
             <ThemeSpacer size={4}>
-              {#each salesData.deals as deal}
+              {#each salesData.deals as deal, i (i)}
                 <div
                   class="flex items-center justify-between p-3 rounded-lg"
-                  style="background: var(--color-surface-elevated);"
+                  style:background="var(--color-surface-elevated)"
                 >
                   <div class="flex-1">
-                    <h4 class="font-medium" style="color: var(--color-text);">{deal.title}</h4>
-                    <p class="text-sm" style="color: var(--color-text-secondary);">
+                    <h4 class="font-medium" style:color="var(--color-text)">
+                      {deal.title}
+                    </h4>
+                    <p class="text-sm" style:color="var(--color-text-secondary)">
                       {deal.company} • {deal.owner}
                     </p>
                     <div class="flex items-center gap-2 mt-1">
-                      <span class="text-sm font-medium" style="color: var(--color-success);">
+                      <span class="text-sm font-medium" style:color="var(--color-success)">
                         {formatCurrency(deal.value)}
                       </span>
                       <ThemeBadge variant="success">성사</ThemeBadge>
                     </div>
                   </div>
                   <div class="text-right">
-                    <p class="text-xs" style="color: var(--color-text-secondary);">
+                    <p class="text-xs" style:color="var(--color-text-secondary)">
                       성사일: {formatDate(deal.closedDate)}
                     </p>
-                    <p class="text-xs" style="color: var(--color-text-secondary);">
+                    <p class="text-xs" style:color="var(--color-text-secondary)">
                       담당: {deal.owner}
                     </p>
                   </div>
@@ -542,8 +551,9 @@
   <ThemeModal open={showLeadModal}>
     <div class="space-y-4">
       <div class="flex justify-between items-center mb-4">
-        <h3 class="text-lg font-semibold" style="color: var(--color-text);">리드 상세 정보</h3>
+        <h3 class="text-lg font-semibold" style:color="var(--color-text)">리드 상세 정보</h3>
         <button
+          type="button"
           onclick={() => {
             showLeadModal = false
             selectedLead = null
@@ -555,41 +565,49 @@
       </div>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <div class="block text-sm font-medium mb-1" style="color: var(--color-text);">회사명</div>
-          <p class="text-sm" style="color: var(--color-text-secondary);">{selectedLead.company}</p>
+          <div class="block text-sm font-medium mb-1" style:color="var(--color-text)">회사명</div>
+          <p class="text-sm" style:color="var(--color-text-secondary)">
+            {selectedLead.company}
+          </p>
         </div>
         <div>
-          <div class="block text-sm font-medium mb-1" style="color: var(--color-text);">담당자</div>
-          <p class="text-sm" style="color: var(--color-text-secondary);">
+          <div class="block text-sm font-medium mb-1" style:color="var(--color-text)">담당자</div>
+          <p class="text-sm" style:color="var(--color-text-secondary)">
             {selectedLead.contact} ({selectedLead.position})
           </p>
         </div>
         <div>
-          <div class="block text-sm font-medium mb-1" style="color: var(--color-text);">이메일</div>
-          <p class="text-sm" style="color: var(--color-text-secondary);">{selectedLead.email}</p>
+          <div class="block text-sm font-medium mb-1" style:color="var(--color-text)">이메일</div>
+          <p class="text-sm" style:color="var(--color-text-secondary)">
+            {selectedLead.email}
+          </p>
         </div>
         <div>
-          <div class="block text-sm font-medium mb-1" style="color: var(--color-text);">
-            전화번호
-          </div>
-          <p class="text-sm" style="color: var(--color-text-secondary);">{selectedLead.phone}</p>
+          <div class="block text-sm font-medium mb-1" style:color="var(--color-text)">전화번호</div>
+          <p class="text-sm" style:color="var(--color-text-secondary)">
+            {selectedLead.phone}
+          </p>
         </div>
         <div>
-          <div class="block text-sm font-medium mb-1" style="color: var(--color-text);">업종</div>
-          <p class="text-sm" style="color: var(--color-text-secondary);">{selectedLead.industry}</p>
+          <div class="block text-sm font-medium mb-1" style:color="var(--color-text)">업종</div>
+          <p class="text-sm" style:color="var(--color-text-secondary)">
+            {selectedLead.industry}
+          </p>
         </div>
         <div>
-          <div class="block text-sm font-medium mb-1" style="color: var(--color-text);">
+          <div class="block text-sm font-medium mb-1" style:color="var(--color-text)">
             예상 매출
           </div>
-          <p class="text-sm font-medium" style="color: var(--color-primary);">
+          <p class="text-sm font-medium" style:color="var(--color-primary)">
             {formatCurrency(selectedLead.value)}
           </p>
         </div>
       </div>
       <div>
-        <div class="block text-sm font-medium mb-1" style="color: var(--color-text);">메모</div>
-        <p class="text-sm" style="color: var(--color-text-secondary);">{selectedLead.notes}</p>
+        <div class="block text-sm font-medium mb-1" style:color="var(--color-text)">메모</div>
+        <p class="text-sm" style:color="var(--color-text-secondary)">
+          {selectedLead.notes}
+        </p>
       </div>
     </div>
   </ThemeModal>
@@ -600,8 +618,12 @@
   <ThemeModal open={showCreateModal}>
     <div class="space-y-4">
       <div class="flex justify-between items-center mb-4">
-        <h3 class="text-lg font-semibold" style="color: var(--color-text);">새 리드 추가</h3>
-        <button onclick={() => (showCreateModal = false)} class="text-gray-500 hover:text-gray-700">
+        <h3 class="text-lg font-semibold" style:color="var(--color-text)">새 리드 추가</h3>
+        <button
+          type="button"
+          onclick={() => (showCreateModal = false)}
+          class="text-gray-500 hover:text-gray-700"
+        >
           ×
         </button>
       </div>

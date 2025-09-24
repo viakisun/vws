@@ -1,6 +1,7 @@
 import { json } from '@sveltejs/kit'
 import { Pool } from 'pg'
 import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger'
 
 const pool = new Pool({
   host: 'db-viahub.cdgqkcss8mpj.ap-northeast-2.rds.amazonaws.com',
@@ -8,78 +9,78 @@ const pool = new Pool({
   database: 'postgres',
   user: 'postgres',
   password: 'viahubdev',
-  ssl: { rejectUnauthorized: false }
+  ssl: { rejectUnauthorized: false },
 })
 
 // 간단한 프로젝트 검증 함수
 async function validateProject(projectId: string): Promise<{
   success: boolean
-  results: any[]
+  results: unknown[]
   errors: string[]
   fixedIssues: number
 }> {
   const client = await pool.connect()
-  const results: any[] = []
+  const results: unknown[] = []
   const errors: string[] = []
   let fixedIssues = 0
 
   try {
-    console.log(`🔍 [간단 검증] 프로젝트 검증 시작: ${projectId}`)
+    logger.log(`🔍 [간단 검증] 프로젝트 검증 시작: ${projectId}`)
 
     await client.query('BEGIN')
 
     // 1. 인건비 검증 및 수정
-    console.log('🔍 [인건비 검증] 시작')
+    logger.log('🔍 [인건비 검증] 시작')
     const personnelResult = await validatePersonnelCost(client, projectId)
     results.push(personnelResult)
 
     if (personnelResult.hasIssues) {
-      console.log('🔧 [인건비 수정] 자동 수정 시작')
+      logger.log('🔧 [인건비 수정] 자동 수정 시작')
       const fixResult = await fixPersonnelCost(client, projectId, personnelResult.issues)
       if (fixResult.success) {
         fixedIssues += fixResult.fixedCount
-        console.log(`✅ [인건비 수정] 완료: ${fixResult.fixedCount}개 연차 수정`)
+        logger.log(`✅ [인건비 수정] 완료: ${fixResult.fixedCount}개 연차 수정`)
       } else {
         errors.push(`인건비 수정 실패: ${fixResult.error}`)
       }
     }
 
     // 2. 예산 일관성 검증 및 수정
-    console.log('🔍 [예산 일관성 검증] 시작')
+    logger.log('🔍 [예산 일관성 검증] 시작')
     const budgetResult = await validateBudgetConsistency(client, projectId)
     results.push(budgetResult)
 
     if (budgetResult.hasIssues) {
-      console.log('🔧 [예산 일관성 수정] 자동 수정 시작')
+      logger.log('🔧 [예산 일관성 수정] 자동 수정 시작')
       const fixResult = await fixBudgetConsistency(client, projectId, budgetResult.issues)
       if (fixResult.success) {
         fixedIssues += fixResult.fixedCount
-        console.log(`✅ [예산 일관성 수정] 완료: ${fixResult.fixedCount}개 이슈 수정`)
+        logger.log(`✅ [예산 일관성 수정] 완료: ${fixResult.fixedCount}개 이슈 수정`)
       } else {
         errors.push(`예산 일관성 수정 실패: ${fixResult.error}`)
       }
     }
 
     await client.query('COMMIT')
-    console.log(`✅ [간단 검증] 완료 - ${fixedIssues}개 이슈 수정됨`)
+    logger.log(`✅ [간단 검증] 완료 - ${fixedIssues}개 이슈 수정됨`)
 
     return {
       success: errors.length === 0,
       results: results,
       errors: errors,
-      fixedIssues: fixedIssues
+      fixedIssues: fixedIssues,
     }
   } catch (error) {
     await client.query('ROLLBACK')
     const errorMsg = `프로젝트 검증 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`
-    console.error(`💥 ${errorMsg}`)
+    logger.error(`💥 ${errorMsg}`)
     errors.push(errorMsg)
 
     return {
       success: false,
       results: results,
       errors: errors,
-      fixedIssues: fixedIssues
+      fixedIssues: fixedIssues,
     }
   } finally {
     client.release()
@@ -94,7 +95,7 @@ async function validatePersonnelCost(client: any, projectId: string) {
 		WHERE project_id = $1 
 		ORDER BY period_number
 	`,
-    [projectId]
+    [projectId],
   )
 
   const memberResult = await client.query(
@@ -105,7 +106,7 @@ async function validatePersonnelCost(client: any, projectId: string) {
 		WHERE pm.project_id = $1
 		ORDER BY pm.start_date
 	`,
-    [projectId]
+    [projectId],
   )
 
   const issues = []
@@ -115,7 +116,7 @@ async function validatePersonnelCost(client: any, projectId: string) {
     const budgetEndDate = new Date(budget.end_date)
 
     // 해당 연차에 참여하는 연구원들 필터링
-    const periodMembers = memberResult.rows.filter(member => {
+    const periodMembers = memberResult.rows.filter((member) => {
       const memberStartDate = new Date(member.start_date)
       const memberEndDate = new Date(member.end_date)
       return memberStartDate <= budgetEndDate && memberEndDate >= budgetStartDate
@@ -151,7 +152,7 @@ async function validatePersonnelCost(client: any, projectId: string) {
         budgetPersonnelCost: budgetPersonnelCost,
         actualPersonnelCost: actualPersonnelCost,
         difference: difference,
-        periodId: budget.id
+        periodId: budget.id,
       })
     }
   }
@@ -161,14 +162,14 @@ async function validatePersonnelCost(client: any, projectId: string) {
     hasIssues: issues.length > 0,
     issues: issues,
     message:
-      issues.length > 0 ? `${issues.length}개 연차에서 인건비 불일치 발견` : '인건비 검증 통과'
+      issues.length > 0 ? `${issues.length}개 연차에서 인건비 불일치 발견` : '인건비 검증 통과',
   }
 }
 
 // 예산 일관성 검증
 async function validateBudgetConsistency(client: any, projectId: string) {
   const projectResult = await client.query('SELECT budget_total FROM projects WHERE id = $1', [
-    projectId
+    projectId,
   ])
   const budgetResult = await client.query(
     `
@@ -176,7 +177,7 @@ async function validateBudgetConsistency(client: any, projectId: string) {
 		FROM project_budgets 
 		WHERE project_id = $1
 	`,
-    [projectId]
+    [projectId],
   )
 
   const projectTotal = parseFloat(projectResult.rows[0]?.budget_total) || 0
@@ -193,18 +194,18 @@ async function validateBudgetConsistency(client: any, projectId: string) {
           {
             projectTotal: projectTotal,
             budgetSum: budgetSum,
-            difference: difference
-          }
+            difference: difference,
+          },
         ]
       : [],
     message: hasIssues
       ? `예산 불일치: 프로젝트 총 예산 ${projectTotal.toLocaleString()}원 vs 연차별 예산 합계 ${budgetSum.toLocaleString()}원`
-      : '예산 일관성 검증 통과'
+      : '예산 일관성 검증 통과',
   }
 }
 
 // 인건비 자동 수정
-async function fixPersonnelCost(client: any, projectId: string, issues: any[]) {
+async function fixPersonnelCost(client: any, projectId: string, issues: unknown[]) {
   try {
     let fixedCount = 0
 
@@ -215,7 +216,7 @@ async function fixPersonnelCost(client: any, projectId: string, issues: any[]) {
 				SET personnel_cost = $1, updated_at = CURRENT_TIMESTAMP
 				WHERE id = $2
 			`,
-        [issue.actualPersonnelCost, issue.periodId]
+        [issue.actualPersonnelCost, issue.periodId],
       )
       fixedCount++
     }
@@ -223,19 +224,19 @@ async function fixPersonnelCost(client: any, projectId: string, issues: any[]) {
     return {
       success: true,
       fixedCount: fixedCount,
-      error: null
+      error: null,
     }
   } catch (error) {
     return {
       success: false,
       fixedCount: 0,
-      error: error instanceof Error ? error.message : '알 수 없는 오류'
+      error: error instanceof Error ? error.message : '알 수 없는 오류',
     }
   }
 }
 
 // 예산 일관성 자동 수정
-async function fixBudgetConsistency(client: any, projectId: string, issues: any[]) {
+async function fixBudgetConsistency(client: any, projectId: string, issues: unknown[]) {
   try {
     let fixedCount = 0
 
@@ -246,7 +247,7 @@ async function fixBudgetConsistency(client: any, projectId: string, issues: any[
 				SET budget_total = $1, updated_at = CURRENT_TIMESTAMP
 				WHERE id = $2
 			`,
-        [issue.budgetSum, projectId]
+        [issue.budgetSum, projectId],
       )
       fixedCount++
     }
@@ -254,13 +255,13 @@ async function fixBudgetConsistency(client: any, projectId: string, issues: any[
     return {
       success: true,
       fixedCount: fixedCount,
-      error: null
+      error: null,
     }
   } catch (error) {
     return {
       success: false,
       fixedCount: 0,
-      error: error instanceof Error ? error.message : '알 수 없는 오류'
+      error: error instanceof Error ? error.message : '알 수 없는 오류',
     }
   }
 }
@@ -277,13 +278,13 @@ export const GET: RequestHandler = async ({ url }) => {
     const result = await validateProject(projectId)
     return json(result)
   } catch (error) {
-    console.error('💥 [간단 검증] GET 오류:', error)
+    logger.error('💥 [간단 검증] GET 오류:', error)
     return json(
       {
         success: false,
-        error: error instanceof Error ? error.message : '알 수 없는 오류'
+        error: error instanceof Error ? error.message : '알 수 없는 오류',
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
@@ -299,13 +300,13 @@ export const POST: RequestHandler = async ({ request }) => {
     const result = await validateProject(projectId)
     return json(result)
   } catch (error) {
-    console.error('💥 [간단 검증] POST 오류:', error)
+    logger.error('💥 [간단 검증] POST 오류:', error)
     return json(
       {
         success: false,
-        error: error instanceof Error ? error.message : '알 수 없는 오류'
+        error: error instanceof Error ? error.message : '알 수 없는 오류',
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

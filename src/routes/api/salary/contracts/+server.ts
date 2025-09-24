@@ -4,7 +4,7 @@ import { query } from '$lib/database/connection.js'
 import type {
   CreateSalaryContractRequest,
   PaginatedResponse,
-  SalaryContract
+  SalaryContract,
 } from '$lib/types/salary-contracts'
 import { formatDateForDisplay, toUTC } from '$lib/utils/date-handler.js'
 import { json } from '@sveltejs/kit'
@@ -27,7 +27,7 @@ export const GET: RequestHandler = async ({ url }) => {
 
     // WHERE 조건 구성
     const conditions: string[] = []
-    const params: any[] = []
+    const params: unknown[] = []
     let paramIndex = 1
 
     if (employeeId) {
@@ -93,7 +93,7 @@ export const GET: RequestHandler = async ({ url }) => {
 			JOIN employees e ON sc.employee_id = e.id
 			${whereClause}
 		`,
-      params
+      params,
     )
 
     const total = parseInt(countResult.rows[0]?.total || '0')
@@ -126,10 +126,10 @@ export const GET: RequestHandler = async ({ url }) => {
 			ORDER BY sc.start_date DESC, sc.created_at DESC
 			LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
 		`,
-      [...params, limit, offset]
+      [...params, limit, offset],
     )
 
-    const contracts: SalaryContract[] = result.rows.map(row => {
+    const contracts: SalaryContract[] = result.rows.map((row) => {
       return {
         id: row.id,
         employeeId: row.employee_id,
@@ -148,7 +148,7 @@ export const GET: RequestHandler = async ({ url }) => {
         department: row.department,
         position: row.position,
         contractEndDisplay: row.contract_end_display,
-        statusDisplay: row.status_display
+        statusDisplay: row.status_display,
       }
     })
 
@@ -157,20 +157,20 @@ export const GET: RequestHandler = async ({ url }) => {
       total,
       page,
       limit,
-      totalPages
+      totalPages,
     }
 
     return json({
       success: true,
-      data: response
+      data: response,
     })
-  } catch (error) {
+  } catch (_error) {
     return json(
       {
         success: false,
-        error: '급여 계약 목록을 가져오는데 실패했습니다.'
+        error: '급여 계약 목록을 가져오는데 실패했습니다.',
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
@@ -190,9 +190,9 @@ export const POST: RequestHandler = async ({ request }) => {
       return json(
         {
           success: false,
-          error: '필수 필드가 누락되었습니다.'
+          error: '필수 필드가 누락되었습니다.',
         },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -214,8 +214,8 @@ export const POST: RequestHandler = async ({ request }) => {
         contractData.contractType || 'full_time',
         contractData.status || 'active',
         contractData.notes || null,
-        'system'
-      ]
+        'system',
+      ],
     )
 
     const newContract = result.rows[0]
@@ -236,16 +236,16 @@ export const POST: RequestHandler = async ({ request }) => {
         notes: newContract.notes,
         createdAt: newContract.created_at,
         updatedAt: newContract.updated_at,
-        createdBy: newContract.created_by
-      }
+        createdBy: newContract.created_by,
+      },
     })
-  } catch (error) {
+  } catch (_error) {
     return json(
       {
         success: false,
-        error: '급여 계약 생성에 실패했습니다.'
+        error: '급여 계약 생성에 실패했습니다.',
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

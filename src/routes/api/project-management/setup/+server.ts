@@ -4,6 +4,7 @@
 import { json } from '@sveltejs/kit'
 import { query } from '$lib/database/connection'
 import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger'
 
 export const POST: RequestHandler = async () => {
   try {
@@ -52,7 +53,7 @@ export const POST: RequestHandler = async () => {
       `CREATE TABLE IF NOT EXISTS project_budgets (
 				id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
 				project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
-				fiscal_year INTEGER NOT NULL,
+				period_number INTEGER NOT NULL,
 				total_budget DECIMAL(15,2) NOT NULL,
 				personnel_cost DECIMAL(15,2) DEFAULT 0,
 				material_cost DECIMAL(15,2) DEFAULT 0,
@@ -65,7 +66,7 @@ export const POST: RequestHandler = async () => {
 				notes TEXT,
 				created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 				updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-				UNIQUE(project_id, fiscal_year)
+				UNIQUE(project_id, period_number)
 			)`,
 
       // 4. 참여율 관리 테이블
@@ -138,7 +139,7 @@ export const POST: RequestHandler = async () => {
 				owner_id UUID REFERENCES employees(id),
 				created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 				updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-			)`
+			)`,
     ]
 
     // 인덱스 생성 쿼리
@@ -150,10 +151,10 @@ export const POST: RequestHandler = async () => {
       'CREATE INDEX IF NOT EXISTS idx_project_members_employee ON project_members(employee_id)',
       'CREATE INDEX IF NOT EXISTS idx_project_members_status ON project_members(status)',
       'CREATE INDEX IF NOT EXISTS idx_project_budgets_project ON project_budgets(project_id)',
-      'CREATE INDEX IF NOT EXISTS idx_project_budgets_year ON project_budgets(fiscal_year)',
+      'CREATE INDEX IF NOT EXISTS idx_project_budgets_period ON project_budgets(period_number)',
       'CREATE INDEX IF NOT EXISTS idx_participation_rates_employee ON participation_rates(employee_id)',
       'CREATE INDEX IF NOT EXISTS idx_participation_rates_project ON participation_rates(project_id)',
-      'CREATE INDEX IF NOT EXISTS idx_participation_rates_status ON participation_rates(status)'
+      'CREATE INDEX IF NOT EXISTS idx_participation_rates_status ON participation_rates(status)',
     ]
 
     // 기본 데이터 삽입 쿼리
@@ -164,7 +165,7 @@ export const POST: RequestHandler = async () => {
 				('EQUIPMENT', '연구활동비', '연구장비 구입 및 임대비', 3),
 				('TRAVEL', '간접비', '연구활동 관련 출장비 및 회의비', 4),
 				('OTHER', '기타 비목', '기타 연구활동 관련 비용', 5)
-			ON CONFLICT (code) DO NOTHING`
+			ON CONFLICT (code) DO NOTHING`,
     ]
 
     // 트랜잭션으로 모든 쿼리 실행
@@ -190,21 +191,21 @@ export const POST: RequestHandler = async () => {
 
       return json({
         success: true,
-        message: '프로젝트 관리 시스템 데이터베이스가 성공적으로 설정되었습니다.'
+        message: '프로젝트 관리 시스템 데이터베이스가 성공적으로 설정되었습니다.',
       })
     } catch (error) {
       await query('ROLLBACK')
       throw error
     }
   } catch (error) {
-    console.error('프로젝트 관리 시스템 설정 실패:', error)
+    logger.error('프로젝트 관리 시스템 설정 실패:', error)
     return json(
       {
         success: false,
         message: '프로젝트 관리 시스템 설정에 실패했습니다.',
-        error: error instanceof Error ? error.message : '알 수 없는 오류'
+        error: error instanceof Error ? error.message : '알 수 없는 오류',
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

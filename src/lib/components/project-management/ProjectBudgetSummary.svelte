@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { logger } from '$lib/utils/logger'
+
   import type { BudgetSummary } from '$lib/types/project-budget'
   import { formatDate } from '$lib/utils/format'
   import { DollarSignIcon } from '@lucide/svelte'
@@ -6,7 +8,7 @@
   let {
     projectId,
     compact = false,
-    refreshTrigger = 0
+    refreshTrigger = 0,
   } = $props<{
     projectId: string
     compact?: boolean
@@ -27,7 +29,9 @@
       loading = true
       error = null
 
-      const response = await fetch(`/api/project-management/projects/${projectId}/annual-budgets`)
+      const response = await window.fetch(
+        `/api/project-management/projects/${projectId}/annual-budgets`,
+      )
       const result = await response.json()
 
       if (result.success && result.data) {
@@ -35,18 +39,18 @@
         budgetDetails = result.data.budgets || null
 
         // 디버깅: 받은 데이터 확인
-        console.log('ProjectBudgetSummary - 받은 데이터:', {
+        logger.log('ProjectBudgetSummary - 받은 데이터:', {
           summary: budgetSummary,
           budgets: budgetDetails,
-          첫번째예산: budgetDetails?.[0]
+          첫번째예산: budgetDetails?.[0],
         })
       } else {
         budgetSummary = null
         budgetDetails = null
-        console.log('ProjectBudgetSummary - 데이터 로드 실패:', result)
+        logger.log('ProjectBudgetSummary - 데이터 로드 실패:', result)
       }
     } catch (err) {
-      console.error('예산 요약 로드 실패:', err)
+      logger.error('예산 요약 로드 실패:', err)
       error = '예산 정보를 불러올 수 없습니다.'
     } finally {
       loading = false
@@ -71,12 +75,12 @@
   }
 
   // 비율 색상
-  function getRatioColor(ratio: number): string {
-    if (ratio >= 70) return 'text-green-600'
-    if (ratio >= 50) return 'text-blue-600'
-    if (ratio >= 30) return 'text-orange-600'
-    return 'text-red-600'
-  }
+  // function getRatioColor(ratio: number): string {
+  //   if (ratio >= 70) return 'text-green-600'
+  //   if (ratio >= 50) return 'text-blue-600'
+  //   if (ratio >= 30) return 'text-orange-600'
+  //   return 'text-red-600'
+  // }
 </script>
 
 {#if loading}
@@ -127,7 +131,7 @@
               </tr>
             </thead>
             <tbody class="divide-y divide-gray-200">
-              {#each budgetDetails as budget}
+              {#each budgetDetails as budget, i (i)}
                 <tr class="hover:bg-gray-50">
                   <td class="px-4 py-3 font-medium text-gray-900">{budget.year}차년도</td>
                   <td class="px-4 py-3 text-center text-gray-700 text-xs">

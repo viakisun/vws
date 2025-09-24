@@ -1,5 +1,6 @@
 import { query } from '$lib/database/connection'
 import { transformArrayData, transformProjectBudgetData } from '$lib/utils/api-data-transformer'
+import { logger } from '$lib/utils/logger'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
 
@@ -7,7 +8,7 @@ import type { RequestHandler } from './$types'
 export const GET: RequestHandler = async ({ url }) => {
   try {
     const projectId = url.searchParams.get('projectId')
-    const budgetCategoryId = url.searchParams.get('budgetCategoryId')
+    const _budgetCategoryId = url.searchParams.get('budgetCategoryId')
 
     let sqlQuery = `
 			SELECT 
@@ -19,7 +20,7 @@ export const GET: RequestHandler = async ({ url }) => {
 			WHERE 1=1
 		`
 
-    const params: any[] = []
+    const params: unknown[] = []
     let paramIndex = 1
 
     if (projectId) {
@@ -37,17 +38,17 @@ export const GET: RequestHandler = async ({ url }) => {
 
     return json({
       success: true,
-      data: transformedData
+      data: transformedData,
     })
   } catch (error) {
-    console.error('프로젝트 사업비 조회 실패:', error)
+    logger.error('프로젝트 사업비 조회 실패:', error)
     return json(
       {
         success: false,
         message: '프로젝트 사업비를 불러오는데 실패했습니다.',
-        error: (error as Error).message
+        error: (error as Error).message,
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
@@ -72,7 +73,7 @@ export const POST: RequestHandler = async ({ request }) => {
       researchMaterialCostInKind = 0,
       researchActivityCostInKind = 0,
       researchStipendInKind = 0,
-      indirectCostInKind = 0
+      indirectCostInKind = 0,
     } = data
 
     // 필수 필드 검증
@@ -80,25 +81,25 @@ export const POST: RequestHandler = async ({ request }) => {
       return json(
         {
           success: false,
-          message: '필수 필드가 누락되었습니다.'
+          message: '필수 필드가 누락되었습니다.',
         },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
     // 중복 검사
     const existingBudget = await query(
       'SELECT id FROM project_budgets WHERE project_id = $1 AND period_number = $2',
-      [projectId, periodNumber]
+      [projectId, periodNumber],
     )
 
     if (existingBudget.rows.length > 0) {
       return json(
         {
           success: false,
-          message: '해당 연차에 대한 예산이 이미 존재합니다.'
+          message: '해당 연차에 대한 예산이 이미 존재합니다.',
         },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -143,8 +144,8 @@ export const POST: RequestHandler = async ({ request }) => {
         researchStipendCash,
         researchStipendInKind,
         indirectCostCash,
-        indirectCostInKind
-      ]
+        indirectCostInKind,
+      ],
     )
 
     // 생성된 사업비 정보와 관련 정보 조회
@@ -158,23 +159,23 @@ export const POST: RequestHandler = async ({ request }) => {
 			JOIN projects p ON pb.project_id = p.id
 			WHERE pb.id = $1
 		`,
-      [result.rows[0].id]
+      [result.rows[0].id],
     )
 
     return json({
       success: true,
       data: budgetWithDetails.rows[0],
-      message: '프로젝트 사업비가 성공적으로 생성되었습니다.'
+      message: '프로젝트 사업비가 성공적으로 생성되었습니다.',
     })
   } catch (error) {
-    console.error('프로젝트 사업비 생성 실패:', error)
+    logger.error('프로젝트 사업비 생성 실패:', error)
     return json(
       {
         success: false,
         message: '프로젝트 사업비 생성에 실패했습니다.',
-        error: (error as Error).message
+        error: (error as Error).message,
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

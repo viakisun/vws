@@ -1,23 +1,22 @@
 <script lang="ts">
   import Card from '$lib/components/ui/Card.svelte'
-  import Badge from '$lib/components/ui/Badge.svelte'
   import Progress from '$lib/components/ui/Progress.svelte'
   import { projectsStore, expenseDocsStore } from '$lib/stores/rnd'
   import { page } from '$app/state'
   import { formatKRW } from '$lib/utils/format'
 
   const projectId = page.params.projectId
-  const project = $derived($projectsStore.find(p => p.id === projectId))
-  const docs = $derived($expenseDocsStore.filter(d => d.projectId === projectId))
+  const project = $derived($projectsStore.find((p) => p.id === projectId))
+  const docs = $derived($expenseDocsStore.filter((d) => d.projectId === projectId))
   const utilization = $derived(
-    project ? Math.round((project.spentKRW / project.budgetKRW) * 100) : 0
+    project ? Math.round((project.spentKRW / project.budgetKRW) * 100) : 0,
   )
   const categoryHints = $derived(
     (function () {
       const m: Record<string, number> = {}
       for (const d of docs) m[d.category] = (m[d.category] ?? 0) + (d.amountKRW ?? 0)
       return m
-    })()
+    })(),
   )
 
   let loading = $state(true)
@@ -63,7 +62,8 @@
     <Card header="카테고리 힌트(문서 기준)">
       {#if loading}
         <div class="space-y-2">
-          {#each Array(4) as _}
+          {#each Array(4) as _, idx (idx)}
+            <!-- TODO: replace index key with a stable id when model provides one -->
             <div class="h-8 bg-gray-100 animate-pulse rounded"></div>
           {/each}
         </div>
@@ -84,7 +84,8 @@
     <Card header="문서 내역">
       {#if loading}
         <div class="space-y-2">
-          {#each Array(6) as _}
+          {#each Array(6) as _, idx (idx)}
+            <!-- TODO: replace index key with a stable id when model provides one -->
             <div class="h-8 bg-gray-100 animate-pulse rounded"></div>
           {/each}
         </div>
@@ -100,7 +101,7 @@
               </tr>
             </thead>
             <tbody class="divide-y">
-              {#each docs as d}
+              {#each docs as d, i (i)}
                 <tr>
                   <td class="px-3 py-2">{d.id} · {d.title}</td>
                   <td class="px-3 py-2">{d.category}</td>

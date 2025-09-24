@@ -8,7 +8,7 @@ import type {
   SalaryContract,
   SalaryContractFilter,
   SalaryContractStats,
-  UpdateSalaryContractRequest
+  UpdateSalaryContractRequest,
 } from '$lib/types/salary-contracts'
 import { derived, writable } from 'svelte/store'
 
@@ -29,21 +29,21 @@ export const contractFilter = writable<SalaryContractFilter>({
   status: '',
   startDateFrom: '',
   startDateTo: '',
-  search: ''
+  search: '',
 })
 
 export const pagination = writable({
   page: 1,
   limit: 50,
   total: 0,
-  totalPages: 0
+  totalPages: 0,
 })
 
 // ===== Derived Stores =====
 
 // 필터링된 계약 목록
 export const filteredContracts = derived([contracts, contractFilter], ([$contracts, $filter]) => {
-  return $contracts.filter(contract => {
+  return $contracts.filter((contract) => {
     if ($filter.employeeId && contract.employeeId !== $filter.employeeId) return false
     if ($filter.department && contract.department !== $filter.department) return false
     if ($filter.position && contract.position !== $filter.position) return false
@@ -62,37 +62,37 @@ export const filteredContracts = derived([contracts, contractFilter], ([$contrac
 })
 
 // 현재 유효한 계약만
-export const activeContracts = derived(contracts, $contracts => {
+export const activeContracts = derived(contracts, ($contracts) => {
   const today = new Date().toISOString().split('T')[0]
   return $contracts.filter(
-    contract =>
+    (contract) =>
       contract.status === 'active' &&
       contract.startDate <= today &&
-      (!contract.endDate || contract.endDate >= today)
+      (!contract.endDate || contract.endDate >= today),
   )
 })
 
 // 만료된 계약
-export const expiredContracts = derived(contracts, $contracts => {
+export const expiredContracts = derived(contracts, ($contracts) => {
   const today = new Date().toISOString().split('T')[0]
   return $contracts.filter(
-    contract => contract.status === 'expired' || (contract.endDate && contract.endDate < today)
+    (contract) => contract.status === 'expired' || (contract.endDate && contract.endDate < today),
   )
 })
 
 // 계약 유형별 통계
-export const contractsByType = derived(contracts, $contracts => {
+export const contractsByType = derived(contracts, ($contracts) => {
   const stats: Record<string, number> = {}
-  $contracts.forEach(contract => {
+  $contracts.forEach((contract) => {
     stats[contract.contractType] = (stats[contract.contractType] || 0) + 1
   })
   return stats
 })
 
 // 부서별 통계
-export const contractsByDepartment = derived(contracts, $contracts => {
+export const contractsByDepartment = derived(contracts, ($contracts) => {
   const stats: Record<string, number> = {}
-  $contracts.forEach(contract => {
+  $contracts.forEach((contract) => {
     const dept = contract.department || '부서없음'
     stats[dept] = (stats[dept] || 0) + 1
   })
@@ -126,7 +126,7 @@ export async function loadContracts(filter?: Partial<SalaryContractFilter>): Pro
         page: result.data.page,
         limit: result.data.limit,
         total: result.data.total,
-        totalPages: result.data.totalPages
+        totalPages: result.data.totalPages,
       })
     } else {
       error.set(result.error || '급여 계약 목록을 불러오는데 실패했습니다.')
@@ -186,16 +186,16 @@ export async function createContract(contractData: CreateSalaryContractRequest):
     const response = await fetch('/api/salary/contracts', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
       },
-      body: JSON.stringify(contractData)
+      body: JSON.stringify(contractData),
     })
 
     const result: ApiResponse<SalaryContract> = await response.json()
 
     if (result.success && result.data) {
       // 새 계약을 목록에 추가
-      contracts.update(current => [result.data!, ...current])
+      contracts.update((current) => [result.data!, ...current])
       return true
     } else {
       error.set(result.error || '급여 계약 생성에 실패했습니다.')
@@ -212,7 +212,7 @@ export async function createContract(contractData: CreateSalaryContractRequest):
 // 급여 계약 수정
 export async function updateContract(
   contractId: string,
-  updateData: UpdateSalaryContractRequest
+  updateData: UpdateSalaryContractRequest,
 ): Promise<boolean> {
   error.set(null)
 
@@ -220,9 +220,9 @@ export async function updateContract(
     const response = await fetch(`/api/salary/contracts/${contractId}`, {
       method: 'PUT',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
       },
-      body: JSON.stringify(updateData)
+      body: JSON.stringify(updateData),
     })
 
     const result: ApiResponse<SalaryContract> = await response.json()
@@ -249,14 +249,14 @@ export async function deleteContract(contractId: string): Promise<boolean> {
 
   try {
     const response = await fetch(`/api/salary/contracts/${contractId}`, {
-      method: 'DELETE'
+      method: 'DELETE',
     })
 
     const result: ApiResponse<{ id: string }> = await response.json()
 
     if (result.success) {
       // 목록에서 해당 계약 제거
-      contracts.update(current => current.filter(contract => contract.id !== contractId))
+      contracts.update((current) => current.filter((contract) => contract.id !== contractId))
       return true
     } else {
       error.set(result.error || '급여 계약 삭제에 실패했습니다.')
@@ -293,7 +293,7 @@ export async function loadContract(contractId: string): Promise<void> {
 
 // 필터 업데이트
 export function updateFilter(newFilter: Partial<SalaryContractFilter>): void {
-  contractFilter.update(current => ({ ...current, ...newFilter }))
+  contractFilter.update((current) => ({ ...current, ...newFilter }))
 }
 
 // 필터 초기화
@@ -306,13 +306,13 @@ export function resetFilter(): void {
     status: '',
     startDateFrom: '',
     startDateTo: '',
-    search: ''
+    search: '',
   })
 }
 
 // 페이지네이션 업데이트
 export function updatePagination(page: number): void {
-  pagination.update(current => ({ ...current, page }))
+  pagination.update((current) => ({ ...current, page }))
 }
 
 // 선택된 계약 초기화

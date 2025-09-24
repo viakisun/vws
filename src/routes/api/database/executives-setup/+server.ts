@@ -1,6 +1,7 @@
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
 import { query } from '$lib/database/connection'
+import { logger } from '$lib/utils/logger'
 
 // 이사 명부 및 직책 체계 테이블 생성
 export const POST: RequestHandler = async () => {
@@ -44,10 +45,10 @@ export const POST: RequestHandler = async () => {
     await query(`CREATE INDEX IF NOT EXISTS idx_job_titles_level ON job_titles(level)`)
     await query(`CREATE INDEX IF NOT EXISTS idx_job_titles_category ON job_titles(category)`)
     await query(
-      `CREATE INDEX IF NOT EXISTS idx_executives_executive_id ON executives(executive_id)`
+      `CREATE INDEX IF NOT EXISTS idx_executives_executive_id ON executives(executive_id)`,
     )
     await query(
-      `CREATE INDEX IF NOT EXISTS idx_executives_job_title_id ON executives(job_title_id)`
+      `CREATE INDEX IF NOT EXISTS idx_executives_job_title_id ON executives(job_title_id)`,
     )
 
     // 기본 직책 데이터 삽입
@@ -81,16 +82,16 @@ export const POST: RequestHandler = async () => {
 
     return json({
       success: true,
-      message: '이사 명부 및 직책 체계 테이블이 성공적으로 생성되었습니다.'
+      message: '이사 명부 및 직책 체계 테이블이 성공적으로 생성되었습니다.',
     })
   } catch (error: any) {
-    console.error('Error setting up executives tables:', error)
+    logger.error('Error setting up executives tables:', error)
     return json(
       {
         success: false,
-        error: error.message || '테이블 생성에 실패했습니다.'
+        error: error.message || '테이블 생성에 실패했습니다.',
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

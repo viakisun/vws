@@ -1,5 +1,7 @@
-<script>
-  /* global console, fetch, URL */
+<script lang="ts">
+  import { logger } from '$lib/utils/logger'
+
+  /* global _fetch */
   import { goto } from '$app/navigation'
   import { page } from '$app/stores'
   import PageLayout from '$lib/components/layout/PageLayout.svelte'
@@ -53,18 +55,18 @@
     {
       id: 'overview',
       label: '개요',
-      icon: BarChart3Icon
+      icon: BarChart3Icon,
     },
     {
       id: 'projects',
       label: '프로젝트',
-      icon: FlaskConicalIcon
+      icon: FlaskConicalIcon,
     },
     {
       id: 'participation',
       label: '참여율 관리',
-      icon: PercentIcon
-    }
+      icon: PercentIcon,
+    },
   ]
 
   // URL 파라미터에서 활성 탭 관리
@@ -81,17 +83,17 @@
   let tabLoadingStates = $state({
     overview: false,
     projects: false,
-    participation: false
+    participation: false,
   })
   let tabErrors = $state({
     overview: null,
     projects: null,
-    participation: null
+    participation: null,
   })
   let tabLastLoaded = $state({
     overview: null,
     projects: null,
-    participation: null
+    participation: null,
   })
 
   // 탭별 데이터 로딩 함수들
@@ -108,7 +110,7 @@
             loadProjectSummary(),
             loadEmployeeParticipationSummary(),
             loadBudgetSummaryByYear(),
-            loadAlerts()
+            loadAlerts(),
           ])
           break
         case 'projects':
@@ -122,7 +124,7 @@
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.'
       tabErrors[tabName] = errorMessage
-      console.error(`${tabName} 탭 데이터 로딩 실패:`, err)
+      logger.error(`${tabName} 탭 데이터 로딩 실패:`, err)
     } finally {
       tabLoadingStates[tabName] = false
     }
@@ -158,18 +160,18 @@
   // API 호출 함수들
   async function loadProjectData() {
     try {
-      console.log('🔍 프로젝트 데이터 로딩 시작...')
+      logger.log('🔍 프로젝트 데이터 로딩 시작...')
 
       // API 응답 시간 측정
       const startTime = Date.now()
       const response = await fetch('/api/project-management/projects')
       const responseTime = Date.now() - startTime
 
-      console.log(`⏱️ API 응답 시간: ${responseTime}ms`)
+      logger.log(`⏱️ API 응답 시간: ${responseTime}ms`)
 
       if (response.ok) {
         const data = await response.json()
-        console.log('📊 API 응답 데이터:', data)
+        logger.log('📊 API 응답 데이터:', data)
 
         if (data.success) {
           const projectData = data.data || []
@@ -177,14 +179,14 @@
           // 프로젝트 데이터 검증
           const validationResult = validateProjectData(projectData)
           if (!validationResult.isValid) {
-            console.error('❌ 프로젝트 데이터 검증 실패:', validationResult.issues)
+            logger.error('❌ 프로젝트 데이터 검증 실패:', validationResult.issues)
             // 검증 실패 시 빈 배열로 설정하여 무한 루프 방지
             projects = []
             return // throw 대신 return으로 함수 종료
           }
 
           projects = projectData
-          console.log(`✅ ${projectData.length}개 프로젝트 로드 완료`)
+          logger.log(`✅ ${projectData.length}개 프로젝트 로드 완료`)
         } else {
           throw new Error(data.message || '프로젝트 데이터를 불러오는데 실패했습니다.')
         }
@@ -200,9 +202,9 @@
     } catch (err) {
       // Failed to fetch 오류 특별 처리
       if (err instanceof Error && err.message && err.message.includes('Failed to fetch')) {
-        console.error('❌ 네트워크 연결 실패:', err.message)
+        logger.error('❌ 네트워크 연결 실패:', err.message)
       } else {
-        console.error('❌ 프로젝트 데이터 로드 실패:', err)
+        logger.error('❌ 프로젝트 데이터 로드 실패:', err)
       }
 
       projects = []
@@ -286,12 +288,12 @@
 
     // 경고가 있으면 콘솔에 출력
     if (warnings.length > 0) {
-      console.warn('⚠️ 프로젝트 데이터 경고:', warnings)
+      logger.warn('⚠️ 프로젝트 데이터 경고:', warnings)
     }
 
     return {
       isValid: issues.length === 0,
-      issues
+      issues,
     }
   }
 
@@ -303,7 +305,7 @@
         projectSummary = data.data
       }
     } catch (err) {
-      console.error('프로젝트 요약 로드 실패:', err)
+      logger.error('프로젝트 요약 로드 실패:', err)
     }
   }
 
@@ -361,7 +363,7 @@
     }
 
     // 프로젝트 목록에서 삭제된 프로젝트 제거
-    projects = projects.filter(p => p.id !== projectId)
+    projects = projects.filter((p) => p.id !== projectId)
 
     // 프로젝트 데이터 새로고침
     loadProjectData()

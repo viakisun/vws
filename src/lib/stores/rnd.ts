@@ -24,7 +24,7 @@ const QUARTER_TO_MONTH: Record<string, number> = {
   '2025-Q3': 7,
   '2025-Q4': 10,
   '2026-Q1': 1,
-  '2026-Q2': 4
+  '2026-Q2': 4,
 }
 
 // 10 Projects with budgets between 200M~500M
@@ -39,7 +39,7 @@ const NAMES = [
   'QA 자동화',
   '로보틱스',
   'OCR 엔진',
-  '예지보전'
+  '예지보전',
 ]
 const STATUSES: Project['status'][] = ['정상', '진행중', '지연', '위험', '완료']
 
@@ -63,7 +63,7 @@ const initialProjects: Project[] = Array.from({ length: 10 }).map((_, i) => {
     dueDate: dateISO(endYear, endMonth, 30),
     organization: pick(ORGS),
     personnelIds: [],
-    risks: []
+    risks: [],
   }
 })
 
@@ -91,7 +91,7 @@ const initialDocs: ExpenseDocument[] = (function () {
         amountKRW: randInt(300_000, 20_000_000),
         attachments: randInt(0, 4),
         createdAt: dateISO(Number(q.slice(0, 4)), QUARTER_TO_MONTH[q] || 1, randInt(1, 28)),
-        appRoute: ['담당자', '팀장', '임원']
+        appRoute: ['담당자', '팀장', '임원'],
       })
     }
   }
@@ -103,18 +103,18 @@ export const expenseDocsStore = writable<ExpenseDocument[]>(initialDocs)
 
 export const pendingDocCount = derived(
   expenseDocsStore,
-  arr => arr.filter(d => d.status === '대기').length
+  (arr) => arr.filter((d) => d.status === '대기').length,
 )
 
 export function updateExpenseStatus(id: string, status: '대기' | '승인' | '반려') {
-  expenseDocsStore.update(arr => arr.map(d => (d.id === id ? { ...d, status } : d)))
+  expenseDocsStore.update((arr) => arr.map((d) => (d.id === id ? { ...d, status } : d)))
 }
 
 // Budget thresholds and quarterly budgets
 export const budgetThresholds = {
   warning: 0.8,
   critical: 0.95,
-  over: 1.0
+  over: 1.0,
 }
 
 // Distribute personnel budgets per project across quarters (~60% of project budget)
@@ -133,11 +133,11 @@ export const quarterlyPersonnelBudgets = writable<Record<string, Record<string, 
       }
     }
     return map
-  })()
+  })(),
 )
 
 // Overall budget utilization from project-level budget/spent
-export const overallBudget = derived(projectsStore, arr => {
+export const overallBudget = derived(projectsStore, (arr) => {
   const totalBudgetKRW = arr.reduce((s, p) => s + (p.budgetKRW ?? 0), 0)
   const totalSpentKRW = arr.reduce((s, p) => s + (p.spentKRW ?? 0), 0)
   const utilization = totalBudgetKRW > 0 ? totalSpentKRW / totalBudgetKRW : 0
@@ -145,9 +145,9 @@ export const overallBudget = derived(projectsStore, arr => {
 })
 
 // Per-project alerts based on utilization against thresholds
-export const budgetAlerts = derived(projectsStore, arr => {
+export const budgetAlerts = derived(projectsStore, (arr) => {
   return arr
-    .map(p => {
+    .map((p) => {
       const util = p.budgetKRW > 0 ? p.spentKRW / p.budgetKRW : 0
       let level: 'warning' | 'critical' | 'over' | null = null
       if (util >= budgetThresholds.over) level = 'over'
@@ -175,8 +175,11 @@ export const expenseHistories = writable<
 >({})
 
 export function addExpenseHistory(id: string, status: '대기' | '승인' | '반려', reason?: string) {
-  expenseHistories.update(h => {
+  expenseHistories.update((h) => {
     const list = h[id] ?? []
-    return { ...h, [id]: [...list, { status, reason, at: new Date().toISOString() }] }
+    return {
+      ...h,
+      [id]: [...list, { status, reason, at: new Date().toISOString() }],
+    }
   })
 }

@@ -1,6 +1,7 @@
 import { json } from '@sveltejs/kit'
 import { query } from '$lib/database/connection.js'
 import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger'
 
 export const POST: RequestHandler = async () => {
   try {
@@ -56,8 +57,8 @@ export const POST: RequestHandler = async () => {
           '063-211-0814',
           '063-211-0813',
           new Date(),
-          '(주)비아'
-        ]
+          '(주)비아',
+        ],
       )
     } else {
       // 새 회사 정보 삽입
@@ -77,23 +78,23 @@ export const POST: RequestHandler = async () => {
           '063-211-0814',
           '063-211-0813',
           new Date(),
-          new Date()
-        ]
+          new Date(),
+        ],
       )
     }
 
     return json({
       success: true,
-      message: '회사 정보 테이블이 생성되고 기본 데이터가 등록되었습니다.'
+      message: '회사 정보 테이블이 생성되고 기본 데이터가 등록되었습니다.',
     })
   } catch (error: any) {
-    console.error('Error setting up company table:', error)
+    logger.error('Error setting up company table:', error)
     return json(
       {
         success: false,
-        error: error.message || '회사 정보 테이블 생성에 실패했습니다.'
+        error: error.message || '회사 정보 테이블 생성에 실패했습니다.',
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

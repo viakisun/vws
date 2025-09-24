@@ -1,5 +1,6 @@
 <script lang="ts">
-  import PageLayout from '$lib/components/layout/PageLayout.svelte'
+  import { logger } from '$lib/utils/logger'
+
   import CompanyModal from '$lib/components/ui/CompanyModal.svelte'
   import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
   import ThemeCard from '$lib/components/ui/ThemeCard.svelte'
@@ -10,7 +11,7 @@
     availableTimezones,
     currentTimezone,
     setUserTimezone,
-    userTimezone
+    userTimezone,
   } from '$lib/stores/timezone'
   import {
     BellIcon,
@@ -21,7 +22,7 @@
     PaletteIcon,
     PlusIcon,
     ShieldIcon,
-    UserIcon
+    UserIcon,
   } from '@lucide/svelte'
   import { onMount } from 'svelte'
 
@@ -51,38 +52,38 @@
     {
       id: 'company',
       label: '회사 정보',
-      icon: BuildingIcon
+      icon: BuildingIcon,
     },
     {
       id: 'profile',
       label: '프로필',
-      icon: UserIcon
+      icon: UserIcon,
     },
     {
       id: 'timezone',
       label: '시간 설정',
-      icon: ClockIcon
+      icon: ClockIcon,
     },
     {
       id: 'security',
       label: '보안',
-      icon: ShieldIcon
+      icon: ShieldIcon,
     },
     {
       id: 'notifications',
       label: '알림',
-      icon: BellIcon
+      icon: BellIcon,
     },
     {
       id: 'appearance',
       label: '외관',
-      icon: PaletteIcon
+      icon: PaletteIcon,
     },
     {
       id: 'data',
       label: '데이터',
-      icon: DatabaseIcon
-    }
+      icon: DatabaseIcon,
+    },
   ]
 
   let activeTab = $state('company')
@@ -91,20 +92,20 @@
   async function fetchCompany() {
     try {
       companyLoading = true
-      const response = await fetch('/api/company')
+      const response = await window.fetch('/api/company')
       if (response.ok) {
         const result = await response.json()
         company = result.data
       }
     } catch (err) {
-      console.error('Error fetching company:', err)
+      logger.error('Error fetching company:', err)
     } finally {
       companyLoading = false
     }
   }
 
   // 회사 정보 저장 핸들러
-  async function handleCompanySave(event: CustomEvent) {
+  async function handleCompanySave(_event: CustomEvent) {
     await fetchCompany()
   }
 
@@ -123,7 +124,7 @@
   </div>
 
   <ThemeTabs {tabs} bind:activeTab>
-    {#snippet children(tab: any)}
+    {#snippet children(tab: { id: string; label: string })}
       {#if tab.id === 'company'}
         <!-- 회사 정보 탭 -->
         <ThemeSpacer size={6}>
@@ -367,7 +368,7 @@
                     hour: '2-digit',
                     minute: '2-digit',
                     second: '2-digit',
-                    timeZoneName: 'short'
+                    timeZoneName: 'short',
                   })}
                 </div>
               </div>
@@ -384,13 +385,14 @@
                 <select
                   id="timezone-select"
                   bind:value={$userTimezone}
-                  onchange={e => setUserTimezone((e.target as HTMLSelectElement).value as any)}
+                  onchange={(e: Event & { currentTarget: HTMLSelectElement }) =>
+                    setUserTimezone(e.currentTarget.value)}
                   class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   style:background-color="var(--color-surface)"
                   style:color="var(--color-text)"
                   style:border-color="var(--color-border)"
                 >
-                  {#each availableTimezones as tz}
+                  {#each availableTimezones as tz, i (i)}
                     <option value={tz.key}>{tz.displayName}</option>
                   {/each}
                 </select>
@@ -403,7 +405,7 @@
               <div>
                 <h4 class="font-medium mb-3" style:color="var(--color-text)">지원되는 시간대</h4>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {#each availableTimezones as tz}
+                  {#each availableTimezones as tz, i (i)}
                     <button
                       type="button"
                       class="p-3 rounded-lg border cursor-pointer transition-colors text-left w-full"

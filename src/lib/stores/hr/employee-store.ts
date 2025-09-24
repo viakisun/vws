@@ -1,13 +1,7 @@
 // 인사 관리 시스템 - 직원 스토어
 
-import { writable, derived, get } from 'svelte/store'
-import type {
-  Employee,
-  EmployeeSearchFilter,
-  EmployeeSearchResult,
-  EmployeeStatistics,
-  ApiResponse
-} from '$lib/types/hr'
+import { writable, derived } from 'svelte/store'
+import type { Employee, EmployeeSearchFilter, EmployeeStatistics, ApiResponse } from '$lib/types/hr'
 
 // ===== 기본 스토어 =====
 export const employees = writable<Employee[]>([])
@@ -30,45 +24,45 @@ export const filteredEmployees = derived([employees, searchFilter], ([$employees
   if ($filter.query) {
     const query = $filter.query.toLowerCase()
     filtered = filtered.filter(
-      emp =>
+      (emp) =>
         emp.name.toLowerCase().includes(query) ||
         emp.email.toLowerCase().includes(query) ||
-        emp.employeeId.toLowerCase().includes(query)
+        emp.employeeId.toLowerCase().includes(query),
     )
   }
 
   // 부서 필터
   if ($filter.department) {
-    filtered = filtered.filter(emp => emp.department === $filter.department)
+    filtered = filtered.filter((emp) => emp.department === $filter.department)
   }
 
   // 직위 필터
   if ($filter.position) {
-    filtered = filtered.filter(emp => emp.position === $filter.position)
+    filtered = filtered.filter((emp) => emp.position === $filter.position)
   }
 
   // 상태 필터
   if ($filter.status) {
-    filtered = filtered.filter(emp => emp.status === $filter.status)
+    filtered = filtered.filter((emp) => emp.status === $filter.status)
   }
 
   // 고용 형태 필터
   if ($filter.employmentType) {
-    filtered = filtered.filter(emp => emp.employmentType === $filter.employmentType)
+    filtered = filtered.filter((emp) => emp.employmentType === $filter.employmentType)
   }
 
   // 레벨 필터
   if ($filter.level) {
-    filtered = filtered.filter(emp => emp.level === $filter.level)
+    filtered = filtered.filter((emp) => emp.level === $filter.level)
   }
 
   // 입사일 필터
   if ($filter.hireDateFrom) {
-    filtered = filtered.filter(emp => emp.hireDate >= $filter.hireDateFrom!)
+    filtered = filtered.filter((emp) => emp.hireDate >= $filter.hireDateFrom!)
   }
 
   if ($filter.hireDateTo) {
-    filtered = filtered.filter(emp => emp.hireDate <= $filter.hireDateTo!)
+    filtered = filtered.filter((emp) => emp.hireDate <= $filter.hireDateTo!)
   }
 
   return filtered
@@ -81,21 +75,21 @@ export const paginatedEmployees = derived(
     const startIndex = ($currentPage - 1) * $pageSize
     const endIndex = startIndex + $pageSize
     return $filteredEmployees.slice(startIndex, endIndex)
-  }
+  },
 )
 
 // ===== 통계 정보 =====
-export const employeeStatistics = derived(employees, $employees => {
+export const employeeStatistics = derived(employees, ($employees) => {
   const stats: EmployeeStatistics = {
     totalEmployees: $employees.length,
-    activeEmployees: $employees.filter(emp => emp.status === 'active').length,
+    activeEmployees: $employees.filter((emp) => emp.status === 'active').length,
     byDepartment: {},
     byPosition: {},
     byEmploymentType: {
       'full-time': 0,
       'part-time': 0,
       contract: 0,
-      intern: 0
+      intern: 0,
     },
     byLevel: {
       intern: 0,
@@ -104,15 +98,15 @@ export const employeeStatistics = derived(employees, $employees => {
       senior: 0,
       lead: 0,
       manager: 0,
-      director: 0
+      director: 0,
     },
     recentHires: 0,
     recentTerminations: 0,
-    averageTenure: 0
+    averageTenure: 0,
   }
 
   // 부서별 통계
-  $employees.forEach(emp => {
+  $employees.forEach((emp) => {
     stats.byDepartment[emp.department] = (stats.byDepartment[emp.department] || 0) + 1
     stats.byPosition[emp.position] = (stats.byPosition[emp.position] || 0) + 1
     stats.byEmploymentType[emp.employmentType]++
@@ -123,14 +117,14 @@ export const employeeStatistics = derived(employees, $employees => {
   const thirtyDaysAgo = new Date()
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
 
-  stats.recentHires = $employees.filter(emp => new Date(emp.hireDate) >= thirtyDaysAgo).length
+  stats.recentHires = $employees.filter((emp) => new Date(emp.hireDate) >= thirtyDaysAgo).length
 
   stats.recentTerminations = $employees.filter(
-    emp => emp.terminationDate && new Date(emp.terminationDate) >= thirtyDaysAgo
+    (emp) => emp.terminationDate && new Date(emp.terminationDate) >= thirtyDaysAgo,
   ).length
 
   // 평균 근속년수
-  const activeEmployees = $employees.filter(emp => emp.status === 'active')
+  const activeEmployees = $employees.filter((emp) => emp.status === 'active')
   if (activeEmployees.length > 0) {
     const totalTenure = activeEmployees.reduce((sum, emp) => {
       const hireDate = new Date(emp.hireDate)
@@ -145,19 +139,19 @@ export const employeeStatistics = derived(employees, $employees => {
 })
 
 // ===== 부서 목록 =====
-export const departments = derived(employees, $employees => {
-  const deptSet = new Set($employees.map(emp => emp.department))
+export const departments = derived(employees, ($employees) => {
+  const deptSet = new Set($employees.map((emp) => emp.department))
   return Array.from(deptSet).sort()
 })
 
 // ===== 직위 목록 =====
-export const positions = derived(employees, $employees => {
-  const posSet = new Set($employees.map(emp => emp.position))
+export const positions = derived(employees, ($employees) => {
+  const posSet = new Set($employees.map((emp) => emp.position))
   return Array.from(posSet).sort()
 })
 
 // ===== 팀 리더 목록 =====
-export const teamLeaders = derived(employees, $employees => {
+export const teamLeaders = derived(employees, ($employees) => {
   const leaderPositions = [
     'CEO',
     'CFO',
@@ -166,34 +160,34 @@ export const teamLeaders = derived(employees, $employees => {
     '재무이사',
     '기술이사',
     '연구소장',
-    '상무'
+    '상무',
   ]
-  return $employees.filter(emp => leaderPositions.includes(emp.position))
+  return $employees.filter((emp) => leaderPositions.includes(emp.position))
 })
 
 // ===== 계약직 직원 목록 =====
-export const contractEmployees = derived(employees, $employees => {
-  return $employees.filter(emp => emp.employmentType === 'contract')
+export const contractEmployees = derived(employees, ($employees) => {
+  return $employees.filter((emp) => emp.employmentType === 'contract')
 })
 
 // ===== 퇴사 예정자 목록 =====
-export const terminationPending = derived(employees, $employees => {
+export const terminationPending = derived(employees, ($employees) => {
   const now = new Date()
   const oneMonthFromNow = new Date()
   oneMonthFromNow.setMonth(oneMonthFromNow.getMonth() + 1)
 
   return $employees.filter(
-    emp =>
+    (emp) =>
       emp.terminationDate &&
       new Date(emp.terminationDate) >= now &&
-      new Date(emp.terminationDate) <= oneMonthFromNow
+      new Date(emp.terminationDate) <= oneMonthFromNow,
   )
 })
 
 // ===== 퇴사자 목록 =====
-export const terminatedEmployees = derived(employees, $employees => {
+export const terminatedEmployees = derived(employees, ($employees) => {
   return $employees
-    .filter(emp => emp.status === 'terminated')
+    .filter((emp) => emp.status === 'terminated')
     .sort((a, b) => {
       if (!a.terminationDate || !b.terminationDate) return 0
       return new Date(b.terminationDate).getTime() - new Date(a.terminationDate).getTime()
@@ -225,7 +219,7 @@ export async function loadEmployees(): Promise<void> {
 
 // 직원 추가
 export async function addEmployee(
-  employee: Omit<Employee, 'id' | 'createdAt' | 'updatedAt'>
+  employee: Omit<Employee, 'id' | 'createdAt' | 'updatedAt'>,
 ): Promise<boolean> {
   isLoading.set(true)
   error.set(null)
@@ -234,15 +228,15 @@ export async function addEmployee(
     const response = await fetch('/api/employees', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
       },
-      body: JSON.stringify(employee)
+      body: JSON.stringify(employee),
     })
 
     const result: ApiResponse<Employee> = await response.json()
 
     if (result.success && result.data) {
-      employees.update(current => [...current, result.data!])
+      employees.update((current) => [...current, result.data!])
       return true
     } else {
       error.set(result.error || '직원 추가에 실패했습니다.')
@@ -265,15 +259,15 @@ export async function updateEmployee(id: string, updates: Partial<Employee>): Pr
     const response = await fetch(`/api/employees/${id}`, {
       method: 'PUT',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
       },
-      body: JSON.stringify(updates)
+      body: JSON.stringify(updates),
     })
 
     const result: ApiResponse<Employee> = await response.json()
 
     if (result.success && result.data) {
-      employees.update(current => current.map(emp => (emp.id === id ? result.data! : emp)))
+      employees.update((current) => current.map((emp) => (emp.id === id ? result.data! : emp)))
       return true
     } else {
       error.set(result.error || '직원 수정에 실패했습니다.')
@@ -294,13 +288,13 @@ export async function deleteEmployee(id: string): Promise<boolean> {
 
   try {
     const response = await fetch(`/api/employees/${id}`, {
-      method: 'DELETE'
+      method: 'DELETE',
     })
 
     const result: ApiResponse<void> = await response.json()
 
     if (result.success) {
-      employees.update(current => current.filter(emp => emp.id !== id))
+      employees.update((current) => current.filter((emp) => emp.id !== id))
       return true
     } else {
       error.set(result.error || '직원 삭제에 실패했습니다.')
@@ -316,7 +310,7 @@ export async function deleteEmployee(id: string): Promise<boolean> {
 
 // 검색 필터 설정
 export function setSearchFilter(filter: Partial<EmployeeSearchFilter>): void {
-  searchFilter.update(current => ({ ...current, ...filter }))
+  searchFilter.update((current) => ({ ...current, ...filter }))
 }
 
 // 페이지 설정

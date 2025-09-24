@@ -2,27 +2,42 @@
   import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
   import ThemeModal from '$lib/components/ui/ThemeModal.svelte'
   import {
-    UploadIcon,
+    AlertCircleIcon,
+    CalendarIcon,
+    CheckCircleIcon,
     DownloadIcon,
     FileSpreadsheetIcon,
-    CheckCircleIcon,
+    UploadIcon,
     XCircleIcon,
-    AlertCircleIcon,
-    CalendarIcon
   } from '@lucide/svelte'
+
+  // Local types for this component
+  type UploadResult = {
+    success?: boolean
+    message?: string
+    processedCount?: number
+    errorCount?: number
+    errors?: string[]
+    results?: {
+      success?: number
+      failed?: number
+      errors?: string[]
+      details?: any[]
+    }
+  }
 
   let showUploadModal = $state(false)
   let selectedFile = $state<File | null>(null)
   let selectedYear = $state(new Date().getFullYear())
   let selectedMonth = $state(new Date().getMonth() + 1)
   let isUploading = $state(false)
-  let uploadResult = $state<any>(null)
+  let uploadResult = $state<UploadResult | null>(null)
   let showResultModal = $state(false)
 
   // 월 옵션 생성
   const monthOptions = Array.from({ length: 12 }, (_, i) => ({
     value: i + 1,
-    label: `${i + 1}월`
+    label: `${i + 1}월`,
   }))
 
   // 연도 옵션 생성 (현재 연도 기준 ±2년)
@@ -52,7 +67,7 @@
   async function downloadTemplate() {
     try {
       const response = await fetch(
-        `/api/salary/payslips/template?year=${selectedYear}&month=${selectedMonth}`
+        `/api/salary/payslips/template?year=${selectedYear}&month=${selectedMonth}`,
       )
 
       if (!response.ok) {
@@ -68,7 +83,7 @@
       a.click()
       document.body.removeChild(a)
       window.URL.revokeObjectURL(url)
-    } catch (error) {
+    } catch (_error) {
       alert('템플릿 다운로드에 실패했습니다.')
     }
   }
@@ -89,7 +104,7 @@
 
       const response = await fetch('/api/salary/payslips/upload', {
         method: 'POST',
-        body: formData
+        body: formData,
       })
 
       const result = await response.json()
@@ -102,7 +117,7 @@
       } else {
         alert(`업로드 실패: ${result.error}`)
       }
-    } catch (error) {
+    } catch (_error) {
       alert('업로드 중 오류가 발생했습니다.')
     } finally {
       isUploading = false
@@ -128,11 +143,15 @@
 </ThemeButton>
 
 <!-- 업로드 모달 -->
-<ThemeModal bind:open={showUploadModal} size="lg">
+<ThemeModal open={showUploadModal} onclose={() => (showUploadModal = false)} size="lg">
   <div class="p-6">
     <div class="flex items-center justify-between mb-6">
       <h2 class="text-xl font-semibold text-gray-900">급여명세서 엑셀 업로드</h2>
-      <button onclick={closeUploadModal} class="p-2 text-gray-400 hover:text-gray-600">
+      <button
+        type="button"
+        onclick={closeUploadModal}
+        class="p-2 text-gray-400 hover:text-gray-600"
+      >
         <XCircleIcon size={20} />
       </button>
     </div>
@@ -154,7 +173,7 @@
               bind:value={selectedYear}
               class="w-full px-3 py-2 border border-blue-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              {#each yearOptions as year}
+              {#each yearOptions as year, i (i)}
                 <option value={year.value}>{year.label}</option>
               {/each}
             </select>
@@ -167,7 +186,7 @@
               bind:value={selectedMonth}
               class="w-full px-3 py-2 border border-blue-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              {#each monthOptions as month}
+              {#each monthOptions as month, i (i)}
                 <option value={month.value}>{month.label}</option>
               {/each}
             </select>
@@ -259,11 +278,15 @@
 </ThemeModal>
 
 <!-- 결과 모달 -->
-<ThemeModal bind:open={showResultModal} size="xl">
+<ThemeModal open={showResultModal} onclose={() => (showResultModal = false)} size="xl">
   <div class="p-6">
     <div class="flex items-center justify-between mb-6">
       <h2 class="text-xl font-semibold text-gray-900">업로드 결과</h2>
-      <button onclick={closeResultModal} class="p-2 text-gray-400 hover:text-gray-600">
+      <button
+        type="button"
+        onclick={closeResultModal}
+        class="p-2 text-gray-400 hover:text-gray-600"
+      >
         <XCircleIcon size={20} />
       </button>
     </div>
@@ -274,12 +297,16 @@
         <div class="grid grid-cols-3 gap-4">
           <div class="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
             <CheckCircleIcon size={32} class="text-green-600 mx-auto mb-2" />
-            <div class="text-2xl font-bold text-green-700">{uploadResult.results.success}</div>
+            <div class="text-2xl font-bold text-green-700">
+              {uploadResult.results.success}
+            </div>
             <div class="text-sm text-green-600">성공</div>
           </div>
           <div class="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
             <XCircleIcon size={32} class="text-red-600 mx-auto mb-2" />
-            <div class="text-2xl font-bold text-red-700">{uploadResult.results.failed}</div>
+            <div class="text-2xl font-bold text-red-700">
+              {uploadResult.results.failed}
+            </div>
             <div class="text-sm text-red-600">실패</div>
           </div>
           <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
@@ -296,7 +323,7 @@
           <div class="bg-red-50 border border-red-200 rounded-lg p-4">
             <h3 class="text-lg font-semibold text-red-800 mb-3">오류 목록</h3>
             <div class="max-h-40 overflow-y-auto">
-              {#each uploadResult.results.errors as error}
+              {#each uploadResult.results.errors as error, i (i)}
                 <div class="text-sm text-red-700 py-1">{error}</div>
               {/each}
             </div>
@@ -320,7 +347,7 @@
                   </tr>
                 </thead>
                 <tbody>
-                  {#each uploadResult.results.details as detail}
+                  {#each uploadResult.results.details as detail, i (i)}
                     <tr class="border-t">
                       <td class="px-3 py-2">{detail.row}</td>
                       <td class="px-3 py-2">{detail.employeeId}</td>

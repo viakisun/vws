@@ -1,6 +1,7 @@
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
 import { query } from '$lib/database/connection'
+import { logger } from '$lib/utils/logger'
 
 // 조직도 다운로드 (CSV 형식)
 export const GET: RequestHandler = async () => {
@@ -38,17 +39,17 @@ export const GET: RequestHandler = async () => {
     return new Response(csvContent, {
       headers: {
         'Content-Type': 'text/csv; charset=utf-8',
-        'Content-Disposition': 'attachment; filename="organization_chart.csv"'
-      }
+        'Content-Disposition': 'attachment; filename="organization_chart.csv"',
+      },
     })
   } catch (error: any) {
-    console.error('Error downloading organization chart:', error)
+    logger.error('Error downloading organization chart:', error)
     return json(
       {
         success: false,
-        error: error.message || '조직도 다운로드에 실패했습니다.'
+        error: error.message || '조직도 다운로드에 실패했습니다.',
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

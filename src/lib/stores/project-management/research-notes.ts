@@ -1,11 +1,11 @@
 import { writable } from 'svelte/store'
-import type { ResearchNote, Person, Project, Document } from './types'
 import { logAudit } from './core'
+import type { Document, ResearchNote } from './types'
 
 // 연구노트 관리
 export const researchNotes = writable<ResearchNote[]>([])
 export const researchNoteAttachments = writable<Record<string, Document[]>>({})
-export const researchNoteSignatures = writable<Record<string, any[]>>({})
+export const researchNoteSignatures = writable<Record<string, unknown[]>>({})
 
 // 연구노트 생성
 export function createResearchNote(
@@ -14,7 +14,7 @@ export function createResearchNote(
   weekOf: string,
   title: string,
   contentMd: string,
-  attachments: string[] = []
+  attachments: string[] = [],
 ): string {
   const note: ResearchNote = {
     id: crypto.randomUUID(),
@@ -25,10 +25,10 @@ export function createResearchNote(
     contentMd,
     attachments,
     createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    updatedAt: new Date().toISOString(),
   }
 
-  researchNotes.update(list => [...list, note])
+  researchNotes.update((list) => [...list, note])
   logAudit('create', 'research_note', note.id, {}, note)
 
   return note.id
@@ -36,15 +36,15 @@ export function createResearchNote(
 
 // 연구노트 수정
 export function updateResearchNote(noteId: string, updates: Partial<ResearchNote>): void {
-  researchNotes.update(list => {
-    const index = list.findIndex(n => n.id === noteId)
+  researchNotes.update((list) => {
+    const index = list.findIndex((n) => n.id === noteId)
     if (index === -1) return list
 
     const oldNote = list[index]
     const updatedNote = {
       ...oldNote,
       ...updates,
-      updatedAt: new Date().toISOString()
+      updatedAt: new Date().toISOString(),
     }
 
     const newList = [...list]
@@ -57,12 +57,12 @@ export function updateResearchNote(noteId: string, updates: Partial<ResearchNote
 
 // 연구노트 삭제
 export function deleteResearchNote(noteId: string): void {
-  researchNotes.update(list => {
-    const note = list.find(n => n.id === noteId)
+  researchNotes.update((list) => {
+    const note = list.find((n) => n.id === noteId)
     if (note) {
       logAudit('delete', 'research_note', noteId, note, {})
     }
-    return list.filter(n => n.id !== noteId)
+    return list.filter((n) => n.id !== noteId)
   })
 }
 
@@ -72,7 +72,7 @@ export function addResearchNoteAttachment(
   filename: string,
   storageUrl: string,
   sha256: string,
-  description?: string
+  description?: string,
 ): string {
   const attachment: Document = {
     id: crypto.randomUUID(),
@@ -84,14 +84,14 @@ export function addResearchNoteAttachment(
     version: 1,
     meta: { description, noteId },
     createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    updatedAt: new Date().toISOString(),
   }
 
-  researchNoteAttachments.update(attachments => {
+  researchNoteAttachments.update((attachments) => {
     const noteAttachments = attachments[noteId] || []
     return {
       ...attachments,
-      [noteId]: [...noteAttachments, attachment]
+      [noteId]: [...noteAttachments, attachment],
     }
   })
 
@@ -105,7 +105,7 @@ export function addResearchNoteSignature(
   noteId: string,
   signerId: string,
   signatureData: string,
-  signatureType: 'author' | 'verifier' = 'author'
+  signatureType: 'author' | 'verifier' = 'author',
 ): string {
   const signature = {
     id: crypto.randomUUID(),
@@ -114,14 +114,14 @@ export function addResearchNoteSignature(
     signatureData,
     signatureType,
     signedAt: new Date().toISOString(),
-    verified: false
+    verified: false,
   }
 
-  researchNoteSignatures.update(signatures => {
+  researchNoteSignatures.update((signatures) => {
     const noteSignatures = signatures[noteId] || []
     return {
       ...signatures,
-      [noteId]: [...noteSignatures, signature]
+      [noteId]: [...noteSignatures, signature],
     }
   })
 
@@ -137,17 +137,17 @@ export function addResearchNoteSignature(
 export function verifyResearchNoteSignature(
   noteId: string,
   signatureId: string,
-  verifierId: string
+  verifierId: string,
 ): void {
-  researchNoteSignatures.update(signatures => {
+  researchNoteSignatures.update((signatures) => {
     const noteSignatures = signatures[noteId] || []
-    const updatedSignatures = noteSignatures.map(sig => {
+    const updatedSignatures = noteSignatures.map((sig) => {
       if (sig.id === signatureId) {
         return {
           ...sig,
           verified: true,
           verifiedBy: verifierId,
-          verifiedAt: new Date().toISOString()
+          verifiedAt: new Date().toISOString(),
         }
       }
       return sig
@@ -155,7 +155,7 @@ export function verifyResearchNoteSignature(
 
     return {
       ...signatures,
-      [noteId]: updatedSignatures
+      [noteId]: updatedSignatures,
     }
   })
 
@@ -169,9 +169,9 @@ export function verifyResearchNoteSignature(
 export function getResearchNotesByProject(projectId: string): ResearchNote[] {
   let projectNotes: ResearchNote[] = []
 
-  researchNotes.subscribe(list => {
+  researchNotes.subscribe((list) => {
     projectNotes = list
-      .filter(n => n.projectId === projectId)
+      .filter((n) => n.projectId === projectId)
       .sort((a, b) => new Date(b.weekOf).getTime() - new Date(a.weekOf).getTime())
   })()
 
@@ -182,9 +182,9 @@ export function getResearchNotesByProject(projectId: string): ResearchNote[] {
 export function getResearchNotesByAuthor(authorId: string): ResearchNote[] {
   let authorNotes: ResearchNote[] = []
 
-  researchNotes.subscribe(list => {
+  researchNotes.subscribe((list) => {
     authorNotes = list
-      .filter(n => n.authorId === authorId)
+      .filter((n) => n.authorId === authorId)
       .sort((a, b) => new Date(b.weekOf).getTime() - new Date(a.weekOf).getTime())
   })()
 
@@ -195,8 +195,8 @@ export function getResearchNotesByAuthor(authorId: string): ResearchNote[] {
 export function getResearchNotesByWeek(projectId: string, weekOf: string): ResearchNote[] {
   let weekNotes: ResearchNote[] = []
 
-  researchNotes.subscribe(list => {
-    weekNotes = list.filter(n => n.projectId === projectId && n.weekOf === weekOf)
+  researchNotes.subscribe((list) => {
+    weekNotes = list.filter((n) => n.projectId === projectId && n.weekOf === weekOf)
   })()
 
   return weekNotes
@@ -206,7 +206,7 @@ export function getResearchNotesByWeek(projectId: string, weekOf: string): Resea
 export function getResearchNoteAttachments(noteId: string): Document[] {
   let attachments: Document[] = []
 
-  researchNoteAttachments.subscribe(attachmentMap => {
+  researchNoteAttachments.subscribe((attachmentMap) => {
     attachments = attachmentMap[noteId] || []
   })()
 
@@ -214,10 +214,10 @@ export function getResearchNoteAttachments(noteId: string): Document[] {
 }
 
 // 연구노트별 서명 목록
-export function getResearchNoteSignatures(noteId: string): any[] {
-  let signatures: any[] = []
+export function getResearchNoteSignatures(noteId: string): unknown[] {
+  let signatures: unknown[] = []
 
-  researchNoteSignatures.subscribe(signatureMap => {
+  researchNoteSignatures.subscribe((signatureMap) => {
     signatures = signatureMap[noteId] || []
   })()
 
@@ -228,7 +228,7 @@ export function getResearchNoteSignatures(noteId: string): any[] {
 export function getMissingResearchNotes(
   projectId: string,
   startDate: string,
-  endDate: string
+  endDate: string,
 ): {
   missingWeeks: string[]
   missingAuthors: string[]
@@ -239,7 +239,7 @@ export function getMissingResearchNotes(
   const missingAuthors: string[] = []
 
   // 주차별로 체크
-  let currentDate = new Date(start)
+  const currentDate = new Date(start)
   while (currentDate <= end) {
     const weekOf = getWeekOfYear(currentDate)
     const weekNotes = getResearchNotesByWeek(projectId, weekOf)
@@ -269,7 +269,7 @@ function getWeekOfYear(date: Date): string {
 // 연구노트 제출 현황
 export function getResearchNoteSubmissionStatus(
   projectId: string,
-  month: string
+  month: string,
 ): {
   totalWeeks: number
   submittedWeeks: number
@@ -282,12 +282,12 @@ export function getResearchNoteSubmissionStatus(
   const { missingWeeks } = getMissingResearchNotes(
     projectId,
     startDate.toISOString(),
-    endDate.toISOString()
+    endDate.toISOString(),
   )
 
   // 해당 월의 총 주차 수 계산
   const totalWeeks = Math.ceil(
-    (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24 * 7)
+    (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24 * 7),
   )
   const submittedWeeks = totalWeeks - missingWeeks.length
   const submissionRate = totalWeeks > 0 ? (submittedWeeks / totalWeeks) * 100 : 0
@@ -296,7 +296,7 @@ export function getResearchNoteSubmissionStatus(
     totalWeeks,
     submittedWeeks,
     submissionRate,
-    missingWeeks
+    missingWeeks,
   }
 }
 
@@ -305,7 +305,7 @@ export function createResearchNoteTemplate(
   projectId: string,
   authorId: string,
   weekOf: string,
-  templateType: 'weekly' | 'experiment' | 'analysis' | 'meeting'
+  templateType: 'weekly' | 'experiment' | 'analysis' | 'meeting',
 ): string {
   const templates = {
     weekly: {
@@ -328,7 +328,7 @@ export function createResearchNoteTemplate(
 - 
 
 ## 참고자료
-- `
+- `,
     },
     experiment: {
       title: `실험 노트 - ${weekOf}`,
@@ -353,7 +353,7 @@ export function createResearchNoteTemplate(
 - 
 
 ## 향후 계획
-- `
+- `,
     },
     analysis: {
       title: `분석 노트 - ${weekOf}`,
@@ -378,7 +378,7 @@ export function createResearchNoteTemplate(
 - 
 
 ## 개선 방안
-- `
+- `,
     },
     meeting: {
       title: `회의 노트 - ${weekOf}`,
@@ -402,8 +402,8 @@ export function createResearchNoteTemplate(
 - 
 
 ## 다음 회의
-- `
-    }
+- `,
+    },
   }
 
   const template = templates[templateType]
@@ -416,12 +416,12 @@ export function searchResearchNotes(
   query: string,
   authorId?: string,
   startDate?: string,
-  endDate?: string
+  endDate?: string,
 ): ResearchNote[] {
   let searchResults: ResearchNote[] = []
 
-  researchNotes.subscribe(list => {
-    searchResults = list.filter(note => {
+  researchNotes.subscribe((list) => {
+    searchResults = list.filter((note) => {
       // 프로젝트 필터
       if (note.projectId !== projectId) return false
 
@@ -451,7 +451,7 @@ export function searchResearchNotes(
 // 연구노트 통계
 export function getResearchNoteStatistics(
   projectId: string,
-  period: 'month' | 'quarter' | 'year'
+  _period: 'month' | 'quarter' | 'year',
 ): {
   totalNotes: number
   submittedNotes: number
@@ -463,17 +463,17 @@ export function getResearchNoteStatistics(
   const projectNotes = getResearchNotesByProject(projectId)
 
   const totalNotes = projectNotes.length
-  const submittedNotes = projectNotes.filter(n => n.signedAt).length
-  const signedNotes = projectNotes.filter(n => n.signedAt).length
-  const verifiedNotes = projectNotes.filter(n => n.verifiedBy).length
+  const submittedNotes = projectNotes.filter((n) => n.signedAt).length
+  const signedNotes = projectNotes.filter((n) => n.signedAt).length
+  const verifiedNotes = projectNotes.filter((n) => n.verifiedBy).length
 
   // 주차별 평균 계산
-  const weeks = new Set(projectNotes.map(n => n.weekOf))
+  const weeks = new Set(projectNotes.map((n) => n.weekOf))
   const averageNotesPerWeek = weeks.size > 0 ? totalNotes / weeks.size : 0
 
   // 작성자별 통계
   const authorCounts: Record<string, number> = {}
-  projectNotes.forEach(note => {
+  projectNotes.forEach((note) => {
     authorCounts[note.authorId] = (authorCounts[note.authorId] || 0) + 1
   })
 
@@ -488,7 +488,7 @@ export function getResearchNoteStatistics(
     signedNotes,
     verifiedNotes,
     averageNotesPerWeek,
-    topAuthors
+    topAuthors,
   }
 }
 
@@ -497,10 +497,10 @@ export function exportResearchNotes(
   projectId: string,
   format: 'pdf' | 'docx' | 'html',
   startDate?: string,
-  endDate?: string
+  endDate?: string,
 ): string {
   const notes = getResearchNotesByProject(projectId)
-  const filteredNotes = notes.filter(note => {
+  const filteredNotes = notes.filter((note) => {
     if (startDate && note.weekOf < startDate) return false
     if (endDate && note.weekOf > endDate) return false
     return true
@@ -519,7 +519,7 @@ export function exportResearchNotes(
 			<h1>연구노트 모음</h1>
 			${filteredNotes
         .map(
-          note => `
+          (note) => `
 				<div class="note">
 					<h2>${note.title}</h2>
 					<p><strong>주차:</strong> ${note.weekOf}</p>
@@ -527,7 +527,7 @@ export function exportResearchNotes(
 					<p><strong>작성일:</strong> ${note.createdAt}</p>
 					<div class="content">${note.contentMd}</div>
 				</div>
-			`
+			`,
         )
         .join('')}
 		</body>
@@ -541,14 +541,14 @@ export function exportResearchNotes(
 export function backupResearchNotes(projectId: string): {
   notes: ResearchNote[]
   attachments: Record<string, Document[]>
-  signatures: Record<string, any[]>
+  signatures: Record<string, unknown[]>
   backupDate: string
 } {
   const notes = getResearchNotesByProject(projectId)
   const attachments: Record<string, Document[]> = {}
-  const signatures: Record<string, any[]> = {}
+  const signatures: Record<string, unknown[]> = {}
 
-  notes.forEach(note => {
+  notes.forEach((note) => {
     attachments[note.id] = getResearchNoteAttachments(note.id)
     signatures[note.id] = getResearchNoteSignatures(note.id)
   })
@@ -557,6 +557,6 @@ export function backupResearchNotes(projectId: string): {
     notes,
     attachments,
     signatures,
-    backupDate: new Date().toISOString()
+    backupDate: new Date().toISOString(),
   }
 }

@@ -1,10 +1,11 @@
+import { logger } from '$lib/utils/logger'
 import { writable } from 'svelte/store'
-import type { AuditLog, Person, Document } from './types'
+import type { AuditLog, Person } from './types'
 
 // 감사 로그 관리
 export const auditLogs = writable<AuditLog[]>([])
-export const securityPolicies = writable<Record<string, any>>({})
-export const accessControl = writable<Record<string, any>>({})
+export const securityPolicies = writable<Record<string, unknown>>({})
+export const accessControl = writable<Record<string, unknown>>({})
 
 // 감사 로그 생성
 export function createAuditLog(
@@ -14,7 +15,7 @@ export function createAuditLog(
   entityId: string,
   oldData: any,
   newData: any,
-  metadata?: Record<string, any>
+  metadata?: Record<string, unknown>,
 ): string {
   const auditLog: AuditLog = {
     id: crypto.randomUUID(),
@@ -23,7 +24,7 @@ export function createAuditLog(
     entity,
     entityId,
     diff: { old: oldData, new: newData },
-    at: new Date().toISOString()
+    at: new Date().toISOString(),
   }
 
   // 메타데이터 추가
@@ -31,7 +32,7 @@ export function createAuditLog(
     auditLog.metadata = metadata
   }
 
-  auditLogs.update(logs => [...logs, auditLog])
+  auditLogs.update((logs) => [...logs, auditLog])
 
   return auditLog.id
 }
@@ -47,8 +48,8 @@ export function getAuditLogs(filters?: {
 }): AuditLog[] {
   let filteredLogs: AuditLog[] = []
 
-  auditLogs.subscribe(logs => {
-    filteredLogs = logs.filter(log => {
+  auditLogs.subscribe((logs) => {
+    filteredLogs = logs.filter((log) => {
       if (filters?.actorId && log.actorId !== filters.actorId) return false
       if (filters?.entity && log.entity !== filters.entity) return false
       if (filters?.entityId && log.entityId !== filters.entityId) return false
@@ -82,35 +83,35 @@ export function defineSecurityPolicies(): void {
       requireNumbers: true,
       requireSpecialChars: true,
       maxAge: 90, // days
-      historyCount: 5
+      historyCount: 5,
     },
     session: {
       timeout: 30, // minutes
       maxConcurrent: 3,
-      requireReauth: ['sensitive_operations']
+      requireReauth: ['sensitive_operations'],
     },
     access: {
       ipWhitelist: [],
       ipBlacklist: [],
       requireMFA: ['admin_operations', 'financial_operations'],
-      auditLevel: 'detailed'
+      auditLevel: 'detailed',
     },
     data: {
       encryption: {
         atRest: true,
         inTransit: true,
-        algorithm: 'AES-256'
+        algorithm: 'AES-256',
       },
       retention: {
         auditLogs: 2555, // 7 years in days
         documents: 1095, // 3 years in days
-        backups: 365 // 1 year in days
+        backups: 365, // 1 year in days
       },
       anonymization: {
         enabled: true,
-        fields: ['ssn', 'personal_id', 'bank_account']
-      }
-    }
+        fields: ['ssn', 'personal_id', 'bank_account'],
+      },
+    },
   }
 
   securityPolicies.set(policies)
@@ -118,50 +119,50 @@ export function defineSecurityPolicies(): void {
 
 // 접근 제어 정책 정의
 export function defineAccessControlPolicies(): void {
-  const policies: Record<string, any> = {
+  const policies: Record<string, unknown> = {
     roles: {
       R1: {
         // 연구원
         permissions: ['read_own_data', 'create_research_notes', 'upload_documents'],
-        restrictions: ['financial_data', 'personnel_data', 'audit_logs']
+        restrictions: ['financial_data', 'personnel_data', 'audit_logs'],
       },
       R2: {
         // PM
         permissions: ['read_project_data', 'approve_expenses', 'manage_milestones'],
-        restrictions: ['financial_data', 'audit_logs']
+        restrictions: ['financial_data', 'audit_logs'],
       },
       R3: {
         // 담당부서
         permissions: ['read_department_data', 'process_expenses', 'manage_documents'],
-        restrictions: ['personnel_data', 'audit_logs']
+        restrictions: ['personnel_data', 'audit_logs'],
       },
       R4: {
         // 경영지원
         permissions: ['read_financial_data', 'manage_budgets', 'create_bundles'],
-        restrictions: ['audit_logs']
+        restrictions: ['audit_logs'],
       },
       R5: {
         // 연구소장
         permissions: ['read_all_data', 'approve_major_decisions', 'manage_personnel'],
-        restrictions: []
+        restrictions: [],
       },
       R6: {
         // 경영진
         permissions: ['read_all_data', 'manage_all_resources', 'view_audit_logs'],
-        restrictions: []
+        restrictions: [],
       },
       R7: {
         // 감사
         permissions: ['read_audit_logs', 'view_all_data', 'export_data'],
-        restrictions: ['modify_data']
-      }
+        restrictions: ['modify_data'],
+      },
     },
     dataClassification: {
       public: ['project_titles', 'public_milestones'],
       internal: ['project_details', 'budget_summaries', 'personnel_summaries'],
       confidential: ['financial_details', 'personnel_details', 'research_data'],
-      restricted: ['audit_logs', 'security_data', 'personal_identifiers']
-    }
+      restricted: ['audit_logs', 'security_data', 'personal_identifiers'],
+    },
   }
 
   accessControl.set(policies)
@@ -172,7 +173,7 @@ export function checkAccessPermission(
   userId: string,
   resource: string,
   action: string,
-  context?: any
+  context?: any,
 ): {
   allowed: boolean
   reason?: string
@@ -187,7 +188,11 @@ export function checkAccessPermission(
   // 2. 역할별 권한 확인
   const rolePermissions = getRolePermissions(user.roleSet)
   if (!rolePermissions.includes(action)) {
-    return { allowed: false, reason: 'Insufficient permissions', auditRequired: true }
+    return {
+      allowed: false,
+      reason: 'Insufficient permissions',
+      auditRequired: true,
+    }
   }
 
   // 3. 데이터 분류 확인
@@ -197,14 +202,22 @@ export function checkAccessPermission(
     !user.roleSet.includes('R6') &&
     !user.roleSet.includes('R7')
   ) {
-    return { allowed: false, reason: 'Restricted data access', auditRequired: true }
+    return {
+      allowed: false,
+      reason: 'Restricted data access',
+      auditRequired: true,
+    }
   }
 
   // 4. 컨텍스트 기반 검증
   if (context) {
     const contextCheck = validateContext(user, resource, action, context)
     if (!contextCheck.allowed) {
-      return { allowed: false, reason: contextCheck.reason, auditRequired: true }
+      return {
+        allowed: false,
+        reason: contextCheck.reason,
+        auditRequired: true,
+      }
     }
   }
 
@@ -228,7 +241,7 @@ function getUserById(userId: string): Person | null {
     roleSet: ['R1'],
     active: true,
     createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    updatedAt: new Date().toISOString(),
   }
 }
 
@@ -236,8 +249,8 @@ function getUserById(userId: string): Person | null {
 function getRolePermissions(roleSet: string[]): string[] {
   let permissions: string[] = []
 
-  accessControl.subscribe(policies => {
-    roleSet.forEach(role => {
+  accessControl.subscribe((policies) => {
+    roleSet.forEach((role) => {
       const rolePolicy = (policies as any).roles?.[role]
       if (rolePolicy) {
         permissions = [...permissions, ...rolePolicy.permissions]
@@ -252,7 +265,7 @@ function getRolePermissions(roleSet: string[]): string[] {
 function getDataClassification(resource: string): string {
   let classification = 'public'
 
-  accessControl.subscribe(policies => {
+  accessControl.subscribe((policies) => {
     Object.entries((policies as any).dataClassification || {}).forEach(([level, resources]) => {
       if (Array.isArray(resources) && resources.includes(resource)) {
         classification = level
@@ -268,7 +281,7 @@ function validateContext(
   user: Person,
   resource: string,
   action: string,
-  context: any
+  context: any,
 ): { allowed: boolean; reason?: string } {
   // 1. 소유권 확인
   if (context.ownerId && context.ownerId !== user.id) {
@@ -299,7 +312,7 @@ function validateContext(
 }
 
 // 프로젝트 접근 권한 확인
-function checkProjectAccess(userId: string, projectId: string): boolean {
+function checkProjectAccess(_userId: string, _projectId: string): boolean {
   // 실제 구현에서는 프로젝트 참여자 목록을 확인
   return true // 모의 구현
 }
@@ -308,7 +321,7 @@ function checkProjectAccess(userId: string, projectId: string): boolean {
 function isMFARequired(action: string): boolean {
   let policies: any = {}
 
-  securityPolicies.subscribe(p => {
+  securityPolicies.subscribe((p) => {
     policies = p
   })()
 
@@ -319,7 +332,7 @@ function isMFARequired(action: string): boolean {
 export function logSecurityEvent(
   eventType: 'login' | 'logout' | 'access_denied' | 'data_export' | 'suspicious_activity',
   userId: string,
-  details: Record<string, any>
+  details: Record<string, unknown>,
 ): void {
   const securityLog = {
     id: crypto.randomUUID(),
@@ -328,16 +341,16 @@ export function logSecurityEvent(
     details,
     timestamp: new Date().toISOString(),
     ipAddress: details.ipAddress || 'unknown',
-    userAgent: details.userAgent || 'unknown'
+    userAgent: details.userAgent || 'unknown',
   }
 
   // 보안 로그는 별도 스토어에 저장 (실제 구현)
-  console.log('Security Event:', securityLog)
+  logger.log('Security Event:', securityLog)
 
   // 감사 로그에도 기록
   createAuditLog(userId, `security_${eventType}`, 'security', securityLog.id, {}, details, {
     eventType,
-    ipAddress: details.ipAddress
+    ipAddress: details.ipAddress,
   })
 }
 
@@ -346,7 +359,7 @@ export function maskSensitiveData(data: any, userRole: string): any {
   if (!data) return data
 
   let policies: any = {}
-  securityPolicies.subscribe(p => {
+  securityPolicies.subscribe((p) => {
     policies = p
   })()
 
@@ -355,7 +368,7 @@ export function maskSensitiveData(data: any, userRole: string): any {
   if (typeof data === 'object') {
     const masked = { ...data }
 
-    maskFields.forEach(field => {
+    maskFields.forEach((field) => {
       if (masked[field]) {
         masked[field] = maskValue(masked[field], userRole)
       }
@@ -396,7 +409,7 @@ export function exportAuditLogs(
     endDate?: string
     entity?: string
     action?: string
-  }
+  },
 ): string {
   const logs = getAuditLogs(filters)
 
@@ -406,8 +419,8 @@ export function exportAuditLogs(
     const csvHeader = 'ID,Actor ID,Action,Entity,Entity ID,Timestamp,Details\n'
     const csvRows = logs
       .map(
-        log =>
-          `${log.id},${log.actorId},${log.action},${log.entity},${log.entityId},${log.at},"${JSON.stringify(log.diff).replace(/"/g, '""')}"`
+        (log) =>
+          `${log.id},${log.actorId},${log.action},${log.entity},${log.entityId},${log.at},"${JSON.stringify(log.diff).replace(/"/g, '""')}"`,
       )
       .join('\n')
     return csvHeader + csvRows
@@ -434,7 +447,7 @@ export function detectSecurityViolations(): {
       type: 'suspicious_access',
       severity: 'high',
       description: `${suspiciousAccess.length}건의 비정상적인 접근이 감지되었습니다.`,
-      recommendation: '해당 사용자의 접근을 제한하고 추가 조사를 수행하세요.'
+      recommendation: '해당 사용자의 접근을 제한하고 추가 조사를 수행하세요.',
     })
   }
 
@@ -445,7 +458,7 @@ export function detectSecurityViolations(): {
       type: 'privilege_escalation',
       severity: 'critical',
       description: `${privilegeEscalation.length}건의 권한 상승 시도가 감지되었습니다.`,
-      recommendation: '즉시 해당 계정을 비활성화하고 보안팀에 보고하세요.'
+      recommendation: '즉시 해당 계정을 비활성화하고 보안팀에 보고하세요.',
     })
   }
 
@@ -456,7 +469,7 @@ export function detectSecurityViolations(): {
       type: 'bulk_data_access',
       severity: 'medium',
       description: `${bulkDataAccess.length}건의 대량 데이터 접근이 감지되었습니다.`,
-      recommendation: '해당 접근의 정당성을 확인하고 필요시 접근을 제한하세요.'
+      recommendation: '해당 접근의 정당성을 확인하고 필요시 접근을 제한하세요.',
     })
   }
 
@@ -464,28 +477,28 @@ export function detectSecurityViolations(): {
 }
 
 // 비정상적인 접근 패턴 감지
-function detectSuspiciousAccess(): any[] {
+function detectSuspiciousAccess(): unknown[] {
   // 실제 구현에서는 접근 로그를 분석
   return []
 }
 
 // 권한 상승 시도 감지
-function detectPrivilegeEscalation(): any[] {
+function detectPrivilegeEscalation(): unknown[] {
   // 실제 구현에서는 권한 변경 로그를 분석
   return []
 }
 
 // 대량 데이터 접근 감지
-function detectBulkDataAccess(): any[] {
+function detectBulkDataAccess(): unknown[] {
   // 실제 구현에서는 데이터 접근 로그를 분석
   return []
 }
 
 // 보안 정책 업데이트
 export function updateSecurityPolicy(policyType: string, policyData: any): void {
-  securityPolicies.update(policies => ({
+  securityPolicies.update((policies) => ({
     ...policies,
-    [policyType]: policyData
+    [policyType]: policyData,
   }))
 
   // 정책 변경 감사 로그
@@ -495,15 +508,15 @@ export function updateSecurityPolicy(policyType: string, policyData: any): void 
     'security_policy',
     policyType,
     {},
-    policyData
+    policyData,
   )
 }
 
 // 접근 제어 정책 업데이트
 export function updateAccessControlPolicy(policyType: string, policyData: any): void {
-  accessControl.update(policies => ({
+  accessControl.update((policies) => ({
     ...policies,
-    [policyType]: policyData
+    [policyType]: policyData,
   }))
 
   // 정책 변경 감사 로그
@@ -513,7 +526,7 @@ export function updateAccessControlPolicy(policyType: string, policyData: any): 
     'access_control',
     policyType,
     {},
-    policyData
+    policyData,
   )
 }
 
@@ -530,7 +543,7 @@ export function getSecurityDashboardData(): any {
       login: getAuditLogs({ action: 'security_login' }).length,
       logout: getAuditLogs({ action: 'security_logout' }).length,
       accessDenied: getAuditLogs({ action: 'security_access_denied' }).length,
-      dataExport: getAuditLogs({ action: 'security_data_export' }).length
-    }
+      dataExport: getAuditLogs({ action: 'security_data_export' }).length,
+    },
   }
 }

@@ -1,7 +1,6 @@
 <script lang="ts">
-  import { onMount } from 'svelte'
-  import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
   import { ChevronLeftIcon, ChevronRightIcon } from '@lucide/svelte'
+  import { onMount } from 'svelte'
 
   interface Tab {
     id: string
@@ -44,7 +43,7 @@
 
   // 탭 변경 핸들러
   function handleTabChange(tabId: string) {
-    if (tabs.find(tab => tab.id === tabId)?.disabled) return
+    if (tabs.find((tab) => tab.id === tabId)?.disabled) return
 
     currentTab = tabId
     onTabChange?.(tabId)
@@ -69,7 +68,7 @@
         ? Math.max(0, scrollPosition - scrollAmount)
         : Math.min(
             tabContainer.scrollWidth - tabContainer.clientWidth,
-            scrollPosition + scrollAmount
+            scrollPosition + scrollAmount,
           )
 
     tabContainer.scrollTo({ left: newPosition, behavior: 'smooth' })
@@ -80,7 +79,7 @@
     const sizeClasses = {
       sm: 'px-3 py-1.5 text-sm',
       md: 'px-4 py-2 text-sm',
-      lg: 'px-6 py-3 text-base'
+      lg: 'px-6 py-3 text-base',
     }
     return sizeClasses[size]
   }
@@ -151,9 +150,10 @@
       <!-- 스크롤 버튼들 -->
       {#if canScrollLeft}
         <button
+          type="button"
           onclick={() => scrollTabs('left')}
           class="absolute left-0 top-0 z-10 flex items-center justify-center w-8 h-full bg-white/80 hover:bg-white/90 transition-colors"
-          style="background: var(--color-surface);"
+          style:background="var(--color-surface)"
         >
           <ChevronLeftIcon size={16} style="color: var(--color-text-secondary);" />
         </button>
@@ -161,9 +161,10 @@
 
       {#if canScrollRight}
         <button
+          type="button"
           onclick={() => scrollTabs('right')}
           class="absolute right-0 top-0 z-10 flex items-center justify-center w-8 h-full bg-white/80 hover:bg-white/90 transition-colors"
-          style="background: var(--color-surface);"
+          style:background="var(--color-surface)"
         >
           <ChevronRightIcon size={16} style="color: var(--color-text-secondary);" />
         </button>
@@ -175,12 +176,14 @@
       bind:this={tabContainer}
       class="flex {orientation === 'vertical' ? 'flex-col' : 'flex-row'} {scrollable
         ? 'overflow-x-auto scrollbar-hide'
-        : ''} {variant === 'default' ? 'border-b' : ''}"
-      style="border-color: var(--color-border);"
+        : ''}"
+      class:border-b={variant === 'default'}
+      style:border-color="var(--color-border)"
       role="tablist"
     >
-      {#each tabs as tab}
+      {#each tabs as tab, i (i)}
         <button
+          type="button"
           role="tab"
           aria-selected={currentTab === tab.id}
           aria-controls="tabpanel-{tab.id}"
@@ -189,7 +192,8 @@
           class="{getTabClass(tab)} {tab.disabled
             ? 'opacity-50 cursor-not-allowed'
             : 'cursor-pointer'}"
-          style="{getTabStyle(tab)} {tab.disabled ? 'opacity: 0.5;' : ''}"
+          style={getTabStyle(tab)}
+          style:opacity={tab.disabled ? '0.5' : null}
         >
           {#if tab.icon}
             <tab.icon size={size === 'sm' ? 16 : size === 'lg' ? 20 : 18} />
@@ -198,7 +202,8 @@
           {#if tab.badge}
             <span
               class="inline-flex items-center justify-center px-2 py-0.5 text-xs font-medium rounded-full"
-              style="background: var(--color-primary); color: white;"
+              style:background="var(--color-primary)"
+              style:color="white"
             >
               {tab.badge}
             </span>
@@ -210,7 +215,7 @@
 
   <!-- 탭 콘텐츠 -->
   <div class="flex-1 {orientation === 'vertical' ? 'ml-6' : 'mt-4'}">
-    {#each tabs as tab}
+    {#each tabs as tab, i (i)}
       <div
         role="tabpanel"
         id="tabpanel-{tab.id}"

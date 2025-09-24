@@ -7,7 +7,7 @@
     expenseDocsStore,
     updateExpenseStatus,
     expenseHistories,
-    addExpenseHistory
+    addExpenseHistory,
   } from '$lib/stores/rnd'
   import { pushToast } from '$lib/stores/toasts'
   import { page } from '$app/state'
@@ -21,12 +21,12 @@
   const all = $derived($expenseDocsStore)
   const filtered = $derived(
     all.filter(
-      d =>
+      (d) =>
         (status ? d.status === status : true) &&
-        (query ? d.title.includes(query) || d.id.includes(query) : true)
-    )
+        (query ? d.title.includes(query) || d.id.includes(query) : true),
+    ),
   )
-  const selected = $derived(all.find(d => d.id === selectedId))
+  const selected = $derived(all.find((d) => d.id === selectedId))
 
   let reason = $state('')
   function approve() {
@@ -64,13 +64,13 @@
     인건비: 2,
     재료비: 1,
     연구활동비: 1,
-    여비: 2
+    여비: 2,
   }
   const requiredDocNames: Record<string, string[]> = {
     인건비: ['급여명세서', '4대보험 납부확인'],
     재료비: ['세금계산서'],
     연구활동비: ['증빙서류'],
-    여비: ['영수증', '출장보고서']
+    여비: ['영수증', '출장보고서'],
   }
   function isCompliant(d: ExpenseDocument): boolean {
     const min = requiredAttachments[d.category] ?? 0
@@ -114,7 +114,7 @@
         </tr>
       </thead>
       <tbody class="divide-y">
-        {#each filtered as d}
+        {#each filtered as d, i (i)}
           <tr class="hover:bg-gray-50 cursor-pointer" onclick={() => (selectedId = d.id)}>
             <td class="px-3 py-2">{d.id}</td>
             <td class="px-3 py-2">{d.title}</td>
@@ -176,7 +176,8 @@
         <div class="text-caption mb-1">첨부 미리보기</div>
         {#if (selected.attachments ?? 0) > 0}
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            {#each Array(selected.attachments) as _, idx}
+            {#each Array(selected.attachments) as _, idx (idx)}
+              <!-- TODO: replace index key with a stable id when model provides one -->
               <button
                 type="button"
                 class="block rounded overflow-hidden border hover:ring-2 hover:ring-primary/40"
@@ -204,7 +205,7 @@
         <div class="text-caption mb-1">결재 이력</div>
         {#if $expenseHistories[selected.id]?.length}
           <ul class="space-y-1">
-            {#each $expenseHistories[selected.id] as h}
+            {#each $expenseHistories[selected.id] as h (h.id)}
               <li class="flex items-center justify-between">
                 <span>{new Date(h.at).toLocaleString('ko-KR')}</span>
                 <Badge
@@ -229,10 +230,12 @@
             bind:value={reason}
           />
           <button
+            type="button"
             class="px-3 py-1.5 rounded-md bg-success text-white hover:brightness-95"
             onclick={approve}>승인</button
           >
           <button
+            type="button"
             class="px-3 py-1.5 rounded-md bg-danger text-white hover:brightness-95"
             onclick={reject}>반려</button
           >

@@ -32,16 +32,16 @@ export const GET: RequestHandler = async ({ params }) => {
 			JOIN employees e ON sc.employee_id = e.id
 			WHERE sc.id = $1
 		`,
-      [id]
+      [id],
     )
 
     if (result.rows.length === 0) {
       return json(
         {
           success: false,
-          error: '급여 계약을 찾을 수 없습니다.'
+          error: '급여 계약을 찾을 수 없습니다.',
         },
-        { status: 404 }
+        { status: 404 },
       )
     }
 
@@ -74,20 +74,20 @@ export const GET: RequestHandler = async ({ params }) => {
       department: contract.department,
       position: contract.position,
       contractEndDisplay: contract.contract_end_display,
-      statusDisplay: contract.status_display
+      statusDisplay: contract.status_display,
     }
 
     return json({
       success: true,
-      data: salaryContract
+      data: salaryContract,
     })
-  } catch (error) {
+  } catch (_error) {
     return json(
       {
         success: false,
-        error: '급여 계약 조회에 실패했습니다.'
+        error: '급여 계약 조회에 실패했습니다.',
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
@@ -100,7 +100,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
 
     // 업데이트할 필드 구성
     const updateFields: string[] = []
-    const queryParams: any[] = []
+    const queryParams: unknown[] = []
     let paramIndex = 1
 
     if (updateData.startDate !== undefined) {
@@ -149,9 +149,9 @@ export const PUT: RequestHandler = async ({ params, request }) => {
       return json(
         {
           success: false,
-          error: '업데이트할 필드가 없습니다.'
+          error: '업데이트할 필드가 없습니다.',
         },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -166,16 +166,16 @@ export const PUT: RequestHandler = async ({ params, request }) => {
 			WHERE id = $${paramIndex}
 			RETURNING *
 		`,
-      queryParams
+      queryParams,
     )
 
     if (result.rows.length === 0) {
       return json(
         {
           success: false,
-          error: '급여 계약을 찾을 수 없습니다.'
+          error: '급여 계약을 찾을 수 없습니다.',
         },
-        { status: 404 }
+        { status: 404 },
       )
     }
 
@@ -204,16 +204,16 @@ export const PUT: RequestHandler = async ({ params, request }) => {
         notes: updatedContract.notes,
         createdAt: updatedContract.created_at,
         updatedAt: updatedContract.updated_at,
-        createdBy: updatedContract.created_by
-      }
+        createdBy: updatedContract.created_by,
+      },
     })
-  } catch (error) {
+  } catch (_error) {
     return json(
       {
         success: false,
-        error: '급여 계약 수정에 실패했습니다.'
+        error: '급여 계약 수정에 실패했습니다.',
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
@@ -229,30 +229,30 @@ export const DELETE: RequestHandler = async ({ params }) => {
 			WHERE id = $1
 			RETURNING id
 		`,
-      [id]
+      [id],
     )
 
     if (result.rows.length === 0) {
       return json(
         {
           success: false,
-          error: '급여 계약을 찾을 수 없습니다.'
+          error: '급여 계약을 찾을 수 없습니다.',
         },
-        { status: 404 }
+        { status: 404 },
       )
     }
 
     return json({
       success: true,
-      data: { id }
+      data: { id },
     })
-  } catch (error) {
+  } catch (_error) {
     return json(
       {
         success: false,
-        error: '급여 계약 삭제에 실패했습니다.'
+        error: '급여 계약 삭제에 실패했습니다.',
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

@@ -6,12 +6,15 @@
 
 import { formatEmployeeName } from './format'
 import { formatKoreanNameStandard } from './korean-name'
+import { logger } from '$lib/utils/logger'
 
 /**
  * 이름 표시를 위한 타입 가드
  * 모든 이름 표시는 이 타입을 사용해야 합니다.
  */
-export type StandardizedName = string & { readonly __brand: 'StandardizedName' }
+export type StandardizedName = string & {
+  readonly __brand: 'StandardizedName'
+}
 
 /**
  * 직원 객체에서 표준화된 이름을 생성
@@ -50,8 +53,8 @@ export function isValidStandardName(name: string): name is StandardizedName {
 export function enforceStandardName(name: string, context: string = '이름'): StandardizedName {
   if (process.env.NODE_ENV === 'development') {
     if (!isValidStandardName(name)) {
-      console.warn(`⚠️ [이름 표시 강제] ${context}에서 비표준 형식 발견: "${name}"`)
-      console.warn('표준 형식으로 변환 중...')
+      logger.warn(`⚠️ [이름 표시 강제] ${context}에서 비표준 형식 발견: "${name}"`)
+      logger.warn('표준 형식으로 변환 중...')
     }
   }
 
@@ -61,11 +64,11 @@ export function enforceStandardName(name: string, context: string = '이름'): S
 /**
  * 런타임 검증을 위한 데코레이터 함수
  */
-export function withNameValidation<T extends (...args: any[]) => any>(
+export function withNameValidation<T extends (...args: unknown[]) => any>(
   fn: T,
-  context: string = '함수'
+  context: string = '함수',
 ): T {
-  return ((...args: any[]) => {
+  return ((...args: unknown[]) => {
     const result = fn(...args)
 
     if (process.env.NODE_ENV === 'development') {
@@ -74,8 +77,8 @@ export function withNameValidation<T extends (...args: any[]) => any>(
         // 한국 이름 패턴이 있는지 확인
         const koreanRegex = /[가-힣]/
         if (koreanRegex.test(result) && result.includes(' ')) {
-          console.warn(`⚠️ [이름 검증] ${context}에서 비표준 형식 반환: "${result}"`)
-          console.warn('표준 형식: (성)(이름) - 공백 없음')
+          logger.warn(`⚠️ [이름 검증] ${context}에서 비표준 형식 반환: "${result}"`)
+          logger.warn('표준 형식: (성)(이름) - 공백 없음')
         }
       }
     }
@@ -107,7 +110,7 @@ export const NAME_STANDARDS = {
     'first_name + " " + last_name', // 직접 문자열 결합
     'last_name + " " + first_name', // 직접 문자열 결합
     '`${first} ${last}`', // 템플릿 리터럴 직접 사용
-    'employee.name' // 원시 필드 직접 사용
+    'employee.name', // 원시 필드 직접 사용
   ],
 
   /**
@@ -117,6 +120,6 @@ export const NAME_STANDARDS = {
     'formatEmployeeName(employee)', // 직원 객체용
     'formatKoreanNameStandard(fullName)', // 전체 이름용
     'createStandardEmployeeName(employee)', // 타입 안전한 직원 이름
-    'createStandardFullName(fullName)' // 타입 안전한 전체 이름
-  ]
+    'createStandardFullName(fullName)', // 타입 안전한 전체 이름
+  ],
 } as const

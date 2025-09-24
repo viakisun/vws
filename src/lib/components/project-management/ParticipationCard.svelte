@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
   import ThemeBadge from '$lib/components/ui/ThemeBadge.svelte'
   import ThemeCard from '$lib/components/ui/ThemeCard.svelte'
   import { ActivityIcon, UsersIcon } from '@lucide/svelte'
@@ -12,7 +12,7 @@
    * @property {number} totalParticipationRate
    */
 
-  let { employeeParticipationSummary = [], loading = false, error = null } = $props()
+  let { employeeParticipationSummary = [] } = $props()
 </script>
 
 <div class="space-y-6">
@@ -69,17 +69,23 @@
             {#each employeeParticipationSummary as employee (employee.email)}
               <tr class="hover:bg-gray-50">
                 <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="text-sm font-medium text-gray-900">{employee.name}</div>
+                  <div class="text-sm font-medium text-gray-900">
+                    {employee.name}
+                  </div>
                   <div class="text-sm text-gray-500">{employee.email}</div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
                   <div class="text-sm text-gray-500">{employee.department}</div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="text-sm text-gray-900">{employee.activeProjects}개</div>
+                  <div class="text-sm text-gray-900">
+                    {employee.activeProjects}개
+                  </div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="text-sm text-gray-900">{employee.totalParticipationRate}%</div>
+                  <div class="text-sm text-gray-900">
+                    {employee.totalParticipationRate}%
+                  </div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
                   {#if employee.totalParticipationRate > 100}

@@ -9,7 +9,7 @@ export const ROLES = {
   R4: '경영지원(회계·총무)',
   R5: '연구소장',
   R6: '경영진',
-  R7: '감사/외부평가'
+  R7: '감사/외부평가',
 } as const
 
 export type Role = keyof typeof ROLES
@@ -46,7 +46,7 @@ export const PERMISSIONS = {
   BUNDLE_READ: ['R4', 'R6', 'R7'],
   BUNDLE_CREATE: ['R4'],
   BUNDLE_APPROVE: ['R4'],
-  BUNDLE_LOCK: ['R7']
+  BUNDLE_LOCK: ['R7'],
 } as const
 
 export type Permission = keyof typeof PERMISSIONS
@@ -63,17 +63,17 @@ export function hasRole(user: Person | null, role: Role): boolean {
 export function hasPermission(user: Person | null, permission: Permission): boolean {
   if (!user) return false
   const allowedRoles = PERMISSIONS[permission]
-  return user.roleSet.some(role => allowedRoles.includes(role as Role))
+  return user.roleSet.some((role) => allowedRoles.includes(role as Role))
 }
 
 export function hasAnyRole(user: Person | null, roles: Role[]): boolean {
   if (!user) return false
-  return roles.some(role => user.roleSet.includes(role))
+  return roles.some((role) => user.roleSet.includes(role))
 }
 
 export function hasAllRoles(user: Person | null, roles: Role[]): boolean {
   if (!user) return false
-  return roles.every(role => user.roleSet.includes(role))
+  return roles.every((role) => user.roleSet.includes(role))
 }
 
 // 역할별 권한 체크 함수들
@@ -167,14 +167,14 @@ export function canAccessResearcherDashboard(user: Person | null): boolean {
 }
 
 // 프로젝트별 권한 체크
-export function canAccessProject(user: Person | null, projectId: string): boolean {
+export function canAccessProject(user: Person | null, _projectId: string): boolean {
   if (!user) return false
 
   // 모든 역할이 프로젝트를 읽을 수 있음
   return canReadProject(user)
 }
 
-export function canManageProject(user: Person | null, projectId: string): boolean {
+export function canManageProject(user: Person | null, _projectId: string): boolean {
   if (!user) return false
 
   // PM, 경영지원, 연구소장, 경영진만 프로젝트 관리 가능
@@ -182,14 +182,14 @@ export function canManageProject(user: Person | null, projectId: string): boolea
 }
 
 // 지출 항목별 권한 체크
-export function canAccessExpense(user: Person | null, expenseId: string): boolean {
+export function canAccessExpense(user: Person | null, _expenseId: string): boolean {
   if (!user) return false
 
   // 모든 역할이 지출 항목을 읽을 수 있음
   return canReadExpense(user)
 }
 
-export function canManageExpense(user: Person | null, expenseId: string): boolean {
+export function canManageExpense(user: Person | null, _expenseId: string): boolean {
   if (!user) return false
 
   // 요청자, PM, 담당부서, 경영지원만 지출 관리 가능
@@ -197,14 +197,14 @@ export function canManageExpense(user: Person | null, expenseId: string): boolea
 }
 
 // 문서별 권한 체크
-export function canAccessDocument(user: Person | null, documentId: string): boolean {
+export function canAccessDocument(user: Person | null, _documentId: string): boolean {
   if (!user) return false
 
   // 모든 역할이 문서를 읽을 수 있음
   return canReadDocument(user)
 }
 
-export function canManageDocument(user: Person | null, documentId: string): boolean {
+export function canManageDocument(user: Person | null, _documentId: string): boolean {
   if (!user) return false
 
   // 관련자, 경영지원만 문서 관리 가능
@@ -212,14 +212,14 @@ export function canManageDocument(user: Person | null, documentId: string): bool
 }
 
 // 연구노트별 권한 체크
-export function canAccessResearchNote(user: Person | null, noteId: string): boolean {
+export function canAccessResearchNote(user: Person | null, _noteId: string): boolean {
   if (!user) return false
 
   // 연구원, PM, 연구소장만 연구노트 접근 가능
   return hasAnyRole(user, ['R1', 'R2', 'R5'])
 }
 
-export function canManageResearchNote(user: Person | null, noteId: string): boolean {
+export function canManageResearchNote(user: Person | null, _noteId: string): boolean {
   if (!user) return false
 
   // 연구원만 연구노트 작성/수정 가능
@@ -229,12 +229,12 @@ export function canManageResearchNote(user: Person | null, noteId: string): bool
 // 사용자 역할 정보 가져오기
 export function getUserRoles(user: Person | null): string[] {
   if (!user) return []
-  return user.roleSet.map(role => ROLES[role as Role])
+  return user.roleSet.map((role) => ROLES[role as Role])
 }
 
 export function getUserRoleNames(user: Person | null): string[] {
   if (!user) return []
-  return user.roleSet.map(role => ROLES[role as Role])
+  return user.roleSet.map((role) => ROLES[role as Role])
 }
 
 // 역할별 색상
@@ -245,7 +245,7 @@ export const ROLE_COLORS = {
   R4: '#EF4444', // 빨간색
   R5: '#8B5CF6', // 보라색
   R6: '#EC4899', // 핑크색
-  R7: '#6B7280' // 회색
+  R7: '#6B7280', // 회색
 } as const
 
 export function getRoleColor(role: Role): string {

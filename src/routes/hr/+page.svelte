@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { logger } from '$lib/utils/logger'
+
   import PageLayout from '$lib/components/layout/PageLayout.svelte'
   import DeleteConfirmModal from '$lib/components/ui/DeleteConfirmModal.svelte'
   import DepartmentModal from '$lib/components/ui/DepartmentModal.svelte'
@@ -40,7 +42,7 @@
     UserCheckIcon,
     UserMinusIcon,
     UserPlusIcon,
-    UsersIcon
+    UsersIcon,
   } from '@lucide/svelte'
   // HR 스토어들
 
@@ -54,21 +56,23 @@
   let error = $state<string | null>(null)
 
   // 직원별 현재 급여 정보 가져오기
-  function getCurrentSalary(
-    employeeId: string
-  ): { annualSalary: number; monthlySalary: number; contractType: string } | null {
+  function getCurrentSalary(employeeId: string): {
+    annualSalary: number
+    monthlySalary: number
+    contractType: string
+  } | null {
     const activeContract = $contracts.find(
-      contract =>
+      (contract) =>
         contract.employeeId === employeeId &&
         contract.status === 'active' &&
-        (!contract.endDate || new Date(contract.endDate) > new Date(getCurrentUTC()))
+        (!contract.endDate || new Date(contract.endDate) > new Date(getCurrentUTC())),
     )
 
     if (activeContract) {
       return {
         annualSalary: activeContract.annualSalary,
         monthlySalary: activeContract.monthlySalary,
-        contractType: activeContract.contractType
+        contractType: activeContract.contractType,
       }
     }
     return null
@@ -102,7 +106,7 @@
       }
     } catch (err) {
       error = '직원 데이터를 불러오는데 실패했습니다.'
-      console.error('Error fetching employees:', err)
+      logger.error('Error fetching employees:', err)
     } finally {
       loading = false
     }
@@ -117,14 +121,14 @@
         departments = result.data || result.departments || []
       }
     } catch (err) {
-      console.error('Error fetching departments:', err)
+      logger.error('Error fetching departments:', err)
     }
   }
 
   // 생성일 순으로 정렬된 부서 목록
   let sortedDepartments = $derived(() => {
     return [...departments].sort(
-      (a: any, b: any) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+      (a: any, b: any) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
     )
   })
 
@@ -137,7 +141,7 @@
         positions = result.data || result.positions || []
       }
     } catch (err) {
-      console.error('Error fetching positions:', err)
+      logger.error('Error fetching positions:', err)
     }
   }
 
@@ -151,7 +155,7 @@
         executives = result.data || result.executives || []
       }
     } catch (err) {
-      console.error('Error fetching executives:', err)
+      logger.error('Error fetching executives:', err)
     } finally {
       executiveLoading = false
     }
@@ -167,7 +171,7 @@
         jobTitles = result.data || result.jobTitles || []
       }
     } catch (err) {
-      console.error('Error fetching job titles:', err)
+      logger.error('Error fetching job titles:', err)
     } finally {
       jobTitleLoading = false
     }
@@ -176,19 +180,19 @@
   // 직급을 카테고리별로 분류
   function getPositionsByCategory() {
     const categories = {
-      연구원: positions.filter(p => p.department === '연구개발'),
-      디자이너: positions.filter(p => p.department === '디자인'),
-      행정원: positions.filter(p => p.department === '행정')
+      연구원: positions.filter((p) => p.department === '연구개발'),
+      디자이너: positions.filter((p) => p.department === '디자인'),
+      행정원: positions.filter((p) => p.department === '행정'),
     }
     return categories
   }
 
   // 직책을 레벨별로 분류
-  function getJobTitlesByLevel() {
+  function _getJobTitlesByLevel() {
     const levels = {
-      'C-Level': jobTitles.filter(jt => jt.level === 1),
-      Management: jobTitles.filter(jt => jt.level === 2),
-      Specialist: jobTitles.filter(jt => jt.level === 3)
+      'C-Level': jobTitles.filter((jt) => jt.level === 1),
+      Management: jobTitles.filter((jt) => jt.level === 2),
+      Specialist: jobTitles.filter((jt) => jt.level === 3),
     }
     return levels
   }
@@ -211,24 +215,24 @@
     return activeEmployeeCount
   })
 
-  let totalAllEmployees = $derived(() => {
+  let _totalAllEmployees = $derived(() => {
     // 모든 직원 카운트 (재직자 + 퇴사자, 이사 제외)
     return employees?.length || 0
   })
 
-  let totalTO = $derived(() => {
+  let _totalTO = $derived(() => {
     // 부서별 T/O 카운트를 단순히 합산
     return Object.values(teamTO() as Record<string, number>).reduce(
       (sum: number, to: number) => sum + to,
-      0
+      0,
     )
   })
 
-  let totalDepartments = $derived(
-    () => [...new Set(employees?.map((emp: any) => emp.department) || [])].length
+  let _totalDepartments = $derived(
+    () => [...new Set(employees?.map((emp: any) => emp.department) || [])].length,
   )
   let activeRecruitments = $derived(
-    () => $jobPostings.filter(job => job.status === 'published').length
+    () => $jobPostings.filter((job) => job.status === 'published').length,
   )
 
   // 탭 정의
@@ -236,43 +240,43 @@
     {
       id: 'overview',
       label: '개요',
-      icon: BarChart3Icon
+      icon: BarChart3Icon,
     },
     {
       id: 'employees',
       label: '직원관리',
-      icon: UsersIcon
+      icon: UsersIcon,
     },
     {
       id: 'recruitment',
       label: '채용관리',
-      icon: UserPlusIcon
+      icon: UserPlusIcon,
     },
     {
       id: 'departments',
       label: '부서관리',
-      icon: BuildingIcon
+      icon: BuildingIcon,
     },
     {
       id: 'positions',
       label: '직급관리',
-      icon: UserCheckIcon
+      icon: UserCheckIcon,
     },
     {
       id: 'executives',
       label: '이사관리',
-      icon: CrownIcon
+      icon: CrownIcon,
     },
     {
       id: 'job-titles',
       label: '직책관리',
-      icon: BriefcaseIcon
+      icon: BriefcaseIcon,
     },
     {
       id: 'org-chart',
       label: '조직도',
-      icon: BuildingIcon
-    }
+      icon: BuildingIcon,
+    },
   ]
 
   let activeTab = $state('overview')
@@ -305,12 +309,12 @@
   // 이사 관리 관련 상태
   let executives = $state<any[]>([])
   let jobTitles = $state<any[]>([])
-  let showExecutiveModal = $state(false)
-  let showJobTitleModal = $state(false)
-  let selectedExecutive = $state<any>(null)
-  let selectedJobTitle = $state<any>(null)
+  let _showExecutiveModal = $state(false)
+  let _showJobTitleModal = $state(false)
+  let _selectedExecutive = $state<any>(null)
+  let _selectedJobTitle = $state<any>(null)
   let executiveLoading = $state(false)
-  let jobTitleLoading = $state(false)
+  let _jobTitleLoading = $state(false)
 
   // 직원 검색 및 필터링 상태
   let searchQuery = $state('')
@@ -328,31 +332,31 @@
       if (searchQuery) {
         const query = searchQuery.toLowerCase()
         filtered = filtered.filter(
-          emp =>
+          (emp) =>
             formatEmployeeName(emp).toLowerCase().includes(query) ||
             emp.email.toLowerCase().includes(query) ||
             emp.employee_id.toLowerCase().includes(query) ||
             emp.department.toLowerCase().includes(query) ||
-            emp.position.toLowerCase().includes(query)
+            emp.position.toLowerCase().includes(query),
         )
       }
 
       // 부서 필터
       if (departmentFilter) {
-        filtered = filtered.filter(emp => emp.department === departmentFilter)
+        filtered = filtered.filter((emp) => emp.department === departmentFilter)
       }
 
       // 상태 필터
       if (statusFilter) {
-        filtered = filtered.filter(emp => emp.status === statusFilter)
+        filtered = filtered.filter((emp) => emp.status === statusFilter)
       }
 
       return filtered
-    })()
+    })(),
   )
 
   // 팀별로 그룹화된 직원 목록
-  let groupedEmployees = $derived(
+  let _groupedEmployees = $derived(
     (() => {
       const groups: { [key: string]: any[] } = {}
 
@@ -365,7 +369,7 @@
       })
 
       return groups
-    })()
+    })(),
   )
 
   // 페이지네이션 계산 (직원 수 기준)
@@ -375,7 +379,7 @@
       const start = (currentPage - 1) * itemsPerPage
       const end = start + itemsPerPage
       return filteredEmployees.slice(start, end)
-    })()
+    })(),
   )
 
   // 팀 리더 및 임원인지 확인하는 함수
@@ -389,7 +393,7 @@
       '재무이사',
       '기술이사',
       '연구소장',
-      '상무'
+      '상무',
     ]
     return (
       leadershipPositions.includes(employee.job_title_name) ||
@@ -440,7 +444,7 @@
       })
 
       // 각 팀 내에서 팀 리더를 우선 정렬
-      Object.keys(groups).forEach(team => {
+      Object.keys(groups).forEach((team) => {
         groups[team] = sortEmployees(groups[team])
       })
 
@@ -449,7 +453,7 @@
         대표: 1,
         전략기획실: 2,
         연구소: 3,
-        부서없음: 999
+        부서없음: 999,
       }
 
       // 정렬된 그룹 객체 생성
@@ -466,12 +470,12 @@
         return a.localeCompare(b)
       })
 
-      sortedTeamNames.forEach(teamName => {
+      sortedTeamNames.forEach((teamName) => {
         sortedGroups[teamName] = groups[teamName]
       })
 
       return sortedGroups
-    })()
+    })(),
   )
 
   // 통계 데이터
@@ -483,19 +487,19 @@
           value: `${totalEmployees()}`,
           change: '+5%',
           changeType: 'positive' as const,
-          icon: UsersIcon
+          icon: UsersIcon,
         },
         {
           title: '진행중인 채용',
           value: activeRecruitments(),
           change: '+2',
           changeType: 'positive' as const,
-          icon: UserPlusIcon
-        }
+          icon: UserPlusIcon,
+        },
       ]
 
       return statsData
-    })()
+    })(),
   )
 
   // 액션 버튼들
@@ -504,7 +508,7 @@
       label: '직원 추가',
       icon: PlusIcon,
       onclick: () => openAddEmployeeModal(),
-      variant: 'primary' as const
+      variant: 'primary' as const,
     },
     {
       label: '채용 공고',
@@ -513,8 +517,8 @@
         // 채용 공고 탭으로 이동
         activeTab = 'recruitment'
       },
-      variant: 'success' as const
-    }
+      variant: 'success' as const,
+    },
   ]
 
   // 최근 활동 데이터
@@ -536,7 +540,7 @@
     employees
       .filter(
         (emp: any) =>
-          emp.status === 'active' && emp.hire_date && new Date(emp.hire_date) >= threeMonthsAgo
+          emp.status === 'active' && emp.hire_date && new Date(emp.hire_date) >= threeMonthsAgo,
       )
       .sort((a: any, b: any) => new Date(b.hire_date).getTime() - new Date(a.hire_date).getTime())
       .slice(0, 3)
@@ -554,8 +558,8 @@
             daysSinceHire,
             department: emp.department,
             position: emp.position,
-            employeeName: formatEmployeeName(emp)
-          }
+            employeeName: formatEmployeeName(emp),
+          },
         })
       })
 
@@ -569,11 +573,11 @@
           emp.status === 'active' &&
           emp.termination_date &&
           new Date(emp.termination_date) > new Date() && // 미래 날짜
-          new Date(emp.termination_date) <= oneMonthFromNow // 1개월 이내
+          new Date(emp.termination_date) <= oneMonthFromNow, // 1개월 이내
       )
       .sort(
         (a: any, b: any) =>
-          new Date(a.termination_date).getTime() - new Date(b.termination_date).getTime()
+          new Date(a.termination_date).getTime() - new Date(b.termination_date).getTime(),
       )
       .slice(0, 3)
       .forEach((emp: any) => {
@@ -592,8 +596,8 @@
             employmentType: emp.employment_type,
             department: emp.department,
             employeeName: formatEmployeeName(emp),
-            position: emp.position
-          }
+            position: emp.position,
+          },
         })
       })
 
@@ -606,11 +610,11 @@
         (emp: any) =>
           emp.status === 'terminated' &&
           emp.termination_date &&
-          new Date(emp.termination_date) >= threeMonthsAgoForTermination
+          new Date(emp.termination_date) >= threeMonthsAgoForTermination,
       )
       .sort(
         (a: any, b: any) =>
-          new Date(b.termination_date).getTime() - new Date(a.termination_date).getTime()
+          new Date(b.termination_date).getTime() - new Date(a.termination_date).getTime(),
       )
       .slice(0, 3)
       .forEach((emp: any) => {
@@ -627,8 +631,8 @@
             daysSinceTermination,
             department: emp.department,
             employeeName: formatEmployeeName(emp),
-            position: emp.position
-          }
+            position: emp.position,
+          },
         })
       })
 
@@ -678,8 +682,8 @@
               department: dept,
               netChange,
               hires: changes.hires,
-              terminations: changes.terminations
-            }
+              terminations: changes.terminations,
+            },
           })
         }
       }
@@ -701,7 +705,7 @@
         acc[emp.department] = (acc[emp.department] || 0) + 1
         return acc
       },
-      {} as Record<string, number>
+      {} as Record<string, number>,
     )
 
     // departments 데이터를 기반으로 부서별 데이터 생성 (부서없음 포함)
@@ -725,7 +729,7 @@
               ? 'over'
               : currentCount === departmentTO
                 ? 'full'
-                : 'available'
+                : 'available',
       }
     })
 
@@ -735,7 +739,7 @@
         대표: 1,
         전략기획실: 2,
         연구소: 3,
-        부서없음: 999
+        부서없음: 999,
       }
 
       const aOrder = order[a.department] || 100
@@ -771,27 +775,27 @@
   $effect(() => {
     // activeTab 변경을 감지하여 데이터 로드
     const currentTab = activeTab
-    console.log('HR Tab changed to:', currentTab)
+    logger.log('HR Tab changed to:', currentTab)
 
     switch (currentTab) {
       case 'employees':
-        console.log('Loading employees data...')
+        logger.log('Loading employees data...')
         fetchEmployees()
         break
       case 'departments':
-        console.log('Loading departments data...')
+        logger.log('Loading departments data...')
         fetchDepartments()
         break
       case 'positions':
-        console.log('Loading positions data...')
+        logger.log('Loading positions data...')
         fetchPositions()
         break
       case 'executives':
-        console.log('Loading executives data...')
+        logger.log('Loading executives data...')
         fetchExecutives()
         break
       case 'job-titles':
-        console.log('Loading job titles data...')
+        logger.log('Loading job titles data...')
         fetchJobTitles()
         break
     }
@@ -799,7 +803,7 @@
 
   // 탭 변경 핸들러
   function handleTabChange(tabId: string) {
-    console.log('HR Tab change requested:', tabId)
+    logger.log('HR Tab change requested:', tabId)
     activeTab = tabId
   }
 
@@ -848,12 +852,12 @@
     const allowedTypes = [
       'text/csv',
       'application/vnd.ms-excel',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     ]
     const allowedExtensions = ['.csv', '.xlsx', '.xls']
 
     const isValidType = allowedTypes.includes(file.type)
-    const isValidExtension = allowedExtensions.some(ext => file.name.toLowerCase().endsWith(ext))
+    const isValidExtension = allowedExtensions.some((ext) => file.name.toLowerCase().endsWith(ext))
 
     if (!isValidType && !isValidExtension) {
       uploadMessage = 'CSV 또는 Excel 파일만 업로드 가능합니다.'
@@ -888,7 +892,7 @@
 
       const response = await fetch('/api/employees/upload', {
         method: 'POST',
-        body: formData
+        body: formData,
       })
 
       clearInterval(progressInterval)
@@ -915,7 +919,7 @@
     } catch (error) {
       uploadStatus = 'error'
       uploadMessage = '업로드 중 오류가 발생했습니다. 파일 형식을 확인해주세요.'
-      console.error('Upload error:', error)
+      logger.error('Upload error:', error)
     }
   }
 
@@ -949,9 +953,9 @@
       const response = await fetch(url, {
         method,
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
-        body: JSON.stringify(employeeData)
+        body: JSON.stringify(employeeData),
       })
 
       const result = await response.json()
@@ -964,7 +968,7 @@
         alert(result.error || '직원 저장에 실패했습니다.')
       }
     } catch (error) {
-      console.error('Error saving employee:', error)
+      logger.error('Error saving employee:', error)
       alert('직원 저장 중 오류가 발생했습니다.')
     } finally {
       employeeLoading = false
@@ -980,7 +984,7 @@
 
       const url = `/api/employees/${selectedEmployee.id}${action === 'archive' ? '?archive=true' : ''}`
       const response = await fetch(url, {
-        method: 'DELETE'
+        method: 'DELETE',
       })
 
       const result = await response.json()
@@ -993,7 +997,7 @@
         alert(result.error || '직원 삭제에 실패했습니다.')
       }
     } catch (error) {
-      console.error('Error deleting employee:', error)
+      logger.error('Error deleting employee:', error)
       alert('직원 삭제 중 오류가 발생했습니다.')
     } finally {
       deleteLoading = false
@@ -1049,7 +1053,7 @@
         alert('템플릿 다운로드에 실패했습니다.')
       }
     } catch (error) {
-      console.error('템플릿 다운로드 에러:', error)
+      logger.error('템플릿 다운로드 에러:', error)
       alert('템플릿 다운로드 중 오류가 발생했습니다.')
     }
   }
@@ -1068,9 +1072,9 @@
       const response = await fetch(url, {
         method,
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
-        body: JSON.stringify(departmentData)
+        body: JSON.stringify(departmentData),
       })
 
       const result = await response.json()
@@ -1083,7 +1087,7 @@
         alert(result.error || '부서 저장에 실패했습니다.')
       }
     } catch (error) {
-      console.error('Error saving department:', error)
+      logger.error('Error saving department:', error)
       alert('부서 저장 중 오류가 발생했습니다.')
     } finally {
       departmentLoading = false
@@ -1094,7 +1098,7 @@
     try {
       const url = `/api/departments/${department.id}${hardDelete ? '?hard=true' : ''}`
       const response = await fetch(url, {
-        method: 'DELETE'
+        method: 'DELETE',
       })
 
       const result = await response.json()
@@ -1105,7 +1109,7 @@
         alert(result.error || '부서 삭제에 실패했습니다.')
       }
     } catch (error) {
-      console.error('Error deleting department:', error)
+      logger.error('Error deleting department:', error)
       alert('부서 삭제 중 오류가 발생했습니다.')
     }
   }
@@ -1132,9 +1136,9 @@
       const response = await fetch(url, {
         method,
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
-        body: JSON.stringify(positionData)
+        body: JSON.stringify(positionData),
       })
 
       const result = await response.json()
@@ -1147,7 +1151,7 @@
         alert(result.error || '직급 저장에 실패했습니다.')
       }
     } catch (error) {
-      console.error('Error saving position:', error)
+      logger.error('Error saving position:', error)
       alert('직급 저장 중 오류가 발생했습니다.')
     } finally {
       positionLoading = false
@@ -1158,7 +1162,7 @@
     try {
       const url = `/api/positions/${position.id}${hardDelete ? '?hard=true' : ''}`
       const response = await fetch(url, {
-        method: 'DELETE'
+        method: 'DELETE',
       })
 
       const result = await response.json()
@@ -1169,7 +1173,7 @@
         alert(result.error || '직급 삭제에 실패했습니다.')
       }
     } catch (error) {
-      console.error('Error deleting position:', error)
+      logger.error('Error deleting position:', error)
       alert('직급 삭제 중 오류가 발생했습니다.')
     }
   }
@@ -1199,7 +1203,7 @@
     if (confirm(`정말로 ${formatEmployeeName(executive)} 이사를 삭제하시겠습니까?`)) {
       try {
         const response = await fetch(`/api/executives/${executive.id}`, {
-          method: 'DELETE'
+          method: 'DELETE',
         })
 
         if (response.ok) {
@@ -1210,7 +1214,7 @@
           alert(result.error || '이사 삭제 중 오류가 발생했습니다.')
         }
       } catch (error) {
-        console.error('Error deleting executive:', error)
+        logger.error('Error deleting executive:', error)
         alert('이사 삭제 중 오류가 발생했습니다.')
       }
     }
@@ -1235,7 +1239,7 @@
     if (confirm(`정말로 ${jobTitle.name} 직책을 삭제하시겠습니까?`)) {
       try {
         const response = await fetch(`/api/job-titles/${jobTitle.id}`, {
-          method: 'DELETE'
+          method: 'DELETE',
         })
 
         if (response.ok) {
@@ -1246,7 +1250,7 @@
           alert(result.error || '직책 삭제 중 오류가 발생했습니다.')
         }
       } catch (error) {
-        console.error('Error deleting job title:', error)
+        logger.error('Error deleting job title:', error)
         alert('직책 삭제 중 오류가 발생했습니다.')
       }
     }
@@ -1283,27 +1287,28 @@
             <!-- 부서별 직원 현황 -->
             <ThemeCard class="p-6">
               <div class="mb-6">
-                <h3 class="text-lg font-semibold" style="color: var(--color-text);">
+                <h3 class="text-lg font-semibold" style:color="var(--color-text)">
                   부서별 직원 현황 (T/O)
                 </h3>
-                <p class="text-sm mt-1" style="color: var(--color-text-secondary);">
+                <p class="text-sm mt-1" style:color="var(--color-text-secondary)">
                   현재 인원 / 정원 (T/O) • 색상: 🟢여유 🟡충족 🔴초과 ⚪미설정
                 </p>
               </div>
               <ThemeSpacer size={4}>
-                {#each departmentData() as dept}
+                {#each departmentData() as dept, idx (idx)}
+                  <!-- TODO: replace index key with a stable id when model provides one -->
                   <div
                     class="flex items-center justify-between p-3 rounded-lg"
-                    style="background: var(--color-surface-elevated);"
+                    style:background="var(--color-surface-elevated)"
                   >
                     <div class="flex items-center gap-3">
                       <BuildingIcon size={20} style="color: var(--color-primary);" />
                       <div>
-                        <h4 class="font-medium" style="color: var(--color-text);">
+                        <h4 class="font-medium" style:color="var(--color-text)">
                           {dept.department}
                         </h4>
                         <div class="flex items-center gap-2">
-                          <p class="text-sm" style="color: var(--color-text-secondary);">
+                          <p class="text-sm" style:color="var(--color-text-secondary)">
                             {dept.count}명
                             {#if dept.to > 0}
                               / {dept.to}명
@@ -1349,10 +1354,11 @@
             <!-- 최근 활동 -->
             <ThemeCard class="p-6">
               <div class="mb-6">
-                <h3 class="text-lg font-semibold" style="color: var(--color-text);">최근 활동</h3>
+                <h3 class="text-lg font-semibold" style:color="var(--color-text)">최근 활동</h3>
               </div>
               <ThemeSpacer size={4}>
-                {#each recentActivities() as activity}
+                {#each recentActivities() as activity, idx (idx)}
+                  <!-- TODO: replace index key with a stable id when model provides one -->
                   <ThemeActivityItem
                     title={activity.title}
                     time={activity.time}
@@ -1369,7 +1375,7 @@
             <!-- 부서별 분포 차트 -->
             <ThemeCard class="p-6">
               <div class="mb-6">
-                <h3 class="text-lg font-semibold" style="color: var(--color-text);">
+                <h3 class="text-lg font-semibold" style:color="var(--color-text)">
                   부서별 직원 분포
                 </h3>
               </div>
@@ -1379,7 +1385,7 @@
             <!-- 채용 현황 차트 -->
             <ThemeCard class="p-6">
               <div class="mb-6">
-                <h3 class="text-lg font-semibold" style="color: var(--color-text);">채용 현황</h3>
+                <h3 class="text-lg font-semibold" style:color="var(--color-text)">채용 현황</h3>
               </div>
               <ThemeChartPlaceholder title="월별 채용 현황" icon={UserPlusIcon} />
             </ThemeCard>
@@ -1388,9 +1394,7 @@
           <!-- 최근 채용 공고 -->
           <ThemeCard class="p-6">
             <div class="flex items-center justify-between mb-6">
-              <h3 class="text-lg font-semibold" style="color: var(--color-text);">
-                최근 채용 공고
-              </h3>
+              <h3 class="text-lg font-semibold" style:color="var(--color-text)">최근 채용 공고</h3>
               <ThemeButton
                 variant="primary"
                 size="sm"
@@ -1406,21 +1410,25 @@
             </div>
 
             <div class="space-y-4">
-              {#each recentJobPostings() as job}
+              {#each recentJobPostings() as job, idx (idx)}
+                <!-- TODO: replace index key with a stable id when model provides one -->
                 <div
                   class="flex items-center justify-between p-4 rounded-lg border"
-                  style="border-color: var(--color-border); background: var(--color-surface-elevated);"
+                  style:border-color="var(--color-border)"
+                  style:background="var(--color-surface-elevated)"
                 >
                   <div class="flex-1">
-                    <h4 class="font-medium" style="color: var(--color-text);">{job.title}</h4>
-                    <p class="text-sm" style="color: var(--color-text-secondary);">
+                    <h4 class="font-medium" style:color="var(--color-text)">
+                      {job.title}
+                    </h4>
+                    <p class="text-sm" style:color="var(--color-text-secondary)">
                       {job.department} • {job.employmentType}
                     </p>
                     <div class="flex items-center gap-2 mt-2">
                       <ThemeBadge variant={job.status === 'published' ? 'success' : 'warning'}>
                         {job.status === 'published' ? '모집중' : '마감'}
                       </ThemeBadge>
-                      <span class="text-xs" style="color: var(--color-text-secondary);">
+                      <span class="text-xs" style:color="var(--color-text-secondary)">
                         {formatDate(job.createdAt)}
                       </span>
                     </div>
@@ -1467,7 +1475,7 @@
         <ThemeSpacer size={6}>
           <ThemeCard class="p-6">
             <div class="flex items-center justify-between mb-6">
-              <h3 class="text-lg font-semibold" style="color: var(--color-text);">직원 목록</h3>
+              <h3 class="text-lg font-semibold" style:color="var(--color-text)">직원 목록</h3>
               <div class="flex items-center gap-2">
                 <ThemeButton
                   variant="primary"
@@ -1491,7 +1499,7 @@
 
             {#if loading}
               <div class="flex items-center justify-center py-8">
-                <div class="text-sm" style="color: var(--color-text-secondary);">
+                <div class="text-sm" style:color="var(--color-text-secondary)">
                   직원 데이터를 불러오는 중...
                 </div>
               </div>
@@ -1501,7 +1509,7 @@
               </div>
             {:else if !employees || employees.length === 0}
               <div class="flex items-center justify-center py-8">
-                <div class="text-sm" style="color: var(--color-text-secondary);">
+                <div class="text-sm" style:color="var(--color-text-secondary)">
                   등록된 직원이 없습니다.
                 </div>
               </div>
@@ -1515,20 +1523,25 @@
                       bind:value={searchQuery}
                       placeholder="이름, 이메일, 부서로 검색..."
                       class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      style="border-color: var(--color-border); background: var(--color-input-background); color: var(--color-text);"
+                      style:border-color="var(--color-border)"
+                      style:background="var(--color-input-background)"
+                      style:color="var(--color-text)"
                     />
                   </div>
                   <div class="flex gap-2">
                     <select
                       bind:value={departmentFilter}
                       class="px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      style="border-color: var(--color-border); background: var(--color-input-background); color: var(--color-text);"
+                      style:border-color="var(--color-border)"
+                      style:background="var(--color-input-background)"
+                      style:color="var(--color-text)"
                     >
                       <option value="">전체 부서</option>
                       <option value="대표">대표</option>
                       <option value="전략기획실">전략기획실</option>
                       <option value="연구소">연구소</option>
-                      {#each departments.filter(d => !['대표', '전략기획실', '연구소', '부서없음'].includes(d.name)) as dept}
+                      {#each departments.filter((d) => !['대표', '전략기획실', '연구소', '부서없음'].includes(d.name)) as dept, idx (idx)}
+                        <!-- TODO: replace index key with a stable id when model provides one -->
                         <option value={dept.name}>{dept.name}</option>
                       {/each}
                       <option value="부서없음">부서없음</option>
@@ -1536,7 +1549,9 @@
                     <select
                       bind:value={statusFilter}
                       class="px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      style="border-color: var(--color-border); background: var(--color-input-background); color: var(--color-text);"
+                      style:border-color="var(--color-border)"
+                      style:background="var(--color-input-background)"
+                      style:color="var(--color-text)"
                     >
                       <option value="">전체 상태</option>
                       <option value="active">재직중</option>
@@ -1554,15 +1569,16 @@
                     <!-- 팀 헤더 -->
                     <div
                       class="flex items-center gap-3 pb-2 border-b"
-                      style="border-color: var(--color-border);"
+                      style:border-color="var(--color-border)"
                     >
                       <BuildingIcon size={20} style="color: var(--color-primary);" />
-                      <h3 class="text-lg font-semibold" style="color: var(--color-text);">
+                      <h3 class="text-lg font-semibold" style:color="var(--color-text)">
                         {teamName}
                       </h3>
                       <span
                         class="text-sm px-2 py-1 rounded-full"
-                        style="background: var(--color-primary-light); color: var(--color-primary);"
+                        style:background="var(--color-primary-light)"
+                        style:color="var(--color-primary)"
                       >
                         {paginatedGroupedEmployees[teamName]?.length || 0}명
                       </span>
@@ -1570,10 +1586,10 @@
 
                     <!-- 팀 내 직원 카드 그리드 -->
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {#each paginatedGroupedEmployees[teamName] || [] as employee}
+                      {#each paginatedGroupedEmployees[teamName] || [] as employee, i (i)}
                         <div
                           class="p-4 rounded-lg border transition-all duration-300 hover:shadow-lg hover:scale-[1.02] overflow-hidden {isTeamLead(
-                            employee
+                            employee,
                           )
                             ? 'ring-2 ring-yellow-400/50 shadow-lg'
                             : employee.employment_type === 'contract'
@@ -1609,7 +1625,7 @@
                                 <div class="flex items-center gap-2 min-w-0">
                                   <h4
                                     class="font-semibold text-lg truncate"
-                                    style="color: var(--color-text);"
+                                    style:color="var(--color-text)"
                                   >
                                     {formatEmployeeName(employee)}
                                   </h4>
@@ -1637,11 +1653,11 @@
                                 </div>
                                 <p
                                   class="text-sm truncate"
-                                  style="color: var(--color-text-secondary);"
+                                  style:color="var(--color-text-secondary)"
                                 >
                                   {formatEmployeeIdDisplay(
                                     employee.employee_id,
-                                    employees.indexOf(employee)
+                                    employees.indexOf(employee),
                                   )}
                                 </p>
                               </div>
@@ -1675,7 +1691,7 @@
                                 style="color: var(--color-text-secondary);"
                                 class="flex-shrink-0"
                               />
-                              <span class="text-sm truncate" style="color: var(--color-text);"
+                              <span class="text-sm truncate" style:color="var(--color-text)"
                                 >{employee.department}</span
                               >
                             </div>
@@ -1685,7 +1701,7 @@
                                 style="color: var(--color-text-secondary);"
                                 class="flex-shrink-0"
                               />
-                              <span class="text-sm truncate" style="color: var(--color-text);">
+                              <span class="text-sm truncate" style:color="var(--color-text)">
                                 {employee.job_title_name || employee.position}
                               </span>
                             </div>
@@ -1697,7 +1713,7 @@
                               />
                               <span
                                 class="text-sm truncate"
-                                style="color: var(--color-text-secondary);">{employee.email}</span
+                                style:color="var(--color-text-secondary)">{employee.email}</span
                               >
                             </div>
                             {#if employee.phone}
@@ -1709,7 +1725,7 @@
                                 />
                                 <span
                                   class="text-sm truncate"
-                                  style="color: var(--color-text-secondary);">{employee.phone}</span
+                                  style:color="var(--color-text-secondary)">{employee.phone}</span
                                 >
                               </div>
                             {/if}
@@ -1723,7 +1739,7 @@
                                 />
                                 <span
                                   class="text-sm font-medium truncate"
-                                  style="color: var(--color-primary);"
+                                  style:color="var(--color-primary)"
                                 >
                                   {Math.round(currentSalary.annualSalary / 10000)}만원
                                 </span>
@@ -1758,7 +1774,7 @@
                                 />
                                 <span
                                   class="text-sm truncate"
-                                  style="color: var(--color-text-secondary);"
+                                  style:color="var(--color-text-secondary)"
                                 >
                                   입사일: {formatDate(employee.hire_date)}
                                 </span>
@@ -1773,7 +1789,7 @@
                                 />
                                 <span
                                   class="text-sm truncate"
-                                  style="color: var(--color-text-secondary);"
+                                  style:color="var(--color-text-secondary)"
                                 >
                                   생일: {formatDate(employee.birth_date)}
                                 </span>
@@ -1786,7 +1802,7 @@
                               {@const daysLeft = isFuture
                                 ? Math.ceil(
                                     (terminationDate.getTime() - today.getTime()) /
-                                      (1000 * 60 * 60 * 24)
+                                      (1000 * 60 * 60 * 24),
                                   )
                                 : null}
                               <div class="flex items-center gap-2 min-w-0">
@@ -1799,12 +1815,12 @@
                                 />
                                 <span
                                   class="text-sm truncate"
-                                  style="color: {isFuture
+                                  style:color={isFuture
                                     ? 'var(--color-warning)'
-                                    : 'var(--color-error)'};"
+                                    : 'var(--color-error)'}
                                 >
                                   {isFuture ? '퇴사(예정)일' : '퇴사일'}: {formatDate(
-                                    employee.termination_date
+                                    employee.termination_date,
                                   )}
                                   {#if isFuture && daysLeft !== null}
                                     <span class="ml-1 font-medium">({daysLeft}일 남음)</span>
@@ -1815,19 +1831,19 @@
                             <!-- 재직 상태 정보 -->
                             <div
                               class="flex items-center gap-2 pt-2 border-t min-w-0"
-                              style="border-color: var(--color-border);"
+                              style:border-color="var(--color-border)"
                             >
                               <div
                                 class="w-2 h-2 rounded-full flex-shrink-0"
-                                style="background: {employee.status === 'active'
+                                style:background={employee.status === 'active'
                                   ? 'var(--color-success)'
                                   : employee.status === 'terminated'
                                     ? 'var(--color-error)'
-                                    : 'var(--color-warning)'};"
+                                    : 'var(--color-warning)'}
                               ></div>
                               <span
                                 class="text-xs font-medium truncate"
-                                style="color: var(--color-text-secondary);"
+                                style:color="var(--color-text-secondary)"
                               >
                                 {employee.status === 'active'
                                   ? '재직중'
@@ -1843,7 +1859,7 @@
                           <!-- 액션 버튼 -->
                           <div
                             class="flex items-center gap-2 pt-3 border-t min-w-0"
-                            style="border-color: var(--color-border);"
+                            style:border-color="var(--color-border)"
                           >
                             <ThemeButton
                               variant="ghost"
@@ -1909,7 +1925,7 @@
         <ThemeSpacer size={6}>
           <ThemeCard class="p-6">
             <div class="flex items-center justify-between mb-6">
-              <h3 class="text-lg font-semibold" style="color: var(--color-text);">채용 공고</h3>
+              <h3 class="text-lg font-semibold" style:color="var(--color-text)">채용 공고</h3>
               <ThemeButton
                 variant="primary"
                 size="sm"
@@ -1925,21 +1941,25 @@
             </div>
 
             <div class="space-y-4">
-              {#each recentJobPostings() as job}
+              {#each recentJobPostings() as job, idx (idx)}
+                <!-- TODO: replace index key with a stable id when model provides one -->
                 <div
                   class="flex items-center justify-between p-4 rounded-lg border"
-                  style="border-color: var(--color-border); background: var(--color-surface-elevated);"
+                  style:border-color="var(--color-border)"
+                  style:background="var(--color-surface-elevated)"
                 >
                   <div class="flex-1">
-                    <h4 class="font-medium" style="color: var(--color-text);">{job.title}</h4>
-                    <p class="text-sm" style="color: var(--color-text-secondary);">
+                    <h4 class="font-medium" style:color="var(--color-text)">
+                      {job.title}
+                    </h4>
+                    <p class="text-sm" style:color="var(--color-text-secondary)">
                       {job.department} • {job.employmentType}
                     </p>
                     <div class="flex items-center gap-2 mt-2">
                       <ThemeBadge variant={job.status === 'published' ? 'success' : 'warning'}>
                         {job.status === 'published' ? '모집중' : '마감'}
                       </ThemeBadge>
-                      <span class="text-xs" style="color: var(--color-text-secondary);">
+                      <span class="text-xs" style:color="var(--color-text-secondary)">
                         {formatDate(job.createdAt)}
                       </span>
                     </div>
@@ -1977,7 +1997,7 @@
           <!-- 부서 관리 -->
           <ThemeCard class="p-6">
             <div class="flex items-center justify-between mb-6">
-              <h3 class="text-lg font-semibold" style="color: var(--color-text);">부서 관리</h3>
+              <h3 class="text-lg font-semibold" style:color="var(--color-text)">부서 관리</h3>
               <ThemeButton
                 variant="primary"
                 size="sm"
@@ -1993,13 +2013,14 @@
               {#each sortedDepartments() as department (department.id)}
                 <div
                   class="flex items-center justify-between p-4 rounded-lg border"
-                  style="border-color: var(--color-border); background: var(--color-surface-elevated);"
+                  style:border-color="var(--color-border)"
+                  style:background="var(--color-surface-elevated)"
                 >
                   <div class="flex items-center gap-4">
                     <BuildingIcon size={24} style="color: var(--color-primary);" />
                     <div class="flex-1">
                       <div class="flex items-center gap-3 mb-1">
-                        <h4 class="font-semibold text-lg" style="color: var(--color-text);">
+                        <h4 class="font-semibold text-lg" style:color="var(--color-text)">
                           {department.name}
                         </h4>
                         <ThemeBadge
@@ -2009,7 +2030,7 @@
                         </ThemeBadge>
                       </div>
                       {#if department.description}
-                        <p class="text-sm mb-2" style="color: var(--color-text-secondary);">
+                        <p class="text-sm mb-2" style:color="var(--color-text-secondary)">
                           {department.description}
                         </p>
                       {/if}
@@ -2017,7 +2038,7 @@
                       <div class="flex items-center gap-4">
                         <div class="flex items-center gap-2">
                           <CalendarIcon size={14} style="color: var(--color-text-secondary);" />
-                          <span class="text-xs" style="color: var(--color-text-secondary);">
+                          <span class="text-xs" style:color="var(--color-text-secondary)">
                             생성일: {formatDate(department.created_at)}
                           </span>
                         </div>
@@ -2026,10 +2047,10 @@
                       <div class="flex items-center gap-4 mt-2">
                         <div class="flex items-center gap-2">
                           <UsersIcon size={16} style="color: var(--color-text-secondary);" />
-                          <span class="text-sm font-medium" style="color: var(--color-text);">
+                          <span class="text-sm font-medium" style:color="var(--color-text)">
                             {employees?.filter(
                               (emp: any) =>
-                                emp.status === 'active' && emp.department === department.name
+                                emp.status === 'active' && emp.department === department.name,
                             ).length || 0}
                             {#if department.max_employees !== undefined && department.max_employees > 0}
                               / {department.max_employees}
@@ -2042,21 +2063,21 @@
                           {@const currentCount =
                             employees?.filter(
                               (emp: any) =>
-                                emp.status === 'active' && emp.department === department.name
+                                emp.status === 'active' && emp.department === department.name,
                             ).length || 0}
                           {@const maxCount = department.max_employees}
                           <div class="flex items-center gap-2">
                             <div
                               class="w-2 h-2 rounded-full"
-                              style="background-color: {currentCount > maxCount
+                              style:background-color={currentCount > maxCount
                                 ? 'var(--color-error)'
                                 : currentCount === maxCount
                                   ? 'var(--color-warning)'
-                                  : 'var(--color-success)'}"
+                                  : 'var(--color-success)'}
                             ></div>
                             <span
                               class="text-xs font-medium"
-                              style="color: var(--color-text-secondary);"
+                              style:color="var(--color-text-secondary)"
                             >
                               {currentCount > maxCount
                                 ? '정원초과'
@@ -2095,10 +2116,10 @@
                     class="mx-auto mb-4"
                     style="color: var(--color-text-secondary);"
                   />
-                  <h3 class="text-lg font-medium mb-2" style="color: var(--color-text);">
+                  <h3 class="text-lg font-medium mb-2" style:color="var(--color-text)">
                     등록된 부서가 없습니다
                   </h3>
-                  <p class="text-sm mb-4" style="color: var(--color-text-secondary);">
+                  <p class="text-sm mb-4" style:color="var(--color-text-secondary)">
                     새 부서를 추가하여 조직을 구성해보세요.
                   </p>
                   <ThemeButton
@@ -2117,13 +2138,11 @@
           <!-- 부서 관리 안내 -->
           <ThemeCard class="p-6">
             <div class="mb-6">
-              <h3 class="text-lg font-semibold" style="color: var(--color-text);">
-                부서 관리 안내
-              </h3>
+              <h3 class="text-lg font-semibold" style:color="var(--color-text)">부서 관리 안내</h3>
             </div>
             <div class="space-y-3">
-              <h4 class="font-medium" style="color: var(--color-text);">부서 관리 규칙</h4>
-              <ul class="text-sm space-y-2" style="color: var(--color-text-secondary);">
+              <h4 class="font-medium" style:color="var(--color-text)">부서 관리 규칙</h4>
+              <ul class="text-sm space-y-2" style:color="var(--color-text-secondary)">
                 <li>• 부서명은 중복될 수 없습니다</li>
                 <li>• 부서를 삭제하면 해당 부서의 직원들에게 영향을 줄 수 있습니다</li>
                 <li>• 비활성화된 부서는 새 직원 배치 시 선택할 수 없습니다</li>
@@ -2149,10 +2168,10 @@
                       <BuildingIcon size={24} style="color: var(--color-primary);" />
                     {/if}
                     <div>
-                      <h3 class="text-xl font-semibold" style="color: var(--color-text);">
+                      <h3 class="text-xl font-semibold" style:color="var(--color-text)">
                         {category} 직급 관리
                       </h3>
-                      <p class="text-sm" style="color: var(--color-text-secondary);">
+                      <p class="text-sm" style:color="var(--color-text-secondary)">
                         {categoryPositions.length}개 직급
                       </p>
                     </div>
@@ -2169,17 +2188,18 @@
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {#each categoryPositions as position}
+                  {#each categoryPositions as position, i (i)}
                     <div
                       class="p-4 rounded-lg border"
-                      style="border-color: var(--color-border); background: var(--color-surface-elevated);"
+                      style:border-color="var(--color-border)"
+                      style:background="var(--color-surface-elevated)"
                     >
                       <div class="flex items-start justify-between mb-3">
                         <div class="flex-1">
-                          <h4 class="font-medium" style="color: var(--color-text);">
+                          <h4 class="font-medium" style:color="var(--color-text)">
                             {position.name}
                           </h4>
-                          <p class="text-sm" style="color: var(--color-text-secondary);">
+                          <p class="text-sm" style:color="var(--color-text-secondary)">
                             {position.department}
                           </p>
                           <div class="flex items-center gap-2 mt-2">
@@ -2212,7 +2232,7 @@
                         </div>
                       </div>
                       {#if position.description}
-                        <p class="text-xs" style="color: var(--color-text-secondary);">
+                        <p class="text-xs" style:color="var(--color-text-secondary)">
                           {position.description}
                         </p>
                       {/if}
@@ -2240,7 +2260,7 @@
                           style="color: var(--color-text-secondary);"
                         />
                       {/if}
-                      <p class="text-sm" style="color: var(--color-text-secondary);">
+                      <p class="text-sm" style:color="var(--color-text-secondary)">
                         {category} 직급이 등록되지 않았습니다.
                       </p>
                     </div>
@@ -2252,39 +2272,39 @@
             <!-- 직급 관리 안내 -->
             <ThemeCard class="p-6">
               <div class="mb-6">
-                <h3 class="text-lg font-semibold" style="color: var(--color-text);">
+                <h3 class="text-lg font-semibold" style:color="var(--color-text)">
                   직급 관리 안내
                 </h3>
               </div>
               <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div class="space-y-3">
-                  <h4 class="font-medium flex items-center gap-2" style="color: var(--color-text);">
+                  <h4 class="font-medium flex items-center gap-2" style:color="var(--color-text)">
                     <FlaskConicalIcon size={16} style="color: var(--color-primary);" />
                     연구원 직급
                   </h4>
-                  <ul class="text-sm space-y-1" style="color: var(--color-text-secondary);">
+                  <ul class="text-sm space-y-1" style:color="var(--color-text-secondary)">
                     <li>• 연구원 → 주임연구원</li>
                     <li>• 선임연구원 → 책임연구원</li>
                     <li>• 수석연구원</li>
                   </ul>
                 </div>
                 <div class="space-y-3">
-                  <h4 class="font-medium flex items-center gap-2" style="color: var(--color-text);">
+                  <h4 class="font-medium flex items-center gap-2" style:color="var(--color-text)">
                     <UsersIcon size={16} style="color: var(--color-primary);" />
                     디자이너 직급
                   </h4>
-                  <ul class="text-sm space-y-1" style="color: var(--color-text-secondary);">
+                  <ul class="text-sm space-y-1" style:color="var(--color-text-secondary)">
                     <li>• 디자이너 → 주임디자이너</li>
                     <li>• 선임디자이너 → 책임디자이너</li>
                     <li>• 수석디자이너</li>
                   </ul>
                 </div>
                 <div class="space-y-3">
-                  <h4 class="font-medium flex items-center gap-2" style="color: var(--color-text);">
+                  <h4 class="font-medium flex items-center gap-2" style:color="var(--color-text)">
                     <BuildingIcon size={16} style="color: var(--color-primary);" />
                     행정원 직급
                   </h4>
-                  <ul class="text-sm space-y-1" style="color: var(--color-text-secondary);">
+                  <ul class="text-sm space-y-1" style:color="var(--color-text-secondary)">
                     <li>• 행정원 → 주임행정원</li>
                     <li>• 선임행정원 → 책임행정원</li>
                     <li>• 수석행정원</li>
@@ -2299,7 +2319,7 @@
         <ThemeSpacer size={6}>
           <ThemeCard class="p-6">
             <div class="flex items-center justify-between mb-6">
-              <h3 class="text-lg font-semibold" style="color: var(--color-text);">이사 관리</h3>
+              <h3 class="text-lg font-semibold" style:color="var(--color-text)">이사 관리</h3>
               <ThemeButton
                 variant="primary"
                 size="sm"
@@ -2314,7 +2334,7 @@
             <div class="space-y-3">
               {#if executiveLoading}
                 <div class="flex items-center justify-center py-8">
-                  <div class="text-sm" style="color: var(--color-text-secondary);">
+                  <div class="text-sm" style:color="var(--color-text-secondary)">
                     이사 데이터를 불러오는 중...
                   </div>
                 </div>
@@ -2325,7 +2345,7 @@
                     class="mx-auto mb-4"
                     style="color: var(--color-text-secondary);"
                   />
-                  <p class="text-sm" style="color: var(--color-text-secondary);">
+                  <p class="text-sm" style:color="var(--color-text-secondary)">
                     등록된 이사가 없습니다.
                   </p>
                 </div>
@@ -2333,13 +2353,14 @@
                 {#each executives as executive (executive.id)}
                   <div
                     class="flex items-center justify-between p-4 rounded-lg border"
-                    style="border-color: var(--color-border); background: var(--color-surface-elevated);"
+                    style:border-color="var(--color-border)"
+                    style:background="var(--color-surface-elevated)"
                   >
                     <div class="flex items-center gap-4">
                       <BriefcaseIcon size={24} style="color: var(--color-primary);" />
                       <div class="flex-1">
                         <div class="flex items-center gap-3 mb-1">
-                          <h4 class="font-semibold text-lg" style="color: var(--color-text);">
+                          <h4 class="font-semibold text-lg" style:color="var(--color-text)">
                             {formatEmployeeName(executive)}
                           </h4>
                           <ThemeBadge
@@ -2351,19 +2372,19 @@
                         <div class="flex items-center gap-4">
                           <div class="flex items-center gap-2">
                             <BriefcaseIcon size={14} style="color: var(--color-text-secondary);" />
-                            <span class="text-sm" style="color: var(--color-text);">
+                            <span class="text-sm" style:color="var(--color-text)">
                               {executive.job_title_name}
                             </span>
                           </div>
                           <div class="flex items-center gap-2">
                             <BuildingIcon size={14} style="color: var(--color-text-secondary);" />
-                            <span class="text-sm" style="color: var(--color-text);">
+                            <span class="text-sm" style:color="var(--color-text)">
                               {executive.department}
                             </span>
                           </div>
                           <div class="flex items-center gap-2">
                             <UserCheckIcon size={14} style="color: var(--color-text-secondary);" />
-                            <span class="text-xs" style="color: var(--color-text-secondary);">
+                            <span class="text-xs" style:color="var(--color-text-secondary)">
                               레벨: {executive.job_title_level}
                             </span>
                           </div>
@@ -2399,7 +2420,7 @@
         <ThemeSpacer size={6}>
           <ThemeCard class="p-6">
             <div class="flex items-center justify-between mb-6">
-              <h3 class="text-lg font-semibold" style="color: var(--color-text);">직책 관리</h3>
+              <h3 class="text-lg font-semibold" style:color="var(--color-text)">직책 관리</h3>
               <ThemeButton
                 variant="primary"
                 size="sm"
@@ -2415,13 +2436,14 @@
               {#each jobTitles as jobTitle (jobTitle.id)}
                 <div
                   class="flex items-center justify-between p-4 rounded-lg border"
-                  style="border-color: var(--color-border); background: var(--color-surface-elevated);"
+                  style:border-color="var(--color-border)"
+                  style:background="var(--color-surface-elevated)"
                 >
                   <div class="flex items-center gap-4">
                     <BriefcaseIcon size={24} style="color: var(--color-primary);" />
                     <div class="flex-1">
                       <div class="flex items-center gap-3 mb-1">
-                        <h4 class="font-semibold text-lg" style="color: var(--color-text);">
+                        <h4 class="font-semibold text-lg" style:color="var(--color-text)">
                           {jobTitle.name}
                         </h4>
                         <ThemeBadge variant={jobTitle.is_active ? 'success' : 'warning'}>
@@ -2429,26 +2451,26 @@
                         </ThemeBadge>
                       </div>
                       {#if jobTitle.description}
-                        <p class="text-sm mb-2" style="color: var(--color-text-secondary);">
+                        <p class="text-sm mb-2" style:color="var(--color-text-secondary)">
                           {jobTitle.description}
                         </p>
                       {/if}
                       <div class="flex items-center gap-4">
                         <div class="flex items-center gap-2">
                           <CalendarIcon size={14} style="color: var(--color-text-secondary);" />
-                          <span class="text-xs" style="color: var(--color-text-secondary);">
+                          <span class="text-xs" style:color="var(--color-text-secondary)">
                             생성일: {formatDate(jobTitle.created_at)}
                           </span>
                         </div>
                         <div class="flex items-center gap-2">
                           <UserCheckIcon size={14} style="color: var(--color-text-secondary);" />
-                          <span class="text-xs" style="color: var(--color-text-secondary);">
+                          <span class="text-xs" style:color="var(--color-text-secondary)">
                             레벨: {jobTitle.level}
                           </span>
                         </div>
                         <div class="flex items-center gap-2">
                           <TagIcon size={14} style="color: var(--color-text-secondary);" />
-                          <span class="text-xs" style="color: var(--color-text-secondary);">
+                          <span class="text-xs" style:color="var(--color-text-secondary)">
                             카테고리: {jobTitle.category}
                           </span>
                         </div>
@@ -2483,7 +2505,7 @@
                     class="mx-auto mb-4"
                     style="color: var(--color-text-secondary);"
                   />
-                  <p class="text-sm" style="color: var(--color-text-secondary);">
+                  <p class="text-sm" style:color="var(--color-text-secondary)">
                     등록된 직책이 없습니다.
                   </p>
                 </div>
@@ -2501,7 +2523,7 @@
   <!-- 엑셀 업로드 모달 -->
   <ThemeModal open={showUploadModal} onclose={closeUploadModal} size="md">
     <div class="space-y-6">
-      <h2 class="text-xl font-semibold mb-4" style="color: var(--color-text);">
+      <h2 class="text-xl font-semibold mb-4" style:color="var(--color-text)">
         직원 정보 엑셀 업로드
       </h2>
       <!-- 파일 선택 -->
@@ -2509,7 +2531,7 @@
         <label
           for="employee-file-input"
           class="block text-sm font-medium mb-2"
-          style="color: var(--color-text);"
+          style:color="var(--color-text)"
         >
           엑셀 파일 선택
         </label>
@@ -2522,7 +2544,7 @@
           ondragleave={handleDragLeave}
           ondrop={handleDrop}
           onclick={() => document.getElementById('employee-file-input')?.click()}
-          onkeydown={e => {
+          onkeydown={(e) => {
             if (e.key === 'Enter' || e.key === ' ') {
               e.preventDefault()
               document.getElementById('employee-file-input')?.click()
@@ -2531,12 +2553,13 @@
           role="button"
           tabindex="0"
           aria-label="파일 업로드 영역 - 클릭하거나 파일을 드래그하여 업로드하세요"
-          style="border-color: var(--color-border); background: var(--color-surface);"
+          style:border-color="var(--color-border)"
+          style:background="var(--color-surface)"
         >
           {#if uploadFile}
             <div class="flex items-center justify-center space-x-2">
               <FileSpreadsheetIcon size={24} style="color: var(--color-primary);" />
-              <span style="color: var(--color-text);">{uploadFile.name}</span>
+              <span style:color="var(--color-text)">{uploadFile.name}</span>
             </div>
           {:else}
             <div class="space-y-2">
@@ -2545,10 +2568,8 @@
                 class="mx-auto"
                 style="color: var(--color-text-secondary);"
               />
-              <p style="color: var(--color-text);">
-                파일을 여기에 드래그하거나 클릭하여 선택하세요
-              </p>
-              <p class="text-sm" style="color: var(--color-text-secondary);">
+              <p style:color="var(--color-text)">파일을 여기에 드래그하거나 클릭하여 선택하세요</p>
+              <p class="text-sm" style:color="var(--color-text-secondary)">
                 CSV, XLSX, XLS 파일 지원
               </p>
             </div>
@@ -2569,14 +2590,15 @@
       {#if uploadFile}
         <div
           class="p-3 rounded-lg"
-          style="background: var(--color-surface-elevated); border: 1px solid var(--color-border);"
+          style:background="var(--color-surface-elevated)"
+          style:border="1px solid var(--color-border)"
         >
           <div class="flex items-center gap-2">
             <FileSpreadsheetIcon size={16} style="color: var(--color-primary);" />
-            <span class="text-sm font-medium" style="color: var(--color-text);"
+            <span class="text-sm font-medium" style:color="var(--color-text)"
               >{uploadFile.name}</span
             >
-            <span class="text-xs" style="color: var(--color-text-secondary);">
+            <span class="text-xs" style:color="var(--color-text-secondary)">
               ({(uploadFile.size / 1024).toFixed(1)} KB)
             </span>
           </div>
@@ -2587,13 +2609,14 @@
       {#if uploadStatus === 'uploading'}
         <div class="space-y-2">
           <div class="flex justify-between text-sm">
-            <span style="color: var(--color-text-secondary);">업로드 진행률</span>
-            <span style="color: var(--color-text);">{uploadProgress}%</span>
+            <span style:color="var(--color-text-secondary)">업로드 진행률</span>
+            <span style:color="var(--color-text)">{uploadProgress}%</span>
           </div>
           <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
             <div
               class="h-2 rounded-full transition-all duration-300"
-              style="width: {uploadProgress}%; background: var(--color-primary);"
+              style:width="{uploadProgress}%"
+              style:background="var(--color-primary)"
             ></div>
           </div>
         </div>
@@ -2603,15 +2626,16 @@
       {#if uploadMessage}
         <div
           class="flex items-center gap-2 p-3 rounded-lg"
-          style="background: {uploadStatus === 'success'
+          style:background={uploadStatus === 'success'
             ? 'var(--color-success-light)'
             : uploadStatus === 'error'
               ? 'var(--color-error-light)'
-              : 'var(--color-info-light)'}; border: 1px solid {uploadStatus === 'success'
+              : 'var(--color-info-light)'}
+          style:border="1px solid {uploadStatus === 'success'
             ? 'var(--color-success)'
             : uploadStatus === 'error'
               ? 'var(--color-error)'
-              : 'var(--color-info)'};"
+              : 'var(--color-info)'}"
         >
           {#if uploadStatus === 'success'}
             <CheckCircleIcon size={16} style="color: var(--color-success);" />
@@ -2620,11 +2644,11 @@
           {/if}
           <span
             class="text-sm"
-            style="color: {uploadStatus === 'success'
+            style:color={uploadStatus === 'success'
               ? 'var(--color-success)'
               : uploadStatus === 'error'
                 ? 'var(--color-error)'
-                : 'var(--color-info)'};"
+                : 'var(--color-info)'}
           >
             {uploadMessage}
           </span>
@@ -2634,10 +2658,11 @@
       <!-- 엑셀 템플릿 다운로드 -->
       <div
         class="p-4 rounded-lg"
-        style="background: var(--color-surface-elevated); border: 1px solid var(--color-border);"
+        style:background="var(--color-surface-elevated)"
+        style:border="1px solid var(--color-border)"
       >
-        <h4 class="text-sm font-medium mb-2" style="color: var(--color-text);">엑셀 템플릿</h4>
-        <p class="text-xs mb-3" style="color: var(--color-text-secondary);">
+        <h4 class="text-sm font-medium mb-2" style:color="var(--color-text)">엑셀 템플릿</h4>
+        <p class="text-xs mb-3" style:color="var(--color-text-secondary)">
           직원 데이터를 업로드하기 전에 템플릿을 다운로드하여 올바른 형식으로 데이터를 입력하세요.
         </p>
         <ThemeButton variant="ghost" size="sm" onclick={downloadEmployeeTemplate}>
@@ -2648,7 +2673,7 @@
     </div>
 
     <!-- 모달 액션 버튼 -->
-    <div class="flex justify-end gap-2 pt-4 border-t" style="border-color: var(--color-border);">
+    <div class="flex justify-end gap-2 pt-4 border-t" style:border-color="var(--color-border)">
       <ThemeButton variant="ghost" onclick={closeUploadModal}>취소</ThemeButton>
       <ThemeButton
         variant="primary"
@@ -2690,7 +2715,7 @@
     showDeleteModal = false
     selectedEmployee = null
   }}
-  on:confirm={event => handleEmployeeDelete(event.detail.action)}
+  on:confirm={(event) => handleEmployeeDelete(event.detail.action)}
 />
 
 <!-- 부서 관리 모달 -->

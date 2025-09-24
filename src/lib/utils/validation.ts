@@ -1,3 +1,4 @@
+import { logger } from '$lib/utils/logger'
 import { Pool } from 'pg'
 
 // 데이터베이스 연결 풀
@@ -7,7 +8,7 @@ const pool = new Pool({
   database: 'postgres',
   user: 'postgres',
   password: 'viahubdev',
-  ssl: { rejectUnauthorized: false }
+  ssl: { rejectUnauthorized: false },
 })
 
 // 검증 결과 타입 정의
@@ -23,7 +24,7 @@ export interface ValidationResponse {
   success: boolean
   projectId: string
   projectTitle?: string
-  validationResults: any[]
+  validationResults: unknown[]
   overallValidation: {
     isValid: boolean
     totalItems: number
@@ -41,7 +42,7 @@ export class ValidationUtils {
   }
 
   // 쿼리 메서드
-  static async query(text: string, params?: any[]) {
+  static async query(text: string, params?: unknown[]) {
     return await pool.query(text, params)
   }
 
@@ -56,14 +57,14 @@ export class ValidationUtils {
     reason: string,
     message: string,
     issues?: string[],
-    details?: any
+    details?: any,
   ): ValidationResult {
     return {
       isValid,
       reason,
       message,
       issues,
-      details
+      details,
     }
   }
   /**
@@ -83,7 +84,7 @@ export class ValidationUtils {
   static async getProjectBudgets(projectId: string) {
     const result = await pool.query(
       'SELECT * FROM project_budgets WHERE project_id = $1 ORDER BY period_number',
-      [projectId]
+      [projectId],
     )
     return result.rows
   }
@@ -109,7 +110,7 @@ export class ValidationUtils {
 			WHERE pm.project_id = $1
 			ORDER BY pm.start_date
 		`,
-      [projectId]
+      [projectId],
     )
     return result.rows
   }
@@ -122,7 +123,7 @@ export class ValidationUtils {
 			SELECT 
 				ei.*,
 				pb.period_number,
-				pb.fiscal_year,
+				pb.period_number,
 				pb.start_date as period_start_date,
 				pb.end_date as period_end_date,
 				ec.name as category_name
@@ -163,7 +164,7 @@ export class ValidationUtils {
 			FROM employees 
 			WHERE id = $1
 		`,
-      [employeeId]
+      [employeeId],
     )
     return result.rows[0] || null
   }
@@ -192,7 +193,7 @@ export class ValidationUtils {
   static isAmountWithinTolerance(
     expected: number,
     actual: number,
-    tolerance: number = 1000
+    tolerance: number = 1000,
   ): boolean {
     return Math.abs(expected - actual) <= tolerance
   }
@@ -200,15 +201,15 @@ export class ValidationUtils {
   /**
    * 전체 검증 결과 생성
    */
-  static createOverallValidation(validationResults: any[]) {
-    const validItems = validationResults.filter(result => result.validation.isValid).length
-    const invalidItems = validationResults.filter(result => !result.validation.isValid).length
+  static createOverallValidation(validationResults: unknown[]) {
+    const validItems = validationResults.filter((result) => result.validation.isValid).length
+    const invalidItems = validationResults.filter((result) => !result.validation.isValid).length
 
     return {
       isValid: invalidItems === 0,
       totalItems: validationResults.length,
       validItems,
-      invalidItems
+      invalidItems,
     }
   }
 
@@ -218,8 +219,8 @@ export class ValidationUtils {
   static createValidationResponse(
     projectId: string,
     projectTitle: string,
-    validationResults: any[],
-    overallValidation: any
+    validationResults: unknown[],
+    overallValidation: any,
   ): ValidationResponse {
     return {
       success: true,
@@ -227,7 +228,7 @@ export class ValidationUtils {
       projectTitle,
       validationResults,
       overallValidation,
-      generatedAt: new Date().toISOString()
+      generatedAt: new Date().toISOString(),
     }
   }
 
@@ -238,7 +239,7 @@ export class ValidationUtils {
     return {
       success: false,
       error: message,
-      details: error instanceof Error ? error.message : 'Unknown error'
+      details: error instanceof Error ? error.message : 'Unknown error',
     }
   }
 
@@ -255,7 +256,7 @@ export class ValidationUtils {
       await ValidationUtils.query(query, [budgetId, ...values])
       return true
     } catch (error) {
-      console.error('❌ [ValidationUtils] 프로젝트 예산 업데이트 실패:', error)
+      logger.error('❌ [ValidationUtils] 프로젝트 예산 업데이트 실패:', error)
       return false
     }
   }
@@ -273,7 +274,7 @@ export class ValidationUtils {
       await ValidationUtils.query(query, [projectId, ...values])
       return true
     } catch (error) {
-      console.error('❌ [ValidationUtils] 프로젝트 업데이트 실패:', error)
+      logger.error('❌ [ValidationUtils] 프로젝트 업데이트 실패:', error)
       return false
     }
   }
@@ -291,7 +292,7 @@ export class ValidationUtils {
       await ValidationUtils.query(query, [memberId, ...values])
       return true
     } catch (error) {
-      console.error('❌ [ValidationUtils] 프로젝트 멤버 업데이트 실패:', error)
+      logger.error('❌ [ValidationUtils] 프로젝트 멤버 업데이트 실패:', error)
       return false
     }
   }
@@ -309,7 +310,7 @@ export class ValidationUtils {
       await ValidationUtils.query(query, [itemId, ...values])
       return true
     } catch (error) {
-      console.error('❌ [ValidationUtils] 증빙 항목 업데이트 실패:', error)
+      logger.error('❌ [ValidationUtils] 증빙 항목 업데이트 실패:', error)
       return false
     }
   }
@@ -320,23 +321,23 @@ export class PersonnelCostValidator {
   /**
    * 참여연구원의 실제 인건비 계산
    */
-  static calculateActualPersonnelCost(members: any[], budget: any): number {
+  static calculateActualPersonnelCost(members: unknown[], budget: any): number {
     const budgetStartDate = new Date(budget.start_date)
     const budgetEndDate = new Date(budget.end_date)
 
-    const relevantMembers = members.filter(member => {
+    const relevantMembers = members.filter((member) => {
       const memberStartDate = new Date(member.start_date)
       const memberEndDate = new Date(member.end_date)
       return ValidationUtils.isDateRangeOverlap(
         memberStartDate,
         memberEndDate,
         budgetStartDate,
-        budgetEndDate
+        budgetEndDate,
       )
     })
 
     let totalCost = 0
-    relevantMembers.forEach(member => {
+    relevantMembers.forEach((member) => {
       const memberStartDate = new Date(member.start_date)
       const memberEndDate = new Date(member.end_date)
 
@@ -370,7 +371,11 @@ export class PersonnelCostValidator {
       'PERSONNEL_COST_MISMATCH',
       `인건비 불일치: 예산 ${budgetedCost.toLocaleString()}원 vs 실제 ${actualCost.toLocaleString()}원`,
       [`예산: ${budgetedCost.toLocaleString()}원`, `실제: ${actualCost.toLocaleString()}원`],
-      { budgetedCost, actualCost, difference: Math.abs(budgetedCost - actualCost) }
+      {
+        budgetedCost,
+        actualCost,
+        difference: Math.abs(budgetedCost - actualCost),
+      },
     )
   }
 }
@@ -382,7 +387,7 @@ export class EmploymentPeriodValidator {
    */
   static validateMemberEmploymentPeriod(member: any, project: any): ValidationResult {
     const memberStartDate = new Date(member.start_date)
-    const memberEndDate = new Date(member.end_date)
+    const _memberEndDate = new Date(member.end_date)
     const hireDate = member.hire_date ? new Date(member.hire_date) : null
     const terminationDate = member.termination_date ? new Date(member.termination_date) : null
     const projectStartDate = new Date(project.start_date)
@@ -396,7 +401,7 @@ export class EmploymentPeriodValidator {
         false,
         'EMPLOYEE_NOT_FOUND',
         '직원 정보를 찾을 수 없습니다.',
-        ['직원 정보 없음']
+        ['직원 정보 없음'],
       )
     }
 
@@ -404,7 +409,7 @@ export class EmploymentPeriodValidator {
     if (member.status === 'terminated' && terminationDate) {
       if (memberStartDate > terminationDate) {
         issues.push(
-          `퇴사일: ${terminationDate.toLocaleDateString()}, 참여시작일: ${memberStartDate.toLocaleDateString()}`
+          `퇴사일: ${terminationDate.toLocaleDateString()}, 참여시작일: ${memberStartDate.toLocaleDateString()}`,
         )
       }
     }
@@ -412,7 +417,7 @@ export class EmploymentPeriodValidator {
     // 3. 입사 전에 프로젝트에 참여했는지 확인
     if (hireDate && memberStartDate < hireDate) {
       issues.push(
-        `입사일: ${hireDate.toLocaleDateString()}, 참여시작일: ${memberStartDate.toLocaleDateString()}`
+        `입사일: ${hireDate.toLocaleDateString()}, 참여시작일: ${memberStartDate.toLocaleDateString()}`,
       )
     }
 
@@ -424,13 +429,13 @@ export class EmploymentPeriodValidator {
     // 5. 프로젝트 기간과 재직 기간이 겹치는지 확인
     if (hireDate && projectEndDate < hireDate) {
       issues.push(
-        `프로젝트 종료: ${projectEndDate.toLocaleDateString()}, 입사일: ${hireDate.toLocaleDateString()}`
+        `프로젝트 종료: ${projectEndDate.toLocaleDateString()}, 입사일: ${hireDate.toLocaleDateString()}`,
       )
     }
 
     if (terminationDate && projectStartDate > terminationDate) {
       issues.push(
-        `프로젝트 시작: ${projectStartDate.toLocaleDateString()}, 퇴사일: ${terminationDate.toLocaleDateString()}`
+        `프로젝트 시작: ${projectStartDate.toLocaleDateString()}, 퇴사일: ${terminationDate.toLocaleDateString()}`,
       )
     }
 
@@ -439,7 +444,7 @@ export class EmploymentPeriodValidator {
         false,
         'EMPLOYMENT_PERIOD_INVALID',
         '재직 기간이 유효하지 않습니다.',
-        issues
+        issues,
       )
     }
 
@@ -454,7 +459,7 @@ export class EmploymentPeriodValidator {
       return ValidationUtils.createValidationResult(
         false,
         'EMPLOYEE_NOT_FOUND',
-        '담당 직원을 찾을 수 없습니다.'
+        '담당 직원을 찾을 수 없습니다.',
       )
     }
 
@@ -468,7 +473,7 @@ export class EmploymentPeriodValidator {
     if (employee.status === 'terminated' || terminationDate) {
       if (terminationDate && dueDate > terminationDate) {
         issues.push(
-          `퇴사일(${terminationDate.toLocaleDateString()}) 이후에 인건비가 집행되었습니다.`
+          `퇴사일(${terminationDate.toLocaleDateString()}) 이후에 인건비가 집행되었습니다.`,
         )
       }
     }
@@ -489,13 +494,13 @@ export class EmploymentPeriodValidator {
 
     if (hireDate && periodEndDate < hireDate) {
       issues.push(
-        `프로젝트 기간(${periodStartDate.toLocaleDateString()} ~ ${periodEndDate.toLocaleDateString()}) 이후에 입사했습니다.`
+        `프로젝트 기간(${periodStartDate.toLocaleDateString()} ~ ${periodEndDate.toLocaleDateString()}) 이후에 입사했습니다.`,
       )
     }
 
     if (terminationDate && periodStartDate > terminationDate) {
       issues.push(
-        `프로젝트 기간(${periodStartDate.toLocaleDateString()} ~ ${periodEndDate.toLocaleDateString()}) 이전에 퇴사했습니다.`
+        `프로젝트 기간(${periodStartDate.toLocaleDateString()} ~ ${periodEndDate.toLocaleDateString()}) 이전에 퇴사했습니다.`,
       )
     }
 
@@ -504,7 +509,7 @@ export class EmploymentPeriodValidator {
         false,
         'EMPLOYMENT_PERIOD_INVALID',
         '재직 기간이 유효하지 않습니다.',
-        issues
+        issues,
       )
     }
 
@@ -517,15 +522,15 @@ export class ParticipationRateValidator {
   /**
    * 참여율 검증
    */
-  static validateParticipationRate(members: any[]): ValidationResult {
+  static validateParticipationRate(members: unknown[]): ValidationResult {
     const issues: string[] = []
 
     // 1. 개별 참여율이 100%를 초과하는지 확인
-    members.forEach(member => {
+    members.forEach((member) => {
       const participationRate = parseFloat(member.participation_rate) || 0
       if (participationRate > 100) {
         issues.push(
-          `${member.first_name} ${member.last_name}: 참여율 ${participationRate}% (100% 초과)`
+          `${member.first_name} ${member.last_name}: 참여율 ${participationRate}% (100% 초과)`,
         )
       }
     })
@@ -533,7 +538,7 @@ export class ParticipationRateValidator {
     // 2. 동일 기간 내 참여율 합계가 100%를 초과하는지 확인
     const periodGroups = new Map<string, number>()
 
-    members.forEach(member => {
+    members.forEach((member) => {
       const key = `${member.start_date}_${member.end_date}`
       const currentTotal = periodGroups.get(key) || 0
       const participationRate = parseFloat(member.participation_rate) || 0
@@ -551,7 +556,7 @@ export class ParticipationRateValidator {
         false,
         'PARTICIPATION_RATE_INVALID',
         '참여율이 유효하지 않습니다.',
-        issues
+        issues,
       )
     }
 
@@ -564,7 +569,7 @@ export class BudgetConsistencyValidator {
   /**
    * 예산 일관성 검증
    */
-  static validateBudgetConsistency(project: any, budgets: any[]): ValidationResult {
+  static validateBudgetConsistency(project: any, budgets: unknown[]): ValidationResult {
     const totalBudgetFromBudgets = budgets.reduce((sum, budget) => {
       return sum + (parseFloat(budget.total_budget) || 0)
     }, 0)
@@ -581,13 +586,13 @@ export class BudgetConsistencyValidator {
       `예산 일관성 문제: 프로젝트 총 예산 ${projectTotalBudget.toLocaleString()}원 vs 연차별 예산 합계 ${totalBudgetFromBudgets.toLocaleString()}원`,
       [
         `프로젝트 총 예산: ${projectTotalBudget.toLocaleString()}원`,
-        `연차별 예산 합계: ${totalBudgetFromBudgets.toLocaleString()}원`
+        `연차별 예산 합계: ${totalBudgetFromBudgets.toLocaleString()}원`,
       ],
       {
         projectTotalBudget,
         totalBudgetFromBudgets,
-        difference: Math.abs(projectTotalBudget - totalBudgetFromBudgets)
-      }
+        difference: Math.abs(projectTotalBudget - totalBudgetFromBudgets),
+      },
     )
   }
 }
@@ -597,7 +602,7 @@ export class UsageRateValidator {
   /**
    * 사용률 검증
    */
-  static validateUsageRate(budget: any, evidenceItems: any[]): ValidationResult {
+  static validateUsageRate(budget: any, evidenceItems: unknown[]): ValidationResult {
     const totalBudget = parseFloat(budget.total_budget) || 0
     const spentAmount = parseFloat(budget.spent_amount) || 0
     const overallUsageRate = totalBudget > 0 ? (spentAmount / totalBudget) * 100 : 0
@@ -605,14 +610,15 @@ export class UsageRateValidator {
     const categories = ['인건비', '재료비', '연구활동비', '간접비']
     const issues: string[] = []
 
-    categories.forEach(categoryName => {
+    categories.forEach((categoryName) => {
       const categoryEvidence = evidenceItems.filter(
-        item => item.period_number === budget.period_number && item.category_name === categoryName
+        (item) =>
+          item.period_number === budget.period_number && item.category_name === categoryName,
       )
 
       const categorySpent = categoryEvidence.reduce(
         (sum, item) => sum + (parseFloat(item.spent_amount) || 0),
-        0
+        0,
       )
 
       let categoryBudget = 0
@@ -636,7 +642,7 @@ export class UsageRateValidator {
 
       if (Math.abs(categoryUsageRate - overallUsageRate) > tolerance) {
         issues.push(
-          `${categoryName}: 전체 ${overallUsageRate.toFixed(1)}% vs ${categoryName} ${categoryUsageRate.toFixed(1)}%`
+          `${categoryName}: 전체 ${overallUsageRate.toFixed(1)}% vs ${categoryName} ${categoryUsageRate.toFixed(1)}%`,
         )
       }
     })
@@ -646,7 +652,7 @@ export class UsageRateValidator {
         false,
         'USAGE_RATE_INCONSISTENCY',
         '사용률이 일관성 없습니다.',
-        issues
+        issues,
       )
     }
 

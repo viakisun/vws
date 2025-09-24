@@ -1,6 +1,7 @@
 import { json, error } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
 import { DatabaseService } from '$lib/database/connection'
+import { logger } from '$lib/utils/logger'
 
 // GET /api/projects/[id] - Get project by ID
 export const GET: RequestHandler = async ({ params }) => {
@@ -13,10 +14,10 @@ export const GET: RequestHandler = async ({ params }) => {
 
     return json({
       success: true,
-      data: project
+      data: project,
     })
   } catch (err) {
-    console.error('Get project error:', err)
+    logger.error('Get project error:', err)
     return error(500, { message: 'Internal server error' })
   }
 }
@@ -58,16 +59,16 @@ export const PUT: RequestHandler = async ({ params, request }) => {
         updateData.manager_id,
         updateData.status,
         updateData.budget_total,
-        projectId
-      ]
+        projectId,
+      ],
     )
 
     return json({
       success: true,
-      data: result.rows[0]
+      data: result.rows[0],
     })
   } catch (err) {
-    console.error('Update project error:', err)
+    logger.error('Update project error:', err)
     return error(500, { message: 'Internal server error' })
   }
 }
@@ -86,11 +87,13 @@ export const DELETE: RequestHandler = async ({ params }) => {
     // Check if project has associated data
     const expenseCount = await DatabaseService.query(
       'SELECT COUNT(*) as count FROM expense_items WHERE project_id = $1',
-      [projectId]
+      [projectId],
     )
 
     if (parseInt(expenseCount.rows[0].count) > 0) {
-      return error(400, { message: 'Cannot delete project with associated expense items' })
+      return error(400, {
+        message: 'Cannot delete project with associated expense items',
+      })
     }
 
     // Delete project
@@ -98,10 +101,10 @@ export const DELETE: RequestHandler = async ({ params }) => {
 
     return json({
       success: true,
-      message: 'Project deleted successfully'
+      message: 'Project deleted successfully',
     })
   } catch (err) {
-    console.error('Delete project error:', err)
+    logger.error('Delete project error:', err)
     return error(500, { message: 'Internal server error' })
   }
 }

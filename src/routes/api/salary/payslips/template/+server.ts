@@ -23,7 +23,7 @@ export async function GET({ url }) {
 			LEFT JOIN salary_contracts sc ON e.id = sc.employee_id AND sc.status = 'active'
 			WHERE e.status = 'active'
 			ORDER BY e.department, e.employee_id
-			`
+			`,
     )
 
     // 엑셀 워크북 생성
@@ -53,7 +53,7 @@ export async function GET({ url }) {
       '기타',
       '지급총액',
       '공제총액',
-      '실지급액'
+      '실지급액',
     ]
 
     // 헤더 행 추가
@@ -65,13 +65,13 @@ export async function GET({ url }) {
     headerRow.fill = {
       type: 'pattern',
       pattern: 'solid',
-      fgColor: { argb: '366092' }
+      fgColor: { argb: '366092' },
     }
     headerRow.alignment = { horizontal: 'center', vertical: 'middle' }
 
     // 열 너비 설정
     const columnWidths = [
-      10, 12, 15, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12
+      10, 12, 15, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12,
     ]
     columnWidths.forEach((width, index) => {
       worksheet.getColumn(index + 1).width = width
@@ -106,7 +106,7 @@ export async function GET({ url }) {
         0, // 기타
         `=SUM(F${worksheet.rowCount}:L${worksheet.rowCount})`, // 지급총액
         `=SUM(M${worksheet.rowCount}:S${worksheet.rowCount})`, // 공제총액
-        `=T${worksheet.rowCount}-U${worksheet.rowCount}` // 실지급액
+        `=T${worksheet.rowCount}-U${worksheet.rowCount}`, // 실지급액
       ]
 
       worksheet.addRow(row)
@@ -114,18 +114,18 @@ export async function GET({ url }) {
 
     // 숫자 형식 설정
     const numberColumns = [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22] // F~V열
-    numberColumns.forEach(colIndex => {
+    numberColumns.forEach((colIndex) => {
       worksheet.getColumn(colIndex).numFmt = '#,##0'
     })
 
     // 테두리 설정
-    worksheet.eachRow((row, rowNumber) => {
-      row.eachCell((cell, colNumber) => {
+    worksheet.eachRow((row, _rowNumber) => {
+      row.eachCell((cell, _colNumber) => {
         cell.border = {
           top: { style: 'thin' },
           left: { style: 'thin' },
           bottom: { style: 'thin' },
-          right: { style: 'thin' }
+          right: { style: 'thin' },
         }
       })
     })
@@ -176,17 +176,17 @@ export async function GET({ url }) {
     return new Response(buffer, {
       headers: {
         'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        'Content-Disposition': `attachment; filename*=UTF-8''${encodedFileName}`
-      }
+        'Content-Disposition': `attachment; filename*=UTF-8''${encodedFileName}`,
+      },
     })
   } catch (error) {
     return json(
       {
         success: false,
         error: '엑셀 템플릿 생성에 실패했습니다.',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        details: error instanceof Error ? error.message : 'Unknown error',
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

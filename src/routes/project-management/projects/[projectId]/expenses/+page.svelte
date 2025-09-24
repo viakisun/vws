@@ -8,7 +8,7 @@
   import { goto } from '$app/navigation'
 
   const projectId = page.params.projectId as string
-  const all = $derived($expenseDocsStore.filter(d => d.projectId === projectId))
+  const all = $derived($expenseDocsStore.filter((d) => d.projectId === projectId))
 
   let status = $state('') as '' | '대기' | '승인' | '반려'
   let query = $state('')
@@ -36,7 +36,7 @@
         goto(`${window.location.pathname}?${newQuery}`, {
           replaceState: true,
           keepFocus: true,
-          noScroll: true
+          noScroll: true,
         })
       }
     }
@@ -44,10 +44,10 @@
 
   const filtered = $derived(
     all.filter(
-      d =>
+      (d) =>
         (status ? d.status === status : true) &&
-        (query ? d.title.includes(query) || d.id.includes(query) : true)
-    )
+        (query ? d.title.includes(query) || d.id.includes(query) : true),
+    ),
   )
 
   // 간단한 컴플라이언스 규칙
@@ -55,13 +55,13 @@
     인건비: 2,
     재료비: 1,
     연구활동비: 1,
-    여비: 2
+    여비: 2,
   }
   const requiredDocNames: Record<string, string[]> = {
     인건비: ['급여명세서', '4대보험 납부확인'],
     재료비: ['세금계산서'],
     연구활동비: ['증빙서류'],
-    여비: ['영수증', '출장보고서']
+    여비: ['영수증', '출장보고서'],
   }
   function isCompliant(d: ExpenseDocument): boolean {
     const min = requiredAttachments[d.category] ?? 0
@@ -100,7 +100,8 @@
   </div>
   {#if loading}
     <div class="space-y-2">
-      {#each Array(8) as _}
+      {#each Array(8) as _, idx (idx)}
+        <!-- TODO: replace index key with a stable id when model provides one -->
         <div class="h-8 bg-gray-100 animate-pulse rounded"></div>
       {/each}
     </div>
@@ -120,7 +121,7 @@
           </tr>
         </thead>
         <tbody class="divide-y">
-          {#each filtered as d}
+          {#each filtered as d, i (i)}
             <tr>
               <td class="px-3 py-2">{d.id}</td>
               <td class="px-3 py-2">{d.title}</td>

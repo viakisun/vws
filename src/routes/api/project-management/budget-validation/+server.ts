@@ -1,6 +1,7 @@
 import { BudgetConsistencyValidator, ValidationUtils } from '$lib/utils/validation'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger'
 
 export const GET: RequestHandler = async ({ url }) => {
   try {
@@ -10,15 +11,15 @@ export const GET: RequestHandler = async ({ url }) => {
       return json({ error: '프로젝트 ID가 필요합니다.' }, { status: 400 })
     }
 
-    console.log(`🔍 [예산 일관성 검증] 프로젝트 ${projectId} 검증 시작`)
+    logger.log(`🔍 [예산 일관성 검증] 프로젝트 ${projectId} 검증 시작`)
 
     // 프로젝트 기본 정보 및 예산 조회
     const [project, budgets] = await Promise.all([
       ValidationUtils.getProjectInfo(projectId),
-      ValidationUtils.getProjectBudgets(projectId)
+      ValidationUtils.getProjectBudgets(projectId),
     ])
 
-    console.log(`📋 프로젝트: ${project.title}`)
+    logger.log(`📋 프로젝트: ${project.title}`)
 
     // 예산 일관성 검증
     const validation = BudgetConsistencyValidator.validateBudgetConsistency(project, budgets)
@@ -31,39 +32,39 @@ export const GET: RequestHandler = async ({ url }) => {
           projectTotalBudget: parseFloat(project.budget_total) || 0,
           totalBudgetFromBudgets: budgets.reduce(
             (sum, budget) => sum + (parseFloat(budget.total_budget) || 0),
-            0
+            0,
           ),
-          budgetBreakdown: budgets.map(budget => ({
+          budgetBreakdown: budgets.map((budget) => ({
             periodNumber: budget.period_number,
-            fiscalYear: budget.fiscal_year,
+            fiscalYear: budget.period_number,
             totalBudget: parseFloat(budget.total_budget) || 0,
             personnelCost: parseFloat(budget.personnel_cost) || 0,
             researchMaterialCost: parseFloat(budget.research_material_cost) || 0,
             researchActivityCost: parseFloat(budget.research_activity_cost) || 0,
-            indirectCost: parseFloat(budget.indirect_cost) || 0
-          }))
-        }
-      }
+            indirectCost: parseFloat(budget.indirect_cost) || 0,
+          })),
+        },
+      },
     ]
 
     // 전체 검증 결과 생성
     const overallValidation = ValidationUtils.createOverallValidation(validationResults)
 
-    console.log(`✅ [예산 일관성 검증] 완료 - ${validation.isValid ? '✅ 통과' : '❌ 실패'}`)
+    logger.log(`✅ [예산 일관성 검증] 완료 - ${validation.isValid ? '✅ 통과' : '❌ 실패'}`)
 
     return json(
       ValidationUtils.createValidationResponse(
         projectId,
         project.title,
         validationResults,
-        overallValidation
-      )
+        overallValidation,
+      ),
     )
   } catch (error) {
-    console.error('Budget validation error:', error)
+    logger.error('Budget validation error:', error)
     return json(
       ValidationUtils.createErrorResponse(error, '예산 일관성 검증 중 오류가 발생했습니다.'),
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
@@ -76,17 +77,15 @@ export const POST: RequestHandler = async ({ request }) => {
       return json({ error: '프로젝트 ID가 필요합니다.' }, { status: 400 })
     }
 
-    console.log(
-      `🔧 [예산 일관성 검증] 프로젝트 ${projectId} ${autoFix ? '자동 수정' : '검증'} 시작`
-    )
+    logger.log(`🔧 [예산 일관성 검증] 프로젝트 ${projectId} ${autoFix ? '자동 수정' : '검증'} 시작`)
 
     // 프로젝트 기본 정보 및 예산 조회
     const [project, budgets] = await Promise.all([
       ValidationUtils.getProjectInfo(projectId),
-      ValidationUtils.getProjectBudgets(projectId)
+      ValidationUtils.getProjectBudgets(projectId),
     ])
 
-    console.log(`📋 프로젝트: ${project.title}`)
+    logger.log(`📋 프로젝트: ${project.title}`)
 
     // 예산 일관성 검증
     const validation = BudgetConsistencyValidator.validateBudgetConsistency(project, budgets)
@@ -97,23 +96,23 @@ export const POST: RequestHandler = async ({ request }) => {
     if (autoFix && !validation.isValid) {
       const totalBudgetFromBudgets = budgets.reduce(
         (sum, budget) => sum + (parseFloat(budget.total_budget) || 0),
-        0
+        0,
       )
 
       // 프로젝트 총 예산을 연차별 예산 합계로 업데이트
       await ValidationUtils.pool.query('UPDATE projects SET budget_total = $1 WHERE id = $2', [
         totalBudgetFromBudgets,
-        projectId
+        projectId,
       ])
 
       fixes.push({
         action: 'project_budget_total_updated',
         oldValue: parseFloat(project.budget_total) || 0,
-        newValue: totalBudgetFromBudgets
+        newValue: totalBudgetFromBudgets,
       })
 
-      console.log(
-        `🔧 프로젝트 총 예산 수정: ${(parseFloat(project.budget_total) || 0).toLocaleString()}원 → ${totalBudgetFromBudgets.toLocaleString()}원`
+      logger.log(
+        `🔧 프로젝트 총 예산 수정: ${(parseFloat(project.budget_total) || 0).toLocaleString()}원 → ${totalBudgetFromBudgets.toLocaleString()}원`,
       )
     }
 
@@ -125,27 +124,27 @@ export const POST: RequestHandler = async ({ request }) => {
           projectTotalBudget: parseFloat(project.budget_total) || 0,
           totalBudgetFromBudgets: budgets.reduce(
             (sum, budget) => sum + (parseFloat(budget.total_budget) || 0),
-            0
+            0,
           ),
-          budgetBreakdown: budgets.map(budget => ({
+          budgetBreakdown: budgets.map((budget) => ({
             periodNumber: budget.period_number,
-            fiscalYear: budget.fiscal_year,
+            fiscalYear: budget.period_number,
             totalBudget: parseFloat(budget.total_budget) || 0,
             personnelCost: parseFloat(budget.personnel_cost) || 0,
             researchMaterialCost: parseFloat(budget.research_material_cost) || 0,
             researchActivityCost: parseFloat(budget.research_activity_cost) || 0,
-            indirectCost: parseFloat(budget.indirect_cost) || 0
-          }))
+            indirectCost: parseFloat(budget.indirect_cost) || 0,
+          })),
         },
-        fixed: autoFix && !validation.isValid
-      }
+        fixed: autoFix && !validation.isValid,
+      },
     ]
 
     // 전체 검증 결과 생성
     const overallValidation = ValidationUtils.createOverallValidation(validationResults)
 
-    console.log(
-      `✅ [예산 일관성 검증] 완료 - ${validation.isValid ? '✅ 통과' : '❌ 실패'}${fixes.length > 0 ? `, ${fixes.length}개 수정` : ''}`
+    logger.log(
+      `✅ [예산 일관성 검증] 완료 - ${validation.isValid ? '✅ 통과' : '❌ 실패'}${fixes.length > 0 ? `, ${fixes.length}개 수정` : ''}`,
     )
 
     return json({
@@ -153,15 +152,15 @@ export const POST: RequestHandler = async ({ request }) => {
         projectId,
         project.title,
         validationResults,
-        overallValidation
+        overallValidation,
       ),
-      fixes: fixes.length > 0 ? fixes : undefined
+      fixes: fixes.length > 0 ? fixes : undefined,
     })
   } catch (error) {
-    console.error('Budget validation error:', error)
+    logger.error('Budget validation error:', error)
     return json(
       ValidationUtils.createErrorResponse(error, '예산 일관성 검증 중 오류가 발생했습니다.'),
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

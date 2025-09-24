@@ -1,4 +1,5 @@
 import { json } from '@sveltejs/kit'
+import { logger } from '$lib/utils/logger'
 
 export async function GET() {
   try {
@@ -24,11 +25,11 @@ Smith,John,Michael,john.smith@company.com,010-5678-9012,개발팀,Senior Develop
     return new Response(csvContent, {
       headers: {
         'Content-Type': 'text/csv; charset=utf-8',
-        'Content-Disposition': 'attachment; filename="employee_template.csv"'
-      }
+        'Content-Disposition': 'attachment; filename="employee_template.csv"',
+      },
     })
   } catch (error) {
-    console.error('템플릿 생성 에러:', error)
+    logger.error('템플릿 생성 에러:', error)
     return json({ error: '템플릿 생성 중 오류가 발생했습니다.' }, { status: 500 })
   }
 }

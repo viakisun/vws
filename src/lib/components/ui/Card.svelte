@@ -2,7 +2,7 @@
   let {
     class: className = '',
     header = '',
-    children
+    children,
   } = $props<{ class?: string; header?: string; children?: () => unknown }>()
 </script>
 

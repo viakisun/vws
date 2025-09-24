@@ -1,41 +1,38 @@
 <script lang="ts">
-  import { onMount } from 'svelte'
+  import { logger } from '$lib/utils/logger'
+
   import PageLayout from '$lib/components/layout/PageLayout.svelte'
-  import ThemeCard from '$lib/components/ui/ThemeCard.svelte'
   import ThemeBadge from '$lib/components/ui/ThemeBadge.svelte'
   import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
-  import ThemeGrid from '$lib/components/ui/ThemeGrid.svelte'
-  import ThemeSpacer from '$lib/components/ui/ThemeSpacer.svelte'
-  import ThemeSectionHeader from '$lib/components/ui/ThemeSectionHeader.svelte'
-  import ThemeStatCard from '$lib/components/ui/ThemeStatCard.svelte'
+  import ThemeCard from '$lib/components/ui/ThemeCard.svelte'
   import ThemeChartPlaceholder from '$lib/components/ui/ThemeChartPlaceholder.svelte'
-  import ThemeActivityItem from '$lib/components/ui/ThemeActivityItem.svelte'
-  import ThemeModal from '$lib/components/ui/ThemeModal.svelte'
+  import ThemeGrid from '$lib/components/ui/ThemeGrid.svelte'
   import ThemeInput from '$lib/components/ui/ThemeInput.svelte'
-  import ThemeDropdown from '$lib/components/ui/ThemeDropdown.svelte'
+  import ThemeModal from '$lib/components/ui/ThemeModal.svelte'
+  import ThemeSectionHeader from '$lib/components/ui/ThemeSectionHeader.svelte'
+  import ThemeSpacer from '$lib/components/ui/ThemeSpacer.svelte'
   import ThemeTabs from '$lib/components/ui/ThemeTabs.svelte'
   import { formatCurrency, formatDate } from '$lib/utils/format'
+  import { keyOf } from '$lib/utils/keyOf'
   import {
-    UsersIcon,
-    BuildingIcon,
-    X,
-    PhoneIcon,
-    MailIcon,
-    CalendarIcon,
-    PlusIcon,
-    EyeIcon,
-    EditIcon,
-    TrashIcon,
-    SearchIcon,
-    FilterIcon,
     BarChart3Icon,
+    BuildingIcon,
+    CalendarIcon,
+    EditIcon,
+    EyeIcon,
     FileTextIcon,
-    PieChartIcon,
+    MailIcon,
     MessageSquareIcon,
+    PieChartIcon,
+    PlusIcon,
     StarIcon,
+    TargetIcon,
+    TrashIcon,
     TrendingUpIcon,
-    TargetIcon
+    UsersIcon,
+    X,
   } from '@lucide/svelte'
+  import { onMount } from 'svelte'
 
   // Mock CRM data
   let crmData = $state({
@@ -51,7 +48,7 @@
         value: 50000000,
         lastContact: '2024-01-20',
         createdAt: '2024-01-15',
-        notes: '스마트팩토리 솔루션 고객'
+        notes: '스마트팩토리 솔루션 고객',
       },
       {
         id: 'customer-2',
@@ -64,8 +61,8 @@
         value: 30000000,
         lastContact: '2024-01-18',
         createdAt: '2024-01-10',
-        notes: '자동화 시스템 고객'
-      }
+        notes: '자동화 시스템 고객',
+      },
     ],
     interactions: [
       {
@@ -77,7 +74,7 @@
         description: '새로운 기능에 대한 문의 및 상담',
         date: '2024-01-20',
         user: '김영희',
-        status: 'completed'
+        status: 'completed',
       },
       {
         id: 'interaction-2',
@@ -88,8 +85,8 @@
         description: '기존 시스템 업그레이드 관련 이메일',
         date: '2024-01-18',
         user: '박민수',
-        status: 'completed'
-      }
+        status: 'completed',
+      },
     ],
     opportunities: [
       {
@@ -102,7 +99,7 @@
         probability: 70,
         expectedClose: '2024-02-15',
         owner: '김영희',
-        createdAt: '2024-01-15'
+        createdAt: '2024-01-15',
       },
       {
         id: 'opp-2',
@@ -114,9 +111,9 @@
         probability: 50,
         expectedClose: '2024-02-28',
         owner: '박민수',
-        createdAt: '2024-01-10'
-      }
-    ]
+        createdAt: '2024-01-10',
+      },
+    ],
   })
 
   let selectedCustomer = $state<any>(null)
@@ -131,7 +128,7 @@
     { id: 'customers', label: '고객', icon: UsersIcon },
     { id: 'interactions', label: '상호작용', icon: MessageSquareIcon },
     { id: 'opportunities', label: '기회', icon: TargetIcon },
-    { id: 'reports', label: '보고서', icon: FileTextIcon }
+    { id: 'reports', label: '보고서', icon: FileTextIcon },
   ]
 
   let activeTab = $state('overview')
@@ -143,29 +140,29 @@
       value: crmData.customers.length,
       change: '+8%',
       changeType: 'positive' as const,
-      icon: UsersIcon
+      icon: UsersIcon,
     },
     {
       title: '활성 고객',
-      value: crmData.customers.filter(c => c.status === 'active').length,
+      value: crmData.customers.filter((c) => c.status === 'active').length,
       change: '+2',
       changeType: 'positive' as const,
-      icon: BuildingIcon
+      icon: BuildingIcon,
     },
     {
       title: '예상 매출',
       value: formatCurrency(crmData.opportunities.reduce((sum, opp) => sum + opp.value, 0)),
       change: '+15%',
       changeType: 'positive' as const,
-      icon: TrendingUpIcon
+      icon: TrendingUpIcon,
     },
     {
       title: '고객 만족도',
       value: '92%',
       change: '+3%',
       changeType: 'positive' as const,
-      icon: StarIcon
-    }
+      icon: StarIcon,
+    },
   ]
 
   // 액션 버튼들
@@ -174,14 +171,14 @@
       label: '고객 추가',
       icon: PlusIcon,
       onclick: () => (showCreateModal = true),
-      variant: 'primary' as const
+      variant: 'primary' as const,
     },
     {
       label: '상호작용 기록',
       icon: MessageSquareIcon,
-      onclick: () => console.log('Record interaction'),
-      variant: 'success' as const
-    }
+      onclick: () => logger.log('Record interaction'),
+      variant: 'success' as const,
+    },
   ]
 
   // 필터링된 고객 데이터
@@ -190,15 +187,15 @@
 
     if (searchTerm) {
       customers = customers.filter(
-        customer =>
+        (customer) =>
           customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
           customer.contact.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          customer.industry.toLowerCase().includes(searchTerm.toLowerCase())
+          customer.industry.toLowerCase().includes(searchTerm.toLowerCase()),
       )
     }
 
     if (selectedStatus !== 'all') {
-      customers = customers.filter(customer => customer.status === selectedStatus)
+      customers = customers.filter((customer) => customer.status === selectedStatus)
     }
 
     return customers
@@ -210,7 +207,7 @@
       active: 'success',
       inactive: 'error',
       prospect: 'warning',
-      churned: 'error'
+      churned: 'error',
     }
     return (colors as any)[status] || 'default'
   }
@@ -221,7 +218,7 @@
       active: '활성',
       inactive: '비활성',
       prospect: '잠재고객',
-      churned: '이탈'
+      churned: '이탈',
     }
     return (labels as any)[status] || status
   }
@@ -232,7 +229,7 @@
       call: 'primary',
       email: 'info',
       meeting: 'success',
-      note: 'warning'
+      note: 'warning',
     }
     return (colors as any)[type] || 'default'
   }
@@ -243,7 +240,7 @@
       call: '전화',
       email: '이메일',
       meeting: '미팅',
-      note: '메모'
+      note: '메모',
     }
     return (labels as any)[type] || type
   }
@@ -256,7 +253,7 @@
       proposal: 'warning',
       negotiation: 'success',
       'closed-won': 'success',
-      'closed-lost': 'error'
+      'closed-lost': 'error',
     }
     return (colors as any)[stage] || 'default'
   }
@@ -269,7 +266,7 @@
       proposal: '제안',
       negotiation: '협상',
       'closed-won': '성사',
-      'closed-lost': '실패'
+      'closed-lost': '실패',
     }
     return (labels as any)[stage] || stage
   }
@@ -282,11 +279,11 @@
 
   // 고객 삭제
   function deleteCustomer(customerId: string) {
-    crmData.customers = crmData.customers.filter(customer => customer.id !== customerId)
+    crmData.customers = crmData.customers.filter((customer) => customer.id !== customerId)
   }
 
   onMount(() => {
-    console.log('CRM 페이지 로드됨')
+    logger.log('CRM 페이지 로드됨')
   })
 </script>
 
@@ -324,29 +321,29 @@
             <ThemeCard class="p-6">
               <ThemeSectionHeader title="최근 상호작용" />
               <ThemeSpacer size={4}>
-                {#each crmData.interactions as interaction}
+                {#each crmData.interactions as interaction, i (i)}
                   <div
                     class="flex items-center justify-between p-3 rounded-lg"
-                    style="background: var(--color-surface-elevated);"
+                    style:background="var(--color-surface-elevated)"
                   >
                     <div class="flex-1">
-                      <h4 class="font-medium" style="color: var(--color-text);">
+                      <h4 class="font-medium" style:color="var(--color-text)">
                         {interaction.subject}
                       </h4>
-                      <p class="text-sm" style="color: var(--color-text-secondary);">
+                      <p class="text-sm" style:color="var(--color-text-secondary)">
                         {interaction.customerName}
                       </p>
                       <div class="flex items-center gap-2 mt-1">
                         <ThemeBadge variant={getInteractionTypeColor(interaction.type)}>
                           {getInteractionTypeLabel(interaction.type)}
                         </ThemeBadge>
-                        <span class="text-sm" style="color: var(--color-text-secondary);">
+                        <span class="text-sm" style:color="var(--color-text-secondary)">
                           {interaction.user}
                         </span>
                       </div>
                     </div>
                     <div class="text-right">
-                      <p class="text-xs" style="color: var(--color-text-secondary);">
+                      <p class="text-xs" style:color="var(--color-text-secondary)">
                         {formatDate(interaction.date)}
                       </p>
                     </div>
@@ -359,32 +356,32 @@
             <ThemeCard class="p-6">
               <ThemeSectionHeader title="진행중인 기회" />
               <ThemeSpacer size={4}>
-                {#each crmData.opportunities as opportunity}
+                {#each crmData.opportunities as opportunity, i (i)}
                   <div
                     class="flex items-center justify-between p-3 rounded-lg"
-                    style="background: var(--color-surface-elevated);"
+                    style:background="var(--color-surface-elevated)"
                   >
                     <div class="flex-1">
-                      <h4 class="font-medium" style="color: var(--color-text);">
+                      <h4 class="font-medium" style:color="var(--color-text)">
                         {opportunity.title}
                       </h4>
-                      <p class="text-sm" style="color: var(--color-text-secondary);">
+                      <p class="text-sm" style:color="var(--color-text-secondary)">
                         {opportunity.customerName}
                       </p>
                       <div class="flex items-center gap-2 mt-1">
                         <ThemeBadge variant={getStageColor(opportunity.stage)}>
                           {getStageLabel(opportunity.stage)}
                         </ThemeBadge>
-                        <span class="text-sm font-medium" style="color: var(--color-primary);">
+                        <span class="text-sm font-medium" style:color="var(--color-primary)">
                           {formatCurrency(opportunity.value)} ({opportunity.probability}%)
                         </span>
                       </div>
                     </div>
                     <div class="text-right">
-                      <p class="text-xs" style="color: var(--color-text-secondary);">
+                      <p class="text-xs" style:color="var(--color-text-secondary)">
                         예상 마감: {formatDate(opportunity.expectedClose)}
                       </p>
-                      <p class="text-xs" style="color: var(--color-text-secondary);">
+                      <p class="text-xs" style:color="var(--color-text-secondary)">
                         담당: {opportunity.owner}
                       </p>
                     </div>
@@ -399,12 +396,14 @@
         <ThemeSpacer size={6}>
           <ThemeCard class="p-6">
             <div class="flex items-center justify-between mb-6">
-              <h3 class="text-lg font-semibold" style="color: var(--color-text);">고객 목록</h3>
+              <h3 class="text-lg font-semibold" style:color="var(--color-text)">고객 목록</h3>
               <div class="flex items-center gap-2">
                 <select
                   bind:value={selectedStatus}
                   class="px-3 py-2 border rounded-md"
-                  style="background: var(--color-surface); border-color: var(--color-border); color: var(--color-text);"
+                  style:background="var(--color-surface)"
+                  style:border-color="var(--color-border)"
+                  style:color="var(--color-text)"
                 >
                   <option value="all">전체</option>
                   <option value="active">활성</option>
@@ -416,22 +415,25 @@
             </div>
 
             <div class="space-y-4">
-              {#each filteredCustomers() as customer}
+              {#each filteredCustomers() as customer, i (keyOf(customer, i))}
                 <div
                   class="flex items-center justify-between p-4 rounded-lg border"
-                  style="border-color: var(--color-border); background: var(--color-surface-elevated);"
+                  style:border-color="var(--color-border)"
+                  style:background="var(--color-surface-elevated)"
                 >
                   <div class="flex-1">
                     <div class="flex items-center gap-3 mb-2">
                       <BuildingIcon size={20} style="color: var(--color-primary);" />
-                      <h4 class="font-medium" style="color: var(--color-text);">{customer.name}</h4>
+                      <h4 class="font-medium" style:color="var(--color-text)">
+                        {customer.name}
+                      </h4>
                       <ThemeBadge variant={getStatusColor(customer.status)}>
                         {getStatusLabel(customer.status)}
                       </ThemeBadge>
                     </div>
                     <div
                       class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm"
-                      style="color: var(--color-text-secondary);"
+                      style:color="var(--color-text-secondary)"
                     >
                       <div class="flex items-center gap-2">
                         <UsersIcon size={16} />
@@ -447,7 +449,7 @@
                       </div>
                     </div>
                     {#if customer.notes}
-                      <p class="text-sm mt-2" style="color: var(--color-text-secondary);">
+                      <p class="text-sm mt-2" style:color="var(--color-text-secondary)">
                         {customer.notes}
                       </p>
                     {/if}
@@ -478,29 +480,29 @@
           <ThemeCard class="p-6">
             <ThemeSectionHeader title="고객 상호작용" />
             <ThemeSpacer size={4}>
-              {#each crmData.interactions as interaction}
+              {#each crmData.interactions as interaction, i (i)}
                 <div
                   class="flex items-center justify-between p-3 rounded-lg"
-                  style="background: var(--color-surface-elevated);"
+                  style:background="var(--color-surface-elevated)"
                 >
                   <div class="flex-1">
-                    <h4 class="font-medium" style="color: var(--color-text);">
+                    <h4 class="font-medium" style:color="var(--color-text)">
                       {interaction.subject}
                     </h4>
-                    <p class="text-sm" style="color: var(--color-text-secondary);">
+                    <p class="text-sm" style:color="var(--color-text-secondary)">
                       {interaction.customerName} • {interaction.user}
                     </p>
                     <div class="flex items-center gap-2 mt-1">
                       <ThemeBadge variant={getInteractionTypeColor(interaction.type)}>
                         {getInteractionTypeLabel(interaction.type)}
                       </ThemeBadge>
-                      <span class="text-sm" style="color: var(--color-text-secondary);">
+                      <span class="text-sm" style:color="var(--color-text-secondary)">
                         {interaction.description}
                       </span>
                     </div>
                   </div>
                   <div class="text-right">
-                    <p class="text-xs" style="color: var(--color-text-secondary);">
+                    <p class="text-xs" style:color="var(--color-text-secondary)">
                       {formatDate(interaction.date)}
                     </p>
                   </div>
@@ -515,29 +517,29 @@
           <ThemeCard class="p-6">
             <ThemeSectionHeader title="영업 기회" />
             <ThemeSpacer size={4}>
-              {#each crmData.opportunities as opportunity}
+              {#each crmData.opportunities as opportunity, i (i)}
                 <div
                   class="flex items-center justify-between p-3 rounded-lg"
-                  style="background: var(--color-surface-elevated);"
+                  style:background="var(--color-surface-elevated)"
                 >
                   <div class="flex-1">
-                    <h4 class="font-medium" style="color: var(--color-text);">
+                    <h4 class="font-medium" style:color="var(--color-text)">
                       {opportunity.title}
                     </h4>
-                    <p class="text-sm" style="color: var(--color-text-secondary);">
+                    <p class="text-sm" style:color="var(--color-text-secondary)">
                       {opportunity.customerName} • {opportunity.owner}
                     </p>
                     <div class="flex items-center gap-2 mt-1">
                       <ThemeBadge variant={getStageColor(opportunity.stage)}>
                         {getStageLabel(opportunity.stage)}
                       </ThemeBadge>
-                      <span class="text-sm font-medium" style="color: var(--color-primary);">
+                      <span class="text-sm font-medium" style:color="var(--color-primary)">
                         {formatCurrency(opportunity.value)} ({opportunity.probability}%)
                       </span>
                     </div>
                   </div>
                   <div class="text-right">
-                    <p class="text-xs" style="color: var(--color-text-secondary);">
+                    <p class="text-xs" style:color="var(--color-text-secondary)">
                       예상 마감: {formatDate(opportunity.expectedClose)}
                     </p>
                   </div>
@@ -578,14 +580,15 @@
 {#if showCustomerModal && selectedCustomer}
   <ThemeModal>
     <div class="flex justify-between items-center mb-4">
-      <h3 class="text-lg font-semibold" style="color: var(--color-text);">고객 상세 정보</h3>
+      <h3 class="text-lg font-semibold" style:color="var(--color-text)">고객 상세 정보</h3>
       <button
+        type="button"
         onclick={() => {
           showCustomerModal = false
           selectedCustomer = null
         }}
         class="p-1 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700"
-        style="color: var(--color-text-secondary);"
+        style:color="var(--color-text-secondary)"
       >
         <X class="w-5 h-5" />
       </button>
@@ -593,47 +596,49 @@
     <div class="space-y-4">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <div class="block text-sm font-medium mb-1" style="color: var(--color-text);">회사명</div>
-          <p class="text-sm" style="color: var(--color-text-secondary);">{selectedCustomer.name}</p>
+          <div class="block text-sm font-medium mb-1" style:color="var(--color-text)">회사명</div>
+          <p class="text-sm" style:color="var(--color-text-secondary)">
+            {selectedCustomer.name}
+          </p>
         </div>
         <div>
-          <div class="block text-sm font-medium mb-1" style="color: var(--color-text);">담당자</div>
-          <p class="text-sm" style="color: var(--color-text-secondary);">
+          <div class="block text-sm font-medium mb-1" style:color="var(--color-text)">담당자</div>
+          <p class="text-sm" style:color="var(--color-text-secondary)">
             {selectedCustomer.contact}
           </p>
         </div>
         <div>
-          <div class="block text-sm font-medium mb-1" style="color: var(--color-text);">이메일</div>
-          <p class="text-sm" style="color: var(--color-text-secondary);">
+          <div class="block text-sm font-medium mb-1" style:color="var(--color-text)">이메일</div>
+          <p class="text-sm" style:color="var(--color-text-secondary)">
             {selectedCustomer.email}
           </p>
         </div>
         <div>
-          <div class="block text-sm font-medium mb-1" style="color: var(--color-text);">
-            전화번호
-          </div>
-          <p class="text-sm" style="color: var(--color-text-secondary);">
+          <div class="block text-sm font-medium mb-1" style:color="var(--color-text)">전화번호</div>
+          <p class="text-sm" style:color="var(--color-text-secondary)">
             {selectedCustomer.phone}
           </p>
         </div>
         <div>
-          <div class="block text-sm font-medium mb-1" style="color: var(--color-text);">업종</div>
-          <p class="text-sm" style="color: var(--color-text-secondary);">
+          <div class="block text-sm font-medium mb-1" style:color="var(--color-text)">업종</div>
+          <p class="text-sm" style:color="var(--color-text-secondary)">
             {selectedCustomer.industry}
           </p>
         </div>
         <div>
-          <div class="block text-sm font-medium mb-1" style="color: var(--color-text);">
+          <div class="block text-sm font-medium mb-1" style:color="var(--color-text)">
             고객 가치
           </div>
-          <p class="text-sm font-medium" style="color: var(--color-primary);">
+          <p class="text-sm font-medium" style:color="var(--color-primary)">
             {formatCurrency(selectedCustomer.value)}
           </p>
         </div>
       </div>
       <div>
-        <div class="block text-sm font-medium mb-1" style="color: var(--color-text);">메모</div>
-        <p class="text-sm" style="color: var(--color-text-secondary);">{selectedCustomer.notes}</p>
+        <div class="block text-sm font-medium mb-1" style:color="var(--color-text)">메모</div>
+        <p class="text-sm" style:color="var(--color-text-secondary)">
+          {selectedCustomer.notes}
+        </p>
       </div>
     </div>
   </ThemeModal>
@@ -643,11 +648,12 @@
 {#if showCreateModal}
   <ThemeModal>
     <div class="flex justify-between items-center mb-4">
-      <h3 class="text-lg font-semibold" style="color: var(--color-text);">새 고객 추가</h3>
+      <h3 class="text-lg font-semibold" style:color="var(--color-text)">새 고객 추가</h3>
       <button
+        type="button"
         onclick={() => (showCreateModal = false)}
         class="p-1 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700"
-        style="color: var(--color-text-secondary);"
+        style:color="var(--color-text-secondary)"
       >
         <X class="w-5 h-5" />
       </button>

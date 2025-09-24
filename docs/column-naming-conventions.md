@@ -72,7 +72,7 @@
 import {
   transformProjectData,
   transformArrayData,
-  transformProjectMemberData
+  transformProjectMemberData,
 } from '$lib/utils/api-data-transformer'
 
 // 단일 객체 변환

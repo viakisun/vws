@@ -2,13 +2,13 @@ export function formatKRW(amount: number): string {
   return amount.toLocaleString('ko-KR', {
     style: 'currency',
     currency: 'KRW',
-    maximumFractionDigits: 0
+    maximumFractionDigits: 0,
   })
 }
 
 export function formatCurrency(
   amount: number | string | undefined | null,
-  includeUnit: boolean = true
+  includeUnit: boolean = true,
 ): string {
   if (amount === undefined || amount === null) {
     return includeUnit ? '0천원' : '0'
@@ -36,7 +36,7 @@ export function formatPercentage(value: number | undefined | null): string {
 
 import {
   formatDateForDisplay,
-  formatDateForInput as standardFormatDateForInput
+  formatDateForInput as standardFormatDateForInput,
 } from './date-handler'
 
 export function formatDate(dateString: string): string {

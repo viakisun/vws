@@ -36,17 +36,22 @@
         <AlertTriangleIcon size={24} class="text-red-600 dark:text-red-400" />
       </div>
       <div>
-        <h2 class="text-lg font-semibold" style="color: var(--color-text);">{title}</h2>
-        <p class="text-sm" style="color: var(--color-text-secondary);">{message}</p>
+        <h2 class="text-lg font-semibold" style:color="var(--color-text)">
+          {title}
+        </h2>
+        <p class="text-sm" style:color="var(--color-text-secondary)">
+          {message}
+        </p>
       </div>
     </div>
 
     {#if itemName}
       <div
         class="p-4 rounded-lg mb-6"
-        style="background: var(--color-surface-elevated); border: 1px solid var(--color-border);"
+        style:background="var(--color-surface-elevated)"
+        style:border="1px solid var(--color-border)"
       >
-        <p class="font-medium" style="color: var(--color-text);">{itemName}</p>
+        <p class="font-medium" style:color="var(--color-text)">{itemName}</p>
       </div>
     {/if}
 

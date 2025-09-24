@@ -12,7 +12,7 @@ const mockResearchNotes: ResearchNote[] = [
     title: 'AI 알고리즘 초기 설계',
     contentMd: '# AI 알고리즘 초기 설계\n\n이번 주에는 AI 알고리즘의 초기 설계를 완료했습니다.',
     attachments: [],
-    createdAt: '2024-01-05T10:00:00Z'
+    createdAt: '2024-01-05T10:00:00Z',
   },
   {
     id: 'note-002',
@@ -22,8 +22,8 @@ const mockResearchNotes: ResearchNote[] = [
     title: '배터리 성능 테스트 결과',
     contentMd: '# 배터리 성능 테스트 결과\n\n새로운 배터리 소재의 성능 테스트를 진행했습니다.',
     attachments: [],
-    createdAt: '2024-01-12T14:30:00Z'
-  }
+    createdAt: '2024-01-12T14:30:00Z',
+  },
 ]
 
 // Mock reports
@@ -41,11 +41,11 @@ const mockReports: Report[] = [
       totalDeliverables: 4,
       risks: ['기술적 난제', '일정 지연 가능성'],
       achievements: ['알고리즘 설계 완료', '데이터 수집 완료'],
-      nextWeekGoals: ['프로토타입 개발', '성능 테스트']
+      nextWeekGoals: ['프로토타입 개발', '성능 테스트'],
     },
     generatedBy: 'emp-001',
-    generatedAt: '2024-01-08T09:00:00Z'
-  }
+    generatedAt: '2024-01-08T09:00:00Z',
+  },
 ]
 
 // Mock submission bundles
@@ -59,8 +59,8 @@ const mockSubmissionBundles: SubmissionBundle[] = [
     checksum: 'abc123',
     createdBy: 'emp-001',
     createdAt: '2024-04-01T10:00:00Z',
-    status: 'uploaded'
-  }
+    status: 'uploaded',
+  },
 ]
 
 // Mock documents
@@ -73,8 +73,8 @@ const mockDocuments: Document[] = [
     fileUrl: '/uploads/receipt-001.pdf',
     uploadedBy: 'emp-001',
     uploadedAt: '2024-01-15T10:00:00Z',
-    status: 'approved'
-  }
+    status: 'approved',
+  },
 ]
 
 // Mock expense items
@@ -90,8 +90,8 @@ const mockExpenseItems: ExpenseItem[] = [
     status: 'approved',
     deptOwner: 'AI연구팀',
     createdAt: '2024-01-10T09:00:00Z',
-    updatedAt: '2024-01-15T10:00:00Z'
-  }
+    updatedAt: '2024-01-15T10:00:00Z',
+  },
 ]
 
 // Create stores

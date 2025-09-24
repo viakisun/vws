@@ -1,6 +1,7 @@
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
 import { query } from '$lib/database/connection'
+import { logger } from '$lib/utils/logger'
 
 // 특정 직급 조회
 export const GET: RequestHandler = async ({ params }) => {
@@ -11,31 +12,31 @@ export const GET: RequestHandler = async ({ params }) => {
 			FROM positions
 			WHERE id = $1
 		`,
-      [params.id]
+      [params.id],
     )
 
     if (result.rows.length === 0) {
       return json(
         {
           success: false,
-          error: '직급을 찾을 수 없습니다.'
+          error: '직급을 찾을 수 없습니다.',
         },
-        { status: 404 }
+        { status: 404 },
       )
     }
 
     return json({
       success: true,
-      data: result.rows[0]
+      data: result.rows[0],
     })
   } catch (error: any) {
-    console.error('Error fetching position:', error)
+    logger.error('Error fetching position:', error)
     return json(
       {
         success: false,
-        error: error.message || '직급 정보를 가져오는데 실패했습니다.'
+        error: error.message || '직급 정보를 가져오는데 실패했습니다.',
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
@@ -50,9 +51,9 @@ export const PUT: RequestHandler = async ({ params, request }) => {
       return json(
         {
           success: false,
-          error: '직급명은 필수 입력 항목입니다.'
+          error: '직급명은 필수 입력 항목입니다.',
         },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -60,25 +61,25 @@ export const PUT: RequestHandler = async ({ params, request }) => {
       return json(
         {
           success: false,
-          error: '부서는 필수 입력 항목입니다.'
+          error: '부서는 필수 입력 항목입니다.',
         },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
     // 중복 직급명 검증 (자기 자신 제외, 같은 부서 내에서)
     const existingPos = await query(
       'SELECT id FROM positions WHERE LOWER(name) = LOWER($1) AND department = $2 AND id != $3',
-      [data.name.trim(), data.department.trim(), params.id]
+      [data.name.trim(), data.department.trim(), params.id],
     )
 
     if (existingPos.rows.length > 0) {
       return json(
         {
           success: false,
-          error: '해당 부서에 이미 존재하는 직급명입니다.'
+          error: '해당 부서에 이미 존재하는 직급명입니다.',
         },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -101,33 +102,33 @@ export const PUT: RequestHandler = async ({ params, request }) => {
         data.department.trim(),
         data.level || 1,
         data.status || 'active',
-        new Date()
-      ]
+        new Date(),
+      ],
     )
 
     if (result.rows.length === 0) {
       return json(
         {
           success: false,
-          error: '직급을 찾을 수 없습니다.'
+          error: '직급을 찾을 수 없습니다.',
         },
-        { status: 404 }
+        { status: 404 },
       )
     }
 
     return json({
       success: true,
       data: result.rows[0],
-      message: '직급 정보가 성공적으로 수정되었습니다.'
+      message: '직급 정보가 성공적으로 수정되었습니다.',
     })
   } catch (error: any) {
-    console.error('Error updating position:', error)
+    logger.error('Error updating position:', error)
     return json(
       {
         success: false,
-        error: error.message || '직급 정보 수정에 실패했습니다.'
+        error: error.message || '직급 정보 수정에 실패했습니다.',
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
@@ -142,37 +143,37 @@ export const DELETE: RequestHandler = async ({ params, url }) => {
       // 하드 삭제: 직급을 사용하는 직원이 있는지 확인
       const employeesInPos = await query(
         'SELECT COUNT(*) as count FROM employees WHERE position = (SELECT name FROM positions WHERE id = $1)',
-        [params.id]
+        [params.id],
       )
 
       if (parseInt(employeesInPos.rows[0].count) > 0) {
         return json(
           {
             success: false,
-            error: '해당 직급을 가진 직원이 있어 삭제할 수 없습니다.'
+            error: '해당 직급을 가진 직원이 있어 삭제할 수 없습니다.',
           },
-          { status: 400 }
+          { status: 400 },
         )
       }
 
       // 하드 삭제 실행
       const result = await query('DELETE FROM positions WHERE id = $1 RETURNING id, name', [
-        params.id
+        params.id,
       ])
 
       if (result.rows.length === 0) {
         return json(
           {
             success: false,
-            error: '직급을 찾을 수 없습니다.'
+            error: '직급을 찾을 수 없습니다.',
           },
-          { status: 404 }
+          { status: 404 },
         )
       }
 
       return json({
         success: true,
-        message: '직급이 완전히 삭제되었습니다.'
+        message: '직급이 완전히 삭제되었습니다.',
       })
     } else {
       // 소프트 삭제: 상태를 'inactive'로 변경
@@ -184,32 +185,32 @@ export const DELETE: RequestHandler = async ({ params, url }) => {
 				WHERE id = $1
 				RETURNING id, name, status
 			`,
-        [params.id, new Date()]
+        [params.id, new Date()],
       )
 
       if (result.rows.length === 0) {
         return json(
           {
             success: false,
-            error: '직급을 찾을 수 없습니다.'
+            error: '직급을 찾을 수 없습니다.',
           },
-          { status: 404 }
+          { status: 404 },
         )
       }
 
       return json({
         success: true,
-        message: '직급이 비활성화되었습니다.'
+        message: '직급이 비활성화되었습니다.',
       })
     }
   } catch (error: any) {
-    console.error('Error deleting position:', error)
+    logger.error('Error deleting position:', error)
     return json(
       {
         success: false,
-        error: error.message || '직급 삭제에 실패했습니다.'
+        error: error.message || '직급 삭제에 실패했습니다.',
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

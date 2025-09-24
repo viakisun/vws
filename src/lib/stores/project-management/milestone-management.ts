@@ -1,20 +1,20 @@
 import { writable } from 'svelte/store'
-import type { Milestone, Project, Person, Document, Approval } from './types'
+import type { Milestone, Approval } from './types'
 import { logAudit } from './core'
 
 // 마일스톤 관리
 export const milestones = writable<Milestone[]>([])
-export const milestoneDeliverables = writable<Record<string, any[]>>({})
+export const milestoneDeliverables = writable<Record<string, unknown[]>>({})
 
 // 분기 목표/산출물 생성
 export function createMilestone(
   projectId: string,
   quarter: number,
   title: string,
-  kpis: Record<string, any>,
+  kpis: Record<string, unknown>,
   dueDate: string,
   ownerId: string,
-  deliverables: string[] = []
+  deliverables: string[] = [],
 ): string {
   const milestone: Milestone = {
     id: crypto.randomUUID(),
@@ -27,10 +27,10 @@ export function createMilestone(
     status: 'not-started',
     deliverables,
     createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    updatedAt: new Date().toISOString(),
   }
 
-  milestones.update(list => [...list, milestone])
+  milestones.update((list) => [...list, milestone])
   logAudit('create', 'milestone', milestone.id, {}, milestone)
 
   return milestone.id
@@ -38,15 +38,15 @@ export function createMilestone(
 
 // 마일스톤 수정
 export function updateMilestone(milestoneId: string, updates: Partial<Milestone>): void {
-  milestones.update(list => {
-    const index = list.findIndex(m => m.id === milestoneId)
+  milestones.update((list) => {
+    const index = list.findIndex((m) => m.id === milestoneId)
     if (index === -1) return list
 
     const oldMilestone = list[index]
     const updatedMilestone = {
       ...oldMilestone,
       ...updates,
-      updatedAt: new Date().toISOString()
+      updatedAt: new Date().toISOString(),
     }
 
     const newList = [...list]
@@ -61,7 +61,7 @@ export function updateMilestone(milestoneId: string, updates: Partial<Milestone>
 export function updateMilestoneStatus(
   milestoneId: string,
   status: Milestone['status'],
-  comment?: string
+  comment?: string,
 ): void {
   updateMilestone(milestoneId, { status })
 
@@ -77,7 +77,7 @@ export function uploadDeliverable(
   filename: string,
   storageUrl: string,
   sha256: string,
-  description?: string
+  description?: string,
 ): string {
   const deliverable = {
     id: crypto.randomUUID(),
@@ -90,14 +90,14 @@ export function uploadDeliverable(
     uploadedAt: new Date().toISOString(),
     uploadedBy: 'current-user',
     version: 1,
-    status: 'uploaded'
+    status: 'uploaded',
   }
 
-  milestoneDeliverables.update(deliverables => {
+  milestoneDeliverables.update((deliverables) => {
     const milestoneDeliverables = deliverables[milestoneId] || []
     return {
       ...deliverables,
-      [milestoneId]: [...milestoneDeliverables, deliverable]
+      [milestoneId]: [...milestoneDeliverables, deliverable],
     }
   })
 
@@ -111,18 +111,18 @@ export function uploadDeliverable(
 
 // 마일스톤 완료 여부 체크
 function checkMilestoneCompletion(milestoneId: string): void {
-  milestones.update(list => {
-    const milestone = list.find(m => m.id === milestoneId)
+  milestones.update((list) => {
+    const milestone = list.find((m) => m.id === milestoneId)
     if (!milestone) return list
 
-    milestoneDeliverables.update(deliverables => {
+    milestoneDeliverables.update((deliverables) => {
       const milestoneDeliverables = deliverables[milestoneId] || []
       const requiredDeliverables = milestone.deliverables
-      const uploadedDeliverables = milestoneDeliverables.filter(d => d.status === 'uploaded')
+      const uploadedDeliverables = milestoneDeliverables.filter((d) => d.status === 'uploaded')
 
       // 모든 필수 산출물이 업로드되었는지 확인
-      const allDeliverablesUploaded = requiredDeliverables.every(required =>
-        uploadedDeliverables.some(uploaded => uploaded.name === required)
+      const allDeliverablesUploaded = requiredDeliverables.every((required) =>
+        uploadedDeliverables.some((uploaded) => uploaded.name === required),
       )
 
       // 마일스톤 상태 업데이트
@@ -130,10 +130,10 @@ function checkMilestoneCompletion(milestoneId: string): void {
         const updatedMilestone = {
           ...milestone,
           status: 'completed' as const,
-          updatedAt: new Date().toISOString()
+          updatedAt: new Date().toISOString(),
         }
 
-        const index = list.findIndex(m => m.id === milestoneId)
+        const index = list.findIndex((m) => m.id === milestoneId)
         if (index !== -1) {
           const newList = [...list]
           newList[index] = updatedMilestone
@@ -155,10 +155,10 @@ export function updateMilestoneKPI(
   milestoneId: string,
   kpiName: string,
   value: any,
-  comment?: string
+  comment?: string,
 ): void {
-  milestones.update(list => {
-    const index = list.findIndex(m => m.id === milestoneId)
+  milestones.update((list) => {
+    const index = list.findIndex((m) => m.id === milestoneId)
     if (index === -1) return list
 
     const milestone = list[index]
@@ -167,14 +167,14 @@ export function updateMilestoneKPI(
       [kpiName]: {
         value,
         updatedAt: new Date().toISOString(),
-        comment
-      }
+        comment,
+      },
     }
 
     const updatedMilestone = {
       ...milestone,
       kpis: updatedKpis,
-      updatedAt: new Date().toISOString()
+      updatedAt: new Date().toISOString(),
     }
 
     const newList = [...list]
@@ -189,9 +189,9 @@ export function updateMilestoneKPI(
 export function getMilestonesByProject(projectId: string): Milestone[] {
   let projectMilestones: Milestone[] = []
 
-  milestones.subscribe(list => {
+  milestones.subscribe((list) => {
     projectMilestones = list
-      .filter(m => m.projectId === projectId)
+      .filter((m) => m.projectId === projectId)
       .sort((a, b) => a.quarter - b.quarter)
   })()
 
@@ -202,9 +202,9 @@ export function getMilestonesByProject(projectId: string): Milestone[] {
 export function getMilestonesByQuarter(projectId: string, quarter: number): Milestone[] {
   let quarterMilestones: Milestone[] = []
 
-  milestones.subscribe(list => {
+  milestones.subscribe((list) => {
     quarterMilestones = list
-      .filter(m => m.projectId === projectId && m.quarter === quarter)
+      .filter((m) => m.projectId === projectId && m.quarter === quarter)
       .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
   })()
 
@@ -212,10 +212,10 @@ export function getMilestonesByQuarter(projectId: string, quarter: number): Mile
 }
 
 // 마일스톤별 산출물 목록
-export function getMilestoneDeliverables(milestoneId: string): any[] {
-  let deliverables: any[] = []
+export function getMilestoneDeliverables(milestoneId: string): unknown[] {
+  let deliverables: unknown[] = []
 
-  milestoneDeliverables.subscribe(deliverableMap => {
+  milestoneDeliverables.subscribe((deliverableMap) => {
     deliverables = deliverableMap[milestoneId] || []
   })()
 
@@ -230,22 +230,27 @@ export function calculateMilestoneProgress(milestoneId: string): {
   status: 'on-track' | 'at-risk' | 'delayed'
 } {
   let milestone: Milestone | undefined
-  let deliverables: any[] = []
+  let deliverables: unknown[] = []
 
-  milestones.subscribe(list => {
-    milestone = list.find(m => m.id === milestoneId)
+  milestones.subscribe((list) => {
+    milestone = list.find((m) => m.id === milestoneId)
   })()
 
-  milestoneDeliverables.subscribe(deliverableMap => {
+  milestoneDeliverables.subscribe((deliverableMap) => {
     deliverables = deliverableMap[milestoneId] || []
   })()
 
   if (!milestone) {
-    return { progress: 0, completedDeliverables: 0, totalDeliverables: 0, status: 'delayed' }
+    return {
+      progress: 0,
+      completedDeliverables: 0,
+      totalDeliverables: 0,
+      status: 'delayed',
+    }
   }
 
   const totalDeliverables = milestone.deliverables.length
-  const completedDeliverables = deliverables.filter(d => d.status === 'uploaded').length
+  const completedDeliverables = deliverables.filter((d) => d.status === 'uploaded').length
   const progress = totalDeliverables > 0 ? (completedDeliverables / totalDeliverables) * 100 : 0
 
   // 상태 결정
@@ -267,16 +272,16 @@ export function calculateMilestoneProgress(milestoneId: string): {
 export function calculateProjectProgress(projectId: string): {
   overallProgress: number
   quarterProgress: Record<number, number>
-  milestoneStatus: Record<string, any>
+  milestoneStatus: Record<string, unknown>
 } {
   const projectMilestones = getMilestonesByProject(projectId)
   const quarterProgress: Record<number, number> = {}
-  const milestoneStatus: Record<string, any> = {}
+  const milestoneStatus: Record<string, unknown> = {}
 
   let totalProgress = 0
   let totalMilestones = 0
 
-  projectMilestones.forEach(milestone => {
+  projectMilestones.forEach((milestone) => {
     const progress = calculateMilestoneProgress(milestone.id)
     milestoneStatus[milestone.id] = progress
 
@@ -290,8 +295,8 @@ export function calculateProjectProgress(projectId: string): {
   })
 
   // 분기별 평균 계산
-  Object.keys(quarterProgress).forEach(quarter => {
-    const quarterMilestones = projectMilestones.filter(m => m.quarter === parseInt(quarter))
+  Object.keys(quarterProgress).forEach((quarter) => {
+    const quarterMilestones = projectMilestones.filter((m) => m.quarter === parseInt(quarter))
     quarterProgress[parseInt(quarter)] =
       quarterProgress[parseInt(quarter)] / quarterMilestones.length
   })
@@ -305,9 +310,9 @@ export function calculateProjectProgress(projectId: string): {
 export function getDelayedMilestones(): Milestone[] {
   let delayedMilestones: Milestone[] = []
 
-  milestones.subscribe(list => {
+  milestones.subscribe((list) => {
     const now = new Date()
-    delayedMilestones = list.filter(milestone => {
+    delayedMilestones = list.filter((milestone) => {
       const dueDate = new Date(milestone.dueDate)
       const isOverdue = dueDate < now
       const isNotCompleted = milestone.status !== 'completed'
@@ -322,8 +327,8 @@ export function getDelayedMilestones(): Milestone[] {
 export function getAtRiskMilestones(): Milestone[] {
   let atRiskMilestones: Milestone[] = []
 
-  milestones.subscribe(list => {
-    atRiskMilestones = list.filter(milestone => {
+  milestones.subscribe((list) => {
+    atRiskMilestones = list.filter((milestone) => {
       const progress = calculateMilestoneProgress(milestone.id)
       return progress.status === 'at-risk'
     })
@@ -336,7 +341,7 @@ export function getAtRiskMilestones(): Milestone[] {
 export function requestMilestoneApproval(
   milestoneId: string,
   approverId: string,
-  comment?: string
+  comment?: string,
 ): string {
   const approval: Approval = {
     id: crypto.randomUUID(),
@@ -347,7 +352,7 @@ export function requestMilestoneApproval(
     decision: 'pending',
     comment,
     createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    updatedAt: new Date().toISOString(),
   }
 
   logAudit('approval_request', 'milestone', milestoneId, { approverId, comment }, approval)
@@ -360,7 +365,7 @@ export function approveMilestone(
   milestoneId: string,
   approverId: string,
   decision: 'approved' | 'rejected',
-  comment?: string
+  comment?: string,
 ): void {
   updateMilestoneStatus(milestoneId, decision === 'approved' ? 'completed' : 'not-started', comment)
 
@@ -371,60 +376,60 @@ export function approveMilestone(
 export function createQuarterlyMilestoneTemplate(
   projectId: string,
   quarter: number,
-  templateType: 'research' | 'development' | 'commercialization'
+  templateType: 'research' | 'development' | 'commercialization',
 ): Milestone[] {
   const templates = {
     research: [
       {
         title: '문헌 조사 및 기술 분석',
         kpis: { literature_review: 0, technical_analysis: 0 },
-        deliverables: ['문헌조사보고서', '기술분석보고서']
+        deliverables: ['문헌조사보고서', '기술분석보고서'],
       },
       {
         title: '실험 설계 및 초기 실험',
         kpis: { experiment_design: 0, initial_experiments: 0 },
-        deliverables: ['실험설계서', '초기실험결과']
+        deliverables: ['실험설계서', '초기실험결과'],
       },
       {
         title: '중간 결과 분석 및 보고',
         kpis: { data_analysis: 0, interim_report: 0 },
-        deliverables: ['중간보고서', '데이터분석결과']
-      }
+        deliverables: ['중간보고서', '데이터분석결과'],
+      },
     ],
     development: [
       {
         title: '요구사항 분석 및 설계',
         kpis: { requirements_analysis: 0, system_design: 0 },
-        deliverables: ['요구사항명세서', '시스템설계서']
+        deliverables: ['요구사항명세서', '시스템설계서'],
       },
       {
         title: '프로토타입 개발',
         kpis: { prototype_development: 0, testing: 0 },
-        deliverables: ['프로토타입', '테스트결과']
+        deliverables: ['프로토타입', '테스트결과'],
       },
       {
         title: '성능 최적화 및 검증',
         kpis: { optimization: 0, validation: 0 },
-        deliverables: ['최적화결과', '검증보고서']
-      }
+        deliverables: ['최적화결과', '검증보고서'],
+      },
     ],
     commercialization: [
       {
         title: '시장 분석 및 사업화 계획',
         kpis: { market_analysis: 0, business_plan: 0 },
-        deliverables: ['시장분석보고서', '사업화계획서']
+        deliverables: ['시장분석보고서', '사업화계획서'],
       },
       {
         title: '파일럿 테스트 및 검증',
         kpis: { pilot_test: 0, validation: 0 },
-        deliverables: ['파일럿테스트결과', '검증보고서']
+        deliverables: ['파일럿테스트결과', '검증보고서'],
       },
       {
         title: '사업화 준비 및 실행',
         kpis: { commercialization_prep: 0, execution: 0 },
-        deliverables: ['사업화준비보고서', '실행계획서']
-      }
-    ]
+        deliverables: ['사업화준비보고서', '실행계획서'],
+      },
+    ],
   }
 
   const template = templates[templateType]
@@ -441,7 +446,7 @@ export function createQuarterlyMilestoneTemplate(
       item.kpis,
       dueDate.toISOString().split('T')[0],
       'current-user',
-      item.deliverables
+      item.deliverables,
     )
 
     createdMilestones.push({
@@ -455,7 +460,7 @@ export function createQuarterlyMilestoneTemplate(
       status: 'not-started',
       deliverables: item.deliverables,
       createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      updatedAt: new Date().toISOString(),
     })
   })
 
@@ -465,30 +470,30 @@ export function createQuarterlyMilestoneTemplate(
 // 마일스톤 리포트 생성
 export function generateMilestoneReport(
   projectId: string,
-  quarter?: number
+  quarter?: number,
 ): {
   summary: any
   milestones: Milestone[]
-  deliverables: Record<string, any[]>
+  deliverables: Record<string, unknown[]>
   progress: any
 } {
   const projectMilestones = quarter
     ? getMilestonesByQuarter(projectId, quarter)
     : getMilestonesByProject(projectId)
 
-  const deliverables: Record<string, any[]> = {}
+  const deliverables: Record<string, unknown[]> = {}
   const progress = calculateProjectProgress(projectId)
 
-  projectMilestones.forEach(milestone => {
+  projectMilestones.forEach((milestone) => {
     deliverables[milestone.id] = getMilestoneDeliverables(milestone.id)
   })
 
   const summary = {
     totalMilestones: projectMilestones.length,
-    completedMilestones: projectMilestones.filter(m => m.status === 'completed').length,
-    delayedMilestones: getDelayedMilestones().filter(m => m.projectId === projectId).length,
-    atRiskMilestones: getAtRiskMilestones().filter(m => m.projectId === projectId).length,
-    overallProgress: progress.overallProgress
+    completedMilestones: projectMilestones.filter((m) => m.status === 'completed').length,
+    delayedMilestones: getDelayedMilestones().filter((m) => m.projectId === projectId).length,
+    atRiskMilestones: getAtRiskMilestones().filter((m) => m.projectId === projectId).length,
+    overallProgress: progress.overallProgress,
   }
 
   return { summary, milestones: projectMilestones, deliverables, progress }

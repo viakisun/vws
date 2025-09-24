@@ -1,26 +1,25 @@
 <script lang="ts">
-  import { onMount } from 'svelte'
-  import { themeManager, isDark } from '$lib/stores/theme'
+  import ThemeAvatar from '$lib/components/ui/ThemeAvatar.svelte'
+  import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
+  import ThemeDropdown from '$lib/components/ui/ThemeDropdown.svelte'
+  import { isDark, themeManager } from '$lib/stores/theme'
+  import { logger } from '$lib/utils/logger'
   import {
-    SearchIcon,
     BellIcon,
-    SunIcon,
+    BuildingIcon,
+    LogOutIcon,
     MoonIcon,
     SettingsIcon,
-    LogOutIcon,
+    SunIcon,
     UserIcon,
-    BuildingIcon
   } from '@lucide/svelte'
-  import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
-  import ThemeAvatar from '$lib/components/ui/ThemeAvatar.svelte'
-  import ThemeDropdown from '$lib/components/ui/ThemeDropdown.svelte'
+  import { onMount } from 'svelte'
 
-  // Search and notification state
-  let searchQuery = $state('')
+  // Notification state
   let showNotifications = $state(false)
   let showUserMenu = $state(false)
-  let notificationsContainer: HTMLElement
-  let userMenuContainer: HTMLElement
+  let notificationsContainer: HTMLElement | undefined
+  let userMenuContainer: HTMLElement | undefined
   let unreadCount = $state(3)
 
   // Company information
@@ -41,19 +40,25 @@
 
   // Close dropdowns when clicking outside
   function handleClickOutside(event: MouseEvent) {
-    if (notificationsContainer && !notificationsContainer.contains(event.target as Node)) {
+    if (notificationsContainer && !notificationsContainer.contains(event.target as HTMLElement)) {
       showNotifications = false
     }
-    if (userMenuContainer && !userMenuContainer.contains(event.target as Node)) {
+    if (userMenuContainer && !userMenuContainer.contains(event.target as HTMLElement)) {
       showUserMenu = false
     }
   }
+
+  onMount(() => {
+    fetchCompanyName()
+    document.addEventListener('click', handleClickOutside)
+    return () => document.removeEventListener('click', handleClickOutside)
+  })
 
   // 회사 정보 가져오기
   async function fetchCompanyName() {
     try {
       companyLoading = true
-      const response = await fetch('/api/company')
+      const response = await window.fetch('/api/company')
       if (response.ok) {
         const result = await response.json()
         if (result.data && result.data.name) {
@@ -61,20 +66,17 @@
         }
       }
     } catch (err) {
-      console.error('Error fetching company name:', err)
+      logger.error('Error fetching company name:', err)
     } finally {
       companyLoading = false
     }
   }
-
-  onMount(() => {
-    fetchCompanyName()
-  })
 </script>
 
 <header
   class="h-16 flex items-center justify-between px-6 border-b"
-  style="background: var(--color-surface); border-color: var(--color-border);"
+  style:background="var(--color-surface)"
+  style:border-color="var(--color-border)"
 >
   <!-- Left Section: Logo & Brand -->
   <div class="flex items-center space-x-4">
@@ -86,31 +88,11 @@
         <BuildingIcon class="h-6 w-6 text-white" />
       </div>
       <div class="flex flex-col">
-        <span class="text-lg font-bold" style="color: var(--color-text);"> WorkStream </span>
-        <span class="text-xs" style="color: var(--color-text-secondary);">
+        <span class="text-lg font-bold" style:color="var(--color-text)"> WorkStream </span>
+        <span class="text-xs" style:color="var(--color-text-secondary)">
           {companyLoading ? '로딩 중...' : companyName}
         </span>
       </div>
-    </div>
-  </div>
-
-  <!-- Center Section: Search -->
-  <div class="flex-1 max-w-md mx-8">
-    <div class="relative">
-      <SearchIcon
-        size={16}
-        class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-      />
-      <input
-        type="search"
-        placeholder="검색..."
-        class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-        value={searchQuery}
-        oninput={e => {
-          const target = e.target as HTMLInputElement
-          searchQuery = target?.value || ''
-        }}
-      />
     </div>
   </div>
 
@@ -170,7 +152,7 @@
           class="absolute top-full right-0 mt-3 w-96 z-50 shadow-2xl border-0"
           position="top-right"
           open={showNotifications}
-          onchange={open => (showNotifications = open)}
+          onchange={(open) => (showNotifications = open)}
         >
           <div
             class="px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-700"
@@ -241,6 +223,7 @@
           </div>
           <div class="px-6 py-3 border-t border-gray-100 bg-gray-50 dark:bg-gray-800">
             <button
+              type="button"
               class="w-full text-center text-sm font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
             >
               모든 알림 보기
@@ -262,6 +245,7 @@
       >
         <div class="relative">
           <ThemeAvatar
+            src=""
             size="md"
             fallback="김"
             class="ring-2 ring-transparent group-hover:ring-blue-200 dark:group-hover:ring-blue-800 transition-all duration-300"
@@ -289,7 +273,7 @@
           class="absolute top-full right-0 mt-3 w-72 z-50 shadow-2xl border-0"
           position="top-right"
           open={showUserMenu}
-          onchange={open => (showUserMenu = open)}
+          onchange={(open) => (showUserMenu = open)}
         >
           <div
             class="px-6 py-5 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-700"
@@ -297,6 +281,7 @@
             <div class="flex items-center space-x-4">
               <div class="relative">
                 <ThemeAvatar
+                  src=""
                   size="lg"
                   fallback="김"
                   class="ring-4 ring-white dark:ring-gray-700 shadow-lg"

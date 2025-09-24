@@ -10,38 +10,34 @@
   import PayslipGenerator from '$lib/components/salary/PayslipGenerator.svelte'
   import PayslipUploader from '$lib/components/salary/PayslipUploader.svelte'
   import { DollarSignIcon, UsersIcon, FileTextIcon, CheckCircleIcon } from '@lucide/svelte'
-  import {
-    loadContracts,
-    loadContractStats,
-    isLoading,
-    error
-  } from '$lib/stores/salary/contract-store'
+  import { loadContracts, loadContractStats } from '$lib/stores/salary/contract-store'
   import { loadPayslips } from '$lib/stores/salary/salary-store'
   import { formatCurrency } from '$lib/utils/format'
   import { BarChartIcon, ClockIcon, PrinterIcon } from '@lucide/svelte'
+  import { logger } from '$lib/utils/logger'
 
   // 탭 정의
   const tabs = [
     {
       id: 'overview',
       label: '개요',
-      icon: BarChartIcon
+      icon: BarChartIcon,
     },
     {
       id: 'contracts',
       label: '급여 계약',
-      icon: FileTextIcon
+      icon: FileTextIcon,
     },
     {
       id: 'history',
       label: '급여 이력',
-      icon: ClockIcon
+      icon: ClockIcon,
     },
     {
       id: 'payslips',
       label: '급여명세서',
-      icon: PrinterIcon
-    }
+      icon: PrinterIcon,
+    },
   ]
 
   // URL 파라미터에서 탭 상태 가져오기
@@ -68,14 +64,14 @@
 
       if (result.success && result.data) {
         const contracts = result.data.data
-        const activeContracts = contracts.filter(contract => contract.status === 'active')
+        const activeContracts = contracts.filter((contract) => contract.status === 'active')
         const totalMonthlySalary = activeContracts.reduce(
           (sum, contract) => sum + (contract.monthlySalary || 0),
-          0
+          0,
         )
         const totalAnnualSalary = activeContracts.reduce(
           (sum, contract) => sum + (contract.annualSalary || 0),
-          0
+          0,
         )
 
         salaryStats = [
@@ -84,32 +80,32 @@
             value: formatCurrency(totalMonthlySalary),
             change: '변화 없음 (지난달 대비)',
             changeType: 'neutral',
-            icon: DollarSignIcon
+            icon: DollarSignIcon,
           },
           {
             title: '총 직원 수',
             value: activeContracts.length + '명',
             change: '변화 없음 (지난달 대비)',
             changeType: 'neutral',
-            icon: UsersIcon
+            icon: UsersIcon,
           },
           {
             title: '총 지급액',
             value: formatCurrency(totalAnnualSalary),
             change: '변화 없음 (지난달 대비)',
             changeType: 'neutral',
-            icon: FileTextIcon
+            icon: FileTextIcon,
           },
           {
             title: '급여 상태',
             value: '정상',
             change: '모든 계약 활성',
             changeType: 'positive',
-            icon: CheckCircleIcon
-          }
+            icon: CheckCircleIcon,
+          },
         ]
       }
-    } catch (error) {
+    } catch (_error) {
       // 에러 처리
     }
   }
@@ -129,7 +125,7 @@
     if (!mounted) return
 
     const currentTab = activeTab
-    console.log('Salary tab changed to:', currentTab)
+    logger.log('Salary tab changed to:', currentTab)
 
     switch (currentTab) {
       case 'contracts':
@@ -165,7 +161,7 @@
     size="md"
     class="mb-6"
   >
-    {#snippet children(tab: any)}
+    {#snippet children(tab: { id: string; label: string })}
       {#if tab.id === 'overview'}
         <!-- 개요 탭 -->
         <ThemeSpacer size={6}>

@@ -1,6 +1,7 @@
 import { json, error } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
 import { DatabaseService } from '$lib/database/connection'
+import { logger } from '$lib/utils/logger'
 
 // GET /api/companies - Get all companies
 export const GET: RequestHandler = async ({ url }) => {
@@ -16,16 +17,16 @@ export const GET: RequestHandler = async ({ url }) => {
       status: status || undefined,
       industry: industry || undefined,
       limit: limit ? parseInt(limit) : undefined,
-      offset: offset ? parseInt(offset) : undefined
+      offset: offset ? parseInt(offset) : undefined,
     })
 
     return json({
       success: true,
       data: companies,
-      count: companies.length
+      count: companies.length,
     })
   } catch (err) {
-    console.error('Get companies error:', err)
+    logger.error('Get companies error:', err)
     return error(500, { message: 'Internal server error' })
   }
 }
@@ -43,7 +44,7 @@ export const POST: RequestHandler = async ({ request }) => {
     // Check if company name already exists
     const existingCompany = await DatabaseService.query(
       'SELECT id FROM companies WHERE name = $1',
-      [companyData.name]
+      [companyData.name],
     )
 
     if (existingCompany.rows.length > 0) {
@@ -55,12 +56,12 @@ export const POST: RequestHandler = async ({ request }) => {
     return json(
       {
         success: true,
-        data: company
+        data: company,
       },
-      { status: 201 }
+      { status: 201 },
     )
   } catch (err) {
-    console.error('Create company error:', err)
+    logger.error('Create company error:', err)
     return error(500, { message: 'Internal server error' })
   }
 }

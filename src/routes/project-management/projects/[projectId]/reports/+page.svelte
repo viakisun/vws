@@ -20,16 +20,21 @@
       title: '9월 월간 진도보고',
       status: '제출',
       period: '2025-09',
-      submittedAt: '2025-10-02'
+      submittedAt: '2025-10-02',
     },
-    { id: `${projectId}-R2`, title: '10월 월간 진도보고', status: '작성중', period: '2025-10' },
+    {
+      id: `${projectId}-R2`,
+      title: '10월 월간 진도보고',
+      status: '작성중',
+      period: '2025-10',
+    },
     {
       id: `${projectId}-R3`,
       title: '분기 성과보고(Q3)',
       status: '반려',
       period: '2025-Q3',
-      submittedAt: '2025-10-05'
-    }
+      submittedAt: '2025-10-05',
+    },
   ]
 
   let status = $state('') as '' | RStatus
@@ -55,7 +60,7 @@
         goto(`${window.location.pathname}?${newQuery}`, {
           replaceState: true,
           keepFocus: true,
-          noScroll: true
+          noScroll: true,
         })
       }
     }
@@ -63,8 +68,8 @@
 
   const filtered = $derived(
     items.filter(
-      r => (status ? r.status === status : true) && (query ? r.title.includes(query) : true)
-    )
+      (r) => (status ? r.status === status : true) && (query ? r.title.includes(query) : true),
+    ),
   )
 
   function colorOf(s: RStatus): 'green' | 'blue' | 'yellow' | 'red' {
@@ -82,7 +87,7 @@
   function exportCSV() {
     const header = 'id,title,status,period,submittedAt\n'
     const rows = filtered
-      .map(r => `${r.id},${r.title},${r.status},${r.period},${r.submittedAt ?? ''}`)
+      .map((r) => `${r.id},${r.title},${r.status},${r.period},${r.submittedAt ?? ''}`)
       .join('\n')
     const blob = new Blob([header + rows], { type: 'text/csv;charset=utf-8;' })
     const url = URL.createObjectURL(blob)
@@ -120,7 +125,8 @@
   </div>
   {#if loading}
     <div class="space-y-2">
-      {#each Array(8) as _}
+      {#each Array(8) as _, idx (idx)}
+        <!-- TODO: replace index key with a stable id when model provides one -->
         <div class="h-8 bg-gray-100 animate-pulse rounded"></div>
       {/each}
     </div>
@@ -137,7 +143,7 @@
           </tr>
         </thead>
         <tbody class="divide-y">
-          {#each filtered as r}
+          {#each filtered as r, i (i)}
             <tr>
               <td class="px-3 py-2">{r.id}</td>
               <td class="px-3 py-2">{r.title}</td>

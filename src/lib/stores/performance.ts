@@ -164,7 +164,7 @@ const initialPerformanceReviews: PerformanceReview[] = [
     reviewPeriod: {
       startDate: '2023-01-01',
       endDate: '2023-12-31',
-      year: 2023
+      year: 2023,
     },
     reviewType: 'annual',
     status: 'completed',
@@ -178,7 +178,7 @@ const initialPerformanceReviews: PerformanceReview[] = [
         achievement: 95,
         weight: 30,
         rating: 4,
-        comments: '대부분의 프로젝트를 성공적으로 완료했으나 일부 지연 발생'
+        comments: '대부분의 프로젝트를 성공적으로 완료했으나 일부 지연 발생',
       },
       {
         id: 'goal-2',
@@ -189,8 +189,8 @@ const initialPerformanceReviews: PerformanceReview[] = [
         achievement: 100,
         weight: 20,
         rating: 5,
-        comments: '훌륭한 멘토링으로 신입 개발자들의 성장에 크게 기여'
-      }
+        comments: '훌륭한 멘토링으로 신입 개발자들의 성장에 크게 기여',
+      },
     ],
     competencies: [
       {
@@ -199,7 +199,7 @@ const initialPerformanceReviews: PerformanceReview[] = [
         description: '프로그래밍 및 기술적 문제 해결 능력',
         rating: 4,
         evidence: '복잡한 기술적 문제를 효과적으로 해결하고 팀에 지식 공유',
-        improvement: '최신 기술 트렌드에 대한 지속적인 학습 필요'
+        improvement: '최신 기술 트렌드에 대한 지속적인 학습 필요',
       },
       {
         id: 'comp-2',
@@ -207,8 +207,8 @@ const initialPerformanceReviews: PerformanceReview[] = [
         description: '팀을 이끌고 동기부여하는 능력',
         rating: 4,
         evidence: '프로젝트 리딩 및 팀원들의 성장을 돕는 역할 수행',
-        improvement: '더 적극적인 의사결정 및 책임감 향상 필요'
-      }
+        improvement: '더 적극적인 의사결정 및 책임감 향상 필요',
+      },
     ],
     overallRating: 4,
     strengths: ['뛰어난 기술적 역량', '팀워크 및 협업 능력', '지속적인 학습 의지'],
@@ -222,8 +222,8 @@ const initialPerformanceReviews: PerformanceReview[] = [
     updatedAt: '2023-12-15T00:00:00Z',
     completedAt: '2023-12-15T00:00:00Z',
     approvedAt: '2023-12-20T00:00:00Z',
-    approvedBy: 'emp-3'
-  }
+    approvedBy: 'emp-3',
+  },
 ]
 
 const initialFeedback360: Feedback360[] = [
@@ -234,7 +234,7 @@ const initialFeedback360: Feedback360[] = [
     reviewerType: 'peer',
     reviewPeriod: {
       startDate: '2023-01-01',
-      endDate: '2023-12-31'
+      endDate: '2023-12-31',
     },
     leadership: 4,
     communication: 4,
@@ -250,8 +250,8 @@ const initialFeedback360: Feedback360[] = [
     isAnonymous: false,
     status: 'completed',
     createdAt: '2023-12-01T00:00:00Z',
-    completedAt: '2023-12-10T00:00:00Z'
-  }
+    completedAt: '2023-12-10T00:00:00Z',
+  },
 ]
 
 const initialCompetencyMatrix: CompetencyMatrix[] = [
@@ -266,8 +266,8 @@ const initialCompetencyMatrix: CompetencyMatrix[] = [
     nextAssessment: '2024-06-15',
     assessorId: 'emp-3',
     createdAt: '2023-12-15T00:00:00Z',
-    updatedAt: '2023-12-15T00:00:00Z'
-  }
+    updatedAt: '2023-12-15T00:00:00Z',
+  },
 ]
 
 const initialTrainingRecords: TrainingRecord[] = [
@@ -287,8 +287,8 @@ const initialTrainingRecords: TrainingRecord[] = [
     certificateUrl: '/certificates/aws-sa.pdf',
     skills: ['AWS', 'Cloud Architecture', 'DevOps'],
     createdAt: '2023-06-01T00:00:00Z',
-    updatedAt: '2023-06-30T00:00:00Z'
-  }
+    updatedAt: '2023-06-30T00:00:00Z',
+  },
 ]
 
 const initialPromotionRecords: PromotionRecord[] = [
@@ -303,8 +303,8 @@ const initialPromotionRecords: PromotionRecord[] = [
     reason: '뛰어난 기술적 역량과 팀 리딩 능력',
     approvedBy: 'emp-3',
     approvedAt: '2023-01-10T00:00:00Z',
-    createdAt: '2023-01-10T00:00:00Z'
-  }
+    createdAt: '2023-01-10T00:00:00Z',
+  },
 ]
 
 const initialCompensationRecords: CompensationRecord[] = [
@@ -318,8 +318,8 @@ const initialCompensationRecords: CompensationRecord[] = [
     reason: '성과 평가 결과에 따른 인상',
     approvedBy: 'emp-3',
     approvedAt: '2023-12-20T00:00:00Z',
-    createdAt: '2023-12-20T00:00:00Z'
-  }
+    createdAt: '2023-12-20T00:00:00Z',
+  },
 ]
 
 // 스토어 생성
@@ -332,53 +332,53 @@ export const compensationRecords = writable<CompensationRecord[]>(initialCompens
 
 // 성과 평가 관리 함수들
 export function addPerformanceReview(
-  review: Omit<PerformanceReview, 'id' | 'createdAt' | 'updatedAt'>
+  review: Omit<PerformanceReview, 'id' | 'createdAt' | 'updatedAt'>,
 ) {
   const newReview: PerformanceReview = {
     ...review,
     id: `review-${Date.now()}`,
     createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    updatedAt: new Date().toISOString(),
   }
-  performanceReviews.update(current => [...current, newReview])
+  performanceReviews.update((current) => [...current, newReview])
 }
 
 export function updatePerformanceReview(id: string, updates: Partial<PerformanceReview>) {
-  performanceReviews.update(current =>
-    current.map(review =>
-      review.id === id ? { ...review, ...updates, updatedAt: new Date().toISOString() } : review
-    )
+  performanceReviews.update((current) =>
+    current.map((review) =>
+      review.id === id ? { ...review, ...updates, updatedAt: new Date().toISOString() } : review,
+    ),
   )
 }
 
 export function completePerformanceReview(id: string) {
-  performanceReviews.update(current =>
-    current.map(review =>
+  performanceReviews.update((current) =>
+    current.map((review) =>
       review.id === id
         ? {
             ...review,
             status: 'completed',
             completedAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
+            updatedAt: new Date().toISOString(),
           }
-        : review
-    )
+        : review,
+    ),
   )
 }
 
 export function approvePerformanceReview(id: string, approvedBy: string) {
-  performanceReviews.update(current =>
-    current.map(review =>
+  performanceReviews.update((current) =>
+    current.map((review) =>
       review.id === id
         ? {
             ...review,
             status: 'approved',
             approvedBy,
             approvedAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
+            updatedAt: new Date().toISOString(),
           }
-        : review
-    )
+        : review,
+    ),
   )
 }
 
@@ -387,39 +387,43 @@ export function addFeedback360(feedback: Omit<Feedback360, 'id' | 'createdAt'>) 
   const newFeedback: Feedback360 = {
     ...feedback,
     id: `feedback-${Date.now()}`,
-    createdAt: new Date().toISOString()
+    createdAt: new Date().toISOString(),
   }
-  feedback360.update(current => [...current, newFeedback])
+  feedback360.update((current) => [...current, newFeedback])
 }
 
 export function completeFeedback360(id: string) {
-  feedback360.update(current =>
-    current.map(feedback =>
+  feedback360.update((current) =>
+    current.map((feedback) =>
       feedback.id === id
-        ? { ...feedback, status: 'completed', completedAt: new Date().toISOString() }
-        : feedback
-    )
+        ? {
+            ...feedback,
+            status: 'completed',
+            completedAt: new Date().toISOString(),
+          }
+        : feedback,
+    ),
   )
 }
 
 // 역량 매트릭스 관리 함수들
 export function addCompetencyMatrix(
-  matrix: Omit<CompetencyMatrix, 'id' | 'createdAt' | 'updatedAt'>
+  matrix: Omit<CompetencyMatrix, 'id' | 'createdAt' | 'updatedAt'>,
 ) {
   const newMatrix: CompetencyMatrix = {
     ...matrix,
     id: `comp-matrix-${Date.now()}`,
     createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    updatedAt: new Date().toISOString(),
   }
-  competencyMatrix.update(current => [...current, newMatrix])
+  competencyMatrix.update((current) => [...current, newMatrix])
 }
 
 export function updateCompetencyMatrix(id: string, updates: Partial<CompetencyMatrix>) {
-  competencyMatrix.update(current =>
-    current.map(matrix =>
-      matrix.id === id ? { ...matrix, ...updates, updatedAt: new Date().toISOString() } : matrix
-    )
+  competencyMatrix.update((current) =>
+    current.map((matrix) =>
+      matrix.id === id ? { ...matrix, ...updates, updatedAt: new Date().toISOString() } : matrix,
+    ),
   )
 }
 
@@ -429,32 +433,32 @@ export function addTrainingRecord(record: Omit<TrainingRecord, 'id' | 'createdAt
     ...record,
     id: `training-${Date.now()}`,
     createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    updatedAt: new Date().toISOString(),
   }
-  trainingRecords.update(current => [...current, newRecord])
+  trainingRecords.update((current) => [...current, newRecord])
 }
 
 export function updateTrainingRecord(id: string, updates: Partial<TrainingRecord>) {
-  trainingRecords.update(current =>
-    current.map(record =>
-      record.id === id ? { ...record, ...updates, updatedAt: new Date().toISOString() } : record
-    )
+  trainingRecords.update((current) =>
+    current.map((record) =>
+      record.id === id ? { ...record, ...updates, updatedAt: new Date().toISOString() } : record,
+    ),
   )
 }
 
 export function completeTraining(id: string, score: number, certificateUrl?: string) {
-  trainingRecords.update(current =>
-    current.map(record =>
+  trainingRecords.update((current) =>
+    current.map((record) =>
       record.id === id
         ? {
             ...record,
             status: 'completed',
             score,
             certificateUrl,
-            updatedAt: new Date().toISOString()
+            updatedAt: new Date().toISOString(),
           }
-        : record
-    )
+        : record,
+    ),
   )
 }
 
@@ -463,61 +467,61 @@ export function addPromotionRecord(record: Omit<PromotionRecord, 'id' | 'created
   const newRecord: PromotionRecord = {
     ...record,
     id: `promotion-${Date.now()}`,
-    createdAt: new Date().toISOString()
+    createdAt: new Date().toISOString(),
   }
-  promotionRecords.update(current => [...current, newRecord])
+  promotionRecords.update((current) => [...current, newRecord])
 }
 
 export function addCompensationRecord(record: Omit<CompensationRecord, 'id' | 'createdAt'>) {
   const newRecord: CompensationRecord = {
     ...record,
     id: `compensation-${Date.now()}`,
-    createdAt: new Date().toISOString()
+    createdAt: new Date().toISOString(),
   }
-  compensationRecords.update(current => [...current, newRecord])
+  compensationRecords.update((current) => [...current, newRecord])
 }
 
 // 유틸리티 함수들
 export function getPerformanceReviewsByEmployee(
   employeeId: string,
-  reviewList: PerformanceReview[]
+  reviewList: PerformanceReview[],
 ): PerformanceReview[] {
-  return reviewList.filter(review => review.employeeId === employeeId)
+  return reviewList.filter((review) => review.employeeId === employeeId)
 }
 
 export function getFeedback360ByReviewee(
   revieweeId: string,
-  feedbackList: Feedback360[]
+  feedbackList: Feedback360[],
 ): Feedback360[] {
-  return feedbackList.filter(feedback => feedback.revieweeId === revieweeId)
+  return feedbackList.filter((feedback) => feedback.revieweeId === revieweeId)
 }
 
 export function getCompetencyMatrixByEmployee(
   employeeId: string,
-  matrixList: CompetencyMatrix[]
+  matrixList: CompetencyMatrix[],
 ): CompetencyMatrix[] {
-  return matrixList.filter(matrix => matrix.employeeId === employeeId)
+  return matrixList.filter((matrix) => matrix.employeeId === employeeId)
 }
 
 export function getTrainingRecordsByEmployee(
   employeeId: string,
-  recordList: TrainingRecord[]
+  recordList: TrainingRecord[],
 ): TrainingRecord[] {
-  return recordList.filter(record => record.employeeId === employeeId)
+  return recordList.filter((record) => record.employeeId === employeeId)
 }
 
 export function getPromotionRecordsByEmployee(
   employeeId: string,
-  recordList: PromotionRecord[]
+  recordList: PromotionRecord[],
 ): PromotionRecord[] {
-  return recordList.filter(record => record.employeeId === employeeId)
+  return recordList.filter((record) => record.employeeId === employeeId)
 }
 
 export function getCompensationRecordsByEmployee(
   employeeId: string,
-  recordList: CompensationRecord[]
+  recordList: CompensationRecord[],
 ): CompensationRecord[] {
-  return recordList.filter(record => record.employeeId === employeeId)
+  return recordList.filter((record) => record.employeeId === employeeId)
 }
 
 export function calculateOverallRating(review: PerformanceReview): number {
@@ -531,7 +535,7 @@ export function calculateOverallRating(review: PerformanceReview): number {
 
 export function calculateAverageFeedback360(
   revieweeId: string,
-  feedbackList: Feedback360[]
+  feedbackList: Feedback360[],
 ): {
   leadership: number
   communication: number
@@ -553,7 +557,7 @@ export function calculateAverageFeedback360(
       initiative: 0,
       adaptability: 0,
       technicalSkills: 0,
-      overall: 0
+      overall: 0,
     }
   }
 
@@ -565,7 +569,7 @@ export function calculateAverageFeedback360(
       problemSolving: acc.problemSolving + feedback.problemSolving,
       initiative: acc.initiative + feedback.initiative,
       adaptability: acc.adaptability + feedback.adaptability,
-      technicalSkills: acc.technicalSkills + feedback.technicalSkills
+      technicalSkills: acc.technicalSkills + feedback.technicalSkills,
     }),
     {
       leadership: 0,
@@ -574,8 +578,8 @@ export function calculateAverageFeedback360(
       problemSolving: 0,
       initiative: 0,
       adaptability: 0,
-      technicalSkills: 0
-    }
+      technicalSkills: 0,
+    },
   )
 
   const count = revieweeFeedbacks.length
@@ -586,7 +590,7 @@ export function calculateAverageFeedback360(
     problemSolving: Math.round((totals.problemSolving / count) * 10) / 10,
     initiative: Math.round((totals.initiative / count) * 10) / 10,
     adaptability: Math.round((totals.adaptability / count) * 10) / 10,
-    technicalSkills: Math.round((totals.technicalSkills / count) * 10) / 10
+    technicalSkills: Math.round((totals.technicalSkills / count) * 10) / 10,
   }
 
   const overall =
@@ -599,7 +603,7 @@ export function calculateAverageFeedback360(
         averages.adaptability +
         averages.technicalSkills) /
         7) *
-        10
+        10,
     ) / 10
 
   return { ...averages, overall }

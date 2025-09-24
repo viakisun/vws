@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount, onDestroy } from 'svelte'
+  import { onMount } from 'svelte'
 
   // Props
   interface Props {
@@ -110,7 +110,7 @@
   <div
     class={getBackdropClasses()}
     onmousedown={handleBackdropClick}
-    onkeydown={e => {
+    onkeydown={(e) => {
       if (e.key === 'Escape') handleCloseClick()
     }}
     role="dialog"
@@ -119,9 +119,14 @@
   >
     <div class={getModalClasses()} {...restProps}>
       {#if closable}
-        <button class="theme-modal-close" onclick={handleCloseClick} aria-label="Close modal">
+        <button
+          type="button"
+          class="theme-modal-close"
+          onclick={handleCloseClick}
+          aria-label="Close modal"
+        >
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M18 6L6 18M6 6l12 12"></path>
+            <path d="M18 6L6 18M6 6l12 12" />
           </svg>
         </button>
       {/if}

@@ -1,32 +1,29 @@
 <script lang="ts">
-  import { onMount } from 'svelte'
-  import Card from '$lib/components/ui/Card.svelte'
   import Badge from '$lib/components/ui/Badge.svelte'
+  import Card from '$lib/components/ui/Card.svelte'
   import Modal from '$lib/components/ui/Modal.svelte'
   import { formatDate } from '$lib/utils/format'
+  import { keyOf } from '$lib/utils/keyOf'
+  import { onMount } from 'svelte'
 
   import {
-    jobPostings,
-    candidates,
-    interviewSchedules,
     addJobPosting,
-    updateJobPosting,
-    publishJobPosting,
+    candidates,
     closeJobPosting,
-    addCandidate,
-    updateCandidateStatus,
-    scheduleInterview,
     getRecruitmentStats,
+    jobPostings,
+    publishJobPosting,
+    updateJobPosting,
+    type Candidate,
     type JobPosting,
-    type Candidate
   } from '$lib/stores/recruitment'
 
   // 모달 상태
   let isJobPostingModalOpen = $state(false)
-  let isCandidateModalOpen = $state(false)
-  let isInterviewModalOpen = $state(false)
+  let _isCandidateModalOpen = $state(false)
+  let _isInterviewModalOpen = $state(false)
   let selectedJobPosting = $state<JobPosting | null>(null)
-  let selectedCandidate = $state<Candidate | null>(null)
+  let _selectedCandidate = $state<Candidate | null>(null)
 
   // 필터
   let statusFilter = $state('')
@@ -45,10 +42,10 @@
     preferredQualifications: [''],
     benefits: [''],
     salaryRange: { min: 0, max: 0, currency: 'KRW' },
-    applicationDeadline: ''
+    applicationDeadline: '',
   })
 
-  let candidateForm = $state({
+  let _candidateForm = $state({
     jobPostingId: '',
     personalInfo: {
       name: '',
@@ -56,21 +53,39 @@
       phone: '',
       address: '',
       birthDate: '',
-      gender: 'male' as Candidate['personalInfo']['gender']
+      gender: 'male' as Candidate['personalInfo']['gender'],
     },
-    education: [{ degree: '', school: '', major: '', graduationYear: new Date().getFullYear() }],
-    experience: [{ company: '', position: '', startDate: '', endDate: '', description: '' }],
+    education: [
+      {
+        degree: '',
+        school: '',
+        major: '',
+        graduationYear: new Date().getFullYear(),
+      },
+    ],
+    experience: [
+      {
+        company: '',
+        position: '',
+        startDate: '',
+        endDate: '',
+        description: '',
+      },
+    ],
     skills: [''],
     languages: [
-      { language: '', proficiency: 'intermediate' as Candidate['languages'][0]['proficiency'] }
-    ]
+      {
+        language: '',
+        proficiency: 'intermediate' as Candidate['languages'][0]['proficiency'],
+      },
+    ],
   })
 
   // 필터링된 채용 공고
   let filteredJobPostings = $derived(() => {
     let filtered = $jobPostings
-    if (statusFilter) filtered = filtered.filter(job => job.status === statusFilter)
-    if (departmentFilter) filtered = filtered.filter(job => job.department === departmentFilter)
+    if (statusFilter) filtered = filtered.filter((job) => job.status === statusFilter)
+    if (departmentFilter) filtered = filtered.filter((job) => job.department === departmentFilter)
     return filtered
   })
 
@@ -90,7 +105,7 @@
         preferredQualifications: jobPosting.preferredQualifications,
         benefits: jobPosting.benefits,
         salaryRange: jobPosting.salaryRange,
-        applicationDeadline: jobPosting.applicationDeadline
+        applicationDeadline: jobPosting.applicationDeadline,
       }
     } else {
       selectedJobPosting = null
@@ -106,7 +121,7 @@
         preferredQualifications: [''],
         benefits: [''],
         salaryRange: { min: 0, max: 0, currency: 'KRW' },
-        applicationDeadline: ''
+        applicationDeadline: '',
       }
     }
     isJobPostingModalOpen = true
@@ -119,7 +134,7 @@
       addJobPosting({
         ...jobPostingForm,
         status: 'draft',
-        postedBy: 'current-user'
+        postedBy: 'current-user',
       })
     }
     isJobPostingModalOpen = false
@@ -136,7 +151,7 @@
   }
 
   function getStatusBadgeVariant(
-    status: JobPosting['status']
+    status: JobPosting['status'],
   ): 'secondary' | 'success' | 'danger' | 'warning' {
     switch (status) {
       case 'draft':
@@ -181,6 +196,7 @@
         <p class="text-gray-600 mt-1">채용 공고 및 지원자 관리를 합니다</p>
       </div>
       <button
+        type="button"
         onclick={() => openJobPostingModal()}
         class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
       >
@@ -193,10 +209,13 @@
       <div class="p-6">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">상태</label>
+            <label class="block text-sm font-medium text-gray-700 mb-2" for="field-status"
+              >상태</label
+            >
             <select
               bind:value={statusFilter}
               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              id="field-status"
             >
               <option value="">전체 상태</option>
               <option value="draft">임시저장</option>
@@ -206,10 +225,13 @@
             </select>
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">부서</label>
+            <label class="block text-sm font-medium text-gray-700 mb-2" for="field-status"
+              >부서</label
+            >
             <select
               bind:value={departmentFilter}
               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              id="field-status"
             >
               <option value="">전체 부서</option>
               <option value="부서없음">부서없음</option>
@@ -221,6 +243,7 @@
           </div>
           <div class="flex items-end">
             <button
+              type="button"
               onclick={() => {
                 statusFilter = ''
                 departmentFilter = ''
@@ -236,13 +259,17 @@
 
     <!-- 채용 공고 목록 -->
     <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-      {#each filteredJobPostings() as jobPosting}
+      {#each filteredJobPostings() as jobPosting, i (keyOf(jobPosting, i))}
         <Card>
           <div class="p-6">
             <div class="flex justify-between items-start mb-4">
               <div>
-                <h3 class="text-lg font-semibold text-gray-900">{jobPosting.title}</h3>
-                <p class="text-sm text-gray-600">{jobPosting.department} • {jobPosting.position}</p>
+                <h3 class="text-lg font-semibold text-gray-900">
+                  {jobPosting.title}
+                </h3>
+                <p class="text-sm text-gray-600">
+                  {jobPosting.department} • {jobPosting.position}
+                </p>
               </div>
               <Badge variant={getStatusBadgeVariant(jobPosting.status)}>
                 {getStatusText(jobPosting.status)}
@@ -270,6 +297,7 @@
               </div>
               <div class="flex space-x-2">
                 <button
+                  type="button"
                   onclick={() => openJobPostingModal(jobPosting)}
                   class="text-blue-600 hover:text-blue-900 text-sm"
                 >
@@ -277,6 +305,7 @@
                 </button>
                 {#if jobPosting.status === 'draft'}
                   <button
+                    type="button"
                     onclick={() => publishJob(jobPosting.id)}
                     class="text-green-600 hover:text-green-900 text-sm"
                   >
@@ -284,6 +313,7 @@
                   </button>
                 {:else if jobPosting.status === 'published'}
                   <button
+                    type="button"
                     onclick={() => closeJob(jobPosting.id)}
                     class="text-red-600 hover:text-red-900 text-sm"
                   >
@@ -304,7 +334,7 @@
           {selectedJobPosting ? '채용 공고 수정' : '채용 공고 작성'}
         </h3>
         <form
-          onsubmit={e => {
+          onsubmit={(e) => {
             e.preventDefault()
             handleJobPostingSubmit()
           }}
@@ -312,57 +342,72 @@
           <div class="space-y-6">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">제목 *</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1" for="field-status"
+                  >제목 *</label
+                >
                 <input
                   type="text"
                   bind:value={jobPostingForm.title}
                   required
                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  id="field-title"
                 />
               </div>
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">부서 *</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1" for="field-status"
+                  >부서 *</label
+                >
                 <input
                   type="text"
                   bind:value={jobPostingForm.department}
                   required
                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  id="field-title"
                 />
               </div>
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">직급 *</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1" for="field-status"
+                  >직급 *</label
+                >
                 <input
                   type="text"
                   bind:value={jobPostingForm.position}
                   required
                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  id="field-title"
                 />
               </div>
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">레벨 *</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1" for="field-status"
+                  >레벨 *</label
+                >
                 <input
                   type="text"
                   bind:value={jobPostingForm.level}
                   required
                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  id="field-title"
                 />
               </div>
             </div>
 
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">직무 설명 *</label>
+              <label class="block text-sm font-medium text-gray-700 mb-1" for="field-status"
+                >직무 설명 *</label
+              >
               <textarea
                 bind:value={jobPostingForm.description}
                 required
                 rows="4"
                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                id="field-status"
               ></textarea>
             </div>
 
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">필수 요구사항</label>
+              <span class="block text-sm font-medium text-gray-700 mb-1">필수 요구사항</span>
               <div class="space-y-2">
-                {#each jobPostingForm.requirements as requirement, index}
+                {#each jobPostingForm.requirements as _requirement, index (index)}
                   <div class="flex space-x-2">
                     <input
                       type="text"
@@ -390,42 +435,54 @@
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">최소 급여 *</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1" for="field-status"
+                  >최소 급여 *</label
+                >
                 <input
                   type="number"
                   bind:value={jobPostingForm.salaryRange.min}
                   required
                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  id="field-title"
                 />
               </div>
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">최대 급여 *</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1" for="field-status"
+                  >최대 급여 *</label
+                >
                 <input
                   type="number"
                   bind:value={jobPostingForm.salaryRange.max}
                   required
                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  id="field-title"
                 />
               </div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">위치 *</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1" for="field-status"
+                  >위치 *</label
+                >
                 <input
                   type="text"
                   bind:value={jobPostingForm.location}
                   required
                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  id="field-title"
                 />
               </div>
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">지원 마감일 *</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1" for="field-status"
+                  >지원 마감일 *</label
+                >
                 <input
                   type="date"
                   bind:value={jobPostingForm.applicationDeadline}
                   required
                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  id="field-title"
                 />
               </div>
             </div>

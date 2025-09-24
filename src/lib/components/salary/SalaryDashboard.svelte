@@ -2,20 +2,26 @@
   import {
     salaryStatistics,
     departmentSalaryStats,
-    currentPeriod,
     loadPayslips,
-    isLoading,
-    error
+    error,
   } from '$lib/stores/salary/salary-store'
   import { formatCurrency, formatPercentage } from '$lib/utils/format'
-  import { TrendingUpIcon, TrendingDownIcon, AlertCircleIcon } from '@lucide/svelte'
+  import {
+    AlertCircleIcon,
+    ClockIcon,
+    FileTextIcon,
+    CheckCircleIcon,
+    DollarSignIcon,
+  } from '@lucide/svelte'
 
   let mounted = $state(false)
 
-  $effect(async () => {
+  $effect(() => {
     if (!mounted) {
       mounted = true
-      await loadPayslips()
+      void (async () => {
+        await loadPayslips()
+      })()
     }
   })
 
@@ -38,7 +44,7 @@
   }
 
   // 상태별 아이콘 반환
-  function getStatusIcon(status: string) {
+  function _getStatusIcon(status: string) {
     switch (status) {
       case 'draft':
         return ClockIcon
@@ -56,7 +62,7 @@
   }
 
   // 변화율 계산
-  function calculateChangeRate(current: number, previous: number): number {
+  function _calculateChangeRate(current: number, previous: number): number {
     if (previous === 0) return current > 0 ? 100 : 0
     return ((current - previous) / previous) * 100
   }
@@ -83,7 +89,7 @@
       <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
         <h3 class="text-lg font-semibold text-gray-900 mb-4">부서별 급여 현황</h3>
         <div class="space-y-4">
-          {#each Object.entries($departmentSalaryStats) as [department, stats]}
+          {#each Object.entries($departmentSalaryStats) as [department, stats] (department)}
             <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
               <div class="flex-1">
                 <div class="flex items-center justify-between">
@@ -143,20 +149,20 @@
                     ? ($salaryStatistics.currentMonth.totalDeductions /
                         $salaryStatistics.currentMonth.totalGrossSalary) *
                         100
-                    : 0
+                    : 0,
                 )}
               </span>
             </div>
             <div class="w-full bg-gray-200 rounded-full h-2">
               <div
                 class="bg-red-500 h-2 rounded-full transition-all duration-300"
-                style="width: {Math.min(
+                style:width="{Math.min(
                   $salaryStatistics.currentMonth.totalGrossSalary > 0
                     ? ($salaryStatistics.currentMonth.totalDeductions /
                         $salaryStatistics.currentMonth.totalGrossSalary) *
                         100
                     : 0,
-                  100
+                  100,
                 )}%"
               ></div>
             </div>
@@ -169,7 +175,9 @@
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
       <div class="flex items-center justify-between mb-4">
         <h3 class="text-lg font-semibold text-gray-900">최근 급여 이력</h3>
-        <button class="text-sm text-blue-600 hover:text-blue-800 font-medium"> 전체 보기 </button>
+        <button type="button" class="text-sm text-blue-600 hover:text-blue-800 font-medium">
+          전체 보기
+        </button>
       </div>
       <div class="overflow-x-auto">
         <table class="min-w-full divide-y divide-gray-200">
@@ -220,7 +228,7 @@
               <td class="px-6 py-4 whitespace-nowrap">
                 <span
                   class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {getStatusColor(
-                    $salaryStatistics.currentMonth.status
+                    $salaryStatistics.currentMonth.status,
                   )}"
                 >
                   {#if $salaryStatistics.currentMonth.status === 'draft'}
@@ -256,7 +264,7 @@
               <td class="px-6 py-4 whitespace-nowrap">
                 <span
                   class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {getStatusColor(
-                    $salaryStatistics.previousMonth.status
+                    $salaryStatistics.previousMonth.status,
                   )}"
                 >
                   {#if $salaryStatistics.previousMonth.status === 'draft'}

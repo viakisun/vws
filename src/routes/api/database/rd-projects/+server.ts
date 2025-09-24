@@ -1,6 +1,7 @@
 import { json } from '@sveltejs/kit'
 import { query } from '$lib/database/connection'
 import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger'
 
 export const GET: RequestHandler = async ({ url }) => {
   try {
@@ -29,7 +30,7 @@ export const GET: RequestHandler = async ({ url }) => {
 			WHERE 1=1
 		`
 
-    const params: any[] = []
+    const params: unknown[] = []
     let paramCount = 0
 
     if (status) {
@@ -66,17 +67,17 @@ export const GET: RequestHandler = async ({ url }) => {
       pagination: {
         limit,
         offset,
-        total: result.rows.length
-      }
+        total: result.rows.length,
+      },
     })
   } catch (error) {
-    console.error('Get R&D projects error:', error)
+    logger.error('Get R&D projects error:', error)
     return json(
       {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

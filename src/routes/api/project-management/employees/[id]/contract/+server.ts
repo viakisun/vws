@@ -1,6 +1,7 @@
 import { query } from '$lib/database/connection'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger'
 
 // GET /api/project-management/employees/[id]/contract - 특정 직원의 참여기간 내 계약 정보 조회
 export const GET: RequestHandler = async ({ params, url }) => {
@@ -13,9 +14,9 @@ export const GET: RequestHandler = async ({ params, url }) => {
       return json(
         {
           success: false,
-          message: '시작일과 종료일이 필요합니다.'
+          message: '시작일과 종료일이 필요합니다.',
         },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -85,12 +86,12 @@ export const GET: RequestHandler = async ({ params, url }) => {
         data: null,
         debug: {
           requestedPeriod: { startDate, endDate },
-          availableContracts: allContractsResult.rows.map(c => ({
+          availableContracts: allContractsResult.rows.map((c) => ({
             start_date: c.start_date,
             end_date: c.end_date,
-            annual_salary: c.annual_salary
-          }))
-        }
+            annual_salary: c.annual_salary,
+          })),
+        },
       })
     }
 
@@ -106,18 +107,18 @@ export const GET: RequestHandler = async ({ params, url }) => {
         start_date: contract.start_date,
         end_date: contract.end_date,
         status: contract.status,
-        contract_type: contract.contract_type
-      }
+        contract_type: contract.contract_type,
+      },
     })
   } catch (error) {
-    console.error('계약 정보 조회 실패:', error)
+    logger.error('계약 정보 조회 실패:', error)
     return json(
       {
         success: false,
         message: '계약 정보를 불러오는데 실패했습니다.',
-        error: error instanceof Error ? error.message : '알 수 없는 오류'
+        error: error instanceof Error ? error.message : '알 수 없는 오류',
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

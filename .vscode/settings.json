@@ -1,49 +1,45 @@
 {
-	"files.watcherExclude": {
-		"**/node_modules/**": true,
-		"**/.git/**": true,
-		"**/dist/**": true,
-		"**/build/**": true,
-		"**/.svelte-kit/**": true
-	},
-	"typescript.preferences.includePackageJsonAutoImports": "auto",
-	"editor.codeActionsOnSave": {
-		"source.fixAll": "explicit",
-		"source.organizeImports": "explicit"
-	},
-	"editor.formatOnSave": true,
-	"editor.defaultFormatter": "esbenp.prettier-vscode",
-	"typescript.suggest.autoImports": true,
-	"typescript.updateImportsOnFileMove.enabled": "always",
-	"eslint.validate": [
-		"javascript",
-		"typescript",
-		"svelte"
-	],
-	"eslint.format.enable": true,
-	"svelte.enable-ts-plugin": true,
-	"files.associations": {
-		"*.svelte": "svelte"
-	},
-	"emmet.includeLanguages": {
-		"svelte": "html"
-	},
-	"search.exclude": {
-		"**/node_modules": true,
-		"**/dist": true,
-		"**/build": true,
-		"**/.svelte-kit": true
-	},
-	"files.exclude": {
-		"**/.svelte-kit": true
-	},
-	"auto-validation.enabled": true,
-	"auto-validation.watchDirectories": [
-		"src/lib/utils",
-		"src/routes/api/project-management",
-		"src/lib/components/project-management"
-	],
-	"auto-validation.autoFix": true,
-	"auto-validation.showNotifications": true,
-	"auto-validation.logLevel": "info"
+  "files.watcherExclude": {
+    "**/node_modules/**": true,
+    "**/.git/**": true,
+    "**/dist/**": true,
+    "**/build/**": true,
+    "**/.svelte-kit/**": true
+  },
+  "typescript.preferences.includePackageJsonAutoImports": "auto",
+  "editor.codeActionsOnSave": {
+    "source.fixAll": "explicit",
+    "source.organizeImports": "explicit"
+  },
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "typescript.suggest.autoImports": true,
+  "typescript.updateImportsOnFileMove.enabled": "always",
+  "eslint.validate": ["javascript", "typescript", "svelte"],
+  "eslint.format.enable": true,
+  "svelte.enable-ts-plugin": true,
+  "files.associations": {
+    "*.svelte": "svelte"
+  },
+  "emmet.includeLanguages": {
+    "svelte": "html"
+  },
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/dist": true,
+    "**/build": true,
+    "**/.svelte-kit": true
+  },
+  "files.exclude": {
+    "**/.svelte-kit": true
+  },
+  "auto-validation.enabled": true,
+  "auto-validation.watchDirectories": [
+    "src/lib/utils",
+    "src/routes/api/project-management",
+    "src/lib/components/project-management"
+  ],
+  "auto-validation.autoFix": true,
+  "auto-validation.showNotifications": true,
+  "auto-validation.logLevel": "info"
 }

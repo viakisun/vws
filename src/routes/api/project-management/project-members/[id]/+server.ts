@@ -3,8 +3,9 @@ import {
   calculateParticipationPeriod,
   formatDateForAPI,
   isValidDate,
-  isValidDateRange
+  isValidDateRange,
 } from '$lib/utils/date-calculator'
+import { logger } from '$lib/utils/logger'
 import { calculateMonthlySalary } from '$lib/utils/salary-calculator'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
@@ -33,16 +34,16 @@ export const GET: RequestHandler = async ({ params }) => {
 			JOIN projects p ON pm.project_id = p.id
 			WHERE pm.id = $1
 		`,
-      [params.id]
+      [params.id],
     )
 
     if (result.rows.length === 0) {
       return json(
         {
           success: false,
-          message: '프로젝트 멤버를 찾을 수 없습니다.'
+          message: '프로젝트 멤버를 찾을 수 없습니다.',
         },
-        { status: 404 }
+        { status: 404 },
       )
     }
 
@@ -51,22 +52,22 @@ export const GET: RequestHandler = async ({ params }) => {
     const formattedMemberData = {
       ...memberData,
       start_date: formatDateForAPI(memberData.start_date),
-      end_date: formatDateForAPI(memberData.end_date)
+      end_date: formatDateForAPI(memberData.end_date),
     }
 
     return json({
       success: true,
-      data: formattedMemberData
+      data: formattedMemberData,
     })
   } catch (error) {
-    console.error('프로젝트 멤버 조회 실패:', error)
+    logger.error('프로젝트 멤버 조회 실패:', error)
     return json(
       {
         success: false,
         message: '프로젝트 멤버를 불러오는데 실패했습니다.',
-        error: (error as Error).message
+        error: (error as Error).message,
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
@@ -82,7 +83,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
       participationRate,
       contributionType,
       contractAmount,
-      status
+      status,
     } = data
 
     // 필수 필드 검증
@@ -98,9 +99,9 @@ export const PUT: RequestHandler = async ({ params, request }) => {
       return json(
         {
           success: false,
-          message: '수정할 필드가 없습니다.'
+          message: '수정할 필드가 없습니다.',
         },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -109,9 +110,9 @@ export const PUT: RequestHandler = async ({ params, request }) => {
       return json(
         {
           success: false,
-          message: '참여율은 0-100 사이의 값이어야 합니다.'
+          message: '참여율은 0-100 사이의 값이어야 합니다.',
         },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -122,9 +123,9 @@ export const PUT: RequestHandler = async ({ params, request }) => {
       return json(
         {
           success: false,
-          message: '프로젝트 멤버를 찾을 수 없습니다.'
+          message: '프로젝트 멤버를 찾을 수 없습니다.',
         },
-        { status: 404 }
+        { status: 404 },
       )
     }
 
@@ -146,9 +147,9 @@ export const PUT: RequestHandler = async ({ params, request }) => {
         return json(
           {
             success: false,
-            message: '유효하지 않은 시작일 형식입니다.'
+            message: '유효하지 않은 시작일 형식입니다.',
           },
-          { status: 400 }
+          { status: 400 },
         )
       }
 
@@ -165,9 +166,9 @@ export const PUT: RequestHandler = async ({ params, request }) => {
         return json(
           {
             success: false,
-            message: '유효하지 않은 종료일 형식입니다.'
+            message: '유효하지 않은 종료일 형식입니다.',
           },
-          { status: 400 }
+          { status: 400 },
         )
       }
 
@@ -184,16 +185,16 @@ export const PUT: RequestHandler = async ({ params, request }) => {
         return json(
           {
             success: false,
-            message: '시작일이 종료일보다 늦을 수 없습니다.'
+            message: '시작일이 종료일보다 늦을 수 없습니다.',
           },
-          { status: 400 }
+          { status: 400 },
         )
       }
 
       // 프로젝트 기간과의 겹침 검증
       const currentMember = existingMember.rows[0]
       const projectResult = await query('SELECT start_date, end_date FROM projects WHERE id = $1', [
-        currentMember.project_id
+        currentMember.project_id,
       ])
 
       if (projectResult.rows.length > 0) {
@@ -202,7 +203,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
           startDate,
           endDate,
           project.start_date,
-          project.end_date
+          project.end_date,
         )
 
         if (!participationValidation.isValid) {
@@ -210,9 +211,9 @@ export const PUT: RequestHandler = async ({ params, request }) => {
             {
               success: false,
               message:
-                participationValidation.errorMessage || '참여기간이 프로젝트 기간과 맞지 않습니다.'
+                participationValidation.errorMessage || '참여기간이 프로젝트 기간과 맞지 않습니다.',
             },
-            { status: 400 }
+            { status: 400 },
           )
         }
       }
@@ -260,7 +261,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
 				ORDER BY sc.start_date DESC
 				LIMIT 1
 			`,
-        [currentMember.employee_id, currentMember.start_date, currentMember.end_date]
+        [currentMember.employee_id, currentMember.start_date, currentMember.end_date],
       )
 
       let contractMonthlySalary = 0
@@ -272,7 +273,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
       // 월간 금액 계산: 중앙화된 급여 계산 함수 사용
       const monthlyAmount = calculateMonthlySalary(
         contractMonthlySalary * 12, // 연봉으로 변환
-        finalParticipationRate
+        finalParticipationRate,
       )
 
       updateFields.push(`monthly_amount = $${paramIndex}`)
@@ -283,14 +284,14 @@ export const PUT: RequestHandler = async ({ params, request }) => {
     updateFields.push(`updated_at = CURRENT_TIMESTAMP`)
     updateValues.push(params.id)
 
-    const result = await query(
+    const _result = await query(
       `
 			UPDATE project_members 
 			SET ${updateFields.join(', ')}
 			WHERE id = $${paramIndex}
 			RETURNING *
 		`,
-      updateValues
+      updateValues,
     )
 
     // 수정된 멤버 정보와 관련 정보 조회
@@ -315,7 +316,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
 			JOIN projects p ON pm.project_id = p.id
 			WHERE pm.id = $1
 		`,
-      [params.id]
+      [params.id],
     )
 
     // TIMESTAMP 데이터를 YYYY-MM-DD 형식으로 변환 (중앙화된 함수 사용)
@@ -323,23 +324,23 @@ export const PUT: RequestHandler = async ({ params, request }) => {
     const formattedMemberData = {
       ...memberData,
       start_date: formatDateForAPI(memberData.start_date),
-      end_date: formatDateForAPI(memberData.end_date)
+      end_date: formatDateForAPI(memberData.end_date),
     }
 
     return json({
       success: true,
       data: formattedMemberData,
-      message: '프로젝트 멤버가 성공적으로 수정되었습니다.'
+      message: '프로젝트 멤버가 성공적으로 수정되었습니다.',
     })
   } catch (error) {
-    console.error('프로젝트 멤버 수정 실패:', error)
+    logger.error('프로젝트 멤버 수정 실패:', error)
     return json(
       {
         success: false,
         message: '프로젝트 멤버 수정에 실패했습니다.',
-        error: (error as Error).message
+        error: (error as Error).message,
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
@@ -354,9 +355,9 @@ export const DELETE: RequestHandler = async ({ params }) => {
       return json(
         {
           success: false,
-          message: '프로젝트 멤버를 찾을 수 없습니다.'
+          message: '프로젝트 멤버를 찾을 수 없습니다.',
         },
-        { status: 404 }
+        { status: 404 },
       )
     }
 
@@ -365,17 +366,17 @@ export const DELETE: RequestHandler = async ({ params }) => {
 
     return json({
       success: true,
-      message: '프로젝트 멤버가 성공적으로 삭제되었습니다.'
+      message: '프로젝트 멤버가 성공적으로 삭제되었습니다.',
     })
   } catch (error) {
-    console.error('프로젝트 멤버 삭제 실패:', error)
+    logger.error('프로젝트 멤버 삭제 실패:', error)
     return json(
       {
         success: false,
         message: '프로젝트 멤버 삭제에 실패했습니다.',
-        error: (error as Error).message
+        error: (error as Error).message,
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

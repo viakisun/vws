@@ -1,3 +1,4 @@
+import { logger } from '$lib/utils/logger'
 /**
  * 통일된 날짜 처리 유틸리티
  *
@@ -33,21 +34,21 @@ export const DATE_FORMATS = {
     SHORT: 'MM/DD', // 01/15
     ISO: 'YYYY-MM-DD', // 2025-01-15
     KOREAN: 'YYYY년 MM월 DD일', // 2025년 01월 15일
-    RELATIVE: 'relative' // 상대적 시간 (1일 전, 2시간 전 등)
+    RELATIVE: 'relative', // 상대적 시간 (1일 전, 2시간 전 등)
   },
 
   // 입력용 형식들
   INPUT: {
     HTML_DATE: 'YYYY-MM-DD', // HTML date input
     DATETIME_LOCAL: 'YYYY-MM-DDTHH:mm', // HTML datetime-local input
-    ISO: 'YYYY-MM-DDTHH:mm:ss.sssZ' // ISO 8601
-  }
+    ISO: 'YYYY-MM-DDTHH:mm:ss.sssZ', // ISO 8601
+  },
 } as const
 
 /**
  * 시간대 설정 import
  */
-import { getCurrentTimezone, getTimezoneOffsetString } from './timezone-config.js'
+// timezone-config.js 파일이 삭제되어 import 제거됨
 
 /**
  * 시간대 상수 (하위 호환성을 위해 유지)
@@ -59,7 +60,7 @@ export const UTC_TIMEZONE = 'UTC'
  * 현재 설정된 시간대를 가져옵니다.
  */
 function getCurrentAppTimezone(): string {
-  return getCurrentTimezone()
+  return SEOUL_TIMEZONE // 기본값으로 서울 시간대 사용
 }
 
 /**
@@ -71,8 +72,8 @@ export function toUTC(date: DateInputFormat): StandardDate {
 
   try {
     let dateObj: Date
-    const currentTimezone = getCurrentAppTimezone()
-    const timezoneOffset = getTimezoneOffsetString(currentTimezone as any)
+    const _currentTimezone = getCurrentAppTimezone()
+    const timezoneOffset = '+09:00' // 서울 시간대 오프셋
 
     if (date instanceof Date) {
       // Date 객체는 이미 올바른 시간대로 간주
@@ -106,13 +107,13 @@ export function toUTC(date: DateInputFormat): StandardDate {
         // YYYY.MM.DD 형식 - 현재 설정된 시간대 자정으로 해석
         const [year, month, day] = dateStr.split('.')
         dateObj = new Date(
-          `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}T00:00:00${timezoneOffset}`
+          `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}T00:00:00${timezoneOffset}`,
         )
       } else if (dateStr.includes('-')) {
         // YYYY-MM-DD 형식 - 현재 설정된 시간대 자정으로 해석
         const [year, month, day] = dateStr.split('-')
         dateObj = new Date(
-          `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}T00:00:00${timezoneOffset}`
+          `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}T00:00:00${timezoneOffset}`,
         )
       } else if (dateStr.includes('/')) {
         // MM/DD/YYYY 또는 DD/MM/YYYY 형식 - 현재 설정된 시간대 자정으로 해석
@@ -121,7 +122,7 @@ export function toUTC(date: DateInputFormat): StandardDate {
           // MM/DD/YYYY 가정
           const [month, day, year] = parts
           dateObj = new Date(
-            `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}T00:00:00${timezoneOffset}`
+            `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}T00:00:00${timezoneOffset}`,
           )
         }
       } else {
@@ -146,7 +147,7 @@ export function toUTC(date: DateInputFormat): StandardDate {
     // UTC로 변환하여 ISO 문자열 반환
     return dateObj.toISOString() as StandardDate
   } catch (error) {
-    console.error('Date conversion error:', error, 'for input:', date)
+    logger.error('Date conversion error:', error, 'for input:', date)
     return '' as StandardDate
   }
 }
@@ -156,7 +157,7 @@ export function toUTC(date: DateInputFormat): StandardDate {
  */
 export function formatDateForDisplay(
   utcDate: StandardDate | string,
-  format: keyof typeof DATE_FORMATS.DISPLAY = 'FULL'
+  format: keyof typeof DATE_FORMATS.DISPLAY = 'FULL',
 ): string {
   if (!utcDate) return ''
 
@@ -164,7 +165,7 @@ export function formatDateForDisplay(
     const date = new Date(utcDate)
 
     if (isNaN(date.getTime())) {
-      console.warn('Invalid UTC date for display:', utcDate)
+      logger.warn('Invalid UTC date for display:', utcDate)
       return ''
     }
 
@@ -175,8 +176,8 @@ export function formatDateForDisplay(
     const year = localDate.getFullYear()
     const month = String(localDate.getMonth() + 1).padStart(2, '0')
     const day = String(localDate.getDate()).padStart(2, '0')
-    const hours = String(localDate.getHours()).padStart(2, '0')
-    const minutes = String(localDate.getMinutes()).padStart(2, '0')
+    const _hours = String(localDate.getHours()).padStart(2, '0')
+    const _minutes = String(localDate.getMinutes()).padStart(2, '0')
 
     switch (format) {
       case 'FULL':
@@ -193,7 +194,7 @@ export function formatDateForDisplay(
         return `${year}. ${month}. ${day}.`
     }
   } catch (error) {
-    console.error('Date display formatting error:', error, 'for date:', utcDate)
+    logger.error('Date display formatting error:', error, 'for date:', utcDate)
     return ''
   }
 }
@@ -221,7 +222,7 @@ export function formatDateForInput(utcDate: StandardDate | string): string {
 
     return `${year}-${month}-${day}`
   } catch (error) {
-    console.error('Date input formatting error:', error, 'for date:', utcDate)
+    logger.error('Date input formatting error:', error, 'for date:', utcDate)
     return ''
   }
 }
@@ -246,12 +247,12 @@ export function formatDateTimeForInput(utcDate: StandardDate | string): string {
     const year = localDate.getFullYear()
     const month = String(localDate.getMonth() + 1).padStart(2, '0')
     const day = String(localDate.getDate()).padStart(2, '0')
-    const hours = String(localDate.getHours()).padStart(2, '0')
-    const minutes = String(localDate.getMinutes()).padStart(2, '0')
+    const _hours = String(localDate.getHours()).padStart(2, '0')
+    const _minutes = String(localDate.getMinutes()).padStart(2, '0')
 
     return `${year}-${month}-${day}T${hours}:${minutes}`
   } catch (error) {
-    console.error('DateTime input formatting error:', error, 'for date:', utcDate)
+    logger.error('DateTime input formatting error:', error, 'for date:', utcDate)
     return ''
   }
 }
@@ -317,7 +318,7 @@ export function isValidDate(date: DateInputFormat): boolean {
  */
 export function getDateDifference(
   startDate: StandardDate | string,
-  endDate: StandardDate | string
+  endDate: StandardDate | string,
 ): number {
   try {
     const start = new Date(startDate)
@@ -339,7 +340,7 @@ export function getDateDifference(
  */
 export function isValidDateRange(
   startDate: StandardDate | string,
-  endDate: StandardDate | string
+  endDate: StandardDate | string,
 ): boolean {
   try {
     const start = new Date(startDate)
@@ -361,7 +362,7 @@ export function isValidDateRange(
 export function enforceStandardDate(date: DateInputFormat, context: string = '날짜'): StandardDate {
   if (process.env.NODE_ENV === 'development') {
     if (!isValidDate(date)) {
-      console.warn(`⚠️ [날짜 처리 강제] ${context}에서 유효하지 않은 날짜 발견: "${date}"`)
+      logger.warn(`⚠️ [날짜 처리 강제] ${context}에서 유효하지 않은 날짜 발견: "${date}"`)
     }
   }
 
@@ -378,7 +379,7 @@ export const DATE_STANDARDS = {
   FORMATS: {
     STORAGE: 'UTC (ISO 8601)', // 데이터베이스 저장
     DISPLAY: '서울 시간 (Asia/Seoul)', // 사용자 표시
-    INPUT: '다양한 형식 지원' // 사용자 입력
+    INPUT: '다양한 형식 지원', // 사용자 입력
   },
 
   /**
@@ -389,7 +390,7 @@ export const DATE_STANDARDS = {
     'new Date().toLocaleString()', // 직접 로컬 시간 사용
     'date.toISOString()', // UTC 변환 없이 직접 사용
     'new Date(dateString)', // 문자열을 직접 Date 생성자에 전달
-    'Date.now()' // 직접 timestamp 사용
+    'Date.now()', // 직접 timestamp 사용
   ],
 
   /**
@@ -400,6 +401,6 @@ export const DATE_STANDARDS = {
     'formatDateForDisplay(utcDate)', // UTC를 표시용으로 변환
     'formatDateForInput(utcDate)', // HTML input용으로 변환
     'getCurrentUTC()', // 현재 시간을 UTC로
-    'enforceStandardDate(date)' // 타입 안전한 날짜 처리
-  ]
+    'enforceStandardDate(date)', // 타입 안전한 날짜 처리
+  ],
 } as const

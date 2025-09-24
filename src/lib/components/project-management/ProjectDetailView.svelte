@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { logger } from '$lib/utils/logger'
+
   import ThemeBadge from '$lib/components/ui/ThemeBadge.svelte'
   import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
   import ThemeCard from '$lib/components/ui/ThemeCard.svelte'
@@ -25,7 +27,7 @@
     UserIcon,
     UsersIcon,
     XCircleIcon,
-    XIcon
+    XIcon,
   } from '@lucide/svelte'
   import { createEventDispatcher, onMount } from 'svelte'
 
@@ -36,7 +38,7 @@
     budget: any,
     camelCase: string,
     snakeCase: string,
-    defaultValue: any = null
+    defaultValue: any = null,
   ) {
     return budget[camelCase] || budget[snakeCase] || defaultValue
   }
@@ -54,10 +56,10 @@
   }
 
   function getFiscalYear(budget: any): string {
-    return getBudgetField(budget, 'fiscalYear', 'fiscal_year')
+    return getBudgetField(budget, 'fiscalYear', 'period_number')
   }
 
-  function getPersonnelCost(budget: any): number {
+  function _getPersonnelCost(budget: any): number {
     return getBudgetField(budget, 'personnelCost', 'personnel_cost', 0)
   }
 
@@ -65,7 +67,7 @@
     return getBudgetField(budget, 'personnelCostCash', 'personnel_cost_cash', 0)
   }
 
-  function getResearchMaterialCost(budget: any): number {
+  function _getResearchMaterialCost(budget: any): number {
     return getBudgetField(budget, 'researchMaterialCost', 'research_material_cost', 0)
   }
 
@@ -73,7 +75,7 @@
     return getBudgetField(budget, 'researchMaterialCostCash', 'research_material_cost_cash', 0)
   }
 
-  function getResearchActivityCost(budget: any): number {
+  function _getResearchActivityCost(budget: any): number {
     return getBudgetField(budget, 'researchActivityCost', 'research_activity_cost', 0)
   }
 
@@ -81,7 +83,7 @@
     return getBudgetField(budget, 'researchActivityCostCash', 'research_activity_cost_cash', 0)
   }
 
-  function getResearchStipend(budget: any): number {
+  function _getResearchStipend(budget: any): number {
     return getBudgetField(budget, 'researchStipend', 'research_stipend', 0)
   }
   function getResearchStipendCash(budget: any): number {
@@ -139,7 +141,7 @@
 
     try {
       const response = await fetch(
-        `/api/project-management/projects/${selectedProject.id}/annual-budgets`
+        `/api/project-management/projects/${selectedProject.id}/annual-budgets`,
       )
       const result = await response.json()
 
@@ -166,7 +168,7 @@
         }
       }
     } catch (error) {
-      console.error('프로젝트 기간 업데이트 실패:', error)
+      logger.error('프로젝트 기간 업데이트 실패:', error)
       const periodElement = document.getElementById('project-period')
       if (periodElement) {
         periodElement.textContent = '기간 정보 로드 실패'
@@ -179,7 +181,7 @@
     member: any,
     camelCase: string,
     snakeCase: string,
-    defaultValue: any = null
+    defaultValue: any = null,
   ) {
     return member[camelCase] || member[snakeCase] || defaultValue
   }
@@ -247,7 +249,7 @@
   // 담당자 이름 처리 통일된 유틸리티 함수들
   function formatAssigneeName(
     assigneeName: string | null | undefined,
-    fallback: string = '미할당'
+    fallback: string = '미할당',
   ): string {
     if (!assigneeName) return fallback
     // 데이터베이스에서 "지은 차" 형식으로 저장된 것을 "차지은" 형식으로 변환
@@ -273,16 +275,16 @@
     project: any,
     camelCase: string,
     snakeCase: string,
-    defaultValue: any = null
+    defaultValue: any = null,
   ) {
     return project[camelCase] || project[snakeCase] || defaultValue
   }
 
-  function getProjectStartDate(project: any): string {
+  function _getProjectStartDate(project: any): string {
     return getProjectField(project, 'startDate', 'start_date')
   }
 
-  function getProjectEndDate(project: any): string {
+  function _getProjectEndDate(project: any): string {
     return getProjectField(project, 'endDate', 'end_date')
   }
 
@@ -313,7 +315,7 @@
 
   // 모달 상태
   let showBudgetModal = $state(false)
-  let showMemberModal = $state(false)
+  let _showMemberModal = $state(false)
   let showEditProjectModal = $state(false)
   let showDeleteConfirmModal = $state(false)
   let isUpdating = $state(false)
@@ -340,7 +342,7 @@
     researchMaterialCostInKind: '',
     researchActivityCostInKind: '',
     researchStipendInKind: '',
-    indirectCostInKind: ''
+    indirectCostInKind: '',
   })
 
   let projectForm = $state({
@@ -350,7 +352,7 @@
     status: 'active',
     sponsorType: 'internal',
     priority: 'medium',
-    researchType: 'applied'
+    researchType: 'applied',
   })
 
   let memberForm = $state({
@@ -360,7 +362,7 @@
     endDate: '',
     participationRate: 100, // 기본 참여율 100%
     monthlyAmount: '0', // 월간 금액
-    contributionType: 'cash' // 'cash' or 'in_kind'
+    contributionType: 'cash', // 'cash' or 'in_kind'
   })
 
   // 사용자가 수동으로 월간금액을 입력했는지 추적
@@ -373,16 +375,16 @@
   // 증빙 내역 관리 상태
   let showEvidenceModal = $state(false)
   let selectedBudgetForEvidence = $state(null)
-  let evidenceList = $state([])
+  let _evidenceList = $state([])
   let selectedEvidencePeriod = $state(1)
   let showEvidenceDetailModal = $state(false)
   let selectedEvidenceItem = $state(null)
-  let evidenceTypes = $state([])
+  let _evidenceTypes = $state([])
   let expandedEvidenceSections = $state({
     personnel: true,
     material: true,
     activity: true,
-    indirect: true
+    indirect: true,
   })
 
   // 검증 및 자동화 상태
@@ -390,7 +392,7 @@
   let validationResults = $state<any>(null)
   let isRunningValidation = $state(false)
   let validationHistory = $state<any[]>([])
-  let autoValidationEnabled = $state(true)
+  let _autoValidationEnabled = $state(true)
   let evidenceCategories = $state([])
   let evidenceItems = $state([])
   let isLoadingEvidence = $state(false)
@@ -402,14 +404,14 @@
     description: '',
     budgetAmount: '',
     assigneeId: '',
-    dueDate: ''
+    dueDate: '',
   })
 
   // 증빙 등록 검증 상태
   let evidenceValidation = $state<any>(null)
   let isValidatingEvidence = $state(false)
 
-  let editProjectForm = $state({
+  let _editProjectForm = $state({
     title: '',
     description: '',
     sponsorType: '',
@@ -419,30 +421,32 @@
     budgetTotal: '',
     researchType: '',
     priority: '',
-    status: ''
+    status: '',
   })
 
   // 데이터
   let projectMembers = $state<any[]>([])
   let projectBudgets = $state<any[]>([])
-  let budgetCategories = $state<any[]>([])
+  let _budgetCategories = $state<any[]>([])
   let availableEmployees = $state<any[]>([])
 
   // 참여연구원 검증 상태 (테이블용)
-  let memberValidation = $state<any>(null)
+  let _memberValidation = $state<any>(null)
   let isValidatingMembers = $state(false)
-  let memberValidationLastChecked = $state<Date | null>(null)
+  let _memberValidationLastChecked = $state<Date | null>(null)
 
   // 개별 멤버 검증 상태
   let memberValidationStatuses = $state<Record<string, any>>({})
 
   // 컴포넌트 마운트 시 초기화
-  onMount(async () => {
-    if (selectedProject?.id) {
-      await loadProjectBudgets()
-      await loadProjectMembers()
-      await loadEvidenceCategories()
-    }
+  onMount(() => {
+    void (async () => {
+      if (selectedProject?.id) {
+        await loadProjectBudgets()
+        await loadProjectMembers()
+        await loadEvidenceCategories()
+      }
+    })()
   })
 
   // 증빙 등록 시 재직 기간 검증 함수
@@ -453,7 +457,7 @@
     }
 
     // 인건비 카테고리인 경우에만 검증
-    const selectedCategory = evidenceCategories.find(cat => cat.id === newEvidenceForm.categoryId)
+    const selectedCategory = evidenceCategories.find((cat) => cat.id === newEvidenceForm.categoryId)
     if (selectedCategory?.name !== '인건비') {
       evidenceValidation = null
       return
@@ -467,19 +471,19 @@
         body: JSON.stringify({
           assigneeId: newEvidenceForm.assigneeId,
           dueDate: newEvidenceForm.dueDate,
-          projectBudgetId: selectedBudgetForEvidence.id
-        })
+          projectBudgetId: selectedBudgetForEvidence.id,
+        }),
       })
 
       if (response.ok) {
         const data = await response.json()
         evidenceValidation = data
       } else {
-        console.error('증빙 등록 검증 실패:', response.statusText)
+        logger.error('증빙 등록 검증 실패:', response.statusText)
         evidenceValidation = null
       }
     } catch (error) {
-      console.error('증빙 등록 검증 중 오류:', error)
+      logger.error('증빙 등록 검증 중 오류:', error)
       evidenceValidation = null
     } finally {
       isValidatingEvidence = false
@@ -493,22 +497,22 @@
     isValidatingMembers = true
     try {
       const response = await fetch(
-        `/api/project-management/researcher-validation?projectId=${selectedProject.id}`
+        `/api/project-management/researcher-validation?projectId=${selectedProject.id}`,
       )
       if (response.ok) {
         const data = await response.json()
-        memberValidation = data
-        memberValidationLastChecked = new Date()
+        _memberValidation = data
+        _memberValidationLastChecked = new Date()
 
         // 개별 멤버 검증 상태 업데이트
         if (data.success && data.data?.validation?.issues) {
           updateMemberValidationStatuses(data.data.validation.issues)
         }
       } else {
-        console.error('참여연구원 검증 실패:', response.statusText)
+        logger.error('참여연구원 검증 실패:', response.statusText)
       }
     } catch (error) {
-      console.error('참여연구원 검증 중 오류:', error)
+      logger.error('참여연구원 검증 중 오류:', error)
     } finally {
       isValidatingMembers = false
     }
@@ -520,20 +524,20 @@
     memberValidationStatuses = {}
 
     // 각 멤버별로 검증 상태 설정
-    projectMembers.forEach(member => {
-      const memberIssues = issues.filter(issue => issue.memberId === member.id)
+    projectMembers.forEach((member) => {
+      const memberIssues = issues.filter((issue) => issue.memberId === member.id)
 
       if (memberIssues.length === 0) {
         memberValidationStatuses[member.id] = {
           status: 'valid',
           message: '검증 완료',
-          issues: []
+          issues: [],
         }
       } else {
-        const hasErrors = memberIssues.some(issue => issue.severity === 'error')
-        const hasWarnings = memberIssues.some(issue => issue.severity === 'warning')
-        const errorCount = memberIssues.filter(i => i.severity === 'error').length
-        const warningCount = memberIssues.filter(i => i.severity === 'warning').length
+        const hasErrors = memberIssues.some((issue) => issue.severity === 'error')
+        const hasWarnings = memberIssues.some((issue) => issue.severity === 'warning')
+        const errorCount = memberIssues.filter((i) => i.severity === 'error').length
+        const warningCount = memberIssues.filter((i) => i.severity === 'warning').length
 
         // 더 자세한 메시지 생성
         let detailedMessage = ''
@@ -548,11 +552,11 @@
         memberValidationStatuses[member.id] = {
           status: hasErrors ? 'error' : 'warning',
           message: detailedMessage,
-          issues: memberIssues.map(issue => ({
+          issues: memberIssues.map((issue) => ({
             ...issue,
             // API에서 제공하는 실제 메시지 사용
-            priority: issue.severity === 'error' ? 'high' : 'medium'
-          }))
+            priority: issue.severity === 'error' ? 'high' : 'medium',
+          })),
         }
       }
     })
@@ -561,22 +565,22 @@
   // 프로젝트 멤버 로드
   async function loadProjectMembers() {
     try {
-      console.log('참여연구원 목록 로드 시작, 프로젝트 ID:', selectedProject.id)
+      logger.log('참여연구원 목록 로드 시작, 프로젝트 ID:', selectedProject.id)
       const response = await fetch(
-        `/api/project-management/project-members?projectId=${selectedProject.id}`
+        `/api/project-management/project-members?projectId=${selectedProject.id}`,
       )
       if (response.ok) {
         const data = await response.json()
-        console.log('참여연구원 목록 로드 성공:', data.data?.length, '명')
+        logger.log('참여연구원 목록 로드 성공:', data.data?.length, '명')
         projectMembers = data.data || []
-        console.log('참여연구원 상태 업데이트 완료:', projectMembers.length, '명')
+        logger.log('참여연구원 상태 업데이트 완료:', projectMembers.length, '명')
 
         // 자동 검증 제거 - 수작업으로만 검증 실행
       } else {
-        console.error('참여연구원 목록 로드 실패, 응답 상태:', response.status)
+        logger.error('참여연구원 목록 로드 실패, 응답 상태:', response.status)
       }
     } catch (error) {
-      console.error('프로젝트 멤버 로드 실패:', error)
+      logger.error('프로젝트 멤버 로드 실패:', error)
     }
   }
 
@@ -584,14 +588,14 @@
   async function loadProjectBudgets() {
     try {
       const response = await fetch(
-        `/api/project-management/project-budgets?projectId=${selectedProject.id}`
+        `/api/project-management/project-budgets?projectId=${selectedProject.id}`,
       )
       if (response.ok) {
         const data = await response.json()
         projectBudgets = data.data || []
       }
     } catch (error) {
-      console.error('프로젝트 사업비 로드 실패:', error)
+      logger.error('프로젝트 사업비 로드 실패:', error)
     }
   }
 
@@ -601,34 +605,34 @@
       const response = await fetch('/api/project-management/budget-categories')
       if (response.ok) {
         const data = await response.json()
-        budgetCategories = data.data || []
+        _budgetCategories = data.data || []
       }
     } catch (error) {
-      console.error('사업비 항목 로드 실패:', error)
+      logger.error('사업비 항목 로드 실패:', error)
     }
   }
 
   // 사용 가능한 직원 로드
   async function loadAvailableEmployees() {
     try {
-      console.log('직원 목록 로딩 시작, 프로젝트 ID:', selectedProject.id)
+      logger.log('직원 목록 로딩 시작, 프로젝트 ID:', selectedProject.id)
       const response = await fetch(
-        `/api/project-management/employees?excludeProjectMembers=true&projectId=${selectedProject.id}`
+        `/api/project-management/employees?excludeProjectMembers=true&projectId=${selectedProject.id}`,
       )
-      console.log('직원 목록 API 응답 상태:', response.status)
+      logger.log('직원 목록 API 응답 상태:', response.status)
 
       if (response.ok) {
         const data = await response.json()
-        console.log('직원 목록 API 응답 데이터:', data)
+        logger.log('직원 목록 API 응답 데이터:', data)
         availableEmployees = data.data || []
-        console.log('로드된 직원 수:', availableEmployees.length)
+        logger.log('로드된 직원 수:', availableEmployees.length)
       } else {
-        console.error('직원 목록 API 오류:', response.status, response.statusText)
+        logger.error('직원 목록 API 오류:', response.status, response.statusText)
         const errorData = await response.text()
-        console.error('오류 상세:', errorData)
+        logger.error('오류 상세:', errorData)
       }
     } catch (error) {
-      console.error('직원 목록 로드 실패:', error)
+      logger.error('직원 목록 로드 실패:', error)
     }
   }
 
@@ -666,8 +670,8 @@
           researchMaterialCostInKind: fromThousands(budgetForm.researchMaterialCostInKind),
           researchActivityCostInKind: fromThousands(budgetForm.researchActivityCostInKind),
           researchStipendInKind: fromThousands(budgetForm.researchStipendInKind),
-          indirectCostInKind: fromThousands(budgetForm.indirectCostInKind)
-        })
+          indirectCostInKind: fromThousands(budgetForm.indirectCostInKind),
+        }),
       })
 
       if (response.ok) {
@@ -686,7 +690,7 @@
           researchMaterialCostInKind: '',
           researchActivityCostInKind: '',
           researchStipendInKind: '',
-          indirectCostInKind: ''
+          indirectCostInKind: '',
         }
         await loadProjectBudgets()
         // 예산 추가 후 프로젝트 기간 정보 업데이트
@@ -704,7 +708,7 @@
         alert(errorData.message || '사업비 추가에 실패했습니다.')
       }
     } catch (error) {
-      console.error('사업비 추가 실패:', error)
+      logger.error('사업비 추가 실패:', error)
       alert('사업비 추가 중 오류가 발생했습니다.')
     }
   }
@@ -728,8 +732,8 @@
           startDate: memberForm.startDate,
           endDate: memberForm.endDate,
           participationRate: memberForm.participationRate,
-          contributionType: memberForm.contributionType
-        })
+          contributionType: memberForm.contributionType,
+        }),
       })
 
       if (response.ok) {
@@ -742,7 +746,7 @@
         alert(errorData.message || '멤버 추가에 실패했습니다.')
       }
     } catch (error) {
-      console.error('멤버 추가 실패:', error)
+      logger.error('멤버 추가 실패:', error)
       alert('멤버 추가 중 오류가 발생했습니다.')
     }
   }
@@ -765,9 +769,9 @@
     editingMember = member
 
     // 디버깅: 멤버 데이터 확인
-    console.log('editMember - member data:', member)
-    console.log('editMember - startDate raw:', getMemberStartDate(member))
-    console.log('editMember - endDate raw:', getMemberEndDate(member))
+    logger.log('editMember - member data:', member)
+    logger.log('editMember - startDate raw:', getMemberStartDate(member))
+    logger.log('editMember - endDate raw:', getMemberEndDate(member))
 
     // 날짜 데이터 확인 및 안전한 처리
     const rawStartDate = getMemberStartDate(member)
@@ -780,11 +784,11 @@
       endDate: rawEndDate ? formatDateForInput(rawEndDate) : '',
       participationRate: getMemberParticipationRate(member) || 0,
       monthlyAmount: (getMemberMonthlyAmount(member) || 0).toString(),
-      contributionType: getMemberContributionType(member)
+      contributionType: getMemberContributionType(member),
     }
 
     // 디버깅: memberForm 확인
-    console.log('editMember - memberForm after setting:', memberForm)
+    logger.log('editMember - memberForm after setting:', memberForm)
 
     // 수정 시 월간금액 자동 계산 (수동 입력 플래그 초기화)
     isManualMonthlyAmount = false
@@ -800,7 +804,7 @@
       endDate: '',
       participationRate: 100,
       monthlyAmount: '0',
-      contributionType: 'cash'
+      contributionType: 'cash',
     }
     calculatedMonthlyAmount = 0
     isManualMonthlyAmount = false
@@ -823,14 +827,14 @@
     }
 
     // 디버깅: 필드 값 확인
-    console.log('updateMember - memberForm:', memberForm)
-    console.log(
+    logger.log('updateMember - memberForm:', memberForm)
+    logger.log(
       'updateMember - startDate:',
       memberForm.startDate,
       'type:',
-      typeof memberForm.startDate
+      typeof memberForm.startDate,
     )
-    console.log('updateMember - endDate:', memberForm.endDate, 'type:', typeof memberForm.endDate)
+    logger.log('updateMember - endDate:', memberForm.endDate, 'type:', typeof memberForm.endDate)
 
     // 필수 필드 검증
     if (!memberForm.startDate || !memberForm.endDate) {
@@ -839,13 +843,13 @@
     }
 
     try {
-      console.log('참여연구원 수정 요청 데이터:', {
+      logger.log('참여연구원 수정 요청 데이터:', {
         id: editingMember.id,
         role: memberForm.role,
         startDate: memberForm.startDate,
         endDate: memberForm.endDate,
         participationRate: memberForm.participationRate,
-        contributionType: memberForm.contributionType
+        contributionType: memberForm.contributionType,
       })
 
       const response = await fetch(`/api/project-management/project-members/${editingMember.id}`, {
@@ -856,15 +860,15 @@
           startDate: memberForm.startDate,
           endDate: memberForm.endDate,
           participationRate: memberForm.participationRate,
-          contributionType: memberForm.contributionType
-        })
+          contributionType: memberForm.contributionType,
+        }),
       })
 
-      console.log('참여연구원 수정 응답 상태:', response.status)
+      logger.log('참여연구원 수정 응답 상태:', response.status)
 
       if (response.ok) {
         const result = await response.json()
-        console.log('참여연구원 수정 성공 응답:', result)
+        logger.log('참여연구원 수정 성공 응답:', result)
 
         editingMember = null
         addingMember = false
@@ -872,7 +876,7 @@
 
         // 데이터 새로고침
         await loadProjectMembers()
-        console.log('참여연구원 목록 새로고침 완료')
+        logger.log('참여연구원 목록 새로고침 완료')
 
         dispatch('refresh')
 
@@ -882,11 +886,11 @@
         }
       } else {
         const errorData = await response.json()
-        console.error('참여연구원 수정 API 에러 응답:', errorData)
+        logger.error('참여연구원 수정 API 에러 응답:', errorData)
         alert(errorData.message || '연구원 정보 수정에 실패했습니다.')
       }
     } catch (error) {
-      console.error('멤버 수정 실패:', error)
+      logger.error('멤버 수정 실패:', error)
       alert('연구원 정보 수정 중 오류가 발생했습니다.')
     }
   }
@@ -897,7 +901,7 @@
 
     try {
       const response = await fetch(`/api/project-management/project-members/${memberId}`, {
-        method: 'DELETE'
+        method: 'DELETE',
       })
 
       if (response.ok) {
@@ -905,7 +909,7 @@
         dispatch('refresh')
       }
     } catch (error) {
-      console.error('멤버 삭제 실패:', error)
+      logger.error('멤버 삭제 실패:', error)
     }
   }
 
@@ -930,7 +934,7 @@
       researchMaterialCostInKind: toThousands(getResearchMaterialCostInKind(budget)),
       researchActivityCostInKind: toThousands(getResearchActivityCostInKind(budget)),
       researchStipendInKind: toThousands(getResearchStipendInKind(budget)),
-      indirectCostInKind: toThousands(getIndirectCostInKind(budget))
+      indirectCostInKind: toThousands(getIndirectCostInKind(budget)),
     }
     showBudgetModal = true
   }
@@ -970,8 +974,8 @@
           researchMaterialCostInKind: fromThousands(budgetForm.researchMaterialCostInKind),
           researchActivityCostInKind: fromThousands(budgetForm.researchActivityCostInKind),
           researchStipendInKind: fromThousands(budgetForm.researchStipendInKind),
-          indirectCostInKind: fromThousands(budgetForm.indirectCostInKind)
-        })
+          indirectCostInKind: fromThousands(budgetForm.indirectCostInKind),
+        }),
       })
 
       if (response.ok) {
@@ -991,7 +995,7 @@
           researchMaterialCostInKind: '',
           researchActivityCostInKind: '',
           researchStipendInKind: '',
-          indirectCostInKind: ''
+          indirectCostInKind: '',
         }
         await loadProjectBudgets()
         // 예산 수정 후 프로젝트 기간 정보 업데이트
@@ -1009,7 +1013,7 @@
         alert(errorData.message || '사업비 수정에 실패했습니다.')
       }
     } catch (error) {
-      console.error('사업비 업데이트 실패:', error)
+      logger.error('사업비 업데이트 실패:', error)
       alert('사업비 수정 중 오류가 발생했습니다.')
     }
   }
@@ -1020,7 +1024,7 @@
 
     try {
       const response = await fetch(`/api/project-management/project-budgets/${budgetId}`, {
-        method: 'DELETE'
+        method: 'DELETE',
       })
 
       if (response.ok) {
@@ -1032,7 +1036,7 @@
         dispatch('refresh')
       }
     } catch (error) {
-      console.error('사업비 삭제 실패:', error)
+      logger.error('사업비 삭제 실패:', error)
     }
   }
 
@@ -1046,7 +1050,7 @@
         status: getProjectStatus(selectedProject),
         sponsorType: getProjectSponsorType(selectedProject),
         priority: selectedProject.priority || 'medium',
-        researchType: selectedProject.research_type || selectedProject.researchType || 'applied'
+        researchType: selectedProject.research_type || selectedProject.researchType || 'applied',
       }
     }
   }
@@ -1060,9 +1064,9 @@
       const response = await fetch(`/api/project-management/projects/${selectedProject.id}`, {
         method: 'PUT',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
-        body: JSON.stringify(projectForm)
+        body: JSON.stringify(projectForm),
       })
 
       const result = await response.json()
@@ -1075,7 +1079,7 @@
         // 부모 컴포넌트에 프로젝트 업데이트 이벤트 전송
         dispatch('project-updated', {
           projectId: selectedProject.id,
-          updatedProject: result.data
+          updatedProject: result.data,
         })
 
         alert('프로젝트가 성공적으로 수정되었습니다.')
@@ -1083,7 +1087,7 @@
         alert(result.message || '프로젝트 수정에 실패했습니다.')
       }
     } catch (error) {
-      console.error('프로젝트 수정 실패:', error)
+      logger.error('프로젝트 수정 실패:', error)
       alert('프로젝트 수정 중 오류가 발생했습니다.')
     } finally {
       isUpdating = false
@@ -1108,7 +1112,7 @@
     isDeleting = true
     try {
       const response = await fetch(`/api/project-management/projects/${selectedProject.id}`, {
-        method: 'DELETE'
+        method: 'DELETE',
       })
 
       const result = await response.json()
@@ -1122,7 +1126,7 @@
         alert(result.message || '프로젝트 삭제에 실패했습니다.')
       }
     } catch (error) {
-      console.error('프로젝트 삭제 실패:', error)
+      logger.error('프로젝트 삭제 실패:', error)
       alert('프로젝트 삭제 중 오류가 발생했습니다.')
     } finally {
       isDeleting = false
@@ -1134,14 +1138,14 @@
     employeeId: string,
     participationRate: number | string,
     startDate?: string,
-    endDate?: string
+    endDate?: string,
   ): Promise<number> {
-    console.log('calculateMonthlyAmount 호출:', {
+    logger.log('calculateMonthlyAmount 호출:', {
       employeeId,
       participationRate,
       startDate,
       endDate,
-      type: typeof participationRate
+      type: typeof participationRate,
     })
 
     // participationRate를 숫자로 변환
@@ -1149,54 +1153,57 @@
       typeof participationRate === 'string' ? parseFloat(participationRate) : participationRate
 
     if (!employeeId || !rate || isNaN(rate)) {
-      console.log('employeeId 또는 participationRate가 없거나 유효하지 않음:', { employeeId, rate })
+      logger.log('employeeId 또는 participationRate가 없거나 유효하지 않음:', {
+        employeeId,
+        rate,
+      })
       return 0
     }
 
     // 참여기간이 없으면 기본값 사용
     if (!startDate || !endDate) {
-      console.log('참여기간이 설정되지 않음')
+      logger.log('참여기간이 설정되지 않음')
       return 0
     }
 
     try {
       // 참여기간 내의 계약 정보 조회
       const response = await fetch(
-        `/api/project-management/employees/${employeeId}/contract?startDate=${startDate}&endDate=${endDate}`
+        `/api/project-management/employees/${employeeId}/contract?startDate=${startDate}&endDate=${endDate}`,
       )
       if (!response.ok) {
-        console.log('계약 정보 조회 실패:', response.status)
+        logger.log('계약 정보 조회 실패:', response.status)
         return 0
       }
 
       const contractData = await response.json()
-      console.log('계약 정보:', contractData)
+      logger.log('계약 정보:', contractData)
 
       if (!contractData.success || !contractData.data) {
-        console.log('계약 정보가 없음:', contractData.message)
+        logger.log('계약 정보가 없음:', contractData.message)
         if (contractData.debug) {
-          console.log('디버그 정보:', contractData.debug)
+          logger.log('디버그 정보:', contractData.debug)
         }
         return 0
       }
 
       const contract = contractData.data
       const annualSalary = parseFloat(contract.annual_salary) || 0
-      console.log('계약 연봉 (원본):', contract.annual_salary)
-      console.log('계약 연봉 (변환):', annualSalary)
+      logger.log('계약 연봉 (원본):', contract.annual_salary)
+      logger.log('계약 연봉 (변환):', annualSalary)
 
       if (annualSalary === 0) {
-        console.log('연봉이 0원임')
+        logger.log('연봉이 0원임')
         return 0
       }
 
       // 중앙화된 급여 계산 함수 사용
       const monthlyAmount = calculateMonthlySalary(annualSalary, rate)
-      console.log('계산된 월간금액:', monthlyAmount)
+      logger.log('계산된 월간금액:', monthlyAmount)
 
       return monthlyAmount
     } catch (error) {
-      console.error('월간금액 계산 중 오류:', error)
+      logger.error('월간금액 계산 중 오류:', error)
       return 0
     }
   }
@@ -1225,11 +1232,11 @@
         memberForm.employeeId,
         memberForm.participationRate,
         memberForm.startDate,
-        memberForm.endDate
+        memberForm.endDate,
       )
       calculatedMonthlyAmount = amount
     } catch (error) {
-      console.error('월간금액 계산 실패:', error)
+      logger.error('월간금액 계산 실패:', error)
       calculatedMonthlyAmount = 0
     } finally {
       isCalculatingMonthlyAmount = false
@@ -1243,7 +1250,7 @@
     isRunningValidation = true
     try {
       const response = await fetch(
-        `/api/project-management/comprehensive-validation?projectId=${selectedProject.id}&scope=all`
+        `/api/project-management/comprehensive-validation?projectId=${selectedProject.id}&scope=all`,
       )
       const result = await response.json()
 
@@ -1253,7 +1260,7 @@
       validationHistory.unshift({
         timestamp: new Date().toISOString(),
         projectId: selectedProject.id,
-        results: result
+        results: result,
       })
 
       // 최대 10개까지만 유지
@@ -1263,7 +1270,7 @@
 
       showValidationModal = true
     } catch (error) {
-      console.error('검증 실행 실패:', error)
+      logger.error('검증 실행 실패:', error)
       alert('검증 실행 중 오류가 발생했습니다.')
     } finally {
       isRunningValidation = false
@@ -1271,7 +1278,7 @@
   }
 
   // 증빙 내역 모달 표시
-  function openEvidenceModal(budget) {
+  function _openEvidenceModal(budget) {
     selectedBudgetForEvidence = budget
     showEvidenceModal = true
     loadEvidenceList(budget.id)
@@ -1291,7 +1298,7 @@
           selectedEvidenceItem = result.data
         }
       } catch (error) {
-        console.error('증빙 항목 상세 정보 로드 실패:', error)
+        logger.error('증빙 항목 상세 정보 로드 실패:', error)
       }
     }
   }
@@ -1306,7 +1313,7 @@
         evidenceCategories = result.data
       }
     } catch (error) {
-      console.error('증빙 카테고리 로드 실패:', error)
+      logger.error('증빙 카테고리 로드 실패:', error)
     }
   }
 
@@ -1321,7 +1328,7 @@
       // 모든 연차의 증빙 데이터를 로드
       for (const budget of projectBudgets) {
         const response = await fetch(
-          `/api/project-management/evidence?projectBudgetId=${budget.id}`
+          `/api/project-management/evidence?projectBudgetId=${budget.id}`,
         )
         const result = await response.json()
 
@@ -1332,7 +1339,7 @@
 
       evidenceItems = allEvidenceItems
     } catch (error) {
-      console.error('증빙 항목 로드 실패:', error)
+      logger.error('증빙 항목 로드 실패:', error)
     } finally {
       isLoadingEvidence = false
     }
@@ -1342,18 +1349,19 @@
   async function addEvidenceItem(categoryId, itemData) {
     try {
       const currentBudget =
-        projectBudgets.find(b => getPeriodNumber(b) === selectedEvidencePeriod) || projectBudgets[0]
+        projectBudgets.find((b) => getPeriodNumber(b) === selectedEvidencePeriod) ||
+        projectBudgets[0]
 
       const response = await fetch('/api/project-management/evidence', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           projectBudgetId: currentBudget.id,
           categoryId: categoryId,
-          ...itemData
-        })
+          ...itemData,
+        }),
       })
 
       const result = await response.json()
@@ -1365,20 +1373,20 @@
         throw new Error(result.message)
       }
     } catch (error) {
-      console.error('증빙 항목 추가 실패:', error)
+      logger.error('증빙 항목 추가 실패:', error)
       throw error
     }
   }
 
   // 증빙 항목 수정
-  async function updateEvidenceItem(itemId, updateData) {
+  async function _updateEvidenceItem(itemId, updateData) {
     try {
       const response = await fetch(`/api/project-management/evidence/${itemId}`, {
         method: 'PUT',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
-        body: JSON.stringify(updateData)
+        body: JSON.stringify(updateData),
       })
 
       const result = await response.json()
@@ -1390,16 +1398,16 @@
         throw new Error(result.message)
       }
     } catch (error) {
-      console.error('증빙 항목 수정 실패:', error)
+      logger.error('증빙 항목 수정 실패:', error)
       throw error
     }
   }
 
   // 증빙 항목 삭제
-  async function deleteEvidenceItem(itemId) {
+  async function _deleteEvidenceItem(itemId) {
     try {
       const response = await fetch(`/api/project-management/evidence/${itemId}`, {
-        method: 'DELETE'
+        method: 'DELETE',
       })
 
       const result = await response.json()
@@ -1410,7 +1418,7 @@
         throw new Error(result.message)
       }
     } catch (error) {
-      console.error('증빙 항목 삭제 실패:', error)
+      logger.error('증빙 항목 삭제 실패:', error)
       throw error
     }
   }
@@ -1425,7 +1433,9 @@
     try {
       isUpdating = true
 
-      const selectedEmployee = availableEmployees.find(emp => emp.id === newEvidenceForm.assigneeId)
+      const selectedEmployee = availableEmployees.find(
+        (emp) => emp.id === newEvidenceForm.assigneeId,
+      )
       const assigneeName = createAssigneeNameFromEmployee(selectedEmployee)
 
       await addEvidenceItem(newEvidenceForm.categoryId, {
@@ -1434,7 +1444,7 @@
         budgetAmount: parseFloat(newEvidenceForm.budgetAmount),
         assigneeId: newEvidenceForm.assigneeId,
         assigneeName: assigneeName,
-        dueDate: newEvidenceForm.dueDate
+        dueDate: newEvidenceForm.dueDate,
       })
 
       // 폼 초기화
@@ -1444,12 +1454,12 @@
         description: '',
         budgetAmount: '',
         assigneeId: '',
-        dueDate: ''
+        dueDate: '',
       }
 
       showEvidenceModal = false
     } catch (error) {
-      console.error('증빙 항목 추가 실패:', error)
+      logger.error('증빙 항목 추가 실패:', error)
       alert('증빙 항목 추가에 실패했습니다.')
     } finally {
       isUpdating = false
@@ -1460,14 +1470,14 @@
   async function loadEvidenceList(budgetId) {
     try {
       const response = await fetch(
-        `/api/project-management/budget-evidence?projectBudgetId=${budgetId}`
+        `/api/project-management/budget-evidence?projectBudgetId=${budgetId}`,
       )
       if (response.ok) {
         const data = await response.json()
-        evidenceList = data.data || []
+        _evidenceList = data.data || []
       }
     } catch (error) {
-      console.error('증빙 내역 로드 실패:', error)
+      logger.error('증빙 내역 로드 실패:', error)
     }
   }
 
@@ -1477,16 +1487,16 @@
       const response = await fetch('/api/project-management/evidence-types')
       if (response.ok) {
         const data = await response.json()
-        evidenceTypes = data.data || []
+        _evidenceTypes = data.data || []
       }
     } catch (error) {
-      console.error('증빙 유형 로드 실패:', error)
+      logger.error('증빙 유형 로드 실패:', error)
     }
   }
 
   // 상태별 색상 반환
   function getStatusColor(
-    status: string
+    status: string,
   ): 'success' | 'warning' | 'info' | 'error' | 'default' | 'primary' | 'ghost' {
     switch (status) {
       case 'active':
@@ -1524,7 +1534,7 @@
 
   // 우선순위별 색상 반환
   function getPriorityColor(
-    priority: string
+    priority: string,
   ): 'success' | 'warning' | 'info' | 'error' | 'default' | 'primary' | 'ghost' {
     switch (priority) {
       case 'critical':
@@ -1622,7 +1632,7 @@
         indirectInKind: 0,
         totalCash: 0,
         totalInKind: 0,
-        totalBudget: 0
+        totalBudget: 0,
       }
     }
 
@@ -1654,8 +1664,8 @@
         indirectCash: 0,
         indirectInKind: 0,
         totalBudget: 0,
-        totalSpent: 0
-      }
+        totalSpent: 0,
+      },
     )
 
     // 총 예산은 각 비목의 합계로 직접 계산 (reduce 외부에서)
@@ -1700,7 +1710,7 @@
         totalInKind: 0,
         totalCost: 0,
         monthlyCosts: [],
-        periodInfo: null
+        periodInfo: null,
       }
     }
 
@@ -1712,7 +1722,7 @@
         totalInKind: 0,
         totalCost: 0,
         monthlyCosts: [],
-        periodInfo: null
+        periodInfo: null,
       }
     }
 
@@ -1730,13 +1740,16 @@
     while (currentDate <= endDate) {
       const year = currentDate.getFullYear()
       const month = currentDate.getMonth() + 1
-      const monthName = currentDate.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long' })
+      const monthName = currentDate.toLocaleDateString('ko-KR', {
+        year: 'numeric',
+        month: 'long',
+      })
 
       let monthlyCash = 0
       let monthlyInKind = 0
 
       // 각 멤버의 해당 월 인건비 계산
-      projectMembers.forEach(member => {
+      projectMembers.forEach((member) => {
         const memberStartDate = new Date(member.startDate || member.start_date)
         const memberEndDate = new Date(member.endDate || member.end_date)
         const monthStart = new Date(year, month - 1, 1)
@@ -1761,7 +1774,7 @@
         monthName: monthName,
         cash: monthlyCash,
         inKind: monthlyInKind,
-        total: monthlyCash + monthlyInKind
+        total: monthlyCash + monthlyInKind,
       })
 
       // 다음 달로 이동
@@ -1782,8 +1795,8 @@
       periodInfo: {
         startDate: getStartDate(currentBudget),
         endDate: getEndDate(currentBudget),
-        periodNumber: getPeriodNumber(currentBudget)
-      }
+        periodNumber: getPeriodNumber(currentBudget),
+      },
     }
   }
 
@@ -1816,7 +1829,9 @@
         <div class="flex-1">
           <!-- 프로젝트 제목과 코드 -->
           <div class="flex items-center gap-3 mb-3">
-            <h2 class="text-2xl font-bold text-gray-900">{selectedProject.title}</h2>
+            <h2 class="text-2xl font-bold text-gray-900">
+              {selectedProject.title}
+            </h2>
             <span class="text-sm text-gray-500 font-mono">{selectedProject.code}</span>
           </div>
 
@@ -1884,7 +1899,7 @@
             compact={true}
             refreshTrigger={budgetRefreshTrigger}
           />
-        {:catch error}
+        {:catch _error}
           <div class="text-center py-4 text-gray-500">
             <p class="text-sm">예산 정보를 불러올 수 없습니다.</p>
           </div>
@@ -1968,8 +1983,8 @@
             </tr>
           </thead>
           <tbody class="bg-white divide-y divide-gray-200">
-            {#each projectBudgets as budget}
-              {@const totalBudget =
+            {#each projectBudgets as budget, i (i)}
+              {@const _totalBudget =
                 getPersonnelCostCash(budget) +
                 getPersonnelCostInKind(budget) +
                 getResearchMaterialCostCash(budget) +
@@ -2019,7 +2034,9 @@
                     <div class="text-sm text-blue-600 font-medium">
                       {formatCurrency(materialCash, false)}
                     </div>
-                    <div class="text-sm text-gray-600">{formatCurrency(materialInKind, false)}</div>
+                    <div class="text-sm text-gray-600">
+                      {formatCurrency(materialInKind, false)}
+                    </div>
                   </div>
                 </td>
                 <!-- 연구활동비 (현금/현물) -->
@@ -2028,7 +2045,9 @@
                     <div class="text-sm text-blue-600 font-medium">
                       {formatCurrency(activityCash, false)}
                     </div>
-                    <div class="text-sm text-gray-600">{formatCurrency(activityInKind, false)}</div>
+                    <div class="text-sm text-gray-600">
+                      {formatCurrency(activityInKind, false)}
+                    </div>
                   </div>
                 </td>
                 <!-- 연구수당 (현금/현물) -->
@@ -2037,7 +2056,9 @@
                     <div class="text-sm text-blue-600 font-medium">
                       {formatCurrency(stipendCash, false)}
                     </div>
-                    <div class="text-sm text-gray-600">{formatCurrency(stipendInKind, false)}</div>
+                    <div class="text-sm text-gray-600">
+                      {formatCurrency(stipendInKind, false)}
+                    </div>
                   </div>
                 </td>
                 <!-- 간접비 (현금/현물) -->
@@ -2046,7 +2067,9 @@
                     <div class="text-sm text-blue-600 font-medium">
                       {formatCurrency(indirectCash, false)}
                     </div>
-                    <div class="text-sm text-gray-600">{formatCurrency(indirectInKind, false)}</div>
+                    <div class="text-sm text-gray-600">
+                      {formatCurrency(indirectInKind, false)}
+                    </div>
                   </div>
                 </td>
                 <!-- 총 예산 (현금/현물) -->
@@ -2093,7 +2116,9 @@
                 <td class="px-6 py-6 whitespace-nowrap text-sm text-gray-900 w-24">
                   <div class="text-center">
                     <div class="font-medium">합계</div>
-                    <div class="text-xs text-gray-600">{projectBudgets.length}개 연차</div>
+                    <div class="text-xs text-gray-600">
+                      {projectBudgets.length}개 연차
+                    </div>
                   </div>
                 </td>
                 <!-- 인건비 (현금/현물) -->
@@ -2108,7 +2133,7 @@
                     <div class="text-sm text-gray-800 font-medium border-t pt-2">
                       소계: {formatCurrency(
                         (totals.personnelCash || 0) + (totals.personnelInKind || 0),
-                        false
+                        false,
                       )}
                     </div>
                   </div>
@@ -2125,7 +2150,7 @@
                     <div class="text-sm text-gray-800 font-medium border-t pt-2">
                       소계: {formatCurrency(
                         (totals.researchMaterialCash || 0) + (totals.researchMaterialInKind || 0),
-                        false
+                        false,
                       )}
                     </div>
                   </div>
@@ -2142,7 +2167,7 @@
                     <div class="text-sm text-gray-800 font-medium border-t pt-2">
                       소계: {formatCurrency(
                         (totals.researchActivityCash || 0) + (totals.researchActivityInKind || 0),
-                        false
+                        false,
                       )}
                     </div>
                   </div>
@@ -2159,7 +2184,7 @@
                     <div class="text-sm text-gray-800 font-medium border-t pt-2">
                       소계: {formatCurrency(
                         (totals.researchStipendCash || 0) + (totals.researchStipendInKind || 0),
-                        false
+                        false,
                       )}
                     </div>
                   </div>
@@ -2176,7 +2201,7 @@
                     <div class="text-sm text-gray-800 font-medium border-t pt-2">
                       소계: {formatCurrency(
                         (totals.indirectCash || 0) + (totals.indirectInKind || 0),
-                        false
+                        false,
                       )}
                     </div>
                   </div>
@@ -2226,7 +2251,7 @@
         researchMaterialCostInKind: '',
         researchActivityCostInKind: '',
         researchStipendInKind: '',
-        indirectCostInKind: ''
+        indirectCostInKind: '',
       }
     }}
     size="lg"
@@ -2473,7 +2498,7 @@
             researchMaterialCostInKind: '',
             researchActivityCostInKind: '',
             researchStipendInKind: '',
-            indirectCostInKind: ''
+            indirectCostInKind: '',
           }
         }}
       >
@@ -2509,7 +2534,7 @@
             }}
           >
             <option value="">👥 연구원 선택 ({availableEmployees.length}명)</option>
-            {#each availableEmployees as employee}
+            {#each availableEmployees as employee, i (i)}
               <option value={employee.id}
                 >{formatKoreanName(employee.name)} ({employee.department})</option
               >
@@ -2549,9 +2574,8 @@
               max="100"
               step="0.1"
               placeholder="100"
-              oninput={e => {
-                const target = e.target as HTMLInputElement
-                const value = parseFloat(target.value)
+              oninput={(e: Event & { currentTarget: HTMLInputElement }) => {
+                const value = parseFloat(e.currentTarget.value)
                 if (value < 0) memberForm.participationRate = 0
                 if (value > 100) memberForm.participationRate = 100
                 isManualMonthlyAmount = false
@@ -2768,7 +2792,7 @@
           </tr>
         </thead>
         <tbody class="bg-white divide-y divide-gray-200">
-          {#each projectMembers as member}
+          {#each projectMembers as member, i (i)}
             <tr
               class="hover:bg-gray-50 {editingMember && editingMember.id === member.id
                 ? 'bg-gradient-to-r from-blue-50 to-indigo-50 border-l-4 border-blue-400 shadow-sm'
@@ -2922,11 +2946,15 @@
                           class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-4 py-3 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-20 max-w-sm"
                         >
                           <div class="font-semibold text-yellow-400 mb-2">⚠️ 경고 사항</div>
-                          <div class="text-gray-300 mb-1">{validationStatus.message}</div>
+                          <div class="text-gray-300 mb-1">
+                            {validationStatus.message}
+                          </div>
                           {#if validationStatus.issues && validationStatus.issues.length > 0}
-                            {#each validationStatus.issues as issue}
+                            {#each validationStatus.issues as issue, i (i)}
                               <div class="mb-2 last:mb-0 p-2 bg-gray-800 rounded">
-                                <div class="text-gray-300 font-medium">{issue.message}</div>
+                                <div class="text-gray-300 font-medium">
+                                  {issue.message}
+                                </div>
                                 {#if issue.suggestedFix}
                                   <div class="text-gray-400 mt-1 text-xs">
                                     💡 {issue.suggestedFix}
@@ -2964,11 +2992,15 @@
                           class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-4 py-3 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-20 max-w-sm"
                         >
                           <div class="font-semibold text-red-400 mb-2">❌ 검증 실패</div>
-                          <div class="text-gray-300 mb-1">{validationStatus.message}</div>
+                          <div class="text-gray-300 mb-1">
+                            {validationStatus.message}
+                          </div>
                           {#if validationStatus.issues && validationStatus.issues.length > 0}
-                            {#each validationStatus.issues as issue}
+                            {#each validationStatus.issues as issue, i (i)}
                               <div class="mb-2 last:mb-0 p-2 bg-gray-800 rounded">
-                                <div class="text-gray-300 font-medium">{issue.message}</div>
+                                <div class="text-gray-300 font-medium">
+                                  {issue.message}
+                                </div>
                                 {#if issue.suggestedFix}
                                   <div class="text-gray-400 mt-1 text-xs">
                                     🔧 {issue.suggestedFix}
@@ -3018,6 +3050,7 @@
                   {#if editingMember && editingMember.id === member.id}
                     <div class="flex space-x-1">
                       <button
+                        type="button"
                         onclick={updateMember}
                         class="p-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors duration-200 shadow-sm"
                         title="저장"
@@ -3025,6 +3058,7 @@
                         <CheckIcon size={14} />
                       </button>
                       <button
+                        type="button"
                         onclick={cancelEditMember}
                         class="p-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors duration-200 shadow-sm"
                         title="취소"
@@ -3083,6 +3117,7 @@
             {/if}
           </h4>
           <button
+            type="button"
             onclick={() => (isPersonnelSummaryExpanded = !isPersonnelSummaryExpanded)}
             class="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700"
           >
@@ -3145,7 +3180,7 @@
                   </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
-                  {#each personnelSummary.monthlyCosts as monthData}
+                  {#each personnelSummary.monthlyCosts as monthData, i (i)}
                     <tr class="hover:bg-gray-50">
                       <td class="px-3 py-2 whitespace-nowrap text-sm font-medium text-gray-900">
                         {monthData.monthName}
@@ -3203,7 +3238,7 @@
             bind:value={selectedEvidencePeriod}
             class="px-3 py-1 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            {#each projectBudgets as budget}
+            {#each projectBudgets as budget, i (i)}
               <option value={getPeriodNumber(budget)}>
                 {formatPeriodDisplay(budget)}
               </option>
@@ -3219,7 +3254,7 @@
 
     {#if projectBudgets.length > 0}
       {@const currentBudget =
-        projectBudgets.find(b => getPeriodNumber(b) === selectedEvidencePeriod) ||
+        projectBudgets.find((b) => getPeriodNumber(b) === selectedEvidencePeriod) ||
         projectBudgets[0]}
       {@const budgetCategories = [
         {
@@ -3227,37 +3262,37 @@
           type: 'personnel',
           name: '인건비',
           cash: parseFloat(currentBudget.personnel_cost) || 0,
-          inKind: parseFloat(currentBudget.personnel_cost_in_kind) || 0
+          inKind: parseFloat(currentBudget.personnel_cost_in_kind) || 0,
         },
         {
           id: 'material',
           type: 'material',
           name: '연구재료비',
           cash: parseFloat(currentBudget.research_material_cost) || 0,
-          inKind: parseFloat(currentBudget.research_material_cost_in_kind) || 0
+          inKind: parseFloat(currentBudget.research_material_cost_in_kind) || 0,
         },
         {
           id: 'activity',
           type: 'activity',
           name: '연구활동비',
           cash: parseFloat(currentBudget.research_activity_cost) || 0,
-          inKind: parseFloat(currentBudget.research_activity_cost_in_kind) || 0
+          inKind: parseFloat(currentBudget.research_activity_cost_in_kind) || 0,
         },
         {
           id: 'stipend',
           type: 'stipend',
           name: '연구수당',
           cash: parseFloat(currentBudget.research_stipend) || 0,
-          inKind: parseFloat(currentBudget.research_stipend_in_kind) || 0
+          inKind: parseFloat(currentBudget.research_stipend_in_kind) || 0,
         },
         {
           id: 'indirect',
           type: 'indirect',
           name: '간접비',
           cash: parseFloat(currentBudget.indirect_cost) || 0,
-          inKind: parseFloat(currentBudget.indirect_cost_in_kind) || 0
-        }
-      ].filter(category => category.cash + category.inKind > 0)}
+          inKind: parseFloat(currentBudget.indirect_cost_in_kind) || 0,
+        },
+      ].filter((category) => category.cash + category.inKind > 0)}
 
       {#if isLoadingEvidence}
         <div class="text-center py-8">
@@ -3268,17 +3303,17 @@
         </div>
       {:else}
         <div class="space-y-4">
-          {#each budgetCategories as budgetCategory}
+          {#each budgetCategories as budgetCategory, i (i)}
             {@const categoryItems = evidenceItems.filter(
-              item => item.category_name === budgetCategory.name
+              (item) => item.category_name === budgetCategory.name,
             )}
             {@const totalAmount = budgetCategory.cash + budgetCategory.inKind}
             {@const totalItems = categoryItems.length}
             {@const completedItems = categoryItems.filter(
-              item => item.status === 'completed'
+              (item) => item.status === 'completed',
             ).length}
             {@const inProgressItems = categoryItems.filter(
-              item => item.status === 'in_progress'
+              (item) => item.status === 'in_progress',
             ).length}
             {@const overallProgress =
               totalItems > 0 ? Math.floor((completedItems / totalItems) * 100) : 0}
@@ -3291,7 +3326,7 @@
                 onclick={() =>
                   (expandedEvidenceSections[budgetCategory.type] =
                     !expandedEvidenceSections[budgetCategory.type])}
-                onkeydown={e =>
+                onkeydown={(e) =>
                   e.key === 'Enter' &&
                   (expandedEvidenceSections[budgetCategory.type] =
                     !expandedEvidenceSections[budgetCategory.type])}
@@ -3303,7 +3338,9 @@
                     <ChevronRightIcon size={16} class="text-gray-500" />
                   {/if}
                   <div>
-                    <h4 class="text-md font-medium text-gray-900">{budgetCategory.name}</h4>
+                    <h4 class="text-md font-medium text-gray-900">
+                      {budgetCategory.name}
+                    </h4>
                     <div class="text-xs text-gray-500">
                       예산: {formatCurrency(totalAmount)} | 증빙: {totalItems}개 | 완료: {completedItems}개
                       | 진행중: {inProgressItems}개
@@ -3376,7 +3413,7 @@
                           </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
-                          {#each categoryItems as item}
+                          {#each categoryItems as item, i (i)}
                             {@const isOverdue =
                               new Date(item.due_date) < new Date() && item.status !== 'completed'}
                             <tr class="hover:bg-gray-50">
@@ -3514,6 +3551,7 @@
             {selectedEvidenceItem?.name} 증빙 관리
           </h3>
           <button
+            type="button"
             onclick={() => (showEvidenceDetailModal = false)}
             class="text-gray-400 hover:text-gray-600"
           >
@@ -3596,14 +3634,18 @@
 
               <div class="space-y-2">
                 {#if selectedEvidenceItem.documents && selectedEvidenceItem.documents.length > 0}
-                  {#each selectedEvidenceItem.documents as document}
+                  {#each selectedEvidenceItem.documents as document, i (i)}
                     <div
                       class="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg"
                     >
                       <div class="flex items-center space-x-3">
                         <div>
-                          <div class="font-medium text-sm">{document.document_type}</div>
-                          <div class="text-xs text-gray-500">{document.document_name}</div>
+                          <div class="font-medium text-sm">
+                            {document.document_type}
+                          </div>
+                          <div class="text-xs text-gray-500">
+                            {document.document_name}
+                          </div>
                           {#if document.uploader_name}
                             <div class="text-xs text-gray-400">
                               업로더: {document.uploader_name}
@@ -3670,15 +3712,19 @@
 
               <div class="space-y-2">
                 {#if selectedEvidenceItem.schedules && selectedEvidenceItem.schedules.length > 0}
-                  {#each selectedEvidenceItem.schedules as schedule}
+                  {#each selectedEvidenceItem.schedules as schedule, i (i)}
                     <div
                       class="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg"
                     >
                       <div class="flex items-center space-x-3">
                         <div>
-                          <div class="font-medium text-sm">{schedule.task_name}</div>
+                          <div class="font-medium text-sm">
+                            {schedule.task_name}
+                          </div>
                           {#if schedule.description}
-                            <div class="text-xs text-gray-500">{schedule.description}</div>
+                            <div class="text-xs text-gray-500">
+                              {schedule.description}
+                            </div>
                           {/if}
                           <div class="text-xs text-gray-400">
                             마감일: {formatDate(schedule.due_date)}
@@ -3759,6 +3805,7 @@
         <div class="flex items-center justify-between mb-4">
           <h3 class="text-lg font-medium text-gray-900">증빙 항목 추가</h3>
           <button
+            type="button"
             onclick={() => (showEvidenceModal = false)}
             class="text-gray-400 hover:text-gray-600"
           >
@@ -3779,7 +3826,7 @@
               required
             >
               <option value="">카테고리를 선택하세요</option>
-              {#each evidenceCategories as category}
+              {#each evidenceCategories as category, i (i)}
                 <option value={category.id}>{category.name}</option>
               {/each}
             </select>
@@ -3844,7 +3891,7 @@
               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="">담당자를 선택하세요</option>
-              {#each availableEmployees as employee}
+              {#each availableEmployees as employee, i (i)}
                 <option value={employee.id}>
                   {formatEmployeeForSelect(employee)}
                 </option>
@@ -3867,7 +3914,7 @@
           </div>
 
           <!-- 재직 기간 검증 결과 (인건비인 경우에만 표시) -->
-          {#if newEvidenceForm.categoryId && evidenceCategories.find(cat => cat.id === newEvidenceForm.categoryId)?.name === '인건비'}
+          {#if newEvidenceForm.categoryId && evidenceCategories.find((cat) => cat.id === newEvidenceForm.categoryId)?.name === '인건비'}
             {#if isValidatingEvidence}
               <div class="p-3 bg-gray-50 border border-gray-200 rounded-md">
                 <div class="flex items-center space-x-2">
@@ -3899,7 +3946,7 @@
                 </p>
                 {#if evidenceValidation.validation.warnings && evidenceValidation.validation.warnings.length > 0}
                   <div class="mt-2">
-                    {#each evidenceValidation.validation.warnings as warning}
+                    {#each evidenceValidation.validation.warnings as warning, i (i)}
                       <p class="text-sm text-yellow-700">⚠️ {warning}</p>
                     {/each}
                   </div>
@@ -4239,7 +4286,7 @@
             <div class="border rounded-lg p-4">
               <h4 class="font-medium text-gray-900 mb-3">프로젝트 검증</h4>
               <div class="space-y-2 text-sm">
-                {#each validationResults.project.validationResults || [] as result}
+                {#each validationResults.project.validationResults || [] as result, i (i)}
                   <div class="flex justify-between">
                     <span>{result.ruleName}:</span>
                     <span class={result.isValid ? 'text-green-600' : 'text-red-600'}>
@@ -4256,7 +4303,7 @@
             <div class="border border-red-200 rounded-lg p-4 bg-red-50">
               <h4 class="font-medium text-red-900 mb-3">발견된 문제점</h4>
               <ul class="space-y-1 text-sm text-red-800">
-                {#each validationResults.summary.issues as issue}
+                {#each validationResults.summary.issues as issue, i (i)}
                   <li>• {issue}</li>
                 {/each}
               </ul>

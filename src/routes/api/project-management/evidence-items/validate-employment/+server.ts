@@ -2,6 +2,7 @@ import { formatDateForDisplay } from '$lib/utils/date-handler'
 import { json } from '@sveltejs/kit'
 import { Pool } from 'pg'
 import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger'
 
 const pool = new Pool({
   host: 'db-viahub.cdgqkcss8mpj.ap-northeast-2.rds.amazonaws.com',
@@ -9,7 +10,7 @@ const pool = new Pool({
   database: 'postgres',
   user: 'postgres',
   password: 'viahubdev',
-  ssl: { rejectUnauthorized: false }
+  ssl: { rejectUnauthorized: false },
 })
 
 export const POST: RequestHandler = async ({ request }) => {
@@ -33,14 +34,14 @@ export const POST: RequestHandler = async ({ request }) => {
 			FROM employees 
 			WHERE id = $1
 		`,
-      [assigneeId]
+      [assigneeId],
     )
 
     if (employeeResult.rows.length === 0) {
       return json({
         success: false,
         error: 'EMPLOYEE_NOT_FOUND',
-        message: '담당 직원을 찾을 수 없습니다.'
+        message: '담당 직원을 찾을 수 없습니다.',
       })
     }
 
@@ -55,19 +56,18 @@ export const POST: RequestHandler = async ({ request }) => {
 			SELECT 
 				start_date,
 				end_date,
-				period_number,
-				fiscal_year
+				period_number
 			FROM project_budgets 
 			WHERE id = $1
 		`,
-      [projectBudgetId]
+      [projectBudgetId],
     )
 
     if (budgetResult.rows.length === 0) {
       return json({
         success: false,
         error: 'BUDGET_NOT_FOUND',
-        message: '프로젝트 예산 정보를 찾을 수 없습니다.'
+        message: '프로젝트 예산 정보를 찾을 수 없습니다.',
       })
     }
 
@@ -79,7 +79,7 @@ export const POST: RequestHandler = async ({ request }) => {
     let isValid = true
     let reason = 'VALID'
     let message = '재직 기간이 유효합니다.'
-    let warnings = []
+    const warnings = []
 
     // 1. 퇴사한 직원인지 확인
     if (employee.status === 'terminated' || terminationDate) {
@@ -122,14 +122,14 @@ export const POST: RequestHandler = async ({ request }) => {
       // 퇴사 예정인 직원
       if (terminationDate && dueDateObj > terminationDate) {
         warnings.push(
-          `퇴사 예정일(${formatDateForDisplay(terminationDate.toISOString(), 'KOREAN')}) 이후의 인건비입니다.`
+          `퇴사 예정일(${formatDateForDisplay(terminationDate.toISOString(), 'KOREAN')}) 이후의 인건비입니다.`,
         )
       }
 
       // 입사한 지 얼마 안 된 직원
       if (hireDate) {
         const daysSinceHire = Math.floor(
-          (dueDateObj.getTime() - hireDate.getTime()) / (1000 * 60 * 60 * 24)
+          (dueDateObj.getTime() - hireDate.getTime()) / (1000 * 60 * 60 * 24),
         )
         if (daysSinceHire < 30) {
           warnings.push(`입사한 지 ${daysSinceHire}일밖에 안 된 직원입니다.`)
@@ -143,33 +143,33 @@ export const POST: RequestHandler = async ({ request }) => {
         isValid,
         reason,
         message,
-        warnings
+        warnings,
       },
       employee: {
         id: employee.id,
         name: `${employee.last_name}${employee.first_name}`,
         hireDate: employee.hire_date,
         terminationDate: employee.termination_date,
-        status: employee.status
+        status: employee.status,
       },
       projectPeriod: {
         startDate: budget.start_date,
         endDate: budget.end_date,
         periodNumber: budget.period_number,
-        fiscalYear: budget.fiscal_year
+        fiscalYear: budget.period_number,
       },
-      dueDate: dueDate
+      dueDate: dueDate,
     })
   } catch (error) {
-    console.error('Employment validation error:', error)
+    logger.error('Employment validation error:', error)
     return json(
       {
         success: false,
         error: 'VALIDATION_ERROR',
         message: '재직 기간 검증 중 오류가 발생했습니다.',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        details: error instanceof Error ? error.message : 'Unknown error',
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

@@ -1,5 +1,5 @@
-import { writable, derived } from 'svelte/store'
 import { browser } from '$app/environment'
+import { derived, writable } from 'svelte/store'
 
 // Theme types
 export type Theme = 'light' | 'dark' | 'auto'
@@ -42,8 +42,8 @@ export const themes: Record<ColorScheme, ThemeConfig> = {
       success: '#10B981',
       warning: '#F59E0B',
       error: '#EF4444',
-      info: '#06B6D4'
-    }
+      info: '#06B6D4',
+    },
   },
   dark: {
     name: 'dark',
@@ -60,9 +60,9 @@ export const themes: Record<ColorScheme, ThemeConfig> = {
       success: '#34D399',
       warning: '#FBBF24',
       error: '#F87171',
-      info: '#22D3EE'
-    }
-  }
+      info: '#22D3EE',
+    },
+  },
 }
 
 // Theme store
@@ -78,7 +78,7 @@ export const currentTheme = derived([themeStore, systemColorScheme], ([theme, sy
 })
 
 // Current theme configuration
-export const themeConfig = derived(currentTheme, scheme => themes[scheme])
+export const themeConfig = derived(currentTheme, (scheme) => themes[scheme])
 
 // Theme management class
 export class ThemeManager {
@@ -116,7 +116,7 @@ export class ThemeManager {
   private setupSystemThemeListener(): (() => void) | void {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
 
-    const handleChange = (e: MediaQueryListEvent) => {
+    const handleChange = (_e: MediaQueryListEvent) => {
       this.updateSystemColorScheme()
     }
 
@@ -149,7 +149,7 @@ export class ThemeManager {
   // Get current theme
   public getTheme(): Theme {
     let currentTheme: Theme
-    this.store.subscribe(theme => {
+    this.store.subscribe((theme) => {
       currentTheme = theme
     })()
     return currentTheme!
@@ -185,7 +185,7 @@ export class ThemeManager {
     const theme = this.getTheme()
     if (theme === 'auto') {
       let systemScheme: ColorScheme
-      this.systemStore.subscribe(scheme => {
+      this.systemStore.subscribe((scheme) => {
         systemScheme = scheme
       })()
       return systemScheme!
@@ -205,7 +205,7 @@ export class ThemeManager {
     return [
       { value: 'light', label: 'Light' },
       { value: 'dark', label: 'Dark' },
-      { value: 'auto', label: 'Auto (System)' }
+      { value: 'auto', label: 'Auto (System)' },
     ]
   }
 
@@ -280,11 +280,11 @@ export function useTheme() {
     setTheme: themeManager.setTheme.bind(themeManager),
     toggleTheme: themeManager.toggleTheme.bind(themeManager),
     getTheme: themeManager.getTheme.bind(themeManager),
-    getAvailableThemes: themeManager.getAvailableThemes.bind(themeManager)
+    getAvailableThemes: themeManager.getAvailableThemes.bind(themeManager),
   }
 }
 
 // Reactive stores for common theme checks
-export const isDark = derived(currentTheme, scheme => scheme === 'dark')
-export const isLight = derived(currentTheme, scheme => scheme === 'light')
-export const isAuto = derived(themeStore, theme => theme === 'auto')
+export const isDark = derived(currentTheme, (scheme) => scheme === 'dark')
+export const isLight = derived(currentTheme, (scheme) => scheme === 'light')
+export const isAuto = derived(themeStore, (theme) => theme === 'auto')

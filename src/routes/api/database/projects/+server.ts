@@ -1,6 +1,7 @@
 import { json } from '@sveltejs/kit'
 import { DatabaseService } from '$lib/database/connection'
 import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger'
 
 export const GET: RequestHandler = async ({ url }) => {
   try {
@@ -13,7 +14,7 @@ export const GET: RequestHandler = async ({ url }) => {
       status,
       manager_id,
       limit,
-      offset
+      offset,
     })
 
     return json({
@@ -22,17 +23,17 @@ export const GET: RequestHandler = async ({ url }) => {
       pagination: {
         limit,
         offset,
-        total: projects.length
-      }
+        total: projects.length,
+      },
     })
   } catch (error) {
-    console.error('Get projects error:', error)
+    logger.error('Get projects error:', error)
     return json(
       {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
@@ -47,18 +48,18 @@ export const POST: RequestHandler = async ({ request }) => {
       {
         success: true,
         data: newProject,
-        message: 'Project created successfully'
+        message: 'Project created successfully',
       },
-      { status: 201 }
+      { status: 201 },
     )
   } catch (error) {
-    console.error('Create project error:', error)
+    logger.error('Create project error:', error)
     return json(
       {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

@@ -7,7 +7,7 @@
   import { formatKRW } from '$lib/utils/format'
 
   const projectId = page.params.projectId
-  const project = $derived($projectsStore.find(p => p.id === projectId))
+  const project = $derived($projectsStore.find((p) => p.id === projectId))
 </script>
 
 <h2 class="text-lg font-semibold mb-3">Project {projectId}</h2>

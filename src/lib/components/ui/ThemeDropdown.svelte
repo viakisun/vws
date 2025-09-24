@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount, onDestroy } from 'svelte'
+  import { onMount } from 'svelte'
 
   // Props
   interface Props {
@@ -23,7 +23,7 @@
   }
 
   let {
-    open = false,
+    open: _open = false,
     trigger = 'click',
     position = 'bottom-left',
     size = 'md',
@@ -132,7 +132,7 @@
     const dropdownRect = dropdownElement.getBoundingClientRect()
     const viewport = {
       width: window.innerWidth,
-      height: window.innerHeight
+      height: window.innerHeight,
     }
 
     let top = 0
@@ -225,7 +225,7 @@
       class="theme-dropdown-trigger"
       bind:this={triggerElement}
       onclick={handleTriggerClick}
-      onkeydown={e => {
+      onkeydown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault()
           handleTriggerClick()

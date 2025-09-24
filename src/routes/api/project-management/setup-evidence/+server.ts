@@ -1,6 +1,7 @@
 import { query } from '$lib/database/connection'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger'
 
 // POST /api/project-management/setup-evidence - 증빙 내역 테이블 설정
 export const POST: RequestHandler = async () => {
@@ -55,14 +56,14 @@ export const POST: RequestHandler = async () => {
 
     // 인덱스 생성
     await query(
-      `CREATE INDEX IF NOT EXISTS idx_budget_evidence_project_budget_id ON budget_evidence(project_budget_id)`
+      `CREATE INDEX IF NOT EXISTS idx_budget_evidence_project_budget_id ON budget_evidence(project_budget_id)`,
     )
     await query(
-      `CREATE INDEX IF NOT EXISTS idx_budget_evidence_evidence_date ON budget_evidence(evidence_date)`
+      `CREATE INDEX IF NOT EXISTS idx_budget_evidence_evidence_date ON budget_evidence(evidence_date)`,
     )
     await query(`CREATE INDEX IF NOT EXISTS idx_budget_evidence_status ON budget_evidence(status)`)
     await query(
-      `CREATE INDEX IF NOT EXISTS idx_budget_evidence_created_by ON budget_evidence(created_by)`
+      `CREATE INDEX IF NOT EXISTS idx_budget_evidence_created_by ON budget_evidence(created_by)`,
     )
 
     // 트리거 함수 생성
@@ -118,17 +119,17 @@ export const POST: RequestHandler = async () => {
 
     return json({
       success: true,
-      message: '증빙 내역 테이블이 성공적으로 설정되었습니다.'
+      message: '증빙 내역 테이블이 성공적으로 설정되었습니다.',
     })
   } catch (error) {
-    console.error('증빙 내역 테이블 설정 실패:', error)
+    logger.error('증빙 내역 테이블 설정 실패:', error)
     return json(
       {
         success: false,
         message: '증빙 내역 테이블 설정에 실패했습니다.',
-        error: (error as Error).message
+        error: (error as Error).message,
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

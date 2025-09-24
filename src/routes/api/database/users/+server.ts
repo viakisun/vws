@@ -1,6 +1,7 @@
 import { json } from '@sveltejs/kit'
 import { DatabaseService } from '$lib/database/connection'
 import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger'
 
 export const GET: RequestHandler = async ({ url }) => {
   try {
@@ -11,7 +12,7 @@ export const GET: RequestHandler = async ({ url }) => {
     const users = await DatabaseService.getUsers({
       department,
       limit,
-      offset
+      offset,
     })
 
     return json({
@@ -20,17 +21,17 @@ export const GET: RequestHandler = async ({ url }) => {
       pagination: {
         limit,
         offset,
-        total: users.length
-      }
+        total: users.length,
+      },
     })
   } catch (error) {
-    console.error('Get users error:', error)
+    logger.error('Get users error:', error)
     return json(
       {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
@@ -45,18 +46,18 @@ export const POST: RequestHandler = async ({ request }) => {
       {
         success: true,
         data: newUser,
-        message: 'User created successfully'
+        message: 'User created successfully',
       },
-      { status: 201 }
+      { status: 201 },
     )
   } catch (error) {
-    console.error('Create user error:', error)
+    logger.error('Create user error:', error)
     return json(
       {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

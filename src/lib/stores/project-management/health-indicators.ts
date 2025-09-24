@@ -1,16 +1,11 @@
+import { logger } from '$lib/utils/logger'
 import { writable } from 'svelte/store'
-import type {
-  HealthIndicator,
-  Project,
-  Milestone,
-  ExpenseItem,
-  ParticipationAssignment
-} from './types'
 import { logAudit } from './core'
+import type { HealthIndicator } from './types'
 
 // 헬스 인디케이터 관리
 export const healthIndicators = writable<HealthIndicator[]>([])
-export const healthRules = writable<Record<string, any>>({})
+export const healthRules = writable<Record<string, unknown>>({})
 
 // 헬스 인디케이터 계산
 export function calculateHealthIndicator(projectId: string): HealthIndicator {
@@ -29,12 +24,12 @@ export function calculateHealthIndicator(projectId: string): HealthIndicator {
     people: peopleScore,
     risk: riskScore,
     overall: overallStatus,
-    lastUpdated: new Date().toISOString()
+    lastUpdated: new Date().toISOString(),
   }
 
   // 기존 인디케이터 업데이트 또는 새로 생성
-  healthIndicators.update(list => {
-    const index = list.findIndex(h => h.projectId === projectId)
+  healthIndicators.update((list) => {
+    const index = list.findIndex((h) => h.projectId === projectId)
     if (index !== -1) {
       const newList = [...list]
       newList[index] = indicator
@@ -50,7 +45,7 @@ export function calculateHealthIndicator(projectId: string): HealthIndicator {
 }
 
 // 일정 헬스 계산
-function calculateScheduleHealth(projectId: string): number {
+function calculateScheduleHealth(_projectId: string): number {
   // 1. 마일스톤 달성률 (40%)
   const milestoneScore = calculateMilestoneHealth(projectId)
 
@@ -65,18 +60,18 @@ function calculateScheduleHealth(projectId: string): number {
 }
 
 // 마일스톤 헬스 계산
-function calculateMilestoneHealth(projectId: string): number {
+function calculateMilestoneHealth(_projectId: string): number {
   // 실제 구현에서는 milestones 스토어에서 데이터 가져오기
   const mockMilestones = [
     { status: 'completed', dueDate: '2024-01-15', completedDate: '2024-01-14' },
     { status: 'in-progress', dueDate: '2024-01-30', completedDate: null },
     { status: 'not-started', dueDate: '2024-02-15', completedDate: null },
-    { status: 'delayed', dueDate: '2024-01-20', completedDate: null }
+    { status: 'delayed', dueDate: '2024-01-20', completedDate: null },
   ]
 
   const totalMilestones = mockMilestones.length
-  const completedMilestones = mockMilestones.filter(m => m.status === 'completed').length
-  const delayedMilestones = mockMilestones.filter(m => m.status === 'delayed').length
+  const completedMilestones = mockMilestones.filter((m) => m.status === 'completed').length
+  const delayedMilestones = mockMilestones.filter((m) => m.status === 'delayed').length
 
   const completionRate = (completedMilestones / totalMilestones) * 100
   const delayPenalty = delayedMilestones * 10 // 지연당 10점 감점
@@ -85,18 +80,18 @@ function calculateMilestoneHealth(projectId: string): number {
 }
 
 // 산출물 헬스 계산
-function calculateDeliverableHealth(projectId: string): number {
+function calculateDeliverableHealth(_projectId: string): number {
   // 실제 구현에서는 deliverables 데이터를 분석
   const mockDeliverables = [
     { status: 'delivered', dueDate: '2024-01-15', deliveredDate: '2024-01-14' },
     { status: 'delivered', dueDate: '2024-01-20', deliveredDate: '2024-01-18' },
     { status: 'pending', dueDate: '2024-01-25', deliveredDate: null },
-    { status: 'overdue', dueDate: '2024-01-10', deliveredDate: null }
+    { status: 'overdue', dueDate: '2024-01-10', deliveredDate: null },
   ]
 
   const totalDeliverables = mockDeliverables.length
-  const deliveredDeliverables = mockDeliverables.filter(d => d.status === 'delivered').length
-  const overdueDeliverables = mockDeliverables.filter(d => d.status === 'overdue').length
+  const deliveredDeliverables = mockDeliverables.filter((d) => d.status === 'delivered').length
+  const overdueDeliverables = mockDeliverables.filter((d) => d.status === 'overdue').length
 
   const deliveryRate = (deliveredDeliverables / totalDeliverables) * 100
   const overduePenalty = overdueDeliverables * 15 // 연체당 15점 감점
@@ -105,7 +100,7 @@ function calculateDeliverableHealth(projectId: string): number {
 }
 
 // 일정 준수율 계산
-function calculateScheduleCompliance(projectId: string): number {
+function calculateScheduleCompliance(_projectId: string): number {
   // 실제 구현에서는 프로젝트 일정과 실제 진행률을 비교
   const projectStart = new Date('2024-01-01')
   const projectEnd = new Date('2024-12-31')
@@ -128,7 +123,7 @@ function calculateScheduleCompliance(projectId: string): number {
 }
 
 // 예산 헬스 계산
-function calculateBudgetHealth(projectId: string): number {
+function calculateBudgetHealth(_projectId: string): number {
   // 1. 예산 집행률 (40%)
   const executionScore = calculateBudgetExecutionScore(projectId)
 
@@ -143,7 +138,7 @@ function calculateBudgetHealth(projectId: string): number {
 }
 
 // 예산 집행률 점수 계산
-function calculateBudgetExecutionScore(projectId: string): number {
+function calculateBudgetExecutionScore(_projectId: string): number {
   // 실제 구현에서는 예산 데이터를 분석
   const totalBudget = 100000000
   const executedAmount = 60000000
@@ -158,7 +153,7 @@ function calculateBudgetExecutionScore(projectId: string): number {
 }
 
 // 예산 효율성 점수 계산
-function calculateBudgetEfficiencyScore(projectId: string): number {
+function calculateBudgetEfficiencyScore(_projectId: string): number {
   // 실제 구현에서는 ROI, 비용 대비 성과 등을 분석
   const plannedROI = 150 // 계획된 ROI (%)
   const actualROI = 120 // 실제 ROI (%)
@@ -168,12 +163,12 @@ function calculateBudgetEfficiencyScore(projectId: string): number {
 }
 
 // 예산 편차 점수 계산
-function calculateBudgetVarianceScore(projectId: string): number {
+function calculateBudgetVarianceScore(_projectId: string): number {
   // 실제 구현에서는 카테고리별 예산 편차를 분석
   const categoryVariances = [
     { category: 'PERSONNEL_CASH', variance: 5 }, // 5% 편차
     { category: 'MATERIAL', variance: -10 }, // 10% 절약
-    { category: 'RESEARCH_ACTIVITY', variance: 15 } // 15% 초과
+    { category: 'RESEARCH_ACTIVITY', variance: 15 }, // 15% 초과
   ]
 
   const averageVariance =
@@ -189,7 +184,7 @@ function calculateBudgetVarianceScore(projectId: string): number {
 }
 
 // 인력 헬스 계산
-function calculatePeopleHealth(projectId: string): number {
+function calculatePeopleHealth(_projectId: string): number {
   // 1. 참여율 충족도 (40%)
   const participationScore = calculateParticipationHealth(projectId)
 
@@ -204,19 +199,19 @@ function calculatePeopleHealth(projectId: string): number {
 }
 
 // 참여율 헬스 계산
-function calculateParticipationHealth(projectId: string): number {
+function calculateParticipationHealth(_projectId: string): number {
   // 실제 구현에서는 participationAssignments 데이터를 분석
   const mockParticipants = [
     { personId: 'person-1', assignedRate: 100, actualRate: 95 },
     { personId: 'person-2', assignedRate: 80, actualRate: 85 },
     { personId: 'person-3', assignedRate: 60, actualRate: 55 },
-    { personId: 'person-4', assignedRate: 100, actualRate: 100 }
+    { personId: 'person-4', assignedRate: 100, actualRate: 100 },
   ]
 
   const totalParticipants = mockParticipants.length
   let totalScore = 0
 
-  mockParticipants.forEach(participant => {
+  mockParticipants.forEach((participant) => {
     const rate = participant.actualRate / participant.assignedRate
     if (rate >= 0.9 && rate <= 1.1) {
       totalScore += 100 // 이상적인 참여율
@@ -233,14 +228,14 @@ function calculateParticipationHealth(projectId: string): number {
 }
 
 // 인력 안정성 헬스 계산
-function calculateStabilityHealth(projectId: string): number {
+function calculateStabilityHealth(_projectId: string): number {
   // 실제 구현에서는 인력 이탈률, 교체 빈도 등을 분석
   const mockStabilityData = {
     totalParticipants: 8,
     departures: 1,
     replacements: 1,
     averageTenure: 18, // months
-    turnoverRate: 12.5 // %
+    turnoverRate: 12.5, // %
   }
 
   const turnoverScore = Math.max(0, 100 - mockStabilityData.turnoverRate * 2)
@@ -250,19 +245,19 @@ function calculateStabilityHealth(projectId: string): number {
 }
 
 // 성과 수준 헬스 계산
-function calculatePerformanceHealth(projectId: string): number {
+function calculatePerformanceHealth(_projectId: string): number {
   // 실제 구현에서는 성과 평가 데이터를 분석
   const mockPerformanceData = {
     excellent: 3,
     good: 4,
     average: 1,
     belowAverage: 0,
-    poor: 0
+    poor: 0,
   }
 
   const totalParticipants = Object.values(mockPerformanceData).reduce(
     (sum, count) => sum + count,
-    0
+    0,
   )
   const weightedScore =
     mockPerformanceData.excellent * 100 +
@@ -275,7 +270,7 @@ function calculatePerformanceHealth(projectId: string): number {
 }
 
 // 리스크 헬스 계산
-function calculateRiskHealth(projectId: string): number {
+function calculateRiskHealth(_projectId: string): number {
   // 1. 기술적 리스크 (30%)
   const technicalRiskScore = calculateTechnicalRiskScore(projectId)
 
@@ -297,16 +292,16 @@ function calculateRiskHealth(projectId: string): number {
 }
 
 // 기술적 리스크 점수 계산
-function calculateTechnicalRiskScore(projectId: string): number {
+function calculateTechnicalRiskScore(_projectId: string): number {
   // 실제 구현에서는 기술적 이슈, 복잡도 등을 분석
   const mockTechnicalRisks = [
     { type: 'complexity', level: 'medium', impact: 'high' },
     { type: 'dependency', level: 'high', impact: 'medium' },
-    { type: 'innovation', level: 'high', impact: 'high' }
+    { type: 'innovation', level: 'high', impact: 'high' },
   ]
 
   let totalRiskScore = 0
-  mockTechnicalRisks.forEach(risk => {
+  mockTechnicalRisks.forEach((risk) => {
     const levelScore = risk.level === 'low' ? 20 : risk.level === 'medium' ? 50 : 80
     const impactScore = risk.impact === 'low' ? 20 : risk.impact === 'medium' ? 50 : 80
     totalRiskScore += (levelScore + impactScore) / 2
@@ -317,13 +312,13 @@ function calculateTechnicalRiskScore(projectId: string): number {
 }
 
 // 일정 리스크 점수 계산
-function calculateScheduleRiskScore(projectId: string): number {
+function calculateScheduleRiskScore(_projectId: string): number {
   // 실제 구현에서는 일정 지연 위험을 분석
   const mockScheduleRisks = {
     delayedMilestones: 2,
     totalMilestones: 8,
     criticalPathDelays: 1,
-    bufferConsumption: 60 // %
+    bufferConsumption: 60, // %
   }
 
   const delayRate = (mockScheduleRisks.delayedMilestones / mockScheduleRisks.totalMilestones) * 100
@@ -334,14 +329,14 @@ function calculateScheduleRiskScore(projectId: string): number {
 }
 
 // 예산 리스크 점수 계산
-function calculateBudgetRiskScore(projectId: string): number {
+function calculateBudgetRiskScore(_projectId: string): number {
   // 실제 구현에서는 예산 초과 위험을 분석
   const mockBudgetRisks = {
     overrunCategories: 1,
     totalCategories: 5,
     remainingBudget: 40000000,
     estimatedRemainingCost: 50000000,
-    contingencyUsed: 20 // %
+    contingencyUsed: 20, // %
   }
 
   const overrunRate = (mockBudgetRisks.overrunCategories / mockBudgetRisks.totalCategories) * 100
@@ -353,13 +348,13 @@ function calculateBudgetRiskScore(projectId: string): number {
 }
 
 // 인력 리스크 점수 계산
-function calculatePeopleRiskScore(projectId: string): number {
+function calculatePeopleRiskScore(_projectId: string): number {
   // 실제 구현에서는 인력 이탈 위험을 분석
   const mockPeopleRisks = {
     keyPersonnelAtRisk: 1,
     totalKeyPersonnel: 3,
     skillGaps: 2,
-    workloadImbalance: 30 // %
+    workloadImbalance: 30, // %
   }
 
   const keyPersonnelRisk =
@@ -381,25 +376,37 @@ function determineOverallStatus(overallScore: number): 'green' | 'amber' | 'red'
 export function defineHealthRules(): void {
   const rules = {
     schedule: {
-      green: { min: 80, max: 100, description: '일정이 계획대로 진행되고 있음' },
+      green: {
+        min: 80,
+        max: 100,
+        description: '일정이 계획대로 진행되고 있음',
+      },
       amber: { min: 60, max: 79, description: '일정에 약간의 지연이 있음' },
-      red: { min: 0, max: 59, description: '일정에 심각한 지연이 있음' }
+      red: { min: 0, max: 59, description: '일정에 심각한 지연이 있음' },
     },
     budget: {
-      green: { min: 80, max: 100, description: '예산이 효율적으로 집행되고 있음' },
+      green: {
+        min: 80,
+        max: 100,
+        description: '예산이 효율적으로 집행되고 있음',
+      },
       amber: { min: 60, max: 79, description: '예산 집행에 주의가 필요함' },
-      red: { min: 0, max: 59, description: '예산 집행에 심각한 문제가 있음' }
+      red: { min: 0, max: 59, description: '예산 집행에 심각한 문제가 있음' },
     },
     people: {
-      green: { min: 80, max: 100, description: '인력이 안정적으로 운영되고 있음' },
+      green: {
+        min: 80,
+        max: 100,
+        description: '인력이 안정적으로 운영되고 있음',
+      },
       amber: { min: 60, max: 79, description: '인력 관리에 주의가 필요함' },
-      red: { min: 0, max: 59, description: '인력에 심각한 문제가 있음' }
+      red: { min: 0, max: 59, description: '인력에 심각한 문제가 있음' },
     },
     risk: {
       green: { min: 80, max: 100, description: '리스크가 잘 관리되고 있음' },
       amber: { min: 60, max: 79, description: '리스크 관리에 주의가 필요함' },
-      red: { min: 0, max: 59, description: '심각한 리스크가 존재함' }
-    }
+      red: { min: 0, max: 59, description: '심각한 리스크가 존재함' },
+    },
   }
 
   healthRules.set(rules)
@@ -410,20 +417,83 @@ export function analyzeHealthTrend(projectId: string, period: 'week' | 'month' |
   // 실제 구현에서는 과거 헬스 인디케이터 데이터를 분석
   const mockTrendData = {
     week: [
-      { date: '2024-01-01', overall: 85, schedule: 80, budget: 90, people: 85, risk: 85 },
-      { date: '2024-01-08', overall: 82, schedule: 78, budget: 88, people: 83, risk: 82 },
-      { date: '2024-01-15', overall: 80, schedule: 75, budget: 85, people: 80, risk: 80 },
-      { date: '2024-01-22', overall: 78, schedule: 72, budget: 82, people: 78, risk: 78 }
+      {
+        date: '2024-01-01',
+        overall: 85,
+        schedule: 80,
+        budget: 90,
+        people: 85,
+        risk: 85,
+      },
+      {
+        date: '2024-01-08',
+        overall: 82,
+        schedule: 78,
+        budget: 88,
+        people: 83,
+        risk: 82,
+      },
+      {
+        date: '2024-01-15',
+        overall: 80,
+        schedule: 75,
+        budget: 85,
+        people: 80,
+        risk: 80,
+      },
+      {
+        date: '2024-01-22',
+        overall: 78,
+        schedule: 72,
+        budget: 82,
+        people: 78,
+        risk: 78,
+      },
     ],
     month: [
-      { month: '2024-01', overall: 85, schedule: 80, budget: 90, people: 85, risk: 85 },
-      { month: '2024-02', overall: 82, schedule: 78, budget: 88, people: 83, risk: 82 },
-      { month: '2024-03', overall: 80, schedule: 75, budget: 85, people: 80, risk: 80 }
+      {
+        month: '2024-01',
+        overall: 85,
+        schedule: 80,
+        budget: 90,
+        people: 85,
+        risk: 85,
+      },
+      {
+        month: '2024-02',
+        overall: 82,
+        schedule: 78,
+        budget: 88,
+        people: 83,
+        risk: 82,
+      },
+      {
+        month: '2024-03',
+        overall: 80,
+        schedule: 75,
+        budget: 85,
+        people: 80,
+        risk: 80,
+      },
     ],
     quarter: [
-      { quarter: 'Q1-2024', overall: 85, schedule: 80, budget: 90, people: 85, risk: 85 },
-      { quarter: 'Q2-2024', overall: 82, schedule: 78, budget: 88, people: 83, risk: 82 }
-    ]
+      {
+        quarter: 'Q1-2024',
+        overall: 85,
+        schedule: 80,
+        budget: 90,
+        people: 85,
+        risk: 85,
+      },
+      {
+        quarter: 'Q2-2024',
+        overall: 82,
+        schedule: 78,
+        budget: 88,
+        people: 83,
+        risk: 82,
+      },
+    ],
   }
 
   return mockTrendData[period]
@@ -438,7 +508,7 @@ export function createHealthAlert(projectId: string, indicator: HealthIndicator)
     alerts.push({
       type: 'schedule',
       severity: 'high',
-      message: `일정 헬스 점수가 ${indicator.schedule}점으로 낮습니다.`
+      message: `일정 헬스 점수가 ${indicator.schedule}점으로 낮습니다.`,
     })
   }
 
@@ -446,7 +516,7 @@ export function createHealthAlert(projectId: string, indicator: HealthIndicator)
     alerts.push({
       type: 'budget',
       severity: 'high',
-      message: `예산 헬스 점수가 ${indicator.budget}점으로 낮습니다.`
+      message: `예산 헬스 점수가 ${indicator.budget}점으로 낮습니다.`,
     })
   }
 
@@ -454,7 +524,7 @@ export function createHealthAlert(projectId: string, indicator: HealthIndicator)
     alerts.push({
       type: 'people',
       severity: 'high',
-      message: `인력 헬스 점수가 ${indicator.people}점으로 낮습니다.`
+      message: `인력 헬스 점수가 ${indicator.people}점으로 낮습니다.`,
     })
   }
 
@@ -462,7 +532,7 @@ export function createHealthAlert(projectId: string, indicator: HealthIndicator)
     alerts.push({
       type: 'risk',
       severity: 'high',
-      message: `리스크 헬스 점수가 ${indicator.risk}점으로 낮습니다.`
+      message: `리스크 헬스 점수가 ${indicator.risk}점으로 낮습니다.`,
     })
   }
 
@@ -471,13 +541,13 @@ export function createHealthAlert(projectId: string, indicator: HealthIndicator)
     alerts.push({
       type: 'overall',
       severity: 'critical',
-      message: `프로젝트 전체 헬스 상태가 Red입니다. 즉시 조치가 필요합니다.`
+      message: `프로젝트 전체 헬스 상태가 Red입니다. 즉시 조치가 필요합니다.`,
     })
   }
 
   // 알림 발송 (실제 구현에서는 알림 시스템에 전송)
-  alerts.forEach(alert => {
-    console.log(`Health Alert for ${projectId}:`, alert)
+  alerts.forEach((alert) => {
+    logger.log(`Health Alert for ${projectId}:`, alert)
   })
 }
 
@@ -485,13 +555,13 @@ export function createHealthAlert(projectId: string, indicator: HealthIndicator)
 export function getHealthDashboardData(): any {
   let allIndicators: HealthIndicator[] = []
 
-  healthIndicators.subscribe(list => {
+  healthIndicators.subscribe((list) => {
     allIndicators = list
   })()
 
-  const greenCount = allIndicators.filter(h => h.overall === 'green').length
-  const amberCount = allIndicators.filter(h => h.overall === 'amber').length
-  const redCount = allIndicators.filter(h => h.overall === 'red').length
+  const greenCount = allIndicators.filter((h) => h.overall === 'green').length
+  const amberCount = allIndicators.filter((h) => h.overall === 'amber').length
+  const redCount = allIndicators.filter((h) => h.overall === 'red').length
 
   const averageSchedule =
     allIndicators.length > 0
@@ -519,11 +589,11 @@ export function getHealthDashboardData(): any {
       schedule: Math.round(averageSchedule),
       budget: Math.round(averageBudget),
       people: Math.round(averagePeople),
-      risk: Math.round(averageRisk)
+      risk: Math.round(averageRisk),
     },
     recentIndicators: allIndicators
       .sort((a, b) => new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime())
-      .slice(0, 10)
+      .slice(0, 10),
   }
 }
 
@@ -533,9 +603,9 @@ export function scheduleHealthIndicatorUpdates(): void {
   setInterval(
     () => {
       // 모든 활성 프로젝트에 대해 헬스 인디케이터 계산
-      console.log('Updating health indicators...')
+      logger.log('Updating health indicators...')
     },
-    24 * 60 * 60 * 1000
+    24 * 60 * 60 * 1000,
   ) // 24시간마다
 }
 
@@ -543,7 +613,7 @@ export function scheduleHealthIndicatorUpdates(): void {
 export function exportHealthIndicators(format: 'json' | 'csv' | 'excel'): string {
   let allIndicators: HealthIndicator[] = []
 
-  healthIndicators.subscribe(list => {
+  healthIndicators.subscribe((list) => {
     allIndicators = list
   })()
 
@@ -553,8 +623,8 @@ export function exportHealthIndicators(format: 'json' | 'csv' | 'excel'): string
     const csvHeader = 'Project ID,Schedule,Budget,People,Risk,Overall,Last Updated\n'
     const csvRows = allIndicators
       .map(
-        h =>
-          `${h.projectId},${h.schedule},${h.budget},${h.people},${h.risk},${h.overall},${h.lastUpdated}`
+        (h) =>
+          `${h.projectId},${h.schedule},${h.budget},${h.people},${h.risk},${h.overall},${h.lastUpdated}`,
       )
       .join('\n')
     return csvHeader + csvRows

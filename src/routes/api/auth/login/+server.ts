@@ -1,9 +1,10 @@
-import { json, error } from '@sveltejs/kit'
-import type { RequestHandler } from './$types'
 import { DatabaseService } from '$lib/database/connection'
+import { config } from '$lib/utils/config'
+import { logger } from '$lib/utils/logger'
+import { error, json } from '@sveltejs/kit'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
-import { config } from '$lib/utils/config'
+import type { RequestHandler } from './$types'
 
 export const POST: RequestHandler = async ({ request }) => {
   try {
@@ -36,10 +37,10 @@ export const POST: RequestHandler = async ({ request }) => {
       {
         userId: user.id,
         email: user.email,
-        role: user.role
+        role: user.role,
       },
       config.jwt.secret,
-      { expiresIn: config.jwt.expiresIn }
+      { expiresIn: config.jwt.expiresIn },
     )
 
     // Update last login
@@ -47,15 +48,15 @@ export const POST: RequestHandler = async ({ request }) => {
     await query('UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = $1', [user.id])
 
     // Return user data (without password)
-    const { password_hash, ...userWithoutPassword } = user
+    const { password_hash: _password_hash, ...userWithoutPassword } = user
 
     return json({
       success: true,
       user: userWithoutPassword,
-      token
+      token,
     })
   } catch (err) {
-    console.error('Login error:', err)
+    logger.error('Login error:', err)
     return error(500, 'Internal server error')
   }
 }

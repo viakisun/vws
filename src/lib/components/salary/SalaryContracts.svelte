@@ -1,27 +1,48 @@
 <script lang="ts">
-  import ThemeCard from '$lib/components/ui/ThemeCard.svelte'
-  import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
-  import ThemeModal from '$lib/components/ui/ThemeModal.svelte'
   import ThemeBadge from '$lib/components/ui/ThemeBadge.svelte'
-  import ThemeSpacer from '$lib/components/ui/ThemeSpacer.svelte'
+  import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
+  import ThemeCard from '$lib/components/ui/ThemeCard.svelte'
+  import ThemeModal from '$lib/components/ui/ThemeModal.svelte'
   import ThemeSectionHeader from '$lib/components/ui/ThemeSectionHeader.svelte'
-  import { createContract, updateContract, deleteContract } from '$lib/stores/salary/contract-store'
+  import { createContract, deleteContract, updateContract } from '$lib/stores/salary/contract-store'
+  import type { CreateSalaryContractRequest, SalaryContract } from '$lib/types/salary-contracts'
   import { formatCurrency, formatDate, formatDateForInput } from '$lib/utils/format'
-  import type { SalaryContract, CreateSalaryContractRequest } from '$lib/types/salary-contracts'
   import {
-    PlusIcon,
-    SearchIcon,
-    FilterIcon,
-    EyeIcon,
-    PencilIcon,
-    TrashIcon,
     CalendarIcon,
     DollarSignIcon,
     FileTextIcon,
+    FilterIcon,
+    PencilIcon,
+    PlusIcon,
+    SearchIcon,
+    TrashIcon,
     UserIcon,
-    BuildingIcon,
-    BriefcaseIcon
   } from '@lucide/svelte'
+
+  // Local types for this component
+  type Employee = {
+    id?: string
+    name?: string
+    department?: string
+    position?: string
+  }
+
+  type Contract = {
+    id?: string
+    employeeId?: string
+    employeeName?: string
+    department?: string
+    startDate?: string
+    endDate?: string
+    annualSalary?: number
+    monthlySalary?: number
+    contractType?: string
+    status?: string
+    notes?: string
+    employeeIdNumber?: string
+    createdAt?: string
+    updatedAt?: string
+  }
 
   let mounted = $state(false)
   let showCreateModal = $state(false)
@@ -39,14 +60,14 @@
     monthlySalary: 0,
     contractType: 'full_time',
     status: 'active',
-    notes: ''
+    notes: '',
   })
 
   // 직원 목록
-  let employees: any[] = $state([])
+  let employees: Employee[] = $state([])
 
   // 로컬 계약 데이터
-  let localContracts: any[] = $state([])
+  let localContracts: Contract[] = $state([])
   let localLoading = $state(false)
   let localError: string | null = $state(null)
 
@@ -56,17 +77,17 @@
     contractType: '',
     employeeId: '',
     department: '',
-    startDateFrom: ''
+    startDateFrom: '',
   })
 
   // 로컬 통계 계산 (localContracts가 변경될 때마다 자동 계산)
   let localStats = $derived(
     (() => {
       if (localContracts.length > 0) {
-        const activeContracts = localContracts.filter(contract => contract.status === 'active')
+        const activeContracts = localContracts.filter((contract) => contract.status === 'active')
         const totalAnnualSalary = localContracts.reduce(
           (sum, contract) => sum + (contract.annualSalary || 0),
-          0
+          0,
         )
 
         return {
@@ -74,43 +95,44 @@
           activeContracts: activeContracts.length,
           totalAnnualSalary: totalAnnualSalary,
           averageAnnualSalary:
-            localContracts.length > 0 ? Math.round(totalAnnualSalary / localContracts.length) : 0
+            localContracts.length > 0 ? Math.round(totalAnnualSalary / localContracts.length) : 0,
         }
       }
       return {
         totalContracts: 0,
         activeContracts: 0,
         totalAnnualSalary: 0,
-        averageAnnualSalary: 0
+        averageAnnualSalary: 0,
       }
-    })()
+    })(),
   )
 
-  $effect(async () => {
+  $effect(() => {
     if (!mounted) {
       mounted = true
+      void (async () => {
+        // 직접 API 호출로 데이터 로드
+        try {
+          localLoading = true
+          localError = null
 
-      // 직접 API 호출로 데이터 로드
-      try {
-        localLoading = true
-        localError = null
+          // 직접 API 호출
+          const response = await fetch('/api/salary/contracts?page=1&limit=20')
+          const result = await response.json()
 
-        // 직접 API 호출
-        const response = await fetch('/api/salary/contracts?page=1&limit=20')
-        const result = await response.json()
+          if (result.success && result.data) {
+            localContracts = result.data.data
+          } else {
+            localError = result.error || '급여 계약 목록을 불러오는데 실패했습니다.'
+          }
 
-        if (result.success && result.data) {
-          localContracts = result.data.data
-        } else {
-          localError = result.error || '급여 계약 목록을 불러오는데 실패했습니다.'
+          await loadEmployees()
+        } catch (_error) {
+          localError = '알 수 없는 오류가 발생했습니다.'
+        } finally {
+          localLoading = false
         }
-
-        await loadEmployees()
-      } catch (error) {
-        localError = '알 수 없는 오류가 발생했습니다.'
-      } finally {
-        localLoading = false
-      }
+      })()
     }
   })
 
@@ -124,10 +146,12 @@
           id: emp.id,
           name: `${emp.last_name}${emp.first_name}`,
           department: emp.department || '부서없음',
-          position: emp.position || '연구원'
+          position: emp.position || '연구원',
         }))
       }
-    } catch (error) {}
+    } catch (_error) {
+      /* intentionally ignored */
+    }
   }
 
   // 계약 유형별 색상
@@ -204,7 +228,7 @@
       monthlySalary: 0,
       contractType: 'full_time',
       status: 'active',
-      notes: ''
+      notes: '',
     }
     showCreateModal = true
   }
@@ -220,7 +244,7 @@
       monthlySalary: contract.monthlySalary,
       contractType: contract.contractType,
       status: contract.status,
-      notes: contract.notes || ''
+      notes: contract.notes || '',
     }
     showEditModal = true
   }
@@ -247,7 +271,7 @@
     const submitData = {
       ...formData,
       startDate: formData.startDate + 'T00:00:00+09:00',
-      endDate: formData.endDate === '' ? null : formData.endDate + 'T00:00:00+09:00'
+      endDate: formData.endDate === '' ? null : formData.endDate + 'T00:00:00+09:00',
     }
 
     let success = false
@@ -284,8 +308,8 @@
       if (statsResult.success && statsResult.data) {
         localStats = statsResult.data
       }
-    } catch (error) {
-      // 에러는 조용히 처리
+    } catch (_error) {
+      /* 에러는 조용히 처리 */
     }
   }
 
@@ -313,7 +337,7 @@
       contractType: '',
       employeeId: '',
       department: '',
-      startDateFrom: ''
+      startDateFrom: '',
     }
   }
 
@@ -342,7 +366,9 @@
         </div>
         <div class="ml-4">
           <p class="text-sm font-medium text-gray-600">총 계약 수</p>
-          <p class="text-2xl font-bold text-gray-900">{localStats.totalContracts}개</p>
+          <p class="text-2xl font-bold text-gray-900">
+            {localStats.totalContracts}개
+          </p>
         </div>
       </div>
     </ThemeCard>
@@ -354,7 +380,9 @@
         </div>
         <div class="ml-4">
           <p class="text-sm font-medium text-gray-600">진행중 계약</p>
-          <p class="text-2xl font-bold text-gray-900">{localStats.activeContracts}개</p>
+          <p class="text-2xl font-bold text-gray-900">
+            {localStats.activeContracts}개
+          </p>
         </div>
       </div>
     </ThemeCard>
@@ -393,7 +421,7 @@
     <div class="flex items-center justify-between mb-4">
       <ThemeSectionHeader title="급여 계약 목록" />
       <div class="flex items-center space-x-3">
-        <ThemeButton variant="outline" size="sm" onclick={() => (showFilters = !showFilters)}>
+        <ThemeButton variant="secondary" size="sm" onclick={() => (showFilters = !showFilters)}>
           <FilterIcon size={16} class="mr-2" />
           필터
         </ThemeButton>
@@ -485,7 +513,7 @@
             <SearchIcon size={16} class="mr-1" />
             검색
           </ThemeButton>
-          <ThemeButton variant="outline" size="sm" onclick={clearFilters}>초기화</ThemeButton>
+          <ThemeButton variant="secondary" size="sm" onclick={clearFilters}>초기화</ThemeButton>
         </div>
       </div>
     {/if}
@@ -537,11 +565,13 @@
             </tr>
           </thead>
           <tbody class="bg-white divide-y divide-gray-200">
-            {#each localContracts as contract}
+            {#each localContracts as contract, i (i)}
               <tr class="hover:bg-gray-50">
                 <td class="px-6 py-4 whitespace-nowrap">
                   <div>
-                    <div class="text-sm font-medium text-gray-900">{contract.employeeName}</div>
+                    <div class="text-sm font-medium text-gray-900">
+                      {contract.employeeName}
+                    </div>
                     <div class="text-sm text-gray-500">
                       {contract.employeeIdNumber} • {contract.department}
                     </div>
@@ -557,7 +587,9 @@
                 <td class="px-6 py-4 whitespace-nowrap">
                   <div class="text-sm text-gray-900">
                     <div>연봉: {formatCurrency(contract.annualSalary)}</div>
-                    <div class="text-gray-500">월급: {formatCurrency(contract.monthlySalary)}</div>
+                    <div class="text-gray-500">
+                      월급: {formatCurrency(contract.monthlySalary)}
+                    </div>
                   </div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
@@ -573,15 +605,57 @@
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                   <div class="flex items-center space-x-2">
                     <button
+                      type="button"
                       onclick={() => {
-                        openEditModal(contract)
+                        const asSalaryContract: SalaryContract = {
+                          ...contract,
+                          id: contract.id ?? crypto.randomUUID(),
+                          employeeId: contract.employeeId ?? '',
+                          startDate: contract.startDate ?? '',
+                          annualSalary: contract.annualSalary ?? 0,
+                          monthlySalary: contract.monthlySalary ?? 0,
+                          contractType:
+                            (contract.contractType as
+                              | 'full_time'
+                              | 'part_time'
+                              | 'contract'
+                              | 'intern') ?? 'full_time',
+                          status:
+                            (contract.status as 'active' | 'expired' | 'terminated' | 'draft') ??
+                            'active',
+                          createdAt: contract.createdAt ?? new Date().toISOString(),
+                          updatedAt: contract.updatedAt ?? new Date().toISOString(),
+                        }
+                        openEditModal(asSalaryContract)
                       }}
                       class="text-blue-600 hover:text-blue-900"
                     >
                       <PencilIcon size={16} />
                     </button>
                     <button
-                      onclick={() => openDeleteModal(contract)}
+                      type="button"
+                      onclick={() => {
+                        const asSalaryContract: SalaryContract = {
+                          ...contract,
+                          id: contract.id ?? crypto.randomUUID(),
+                          employeeId: contract.employeeId ?? '',
+                          startDate: contract.startDate ?? '',
+                          annualSalary: contract.annualSalary ?? 0,
+                          monthlySalary: contract.monthlySalary ?? 0,
+                          contractType:
+                            (contract.contractType as
+                              | 'full_time'
+                              | 'part_time'
+                              | 'contract'
+                              | 'intern') ?? 'full_time',
+                          status:
+                            (contract.status as 'active' | 'expired' | 'terminated' | 'draft') ??
+                            'active',
+                          createdAt: contract.createdAt ?? new Date().toISOString(),
+                          updatedAt: contract.updatedAt ?? new Date().toISOString(),
+                        }
+                        openDeleteModal(asSalaryContract)
+                      }}
                       class="text-red-600 hover:text-red-900"
                     >
                       <TrashIcon size={16} />
@@ -598,8 +672,9 @@
 </div>
 
 <!-- 새 계약 생성 모달 -->
-<ThemeModal open={showCreateModal} onclose={() => (showCreateModal = false)} title="새 급여 계약">
+<ThemeModal open={showCreateModal} onclose={() => (showCreateModal = false)}>
   <div class="space-y-4">
+    <h3 class="text-lg font-semibold text-gray-900 mb-4">새 급여 계약</h3>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div>
         <label for="create-employee" class="block text-sm font-medium text-gray-700 mb-1"
@@ -611,7 +686,7 @@
           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           <option value="">직원을 선택하세요</option>
-          {#each employees as employee}
+          {#each employees as employee, i (i)}
             <option value={employee.id}>{employee.name} ({employee.department})</option>
           {/each}
         </select>
@@ -693,14 +768,15 @@
   </div>
 
   <div class="flex justify-end space-x-3 mt-6">
-    <ThemeButton variant="outline" onclick={() => (showCreateModal = false)}>취소</ThemeButton>
+    <ThemeButton variant="secondary" onclick={() => (showCreateModal = false)}>취소</ThemeButton>
     <ThemeButton variant="primary" onclick={saveContract}>생성</ThemeButton>
   </div>
 </ThemeModal>
 
 <!-- 계약 수정 모달 -->
-<ThemeModal open={showEditModal} onclose={() => (showEditModal = false)} title="급여 계약 수정">
+<ThemeModal open={showEditModal} onclose={() => (showEditModal = false)}>
   <div class="space-y-4">
+    <h3 class="text-lg font-semibold text-gray-900 mb-4">급여 계약 수정</h3>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div>
         <label for="edit-contractType" class="block text-sm font-medium text-gray-700 mb-1"
@@ -788,14 +864,15 @@
   </div>
 
   <div class="flex justify-end space-x-3 mt-6">
-    <ThemeButton variant="outline" onclick={() => (showEditModal = false)}>취소</ThemeButton>
+    <ThemeButton variant="secondary" onclick={() => (showEditModal = false)}>취소</ThemeButton>
     <ThemeButton variant="primary" onclick={saveContract}>수정</ThemeButton>
   </div>
 </ThemeModal>
 
 <!-- 계약 삭제 확인 모달 -->
-<ThemeModal open={showDeleteModal} onclose={() => (showDeleteModal = false)} title="급여 계약 삭제">
+<ThemeModal open={showDeleteModal} onclose={() => (showDeleteModal = false)}>
   <div class="space-y-4">
+    <h3 class="text-lg font-semibold text-gray-900 mb-4">급여 계약 삭제</h3>
     <p class="text-gray-700">정말로 이 급여 계약을 삭제하시겠습니까?</p>
     {#if selectedContract}
       <div class="bg-gray-50 p-4 rounded-lg">
@@ -805,14 +882,16 @@
             ? formatDate(selectedContract.endDate)
             : '무기한'}
         </p>
-        <p class="text-sm text-gray-600">{formatCurrency(selectedContract.annualSalary)}</p>
+        <p class="text-sm text-gray-600">
+          {formatCurrency(selectedContract.annualSalary)}
+        </p>
       </div>
     {/if}
     <p class="text-sm text-red-600">이 작업은 되돌릴 수 없습니다.</p>
   </div>
 
   <div class="flex justify-end space-x-3 mt-6">
-    <ThemeButton variant="outline" onclick={() => (showDeleteModal = false)}>취소</ThemeButton>
-    <ThemeButton variant="danger" onclick={confirmDelete}>삭제</ThemeButton>
+    <ThemeButton variant="secondary" onclick={() => (showDeleteModal = false)}>취소</ThemeButton>
+    <ThemeButton variant="error" onclick={confirmDelete}>삭제</ThemeButton>
   </div>
 </ThemeModal>

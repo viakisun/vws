@@ -1,30 +1,32 @@
 <script lang="ts">
-  import { onMount } from 'svelte'
-  import Card from '$lib/components/ui/Card.svelte'
+  import { keyOf } from '$lib/utils/keyOf'
+
   import Badge from '$lib/components/ui/Badge.svelte'
+  import Card from '$lib/components/ui/Card.svelte'
   import Modal from '$lib/components/ui/Modal.svelte'
   import { formatDate } from '$lib/utils/format'
+  import { onMount } from 'svelte'
 
   import { employees, getActiveEmployees } from '$lib/stores/hr'
 
   import {
-    attendanceRecords,
-    leaveRequests,
-    leaveBalances,
-    leaveTypes,
     addAttendanceRecord,
-    updateAttendanceRecord,
+    approveLeaveRequest,
+    attendanceRecords,
+    calculateMonthlyAttendance,
     checkIn,
     checkOut,
-    requestLeave,
-    approveLeaveRequest,
-    rejectLeaveRequest,
-    calculateMonthlyAttendance,
     getAttendanceByEmployee,
-    getLeaveRequestsByEmployee,
     getLeaveBalanceByEmployee,
+    getLeaveRequestsByEmployee,
+    leaveBalances,
+    leaveRequests,
+    leaveTypes,
+    rejectLeaveRequest,
+    requestLeave,
+    updateAttendanceRecord,
     type AttendanceRecord,
-    type LeaveRequest
+    type LeaveRequest,
   } from '$lib/stores/attendance'
 
   // 현재 선택된 직원
@@ -43,7 +45,7 @@
     leaveTypeId: '',
     startDate: '',
     endDate: '',
-    reason: ''
+    reason: '',
   })
 
   // 근태 기록 폼
@@ -52,22 +54,22 @@
     checkIn: '',
     checkOut: '',
     status: 'present' as AttendanceRecord['status'],
-    notes: ''
+    notes: '',
   })
 
   // 현재 선택된 직원의 데이터
-  let selectedEmployee = $derived($employees.find(emp => emp.id === selectedEmployeeId))
+  let selectedEmployee = $derived($employees.find((emp) => emp.id === selectedEmployeeId))
   let employeeAttendance = $derived(getAttendanceByEmployee(selectedEmployeeId, $attendanceRecords))
   let employeeLeaveRequests = $derived(
-    getLeaveRequestsByEmployee(selectedEmployeeId, $leaveRequests)
+    getLeaveRequestsByEmployee(selectedEmployeeId, $leaveRequests),
   )
   let employeeLeaveBalance = $derived(getLeaveBalanceByEmployee(selectedEmployeeId, $leaveBalances))
   let monthlyStats = $derived(
-    calculateMonthlyAttendance(selectedEmployeeId, selectedYear, selectedMonth, $attendanceRecords)
+    calculateMonthlyAttendance(selectedEmployeeId, selectedYear, selectedMonth, $attendanceRecords),
   )
 
   // 오늘의 근태 기록
-  let todayAttendance = $derived(employeeAttendance.find(record => record.date === currentDate))
+  let todayAttendance = $derived(employeeAttendance.find((record) => record.date === currentDate))
 
   // 함수들
   function openLeaveRequestModal() {
@@ -75,7 +77,7 @@
       leaveTypeId: '',
       startDate: '',
       endDate: '',
-      reason: ''
+      reason: '',
     }
     isLeaveRequestModalOpen = true
   }
@@ -88,7 +90,7 @@
         checkIn: record.checkIn || '',
         checkOut: record.checkOut || '',
         status: record.status,
-        notes: record.notes || ''
+        notes: record.notes || '',
       }
     } else {
       selectedAttendanceRecord = null
@@ -97,7 +99,7 @@
         checkIn: '',
         checkOut: '',
         status: 'present',
-        notes: ''
+        notes: '',
       }
     }
     isAttendanceModalOpen = true
@@ -125,7 +127,7 @@
       endDate: leaveRequestForm.endDate,
       days,
       reason: leaveRequestForm.reason,
-      status: 'pending'
+      status: 'pending',
     })
 
     isLeaveRequestModalOpen = false
@@ -144,7 +146,7 @@
         checkIn: attendanceForm.checkIn,
         checkOut: attendanceForm.checkOut,
         status: attendanceForm.status,
-        notes: attendanceForm.notes
+        notes: attendanceForm.notes,
       })
     } else {
       // 새 기록 추가
@@ -154,7 +156,7 @@
         checkIn: attendanceForm.checkIn,
         checkOut: attendanceForm.checkOut,
         status: attendanceForm.status,
-        notes: attendanceForm.notes
+        notes: attendanceForm.notes,
       })
     }
 
@@ -193,7 +195,7 @@
   }
 
   function getStatusBadgeVariant(
-    status: AttendanceRecord['status']
+    status: AttendanceRecord['status'],
   ): 'success' | 'warning' | 'danger' | 'secondary' {
     switch (status) {
       case 'present':
@@ -237,7 +239,7 @@
   }
 
   function getLeaveStatusBadgeVariant(
-    status: LeaveRequest['status']
+    status: LeaveRequest['status'],
   ): 'warning' | 'success' | 'danger' | 'secondary' {
     switch (status) {
       case 'pending':
@@ -269,7 +271,7 @@
   }
 
   function getLeaveTypeName(leaveTypeId: string): string {
-    const leaveType = $leaveTypes.find(type => type.id === leaveTypeId)
+    const leaveType = $leaveTypes.find((type) => type.id === leaveTypeId)
     return leaveType ? leaveType.name : leaveTypeId
   }
 
@@ -294,13 +296,14 @@
     <Card class="mb-6">
       <div class="p-6">
         <div class="flex items-center space-x-4">
-          <label class="text-sm font-medium text-gray-700">직원 선택:</label>
+          <label class="text-sm font-medium text-gray-700" for="field-employee">직원 선택:</label>
           <select
             bind:value={selectedEmployeeId}
             class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            id="field-employee"
           >
             <option value="">직원을 선택하세요</option>
-            {#each getActiveEmployees($employees) as employee}
+            {#each getActiveEmployees($employees) as employee, i (keyOf(employee, i))}
               <option value={employee.id}>{employee.name} ({employee.employeeId})</option>
             {/each}
           </select>
@@ -317,19 +320,26 @@
             <div class="flex items-center space-x-4">
               <div>
                 <p class="text-sm text-gray-600">출근시간</p>
-                <p class="text-lg font-semibold">{todayAttendance?.checkIn || '미체크'}</p>
+                <p class="text-lg font-semibold">
+                  {todayAttendance?.checkIn || '미체크'}
+                </p>
               </div>
               <div>
                 <p class="text-sm text-gray-600">퇴근시간</p>
-                <p class="text-lg font-semibold">{todayAttendance?.checkOut || '미체크'}</p>
+                <p class="text-lg font-semibold">
+                  {todayAttendance?.checkOut || '미체크'}
+                </p>
               </div>
               <div>
                 <p class="text-sm text-gray-600">근무시간</p>
-                <p class="text-lg font-semibold">{todayAttendance?.workHours || 0}시간</p>
+                <p class="text-lg font-semibold">
+                  {todayAttendance?.workHours || 0}시간
+                </p>
               </div>
             </div>
             <div class="flex space-x-2">
               <button
+                type="button"
                 onclick={handleCheckIn}
                 disabled={!!todayAttendance?.checkIn}
                 class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
@@ -337,6 +347,7 @@
                 출근 체크
               </button>
               <button
+                type="button"
                 onclick={handleCheckOut}
                 disabled={!todayAttendance?.checkIn || !!todayAttendance?.checkOut}
                 class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
@@ -365,12 +376,14 @@
                     stroke-linejoin="round"
                     stroke-width="2"
                     d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                  ></path>
+                  />
                 </svg>
               </div>
               <div class="ml-4">
                 <p class="text-sm font-medium text-gray-600">정상출근</p>
-                <p class="text-2xl font-bold text-gray-900">{monthlyStats.presentDays}</p>
+                <p class="text-2xl font-bold text-gray-900">
+                  {monthlyStats.presentDays}
+                </p>
               </div>
             </div>
           </div>
@@ -391,12 +404,14 @@
                     stroke-linejoin="round"
                     stroke-width="2"
                     d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                  ></path>
+                  />
                 </svg>
               </div>
               <div class="ml-4">
                 <p class="text-sm font-medium text-gray-600">지각</p>
-                <p class="text-2xl font-bold text-gray-900">{monthlyStats.lateDays}</p>
+                <p class="text-2xl font-bold text-gray-900">
+                  {monthlyStats.lateDays}
+                </p>
               </div>
             </div>
           </div>
@@ -417,12 +432,14 @@
                     stroke-linejoin="round"
                     stroke-width="2"
                     d="M6 18L18 6M6 6l12 12"
-                  ></path>
+                  />
                 </svg>
               </div>
               <div class="ml-4">
                 <p class="text-sm font-medium text-gray-600">결근</p>
-                <p class="text-2xl font-bold text-gray-900">{monthlyStats.absentDays}</p>
+                <p class="text-2xl font-bold text-gray-900">
+                  {monthlyStats.absentDays}
+                </p>
               </div>
             </div>
           </div>
@@ -443,12 +460,14 @@
                     stroke-linejoin="round"
                     stroke-width="2"
                     d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                  ></path>
+                  />
                 </svg>
               </div>
               <div class="ml-4">
                 <p class="text-sm font-medium text-gray-600">총 근무시간</p>
-                <p class="text-2xl font-bold text-gray-900">{monthlyStats.totalWorkHours}시간</p>
+                <p class="text-2xl font-bold text-gray-900">
+                  {monthlyStats.totalWorkHours}시간
+                </p>
               </div>
             </div>
           </div>
@@ -463,6 +482,7 @@
             <div class="flex justify-between items-center mb-4">
               <h3 class="text-lg font-semibold text-gray-900">근태 기록</h3>
               <button
+                type="button"
                 onclick={() => openAttendanceModal()}
                 class="px-3 py-1 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 transition-colors"
               >
@@ -470,11 +490,14 @@
               </button>
             </div>
             <div class="space-y-3">
-              {#each employeeAttendance.slice(0, 10) as record}
+              {#each employeeAttendance.slice(0, 10) as record, idx (idx)}
+                <!-- TODO: replace index key with a stable id when model provides one -->
                 <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <div class="flex items-center space-x-3">
                     <div>
-                      <p class="text-sm font-medium text-gray-900">{formatDate(record.date)}</p>
+                      <p class="text-sm font-medium text-gray-900">
+                        {formatDate(record.date)}
+                      </p>
                       <p class="text-xs text-gray-500">
                         {record.checkIn || '미체크'} - {record.checkOut || '미체크'}
                       </p>
@@ -485,6 +508,7 @@
                       {getStatusText(record.status)}
                     </Badge>
                     <button
+                      type="button"
                       onclick={() => openAttendanceModal(record)}
                       class="text-blue-600 hover:text-blue-900 text-sm"
                     >
@@ -503,6 +527,7 @@
             <div class="flex justify-between items-center mb-4">
               <h3 class="text-lg font-semibold text-gray-900">휴가 관리</h3>
               <button
+                type="button"
                 onclick={openLeaveRequestModal}
                 class="px-3 py-1 bg-green-600 text-white text-sm rounded-md hover:bg-green-700 transition-colors"
               >
@@ -514,10 +539,10 @@
             <div class="mb-4">
               <h4 class="text-sm font-medium text-gray-700 mb-2">잔여 휴가</h4>
               <div class="space-y-2">
-                {#each employeeLeaveBalance as balance}
+                {#each employeeLeaveBalance as balance, i (i)}
                   <div class="flex justify-between items-center">
                     <span class="text-sm text-gray-600">
-                      {$leaveTypes.find(type => type.id === balance.leaveTypeId)?.name ||
+                      {$leaveTypes.find((type) => type.id === balance.leaveTypeId)?.name ||
                         balance.leaveTypeId}
                     </span>
                     <span class="text-sm font-medium text-gray-900">
@@ -532,7 +557,7 @@
             <div>
               <h4 class="text-sm font-medium text-gray-700 mb-2">신청 내역</h4>
               <div class="space-y-3">
-                {#each employeeLeaveRequests.slice(0, 5) as request}
+                {#each employeeLeaveRequests.slice(0, 5) as request, i (keyOf(request, i))}
                   <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                     <div>
                       <p class="text-sm font-medium text-gray-900">
@@ -549,12 +574,14 @@
                       {#if request.status === 'pending'}
                         <div class="flex space-x-1">
                           <button
+                            type="button"
                             onclick={() => approveLeave(request.id)}
                             class="text-green-600 hover:text-green-900 text-xs"
                           >
                             승인
                           </button>
                           <button
+                            type="button"
                             onclick={() => rejectLeave(request.id)}
                             class="text-red-600 hover:text-red-900 text-xs"
                           >
@@ -584,7 +611,7 @@
               stroke-linejoin="round"
               stroke-width="2"
               d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-            ></path>
+            />
           </svg>
           <h3 class="text-lg font-medium text-gray-900 mb-2">직원을 선택하세요</h3>
           <p class="text-gray-500">근태 관리를 위해 직원을 선택해주세요.</p>
@@ -597,52 +624,64 @@
       <div class="p-6">
         <h3 class="text-lg font-semibold text-gray-900 mb-4">휴가 신청</h3>
         <form
-          onsubmit={e => {
+          onsubmit={(e) => {
             e.preventDefault()
             handleLeaveRequest()
           }}
         >
           <div class="space-y-4">
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">휴가 유형 *</label>
+              <label class="block text-sm font-medium text-gray-700 mb-1" for="field-leavetype"
+                >휴가 유형 *</label
+              >
               <select
                 bind:value={leaveRequestForm.leaveTypeId}
                 required
                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                id="field-leavetype"
               >
                 <option value="">휴가 유형을 선택하세요</option>
-                {#each $leaveTypes as leaveType}
+                {#each $leaveTypes as leaveType, i (i)}
                   <option value={leaveType.id}>{leaveType.name}</option>
                 {/each}
               </select>
             </div>
             <div class="grid grid-cols-2 gap-4">
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">시작일 *</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1" for="field-startdate"
+                  >시작일 *</label
+                >
                 <input
                   type="date"
                   bind:value={leaveRequestForm.startDate}
                   required
                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  id="field-startdate"
                 />
               </div>
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">종료일 *</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1" for="field-enddate"
+                  >종료일 *</label
+                >
                 <input
                   type="date"
                   bind:value={leaveRequestForm.endDate}
                   required
                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  id="field-enddate"
                 />
               </div>
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">사유</label>
+              <label class="block text-sm font-medium text-gray-700 mb-1" for="field-reason"
+                >사유</label
+              >
               <textarea
                 bind:value={leaveRequestForm.reason}
                 rows="3"
                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="휴가 신청 사유를 입력하세요"
+                id="field-reason"
               ></textarea>
             </div>
           </div>
@@ -673,45 +712,57 @@
           {selectedAttendanceRecord ? '근태 기록 수정' : '근태 기록 추가'}
         </h3>
         <form
-          onsubmit={e => {
+          onsubmit={(e) => {
             e.preventDefault()
             handleAttendanceSubmit()
           }}
         >
           <div class="space-y-4">
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">날짜 *</label>
+              <label class="block text-sm font-medium text-gray-700 mb-1" for="field-date"
+                >날짜 *</label
+              >
               <input
                 type="date"
                 bind:value={attendanceForm.date}
                 required
                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                id="field-date"
               />
             </div>
             <div class="grid grid-cols-2 gap-4">
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">출근시간</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1" for="field-checkin"
+                  >출근시간</label
+                >
                 <input
                   type="time"
                   bind:value={attendanceForm.checkIn}
                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  id="field-checkin"
                 />
               </div>
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">퇴근시간</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1" for="field-checkin"
+                  >퇴근시간</label
+                >
                 <input
                   type="time"
                   bind:value={attendanceForm.checkOut}
                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  id="field-checkin"
                 />
               </div>
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">상태 *</label>
+              <label class="block text-sm font-medium text-gray-700 mb-1" for="field-status"
+                >상태 *</label
+              >
               <select
                 bind:value={attendanceForm.status}
                 required
                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                id="field-status"
               >
                 <option value="present">정상출근</option>
                 <option value="late">지각</option>
@@ -724,12 +775,15 @@
               </select>
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">비고</label>
+              <label class="block text-sm font-medium text-gray-700 mb-1" for="field-notes"
+                >비고</label
+              >
               <textarea
                 bind:value={attendanceForm.notes}
                 rows="3"
                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="추가 사항을 입력하세요"
+                id="field-notes"
               ></textarea>
             </div>
           </div>

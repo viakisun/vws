@@ -1,23 +1,17 @@
+import { logger } from '$lib/utils/logger'
 import { writable } from 'svelte/store'
-import type {
-  Report,
-  Project,
-  Milestone,
-  ExpenseItem,
-  ParticipationAssignment,
-  ResearchNote
-} from './types'
 import { logAudit } from './core'
+import type { Report } from './types'
 
 // 리포트 관리
 export const reports = writable<Report[]>([])
-export const reportTemplates = writable<Record<string, any>>({})
+export const reportTemplates = writable<Record<string, unknown>>({})
 
 // 주간 리포트 생성
 export function generateWeeklyReport(
   projectId: string,
   weekStart: string,
-  weekEnd: string
+  weekEnd: string,
 ): string {
   const reportId = crypto.randomUUID()
 
@@ -33,17 +27,17 @@ export function generateWeeklyReport(
     summaryJson: summaryData,
     generatedAt: new Date().toISOString(),
     createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    updatedAt: new Date().toISOString(),
   }
 
-  reports.update(list => [...list, report])
+  reports.update((list) => [...list, report])
   logAudit('generate', 'weekly_report', reportId, {}, report)
 
   return reportId
 }
 
 // 주간 데이터 수집
-function collectWeeklyData(projectId: string, weekStart: string, weekEnd: string): any {
+function collectWeeklyData(_projectId: string, weekStart: string, _weekEnd: string): any {
   // 마일스톤 달성률
   const milestoneProgress = calculateMilestoneProgress(projectId, weekStart, weekEnd)
 
@@ -69,12 +63,12 @@ function collectWeeklyData(projectId: string, weekStart: string, weekEnd: string
     researchNoteSubmission,
     issuesAndRisks,
     nextWeekPlan,
-    generatedAt: new Date().toISOString()
+    generatedAt: new Date().toISOString(),
   }
 }
 
 // 마일스톤 진행률 계산
-function calculateMilestoneProgress(projectId: string, weekStart: string, weekEnd: string): any {
+function calculateMilestoneProgress(_projectId: string, weekStart: string, _weekEnd: string): any {
   // 실제 구현에서는 milestones 스토어에서 데이터 가져오기
   const currentWeek = new Date(weekStart)
   const quarter = Math.ceil((currentWeek.getMonth() + 1) / 3)
@@ -92,21 +86,21 @@ function calculateMilestoneProgress(projectId: string, weekStart: string, weekEn
         title: '요구사항 분석',
         status: 'completed',
         progress: 100,
-        dueDate: '2024-01-15'
+        dueDate: '2024-01-15',
       },
       {
         id: 'milestone-2',
         title: '시스템 설계',
         status: 'in-progress',
         progress: 80,
-        dueDate: '2024-01-30'
-      }
-    ]
+        dueDate: '2024-01-30',
+      },
+    ],
   }
 }
 
 // 예산 집행률 계산
-function calculateBudgetExecution(projectId: string, weekStart: string, weekEnd: string): any {
+function calculateBudgetExecution(_projectId: string, _weekStart: string, _weekEnd: string): any {
   // 실제 구현에서는 expenseItems 스토어에서 데이터 가져오기
   return {
     totalBudget: 100000000,
@@ -117,27 +111,27 @@ function calculateBudgetExecution(projectId: string, weekStart: string, weekEnd:
         category: 'PERSONNEL_CASH',
         planned: 50000000,
         executed: 15000000,
-        rate: 30
+        rate: 30,
       },
       {
         category: 'MATERIAL',
         planned: 30000000,
         executed: 8000000,
-        rate: 27
+        rate: 27,
       },
       {
         category: 'RESEARCH_ACTIVITY',
         planned: 20000000,
         executed: 2000000,
-        rate: 10
-      }
+        rate: 10,
+      },
     ],
-    trend: 'increasing'
+    trend: 'increasing',
   }
 }
 
 // 인력 참여율 계산
-function calculateParticipationRate(projectId: string, weekStart: string, weekEnd: string): any {
+function calculateParticipationRate(_projectId: string, _weekStart: string, _weekEnd: string): any {
   // 실제 구현에서는 participationAssignments 스토어에서 데이터 가져오기
   return {
     totalParticipants: 8,
@@ -148,26 +142,26 @@ function calculateParticipationRate(projectId: string, weekStart: string, weekEn
         name: '김연구원',
         assignedRate: 100,
         actualRate: 95,
-        status: 'normal'
+        status: 'normal',
       },
       {
         personId: 'person-2',
         name: '이연구원',
         assignedRate: 80,
         actualRate: 75,
-        status: 'normal'
-      }
+        status: 'normal',
+      },
     ],
     overloadWarnings: 0,
-    underutilizationWarnings: 1
+    underutilizationWarnings: 1,
   }
 }
 
 // 연구노트 제출률 계산
 function calculateResearchNoteSubmission(
-  projectId: string,
-  weekStart: string,
-  weekEnd: string
+  _projectId: string,
+  _weekStart: string,
+  _weekEnd: string,
 ): any {
   // 실제 구현에서는 researchNotes 스토어에서 데이터 가져오기
   return {
@@ -178,15 +172,15 @@ function calculateResearchNoteSubmission(
       {
         authorId: 'person-3',
         name: '박연구원',
-        weekOf: '2024-W03'
-      }
+        weekOf: '2024-W03',
+      },
     ],
-    trend: 'stable'
+    trend: 'stable',
   }
 }
 
 // 이슈 및 리스크 수집
-function collectIssuesAndRisks(projectId: string, weekStart: string, weekEnd: string): any {
+function collectIssuesAndRisks(_projectId: string, _weekStart: string, _weekEnd: string): any {
   return {
     issues: [
       {
@@ -196,8 +190,8 @@ function collectIssuesAndRisks(projectId: string, weekStart: string, weekEnd: st
         status: 'open',
         description: '협력사 A사의 부품 납기가 1주일 지연될 예정',
         impact: '프로토타입 제작 일정 1주일 지연',
-        mitigation: '대체 공급업체 검토 중'
-      }
+        mitigation: '대체 공급업체 검토 중',
+      },
     ],
     risks: [
       {
@@ -206,55 +200,55 @@ function collectIssuesAndRisks(projectId: string, weekStart: string, weekEnd: st
         severity: 'high',
         probability: 30,
         impact: '프로젝트 일정 2개월 지연',
-        mitigation: '인력 확보 계획 수립'
-      }
+        mitigation: '인력 확보 계획 수립',
+      },
     ],
     totalIssues: 1,
     totalRisks: 1,
     criticalCount: 0,
     highCount: 1,
     mediumCount: 1,
-    lowCount: 0
+    lowCount: 0,
   }
 }
 
 // 다음 주 계획 생성
-function generateNextWeekPlan(projectId: string): any {
+function generateNextWeekPlan(_projectId: string): any {
   return {
     priorities: [
       {
         title: '시스템 설계 완료',
         owner: '김연구원',
         dueDate: '2024-01-30',
-        priority: 'high'
+        priority: 'high',
       },
       {
         title: '프로토타입 개발 시작',
         owner: '이연구원',
         dueDate: '2024-02-05',
-        priority: 'medium'
-      }
+        priority: 'medium',
+      },
     ],
     deliverables: [
       {
         title: '시스템 설계서',
         type: 'document',
-        dueDate: '2024-01-30'
+        dueDate: '2024-01-30',
       },
       {
         title: '프로토타입 v1.0',
         type: 'prototype',
-        dueDate: '2024-02-05'
-      }
+        dueDate: '2024-02-05',
+      },
     ],
     meetings: [
       {
         title: '주간 진행회의',
         date: '2024-01-29',
         time: '14:00',
-        participants: ['PM', '팀원 전체']
-      }
-    ]
+        participants: ['PM', '팀원 전체'],
+      },
+    ],
   }
 }
 
@@ -276,17 +270,17 @@ export function generateQuarterlyReport(projectId: string, quarter: number, year
     summaryJson: summaryData,
     generatedAt: new Date().toISOString(),
     createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    updatedAt: new Date().toISOString(),
   }
 
-  reports.update(list => [...list, report])
+  reports.update((list) => [...list, report])
   logAudit('generate', 'quarterly_report', reportId, {}, report)
 
   return reportId
 }
 
 // 분기 데이터 수집
-function collectQuarterlyData(projectId: string, quarterStart: Date, quarterEnd: Date): any {
+function collectQuarterlyData(_projectId: string, _quarterStart: Date, _quarterEnd: Date): any {
   return {
     quarter: Math.ceil((quarterStart.getMonth() + 1) / 3),
     year: quarterStart.getFullYear(),
@@ -296,89 +290,89 @@ function collectQuarterlyData(projectId: string, quarterStart: Date, quarterEnd:
     financialSummary: collectFinancialSummary(projectId, quarterStart, quarterEnd),
     personnelSummary: collectPersonnelSummary(projectId, quarterStart, quarterEnd),
     nextQuarterPlan: generateNextQuarterPlan(projectId),
-    recommendations: generateRecommendations(projectId)
+    recommendations: generateRecommendations(projectId),
   }
 }
 
 // 경영진 요약 생성
-function generateExecutiveSummary(projectId: string, quarterStart: Date, quarterEnd: Date): any {
+function generateExecutiveSummary(_projectId: string, _quarterStart: Date, _quarterEnd: Date): any {
   return {
     overallStatus: 'on-track',
     keyAchievements: ['시스템 설계 완료', '프로토타입 v1.0 개발 완료', '핵심 알고리즘 구현 완료'],
     keyChallenges: ['외부 협력사 일정 지연', '예산 집행률 부족'],
     overallProgress: 75,
     budgetUtilization: 60,
-    riskLevel: 'medium'
+    riskLevel: 'medium',
   }
 }
 
 // 성과 수집
-function collectAchievements(projectId: string, quarterStart: Date, quarterEnd: Date): any {
+function collectAchievements(_projectId: string, _quarterStart: Date, _quarterEnd: Date): any {
   return {
     milestones: [
       {
         title: '시스템 설계 완료',
         status: 'completed',
         completionDate: '2024-01-30',
-        impact: 'high'
+        impact: 'high',
       },
       {
         title: '프로토타입 v1.0 개발',
         status: 'completed',
         completionDate: '2024-02-15',
-        impact: 'high'
-      }
+        impact: 'high',
+      },
     ],
     deliverables: [
       {
         title: '시스템 설계서',
         type: 'document',
-        status: 'delivered'
+        status: 'delivered',
       },
       {
         title: '프로토타입 v1.0',
         type: 'prototype',
-        status: 'delivered'
-      }
+        status: 'delivered',
+      },
     ],
     publications: [],
     patents: [],
-    awards: []
+    awards: [],
   }
 }
 
 // 도전과제 수집
-function collectChallenges(projectId: string, quarterStart: Date, quarterEnd: Date): any {
+function collectChallenges(_projectId: string, _quarterStart: Date, _quarterEnd: Date): any {
   return {
     technical: [
       {
         title: '성능 최적화 이슈',
         description: '실시간 처리 성능이 요구사항에 미달',
         status: 'ongoing',
-        impact: 'medium'
-      }
+        impact: 'medium',
+      },
     ],
     resource: [
       {
         title: '예산 집행 지연',
         description: '예산 집행률이 계획 대비 낮음',
         status: 'ongoing',
-        impact: 'low'
-      }
+        impact: 'low',
+      },
     ],
     schedule: [
       {
         title: '외부 협력사 일정 지연',
         description: '부품 납기 지연으로 인한 일정 영향',
         status: 'resolved',
-        impact: 'medium'
-      }
-    ]
+        impact: 'medium',
+      },
+    ],
   }
 }
 
 // 재무 요약 수집
-function collectFinancialSummary(projectId: string, quarterStart: Date, quarterEnd: Date): any {
+function collectFinancialSummary(_projectId: string, _quarterStart: Date, _quarterEnd: Date): any {
   return {
     totalBudget: 100000000,
     executedAmount: 60000000,
@@ -388,31 +382,31 @@ function collectFinancialSummary(projectId: string, quarterStart: Date, quarterE
         category: 'PERSONNEL_CASH',
         planned: 50000000,
         executed: 35000000,
-        rate: 70
+        rate: 70,
       },
       {
         category: 'MATERIAL',
         planned: 30000000,
         executed: 20000000,
-        rate: 67
+        rate: 67,
       },
       {
         category: 'RESEARCH_ACTIVITY',
         planned: 20000000,
         executed: 5000000,
-        rate: 25
-      }
+        rate: 25,
+      },
     ],
     trend: 'increasing',
     forecast: {
       expectedCompletion: 95,
-      riskAreas: ['RESEARCH_ACTIVITY']
-    }
+      riskAreas: ['RESEARCH_ACTIVITY'],
+    },
   }
 }
 
 // 인력 요약 수집
-function collectPersonnelSummary(projectId: string, quarterStart: Date, quarterEnd: Date): any {
+function collectPersonnelSummary(_projectId: string, _quarterStart: Date, _quarterEnd: Date): any {
   return {
     totalParticipants: 8,
     averageParticipationRate: 85,
@@ -423,85 +417,85 @@ function collectPersonnelSummary(projectId: string, quarterStart: Date, quarterE
         name: '김연구원',
         role: 'Lead Developer',
         participationRate: 100,
-        performance: 'excellent'
-      }
+        performance: 'excellent',
+      },
     ],
     recruitment: {
       planned: 2,
       completed: 1,
-      pending: 1
+      pending: 1,
     },
     training: {
       completed: 3,
-      planned: 2
-    }
+      planned: 2,
+    },
   }
 }
 
 // 다음 분기 계획 생성
-function generateNextQuarterPlan(projectId: string): any {
+function generateNextQuarterPlan(_projectId: string): any {
   return {
     objectives: [
       {
         title: '프로토타입 v2.0 개발',
         description: '성능 최적화 및 기능 확장',
         priority: 'high',
-        targetDate: '2024-06-30'
+        targetDate: '2024-06-30',
       },
       {
         title: '사용자 테스트 진행',
         description: '베타 테스터 모집 및 피드백 수집',
         priority: 'medium',
-        targetDate: '2024-05-31'
-      }
+        targetDate: '2024-05-31',
+      },
     ],
     milestones: [
       {
         title: '프로토타입 v2.0 완성',
         dueDate: '2024-06-30',
-        owner: '개발팀'
+        owner: '개발팀',
       },
       {
         title: '사용자 테스트 완료',
         dueDate: '2024-05-31',
-        owner: 'QA팀'
-      }
+        owner: 'QA팀',
+      },
     ],
     resourceRequirements: {
       personnel: 2,
       budget: 30000000,
-      equipment: ['테스트 서버', '모니터링 도구']
-    }
+      equipment: ['테스트 서버', '모니터링 도구'],
+    },
   }
 }
 
 // 권고사항 생성
-function generateRecommendations(projectId: string): any {
+function generateRecommendations(_projectId: string): any {
   return {
     immediate: [
       {
         title: '예산 집행률 개선',
         description: '연구활동비 집행률이 낮으므로 집행 계획 재검토 필요',
         priority: 'high',
-        actionOwner: 'PM'
-      }
+        actionOwner: 'PM',
+      },
     ],
     shortTerm: [
       {
         title: '성능 최적화 전략 수립',
         description: '성능 이슈 해결을 위한 구체적인 전략 수립',
         priority: 'medium',
-        actionOwner: '기술팀'
-      }
+        actionOwner: '기술팀',
+      },
     ],
     longTerm: [
       {
         title: '인력 확보 계획',
         description: '프로젝트 확장을 위한 추가 인력 확보 계획',
         priority: 'low',
-        actionOwner: 'HR팀'
-      }
-    ]
+        actionOwner: 'HR팀',
+      },
+    ],
   }
 }
 
@@ -509,15 +503,15 @@ function generateRecommendations(projectId: string): any {
 export function createReportTemplate(
   templateName: string,
   templateType: 'weekly' | 'quarterly',
-  templateData: any
+  templateData: any,
 ): void {
-  reportTemplates.update(templates => ({
+  reportTemplates.update((templates) => ({
     ...templates,
     [templateName]: {
       type: templateType,
       data: templateData,
-      createdAt: new Date().toISOString()
-    }
+      createdAt: new Date().toISOString(),
+    },
   }))
 }
 
@@ -526,11 +520,11 @@ export function applyReportTemplate(
   projectId: string,
   templateName: string,
   periodStart: string,
-  periodEnd: string
+  periodEnd: string,
 ): string {
   let template: any = null
 
-  reportTemplates.subscribe(templates => {
+  reportTemplates.subscribe((templates) => {
     template = templates[templateName]
   })()
 
@@ -548,11 +542,11 @@ export function applyReportTemplate(
 }
 
 // 리포트 내보내기
-export function exportReport(reportId: string, format: 'pdf' | 'docx' | 'html' | 'excel'): string {
+export function exportReport(reportId: string, _format: 'pdf' | 'docx' | 'html' | 'excel'): string {
   let report: Report | undefined = undefined
 
-  reports.subscribe(list => {
-    report = list.find(r => r.id === reportId)
+  reports.subscribe((list) => {
+    report = list.find((r) => r.id === reportId)
   })()
 
   if (!report) {
@@ -660,7 +654,7 @@ export function scheduleAutoReports(
   projectId: string,
   scheduleType: 'weekly' | 'quarterly',
   dayOfWeek?: number, // 0-6 (일요일-토요일)
-  dayOfMonth?: number // 1-31
+  dayOfMonth?: number, // 1-31
 ): void {
   // 실제 구현에서는 백그라운드 작업으로 스케줄링
   // 여기서는 간단히 설정만 저장
@@ -670,23 +664,23 @@ export function scheduleAutoReports(
     dayOfWeek,
     dayOfMonth,
     enabled: true,
-    createdAt: new Date().toISOString()
+    createdAt: new Date().toISOString(),
   }
 
   // 스케줄 저장 (실제로는 별도 스토어에 저장)
-  console.log('Auto report scheduled:', schedule)
+  logger.log('Auto report scheduled:', schedule)
 }
 
 // 리포트 통계
-export function getReportStatistics(projectId: string): any {
+export function getReportStatistics(_projectId: string): any {
   let projectReports: Report[] = []
 
-  reports.subscribe(list => {
-    projectReports = list.filter(r => r.projectId === projectId)
+  reports.subscribe((list) => {
+    projectReports = list.filter((r) => r.projectId === projectId)
   })()
 
-  const weeklyReports = projectReports.filter(r => r.type === 'weekly')
-  const quarterlyReports = projectReports.filter(r => r.type === 'quarterly')
+  const weeklyReports = projectReports.filter((r) => r.type === 'weekly')
+  const quarterlyReports = projectReports.filter((r) => r.type === 'quarterly')
 
   return {
     totalReports: projectReports.length,
@@ -694,9 +688,9 @@ export function getReportStatistics(projectId: string): any {
     quarterlyReports: quarterlyReports.length,
     lastReportDate:
       projectReports.length > 0
-        ? Math.max(...projectReports.map(r => new Date(r.generatedAt).getTime()))
+        ? Math.max(...projectReports.map((r) => new Date(r.generatedAt).getTime()))
         : null,
-    averageGenerationTime: calculateAverageGenerationTime(projectReports)
+    averageGenerationTime: calculateAverageGenerationTime(projectReports),
   }
 }
 

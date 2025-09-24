@@ -1,6 +1,7 @@
 import { config } from 'dotenv'
 import type { PoolClient, QueryResult } from 'pg'
 import { Pool } from 'pg'
+import { logger } from '$lib/utils/logger'
 
 // Load environment variables
 config()
@@ -17,8 +18,8 @@ const getDbConfig = () => {
     user: process.env.AWS_DB_USER || 'postgres',
     password: process.env.AWS_DB_PASSWORD || 'viahubdev',
     ssl: {
-      rejectUnauthorized: false
-    }
+      rejectUnauthorized: false,
+    },
   }
 }
 
@@ -27,7 +28,7 @@ const dbConfig = {
   max: 20, // Maximum number of clients in the pool
   idleTimeoutMillis: 30000, // Close idle clients after 30 seconds
   connectionTimeoutMillis: 10000, // Return an error after 10 seconds if connection could not be established
-  acquireTimeoutMillis: 10000 // Return an error after 10 seconds if client could not be acquired from pool
+  acquireTimeoutMillis: 10000, // Return an error after 10 seconds if client could not be acquired from pool
 }
 
 // Initialize database connection pool
@@ -36,8 +37,8 @@ export function initializeDatabase(): Pool {
     pool = new Pool(dbConfig)
 
     // Handle pool errors
-    pool.on('error', err => {
-      console.error('Unexpected error on idle client', err)
+    pool.on('error', (err) => {
+      logger.error('Unexpected error on idle client', err)
       process.exit(-1)
     })
 
@@ -53,7 +54,7 @@ export async function getConnection(): Promise<PoolClient> {
     try {
       initializeDatabase()
     } catch (error) {
-      console.error('Failed to initialize database connection:', error)
+      logger.error('Failed to initialize database connection:', error)
       throw error
     }
   }
@@ -62,9 +63,9 @@ export async function getConnection(): Promise<PoolClient> {
 }
 
 // Execute a query with parameters
-export async function query<T extends Record<string, any> = any>(
+export async function query<T extends Record<string, unknown> = any>(
   text: string,
-  params?: any[]
+  params?: unknown[],
 ): Promise<QueryResult<T>> {
   const client = await getConnection()
   try {
@@ -109,11 +110,11 @@ export async function healthCheck(): Promise<boolean> {
 
     return isHealthy
   } catch (error) {
-    console.error('Database health check failed:', error)
-    console.error('Error details:', {
+    logger.error('Database health check failed:', error)
+    logger.error('Error details:', {
       message: error instanceof Error ? error.message : 'Unknown error',
       code: (error as any)?.code,
-      detail: (error as any)?.detail
+      detail: (error as any)?.detail,
     })
     return false
   }
@@ -147,7 +148,7 @@ export interface DatabaseCompany {
   revenue?: number
   employees?: number
   notes?: string
-  tags: any[]
+  tags: unknown[]
   created_at: Date
   updated_at: Date
 }
@@ -220,7 +221,7 @@ export interface DatabaseTransaction {
 // Utility functions for common database operations
 export class DatabaseService {
   // 쿼리 메서드
-  static async query(text: string, params?: any[]) {
+  static async query(text: string, params?: unknown[]) {
     return await query(text, params)
   }
 
@@ -236,8 +237,8 @@ export class DatabaseService {
         userData.name,
         userData.department,
         userData.position,
-        userData.role
-      ]
+        userData.role,
+      ],
     )
     if (!result.rows[0]) {
       throw new Error('사용자 생성에 실패했습니다.')
@@ -266,7 +267,7 @@ export class DatabaseService {
     offset?: number
   }): Promise<DatabaseUser[]> {
     let queryText = 'SELECT * FROM users WHERE 1=1'
-    const params: any[] = []
+    const params: unknown[] = []
     let paramCount = 0
 
     if (filters?.department) {
@@ -324,8 +325,8 @@ export class DatabaseService {
         companyData.revenue,
         companyData.employees,
         companyData.notes,
-        JSON.stringify(companyData.tags || [])
-      ]
+        JSON.stringify(companyData.tags || []),
+      ],
     )
     if (!result.rows[0]) {
       throw new Error('데이터 생성에 실패했습니다.')
@@ -346,7 +347,7 @@ export class DatabaseService {
     offset?: number
   }): Promise<DatabaseCompany[]> {
     let queryText = 'SELECT * FROM companies WHERE 1=1'
-    const params: any[] = []
+    const params: unknown[] = []
     let paramCount = 0
 
     if (filters?.type) {
@@ -401,8 +402,8 @@ export class DatabaseService {
         projectData.end_date,
         projectData.manager_id,
         projectData.status,
-        projectData.budget_total
-      ]
+        projectData.budget_total,
+      ],
     )
     if (!result.rows[0]) {
       throw new Error('데이터 생성에 실패했습니다.')
@@ -422,7 +423,7 @@ export class DatabaseService {
     offset?: number
   }): Promise<DatabaseProject[]> {
     let queryText = 'SELECT * FROM projects WHERE 1=1'
-    const params: any[] = []
+    const params: unknown[] = []
     let paramCount = 0
 
     if (filters?.status) {
@@ -457,7 +458,7 @@ export class DatabaseService {
 
   // Expense operations
   static async createExpenseItem(
-    expenseData: Partial<DatabaseExpenseItem>
+    expenseData: Partial<DatabaseExpenseItem>,
   ): Promise<DatabaseExpenseItem> {
     const result = await query<DatabaseExpenseItem>(
       `INSERT INTO expense_items (project_id, category_code, requester_id, amount, currency, description, status, dept_owner)
@@ -471,8 +472,8 @@ export class DatabaseService {
         expenseData.currency,
         expenseData.description,
         expenseData.status,
-        expenseData.dept_owner
-      ]
+        expenseData.dept_owner,
+      ],
     )
     if (!result.rows[0]) {
       throw new Error('데이터 생성에 실패했습니다.')
@@ -482,7 +483,7 @@ export class DatabaseService {
 
   static async getExpenseItemById(id: string): Promise<DatabaseExpenseItem | null> {
     const result = await query<DatabaseExpenseItem>('SELECT * FROM expense_items WHERE id = $1', [
-      id
+      id,
     ])
     return result.rows[0] || null
   }
@@ -495,7 +496,7 @@ export class DatabaseService {
     offset?: number
   }): Promise<DatabaseExpenseItem[]> {
     let queryText = 'SELECT * FROM expense_items WHERE 1=1'
-    const params: any[] = []
+    const params: unknown[] = []
     let paramCount = 0
 
     if (filters?.project_id) {
@@ -555,8 +556,8 @@ export class DatabaseService {
         employeeData.salary,
         employeeData.status,
         employeeData.address,
-        JSON.stringify(employeeData.emergency_contact || {})
-      ]
+        JSON.stringify(employeeData.emergency_contact || {}),
+      ],
     )
     if (!result.rows[0]) {
       throw new Error('데이터 생성에 실패했습니다.')
@@ -576,7 +577,7 @@ export class DatabaseService {
     offset?: number
   }): Promise<DatabaseEmployee[]> {
     let queryText = 'SELECT * FROM employees WHERE 1=1'
-    const params: any[] = []
+    const params: unknown[] = []
     let paramCount = 0
 
     if (filters?.department) {
@@ -611,7 +612,7 @@ export class DatabaseService {
 
   // Transaction operations
   static async createTransaction(
-    transactionData: Partial<DatabaseTransaction>
+    transactionData: Partial<DatabaseTransaction>,
   ): Promise<DatabaseTransaction> {
     const result = await query<DatabaseTransaction>(
       `INSERT INTO transactions (bank_account_id, category_id, amount, type, description, reference, date, created_by)
@@ -625,8 +626,8 @@ export class DatabaseService {
         transactionData.description,
         transactionData.reference,
         transactionData.date,
-        transactionData.created_by
-      ]
+        transactionData.created_by,
+      ],
     )
     if (!result.rows[0]) {
       throw new Error('데이터 생성에 실패했습니다.')
@@ -636,7 +637,7 @@ export class DatabaseService {
 
   static async getTransactionById(id: string): Promise<DatabaseTransaction | null> {
     const result = await query<DatabaseTransaction>('SELECT * FROM transactions WHERE id = $1', [
-      id
+      id,
     ])
     return result.rows[0] || null
   }
@@ -651,7 +652,7 @@ export class DatabaseService {
     offset?: number
   }): Promise<DatabaseTransaction[]> {
     let queryText = 'SELECT * FROM transactions WHERE 1=1'
-    const params: any[] = []
+    const params: unknown[] = []
     let paramCount = 0
 
     if (filters?.bank_account_id) {

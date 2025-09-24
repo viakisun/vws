@@ -81,8 +81,8 @@ export function transformProjectData(project: any) {
     ...(manager_name && { managerName: manager_name }),
     ...(member_count && { memberCount: parseInt(member_count) || 0 }),
     ...(total_participation_rate && {
-      totalParticipationRate: parseInt(total_participation_rate) || 0
-    })
+      totalParticipationRate: parseInt(total_participation_rate) || 0,
+    }),
   }
 }
 
@@ -117,7 +117,7 @@ export function transformProjectMemberData(member: any) {
     contributionType: contribution_type,
     monthlyAmount: monthly_amount,
     createdAt: created_at,
-    updatedAt: updated_at
+    updatedAt: updated_at,
   }
 }
 
@@ -130,7 +130,6 @@ export function transformProjectBudgetData(budget: any) {
     project_id,
     start_date,
     end_date,
-    fiscal_year,
     period_number,
     created_at,
     updated_at,
@@ -143,10 +142,10 @@ export function transformProjectBudgetData(budget: any) {
     projectId: project_id,
     startDate: formatDateForAPI(start_date),
     endDate: formatDateForAPI(end_date),
-    fiscalYear: fiscal_year,
+    fiscalYear: period_number,
     periodNumber: period_number,
     createdAt: created_at,
-    updatedAt: updated_at
+    updatedAt: updated_at,
   }
 }
 
@@ -159,7 +158,7 @@ export function transformMilestoneData(milestone: any) {
     projectId: milestone.project_id,
     dueDate: formatDateForAPI(milestone.due_date),
     createdAt: milestone.created_at,
-    updatedAt: milestone.updated_at
+    updatedAt: milestone.updated_at,
   }
 }
 
@@ -173,7 +172,7 @@ export function transformRiskData(risk: any) {
     ownerId: risk.owner_id,
     ownerName: risk.owner_name,
     createdAt: risk.created_at,
-    updatedAt: risk.updated_at
+    updatedAt: risk.updated_at,
   }
 }
 
@@ -200,11 +199,14 @@ export function transformEmployeeData(employee: any) {
     // 직원 이름을 표준 형식으로 변환
     ...(lastName &&
       firstName && {
-        displayName: formatEmployeeName({ last_name: lastName, first_name: firstName })
+        displayName: formatEmployeeName({
+          last_name: lastName,
+          first_name: firstName,
+        }),
       }),
     ...(employee.name && {
-      name: formatKoreanNameStandard(employee.name)
-    })
+      name: formatKoreanNameStandard(employee.name),
+    }),
   }
 }
 
@@ -221,18 +223,18 @@ export function transformEvidenceItemData(evidence: any) {
     updatedAt: evidence.updated_at,
     // 담당자 이름을 표준 형식으로 변환
     ...(evidence.assignee_full_name && {
-      assigneeFullName: formatKoreanNameStandard(evidence.assignee_full_name)
+      assigneeFullName: formatKoreanNameStandard(evidence.assignee_full_name),
     }),
     ...(evidence.assignee_name && {
-      assigneeName: formatKoreanNameStandard(evidence.assignee_name)
-    })
+      assigneeName: formatKoreanNameStandard(evidence.assignee_name),
+    }),
   }
 }
 
 /**
  * 배열 데이터 일괄 변환
  */
-export function transformArrayData<T>(data: any[], transformer: (item: any) => T): T[] {
+export function transformArrayData<T>(data: unknown[], transformer: (item: any) => T): T[] {
   return data.map(transformer)
 }
 

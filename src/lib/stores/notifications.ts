@@ -27,7 +27,7 @@ const initialSettings: NotificationSettings = {
   lowBalance: true,
   dailyReminders: true,
   emailNotifications: false,
-  pushNotifications: true
+  pushNotifications: true,
 }
 
 // 초기 알림 데이터
@@ -40,7 +40,7 @@ const initialNotifications: Notification[] = [
     timestamp: new Date().toISOString(),
     read: false,
     actionUrl: '/finance',
-    actionText: '예산 확인'
+    actionText: '예산 확인',
   },
   {
     id: '2',
@@ -50,7 +50,7 @@ const initialNotifications: Notification[] = [
     timestamp: new Date(Date.now() - 3600000).toISOString(),
     read: false,
     actionUrl: '/finance',
-    actionText: '입력하기'
+    actionText: '입력하기',
   },
   {
     id: '3',
@@ -60,8 +60,8 @@ const initialNotifications: Notification[] = [
     timestamp: new Date(Date.now() - 7200000).toISOString(),
     read: true,
     actionUrl: '/finance',
-    actionText: '예산 조정'
-  }
+    actionText: '예산 조정',
+  },
 ]
 
 // 스토어 생성
@@ -74,30 +74,32 @@ export function addNotification(notification: Omit<Notification, 'id' | 'timesta
     ...notification,
     id: `notification-${Date.now()}`,
     timestamp: new Date().toISOString(),
-    read: false
+    read: false,
   }
 
-  notifications.update(current => [newNotification, ...current])
+  notifications.update((current) => [newNotification, ...current])
 }
 
 // 알림 읽음 처리
 export function markAsRead(notificationId: string) {
-  notifications.update(current =>
-    current.map(notification =>
-      notification.id === notificationId ? { ...notification, read: true } : notification
-    )
+  notifications.update((current) =>
+    current.map((notification) =>
+      notification.id === notificationId ? { ...notification, read: true } : notification,
+    ),
   )
 }
 
 // 모든 알림 읽음 처리
 export function markAllAsRead() {
-  notifications.update(current => current.map(notification => ({ ...notification, read: true })))
+  notifications.update((current) =>
+    current.map((notification) => ({ ...notification, read: true })),
+  )
 }
 
 // 알림 삭제
 export function deleteNotification(notificationId: string) {
-  notifications.update(current =>
-    current.filter(notification => notification.id !== notificationId)
+  notifications.update((current) =>
+    current.filter((notification) => notification.id !== notificationId),
   )
 }
 
@@ -107,8 +109,8 @@ export function updateNotificationSettings(settings: NotificationSettings) {
 }
 
 // 예산 초과 알림 체크
-export function checkBudgetOverage(budgetCategories: any[]) {
-  budgetCategories.forEach(category => {
+export function checkBudgetOverage(budgetCategories: unknown[]) {
+  budgetCategories.forEach((category) => {
     const usage = (category.spent / category.amount) * 100
 
     if (usage >= 100) {
@@ -117,7 +119,7 @@ export function checkBudgetOverage(budgetCategories: any[]) {
         title: '예산 초과',
         message: `${category.name} 예산을 ${usage.toFixed(1)}% 초과했습니다.`,
         actionUrl: '/finance',
-        actionText: '예산 확인'
+        actionText: '예산 확인',
       })
     } else if (usage >= 80) {
       addNotification({
@@ -125,18 +127,18 @@ export function checkBudgetOverage(budgetCategories: any[]) {
         title: '예산 경고',
         message: `${category.name} 예산을 ${usage.toFixed(1)}% 사용했습니다.`,
         actionUrl: '/finance',
-        actionText: '예산 확인'
+        actionText: '예산 확인',
       })
     }
   })
 }
 
 // 목표 마감일 알림 체크
-export function checkGoalDeadlines(budgetGoals: any[]) {
+export function checkGoalDeadlines(budgetGoals: unknown[]) {
   const now = new Date()
   const oneWeekFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)
 
-  budgetGoals.forEach(goal => {
+  budgetGoals.forEach((goal) => {
     const deadline = new Date(goal.deadline)
     const progress = (goal.currentAmount / goal.targetAmount) * 100
 
@@ -148,14 +150,14 @@ export function checkGoalDeadlines(budgetGoals: any[]) {
         title: '목표 마감일 임박',
         message: `${goal.name} 목표 마감까지 ${daysLeft}일 남았습니다. (진행률: ${progress.toFixed(1)}%)`,
         actionUrl: '/finance',
-        actionText: '목표 확인'
+        actionText: '목표 확인',
       })
     }
   })
 }
 
 // 잔고 부족 알림 체크
-export function checkLowBalance(bankAccounts: any[], transactions: any[]) {
+export function checkLowBalance(bankAccounts: unknown[], transactions: unknown[]) {
   const monthlyExpense =
     transactions
       .filter((t: any) => t.type === 'expense')
@@ -169,7 +171,7 @@ export function checkLowBalance(bankAccounts: any[], transactions: any[]) {
       title: '잔고 부족 경고',
       message: `현재 잔고가 2개월 운영비보다 적습니다. (잔고: ${totalBalance.toLocaleString()}원)`,
       actionUrl: '/finance',
-      actionText: '잔고 확인'
+      actionText: '잔고 확인',
     })
   } else if (totalBalance < monthlyExpense * 3) {
     addNotification({
@@ -177,7 +179,7 @@ export function checkLowBalance(bankAccounts: any[], transactions: any[]) {
       title: '잔고 주의',
       message: `현재 잔고가 3개월 운영비보다 적습니다. (잔고: ${totalBalance.toLocaleString()}원)`,
       actionUrl: '/finance',
-      actionText: '잔고 확인'
+      actionText: '잔고 확인',
     })
   }
 }
@@ -197,7 +199,7 @@ export function checkFundsReportDeadline() {
       title: '자금 일보 입력 마감',
       message: `자금 일보 입력 마감까지 ${minutesUntilDeadline}분 남았습니다.`,
       actionUrl: '/finance',
-      actionText: '입력하기'
+      actionText: '입력하기',
     })
   }
 }

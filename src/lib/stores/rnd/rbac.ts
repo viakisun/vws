@@ -1,14 +1,14 @@
 // R&D 통합관리 시스템 RBAC (Role-Based Access Control) 구현
 
 import { writable, derived } from 'svelte/store'
-import { UserRole, Permission, type Person, type UUID } from './types'
+import { UserRole, Permission, type Person } from './types'
 
 // ===== 권한 매트릭스 정의 =====
 const PERMISSION_MATRIX: Record<UserRole, Permission[]> = {
   [UserRole.RESEARCHER]: [
     Permission.READ_PROJECT,
     Permission.UPLOAD_DOCUMENT,
-    Permission.CREATE_REPORT
+    Permission.CREATE_REPORT,
   ],
   [UserRole.PM]: [
     Permission.READ_PROJECT,
@@ -16,13 +16,13 @@ const PERMISSION_MATRIX: Record<UserRole, Permission[]> = {
     Permission.APPROVE_EXPENSE,
     Permission.MANAGE_PERSONNEL,
     Permission.CREATE_REPORT,
-    Permission.UPLOAD_DOCUMENT
+    Permission.UPLOAD_DOCUMENT,
   ],
   [UserRole.DEPARTMENT_HEAD]: [
     Permission.READ_PROJECT,
     Permission.WRITE_PROJECT,
     Permission.APPROVE_EXPENSE,
-    Permission.UPLOAD_DOCUMENT
+    Permission.UPLOAD_DOCUMENT,
   ],
   [UserRole.MANAGEMENT_SUPPORT]: [
     Permission.READ_ALL,
@@ -32,7 +32,7 @@ const PERMISSION_MATRIX: Record<UserRole, Permission[]> = {
     Permission.MANAGE_PERSONNEL,
     Permission.CREATE_REPORT,
     Permission.UPLOAD_DOCUMENT,
-    Permission.VIEW_AUDIT_LOG
+    Permission.VIEW_AUDIT_LOG,
   ],
   [UserRole.LAB_HEAD]: [
     Permission.READ_ALL,
@@ -40,16 +40,16 @@ const PERMISSION_MATRIX: Record<UserRole, Permission[]> = {
     Permission.APPROVE_ALL,
     Permission.MANAGE_PERSONNEL,
     Permission.CREATE_REPORT,
-    Permission.VIEW_AUDIT_LOG
+    Permission.VIEW_AUDIT_LOG,
   ],
   [UserRole.EXECUTIVE]: [
     Permission.READ_ALL,
     Permission.APPROVE_ALL,
     Permission.MANAGE_BUDGET,
     Permission.MANAGE_PERSONNEL,
-    Permission.VIEW_AUDIT_LOG
+    Permission.VIEW_AUDIT_LOG,
   ],
-  [UserRole.AUDITOR]: [Permission.READ_ALL, Permission.VIEW_AUDIT_LOG]
+  [UserRole.AUDITOR]: [Permission.READ_ALL, Permission.VIEW_AUDIT_LOG],
 }
 
 // ===== 엔터티별 권한 정의 =====
@@ -61,7 +61,7 @@ const ENTITY_PERMISSIONS: Record<string, Record<UserRole, string[]>> = {
     [UserRole.MANAGEMENT_SUPPORT]: ['read', 'write', 'approve', 'lock'],
     [UserRole.LAB_HEAD]: ['read', 'write', 'approve'],
     [UserRole.EXECUTIVE]: ['read', 'approve', 'lock'],
-    [UserRole.AUDITOR]: ['read']
+    [UserRole.AUDITOR]: ['read'],
   },
   ExpenseItem: {
     [UserRole.RESEARCHER]: ['read'],
@@ -70,7 +70,7 @@ const ENTITY_PERMISSIONS: Record<string, Record<UserRole, string[]>> = {
     [UserRole.MANAGEMENT_SUPPORT]: ['read', 'write', 'approve', 'lock'],
     [UserRole.LAB_HEAD]: ['read', 'write', 'approve'],
     [UserRole.EXECUTIVE]: ['read', 'approve'],
-    [UserRole.AUDITOR]: ['read']
+    [UserRole.AUDITOR]: ['read'],
   },
   Document: {
     [UserRole.RESEARCHER]: ['read', 'write'],
@@ -79,7 +79,7 @@ const ENTITY_PERMISSIONS: Record<string, Record<UserRole, string[]>> = {
     [UserRole.MANAGEMENT_SUPPORT]: ['read', 'write', 'approve', 'lock'],
     [UserRole.LAB_HEAD]: ['read', 'write', 'approve'],
     [UserRole.EXECUTIVE]: ['read', 'approve'],
-    [UserRole.AUDITOR]: ['read']
+    [UserRole.AUDITOR]: ['read'],
   },
   ResearchNote: {
     [UserRole.RESEARCHER]: ['read', 'write'],
@@ -88,7 +88,7 @@ const ENTITY_PERMISSIONS: Record<string, Record<UserRole, string[]>> = {
     [UserRole.MANAGEMENT_SUPPORT]: ['read', 'write'],
     [UserRole.LAB_HEAD]: ['read', 'write', 'approve'],
     [UserRole.EXECUTIVE]: ['read'],
-    [UserRole.AUDITOR]: ['read']
+    [UserRole.AUDITOR]: ['read'],
   },
   SubmissionBundle: {
     [UserRole.RESEARCHER]: [],
@@ -97,8 +97,8 @@ const ENTITY_PERMISSIONS: Record<string, Record<UserRole, string[]>> = {
     [UserRole.MANAGEMENT_SUPPORT]: ['read', 'write', 'approve'],
     [UserRole.LAB_HEAD]: ['read'],
     [UserRole.EXECUTIVE]: ['read', 'approve'],
-    [UserRole.AUDITOR]: ['read', 'lock']
-  }
+    [UserRole.AUDITOR]: ['read', 'lock'],
+  },
 }
 
 // ===== 현재 사용자 스토어 =====
@@ -108,10 +108,10 @@ export const currentUser = writable<Person | null>(null)
 export const userRoles = writable<UserRole[]>([])
 
 // ===== 사용자 권한 스토어 =====
-export const userPermissions = derived(userRoles, $userRoles => {
+export const userPermissions = derived(userRoles, ($userRoles) => {
   const permissions = new Set<Permission>()
-  $userRoles.forEach(role => {
-    PERMISSION_MATRIX[role]?.forEach(permission => {
+  $userRoles.forEach((role) => {
+    PERMISSION_MATRIX[role]?.forEach((permission) => {
       permissions.add(permission)
     })
   })
@@ -124,14 +124,14 @@ export const userPermissions = derived(userRoles, $userRoles => {
  * 사용자에게 특정 권한이 있는지 확인
  */
 export function hasPermission(permission: Permission, userRoles: UserRole[]): boolean {
-  return userRoles.some(role => PERMISSION_MATRIX[role]?.includes(permission))
+  return userRoles.some((role) => PERMISSION_MATRIX[role]?.includes(permission))
 }
 
 /**
  * 사용자가 특정 엔터티에 대해 특정 액션을 수행할 수 있는지 확인
  */
 export function canPerformAction(entity: string, action: string, userRoles: UserRole[]): boolean {
-  return userRoles.some(role => {
+  return userRoles.some((role) => {
     const entityPermissions = ENTITY_PERMISSIONS[entity]
     if (!entityPermissions || !entityPermissions[role]) {
       return false
@@ -145,8 +145,8 @@ export function canPerformAction(entity: string, action: string, userRoles: User
  */
 export function getUserPermissions(userRoles: UserRole[]): Permission[] {
   const permissions = new Set<Permission>()
-  userRoles.forEach(role => {
-    PERMISSION_MATRIX[role]?.forEach(permission => {
+  userRoles.forEach((role) => {
+    PERMISSION_MATRIX[role]?.forEach((permission) => {
       permissions.add(permission)
     })
   })
@@ -171,7 +171,7 @@ export function setUserRoles(roles: UserRole[]): void {
  * 사용자 역할 추가
  */
 export function addUserRole(role: UserRole): void {
-  userRoles.update(roles => {
+  userRoles.update((roles) => {
     if (!roles.includes(role)) {
       return [...roles, role]
     }
@@ -183,7 +183,7 @@ export function addUserRole(role: UserRole): void {
  * 사용자 역할 제거
  */
 export function removeUserRole(role: UserRole): void {
-  userRoles.update(roles => roles.filter(r => r !== role))
+  userRoles.update((roles) => roles.filter((r) => r !== role))
 }
 
 /**
@@ -199,7 +199,7 @@ export function setCurrentUser(user: Person): void {
  */
 export function getCurrentUser(): Person | null {
   let user: Person | null = null
-  currentUser.subscribe(value => (user = value))()
+  currentUser.subscribe((value) => (user = value))()
   return user
 }
 
@@ -215,7 +215,7 @@ export const permissionChecks = {
   canManagePersonnel: (roles: UserRole[]) => hasPermission(Permission.MANAGE_PERSONNEL, roles),
   canCreateReport: (roles: UserRole[]) => hasPermission(Permission.CREATE_REPORT, roles),
   canUploadDocument: (roles: UserRole[]) => hasPermission(Permission.UPLOAD_DOCUMENT, roles),
-  canViewAuditLog: (roles: UserRole[]) => hasPermission(Permission.VIEW_AUDIT_LOG, roles)
+  canViewAuditLog: (roles: UserRole[]) => hasPermission(Permission.VIEW_AUDIT_LOG, roles),
 }
 
 /**
@@ -248,7 +248,7 @@ export const entityPermissionChecks = {
   canApproveSubmissionBundle: (roles: UserRole[]) =>
     canPerformAction('SubmissionBundle', 'approve', roles),
   canLockSubmissionBundle: (roles: UserRole[]) =>
-    canPerformAction('SubmissionBundle', 'lock', roles)
+    canPerformAction('SubmissionBundle', 'lock', roles),
 }
 
 /**
@@ -265,13 +265,13 @@ export function canAccessMenu(menuName: string, roles: UserRole[]): boolean {
     리포트: [Permission.CREATE_REPORT],
     '결재 관리': [Permission.APPROVE_ALL],
     '국가R&D 업로드': [Permission.WRITE_ALL],
-    '감사 로그': [Permission.VIEW_AUDIT_LOG]
+    '감사 로그': [Permission.VIEW_AUDIT_LOG],
   }
 
   const requiredPermissions = menuPermissions[menuName]
   if (!requiredPermissions) return false
 
-  return requiredPermissions.some(permission => hasPermission(permission, roles))
+  return requiredPermissions.some((permission) => hasPermission(permission, roles))
 }
 
 /**
@@ -281,8 +281,8 @@ export function maskSensitiveData(data: any, roles: UserRole[]): any {
   if (!data) return data
 
   // 경영지원팀과 경영진만 급여 정보 조회 가능
-  const canViewSalary = roles.some(role =>
-    [UserRole.MANAGEMENT_SUPPORT, UserRole.EXECUTIVE].includes(role)
+  const canViewSalary = roles.some((role) =>
+    [UserRole.MANAGEMENT_SUPPORT, UserRole.EXECUTIVE].includes(role),
   )
 
   if (!canViewSalary && data.salary) {
@@ -290,8 +290,8 @@ export function maskSensitiveData(data: any, roles: UserRole[]): any {
   }
 
   // 개인정보 마스킹 (연구원은 본인 정보만 조회 가능)
-  const canViewPersonalInfo = roles.some(role =>
-    [UserRole.MANAGEMENT_SUPPORT, UserRole.EXECUTIVE, UserRole.LAB_HEAD].includes(role)
+  const canViewPersonalInfo = roles.some((role) =>
+    [UserRole.MANAGEMENT_SUPPORT, UserRole.EXECUTIVE, UserRole.LAB_HEAD].includes(role),
   )
 
   if (!canViewPersonalInfo) {
@@ -324,7 +324,7 @@ const ROLE_PRIORITY: Record<UserRole, number> = {
   [UserRole.MANAGEMENT_SUPPORT]: 4,
   [UserRole.LAB_HEAD]: 5,
   [UserRole.EXECUTIVE]: 6,
-  [UserRole.AUDITOR]: 7
+  [UserRole.AUDITOR]: 7,
 }
 
 /**
@@ -350,7 +350,7 @@ export const ROLE_DESCRIPTIONS: Record<UserRole, string> = {
     '경영지원(회계·총무) - 예산 항목 관리, 증빙 검토, 내부 전자결재 기안/종결, 국가R&D 업로드 번들 생성',
   [UserRole.LAB_HEAD]: '연구소장 - 주간/분기 리포트 수신, 중요 승인(2차), 인력 교체 승인',
   [UserRole.EXECUTIVE]: '경영진 - 의사결정/에스컬레이션 승인, 신규 채용 트리거 승인',
-  [UserRole.AUDITOR]: '감사/외부평가 - 읽기 전용(감사 로그/증빙 번들 열람)'
+  [UserRole.AUDITOR]: '감사/외부평가 - 읽기 전용(감사 로그/증빙 번들 열람)',
 }
 
 /**
@@ -363,7 +363,7 @@ export const ROLE_NAMES_KO: Record<UserRole, string> = {
   [UserRole.MANAGEMENT_SUPPORT]: '경영지원',
   [UserRole.LAB_HEAD]: '연구소장',
   [UserRole.EXECUTIVE]: '경영진',
-  [UserRole.AUDITOR]: '감사'
+  [UserRole.AUDITOR]: '감사',
 }
 
 // ===== 초기화 함수 =====
@@ -379,7 +379,7 @@ export function initializeRBAC(): void {
     roleSet: [UserRole.MANAGEMENT_SUPPORT],
     active: true,
     createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    updatedAt: new Date().toISOString(),
   }
 
   setCurrentUser(defaultUser)

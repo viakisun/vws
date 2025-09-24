@@ -62,7 +62,7 @@
       error ? 'theme-input-error' : '',
       success ? 'theme-input-success' : '',
       disabled ? 'theme-input-disabled' : '',
-      readonly ? 'theme-input-readonly' : ''
+      readonly ? 'theme-input-readonly' : '',
     ]
       .filter(Boolean)
       .join(' ')
@@ -80,7 +80,7 @@
     const stateClasses = [
       error ? 'theme-input-container-error' : '',
       success ? 'theme-input-container-success' : '',
-      disabled ? 'theme-input-container-disabled' : ''
+      disabled ? 'theme-input-container-disabled' : '',
     ]
       .filter(Boolean)
       .join(' ')
@@ -93,7 +93,7 @@
     const baseClasses = 'theme-input-message'
     const stateClasses = [
       error ? 'theme-input-message-error' : '',
-      success ? 'theme-input-message-success' : ''
+      success ? 'theme-input-message-success' : '',
     ]
       .filter(Boolean)
       .join(' ')

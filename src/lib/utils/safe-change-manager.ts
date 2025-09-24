@@ -1,5 +1,6 @@
 import type { ChangeImpact, DependencyAnalysis } from './code-dependency-analyzer'
 import { CodeDependencyAnalyzer } from './code-dependency-analyzer'
+import { logger } from '$lib/utils/logger'
 
 // 변경 타입 정의
 export type ChangeType = 'modify' | 'delete' | 'rename' | 'move' | 'add'
@@ -52,20 +53,20 @@ export class SafeChangeManager {
       '글로벌 유틸리티 함수 변경 시 모든 사용처 확인',
       'API 엔드포인트 변경 시 클라이언트 코드 확인',
       '데이터베이스 스키마 변경 시 마이그레이션 계획',
-      '타입 정의 변경 시 모든 구현체 확인'
+      '타입 정의 변경 시 모든 구현체 확인',
     ],
     page: [
       '페이지별 컴포넌트 변경 시 상위/하위 컴포넌트 확인',
       '라우트 변경 시 네비게이션 링크 확인',
       '상태 관리 변경 시 관련 컴포넌트 확인',
-      '스타일 변경 시 테마 일관성 확인'
+      '스타일 변경 시 테마 일관성 확인',
     ],
     api: [
       'API 응답 형식 변경 시 클라이언트 호환성 확인',
       '인증/권한 로직 변경 시 보안 영향 확인',
       '데이터베이스 쿼리 변경 시 성능 영향 확인',
-      '에러 처리 변경 시 클라이언트 에러 핸들링 확인'
-    ]
+      '에러 처리 변경 시 클라이언트 에러 핸들링 확인',
+    ],
   }
 
   /**
@@ -74,9 +75,9 @@ export class SafeChangeManager {
   static async createChangePlan(
     filePath: string,
     changeType: ChangeType,
-    description: string
+    description: string,
   ): Promise<SafeChangePlan> {
-    console.log(`📋 [변경 계획 생성] ${changeType}: ${filePath}`)
+    logger.log(`📋 [변경 계획 생성] ${changeType}: ${filePath}`)
 
     // 의존성 분석
     const analysis = await CodeDependencyAnalyzer.analyzeProjectDependencies()
@@ -114,13 +115,13 @@ export class SafeChangeManager {
       procedure,
       risks: this.identifyRisks(fileAnalysis, impacts),
       recommendations: this.generateRecommendations(filePath, changeType, fileAnalysis),
-      affectedFiles: impacts.map(impact => impact.affectedFile),
+      affectedFiles: impacts.map((impact) => impact.affectedFile),
       rollbackPlan,
-      validationChecks
+      validationChecks,
     }
 
     this.changePlans.set(plan.id, plan)
-    console.log(`✅ [변경 계획 생성] 완료 - ID: ${plan.id}`)
+    logger.log(`✅ [변경 계획 생성] 완료 - ID: ${plan.id}`)
 
     return plan
   }
@@ -138,7 +139,7 @@ export class SafeChangeManager {
       return { success: false, message: '변경 계획을 찾을 수 없습니다.' }
     }
 
-    console.log(`🚀 [변경 실행] ${plan.changeType}: ${plan.filePath}`)
+    logger.log(`🚀 [변경 실행] ${plan.changeType}: ${plan.filePath}`)
 
     try {
       plan.status = 'in_progress'
@@ -166,7 +167,7 @@ export class SafeChangeManager {
       plan.updatedAt = new Date()
       return {
         success: false,
-        message: `변경 실행 실패: ${error instanceof Error ? error.message : 'Unknown error'}`
+        message: `변경 실행 실패: ${error instanceof Error ? error.message : 'Unknown error'}`,
       }
     }
   }
@@ -183,12 +184,12 @@ export class SafeChangeManager {
       return { success: false, message: '변경 계획을 찾을 수 없습니다.' }
     }
 
-    console.log(`🔄 [변경 롤백] ${plan.changeType}: ${plan.filePath}`)
+    logger.log(`🔄 [변경 롤백] ${plan.changeType}: ${plan.filePath}`)
 
     try {
       // 롤백 계획 실행
       for (const rollbackStep of plan.rollbackPlan) {
-        console.log(`  🔄 ${rollbackStep}`)
+        logger.log(`  🔄 ${rollbackStep}`)
         // 실제 롤백 로직 구현
       }
 
@@ -199,7 +200,7 @@ export class SafeChangeManager {
     } catch (error) {
       return {
         success: false,
-        message: `롤백 실패: ${error instanceof Error ? error.message : 'Unknown error'}`
+        message: `롤백 실패: ${error instanceof Error ? error.message : 'Unknown error'}`,
       }
     }
   }
@@ -224,13 +225,13 @@ export class SafeChangeManager {
   static validateChange(
     filePath: string,
     changeType: ChangeType,
-    content: string
+    content: string,
   ): ChangeValidationResult {
     const result: ChangeValidationResult = {
       isValid: true,
       errors: [],
       warnings: [],
-      recommendations: []
+      recommendations: [],
     }
 
     // 파일 타입별 검증 규칙 적용
@@ -260,7 +261,7 @@ export class SafeChangeManager {
     filePath: string,
     changeType: ChangeType,
     analysis: DependencyAnalysis,
-    impacts: ChangeImpact[]
+    impacts: ChangeImpact[],
   ): string[] {
     const procedure: string[] = []
 
@@ -292,7 +293,7 @@ export class SafeChangeManager {
   private static generateRollbackPlan(
     filePath: string,
     changeType: ChangeType,
-    impacts: ChangeImpact[]
+    impacts: ChangeImpact[],
   ): string[] {
     const rollbackPlan: string[] = []
 
@@ -319,7 +320,7 @@ export class SafeChangeManager {
   private static generateValidationChecks(
     filePath: string,
     changeType: ChangeType,
-    analysis: DependencyAnalysis
+    analysis: DependencyAnalysis,
   ): string[] {
     const checks: string[] = []
 
@@ -362,7 +363,7 @@ export class SafeChangeManager {
       risks.push('많은 파일에 영향 - 광범위한 테스트 필요')
     }
 
-    if (impacts.some(impact => impact.impactType === 'breaking')) {
+    if (impacts.some((impact) => impact.impactType === 'breaking')) {
       risks.push('Breaking Change 감지 - 하위 호환성 문제 가능')
     }
 
@@ -375,7 +376,7 @@ export class SafeChangeManager {
   private static generateRecommendations(
     filePath: string,
     changeType: ChangeType,
-    analysis: DependencyAnalysis
+    analysis: DependencyAnalysis,
   ): string[] {
     const recommendations: string[] = []
 
@@ -405,7 +406,7 @@ export class SafeChangeManager {
   private static validateGlobalFile(
     filePath: string,
     content: string,
-    result: ChangeValidationResult
+    result: ChangeValidationResult,
   ): void {
     // 글로벌 유틸리티 함수 검증
     if (content.includes('export') && !content.includes('export default')) {
@@ -424,7 +425,7 @@ export class SafeChangeManager {
   private static validatePageFile(
     filePath: string,
     content: string,
-    result: ChangeValidationResult
+    result: ChangeValidationResult,
   ): void {
     // 컴포넌트 props 검증
     if (content.includes('export let')) {
@@ -443,7 +444,7 @@ export class SafeChangeManager {
   private static validateApiFile(
     filePath: string,
     content: string,
-    result: ChangeValidationResult
+    result: ChangeValidationResult,
   ): void {
     // API 응답 형식 검증
     if (content.includes('json(')) {
@@ -462,7 +463,7 @@ export class SafeChangeManager {
   private static validateGeneralRules(
     filePath: string,
     content: string,
-    result: ChangeValidationResult
+    result: ChangeValidationResult,
   ): void {
     // 하드코딩된 값 검증
     if (content.includes('localhost') || content.includes('127.0.0.1')) {
@@ -490,7 +491,7 @@ export class SafeChangeManager {
     message: string
     nextStep?: ChangeStep
   }> {
-    console.log('  📊 의존성 분석 완료')
+    logger.log('  📊 의존성 분석 완료')
     plan.currentStep = 'backup'
     plan.updatedAt = new Date()
     return { success: true, message: '분석 완료', nextStep: 'backup' }
@@ -504,7 +505,7 @@ export class SafeChangeManager {
     message: string
     nextStep?: ChangeStep
   }> {
-    console.log('  💾 백업 생성 완료')
+    logger.log('  💾 백업 생성 완료')
     plan.currentStep = 'preparation'
     plan.updatedAt = new Date()
     return { success: true, message: '백업 완료', nextStep: 'preparation' }
@@ -518,7 +519,7 @@ export class SafeChangeManager {
     message: string
     nextStep?: ChangeStep
   }> {
-    console.log('  🔧 변경 준비 완료')
+    logger.log('  🔧 변경 준비 완료')
     plan.currentStep = 'execution'
     plan.updatedAt = new Date()
     return { success: true, message: '준비 완료', nextStep: 'execution' }
@@ -532,7 +533,7 @@ export class SafeChangeManager {
     message: string
     nextStep?: ChangeStep
   }> {
-    console.log('  ⚡ 변경 실행 완료')
+    logger.log('  ⚡ 변경 실행 완료')
     plan.currentStep = 'validation'
     plan.updatedAt = new Date()
     return { success: true, message: '실행 완료', nextStep: 'validation' }
@@ -546,7 +547,7 @@ export class SafeChangeManager {
     message: string
     nextStep?: ChangeStep
   }> {
-    console.log('  ✅ 검증 완료')
+    logger.log('  ✅ 검증 완료')
     plan.currentStep = 'cleanup'
     plan.updatedAt = new Date()
     return { success: true, message: '검증 완료', nextStep: 'cleanup' }
@@ -560,7 +561,7 @@ export class SafeChangeManager {
     message: string
     nextStep?: ChangeStep
   }> {
-    console.log('  🧹 정리 완료')
+    logger.log('  🧹 정리 완료')
     plan.status = 'completed'
     plan.updatedAt = new Date()
     return { success: true, message: '모든 단계 완료' }

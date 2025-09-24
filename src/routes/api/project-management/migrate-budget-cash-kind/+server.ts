@@ -1,6 +1,7 @@
 import { query } from '$lib/database/connection'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger'
 
 // 사업비 테이블에 현물/현금 구분 컬럼 추가
 export const POST: RequestHandler = async () => {
@@ -55,17 +56,17 @@ export const POST: RequestHandler = async () => {
 
     return json({
       success: true,
-      message: '사업비 현물/현금 구분 컬럼이 성공적으로 추가되었습니다.'
+      message: '사업비 현물/현금 구분 컬럼이 성공적으로 추가되었습니다.',
     })
   } catch (error) {
-    console.error('사업비 현물/현금 구분 컬럼 추가 실패:', error)
+    logger.error('사업비 현물/현금 구분 컬럼 추가 실패:', error)
     return json(
       {
         success: false,
         message: '사업비 현물/현금 구분 컬럼 추가에 실패했습니다.',
-        error: (error as Error).message
+        error: (error as Error).message,
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

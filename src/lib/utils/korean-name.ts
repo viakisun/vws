@@ -100,7 +100,10 @@ export function processKoreanName(fullName: string): string {
  * @param fullName 전체 이름 (예: "차지은" 또는 "지은 차")
  * @returns { surname: string, givenName: string }
  */
-export function splitKoreanName(fullName: string): { surname: string; givenName: string } {
+export function splitKoreanName(fullName: string): {
+  surname: string
+  givenName: string
+} {
   if (!fullName || typeof fullName !== 'string') return { surname: '', givenName: '' }
 
   const trimmed = fullName.trim()
@@ -127,7 +130,7 @@ export function splitKoreanName(fullName: string): { surname: string; givenName:
       // 첫 글자를 성으로, 나머지를 이름으로 분리
       return {
         surname: trimmed.charAt(0),
-        givenName: trimmed.slice(1)
+        givenName: trimmed.slice(1),
       }
     }
   }
@@ -137,14 +140,14 @@ export function splitKoreanName(fullName: string): { surname: string; givenName:
   if (parts.length >= 2) {
     return {
       surname: parts[0],
-      givenName: parts.slice(1).join(' ')
+      givenName: parts.slice(1).join(' '),
     }
   }
 
   // 분리할 수 없는 경우 전체를 이름으로
   return {
     surname: '',
-    givenName: trimmed
+    givenName: trimmed,
   }
 }
 

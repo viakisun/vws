@@ -109,7 +109,7 @@ const initialOnboardingTemplates: OnboardingTemplate[] = [
         category: 'equipment',
         assignedTo: 'IT팀',
         dueDate: '1일차',
-        required: true
+        required: true,
       },
       {
         title: '회사 계정 생성',
@@ -117,7 +117,7 @@ const initialOnboardingTemplates: OnboardingTemplate[] = [
         category: 'account',
         assignedTo: 'IT팀',
         dueDate: '1일차',
-        required: true
+        required: true,
       },
       {
         title: '개발 환경 설정',
@@ -125,7 +125,7 @@ const initialOnboardingTemplates: OnboardingTemplate[] = [
         category: 'training',
         assignedTo: '멘토',
         dueDate: '2일차',
-        required: true
+        required: true,
       },
       {
         title: '회사 오리엔테이션',
@@ -133,7 +133,7 @@ const initialOnboardingTemplates: OnboardingTemplate[] = [
         category: 'orientation',
         assignedTo: 'HR팀',
         dueDate: '1일차',
-        required: true
+        required: true,
       },
       {
         title: '보안 교육',
@@ -141,12 +141,12 @@ const initialOnboardingTemplates: OnboardingTemplate[] = [
         category: 'training',
         assignedTo: '보안팀',
         dueDate: '3일차',
-        required: true
-      }
+        required: true,
+      },
     ],
     createdAt: '2023-01-01T00:00:00Z',
-    updatedAt: '2023-01-01T00:00:00Z'
-  }
+    updatedAt: '2023-01-01T00:00:00Z',
+  },
 ]
 
 const initialOnboardingProcesses: OnboardingProcess[] = [
@@ -171,7 +171,7 @@ const initialOnboardingProcesses: OnboardingProcess[] = [
         status: 'completed',
         completedBy: 'IT팀',
         completedAt: '2023-01-15T10:00:00Z',
-        required: true
+        required: true,
       },
       {
         id: 'item-2',
@@ -183,12 +183,12 @@ const initialOnboardingProcesses: OnboardingProcess[] = [
         status: 'completed',
         completedBy: 'IT팀',
         completedAt: '2023-01-15T11:00:00Z',
-        required: true
-      }
+        required: true,
+      },
     ],
     createdAt: '2023-01-15T00:00:00Z',
-    updatedAt: '2023-01-20T00:00:00Z'
-  }
+    updatedAt: '2023-01-20T00:00:00Z',
+  },
 ]
 
 const initialOffboardingProcesses: OffboardingProcess[] = []
@@ -201,8 +201,8 @@ const initialMentorBuddies: MentorBuddy[] = [
     buddyId: 'emp-2',
     startDate: '2023-01-15',
     status: 'active',
-    createdAt: '2023-01-15T00:00:00Z'
-  }
+    createdAt: '2023-01-15T00:00:00Z',
+  },
 ]
 
 // 스토어 생성
@@ -213,24 +213,24 @@ export const mentorBuddies = writable<MentorBuddy[]>(initialMentorBuddies)
 
 // 온보딩 템플릿 관리 함수들
 export function addOnboardingTemplate(
-  template: Omit<OnboardingTemplate, 'id' | 'createdAt' | 'updatedAt'>
+  template: Omit<OnboardingTemplate, 'id' | 'createdAt' | 'updatedAt'>,
 ) {
   const newTemplate: OnboardingTemplate = {
     ...template,
     id: `template-${Date.now()}`,
     createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    updatedAt: new Date().toISOString(),
   }
-  onboardingTemplates.update(current => [...current, newTemplate])
+  onboardingTemplates.update((current) => [...current, newTemplate])
 }
 
 export function updateOnboardingTemplate(id: string, updates: Partial<OnboardingTemplate>) {
-  onboardingTemplates.update(current =>
-    current.map(template =>
+  onboardingTemplates.update((current) =>
+    current.map((template) =>
       template.id === id
         ? { ...template, ...updates, updatedAt: new Date().toISOString() }
-        : template
-    )
+        : template,
+    ),
   )
 }
 
@@ -240,12 +240,12 @@ export function createOnboardingProcess(
   employeeName: string,
   templateId?: string,
   mentorId?: string,
-  buddyId?: string
+  buddyId?: string,
 ) {
   let template: OnboardingTemplate | null = null
   if (templateId) {
-    onboardingTemplates.subscribe(templates => {
-      template = templates.find(t => t.id === templateId) || null
+    onboardingTemplates.subscribe((templates) => {
+      template = templates.find((t) => t.id === templateId) || null
     })()
   }
 
@@ -253,7 +253,7 @@ export function createOnboardingProcess(
     template?.checklistItems?.map((item: any) => ({
       ...item,
       id: `item-${Date.now()}-${Math.random()}`,
-      status: 'pending' as const
+      status: 'pending' as const,
     })) || []
 
   const newProcess: OnboardingProcess = {
@@ -268,18 +268,18 @@ export function createOnboardingProcess(
     mentorId,
     buddyId,
     createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    updatedAt: new Date().toISOString(),
   }
 
-  onboardingProcesses.update(current => [...current, newProcess])
+  onboardingProcesses.update((current) => [...current, newProcess])
   return newProcess.id
 }
 
 export function updateOnboardingProcess(id: string, updates: Partial<OnboardingProcess>) {
-  onboardingProcesses.update(current =>
-    current.map(process =>
-      process.id === id ? { ...process, ...updates, updatedAt: new Date().toISOString() } : process
-    )
+  onboardingProcesses.update((current) =>
+    current.map((process) =>
+      process.id === id ? { ...process, ...updates, updatedAt: new Date().toISOString() } : process,
+    ),
   )
 }
 
@@ -287,19 +287,19 @@ export function completeOnboardingChecklistItem(
   processId: string,
   itemId: string,
   completedBy: string,
-  notes?: string
+  notes?: string,
 ) {
-  onboardingProcesses.update(current =>
-    current.map(process => {
+  onboardingProcesses.update((current) =>
+    current.map((process) => {
       if (process.id === processId) {
-        const updatedItems = process.checklistItems.map(item => {
+        const updatedItems = process.checklistItems.map((item) => {
           if (item.id === itemId) {
             return {
               ...item,
               status: 'completed' as const,
               completedBy,
               completedAt: new Date().toISOString(),
-              notes
+              notes,
             }
           }
           return item
@@ -307,8 +307,8 @@ export function completeOnboardingChecklistItem(
 
         // 모든 필수 항목이 완료되었는지 확인
         const allRequiredCompleted = updatedItems
-          .filter(item => item.required)
-          .every(item => item.status === 'completed')
+          .filter((item) => item.required)
+          .every((item) => item.status === 'completed')
 
         return {
           ...process,
@@ -317,11 +317,11 @@ export function completeOnboardingChecklistItem(
           actualCompletionDate: allRequiredCompleted
             ? new Date().toISOString().split('T')[0]
             : undefined,
-          updatedAt: new Date().toISOString()
+          updatedAt: new Date().toISOString(),
         }
       }
       return process
-    })
+    }),
   )
 }
 
@@ -330,7 +330,7 @@ export function createOffboardingProcess(
   employeeId: string,
   employeeName: string,
   lastWorkingDate: string,
-  reason: OffboardingProcess['reason']
+  reason: OffboardingProcess['reason'],
 ) {
   const checklistItems: OffboardingChecklistItem[] = [
     {
@@ -340,7 +340,7 @@ export function createOffboardingProcess(
       category: 'equipment-return',
       assignedTo: 'IT팀',
       status: 'pending',
-      required: true
+      required: true,
     },
     {
       id: `item-${Date.now()}-2`,
@@ -349,7 +349,7 @@ export function createOffboardingProcess(
       category: 'account-cleanup',
       assignedTo: 'IT팀',
       status: 'pending',
-      required: true
+      required: true,
     },
     {
       id: `item-${Date.now()}-3`,
@@ -358,7 +358,7 @@ export function createOffboardingProcess(
       category: 'knowledge-transfer',
       assignedTo: '직속상사',
       status: 'pending',
-      required: true
+      required: true,
     },
     {
       id: `item-${Date.now()}-4`,
@@ -367,8 +367,8 @@ export function createOffboardingProcess(
       category: 'exit-interview',
       assignedTo: 'HR팀',
       status: 'pending',
-      required: true
-    }
+      required: true,
+    },
   ]
 
   const newProcess: OffboardingProcess = {
@@ -383,10 +383,10 @@ export function createOffboardingProcess(
     checklistItems,
     reason,
     createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    updatedAt: new Date().toISOString(),
   }
 
-  offboardingProcesses.update(current => [...current, newProcess])
+  offboardingProcesses.update((current) => [...current, newProcess])
   return newProcess.id
 }
 
@@ -394,19 +394,19 @@ export function completeOffboardingChecklistItem(
   processId: string,
   itemId: string,
   completedBy: string,
-  notes?: string
+  notes?: string,
 ) {
-  offboardingProcesses.update(current =>
-    current.map(process => {
+  offboardingProcesses.update((current) =>
+    current.map((process) => {
       if (process.id === processId) {
-        const updatedItems = process.checklistItems.map(item => {
+        const updatedItems = process.checklistItems.map((item) => {
           if (item.id === itemId) {
             return {
               ...item,
               status: 'completed' as const,
               completedBy,
               completedAt: new Date().toISOString(),
-              notes
+              notes,
             }
           }
           return item
@@ -414,8 +414,8 @@ export function completeOffboardingChecklistItem(
 
         // 모든 필수 항목이 완료되었는지 확인
         const allRequiredCompleted = updatedItems
-          .filter(item => item.required)
-          .every(item => item.status === 'completed')
+          .filter((item) => item.required)
+          .every((item) => item.status === 'completed')
 
         return {
           ...process,
@@ -424,11 +424,11 @@ export function completeOffboardingChecklistItem(
           actualCompletionDate: allRequiredCompleted
             ? new Date().toISOString().split('T')[0]
             : undefined,
-          updatedAt: new Date().toISOString()
+          updatedAt: new Date().toISOString(),
         }
       }
       return process
-    })
+    }),
   )
 }
 
@@ -441,48 +441,48 @@ export function assignMentorBuddy(employeeId: string, mentorId?: string, buddyId
     buddyId: buddyId || '',
     startDate: new Date().toISOString().split('T')[0] || '',
     status: 'active',
-    createdAt: new Date().toISOString()
+    createdAt: new Date().toISOString(),
   }
 
-  mentorBuddies.update(current => [...current, newMentorBuddy])
+  mentorBuddies.update((current) => [...current, newMentorBuddy])
 }
 
 export function updateMentorBuddy(id: string, updates: Partial<MentorBuddy>) {
-  mentorBuddies.update(current =>
-    current.map(mentor => (mentor.id === id ? { ...mentor, ...updates } : mentor))
+  mentorBuddies.update((current) =>
+    current.map((mentor) => (mentor.id === id ? { ...mentor, ...updates } : mentor)),
   )
 }
 
 // 유틸리티 함수들
 export function getOnboardingProcessByEmployee(
   employeeId: string,
-  processList: OnboardingProcess[]
+  processList: OnboardingProcess[],
 ): OnboardingProcess | undefined {
-  return processList.find(process => process.employeeId === employeeId)
+  return processList.find((process) => process.employeeId === employeeId)
 }
 
 export function getOffboardingProcessByEmployee(
   employeeId: string,
-  processList: OffboardingProcess[]
+  processList: OffboardingProcess[],
 ): OffboardingProcess | undefined {
-  return processList.find(process => process.employeeId === employeeId)
+  return processList.find((process) => process.employeeId === employeeId)
 }
 
 export function getMentorBuddyByEmployee(
   employeeId: string,
-  mentorList: MentorBuddy[]
+  mentorList: MentorBuddy[],
 ): MentorBuddy | undefined {
-  return mentorList.find(mentor => mentor.employeeId === employeeId && mentor.status === 'active')
+  return mentorList.find((mentor) => mentor.employeeId === employeeId && mentor.status === 'active')
 }
 
 export function getOnboardingProgress(process: OnboardingProcess): number {
   if (process.checklistItems.length === 0) return 0
-  const completedItems = process.checklistItems.filter(item => item.status === 'completed').length
+  const completedItems = process.checklistItems.filter((item) => item.status === 'completed').length
   return Math.round((completedItems / process.checklistItems.length) * 100)
 }
 
 export function getOffboardingProgress(process: OffboardingProcess): number {
   if (process.checklistItems.length === 0) return 0
-  const completedItems = process.checklistItems.filter(item => item.status === 'completed').length
+  const completedItems = process.checklistItems.filter((item) => item.status === 'completed').length
   return Math.round((completedItems / process.checklistItems.length) * 100)
 }

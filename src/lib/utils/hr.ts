@@ -119,7 +119,7 @@ export function isTeamLeader(employee: Employee): boolean {
     '재무이사',
     '기술이사',
     '연구소장',
-    '상무'
+    '상무',
   ]
   return leaderPositions.includes(employee.position)
 }
@@ -204,7 +204,7 @@ export function formatDate(dateString: string): string {
   return date.toLocaleDateString('ko-KR', {
     year: 'numeric',
     month: 'long',
-    day: 'numeric'
+    day: 'numeric',
   })
 }
 
@@ -250,10 +250,10 @@ export function searchEmployees(employees: Employee[], query: string): Employee[
 
   const lowercaseQuery = query.toLowerCase()
   return employees.filter(
-    emp =>
+    (emp) =>
       emp.name.toLowerCase().includes(lowercaseQuery) ||
       emp.email.toLowerCase().includes(lowercaseQuery) ||
-      emp.employeeId.toLowerCase().includes(lowercaseQuery)
+      emp.employeeId.toLowerCase().includes(lowercaseQuery),
   )
 }
 
@@ -268,9 +268,9 @@ export function filterEmployees(
     status?: EmployeeStatus
     employmentType?: EmploymentType
     level?: EmployeeLevel
-  }
+  },
 ): Employee[] {
-  return employees.filter(emp => {
+  return employees.filter((emp) => {
     if (filters.department && emp.department !== filters.department) return false
     if (filters.position && emp.position !== filters.position) return false
     if (filters.status && emp.status !== filters.status) return false
@@ -299,7 +299,7 @@ export type EmployeeSortOption =
 export function sortEmployees(
   employees: Employee[],
   sortBy: EmployeeSortOption,
-  direction: 'asc' | 'desc' = 'asc'
+  direction: 'asc' | 'desc' = 'asc',
 ): Employee[] {
   const sorted = [...employees].sort((a, b) => {
     let aValue: string | number
@@ -355,7 +355,7 @@ export function sortEmployees(
  */
 export function getDepartmentStats(employees: Employee[]): Record<string, number> {
   const stats: Record<string, number> = {}
-  employees.forEach(emp => {
+  employees.forEach((emp) => {
     stats[emp.department] = (stats[emp.department] || 0) + 1
   })
   return stats
@@ -366,7 +366,7 @@ export function getDepartmentStats(employees: Employee[]): Record<string, number
  */
 export function getPositionStats(employees: Employee[]): Record<string, number> {
   const stats: Record<string, number> = {}
-  employees.forEach(emp => {
+  employees.forEach((emp) => {
     stats[emp.position] = (stats[emp.position] || 0) + 1
   })
   return stats
@@ -380,9 +380,9 @@ export function getEmploymentTypeStats(employees: Employee[]): Record<Employment
     'full-time': 0,
     'part-time': 0,
     contract: 0,
-    intern: 0
+    intern: 0,
   }
-  employees.forEach(emp => {
+  employees.forEach((emp) => {
     stats[emp.employmentType]++
   })
   return stats

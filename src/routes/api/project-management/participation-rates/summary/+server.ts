@@ -4,6 +4,7 @@
 import { json } from '@sveltejs/kit'
 import { query } from '$lib/database/connection'
 import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger'
 
 export const GET: RequestHandler = async () => {
   try {
@@ -47,7 +48,7 @@ export const GET: RequestHandler = async () => {
 
     // 프로젝트별 정보를 직원별로 그룹화
     const projectDetailsMap = new Map()
-    projectDetailsResult.rows.forEach(row => {
+    projectDetailsResult.rows.forEach((row) => {
       if (!projectDetailsMap.has(row.employee_id)) {
         projectDetailsMap.set(row.employee_id, [])
       }
@@ -57,12 +58,12 @@ export const GET: RequestHandler = async () => {
         projectCode: row.project_code,
         participationRate: row.participation_rate,
         role: row.role,
-        status: row.status
+        status: row.status,
       })
     })
 
     // 요약 데이터에 프로젝트 상세 정보 추가
-    const summary = summaryResult.rows.map(row => ({
+    const summary = summaryResult.rows.map((row) => ({
       employeeId: row.employee_id,
       employeeName: row.employee_name,
       department: row.department,
@@ -70,40 +71,40 @@ export const GET: RequestHandler = async () => {
       activeProjects: parseInt(row.active_projects),
       totalParticipationRate: parseInt(row.total_participation_rate),
       participationStatus: row.participation_status,
-      projects: projectDetailsMap.get(row.employee_id) || []
+      projects: projectDetailsMap.get(row.employee_id) || [],
     }))
 
     // 통계 정보 계산
     const stats = {
       totalEmployees: summary.length,
-      overLimitEmployees: summary.filter(emp => emp.participationStatus === 'OVER_LIMIT').length,
-      fullEmployees: summary.filter(emp => emp.participationStatus === 'FULL').length,
-      availableEmployees: summary.filter(emp => emp.participationStatus === 'AVAILABLE').length,
+      overLimitEmployees: summary.filter((emp) => emp.participationStatus === 'OVER_LIMIT').length,
+      fullEmployees: summary.filter((emp) => emp.participationStatus === 'FULL').length,
+      availableEmployees: summary.filter((emp) => emp.participationStatus === 'AVAILABLE').length,
       averageParticipationRate:
         summary.length > 0
           ? Math.round(
               (summary.reduce((sum, emp) => sum + emp.totalParticipationRate, 0) / summary.length) *
-                10
+                10,
             ) / 10
-          : 0
+          : 0,
     }
 
     return json({
       success: true,
       data: {
         summary,
-        stats
-      }
+        stats,
+      },
     })
   } catch (error) {
-    console.error('참여율 요약 조회 실패:', error)
+    logger.error('참여율 요약 조회 실패:', error)
     return json(
       {
         success: false,
         message: '참여율 요약을 불러오는데 실패했습니다.',
-        error: error instanceof Error ? error.message : '알 수 없는 오류'
+        error: error instanceof Error ? error.message : '알 수 없는 오류',
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

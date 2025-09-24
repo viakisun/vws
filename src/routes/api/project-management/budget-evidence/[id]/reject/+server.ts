@@ -1,6 +1,7 @@
 import { query } from '$lib/database/connection'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger'
 
 // PUT /api/project-management/budget-evidence/[id]/reject - 증빙 내역 거부
 export const PUT: RequestHandler = async ({ params, request }) => {
@@ -15,9 +16,9 @@ export const PUT: RequestHandler = async ({ params, request }) => {
       return json(
         {
           success: false,
-          message: '증빙 내역을 찾을 수 없습니다.'
+          message: '증빙 내역을 찾을 수 없습니다.',
         },
-        { status: 404 }
+        { status: 404 },
       )
     }
 
@@ -39,17 +40,17 @@ export const PUT: RequestHandler = async ({ params, request }) => {
     return json({
       success: true,
       data: result.rows[0],
-      message: '증빙 내역이 거부되었습니다.'
+      message: '증빙 내역이 거부되었습니다.',
     })
   } catch (error) {
-    console.error('증빙 내역 거부 실패:', error)
+    logger.error('증빙 내역 거부 실패:', error)
     return json(
       {
         success: false,
         message: '증빙 내역 거부에 실패했습니다.',
-        error: (error as Error).message
+        error: (error as Error).message,
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

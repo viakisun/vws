@@ -8,8 +8,8 @@ export async function GET({ url }) {
     const period = url.searchParams.get('period') // YYYY-MM 형식
     const status = url.searchParams.get('status')
 
-    let conditions: string[] = []
-    let params: (string | number)[] = []
+    const conditions: string[] = []
+    const params: (string | number)[] = []
     let paramIndex = 1
 
     if (employeeId) {
@@ -61,7 +61,7 @@ export async function GET({ url }) {
 			${whereClause}
 			ORDER BY p.period DESC, p.created_at DESC
 			`,
-      params
+      params,
     )
 
     return json({ success: true, data: rows })
@@ -70,9 +70,9 @@ export async function GET({ url }) {
       {
         success: false,
         error: '급여명세서 목록을 가져오는데 실패했습니다.',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        details: error instanceof Error ? error.message : 'Unknown error',
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
@@ -92,7 +92,7 @@ export async function POST({ request }) {
       payments,
       deductions,
       status = 'draft',
-      isGenerated = false
+      isGenerated = false,
     } = payslipData
 
     // 필수 필드 검증
@@ -100,9 +100,9 @@ export async function POST({ request }) {
       return json(
         {
           success: false,
-          error: '필수 필드가 누락되었습니다. (employeeId, period, payDate)'
+          error: '필수 필드가 누락되었습니다. (employeeId, period, payDate)',
         },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -114,7 +114,7 @@ export async function POST({ request }) {
     // 기존 급여명세서가 있는지 확인
     const existingPayslip = await query(
       'SELECT id FROM payslips WHERE employee_id = $1 AND period = $2',
-      [employeeId, period]
+      [employeeId, period],
     )
 
     let result
@@ -153,8 +153,8 @@ export async function POST({ request }) {
           JSON.stringify(payments),
           JSON.stringify(deductions),
           status,
-          isGenerated
-        ]
+          isGenerated,
+        ],
       )
     } else {
       // 새 급여명세서 생성
@@ -182,8 +182,8 @@ export async function POST({ request }) {
           JSON.stringify(payments),
           JSON.stringify(deductions),
           status,
-          isGenerated
-        ]
+          isGenerated,
+        ],
       )
     }
 
@@ -193,9 +193,9 @@ export async function POST({ request }) {
       {
         success: false,
         error: '급여명세서 저장에 실패했습니다.',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        details: error instanceof Error ? error.message : 'Unknown error',
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

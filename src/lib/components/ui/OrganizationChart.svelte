@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { logger } from '$lib/utils/logger'
+
   import { onMount } from 'svelte'
   import { DownloadIcon, PrinterIcon } from '@lucide/svelte'
 
@@ -45,7 +47,7 @@
         companyName = result.data.name || 'VIA WorkStream'
       }
     } catch (err) {
-      console.error('Error loading company info:', err)
+      logger.error('Error loading company info:', err)
       // 기본값 유지
     }
   }
@@ -64,7 +66,7 @@
       }
     } catch (err) {
       error = '조직도 데이터를 불러오는 중 오류가 발생했습니다.'
-      console.error('Error loading org data:', err)
+      logger.error('Error loading org data:', err)
     } finally {
       loading = false
     }
@@ -85,7 +87,7 @@
       window.URL.revokeObjectURL(url)
       document.body.removeChild(a)
     } catch (err) {
-      console.error('Error downloading CSV:', err)
+      logger.error('Error downloading CSV:', err)
       alert('다운로드 중 오류가 발생했습니다.')
     }
   }
@@ -137,13 +139,14 @@
   <!-- 헤더 -->
   <div class="flex items-center justify-between print-hidden mb-4">
     <div>
-      <h2 class="text-xl font-bold" style="color: var(--color-text);">조직도</h2>
-      <p class="text-xs mt-1" style="color: var(--color-text-secondary);">
+      <h2 class="text-xl font-bold" style:color="var(--color-text)">조직도</h2>
+      <p class="text-xs mt-1" style:color="var(--color-text-secondary)">
         {companyName} 조직 구조
       </p>
     </div>
     <div class="flex gap-2">
       <button
+        type="button"
         onclick={togglePrintView}
         class="flex items-center gap-1 px-3 py-1 bg-gray-600 text-white rounded text-sm hover:bg-gray-700 transition-colors"
       >
@@ -151,6 +154,7 @@
         프린트
       </button>
       <button
+        type="button"
         onclick={downloadCSV}
         class="flex items-center gap-1 px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 transition-colors"
       >
@@ -163,7 +167,9 @@
   <!-- 프린트용 헤더 -->
   <div class="print-visible hidden text-center mb-2">
     <h1 class="text-lg font-bold text-black mb-1">{companyName} 조직도</h1>
-    <p class="text-xs text-gray-600">생성일: {new Date().toLocaleDateString('ko-KR')}</p>
+    <p class="text-xs text-gray-600">
+      생성일: {new Date().toLocaleDateString('ko-KR')}
+    </p>
   </div>
 
   <!-- 로딩 상태 -->
@@ -173,13 +179,14 @@
         <div
           class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto mb-2"
         ></div>
-        <p class="text-xs" style="color: var(--color-text-secondary);">로딩 중...</p>
+        <p class="text-xs" style:color="var(--color-text-secondary)">로딩 중...</p>
       </div>
     </div>
   {:else if error}
     <div class="text-center py-8">
       <p class="text-red-600 text-sm mb-2">{error}</p>
       <button
+        type="button"
         onclick={loadOrgData}
         class="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 transition-colors"
       >
@@ -189,7 +196,7 @@
   {:else}
     <!-- 단순한 조직도 표시 -->
     <div class="space-y-3">
-      {#each Object.entries(orgData) as [execName, executive]}
+      {#each Object.entries(orgData) as [_execName, executive] (_execName)}
         <div class="border border-gray-300 bg-white">
           <!-- 임원 헤더 -->
           <div class="bg-gray-100 border-b border-gray-300 px-3 py-2">
@@ -204,7 +211,7 @@
 
           <!-- 부서들 -->
           <div class="p-2">
-            {#each executive.children as department}
+            {#each executive.children as department, i (i)}
               <div class="mb-2 last:mb-0">
                 <!-- 부서명 -->
                 <div class="flex items-center gap-2 mb-1">
@@ -216,7 +223,8 @@
 
                 <!-- 직원들 -->
                 <div class="ml-5 space-y-1">
-                  {#each sortEmployees(department.children) as employee}
+                  {#each sortEmployees(department.children) as employee, idx (idx)}
+                    <!-- TODO: replace index key with a stable id when model provides one -->
                     <div class="flex items-center gap-2 text-xs">
                       <div class="w-2 h-2 bg-gray-400 rounded-full"></div>
                       <span class="text-gray-800">{employee.name}</span>

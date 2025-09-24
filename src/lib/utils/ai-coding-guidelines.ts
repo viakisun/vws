@@ -27,9 +27,9 @@ export const AI_CODING_GUIDELINES: CodingGuideline[] = [
     description: '데이터베이스 칼럼명은 소문자와 언더스코어를 사용해야 합니다.',
     examples: {
       good: ['user_id', 'created_at', 'first_name', 'budget_total'],
-      bad: ['userId', 'CreatedAt', 'firstName', 'budget-total', 'BudgetTotal']
+      bad: ['userId', 'CreatedAt', 'firstName', 'budget-total', 'BudgetTotal'],
     },
-    severity: 'error'
+    severity: 'error',
   },
   {
     id: 'table-naming',
@@ -38,9 +38,9 @@ export const AI_CODING_GUIDELINES: CodingGuideline[] = [
     description: '테이블명은 복수형 소문자와 언더스코어를 사용해야 합니다.',
     examples: {
       good: ['projects', 'project_budgets', 'project_members', 'evidence_items'],
-      bad: ['Project', 'projectBudget', 'project-members', 'EvidenceItems']
+      bad: ['Project', 'projectBudget', 'project-members', 'EvidenceItems'],
     },
-    severity: 'error'
+    severity: 'error',
   },
   {
     id: 'foreign-key-naming',
@@ -49,9 +49,9 @@ export const AI_CODING_GUIDELINES: CodingGuideline[] = [
     description: '외래키는 참조하는 테이블명_id 형태여야 합니다.',
     examples: {
       good: ['project_id', 'employee_id', 'category_id', 'budget_id'],
-      bad: ['projectId', 'employee', 'cat_id', 'budgetId']
+      bad: ['projectId', 'employee', 'cat_id', 'budgetId'],
     },
-    severity: 'error'
+    severity: 'error',
   },
   {
     id: 'api-endpoint-naming',
@@ -60,9 +60,9 @@ export const AI_CODING_GUIDELINES: CodingGuideline[] = [
     description: 'API 엔드포인트는 kebab-case를 사용해야 합니다.',
     examples: {
       good: ['/api/project-management/projects', '/api/project-management/budget-validation'],
-      bad: ['/api/projectManagement/projects', '/api/project_management/budgetValidation']
+      bad: ['/api/projectManagement/projects', '/api/project_management/budgetValidation'],
     },
-    severity: 'error'
+    severity: 'error',
   },
   {
     id: 'variable-naming',
@@ -71,9 +71,9 @@ export const AI_CODING_GUIDELINES: CodingGuideline[] = [
     description: 'JavaScript/TypeScript 변수명은 camelCase를 사용해야 합니다.',
     examples: {
       good: ['projectId', 'budgetTotal', 'isValid', 'validationResults'],
-      bad: ['project_id', 'budget_total', 'is_valid', 'validation_results']
+      bad: ['project_id', 'budget_total', 'is_valid', 'validation_results'],
     },
-    severity: 'error'
+    severity: 'error',
   },
   {
     id: 'function-naming',
@@ -82,9 +82,9 @@ export const AI_CODING_GUIDELINES: CodingGuideline[] = [
     description: '함수명은 동사로 시작하는 camelCase를 사용해야 합니다.',
     examples: {
       good: ['validateProject', 'calculateBudget', 'getEmployeeInfo', 'createValidationResult'],
-      bad: ['project_validate', 'budget_calculate', 'employee_info', 'validation_result_create']
+      bad: ['project_validate', 'budget_calculate', 'employee_info', 'validation_result_create'],
     },
-    severity: 'error'
+    severity: 'error',
   },
   {
     id: 'class-naming',
@@ -93,9 +93,9 @@ export const AI_CODING_GUIDELINES: CodingGuideline[] = [
     description: '클래스명은 PascalCase를 사용해야 합니다.',
     examples: {
       good: ['ValidationUtils', 'PersonnelCostValidator', 'ProjectManager', 'BudgetCalculator'],
-      bad: ['validation_utils', 'personnelCostValidator', 'project_manager', 'budget_calculator']
+      bad: ['validation_utils', 'personnelCostValidator', 'project_manager', 'budget_calculator'],
     },
-    severity: 'error'
+    severity: 'error',
   },
   {
     id: 'constant-naming',
@@ -104,9 +104,9 @@ export const AI_CODING_GUIDELINES: CodingGuideline[] = [
     description: '상수명은 UPPER_SNAKE_CASE를 사용해야 합니다.',
     examples: {
       good: ['DEFAULT_VALIDATION_RULES', 'MAX_RETRY_COUNT', 'API_BASE_URL'],
-      bad: ['defaultValidationRules', 'maxRetryCount', 'apiBaseUrl']
+      bad: ['defaultValidationRules', 'maxRetryCount', 'apiBaseUrl'],
     },
-    severity: 'warning'
+    severity: 'warning',
   },
   {
     id: 'sql-query-formatting',
@@ -121,13 +121,13 @@ export const AI_CODING_GUIDELINES: CodingGuideline[] = [
 					p.budget_total
 				FROM projects p
 				WHERE p.status = 'active'
-				ORDER BY p.created_at DESC`
+				ORDER BY p.created_at DESC`,
       ],
       bad: [
-        `SELECT p.id, p.title, p.budget_total FROM projects p WHERE p.status = 'active' ORDER BY p.created_at DESC`
-      ]
+        `SELECT p.id, p.title, p.budget_total FROM projects p WHERE p.status = 'active' ORDER BY p.created_at DESC`,
+      ],
     },
-    severity: 'warning'
+    severity: 'warning',
   },
   {
     id: 'error-handling',
@@ -140,17 +140,17 @@ export const AI_CODING_GUIDELINES: CodingGuideline[] = [
 					const result = await pool.query(query, params);
 					return result.rows;
 				} catch (error) {
-					console.error('Database query error:', error);
+					logger.error('Database query error:', error);
 					throw new Error('데이터베이스 쿼리 실패');
-				}`
+				}`,
       ],
       bad: [
         `const result = await pool.query(query, params);
-				return result.rows;`
-      ]
+				return result.rows;`,
+      ],
     },
-    severity: 'error'
-  }
+    severity: 'error',
+  },
 ]
 
 // 검증 규칙 정의
@@ -159,37 +159,37 @@ export const VALIDATION_RULES: ValidationRule[] = [
   {
     pattern: /^[a-z][a-z0-9_]*$/,
     message: '칼럼명은 소문자로 시작하고, 소문자, 숫자, 언더스코어만 사용할 수 있습니다.',
-    severity: 'error'
+    severity: 'error',
   },
   {
     pattern: /^[a-z][a-z0-9_]*_id$/,
     message: '외래키 칼럼명은 테이블명_id 형태여야 합니다.',
-    severity: 'error'
+    severity: 'error',
   },
   // 변수명 규칙
   {
     pattern: /^[a-z][a-zA-Z0-9]*$/,
     message: '변수명은 camelCase를 사용해야 합니다.',
-    severity: 'error'
+    severity: 'error',
   },
   // 함수명 규칙
   {
     pattern: /^[a-z][a-zA-Z0-9]*$/,
     message: '함수명은 동사로 시작하는 camelCase를 사용해야 합니다.',
-    severity: 'error'
+    severity: 'error',
   },
   // 클래스명 규칙
   {
     pattern: /^[A-Z][a-zA-Z0-9]*$/,
     message: '클래스명은 PascalCase를 사용해야 합니다.',
-    severity: 'error'
+    severity: 'error',
   },
   // 상수명 규칙
   {
     pattern: /^[A-Z][A-Z0-9_]*$/,
     message: '상수명은 UPPER_SNAKE_CASE를 사용해야 합니다.',
-    severity: 'warning'
-  }
+    severity: 'warning',
+  },
 ]
 
 // AI 코딩 가이드라인 검증 도구
@@ -197,7 +197,10 @@ export class AICodingValidator {
   /**
    * 칼럼명 검증
    */
-  static validateColumnName(columnName: string): { isValid: boolean; issues: string[] } {
+  static validateColumnName(columnName: string): {
+    isValid: boolean
+    issues: string[]
+  } {
     const issues: string[] = []
 
     // 1. 소문자 검증
@@ -217,21 +220,24 @@ export class AICodingValidator {
     }
 
     // 4. 패턴 검증
-    const columnRule = VALIDATION_RULES.find(rule => rule.message.includes('칼럼명'))
+    const columnRule = VALIDATION_RULES.find((rule) => rule.message.includes('칼럼명'))
     if (columnRule && !columnRule.pattern.test(columnName)) {
       issues.push(columnRule.message)
     }
 
     return {
       isValid: issues.length === 0,
-      issues
+      issues,
     }
   }
 
   /**
    * 변수명 검증
    */
-  static validateVariableName(variableName: string): { isValid: boolean; issues: string[] } {
+  static validateVariableName(variableName: string): {
+    isValid: boolean
+    issues: string[]
+  } {
     const issues: string[] = []
 
     // 1. camelCase 검증
@@ -251,14 +257,17 @@ export class AICodingValidator {
 
     return {
       isValid: issues.length === 0,
-      issues
+      issues,
     }
   }
 
   /**
    * 함수명 검증
    */
-  static validateFunctionName(functionName: string): { isValid: boolean; issues: string[] } {
+  static validateFunctionName(functionName: string): {
+    isValid: boolean
+    issues: string[]
+  } {
     const issues: string[] = []
 
     // 1. camelCase 검증
@@ -292,9 +301,9 @@ export class AICodingValidator {
       'load',
       'save',
       'export',
-      'import'
+      'import',
     ]
-    const startsWithVerb = verbPrefixes.some(prefix => functionName.startsWith(prefix))
+    const startsWithVerb = verbPrefixes.some((prefix) => functionName.startsWith(prefix))
 
     if (!startsWithVerb) {
       issues.push('함수명은 동사로 시작해야 합니다. (예: get, set, create, validate 등)')
@@ -302,14 +311,17 @@ export class AICodingValidator {
 
     return {
       isValid: issues.length === 0,
-      issues
+      issues,
     }
   }
 
   /**
    * 클래스명 검증
    */
-  static validateClassName(className: string): { isValid: boolean; issues: string[] } {
+  static validateClassName(className: string): {
+    isValid: boolean
+    issues: string[]
+  } {
     const issues: string[] = []
 
     // 1. PascalCase 검증
@@ -331,9 +343,9 @@ export class AICodingValidator {
       'Utils',
       'Helper',
       'Factory',
-      'Builder'
+      'Builder',
     ]
-    const endsWithNoun = nounSuffixes.some(suffix => className.endsWith(suffix))
+    const endsWithNoun = nounSuffixes.some((suffix) => className.endsWith(suffix))
 
     if (!endsWithNoun) {
       issues.push('클래스명은 명사로 끝나야 합니다. (예: Manager, Validator, Utils 등)')
@@ -341,14 +353,17 @@ export class AICodingValidator {
 
     return {
       isValid: issues.length === 0,
-      issues
+      issues,
     }
   }
 
   /**
    * SQL 쿼리 검증
    */
-  static validateSQLQuery(query: string): { isValid: boolean; issues: string[] } {
+  static validateSQLQuery(query: string): {
+    isValid: boolean
+    issues: string[]
+  } {
     const issues: string[] = []
 
     // 1. SQL 인젝션 방지 검증
@@ -357,7 +372,7 @@ export class AICodingValidator {
       /;\s*delete\s+from/i,
       /;\s*truncate/i,
       /union\s+select/i,
-      /or\s+1\s*=\s*1/i
+      /or\s+1\s*=\s*1/i,
     ]
 
     for (const pattern of dangerousPatterns) {
@@ -388,7 +403,7 @@ export class AICodingValidator {
 
     return {
       isValid: issues.length === 0,
-      issues
+      issues,
     }
   }
 
@@ -397,23 +412,30 @@ export class AICodingValidator {
    */
   static validateCode(
     code: string,
-    language: 'typescript' | 'sql' | 'javascript'
+    language: 'typescript' | 'sql' | 'javascript',
   ): {
     isValid: boolean
-    issues: Array<{ type: string; message: string; severity: 'error' | 'warning' | 'info' }>
+    issues: Array<{
+      type: string
+      message: string
+      severity: 'error' | 'warning' | 'info'
+    }>
   } {
-    const issues: Array<{ type: string; message: string; severity: 'error' | 'warning' | 'info' }> =
-      []
+    const issues: Array<{
+      type: string
+      message: string
+      severity: 'error' | 'warning' | 'info'
+    }> = []
 
     if (language === 'sql') {
       const sqlValidation = this.validateSQLQuery(code)
       if (!sqlValidation.isValid) {
         issues.push(
-          ...sqlValidation.issues.map(issue => ({
+          ...sqlValidation.issues.map((issue) => ({
             type: 'sql',
             message: issue,
-            severity: 'error' as const
-          }))
+            severity: 'error' as const,
+          })),
         )
       }
     }
@@ -425,7 +447,7 @@ export class AICodingValidator {
         issues.push({
           type: 'error-handling',
           message: '비동기 작업에는 적절한 에러 처리가 필요합니다.',
-          severity: 'error'
+          severity: 'error',
         })
       }
 
@@ -434,14 +456,14 @@ export class AICodingValidator {
         issues.push({
           type: 'type-safety',
           message: 'any 타입 사용을 피하고 구체적인 타입을 사용하세요.',
-          severity: 'warning'
+          severity: 'warning',
         })
       }
     }
 
     return {
       isValid: issues.length === 0,
-      issues
+      issues,
     }
   }
 
@@ -450,7 +472,7 @@ export class AICodingValidator {
    */
   static getGuidelines(category?: string): CodingGuideline[] {
     if (category) {
-      return AI_CODING_GUIDELINES.filter(guideline => guideline.category === category)
+      return AI_CODING_GUIDELINES.filter((guideline) => guideline.category === category)
     }
     return AI_CODING_GUIDELINES
   }

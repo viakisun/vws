@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { logger } from '$lib/utils/logger'
+
   import type { AnnualBudgetFormData } from '$lib/types/project-budget'
   import { toUTC } from '$lib/utils/date-handler'
   import { formatDateForInput } from '$lib/utils/format'
@@ -19,8 +21,8 @@
       endDate: '',
       governmentFunding: 0,
       companyCash: 0,
-      companyInKind: 0
-    }
+      companyInKind: 0,
+    },
   ])
 
   let isSubmitting = $state(false)
@@ -38,22 +40,22 @@
 
       if (result.success && result.data?.budgets && result.data.budgets.length > 0) {
         // 기존 예산 데이터가 있으면 로드 (UTC 날짜 처리 함수 사용)
-        console.log('기존 예산 데이터 로드:', result.data.budgets)
-        budgets = result.data.budgets.map(budget => ({
+        logger.log('기존 예산 데이터 로드:', result.data.budgets)
+        budgets = result.data.budgets.map((budget) => ({
           year: budget.year,
           startDate: budget.startDate ? formatDateForInput(budget.startDate) : '',
           endDate: budget.endDate ? formatDateForInput(budget.endDate) : '',
           governmentFunding: budget.governmentFunding || 0,
           companyCash: budget.companyCash || 0,
           companyInKind: budget.companyInKind || 0,
-          notes: budget.notes || ''
+          notes: budget.notes || '',
         }))
-        console.log('변환된 예산 데이터:', budgets)
+        logger.log('변환된 예산 데이터:', budgets)
       } else {
-        console.log('기존 예산 데이터 없음 - 기본값 사용')
+        logger.log('기존 예산 데이터 없음 - 기본값 사용')
       }
     } catch (error) {
-      console.error('기존 예산 데이터 로드 실패:', error)
+      logger.error('기존 예산 데이터 로드 실패:', error)
     } finally {
       isLoading = false
     }
@@ -98,7 +100,7 @@
       endDate,
       governmentFunding: 0,
       companyCash: 0,
-      companyInKind: 0
+      companyInKind: 0,
     })
   }
 
@@ -124,22 +126,25 @@
   }
 
   // 전체 사업 기간 계산 (UTC 기준)
-  function calculateProjectPeriod(): { startDate: string | null; endDate: string | null } {
-    const validBudgets = budgets.filter(b => b.startDate && b.endDate)
+  function calculateProjectPeriod(): {
+    startDate: string | null
+    endDate: string | null
+  } {
+    const validBudgets = budgets.filter((b) => b.startDate && b.endDate)
     if (validBudgets.length === 0) {
       return { startDate: null, endDate: null }
     }
 
     // UTC 기준으로 날짜 변환
-    const startDatesUTC = validBudgets.map(b => new Date(toUTC(b.startDate!)))
-    const endDatesUTC = validBudgets.map(b => new Date(toUTC(b.endDate!)))
+    const startDatesUTC = validBudgets.map((b) => new Date(toUTC(b.startDate!)))
+    const endDatesUTC = validBudgets.map((b) => new Date(toUTC(b.endDate!)))
 
-    const projectStartDate = new Date(Math.min(...startDatesUTC.map(d => d.getTime())))
-    const projectEndDate = new Date(Math.max(...endDatesUTC.map(d => d.getTime())))
+    const projectStartDate = new Date(Math.min(...startDatesUTC.map((d) => d.getTime())))
+    const projectEndDate = new Date(Math.max(...endDatesUTC.map((d) => d.getTime())))
 
     return {
       startDate: formatDateForInput(projectStartDate.toISOString()),
-      endDate: formatDateForInput(projectEndDate.toISOString())
+      endDate: formatDateForInput(projectEndDate.toISOString()),
     }
   }
 
@@ -147,7 +152,7 @@
   function validateForm(): boolean {
     const errors: string[] = []
 
-    budgets.forEach((budget, index) => {
+    budgets.forEach((budget, _index) => {
       const yearLabel = `${budget.year}차년도`
 
       // 기간 검증
@@ -206,12 +211,12 @@
       const response = await fetch(`/api/project-management/projects/${projectId}/annual-budgets`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           budgets,
-          projectPeriod // 전체 사업 기간도 함께 전송
-        })
+          projectPeriod, // 전체 사업 기간도 함께 전송
+        }),
       })
 
       const result = await response.json()
@@ -222,7 +227,7 @@
         validationErrors = [result.error || '예산 저장에 실패했습니다.']
       }
     } catch (error) {
-      console.error('예산 저장 오류:', error)
+      logger.error('예산 저장 오류:', error)
       validationErrors = ['예산 저장 중 오류가 발생했습니다.']
     } finally {
       isSubmitting = false
@@ -251,7 +256,7 @@
     {#if validationErrors.length > 0}
       <div class="p-3 bg-red-50 border border-red-200 rounded-lg">
         <ul class="text-sm text-red-700">
-          {#each validationErrors as error}
+          {#each validationErrors as error, i (i)}
             <li>• {error}</li>
           {/each}
         </ul>
@@ -260,7 +265,7 @@
 
     <!-- 연차별 예산 입력 -->
     <div class="space-y-4">
-      {#each budgets as budget, index}
+      {#each budgets as budget, index (index)}
         <div class="border border-gray-200 rounded-lg p-4">
           <div class="flex items-center justify-between mb-4">
             <h4 class="font-medium text-gray-900">{budget.year}차년도</h4>
@@ -391,7 +396,7 @@
             </div>
             <div class="text-xs text-gray-500 mt-1">
               지원금 {formatNumber(budget.governmentFunding || 0)}천원 + 기업부담금 {formatNumber(
-                budget.companyCash || 0
+                budget.companyCash || 0,
               )}천원 + 현물지원 {formatNumber(budget.companyInKind || 0)}천원
             </div>
           </div>
@@ -427,17 +432,17 @@
           <div class="mt-2 text-xs text-blue-500 space-y-1">
             <div>
               지원금: {formatNumber(
-                budgets.reduce((sum, b) => sum + (b.governmentFunding || 0), 0)
+                budgets.reduce((sum, b) => sum + (b.governmentFunding || 0), 0),
               )}천원
             </div>
             <div>
               기업부담금: {formatNumber(
-                budgets.reduce((sum, b) => sum + (b.companyCash || 0), 0)
+                budgets.reduce((sum, b) => sum + (b.companyCash || 0), 0),
               )}천원
             </div>
             <div>
               현물지원: {formatNumber(
-                budgets.reduce((sum, b) => sum + (b.companyInKind || 0), 0)
+                budgets.reduce((sum, b) => sum + (b.companyInKind || 0), 0),
               )}천원
             </div>
           </div>

@@ -6,7 +6,7 @@ import {
   type BudgetCategory,
   type RequiredDocument,
   type UUID,
-  type WorkflowStep
+  type WorkflowStep,
 } from './types'
 
 // ===== 예산 카테고리 마스터 데이터 =====
@@ -22,30 +22,47 @@ const BUDGET_CATEGORY_MASTER: BudgetCategory[] = [
         type: 'PARTICIPATION_ASSIGNMENT',
         required: true,
         templateId: 'TMP-PA-001',
-        description: '참여배정서'
+        description: '참여배정서',
       },
-      { type: 'SALARY_SLIP', required: true, templateId: 'TMP-SS-001', description: '급여명세' },
+      {
+        type: 'SALARY_SLIP',
+        required: true,
+        templateId: 'TMP-SS-001',
+        description: '급여명세',
+      },
       {
         type: 'INSURANCE_DATA',
         required: true,
         templateId: 'TMP-ID-001',
-        description: '4대보험/원천세 자료'
+        description: '4대보험/원천세 자료',
       },
       {
         type: 'SALARY_DISTRIBUTION',
         required: true,
         templateId: 'TMP-SD-001',
-        description: '급여배분표'
-      }
+        description: '급여배분표',
+      },
     ],
     defaultWorkflow: [
-      { step: 1, role: UserRole.PM, action: 'approve', required: true, slaDays: 2 },
-      { step: 2, role: UserRole.MANAGEMENT_SUPPORT, action: 'approve', required: true, slaDays: 3 }
+      {
+        step: 1,
+        role: UserRole.PM,
+        action: 'approve',
+        required: true,
+        slaDays: 2,
+      },
+      {
+        step: 2,
+        role: UserRole.MANAGEMENT_SUPPORT,
+        action: 'approve',
+        required: true,
+        slaDays: 3,
+      },
     ],
     defaultSlaDays: 5,
     defaultOwners: ['경영지원팀'],
     active: true,
-    createdAt: '2024-01-01T00:00:00Z'
+    createdAt: '2024-01-01T00:00:00Z',
   },
   {
     id: 'cat-002',
@@ -58,29 +75,41 @@ const BUDGET_CATEGORY_MASTER: BudgetCategory[] = [
         type: 'PARTICIPATION_ASSIGNMENT',
         required: true,
         templateId: 'TMP-PA-001',
-        description: '참여배정서'
+        description: '참여배정서',
       },
       {
         type: 'IN_KIND_EVIDENCE',
         required: true,
         templateId: 'TMP-IK-001',
-        description: '현물지급 증빙'
+        description: '현물지급 증빙',
       },
       {
         type: 'SALARY_DISTRIBUTION',
         required: true,
         templateId: 'TMP-SD-001',
-        description: '급여배분표'
-      }
+        description: '급여배분표',
+      },
     ],
     defaultWorkflow: [
-      { step: 1, role: UserRole.PM, action: 'approve', required: true, slaDays: 2 },
-      { step: 2, role: UserRole.MANAGEMENT_SUPPORT, action: 'approve', required: true, slaDays: 3 }
+      {
+        step: 1,
+        role: UserRole.PM,
+        action: 'approve',
+        required: true,
+        slaDays: 2,
+      },
+      {
+        step: 2,
+        role: UserRole.MANAGEMENT_SUPPORT,
+        action: 'approve',
+        required: true,
+        slaDays: 3,
+      },
     ],
     defaultSlaDays: 5,
     defaultOwners: ['경영지원팀'],
     active: true,
-    createdAt: '2024-01-01T00:00:00Z'
+    createdAt: '2024-01-01T00:00:00Z',
   },
   {
     id: 'cat-003',
@@ -89,27 +118,60 @@ const BUDGET_CATEGORY_MASTER: BudgetCategory[] = [
     nameKo: '재료비',
     description: '연구용 재료 및 소모품 구매비',
     requiredDocuments: [
-      { type: 'REQUISITION', required: true, templateId: 'TMP-REQ-001', description: '기안서' },
-      { type: 'QUOTE', required: true, templateId: 'TMP-QTE-001', description: '견적서 1개 이상' },
-      { type: 'PURCHASE_ORDER', required: true, templateId: 'TMP-PO-001', description: '발주서' },
+      {
+        type: 'REQUISITION',
+        required: true,
+        templateId: 'TMP-REQ-001',
+        description: '기안서',
+      },
+      {
+        type: 'QUOTE',
+        required: true,
+        templateId: 'TMP-QTE-001',
+        description: '견적서 1개 이상',
+      },
+      {
+        type: 'PURCHASE_ORDER',
+        required: true,
+        templateId: 'TMP-PO-001',
+        description: '발주서',
+      },
       { type: 'TAX_INVOICE', required: true, description: '세금계산서' },
       { type: 'DELIVERY_NOTE', required: true, description: '납품서' },
       {
         type: 'INSPECTION_REPORT',
         required: true,
         templateId: 'TMP-INS-001',
-        description: '검수보고서'
-      }
+        description: '검수보고서',
+      },
     ],
     defaultWorkflow: [
-      { step: 1, role: UserRole.PM, action: 'approve', required: true, slaDays: 2 },
-      { step: 2, role: UserRole.DEPARTMENT_HEAD, action: 'execute', required: true, slaDays: 5 },
-      { step: 3, role: UserRole.MANAGEMENT_SUPPORT, action: 'approve', required: true, slaDays: 3 }
+      {
+        step: 1,
+        role: UserRole.PM,
+        action: 'approve',
+        required: true,
+        slaDays: 2,
+      },
+      {
+        step: 2,
+        role: UserRole.DEPARTMENT_HEAD,
+        action: 'execute',
+        required: true,
+        slaDays: 5,
+      },
+      {
+        step: 3,
+        role: UserRole.MANAGEMENT_SUPPORT,
+        action: 'approve',
+        required: true,
+        slaDays: 3,
+      },
     ],
     defaultSlaDays: 10,
     defaultOwners: ['구매팀'],
     active: true,
-    createdAt: '2024-01-01T00:00:00Z'
+    createdAt: '2024-01-01T00:00:00Z',
   },
   {
     id: 'cat-004',
@@ -118,23 +180,40 @@ const BUDGET_CATEGORY_MASTER: BudgetCategory[] = [
     nameKo: '연구활동비',
     description: '연구 활동 관련 비용',
     requiredDocuments: [
-      { type: 'REQUISITION', required: true, templateId: 'TMP-REQ-001', description: '기안서' },
+      {
+        type: 'REQUISITION',
+        required: true,
+        templateId: 'TMP-REQ-001',
+        description: '기안서',
+      },
       {
         type: 'ACTIVITY_PLAN',
         required: true,
         templateId: 'TMP-AP-001',
-        description: '활동계획서/보고서'
+        description: '활동계획서/보고서',
       },
-      { type: 'RECEIPT', required: true, description: '영수증' }
+      { type: 'RECEIPT', required: true, description: '영수증' },
     ],
     defaultWorkflow: [
-      { step: 1, role: UserRole.PM, action: 'approve', required: true, slaDays: 1 },
-      { step: 2, role: UserRole.MANAGEMENT_SUPPORT, action: 'approve', required: true, slaDays: 4 }
+      {
+        step: 1,
+        role: UserRole.PM,
+        action: 'approve',
+        required: true,
+        slaDays: 1,
+      },
+      {
+        step: 2,
+        role: UserRole.MANAGEMENT_SUPPORT,
+        action: 'approve',
+        required: true,
+        slaDays: 4,
+      },
     ],
     defaultSlaDays: 5,
     defaultOwners: ['PM'],
     active: true,
-    createdAt: '2024-01-01T00:00:00Z'
+    createdAt: '2024-01-01T00:00:00Z',
   },
   {
     id: 'cat-005',
@@ -143,18 +222,44 @@ const BUDGET_CATEGORY_MASTER: BudgetCategory[] = [
     nameKo: '출장비',
     description: '출장 관련 비용',
     requiredDocuments: [
-      { type: 'TRAVEL_PLAN', required: true, templateId: 'TMP-TP-001', description: '출장계획서' },
-      { type: 'TRAVEL_RECEIPT', required: true, description: '교통/숙박 영수증' },
-      { type: 'TRAVEL_REPORT', required: true, templateId: 'TMP-TR-001', description: '출장보고서' }
+      {
+        type: 'TRAVEL_PLAN',
+        required: true,
+        templateId: 'TMP-TP-001',
+        description: '출장계획서',
+      },
+      {
+        type: 'TRAVEL_RECEIPT',
+        required: true,
+        description: '교통/숙박 영수증',
+      },
+      {
+        type: 'TRAVEL_REPORT',
+        required: true,
+        templateId: 'TMP-TR-001',
+        description: '출장보고서',
+      },
     ],
     defaultWorkflow: [
-      { step: 1, role: UserRole.PM, action: 'approve', required: true, slaDays: 1 },
-      { step: 2, role: UserRole.MANAGEMENT_SUPPORT, action: 'approve', required: true, slaDays: 2 }
+      {
+        step: 1,
+        role: UserRole.PM,
+        action: 'approve',
+        required: true,
+        slaDays: 1,
+      },
+      {
+        step: 2,
+        role: UserRole.MANAGEMENT_SUPPORT,
+        action: 'approve',
+        required: true,
+        slaDays: 2,
+      },
     ],
     defaultSlaDays: 3,
     defaultOwners: ['PM', '담당자'],
     active: true,
-    createdAt: '2024-01-01T00:00:00Z'
+    createdAt: '2024-01-01T00:00:00Z',
   },
   {
     id: 'cat-006',
@@ -163,25 +268,53 @@ const BUDGET_CATEGORY_MASTER: BudgetCategory[] = [
     nameKo: '회의비',
     description: '회의 관련 비용',
     requiredDocuments: [
-      { type: 'REQUISITION', required: true, templateId: 'TMP-REQ-001', description: '기안서' },
+      {
+        type: 'REQUISITION',
+        required: true,
+        templateId: 'TMP-REQ-001',
+        description: '기안서',
+      },
       {
         type: 'ATTENDEE_LIST',
         required: true,
         templateId: 'TMP-AL-001',
-        description: '참석자 명단'
+        description: '참석자 명단',
       },
       { type: 'RECEIPT', required: true, description: '영수증' },
-      { type: 'MEETING_MINUTES', required: true, templateId: 'TMP-MM-001', description: '회의록' }
+      {
+        type: 'MEETING_MINUTES',
+        required: true,
+        templateId: 'TMP-MM-001',
+        description: '회의록',
+      },
     ],
     defaultWorkflow: [
-      { step: 1, role: UserRole.DEPARTMENT_HEAD, action: 'execute', required: true, slaDays: 1 },
-      { step: 2, role: UserRole.PM, action: 'approve', required: true, slaDays: 1 },
-      { step: 3, role: UserRole.MANAGEMENT_SUPPORT, action: 'approve', required: true, slaDays: 1 }
+      {
+        step: 1,
+        role: UserRole.DEPARTMENT_HEAD,
+        action: 'execute',
+        required: true,
+        slaDays: 1,
+      },
+      {
+        step: 2,
+        role: UserRole.PM,
+        action: 'approve',
+        required: true,
+        slaDays: 1,
+      },
+      {
+        step: 3,
+        role: UserRole.MANAGEMENT_SUPPORT,
+        action: 'approve',
+        required: true,
+        slaDays: 1,
+      },
     ],
     defaultSlaDays: 3,
     defaultOwners: ['담당부서'],
     active: true,
-    createdAt: '2024-01-01T00:00:00Z'
+    createdAt: '2024-01-01T00:00:00Z',
   },
   {
     id: 'cat-007',
@@ -190,31 +323,60 @@ const BUDGET_CATEGORY_MASTER: BudgetCategory[] = [
     nameKo: '특허출원비',
     description: '특허 출원 관련 비용',
     requiredDocuments: [
-      { type: 'REQUISITION', required: true, templateId: 'TMP-REQ-001', description: '기안서' },
+      {
+        type: 'REQUISITION',
+        required: true,
+        templateId: 'TMP-REQ-001',
+        description: '기안서',
+      },
       {
         type: 'PATENT_SPECIFICATION',
         required: true,
         templateId: 'TMP-PS-001',
-        description: '출원명세서'
+        description: '출원명세서',
       },
       {
         type: 'POWER_OF_ATTORNEY',
         required: true,
         templateId: 'TMP-POA-001',
-        description: '위임장'
+        description: '위임장',
       },
-      { type: 'FEE_RECEIPT', required: true, description: '수수료 영수증' }
+      { type: 'FEE_RECEIPT', required: true, description: '수수료 영수증' },
     ],
     defaultWorkflow: [
-      { step: 1, role: UserRole.PM, action: 'approve', required: true, slaDays: 2 },
-      { step: 2, role: UserRole.DEPARTMENT_HEAD, action: 'execute', required: true, slaDays: 3 },
-      { step: 3, role: UserRole.LAB_HEAD, action: 'approve', required: true, slaDays: 2 },
-      { step: 4, role: UserRole.MANAGEMENT_SUPPORT, action: 'approve', required: true, slaDays: 3 }
+      {
+        step: 1,
+        role: UserRole.PM,
+        action: 'approve',
+        required: true,
+        slaDays: 2,
+      },
+      {
+        step: 2,
+        role: UserRole.DEPARTMENT_HEAD,
+        action: 'execute',
+        required: true,
+        slaDays: 3,
+      },
+      {
+        step: 3,
+        role: UserRole.LAB_HEAD,
+        action: 'approve',
+        required: true,
+        slaDays: 2,
+      },
+      {
+        step: 4,
+        role: UserRole.MANAGEMENT_SUPPORT,
+        action: 'approve',
+        required: true,
+        slaDays: 3,
+      },
     ],
     defaultSlaDays: 10,
     defaultOwners: ['R&D전략팀'],
     active: true,
-    createdAt: '2024-01-01T00:00:00Z'
+    createdAt: '2024-01-01T00:00:00Z',
   },
   {
     id: 'cat-008',
@@ -223,29 +385,46 @@ const BUDGET_CATEGORY_MASTER: BudgetCategory[] = [
     nameKo: '연구수당',
     description: '연구원 연구수당 지급',
     requiredDocuments: [
-      { type: 'REQUISITION', required: true, templateId: 'TMP-REQ-001', description: '기안서' },
+      {
+        type: 'REQUISITION',
+        required: true,
+        templateId: 'TMP-REQ-001',
+        description: '기안서',
+      },
       {
         type: 'PARTICIPATION_ASSIGNMENT',
         required: true,
         templateId: 'TMP-PA-001',
-        description: '참여배정서'
+        description: '참여배정서',
       },
       {
         type: 'STIPEND_CALCULATION',
         required: true,
         templateId: 'TMP-SC-001',
-        description: '연구수당 산정서'
+        description: '연구수당 산정서',
       },
-      { type: 'RECEIPT', required: true, description: '지급 영수증' }
+      { type: 'RECEIPT', required: true, description: '지급 영수증' },
     ],
     defaultWorkflow: [
-      { step: 1, role: UserRole.PM, action: 'approve', required: true, slaDays: 2 },
-      { step: 2, role: UserRole.MANAGEMENT_SUPPORT, action: 'approve', required: true, slaDays: 3 }
+      {
+        step: 1,
+        role: UserRole.PM,
+        action: 'approve',
+        required: true,
+        slaDays: 2,
+      },
+      {
+        step: 2,
+        role: UserRole.MANAGEMENT_SUPPORT,
+        action: 'approve',
+        required: true,
+        slaDays: 3,
+      },
     ],
     defaultSlaDays: 5,
     defaultOwners: ['경영지원팀'],
     active: true,
-    createdAt: '2024-01-01T00:00:00Z'
+    createdAt: '2024-01-01T00:00:00Z',
   },
   {
     id: 'cat-009',
@@ -254,31 +433,48 @@ const BUDGET_CATEGORY_MASTER: BudgetCategory[] = [
     nameKo: '사무용품비',
     description: '사무용품 구매 비용',
     requiredDocuments: [
-      { type: 'REQUISITION', required: true, templateId: 'TMP-REQ-001', description: '기안서' },
+      {
+        type: 'REQUISITION',
+        required: true,
+        templateId: 'TMP-REQ-001',
+        description: '기안서',
+      },
       { type: 'QUOTE', required: true, description: '견적/영수증' },
-      { type: 'RECEIPT', required: true, description: '수령증' }
+      { type: 'RECEIPT', required: true, description: '수령증' },
     ],
     defaultWorkflow: [
-      { step: 1, role: UserRole.PM, action: 'approve', required: true, slaDays: 1 },
-      { step: 2, role: UserRole.MANAGEMENT_SUPPORT, action: 'approve', required: true, slaDays: 2 }
+      {
+        step: 1,
+        role: UserRole.PM,
+        action: 'approve',
+        required: true,
+        slaDays: 1,
+      },
+      {
+        step: 2,
+        role: UserRole.MANAGEMENT_SUPPORT,
+        action: 'approve',
+        required: true,
+        slaDays: 2,
+      },
     ],
     defaultSlaDays: 3,
     defaultOwners: ['총무팀'],
     active: true,
-    createdAt: '2024-01-01T00:00:00Z'
-  }
+    createdAt: '2024-01-01T00:00:00Z',
+  },
 ]
 
 // ===== 예산 카테고리 스토어 =====
 export const budgetCategories = writable<BudgetCategory[]>(BUDGET_CATEGORY_MASTER)
 
 // ===== 활성 카테고리만 필터링 =====
-export const activeBudgetCategories = derived(budgetCategories, $budgetCategories =>
-  $budgetCategories.filter(cat => cat.active)
+export const activeBudgetCategories = derived(budgetCategories, ($budgetCategories) =>
+  $budgetCategories.filter((cat) => cat.active),
 )
 
 // ===== 카테고리별 그룹화 =====
-export const budgetCategoriesByType = derived(activeBudgetCategories, $activeBudgetCategories => {
+export const budgetCategoriesByType = derived(activeBudgetCategories, ($activeBudgetCategories) => {
   const groups: Record<string, BudgetCategory[]> = {
     인건비: [],
     재료비: [],
@@ -288,10 +484,10 @@ export const budgetCategoriesByType = derived(activeBudgetCategories, $activeBud
     회의비: [],
     특허출원비: [],
     사무용품비: [],
-    기타: []
+    기타: [],
   }
 
-  $activeBudgetCategories.forEach(category => {
+  $activeBudgetCategories.forEach((category) => {
     if (category.code.includes('PERSONNEL')) {
       groups['인건비'].push(category)
     } else if (category.code === 'MATERIAL') {
@@ -323,8 +519,8 @@ export const budgetCategoriesByType = derived(activeBudgetCategories, $activeBud
  */
 export function getBudgetCategoryByCode(code: string): BudgetCategory | undefined {
   let categories: BudgetCategory[] = []
-  budgetCategories.subscribe(value => (categories = value))()
-  return categories.find(cat => cat.code === code)
+  budgetCategories.subscribe((value) => (categories = value))()
+  return categories.find((cat) => cat.code === code)
 }
 
 /**
@@ -332,8 +528,8 @@ export function getBudgetCategoryByCode(code: string): BudgetCategory | undefine
  */
 export function getBudgetCategoryById(id: UUID): BudgetCategory | undefined {
   let categories: BudgetCategory[] = []
-  budgetCategories.subscribe(value => (categories = value))()
-  return categories.find(cat => cat.id === id)
+  budgetCategories.subscribe((value) => (categories = value))()
+  return categories.find((cat) => cat.id === id)
 }
 
 /**
@@ -381,12 +577,12 @@ export function generateDocumentChecklist(categoryCode: string): Array<{
   verifiedAt?: string
 }> {
   const requiredDocs = getRequiredDocuments(categoryCode)
-  return requiredDocs.map(doc => ({
+  return requiredDocs.map((doc) => ({
     type: doc.type,
     required: doc.required,
     description: doc.description,
     templateId: doc.templateId,
-    status: 'pending' as const
+    status: 'pending' as const,
   }))
 }
 
@@ -395,22 +591,22 @@ export function generateDocumentChecklist(categoryCode: string): Array<{
  */
 export function checkDocumentCompleteness(
   categoryCode: string,
-  uploadedDocuments: Array<{ type: string; uploadedAt: string }>
+  uploadedDocuments: Array<{ type: string; uploadedAt: string }>,
 ): {
   completeness: number // 0-100
   missing: string[]
   completed: string[]
 } {
   const requiredDocs = getRequiredDocuments(categoryCode)
-  const uploadedTypes = uploadedDocuments.map(doc => doc.type)
+  const uploadedTypes = uploadedDocuments.map((doc) => doc.type)
 
   const completed = requiredDocs
-    .filter(doc => doc.required && uploadedTypes.includes(doc.type))
-    .map(doc => doc.type)
+    .filter((doc) => doc.required && uploadedTypes.includes(doc.type))
+    .map((doc) => doc.type)
 
   const missing = requiredDocs
-    .filter(doc => doc.required && !uploadedTypes.includes(doc.type))
-    .map(doc => doc.type)
+    .filter((doc) => doc.required && !uploadedTypes.includes(doc.type))
+    .map((doc) => doc.type)
 
   const completeness =
     requiredDocs.length > 0 ? Math.round((completed.length / requiredDocs.length) * 100) : 100
@@ -424,14 +620,14 @@ export function checkDocumentCompleteness(
 export function checkWorkflowSla(
   categoryCode: string,
   currentStep: number,
-  stepStartDate: string
+  stepStartDate: string,
 ): {
   isOverdue: boolean
   remainingDays: number
   slaDays: number
 } {
   const workflow = getDefaultWorkflow(categoryCode)
-  const currentWorkflowStep = workflow.find(step => step.step === currentStep)
+  const currentWorkflowStep = workflow.find((step) => step.step === currentStep)
 
   if (!currentWorkflowStep) {
     return { isOverdue: false, remainingDays: 0, slaDays: 0 }
@@ -446,7 +642,7 @@ export function checkWorkflowSla(
   return {
     isOverdue,
     remainingDays: Math.max(0, remainingDays),
-    slaDays: currentWorkflowStep.slaDays
+    slaDays: currentWorkflowStep.slaDays,
   }
 }
 
@@ -454,15 +650,15 @@ export function checkWorkflowSla(
  * 새 예산 카테고리 생성
  */
 export function createBudgetCategory(
-  category: Omit<BudgetCategory, 'id' | 'createdAt'>
+  category: Omit<BudgetCategory, 'id' | 'createdAt'>,
 ): BudgetCategory {
   const newCategory: BudgetCategory = {
     ...category,
     id: `cat-${Date.now()}`,
-    createdAt: new Date().toISOString()
+    createdAt: new Date().toISOString(),
   }
 
-  budgetCategories.update(categories => [...categories, newCategory])
+  budgetCategories.update((categories) => [...categories, newCategory])
   return newCategory
 }
 
@@ -471,10 +667,14 @@ export function createBudgetCategory(
  */
 export function updateBudgetCategory(id: UUID, updates: Partial<BudgetCategory>): boolean {
   let updated = false
-  budgetCategories.update(categories => {
-    const index = categories.findIndex(cat => cat.id === id)
+  budgetCategories.update((categories) => {
+    const index = categories.findIndex((cat) => cat.id === id)
     if (index !== -1) {
-      categories[index] = { ...categories[index], ...updates, updatedAt: new Date().toISOString() }
+      categories[index] = {
+        ...categories[index],
+        ...updates,
+        updatedAt: new Date().toISOString(),
+      }
       updated = true
     }
     return categories
@@ -494,8 +694,8 @@ export function deactivateBudgetCategory(id: UUID): boolean {
  */
 export function deleteBudgetCategory(id: UUID): boolean {
   let deleted = false
-  budgetCategories.update(categories => {
-    const filtered = categories.filter(cat => cat.id !== id)
+  budgetCategories.update((categories) => {
+    const filtered = categories.filter((cat) => cat.id !== id)
     deleted = filtered.length !== categories.length
     return filtered
   })
@@ -505,7 +705,7 @@ export function deleteBudgetCategory(id: UUID): boolean {
 /**
  * 카테고리별 통계 정보
  */
-export function getCategoryStatistics(categoryCode: string): {
+export function getCategoryStatistics(_categoryCode: string): {
   totalExpenses: number
   pendingExpenses: number
   approvedExpenses: number
@@ -519,7 +719,7 @@ export function getCategoryStatistics(categoryCode: string): {
     pendingExpenses: 0,
     approvedExpenses: 0,
     averageAmount: 0,
-    lastUsed: null
+    lastUsed: null,
   }
 }
 
@@ -543,17 +743,17 @@ export function canManageCategory(categoryCode: string, userRoles: UserRole[]): 
  */
 export function searchBudgetCategories(query: string): BudgetCategory[] {
   let categories: BudgetCategory[] = []
-  budgetCategories.subscribe(value => (categories = value))()
+  budgetCategories.subscribe((value) => (categories = value))()
 
   if (!query.trim()) return categories
 
   const searchTerm = query.toLowerCase()
   return categories.filter(
-    cat =>
+    (cat) =>
       cat.name.toLowerCase().includes(searchTerm) ||
       cat.nameKo.toLowerCase().includes(searchTerm) ||
       cat.code.toLowerCase().includes(searchTerm) ||
-      cat.description.toLowerCase().includes(searchTerm)
+      cat.description.toLowerCase().includes(searchTerm),
   )
 }
 
@@ -567,15 +767,15 @@ export function getCategoryUsageStats(): Array<{
   lastUsed: string | null
 }> {
   let categories: BudgetCategory[] = []
-  budgetCategories.subscribe(value => (categories = value))()
+  budgetCategories.subscribe((value) => (categories = value))()
 
   // 실제로는 expenseItems에서 통계를 계산해야 함
   // 여기서는 더미 데이터 반환
-  return categories.map(category => ({
+  return categories.map((category) => ({
     category,
     usageCount: Math.floor(Math.random() * 50),
     totalAmount: Math.floor(Math.random() * 100000000),
-    lastUsed: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString()
+    lastUsed: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString(),
   }))
 }
 

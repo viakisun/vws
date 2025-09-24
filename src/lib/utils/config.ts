@@ -15,10 +15,10 @@ export const config = {
     port: parseInt(fromEnv('DB_PORT', '5432')),
     database: fromEnv('DB_NAME', 'workstream'),
     user: fromEnv('DB_USER', 'postgres'),
-    password: fromEnv('DB_PASSWORD', 'password')
+    password: fromEnv('DB_PASSWORD', 'password'),
   },
   jwt: {
     secret: fromEnv('JWT_SECRET', 'your-secret-key'),
-    expiresIn: fromEnv('JWT_EXPIRES_IN', '24h')
-  }
+    expiresIn: fromEnv('JWT_EXPIRES_IN', '24h'),
+  },
 }

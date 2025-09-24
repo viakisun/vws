@@ -4,6 +4,7 @@
 import { query } from '$lib/database/connection'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger'
 
 // 증빙 항목 목록 조회
 export const GET: RequestHandler = async ({ url }) => {
@@ -31,7 +32,7 @@ export const GET: RequestHandler = async ({ url }) => {
 			LEFT JOIN evidence_schedules es ON ei.id = es.evidence_item_id
 			WHERE 1=1
 		`
-    const params: any[] = []
+    const params: unknown[] = []
     let paramCount = 0
 
     if (projectBudgetId) {
@@ -68,17 +69,17 @@ export const GET: RequestHandler = async ({ url }) => {
     return json({
       success: true,
       data: result.rows,
-      count: result.rows.length
+      count: result.rows.length,
     })
   } catch (error) {
-    console.error('증빙 항목 조회 실패:', error)
+    logger.error('증빙 항목 조회 실패:', error)
     return json(
       {
         success: false,
         message: '증빙 항목 조회에 실패했습니다.',
-        error: error instanceof Error ? error.message : '알 수 없는 오류'
+        error: error instanceof Error ? error.message : '알 수 없는 오류',
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
@@ -97,7 +98,7 @@ export const POST: RequestHandler = async ({ request }) => {
       assigneeName,
       dueDate,
       startDate,
-      endDate
+      endDate,
     } = data
 
     // 필수 필드 검증
@@ -105,37 +106,37 @@ export const POST: RequestHandler = async ({ request }) => {
       return json(
         {
           success: false,
-          message: '필수 필드가 누락되었습니다.'
+          message: '필수 필드가 누락되었습니다.',
         },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
     // 프로젝트 예산 존재 확인
     const budgetCheck = await query('SELECT id FROM project_budgets WHERE id = $1', [
-      projectBudgetId
+      projectBudgetId,
     ])
     if (budgetCheck.rows.length === 0) {
       return json(
         {
           success: false,
-          message: '프로젝트 예산을 찾을 수 없습니다.'
+          message: '프로젝트 예산을 찾을 수 없습니다.',
         },
-        { status: 404 }
+        { status: 404 },
       )
     }
 
     // 증빙 카테고리 존재 확인
     const categoryCheck = await query('SELECT id FROM evidence_categories WHERE id = $1', [
-      categoryId
+      categoryId,
     ])
     if (categoryCheck.rows.length === 0) {
       return json(
         {
           success: false,
-          message: '증빙 카테고리를 찾을 수 없습니다.'
+          message: '증빙 카테고리를 찾을 수 없습니다.',
         },
-        { status: 404 }
+        { status: 404 },
       )
     }
 
@@ -158,8 +159,8 @@ export const POST: RequestHandler = async ({ request }) => {
         assigneeName,
         dueDate,
         startDate,
-        endDate
-      ]
+        endDate,
+      ],
     )
 
     const newEvidenceItem = result.rows[0]
@@ -178,23 +179,23 @@ export const POST: RequestHandler = async ({ request }) => {
 			LEFT JOIN project_budgets pb ON ei.project_budget_id = pb.id
 			WHERE ei.id = $1
 		`,
-      [newEvidenceItem.id]
+      [newEvidenceItem.id],
     )
 
     return json({
       success: true,
       data: detailResult.rows[0],
-      message: '증빙 항목이 성공적으로 생성되었습니다.'
+      message: '증빙 항목이 성공적으로 생성되었습니다.',
     })
   } catch (error) {
-    console.error('증빙 항목 생성 실패:', error)
+    logger.error('증빙 항목 생성 실패:', error)
     return json(
       {
         success: false,
         message: '증빙 항목 생성에 실패했습니다.',
-        error: error instanceof Error ? error.message : '알 수 없는 오류'
+        error: error instanceof Error ? error.message : '알 수 없는 오류',
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

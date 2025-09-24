@@ -8,8 +8,9 @@ import {
   transformProjectBudgetData,
   transformProjectData,
   transformProjectMemberData,
-  transformRiskData
+  transformRiskData,
 } from '$lib/utils/api-data-transformer'
+import { logger } from '$lib/utils/logger'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
 
@@ -32,16 +33,16 @@ export const GET: RequestHandler = async ({ params }) => {
 			WHERE p.id = $1
 			GROUP BY p.id, e.first_name, e.last_name
 		`,
-      [id]
+      [id],
     )
 
     if (projectResult.rows.length === 0) {
       return json(
         {
           success: false,
-          message: '프로젝트를 찾을 수 없습니다.'
+          message: '프로젝트를 찾을 수 없습니다.',
         },
-        { status: 404 }
+        { status: 404 },
       )
     }
 
@@ -59,7 +60,7 @@ export const GET: RequestHandler = async ({ params }) => {
 			WHERE pm.project_id = $1
 			ORDER BY pm.created_at DESC
 		`,
-      [id]
+      [id],
     )
 
     // 프로젝트 사업비 조회
@@ -69,7 +70,7 @@ export const GET: RequestHandler = async ({ params }) => {
 			WHERE project_id = $1
 			ORDER BY period_number DESC
 		`,
-      [id]
+      [id],
     )
 
     // 프로젝트 마일스톤 조회
@@ -79,7 +80,7 @@ export const GET: RequestHandler = async ({ params }) => {
 			WHERE project_id = $1
 			ORDER BY milestone_date ASC
 		`,
-      [id]
+      [id],
     )
 
     // 프로젝트 위험 요소 조회
@@ -93,7 +94,7 @@ export const GET: RequestHandler = async ({ params }) => {
 			WHERE pr.project_id = $1
 			ORDER BY pr.created_at DESC
 		`,
-      [id]
+      [id],
     )
 
     // 데이터 변환: snake_case를 camelCase로 변환
@@ -110,18 +111,18 @@ export const GET: RequestHandler = async ({ params }) => {
         members: transformedMembers,
         budgets: transformedBudgets,
         milestones: transformedMilestones,
-        risks: transformedRisks
-      }
+        risks: transformedRisks,
+      },
     })
   } catch (error) {
-    console.error('프로젝트 조회 실패:', error)
+    logger.error('프로젝트 조회 실패:', error)
     return json(
       {
         success: false,
         message: '프로젝트를 불러오는데 실패했습니다.',
-        error: error instanceof Error ? error.message : '알 수 없는 오류'
+        error: error instanceof Error ? error.message : '알 수 없는 오류',
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
@@ -145,7 +146,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
       researchType,
       technologyArea,
       priority,
-      status
+      status,
     } = data
 
     // 프로젝트 존재 확인
@@ -155,9 +156,9 @@ export const PUT: RequestHandler = async ({ params, request }) => {
       return json(
         {
           success: false,
-          message: '프로젝트를 찾을 수 없습니다.'
+          message: '프로젝트를 찾을 수 없습니다.',
         },
-        { status: 404 }
+        { status: 404 },
       )
     }
 
@@ -165,16 +166,16 @@ export const PUT: RequestHandler = async ({ params, request }) => {
     if (code) {
       const duplicateCheck = await query('SELECT id FROM projects WHERE code = $1 AND id != $2', [
         code,
-        id
+        id,
       ])
 
       if (duplicateCheck.rows.length > 0) {
         return json(
           {
             success: false,
-            message: '이미 존재하는 프로젝트 코드입니다.'
+            message: '이미 존재하는 프로젝트 코드입니다.',
           },
-          { status: 400 }
+          { status: 400 },
         )
       }
     }
@@ -198,7 +199,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
       research_type: researchType,
       technology_area: technologyArea,
       priority,
-      status
+      status,
     }
 
     Object.entries(fieldsToUpdate).forEach(([key, value]) => {
@@ -212,9 +213,9 @@ export const PUT: RequestHandler = async ({ params, request }) => {
       return json(
         {
           success: false,
-          message: '수정할 데이터가 없습니다.'
+          message: '수정할 데이터가 없습니다.',
         },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -228,10 +229,10 @@ export const PUT: RequestHandler = async ({ params, request }) => {
 			WHERE id = $${paramIndex}
 			RETURNING *
 		`,
-      updateValues
+      updateValues,
     )
 
-    const updatedProject = result.rows[0]
+    const _updatedProject = result.rows[0]
 
     // 업데이트된 프로젝트 정보와 함께 반환
     const projectWithDetails = await query(
@@ -247,7 +248,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
 			WHERE p.id = $1
 			GROUP BY p.id, e.first_name, e.last_name
 		`,
-      [id]
+      [id],
     )
 
     // 데이터 변환: snake_case를 camelCase로 변환
@@ -256,17 +257,17 @@ export const PUT: RequestHandler = async ({ params, request }) => {
     return json({
       success: true,
       data: transformedProject,
-      message: '프로젝트가 성공적으로 수정되었습니다.'
+      message: '프로젝트가 성공적으로 수정되었습니다.',
     })
   } catch (error) {
-    console.error('프로젝트 수정 실패:', error)
+    logger.error('프로젝트 수정 실패:', error)
     return json(
       {
         success: false,
         message: '프로젝트 수정에 실패했습니다.',
-        error: error instanceof Error ? error.message : '알 수 없는 오류'
+        error: error instanceof Error ? error.message : '알 수 없는 오류',
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
@@ -283,13 +284,13 @@ export const DELETE: RequestHandler = async ({ params }) => {
       return json(
         {
           success: false,
-          message: '프로젝트를 찾을 수 없습니다.'
+          message: '프로젝트를 찾을 수 없습니다.',
         },
-        { status: 404 }
+        { status: 404 },
       )
     }
 
-    const project = existingProject.rows[0]
+    const _project = existingProject.rows[0]
 
     // 프로젝트 삭제 가능 여부 확인 (모든 상태에서 삭제 가능)
     // 프로젝트 삭제 요청 처리
@@ -306,7 +307,7 @@ export const DELETE: RequestHandler = async ({ params }) => {
 					SELECT id FROM project_budgets WHERE project_id = $1
 				)
 			`,
-        [id]
+        [id],
       )
 
       // 2. project_budgets 삭제
@@ -329,21 +330,21 @@ export const DELETE: RequestHandler = async ({ params }) => {
 
       return json({
         success: true,
-        message: '프로젝트가 성공적으로 삭제되었습니다.'
+        message: '프로젝트가 성공적으로 삭제되었습니다.',
       })
     } catch (error) {
       await query('ROLLBACK')
       throw error
     }
   } catch (error) {
-    console.error('프로젝트 삭제 실패:', error)
+    logger.error('프로젝트 삭제 실패:', error)
     return json(
       {
         success: false,
         message: '프로젝트 삭제에 실패했습니다.',
-        error: error instanceof Error ? error.message : '알 수 없는 오류'
+        error: error instanceof Error ? error.message : '알 수 없는 오류',
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

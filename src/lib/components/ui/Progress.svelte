@@ -1,5 +1,8 @@
 <script lang="ts">
-  let { value = 0, class: className = '' } = $props<{ value?: number; class?: string }>()
+  let { value = 0, class: className = '' } = $props<{
+    value?: number
+    class?: string
+  }>()
   const clamped = Math.max(0, Math.min(100, value))
 </script>
 

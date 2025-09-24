@@ -18,7 +18,7 @@ import type {
   HealthIndicator,
   Notification,
   SLAAlert,
-  ReplacementRecommendation
+  ReplacementRecommendation,
 } from './types'
 
 // 핵심 엔티티 스토어
@@ -50,21 +50,25 @@ export function addPerson(person: Omit<Person, 'id' | 'createdAt' | 'updatedAt'>
     ...person,
     id,
     createdAt: now,
-    updatedAt: now
+    updatedAt: now,
   }
 
-  persons.update(list => [...list, newPerson])
+  persons.update((list) => [...list, newPerson])
   logAudit('create', 'person', id, {}, newPerson)
   return id
 }
 
 export function updatePerson(id: string, updates: Partial<Person>): void {
-  persons.update(list => {
-    const index = list.findIndex(p => p.id === id)
+  persons.update((list) => {
+    const index = list.findIndex((p) => p.id === id)
     if (index === -1) return list
 
     const oldPerson = list[index]
-    const updatedPerson = { ...oldPerson, ...updates, updatedAt: new Date().toISOString() }
+    const updatedPerson = {
+      ...oldPerson,
+      ...updates,
+      updatedAt: new Date().toISOString(),
+    }
     const newList = [...list]
     newList[index] = updatedPerson
 
@@ -74,12 +78,12 @@ export function updatePerson(id: string, updates: Partial<Person>): void {
 }
 
 export function deletePerson(id: string): void {
-  persons.update(list => {
-    const person = list.find(p => p.id === id)
+  persons.update((list) => {
+    const person = list.find((p) => p.id === id)
     if (person) {
       logAudit('delete', 'person', id, person, {})
     }
-    return list.filter(p => p.id !== id)
+    return list.filter((p) => p.id !== id)
   })
 }
 
@@ -90,21 +94,25 @@ export function addProject(project: Omit<Project, 'id' | 'createdAt' | 'updatedA
     ...project,
     id,
     createdAt: now,
-    updatedAt: now
+    updatedAt: now,
   }
 
-  projects.update(list => [...list, newProject])
+  projects.update((list) => [...list, newProject])
   logAudit('create', 'project', id, {}, newProject)
   return id
 }
 
 export function updateProject(id: string, updates: Partial<Project>): void {
-  projects.update(list => {
-    const index = list.findIndex(p => p.id === id)
+  projects.update((list) => {
+    const index = list.findIndex((p) => p.id === id)
     if (index === -1) return list
 
     const oldProject = list[index]
-    const updatedProject = { ...oldProject, ...updates, updatedAt: new Date().toISOString() }
+    const updatedProject = {
+      ...oldProject,
+      ...updates,
+      updatedAt: new Date().toISOString(),
+    }
     const newList = [...list]
     newList[index] = updatedProject
 
@@ -114,7 +122,7 @@ export function updateProject(id: string, updates: Partial<Project>): void {
 }
 
 export function addExpenseItem(
-  expense: Omit<ExpenseItem, 'id' | 'createdAt' | 'updatedAt'>
+  expense: Omit<ExpenseItem, 'id' | 'createdAt' | 'updatedAt'>,
 ): string {
   const id = crypto.randomUUID()
   const now = new Date().toISOString()
@@ -122,21 +130,25 @@ export function addExpenseItem(
     ...expense,
     id,
     createdAt: now,
-    updatedAt: now
+    updatedAt: now,
   }
 
-  expenseItems.update(list => [...list, newExpense])
+  expenseItems.update((list) => [...list, newExpense])
   logAudit('create', 'expense', id, {}, newExpense)
   return id
 }
 
 export function updateExpenseItem(id: string, updates: Partial<ExpenseItem>): void {
-  expenseItems.update(list => {
-    const index = list.findIndex(e => e.id === id)
+  expenseItems.update((list) => {
+    const index = list.findIndex((e) => e.id === id)
     if (index === -1) return list
 
     const oldExpense = list[index]
-    const updatedExpense = { ...oldExpense, ...updates, updatedAt: new Date().toISOString() }
+    const updatedExpense = {
+      ...oldExpense,
+      ...updates,
+      updatedAt: new Date().toISOString(),
+    }
     const newList = [...list]
     newList[index] = updatedExpense
 
@@ -152,10 +164,10 @@ export function addDocument(document: Omit<Document, 'id' | 'createdAt' | 'updat
     ...document,
     id,
     createdAt: now,
-    updatedAt: now
+    updatedAt: now,
   }
 
-  documents.update(list => [...list, newDocument])
+  documents.update((list) => [...list, newDocument])
   logAudit('create', 'document', id, {}, newDocument)
   return id
 }
@@ -167,21 +179,25 @@ export function addApproval(approval: Omit<Approval, 'id' | 'createdAt' | 'updat
     ...approval,
     id,
     createdAt: now,
-    updatedAt: now
+    updatedAt: now,
   }
 
-  approvals.update(list => [...list, newApproval])
+  approvals.update((list) => [...list, newApproval])
   logAudit('create', 'approval', id, {}, newApproval)
   return id
 }
 
 export function updateApproval(id: string, updates: Partial<Approval>): void {
-  approvals.update(list => {
-    const index = list.findIndex(a => a.id === id)
+  approvals.update((list) => {
+    const index = list.findIndex((a) => a.id === id)
     if (index === -1) return list
 
     const oldApproval = list[index]
-    const updatedApproval = { ...oldApproval, ...updates, updatedAt: new Date().toISOString() }
+    const updatedApproval = {
+      ...oldApproval,
+      ...updates,
+      updatedAt: new Date().toISOString(),
+    }
     const newList = [...list]
     newList[index] = updatedApproval
 
@@ -197,21 +213,25 @@ export function addMilestone(milestone: Omit<Milestone, 'id' | 'createdAt' | 'up
     ...milestone,
     id,
     createdAt: now,
-    updatedAt: now
+    updatedAt: now,
   }
 
-  milestones.update(list => [...list, newMilestone])
+  milestones.update((list) => [...list, newMilestone])
   logAudit('create', 'milestone', id, {}, newMilestone)
   return id
 }
 
 export function updateMilestone(id: string, updates: Partial<Milestone>): void {
-  milestones.update(list => {
-    const index = list.findIndex(m => m.id === id)
+  milestones.update((list) => {
+    const index = list.findIndex((m) => m.id === id)
     if (index === -1) return list
 
     const oldMilestone = list[index]
-    const updatedMilestone = { ...oldMilestone, ...updates, updatedAt: new Date().toISOString() }
+    const updatedMilestone = {
+      ...oldMilestone,
+      ...updates,
+      updatedAt: new Date().toISOString(),
+    }
     const newList = [...list]
     newList[index] = updatedMilestone
 
@@ -221,7 +241,7 @@ export function updateMilestone(id: string, updates: Partial<Milestone>): void {
 }
 
 export function addParticipationAssignment(
-  assignment: Omit<ParticipationAssignment, 'id' | 'createdAt' | 'updatedAt'>
+  assignment: Omit<ParticipationAssignment, 'id' | 'createdAt' | 'updatedAt'>,
 ): string {
   const id = crypto.randomUUID()
   const now = new Date().toISOString()
@@ -229,16 +249,16 @@ export function addParticipationAssignment(
     ...assignment,
     id,
     createdAt: now,
-    updatedAt: now
+    updatedAt: now,
   }
 
-  participationAssignments.update(list => [...list, newAssignment])
+  participationAssignments.update((list) => [...list, newAssignment])
   logAudit('create', 'participation', id, {}, newAssignment)
   return id
 }
 
 export function addResearchNote(
-  note: Omit<ResearchNote, 'id' | 'createdAt' | 'updatedAt'>
+  note: Omit<ResearchNote, 'id' | 'createdAt' | 'updatedAt'>,
 ): string {
   const id = crypto.randomUUID()
   const now = new Date().toISOString()
@@ -246,21 +266,25 @@ export function addResearchNote(
     ...note,
     id,
     createdAt: now,
-    updatedAt: now
+    updatedAt: now,
   }
 
-  researchNotes.update(list => [...list, newNote])
+  researchNotes.update((list) => [...list, newNote])
   logAudit('create', 'research_note', id, {}, newNote)
   return id
 }
 
 export function updateResearchNote(id: string, updates: Partial<ResearchNote>): void {
-  researchNotes.update(list => {
-    const index = list.findIndex(n => n.id === id)
+  researchNotes.update((list) => {
+    const index = list.findIndex((n) => n.id === id)
     if (index === -1) return list
 
     const oldNote = list[index]
-    const updatedNote = { ...oldNote, ...updates, updatedAt: new Date().toISOString() }
+    const updatedNote = {
+      ...oldNote,
+      ...updates,
+      updatedAt: new Date().toISOString(),
+    }
     const newList = [...list]
     newList[index] = updatedNote
 
@@ -275,7 +299,7 @@ export function logAudit(
   entity: string,
   entityId: string,
   oldData: any,
-  newData: any
+  newData: any,
 ): void {
   const auditLog: AuditLog = {
     id: crypto.randomUUID(),
@@ -284,69 +308,69 @@ export function logAudit(
     entity,
     entityId,
     diff: { old: oldData, new: newData },
-    at: new Date().toISOString()
+    at: new Date().toISOString(),
   }
 
-  auditLogs.update(list => [...list, auditLog])
+  auditLogs.update((list) => [...list, auditLog])
 }
 
 // 유틸리티 함수들
 export function getPersonById(id: string, personList: Person[]): Person | undefined {
-  return personList.find(p => p.id === id)
+  return personList.find((p) => p.id === id)
 }
 
 export function getProjectById(id: string, projectList: Project[]): Project | undefined {
-  return projectList.find(p => p.id === id)
+  return projectList.find((p) => p.id === id)
 }
 
 export function getExpenseItemsByProject(
   projectId: string,
-  expenseList: ExpenseItem[]
+  expenseList: ExpenseItem[],
 ): ExpenseItem[] {
-  return expenseList.filter(e => e.projectId === projectId)
+  return expenseList.filter((e) => e.projectId === projectId)
 }
 
 export function getMilestonesByProject(projectId: string, milestoneList: Milestone[]): Milestone[] {
-  return milestoneList.filter(m => m.projectId === projectId)
+  return milestoneList.filter((m) => m.projectId === projectId)
 }
 
 export function getParticipationAssignmentsByProject(
   projectId: string,
-  assignmentList: ParticipationAssignment[]
+  assignmentList: ParticipationAssignment[],
 ): ParticipationAssignment[] {
-  return assignmentList.filter(a => a.projectId === projectId)
+  return assignmentList.filter((a) => a.projectId === projectId)
 }
 
 export function getParticipationAssignmentsByPerson(
   personId: string,
-  assignmentList: ParticipationAssignment[]
+  assignmentList: ParticipationAssignment[],
 ): ParticipationAssignment[] {
-  return assignmentList.filter(a => a.personId === personId)
+  return assignmentList.filter((a) => a.personId === personId)
 }
 
 export function getDocumentsByExpense(expenseId: string, documentList: Document[]): Document[] {
-  return documentList.filter(d => d.expenseId === expenseId)
+  return documentList.filter((d) => d.expenseId === expenseId)
 }
 
 export function getApprovalsBySubject(
   subjectType: string,
   subjectId: string,
-  approvalList: Approval[]
+  approvalList: Approval[],
 ): Approval[] {
-  return approvalList.filter(a => a.subjectType === subjectType && a.subjectId === subjectId)
+  return approvalList.filter((a) => a.subjectType === subjectType && a.subjectId === subjectId)
 }
 
 export function getResearchNotesByProject(
   projectId: string,
-  noteList: ResearchNote[]
+  noteList: ResearchNote[],
 ): ResearchNote[] {
-  return noteList.filter(n => n.projectId === projectId)
+  return noteList.filter((n) => n.projectId === projectId)
 }
 
 export function getActiveProjects(projectList: Project[]): Project[] {
-  return projectList.filter(p => p.status === 'active')
+  return projectList.filter((p) => p.status === 'active')
 }
 
 export function getActivePersons(personList: Person[]): Person[] {
-  return personList.filter(p => p.active)
+  return personList.filter((p) => p.active)
 }

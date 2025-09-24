@@ -7,7 +7,7 @@ export interface GlobalFactors {
 
 // 기본값 설정
 const defaultFactors: GlobalFactors = {
-  participationRateBase: 100
+  participationRateBase: 100,
 }
 
 // 스토어 생성
@@ -15,9 +15,9 @@ export const globalFactors = writable<GlobalFactors>(defaultFactors)
 
 // 팩터 업데이트 함수
 export function updateGlobalFactors(factors: Partial<GlobalFactors>) {
-  globalFactors.update(current => ({
+  globalFactors.update((current) => ({
     ...current,
-    ...factors
+    ...factors,
   }))
 }
 
@@ -30,7 +30,7 @@ export function calculateMonthlyAmount(contractAmount: number, participationRate
 export function calculateContributionAmounts(
   contractAmount: number,
   participationRate: number,
-  contributionType: 'cash' | 'in_kind'
+  contributionType: 'cash' | 'in_kind',
 ): { cash: number; inKind: number } {
   const monthlyAmount = calculateMonthlyAmount(contractAmount, participationRate)
 

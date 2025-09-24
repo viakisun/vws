@@ -21,22 +21,22 @@
       title: '중간보고서',
       status: '진행',
       due: '2025-11-15',
-      owner: '김철수'
+      owner: '김철수',
     },
     {
       id: `${projectId}-D2`,
       title: '프로토타입 v1',
       status: '지연',
       due: '2025-12-01',
-      owner: '이영희'
+      owner: '이영희',
     },
     {
       id: `${projectId}-D3`,
       title: '최종보고서',
       status: '준비',
       due: '2026-05-31',
-      owner: '박민수'
-    }
+      owner: '박민수',
+    },
   ]
 
   let status = $state('') as '' | DStatus
@@ -64,7 +64,7 @@
         goto(`${window.location.pathname}?${newQuery}`, {
           replaceState: true,
           keepFocus: true,
-          noScroll: true
+          noScroll: true,
         })
       }
     }
@@ -72,8 +72,8 @@
 
   const filtered = $derived(
     items.filter(
-      d => (status ? d.status === status : true) && (query ? d.title.includes(query) : true)
-    )
+      (d) => (status ? d.status === status : true) && (query ? d.title.includes(query) : true),
+    ),
   )
 
   function colorOf(s: DStatus): 'green' | 'blue' | 'yellow' | 'red' {
@@ -111,7 +111,8 @@
   </div>
   {#if loading}
     <div class="space-y-2">
-      {#each Array(8) as _}
+      {#each Array(8) as _, idx (idx)}
+        <!-- TODO: replace index key with a stable id when model provides one -->
         <div class="h-8 bg-gray-100 animate-pulse rounded"></div>
       {/each}
     </div>
@@ -128,7 +129,7 @@
           </tr>
         </thead>
         <tbody class="divide-y">
-          {#each filtered as d}
+          {#each filtered as d, i (i)}
             <tr>
               <td class="px-3 py-2">{d.id}</td>
               <td class="px-3 py-2">{d.title}</td>

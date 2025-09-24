@@ -4,6 +4,7 @@
 import { json } from '@sveltejs/kit'
 import { query } from '$lib/database/connection'
 import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger'
 
 // 참여율 현황 조회
 export const GET: RequestHandler = async ({ url }) => {
@@ -66,7 +67,7 @@ export const GET: RequestHandler = async ({ url }) => {
       const employeeTotals = new Map()
 
       // 각 직원별 총 참여율 계산
-      participationRates.forEach(rate => {
+      participationRates.forEach((rate) => {
         if (rate.status === 'active') {
           const current = employeeTotals.get(rate.employee_id) || 0
           employeeTotals.set(rate.employee_id, current + rate.participation_rate)
@@ -74,7 +75,7 @@ export const GET: RequestHandler = async ({ url }) => {
       })
 
       // 상태별 필터링
-      participationRates = participationRates.filter(rate => {
+      participationRates = participationRates.filter((rate) => {
         const totalRate = employeeTotals.get(rate.employee_id) || 0
 
         switch (participationStatus) {
@@ -93,17 +94,17 @@ export const GET: RequestHandler = async ({ url }) => {
     return json({
       success: true,
       data: participationRates,
-      total: participationRates.length
+      total: participationRates.length,
     })
   } catch (error) {
-    console.error('참여율 현황 조회 실패:', error)
+    logger.error('참여율 현황 조회 실패:', error)
     return json(
       {
         success: false,
         message: '참여율 현황을 불러오는데 실패했습니다.',
-        error: error instanceof Error ? error.message : '알 수 없는 오류'
+        error: error instanceof Error ? error.message : '알 수 없는 오류',
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
@@ -119,9 +120,9 @@ export const PUT: RequestHandler = async ({ request }) => {
       return json(
         {
           success: false,
-          message: '직원 ID, 프로젝트 ID, 참여율은 필수입니다.'
+          message: '직원 ID, 프로젝트 ID, 참여율은 필수입니다.',
         },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -130,9 +131,9 @@ export const PUT: RequestHandler = async ({ request }) => {
       return json(
         {
           success: false,
-          message: '참여율은 0-100 사이의 값이어야 합니다.'
+          message: '참여율은 0-100 사이의 값이어야 합니다.',
         },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -142,16 +143,16 @@ export const PUT: RequestHandler = async ({ request }) => {
 			SELECT * FROM participation_rates
 			WHERE employee_id = $1 AND project_id = $2 AND status = 'active'
 		`,
-      [employeeId, projectId]
+      [employeeId, projectId],
     )
 
     if (existingRate.rows.length === 0) {
       return json(
         {
           success: false,
-          message: '해당 프로젝트의 활성 참여율을 찾을 수 없습니다.'
+          message: '해당 프로젝트의 활성 참여율을 찾을 수 없습니다.',
         },
-        { status: 404 }
+        { status: 404 },
       )
     }
 
@@ -171,7 +172,7 @@ export const PUT: RequestHandler = async ({ request }) => {
 				WHERE id = $2
 				RETURNING *
 			`,
-        [participationRate, oldRate.id]
+        [participationRate, oldRate.id],
       )
 
       // 변경 이력 생성
@@ -182,7 +183,7 @@ export const PUT: RequestHandler = async ({ request }) => {
 					change_reason, change_date, notes
 				) VALUES ($1, $2, $3, $4, $5, CURRENT_DATE, $6)
 			`,
-        [employeeId, projectId, oldRate.participation_rate, participationRate, changeReason, notes]
+        [employeeId, projectId, oldRate.participation_rate, participationRate, changeReason, notes],
       )
 
       // 해당 직원의 총 참여율 확인
@@ -192,7 +193,7 @@ export const PUT: RequestHandler = async ({ request }) => {
 				FROM participation_rates
 				WHERE employee_id = $1 AND status = 'active'
 			`,
-        [employeeId]
+        [employeeId],
       )
 
       const totalRate = totalRateResult.rows[0]?.total_rate || 0
@@ -204,23 +205,23 @@ export const PUT: RequestHandler = async ({ request }) => {
         data: {
           ...updateResult.rows[0],
           totalParticipationRate: totalRate,
-          isOverLimit: totalRate > 100
+          isOverLimit: totalRate > 100,
         },
-        message: '참여율이 성공적으로 업데이트되었습니다.'
+        message: '참여율이 성공적으로 업데이트되었습니다.',
       })
     } catch (error) {
       await query('ROLLBACK')
       throw error
     }
   } catch (error) {
-    console.error('참여율 업데이트 실패:', error)
+    logger.error('참여율 업데이트 실패:', error)
     return json(
       {
         success: false,
         message: '참여율 업데이트에 실패했습니다.',
-        error: error instanceof Error ? error.message : '알 수 없는 오류'
+        error: error instanceof Error ? error.message : '알 수 없는 오류',
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

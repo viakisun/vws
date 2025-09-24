@@ -126,13 +126,13 @@ VALUES ('2025-01-15', '2025-12-31')
 return {
   startDate: formatDateForDisplay(project.start_date, 'FULL'),
   endDate: formatDateForDisplay(project.end_date, 'FULL'),
-  createdAt: formatDateForDisplay(project.created_at, 'RELATIVE')
+  createdAt: formatDateForDisplay(project.created_at, 'RELATIVE'),
 }
 
 // ❌ 잘못된 응답 (원시 UTC 데이터)
 return {
   startDate: project.start_date, // "2025-01-15T00:00:00.000Z"
-  endDate: project.end_date // "2025-12-31T23:59:59.999Z"
+  endDate: project.end_date, // "2025-12-31T23:59:59.999Z"
 }
 ```
 

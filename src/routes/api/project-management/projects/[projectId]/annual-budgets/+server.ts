@@ -3,6 +3,7 @@ import type { AnnualBudget, AnnualBudgetFormData, BudgetSummary } from '$lib/typ
 import { formatDateForDisplay, toUTC } from '$lib/utils/date-handler.js'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger'
 
 // GET: 연차별 예산 조회 (project_budgets 테이블 사용)
 export const GET: RequestHandler = async ({ params }) => {
@@ -20,11 +21,11 @@ export const GET: RequestHandler = async ({ params }) => {
 			WHERE project_id = $1 
 			ORDER BY period_number
 			`,
-      [projectId]
+      [projectId],
     )
 
     // 데이터 변환 및 처리 (연차별 예산용 칼럼 사용)
-    const budgets: AnnualBudget[] = budgetResult.rows.map(row => {
+    const budgets: AnnualBudget[] = budgetResult.rows.map((row) => {
       // 연차별 예산용 칼럼에서 직접 가져오기
       const governmentFunding = parseFloat(row.government_funding_amount) || 0
       const companyCash = parseFloat(row.company_cash_amount) || 0
@@ -52,7 +53,7 @@ export const GET: RequestHandler = async ({ params }) => {
         status: 'draft', // 기본값
         notes: '', // 기본값
         createdAt: row.created_at,
-        updatedAt: row.updated_at
+        updatedAt: row.updated_at,
       }
     })
 
@@ -68,7 +69,7 @@ export const GET: RequestHandler = async ({ params }) => {
       governmentFundingRatio: 0,
       companyBurdenRatio: 0,
       cashRatio: 0,
-      inKindRatio: 0
+      inKindRatio: 0,
     }
 
     // 비율 계산
@@ -84,17 +85,17 @@ export const GET: RequestHandler = async ({ params }) => {
       success: true,
       data: {
         budgets,
-        summary
-      }
+        summary,
+      },
     })
   } catch (error) {
-    console.error('연차별 예산 조회 실패:', error)
+    logger.error('연차별 예산 조회 실패:', error)
     return json(
       {
         success: false,
-        error: '연차별 예산을 조회하는데 실패했습니다.'
+        error: '연차별 예산을 조회하는데 실패했습니다.',
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
@@ -109,9 +110,9 @@ export const POST: RequestHandler = async ({ params, request }) => {
       return json(
         {
           success: false,
-          error: '예산 데이터가 필요합니다.'
+          error: '예산 데이터가 필요합니다.',
         },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -134,8 +135,8 @@ export const POST: RequestHandler = async ({ params, request }) => {
           budget.endDate ? toUTC(budget.endDate) : null,
           budget.governmentFunding || 0,
           budget.companyCash || 0,
-          budget.companyInKind || 0
-        ]
+          budget.companyInKind || 0,
+        ],
       )
     }
 
@@ -150,10 +151,10 @@ export const POST: RequestHandler = async ({ params, request }) => {
 			WHERE project_id = $1 
 			ORDER BY period_number
 			`,
-      [projectId]
+      [projectId],
     )
 
-    const createdBudgets: AnnualBudget[] = result.rows.map(row => {
+    const createdBudgets: AnnualBudget[] = result.rows.map((row) => {
       // 연차별 예산용 칼럼에서 직접 가져오기
       const governmentFunding = parseFloat(row.government_funding_amount) || 0
       const companyCash = parseFloat(row.company_cash_amount) || 0
@@ -181,25 +182,25 @@ export const POST: RequestHandler = async ({ params, request }) => {
         status: 'draft',
         notes: '',
         createdAt: row.created_at,
-        updatedAt: row.updated_at
+        updatedAt: row.updated_at,
       }
     })
 
     return json({
       success: true,
       data: {
-        budgets: createdBudgets
+        budgets: createdBudgets,
       },
-      message: '연차별 예산이 성공적으로 생성되었습니다.'
+      message: '연차별 예산이 성공적으로 생성되었습니다.',
     })
   } catch (error) {
-    console.error('연차별 예산 생성 실패:', error)
+    logger.error('연차별 예산 생성 실패:', error)
     return json(
       {
         success: false,
-        error: '연차별 예산 생성에 실패했습니다.'
+        error: '연차별 예산 생성에 실패했습니다.',
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
@@ -216,9 +217,9 @@ export const PUT: RequestHandler = async ({ params, request }) => {
       return json(
         {
           success: false,
-          error: '연차와 예산 데이터가 필요합니다.'
+          error: '연차와 예산 데이터가 필요합니다.',
         },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -242,17 +243,17 @@ export const PUT: RequestHandler = async ({ params, request }) => {
         budgetData.endDate ? toUTC(budgetData.endDate) : null,
         budgetData.governmentFunding || 0,
         budgetData.companyCash || 0,
-        budgetData.companyInKind || 0
-      ]
+        budgetData.companyInKind || 0,
+      ],
     )
 
     if (result.rows.length === 0) {
       return json(
         {
           success: false,
-          error: '해당 연차의 예산을 찾을 수 없습니다.'
+          error: '해당 연차의 예산을 찾을 수 없습니다.',
         },
-        { status: 404 }
+        { status: 404 },
       )
     }
 
@@ -287,24 +288,24 @@ export const PUT: RequestHandler = async ({ params, request }) => {
       status: 'draft',
       notes: '',
       createdAt: updatedBudget.created_at,
-      updatedAt: updatedBudget.updated_at
+      updatedAt: updatedBudget.updated_at,
     }
 
     return json({
       success: true,
       data: {
-        budget
+        budget,
       },
-      message: '연차별 예산이 성공적으로 수정되었습니다.'
+      message: '연차별 예산이 성공적으로 수정되었습니다.',
     })
   } catch (error) {
-    console.error('연차별 예산 수정 실패:', error)
+    logger.error('연차별 예산 수정 실패:', error)
     return json(
       {
         success: false,
-        error: '연차별 예산 수정에 실패했습니다.'
+        error: '연차별 예산 수정에 실패했습니다.',
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
@@ -319,39 +320,39 @@ export const DELETE: RequestHandler = async ({ params, request }) => {
       return json(
         {
           success: false,
-          error: '삭제할 연차가 필요합니다.'
+          error: '삭제할 연차가 필요합니다.',
         },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
     const result = await query(
       'DELETE FROM project_budgets WHERE project_id = $1 AND period_number = $2 RETURNING *',
-      [projectId, year]
+      [projectId, year],
     )
 
     if (result.rows.length === 0) {
       return json(
         {
           success: false,
-          error: '해당 연차의 예산을 찾을 수 없습니다.'
+          error: '해당 연차의 예산을 찾을 수 없습니다.',
         },
-        { status: 404 }
+        { status: 404 },
       )
     }
 
     return json({
       success: true,
-      message: '연차별 예산이 성공적으로 삭제되었습니다.'
+      message: '연차별 예산이 성공적으로 삭제되었습니다.',
     })
   } catch (error) {
-    console.error('연차별 예산 삭제 실패:', error)
+    logger.error('연차별 예산 삭제 실패:', error)
     return json(
       {
         success: false,
-        error: '연차별 예산 삭제에 실패했습니다.'
+        error: '연차별 예산 삭제에 실패했습니다.',
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

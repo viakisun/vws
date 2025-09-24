@@ -1,9 +1,9 @@
 // 급여 계약 통계 API 엔드포인트
 
-import { json } from '@sveltejs/kit'
 import { query } from '$lib/database/connection.js'
+import type { SalaryContractStats } from '$lib/types/salary-contracts'
+import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
-import type { ApiResponse, SalaryContractStats } from '$lib/types/salary-contracts'
 
 // GET: 급여 계약 통계 조회
 export const GET: RequestHandler = async () => {
@@ -50,12 +50,12 @@ export const GET: RequestHandler = async () => {
     const contractsByDepartment: Record<string, number> = {}
 
     // 계약 유형별 데이터 변환
-    typeStatsResult.rows.forEach(row => {
+    typeStatsResult.rows.forEach((row) => {
       contractsByType[row.contract_type] = parseInt(row.count)
     })
 
     // 부서별 데이터 변환
-    deptStatsResult.rows.forEach(row => {
+    deptStatsResult.rows.forEach((row) => {
       contractsByDepartment[row.department] = parseInt(row.count)
     })
 
@@ -68,20 +68,20 @@ export const GET: RequestHandler = async () => {
       totalAnnualSalary: parseFloat(stats.total_annual_salary) || 0,
       totalMonthlySalary: parseFloat(stats.total_monthly_salary) || 0,
       contractsByType,
-      contractsByDepartment
+      contractsByDepartment,
     }
 
     return json({
       success: true,
-      data: salaryContractStats
+      data: salaryContractStats,
     })
-  } catch (error) {
+  } catch (_error) {
     return json(
       {
         success: false,
-        error: '급여 계약 통계 조회에 실패했습니다.'
+        error: '급여 계약 통계 조회에 실패했습니다.',
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

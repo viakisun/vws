@@ -4,6 +4,7 @@
 import { query } from '$lib/database/connection'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger'
 
 export const GET: RequestHandler = async () => {
   try {
@@ -31,7 +32,7 @@ export const GET: RequestHandler = async () => {
 			FROM projects
 			WHERE budget_total IS NOT NULL
 		`,
-      [currentYear]
+      [currentYear],
     )
 
     // 참여 연구원 수
@@ -61,17 +62,17 @@ export const GET: RequestHandler = async () => {
     // 연차별 사업비 현황
     const budgetByYearResult = await query(`
 			SELECT 
-				fiscal_year,
+				period_number,
 				COUNT(project_id) as project_count,
-				SUM(total_budget) as total_budget,
-				SUM(personnel_cost) as personnel_cost,
-				SUM(research_material_cost) as research_material_cost,
-				SUM(research_activity_cost) as research_activity_cost,
-				SUM(indirect_cost) as indirect_cost,
-				SUM(spent_amount) as spent_amount
+				SUM(COALESCE(government_funding_amount, 0) + COALESCE(company_cash_amount, 0) + COALESCE(company_in_kind_amount, 0)) as total_budget,
+				SUM(COALESCE(personnel_cost_cash, 0) + COALESCE(personnel_cost_in_kind, 0)) as personnel_cost,
+				SUM(COALESCE(research_material_cost_cash, 0) + COALESCE(research_material_cost_in_kind, 0)) as research_material_cost,
+				SUM(COALESCE(research_activity_cost_cash, 0) + COALESCE(research_activity_cost_in_kind, 0)) as research_activity_cost,
+				SUM(COALESCE(indirect_cost_cash, 0) + COALESCE(indirect_cost_in_kind, 0)) as indirect_cost,
+				0 as spent_amount
 			FROM project_budgets
-			GROUP BY fiscal_year
-			ORDER BY fiscal_year DESC
+			GROUP BY period_number
+			ORDER BY period_number DESC
 			LIMIT 5
 		`)
 
@@ -170,44 +171,44 @@ export const GET: RequestHandler = async () => {
       overParticipationEmployees: parseInt(overParticipation.over_participation_count) || 0,
 
       // 연차별 사업비
-      budgetByYear: budgetByYearResult.rows.map(row => ({
-        fiscalYear: parseInt(row.fiscal_year),
+      budgetByYear: budgetByYearResult.rows.map((row) => ({
+        fiscalYear: parseInt(row.period_number),
         projectCount: parseInt(row.project_count),
         totalBudget: parseFloat(row.total_budget) || 0,
         personnelCost: parseFloat(row.personnel_cost) || 0,
         researchMaterialCost: parseFloat(row.research_material_cost) || 0,
         researchActivityCost: parseFloat(row.research_activity_cost) || 0,
         indirectCost: parseFloat(row.indirect_cost) || 0,
-        spentAmount: parseFloat(row.spent_amount) || 0
+        spentAmount: parseFloat(row.spent_amount) || 0,
       })),
 
       // 최근 활동
-      recentActivities: recentActivitiesResult.rows.map(row => ({
+      recentActivities: recentActivitiesResult.rows.map((row) => ({
         id: row.id,
         code: row.code,
         title: row.title,
         status: row.status,
         updatedAt: row.updated_at,
-        managerName: row.manager_name
+        managerName: row.manager_name,
       })),
 
       // 분포 통계
-      statusDistribution: statusDistributionResult.rows.map(row => ({
+      statusDistribution: statusDistributionResult.rows.map((row) => ({
         status: row.status,
         count: parseInt(row.count),
-        percentage: parseFloat(row.percentage)
+        percentage: parseFloat(row.percentage),
       })),
 
-      sponsorTypeDistribution: sponsorTypeDistributionResult.rows.map(row => ({
+      sponsorTypeDistribution: sponsorTypeDistributionResult.rows.map((row) => ({
         sponsorType: row.sponsor_type,
         count: parseInt(row.count),
-        percentage: parseFloat(row.percentage)
+        percentage: parseFloat(row.percentage),
       })),
 
-      priorityDistribution: priorityDistributionResult.rows.map(row => ({
+      priorityDistribution: priorityDistributionResult.rows.map((row) => ({
         priority: row.priority,
         count: parseInt(row.count),
-        percentage: parseFloat(row.percentage)
+        percentage: parseFloat(row.percentage),
       })),
 
       // 마일스톤 통계
@@ -215,7 +216,7 @@ export const GET: RequestHandler = async () => {
         totalMilestones: parseInt(milestoneStatsResult.rows[0]?.total_milestones) || 0,
         completedMilestones: parseInt(milestoneStatsResult.rows[0]?.completed_milestones) || 0,
         overdueMilestones: parseInt(milestoneStatsResult.rows[0]?.overdue_milestones) || 0,
-        upcomingMilestones: parseInt(milestoneStatsResult.rows[0]?.upcoming_milestones) || 0
+        upcomingMilestones: parseInt(milestoneStatsResult.rows[0]?.upcoming_milestones) || 0,
       },
 
       // 위험 요소 통계
@@ -224,23 +225,23 @@ export const GET: RequestHandler = async () => {
         openRisks: parseInt(riskStatsResult.rows[0]?.open_risks) || 0,
         mitigatedRisks: parseInt(riskStatsResult.rows[0]?.mitigated_risks) || 0,
         closedRisks: parseInt(riskStatsResult.rows[0]?.closed_risks) || 0,
-        criticalRisks: parseInt(riskStatsResult.rows[0]?.critical_risks) || 0
-      }
+        criticalRisks: parseInt(riskStatsResult.rows[0]?.critical_risks) || 0,
+      },
     }
 
     return json({
       success: true,
-      data: summary
+      data: summary,
     })
   } catch (error) {
-    console.error('프로젝트 요약 정보 조회 실패:', error)
+    logger.error('프로젝트 요약 정보 조회 실패:', error)
     return json(
       {
         success: false,
         message: '프로젝트 요약 정보를 불러오는데 실패했습니다.',
-        error: error instanceof Error ? error.message : '알 수 없는 오류'
+        error: error instanceof Error ? error.message : '알 수 없는 오류',
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

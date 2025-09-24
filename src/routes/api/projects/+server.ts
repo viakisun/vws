@@ -1,6 +1,7 @@
 import { json, error } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
 import { DatabaseService } from '$lib/database/connection'
+import { logger } from '$lib/utils/logger'
 
 // GET /api/projects - Get all projects
 export const GET: RequestHandler = async ({ url }) => {
@@ -14,16 +15,16 @@ export const GET: RequestHandler = async ({ url }) => {
       status: status || undefined,
       manager_id: manager_id || undefined,
       limit: limit ? parseInt(limit) : undefined,
-      offset: offset ? parseInt(offset) : undefined
+      offset: offset ? parseInt(offset) : undefined,
     })
 
     return json({
       success: true,
       data: projects,
-      count: projects.length
+      count: projects.length,
     })
   } catch (err) {
-    console.error('Get projects error:', err)
+    logger.error('Get projects error:', err)
     return error(500, { message: 'Internal server error' })
   }
 }
@@ -40,7 +41,7 @@ export const POST: RequestHandler = async ({ request }) => {
 
     // Check if project code already exists
     const existingProject = await DatabaseService.query('SELECT id FROM projects WHERE code = $1', [
-      projectData.code
+      projectData.code,
     ])
 
     if (existingProject.rows.length > 0) {
@@ -52,12 +53,12 @@ export const POST: RequestHandler = async ({ request }) => {
     return json(
       {
         success: true,
-        data: project
+        data: project,
       },
-      { status: 201 }
+      { status: 201 },
     )
   } catch (err) {
-    console.error('Create project error:', err)
+    logger.error('Create project error:', err)
     return error(500, { message: 'Internal server error' })
   }
 }

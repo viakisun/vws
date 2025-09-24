@@ -9,7 +9,7 @@
     title = '',
     maxWidth = 'max-w-lg',
     onClose,
-    children
+    children,
   } = $props<{
     open?: boolean
     title?: string
@@ -32,7 +32,7 @@
       role="button"
       tabindex="0"
       onclick={close}
-      onkeydown={e => (e.key === 'Escape' || e.key === 'Enter' || e.key === ' ') && close()}
+      onkeydown={(e) => (e.key === 'Escape' || e.key === 'Enter' || e.key === ' ') && close()}
     ></div>
     <div
       class={`relative w-full ${maxWidth} mx-4 rounded-xl bg-white shadow-lg border border-gray-200`}

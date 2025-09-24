@@ -8,7 +8,7 @@ export enum UserRole {
   MANAGEMENT_SUPPORT = 'MANAGEMENT_SUPPORT', // 경영지원(회계·총무)
   LAB_HEAD = 'LAB_HEAD', // 연구소장
   EXECUTIVE = 'EXECUTIVE', // 경영진
-  AUDITOR = 'AUDITOR' // 감사/외부평가
+  AUDITOR = 'AUDITOR', // 감사/외부평가
 }
 
 export enum Permission {
@@ -23,7 +23,7 @@ export enum Permission {
   READ_PERSONNEL = 'READ_PERSONNEL',
   WRITE_PERSONNEL = 'WRITE_PERSONNEL',
   READ_REPORTS = 'READ_REPORTS',
-  WRITE_REPORTS = 'WRITE_REPORTS'
+  WRITE_REPORTS = 'WRITE_REPORTS',
 }
 
 // ===== Basic Types =====

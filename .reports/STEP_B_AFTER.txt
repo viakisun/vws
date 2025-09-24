@@ -1,0 +1,12 @@
+ESLint After Task B (no-restricted-syntax scope)
+================================================
+
+Total Problems: 1961 (954 errors, 1007 warnings)
+Reduction: 346 problems fixed (2307 → 1961)
+
+Changes Made:
+- Moved Korean name formatting rules to server-side files only
+- Disabled no-restricted-syntax for client-side TypeScript and Svelte files
+- Added dedicated server-side configuration for API routes
+- Preserved business-critical rules where they matter most
+

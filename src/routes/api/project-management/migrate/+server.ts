@@ -4,6 +4,7 @@
 import { query } from '$lib/database/connection'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger'
 
 export const POST: RequestHandler = async () => {
   try {
@@ -25,7 +26,7 @@ export const POST: RequestHandler = async () => {
 
       // 기존 컬럼들의 기본값 설정
       `ALTER TABLE projects ALTER COLUMN sponsor_type SET DEFAULT 'government'`,
-      `ALTER TABLE projects ALTER COLUMN status SET DEFAULT 'planning'`
+      `ALTER TABLE projects ALTER COLUMN status SET DEFAULT 'planning'`,
     ]
 
     // 트랜잭션으로 모든 쿼리 실행
@@ -41,21 +42,21 @@ export const POST: RequestHandler = async () => {
 
       return json({
         success: true,
-        message: '프로젝트 관리 시스템 마이그레이션이 성공적으로 완료되었습니다.'
+        message: '프로젝트 관리 시스템 마이그레이션이 성공적으로 완료되었습니다.',
       })
     } catch (error) {
       await query('ROLLBACK')
       throw error
     }
   } catch (error) {
-    console.error('프로젝트 관리 시스템 마이그레이션 실패:', error)
+    logger.error('프로젝트 관리 시스템 마이그레이션 실패:', error)
     return json(
       {
         success: false,
         message: '프로젝트 관리 시스템 마이그레이션에 실패했습니다.',
-        error: error instanceof Error ? error.message : '알 수 없는 오류'
+        error: error instanceof Error ? error.message : '알 수 없는 오류',
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

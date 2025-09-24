@@ -118,14 +118,14 @@ const initialEmployees: Employee[] = [
     emergencyContact: {
       name: '김영희',
       relationship: '배우자',
-      phone: '010-9876-5432'
+      phone: '010-9876-5432',
     },
     personalInfo: {
       birthDate: '1985-03-15',
       gender: 'male',
       nationality: '한국',
-      maritalStatus: 'married'
-    }
+      maritalStatus: 'married',
+    },
   },
   {
     id: 'emp-2',
@@ -143,14 +143,14 @@ const initialEmployees: Employee[] = [
     emergencyContact: {
       name: '이민수',
       relationship: '부모',
-      phone: '010-1111-2222'
+      phone: '010-1111-2222',
     },
     personalInfo: {
       birthDate: '1990-07-22',
       gender: 'female',
       nationality: '한국',
-      maritalStatus: 'single'
-    }
+      maritalStatus: 'single',
+    },
   },
   {
     id: 'emp-3',
@@ -168,15 +168,15 @@ const initialEmployees: Employee[] = [
     emergencyContact: {
       name: '박수진',
       relationship: '배우자',
-      phone: '010-3333-4444'
+      phone: '010-3333-4444',
     },
     personalInfo: {
       birthDate: '1982-11-08',
       gender: 'male',
       nationality: '한국',
-      maritalStatus: 'married'
-    }
-  }
+      maritalStatus: 'married',
+    },
+  },
 ]
 
 const initialContracts: EmploymentContract[] = [
@@ -193,7 +193,7 @@ const initialContracts: EmploymentContract[] = [
     terms: '표준 근로계약서 조건',
     status: 'active',
     createdAt: '2023-01-15T00:00:00Z',
-    updatedAt: '2023-01-15T00:00:00Z'
+    updatedAt: '2023-01-15T00:00:00Z',
   },
   {
     id: 'contract-2',
@@ -208,8 +208,8 @@ const initialContracts: EmploymentContract[] = [
     terms: '표준 근로계약서 조건',
     status: 'active',
     createdAt: '2022-06-01T00:00:00Z',
-    updatedAt: '2022-06-01T00:00:00Z'
-  }
+    updatedAt: '2022-06-01T00:00:00Z',
+  },
 ]
 
 const initialJobDescriptions: JobDescription[] = [
@@ -222,13 +222,13 @@ const initialJobDescriptions: JobDescription[] = [
       '웹 애플리케이션 개발 및 유지보수',
       '코드 리뷰 및 멘토링',
       '기술적 의사결정 참여',
-      '프로젝트 관리 및 팀 협업'
+      '프로젝트 관리 및 팀 협업',
     ],
     requirements: [
       '5년 이상 개발 경험',
       'JavaScript, TypeScript 숙련',
       'React, Vue.js 등 프론트엔드 프레임워크 경험',
-      'Node.js, Python 등 백엔드 개발 경험'
+      'Node.js, Python 등 백엔드 개발 경험',
     ],
     preferredQualifications: ['클라우드 플랫폼 경험 (AWS, GCP)', 'DevOps 경험', '팀 리딩 경험'],
     reportingTo: '개발팀장',
@@ -237,12 +237,12 @@ const initialJobDescriptions: JobDescription[] = [
     employmentType: 'full-time',
     salaryRange: {
       min: 50000000,
-      max: 80000000
+      max: 80000000,
     },
     benefits: ['건강보험', '퇴직연금', '연차휴가', '교육비지원'],
     createdAt: '2023-01-01T00:00:00Z',
-    updatedAt: '2023-01-01T00:00:00Z'
-  }
+    updatedAt: '2023-01-01T00:00:00Z',
+  },
 ]
 
 const initialCareerRecords: CareerRecord[] = [
@@ -257,7 +257,7 @@ const initialCareerRecords: CareerRecord[] = [
     endDate: '2022-12-31',
     status: 'completed',
     verified: true,
-    createdAt: '2023-01-15T00:00:00Z'
+    createdAt: '2023-01-15T00:00:00Z',
   },
   {
     id: 'career-2',
@@ -271,8 +271,8 @@ const initialCareerRecords: CareerRecord[] = [
     status: 'completed',
     certificateUrl: '/certificates/aws-sa.pdf',
     verified: true,
-    createdAt: '2022-06-01T00:00:00Z'
-  }
+    createdAt: '2022-06-01T00:00:00Z',
+  },
 ]
 
 const initialAgreements: Agreement[] = [
@@ -284,7 +284,7 @@ const initialAgreements: Agreement[] = [
     content: '회사의 기밀정보 보호 및 비밀유지 의무',
     signedDate: '2023-01-15',
     status: 'active',
-    createdAt: '2023-01-15T00:00:00Z'
+    createdAt: '2023-01-15T00:00:00Z',
   },
   {
     id: 'agreement-2',
@@ -294,8 +294,8 @@ const initialAgreements: Agreement[] = [
     content: '개인정보 수집, 이용, 제공에 대한 동의',
     signedDate: '2023-01-15',
     status: 'active',
-    createdAt: '2023-01-15T00:00:00Z'
-  }
+    createdAt: '2023-01-15T00:00:00Z',
+  },
 ]
 
 // 스토어 생성
@@ -309,39 +309,41 @@ export const agreements = writable<Agreement[]>(initialAgreements)
 export function addEmployee(employee: Omit<Employee, 'id'>) {
   const newEmployee: Employee = {
     ...employee,
-    id: `emp-${Date.now()}`
+    id: `emp-${Date.now()}`,
   }
-  employees.update(current => [...current, newEmployee])
+  employees.update((current) => [...current, newEmployee])
 }
 
 export function updateEmployee(id: string, updates: Partial<Employee>) {
-  employees.update(current => current.map(emp => (emp.id === id ? { ...emp, ...updates } : emp)))
+  employees.update((current) =>
+    current.map((emp) => (emp.id === id ? { ...emp, ...updates } : emp)),
+  )
 }
 
 export function deleteEmployee(id: string) {
-  employees.update(current => current.filter(emp => emp.id !== id))
+  employees.update((current) => current.filter((emp) => emp.id !== id))
 }
 
 // 근로계약서 관리 함수들
 export function addEmploymentContract(
-  contract: Omit<EmploymentContract, 'id' | 'createdAt' | 'updatedAt'>
+  contract: Omit<EmploymentContract, 'id' | 'createdAt' | 'updatedAt'>,
 ) {
   const newContract: EmploymentContract = {
     ...contract,
     id: `contract-${Date.now()}`,
     createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    updatedAt: new Date().toISOString(),
   }
-  employmentContracts.update(current => [...current, newContract])
+  employmentContracts.update((current) => [...current, newContract])
 }
 
 export function updateEmploymentContract(id: string, updates: Partial<EmploymentContract>) {
-  employmentContracts.update(current =>
-    current.map(contract =>
+  employmentContracts.update((current) =>
+    current.map((contract) =>
       contract.id === id
         ? { ...contract, ...updates, updatedAt: new Date().toISOString() }
-        : contract
-    )
+        : contract,
+    ),
   )
 }
 
@@ -351,16 +353,16 @@ export function addJobDescription(jd: Omit<JobDescription, 'id' | 'createdAt' | 
     ...jd,
     id: `jd-${Date.now()}`,
     createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    updatedAt: new Date().toISOString(),
   }
-  jobDescriptions.update(current => [...current, newJD])
+  jobDescriptions.update((current) => [...current, newJD])
 }
 
 export function updateJobDescription(id: string, updates: Partial<JobDescription>) {
-  jobDescriptions.update(current =>
-    current.map(jd =>
-      jd.id === id ? { ...jd, ...updates, updatedAt: new Date().toISOString() } : jd
-    )
+  jobDescriptions.update((current) =>
+    current.map((jd) =>
+      jd.id === id ? { ...jd, ...updates, updatedAt: new Date().toISOString() } : jd,
+    ),
   )
 }
 
@@ -369,14 +371,14 @@ export function addCareerRecord(record: Omit<CareerRecord, 'id' | 'createdAt'>) 
   const newRecord: CareerRecord = {
     ...record,
     id: `career-${Date.now()}`,
-    createdAt: new Date().toISOString()
+    createdAt: new Date().toISOString(),
   }
-  careerRecords.update(current => [...current, newRecord])
+  careerRecords.update((current) => [...current, newRecord])
 }
 
 export function updateCareerRecord(id: string, updates: Partial<CareerRecord>) {
-  careerRecords.update(current =>
-    current.map(record => (record.id === id ? { ...record, ...updates } : record))
+  careerRecords.update((current) =>
+    current.map((record) => (record.id === id ? { ...record, ...updates } : record)),
   )
 }
 
@@ -385,48 +387,48 @@ export function addAgreement(agreement: Omit<Agreement, 'id' | 'createdAt'>) {
   const newAgreement: Agreement = {
     ...agreement,
     id: `agreement-${Date.now()}`,
-    createdAt: new Date().toISOString()
+    createdAt: new Date().toISOString(),
   }
-  agreements.update(current => [...current, newAgreement])
+  agreements.update((current) => [...current, newAgreement])
 }
 
 export function updateAgreement(id: string, updates: Partial<Agreement>) {
-  agreements.update(current =>
-    current.map(agreement => (agreement.id === id ? { ...agreement, ...updates } : agreement))
+  agreements.update((current) =>
+    current.map((agreement) => (agreement.id === id ? { ...agreement, ...updates } : agreement)),
   )
 }
 
 // 유틸리티 함수들
 export function getEmployeeById(id: string, employeeList: Employee[]): Employee | undefined {
-  return employeeList.find(emp => emp.id === id)
+  return employeeList.find((emp) => emp.id === id)
 }
 
 export function getEmployeesByDepartment(department: string, employeeList: Employee[]): Employee[] {
-  return employeeList.filter(emp => emp.department === department)
+  return employeeList.filter((emp) => emp.department === department)
 }
 
 export function getActiveEmployees(employeeList: Employee[]): Employee[] {
-  return employeeList.filter(emp => emp.status === 'active')
+  return employeeList.filter((emp) => emp.status === 'active')
 }
 
 export function getEmployeeContract(
   employeeId: string,
-  contractList: EmploymentContract[]
+  contractList: EmploymentContract[],
 ): EmploymentContract | undefined {
   return contractList.find(
-    contract => contract.employeeId === employeeId && contract.status === 'active'
+    (contract) => contract.employeeId === employeeId && contract.status === 'active',
   )
 }
 
 export function getEmployeeCareerRecords(
   employeeId: string,
-  recordList: CareerRecord[]
+  recordList: CareerRecord[],
 ): CareerRecord[] {
-  return recordList.filter(record => record.employeeId === employeeId)
+  return recordList.filter((record) => record.employeeId === employeeId)
 }
 
 export function getEmployeeAgreements(employeeId: string, agreementList: Agreement[]): Agreement[] {
-  return agreementList.filter(agreement => agreement.employeeId === employeeId)
+  return agreementList.filter((agreement) => agreement.employeeId === employeeId)
 }
 
 // 온보딩 프로세스 스토어
@@ -442,9 +444,9 @@ export const onboardingProcesses = writable([
       { id: '1', name: '계약서 서명', completed: true },
       { id: '2', name: '사전 교육', completed: true },
       { id: '3', name: '장비 지급', completed: false },
-      { id: '4', name: '팀 소개', completed: false }
-    ]
-  }
+      { id: '4', name: '팀 소개', completed: false },
+    ],
+  },
 ])
 
 // 오프보딩 프로세스 스토어
@@ -460,16 +462,16 @@ export const offboardingProcesses = writable([
       { id: '1', name: '업무 인수인계', completed: true },
       { id: '2', name: '장비 반납', completed: true },
       { id: '3', name: '계정 정리', completed: false },
-      { id: '4', name: '최종 면담', completed: false }
-    ]
-  }
+      { id: '4', name: '최종 면담', completed: false },
+    ],
+  },
 ])
 
 // 온보딩 진행률 계산 함수
 export function getOnboardingProgress(processId: string): number {
   let progress = 0
-  onboardingProcesses.subscribe(processes => {
-    const process = processes.find(p => p.id === processId)
+  onboardingProcesses.subscribe((processes) => {
+    const process = processes.find((p) => p.id === processId)
     if (process) {
       progress = process.progress
     }
@@ -480,8 +482,8 @@ export function getOnboardingProgress(processId: string): number {
 // 오프보딩 진행률 계산 함수
 export function getOffboardingProgress(processId: string): number {
   let progress = 0
-  offboardingProcesses.subscribe(processes => {
-    const process = processes.find(p => p.id === processId)
+  offboardingProcesses.subscribe((processes) => {
+    const process = processes.find((p) => p.id === processId)
     if (process) {
       progress = process.progress
     }

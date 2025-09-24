@@ -1,6 +1,4 @@
 <script lang="ts">
-  import { themeManager, currentTheme, isDark, isAuto } from '$lib/stores/theme'
-
   // Props
   interface Props {
     variant?: 'primary' | 'secondary' | 'success' | 'warning' | 'error' | 'info' | 'ghost'
@@ -133,7 +131,7 @@
     const sizeClass = `theme-button-${size}`
     const stateClasses = [
       disabled ? 'theme-button-disabled' : '',
-      loading ? 'theme-button-loading' : ''
+      loading ? 'theme-button-loading' : '',
     ]
       .filter(Boolean)
       .join(' ')
@@ -167,6 +165,7 @@
 </script>
 
 <button
+  type="button"
   class={getButtonClasses()}
   onclick={handleClick}
   disabled={disabled || loading}

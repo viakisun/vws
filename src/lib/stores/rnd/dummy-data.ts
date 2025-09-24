@@ -1,15 +1,6 @@
 // R&D 통합관리 시스템 더미데이터 생성
 
-import {
-  UserRole,
-  type Person,
-  type Project,
-  type ExpenseItem,
-  type Document,
-  type ResearchNote,
-  type Milestone,
-  type ParticipationAssignment
-} from './types'
+import { type Person, type Project } from './types'
 
 // ===== 더미 데이터 생성 함수들 =====
 
@@ -25,7 +16,7 @@ export function generateDummyPersons(): Person[] {
       roleSet: ['MANAGEMENT_SUPPORT'],
       active: true,
       createdAt: '2024-01-01T00:00:00Z',
-      updatedAt: '2024-01-01T00:00:00Z'
+      updatedAt: '2024-01-01T00:00:00Z',
     },
     {
       id: 'person-002',
@@ -37,7 +28,7 @@ export function generateDummyPersons(): Person[] {
       roleSet: ['RESEARCHER'],
       active: true,
       createdAt: '2024-01-02T00:00:00Z',
-      updatedAt: '2024-01-02T00:00:00Z'
+      updatedAt: '2024-01-02T00:00:00Z',
     },
     {
       id: 'person-003',
@@ -49,7 +40,7 @@ export function generateDummyPersons(): Person[] {
       roleSet: ['PM'],
       active: true,
       createdAt: '2024-01-03T00:00:00Z',
-      updatedAt: '2024-01-03T00:00:00Z'
+      updatedAt: '2024-01-03T00:00:00Z',
     },
     {
       id: 'person-004',
@@ -61,7 +52,7 @@ export function generateDummyPersons(): Person[] {
       roleSet: ['DEPARTMENT_HEAD'],
       active: true,
       createdAt: '2024-01-04T00:00:00Z',
-      updatedAt: '2024-01-04T00:00:00Z'
+      updatedAt: '2024-01-04T00:00:00Z',
     },
     {
       id: 'person-005',
@@ -73,7 +64,7 @@ export function generateDummyPersons(): Person[] {
       roleSet: ['LAB_HEAD'],
       active: true,
       createdAt: '2024-01-05T00:00:00Z',
-      updatedAt: '2024-01-05T00:00:00Z'
+      updatedAt: '2024-01-05T00:00:00Z',
     },
     {
       id: 'person-006',
@@ -85,7 +76,7 @@ export function generateDummyPersons(): Person[] {
       roleSet: ['EXECUTIVE'],
       active: true,
       createdAt: '2024-01-06T00:00:00Z',
-      updatedAt: '2024-01-06T00:00:00Z'
+      updatedAt: '2024-01-06T00:00:00Z',
     },
     {
       id: 'person-007',
@@ -97,7 +88,7 @@ export function generateDummyPersons(): Person[] {
       roleSet: ['AUDITOR'],
       active: true,
       createdAt: '2024-01-07T00:00:00Z',
-      updatedAt: '2024-01-07T00:00:00Z'
+      updatedAt: '2024-01-07T00:00:00Z',
     },
     {
       id: 'person-008',
@@ -109,7 +100,7 @@ export function generateDummyPersons(): Person[] {
       roleSet: ['RESEARCHER'],
       active: true,
       createdAt: '2024-01-08T00:00:00Z',
-      updatedAt: '2024-01-08T00:00:00Z'
+      updatedAt: '2024-01-08T00:00:00Z',
     },
     {
       id: 'person-009',
@@ -121,7 +112,7 @@ export function generateDummyPersons(): Person[] {
       roleSet: ['RESEARCHER'],
       active: true,
       createdAt: '2024-01-09T00:00:00Z',
-      updatedAt: '2024-01-09T00:00:00Z'
+      updatedAt: '2024-01-09T00:00:00Z',
     },
     {
       id: 'person-010',
@@ -133,7 +124,7 @@ export function generateDummyPersons(): Person[] {
       roleSet: ['PM'],
       active: true,
       createdAt: '2024-01-10T00:00:00Z',
-      updatedAt: '2024-01-10T00:00:00Z'
+      updatedAt: '2024-01-10T00:00:00Z',
     },
     {
       id: 'person-011',
@@ -145,7 +136,7 @@ export function generateDummyPersons(): Person[] {
       roleSet: ['RESEARCHER'],
       active: true,
       createdAt: '2024-01-11T00:00:00Z',
-      updatedAt: '2024-01-11T00:00:00Z'
+      updatedAt: '2024-01-11T00:00:00Z',
     },
     {
       id: 'person-012',
@@ -157,7 +148,7 @@ export function generateDummyPersons(): Person[] {
       roleSet: ['PM'],
       active: true,
       createdAt: '2024-01-12T00:00:00Z',
-      updatedAt: '2024-01-12T00:00:00Z'
+      updatedAt: '2024-01-12T00:00:00Z',
     },
     {
       id: 'person-013',
@@ -169,7 +160,7 @@ export function generateDummyPersons(): Person[] {
       roleSet: ['RESEARCHER'],
       active: true,
       createdAt: '2024-01-13T00:00:00Z',
-      updatedAt: '2024-01-13T00:00:00Z'
+      updatedAt: '2024-01-13T00:00:00Z',
     },
     {
       id: 'person-014',
@@ -181,7 +172,7 @@ export function generateDummyPersons(): Person[] {
       roleSet: ['RESEARCHER'],
       active: true,
       createdAt: '2024-01-14T00:00:00Z',
-      updatedAt: '2024-01-14T00:00:00Z'
+      updatedAt: '2024-01-14T00:00:00Z',
     },
     {
       id: 'person-015',
@@ -193,7 +184,7 @@ export function generateDummyPersons(): Person[] {
       roleSet: ['RESEARCHER'],
       active: true,
       createdAt: '2024-01-15T00:00:00Z',
-      updatedAt: '2024-01-15T00:00:00Z'
+      updatedAt: '2024-01-15T00:00:00Z',
     },
     {
       id: 'person-016',
@@ -205,7 +196,7 @@ export function generateDummyPersons(): Person[] {
       roleSet: ['RESEARCHER'],
       active: true,
       createdAt: '2024-01-16T00:00:00Z',
-      updatedAt: '2024-01-16T00:00:00Z'
+      updatedAt: '2024-01-16T00:00:00Z',
     },
     {
       id: 'person-017',
@@ -217,7 +208,7 @@ export function generateDummyPersons(): Person[] {
       roleSet: ['RESEARCHER'],
       active: true,
       createdAt: '2024-01-17T00:00:00Z',
-      updatedAt: '2024-01-17T00:00:00Z'
+      updatedAt: '2024-01-17T00:00:00Z',
     },
     {
       id: 'person-018',
@@ -229,7 +220,7 @@ export function generateDummyPersons(): Person[] {
       roleSet: ['RESEARCHER'],
       active: true,
       createdAt: '2024-01-18T00:00:00Z',
-      updatedAt: '2024-01-18T00:00:00Z'
+      updatedAt: '2024-01-18T00:00:00Z',
     },
     {
       id: 'person-019',
@@ -241,7 +232,7 @@ export function generateDummyPersons(): Person[] {
       roleSet: ['RESEARCHER'],
       active: true,
       createdAt: '2024-01-19T00:00:00Z',
-      updatedAt: '2024-01-19T00:00:00Z'
+      updatedAt: '2024-01-19T00:00:00Z',
     },
     {
       id: 'person-020',
@@ -253,8 +244,8 @@ export function generateDummyPersons(): Person[] {
       roleSet: ['RESEARCHER'],
       active: true,
       createdAt: '2024-01-20T00:00:00Z',
-      updatedAt: '2024-01-20T00:00:00Z'
-    }
+      updatedAt: '2024-01-20T00:00:00Z',
+    },
   ]
 }
 
@@ -274,7 +265,7 @@ export function generateDummyProjects(): Project[] {
       totalBudget: 800000000,
       currency: 'KRW',
       createdAt: '2024-01-01T00:00:00Z',
-      updatedAt: '2024-01-01T00:00:00Z'
+      updatedAt: '2024-01-01T00:00:00Z',
     },
     {
       id: 'proj-002',
@@ -290,7 +281,7 @@ export function generateDummyProjects(): Project[] {
       totalBudget: 600000000,
       currency: 'KRW',
       createdAt: '2024-02-01T00:00:00Z',
-      updatedAt: '2024-02-01T00:00:00Z'
+      updatedAt: '2024-02-01T00:00:00Z',
     },
     {
       id: 'proj-003',
@@ -306,7 +297,7 @@ export function generateDummyProjects(): Project[] {
       totalBudget: 1000000000,
       currency: 'KRW',
       createdAt: '2024-03-01T00:00:00Z',
-      updatedAt: '2024-03-01T00:00:00Z'
+      updatedAt: '2024-03-01T00:00:00Z',
     },
     {
       id: 'proj-004',
@@ -322,7 +313,7 @@ export function generateDummyProjects(): Project[] {
       totalBudget: 400000000,
       currency: 'KRW',
       createdAt: '2024-01-15T00:00:00Z',
-      updatedAt: '2024-01-15T00:00:00Z'
+      updatedAt: '2024-01-15T00:00:00Z',
     },
     {
       id: 'proj-005',
@@ -338,7 +329,7 @@ export function generateDummyProjects(): Project[] {
       totalBudget: 700000000,
       currency: 'KRW',
       createdAt: '2024-04-01T00:00:00Z',
-      updatedAt: '2024-04-01T00:00:00Z'
+      updatedAt: '2024-04-01T00:00:00Z',
     },
     {
       id: 'proj-006',
@@ -354,7 +345,7 @@ export function generateDummyProjects(): Project[] {
       totalBudget: 1200000000,
       currency: 'KRW',
       createdAt: '2024-05-01T00:00:00Z',
-      updatedAt: '2024-05-01T00:00:00Z'
+      updatedAt: '2024-05-01T00:00:00Z',
     },
     {
       id: 'proj-007',
@@ -370,7 +361,7 @@ export function generateDummyProjects(): Project[] {
       totalBudget: 500000000,
       currency: 'KRW',
       createdAt: '2024-02-15T00:00:00Z',
-      updatedAt: '2024-02-15T00:00:00Z'
+      updatedAt: '2024-02-15T00:00:00Z',
     },
     {
       id: 'proj-008',
@@ -386,7 +377,7 @@ export function generateDummyProjects(): Project[] {
       totalBudget: 450000000,
       currency: 'KRW',
       createdAt: '2024-03-15T00:00:00Z',
-      updatedAt: '2024-03-15T00:00:00Z'
+      updatedAt: '2024-03-15T00:00:00Z',
     },
     {
       id: 'proj-009',
@@ -402,7 +393,7 @@ export function generateDummyProjects(): Project[] {
       totalBudget: 900000000,
       currency: 'KRW',
       createdAt: '2024-04-15T00:00:00Z',
-      updatedAt: '2024-04-15T00:00:00Z'
+      updatedAt: '2024-04-15T00:00:00Z',
     },
     {
       id: 'proj-010',
@@ -418,7 +409,7 @@ export function generateDummyProjects(): Project[] {
       totalBudget: 350000000,
       currency: 'KRW',
       createdAt: '2024-01-30T00:00:00Z',
-      updatedAt: '2024-01-30T00:00:00Z'
+      updatedAt: '2024-01-30T00:00:00Z',
     },
     {
       id: 'proj-011',
@@ -434,7 +425,7 @@ export function generateDummyProjects(): Project[] {
       totalBudget: 800000000,
       currency: 'KRW',
       createdAt: '2024-05-15T00:00:00Z',
-      updatedAt: '2024-05-15T00:00:00Z'
+      updatedAt: '2024-05-15T00:00:00Z',
     },
     {
       id: 'proj-012',
@@ -450,7 +441,7 @@ export function generateDummyProjects(): Project[] {
       totalBudget: 550000000,
       currency: 'KRW',
       createdAt: '2024-06-01T00:00:00Z',
-      updatedAt: '2024-06-01T00:00:00Z'
+      updatedAt: '2024-06-01T00:00:00Z',
     },
     {
       id: 'proj-013',
@@ -466,7 +457,7 @@ export function generateDummyProjects(): Project[] {
       totalBudget: 750000000,
       currency: 'KRW',
       createdAt: '2024-03-01T00:00:00Z',
-      updatedAt: '2024-03-01T00:00:00Z'
+      updatedAt: '2024-03-01T00:00:00Z',
     },
     {
       id: 'proj-014',
@@ -482,7 +473,7 @@ export function generateDummyProjects(): Project[] {
       totalBudget: 650000000,
       currency: 'KRW',
       createdAt: '2024-07-01T00:00:00Z',
-      updatedAt: '2024-07-01T00:00:00Z'
+      updatedAt: '2024-07-01T00:00:00Z',
     },
     {
       id: 'proj-015',
@@ -498,7 +489,7 @@ export function generateDummyProjects(): Project[] {
       totalBudget: 1100000000,
       currency: 'KRW',
       createdAt: '2024-08-01T00:00:00Z',
-      updatedAt: '2024-08-01T00:00:00Z'
+      updatedAt: '2024-08-01T00:00:00Z',
     },
     {
       id: 'proj-016',
@@ -514,7 +505,7 @@ export function generateDummyProjects(): Project[] {
       totalBudget: 950000000,
       currency: 'KRW',
       createdAt: '2024-04-01T00:00:00Z',
-      updatedAt: '2024-04-01T00:00:00Z'
+      updatedAt: '2024-04-01T00:00:00Z',
     },
     {
       id: 'proj-017',
@@ -530,7 +521,7 @@ export function generateDummyProjects(): Project[] {
       totalBudget: 850000000,
       currency: 'KRW',
       createdAt: '2024-09-01T00:00:00Z',
-      updatedAt: '2024-09-01T00:00:00Z'
+      updatedAt: '2024-09-01T00:00:00Z',
     },
     {
       id: 'proj-018',
@@ -546,7 +537,7 @@ export function generateDummyProjects(): Project[] {
       totalBudget: 700000000,
       currency: 'KRW',
       createdAt: '2024-10-01T00:00:00Z',
-      updatedAt: '2024-10-01T00:00:00Z'
+      updatedAt: '2024-10-01T00:00:00Z',
     },
     {
       id: 'proj-019',
@@ -562,7 +553,7 @@ export function generateDummyProjects(): Project[] {
       totalBudget: 600000000,
       currency: 'KRW',
       createdAt: '2024-11-01T00:00:00Z',
-      updatedAt: '2024-11-01T00:00:00Z'
+      updatedAt: '2024-11-01T00:00:00Z',
     },
     {
       id: 'proj-020',
@@ -578,7 +569,7 @@ export function generateDummyProjects(): Project[] {
       totalBudget: 500000000,
       currency: 'KRW',
       createdAt: '2024-12-01T00:00:00Z',
-      updatedAt: '2024-12-01T00:00:00Z'
-    }
+      updatedAt: '2024-12-01T00:00:00Z',
+    },
   ]
 }

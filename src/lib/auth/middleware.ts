@@ -63,7 +63,7 @@ export function authenticate(requiredRoles?: string[]): RequestHandler {
 
       return new Response() // Continue to the next handler
     } catch {
-      // console.error('Authentication error:', err)
+      // logger.error('Authentication error:', err)
 
       if (url.pathname.startsWith('/api/')) {
         return error(401, { message: 'Invalid token' })
@@ -79,7 +79,7 @@ export const ROLES = {
   ADMIN: 'ADMIN',
   MANAGER: 'MANAGER',
   EMPLOYEE: 'EMPLOYEE',
-  VIEWER: 'VIEWER'
+  VIEWER: 'VIEWER',
 } as const
 
 export const PERMISSIONS = {
@@ -117,7 +117,7 @@ export const PERMISSIONS = {
   CREATE_REPORTS: 'CREATE_REPORTS',
 
   // Audit
-  READ_AUDIT: 'READ_AUDIT'
+  READ_AUDIT: 'READ_AUDIT',
 } as const
 
 // Role-permission mapping
@@ -137,7 +137,7 @@ export const ROLE_PERMISSIONS: Record<string, string[]> = {
     PERMISSIONS.UPDATE_COMPANY,
     PERMISSIONS.READ_FINANCIAL,
     PERMISSIONS.READ_REPORTS,
-    PERMISSIONS.CREATE_REPORTS
+    PERMISSIONS.CREATE_REPORTS,
   ],
   [ROLES.EMPLOYEE]: [
     PERMISSIONS.READ_PROJECT,
@@ -145,14 +145,14 @@ export const ROLE_PERMISSIONS: Record<string, string[]> = {
     PERMISSIONS.READ_EXPENSE,
     PERMISSIONS.UPDATE_EXPENSE,
     PERMISSIONS.READ_COMPANY,
-    PERMISSIONS.READ_REPORTS
+    PERMISSIONS.READ_REPORTS,
   ],
   [ROLES.VIEWER]: [
     PERMISSIONS.READ_PROJECT,
     PERMISSIONS.READ_EXPENSE,
     PERMISSIONS.READ_COMPANY,
-    PERMISSIONS.READ_REPORTS
-  ]
+    PERMISSIONS.READ_REPORTS,
+  ],
 }
 
 // Check if user has specific permission
@@ -206,15 +206,15 @@ export function rateLimit(maxRequests: number, windowMs: number): RequestHandler
     if (rateLimitData.count >= maxRequests) {
       return new Response(
         JSON.stringify({
-          message: 'Too many requests'
+          message: 'Too many requests',
         }),
         {
           status: 429,
           headers: {
             'Content-Type': 'application/json',
-            'Retry-After': Math.ceil((rateLimitData.resetTime - now) / 1000).toString()
-          }
-        }
+            'Retry-After': Math.ceil((rateLimitData.resetTime - now) / 1000).toString(),
+          },
+        },
       )
     }
 
@@ -252,8 +252,8 @@ export function cors(origins: string[] = ['*']): RequestHandler {
           'Access-Control-Allow-Origin': origin || '*',
           'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
           'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-          'Access-Control-Max-Age': '86400'
-        }
+          'Access-Control-Max-Age': '86400',
+        },
       })
     }
 
@@ -272,8 +272,8 @@ export function securityHeaders(): RequestHandler {
         'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
         'Referrer-Policy': 'strict-origin-when-cross-origin',
         'Content-Security-Policy':
-          "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:;"
-      }
+          "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:;",
+      },
     })
   }
 }
@@ -291,10 +291,10 @@ export function auditLog(action: string, entity: string): RequestHandler {
         await query(
           `INSERT INTO audit_logs (actor_id, action, entity, entity_id, ip_address, user_agent)
 					 VALUES ($1, $2, $3, $4, $5, $6)`,
-          [user.id, action, entity, 'unknown', clientIP, userAgent]
+          [user.id, action, entity, 'unknown', clientIP, userAgent],
         )
       } catch {
-        // console.error('Audit log error:', err)
+        // logger.error('Audit log error:', err)
       }
     }
 

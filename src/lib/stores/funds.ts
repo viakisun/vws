@@ -61,7 +61,7 @@ const initialBankAccounts: BankAccount[] = [
     balance: 50000000,
     accountNumber: '123-456-789',
     bankName: '국민은행',
-    accountType: 'checking'
+    accountType: 'checking',
   },
   {
     id: '2',
@@ -69,7 +69,7 @@ const initialBankAccounts: BankAccount[] = [
     balance: 30000000,
     accountNumber: '987-654-321',
     bankName: '신한은행',
-    accountType: 'savings'
+    accountType: 'savings',
   },
   {
     id: '3',
@@ -77,8 +77,8 @@ const initialBankAccounts: BankAccount[] = [
     balance: 5000000,
     accountNumber: '456-789-123',
     bankName: '하나은행',
-    accountType: 'foreign'
-  }
+    accountType: 'foreign',
+  },
 ]
 
 const initialTransactions: Transaction[] = [
@@ -92,7 +92,7 @@ const initialTransactions: Transaction[] = [
     accountId: '1',
     reference: 'INV-2024-001',
     createdAt: '2024-01-15T09:00:00Z',
-    updatedAt: '2024-01-15T09:00:00Z'
+    updatedAt: '2024-01-15T09:00:00Z',
   },
   {
     id: '2',
@@ -104,7 +104,7 @@ const initialTransactions: Transaction[] = [
     accountId: '1',
     reference: 'RENT-2024-01',
     createdAt: '2024-01-15T10:00:00Z',
-    updatedAt: '2024-01-15T10:00:00Z'
+    updatedAt: '2024-01-15T10:00:00Z',
   },
   {
     id: '3',
@@ -116,7 +116,7 @@ const initialTransactions: Transaction[] = [
     accountId: '1',
     reference: 'PAY-2024-01',
     createdAt: '2024-01-14T18:00:00Z',
-    updatedAt: '2024-01-14T18:00:00Z'
+    updatedAt: '2024-01-14T18:00:00Z',
   },
   {
     id: '4',
@@ -128,8 +128,8 @@ const initialTransactions: Transaction[] = [
     accountId: '2',
     reference: 'INV-2024-002',
     createdAt: '2024-01-14T16:00:00Z',
-    updatedAt: '2024-01-14T16:00:00Z'
-  }
+    updatedAt: '2024-01-14T16:00:00Z',
+  },
 ]
 
 const initialExpectedTransactions: ExpectedTransaction[] = [
@@ -144,7 +144,7 @@ const initialExpectedTransactions: ExpectedTransaction[] = [
     probability: 90,
     notes: '계약 진행 중',
     createdAt: '2024-01-15T11:00:00Z',
-    updatedAt: '2024-01-15T11:00:00Z'
+    updatedAt: '2024-01-15T11:00:00Z',
   },
   {
     id: '2',
@@ -157,7 +157,7 @@ const initialExpectedTransactions: ExpectedTransaction[] = [
     probability: 80,
     notes: '필요시 구매',
     createdAt: '2024-01-15T12:00:00Z',
-    updatedAt: '2024-01-15T12:00:00Z'
+    updatedAt: '2024-01-15T12:00:00Z',
   },
   {
     id: '3',
@@ -170,8 +170,8 @@ const initialExpectedTransactions: ExpectedTransaction[] = [
     probability: 100,
     notes: '정기 급여',
     createdAt: '2024-01-15T13:00:00Z',
-    updatedAt: '2024-01-15T13:00:00Z'
-  }
+    updatedAt: '2024-01-15T13:00:00Z',
+  },
 ]
 
 // 스토어 생성
@@ -191,21 +191,21 @@ export function createFundsReport(): FundsReport {
     expectedTransactions: initialExpectedTransactions,
     totalBalance: initialBankAccounts.reduce((sum, account) => sum + account.balance, 0),
     totalIncome: initialTransactions
-      .filter(t => t.type === 'income')
+      .filter((t) => t.type === 'income')
       .reduce((sum, t) => sum + t.amount, 0),
     totalExpense: initialTransactions
-      .filter(t => t.type === 'expense')
+      .filter((t) => t.type === 'expense')
       .reduce((sum, t) => sum + t.amount, 0),
     expectedIncome: initialExpectedTransactions
-      .filter(t => t.type === 'income')
+      .filter((t) => t.type === 'income')
       .reduce((sum, t) => sum + t.amount, 0),
     expectedExpense: initialExpectedTransactions
-      .filter(t => t.type === 'expense')
+      .filter((t) => t.type === 'expense')
       .reduce((sum, t) => sum + t.amount, 0),
     netIncome: 0, // 계산됨
     expectedNetIncome: 0, // 계산됨
     createdAt: now,
-    updatedAt: now
+    updatedAt: now,
   }
 }
 
@@ -215,76 +215,82 @@ export function addTransaction(transaction: Omit<Transaction, 'id' | 'createdAt'
     ...transaction,
     id: `transaction-${Date.now()}`,
     createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    updatedAt: new Date().toISOString(),
   }
 
-  transactions.update(current => [...current, newTransaction])
+  transactions.update((current) => [...current, newTransaction])
 }
 
 // 거래 수정 함수
 export function updateTransaction(updatedTransaction: Transaction) {
-  transactions.update(current =>
-    current.map(transaction =>
+  transactions.update((current) =>
+    current.map((transaction) =>
       transaction.id === updatedTransaction.id
         ? { ...updatedTransaction, updatedAt: new Date().toISOString() }
-        : transaction
-    )
+        : transaction,
+    ),
   )
 }
 
 // 거래 삭제 함수
 export function deleteTransaction(transactionId: string) {
-  transactions.update(current => current.filter(transaction => transaction.id !== transactionId))
+  transactions.update((current) =>
+    current.filter((transaction) => transaction.id !== transactionId),
+  )
 }
 
 // 예상 거래 추가 함수
 export function addExpectedTransaction(
-  transaction: Omit<ExpectedTransaction, 'id' | 'createdAt' | 'updatedAt'>
+  transaction: Omit<ExpectedTransaction, 'id' | 'createdAt' | 'updatedAt'>,
 ) {
   const newTransaction: ExpectedTransaction = {
     ...transaction,
     id: `expected-${Date.now()}`,
     createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    updatedAt: new Date().toISOString(),
   }
 
-  expectedTransactions.update(current => [...current, newTransaction])
+  expectedTransactions.update((current) => [...current, newTransaction])
 }
 
 // 통장 계좌 추가 함수
 export function addBankAccount(account: Omit<BankAccount, 'id'>) {
   const newAccount: BankAccount = {
     ...account,
-    id: `account-${Date.now()}`
+    id: `account-${Date.now()}`,
   }
 
-  bankAccounts.update(current => [...current, newAccount])
+  bankAccounts.update((current) => [...current, newAccount])
 }
 
 // 통장 계좌 수정 함수
 export function updateBankAccount(updatedAccount: BankAccount) {
-  bankAccounts.update(current =>
-    current.map(account =>
+  bankAccounts.update((current) =>
+    current.map((account) =>
       account.id === updatedAccount.id
         ? { ...updatedAccount, updatedAt: new Date().toISOString() }
-        : account
-    )
+        : account,
+    ),
   )
 }
 
 // 통장 계좌 삭제 함수
 export function deleteBankAccount(accountId: string) {
-  bankAccounts.update(current => current.filter(account => account.id !== accountId))
+  bankAccounts.update((current) => current.filter((account) => account.id !== accountId))
 }
 
 // 통장 잔고 업데이트 함수
 export function updateBankAccountBalance(accountId: string, newBalance: number) {
-  bankAccounts.update(accounts =>
-    accounts.map(account =>
+  bankAccounts.update((accounts) =>
+    accounts.map((account) =>
       account.id === accountId
-        ? { ...account, balance: newBalance, updatedAt: new Date().toISOString() }
-        : account
-    )
+        ? {
+            ...account,
+            balance: newBalance,
+            updatedAt: new Date().toISOString(),
+          }
+        : account,
+    ),
   )
 }
 
@@ -307,22 +313,22 @@ export function exportForAIAnalysis(): {
   let currentTransactions: Transaction[] = []
   let currentExpectedTransactions: ExpectedTransaction[] = []
 
-  bankAccounts.subscribe(value => (currentBankAccounts = value))()
-  transactions.subscribe(value => (currentTransactions = value))()
-  expectedTransactions.subscribe(value => (currentExpectedTransactions = value))()
+  bankAccounts.subscribe((value) => (currentBankAccounts = value))()
+  transactions.subscribe((value) => (currentTransactions = value))()
+  expectedTransactions.subscribe((value) => (currentExpectedTransactions = value))()
 
   const totalBalance = currentBankAccounts.reduce((sum, account) => sum + account.balance, 0)
   const totalIncome = currentTransactions
-    .filter(t => t.type === 'income')
+    .filter((t) => t.type === 'income')
     .reduce((sum, t) => sum + t.amount, 0)
   const totalExpense = currentTransactions
-    .filter(t => t.type === 'expense')
+    .filter((t) => t.type === 'expense')
     .reduce((sum, t) => sum + t.amount, 0)
   const expectedIncome = currentExpectedTransactions
-    .filter(t => t.type === 'income')
+    .filter((t) => t.type === 'income')
     .reduce((sum, t) => sum + t.amount, 0)
   const expectedExpense = currentExpectedTransactions
-    .filter(t => t.type === 'expense')
+    .filter((t) => t.type === 'expense')
     .reduce((sum, t) => sum + t.amount, 0)
 
   return {
@@ -336,7 +342,7 @@ export function exportForAIAnalysis(): {
       expectedIncome,
       expectedExpense,
       netIncome: totalIncome - totalExpense,
-      expectedNetIncome: expectedIncome - expectedExpense
-    }
+      expectedNetIncome: expectedIncome - expectedExpense,
+    },
   }
 }

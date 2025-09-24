@@ -1,16 +1,21 @@
 <script lang="ts">
-  interface Props {
-    title: string
-    subtitle?: string
-    class?: string
-  }
-
-  let { title, subtitle = '', class: className = '', ...restProps }: Props = $props()
+  let { title = '', subtitle = '', class: className = '', children } = $props()
 </script>
 
-<div class="mb-8 {className}" {...restProps}>
-  <h1 class="text-3xl font-bold" style="color: var(--color-text);">{title}</h1>
+<div class="mb-6 {className}">
+  {#if title}
+    <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+      {title}
+    </h1>
+  {/if}
+
   {#if subtitle}
-    <p class="text-sm mt-2" style="color: var(--color-text-secondary);">{subtitle}</p>
+    <p class="text-gray-600 dark:text-gray-300 mb-4">
+      {subtitle}
+    </p>
+  {/if}
+
+  {#if children}
+    {@render children()}
   {/if}
 </div>

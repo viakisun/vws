@@ -30,7 +30,7 @@ const initialSession: Session = {
   user: null,
   token: null,
   isAuthenticated: false,
-  isLoading: true
+  isLoading: true,
 }
 
 // Create session store
@@ -65,33 +65,33 @@ export class SessionManager {
 
       if (storedToken && storedUser) {
         const user = JSON.parse(storedUser)
-        this.sessionStore.update(session => ({
+        this.sessionStore.update((session) => ({
           ...session,
           user,
           token: storedToken,
           isAuthenticated: true,
-          isLoading: false
+          isLoading: false,
         }))
       } else {
-        this.sessionStore.update(session => ({
+        this.sessionStore.update((session) => ({
           ...session,
-          isLoading: false
+          isLoading: false,
         }))
       }
     } catch {
-      // console.error('Error initializing session from storage:', error)
+      // logger.error('Error initializing session from storage:', error)
       this.clearSession()
     }
   }
 
   // Set session data
   public setSession(user: User, token: string): void {
-    this.sessionStore.update(session => ({
+    this.sessionStore.update((session) => ({
       ...session,
       user,
       token,
       isAuthenticated: true,
-      isLoading: false
+      isLoading: false,
     }))
 
     // Store in localStorage on client side
@@ -103,12 +103,12 @@ export class SessionManager {
 
   // Clear session data
   public clearSession(): void {
-    this.sessionStore.update(session => ({
+    this.sessionStore.update((session) => ({
       ...session,
       user: null,
       token: null,
       isAuthenticated: false,
-      isLoading: false
+      isLoading: false,
     }))
 
     // Remove from localStorage on client side
@@ -120,7 +120,7 @@ export class SessionManager {
 
   // Update user data
   public updateUser(user: Partial<User>): void {
-    this.sessionStore.update(session => {
+    this.sessionStore.update((session) => {
       if (session.user) {
         const updatedUser = { ...session.user, ...user }
 
@@ -131,7 +131,7 @@ export class SessionManager {
 
         return {
           ...session,
-          user: updatedUser
+          user: updatedUser,
         }
       }
       return session
@@ -141,7 +141,7 @@ export class SessionManager {
   // Get current session
   public getSession(): Session {
     let currentSession: Session
-    this.sessionStore.subscribe(session => {
+    this.sessionStore.subscribe((session) => {
       currentSession = session
     })()
     return currentSession!
@@ -197,7 +197,7 @@ export class SessionManager {
   // Login function
   public async login(
     email: string,
-    password: string
+    password: string,
   ): Promise<{ success: boolean; message?: string }> {
     try {
       if (typeof window === 'undefined') {
@@ -207,9 +207,9 @@ export class SessionManager {
       const response = await window.fetch('/api/auth/login', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify({ email, password }),
       })
 
       const data = await response.json()
@@ -221,7 +221,7 @@ export class SessionManager {
         return { success: false, message: data.message || 'Login failed' }
       }
     } catch {
-      // console.error('Login error:', error)
+      // logger.error('Login error:', error)
       return { success: false, message: 'Network error' }
     }
   }
@@ -235,12 +235,12 @@ export class SessionManager {
           method: 'POST',
           headers: {
             Authorization: `Bearer ${this.getToken()}`,
-            'Content-Type': 'application/json'
-          } as Record<string, string>
+            'Content-Type': 'application/json',
+          } as Record<string, string>,
         })
       }
     } catch {
-      // console.error('Logout API error:', error)
+      // logger.error('Logout API error:', error)
     } finally {
       this.clearSession()
     }
@@ -255,16 +255,16 @@ export class SessionManager {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${this.getToken()}`,
-          'Content-Type': 'application/json'
-        } as Record<string, string>
+          'Content-Type': 'application/json',
+        } as Record<string, string>,
       })
 
       if (response.ok) {
         const data = await response.json()
         if (data.success && data.token) {
-          this.sessionStore.update(session => ({
+          this.sessionStore.update((session) => ({
             ...session,
-            token: data.token
+            token: data.token,
           }))
 
           if (browser) {
@@ -274,7 +274,7 @@ export class SessionManager {
         }
       }
     } catch {
-      // console.error('Token refresh error:', error)
+      // logger.error('Token refresh error:', error)
     }
 
     // If refresh fails, clear session
@@ -291,7 +291,7 @@ export class SessionManager {
 
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
-      ...((options.headers as Record<string, string>) || {})
+      ...((options.headers as Record<string, string>) || {}),
     }
 
     if (token) {
@@ -300,7 +300,7 @@ export class SessionManager {
 
     const response = await window.fetch(url, {
       ...options,
-      headers
+      headers,
     })
 
     // Handle token expiration
@@ -311,7 +311,7 @@ export class SessionManager {
         headers['Authorization'] = `Bearer ${this.getToken()}`
         return window.fetch(url, {
           ...options,
-          headers
+          headers,
         })
       } else {
         // Redirect to login if refresh fails
@@ -342,7 +342,7 @@ export function useSession() {
     isEmployee: sessionManager.isEmployee.bind(sessionManager),
     isViewer: sessionManager.isViewer.bind(sessionManager),
     getCurrentUser: sessionManager.getCurrentUser.bind(sessionManager),
-    apiRequest: sessionManager.apiRequest.bind(sessionManager)
+    apiRequest: sessionManager.apiRequest.bind(sessionManager),
   }
 }
 
@@ -353,7 +353,7 @@ export const isAdmin = writable(false)
 export const isManager = writable(false)
 
 // Update reactive stores when session changes
-session.subscribe(session => {
+session.subscribe((session) => {
   isAuthenticated.set(session.isAuthenticated)
   currentUser.set(session.user)
   isAdmin.set(session.user?.role === 'ADMIN')

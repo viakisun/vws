@@ -1,21 +1,16 @@
 // R&D 통합관리 시스템 지출/증빙 표준 흐름 및 결재 시스템
 
-import { writable, derived } from 'svelte/store'
+import { derived, writable } from 'svelte/store'
+import { checkDocumentCompleteness, getDefaultWorkflow } from './budget-categories'
 import type {
-  ExpenseItem,
-  Document,
   Approval,
-  ApprovalWorkflow,
   ApprovalStatus,
+  ApprovalWorkflow,
+  Document,
   DocumentType,
+  ExpenseItem,
   UUID,
-  UserRole
 } from './types'
-import {
-  getDefaultWorkflow,
-  getRequiredDocuments,
-  checkDocumentCompleteness
-} from './budget-categories'
 
 // ===== 지출 항목 스토어 =====
 export const expenseItems = writable<ExpenseItem[]>([])
@@ -30,23 +25,23 @@ export const approvals = writable<Approval[]>([])
 export const approvalWorkflows = writable<ApprovalWorkflow[]>([])
 
 // ===== 필터링된 데이터 =====
-export const pendingExpenses = derived(expenseItems, $expenseItems =>
+export const pendingExpenses = derived(expenseItems, ($expenseItems) =>
   $expenseItems.filter(
-    expense => expense.status === 'pending_approval' || expense.status === 'draft'
-  )
+    (expense) => expense.status === 'pending_approval' || expense.status === 'draft',
+  ),
 )
 
-export const approvedExpenses = derived(expenseItems, $expenseItems =>
+export const approvedExpenses = derived(expenseItems, ($expenseItems) =>
   $expenseItems.filter(
-    expense =>
+    (expense) =>
       expense.status === 'approved' ||
       expense.status === 'executed' ||
-      expense.status === 'completed'
-  )
+      expense.status === 'completed',
+  ),
 )
 
-export const rejectedExpenses = derived(expenseItems, $expenseItems =>
-  $expenseItems.filter(expense => expense.status === 'rejected')
+export const rejectedExpenses = derived(expenseItems, ($expenseItems) =>
+  $expenseItems.filter((expense) => expense.status === 'rejected'),
 )
 
 // ===== 지출 항목 관리 함수들 =====
@@ -68,10 +63,10 @@ export function createExpenseRequest(expenseData: {
     ...expenseData,
     status: 'draft',
     createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    updatedAt: new Date().toISOString(),
   }
 
-  expenseItems.update(items => [...items, newExpense])
+  expenseItems.update((items) => [...items, newExpense])
 
   // 결재 워크플로우 초기화
   initializeApprovalWorkflow(newExpense.id, expenseData.categoryCode)
@@ -84,10 +79,14 @@ export function createExpenseRequest(expenseData: {
  */
 export function updateExpenseItem(id: UUID, updates: Partial<ExpenseItem>): boolean {
   let updated = false
-  expenseItems.update(items => {
-    const index = items.findIndex(item => item.id === id)
+  expenseItems.update((items) => {
+    const index = items.findIndex((item) => item.id === id)
     if (index !== -1) {
-      items[index] = { ...items[index], ...updates, updatedAt: new Date().toISOString() }
+      items[index] = {
+        ...items[index],
+        ...updates,
+        updatedAt: new Date().toISOString(),
+      }
       updated = true
     }
     return items
@@ -100,17 +99,19 @@ export function updateExpenseItem(id: UUID, updates: Partial<ExpenseItem>): bool
  */
 export function deleteExpenseItem(id: UUID): boolean {
   let deleted = false
-  expenseItems.update(items => {
-    const filtered = items.filter(item => item.id !== id)
+  expenseItems.update((items) => {
+    const filtered = items.filter((item) => item.id !== id)
     deleted = filtered.length !== items.length
     return filtered
   })
 
   if (deleted) {
     // 관련 문서와 결재 정보도 삭제
-    documents.update(docs => docs.filter(doc => doc.expenseId !== id))
-    approvals.update(apps => apps.filter(app => app.subjectId !== id))
-    approvalWorkflows.update(workflows => workflows.filter(workflow => workflow.subjectId !== id))
+    documents.update((docs) => docs.filter((doc) => doc.expenseId !== id))
+    approvals.update((apps) => apps.filter((app) => app.subjectId !== id))
+    approvalWorkflows.update((workflows) =>
+      workflows.filter((workflow) => workflow.subjectId !== id),
+    )
   }
 
   return deleted
@@ -129,16 +130,16 @@ export function uploadDocument(documentData: {
   originalFilename: string
   storageUrl: string
   sha256: string
-  meta?: Record<string, any>
+  meta?: Record<string, unknown>
 }): Document {
   const newDocument: Document = {
     id: `doc-${Date.now()}`,
     ...documentData,
     version: 1,
-    createdAt: new Date().toISOString()
+    createdAt: new Date().toISOString(),
   }
 
-  documents.update(docs => [...docs, newDocument])
+  documents.update((docs) => [...docs, newDocument])
 
   // 지출 항목의 문서 완성도 확인
   if (documentData.expenseId) {
@@ -153,13 +154,13 @@ export function uploadDocument(documentData: {
  */
 export function signDocument(documentId: UUID, signedBy: UUID): boolean {
   let signed = false
-  documents.update(docs => {
-    const index = docs.findIndex(doc => doc.id === documentId)
+  documents.update((docs) => {
+    const index = docs.findIndex((doc) => doc.id === documentId)
     if (index !== -1) {
       docs[index] = {
         ...docs[index],
         signedBy,
-        signedAt: new Date().toISOString()
+        signedAt: new Date().toISOString(),
       }
       signed = true
     }
@@ -173,13 +174,13 @@ export function signDocument(documentId: UUID, signedBy: UUID): boolean {
  */
 export function verifyDocument(documentId: UUID, verifiedBy: UUID): boolean {
   let verified = false
-  documents.update(docs => {
-    const index = docs.findIndex(doc => doc.id === documentId)
+  documents.update((docs) => {
+    const index = docs.findIndex((doc) => doc.id === documentId)
     if (index !== -1) {
       docs[index] = {
         ...docs[index],
         verifiedBy,
-        verifiedAt: new Date().toISOString()
+        verifiedAt: new Date().toISOString(),
       }
       verified = true
     }
@@ -197,12 +198,12 @@ export function createDocumentVersion(
     filename: string
     storageUrl: string
     sha256: string
-    meta?: Record<string, any>
-  }
+    meta?: Record<string, unknown>
+  },
 ): Document | null {
   let originalDoc: Document | undefined
-  documents.subscribe(docs => {
-    originalDoc = docs.find(doc => doc.id === originalDocumentId)
+  documents.subscribe((docs) => {
+    originalDoc = docs.find((doc) => doc.id === originalDocumentId)
   })()
 
   if (!originalDoc) return null
@@ -222,10 +223,10 @@ export function createDocumentVersion(
     verifiedBy: originalDoc.verifiedBy,
     verifiedAt: originalDoc.verifiedAt,
     meta: { ...originalDoc.meta, ...newDocumentData.meta },
-    createdAt: new Date().toISOString()
+    createdAt: new Date().toISOString(),
   }
 
-  documents.update(docs => [...docs, newVersion])
+  documents.update((docs) => [...docs, newVersion])
   return newVersion
 }
 
@@ -245,10 +246,10 @@ function initializeApprovalWorkflow(expenseId: UUID, categoryCode: string): void
     totalSteps: workflow.length,
     status: 'pending',
     createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    updatedAt: new Date().toISOString(),
   }
 
-  approvalWorkflows.update(workflows => [...workflows, newWorkflow])
+  approvalWorkflows.update((workflows) => [...workflows, newWorkflow])
 }
 
 /**
@@ -270,14 +271,14 @@ export function processApproval(approvalData: {
     decision: approvalData.decision,
     comment: approvalData.comment,
     decidedAt: new Date().toISOString(),
-    createdAt: new Date().toISOString()
+    createdAt: new Date().toISOString(),
   }
 
   // 워크플로우 업데이트
   let workflowUpdated = false
-  approvalWorkflows.update(workflows => {
+  approvalWorkflows.update((workflows) => {
     const workflowIndex = workflows.findIndex(
-      w => w.subjectType === approvalData.subjectType && w.subjectId === approvalData.subjectId
+      (w) => w.subjectType === approvalData.subjectType && w.subjectId === approvalData.subjectId,
     )
 
     if (workflowIndex !== -1) {
@@ -301,7 +302,7 @@ export function processApproval(approvalData: {
   })
 
   if (workflowUpdated) {
-    approvals.update(apps => [...apps, newApproval])
+    approvals.update((apps) => [...apps, newApproval])
 
     // 지출 항목 상태 업데이트
     if (approvalData.subjectType === 'expense') {
@@ -319,8 +320,8 @@ export function processApproval(approvalData: {
  */
 function updateExpenseStatus(expenseId: UUID): void {
   let workflow: ApprovalWorkflow | undefined
-  approvalWorkflows.subscribe(workflows => {
-    workflow = workflows.find(w => w.subjectType === 'expense' && w.subjectId === expenseId)
+  approvalWorkflows.subscribe((workflows) => {
+    workflow = workflows.find((w) => w.subjectType === 'expense' && w.subjectId === expenseId)
   })()
 
   if (!workflow) return
@@ -354,17 +355,17 @@ function updateExpenseStatus(expenseId: UUID): void {
  */
 function checkExpenseDocumentCompleteness(expenseId: UUID): void {
   let expense: ExpenseItem | undefined
-  expenseItems.subscribe(items => {
-    expense = items.find(item => item.id === expenseId)
+  expenseItems.subscribe((items) => {
+    expense = items.find((item) => item.id === expenseId)
   })()
 
   if (!expense) return
 
   let uploadedDocs: Array<{ type: string; uploadedAt: string }> = []
-  documents.subscribe(docs => {
+  documents.subscribe((docs) => {
     uploadedDocs = docs
-      .filter(doc => doc.expenseId === expenseId)
-      .map(doc => ({ type: doc.type, uploadedAt: doc.createdAt }))
+      .filter((doc) => doc.expenseId === expenseId)
+      .map((doc) => ({ type: doc.type, uploadedAt: doc.createdAt }))
   })()
 
   const completeness = checkDocumentCompleteness(expense.categoryCode, uploadedDocs)
@@ -391,9 +392,9 @@ export function searchExpenseItems(filters: {
   amountMax?: number
 }): ExpenseItem[] {
   let items: ExpenseItem[] = []
-  expenseItems.subscribe(value => (items = value))()
+  expenseItems.subscribe((value) => (items = value))()
 
-  return items.filter(item => {
+  return items.filter((item) => {
     if (filters.projectId && item.projectId !== filters.projectId) return false
     if (filters.status && item.status !== filters.status) return false
     if (filters.categoryCode && item.categoryCode !== filters.categoryCode) return false
@@ -428,18 +429,18 @@ export function getProjectExpenseStatistics(projectId: UUID): {
   byStatus: Record<string, { amount: number; count: number }>
 } {
   let items: ExpenseItem[] = []
-  expenseItems.subscribe(value => (items = value))()
+  expenseItems.subscribe((value) => (items = value))()
 
-  const projectExpenses = items.filter(item => item.projectId === projectId)
+  const projectExpenses = items.filter((item) => item.projectId === projectId)
 
   const statistics = {
     totalAmount: 0,
     totalCount: projectExpenses.length,
     byCategory: {} as Record<string, { amount: number; count: number }>,
-    byStatus: {} as Record<string, { amount: number; count: number }>
+    byStatus: {} as Record<string, { amount: number; count: number }>,
   }
 
-  projectExpenses.forEach(expense => {
+  projectExpenses.forEach((expense) => {
     statistics.totalAmount += expense.amount
 
     // 카테고리별 통계
@@ -463,52 +464,54 @@ export function getProjectExpenseStatistics(projectId: UUID): {
 /**
  * 결재 대기 중인 지출 항목
  */
-export function getPendingApprovalExpenses(approverId: UUID): ExpenseItem[] {
+export function getPendingApprovalExpenses(_approverId: UUID): ExpenseItem[] {
   let items: ExpenseItem[] = []
-  expenseItems.subscribe(value => (items = value))()
+  expenseItems.subscribe((value) => (items = value))()
 
   let workflows: ApprovalWorkflow[] = []
-  approvalWorkflows.subscribe(value => (workflows = value))()
+  approvalWorkflows.subscribe((value) => (workflows = value))()
 
   // 현재 결재 단계에서 해당 사용자가 승인해야 하는 항목들
   const pendingWorkflows = workflows.filter(
-    workflow => workflow.status === 'pending' && workflow.subjectType === 'expense'
+    (workflow) => workflow.status === 'pending' && workflow.subjectType === 'expense',
   )
 
-  const pendingExpenseIds = pendingWorkflows.map(workflow => workflow.subjectId)
+  const pendingExpenseIds = pendingWorkflows.map((workflow) => workflow.subjectId)
 
   return items.filter(
-    item => pendingExpenseIds.includes(item.id) && item.status === 'pending_approval'
+    (item) => pendingExpenseIds.includes(item.id) && item.status === 'pending_approval',
   )
 }
 
 /**
  * 지출 항목 실행 (집행)
  */
-export function executeExpenseItem(expenseId: UUID, executedBy: UUID): boolean {
+export function executeExpenseItem(expenseId: UUID, _executedBy: UUID): boolean {
   return updateExpenseItem(expenseId, {
     status: 'executed',
-    updatedAt: new Date().toISOString()
+    updatedAt: new Date().toISOString(),
   })
 }
 
 /**
  * 지출 항목 완료
  */
-export function completeExpenseItem(expenseId: UUID, completedBy: UUID): boolean {
+export function completeExpenseItem(expenseId: UUID, _completedBy: UUID): boolean {
   return updateExpenseItem(expenseId, {
     status: 'completed',
-    updatedAt: new Date().toISOString()
+    updatedAt: new Date().toISOString(),
   })
 }
 
 /**
  * 지출 항목 취소
  */
-export function cancelExpenseItem(expenseId: UUID, reason: string): boolean {
+export function cancelExpenseItem(expenseId: UUID, _reason: string): boolean {
   // 워크플로우 취소
-  approvalWorkflows.update(workflows => {
-    const index = workflows.findIndex(w => w.subjectType === 'expense' && w.subjectId === expenseId)
+  approvalWorkflows.update((workflows) => {
+    const index = workflows.findIndex(
+      (w) => w.subjectType === 'expense' && w.subjectId === expenseId,
+    )
     if (index !== -1) {
       workflows[index].status = 'cancelled'
       workflows[index].updatedAt = new Date().toISOString()
@@ -518,7 +521,7 @@ export function cancelExpenseItem(expenseId: UUID, reason: string): boolean {
 
   return updateExpenseItem(expenseId, {
     status: 'draft',
-    updatedAt: new Date().toISOString()
+    updatedAt: new Date().toISOString(),
   })
 }
 
@@ -532,7 +535,7 @@ export function rejectExpenseItem(expenseId: UUID, reason: string, rejectedBy: U
     subjectId: expenseId,
     approverId: rejectedBy,
     decision: 'rejected',
-    comment: reason
+    comment: reason,
   })
 
   return true
@@ -548,7 +551,7 @@ export function approveExpenseItem(expenseId: UUID, approvedBy: UUID, comment?: 
     subjectId: expenseId,
     approverId: approvedBy,
     decision: 'approved',
-    comment
+    comment,
   })
 
   return true

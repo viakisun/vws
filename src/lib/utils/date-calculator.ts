@@ -14,7 +14,7 @@ import { getCurrentUTC, toUTC } from './date-handler'
  */
 export function calculateAnnualPeriod(
   projectStartDate: string | Date,
-  periodNumber: number
+  periodNumber: number,
 ): { startDate: string; endDate: string } {
   // UTC+9 타임존으로 입력 날짜 변환
   const startUtc = toUTC(projectStartDate)
@@ -31,7 +31,7 @@ export function calculateAnnualPeriod(
 
   return {
     startDate: formatDateForAPI(periodStartDate),
-    endDate: formatDateForAPI(periodEndDate)
+    endDate: formatDateForAPI(periodEndDate),
   }
 }
 
@@ -47,7 +47,7 @@ export function calculateParticipationPeriod(
   participationStartDate: string | Date,
   participationEndDate: string | Date,
   projectStartDate: string | Date,
-  projectEndDate: string | Date
+  projectEndDate: string | Date,
 ): {
   isValid: boolean
   normalizedStartDate: string
@@ -71,7 +71,7 @@ export function calculateParticipationPeriod(
       isValid: false,
       normalizedStartDate: '',
       normalizedEndDate: '',
-      errorMessage: '참여 시작일이 프로젝트 종료일보다 늦습니다.'
+      errorMessage: '참여 시작일이 프로젝트 종료일보다 늦습니다.',
     }
   }
 
@@ -81,7 +81,7 @@ export function calculateParticipationPeriod(
       isValid: false,
       normalizedStartDate: '',
       normalizedEndDate: '',
-      errorMessage: '참여 종료일이 프로젝트 시작일보다 이릅니다.'
+      errorMessage: '참여 종료일이 프로젝트 시작일보다 이릅니다.',
     }
   }
 
@@ -94,7 +94,7 @@ export function calculateParticipationPeriod(
   return {
     isValid: true,
     normalizedStartDate: formatDateForAPI(normalizedStartDate),
-    normalizedEndDate: formatDateForAPI(normalizedEndDate)
+    normalizedEndDate: formatDateForAPI(normalizedEndDate),
   }
 }
 
@@ -110,7 +110,7 @@ export function validateContractOverlap(
   contractStartDate: string | Date,
   contractEndDate: string | Date,
   participationStartDate: string | Date,
-  participationEndDate: string | Date
+  participationEndDate: string | Date,
 ): {
   hasOverlap: boolean
   overlapStartDate?: string
@@ -126,7 +126,7 @@ export function validateContractOverlap(
   if (contractEnd < partStart) {
     return {
       hasOverlap: false,
-      errorMessage: '계약 종료일이 참여 시작일보다 이릅니다.'
+      errorMessage: '계약 종료일이 참여 시작일보다 이릅니다.',
     }
   }
 
@@ -134,7 +134,7 @@ export function validateContractOverlap(
   if (contractStart > partEnd) {
     return {
       hasOverlap: false,
-      errorMessage: '계약 시작일이 참여 종료일보다 늦습니다.'
+      errorMessage: '계약 시작일이 참여 종료일보다 늦습니다.',
     }
   }
 
@@ -145,7 +145,7 @@ export function validateContractOverlap(
   return {
     hasOverlap: true,
     overlapStartDate: formatDateForAPI(overlapStart),
-    overlapEndDate: formatDateForAPI(overlapEnd)
+    overlapEndDate: formatDateForAPI(overlapEnd),
   }
 }
 

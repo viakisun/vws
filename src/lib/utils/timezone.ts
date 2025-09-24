@@ -17,7 +17,7 @@ export const SUPPORTED_TIMEZONES = {
   CST: 'Asia/Shanghai', // 중국 표준시 (UTC+8)
   IST: 'Asia/Kolkata', // 인도 표준시 (UTC+5:30)
   AEST: 'Australia/Sydney', // 호주 동부 표준시 (UTC+10)
-  NZST: 'Pacific/Auckland' // 뉴질랜드 표준시 (UTC+12)
+  NZST: 'Pacific/Auckland', // 뉴질랜드 표준시 (UTC+12)
 } as const
 
 export type Timezone = keyof typeof SUPPORTED_TIMEZONES
@@ -31,7 +31,7 @@ export const DEFAULT_TIMEZONE: Timezone = 'KST'
  * @param timezone 변환할 타임존
  * @returns 변환된 로컬 시간
  */
-export function utcToLocal(utcDate: Date, timezone: Timezone = DEFAULT_TIMEZONE): Date {
+export function utcToLocal(utcDate: Date, _timezone: Timezone = DEFAULT_TIMEZONE): Date {
   if (!utcDate || isNaN(utcDate.getTime())) {
     throw new Error('Invalid UTC date provided')
   }
@@ -53,7 +53,7 @@ export function localToUtc(localDate: Date, timezone: Timezone = DEFAULT_TIMEZON
     throw new Error('Invalid local date provided')
   }
 
-  const timezoneString = SUPPORTED_TIMEZONES[timezone]
+  const _timezoneString = SUPPORTED_TIMEZONES[timezone]
   // 표준 날짜 처리 함수 사용
   const utcDate = new Date(toUTC(localDate.toISOString()))
 
@@ -79,7 +79,7 @@ export function getTimezoneOffset(timezone: Timezone): number {
     CST: -480, // UTC+8 = -480분
     IST: -330, // UTC+5:30 = -330분
     AEST: -600, // UTC+10 = -600분
-    NZST: -720 // UTC+12 = -720분
+    NZST: -720, // UTC+12 = -720분
   }
 
   return offsets[timezone]
@@ -138,7 +138,7 @@ export function utcToTimeString(utcDate: Date, timezone: Timezone = DEFAULT_TIME
  * @returns YYYY-MM-DD HH:MM:SS 형식의 날짜시간 문자열
  */
 export function utcToDateTimeString(utcDate: Date, timezone: Timezone = DEFAULT_TIMEZONE): string {
-  const localDate = utcToLocal(utcDate, timezone)
+  const _localDate = utcToLocal(utcDate, timezone)
   const dateString = utcToDateString(utcDate, timezone)
   const timeString = utcToTimeString(utcDate, timezone)
   return `${dateString} ${timeString}`
@@ -219,8 +219,8 @@ export function formatUtcToLocal(
     hour: '2-digit',
     minute: '2-digit',
     second: '2-digit',
-    timeZoneName: 'short'
-  }
+    timeZoneName: 'short',
+  },
 ): string {
   if (!utcDate || isNaN(utcDate.getTime())) {
     throw new Error('Invalid UTC date provided')
@@ -248,7 +248,7 @@ export function utcToDateInput(utcDate: Date, timezone: Timezone = DEFAULT_TIMEZ
  */
 export function dateInputToUtc(
   dateInputValue: string,
-  timezone: Timezone = DEFAULT_TIMEZONE
+  timezone: Timezone = DEFAULT_TIMEZONE,
 ): Date {
   return dateStringToUtc(dateInputValue, timezone)
 }
@@ -313,6 +313,6 @@ export function getTimeInfo(utcDate: Date, timezone: Timezone = DEFAULT_TIMEZONE
     dateString: utcToDateString(utcDate, timezone),
     timeString: utcToTimeString(utcDate, timezone),
     dateTimeString: utcToDateTimeString(utcDate, timezone),
-    formatted: formatUtcToLocal(utcDate, timezone)
+    formatted: formatUtcToLocal(utcDate, timezone),
   }
 }

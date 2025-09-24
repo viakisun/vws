@@ -1,5 +1,6 @@
 import { query } from '$lib/database/connection'
 import { getCurrentDateForAPI } from '$lib/utils/date-calculator'
+import { logger } from '$lib/utils/logger'
 import { calculateMonthlySalary } from '$lib/utils/salary-calculator'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
@@ -39,13 +40,13 @@ export const GET: RequestHandler = async ({ url }) => {
       return json(
         {
           success: false,
-          error: '프로젝트 ID가 필요합니다.'
+          error: '프로젝트 ID가 필요합니다.',
         },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
-    console.log(`🔍 [참여연구원 검증] 프로젝트 ${projectId} 검증 시작`)
+    logger.log(`🔍 [참여연구원 검증] 프로젝트 ${projectId} 검증 시작`)
 
     // 1. 프로젝트 기본 정보 조회
     const projectResult = await query(
@@ -54,16 +55,16 @@ export const GET: RequestHandler = async ({ url }) => {
 			FROM projects 
 			WHERE id = $1
 		`,
-      [projectId]
+      [projectId],
     )
 
     if (projectResult.rows.length === 0) {
       return json(
         {
           success: false,
-          error: '프로젝트를 찾을 수 없습니다.'
+          error: '프로젝트를 찾을 수 없습니다.',
         },
-        { status: 404 }
+        { status: 404 },
       )
     }
 
@@ -89,17 +90,17 @@ export const GET: RequestHandler = async ({ url }) => {
 			WHERE pm.project_id = $1 AND pm.status = 'active'
 			ORDER BY pm.created_at DESC
 		`,
-      [projectId]
+      [projectId],
     )
 
     const members = membersResult.rows
-    console.log(`📋 참여연구원 ${members.length}명 검증 시작`)
+    logger.log(`📋 참여연구원 ${members.length}명 검증 시작`)
 
     // 3. 검증 실행
     const validationResult = await performValidation(project, members)
 
-    console.log(
-      `✅ [참여연구원 검증] 완료 - ${validationResult.isValid ? '✅ 통과' : '❌ 실패'} (${validationResult.issues.length}개 이슈)`
+    logger.log(
+      `✅ [참여연구원 검증] 완료 - ${validationResult.isValid ? '✅ 통과' : '❌ 실패'} (${validationResult.issues.length}개 이슈)`,
     )
 
     return json({
@@ -108,20 +109,20 @@ export const GET: RequestHandler = async ({ url }) => {
         project: {
           id: project.id,
           title: project.title,
-          code: project.code
+          code: project.code,
         },
-        validation: validationResult
-      }
+        validation: validationResult,
+      },
     })
   } catch (error) {
-    console.error('참여연구원 검증 오류:', error)
+    logger.error('참여연구원 검증 오류:', error)
     return json(
       {
         success: false,
         error: '검증 중 오류가 발생했습니다.',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        details: error instanceof Error ? error.message : 'Unknown error',
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
@@ -135,13 +136,13 @@ export const POST: RequestHandler = async ({ request }) => {
       return json(
         {
           success: false,
-          error: '프로젝트 ID가 필요합니다.'
+          error: '프로젝트 ID가 필요합니다.',
         },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
-    console.log(`🔧 [참여연구원 자동 수정] 프로젝트 ${projectId} 수정 시작`)
+    logger.log(`🔧 [참여연구원 자동 수정] 프로젝트 ${projectId} 수정 시작`)
 
     const appliedFixes = []
 
@@ -152,13 +153,13 @@ export const POST: RequestHandler = async ({ request }) => {
           case 'participation_rate_adjustment':
             await query('UPDATE project_members SET participation_rate = $1 WHERE id = $2', [
               fix.newValue,
-              fix.memberId
+              fix.memberId,
             ])
             appliedFixes.push({
               memberId: fix.memberId,
               type: fix.type,
               action: `참여율 ${fix.oldValue}% → ${fix.newValue}%로 조정`,
-              success: true
+              success: true,
             })
             break
 
@@ -169,23 +170,23 @@ export const POST: RequestHandler = async ({ request }) => {
               memberId: fix.memberId,
               type: fix.type,
               action: '지원하지 않는 수정 유형',
-              success: false
+              success: false,
             })
         }
       } catch (fixError) {
-        console.error(`수정 실패 (${fix.type}):`, fixError)
+        logger.error(`수정 실패 (${fix.type}):`, fixError)
         appliedFixes.push({
           memberId: fix.memberId,
           type: fix.type,
           action: '수정 실패',
           success: false,
-          error: fixError instanceof Error ? fixError.message : 'Unknown error'
+          error: fixError instanceof Error ? fixError.message : 'Unknown error',
         })
       }
     }
 
-    console.log(
-      `✅ [참여연구원 자동 수정] 완료 - ${appliedFixes.filter(f => f.success).length}/${appliedFixes.length}개 성공`
+    logger.log(
+      `✅ [참여연구원 자동 수정] 완료 - ${appliedFixes.filter((f) => f.success).length}/${appliedFixes.length}개 성공`,
     )
 
     return json({
@@ -194,26 +195,26 @@ export const POST: RequestHandler = async ({ request }) => {
         appliedFixes,
         summary: {
           total: appliedFixes.length,
-          successful: appliedFixes.filter(f => f.success).length,
-          failed: appliedFixes.filter(f => !f.success).length
-        }
-      }
+          successful: appliedFixes.filter((f) => f.success).length,
+          failed: appliedFixes.filter((f) => !f.success).length,
+        },
+      },
     })
   } catch (error) {
-    console.error('자동 수정 오류:', error)
+    logger.error('자동 수정 오류:', error)
     return json(
       {
         success: false,
         error: '자동 수정 중 오류가 발생했습니다.',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        details: error instanceof Error ? error.message : 'Unknown error',
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
 
 // 검증 로직 실행
-async function performValidation(project: any, members: any[]): Promise<ValidationResult> {
+async function performValidation(project: any, members: unknown[]): Promise<ValidationResult> {
   const issues: ValidationIssue[] = []
   let validMembers = 0
 
@@ -237,7 +238,7 @@ async function performValidation(project: any, members: any[]): Promise<Validati
         memberId: member.id,
         memberName: member.employee_name,
         suggestedFix: '참여율을 100% 이하로 조정하세요',
-        data: { participationRate }
+        data: { participationRate },
       })
       memberHasIssues = true
     }
@@ -260,7 +261,7 @@ async function performValidation(project: any, members: any[]): Promise<Validati
 			ORDER BY sc.start_date DESC
 			LIMIT 1
 		`,
-      [member.employee_id, member.start_date, member.end_date]
+      [member.employee_id, member.start_date, member.end_date],
     )
 
     let contractAmount = 0
@@ -287,8 +288,8 @@ async function performValidation(project: any, members: any[]): Promise<Validati
           expectedMonthlyAmount,
           contractAmount,
           participationRate,
-          salaryMultiplier
-        }
+          salaryMultiplier,
+        },
       })
       memberHasIssues = true
     }
@@ -312,15 +313,15 @@ async function performValidation(project: any, members: any[]): Promise<Validati
       totalMembers: members.length,
       validMembers,
       invalidMembers: members.length - validMembers,
-      lastValidated: getCurrentDateForAPI()
-    }
+      lastValidated: getCurrentDateForAPI(),
+    },
   }
 }
 
 // 근로계약서 검증
 async function validateContract(
   member: any,
-  project: any
+  _project: any,
 ): Promise<{ isValid: boolean; issues: ValidationIssue[] }> {
   const issues: ValidationIssue[] = []
 
@@ -339,7 +340,7 @@ async function validateContract(
 		ORDER BY sc.start_date DESC
 		LIMIT 1
 	`,
-    [member.employee_id, member.start_date, member.end_date]
+    [member.employee_id, member.start_date, member.end_date],
   )
 
   if (contractResult.rows.length === 0) {
@@ -351,7 +352,7 @@ async function validateContract(
 			WHERE sc.employee_id = $1
 			ORDER BY sc.start_date DESC
 		`,
-      [member.employee_id]
+      [member.employee_id],
     )
 
     if (allContractsResult.rows.length === 0) {
@@ -364,8 +365,8 @@ async function validateContract(
         suggestedFix: '급여 계약서를 등록하거나 프로젝트 참여 기간을 조정하세요',
         data: {
           participationPeriod: `${member.start_date} ~ ${member.end_date}`,
-          contracts: []
-        }
+          contracts: [],
+        },
       })
     } else {
       issues.push({
@@ -377,21 +378,21 @@ async function validateContract(
         suggestedFix: '근로계약서 기간을 확인하거나 프로젝트 참여 기간을 조정하세요',
         data: {
           participationPeriod: `${member.start_date} ~ ${member.end_date}`,
-          contracts: allContractsResult.rows
-        }
+          contracts: allContractsResult.rows,
+        },
       })
     }
   }
 
   return {
     isValid: issues.length === 0,
-    issues
+    issues,
   }
 }
 
 // 중복 참여 검증
 async function validateDuplicateParticipation(
-  member: any
+  member: any,
 ): Promise<{ isValid: boolean; issues: ValidationIssue[] }> {
   const issues: ValidationIssue[] = []
 
@@ -411,7 +412,7 @@ async function validateDuplicateParticipation(
 				(COALESCE($3, CURRENT_DATE) <= pm.start_date AND COALESCE($4, CURRENT_DATE) >= pm.start_date)
 			)
 	`,
-    [member.employee_id, member.id, member.start_date, member.end_date]
+    [member.employee_id, member.id, member.start_date, member.end_date],
   )
 
   if (duplicateResult.rows.length > 0) {
@@ -430,19 +431,19 @@ async function validateDuplicateParticipation(
         suggestedFix: '참여율을 조정하거나 참여 기간을 변경하세요',
         data: {
           totalParticipationRate,
-          conflictingProjects: duplicateResult.rows.map(p => ({
+          conflictingProjects: duplicateResult.rows.map((p) => ({
             projectId: p.project_id,
             projectTitle: p.project_title,
             participationRate: parseFloat(p.participation_rate) || 0,
-            period: `${p.start_date} ~ ${p.end_date}`
-          }))
-        }
+            period: `${p.start_date} ~ ${p.end_date}`,
+          })),
+        },
       })
     }
   }
 
   return {
     isValid: issues.length === 0,
-    issues
+    issues,
   }
 }

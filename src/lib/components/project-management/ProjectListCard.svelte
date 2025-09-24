@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
   import ProjectDetailView from '$lib/components/project-management/ProjectDetailView.svelte'
   import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
   import ThemeCard from '$lib/components/ui/ThemeCard.svelte'
@@ -27,7 +27,7 @@
     selectedProject = null,
     selectedProjectId = '',
     loading = false,
-    error = null
+    error = null,
   } = $props()
 
   // 간소화된 상태 한글 변환
@@ -66,7 +66,7 @@
     }
 
     // 프로젝트 목록에서 삭제된 프로젝트 제거
-    projects = projects.filter(p => p.id !== projectId)
+    projects = projects.filter((p) => p.id !== projectId)
 
     // 상위 컴포넌트에 삭제 이벤트 전달
     dispatch('project-deleted', { projectId })
@@ -91,12 +91,9 @@
         <div class="relative flex-1 max-w-md">
           <select
             bind:value={selectedProjectId}
-            onchange={e => {
-              const target = e.target
-              if (target && 'value' in target) {
-                const project = projects.find(p => p.id === target.value)
-                if (project) selectProject(project)
-              }
+            onchange={(e: Event & { currentTarget: HTMLSelectElement }) => {
+              const project = projects.find((p) => p.id === e.currentTarget.value)
+              if (project) selectProject(project)
             }}
             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             disabled={loading}
@@ -123,9 +120,9 @@
           <div class="flex items-center space-x-4 text-sm text-gray-600">
             <span>총 {projects.length}개</span>
             <span>•</span>
-            <span>활성: {projects.filter(p => p.status === 'active').length}개</span>
+            <span>활성: {projects.filter((p) => p.status === 'active').length}개</span>
             <span>•</span>
-            <span>완료: {projects.filter(p => p.status === 'completed').length}개</span>
+            <span>완료: {projects.filter((p) => p.status === 'completed').length}개</span>
           </div>
         {/if}
       </div>

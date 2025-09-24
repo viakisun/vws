@@ -5,6 +5,7 @@ import { query } from '$lib/database/connection'
 import { transformArrayData, transformProjectData } from '$lib/utils/api-data-transformer'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger'
 
 // 프로젝트 목록 조회
 export const GET: RequestHandler = async ({ url }) => {
@@ -61,7 +62,7 @@ export const GET: RequestHandler = async ({ url }) => {
 
     if (search) {
       conditions.push(
-        `(p.title ILIKE $${paramIndex} OR p.code ILIKE $${paramIndex} OR p.description ILIKE $${paramIndex})`
+        `(p.title ILIKE $${paramIndex} OR p.code ILIKE $${paramIndex} OR p.description ILIKE $${paramIndex})`,
       )
       params.push(`%${search}%`)
       paramIndex++
@@ -94,17 +95,17 @@ export const GET: RequestHandler = async ({ url }) => {
     return json({
       success: true,
       data: transformedData,
-      total: transformedData.length
+      total: transformedData.length,
     })
   } catch (error) {
-    console.error('프로젝트 목록 조회 실패:', error)
+    logger.error('프로젝트 목록 조회 실패:', error)
     return json(
       {
         success: false,
         message: '프로젝트 목록을 불러오는데 실패했습니다.',
-        error: error instanceof Error ? error.message : '알 수 없는 오류'
+        error: error instanceof Error ? error.message : '알 수 없는 오류',
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
@@ -117,7 +118,7 @@ export const POST: RequestHandler = async ({ request }) => {
       code,
       title,
       description = '',
-      status = 'planning' // 기본값을 '기획'으로 설정
+      status = 'planning', // 기본값을 '기획'으로 설정
     } = data
 
     // 필수 필드 검증
@@ -125,9 +126,9 @@ export const POST: RequestHandler = async ({ request }) => {
       return json(
         {
           success: false,
-          error: '프로젝트 코드와 제목은 필수입니다.'
+          error: '프로젝트 코드와 제목은 필수입니다.',
         },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -137,9 +138,9 @@ export const POST: RequestHandler = async ({ request }) => {
       return json(
         {
           success: false,
-          error: '유효하지 않은 프로젝트 상태입니다. (기획, 진행, 완료 중 선택)'
+          error: '유효하지 않은 프로젝트 상태입니다. (기획, 진행, 완료 중 선택)',
         },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -150,9 +151,9 @@ export const POST: RequestHandler = async ({ request }) => {
       return json(
         {
           success: false,
-          error: '이미 존재하는 프로젝트 코드입니다.'
+          error: '이미 존재하는 프로젝트 코드입니다.',
         },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -164,7 +165,7 @@ export const POST: RequestHandler = async ({ request }) => {
 			) VALUES ($1, $2, $3, $4)
 			RETURNING *
 		`,
-      [code, title, description, status]
+      [code, title, description, status],
     )
 
     const project = result.rows[0]
@@ -175,17 +176,17 @@ export const POST: RequestHandler = async ({ request }) => {
     return json({
       success: true,
       data: transformedProject,
-      message: '프로젝트가 성공적으로 생성되었습니다.'
+      message: '프로젝트가 성공적으로 생성되었습니다.',
     })
   } catch (error) {
-    console.error('프로젝트 생성 실패:', error)
+    logger.error('프로젝트 생성 실패:', error)
     return json(
       {
         success: false,
         error: '프로젝트 생성에 실패했습니다.',
-        details: error instanceof Error ? error.message : '알 수 없는 오류'
+        details: error instanceof Error ? error.message : '알 수 없는 오류',
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

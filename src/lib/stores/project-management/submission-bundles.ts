@@ -1,23 +1,17 @@
+import { logger } from '$lib/utils/logger'
 import { writable } from 'svelte/store'
-import type {
-  SubmissionBundle,
-  Project,
-  Document,
-  ExpenseItem,
-  Milestone,
-  ResearchNote
-} from './types'
 import { logAudit } from './core'
+import type { Document, SubmissionBundle } from './types'
 
 // 업로드 번들 관리
 export const submissionBundles = writable<SubmissionBundle[]>([])
-export const bundleTemplates = writable<Record<string, any>>({})
+export const bundleTemplates = writable<Record<string, unknown>>({})
 
 // 국가R&D 업로드 번들 생성
 export function createSubmissionBundle(
   projectId: string,
   period: string,
-  requestedBy: string
+  requestedBy: string,
 ): string {
   const bundleId = crypto.randomUUID()
 
@@ -31,10 +25,10 @@ export function createSubmissionBundle(
     checksum: '', // 생성 완료 후 설정
     createdBy: requestedBy,
     createdAt: new Date().toISOString(),
-    status: 'generating'
+    status: 'generating',
   }
 
-  submissionBundles.update(list => [...list, bundle])
+  submissionBundles.update((list) => [...list, bundle])
   logAudit('create', 'submission_bundle', bundleId, { projectId, period }, bundle)
 
   // 비동기로 번들 생성
@@ -47,7 +41,7 @@ export function createSubmissionBundle(
 async function generateBundleContent(
   bundleId: string,
   projectId: string,
-  period: string
+  period: string,
 ): Promise<void> {
   try {
     // 1. 프로젝트 정보 수집
@@ -80,7 +74,7 @@ async function generateBundleContent(
     // 10. 번들 상태 업데이트
     updateBundleStatus(bundleId, 'ready', bundleFile.url, manifestXml, checksum)
   } catch (error) {
-    console.error('Bundle generation failed:', error)
+    logger.error('Bundle generation failed:', error)
     updateBundleStatus(bundleId, 'failed', '', '', '')
   }
 }
@@ -97,12 +91,12 @@ async function collectProjectInfo(projectId: string): Promise<any> {
     endDate: '2024-12-31',
     manager: '김연구원',
     department: '개발팀',
-    description: 'AI 기술을 활용한 스마트 제조 시스템 개발 프로젝트'
+    description: 'AI 기술을 활용한 스마트 제조 시스템 개발 프로젝트',
   }
 }
 
 // 문서 수집
-async function collectDocuments(projectId: string, period: string): Promise<Document[]> {
+async function collectDocuments(_projectId: string, _period: string): Promise<Document[]> {
   // 실제 구현에서는 해당 기간의 모든 문서를 수집
   const mockDocuments = [
     {
@@ -111,7 +105,7 @@ async function collectDocuments(projectId: string, period: string): Promise<Docu
       filename: '기안서_2024-01-15.pdf',
       storageUrl: '/documents/requisition_2024-01-15.pdf',
       sha256: 'abc123...',
-      uploadedAt: '2024-01-15T10:00:00Z'
+      uploadedAt: '2024-01-15T10:00:00Z',
     },
     {
       id: 'doc-2',
@@ -119,15 +113,15 @@ async function collectDocuments(projectId: string, period: string): Promise<Docu
       filename: '세금계산서_2024-01-20.pdf',
       storageUrl: '/documents/tax_invoice_2024-01-20.pdf',
       sha256: 'def456...',
-      uploadedAt: '2024-01-20T14:30:00Z'
-    }
+      uploadedAt: '2024-01-20T14:30:00Z',
+    },
   ]
 
   return mockDocuments
 }
 
 // 예산 정보 수집
-async function collectBudgetInfo(projectId: string, period: string): Promise<any> {
+async function collectBudgetInfo(_projectId: string, _period: string): Promise<any> {
   // 실제 구현에서는 예산 데이터를 수집
   return {
     totalBudget: 100000000,
@@ -137,26 +131,26 @@ async function collectBudgetInfo(projectId: string, period: string): Promise<any
         category: 'PERSONNEL_CASH',
         planned: 50000000,
         executed: 35000000,
-        rate: 70
+        rate: 70,
       },
       {
         category: 'MATERIAL',
         planned: 30000000,
         executed: 20000000,
-        rate: 67
+        rate: 67,
       },
       {
         category: 'RESEARCH_ACTIVITY',
         planned: 20000000,
         executed: 5000000,
-        rate: 25
-      }
-    ]
+        rate: 25,
+      },
+    ],
   }
 }
 
 // 인력 정보 수집
-async function collectPersonnelInfo(projectId: string, period: string): Promise<any> {
+async function collectPersonnelInfo(_projectId: string, _period: string): Promise<any> {
   // 실제 구현에서는 인력 데이터를 수집
   return {
     totalParticipants: 8,
@@ -166,21 +160,21 @@ async function collectPersonnelInfo(projectId: string, period: string): Promise<
         name: '김연구원',
         department: '개발팀',
         participationRate: 100,
-        monthlyAllocation: 5000000
+        monthlyAllocation: 5000000,
       },
       {
         personId: 'person-2',
         name: '이연구원',
         department: '개발팀',
         participationRate: 80,
-        monthlyAllocation: 4000000
-      }
-    ]
+        monthlyAllocation: 4000000,
+      },
+    ],
   }
 }
 
 // 성과 정보 수집
-async function collectPerformanceInfo(projectId: string, period: string): Promise<any> {
+async function collectPerformanceInfo(_projectId: string, _period: string): Promise<any> {
   // 실제 구현에서는 성과 데이터를 수집
   return {
     milestones: [
@@ -188,27 +182,27 @@ async function collectPerformanceInfo(projectId: string, period: string): Promis
         id: 'milestone-1',
         title: '시스템 설계 완료',
         status: 'completed',
-        completionDate: '2024-01-30'
+        completionDate: '2024-01-30',
       },
       {
         id: 'milestone-2',
         title: '프로토타입 v1.0 개발',
         status: 'completed',
-        completionDate: '2024-02-15'
-      }
+        completionDate: '2024-02-15',
+      },
     ],
     deliverables: [
       {
         title: '시스템 설계서',
         type: 'document',
-        status: 'delivered'
+        status: 'delivered',
       },
       {
         title: '프로토타입 v1.0',
         type: 'prototype',
-        status: 'delivered'
-      }
-    ]
+        status: 'delivered',
+      },
+    ],
   }
 }
 
@@ -217,7 +211,7 @@ function generateManifestXml(
   projectInfo: any,
   budgetInfo: any,
   personnelInfo: any,
-  performanceInfo: any
+  performanceInfo: any,
 ): string {
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <submission_bundle>
@@ -247,7 +241,7 @@ function generateManifestXml(
 				<executed>${cat.executed}</executed>
 				<rate>${cat.rate}</rate>
 			</category>
-			`
+			`,
         )
         .join('')}
 		</categories>
@@ -266,7 +260,7 @@ function generateManifestXml(
 				<participation_rate>${person.participationRate}</participation_rate>
 				<monthly_allocation>${person.monthlyAllocation}</monthly_allocation>
 			</participant>
-			`
+			`,
         )
         .join('')}
 		</participants>
@@ -283,7 +277,7 @@ function generateManifestXml(
 				<status>${milestone.status}</status>
 				<completion_date>${milestone.completionDate}</completion_date>
 			</milestone>
-			`
+			`,
         )
         .join('')}
 		</milestones>
@@ -296,7 +290,7 @@ function generateManifestXml(
 				<type>${deliverable.type}</type>
 				<status>${deliverable.status}</status>
 			</deliverable>
-			`
+			`,
         )
         .join('')}
 		</deliverables>
@@ -330,7 +324,7 @@ function generateSummaryCsv(budgetInfo: any, personnelInfo: any, performanceInfo
 async function createBundleFile(
   documents: Document[],
   manifestXml: string,
-  summaryCsv: string
+  summaryCsv: string,
 ): Promise<{ url: string; size: number }> {
   // 실제 구현에서는 ZIP 파일을 생성하고 스토리지에 업로드
   // 여기서는 모의 구현
@@ -338,18 +332,18 @@ async function createBundleFile(
     documents: documents,
     manifest: manifestXml,
     summary: summaryCsv,
-    createdAt: new Date().toISOString()
+    createdAt: new Date().toISOString(),
   }
 
   // 모의 파일 URL과 크기
   return {
     url: `/bundles/submission_${Date.now()}.zip`,
-    size: JSON.stringify(bundleData).length
+    size: JSON.stringify(bundleData).length,
   }
 }
 
 // 체크섬 계산
-async function calculateChecksum(bundleFile: { url: string; size: number }): Promise<string> {
+async function calculateChecksum(_bundleFile: { url: string; size: number }): Promise<string> {
   // 실제 구현에서는 파일의 SHA-256 해시를 계산
   // 여기서는 모의 해시
   return `sha256:${crypto.randomUUID().replace(/-/g, '')}`
@@ -361,10 +355,10 @@ function updateBundleStatus(
   status: SubmissionBundle['status'],
   fileUrl: string,
   manifestXml: string,
-  checksum: string
+  checksum: string,
 ): void {
-  submissionBundles.update(list => {
-    const index = list.findIndex(b => b.id === bundleId)
+  submissionBundles.update((list) => {
+    const index = list.findIndex((b) => b.id === bundleId)
     if (index === -1) return list
 
     const bundle = list[index]
@@ -373,7 +367,7 @@ function updateBundleStatus(
       status,
       fileUrl,
       manifestXml,
-      checksum
+      checksum,
     }
 
     const newList = [...list]
@@ -389,8 +383,8 @@ function updateBundleStatus(
 export function downloadBundle(bundleId: string): void {
   let bundle: SubmissionBundle | undefined = undefined
 
-  submissionBundles.subscribe(list => {
-    bundle = list.find(b => b.id === bundleId)
+  submissionBundles.subscribe((list) => {
+    bundle = list.find((b) => b.id === bundleId)
   })()
 
   if (!bundle || bundle.status !== 'ready') {
@@ -398,7 +392,7 @@ export function downloadBundle(bundleId: string): void {
   }
 
   // 실제 구현에서는 파일 다운로드 처리
-  console.log(`Downloading bundle: ${bundle.fileUrl}`)
+  logger.log(`Downloading bundle: ${bundle.fileUrl}`)
 
   // 다운로드 이력 기록
   logAudit('download', 'submission_bundle', bundleId, { fileUrl: bundle.fileUrl }, {})
@@ -412,15 +406,15 @@ export function validateBundle(bundleId: string): {
 } {
   let bundle: SubmissionBundle | undefined = undefined
 
-  submissionBundles.subscribe(list => {
-    bundle = list.find(b => b.id === bundleId)
+  submissionBundles.subscribe((list) => {
+    bundle = list.find((b) => b.id === bundleId)
   })()
 
   if (!bundle) {
     return {
       valid: false,
       errors: ['Bundle not found'],
-      warnings: []
+      warnings: [],
     }
   }
 
@@ -450,7 +444,7 @@ export function validateBundle(bundleId: string): {
       if (parseError) {
         errors.push('Invalid XML format in manifest')
       }
-    } catch (error) {
+    } catch (_error) {
       errors.push('Failed to parse manifest XML')
     }
   }
@@ -468,7 +462,7 @@ export function validateBundle(bundleId: string): {
   return {
     valid: errors.length === 0,
     errors,
-    warnings
+    warnings,
   }
 }
 
@@ -478,20 +472,20 @@ export function createBundleTemplate(
   templateData: {
     requiredDocuments: string[]
     manifestStructure: any
-    validationRules: any[]
-  }
+    validationRules: unknown[]
+  },
 ): void {
   const template = {
     name: templateName,
     requiredDocuments: templateData.requiredDocuments,
     manifestStructure: templateData.manifestStructure,
     validationRules: templateData.validationRules,
-    createdAt: new Date().toISOString()
+    createdAt: new Date().toISOString(),
   }
 
-  bundleTemplates.update(templates => ({
+  bundleTemplates.update((templates) => ({
     ...templates,
-    [templateName]: template
+    [templateName]: template,
   }))
 }
 
@@ -499,11 +493,11 @@ export function createBundleTemplate(
 export function applyBundleTemplate(
   projectId: string,
   templateName: string,
-  period: string
+  period: string,
 ): string {
   let template: any = undefined
 
-  bundleTemplates.subscribe(templates => {
+  bundleTemplates.subscribe((templates) => {
     template = templates[templateName]
   })()
 
@@ -519,9 +513,9 @@ export function applyBundleTemplate(
 export function getBundleHistory(projectId: string): SubmissionBundle[] {
   let history: SubmissionBundle[] = []
 
-  submissionBundles.subscribe(list => {
+  submissionBundles.subscribe((list) => {
     history = list
-      .filter(b => b.projectId === projectId)
+      .filter((b) => b.projectId === projectId)
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
   })()
 
@@ -533,10 +527,10 @@ export function getBundleStatistics(projectId: string): any {
   const history = getBundleHistory(projectId)
 
   const totalBundles = history.length
-  const readyBundles = history.filter(b => b.status === 'ready').length
-  const generatingBundles = history.filter(b => b.status === 'generating').length
-  const failedBundles = history.filter(b => b.status === 'failed').length
-  const uploadedBundles = history.filter(b => b.status === 'uploaded').length
+  const readyBundles = history.filter((b) => b.status === 'ready').length
+  const generatingBundles = history.filter((b) => b.status === 'generating').length
+  const failedBundles = history.filter((b) => b.status === 'failed').length
+  const uploadedBundles = history.filter((b) => b.status === 'uploaded').length
 
   const averageGenerationTime = calculateAverageGenerationTime(history)
 
@@ -547,13 +541,13 @@ export function getBundleStatistics(projectId: string): any {
     failedBundles,
     uploadedBundles,
     successRate: totalBundles > 0 ? (readyBundles / totalBundles) * 100 : 0,
-    averageGenerationTime
+    averageGenerationTime,
   }
 }
 
 // 평균 생성 시간 계산
 function calculateAverageGenerationTime(history: SubmissionBundle[]): number {
-  const completedBundles = history.filter(b => b.status === 'ready' || b.status === 'uploaded')
+  const completedBundles = history.filter((b) => b.status === 'ready' || b.status === 'uploaded')
 
   if (completedBundles.length === 0) return 0
 
@@ -570,7 +564,7 @@ function calculateAverageGenerationTime(history: SubmissionBundle[]): number {
 export function getBundleDashboardData(): any {
   let allBundles: SubmissionBundle[] = []
 
-  submissionBundles.subscribe(list => {
+  submissionBundles.subscribe((list) => {
     allBundles = list
   })()
 
@@ -579,40 +573,40 @@ export function getBundleDashboardData(): any {
     .slice(0, 10)
 
   const statusCounts = {
-    generating: allBundles.filter(b => b.status === 'generating').length,
-    ready: allBundles.filter(b => b.status === 'ready').length,
-    uploaded: allBundles.filter(b => b.status === 'uploaded').length,
-    failed: allBundles.filter(b => b.status === 'failed').length
+    generating: allBundles.filter((b) => b.status === 'generating').length,
+    ready: allBundles.filter((b) => b.status === 'ready').length,
+    uploaded: allBundles.filter((b) => b.status === 'uploaded').length,
+    failed: allBundles.filter((b) => b.status === 'failed').length,
   }
 
   return {
     recentBundles,
     statusCounts,
-    totalBundles: allBundles.length
+    totalBundles: allBundles.length,
   }
 }
 
 // 번들 자동 생성 스케줄링
 export function scheduleAutoBundleGeneration(
   projectId: string,
-  schedule: 'monthly' | 'quarterly' | 'yearly'
+  schedule: 'monthly' | 'quarterly' | 'yearly',
 ): void {
   // 실제 구현에서는 스케줄러에 등록
   const scheduleConfig = {
     projectId,
     schedule,
     enabled: true,
-    createdAt: new Date().toISOString()
+    createdAt: new Date().toISOString(),
   }
 
-  console.log('Auto bundle generation scheduled:', scheduleConfig)
+  logger.log('Auto bundle generation scheduled:', scheduleConfig)
 }
 
 // 번들 내보내기
 export function exportBundleData(format: 'json' | 'csv' | 'excel'): string {
   let allBundles: SubmissionBundle[] = []
 
-  submissionBundles.subscribe(list => {
+  submissionBundles.subscribe((list) => {
     allBundles = list
   })()
 
@@ -622,8 +616,8 @@ export function exportBundleData(format: 'json' | 'csv' | 'excel'): string {
     const csvHeader = 'ID,Project ID,Period,Status,File URL,Checksum,Created By,Created At\n'
     const csvRows = allBundles
       .map(
-        bundle =>
-          `${bundle.id},${bundle.projectId},${bundle.period},${bundle.status},${bundle.fileUrl},${bundle.checksum},${bundle.createdBy},${bundle.createdAt}`
+        (bundle) =>
+          `${bundle.id},${bundle.projectId},${bundle.period},${bundle.status},${bundle.fileUrl},${bundle.checksum},${bundle.createdBy},${bundle.createdAt}`,
       )
       .join('\n')
     return csvHeader + csvRows

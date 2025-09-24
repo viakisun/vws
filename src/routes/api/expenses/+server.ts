@@ -1,6 +1,7 @@
 import { json, error } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
 import { DatabaseService } from '$lib/database/connection'
+import { logger } from '$lib/utils/logger'
 
 // GET /api/expenses - Get all expense items
 export const GET: RequestHandler = async ({ url }) => {
@@ -16,16 +17,16 @@ export const GET: RequestHandler = async ({ url }) => {
       status: status || undefined,
       requester_id: requester_id || undefined,
       limit: limit ? parseInt(limit) : undefined,
-      offset: offset ? parseInt(offset) : undefined
+      offset: offset ? parseInt(offset) : undefined,
     })
 
     return json({
       success: true,
       data: expenses,
-      count: expenses.length
+      count: expenses.length,
     })
   } catch (err) {
-    console.error('Get expenses error:', err)
+    logger.error('Get expenses error:', err)
     return error(500, { message: 'Internal server error' })
   }
 }
@@ -43,7 +44,7 @@ export const POST: RequestHandler = async ({ request }) => {
       !expenseData.requester_id
     ) {
       return error(400, {
-        message: 'Project ID, category code, amount, and requester ID are required'
+        message: 'Project ID, category code, amount, and requester ID are required',
       })
     }
 
@@ -63,12 +64,12 @@ export const POST: RequestHandler = async ({ request }) => {
     return json(
       {
         success: true,
-        data: expense
+        data: expense,
       },
-      { status: 201 }
+      { status: 201 },
     )
   } catch (err) {
-    console.error('Create expense error:', err)
+    logger.error('Create expense error:', err)
     return error(500, { message: 'Internal server error' })
   }
 }

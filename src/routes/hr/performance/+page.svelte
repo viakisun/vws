@@ -1,37 +1,30 @@
 <script lang="ts">
-  import { onMount } from 'svelte'
-  import Card from '$lib/components/ui/Card.svelte'
   import Badge from '$lib/components/ui/Badge.svelte'
+  import Card from '$lib/components/ui/Card.svelte'
   import Modal from '$lib/components/ui/Modal.svelte'
   import { formatDate } from '$lib/utils/format'
+  import { keyOf } from '$lib/utils/keyOf'
+  import { onMount } from 'svelte'
 
   import { employees, getActiveEmployees } from '$lib/stores/hr'
 
   import {
-    performanceReviews,
-    feedback360,
-    competencyMatrix,
-    trainingRecords,
-    addPerformanceReview,
-    updatePerformanceReview,
-    completePerformanceReview,
-    approvePerformanceReview,
     addFeedback360,
-    completeFeedback360,
-    addCompetencyMatrix,
-    updateCompetencyMatrix,
-    addTrainingRecord,
-    completeTraining,
-    getPerformanceReviewsByEmployee,
-    getFeedback360ByReviewee,
-    getCompetencyMatrixByEmployee,
-    getTrainingRecordsByEmployee,
-    calculateOverallRating,
+    addPerformanceReview,
+    approvePerformanceReview,
     calculateAverageFeedback360,
-    type PerformanceReview,
+    competencyMatrix,
+    completePerformanceReview,
+    feedback360,
+    getCompetencyMatrixByEmployee,
+    getFeedback360ByReviewee,
+    getPerformanceReviewsByEmployee,
+    getTrainingRecordsByEmployee,
+    performanceReviews,
+    trainingRecords,
+    updatePerformanceReview,
     type Feedback360,
-    type CompetencyMatrix,
-    type TrainingRecord
+    type PerformanceReview,
   } from '$lib/stores/performance'
 
   // 현재 선택된 직원
@@ -41,8 +34,8 @@
   // 모달 상태
   let isReviewModalOpen = $state(false)
   let isFeedbackModalOpen = $state(false)
-  let isCompetencyModalOpen = $state(false)
-  let isTrainingModalOpen = $state(false)
+  let _isCompetencyModalOpen = $state(false)
+  let _isTrainingModalOpen = $state(false)
   let selectedReview = $state<PerformanceReview | null>(null)
 
   // 폼 데이터
@@ -52,7 +45,7 @@
       startDate: '',
       endDate: '',
       year: 0,
-      quarter: 1
+      quarter: 1,
     },
     reviewType: 'annual' as PerformanceReview['reviewType'],
     goals: [
@@ -65,10 +58,19 @@
         achievement: 0,
         weight: 0,
         rating: 0,
-        comments: ''
-      }
+        comments: '',
+      },
     ],
-    competencies: [{ id: '', name: '', description: '', rating: 0, evidence: '', improvement: '' }],
+    competencies: [
+      {
+        id: '',
+        name: '',
+        description: '',
+        rating: 0,
+        evidence: '',
+        improvement: '',
+      },
+    ],
     overallRating: 0,
     strengths: [''],
     improvementAreas: [''],
@@ -76,7 +78,7 @@
     careerGoals: '',
     promotionRecommendation: false,
     salaryIncreaseRecommendation: false,
-    bonusRecommendation: false
+    bonusRecommendation: false,
   })
 
   // Update review form year when selectedYear changes
@@ -89,7 +91,7 @@
     reviewerType: 'peer' as Feedback360['reviewerType'],
     reviewPeriod: {
       startDate: '',
-      endDate: ''
+      endDate: '',
     },
     leadership: 3,
     communication: 3,
@@ -102,30 +104,38 @@
     improvementAreas: '',
     recommendations: '',
     additionalComments: '',
-    isAnonymous: false
+    isAnonymous: false,
   })
 
   // 현재 선택된 직원의 데이터
-  let selectedEmployee = $derived($employees.find(emp => emp.id === selectedEmployeeId))
+  let selectedEmployee = $derived($employees.find((emp) => emp.id === selectedEmployeeId))
   let employeeReviews = $derived(
-    getPerformanceReviewsByEmployee(selectedEmployeeId, $performanceReviews)
+    getPerformanceReviewsByEmployee(selectedEmployeeId, $performanceReviews),
   )
   let employeeFeedback = $derived(getFeedback360ByReviewee(selectedEmployeeId, $feedback360))
   let employeeCompetencies = $derived(
-    getCompetencyMatrixByEmployee(selectedEmployeeId, $competencyMatrix)
+    getCompetencyMatrixByEmployee(selectedEmployeeId, $competencyMatrix),
   )
   let employeeTraining = $derived(
-    getTrainingRecordsByEmployee(selectedEmployeeId, $trainingRecords)
+    getTrainingRecordsByEmployee(selectedEmployeeId, $trainingRecords),
   )
   let averageFeedback = $derived(calculateAverageFeedback360(selectedEmployeeId, $feedback360))
 
   // 함수들
+  function quarterFrom(dateStr: string): number {
+    const m = new Date(dateStr).getMonth() // 0..11
+    return Math.floor(m / 3) + 1 // 1..4
+  }
+
   function openReviewModal(review?: PerformanceReview) {
     if (review) {
       selectedReview = review
       reviewForm = {
         reviewerId: review.reviewerId,
-        reviewPeriod: review.reviewPeriod,
+        reviewPeriod: {
+          ...review.reviewPeriod,
+          quarter: review.reviewPeriod.quarter ?? quarterFrom(review.reviewPeriod.startDate),
+        },
         reviewType: review.reviewType,
         goals: review.goals,
         competencies: review.competencies,
@@ -136,7 +146,7 @@
         careerGoals: review.careerGoals,
         promotionRecommendation: review.promotionRecommendation,
         salaryIncreaseRecommendation: review.salaryIncreaseRecommendation,
-        bonusRecommendation: review.bonusRecommendation
+        bonusRecommendation: review.bonusRecommendation,
       }
     } else {
       selectedReview = null
@@ -146,7 +156,7 @@
           startDate: `${selectedYear}-01-01`,
           endDate: `${selectedYear}-12-31`,
           year: selectedYear,
-          quarter: 1
+          quarter: 1,
         },
         reviewType: 'annual',
         goals: [
@@ -159,11 +169,18 @@
             achievement: 0,
             weight: 0,
             rating: 0,
-            comments: ''
-          }
+            comments: '',
+          },
         ],
         competencies: [
-          { id: '', name: '', description: '', rating: 0, evidence: '', improvement: '' }
+          {
+            id: '',
+            name: '',
+            description: '',
+            rating: 0,
+            evidence: '',
+            improvement: '',
+          },
         ],
         overallRating: 0,
         strengths: [''],
@@ -172,7 +189,7 @@
         careerGoals: '',
         promotionRecommendation: false,
         salaryIncreaseRecommendation: false,
-        bonusRecommendation: false
+        bonusRecommendation: false,
       }
     }
     isReviewModalOpen = true
@@ -184,7 +201,7 @@
       reviewerType: 'peer',
       reviewPeriod: {
         startDate: `${selectedYear}-01-01`,
-        endDate: `${selectedYear}-12-31`
+        endDate: `${selectedYear}-12-31`,
       },
       leadership: 3,
       communication: 3,
@@ -197,7 +214,7 @@
       improvementAreas: '',
       recommendations: '',
       additionalComments: '',
-      isAnonymous: false
+      isAnonymous: false,
     }
     isFeedbackModalOpen = true
   }
@@ -214,7 +231,7 @@
       addPerformanceReview({
         employeeId: selectedEmployeeId,
         ...reviewForm,
-        status: 'draft'
+        status: 'draft',
       })
     }
     isReviewModalOpen = false
@@ -230,7 +247,7 @@
     addFeedback360({
       reviewerId: 'current-user',
       ...feedbackForm,
-      status: 'pending'
+      status: 'pending',
     })
     isFeedbackModalOpen = false
     alert('360도 피드백이 제출되었습니다.')
@@ -247,7 +264,7 @@
   }
 
   function getStatusBadgeVariant(
-    status: PerformanceReview['status']
+    status: PerformanceReview['status'],
   ): 'secondary' | 'warning' | 'success' | 'primary' {
     switch (status) {
       case 'draft':
@@ -310,7 +327,7 @@
             class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="">직원을 선택하세요</option>
-            {#each getActiveEmployees($employees) as employee}
+            {#each getActiveEmployees($employees) as employee, i (keyOf(employee, i))}
               <option value={employee.id}>{employee.name} ({employee.employeeId})</option>
             {/each}
           </select>
@@ -336,24 +353,36 @@
             <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
               <div class="text-center">
                 <p class="text-sm text-gray-600">리더십</p>
-                <p class="text-2xl font-bold text-gray-900">{averageFeedback.leadership}</p>
-                <p class="text-sm text-yellow-500">{getRatingStars(averageFeedback.leadership)}</p>
+                <p class="text-2xl font-bold text-gray-900">
+                  {averageFeedback.leadership}
+                </p>
+                <p class="text-sm text-yellow-500">
+                  {getRatingStars(averageFeedback.leadership)}
+                </p>
               </div>
               <div class="text-center">
                 <p class="text-sm text-gray-600">커뮤니케이션</p>
-                <p class="text-2xl font-bold text-gray-900">{averageFeedback.communication}</p>
+                <p class="text-2xl font-bold text-gray-900">
+                  {averageFeedback.communication}
+                </p>
                 <p class="text-sm text-yellow-500">
                   {getRatingStars(averageFeedback.communication)}
                 </p>
               </div>
               <div class="text-center">
                 <p class="text-sm text-gray-600">팀워크</p>
-                <p class="text-2xl font-bold text-gray-900">{averageFeedback.teamwork}</p>
-                <p class="text-sm text-yellow-500">{getRatingStars(averageFeedback.teamwork)}</p>
+                <p class="text-2xl font-bold text-gray-900">
+                  {averageFeedback.teamwork}
+                </p>
+                <p class="text-sm text-yellow-500">
+                  {getRatingStars(averageFeedback.teamwork)}
+                </p>
               </div>
               <div class="text-center">
                 <p class="text-sm text-gray-600">기술적 역량</p>
-                <p class="text-2xl font-bold text-gray-900">{averageFeedback.technicalSkills}</p>
+                <p class="text-2xl font-bold text-gray-900">
+                  {averageFeedback.technicalSkills}
+                </p>
                 <p class="text-sm text-yellow-500">
                   {getRatingStars(averageFeedback.technicalSkills)}
                 </p>
@@ -371,6 +400,7 @@
             <div class="flex justify-between items-center mb-4">
               <h3 class="text-lg font-semibold text-gray-900">성과 평가</h3>
               <button
+                type="button"
                 onclick={() => openReviewModal()}
                 class="px-3 py-1 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 transition-colors"
               >
@@ -378,7 +408,7 @@
               </button>
             </div>
             <div class="space-y-3">
-              {#each employeeReviews.filter(review => review.reviewPeriod.year === selectedYear) as review}
+              {#each employeeReviews.filter((review) => review.reviewPeriod.year === selectedYear) as review, i (keyOf(review, i))}
                 <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <div>
                     <p class="text-sm font-medium text-gray-900">
@@ -390,7 +420,7 @@
                     </p>
                     <p class="text-xs text-gray-500">
                       {formatDate(review.reviewPeriod.startDate)} - {formatDate(
-                        review.reviewPeriod.endDate
+                        review.reviewPeriod.endDate,
                       )}
                     </p>
                   </div>
@@ -400,6 +430,7 @@
                     </Badge>
                     <div class="flex space-x-1">
                       <button
+                        type="button"
                         onclick={() => openReviewModal(review)}
                         class="text-blue-600 hover:text-blue-900 text-sm"
                       >
@@ -407,6 +438,7 @@
                       </button>
                       {#if review.status === 'completed'}
                         <button
+                          type="button"
                           onclick={() => approveReview(review.id)}
                           class="text-green-600 hover:text-green-900 text-sm"
                         >
@@ -414,6 +446,7 @@
                         </button>
                       {:else if review.status === 'draft'}
                         <button
+                          type="button"
                           onclick={() => completeReview(review.id)}
                           class="text-yellow-600 hover:text-yellow-900 text-sm"
                         >
@@ -434,6 +467,7 @@
             <div class="flex justify-between items-center mb-4">
               <h3 class="text-lg font-semibold text-gray-900">360도 피드백</h3>
               <button
+                type="button"
                 onclick={openFeedbackModal}
                 class="px-3 py-1 bg-green-600 text-white text-sm rounded-md hover:bg-green-700 transition-colors"
               >
@@ -441,7 +475,8 @@
               </button>
             </div>
             <div class="space-y-3">
-              {#each employeeFeedback.filter(feedback => new Date(feedback.reviewPeriod.startDate).getFullYear() === selectedYear) as feedback}
+              {#each employeeFeedback.filter((feedback) => new Date(feedback.reviewPeriod.startDate).getFullYear() === selectedYear) as feedback, idx (idx)}
+                <!-- TODO: replace index key with a stable id when model provides one -->
                 <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <div>
                     <p class="text-sm font-medium text-gray-900">
@@ -482,17 +517,20 @@
           <div class="p-6">
             <h3 class="text-lg font-semibold text-gray-900 mb-4">역량 매트릭스</h3>
             <div class="space-y-3">
-              {#each employeeCompetencies as competency}
+              {#each employeeCompetencies as competency, i (i)}
                 <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <div>
-                    <p class="text-sm font-medium text-gray-900">{competency.competencyName}</p>
+                    <p class="text-sm font-medium text-gray-900">
+                      {competency.competencyName}
+                    </p>
                     <p class="text-xs text-gray-500">
                       마지막 평가: {formatDate(competency.lastAssessed)}
                     </p>
                   </div>
                   <div class="flex items-center space-x-2">
                     <div class="flex">
-                      {#each Array(5) as _, i}
+                      {#each Array(5) as _, i (i)}
+                        <!-- TODO: replace index key with a stable id when model provides one -->
                         <div
                           class="w-4 h-4 {i < competency.level
                             ? 'bg-blue-500'
@@ -513,10 +551,13 @@
           <div class="p-6">
             <h3 class="text-lg font-semibold text-gray-900 mb-4">교육 이수 현황</h3>
             <div class="space-y-3">
-              {#each employeeTraining.slice(0, 5) as training}
+              {#each employeeTraining.slice(0, 5) as training, idx (idx)}
+                <!-- TODO: replace index key with a stable id when model provides one -->
                 <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <div>
-                    <p class="text-sm font-medium text-gray-900">{training.title}</p>
+                    <p class="text-sm font-medium text-gray-900">
+                      {training.title}
+                    </p>
                     <p class="text-xs text-gray-500">
                       {training.provider} • {training.duration}시간
                     </p>
@@ -559,7 +600,7 @@
               stroke-linejoin="round"
               stroke-width="2"
               d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-            ></path>
+            />
           </svg>
           <h3 class="text-lg font-medium text-gray-900 mb-2">직원을 선택하세요</h3>
           <p class="text-gray-500">성과 평가를 위해 직원을 선택해주세요.</p>
@@ -574,7 +615,7 @@
           {selectedReview ? '성과 평가 수정' : '성과 평가 작성'}
         </h3>
         <form
-          onsubmit={e => {
+          onsubmit={(e) => {
             e.preventDefault()
             handleReviewSubmit()
           }}
@@ -621,7 +662,7 @@
                 >강점</label
               >
               <div class="space-y-2">
-                {#each reviewForm.strengths as strength, index}
+                {#each reviewForm.strengths as _strength, index (index)}
                   <div class="flex space-x-2">
                     <input
                       id="strengths-{index}"
@@ -653,7 +694,7 @@
                 >개선 영역</label
               >
               <div class="space-y-2">
-                {#each reviewForm.improvementAreas as area, index}
+                {#each reviewForm.improvementAreas as _area, index (index)}
                   <div class="flex space-x-2">
                     <input
                       id="improvement-areas-{index}"
@@ -754,7 +795,7 @@
       <div class="p-6 max-w-2xl">
         <h3 class="text-lg font-semibold text-gray-900 mb-4">360도 피드백 작성</h3>
         <form
-          onsubmit={e => {
+          onsubmit={(e) => {
             e.preventDefault()
             handleFeedbackSubmit()
           }}

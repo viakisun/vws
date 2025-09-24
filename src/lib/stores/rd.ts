@@ -1,5 +1,4 @@
 import { writable } from 'svelte/store'
-import { formatCurrency, formatDate } from '$lib/utils/format'
 
 // 타입 정의
 export interface Employee {
@@ -123,7 +122,7 @@ const mockEmployees: Employee[] = [
     status: 'active',
     skills: ['AI/ML', 'Python', 'Data Analysis'],
     email: 'kim.rd@company.com',
-    phone: '010-1234-5678'
+    phone: '010-1234-5678',
   },
   {
     id: 'emp-002',
@@ -135,7 +134,7 @@ const mockEmployees: Employee[] = [
     status: 'active',
     skills: ['Frontend', 'React', 'TypeScript'],
     email: 'park.dev@company.com',
-    phone: '010-2345-6789'
+    phone: '010-2345-6789',
   },
   {
     id: 'emp-003',
@@ -147,7 +146,7 @@ const mockEmployees: Employee[] = [
     status: 'active',
     skills: ['Statistics', 'R', 'Machine Learning'],
     email: 'lee.analysis@company.com',
-    phone: '010-3456-7890'
+    phone: '010-3456-7890',
   },
   {
     id: 'emp-004',
@@ -159,7 +158,7 @@ const mockEmployees: Employee[] = [
     status: 'active',
     skills: ['Lab Work', 'Chemistry', 'Data Collection'],
     email: 'choi.lab@company.com',
-    phone: '010-4567-8901'
+    phone: '010-4567-8901',
   },
   {
     id: 'emp-005',
@@ -171,8 +170,8 @@ const mockEmployees: Employee[] = [
     status: 'active',
     skills: ['Project Management', 'Team Leadership', 'Strategic Planning'],
     email: 'jung.manager@company.com',
-    phone: '010-5678-9012'
-  }
+    phone: '010-5678-9012',
+  },
 ]
 
 const mockProjects: Project[] = [
@@ -189,7 +188,7 @@ const mockProjects: Project[] = [
     category: 'development',
     priority: 'high',
     client: 'ABC 제조',
-    contractNumber: 'CON-2024-001'
+    contractNumber: 'CON-2024-001',
   },
   {
     id: 'proj-002',
@@ -204,7 +203,7 @@ const mockProjects: Project[] = [
     category: 'basic-research',
     priority: 'high',
     client: '정부과제',
-    contractNumber: 'GOV-2024-003'
+    contractNumber: 'GOV-2024-003',
   },
   {
     id: 'proj-003',
@@ -219,7 +218,7 @@ const mockProjects: Project[] = [
     category: 'applied-research',
     priority: 'medium',
     client: 'XYZ 테크',
-    contractNumber: 'CON-2024-002'
+    contractNumber: 'CON-2024-002',
   },
   {
     id: 'proj-004',
@@ -233,8 +232,8 @@ const mockProjects: Project[] = [
     department: 'R&D',
     category: 'development',
     priority: 'medium',
-    client: '내부 프로젝트'
-  }
+    client: '내부 프로젝트',
+  },
 ]
 
 const mockParticipations: ProjectParticipation[] = [
@@ -248,7 +247,7 @@ const mockParticipations: ProjectParticipation[] = [
     participationRate: 50,
     monthlySalary: 6000000,
     role: 'AI 알고리즘 개발',
-    status: 'active'
+    status: 'active',
   },
   {
     id: 'part-002',
@@ -259,7 +258,7 @@ const mockParticipations: ProjectParticipation[] = [
     participationRate: 30,
     monthlySalary: 6000000,
     role: '데이터 분석',
-    status: 'active'
+    status: 'active',
   },
   // 박개발 - AI 스마트팩토리 (40%), IoT 센서 (60%)
   {
@@ -271,7 +270,7 @@ const mockParticipations: ProjectParticipation[] = [
     participationRate: 40,
     monthlySalary: 4500000,
     role: '프론트엔드 개발',
-    status: 'active'
+    status: 'active',
   },
   {
     id: 'part-004',
@@ -282,7 +281,7 @@ const mockParticipations: ProjectParticipation[] = [
     participationRate: 60,
     monthlySalary: 4500000,
     role: '시스템 개발',
-    status: 'active'
+    status: 'active',
   },
   // 이분석 - 배터리 연구 (70%), 데이터 플랫폼 (30%)
   {
@@ -294,7 +293,7 @@ const mockParticipations: ProjectParticipation[] = [
     participationRate: 70,
     monthlySalary: 5500000,
     role: '통계 분석',
-    status: 'active'
+    status: 'active',
   },
   {
     id: 'part-006',
@@ -305,7 +304,7 @@ const mockParticipations: ProjectParticipation[] = [
     participationRate: 30,
     monthlySalary: 5500000,
     role: '데이터 분석',
-    status: 'active'
+    status: 'active',
   },
   // 최실험 - 배터리 연구 (50%)
   {
@@ -317,7 +316,7 @@ const mockParticipations: ProjectParticipation[] = [
     participationRate: 50,
     monthlySalary: 4000000,
     role: '실험 및 데이터 수집',
-    status: 'active'
+    status: 'active',
   },
   // 정관리 - 모든 프로젝트 관리 (각 20%)
   {
@@ -329,7 +328,7 @@ const mockParticipations: ProjectParticipation[] = [
     participationRate: 20,
     monthlySalary: 8000000,
     role: '프로젝트 관리',
-    status: 'active'
+    status: 'active',
   },
   {
     id: 'part-009',
@@ -340,7 +339,7 @@ const mockParticipations: ProjectParticipation[] = [
     participationRate: 20,
     monthlySalary: 8000000,
     role: '프로젝트 관리',
-    status: 'active'
+    status: 'active',
   },
   {
     id: 'part-010',
@@ -351,8 +350,8 @@ const mockParticipations: ProjectParticipation[] = [
     participationRate: 20,
     monthlySalary: 8000000,
     role: '프로젝트 관리',
-    status: 'active'
-  }
+    status: 'active',
+  },
 ]
 
 const mockDocumentTemplates: DocumentTemplate[] = [
@@ -362,7 +361,7 @@ const mockDocumentTemplates: DocumentTemplate[] = [
     category: 'proposal',
     requiredFields: ['과제명', '연구목표', '연구내용', '예산계획', '일정계획', '연구진'],
     description: '새로운 연구과제 제안을 위한 기안서',
-    projectType: 'all'
+    projectType: 'all',
   },
   {
     id: 'template-002',
@@ -370,7 +369,7 @@ const mockDocumentTemplates: DocumentTemplate[] = [
     category: 'task-order',
     requiredFields: ['과업명', '담당자', '과업내용', '완료기한', '산출물'],
     description: '연구원에게 과업을 지시하는 문서',
-    projectType: 'all'
+    projectType: 'all',
   },
   {
     id: 'template-003',
@@ -378,7 +377,7 @@ const mockDocumentTemplates: DocumentTemplate[] = [
     category: 'result-report',
     requiredFields: ['연구목표', '연구방법', '연구결과', '결론', '향후계획'],
     description: '연구 결과를 정리한 보고서',
-    projectType: 'all'
+    projectType: 'all',
   },
   {
     id: 'template-004',
@@ -386,7 +385,7 @@ const mockDocumentTemplates: DocumentTemplate[] = [
     category: 'inspection',
     requiredFields: ['검수대상', '검수내용', '검수결과', '개선사항'],
     description: '연구 결과물에 대한 검수 보고서',
-    projectType: 'all'
+    projectType: 'all',
   },
   {
     id: 'template-005',
@@ -394,7 +393,7 @@ const mockDocumentTemplates: DocumentTemplate[] = [
     category: 'travel',
     requiredFields: ['출장목적', '출장지', '출장기간', '출장내용', '경비'],
     description: '연구 관련 출장 보고서',
-    projectType: 'all'
+    projectType: 'all',
   },
   {
     id: 'template-006',
@@ -402,8 +401,8 @@ const mockDocumentTemplates: DocumentTemplate[] = [
     category: 'material',
     requiredFields: ['재료명', '수량', '단가', '총액', '사용목적', '구매처'],
     description: '연구용 재료 구매 및 사용 보고서',
-    projectType: 'all'
-  }
+    projectType: 'all',
+  },
 ]
 
 const mockDocumentSubmissions: DocumentSubmission[] = [
@@ -417,7 +416,7 @@ const mockDocumentSubmissions: DocumentSubmission[] = [
     submittedAt: '2024-01-15',
     approvedBy: '이사장',
     approvedAt: '2024-01-20',
-    fileUrl: '/documents/proj-001-proposal.pdf'
+    fileUrl: '/documents/proj-001-proposal.pdf',
   },
   {
     id: 'doc-002',
@@ -429,7 +428,7 @@ const mockDocumentSubmissions: DocumentSubmission[] = [
     submittedAt: '2024-01-25',
     approvedBy: '김연구',
     approvedAt: '2024-01-26',
-    fileUrl: '/documents/proj-001-task-001.pdf'
+    fileUrl: '/documents/proj-001-task-001.pdf',
   },
   {
     id: 'doc-003',
@@ -441,7 +440,7 @@ const mockDocumentSubmissions: DocumentSubmission[] = [
     submittedAt: '2024-02-28',
     approvedBy: '이사장',
     approvedAt: '2024-03-05',
-    fileUrl: '/documents/proj-002-proposal.pdf'
+    fileUrl: '/documents/proj-002-proposal.pdf',
   },
   {
     id: 'doc-004',
@@ -451,8 +450,8 @@ const mockDocumentSubmissions: DocumentSubmission[] = [
     status: 'submitted',
     submittedBy: '박개발',
     submittedAt: '2024-04-01',
-    fileUrl: '/documents/proj-001-materials-q1.pdf'
-  }
+    fileUrl: '/documents/proj-001-materials-q1.pdf',
+  },
 ]
 
 const mockRDBudgets: RDBudget[] = [
@@ -466,7 +465,7 @@ const mockRDBudgets: RDBudget[] = [
     actualAmount: 85000000,
     description: 'AI 알고리즘 개발 및 프론트엔드 개발 인력비',
     year: 2024,
-    month: 6
+    month: 6,
   },
   {
     id: 'budget-002',
@@ -477,7 +476,7 @@ const mockRDBudgets: RDBudget[] = [
     actualAmount: 15000000,
     description: '개발용 소프트웨어 라이선스 및 하드웨어',
     year: 2024,
-    month: 6
+    month: 6,
   },
   {
     id: 'budget-003',
@@ -488,7 +487,7 @@ const mockRDBudgets: RDBudget[] = [
     actualAmount: 80000000,
     description: 'AI 모델 학습용 GPU 서버',
     year: 2024,
-    month: 6
+    month: 6,
   },
   // 배터리 연구 프로젝트 예산
   {
@@ -500,7 +499,7 @@ const mockRDBudgets: RDBudget[] = [
     actualAmount: 120000000,
     description: '배터리 기술 연구 인력비',
     year: 2024,
-    month: 6
+    month: 6,
   },
   {
     id: 'budget-005',
@@ -511,7 +510,7 @@ const mockRDBudgets: RDBudget[] = [
     actualAmount: 45000000,
     description: '배터리 소재 및 실험용 재료',
     year: 2024,
-    month: 6
+    month: 6,
   },
   {
     id: 'budget-006',
@@ -522,8 +521,8 @@ const mockRDBudgets: RDBudget[] = [
     actualAmount: 120000000,
     description: '배터리 성능 분석 장비',
     year: 2024,
-    month: 6
-  }
+    month: 6,
+  },
 ]
 
 const mockRecommendations: Recommendation[] = [
@@ -538,7 +537,7 @@ const mockRecommendations: Recommendation[] = [
     estimatedCost: 80000000,
     estimatedBenefit: 200000000,
     status: 'pending',
-    createdAt: '2024-06-15'
+    createdAt: '2024-06-15',
   },
   {
     id: 'rec-002',
@@ -551,7 +550,7 @@ const mockRecommendations: Recommendation[] = [
     estimatedCost: 0,
     estimatedBenefit: 50000000,
     status: 'pending',
-    createdAt: '2024-06-10'
+    createdAt: '2024-06-10',
   },
   {
     id: 'rec-003',
@@ -564,8 +563,8 @@ const mockRecommendations: Recommendation[] = [
     estimatedCost: 0,
     estimatedBenefit: 30000000,
     status: 'approved',
-    createdAt: '2024-06-05'
-  }
+    createdAt: '2024-06-05',
+  },
 ]
 
 // 스토어 생성
@@ -580,25 +579,25 @@ export const recommendations = writable<Recommendation[]>(mockRecommendations)
 // 유틸리티 함수들
 export function getEmployeeById(id: string): Employee | undefined {
   let employee: Employee | undefined
-  employees.subscribe(emps => {
-    employee = emps.find(emp => emp.id === id)
+  employees.subscribe((emps) => {
+    employee = emps.find((emp) => emp.id === id)
   })()
   return employee
 }
 
 export function getProjectById(id: string): Project | undefined {
   let project: Project | undefined
-  projects.subscribe(projs => {
-    project = projs.find(proj => proj.id === id)
+  projects.subscribe((projs) => {
+    project = projs.find((proj) => proj.id === id)
   })()
   return project
 }
 
 export function getParticipationsByEmployee(employeeId: string): ProjectParticipation[] {
   let participationsList: ProjectParticipation[] = []
-  participations.subscribe(parts => {
+  participations.subscribe((parts) => {
     participationsList = parts.filter(
-      part => part.employeeId === employeeId && part.status === 'active'
+      (part) => part.employeeId === employeeId && part.status === 'active',
     )
   })()
   return participationsList
@@ -606,9 +605,9 @@ export function getParticipationsByEmployee(employeeId: string): ProjectParticip
 
 export function getParticipationsByProject(projectId: string): ProjectParticipation[] {
   let participationsList: ProjectParticipation[] = []
-  participations.subscribe(parts => {
+  participations.subscribe((parts) => {
     participationsList = parts.filter(
-      part => part.projectId === projectId && part.status === 'active'
+      (part) => part.projectId === projectId && part.status === 'active',
     )
   })()
   return participationsList
@@ -616,13 +615,13 @@ export function getParticipationsByProject(projectId: string): ProjectParticipat
 
 export function calculatePersonnelCost(projectId: string, month: string): number {
   let totalCost = 0
-  participations.subscribe(parts => {
+  participations.subscribe((parts) => {
     const projectParts = parts.filter(
-      part =>
+      (part) =>
         part.projectId === projectId &&
         part.status === 'active' &&
         part.startDate <= month &&
-        (part.endDate >= month || !part.endDate)
+        (part.endDate >= month || !part.endDate),
     )
 
     totalCost = projectParts.reduce((sum, part) => {
@@ -634,9 +633,9 @@ export function calculatePersonnelCost(projectId: string, month: string): number
 
 export function getTotalParticipationRate(employeeId: string): number {
   let totalRate = 0
-  participations.subscribe(parts => {
+  participations.subscribe((parts) => {
     const employeeParts = parts.filter(
-      part => part.employeeId === employeeId && part.status === 'active'
+      (part) => part.employeeId === employeeId && part.status === 'active',
     )
 
     totalRate = employeeParts.reduce((sum, part) => sum + part.participationRate, 0)
@@ -646,8 +645,8 @@ export function getTotalParticipationRate(employeeId: string): number {
 
 export function getProjectBudgetUtilization(projectId: string): number {
   let utilization = 0
-  rdBudgets.subscribe(budgets => {
-    const projectBudgets = budgets.filter(budget => budget.projectId === projectId)
+  rdBudgets.subscribe((budgets) => {
+    const projectBudgets = budgets.filter((budget) => budget.projectId === projectId)
     const totalPlanned = projectBudgets.reduce((sum, budget) => sum + budget.plannedAmount, 0)
     const totalActual = projectBudgets.reduce((sum, budget) => sum + budget.actualAmount, 0)
     utilization = totalPlanned > 0 ? (totalActual / totalPlanned) * 100 : 0
@@ -660,15 +659,15 @@ export function getDocumentSubmissionStatus(projectId: string): {
   total: number
   pending: number
 } {
-  let status = { submitted: 0, total: 0, pending: 0 }
+  const status = { submitted: 0, total: 0, pending: 0 }
 
-  documentTemplates.subscribe(templates => {
-    documentSubmissions.subscribe(submissions => {
-      const projectSubmissions = submissions.filter(sub => sub.projectId === projectId)
+  documentTemplates.subscribe((templates) => {
+    documentSubmissions.subscribe((submissions) => {
+      const projectSubmissions = submissions.filter((sub) => sub.projectId === projectId)
       status.total = templates.length
-      status.submitted = projectSubmissions.filter(sub => sub.status === 'approved').length
+      status.submitted = projectSubmissions.filter((sub) => sub.status === 'approved').length
       status.pending = projectSubmissions.filter(
-        sub => sub.status === 'draft' || sub.status === 'submitted'
+        (sub) => sub.status === 'draft' || sub.status === 'submitted',
       ).length
     })()
   })()
@@ -678,75 +677,77 @@ export function getDocumentSubmissionStatus(projectId: string): {
 
 // CRUD 함수들
 export function addEmployee(employee: Omit<Employee, 'id'>): void {
-  employees.update(emps => {
+  employees.update((emps) => {
     const newEmployee: Employee = {
       ...employee,
-      id: `emp-${Date.now()}`
+      id: `emp-${Date.now()}`,
     }
     return [...emps, newEmployee]
   })
 }
 
 export function updateEmployee(id: string, updates: Partial<Employee>): void {
-  employees.update(emps => emps.map(emp => (emp.id === id ? { ...emp, ...updates } : emp)))
+  employees.update((emps) => emps.map((emp) => (emp.id === id ? { ...emp, ...updates } : emp)))
 }
 
 export function addProject(project: Omit<Project, 'id'>): void {
-  projects.update(projs => {
+  projects.update((projs) => {
     const newProject: Project = {
       ...project,
-      id: `proj-${Date.now()}`
+      id: `proj-${Date.now()}`,
     }
     return [...projs, newProject]
   })
 }
 
 export function updateProject(id: string, updates: Partial<Project>): void {
-  projects.update(projs => projs.map(proj => (proj.id === id ? { ...proj, ...updates } : proj)))
+  projects.update((projs) => projs.map((proj) => (proj.id === id ? { ...proj, ...updates } : proj)))
 }
 
 export function addParticipation(participation: Omit<ProjectParticipation, 'id'>): void {
-  participations.update(parts => {
+  participations.update((parts) => {
     const newParticipation: ProjectParticipation = {
       ...participation,
-      id: `part-${Date.now()}`
+      id: `part-${Date.now()}`,
     }
     return [...parts, newParticipation]
   })
 }
 
 export function updateParticipation(id: string, updates: Partial<ProjectParticipation>): void {
-  participations.update(parts =>
-    parts.map(part => (part.id === id ? { ...part, ...updates } : part))
+  participations.update((parts) =>
+    parts.map((part) => (part.id === id ? { ...part, ...updates } : part)),
   )
 }
 
 export function addDocumentSubmission(submission: Omit<DocumentSubmission, 'id'>): void {
-  documentSubmissions.update(subs => {
+  documentSubmissions.update((subs) => {
     const newSubmission: DocumentSubmission = {
       ...submission,
-      id: `doc-${Date.now()}`
+      id: `doc-${Date.now()}`,
     }
     return [...subs, newSubmission]
   })
 }
 
 export function updateDocumentSubmission(id: string, updates: Partial<DocumentSubmission>): void {
-  documentSubmissions.update(subs =>
-    subs.map(sub => (sub.id === id ? { ...sub, ...updates } : sub))
+  documentSubmissions.update((subs) =>
+    subs.map((sub) => (sub.id === id ? { ...sub, ...updates } : sub)),
   )
 }
 
 export function addRecommendation(recommendation: Omit<Recommendation, 'id'>): void {
-  recommendations.update(recs => {
+  recommendations.update((recs) => {
     const newRecommendation: Recommendation = {
       ...recommendation,
-      id: `rec-${Date.now()}`
+      id: `rec-${Date.now()}`,
     }
     return [...recs, newRecommendation]
   })
 }
 
 export function updateRecommendation(id: string, updates: Partial<Recommendation>): void {
-  recommendations.update(recs => recs.map(rec => (rec.id === id ? { ...rec, ...updates } : rec)))
+  recommendations.update((recs) =>
+    recs.map((rec) => (rec.id === id ? { ...rec, ...updates } : rec)),
+  )
 }

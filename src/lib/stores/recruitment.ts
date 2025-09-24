@@ -141,27 +141,27 @@ const initialJobPostings: JobPosting[] = [
       '5년 이상 프론트엔드 개발 경험',
       'React, TypeScript 숙련',
       '상태 관리 라이브러리 경험 (Redux, Zustand 등)',
-      '테스트 작성 경험 (Jest, React Testing Library)'
+      '테스트 작성 경험 (Jest, React Testing Library)',
     ],
     preferredQualifications: [
       'Next.js 경험',
       '팀 리딩 경험',
       '오픈소스 기여 경험',
-      '클라우드 플랫폼 경험'
+      '클라우드 플랫폼 경험',
     ],
     benefits: ['경쟁력 있는 연봉', '유연한 근무 환경', '교육비 지원', '건강보험 및 퇴직연금'],
     salaryRange: {
       min: 60000000,
       max: 90000000,
-      currency: 'KRW'
+      currency: 'KRW',
     },
     applicationDeadline: '2024-03-31',
     status: 'published',
     postedBy: 'emp-3',
     postedAt: '2024-01-15T00:00:00Z',
     createdAt: '2024-01-15T00:00:00Z',
-    updatedAt: '2024-01-15T00:00:00Z'
-  }
+    updatedAt: '2024-01-15T00:00:00Z',
+  },
 ]
 
 const initialCandidates: Candidate[] = [
@@ -174,7 +174,7 @@ const initialCandidates: Candidate[] = [
       phone: '010-1234-5678',
       address: '서울시 강남구',
       birthDate: '1990-05-15',
-      gender: 'male'
+      gender: 'male',
     },
     education: [
       {
@@ -182,8 +182,8 @@ const initialCandidates: Candidate[] = [
         school: '서울대학교',
         major: '컴퓨터공학과',
         graduationYear: 2013,
-        gpa: 3.8
-      }
+        gpa: 3.8,
+      },
     ],
     experience: [
       {
@@ -192,22 +192,22 @@ const initialCandidates: Candidate[] = [
         startDate: '2020-01-01',
         endDate: '2023-12-31',
         description: 'React 기반 웹 애플리케이션 개발 및 팀 멘토링',
-        technologies: ['React', 'TypeScript', 'Redux', 'Jest']
-      }
+        technologies: ['React', 'TypeScript', 'Redux', 'Jest'],
+      },
     ],
     skills: ['React', 'TypeScript', 'JavaScript', 'HTML', 'CSS', 'Node.js'],
     languages: [
       { language: '한국어', proficiency: 'native' },
-      { language: '영어', proficiency: 'intermediate' }
+      { language: '영어', proficiency: 'intermediate' },
     ],
     portfolio: {
       github: 'https://github.com/choims',
-      website: 'https://choims.dev'
+      website: 'https://choims.dev',
     },
     appliedAt: '2024-01-20T10:00:00Z',
     status: 'interview',
-    notes: '기술적 역량이 뛰어남'
-  }
+    notes: '기술적 역량이 뛰어남',
+  },
 ]
 
 const initialInterviewSchedules: InterviewSchedule[] = [
@@ -223,8 +223,8 @@ const initialInterviewSchedules: InterviewSchedule[] = [
     location: '서울 본사 회의실 A',
     status: 'scheduled',
     createdAt: '2024-01-25T00:00:00Z',
-    updatedAt: '2024-01-25T00:00:00Z'
-  }
+    updatedAt: '2024-01-25T00:00:00Z',
+  },
 ]
 
 const initialInterviewEvaluations: InterviewEvaluation[] = []
@@ -244,41 +244,41 @@ export function addJobPosting(posting: Omit<JobPosting, 'id' | 'createdAt' | 'up
     ...posting,
     id: `job-${Date.now()}`,
     createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    updatedAt: new Date().toISOString(),
   }
-  jobPostings.update(current => [...current, newPosting])
+  jobPostings.update((current) => [...current, newPosting])
 }
 
 export function updateJobPosting(id: string, updates: Partial<JobPosting>) {
-  jobPostings.update(current =>
-    current.map(posting =>
-      posting.id === id ? { ...posting, ...updates, updatedAt: new Date().toISOString() } : posting
-    )
+  jobPostings.update((current) =>
+    current.map((posting) =>
+      posting.id === id ? { ...posting, ...updates, updatedAt: new Date().toISOString() } : posting,
+    ),
   )
 }
 
 export function publishJobPosting(id: string) {
-  jobPostings.update(current =>
-    current.map(posting =>
+  jobPostings.update((current) =>
+    current.map((posting) =>
       posting.id === id
         ? {
             ...posting,
             status: 'published',
             postedAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
+            updatedAt: new Date().toISOString(),
           }
-        : posting
-    )
+        : posting,
+    ),
   )
 }
 
 export function closeJobPosting(id: string) {
-  jobPostings.update(current =>
-    current.map(posting =>
+  jobPostings.update((current) =>
+    current.map((posting) =>
       posting.id === id
         ? { ...posting, status: 'closed', updatedAt: new Date().toISOString() }
-        : posting
-    )
+        : posting,
+    ),
   )
 }
 
@@ -287,73 +287,79 @@ export function addCandidate(candidate: Omit<Candidate, 'id' | 'appliedAt'>) {
   const newCandidate: Candidate = {
     ...candidate,
     id: `candidate-${Date.now()}`,
-    appliedAt: new Date().toISOString()
+    appliedAt: new Date().toISOString(),
   }
-  candidates.update(current => [...current, newCandidate])
+  candidates.update((current) => [...current, newCandidate])
 }
 
 export function updateCandidate(id: string, updates: Partial<Candidate>) {
-  candidates.update(current =>
-    current.map(candidate => (candidate.id === id ? { ...candidate, ...updates } : candidate))
+  candidates.update((current) =>
+    current.map((candidate) => (candidate.id === id ? { ...candidate, ...updates } : candidate)),
   )
 }
 
 export function updateCandidateStatus(id: string, status: Candidate['status'], notes?: string) {
-  candidates.update(current =>
-    current.map(candidate =>
-      candidate.id === id ? { ...candidate, status, notes: notes || candidate.notes } : candidate
-    )
+  candidates.update((current) =>
+    current.map((candidate) =>
+      candidate.id === id ? { ...candidate, status, notes: notes || candidate.notes } : candidate,
+    ),
   )
 }
 
 // 면접 일정 관리 함수들
 export function scheduleInterview(
-  schedule: Omit<InterviewSchedule, 'id' | 'createdAt' | 'updatedAt'>
+  schedule: Omit<InterviewSchedule, 'id' | 'createdAt' | 'updatedAt'>,
 ) {
   const newSchedule: InterviewSchedule = {
     ...schedule,
     id: `interview-${Date.now()}`,
     createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    updatedAt: new Date().toISOString(),
   }
-  interviewSchedules.update(current => [...current, newSchedule])
+  interviewSchedules.update((current) => [...current, newSchedule])
 }
 
 export function updateInterviewSchedule(id: string, updates: Partial<InterviewSchedule>) {
-  interviewSchedules.update(current =>
-    current.map(schedule =>
+  interviewSchedules.update((current) =>
+    current.map((schedule) =>
       schedule.id === id
         ? { ...schedule, ...updates, updatedAt: new Date().toISOString() }
-        : schedule
-    )
+        : schedule,
+    ),
   )
 }
 
 export function completeInterview(id: string) {
-  interviewSchedules.update(current =>
-    current.map(schedule =>
+  interviewSchedules.update((current) =>
+    current.map((schedule) =>
       schedule.id === id
-        ? { ...schedule, status: 'completed', updatedAt: new Date().toISOString() }
-        : schedule
-    )
+        ? {
+            ...schedule,
+            status: 'completed',
+            updatedAt: new Date().toISOString(),
+          }
+        : schedule,
+    ),
   )
 }
 
 // 면접 평가 관리 함수들
 export function addInterviewEvaluation(
-  evaluation: Omit<InterviewEvaluation, 'id' | 'evaluatedAt'>
+  evaluation: Omit<InterviewEvaluation, 'id' | 'evaluatedAt'>,
 ) {
   const newEvaluation: InterviewEvaluation = {
     ...evaluation,
     id: `evaluation-${Date.now()}`,
-    evaluatedAt: new Date().toISOString()
+    evaluatedAt: new Date().toISOString(),
   }
-  interviewEvaluations.update(current => [...current, newEvaluation])
+  interviewEvaluations.update((current) => [...current, newEvaluation])
 }
 
 export function updateInterviewEvaluation(id: string, updates: Partial<InterviewEvaluation>) {
-  interviewEvaluations.update(current =>
-    current.map(evaluation => (evaluation.id === id ? { ...evaluation, ...updates } : evaluation))
+  interviewEvaluations.update((current) =>
+    current.map((evaluation) =>
+      evaluation.id === id ? { ...evaluation, ...updates } : evaluation,
+    ),
   )
 }
 
@@ -363,91 +369,91 @@ export function createOfferLetter(offer: Omit<OfferLetter, 'id' | 'createdAt' | 
     ...offer,
     id: `offer-${Date.now()}`,
     createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    updatedAt: new Date().toISOString(),
   }
-  offerLetters.update(current => [...current, newOffer])
+  offerLetters.update((current) => [...current, newOffer])
 }
 
 export function sendOfferLetter(id: string, responseDeadline: string) {
-  offerLetters.update(current =>
-    current.map(offer =>
+  offerLetters.update((current) =>
+    current.map((offer) =>
       offer.id === id
         ? {
             ...offer,
             status: 'sent',
             sentAt: new Date().toISOString(),
             responseDeadline,
-            updatedAt: new Date().toISOString()
+            updatedAt: new Date().toISOString(),
           }
-        : offer
-    )
+        : offer,
+    ),
   )
 }
 
 export function acceptOffer(id: string) {
-  offerLetters.update(current =>
-    current.map(offer =>
+  offerLetters.update((current) =>
+    current.map((offer) =>
       offer.id === id
         ? {
             ...offer,
             status: 'accepted',
             acceptedAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
+            updatedAt: new Date().toISOString(),
           }
-        : offer
-    )
+        : offer,
+    ),
   )
 }
 
 export function rejectOffer(id: string) {
-  offerLetters.update(current =>
-    current.map(offer =>
+  offerLetters.update((current) =>
+    current.map((offer) =>
       offer.id === id
         ? {
             ...offer,
             status: 'rejected',
             rejectedAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
+            updatedAt: new Date().toISOString(),
           }
-        : offer
-    )
+        : offer,
+    ),
   )
 }
 
 // 유틸리티 함수들
 export function getCandidatesByJobPosting(
   jobPostingId: string,
-  candidateList: Candidate[]
+  candidateList: Candidate[],
 ): Candidate[] {
-  return candidateList.filter(candidate => candidate.jobPostingId === jobPostingId)
+  return candidateList.filter((candidate) => candidate.jobPostingId === jobPostingId)
 }
 
 export function getCandidatesByStatus(
   status: Candidate['status'],
-  candidateList: Candidate[]
+  candidateList: Candidate[],
 ): Candidate[] {
-  return candidateList.filter(candidate => candidate.status === status)
+  return candidateList.filter((candidate) => candidate.status === status)
 }
 
 export function getInterviewSchedulesByCandidate(
   candidateId: string,
-  scheduleList: InterviewSchedule[]
+  scheduleList: InterviewSchedule[],
 ): InterviewSchedule[] {
-  return scheduleList.filter(schedule => schedule.candidateId === candidateId)
+  return scheduleList.filter((schedule) => schedule.candidateId === candidateId)
 }
 
 export function getInterviewEvaluationsByCandidate(
   candidateId: string,
-  evaluationList: InterviewEvaluation[]
+  evaluationList: InterviewEvaluation[],
 ): InterviewEvaluation[] {
-  return evaluationList.filter(evaluation => evaluation.candidateId === candidateId)
+  return evaluationList.filter((evaluation) => evaluation.candidateId === candidateId)
 }
 
 export function getOfferLetterByCandidate(
   candidateId: string,
-  offerList: OfferLetter[]
+  offerList: OfferLetter[],
 ): OfferLetter | undefined {
-  return offerList.find(offer => offer.candidateId === candidateId)
+  return offerList.find((offer) => offer.candidateId === candidateId)
 }
 
 export function calculateAverageRating(evaluations: InterviewEvaluation[]): number {
@@ -458,7 +464,7 @@ export function calculateAverageRating(evaluations: InterviewEvaluation[]): numb
 
 export function getRecruitmentStats(
   jobPostingId: string,
-  candidateList: Candidate[]
+  candidateList: Candidate[],
 ): {
   totalApplications: number
   screeningCount: number
@@ -471,10 +477,10 @@ export function getRecruitmentStats(
 
   return {
     totalApplications: jobCandidates.length,
-    screeningCount: jobCandidates.filter(c => c.status === 'screening').length,
-    interviewCount: jobCandidates.filter(c => c.status === 'interview').length,
-    offerCount: jobCandidates.filter(c => c.status === 'offer').length,
-    hiredCount: jobCandidates.filter(c => c.status === 'hired').length,
-    rejectedCount: jobCandidates.filter(c => c.status === 'rejected').length
+    screeningCount: jobCandidates.filter((c) => c.status === 'screening').length,
+    interviewCount: jobCandidates.filter((c) => c.status === 'interview').length,
+    offerCount: jobCandidates.filter((c) => c.status === 'offer').length,
+    hiredCount: jobCandidates.filter((c) => c.status === 'hired').length,
+    rejectedCount: jobCandidates.filter((c) => c.status === 'rejected').length,
   }
 }

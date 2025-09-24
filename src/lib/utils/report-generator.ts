@@ -99,14 +99,14 @@ export function generateHTMLReport(data: FinancialReportData): string {
 				<tbody>
 					${data.bankAccounts
             .map(
-              account => `
+              (account) => `
 						<tr>
 							<td>${account.name}</td>
 							<td>${account.bankName || '-'}</td>
 							<td>${account.accountNumber}</td>
 							<td class="text-right">₩${account.balance.toLocaleString()}</td>
 						</tr>
-					`
+					`,
             )
             .join('')}
 				</tbody>
@@ -128,7 +128,7 @@ export function generateHTMLReport(data: FinancialReportData): string {
 				<tbody>
 					${data.transactions
             .map(
-              transaction => `
+              (transaction) => `
 						<tr>
 							<td>${new Date(transaction.date).toLocaleDateString('ko-KR')}</td>
 							<td>${transaction.description}</td>
@@ -138,7 +138,7 @@ export function generateHTMLReport(data: FinancialReportData): string {
 							</td>
 							<td>${transaction.type === 'income' ? '수입' : '지출'}</td>
 						</tr>
-					`
+					`,
             )
             .join('')}
 				</tbody>
@@ -159,7 +159,7 @@ export function generateHTMLReport(data: FinancialReportData): string {
 				</thead>
 				<tbody>
 					${data.budgetCategories
-            .map(category => {
+            .map((category) => {
               const usage = (category.spent / category.amount) * 100
               return `
 							<tr>
@@ -209,7 +209,7 @@ export function generateCSVReport(data: FinancialReportData): string {
   // 통장 잔고
   csv += '통장 잔고\n'
   csv += '계좌명,은행,계좌번호,잔고\n'
-  data.bankAccounts.forEach(account => {
+  data.bankAccounts.forEach((account) => {
     csv += `${account.name},${account.bankName || ''},${account.accountNumber},${account.balance}\n`
   })
   csv += '\n'
@@ -217,7 +217,7 @@ export function generateCSVReport(data: FinancialReportData): string {
   // 거래 내역
   csv += '거래 내역\n'
   csv += '날짜,내용,분류,금액,구분\n'
-  data.transactions.forEach(transaction => {
+  data.transactions.forEach((transaction) => {
     csv += `${transaction.date},${transaction.description},${transaction.category},${transaction.amount},${transaction.type === 'income' ? '수입' : '지출'}\n`
   })
   csv += '\n'
@@ -225,7 +225,7 @@ export function generateCSVReport(data: FinancialReportData): string {
   // 예산 현황
   csv += '예산 현황\n'
   csv += '카테고리,예산,사용액,사용률\n'
-  data.budgetCategories.forEach(category => {
+  data.budgetCategories.forEach((category) => {
     const usage = (category.spent / category.amount) * 100
     csv += `${category.name},${category.amount},${category.spent},${usage.toFixed(1)}%\n`
   })
@@ -237,23 +237,23 @@ export function generateCSVReport(data: FinancialReportData): string {
 function calculateSummary(data: FinancialReportData): ReportSummary {
   const totalBalance = data.bankAccounts.reduce((sum, account) => sum + account.balance, 0)
   const totalIncome = data.transactions
-    .filter(t => t.type === 'income')
+    .filter((t) => t.type === 'income')
     .reduce((sum, t) => sum + t.amount, 0)
   const totalExpense = data.transactions
-    .filter(t => t.type === 'expense')
+    .filter((t) => t.type === 'expense')
     .reduce((sum, t) => sum + t.amount, 0)
   const expectedIncome = data.expectedTransactions
-    .filter(t => t.type === 'income')
+    .filter((t) => t.type === 'income')
     .reduce((sum, t) => sum + t.amount, 0)
   const expectedExpense = data.expectedTransactions
-    .filter(t => t.type === 'expense')
+    .filter((t) => t.type === 'expense')
     .reduce((sum, t) => sum + t.amount, 0)
 
   const budgetUtilization =
     data.budgetCategories.length > 0
       ? (data.budgetCategories.reduce(
           (sum, category) => sum + category.spent / category.amount,
-          0
+          0,
         ) /
           data.budgetCategories.length) *
         100
@@ -275,7 +275,7 @@ function calculateSummary(data: FinancialReportData): ReportSummary {
     expectedExpense,
     expectedNetIncome: expectedIncome - expectedExpense,
     budgetUtilization,
-    goalProgress
+    goalProgress,
   }
 }
 

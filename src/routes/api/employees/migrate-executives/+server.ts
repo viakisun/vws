@@ -1,6 +1,7 @@
 import { query } from '$lib/database/connection'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger'
 
 // 이사급 직원들을 이사 명부로 이관하고 직원 명부에서 제외
 export const POST: RequestHandler = async () => {
@@ -13,7 +14,7 @@ export const POST: RequestHandler = async () => {
       '대표이사',
       '연구소장',
       '기술이사',
-      '상무이사'
+      '상무이사',
     ]
 
     const executiveEmployees = await query(
@@ -22,7 +23,7 @@ export const POST: RequestHandler = async () => {
 			WHERE position IN (${executivePositions.map((_, i) => `$${i + 1}`).join(', ')})
 			AND status = 'active'
 		`,
-      executivePositions
+      executivePositions,
     )
 
     // 임원 직원 마이그레이션 시작
@@ -44,7 +45,7 @@ export const POST: RequestHandler = async () => {
 
       // 해당 직책 ID 찾기
       const jobTitleResult = await query('SELECT id FROM job_titles WHERE name = $1', [
-        jobTitleName
+        jobTitleName,
       ])
 
       if (jobTitleResult.rows.length === 0) {
@@ -81,8 +82,8 @@ export const POST: RequestHandler = async () => {
           'active',
           `${employee.position}로 임명된 임원진입니다.`,
           new Date(),
-          new Date()
-        ]
+          new Date(),
+        ],
       )
 
       migratedExecutives.push(executiveResult.rows[0])
@@ -95,7 +96,7 @@ export const POST: RequestHandler = async () => {
 					updated_at = $1
 				WHERE id = $2
 			`,
-        [new Date(), employee.id]
+        [new Date(), employee.id],
       )
 
       // 임원 테이블로 마이그레이션 완료
@@ -106,17 +107,17 @@ export const POST: RequestHandler = async () => {
       message: `${migratedExecutives.length}명의 이사급 직원이 이사 명부로 이관되었습니다.`,
       data: {
         migratedCount: migratedExecutives.length,
-        migratedExecutives: migratedExecutives
-      }
+        migratedExecutives: migratedExecutives,
+      },
     })
   } catch (error: any) {
-    console.error('Error migrating executives:', error)
+    logger.error('Error migrating executives:', error)
     return json(
       {
         success: false,
-        error: error.message || '이사급 직원 이관에 실패했습니다.'
+        error: error.message || '이사급 직원 이관에 실패했습니다.',
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

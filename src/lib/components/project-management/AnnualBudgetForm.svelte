@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { logger } from '$lib/utils/logger'
+
   import type { AnnualBudget, AnnualBudgetFormData, BudgetSummary } from '$lib/types/project-budget'
   import { CheckIcon, PlusIcon, TrashIcon, XIcon } from '@lucide/svelte'
   import { createEventDispatcher } from 'svelte'
@@ -9,7 +11,7 @@
   let {
     projectId = '',
     existingBudgets = [],
-    readonly = false
+    readonly = false,
   } = $props<{
     projectId?: string
     existingBudgets?: AnnualBudget[]
@@ -27,14 +29,14 @@
   // 초기화
   $effect(() => {
     if (existingBudgets.length > 0) {
-      budgetData = existingBudgets.map(budget => ({
+      budgetData = existingBudgets.map((budget) => ({
         year: budget.year,
         startDate: budget.startDate,
         endDate: budget.endDate,
         governmentFunding: budget.governmentFunding,
         companyCash: budget.companyCash,
         companyInKind: budget.companyInKind,
-        notes: budget.notes
+        notes: budget.notes,
       }))
     } else {
       // 기본적으로 1차년도 추가
@@ -44,7 +46,7 @@
 
   // 연차 추가
   function addYear() {
-    const nextYear = budgetData.length > 0 ? Math.max(...budgetData.map(b => b.year)) + 1 : 1
+    const nextYear = budgetData.length > 0 ? Math.max(...budgetData.map((b) => b.year)) + 1 : 1
     budgetData.push({
       year: nextYear,
       startDate: '',
@@ -52,7 +54,7 @@
       governmentFunding: 0,
       companyCash: 0,
       companyInKind: 0,
-      notes: ''
+      notes: '',
     })
   }
 
@@ -89,7 +91,7 @@
       companyBurdenRatio:
         totalBudget > 0 ? ((totalCompanyCash + totalCompanyInKind) / totalBudget) * 100 : 0,
       cashRatio: totalBudget > 0 ? (totalCash / totalBudget) * 100 : 0,
-      inKindRatio: totalBudget > 0 ? (totalInKind / totalBudget) * 100 : 0
+      inKindRatio: totalBudget > 0 ? (totalInKind / totalBudget) * 100 : 0,
     }
   }
 
@@ -101,7 +103,7 @@
       errors.push('최소 1개 연차의 예산을 입력해주세요.')
     }
 
-    budgetData.forEach((budget, index) => {
+    budgetData.forEach((budget) => {
       const yearLabel = `${budget.year}차년도`
 
       if (budget.governmentFunding < 0) {
@@ -143,13 +145,16 @@
     isSubmitting = true
 
     try {
-      const response = await fetch(`/api/project-management/projects/${projectId}/annual-budgets`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
+      const response = await window.fetch(
+        `/api/project-management/projects/${projectId}/annual-budgets`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ budgets: budgetData }),
         },
-        body: JSON.stringify({ budgets: budgetData })
-      })
+      )
 
       const result = await response.json()
 
@@ -159,7 +164,7 @@
         validationErrors = [result.error || '예산 저장에 실패했습니다.']
       }
     } catch (error) {
-      console.error('예산 저장 오류:', error)
+      logger.error('예산 저장 오류:', error)
       validationErrors = ['예산 저장 중 오류가 발생했습니다.']
     } finally {
       isSubmitting = false
@@ -184,7 +189,7 @@
           <h3 class="text-sm font-medium text-red-800">검증 오류</h3>
         </div>
         <ul class="mt-2 text-sm text-red-700">
-          {#each validationErrors as error}
+          {#each validationErrors as error (error)}
             <li>• {error}</li>
           {/each}
         </ul>
@@ -229,7 +234,7 @@
             <span class="text-blue-700 font-medium">현금 총액:</span>
             <span class="ml-2 font-semibold"
               >{formatCurrency(budgetSummary.totalCash)}원 ({budgetSummary.cashRatio.toFixed(
-                1
+                1,
               )}%)</span
             >
           </div>
@@ -237,7 +242,7 @@
             <span class="text-blue-700 font-medium">현물 총액:</span>
             <span class="ml-2 font-semibold"
               >{formatCurrency(budgetSummary.totalInKind)}원 ({budgetSummary.inKindRatio.toFixed(
-                1
+                1,
               )}%)</span
             >
           </div>
@@ -261,10 +266,12 @@
         {/if}
       </div>
 
-      {#each budgetData as budget, index}
+      {#each budgetData as budget, index (budget.year)}
         <div class="border border-gray-200 rounded-lg p-6">
           <div class="flex items-center justify-between mb-4">
-            <h4 class="text-lg font-medium text-gray-900">{budget.year}차년도</h4>
+            <h4 class="text-lg font-medium text-gray-900">
+              {budget.year}차년도
+            </h4>
             {#if !readonly && budgetData.length > 1}
               <button
                 type="button"
@@ -381,7 +388,7 @@
                   {formatCurrency(
                     (budget.governmentFunding || 0) +
                       (budget.companyCash || 0) +
-                      (budget.companyInKind || 0)
+                      (budget.companyInKind || 0),
                   )}원
                 </span>
               </div>

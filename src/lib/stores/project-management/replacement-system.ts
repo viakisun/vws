@@ -1,17 +1,12 @@
+import { logger } from '$lib/utils/logger'
 import { writable } from 'svelte/store'
-import type {
-  ReplacementRecommendation,
-  Person,
-  Project,
-  ParticipationAssignment,
-  SalaryHistory
-} from './types'
 import { logAudit } from './core'
+import type { ReplacementRecommendation } from './types'
 
 // 대체 추천 시스템
 export const replacementRecommendations = writable<ReplacementRecommendation[]>([])
-export const skillMatrix = writable<Record<string, any[]>>({})
-export const availabilityMatrix = writable<Record<string, any>>({})
+export const skillMatrix = writable<Record<string, unknown[]>>({})
+export const availabilityMatrix = writable<Record<string, unknown>>({})
 
 // 인력 이탈 시 대체 추천 생성
 export function generateReplacementRecommendation(
@@ -19,7 +14,7 @@ export function generateReplacementRecommendation(
   departingPersonId: string,
   reason: 'resignation' | 'transfer' | 'medical' | 'other',
   effectiveDate: string,
-  urgency: 'low' | 'medium' | 'high' | 'critical'
+  urgency: 'low' | 'medium' | 'high' | 'critical',
 ): string {
   const recommendationId = crypto.randomUUID()
 
@@ -32,10 +27,10 @@ export function generateReplacementRecommendation(
     departingPersonId,
     recommendedPersons,
     status: 'pending',
-    createdAt: new Date().toISOString()
+    createdAt: new Date().toISOString(),
   }
 
-  replacementRecommendations.update(list => [...list, recommendation])
+  replacementRecommendations.update((list) => [...list, recommendation])
   logAudit(
     'create',
     'replacement_recommendation',
@@ -44,9 +39,9 @@ export function generateReplacementRecommendation(
       projectId,
       departingPersonId,
       reason,
-      urgency
+      urgency,
     },
-    recommendation
+    recommendation,
   )
 
   return recommendationId
@@ -56,7 +51,7 @@ export function generateReplacementRecommendation(
 function findReplacementCandidates(
   projectId: string,
   departingPersonId: string,
-  urgency: 'low' | 'medium' | 'high' | 'critical'
+  urgency: 'low' | 'medium' | 'high' | 'critical',
 ): Array<{
   personId: string
   score: number
@@ -73,7 +68,7 @@ function findReplacementCandidates(
   const candidates = scoreReplacementCandidates(
     projectRequirements,
     departingPersonProfile,
-    urgency
+    urgency,
   )
 
   // 4. 상위 3명 반환
@@ -81,7 +76,7 @@ function findReplacementCandidates(
 }
 
 // 프로젝트 요구사항 분석
-function analyzeProjectRequirements(projectId: string): any {
+function analyzeProjectRequirements(_projectId: string): any {
   // 실제 구현에서는 프로젝트 데이터를 분석
   return {
     requiredSkills: ['JavaScript', 'React', 'Node.js', 'Database'],
@@ -90,12 +85,12 @@ function analyzeProjectRequirements(projectId: string): any {
     participationRate: 80,
     startDate: '2024-02-01',
     duration: 6, // months
-    budget: 50000000
+    budget: 50000000,
   }
 }
 
 // 개인 프로필 분석
-function analyzePersonProfile(personId: string): any {
+function analyzePersonProfile(_personId: string): any {
   // 실제 구현에서는 개인 데이터를 분석
   return {
     skills: ['JavaScript', 'React', 'Node.js', 'MongoDB'],
@@ -104,7 +99,7 @@ function analyzePersonProfile(personId: string): any {
     currentParticipation: 100,
     salary: 6000000,
     performance: 'excellent',
-    availability: 80
+    availability: 80,
   }
 }
 
@@ -112,7 +107,7 @@ function analyzePersonProfile(personId: string): any {
 function scoreReplacementCandidates(
   projectRequirements: any,
   departingPersonProfile: any,
-  urgency: string
+  urgency: string,
 ): Array<{
   personId: string
   score: number
@@ -130,7 +125,7 @@ function scoreReplacementCandidates(
       currentParticipation: 60,
       salary: 5500000,
       performance: 'excellent',
-      availability: 90
+      availability: 90,
     },
     {
       personId: 'person-2',
@@ -141,7 +136,7 @@ function scoreReplacementCandidates(
       currentParticipation: 40,
       salary: 4500000,
       performance: 'good',
-      availability: 85
+      availability: 85,
     },
     {
       personId: 'person-3',
@@ -152,24 +147,24 @@ function scoreReplacementCandidates(
       currentParticipation: 70,
       salary: 5800000,
       performance: 'excellent',
-      availability: 75
-    }
+      availability: 75,
+    },
   ]
 
   return candidates
-    .map(candidate => {
+    .map((candidate) => {
       const score = calculateCandidateScore(
         candidate,
         projectRequirements,
         departingPersonProfile,
-        urgency
+        urgency,
       )
 
       return {
         personId: candidate.personId,
         score: score.total,
         reason: score.reason,
-        availability: candidate.availability
+        availability: candidate.availability,
       }
     })
     .sort((a, b) => b.score - a.score)
@@ -180,7 +175,7 @@ function calculateCandidateScore(
   candidate: any,
   projectRequirements: any,
   departingPersonProfile: any,
-  urgency: string
+  urgency: string,
 ): { total: number; reason: string } {
   let totalScore = 0
   const reasons: string[] = []
@@ -193,7 +188,7 @@ function calculateCandidateScore(
   // 2. 경험 수준 매칭 (20%)
   const experienceScore = calculateExperienceScore(
     candidate.experienceLevel,
-    projectRequirements.experienceLevel
+    projectRequirements.experienceLevel,
   )
   totalScore += experienceScore * 0.2
   reasons.push(`경험 수준: ${experienceScore}점`)
@@ -201,7 +196,7 @@ function calculateCandidateScore(
   // 3. 가용성 (20%)
   const availabilityScore = calculateAvailabilityScore(
     candidate.availability,
-    projectRequirements.participationRate
+    projectRequirements.participationRate,
   )
   totalScore += availabilityScore * 0.2
   reasons.push(`가용성: ${availabilityScore}점`)
@@ -225,13 +220,13 @@ function calculateCandidateScore(
 
   return {
     total: Math.round(totalScore),
-    reason: reasons.join(', ')
+    reason: reasons.join(', '),
   }
 }
 
 // 기술 스킬 점수 계산
 function calculateSkillScore(candidateSkills: string[], requiredSkills: string[]): number {
-  const matchedSkills = candidateSkills.filter(skill => requiredSkills.includes(skill))
+  const matchedSkills = candidateSkills.filter((skill) => requiredSkills.includes(skill))
   return (matchedSkills.length / requiredSkills.length) * 100
 }
 
@@ -243,7 +238,7 @@ function calculateExperienceScore(candidateLevel: string, requiredLevel: string)
     mid: 60,
     senior: 80,
     lead: 90,
-    manager: 100
+    manager: 100,
   }
 
   const candidateScore = levelScores[candidateLevel as keyof typeof levelScores] || 0
@@ -259,7 +254,7 @@ function calculateExperienceScore(candidateLevel: string, requiredLevel: string)
 // 가용성 점수 계산
 function calculateAvailabilityScore(
   candidateAvailability: number,
-  requiredParticipation: number
+  requiredParticipation: number,
 ): number {
   if (candidateAvailability >= requiredParticipation) {
     return 100
@@ -275,7 +270,7 @@ function calculatePerformanceScore(performance: string): number {
     good: 80,
     average: 60,
     below_average: 40,
-    poor: 20
+    poor: 20,
   }
 
   return performanceScores[performance as keyof typeof performanceScores] || 0
@@ -301,10 +296,10 @@ export function approveReplacementRecommendation(
   recommendationId: string,
   approvedPersonId: string,
   approverId: string,
-  comment?: string
+  comment?: string,
 ): void {
-  replacementRecommendations.update(list => {
-    const index = list.findIndex(r => r.id === recommendationId)
+  replacementRecommendations.update((list) => {
+    const index = list.findIndex((r) => r.id === recommendationId)
     if (index === -1) return list
 
     const recommendation = list[index]
@@ -312,7 +307,7 @@ export function approveReplacementRecommendation(
       ...recommendation,
       status: 'approved' as const,
       approvedBy: approverId,
-      approvedAt: new Date().toISOString()
+      approvedAt: new Date().toISOString(),
     }
 
     const newList = [...list]
@@ -325,9 +320,9 @@ export function approveReplacementRecommendation(
       {
         approvedPersonId,
         approverId,
-        comment
+        comment,
       },
-      updatedRecommendation
+      updatedRecommendation,
     )
 
     // 승인된 대체자 배정 처리
@@ -335,7 +330,7 @@ export function approveReplacementRecommendation(
       recommendation.projectId,
       recommendation.departingPersonId,
       approvedPersonId,
-      recommendation.createdAt
+      recommendation.createdAt,
     )
 
     return newList
@@ -347,7 +342,7 @@ function processReplacementAssignment(
   projectId: string,
   departingPersonId: string,
   replacementPersonId: string,
-  effectiveDate: string
+  effectiveDate: string,
 ): void {
   // 1. 기존 참여 배정 종료
   // 2. 새로운 참여 배정 생성
@@ -361,9 +356,9 @@ function processReplacementAssignment(
     {
       departingPersonId,
       replacementPersonId,
-      effectiveDate
+      effectiveDate,
     },
-    {}
+    {},
   )
 }
 
@@ -371,10 +366,10 @@ function processReplacementAssignment(
 export function rejectReplacementRecommendation(
   recommendationId: string,
   rejectorId: string,
-  reason: string
+  reason: string,
 ): void {
-  replacementRecommendations.update(list => {
-    const index = list.findIndex(r => r.id === recommendationId)
+  replacementRecommendations.update((list) => {
+    const index = list.findIndex((r) => r.id === recommendationId)
     if (index === -1) return list
 
     const recommendation = list[index]
@@ -382,7 +377,7 @@ export function rejectReplacementRecommendation(
       ...recommendation,
       status: 'rejected' as const,
       approvedBy: rejectorId,
-      approvedAt: new Date().toISOString()
+      approvedAt: new Date().toISOString(),
     }
 
     const newList = [...list]
@@ -394,9 +389,9 @@ export function rejectReplacementRecommendation(
       recommendationId,
       {
         rejectorId,
-        reason
+        reason,
       },
-      updatedRecommendation
+      updatedRecommendation,
     )
 
     return newList
@@ -408,7 +403,7 @@ export function createRecruitmentRequest(
   projectId: string,
   departingPersonId: string,
   requirements: any,
-  urgency: 'low' | 'medium' | 'high' | 'critical'
+  urgency: 'low' | 'medium' | 'high' | 'critical',
 ): string {
   const requestId = crypto.randomUUID()
 
@@ -420,7 +415,7 @@ export function createRecruitmentRequest(
     urgency,
     status: 'pending',
     createdAt: new Date().toISOString(),
-    createdBy: 'current-user'
+    createdBy: 'current-user',
   }
 
   logAudit(
@@ -431,9 +426,9 @@ export function createRecruitmentRequest(
       projectId,
       departingPersonId,
       requirements,
-      urgency
+      urgency,
     },
-    recruitmentRequest
+    recruitmentRequest,
   )
 
   return requestId
@@ -443,9 +438,9 @@ export function createRecruitmentRequest(
 export function getReplacementHistory(projectId: string): ReplacementRecommendation[] {
   let history: ReplacementRecommendation[] = []
 
-  replacementRecommendations.subscribe(list => {
+  replacementRecommendations.subscribe((list) => {
     history = list
-      .filter(r => r.projectId === projectId)
+      .filter((r) => r.projectId === projectId)
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
   })()
 
@@ -457,9 +452,9 @@ export function getReplacementStatistics(projectId: string): any {
   const history = getReplacementHistory(projectId)
 
   const totalRecommendations = history.length
-  const approvedRecommendations = history.filter(r => r.status === 'approved').length
-  const rejectedRecommendations = history.filter(r => r.status === 'rejected').length
-  const pendingRecommendations = history.filter(r => r.status === 'pending').length
+  const approvedRecommendations = history.filter((r) => r.status === 'approved').length
+  const rejectedRecommendations = history.filter((r) => r.status === 'rejected').length
+  const pendingRecommendations = history.filter((r) => r.status === 'pending').length
 
   const averageScore =
     history.length > 0
@@ -476,13 +471,13 @@ export function getReplacementStatistics(projectId: string): any {
     approvalRate:
       totalRecommendations > 0 ? (approvedRecommendations / totalRecommendations) * 100 : 0,
     averageScore,
-    averageProcessingTime
+    averageProcessingTime,
   }
 }
 
 // 평균 처리 시간 계산
 function calculateAverageProcessingTime(history: ReplacementRecommendation[]): number {
-  const processedRecommendations = history.filter(r => r.approvedAt)
+  const processedRecommendations = history.filter((r) => r.approvedAt)
 
   if (processedRecommendations.length === 0) return 0
 
@@ -496,18 +491,18 @@ function calculateAverageProcessingTime(history: ReplacementRecommendation[]): n
 }
 
 // 스킬 매트릭스 업데이트
-export function updateSkillMatrix(personId: string, skills: any[]): void {
-  skillMatrix.update(matrix => ({
+export function updateSkillMatrix(personId: string, skills: unknown[]): void {
+  skillMatrix.update((matrix) => ({
     ...matrix,
-    [personId]: skills
+    [personId]: skills,
   }))
 }
 
 // 가용성 매트릭스 업데이트
 export function updateAvailabilityMatrix(personId: string, availability: any): void {
-  availabilityMatrix.update(matrix => ({
+  availabilityMatrix.update((matrix) => ({
     ...matrix,
-    [personId]: availability
+    [personId]: availability,
   }))
 }
 
@@ -515,25 +510,25 @@ export function updateAvailabilityMatrix(personId: string, availability: any): v
 export function createReplacementNotification(
   recommendationId: string,
   notificationType: 'created' | 'approved' | 'rejected',
-  recipients: string[]
+  recipients: string[],
 ): void {
   const notification = {
     id: crypto.randomUUID(),
     recommendationId,
     type: notificationType,
     recipients,
-    createdAt: new Date().toISOString()
+    createdAt: new Date().toISOString(),
   }
 
   // 실제 구현에서는 알림 시스템에 전송
-  console.log('Replacement notification:', notification)
+  logger.log('Replacement notification:', notification)
 }
 
 // 대체 추천 대시보드 데이터
 export function getReplacementDashboardData(): any {
   let allRecommendations: ReplacementRecommendation[] = []
 
-  replacementRecommendations.subscribe(list => {
+  replacementRecommendations.subscribe((list) => {
     allRecommendations = list
   })()
 
@@ -541,15 +536,15 @@ export function getReplacementDashboardData(): any {
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     .slice(0, 10)
 
-  const pendingCount = allRecommendations.filter(r => r.status === 'pending').length
-  const approvedCount = allRecommendations.filter(r => r.status === 'approved').length
-  const rejectedCount = allRecommendations.filter(r => r.status === 'rejected').length
+  const pendingCount = allRecommendations.filter((r) => r.status === 'pending').length
+  const approvedCount = allRecommendations.filter((r) => r.status === 'approved').length
+  const rejectedCount = allRecommendations.filter((r) => r.status === 'rejected').length
 
   return {
     recentRecommendations,
     pendingCount,
     approvedCount,
     rejectedCount,
-    totalCount: allRecommendations.length
+    totalCount: allRecommendations.length,
   }
 }

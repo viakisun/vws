@@ -9,7 +9,7 @@
     getQuarterSummary,
     overallBudget,
     projectsStore,
-    quarterlyPersonnelBudgets
+    quarterlyPersonnelBudgets,
   } from '$lib/stores/rnd'
   import { formatDateForDisplay, getCurrentUTC, getDateDifference } from '$lib/utils/date-handler'
 
@@ -17,27 +17,28 @@
   const avgProgress = $derived(
     $projectsStore.length
       ? Math.round($projectsStore.reduce((s, p) => s + p.progressPct, 0) / $projectsStore.length)
-      : 0
+      : 0,
   )
   const riskCounts = $derived({
-    위험: $projectsStore.filter(p => p.status === '위험').length,
-    지연: $projectsStore.filter(p => p.status === '지연').length,
-    진행중: $projectsStore.filter(p => p.status === '진행중').length,
-    정상: $projectsStore.filter(p => p.status === '정상' || p.status === '완료').length
+    위험: $projectsStore.filter((p) => p.status === '위험').length,
+    지연: $projectsStore.filter((p) => p.status === '지연').length,
+    진행중: $projectsStore.filter((p) => p.status === '진행중').length,
+    정상: $projectsStore.filter((p) => p.status === '정상' || p.status === '완료').length,
   })
   const overAllocated = $derived(
-    $personnelStore.filter(pr => pr.participations.reduce((s, pp) => s + pp.allocationPct, 0) > 100)
-      .length
+    $personnelStore.filter(
+      (pr) => pr.participations.reduce((s, pp) => s + pp.allocationPct, 0) > 100,
+    ).length,
   )
   const avgAlloc = $derived(
     $personnelStore.length
       ? Math.round(
           $personnelStore.reduce(
             (sum, pr) => sum + pr.participations.reduce((s, pp) => s + pp.allocationPct, 0),
-            0
-          ) / $personnelStore.length
+            0,
+          ) / $personnelStore.length,
         )
-      : 0
+      : 0,
   )
 
   // Category breakdown (인건비/재료비/연구활동비/여비)
@@ -49,11 +50,11 @@
         if (res[d.category] !== undefined) res[d.category] += amt
       }
       return res
-    })()
+    })(),
   )
 
   // Burn rate projection: project-level spent/elapsed → projected over total duration, aggregated
-  function daysBetween(a: string, b: string): number {
+  function _daysBetween(a: string, b: string): number {
     const ms = new Date(b).getTime() - new Date(a).getTime()
     return Math.max(1, Math.ceil(ms / (1000 * 60 * 60 * 24)))
   }
@@ -76,12 +77,12 @@
       }
       const utilization = totalBudget > 0 ? totalProjected / totalBudget : 0
       return { totalBudget, totalProjected, utilization }
-    })()
+    })(),
   )
 
   // 경보 상세 사유
   const alertDetails = $derived(
-    $budgetAlerts.map(a => {
+    $budgetAlerts.map((a) => {
       const pct = (a.utilization * 100).toFixed(1)
       const reason =
         a.level === 'over'
@@ -90,32 +91,32 @@
             ? `집행률 ${pct}% ≥ 95%`
             : `집행률 ${pct}% ≥ 80%`
       return { ...a, reason }
-    })
+    }),
   )
 
   // 소진 속도 편차: 진행률 대비 집행액 편차 상위
   const burnVariance = $derived(
     (function () {
       return $projectsStore
-        .map(p => {
+        .map((p) => {
           const expected = (p.progressPct / 100) * p.budgetKRW
           const delta = p.spentKRW - expected
           return { id: p.id, name: p.name, spent: p.spentKRW, expected, delta }
         })
         .sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta))
         .slice(0, 5)
-    })()
+    })(),
   )
 
   // 분기 선택 및 URL 동기화
   function sortQuarterLabels(labels: string[]): string[] {
     return labels
-      .map(q => {
+      .map((q) => {
         const [y, qpart] = q.split('-Q')
         return { q, y: Number(y), qn: Number(qpart) }
       })
       .sort((a, b) => (a.y === b.y ? a.qn - b.qn : a.y - b.y))
-      .map(x => x.q)
+      .map((x) => x.q)
   }
   function currentQuarterLabel(): string {
     const d = new Date(getCurrentUTC())
@@ -131,7 +132,7 @@
         for (const k in qmap[pid]) set.add(k)
       }
       return sortQuarterLabels(Array.from(set))
-    })()
+    })(),
   )
   let selectedQuarter = $state(currentQuarterLabel())
   let lastQuery = $state('')
@@ -145,8 +146,8 @@
   const docsInQuarter = $derived(
     (function () {
       const qn = Number(selectedQuarter.split('-Q')[1] || '0')
-      return $expenseDocsStore.filter(d => Number(d.quarter) === qn).length
-    })()
+      return $expenseDocsStore.filter((d) => Number(d.quarter) === qn).length
+    })(),
   )
 
   // URL sync
@@ -178,7 +179,7 @@
         }
       }
       return sortQs(Array.from(s))
-    })()
+    })(),
   )
   const last4 = $derived(allQLabels.slice(-4))
   const activeByQ = $derived(
@@ -194,11 +195,16 @@
         }
       }
       return map
-    })()
+    })(),
   )
   const churnData = $derived(
     (function () {
-      const data: Array<{ q: string; headcount: number; join: number; leave: number }> = []
+      const data: Array<{
+        q: string
+        headcount: number
+        join: number
+        leave: number
+      }> = []
       for (let i = 0; i < last4.length; i++) {
         const q = last4[i]
         const prev = i > 0 ? last4[i - 1] : null
@@ -213,7 +219,7 @@
         data.push({ q, headcount: currSet.size, join, leave })
       }
       return data
-    })()
+    })(),
   )
 
   // simple skeleton
@@ -232,7 +238,7 @@
     class="rounded-md border border-gray-200 px-2 py-1 text-sm"
     bind:value={selectedQuarter}
   >
-    {#each quarters as q}
+    {#each quarters as q, i (i)}
       <option value={q}>{q}</option>
     {/each}
   </select>
@@ -240,7 +246,8 @@
 
 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
   {#if loading}
-    {#each Array(4) as _}
+    {#each Array(4) as _, idx (idx)}
+      <!-- TODO: replace index key with a stable id when model provides one -->
       <div class="card animate-pulse h-24"></div>
     {/each}
   {:else}
@@ -259,7 +266,9 @@
         <div class="kpi">
           <div>
             <p class="text-caption">예산 집행률</p>
-            <div class="text-2xl font-bold">{(ob.utilization * 100).toFixed(1)}%</div>
+            <div class="text-2xl font-bold">
+              {(ob.utilization * 100).toFixed(1)}%
+            </div>
             <div class="mt-3"><Progress value={ob.utilization * 100} /></div>
           </div>
         </div>
@@ -293,7 +302,7 @@
   <Card header="예산 경보">
     {#snippet children()}
       <ul class="space-y-2 text-sm">
-        {#each alertDetails as a}
+        {#each alertDetails as a, i (i)}
           <li class="flex items-center justify-between">
             <div class="flex items-center gap-3">
               <span class="font-medium">{a.name}</span>
@@ -315,7 +324,9 @@
       <div class="kpi">
         <div>
           <p class="text-caption">{selectedQuarter} 분기 인건비 예산</p>
-          <div class="text-2xl font-bold">{quarterSummary.totalBudgetKRW.toLocaleString()}원</div>
+          <div class="text-2xl font-bold">
+            {quarterSummary.totalBudgetKRW.toLocaleString()}원
+          </div>
         </div>
       </div>
     {/snippet}
@@ -324,7 +335,9 @@
     {#snippet children()}
       <div class="kpi">
         <div>
-          <p class="text-caption">{selectedQuarter.split('-Q')[1]}분기 문서 수</p>
+          <p class="text-caption">
+            {selectedQuarter.split('-Q')[1]}분기 문서 수
+          </p>
           <div class="text-2xl font-bold">{docsInQuarter}</div>
         </div>
       </div>
@@ -446,7 +459,7 @@
           </tr>
         </thead>
         <tbody class="divide-y">
-          {#each burnVariance as b}
+          {#each burnVariance as b, i (i)}
             <tr>
               <td class="px-3 py-2">{b.name}</td>
               <td class="px-3 py-2 tabular-nums">{b.expected.toLocaleString()}원</td>
@@ -473,7 +486,7 @@
           </tr>
         </thead>
         <tbody class="divide-y">
-          {#each churnData as r}
+          {#each churnData as r, i (i)}
             <tr>
               <td class="px-3 py-2">{r.q}</td>
               <td class="px-3 py-2 tabular-nums">{r.headcount}</td>

@@ -3,6 +3,7 @@
 import { toUTC } from '$lib/utils/date-handler'
 import { approvalWorkflows, approvals, documents, expenseItems } from './expense-workflow'
 import type { Approval, ApprovalWorkflow, Document, ExpenseItem } from './types'
+import { logger } from '$lib/utils/logger'
 
 // ===== 더미 지출 항목 생성 =====
 function generateDummyExpenses(): ExpenseItem[] {
@@ -13,7 +14,7 @@ function generateDummyExpenses(): ExpenseItem[] {
     'TRAVEL',
     'MEETING',
     'PATENT',
-    'OFFICE_SUPPLIES'
+    'OFFICE_SUPPLIES',
   ]
   const statuses = ['draft', 'pending_approval', 'approved', 'executed', 'completed', 'rejected']
   const projects = ['proj-001', 'proj-002', 'proj-003', 'proj-004', 'proj-005']
@@ -24,7 +25,7 @@ function generateDummyExpenses(): ExpenseItem[] {
     'person-011',
     'person-013',
     'person-014',
-    'person-015'
+    'person-015',
   ]
   const deptOwners = [
     '경영지원팀',
@@ -33,7 +34,7 @@ function generateDummyExpenses(): ExpenseItem[] {
     '블록체인팀',
     'IoT팀',
     '총무팀',
-    'R&D전략팀'
+    'R&D전략팀',
   ]
 
   const expenses: ExpenseItem[] = []
@@ -59,7 +60,7 @@ function generateDummyExpenses(): ExpenseItem[] {
       status: status as any,
       deptOwner: deptOwner,
       createdAt: createdAt,
-      updatedAt: createdAt
+      updatedAt: createdAt,
     })
   }
 
@@ -78,7 +79,7 @@ function generateDummyDocuments(): Document[] {
     'RECEIPT',
     'MEETING_MINUTES',
     'TRAVEL_REPORT',
-    'PATENT_DOCUMENT'
+    'PATENT_DOCUMENT',
   ]
   const expenses = generateDummyExpenses()
   const documents: Document[] = []
@@ -100,9 +101,9 @@ function generateDummyDocuments(): Document[] {
       version: 1,
       meta: {
         fileSize: Math.floor(Math.random() * 5000000) + 100000, // 100KB ~ 5MB
-        uploadedBy: expense.requesterId
+        uploadedBy: expense.requesterId,
       },
-      createdAt: createdAt
+      createdAt: createdAt,
     })
   }
 
@@ -131,7 +132,7 @@ function generateDummyApprovals(): Approval[] {
       decision: decision as any,
       comment: decision === 'rejected' ? '추가 서류 필요' : '승인 완료',
       decidedAt: decision !== 'pending' ? createdAt : undefined,
-      createdAt: createdAt
+      createdAt: createdAt,
     })
   }
 
@@ -156,7 +157,7 @@ function generateDummyWorkflows(): ApprovalWorkflow[] {
       totalSteps: 3,
       status: status as any,
       createdAt: createdAt,
-      updatedAt: createdAt
+      updatedAt: createdAt,
     })
   })
 
@@ -165,51 +166,51 @@ function generateDummyWorkflows(): ApprovalWorkflow[] {
 
 // ===== 더미데이터 초기화 함수 =====
 export function initializeDummyData(): void {
-  console.log('R&D 시스템 더미데이터 초기화 시작...')
+  logger.log('R&D 시스템 더미데이터 초기화 시작...')
 
   // 지출 항목 초기화
   const dummyExpenses = generateDummyExpenses()
   expenseItems.set(dummyExpenses)
-  console.log(`${dummyExpenses.length}개의 지출 항목 생성 완료`)
+  logger.log(`${dummyExpenses.length}개의 지출 항목 생성 완료`)
 
   // 문서 초기화
   const dummyDocuments = generateDummyDocuments()
   documents.set(dummyDocuments)
-  console.log(`${dummyDocuments.length}개의 문서 생성 완료`)
+  logger.log(`${dummyDocuments.length}개의 문서 생성 완료`)
 
   // 결재 초기화
   const dummyApprovals = generateDummyApprovals()
   approvals.set(dummyApprovals)
-  console.log(`${dummyApprovals.length}개의 결재 생성 완료`)
+  logger.log(`${dummyApprovals.length}개의 결재 생성 완료`)
 
   // 결재 워크플로우 초기화
   const dummyWorkflows = generateDummyWorkflows()
   approvalWorkflows.set(dummyWorkflows)
-  console.log(`${dummyWorkflows.length}개의 결재 워크플로우 생성 완료`)
+  logger.log(`${dummyWorkflows.length}개의 결재 워크플로우 생성 완료`)
 
-  console.log('R&D 시스템 더미데이터 초기화 완료!')
+  logger.log('R&D 시스템 더미데이터 초기화 완료!')
 }
 
 // ===== 통계 데이터 생성 =====
 export function generateStatistics() {
   let expenses: ExpenseItem[] = []
-  expenseItems.subscribe(value => (expenses = value))()
+  expenseItems.subscribe((value) => (expenses = value))()
 
   const stats = {
     total: expenses.length,
-    pending: expenses.filter(e => e.status === 'pending_approval' || e.status === 'draft').length,
+    pending: expenses.filter((e) => e.status === 'pending_approval' || e.status === 'draft').length,
     approved: expenses.filter(
-      e => e.status === 'approved' || e.status === 'executed' || e.status === 'completed'
+      (e) => e.status === 'approved' || e.status === 'executed' || e.status === 'completed',
     ).length,
-    rejected: expenses.filter(e => e.status === 'rejected').length,
+    rejected: expenses.filter((e) => e.status === 'rejected').length,
     totalAmount: expenses.reduce((sum, e) => sum + e.amount, 0),
     byCategory: {} as Record<string, number>,
     byProject: {} as Record<string, number>,
-    byStatus: {} as Record<string, number>
+    byStatus: {} as Record<string, number>,
   }
 
   // 카테고리별 통계
-  expenses.forEach(expense => {
+  expenses.forEach((expense) => {
     stats.byCategory[expense.categoryCode] = (stats.byCategory[expense.categoryCode] || 0) + 1
     stats.byProject[expense.projectId] = (stats.byProject[expense.projectId] || 0) + 1
     stats.byStatus[expense.status] = (stats.byStatus[expense.status] || 0) + 1
@@ -244,7 +245,7 @@ export const sampleTexts = {
     '연구활동비 지출',
     '교육비 지출',
     '컨설팅비 지출',
-    '마케팅비 지출'
+    '마케팅비 지출',
   ],
   comments: [
     '승인 완료',
@@ -256,7 +257,7 @@ export const sampleTexts = {
     '정상 처리',
     '재검토 필요',
     '즉시 처리',
-    '보류'
+    '보류',
   ],
   departments: [
     '경영지원팀',
@@ -268,8 +269,8 @@ export const sampleTexts = {
     'R&D전략팀',
     '기술팀',
     '마케팅팀',
-    '인사팀'
-  ]
+    '인사팀',
+  ],
 }
 
 // ===== 내보내기 =====
@@ -277,5 +278,5 @@ export {
   generateDummyApprovals,
   generateDummyDocuments,
   generateDummyExpenses,
-  generateDummyWorkflows
+  generateDummyWorkflows,
 }

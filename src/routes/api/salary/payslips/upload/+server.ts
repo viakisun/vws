@@ -12,9 +12,9 @@ export async function POST({ request }) {
       return json(
         {
           success: false,
-          error: '파일이 선택되지 않았습니다.'
+          error: '파일이 선택되지 않았습니다.',
         },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -22,9 +22,9 @@ export async function POST({ request }) {
       return json(
         {
           success: false,
-          error: '급여 기간이 지정되지 않았습니다.'
+          error: '급여 기간이 지정되지 않았습니다.',
         },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -33,9 +33,9 @@ export async function POST({ request }) {
       return json(
         {
           success: false,
-          error: '엑셀 파일(.xlsx, .xls)만 업로드 가능합니다.'
+          error: '엑셀 파일(.xlsx, .xls)만 업로드 가능합니다.',
         },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -49,9 +49,9 @@ export async function POST({ request }) {
       return json(
         {
           success: false,
-          error: '급여명세서 시트를 찾을 수 없습니다.'
+          error: '급여명세서 시트를 찾을 수 없습니다.',
         },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -59,7 +59,7 @@ export async function POST({ request }) {
       success: 0,
       failed: 0,
       errors: [] as string[],
-      details: [] as any[]
+      details: [] as unknown[],
     }
 
     // 헤더 행 건너뛰고 데이터 행 처리
@@ -79,13 +79,13 @@ export async function POST({ request }) {
 
         // 직원 ID로 실제 직원 찾기
         const employeeResult = await query('SELECT id FROM employees WHERE employee_id = $1', [
-          employeeId
+          employeeId,
         ])
 
         if (employeeResult.rows.length === 0) {
           results.failed++
           results.errors.push(
-            `행 ${rowNumber}: 사번 ${employeeId}에 해당하는 직원을 찾을 수 없습니다.`
+            `행 ${rowNumber}: 사번 ${employeeId}에 해당하는 직원을 찾을 수 없습니다.`,
           )
           continue
         }
@@ -94,51 +94,87 @@ export async function POST({ request }) {
 
         // 지급사항 데이터 추출
         const allowances = [
-          { id: 'basic_salary', name: '기본급', amount: Number(row.getCell(6).value) || 0 },
-          { id: 'position_allowance', name: '직책수당', amount: Number(row.getCell(7).value) || 0 },
-          { id: 'bonus', name: '상여금', amount: Number(row.getCell(8).value) || 0 },
-          { id: 'meal_allowance', name: '식대', amount: Number(row.getCell(9).value) || 0 },
+          {
+            id: 'basic_salary',
+            name: '기본급',
+            amount: Number(row.getCell(6).value) || 0,
+          },
+          {
+            id: 'position_allowance',
+            name: '직책수당',
+            amount: Number(row.getCell(7).value) || 0,
+          },
+          {
+            id: 'bonus',
+            name: '상여금',
+            amount: Number(row.getCell(8).value) || 0,
+          },
+          {
+            id: 'meal_allowance',
+            name: '식대',
+            amount: Number(row.getCell(9).value) || 0,
+          },
           {
             id: 'vehicle_maintenance',
             name: '차량유지',
-            amount: Number(row.getCell(10).value) || 0
+            amount: Number(row.getCell(10).value) || 0,
           },
           {
             id: 'annual_leave_allowance',
             name: '연차수당',
-            amount: Number(row.getCell(11).value) || 0
+            amount: Number(row.getCell(11).value) || 0,
           },
           {
             id: 'year_end_settlement',
             name: '연말정산',
-            amount: Number(row.getCell(12).value) || 0
-          }
+            amount: Number(row.getCell(12).value) || 0,
+          },
         ]
 
         // 공제사항 데이터 추출
         const deductions = [
-          { id: 'health_insurance', name: '건강보험', amount: Number(row.getCell(13).value) || 0 },
+          {
+            id: 'health_insurance',
+            name: '건강보험',
+            amount: Number(row.getCell(13).value) || 0,
+          },
           {
             id: 'long_term_care',
             name: '장기요양보험',
-            amount: Number(row.getCell(14).value) || 0
+            amount: Number(row.getCell(14).value) || 0,
           },
-          { id: 'national_pension', name: '국민연금', amount: Number(row.getCell(15).value) || 0 },
+          {
+            id: 'national_pension',
+            name: '국민연금',
+            amount: Number(row.getCell(15).value) || 0,
+          },
           {
             id: 'employment_insurance',
             name: '고용보험',
-            amount: Number(row.getCell(16).value) || 0
+            amount: Number(row.getCell(16).value) || 0,
           },
-          { id: 'income_tax', name: '갑근세', amount: Number(row.getCell(17).value) || 0 },
-          { id: 'local_tax', name: '주민세', amount: Number(row.getCell(18).value) || 0 },
-          { id: 'other', name: '기타', amount: Number(row.getCell(19).value) || 0 }
+          {
+            id: 'income_tax',
+            name: '갑근세',
+            amount: Number(row.getCell(17).value) || 0,
+          },
+          {
+            id: 'local_tax',
+            name: '주민세',
+            amount: Number(row.getCell(18).value) || 0,
+          },
+          {
+            id: 'other',
+            name: '기타',
+            amount: Number(row.getCell(19).value) || 0,
+          },
         ]
 
         // 총액 계산
         const totalPayments = allowances.reduce((sum, item) => sum + item.amount, 0)
         const totalDeductions = deductions.reduce((sum, item) => sum + item.amount, 0)
         const netSalary = totalPayments - totalDeductions
-        const baseSalary = allowances.find(a => a.id === 'basic_salary')?.amount || 0
+        const baseSalary = allowances.find((a) => a.id === 'basic_salary')?.amount || 0
 
         // 지급일 설정 (해당 월의 마지막 날)
         const [year, month] = period.split('-')
@@ -148,7 +184,7 @@ export async function POST({ request }) {
         // 기존 급여명세서 확인
         const existingPayslip = await query(
           'SELECT id FROM payslips WHERE employee_id = $1 AND period = $2',
-          [employeeDbId, period]
+          [employeeDbId, period],
         )
 
         if (existingPayslip.rows.length > 0) {
@@ -183,8 +219,8 @@ export async function POST({ request }) {
               netSalary,
               totalPayments,
               JSON.stringify(allowances),
-              JSON.stringify(deductions)
-            ]
+              JSON.stringify(deductions),
+            ],
           )
         } else {
           // 새 급여명세서 생성
@@ -210,8 +246,8 @@ export async function POST({ request }) {
               netSalary,
               totalPayments,
               JSON.stringify(allowances),
-              JSON.stringify(deductions)
-            ]
+              JSON.stringify(deductions),
+            ],
           )
         }
 
@@ -222,19 +258,19 @@ export async function POST({ request }) {
           name,
           status: 'success',
           totalPayments,
-          netSalary
+          netSalary,
         })
       } catch (error) {
         results.failed++
         results.errors.push(
-          `행 ${rowNumber}: ${error instanceof Error ? error.message : '알 수 없는 오류'}`
+          `행 ${rowNumber}: ${error instanceof Error ? error.message : '알 수 없는 오류'}`,
         )
         results.details.push({
           row: rowNumber,
           employeeId: row.getCell(1).value?.toString() || 'N/A',
           name: row.getCell(2).value?.toString() || 'N/A',
           status: 'failed',
-          error: error instanceof Error ? error.message : '알 수 없는 오류'
+          error: error instanceof Error ? error.message : '알 수 없는 오류',
         })
       }
     }
@@ -242,16 +278,16 @@ export async function POST({ request }) {
     return json({
       success: true,
       message: `처리 완료: 성공 ${results.success}건, 실패 ${results.failed}건`,
-      results
+      results,
     })
   } catch (error) {
     return json(
       {
         success: false,
         error: '파일 업로드 처리 중 오류가 발생했습니다.',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        details: error instanceof Error ? error.message : 'Unknown error',
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

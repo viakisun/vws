@@ -14,9 +14,9 @@ export async function apiFetch<T>(path: string, options: ApiOptions = {}): Promi
     method: options.method ?? 'GET',
     headers: {
       'content-type': 'application/json',
-      ...(options.headers ?? {})
+      ...(options.headers ?? {}),
     },
-    body: options.body ? JSON.stringify(options.body) : undefined
+    body: options.body ? JSON.stringify(options.body) : undefined,
   })
   if (!res.ok) {
     const text = await res.text().catch(() => '')

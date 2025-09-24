@@ -1,16 +1,9 @@
 <script lang="ts">
-  import { onMount } from 'svelte'
-  import { payslips, loadPayslips, isLoading, error } from '$lib/stores/salary/salary-store'
   import PayslipGenerator from '$lib/components/salary/PayslipGenerator.svelte'
+  import { loadPayslips, payslips } from '$lib/stores/salary/salary-store'
   import { formatCurrency, formatDate } from '$lib/utils/format'
-  import {
-    SearchIcon,
-    FilterIcon,
-    DownloadIcon,
-    FileTextIcon,
-    CalendarIcon,
-    UserIcon
-  } from '@lucide/svelte'
+  import { CalendarIcon, DownloadIcon, FileTextIcon, SearchIcon, UserIcon } from '@lucide/svelte'
+  import { onMount } from 'svelte'
 
   let searchQuery = $state('')
   let selectedPeriod = $state('')
@@ -23,19 +16,19 @@
     if (searchQuery) {
       const query = searchQuery.toLowerCase()
       filtered = filtered.filter(
-        payroll =>
+        (payroll) =>
           payroll.employeeName.toLowerCase().includes(query) ||
           payroll.employeeIdNumber.toLowerCase().includes(query) ||
-          payroll.department.toLowerCase().includes(query)
+          payroll.department.toLowerCase().includes(query),
       )
     }
 
     if (selectedPeriod) {
-      filtered = filtered.filter(payroll => payroll.payDate.startsWith(selectedPeriod))
+      filtered = filtered.filter((payroll) => payroll.payDate.startsWith(selectedPeriod))
     }
 
     if (selectedEmployee) {
-      filtered = filtered.filter(payroll => payroll.employeeId === selectedEmployee)
+      filtered = filtered.filter((payroll) => payroll.employeeId === selectedEmployee)
     }
 
     return filtered.sort((a, b) => b.payDate.localeCompare(a.payDate))
@@ -44,7 +37,7 @@
   // 기간 옵션
   const periodOptions = $derived(() => {
     const periods = new Set()
-    $payslips.forEach(payslip => {
+    $payslips.forEach((payslip) => {
       const period = payslip.period
       periods.add(period)
     })
@@ -54,17 +47,19 @@
   // 직원 옵션
   const employeeOptions = $derived(() => {
     const employees = new Map()
-    $payslips.forEach(payslip => {
+    $payslips.forEach((payslip) => {
       employees.set(payslip.employeeId, {
         id: payslip.employeeId,
-        name: payslip.employeeName
+        name: payslip.employeeName,
       })
     })
     return Array.from(employees.values()).sort((a, b) => a.name.localeCompare(b.name))
   })
 
-  onMount(async () => {
-    await loadPayslips()
+  onMount(() => {
+    void (async () => {
+      await loadPayslips()
+    })()
   })
 
   // 상태별 색상
@@ -120,6 +115,7 @@
         </div>
         <div class="flex items-center space-x-3">
           <button
+            type="button"
             class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
           >
             <DownloadIcon size={16} class="mr-2" />
@@ -148,7 +144,7 @@
               class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="">전체 기간</option>
-              {#each periodOptions as period}
+              {#each periodOptions() as period, i (i)}
                 <option value={period}>{period}</option>
               {/each}
             </select>
@@ -161,7 +157,7 @@
               class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="">전체 직원</option>
-              {#each employeeOptions as employee}
+              {#each employeeOptions() as employee, i (i)}
                 <option value={employee.id}>{employee.name}</option>
               {/each}
             </select>
@@ -208,7 +204,7 @@
               </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
-              {#each filteredPayslips as payroll}
+              {#each filteredPayslips() as payroll, i (i)}
                 <tr class="hover:bg-gray-50">
                   <td class="px-6 py-4 whitespace-nowrap">
                     <div class="flex items-center">
@@ -232,7 +228,9 @@
                     </div>
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm text-gray-900">{payroll.department}</div>
+                    <div class="text-sm text-gray-900">
+                      {payroll.department}
+                    </div>
                     <div class="text-sm text-gray-500">{payroll.position}</div>
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -246,7 +244,7 @@
                   <td class="px-6 py-4 whitespace-nowrap">
                     <span
                       class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {getStatusColor(
-                        payroll.status
+                        payroll.status,
                       )}"
                     >
                       {getStatusLabel(payroll.status)}
@@ -262,7 +260,7 @@
         </div>
 
         <!-- 결과가 없을 때 -->
-        {#if filteredPayslips.length === 0}
+        {#if filteredPayslips().length === 0}
           <div class="text-center py-12">
             <FileTextIcon size={48} class="mx-auto text-gray-400" />
             <h3 class="mt-2 text-sm font-medium text-gray-900">급여명세서가 없습니다</h3>

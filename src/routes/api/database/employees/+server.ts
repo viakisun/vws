@@ -1,6 +1,7 @@
 import { json } from '@sveltejs/kit'
 import { DatabaseService } from '$lib/database/connection'
 import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger'
 
 export const GET: RequestHandler = async ({ url }) => {
   try {
@@ -13,7 +14,7 @@ export const GET: RequestHandler = async ({ url }) => {
       department,
       status,
       limit,
-      offset
+      offset,
     })
 
     return json({
@@ -22,17 +23,17 @@ export const GET: RequestHandler = async ({ url }) => {
       pagination: {
         limit,
         offset,
-        total: employees.length
-      }
+        total: employees.length,
+      },
     })
   } catch (error) {
-    console.error('Get employees error:', error)
+    logger.error('Get employees error:', error)
     return json(
       {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
@@ -47,18 +48,18 @@ export const POST: RequestHandler = async ({ request }) => {
       {
         success: true,
         data: newEmployee,
-        message: 'Employee created successfully'
+        message: 'Employee created successfully',
       },
-      { status: 201 }
+      { status: 201 },
     )
   } catch (error) {
-    console.error('Create employee error:', error)
+    logger.error('Create employee error:', error)
     return json(
       {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
