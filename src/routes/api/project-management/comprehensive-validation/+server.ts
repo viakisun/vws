@@ -1,4 +1,7 @@
 import { AICodingValidator } from '$lib/utils/ai-coding-guidelines'
+import { toUTC } from '$lib/utils/date-handler'
+import { formatEmployeeName } from '$lib/utils/format'
+import { logger } from '$lib/utils/logger'
 import { SchemaValidator } from '$lib/utils/schema-validation'
 import {
   BudgetConsistencyValidator,
@@ -10,7 +13,6 @@ import {
 } from '$lib/utils/validation'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
-import { logger } from '$lib/utils/logger'
 
 export const GET: RequestHandler = async ({ url }) => {
   try {
@@ -177,7 +179,7 @@ export const GET: RequestHandler = async ({ url }) => {
           )
           validations.push({
             type: 'employment_period',
-            member: `${member.last_name}${member.first_name}`,
+            member: formatEmployeeName(member),
             validation,
           })
         }
@@ -259,7 +261,7 @@ export const GET: RequestHandler = async ({ url }) => {
       validationScope,
       projectId: projectId || null,
       results,
-      generatedAt: new Date().toISOString(),
+      generatedAt: toUTC(new Date()),
     })
   } catch (error) {
     logger.error('Comprehensive validation error:', error)
@@ -323,7 +325,7 @@ export const POST: RequestHandler = async ({ request }) => {
       tableName: tableName || null,
       query: query || null,
       validationResult,
-      generatedAt: new Date().toISOString(),
+      generatedAt: toUTC(new Date()),
     })
   } catch (error) {
     logger.error('Comprehensive validation error:', error)

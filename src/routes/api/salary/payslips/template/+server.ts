@@ -1,4 +1,5 @@
 import { query } from '$lib/database/connection'
+import { formatEmployeeName } from '$lib/utils/format'
 import { json } from '@sveltejs/kit'
 import ExcelJS from 'exceljs'
 
@@ -80,13 +81,11 @@ export async function GET({ url }) {
     // 데이터 행 추가
     employees.forEach((employee: any) => {
       const baseSalary = employee.annual_salary ? Math.round(employee.annual_salary / 12) : 3000000
-      const hireDate = employee.hire_date
-        ? new Date(employee.hire_date).toISOString().split('T')[0]
-        : ''
+      const hireDate = employee.hire_date ? toUTC(new Date(employee.hire_date)).split('T')[0] : ''
 
       const row = [
         employee.employee_id,
-        `${employee.last_name}${employee.first_name}`,
+        formatEmployeeName(employee),
         employee.department || '부서없음',
         employee.position || '연구원',
         hireDate,

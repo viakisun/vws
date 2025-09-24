@@ -2,6 +2,7 @@
   import { logger } from '$lib/utils/logger'
 
   /* global _fetch */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   import { goto } from '$app/navigation'
   import { page } from '$app/stores'
   import PageLayout from '$lib/components/layout/PageLayout.svelte'

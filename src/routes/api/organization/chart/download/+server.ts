@@ -2,6 +2,7 @@ import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
 import { query } from '$lib/database/connection'
 import { logger } from '$lib/utils/logger'
+import { formatEmployeeName } from '$lib/utils/format'
 
 // 조직도 다운로드 (CSV 형식)
 export const GET: RequestHandler = async () => {
@@ -29,7 +30,7 @@ export const GET: RequestHandler = async () => {
     // CSV 데이터 생성
     const csvData = employees
       .map((emp: any) => {
-        return `"${emp.last_name}${emp.first_name}","${emp.department}","${emp.position}","${emp.email}","${emp.salary}","${emp.status}"`
+        return `"${formatEmployeeName(emp)}","${emp.department}","${emp.position}","${emp.email}","${emp.salary}","${emp.status}"`
       })
       .join('\n')
 

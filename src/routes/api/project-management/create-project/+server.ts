@@ -276,13 +276,13 @@ async function createProjectBudgets(client: any, projectId: string, data: Projec
     `
 
     // 각 비목의 총합 계산 (현금 + 현물)
-    const personnelCostTotal = (period.personnelCostCash || 0) + (period.personnelCostInKind || 0)
+    const _personnelCostTotal = (period.personnelCostCash || 0) + (period.personnelCostInKind || 0)
     const researchMaterialCost =
       (period.researchMaterialCostCash || 0) + (period.researchMaterialCostInKind || 0)
     const researchActivityCost =
       (period.researchActivityCostCash || 0) + (period.researchActivityCostInKind || 0)
     const researchStipend = (period.researchStipendCash || 0) + (period.researchStipendInKind || 0)
-    const indirectCostTotal = (period.indirectCostCash || 0) + (period.indirectCostInKind || 0)
+    const _indirectCostTotal = (period.indirectCostCash || 0) + (period.indirectCostInKind || 0)
 
     const result = await client.query(budgetQuery, [
       projectId,

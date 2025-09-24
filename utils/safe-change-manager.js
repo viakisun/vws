@@ -154,7 +154,7 @@ class SafeChangeManager {
   /**
    * 변경 절차 생성
    */
-  static generateChangeProcedure(filePath, changeType, _analysis, _impacts) {
+  static generateChangeProcedure(filePath, changeType) {
     const procedure = []
     procedure.push('1. 변경 전 의존성 분석 완료')
     procedure.push('2. 백업 생성')
@@ -177,7 +177,7 @@ class SafeChangeManager {
   /**
    * 롤백 계획 생성
    */
-  static generateRollbackPlan(filePath, changeType, _impacts) {
+  static generateRollbackPlan(filePath, changeType) {
     const rollbackPlan = []
     rollbackPlan.push('1. 백업에서 원본 파일 복원')
     if (changeType === 'delete') {

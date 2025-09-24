@@ -1,6 +1,7 @@
 import { query } from '$lib/database/connection'
 import { formatDateForDisplay, getCurrentUTC } from '$lib/utils/date-handler'
 import { json } from '@sveltejs/kit'
+import { formatEmployeeName } from '$lib/utils/format'
 
 export async function GET({ params, url }) {
   try {
@@ -178,7 +179,7 @@ export async function GET({ params, url }) {
       employeeId: emp.id,
       period: currentPeriod,
       payDate: formatDateForDisplay(getCurrentUTC(), 'ISO'),
-      employeeName: `${emp.last_name}${emp.first_name}`,
+      employeeName: formatEmployeeName(emp),
       employeeIdNumber: emp.employee_id,
       department: emp.department || '부서없음',
       position: emp.position || '연구원',

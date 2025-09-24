@@ -260,8 +260,8 @@ export class SafeChangeManager {
   private static generateChangeProcedure(
     filePath: string,
     changeType: ChangeType,
-    analysis: DependencyAnalysis,
-    impacts: ChangeImpact[],
+    _analysis: DependencyAnalysis,
+    _impacts: ChangeImpact[],
   ): string[] {
     const procedure: string[] = []
 
@@ -293,7 +293,7 @@ export class SafeChangeManager {
   private static generateRollbackPlan(
     filePath: string,
     changeType: ChangeType,
-    impacts: ChangeImpact[],
+    _impacts: ChangeImpact[],
   ): string[] {
     const rollbackPlan: string[] = []
 

@@ -1,4 +1,5 @@
 import { query } from '$lib/database/connection'
+import { toUTC } from '$lib/utils/date-handler'
 import { json } from '@sveltejs/kit'
 
 // 새로운 단순화된 payslips API (기존 API 교체)
@@ -109,7 +110,7 @@ export async function POST({ request }) {
     // period에서 시작일과 종료일 계산 (예: "2025-09" -> "2025-09-01", "2025-09-30")
     const [year, month] = period.split('-')
     const payPeriodStart = `${year}-${month.padStart(2, '0')}-01`
-    const payPeriodEnd = new Date(parseInt(year), parseInt(month), 0).toISOString().split('T')[0] // 해당 월의 마지막 날
+    const payPeriodEnd = toUTC(new Date(parseInt(year), parseInt(month), 0)).split('T')[0] // 해당 월의 마지막 날
 
     // 기존 급여명세서가 있는지 확인
     const existingPayslip = await query(

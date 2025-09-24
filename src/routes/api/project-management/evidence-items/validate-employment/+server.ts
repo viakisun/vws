@@ -1,8 +1,9 @@
-import { formatDateForDisplay } from '$lib/utils/date-handler'
+import { formatDateForDisplay, toUTC } from '$lib/utils/date-handler'
+import { formatEmployeeName } from '$lib/utils/format'
+import { logger } from '$lib/utils/logger'
 import { json } from '@sveltejs/kit'
 import { Pool } from 'pg'
 import type { RequestHandler } from './$types'
-import { logger } from '$lib/utils/logger'
 
 const pool = new Pool({
   host: 'db-viahub.cdgqkcss8mpj.ap-northeast-2.rds.amazonaws.com',
@@ -86,7 +87,7 @@ export const POST: RequestHandler = async ({ request }) => {
       if (terminationDate && dueDateObj > terminationDate) {
         isValid = false
         reason = 'TERMINATED_BEFORE_DUE_DATE'
-        message = `퇴사일(${formatDateForDisplay(terminationDate.toISOString(), 'KOREAN')}) 이후에 인건비를 집행할 수 없습니다.`
+        message = `퇴사일(${formatDateForDisplay(toUTC(terminationDate), 'KOREAN')}) 이후에 인건비를 집행할 수 없습니다.`
       }
     }
 
@@ -94,7 +95,7 @@ export const POST: RequestHandler = async ({ request }) => {
     if (hireDate && dueDateObj < hireDate) {
       isValid = false
       reason = 'HIRED_AFTER_DUE_DATE'
-      message = `입사일(${formatDateForDisplay(hireDate.toISOString(), 'KOREAN')}) 이전에 인건비를 집행할 수 없습니다.`
+      message = `입사일(${formatDateForDisplay(toUTC(hireDate), 'KOREAN')}) 이전에 인건비를 집행할 수 없습니다.`
     }
 
     // 3. 현재 비활성 상태인 직원인지 확인
@@ -108,13 +109,13 @@ export const POST: RequestHandler = async ({ request }) => {
     if (hireDate && periodEndDate < hireDate) {
       isValid = false
       reason = 'HIRED_AFTER_PROJECT_PERIOD'
-      message = `프로젝트 기간(${formatDateForDisplay(periodStartDate.toISOString(), 'KOREAN')} ~ ${formatDateForDisplay(periodEndDate.toISOString(), 'KOREAN')}) 이후에 입사한 직원입니다.`
+      message = `프로젝트 기간(${formatDateForDisplay(toUTC(periodStartDate), 'KOREAN')} ~ ${formatDateForDisplay(toUTC(periodEndDate), 'KOREAN')}) 이후에 입사한 직원입니다.`
     }
 
     if (terminationDate && periodStartDate > terminationDate) {
       isValid = false
       reason = 'TERMINATED_BEFORE_PROJECT_PERIOD'
-      message = `프로젝트 기간(${formatDateForDisplay(periodStartDate.toISOString(), 'KOREAN')} ~ ${formatDateForDisplay(periodEndDate.toISOString(), 'KOREAN')}) 이전에 퇴사한 직원입니다.`
+      message = `프로젝트 기간(${formatDateForDisplay(toUTC(periodStartDate), 'KOREAN')} ~ ${formatDateForDisplay(toUTC(periodEndDate), 'KOREAN')}) 이전에 퇴사한 직원입니다.`
     }
 
     // 5. 경고사항 체크 (유효하지만 주의가 필요한 경우)
@@ -122,7 +123,7 @@ export const POST: RequestHandler = async ({ request }) => {
       // 퇴사 예정인 직원
       if (terminationDate && dueDateObj > terminationDate) {
         warnings.push(
-          `퇴사 예정일(${formatDateForDisplay(terminationDate.toISOString(), 'KOREAN')}) 이후의 인건비입니다.`,
+          `퇴사 예정일(${formatDateForDisplay(toUTC(terminationDate), 'KOREAN')}) 이후의 인건비입니다.`,
         )
       }
 
@@ -147,7 +148,7 @@ export const POST: RequestHandler = async ({ request }) => {
       },
       employee: {
         id: employee.id,
-        name: `${employee.last_name}${employee.first_name}`,
+        name: formatEmployeeName(employee),
         hireDate: employee.hire_date,
         terminationDate: employee.termination_date,
         status: employee.status,

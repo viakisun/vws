@@ -138,7 +138,7 @@ export async function POST({ request }) {
 
       // 전화번호 형식 검증 (있는 경우)
       if (row['전화번호'] && row['전화번호'].trim() !== '') {
-        const phoneRegex = /^[\d\-\+\(\)\s]+$/
+        const phoneRegex = /^[\d\-+()\s]+$/
         if (!phoneRegex.test(row['전화번호'].trim())) {
           throw new Error(`행 ${rowNumber}: 올바르지 않은 전화번호 형식입니다: ${row['전화번호']}`)
         }

@@ -2,6 +2,7 @@ import { SchemaValidator } from '$lib/utils/schema-validation'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
 import { logger } from '$lib/utils/logger'
+import { toUTC } from '$lib/utils/date-handler'
 
 export const GET: RequestHandler = async ({ url }) => {
   try {
@@ -49,7 +50,7 @@ export const GET: RequestHandler = async ({ url }) => {
         success: true,
         validationType: 'rules',
         rules,
-        generatedAt: new Date().toISOString(),
+        generatedAt: toUTC(new Date()),
       })
     }
 
@@ -68,7 +69,7 @@ export const GET: RequestHandler = async ({ url }) => {
       validationType,
       results,
       summary,
-      generatedAt: new Date().toISOString(),
+      generatedAt: toUTC(new Date()),
     })
   } catch (error) {
     logger.error('Schema validation error:', error)
@@ -114,7 +115,7 @@ export const POST: RequestHandler = async ({ request }) => {
       tableName,
       results,
       summary,
-      generatedAt: new Date().toISOString(),
+      generatedAt: toUTC(new Date()),
     })
   } catch (error) {
     logger.error('Query validation error:', error)

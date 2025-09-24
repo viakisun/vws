@@ -18,7 +18,7 @@ class CodeDependencyAnalyzer {
         const content = (0, fs_1.readFileSync)(file, 'utf-8')
         const fileAnalysis = this.analyzeFile(file, content)
         analysis.set(file, fileAnalysis)
-      } catch (_error) {
+      } catch (error) {
         console.error(`파일 분석 실패: ${file}`, error)
       }
     }
@@ -42,7 +42,7 @@ class CodeDependencyAnalyzer {
     try {
       const content = (0, fs_1.readFileSync)(filePath, 'utf-8')
       return this.analyzeFile(filePath, content)
-    } catch (_error) {
+    } catch (error) {
       console.error(`파일 분석 실패: ${filePath}`, error)
       return null
     }
@@ -160,14 +160,14 @@ class CodeDependencyAnalyzer {
                 files.push(fullPath)
               }
             }
-          } catch (_error) {
+          } catch (error) {
             // 개별 파일/디렉토리 접근 실패는 무시
-            console.warn(`파일 접근 실패: ${fullPath}`)
+            console.warn(`파일 접근 실패: ${fullPath}`, error)
           }
         }
       }
       scanDirectory(this.SRC_DIR)
-    } catch (_error) {
+    } catch (error) {
       console.error('소스 디렉토리 스캔 실패:', error)
     }
     return files
@@ -277,7 +277,7 @@ class CodeDependencyAnalyzer {
    */
   static findDependents(filePath, analysis) {
     const dependents = []
-    for (const [otherFilePath, _otherAnalysis] of analysis) {
+    for (const [otherFilePath] of analysis) {
       if (otherFilePath === filePath) continue
       const dependencies = this.findDependencies(otherFilePath, analysis)
       if (dependencies.includes(filePath)) {
@@ -313,7 +313,7 @@ class CodeDependencyAnalyzer {
   /**
    * 변경 영향도 계산
    */
-  static calculateChangeImpact(filePath, analysis, _allAnalysis) {
+  static calculateChangeImpact(filePath, analysis) {
     const impacts = []
     for (const dependent of analysis.dependents) {
       impacts.push({
@@ -371,7 +371,7 @@ class CodeDependencyAnalyzer {
   /**
    * Import 경로 해결
    */
-  static resolveImportPath(_filePath, _importPath) {
+  static resolveImportPath() {
     // 상대 경로 해결 로직
     // 실제 구현에서는 path.resolve 등을 사용
     return null

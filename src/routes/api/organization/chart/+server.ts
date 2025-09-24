@@ -2,6 +2,7 @@ import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
 import { query } from '$lib/database/connection'
 import { logger } from '$lib/utils/logger'
+import { formatEmployeeName } from '$lib/utils/format'
 
 // 조직도 데이터 생성 (동적)
 export const GET: RequestHandler = async () => {
@@ -37,7 +38,7 @@ export const GET: RequestHandler = async () => {
         departmentGroups[dept] = []
       }
       departmentGroups[dept].push({
-        name: `${emp.last_name}${emp.first_name}`,
+        name: formatEmployeeName(emp),
         position: emp.position,
         email: emp.email,
         salary: emp.salary,

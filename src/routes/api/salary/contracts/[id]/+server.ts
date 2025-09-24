@@ -2,6 +2,7 @@
 
 import { query } from '$lib/database/connection.js'
 import type { SalaryContract, UpdateSalaryContractRequest } from '$lib/types/salary-contracts'
+import { toUTC } from '$lib/utils/date-handler'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
 
@@ -53,7 +54,7 @@ export const GET: RequestHandler = async ({ params }) => {
       const date = new Date(dateString)
       // UTC+9 (KST)로 변환
       const kstDate = new Date(date.getTime() + 9 * 60 * 60 * 1000)
-      return kstDate.toISOString().split('T')[0] // YYYY-MM-DD 형식으로 반환
+      return toUTC(kstDate).split('T')[0] // YYYY-MM-DD 형식으로 반환
     }
 
     const salaryContract: SalaryContract = {
@@ -187,7 +188,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
       const date = new Date(dateString)
       // UTC+9 (KST)로 변환
       const kstDate = new Date(date.getTime() + 9 * 60 * 60 * 1000)
-      return kstDate.toISOString().split('T')[0] // YYYY-MM-DD 형식으로 반환
+      return toUTC(kstDate).split('T')[0] // YYYY-MM-DD 형식으로 반환
     }
 
     return json({
