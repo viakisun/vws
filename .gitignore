@@ -21,3 +21,12 @@ Thumbs.db
 # Vite
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+# Logs and reports
+*.log
+*.pid
+summary.txt
+.prettier-failures.txt
+eslint*.log
+prettier.log
+auto-validation.log

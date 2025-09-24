@@ -1,5 +1,12 @@
-node_modules
-.svelte-kit
-build
-dist
-coverage
+*.log
+*.pid
+summary.txt
+.prettier-failures.txt
+eslint*.log
+prettier.log
+auto-validation.log
+node_modules/
+dist/
+build/
+coverage/
+.svelte-kit/
