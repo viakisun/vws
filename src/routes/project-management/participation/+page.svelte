@@ -45,7 +45,7 @@
   let selectedProject = $state("all");
   let selectedEmployee = $state("all");
   let selectedStatus = $state("all");
-  let selectedTimeframe = $state("current");
+  let _selectedTimeframe = $state("current");
   let showAdvancedFilters = $state(false);
   let showParticipationModal = $state(false);
   let showAnalyticsModal = $state(false);
@@ -65,7 +65,7 @@
   // 통계 데이터
   let totalEmployees = $derived($employees.length);
   let totalProjects = $derived($projects.length);
-  let totalParticipations = $derived($participations.length);
+  let _totalParticipations = $derived($participations.length);
   let averageParticipationRate = $derived(
     $participations.length > 0
       ? $participations.reduce(
@@ -247,7 +247,7 @@
   );
 
   // 함수들
-  const getStatusColor = (status: string) => {
+  const _getStatusColor = (status: string) => {
     const colors: Record<string, string> = {
       active: "success",
       inactive: "secondary",
@@ -257,7 +257,7 @@
     return colors[status] || "secondary";
   };
 
-  const getParticipationRateColor = (rate: number) => {
+  const _getParticipationRateColor = (rate: number) => {
     if (rate > 100) return "danger";
     if (rate >= 80) return "success";
     if (rate >= 50) return "warning";
@@ -274,7 +274,7 @@
     return project?.name || "Unknown";
   };
 
-  const updateSort = (newSortBy: string) => {
+  const _updateSort = (newSortBy: string) => {
     const newSortOrder =
       sortBy === newSortBy && sortOrder === "desc" ? "asc" : "desc";
     goto(

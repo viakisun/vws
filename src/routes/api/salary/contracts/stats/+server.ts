@@ -1,9 +1,9 @@
 // 급여 계약 통계 API 엔드포인트
 
-import { json } from "@sveltejs/kit";
 import { query } from "$lib/database/connection.js";
-import type { RequestHandler } from "./$types";
 import type { SalaryContractStats } from "$lib/types/salary-contracts";
+import { json } from "@sveltejs/kit";
+import type { RequestHandler } from "./$types";
 
 // GET: 급여 계약 통계 조회
 export const GET: RequestHandler = async () => {
@@ -79,7 +79,7 @@ export const GET: RequestHandler = async () => {
       success: true,
       data: salaryContractStats,
     });
-  } catch (error) {
+  } catch (_error) {
     return json(
       {
         success: false,

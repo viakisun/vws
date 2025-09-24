@@ -1,19 +1,19 @@
-import { json } from "@sveltejs/kit";
-import type { RequestHandler } from "./$types";
-import { query } from "$lib/database/connection";
-import { logger } from "$lib/utils/logger";
+import { json } from '@sveltejs/kit'
+import type { RequestHandler } from './$types'
+import { query } from '$lib/database/connection'
+import { logger } from '$lib/utils/logger'
 
 // 데이터베이스 테이블 생성
 export const POST: RequestHandler = async ({ request }) => {
   try {
-    const data = await request.json();
-    const { tables } = data;
+    const data = await request.json()
+    const { tables } = data
 
-    const results = [];
+    const results = []
 
     for (const table of tables) {
       try {
-        if (table === "departments") {
+        if (table === 'departments') {
           // 부서 테이블 생성
           await query(`
 						CREATE TABLE IF NOT EXISTS departments (
@@ -24,13 +24,13 @@ export const POST: RequestHandler = async ({ request }) => {
 							created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
 							updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 						)
-					`);
+					`)
           results.push({
-            table: "departments",
+            table: 'departments',
             success: true,
-            message: "부서 테이블이 생성되었습니다.",
-          });
-        } else if (table === "positions") {
+            message: '부서 테이블이 생성되었습니다.',
+          })
+        } else if (table === 'positions') {
           // 직급 테이블 생성
           await query(`
 						CREATE TABLE IF NOT EXISTS positions (
@@ -44,35 +44,35 @@ export const POST: RequestHandler = async ({ request }) => {
 							updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
 							UNIQUE(name, department)
 						)
-					`);
+					`)
           results.push({
-            table: "positions",
+            table: 'positions',
             success: true,
-            message: "직급 테이블이 생성되었습니다.",
-          });
+            message: '직급 테이블이 생성되었습니다.',
+          })
         }
       } catch (error: any) {
         results.push({
           table,
           success: false,
           message: `테이블 생성 실패: ${error.message}`,
-        });
+        })
       }
     }
 
     return json({
       success: true,
       results,
-      message: "데이터베이스 설정이 완료되었습니다.",
-    });
+      message: '데이터베이스 설정이 완료되었습니다.',
+    })
   } catch (error: any) {
-    logger.error("Error setting up database:", error);
+    logger.error('Error setting up database:', error)
     return json(
       {
         success: false,
-        error: error.message || "데이터베이스 설정에 실패했습니다.",
+        error: error.message || '데이터베이스 설정에 실패했습니다.',
       },
       { status: 500 },
-    );
+    )
   }
-};
+}

@@ -1,62 +1,62 @@
 <script lang="ts">
-  import Card from "$lib/components/ui/Card.svelte";
-  import Badge from "$lib/components/ui/Badge.svelte";
-  import Progress from "$lib/components/ui/Progress.svelte";
+  import Card from '$lib/components/ui/Card.svelte'
+  import Badge from '$lib/components/ui/Badge.svelte'
+  import Progress from '$lib/components/ui/Progress.svelte'
 
   type Rule = {
-    id: string;
-    title: string;
-    required: boolean;
-    status: "pass" | "warn" | "fail";
-    lastChecked: string;
-  };
+    id: string
+    title: string
+    required: boolean
+    status: 'pass' | 'warn' | 'fail'
+    lastChecked: string
+  }
 
   const rules: Rule[] = [
     {
-      id: "R-001",
-      title: "국가연구개발혁신법 고지 필수항목 준수",
+      id: 'R-001',
+      title: '국가연구개발혁신법 고지 필수항목 준수',
       required: true,
-      status: "pass",
-      lastChecked: "2025-09-10",
+      status: 'pass',
+      lastChecked: '2025-09-10',
     },
     {
-      id: "R-002",
-      title: "인건비 증빙(급여명세/4대보험) 구비",
+      id: 'R-002',
+      title: '인건비 증빙(급여명세/4대보험) 구비',
       required: true,
-      status: "warn",
-      lastChecked: "2025-09-09",
+      status: 'warn',
+      lastChecked: '2025-09-09',
     },
     {
-      id: "R-003",
-      title: "여비·재료비 세금계산서/영수증 첨부",
+      id: 'R-003',
+      title: '여비·재료비 세금계산서/영수증 첨부',
       required: true,
-      status: "pass",
-      lastChecked: "2025-09-11",
+      status: 'pass',
+      lastChecked: '2025-09-11',
     },
     {
-      id: "R-004",
-      title: "과제보고서 분기 제출 기한 준수",
+      id: 'R-004',
+      title: '과제보고서 분기 제출 기한 준수',
       required: true,
-      status: "fail",
-      lastChecked: "2025-09-08",
+      status: 'fail',
+      lastChecked: '2025-09-08',
     },
     {
-      id: "R-005",
-      title: "NTIS 과제정보 최신화",
+      id: 'R-005',
+      title: 'NTIS 과제정보 최신화',
       required: false,
-      status: "warn",
-      lastChecked: "2025-09-07",
+      status: 'warn',
+      lastChecked: '2025-09-07',
     },
-  ];
+  ]
 
-  const total = rules.length;
-  const passCnt = rules.filter((r) => r.status === "pass").length;
-  const warnCnt = rules.filter((r) => r.status === "warn").length;
-  const failCnt = rules.filter((r) => r.status === "fail").length;
-  const score = Math.round((passCnt / total) * 100);
+  const total = rules.length
+  const passCnt = rules.filter((r) => r.status === 'pass').length
+  const warnCnt = rules.filter((r) => r.status === 'warn').length
+  const failCnt = rules.filter((r) => r.status === 'fail').length
+  const score = Math.round((passCnt / total) * 100)
 
-  function color(status: Rule["status"]): "green" | "yellow" | "red" {
-    return status === "pass" ? "green" : status === "warn" ? "yellow" : "red";
+  function color(status: Rule['status']): 'green' | 'yellow' | 'red' {
+    return status === 'pass' ? 'green' : status === 'warn' ? 'yellow' : 'red'
   }
 </script>
 
@@ -113,10 +113,9 @@
         {#each rules as r, i (i)}
           <tr>
             <td class="px-3 py-2">{r.title}</td>
-            <td class="px-3 py-2">{r.required ? "예" : "권장"}</td>
+            <td class="px-3 py-2">{r.required ? '예' : '권장'}</td>
             <td class="px-3 py-2"
-              ><Badge color={color(r.status)}>{r.status.toUpperCase()}</Badge
-              ></td
+              ><Badge color={color(r.status)}>{r.status.toUpperCase()}</Badge></td
             >
             <td class="px-3 py-2">{r.lastChecked}</td>
           </tr>

@@ -1,12 +1,12 @@
 // 직원별 급여 계약 정보 API 엔드포인트
 
-import { json } from "@sveltejs/kit";
 import { query } from "$lib/database/connection.js";
-import type { RequestHandler } from "./$types";
 import type {
   CurrentSalaryInfo,
   SalaryContract,
 } from "$lib/types/salary-contracts";
+import { json } from "@sveltejs/kit";
+import type { RequestHandler } from "./$types";
 
 // GET: 특정 직원의 급여 계약 정보 조회
 export const GET: RequestHandler = async ({ params }) => {
@@ -145,7 +145,7 @@ export const GET: RequestHandler = async ({ params }) => {
       success: true,
       data: currentSalaryInfo,
     });
-  } catch (error) {
+  } catch (_error) {
     return json(
       {
         success: false,

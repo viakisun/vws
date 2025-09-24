@@ -397,7 +397,7 @@
   }
 
   // Get priority badge variant
-  function getPriorityVariant(
+  function _getPriorityVariant(
     priority: string,
   ): "success" | "warning" | "danger" {
     switch (priority) {
@@ -413,7 +413,7 @@
   }
 
   // Get priority text
-  function getPriorityText(priority: string): string {
+  function _getPriorityText(priority: string): string {
     switch (priority) {
       case "low":
         return "낮음";
@@ -919,7 +919,7 @@
         </button>
       </div>
       <div class="space-y-2">
-        {#each formData.requiredSkills as skill, index (index)}
+        {#each formData.requiredSkills as _skill, index (index)}
           <div class="flex gap-2 items-center">
             <input
               type="text"

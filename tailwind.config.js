@@ -8,9 +8,9 @@ export default {
         success: '#16a34a',
         warning: '#eab308',
         danger: '#dc2626',
-        neutral: '#4b5563'
-      }
-    }
+        neutral: '#4b5563',
+      },
+    },
   },
-  plugins: [require('@tailwindcss/forms'), require('@tailwindcss/typography')]
+  plugins: [require('@tailwindcss/forms'), require('@tailwindcss/typography')],
 }

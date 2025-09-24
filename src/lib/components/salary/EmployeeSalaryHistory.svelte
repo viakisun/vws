@@ -1,11 +1,7 @@
 <script lang="ts">
-  import {
-    loadPayslips,
-    loadSalaryHistory,
-    payslips,
-  } from "$lib/stores/salary/salary-store";
-  import type { Payslip } from "$lib/types/salary";
-  import { formatCurrency, formatDate } from "$lib/utils/format";
+  import { loadPayslips, loadSalaryHistory, payslips } from '$lib/stores/salary/salary-store'
+  import type { Payslip } from '$lib/types/salary'
+  import { formatCurrency, formatDate } from '$lib/utils/format'
   import {
     CalendarIcon,
     DollarSignIcon,
@@ -17,139 +13,133 @@
     SearchIcon,
     TrendingDownIcon,
     TrendingUpIcon,
-  } from "@lucide/svelte";
-  import { onMount } from "svelte";
+  } from '@lucide/svelte'
+  import { onMount } from 'svelte'
 
   // Local, permissive shape used only by this component
   type PayrollData = Partial<Payslip> & {
-    payDate?: string | Date;
-    grossSalary?: number;
-    totalAllowances?: number;
-    totalDeductions?: number;
-    netSalary?: number;
-    employeeName?: string;
-    department?: string;
-    status?: string;
-  };
+    payDate?: string | Date
+    grossSalary?: number
+    totalAllowances?: number
+    totalDeductions?: number
+    netSalary?: number
+    employeeName?: string
+    department?: string
+    status?: string
+  }
 
   // Narrow helper to coerce unknown values to number safely
-  const num = (v: unknown) => (typeof v === "number" ? v : Number(v ?? 0));
+  const num = (v: unknown) => (typeof v === 'number' ? v : Number(v ?? 0))
 
   // 검색 및 필터 상태
-  let searchQuery = $state("");
-  let selectedPeriod = $state("");
-  let selectedStatus = $state("");
-  let sortBy = $state("period");
-  let sortOrder = $state("desc");
+  let searchQuery = $state('')
+  let selectedPeriod = $state('')
+  let selectedStatus = $state('')
+  let sortBy = $state('period')
+  let sortOrder = $state('desc')
 
   // 모달 상태
-  let showDetailsModal = $state(false);
-  let selectedPayroll = $state(null);
+  let showDetailsModal = $state(false)
+  let selectedPayroll = $state(null)
 
   // Cast payslips to permissive type
-  const payrolls = $derived(
-    () => ($payslips as unknown as PayrollData[]) ?? [],
-  );
+  const payrolls = $derived(() => ($payslips as unknown as PayrollData[]) ?? [])
 
   // 기간 옵션 생성
   const periodOptions = $derived(() => {
-    const periods = new Set();
+    const periods = new Set()
     payrolls().forEach((payslip) => {
-      const period = payslip.period; // YYYY-MM 형식
-      periods.add(period);
-    });
-    return Array.from(periods).sort().reverse();
-  });
+      const period = payslip.period // YYYY-MM 형식
+      periods.add(period)
+    })
+    return Array.from(periods).sort().reverse()
+  })
 
   // 필터링된 급여 이력
   const filteredHistory = $derived(() => {
-    let filtered = [...payrolls()];
+    let filtered = [...payrolls()]
 
     // 검색 필터
     if (searchQuery) {
-      const query = searchQuery.toLowerCase();
+      const query = searchQuery.toLowerCase()
       filtered = filtered.filter(
         (payroll) =>
-          (payroll.employeeName ?? "").toLowerCase().includes(query) ||
-          (payroll.employeeIdNumber ?? "").toLowerCase().includes(query) ||
-          (payroll.department ?? "").toLowerCase().includes(query) ||
-          (payroll.position ?? "").toLowerCase().includes(query),
-      );
+          (payroll.employeeName ?? '').toLowerCase().includes(query) ||
+          (payroll.employeeIdNumber ?? '').toLowerCase().includes(query) ||
+          (payroll.department ?? '').toLowerCase().includes(query) ||
+          (payroll.position ?? '').toLowerCase().includes(query),
+      )
     }
 
     // 기간 필터
     if (selectedPeriod) {
       filtered = filtered.filter((payroll) =>
-        String(payroll.payDate ?? "").startsWith(selectedPeriod),
-      );
+        String(payroll.payDate ?? '').startsWith(selectedPeriod),
+      )
     }
 
     // 상태 필터
     if (selectedStatus) {
-      filtered = filtered.filter(
-        (payroll) => payroll.status === selectedStatus,
-      );
+      filtered = filtered.filter((payroll) => payroll.status === selectedStatus)
     }
 
     // 정렬
     filtered.sort((a, b) => {
-      let aValue, bValue;
+      let aValue, bValue
 
       switch (sortBy) {
-        case "name":
-          aValue = a.employeeName;
-          bValue = b.employeeName;
-          break;
-        case "department":
-          aValue = a.department;
-          bValue = b.department;
-          break;
-        case "grossSalary":
-          aValue = num(a.grossSalary);
-          bValue = num(b.grossSalary);
-          break;
-        case "netSalary":
-          aValue = num(a.netSalary);
-          bValue = num(b.netSalary);
-          break;
-        case "period":
+        case 'name':
+          aValue = a.employeeName
+          bValue = b.employeeName
+          break
+        case 'department':
+          aValue = a.department
+          bValue = b.department
+          break
+        case 'grossSalary':
+          aValue = num(a.grossSalary)
+          bValue = num(b.grossSalary)
+          break
+        case 'netSalary':
+          aValue = num(a.netSalary)
+          bValue = num(b.netSalary)
+          break
+        case 'period':
         default:
-          aValue = a.payDate;
-          bValue = b.payDate;
-          break;
+          aValue = a.payDate
+          bValue = b.payDate
+          break
       }
 
-      if (typeof aValue === "string" && typeof bValue === "string") {
-        return sortOrder === "asc"
-          ? aValue.localeCompare(bValue)
-          : bValue.localeCompare(aValue);
+      if (typeof aValue === 'string' && typeof bValue === 'string') {
+        return sortOrder === 'asc' ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue)
       }
 
-      if (aValue < bValue) return sortOrder === "asc" ? -1 : 1;
-      if (aValue > bValue) return sortOrder === "asc" ? 1 : -1;
-      return 0;
-    });
+      if (aValue < bValue) return sortOrder === 'asc' ? -1 : 1
+      if (aValue > bValue) return sortOrder === 'asc' ? 1 : -1
+      return 0
+    })
 
-    return filtered;
-  });
+    return filtered
+  })
 
   // 통계 계산
   const statistics = $derived(() => {
-    const total = filteredHistory().length;
+    const total = filteredHistory().length
     const totalGrossSalary = filteredHistory().reduce(
       (sum, payroll) => sum + num(payroll.grossSalary),
       0,
-    );
+    )
     const totalNetSalary = filteredHistory().reduce(
       (sum, payroll) => sum + num(payroll.netSalary),
       0,
-    );
+    )
     const totalDeductions = filteredHistory().reduce(
       (sum, payroll) => sum + num(payroll.totalDeductions),
       0,
-    );
-    const averageGrossSalary = total > 0 ? totalGrossSalary / total : 0;
-    const averageNetSalary = total > 0 ? totalNetSalary / total : 0;
+    )
+    const averageGrossSalary = total > 0 ? totalGrossSalary / total : 0
+    const averageNetSalary = total > 0 ? totalNetSalary / total : 0
 
     return {
       total,
@@ -158,29 +148,29 @@
       totalDeductions,
       averageGrossSalary,
       averageNetSalary,
-    };
-  });
+    }
+  })
 
   onMount(() => {
     void (async () => {
-      await loadPayslips();
-      await loadSalaryHistory();
-    })();
-  });
+      await loadPayslips()
+      await loadSalaryHistory()
+    })()
+  })
 
   // 급여 상세 정보 보기
   function viewPayrollDetails(_payroll: any) {
-    selectedPayroll = _payroll;
-    showDetailsModal = true;
+    selectedPayroll = _payroll
+    showDetailsModal = true
   }
 
   // 정렬 변경
   function handleSort(field: string) {
     if (sortBy === field) {
-      sortOrder = sortOrder === "asc" ? "desc" : "asc";
+      sortOrder = sortOrder === 'asc' ? 'desc' : 'asc'
     } else {
-      sortBy = field;
-      sortOrder = "desc";
+      sortBy = field
+      sortOrder = 'desc'
     }
   }
 
@@ -192,51 +182,51 @@
   // 상태별 색상 반환
   function getStatusColor(status: string): string {
     switch (status) {
-      case "pending":
-        return "text-yellow-600 bg-yellow-100";
-      case "calculated":
-        return "text-blue-600 bg-blue-100";
-      case "approved":
-        return "text-green-600 bg-green-100";
-      case "paid":
-        return "text-purple-600 bg-purple-100";
-      case "error":
-        return "text-red-600 bg-red-100";
+      case 'pending':
+        return 'text-yellow-600 bg-yellow-100'
+      case 'calculated':
+        return 'text-blue-600 bg-blue-100'
+      case 'approved':
+        return 'text-green-600 bg-green-100'
+      case 'paid':
+        return 'text-purple-600 bg-purple-100'
+      case 'error':
+        return 'text-red-600 bg-red-100'
       default:
-        return "text-gray-600 bg-gray-100";
+        return 'text-gray-600 bg-gray-100'
     }
   }
 
   // 상태별 라벨 반환
   function getStatusLabel(status: string): string {
     switch (status) {
-      case "pending":
-        return "대기중";
-      case "calculated":
-        return "계산완료";
-      case "approved":
-        return "승인완료";
-      case "paid":
-        return "지급완료";
-      case "error":
-        return "오류";
+      case 'pending':
+        return '대기중'
+      case 'calculated':
+        return '계산완료'
+      case 'approved':
+        return '승인완료'
+      case 'paid':
+        return '지급완료'
+      case 'error':
+        return '오류'
       default:
-        return "알수없음";
+        return '알수없음'
     }
   }
 
   // 변화율 아이콘 반환
   function _getChangeIcon(change: number) {
-    if (change > 0) return TrendingUpIcon;
-    if (change < 0) return TrendingDownIcon;
-    return MinusIcon;
+    if (change > 0) return TrendingUpIcon
+    if (change < 0) return TrendingDownIcon
+    return MinusIcon
   }
 
   // 변화율 색상 반환
   function _getChangeColor(change: number): string {
-    if (change > 0) return "text-green-600";
-    if (change < 0) return "text-red-600";
-    return "text-gray-600";
+    if (change > 0) return 'text-green-600'
+    if (change < 0) return 'text-red-600'
+    return 'text-gray-600'
   }
 </script>
 
@@ -245,9 +235,7 @@
   <div class="flex items-center justify-between">
     <div>
       <h2 class="text-2xl font-bold text-gray-900">직원별 급여 이력</h2>
-      <p class="mt-1 text-sm text-gray-500">
-        전체 직원의 급여 지급 이력 및 상세 정보
-      </p>
+      <p class="mt-1 text-sm text-gray-500">전체 직원의 급여 지급 이력 및 상세 정보</p>
     </div>
     <div class="flex items-center space-x-3">
       <button
@@ -367,26 +355,24 @@
       <div class="flex items-center space-x-2">
         <button
           type="button"
-          onclick={() => handleSort("period")}
+          onclick={() => handleSort('period')}
           class="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
-          기간 {sortBy === "period" ? (sortOrder === "asc" ? "↑" : "↓") : ""}
+          기간 {sortBy === 'period' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}
         </button>
         <button
           type="button"
-          onclick={() => handleSort("netSalary")}
+          onclick={() => handleSort('netSalary')}
           class="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
-          급여 {sortBy === "netSalary" ? (sortOrder === "asc" ? "↑" : "↓") : ""}
+          급여 {sortBy === 'netSalary' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}
         </button>
       </div>
     </div>
   </div>
 
   <!-- 급여 이력 테이블 -->
-  <div
-    class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden"
-  >
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
     <div class="overflow-x-auto">
       <table class="min-w-full divide-y divide-gray-200">
         <thead class="bg-gray-50">
@@ -467,7 +453,7 @@
                 <div class="text-sm text-gray-500">{payroll.position}</div>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {formatDate(String(payroll.payDate ?? ""))}
+                {formatDate(String(payroll.payDate ?? ''))}
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                 {formatCurrency(num(payroll.baseSalary))}
@@ -520,12 +506,8 @@
     {#if filteredHistory().length === 0}
       <div class="text-center py-12">
         <FileTextIcon size={48} class="mx-auto text-gray-400" />
-        <h3 class="mt-2 text-sm font-medium text-gray-900">
-          급여 이력이 없습니다
-        </h3>
-        <p class="mt-1 text-sm text-gray-500">
-          검색 조건을 변경하거나 급여를 계산해보세요.
-        </p>
+        <h3 class="mt-2 text-sm font-medium text-gray-900">급여 이력이 없습니다</h3>
+        <p class="mt-1 text-sm text-gray-500">검색 조건을 변경하거나 급여를 계산해보세요.</p>
       </div>
     {/if}
   </div>
@@ -534,12 +516,8 @@
 <!-- 급여 상세 정보 모달 -->
 {#if showDetailsModal && selectedPayroll}
   <!-- 모달 구현 (별도 컴포넌트로 분리 가능) -->
-  <div
-    class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50"
-  >
-    <div
-      class="relative top-20 mx-auto p-5 border w-11/12 max-w-2xl shadow-lg rounded-md bg-white"
-    >
+  <div class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+    <div class="relative top-20 mx-auto p-5 border w-11/12 max-w-2xl shadow-lg rounded-md bg-white">
       <div class="mt-3">
         <div class="flex items-center justify-between mb-4">
           <h3 class="text-lg font-medium text-gray-900">급여 상세 정보</h3>
@@ -549,12 +527,7 @@
             class="text-gray-400 hover:text-gray-600"
             aria-label="모달 닫기"
           >
-            <svg
-              class="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 stroke-linecap="round"
                 stroke-linejoin="round"
@@ -569,8 +542,7 @@
           <!-- 기본 정보 -->
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <span class="block text-sm font-medium text-gray-700">직원명</span
-              >
+              <span class="block text-sm font-medium text-gray-700">직원명</span>
               <p class="mt-1 text-sm text-gray-900">
                 {selectedPayroll.employeeInfo.name}
               </p>
@@ -600,33 +572,25 @@
             <h4 class="text-md font-medium text-gray-900 mb-3">급여 내역</h4>
             <div class="grid grid-cols-2 gap-4">
               <div>
-                <span class="block text-sm font-medium text-gray-700"
-                  >기본급</span
-                >
+                <span class="block text-sm font-medium text-gray-700">기본급</span>
                 <p class="mt-1 text-sm text-gray-900">
                   {formatCurrency(selectedPayroll.salaryInfo.baseSalary)}
                 </p>
               </div>
               <div>
-                <span class="block text-sm font-medium text-gray-700"
-                  >총 수당</span
-                >
+                <span class="block text-sm font-medium text-gray-700">총 수당</span>
                 <p class="mt-1 text-sm text-green-600">
                   {formatCurrency(selectedPayroll.totals.totalAllowances)}
                 </p>
               </div>
               <div>
-                <span class="block text-sm font-medium text-gray-700"
-                  >총 공제</span
-                >
+                <span class="block text-sm font-medium text-gray-700">총 공제</span>
                 <p class="mt-1 text-sm text-red-600">
                   {formatCurrency(selectedPayroll.totals.totalDeductions)}
                 </p>
               </div>
               <div>
-                <span class="block text-sm font-medium text-gray-700"
-                  >실지급액</span
-                >
+                <span class="block text-sm font-medium text-gray-700">실지급액</span>
                 <p class="mt-1 text-lg font-bold text-gray-900">
                   {formatCurrency(selectedPayroll.totals.netSalary)}
                 </p>

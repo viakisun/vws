@@ -1,9 +1,9 @@
 <script lang="ts">
-  import ThemeAvatar from "$lib/components/ui/ThemeAvatar.svelte";
-  import ThemeButton from "$lib/components/ui/ThemeButton.svelte";
-  import ThemeDropdown from "$lib/components/ui/ThemeDropdown.svelte";
-  import { isDark, themeManager } from "$lib/stores/theme";
-  import { logger } from "$lib/utils/logger";
+  import ThemeAvatar from '$lib/components/ui/ThemeAvatar.svelte'
+  import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
+  import ThemeDropdown from '$lib/components/ui/ThemeDropdown.svelte'
+  import { isDark, themeManager } from '$lib/stores/theme'
+  import { logger } from '$lib/utils/logger'
   import {
     BellIcon,
     BuildingIcon,
@@ -13,70 +13,64 @@
     SettingsIcon,
     SunIcon,
     UserIcon,
-  } from "@lucide/svelte";
-  import { onMount } from "svelte";
+  } from '@lucide/svelte'
+  import { onMount } from 'svelte'
 
   // Search and notification state
-  let searchQuery = $state("");
-  let showNotifications = $state(false);
-  let showUserMenu = $state(false);
-  let notificationsContainer: HTMLElement | undefined;
-  let userMenuContainer: HTMLElement | undefined;
-  let unreadCount = $state(3);
+  let searchQuery = $state('')
+  let showNotifications = $state(false)
+  let showUserMenu = $state(false)
+  let notificationsContainer: HTMLElement | undefined
+  let userMenuContainer: HTMLElement | undefined
+  let unreadCount = $state(3)
 
   // Company information
-  let companyName = $state("(주)비아");
-  let companyLoading = $state(false);
+  let companyName = $state('(주)비아')
+  let companyLoading = $state(false)
 
   // Toggle notifications
   function toggleNotifications() {
-    showNotifications = !showNotifications;
-    showUserMenu = false;
+    showNotifications = !showNotifications
+    showUserMenu = false
   }
 
   // Toggle user menu
   function toggleUserMenu() {
-    showUserMenu = !showUserMenu;
-    showNotifications = false;
+    showUserMenu = !showUserMenu
+    showNotifications = false
   }
 
   // Close dropdowns when clicking outside
   function handleClickOutside(event: MouseEvent) {
-    if (
-      notificationsContainer &&
-      !notificationsContainer.contains(event.target as HTMLElement)
-    ) {
-      showNotifications = false;
+    if (notificationsContainer && !notificationsContainer.contains(event.target as HTMLElement)) {
+      showNotifications = false
     }
-    if (
-      userMenuContainer &&
-      !userMenuContainer.contains(event.target as HTMLElement)
-    ) {
-      showUserMenu = false;
+    if (userMenuContainer && !userMenuContainer.contains(event.target as HTMLElement)) {
+      showUserMenu = false
     }
   }
 
   onMount(() => {
-    fetchCompanyName();
-    document.addEventListener("click", handleClickOutside);
-    return () => document.removeEventListener("click", handleClickOutside);
-  });
+    fetchCompanyName()
+    document.addEventListener('click', handleClickOutside)
+    return () => document.removeEventListener('click', handleClickOutside)
+  })
 
   // 회사 정보 가져오기
   async function fetchCompanyName() {
     try {
-      companyLoading = true;
-      const response = await window.fetch("/api/company");
+      companyLoading = true
+      const response = await window.fetch('/api/company')
       if (response.ok) {
-        const result = await response.json();
+        const result = await response.json()
         if (result.data && result.data.name) {
-          companyName = result.data.name;
+          companyName = result.data.name
         }
       }
     } catch (err) {
-      logger.error("Error fetching company name:", err);
+      logger.error('Error fetching company name:', err)
     } finally {
-      companyLoading = false;
+      companyLoading = false
     }
   }
 </script>
@@ -96,11 +90,9 @@
         <BuildingIcon class="h-6 w-6 text-white" />
       </div>
       <div class="flex flex-col">
-        <span class="text-lg font-bold" style:color="var(--color-text)">
-          WorkStream
-        </span>
+        <span class="text-lg font-bold" style:color="var(--color-text)"> WorkStream </span>
         <span class="text-xs" style:color="var(--color-text-secondary)">
-          {companyLoading ? "로딩 중..." : companyName}
+          {companyLoading ? '로딩 중...' : companyName}
         </span>
       </div>
     </div>
@@ -119,7 +111,7 @@
         class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
         value={searchQuery}
         oninput={(e: Event & { currentTarget: HTMLInputElement }) => {
-          searchQuery = e.currentTarget.value || "";
+          searchQuery = e.currentTarget.value || ''
         }}
       />
     </div>
@@ -170,7 +162,7 @@
             <span
               class="absolute -top-2 -right-2 h-6 w-6 bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs rounded-full flex items-center justify-center font-bold shadow-lg animate-bounce"
             >
-              {unreadCount > 9 ? "9+" : unreadCount}
+              {unreadCount > 9 ? '9+' : unreadCount}
             </span>
           {/if}
         </div>
@@ -187,11 +179,8 @@
             class="px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-700"
           >
             <div class="flex items-center justify-between">
-              <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-                알림
-              </h3>
-              <span class="text-sm text-gray-500 dark:text-gray-400"
-                >{unreadCount}개 읽지 않음</span
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-white">알림</h3>
+              <span class="text-sm text-gray-500 dark:text-gray-400">{unreadCount}개 읽지 않음</span
               >
             </div>
           </div>
@@ -212,9 +201,7 @@
                   <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
                     PSR팀에서 새로운 연구 프로젝트 승인을 요청했습니다.
                   </p>
-                  <p class="text-xs text-gray-400 dark:text-gray-500 mt-2">
-                    2분 전
-                  </p>
+                  <p class="text-xs text-gray-400 dark:text-gray-500 mt-2">2분 전</p>
                 </div>
               </div>
             </div>
@@ -222,9 +209,7 @@
               class="px-6 py-4 hover:bg-gradient-to-r hover:from-orange-50 hover:to-red-50 dark:hover:from-gray-800 dark:hover:to-gray-700 border-b border-gray-100 transition-all duration-200 cursor-pointer group"
             >
               <div class="flex items-start space-x-3">
-                <div
-                  class="flex-shrink-0 w-2 h-2 bg-orange-500 rounded-full mt-2"
-                ></div>
+                <div class="flex-shrink-0 w-2 h-2 bg-orange-500 rounded-full mt-2"></div>
                 <div class="flex-1 min-w-0">
                   <p
                     class="text-sm font-medium text-gray-900 dark:text-white group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors"
@@ -234,9 +219,7 @@
                   <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
                     이번 달 연구 보고서 제출 마감이 3일 남았습니다.
                   </p>
-                  <p class="text-xs text-gray-400 dark:text-gray-500 mt-2">
-                    1시간 전
-                  </p>
+                  <p class="text-xs text-gray-400 dark:text-gray-500 mt-2">1시간 전</p>
                 </div>
               </div>
             </div>
@@ -244,9 +227,7 @@
               class="px-6 py-4 hover:bg-gradient-to-r hover:from-green-50 hover:to-emerald-50 dark:hover:from-gray-800 dark:hover:to-gray-700 transition-all duration-200 cursor-pointer group"
             >
               <div class="flex items-start space-x-3">
-                <div
-                  class="flex-shrink-0 w-2 h-2 bg-green-500 rounded-full mt-2"
-                ></div>
+                <div class="flex-shrink-0 w-2 h-2 bg-green-500 rounded-full mt-2"></div>
                 <div class="flex-1 min-w-0">
                   <p
                     class="text-sm font-medium text-gray-900 dark:text-white group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors"
@@ -256,16 +237,12 @@
                   <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
                     내일 오전 10시 팀 회의가 오후 2시로 변경되었습니다.
                   </p>
-                  <p class="text-xs text-gray-400 dark:text-gray-500 mt-2">
-                    3시간 전
-                  </p>
+                  <p class="text-xs text-gray-400 dark:text-gray-500 mt-2">3시간 전</p>
                 </div>
               </div>
             </div>
           </div>
-          <div
-            class="px-6 py-3 border-t border-gray-100 bg-gray-50 dark:bg-gray-800"
-          >
+          <div class="px-6 py-3 border-t border-gray-100 bg-gray-50 dark:bg-gray-800">
             <button
               type="button"
               class="w-full text-center text-sm font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
@@ -335,17 +312,9 @@
                 ></div>
               </div>
               <div class="flex-1 min-w-0">
-                <p class="text-lg font-semibold text-gray-900 dark:text-white">
-                  김개발
-                </p>
-                <p class="text-sm text-gray-500 dark:text-gray-400">
-                  개발팀 • 선임연구원
-                </p>
-                <p
-                  class="text-xs text-green-600 dark:text-green-400 font-medium mt-1"
-                >
-                  ● 온라인
-                </p>
+                <p class="text-lg font-semibold text-gray-900 dark:text-white">김개발</p>
+                <p class="text-sm text-gray-500 dark:text-gray-400">개발팀 • 선임연구원</p>
+                <p class="text-xs text-green-600 dark:text-green-400 font-medium mt-1">● 온라인</p>
               </div>
             </div>
           </div>
@@ -361,9 +330,7 @@
               </div>
               <div>
                 <p class="font-medium">프로필</p>
-                <p class="text-xs text-gray-500 dark:text-gray-400">
-                  개인 정보 및 설정
-                </p>
+                <p class="text-xs text-gray-500 dark:text-gray-400">개인 정보 및 설정</p>
               </div>
             </a>
             <a
@@ -373,20 +340,14 @@
               <div
                 class="flex items-center justify-center w-8 h-8 rounded-lg bg-gray-100 dark:bg-gray-700 mr-3 group-hover:bg-gray-200 dark:group-hover:bg-gray-600 transition-colors"
               >
-                <SettingsIcon
-                  class="h-4 w-4 text-gray-600 dark:text-gray-400"
-                />
+                <SettingsIcon class="h-4 w-4 text-gray-600 dark:text-gray-400" />
               </div>
               <div>
                 <p class="font-medium">설정</p>
-                <p class="text-xs text-gray-500 dark:text-gray-400">
-                  계정 및 시스템 설정
-                </p>
+                <p class="text-xs text-gray-500 dark:text-gray-400">계정 및 시스템 설정</p>
               </div>
             </a>
-            <div
-              class="border-t border-gray-100 dark:border-gray-700 my-2"
-            ></div>
+            <div class="border-t border-gray-100 dark:border-gray-700 my-2"></div>
             <a
               href="/logout"
               class="flex items-center px-6 py-3 text-sm text-red-600 dark:text-red-400 hover:bg-gradient-to-r hover:from-red-50 hover:to-pink-50 dark:hover:from-red-900/20 dark:hover:to-pink-900/20 transition-all duration-200 group"
@@ -398,9 +359,7 @@
               </div>
               <div>
                 <p class="font-medium">로그아웃</p>
-                <p class="text-xs text-red-500 dark:text-red-400">
-                  계정에서 로그아웃
-                </p>
+                <p class="text-xs text-red-500 dark:text-red-400">계정에서 로그아웃</p>
               </div>
             </a>
           </div>

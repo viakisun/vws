@@ -172,7 +172,7 @@ export function canAccessResearcherDashboard(user: Person | null): boolean {
 // 프로젝트별 권한 체크
 export function canAccessProject(
   user: Person | null,
-  projectId: string,
+  _projectId: string,
 ): boolean {
   if (!user) return false;
 
@@ -182,7 +182,7 @@ export function canAccessProject(
 
 export function canManageProject(
   user: Person | null,
-  projectId: string,
+  _projectId: string,
 ): boolean {
   if (!user) return false;
 
@@ -193,7 +193,7 @@ export function canManageProject(
 // 지출 항목별 권한 체크
 export function canAccessExpense(
   user: Person | null,
-  expenseId: string,
+  _expenseId: string,
 ): boolean {
   if (!user) return false;
 
@@ -203,7 +203,7 @@ export function canAccessExpense(
 
 export function canManageExpense(
   user: Person | null,
-  expenseId: string,
+  _expenseId: string,
 ): boolean {
   if (!user) return false;
 
@@ -214,7 +214,7 @@ export function canManageExpense(
 // 문서별 권한 체크
 export function canAccessDocument(
   user: Person | null,
-  documentId: string,
+  _documentId: string,
 ): boolean {
   if (!user) return false;
 
@@ -224,7 +224,7 @@ export function canAccessDocument(
 
 export function canManageDocument(
   user: Person | null,
-  documentId: string,
+  _documentId: string,
 ): boolean {
   if (!user) return false;
 
@@ -235,7 +235,7 @@ export function canManageDocument(
 // 연구노트별 권한 체크
 export function canAccessResearchNote(
   user: Person | null,
-  noteId: string,
+  _noteId: string,
 ): boolean {
   if (!user) return false;
 
@@ -245,7 +245,7 @@ export function canAccessResearchNote(
 
 export function canManageResearchNote(
   user: Person | null,
-  noteId: string,
+  _noteId: string,
 ): boolean {
   if (!user) return false;
 

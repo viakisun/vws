@@ -1,15 +1,14 @@
-import { query } from "$lib/database/connection";
-import { json } from "@sveltejs/kit";
-import type { RequestHandler } from "./$types";
-import { logger } from "$lib/utils/logger";
+import { query } from '$lib/database/connection'
+import { json } from '@sveltejs/kit'
+import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger'
 
 // GET /api/project-management/budgets/summary-by-year - 연도별 예산 요약 조회
 export const GET: RequestHandler = async ({ url }) => {
   try {
-    const currentYear = new Date().getFullYear();
-    const yearFrom =
-      url.searchParams.get("yearFrom") || (currentYear - 2).toString();
-    const yearTo = url.searchParams.get("yearTo") || currentYear.toString();
+    const currentYear = new Date().getFullYear()
+    const yearFrom = url.searchParams.get('yearFrom') || (currentYear - 2).toString()
+    const yearTo = url.searchParams.get('yearTo') || currentYear.toString()
 
     const sqlQuery = `
 			SELECT 
@@ -53,26 +52,23 @@ export const GET: RequestHandler = async ({ url }) => {
 			WHERE pb.period_number BETWEEN $1 AND $2
 			GROUP BY pb.period_number
 			ORDER BY pb.period_number DESC
-		`;
+		`
 
-    const result = await query(sqlQuery, [
-      parseInt(yearFrom),
-      parseInt(yearTo),
-    ]);
+    const result = await query(sqlQuery, [parseInt(yearFrom), parseInt(yearTo)])
 
     return json({
       success: true,
       data: result.rows,
-    });
+    })
   } catch (error) {
-    logger.error("연도별 예산 요약 조회 실패:", error);
+    logger.error('연도별 예산 요약 조회 실패:', error)
     return json(
       {
         success: false,
-        message: "연도별 예산 요약을 불러오는데 실패했습니다.",
+        message: '연도별 예산 요약을 불러오는데 실패했습니다.',
         error: (error as Error).message,
       },
       { status: 500 },
-    );
+    )
   }
-};
+}

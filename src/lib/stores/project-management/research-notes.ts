@@ -1,6 +1,6 @@
 import { writable } from "svelte/store";
-import type { ResearchNote, Document } from "./types";
 import { logAudit } from "./core";
+import type { Document, ResearchNote } from "./types";
 
 // 연구노트 관리
 export const researchNotes = writable<ResearchNote[]>([]);
@@ -488,7 +488,7 @@ export function searchResearchNotes(
 // 연구노트 통계
 export function getResearchNoteStatistics(
   projectId: string,
-  period: "month" | "quarter" | "year",
+  _period: "month" | "quarter" | "year",
 ): {
   totalNotes: number;
   submittedNotes: number;

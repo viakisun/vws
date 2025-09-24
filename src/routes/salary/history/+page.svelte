@@ -1,5 +1,5 @@
 <script lang="ts">
-  import EmployeeSalaryHistory from "$lib/components/salary/EmployeeSalaryHistory.svelte";
+  import EmployeeSalaryHistory from '$lib/components/salary/EmployeeSalaryHistory.svelte'
 </script>
 
 <svelte:head>

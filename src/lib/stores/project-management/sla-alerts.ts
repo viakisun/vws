@@ -1,8 +1,8 @@
 import { getCurrentUTC } from "$lib/utils/date-handler";
+import { logger } from "$lib/utils/logger";
 import { writable } from "svelte/store";
 import { logAudit } from "./core";
 import type { Notification, SLAAlert } from "./types";
-import { logger } from "$lib/utils/logger";
 
 // SLA 알림 관리
 export const slaAlerts = writable<SLAAlert[]>([]);
@@ -271,7 +271,7 @@ function getEntityData(entityType: string, entityId: string): any {
 }
 
 // 현재 단계 가져오기
-function getCurrentStage(entityType: string, entityId: string): string {
+function getCurrentStage(entityType: string, _entityId: string): string {
   // 실제 구현에서는 엔티티의 현재 단계를 가져옴
   switch (entityType) {
     case "expense":
@@ -324,9 +324,9 @@ function getSeverityFromAlertType(
 
 // 할당된 사용자 가져오기
 function getAssignedUsers(
-  entityType: string,
-  entityId: string,
-  escalationPath: unknown[],
+  _entityType: string,
+  _entityId: string,
+  _escalationPath: unknown[],
 ): string[] {
   // 실제 구현에서는 엔티티의 담당자와 에스컬레이션 경로를 기반으로 사용자 결정
   const users = ["PM", "LAB_HEAD", "EXECUTIVE"];

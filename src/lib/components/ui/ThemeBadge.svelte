@@ -1,66 +1,52 @@
 <script lang="ts">
   // Props
   interface Props {
-    variant?:
-      | "default"
-      | "primary"
-      | "success"
-      | "warning"
-      | "error"
-      | "info"
-      | "ghost";
-    size?: "sm" | "md" | "lg" | "xl";
-    shape?: "rounded" | "pill" | "square";
-    dot?: boolean;
-    class?: string;
-    children?: any;
+    variant?: 'default' | 'primary' | 'success' | 'warning' | 'error' | 'info' | 'ghost'
+    size?: 'sm' | 'md' | 'lg' | 'xl'
+    shape?: 'rounded' | 'pill' | 'square'
+    dot?: boolean
+    class?: string
+    children?: any
   }
 
   let {
-    variant = "default",
-    size = "md",
-    shape = "rounded",
+    variant = 'default',
+    size = 'md',
+    shape = 'rounded',
     dot = false,
-    class: className = "",
+    class: className = '',
     children,
     ...restProps
-  }: Props = $props();
+  }: Props = $props()
 
   // Get badge classes
   function getBadgeClasses(): string {
-    const baseClasses = "theme-badge";
-    const variantClass = `theme-badge-${variant}`;
-    const sizeClass = `theme-badge-${size}`;
-    const shapeClass = `theme-badge-${shape}`;
-    const dotClass = dot ? "theme-badge-dot" : "";
+    const baseClasses = 'theme-badge'
+    const variantClass = `theme-badge-${variant}`
+    const sizeClass = `theme-badge-${size}`
+    const shapeClass = `theme-badge-${shape}`
+    const dotClass = dot ? 'theme-badge-dot' : ''
 
-    return [
-      baseClasses,
-      variantClass,
-      sizeClass,
-      shapeClass,
-      dotClass,
-      className,
-    ]
+    return [baseClasses, variantClass, sizeClass, shapeClass, dotClass, className]
       .filter(Boolean)
-      .join(" ");
+      .join(' ')
   }
 
   // Get color for variant
   function getColor(): string {
     switch (variant) {
-      case "primary":
-        return "var(--color-primary)";
-      case "success":
-        return "var(--color-success)";
-      case "warning":
-        return "var(--color-warning)";
-      case "error":
-        return "var(--color-error)";
-      case "info":
-        return "var(--color-info)";
+      case 'primary':
+        return 'var(--color-primary)'
+      case 'success':
+        return 'var(--color-success)'
+      case 'warning':
+        return 'var(--color-warning)'
+      case 'error':
+        return 'var(--color-error)'
+      case 'info':
+        return 'var(--color-info)'
       default:
-        return "var(--color-text-secondary)";
+        return 'var(--color-text-secondary)'
     }
   }
 </script>

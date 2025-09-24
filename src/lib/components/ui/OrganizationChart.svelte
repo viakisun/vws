@@ -198,7 +198,7 @@
   {:else}
     <!-- 단순한 조직도 표시 -->
     <div class="space-y-3">
-      {#each Object.entries(orgData) as [execName, executive]}
+      {#each Object.entries(orgData) as [_execName, executive] (_execName)}
         <div class="border border-gray-300 bg-white">
           <!-- 임원 헤더 -->
           <div class="bg-gray-100 border-b border-gray-300 px-3 py-2">

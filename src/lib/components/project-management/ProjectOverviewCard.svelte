@@ -1,14 +1,14 @@
 <script lang="ts">
-  import ThemeBadge from "$lib/components/ui/ThemeBadge.svelte";
-  import ThemeCard from "$lib/components/ui/ThemeCard.svelte";
-  import { formatCurrency, formatDate } from "$lib/utils/format";
+  import ThemeBadge from '$lib/components/ui/ThemeBadge.svelte'
+  import ThemeCard from '$lib/components/ui/ThemeCard.svelte'
+  import { formatCurrency, formatDate } from '$lib/utils/format'
   import {
     ActivityIcon,
     AlertTriangleIcon,
     DollarSignIcon,
     FlaskConicalIcon,
     UsersIcon,
-  } from "@lucide/svelte";
+  } from '@lucide/svelte'
 
   /**
    * @typedef {Object} ProjectSummary
@@ -22,43 +22,43 @@
    * @property {Array<{title: string, code: string, status: string, updatedAt: string}>} [recentActivities]
    */
 
-  let { projectSummary = null, alerts = [] } = $props();
+  let { projectSummary = null, alerts = [] } = $props()
 
   // 간소화된 상태 배지 색상
   function getStatusBadgeColor(status) {
     switch (status) {
-      case "active":
-        return "success";
-      case "planning":
-        return "primary";
-      case "completed":
-        return "default";
+      case 'active':
+        return 'success'
+      case 'planning':
+        return 'primary'
+      case 'completed':
+        return 'default'
       default:
-        return "default";
+        return 'default'
     }
   }
 
   // 간소화된 상태 한글 변환
   function getStatusLabel(status) {
     switch (status) {
-      case "active":
-        return "진행";
-      case "planning":
-        return "기획";
-      case "completed":
-        return "완료";
+      case 'active':
+        return '진행'
+      case 'planning':
+        return '기획'
+      case 'completed':
+        return '완료'
       default:
-        return status;
+        return status
     }
   }
 
   // 안전한 날짜 표시 함수
   function safeFormatDate(dateString) {
-    if (!dateString) return "미정";
+    if (!dateString) return '미정'
     try {
-      return formatDate(dateString);
+      return formatDate(dateString)
     } catch {
-      return "잘못된 날짜";
+      return '잘못된 날짜'
     }
   }
 </script>

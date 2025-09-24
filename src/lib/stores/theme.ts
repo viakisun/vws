@@ -1,5 +1,5 @@
-import { writable, derived } from "svelte/store";
 import { browser } from "$app/environment";
+import { derived, writable } from "svelte/store";
 
 // Theme types
 export type Theme = "light" | "dark" | "auto";
@@ -119,7 +119,7 @@ export class ThemeManager {
   private setupSystemThemeListener(): (() => void) | void {
     const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
 
-    const handleChange = (e: MediaQueryListEvent) => {
+    const handleChange = (_e: MediaQueryListEvent) => {
       this.updateSystemColorScheme();
     };
 

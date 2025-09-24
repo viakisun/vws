@@ -44,7 +44,7 @@
   }
 
   // 상태별 아이콘 반환
-  function getStatusIcon(status: string) {
+  function _getStatusIcon(status: string) {
     switch (status) {
       case "draft":
         return ClockIcon;
@@ -62,7 +62,7 @@
   }
 
   // 변화율 계산
-  function calculateChangeRate(current: number, previous: number): number {
+  function _calculateChangeRate(current: number, previous: number): number {
     if (previous === 0) return current > 0 ? 100 : 0;
     return ((current - previous) / previous) * 100;
   }
@@ -93,7 +93,7 @@
           부서별 급여 현황
         </h3>
         <div class="space-y-4">
-          {#each Object.entries($departmentSalaryStats) as [department, stats]}
+          {#each Object.entries($departmentSalaryStats) as [department, stats] (department)}
             <div
               class="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
             >

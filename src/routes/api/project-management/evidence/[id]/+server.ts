@@ -2,9 +2,9 @@
 // Individual Evidence Item API
 
 import { query } from "$lib/database/connection";
+import { logger } from "$lib/utils/logger";
 import { json } from "@sveltejs/kit";
 import type { RequestHandler } from "./$types";
-import { logger } from "$lib/utils/logger";
 
 // 증빙 항목 상세 조회
 export const GET: RequestHandler = async ({ params }) => {
@@ -197,7 +197,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
       updateValues,
     );
 
-    const updatedItem = result.rows[0];
+    const _updatedItem = result.rows[0];
 
     // 업데이트된 증빙 항목의 상세 정보 조회
     const detailResult = await query(

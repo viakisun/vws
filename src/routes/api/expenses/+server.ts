@@ -1,16 +1,16 @@
-import { json, error } from "@sveltejs/kit";
-import type { RequestHandler } from "./$types";
-import { DatabaseService } from "$lib/database/connection";
-import { logger } from "$lib/utils/logger";
+import { json, error } from '@sveltejs/kit'
+import type { RequestHandler } from './$types'
+import { DatabaseService } from '$lib/database/connection'
+import { logger } from '$lib/utils/logger'
 
 // GET /api/expenses - Get all expense items
 export const GET: RequestHandler = async ({ url }) => {
   try {
-    const project_id = url.searchParams.get("project_id");
-    const status = url.searchParams.get("status");
-    const requester_id = url.searchParams.get("requester_id");
-    const limit = url.searchParams.get("limit");
-    const offset = url.searchParams.get("offset");
+    const project_id = url.searchParams.get('project_id')
+    const status = url.searchParams.get('status')
+    const requester_id = url.searchParams.get('requester_id')
+    const limit = url.searchParams.get('limit')
+    const offset = url.searchParams.get('offset')
 
     const expenses = await DatabaseService.getExpenseItems({
       project_id: project_id || undefined,
@@ -18,23 +18,23 @@ export const GET: RequestHandler = async ({ url }) => {
       requester_id: requester_id || undefined,
       limit: limit ? parseInt(limit) : undefined,
       offset: offset ? parseInt(offset) : undefined,
-    });
+    })
 
     return json({
       success: true,
       data: expenses,
       count: expenses.length,
-    });
+    })
   } catch (err) {
-    logger.error("Get expenses error:", err);
-    return error(500, { message: "Internal server error" });
+    logger.error('Get expenses error:', err)
+    return error(500, { message: 'Internal server error' })
   }
-};
+}
 
 // POST /api/expenses - Create new expense item
 export const POST: RequestHandler = async ({ request }) => {
   try {
-    const expenseData = await request.json();
+    const expenseData = await request.json()
 
     // Validate required fields
     if (
@@ -44,25 +44,22 @@ export const POST: RequestHandler = async ({ request }) => {
       !expenseData.requester_id
     ) {
       return error(400, {
-        message:
-          "Project ID, category code, amount, and requester ID are required",
-      });
+        message: 'Project ID, category code, amount, and requester ID are required',
+      })
     }
 
     // Validate amount
     if (expenseData.amount <= 0) {
-      return error(400, { message: "Amount must be greater than 0" });
+      return error(400, { message: 'Amount must be greater than 0' })
     }
 
     // Check if project exists
-    const project = await DatabaseService.getProjectById(
-      expenseData.project_id,
-    );
+    const project = await DatabaseService.getProjectById(expenseData.project_id)
     if (!project) {
-      return error(400, { message: "Project not found" });
+      return error(400, { message: 'Project not found' })
     }
 
-    const expense = await DatabaseService.createExpenseItem(expenseData);
+    const expense = await DatabaseService.createExpenseItem(expenseData)
 
     return json(
       {
@@ -70,9 +67,9 @@ export const POST: RequestHandler = async ({ request }) => {
         data: expense,
       },
       { status: 201 },
-    );
+    )
   } catch (err) {
-    logger.error("Create expense error:", err);
-    return error(500, { message: "Internal server error" });
+    logger.error('Create expense error:', err)
+    return error(500, { message: 'Internal server error' })
   }
-};
+}

@@ -722,7 +722,7 @@ export function deleteBudgetCategory(id: UUID): boolean {
 /**
  * 카테고리별 통계 정보
  */
-export function getCategoryStatistics(categoryCode: string): {
+export function getCategoryStatistics(_categoryCode: string): {
   totalExpenses: number;
   pendingExpenses: number;
   approvedExpenses: number;

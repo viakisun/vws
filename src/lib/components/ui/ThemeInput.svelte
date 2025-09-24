@@ -1,56 +1,48 @@
 <script lang="ts">
   // Props
   interface Props {
-    type?:
-      | "text"
-      | "email"
-      | "password"
-      | "number"
-      | "tel"
-      | "url"
-      | "search"
-      | "textarea";
-    variant?: "default" | "filled" | "outlined" | "underlined";
-    size?: "sm" | "md" | "lg" | "xl";
-    placeholder?: string;
-    value?: string;
-    disabled?: boolean;
-    readonly?: boolean;
-    required?: boolean;
-    error?: boolean;
-    success?: boolean;
-    label?: string;
-    helper?: string;
-    errorMessage?: string;
-    successMessage?: string;
-    id?: string;
-    class?: string;
-    prefix?: any;
-    suffix?: any;
-    oninput?: (event: Event) => void;
-    onchange?: (event: Event) => void;
-    onfocus?: (event: Event) => void;
-    onblur?: (event: Event) => void;
-    children?: any;
+    type?: 'text' | 'email' | 'password' | 'number' | 'tel' | 'url' | 'search' | 'textarea'
+    variant?: 'default' | 'filled' | 'outlined' | 'underlined'
+    size?: 'sm' | 'md' | 'lg' | 'xl'
+    placeholder?: string
+    value?: string
+    disabled?: boolean
+    readonly?: boolean
+    required?: boolean
+    error?: boolean
+    success?: boolean
+    label?: string
+    helper?: string
+    errorMessage?: string
+    successMessage?: string
+    id?: string
+    class?: string
+    prefix?: any
+    suffix?: any
+    oninput?: (event: Event) => void
+    onchange?: (event: Event) => void
+    onfocus?: (event: Event) => void
+    onblur?: (event: Event) => void
+    children?: any
   }
 
   let {
-    type = "text",
-    variant = "default",
-    size = "md",
-    placeholder = "",
-    value = $bindable(""),
+    type = 'text',
+    variant = 'default',
+    size = 'md',
+    placeholder = '',
+    value = $bindable(''),
     disabled = false,
     readonly = false,
     required = false,
     error = false,
     success = false,
-    label = "",
-    helper = "",
-    errorMessage = "",
-    successMessage = "",
-    id = "",
-    class: className = "",
+    label = '',
+    helper = '',
+    errorMessage = '',
+    successMessage = '',
+    id = '',
+    class: className = '',
     prefix,
     suffix,
     oninput,
@@ -59,77 +51,69 @@
     onblur,
     children,
     ...restProps
-  }: Props = $props();
+  }: Props = $props()
 
   // Get input classes
   function getInputClasses(): string {
-    const baseClasses = "theme-input";
-    const variantClass = `theme-input-${variant}`;
-    const sizeClass = `theme-input-${size}`;
+    const baseClasses = 'theme-input'
+    const variantClass = `theme-input-${variant}`
+    const sizeClass = `theme-input-${size}`
     const stateClasses = [
-      error ? "theme-input-error" : "",
-      success ? "theme-input-success" : "",
-      disabled ? "theme-input-disabled" : "",
-      readonly ? "theme-input-readonly" : "",
+      error ? 'theme-input-error' : '',
+      success ? 'theme-input-success' : '',
+      disabled ? 'theme-input-disabled' : '',
+      readonly ? 'theme-input-readonly' : '',
     ]
       .filter(Boolean)
-      .join(" ");
-    const prefixClass = prefix ? "pl-10" : "";
-    const suffixClass = suffix ? "pr-10" : "";
+      .join(' ')
+    const prefixClass = prefix ? 'pl-10' : ''
+    const suffixClass = suffix ? 'pr-10' : ''
 
-    return [
-      baseClasses,
-      variantClass,
-      sizeClass,
-      stateClasses,
-      prefixClass,
-      suffixClass,
-      className,
-    ]
+    return [baseClasses, variantClass, sizeClass, stateClasses, prefixClass, suffixClass, className]
       .filter(Boolean)
-      .join(" ");
+      .join(' ')
   }
 
   // Get container classes
   function getContainerClasses(): string {
-    const baseClasses = "theme-input-container";
+    const baseClasses = 'theme-input-container'
     const stateClasses = [
-      error ? "theme-input-container-error" : "",
-      success ? "theme-input-container-success" : "",
-      disabled ? "theme-input-container-disabled" : "",
+      error ? 'theme-input-container-error' : '',
+      success ? 'theme-input-container-success' : '',
+      disabled ? 'theme-input-container-disabled' : '',
     ]
       .filter(Boolean)
-      .join(" ");
+      .join(' ')
 
-    return [baseClasses, ...stateClasses].filter(Boolean).join(" ");
+    return [baseClasses, ...stateClasses].filter(Boolean).join(' ')
   }
 
   // Get message classes
   function getMessageClasses(): string {
-    const baseClasses = "theme-input-message";
+    const baseClasses = 'theme-input-message'
     const stateClasses = [
-      error ? "theme-input-message-error" : "",
-      success ? "theme-input-message-success" : "",
+      error ? 'theme-input-message-error' : '',
+      success ? 'theme-input-message-success' : '',
     ]
       .filter(Boolean)
-      .join(" ");
+      .join(' ')
 
-    return [baseClasses, ...stateClasses].filter(Boolean).join(" ");
+    return [baseClasses, ...stateClasses].filter(Boolean).join(' ')
   }
 
   // Get message text
   function getMessageText(): string {
-    if (error && errorMessage) return errorMessage;
-    if (success && successMessage) return successMessage;
-    if (helper) return helper;
-    return "";
+    if (error && errorMessage) return errorMessage
+    if (success && successMessage) return successMessage
+    if (helper) return helper
+    return ''
   }
 
   // Get message icon
   function getMessageIcon(): string {
-    if (error) return "⚠️";
-    if (success) return "✅";
-    return "";
+    if (error) return '⚠️'
+    if (success) return '✅'
+    return ''
   }
 </script>
 
@@ -145,14 +129,12 @@
 
   <div class="theme-input-wrapper relative">
     {#if prefix}
-      <div
-        class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-      >
+      <div class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
         {@render prefix()}
       </div>
     {/if}
 
-    {#if type === "textarea"}
+    {#if type === 'textarea'}
       <textarea
         {id}
         class={getInputClasses()}
@@ -186,9 +168,7 @@
     {/if}
 
     {#if suffix}
-      <div
-        class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-      >
+      <div class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
         {@render suffix()}
       </div>
     {/if}
@@ -384,9 +364,7 @@
     color: var(--color-success);
   }
 
-  .theme-input-message:not(.theme-input-message-error):not(
-      .theme-input-message-success
-    ) {
+  .theme-input-message:not(.theme-input-message-error):not(.theme-input-message-success) {
     color: var(--color-text-secondary);
   }
 
@@ -400,7 +378,7 @@
   }
 
   /* Textarea specific styles */
-  .theme-input[type="textarea"] {
+  .theme-input[type='textarea'] {
     resize: vertical;
     min-height: 80px;
     font-family: inherit;

@@ -1,10 +1,10 @@
-import { json, error } from "@sveltejs/kit";
-import type { RequestHandler } from "./$types";
 import { DatabaseService } from "$lib/database/connection";
-import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
 import { config } from "$lib/utils/config";
 import { logger } from "$lib/utils/logger";
+import { error, json } from "@sveltejs/kit";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import type { RequestHandler } from "./$types";
 
 export const POST: RequestHandler = async ({ request }) => {
   try {
@@ -54,7 +54,7 @@ export const POST: RequestHandler = async ({ request }) => {
     );
 
     // Return user data (without password)
-    const { password_hash, ...userWithoutPassword } = user;
+    const { password_hash: _password_hash, ...userWithoutPassword } = user;
 
     return json({
       success: true,

@@ -1,19 +1,13 @@
 <script lang="ts">
-  let {
-    src,
-    alt = "",
-    size = "md",
-    fallback = "?",
-    class: className = "",
-  } = $props();
+  let { src, alt = '', size = 'md', fallback = '?', class: className = '' } = $props()
 
   // Size classes
   const sizeClasses = {
-    sm: "w-6 h-6 text-xs",
-    md: "w-8 h-8 text-sm",
-    lg: "w-12 h-12 text-lg",
-    xl: "w-16 h-16 text-xl",
-  };
+    sm: 'w-6 h-6 text-xs',
+    md: 'w-8 h-8 text-sm',
+    lg: 'w-12 h-12 text-lg',
+    xl: 'w-16 h-16 text-xl',
+  }
 </script>
 
 <div

@@ -1,39 +1,34 @@
 <script lang="ts">
   // Props
   interface Props {
-    variant?: "default" | "elevated" | "outlined" | "filled";
-    size?: "sm" | "md" | "lg" | "xl";
-    hover?: boolean;
-    clickable?: boolean;
-    class?: string;
-    children?: any;
+    variant?: 'default' | 'elevated' | 'outlined' | 'filled'
+    size?: 'sm' | 'md' | 'lg' | 'xl'
+    hover?: boolean
+    clickable?: boolean
+    class?: string
+    children?: any
   }
 
   let {
-    variant = "default",
-    size = "md",
+    variant = 'default',
+    size = 'md',
     hover = false,
     clickable = false,
-    class: className = "",
+    class: className = '',
     children,
     ...restProps
-  }: Props = $props();
+  }: Props = $props()
 
   // Get card classes
   function getCardClasses(): string {
-    const baseClasses = "theme-card";
-    const variantClass = `theme-card-${variant}`;
-    const sizeClass = `theme-card-${size}`;
-    const stateClasses = [
-      hover ? "theme-card-hover" : "",
-      clickable ? "theme-card-clickable" : "",
-    ]
+    const baseClasses = 'theme-card'
+    const variantClass = `theme-card-${variant}`
+    const sizeClass = `theme-card-${size}`
+    const stateClasses = [hover ? 'theme-card-hover' : '', clickable ? 'theme-card-clickable' : '']
       .filter(Boolean)
-      .join(" ");
+      .join(' ')
 
-    return [baseClasses, variantClass, sizeClass, stateClasses, className]
-      .filter(Boolean)
-      .join(" ");
+    return [baseClasses, variantClass, sizeClass, stateClasses, className].filter(Boolean).join(' ')
   }
 </script>
 

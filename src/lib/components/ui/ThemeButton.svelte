@@ -1,162 +1,153 @@
 <script lang="ts">
   // Props
   interface Props {
-    variant?:
-      | "primary"
-      | "secondary"
-      | "success"
-      | "warning"
-      | "error"
-      | "info"
-      | "ghost";
+    variant?: 'primary' | 'secondary' | 'success' | 'warning' | 'error' | 'info' | 'ghost'
     size?:
-      | "sm"
-      | "md"
-      | "lg"
-      | "xl"
-      | "2xl"
-      | "3xl"
-      | "4xl"
-      | "5xl"
-      | "6xl"
-      | "7xl"
-      | "8xl"
-      | "9xl"
-      | "10xl"
-      | "11xl"
-      | "12xl"
-      | "13xl"
-      | "14xl"
-      | "15xl"
-      | "16xl"
-      | "17xl"
-      | "18xl"
-      | "19xl"
-      | "20xl"
-      | "21xl"
-      | "22xl"
-      | "23xl"
-      | "24xl"
-      | "25xl"
-      | "26xl"
-      | "27xl"
-      | "28xl"
-      | "29xl"
-      | "30xl"
-      | "31xl"
-      | "32xl"
-      | "33xl"
-      | "34xl"
-      | "35xl"
-      | "36xl"
-      | "37xl"
-      | "38xl"
-      | "39xl"
-      | "40xl"
-      | "41xl"
-      | "42xl"
-      | "43xl"
-      | "44xl"
-      | "45xl"
-      | "46xl"
-      | "47xl"
-      | "48xl"
-      | "49xl"
-      | "50xl"
-      | "51xl"
-      | "52xl"
-      | "53xl"
-      | "54xl"
-      | "55xl"
-      | "56xl"
-      | "57xl"
-      | "58xl"
-      | "59xl"
-      | "60xl"
-      | "61xl"
-      | "62xl"
-      | "63xl"
-      | "64xl"
-      | "65xl"
-      | "66xl"
-      | "67xl"
-      | "68xl"
-      | "69xl"
-      | "70xl"
-      | "71xl"
-      | "72xl"
-      | "73xl"
-      | "74xl"
-      | "75xl"
-      | "76xl"
-      | "77xl"
-      | "78xl"
-      | "79xl"
-      | "80xl"
-      | "81xl"
-      | "82xl"
-      | "83xl"
-      | "84xl"
-      | "85xl"
-      | "86xl"
-      | "87xl"
-      | "88xl"
-      | "89xl"
-      | "90xl"
-      | "91xl"
-      | "92xl"
-      | "93xl"
-      | "94xl"
-      | "95xl"
-      | "96xl"
-      | "97xl"
-      | "98xl"
-      | "99xl"
-      | "100xl";
-    disabled?: boolean;
-    loading?: boolean;
-    onclick?: () => void;
-    class?: string;
-    children?: any;
+      | 'sm'
+      | 'md'
+      | 'lg'
+      | 'xl'
+      | '2xl'
+      | '3xl'
+      | '4xl'
+      | '5xl'
+      | '6xl'
+      | '7xl'
+      | '8xl'
+      | '9xl'
+      | '10xl'
+      | '11xl'
+      | '12xl'
+      | '13xl'
+      | '14xl'
+      | '15xl'
+      | '16xl'
+      | '17xl'
+      | '18xl'
+      | '19xl'
+      | '20xl'
+      | '21xl'
+      | '22xl'
+      | '23xl'
+      | '24xl'
+      | '25xl'
+      | '26xl'
+      | '27xl'
+      | '28xl'
+      | '29xl'
+      | '30xl'
+      | '31xl'
+      | '32xl'
+      | '33xl'
+      | '34xl'
+      | '35xl'
+      | '36xl'
+      | '37xl'
+      | '38xl'
+      | '39xl'
+      | '40xl'
+      | '41xl'
+      | '42xl'
+      | '43xl'
+      | '44xl'
+      | '45xl'
+      | '46xl'
+      | '47xl'
+      | '48xl'
+      | '49xl'
+      | '50xl'
+      | '51xl'
+      | '52xl'
+      | '53xl'
+      | '54xl'
+      | '55xl'
+      | '56xl'
+      | '57xl'
+      | '58xl'
+      | '59xl'
+      | '60xl'
+      | '61xl'
+      | '62xl'
+      | '63xl'
+      | '64xl'
+      | '65xl'
+      | '66xl'
+      | '67xl'
+      | '68xl'
+      | '69xl'
+      | '70xl'
+      | '71xl'
+      | '72xl'
+      | '73xl'
+      | '74xl'
+      | '75xl'
+      | '76xl'
+      | '77xl'
+      | '78xl'
+      | '79xl'
+      | '80xl'
+      | '81xl'
+      | '82xl'
+      | '83xl'
+      | '84xl'
+      | '85xl'
+      | '86xl'
+      | '87xl'
+      | '88xl'
+      | '89xl'
+      | '90xl'
+      | '91xl'
+      | '92xl'
+      | '93xl'
+      | '94xl'
+      | '95xl'
+      | '96xl'
+      | '97xl'
+      | '98xl'
+      | '99xl'
+      | '100xl'
+    disabled?: boolean
+    loading?: boolean
+    onclick?: () => void
+    class?: string
+    children?: any
   }
 
   let {
-    variant = "primary",
-    size = "md",
+    variant = 'primary',
+    size = 'md',
     disabled = false,
     loading = false,
     onclick,
-    class: className = "",
+    class: className = '',
     children,
     ...restProps
-  }: Props = $props();
+  }: Props = $props()
 
   // Get button classes
   function getButtonClasses(): string {
-    const baseClasses = "theme-button";
-    const variantClass = `theme-button-${variant}`;
-    const sizeClass = `theme-button-${size}`;
+    const baseClasses = 'theme-button'
+    const variantClass = `theme-button-${variant}`
+    const sizeClass = `theme-button-${size}`
     const stateClasses = [
-      disabled ? "theme-button-disabled" : "",
-      loading ? "theme-button-loading" : "",
+      disabled ? 'theme-button-disabled' : '',
+      loading ? 'theme-button-loading' : '',
     ]
       .filter(Boolean)
-      .join(" ");
+      .join(' ')
 
-    return [baseClasses, variantClass, sizeClass, stateClasses, className]
-      .filter(Boolean)
-      .join(" ");
+    return [baseClasses, variantClass, sizeClass, stateClasses, className].filter(Boolean).join(' ')
   }
 
   // Handle click
   function handleClick(event: MouseEvent) {
     if (disabled || loading) {
-      event.preventDefault();
-      return;
+      event.preventDefault()
+      return
     }
 
     if (onclick) {
-      onclick();
+      onclick()
     }
   }
 
@@ -169,7 +160,7 @@
 					<animate attributeName="stroke-dashoffset" dur="1.5s" values="0;-60;-60" repeatCount="indefinite"/>
 				</circle>
 			</svg>
-		`;
+		`
   }
 </script>
 

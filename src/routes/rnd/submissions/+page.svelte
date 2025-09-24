@@ -26,7 +26,7 @@
   }
 
   // Mock submission bundles data
-  let localSubmissionBundles = $state<ExtendedSubmissionBundle[]>([
+  let _localSubmissionBundles = $state<ExtendedSubmissionBundle[]>([
     {
       id: "bundle-1",
       projectId: "project-1",

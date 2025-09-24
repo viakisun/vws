@@ -194,7 +194,7 @@
   }
 
   // 헬스 상태 텍스트
-  function getHealthText(status: string) {
+  function _getHealthText(status: string) {
     switch (status) {
       case "green":
         return "양호";
@@ -208,7 +208,7 @@
   }
 
   // 헬스 상태 색상
-  function getHealthColor(status: string) {
+  function _getHealthColor(status: string) {
     switch (status) {
       case "green":
         return "text-green-600 bg-green-100";

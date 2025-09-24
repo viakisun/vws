@@ -91,7 +91,9 @@
           })),
         ];
       }
-    } catch (error) {}
+    } catch (_error) {
+      /* intentionally ignored */
+    }
   }
 
   // 필터링된 급여명세서 데이터 목록 (로컬 필터)
@@ -230,7 +232,7 @@
   }
 
   // 필터 적용
-  function applyFilter() {
+  function _applyFilter() {
     // 필터가 변경되면 자동으로 반영됨 (reactive)
   }
 </script>

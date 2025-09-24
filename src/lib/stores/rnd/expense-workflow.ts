@@ -1,19 +1,19 @@
 // R&D 통합관리 시스템 지출/증빙 표준 흐름 및 결재 시스템
 
-import { writable, derived } from "svelte/store";
+import { derived, writable } from "svelte/store";
+import {
+  checkDocumentCompleteness,
+  getDefaultWorkflow,
+} from "./budget-categories";
 import type {
-  ExpenseItem,
-  Document,
   Approval,
-  ApprovalWorkflow,
   ApprovalStatus,
+  ApprovalWorkflow,
+  Document,
   DocumentType,
+  ExpenseItem,
   UUID,
 } from "./types";
-import {
-  getDefaultWorkflow,
-  checkDocumentCompleteness,
-} from "./budget-categories";
 
 // ===== 지출 항목 스토어 =====
 export const expenseItems = writable<ExpenseItem[]>([]);
@@ -483,7 +483,7 @@ export function getProjectExpenseStatistics(projectId: UUID): {
 /**
  * 결재 대기 중인 지출 항목
  */
-export function getPendingApprovalExpenses(approverId: UUID): ExpenseItem[] {
+export function getPendingApprovalExpenses(_approverId: UUID): ExpenseItem[] {
   let items: ExpenseItem[] = [];
   expenseItems.subscribe((value) => (items = value))();
 
@@ -509,7 +509,10 @@ export function getPendingApprovalExpenses(approverId: UUID): ExpenseItem[] {
 /**
  * 지출 항목 실행 (집행)
  */
-export function executeExpenseItem(expenseId: UUID, executedBy: UUID): boolean {
+export function executeExpenseItem(
+  expenseId: UUID,
+  _executedBy: UUID,
+): boolean {
   return updateExpenseItem(expenseId, {
     status: "executed",
     updatedAt: new Date().toISOString(),
@@ -521,7 +524,7 @@ export function executeExpenseItem(expenseId: UUID, executedBy: UUID): boolean {
  */
 export function completeExpenseItem(
   expenseId: UUID,
-  completedBy: UUID,
+  _completedBy: UUID,
 ): boolean {
   return updateExpenseItem(expenseId, {
     status: "completed",
@@ -532,7 +535,7 @@ export function completeExpenseItem(
 /**
  * 지출 항목 취소
  */
-export function cancelExpenseItem(expenseId: UUID, reason: string): boolean {
+export function cancelExpenseItem(expenseId: UUID, _reason: string): boolean {
   // 워크플로우 취소
   approvalWorkflows.update((workflows) => {
     const index = workflows.findIndex(

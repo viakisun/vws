@@ -1,6 +1,6 @@
 import { writable } from "svelte/store";
-import type { ParticipationAssignment, SalaryHistory } from "./types";
 import { logAudit } from "./core";
+import type { ParticipationAssignment, SalaryHistory } from "./types";
 
 // 참여율 및 급여 변동 관리
 export const participationAssignments = writable<ParticipationAssignment[]>([]);
@@ -103,7 +103,7 @@ export function addSalaryChange(
 // 월별 인건비 배분표 계산
 export function recalculateMonthlyAllocations(): void {
   // 모든 프로젝트와 참여 배정을 가져와서 월별로 계산
-  const allocations: Record<string, unknown[]> = {};
+  const _allocations: Record<string, unknown[]> = {};
 
   participationAssignments.subscribe((assignments) => {
     salaryHistory.subscribe((salaries) => {

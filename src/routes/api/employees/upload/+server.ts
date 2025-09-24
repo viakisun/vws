@@ -5,9 +5,9 @@ import {
   isValidDate,
   toUTC,
 } from "$lib/utils/date-handler";
+import { logger } from "$lib/utils/logger";
 import { json } from "@sveltejs/kit";
 import * as ExcelJS from "exceljs";
-import { logger } from "$lib/utils/logger";
 
 export async function POST({ request }) {
   try {
@@ -50,7 +50,7 @@ export async function POST({ request }) {
       // Excel 헤더 파싱 완료
 
       // 데이터 추출
-      data = rows.slice(1).map((row, index) => {
+      data = rows.slice(1).map((row, _index) => {
         const rowData: any = {};
         const rowValues = row.values.slice(1) as unknown[]; // ExcelJS는 1-based indexing
         headers.forEach((header, headerIndex) => {
@@ -96,7 +96,7 @@ export async function POST({ request }) {
       // CSV 헤더 파싱 완료
 
       // 데이터 파싱
-      data = lines.slice(1).map((line, index) => {
+      data = lines.slice(1).map((line, _index) => {
         const values = parseCSVLine(line);
         const row: any = {};
         headers.forEach((header, headerIndex) => {

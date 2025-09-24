@@ -170,7 +170,7 @@
   function validateForm(): boolean {
     const errors: string[] = [];
 
-    budgets.forEach((budget, index) => {
+    budgets.forEach((budget, _index) => {
       const yearLabel = `${budget.year}차년도`;
 
       // 기간 검증
@@ -262,8 +262,6 @@
     return new Intl.NumberFormat("ko-KR").format(num);
   }
 </script>
-
-import {logger} from '$lib/utils/logger';
 
 <div class="space-y-6">
   <div class="text-center">

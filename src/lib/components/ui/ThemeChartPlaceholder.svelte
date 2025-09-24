@@ -1,18 +1,12 @@
 <script lang="ts">
   interface Props {
-    title: string;
-    value?: string;
-    icon?: any;
-    class?: string;
+    title: string
+    value?: string
+    icon?: any
+    class?: string
   }
 
-  let {
-    title,
-    value = "",
-    icon,
-    class: className = "",
-    ...restProps
-  }: Props = $props();
+  let { title, value = '', icon, class: className = '', ...restProps }: Props = $props()
 </script>
 
 <div class="space-y-4 {className}" {...restProps}>
@@ -26,12 +20,9 @@
   >
     <div class="text-center">
       {#if icon}
-        <icon class="w-8 h-8 mx-auto mb-2" style:color="var(--color-primary)"
-        ></icon>
+        <icon class="w-8 h-8 mx-auto mb-2" style:color="var(--color-primary)"></icon>
       {/if}
-      <span class="text-sm" style:color="var(--color-text-secondary)"
-        >차트 영역</span
-      >
+      <span class="text-sm" style:color="var(--color-text-secondary)">차트 영역</span>
     </div>
   </div>
   {#if value}

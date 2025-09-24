@@ -194,7 +194,7 @@
   }
 
   // 직책을 레벨별로 분류
-  function getJobTitlesByLevel() {
+  function _getJobTitlesByLevel() {
     const levels = {
       "C-Level": jobTitles.filter((jt) => jt.level === 1),
       Management: jobTitles.filter((jt) => jt.level === 2),
@@ -222,12 +222,12 @@
     return activeEmployeeCount;
   });
 
-  let totalAllEmployees = $derived(() => {
+  let _totalAllEmployees = $derived(() => {
     // 모든 직원 카운트 (재직자 + 퇴사자, 이사 제외)
     return employees?.length || 0;
   });
 
-  let totalTO = $derived(() => {
+  let _totalTO = $derived(() => {
     // 부서별 T/O 카운트를 단순히 합산
     return Object.values(teamTO() as Record<string, number>).reduce(
       (sum: number, to: number) => sum + to,
@@ -235,7 +235,7 @@
     );
   });
 
-  let totalDepartments = $derived(
+  let _totalDepartments = $derived(
     () =>
       [...new Set(employees?.map((emp: any) => emp.department) || [])].length,
   );
@@ -317,12 +317,12 @@
   // 이사 관리 관련 상태
   let executives = $state<any[]>([]);
   let jobTitles = $state<any[]>([]);
-  let showExecutiveModal = $state(false);
-  let showJobTitleModal = $state(false);
-  let selectedExecutive = $state<any>(null);
-  let selectedJobTitle = $state<any>(null);
+  let _showExecutiveModal = $state(false);
+  let _showJobTitleModal = $state(false);
+  let _selectedExecutive = $state<any>(null);
+  let _selectedJobTitle = $state<any>(null);
   let executiveLoading = $state(false);
-  let jobTitleLoading = $state(false);
+  let _jobTitleLoading = $state(false);
 
   // 직원 검색 및 필터링 상태
   let searchQuery = $state("");
@@ -366,7 +366,7 @@
   );
 
   // 팀별로 그룹화된 직원 목록
-  let groupedEmployees = $derived(
+  let _groupedEmployees = $derived(
     (() => {
       const groups: { [key: string]: any[] } = {};
 

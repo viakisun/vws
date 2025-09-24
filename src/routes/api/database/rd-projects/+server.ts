@@ -1,14 +1,14 @@
-import { json } from "@sveltejs/kit";
-import { query } from "$lib/database/connection";
-import type { RequestHandler } from "./$types";
-import { logger } from "$lib/utils/logger";
+import { json } from '@sveltejs/kit'
+import { query } from '$lib/database/connection'
+import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger'
 
 export const GET: RequestHandler = async ({ url }) => {
   try {
-    const limit = parseInt(url.searchParams.get("limit") || "50");
-    const offset = parseInt(url.searchParams.get("offset") || "0");
-    const status = url.searchParams.get("status") || undefined;
-    const research_type = url.searchParams.get("research_type") || undefined;
+    const limit = parseInt(url.searchParams.get('limit') || '50')
+    const offset = parseInt(url.searchParams.get('offset') || '0')
+    const status = url.searchParams.get('status') || undefined
+    const research_type = url.searchParams.get('research_type') || undefined
 
     let queryText = `
 			SELECT 
@@ -28,38 +28,38 @@ export const GET: RequestHandler = async ({ url }) => {
 			FROM rd_projects rd
 			JOIN projects p ON rd.project_id = p.id
 			WHERE 1=1
-		`;
+		`
 
-    const params: unknown[] = [];
-    let paramCount = 0;
+    const params: unknown[] = []
+    let paramCount = 0
 
     if (status) {
-      paramCount++;
-      queryText += ` AND rd.status = $${paramCount}`;
-      params.push(status);
+      paramCount++
+      queryText += ` AND rd.status = $${paramCount}`
+      params.push(status)
     }
 
     if (research_type) {
-      paramCount++;
-      queryText += ` AND rd.research_type = $${paramCount}`;
-      params.push(research_type);
+      paramCount++
+      queryText += ` AND rd.research_type = $${paramCount}`
+      params.push(research_type)
     }
 
-    queryText += " ORDER BY rd.created_at DESC";
+    queryText += ' ORDER BY rd.created_at DESC'
 
     if (limit) {
-      paramCount++;
-      queryText += ` LIMIT $${paramCount}`;
-      params.push(limit);
+      paramCount++
+      queryText += ` LIMIT $${paramCount}`
+      params.push(limit)
     }
 
     if (offset) {
-      paramCount++;
-      queryText += ` OFFSET $${paramCount}`;
-      params.push(offset);
+      paramCount++
+      queryText += ` OFFSET $${paramCount}`
+      params.push(offset)
     }
 
-    const result = await query(queryText, params);
+    const result = await query(queryText, params)
 
     return json({
       success: true,
@@ -69,15 +69,15 @@ export const GET: RequestHandler = async ({ url }) => {
         offset,
         total: result.rows.length,
       },
-    });
+    })
   } catch (error) {
-    logger.error("Get R&D projects error:", error);
+    logger.error('Get R&D projects error:', error)
     return json(
       {
         success: false,
-        error: error instanceof Error ? error.message : "Unknown error",
+        error: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 },
-    );
+    )
   }
-};
+}

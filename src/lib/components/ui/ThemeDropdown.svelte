@@ -23,7 +23,7 @@
   }
 
   let {
-    open = false,
+    open: _open = false,
     trigger = "click",
     position = "bottom-left",
     size = "md",

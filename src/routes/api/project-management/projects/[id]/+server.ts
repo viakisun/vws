@@ -10,9 +10,9 @@ import {
   transformProjectMemberData,
   transformRiskData,
 } from "$lib/utils/api-data-transformer";
+import { logger } from "$lib/utils/logger";
 import { json } from "@sveltejs/kit";
 import type { RequestHandler } from "./$types";
-import { logger } from "$lib/utils/logger";
 
 // 개별 프로젝트 조회
 export const GET: RequestHandler = async ({ params }) => {
@@ -247,7 +247,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
       updateValues,
     );
 
-    const updatedProject = result.rows[0];
+    const _updatedProject = result.rows[0];
 
     // 업데이트된 프로젝트 정보와 함께 반환
     const projectWithDetails = await query(
@@ -308,7 +308,7 @@ export const DELETE: RequestHandler = async ({ params }) => {
       );
     }
 
-    const project = existingProject.rows[0];
+    const _project = existingProject.rows[0];
 
     // 프로젝트 삭제 가능 여부 확인 (모든 상태에서 삭제 가능)
     // 프로젝트 삭제 요청 처리

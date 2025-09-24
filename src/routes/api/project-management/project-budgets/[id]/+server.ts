@@ -1,7 +1,7 @@
 import { query } from "$lib/database/connection";
+import { logger } from "$lib/utils/logger";
 import { json } from "@sveltejs/kit";
 import type { RequestHandler } from "./$types";
-import { logger } from "$lib/utils/logger";
 
 // GET /api/project-management/project-budgets/[id] - 특정 프로젝트 사업비 조회
 export const GET: RequestHandler = async ({ params }) => {
@@ -94,7 +94,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
     const indirectCost = indirectCostCash + indirectCostInKind;
 
     // 사업비 수정
-    const result = await query(
+    const _result = await query(
       `
 			UPDATE project_budgets 
 			SET 

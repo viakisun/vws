@@ -1,5 +1,5 @@
 <script lang="ts">
-  let { title = "", subtitle = "", class: className = "", children } = $props();
+  let { title = '', subtitle = '', class: className = '', children } = $props()
 </script>
 
 <div class="mb-6 {className}">

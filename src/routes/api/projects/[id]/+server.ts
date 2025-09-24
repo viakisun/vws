@@ -1,37 +1,37 @@
-import { json, error } from "@sveltejs/kit";
-import type { RequestHandler } from "./$types";
-import { DatabaseService } from "$lib/database/connection";
-import { logger } from "$lib/utils/logger";
+import { json, error } from '@sveltejs/kit'
+import type { RequestHandler } from './$types'
+import { DatabaseService } from '$lib/database/connection'
+import { logger } from '$lib/utils/logger'
 
 // GET /api/projects/[id] - Get project by ID
 export const GET: RequestHandler = async ({ params }) => {
   try {
-    const project = await DatabaseService.getProjectById(params.id);
+    const project = await DatabaseService.getProjectById(params.id)
 
     if (!project) {
-      return error(404, { message: "Project not found" });
+      return error(404, { message: 'Project not found' })
     }
 
     return json({
       success: true,
       data: project,
-    });
+    })
   } catch (err) {
-    logger.error("Get project error:", err);
-    return error(500, { message: "Internal server error" });
+    logger.error('Get project error:', err)
+    return error(500, { message: 'Internal server error' })
   }
-};
+}
 
 // PUT /api/projects/[id] - Update project
 export const PUT: RequestHandler = async ({ params, request }) => {
   try {
-    const updateData = await request.json();
-    const projectId = params.id;
+    const updateData = await request.json()
+    const projectId = params.id
 
     // Check if project exists
-    const existingProject = await DatabaseService.getProjectById(projectId);
+    const existingProject = await DatabaseService.getProjectById(projectId)
     if (!existingProject) {
-      return error(404, { message: "Project not found" });
+      return error(404, { message: 'Project not found' })
     }
 
     // Update project
@@ -61,52 +61,50 @@ export const PUT: RequestHandler = async ({ params, request }) => {
         updateData.budget_total,
         projectId,
       ],
-    );
+    )
 
     return json({
       success: true,
       data: result.rows[0],
-    });
+    })
   } catch (err) {
-    logger.error("Update project error:", err);
-    return error(500, { message: "Internal server error" });
+    logger.error('Update project error:', err)
+    return error(500, { message: 'Internal server error' })
   }
-};
+}
 
 // DELETE /api/projects/[id] - Delete project
 export const DELETE: RequestHandler = async ({ params }) => {
   try {
-    const projectId = params.id;
+    const projectId = params.id
 
     // Check if project exists
-    const existingProject = await DatabaseService.getProjectById(projectId);
+    const existingProject = await DatabaseService.getProjectById(projectId)
     if (!existingProject) {
-      return error(404, { message: "Project not found" });
+      return error(404, { message: 'Project not found' })
     }
 
     // Check if project has associated data
     const expenseCount = await DatabaseService.query(
-      "SELECT COUNT(*) as count FROM expense_items WHERE project_id = $1",
+      'SELECT COUNT(*) as count FROM expense_items WHERE project_id = $1',
       [projectId],
-    );
+    )
 
     if (parseInt(expenseCount.rows[0].count) > 0) {
       return error(400, {
-        message: "Cannot delete project with associated expense items",
-      });
+        message: 'Cannot delete project with associated expense items',
+      })
     }
 
     // Delete project
-    await DatabaseService.query("DELETE FROM projects WHERE id = $1", [
-      projectId,
-    ]);
+    await DatabaseService.query('DELETE FROM projects WHERE id = $1', [projectId])
 
     return json({
       success: true,
-      message: "Project deleted successfully",
-    });
+      message: 'Project deleted successfully',
+    })
   } catch (err) {
-    logger.error("Delete project error:", err);
-    return error(500, { message: "Internal server error" });
+    logger.error('Delete project error:', err)
+    return error(500, { message: 'Internal server error' })
   }
-};
+}

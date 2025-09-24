@@ -22,7 +22,7 @@
   let projectMembers = $state<any[]>([]);
   let evidenceItems = $state<any[]>([]);
   let isLoading = $state(true);
-  let isEditing = $state(false);
+  let _isEditing = $state(false);
   let showEditModal = $state(false);
   let showBudgetModal = $state(false);
   let showMemberModal = $state(false);
@@ -767,6 +767,11 @@
               >회계연도</label
             >
             <input
+              id="budget-fiscal-year"
+              type="number"
+              placeholder="회계연도"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
           </div>
         </div>
 

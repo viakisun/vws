@@ -1,5 +1,5 @@
-import { Pool } from "pg";
 import { logger } from "$lib/utils/logger";
+import { Pool } from "pg";
 
 // 데이터베이스 연결 풀
 const pool = new Pool({
@@ -428,7 +428,7 @@ export class EmploymentPeriodValidator {
     project: any,
   ): ValidationResult {
     const memberStartDate = new Date(member.start_date);
-    const memberEndDate = new Date(member.end_date);
+    const _memberEndDate = new Date(member.end_date);
     const hireDate = member.hire_date ? new Date(member.hire_date) : null;
     const terminationDate = member.termination_date
       ? new Date(member.termination_date)

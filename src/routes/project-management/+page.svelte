@@ -1,7 +1,7 @@
 <script lang="ts">
   import { logger } from "$lib/utils/logger";
 
-  /* global fetch */
+  /* global _fetch */
   import { goto } from "$app/navigation";
   import { page } from "$app/stores";
   import PageLayout from "$lib/components/layout/PageLayout.svelte";

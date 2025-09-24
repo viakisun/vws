@@ -20,10 +20,10 @@
 
   // 모달 상태
   let isJobPostingModalOpen = $state(false);
-  let isCandidateModalOpen = $state(false);
-  let isInterviewModalOpen = $state(false);
+  let _isCandidateModalOpen = $state(false);
+  let _isInterviewModalOpen = $state(false);
   let selectedJobPosting = $state<JobPosting | null>(null);
-  let selectedCandidate = $state<Candidate | null>(null);
+  let _selectedCandidate = $state<Candidate | null>(null);
 
   // 필터
   let statusFilter = $state("");
@@ -45,7 +45,7 @@
     applicationDeadline: "",
   });
 
-  let candidateForm = $state({
+  let _candidateForm = $state({
     jobPostingId: "",
     personalInfo: {
       name: "",
@@ -419,7 +419,7 @@
                 >필수 요구사항</span
               >
               <div class="space-y-2">
-                {#each jobPostingForm.requirements as requirement, index (index)}
+                {#each jobPostingForm.requirements as _requirement, index (index)}
                   <div class="flex space-x-2">
                     <input
                       type="text"

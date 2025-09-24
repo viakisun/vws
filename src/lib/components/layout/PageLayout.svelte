@@ -1,78 +1,65 @@
 <script lang="ts">
-  import ThemeButton from "$lib/components/ui/ThemeButton.svelte";
-  import ThemeCard from "$lib/components/ui/ThemeCard.svelte";
-  import ThemeGrid from "$lib/components/ui/ThemeGrid.svelte";
-  import ThemeInput from "$lib/components/ui/ThemeInput.svelte";
-  import ThemePageHeader from "$lib/components/ui/ThemePageHeader.svelte";
-  import ThemeSpacer from "$lib/components/ui/ThemeSpacer.svelte";
-  import ThemeStatCard from "$lib/components/ui/ThemeStatCard.svelte";
-  import { logger } from "$lib/utils/logger";
-  import {
-    FilterIcon,
-    RefreshCwIcon,
-    SearchIcon,
-    SettingsIcon,
-  } from "@lucide/svelte";
+  import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
+  import ThemeCard from '$lib/components/ui/ThemeCard.svelte'
+  import ThemeGrid from '$lib/components/ui/ThemeGrid.svelte'
+  import ThemeInput from '$lib/components/ui/ThemeInput.svelte'
+  import ThemePageHeader from '$lib/components/ui/ThemePageHeader.svelte'
+  import ThemeSpacer from '$lib/components/ui/ThemeSpacer.svelte'
+  import ThemeStatCard from '$lib/components/ui/ThemeStatCard.svelte'
+  import { logger } from '$lib/utils/logger'
+  import { FilterIcon, RefreshCwIcon, SearchIcon, SettingsIcon } from '@lucide/svelte'
 
   interface Props {
-    title: string;
-    subtitle?: string;
-    children?: any;
-    showSearch?: boolean;
-    showFilters?: boolean;
-    showActions?: boolean;
-    searchPlaceholder?: string;
-    actions?: any[];
+    title: string
+    subtitle?: string
+    children?: any
+    showSearch?: boolean
+    showFilters?: boolean
+    showActions?: boolean
+    searchPlaceholder?: string
+    actions?: any[]
     stats?: Array<{
-      title: string;
-      value: string | number;
-      badge?: string;
-      icon?: any;
-      href?: string;
-      color?:
-        | "blue"
-        | "green"
-        | "purple"
-        | "orange"
-        | "red"
-        | "yellow"
-        | "indigo"
-        | "pink";
-    }>;
+      title: string
+      value: string | number
+      badge?: string
+      icon?: any
+      href?: string
+      color?: 'blue' | 'green' | 'purple' | 'orange' | 'red' | 'yellow' | 'indigo' | 'pink'
+    }>
   }
 
   let {
     title,
-    subtitle = "",
+    subtitle = '',
     children,
     showSearch = true,
     showFilters = true,
     showActions = true,
-    searchPlaceholder = "검색...",
+    searchPlaceholder = '검색...',
     actions = [],
     stats = [],
-  }: Props = $props();
+  }: Props = $props()
 
-  let searchTerm = $state("");
-  let selectedFilter = $state("all");
-  let showFiltersDropdown = $state(false);
+  let searchTerm = $state('')
+  let selectedFilter = $state('all')
+  let showFiltersDropdown = $state(false)
 
   const defaultActions = [
     {
-      label: "새로고침",
+      label: '새로고침',
       icon: RefreshCwIcon,
       onclick: () => window.location.reload(),
-      variant: "ghost" as const,
+      variant: 'ghost' as const,
     },
     {
-      label: "설정",
+      label: '설정',
       icon: SettingsIcon,
-      onclick: () => logger.log("Settings clicked"),
-      variant: "ghost" as const,
+      onclick: () => logger.log('Settings clicked'),
+      variant: 'ghost' as const,
     },
-  ];
+  ]
 
-  const allActions = [...defaultActions, ...actions];
+  const allActions = [...defaultActions, ...actions]
 </script>
 
 <div>
@@ -137,12 +124,12 @@
                     <button
                       type="button"
                       onclick={() => {
-                        selectedFilter = "all";
-                        showFiltersDropdown = false;
+                        selectedFilter = 'all'
+                        showFiltersDropdown = false
                       }}
                       class="block w-full text-left px-4 py-2 text-sm hover:opacity-80 transition-opacity"
-                      class:bg-blue-50={selectedFilter === "all"}
-                      class:dark:bg-blue-900={selectedFilter === "all"}
+                      class:bg-blue-50={selectedFilter === 'all'}
+                      class:dark:bg-blue-900={selectedFilter === 'all'}
                       style:color="var(--color-text)"
                     >
                       전체
@@ -150,12 +137,12 @@
                     <button
                       type="button"
                       onclick={() => {
-                        selectedFilter = "active";
-                        showFiltersDropdown = false;
+                        selectedFilter = 'active'
+                        showFiltersDropdown = false
                       }}
                       class="block w-full text-left px-4 py-2 text-sm hover:opacity-80 transition-opacity"
-                      class:bg-blue-50={selectedFilter === "active"}
-                      class:dark:bg-blue-900={selectedFilter === "active"}
+                      class:bg-blue-50={selectedFilter === 'active'}
+                      class:dark:bg-blue-900={selectedFilter === 'active'}
                       style:color="var(--color-text)"
                     >
                       활성
@@ -163,12 +150,12 @@
                     <button
                       type="button"
                       onclick={() => {
-                        selectedFilter = "inactive";
-                        showFiltersDropdown = false;
+                        selectedFilter = 'inactive'
+                        showFiltersDropdown = false
                       }}
                       class="block w-full text-left px-4 py-2 text-sm hover:opacity-80 transition-opacity"
-                      class:bg-blue-50={selectedFilter === "inactive"}
-                      class:dark:bg-blue-900={selectedFilter === "inactive"}
+                      class:bg-blue-50={selectedFilter === 'inactive'}
+                      class:dark:bg-blue-900={selectedFilter === 'inactive'}
                       style:color="var(--color-text)"
                     >
                       비활성
@@ -185,7 +172,7 @@
           <div class="flex gap-2">
             {#each allActions as action (action.label)}
               <ThemeButton
-                variant={action.variant || "primary"}
+                variant={action.variant || 'primary'}
                 size="sm"
                 onclick={action.onclick}
                 class="flex items-center gap-2"

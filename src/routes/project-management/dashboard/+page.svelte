@@ -69,7 +69,7 @@
   );
 
   // Burn rate projection: project-level spent/elapsed → projected over total duration, aggregated
-  function daysBetween(a: string, b: string): number {
+  function _daysBetween(a: string, b: string): number {
     const ms = new Date(b).getTime() - new Date(a).getTime();
     return Math.max(1, Math.ceil(ms / (1000 * 60 * 60 * 24)));
   }

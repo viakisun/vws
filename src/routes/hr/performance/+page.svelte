@@ -34,8 +34,8 @@
   // 모달 상태
   let isReviewModalOpen = $state(false);
   let isFeedbackModalOpen = $state(false);
-  let isCompetencyModalOpen = $state(false);
-  let isTrainingModalOpen = $state(false);
+  let _isCompetencyModalOpen = $state(false);
+  let _isTrainingModalOpen = $state(false);
   let selectedReview = $state<PerformanceReview | null>(null);
 
   // 폼 데이터
@@ -707,7 +707,7 @@
                 class="block text-sm font-medium text-gray-700 mb-1">강점</label
               >
               <div class="space-y-2">
-                {#each reviewForm.strengths as strength, index (index)}
+                {#each reviewForm.strengths as _strength, index (index)}
                   <div class="flex space-x-2">
                     <input
                       id="strengths-{index}"
@@ -741,7 +741,7 @@
                 >개선 영역</label
               >
               <div class="space-y-2">
-                {#each reviewForm.improvementAreas as area, index (index)}
+                {#each reviewForm.improvementAreas as _area, index (index)}
                   <div class="flex space-x-2">
                     <input
                       id="improvement-areas-{index}"

@@ -1,7 +1,7 @@
-import { writable } from "svelte/store";
-import type { ReplacementRecommendation } from "./types";
-import { logAudit } from "./core";
 import { logger } from "$lib/utils/logger";
+import { writable } from "svelte/store";
+import { logAudit } from "./core";
+import type { ReplacementRecommendation } from "./types";
 
 // 대체 추천 시스템
 export const replacementRecommendations = writable<ReplacementRecommendation[]>(
@@ -82,7 +82,7 @@ function findReplacementCandidates(
 }
 
 // 프로젝트 요구사항 분석
-function analyzeProjectRequirements(projectId: string): any {
+function analyzeProjectRequirements(_projectId: string): any {
   // 실제 구현에서는 프로젝트 데이터를 분석
   return {
     requiredSkills: ["JavaScript", "React", "Node.js", "Database"],
@@ -96,7 +96,7 @@ function analyzeProjectRequirements(projectId: string): any {
 }
 
 // 개인 프로필 분석
-function analyzePersonProfile(personId: string): any {
+function analyzePersonProfile(_personId: string): any {
   // 실제 구현에서는 개인 데이터를 분석
   return {
     skills: ["JavaScript", "React", "Node.js", "MongoDB"],

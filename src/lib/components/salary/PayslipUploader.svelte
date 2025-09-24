@@ -83,7 +83,7 @@
       a.click();
       document.body.removeChild(a);
       window.URL.revokeObjectURL(url);
-    } catch (error) {
+    } catch (_error) {
       alert("템플릿 다운로드에 실패했습니다.");
     }
   }
@@ -120,7 +120,7 @@
       } else {
         alert(`업로드 실패: ${result.error}`);
       }
-    } catch (error) {
+    } catch (_error) {
       alert("업로드 중 오류가 발생했습니다.");
     } finally {
       isUploading = false;

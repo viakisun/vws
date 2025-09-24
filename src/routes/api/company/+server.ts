@@ -1,7 +1,7 @@
-import { json } from "@sveltejs/kit";
-import { query } from "$lib/database/connection.js";
-import type { RequestHandler } from "./$types";
-import { logger } from "$lib/utils/logger";
+import { json } from '@sveltejs/kit'
+import { query } from '$lib/database/connection.js'
+import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger'
 
 // GET /api/company - 회사 정보 조회
 export const GET: RequestHandler = async () => {
@@ -14,50 +14,48 @@ export const GET: RequestHandler = async () => {
 			FROM companies 
 			ORDER BY created_at DESC
 			LIMIT 1
-		`);
+		`)
 
-    const company = result.rows.length > 0 ? result.rows[0] : null;
+    const company = result.rows.length > 0 ? result.rows[0] : null
 
     return json({
       success: true,
       data: company,
-      message: company
-        ? "회사 정보를 성공적으로 조회했습니다."
-        : "등록된 회사 정보가 없습니다.",
-    });
+      message: company ? '회사 정보를 성공적으로 조회했습니다.' : '등록된 회사 정보가 없습니다.',
+    })
   } catch (error: any) {
-    logger.error("Error fetching company:", error);
+    logger.error('Error fetching company:', error)
     return json(
       {
         success: false,
-        error: error.message || "회사 정보 조회에 실패했습니다.",
+        error: error.message || '회사 정보 조회에 실패했습니다.',
       },
       { status: 500 },
-    );
+    )
   }
-};
+}
 
 // POST /api/company - 회사 정보 등록/수정
 export const POST: RequestHandler = async ({ request }) => {
   try {
-    const data = await request.json();
+    const data = await request.json()
 
     // 필수 필드 검증
     if (!data.name) {
       return json(
         {
           success: false,
-          error: "회사명은 필수입니다.",
+          error: '회사명은 필수입니다.',
         },
         { status: 400 },
-      );
+      )
     }
 
     // 기존 회사 정보가 있는지 확인
-    const existingResult = await query("SELECT id FROM companies LIMIT 1");
-    const existingCompany = existingResult.rows.length > 0;
+    const existingResult = await query('SELECT id FROM companies LIMIT 1')
+    const existingCompany = existingResult.rows.length > 0
 
-    let result;
+    let result
     if (existingCompany) {
       // 기존 회사 정보 업데이트
       result = await query(
@@ -92,7 +90,7 @@ export const POST: RequestHandler = async ({ request }) => {
           data.registration_number || null,
           new Date(),
         ],
-      );
+      )
     } else {
       // 새 회사 정보 등록
       result = await query(
@@ -120,24 +118,24 @@ export const POST: RequestHandler = async ({ request }) => {
           new Date(),
           new Date(),
         ],
-      );
+      )
     }
 
     return json({
       success: true,
       data: result.rows[0],
       message: existingCompany
-        ? "회사 정보가 성공적으로 수정되었습니다."
-        : "회사 정보가 성공적으로 등록되었습니다.",
-    });
+        ? '회사 정보가 성공적으로 수정되었습니다.'
+        : '회사 정보가 성공적으로 등록되었습니다.',
+    })
   } catch (error: any) {
-    logger.error("Error saving company:", error);
+    logger.error('Error saving company:', error)
     return json(
       {
         success: false,
-        error: error.message || "회사 정보 저장에 실패했습니다.",
+        error: error.message || '회사 정보 저장에 실패했습니다.',
       },
       { status: 500 },
-    );
+    )
   }
-};
+}

@@ -93,13 +93,13 @@ SELECT e.first_name || ' ' || e.last_name as employee_name
 // ✅ 올바른 응답
 return {
   employeeName: formatEmployeeName(employee),
-  assigneeName: formatKoreanNameStandard(assignee.full_name)
+  assigneeName: formatKoreanNameStandard(assignee.full_name),
 }
 
 // ❌ 잘못된 응답
 return {
   employeeName: `${employee.first_name} ${employee.last_name}`,
-  assigneeName: assignee.full_name
+  assigneeName: assignee.full_name,
 }
 ```
 

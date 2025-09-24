@@ -131,7 +131,6 @@ export function transformProjectBudgetData(budget: any) {
     start_date,
     end_date,
     period_number,
-    period_number,
     created_at,
     updated_at,
     ...otherFields

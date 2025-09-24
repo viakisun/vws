@@ -1,7 +1,7 @@
-import { query } from "$lib/database/connection";
-import { json } from "@sveltejs/kit";
-import type { RequestHandler } from "./$types";
-import { logger } from "$lib/utils/logger";
+import { query } from '$lib/database/connection'
+import { json } from '@sveltejs/kit'
+import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger'
 
 // POST /api/project-management/setup-evidence - 증빙 내역 테이블 설정
 export const POST: RequestHandler = async () => {
@@ -28,7 +28,7 @@ export const POST: RequestHandler = async () => {
 				approved_at TIMESTAMP,
 				rejection_reason TEXT
 			)
-		`);
+		`)
 
     // 증빙 유형 테이블 생성
     await query(`
@@ -40,7 +40,7 @@ export const POST: RequestHandler = async () => {
 				is_active BOOLEAN DEFAULT true,
 				created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 			)
-		`);
+		`)
 
     // 기본 증빙 유형 데이터 삽입
     await query(`
@@ -52,21 +52,19 @@ export const POST: RequestHandler = async () => {
 			('payment_voucher', '지출증빙', '지출증빙서'),
 			('other', '기타', '기타 증빙서류')
 			ON CONFLICT (code) DO NOTHING
-		`);
+		`)
 
     // 인덱스 생성
     await query(
       `CREATE INDEX IF NOT EXISTS idx_budget_evidence_project_budget_id ON budget_evidence(project_budget_id)`,
-    );
+    )
     await query(
       `CREATE INDEX IF NOT EXISTS idx_budget_evidence_evidence_date ON budget_evidence(evidence_date)`,
-    );
-    await query(
-      `CREATE INDEX IF NOT EXISTS idx_budget_evidence_status ON budget_evidence(status)`,
-    );
+    )
+    await query(`CREATE INDEX IF NOT EXISTS idx_budget_evidence_status ON budget_evidence(status)`)
     await query(
       `CREATE INDEX IF NOT EXISTS idx_budget_evidence_created_by ON budget_evidence(created_by)`,
-    );
+    )
 
     // 트리거 함수 생성
     await query(`
@@ -88,7 +86,7 @@ export const POST: RequestHandler = async () => {
 				RETURN NEW;
 			END;
 			$$ LANGUAGE plpgsql
-		`);
+		`)
 
     // 트리거 생성
     await query(`
@@ -97,7 +95,7 @@ export const POST: RequestHandler = async () => {
 				AFTER INSERT OR UPDATE ON budget_evidence
 				FOR EACH ROW
 				EXECUTE FUNCTION update_project_budget_spent_amount()
-		`);
+		`)
 
     // 업데이트 시간 트리거 함수
     await query(`
@@ -108,7 +106,7 @@ export const POST: RequestHandler = async () => {
 				RETURN NEW;
 			END;
 			$$ LANGUAGE plpgsql
-		`);
+		`)
 
     // 업데이트 시간 트리거
     await query(`
@@ -117,21 +115,21 @@ export const POST: RequestHandler = async () => {
 				BEFORE UPDATE ON budget_evidence
 				FOR EACH ROW
 				EXECUTE FUNCTION update_updated_at_column()
-		`);
+		`)
 
     return json({
       success: true,
-      message: "증빙 내역 테이블이 성공적으로 설정되었습니다.",
-    });
+      message: '증빙 내역 테이블이 성공적으로 설정되었습니다.',
+    })
   } catch (error) {
-    logger.error("증빙 내역 테이블 설정 실패:", error);
+    logger.error('증빙 내역 테이블 설정 실패:', error)
     return json(
       {
         success: false,
-        message: "증빙 내역 테이블 설정에 실패했습니다.",
+        message: '증빙 내역 테이블 설정에 실패했습니다.',
         error: (error as Error).message,
       },
       { status: 500 },
-    );
+    )
   }
-};
+}

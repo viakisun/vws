@@ -24,7 +24,7 @@
   }
 
   // Mock reports data
-  let localReports = $state<ExtendedReport[]>([
+  let _localReports = $state<ExtendedReport[]>([
     {
       id: "report-1",
       projectId: "project-1",
@@ -201,8 +201,8 @@
     }
 
     // Calculate summary data based on project data
-    const project = $projects.find((p: any) => p.id === formData.projectId);
-    const projectExpenses = $expenseItems.filter(
+    const _project = $projects.find((p: any) => p.id === formData.projectId);
+    const _projectExpenses = $expenseItems.filter(
       (e: any) => e.projectId === formData.projectId,
     );
 

@@ -1,133 +1,121 @@
 <script lang="ts">
-  import { logger } from "$lib/utils/logger";
+  import { logger } from '$lib/utils/logger'
 
-  import { XIcon } from "@lucide/svelte";
+  import { XIcon } from '@lucide/svelte'
 
   interface Company {
-    id?: string;
-    name: string;
-    establishment_date?: string;
-    ceo_name?: string;
-    business_type?: string;
-    address?: string;
-    phone?: string;
-    fax?: string;
-    email?: string;
-    website?: string;
-    registration_number?: string;
+    id?: string
+    name: string
+    establishment_date?: string
+    ceo_name?: string
+    business_type?: string
+    address?: string
+    phone?: string
+    fax?: string
+    email?: string
+    website?: string
+    registration_number?: string
   }
 
   interface Props {
-    open: boolean;
-    company?: Company | null;
-    loading?: boolean;
-    onclose?: () => void;
-    onsave?: (event: CustomEvent) => void;
+    open: boolean
+    company?: Company | null
+    loading?: boolean
+    onclose?: () => void
+    onsave?: (event: CustomEvent) => void
   }
 
-  let {
-    open,
-    company = null,
-    loading = false,
-    onclose,
-    onsave,
-  }: Props = $props();
+  let { open, company = null, loading = false, onclose, onsave }: Props = $props()
 
   let formData = $state<Company>({
-    name: "",
-    establishment_date: "",
-    ceo_name: "",
-    business_type: "",
-    address: "",
-    phone: "",
-    fax: "",
-    email: "",
-    website: "",
-    registration_number: "",
-  });
+    name: '',
+    establishment_date: '',
+    ceo_name: '',
+    business_type: '',
+    address: '',
+    phone: '',
+    fax: '',
+    email: '',
+    website: '',
+    registration_number: '',
+  })
 
   // 회사 정보가 변경될 때 폼 데이터 업데이트
   $effect(() => {
     if (company) {
       formData = {
-        name: company.name || "",
-        establishment_date: company.establishment_date || "",
-        ceo_name: company.ceo_name || "",
-        business_type: company.business_type || "",
-        address: company.address || "",
-        phone: company.phone || "",
-        fax: company.fax || "",
-        email: company.email || "",
-        website: company.website || "",
-        registration_number: company.registration_number || "",
-      };
+        name: company.name || '',
+        establishment_date: company.establishment_date || '',
+        ceo_name: company.ceo_name || '',
+        business_type: company.business_type || '',
+        address: company.address || '',
+        phone: company.phone || '',
+        fax: company.fax || '',
+        email: company.email || '',
+        website: company.website || '',
+        registration_number: company.registration_number || '',
+      }
     } else {
       formData = {
-        name: "",
-        establishment_date: "",
-        ceo_name: "",
-        business_type: "",
-        address: "",
-        phone: "",
-        fax: "",
-        email: "",
-        website: "",
-        registration_number: "",
-      };
+        name: '',
+        establishment_date: '',
+        ceo_name: '',
+        business_type: '',
+        address: '',
+        phone: '',
+        fax: '',
+        email: '',
+        website: '',
+        registration_number: '',
+      }
     }
-  });
+  })
 
   // 저장 함수
   async function handleSave() {
     try {
-      const response = await fetch("/api/company", {
-        method: "POST",
+      const response = await fetch('/api/company', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify(formData),
-      });
+      })
 
-      const result = await response.json();
+      const result = await response.json()
 
       if (result.success) {
         // 성공 이벤트 발생
         if (onsave) {
-          onsave(new CustomEvent("save", { detail: { company: result.data } }));
+          onsave(new CustomEvent('save', { detail: { company: result.data } }))
         }
         if (onclose) {
-          onclose();
+          onclose()
         }
       } else {
-        alert("오류: " + result.error);
+        alert('오류: ' + result.error)
       }
     } catch (error) {
-      logger.error("Error saving company:", error);
-      alert("회사 정보 저장 중 오류가 발생했습니다.");
+      logger.error('Error saving company:', error)
+      alert('회사 정보 저장 중 오류가 발생했습니다.')
     }
   }
 
   // 모달 닫기
   function handleClose() {
     if (onclose) {
-      onclose();
+      onclose()
     }
   }
 </script>
 
-import {logger} from '$lib/utils/logger';
-
 {#if open}
-  <div
-    class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
-  >
-    <div
-      class="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto"
-    >
+  <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
       <!-- 헤더 -->
       <div class="flex items-center justify-between p-6 border-b">
         <h2 class="text-xl font-semibold text-gray-900">
-          {company ? "회사 정보 수정" : "회사 정보 등록"}
+          {company ? '회사 정보 수정' : '회사 정보 등록'}
         </h2>
         <button
           type="button"
@@ -142,9 +130,7 @@ import {logger} from '$lib/utils/logger';
       <div class="p-6 space-y-4">
         <!-- 회사명 -->
         <div>
-          <label for="name" class="block text-sm font-medium text-gray-700 mb-1"
-            >회사명 *</label
-          >
+          <label for="name" class="block text-sm font-medium text-gray-700 mb-1">회사명 *</label>
           <input
             type="text"
             id="name"
@@ -157,9 +143,8 @@ import {logger} from '$lib/utils/logger';
 
         <!-- 설립일 -->
         <div>
-          <label
-            for="establishment_date"
-            class="block text-sm font-medium text-gray-700 mb-1">설립일</label
+          <label for="establishment_date" class="block text-sm font-medium text-gray-700 mb-1"
+            >설립일</label
           >
           <input
             type="date"
@@ -171,9 +156,7 @@ import {logger} from '$lib/utils/logger';
 
         <!-- 대표이사 -->
         <div>
-          <label
-            for="ceo_name"
-            class="block text-sm font-medium text-gray-700 mb-1">대표이사</label
+          <label for="ceo_name" class="block text-sm font-medium text-gray-700 mb-1">대표이사</label
           >
           <input
             type="text"
@@ -186,9 +169,8 @@ import {logger} from '$lib/utils/logger';
 
         <!-- 업종 -->
         <div>
-          <label
-            for="business_type"
-            class="block text-sm font-medium text-gray-700 mb-1">업종</label
+          <label for="business_type" class="block text-sm font-medium text-gray-700 mb-1"
+            >업종</label
           >
           <input
             type="text"
@@ -201,10 +183,7 @@ import {logger} from '$lib/utils/logger';
 
         <!-- 주소 -->
         <div>
-          <label
-            for="address"
-            class="block text-sm font-medium text-gray-700 mb-1">주소</label
-          >
+          <label for="address" class="block text-sm font-medium text-gray-700 mb-1">주소</label>
           <textarea
             id="address"
             bind:value={formData.address}
@@ -216,10 +195,7 @@ import {logger} from '$lib/utils/logger';
 
         <!-- 전화번호 -->
         <div>
-          <label
-            for="phone"
-            class="block text-sm font-medium text-gray-700 mb-1">전화번호</label
-          >
+          <label for="phone" class="block text-sm font-medium text-gray-700 mb-1">전화번호</label>
           <input
             type="tel"
             id="phone"
@@ -231,9 +207,7 @@ import {logger} from '$lib/utils/logger';
 
         <!-- 팩스번호 -->
         <div>
-          <label for="fax" class="block text-sm font-medium text-gray-700 mb-1"
-            >팩스번호</label
-          >
+          <label for="fax" class="block text-sm font-medium text-gray-700 mb-1">팩스번호</label>
           <input
             type="tel"
             id="fax"
@@ -245,10 +219,7 @@ import {logger} from '$lib/utils/logger';
 
         <!-- 이메일 -->
         <div>
-          <label
-            for="email"
-            class="block text-sm font-medium text-gray-700 mb-1">이메일</label
-          >
+          <label for="email" class="block text-sm font-medium text-gray-700 mb-1">이메일</label>
           <input
             type="email"
             id="email"
@@ -260,10 +231,7 @@ import {logger} from '$lib/utils/logger';
 
         <!-- 웹사이트 -->
         <div>
-          <label
-            for="website"
-            class="block text-sm font-medium text-gray-700 mb-1">웹사이트</label
-          >
+          <label for="website" class="block text-sm font-medium text-gray-700 mb-1">웹사이트</label>
           <input
             type="url"
             id="website"
@@ -275,9 +243,7 @@ import {logger} from '$lib/utils/logger';
 
         <!-- 사업자등록번호 -->
         <div>
-          <label
-            for="registration_number"
-            class="block text-sm font-medium text-gray-700 mb-1"
+          <label for="registration_number" class="block text-sm font-medium text-gray-700 mb-1"
             >사업자등록번호</label
           >
           <input
@@ -305,7 +271,7 @@ import {logger} from '$lib/utils/logger';
           disabled={loading || !formData.name}
           class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
-          {loading ? "저장 중..." : company ? "수정" : "등록"}
+          {loading ? '저장 중...' : company ? '수정' : '등록'}
         </button>
       </div>
     </div>

@@ -1,7 +1,7 @@
-import { writable } from "svelte/store";
-import type { SubmissionBundle, Document } from "./types";
-import { logAudit } from "./core";
 import { logger } from "$lib/utils/logger";
+import { writable } from "svelte/store";
+import { logAudit } from "./core";
+import type { Document, SubmissionBundle } from "./types";
 
 // 업로드 번들 관리
 export const submissionBundles = writable<SubmissionBundle[]>([]);
@@ -122,8 +122,8 @@ async function collectProjectInfo(projectId: string): Promise<any> {
 
 // 문서 수집
 async function collectDocuments(
-  projectId: string,
-  period: string,
+  _projectId: string,
+  _period: string,
 ): Promise<Document[]> {
   // 실제 구현에서는 해당 기간의 모든 문서를 수집
   const mockDocuments = [
@@ -150,8 +150,8 @@ async function collectDocuments(
 
 // 예산 정보 수집
 async function collectBudgetInfo(
-  projectId: string,
-  period: string,
+  _projectId: string,
+  _period: string,
 ): Promise<any> {
   // 실제 구현에서는 예산 데이터를 수집
   return {
@@ -182,8 +182,8 @@ async function collectBudgetInfo(
 
 // 인력 정보 수집
 async function collectPersonnelInfo(
-  projectId: string,
-  period: string,
+  _projectId: string,
+  _period: string,
 ): Promise<any> {
   // 실제 구현에서는 인력 데이터를 수집
   return {
@@ -209,8 +209,8 @@ async function collectPersonnelInfo(
 
 // 성과 정보 수집
 async function collectPerformanceInfo(
-  projectId: string,
-  period: string,
+  _projectId: string,
+  _period: string,
 ): Promise<any> {
   // 실제 구현에서는 성과 데이터를 수집
   return {
@@ -384,7 +384,7 @@ async function createBundleFile(
 }
 
 // 체크섬 계산
-async function calculateChecksum(bundleFile: {
+async function calculateChecksum(_bundleFile: {
   url: string;
   size: number;
 }): Promise<string> {
@@ -500,7 +500,7 @@ export function validateBundle(bundleId: string): {
       if (parseError) {
         errors.push("Invalid XML format in manifest");
       }
-    } catch (error) {
+    } catch (_error) {
       errors.push("Failed to parse manifest XML");
     }
   }

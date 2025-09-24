@@ -5,10 +5,10 @@ import {
   isValidDate,
   isValidDateRange,
 } from "$lib/utils/date-calculator";
+import { logger } from "$lib/utils/logger";
 import { calculateMonthlySalary } from "$lib/utils/salary-calculator";
 import { json } from "@sveltejs/kit";
 import type { RequestHandler } from "./$types";
-import { logger } from "$lib/utils/logger";
 
 // GET /api/project-management/project-members/[id] - 특정 프로젝트 멤버 조회
 export const GET: RequestHandler = async ({ params }) => {
@@ -297,7 +297,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
     updateFields.push(`updated_at = CURRENT_TIMESTAMP`);
     updateValues.push(params.id);
 
-    const result = await query(
+    const _result = await query(
       `
 			UPDATE project_members 
 			SET ${updateFields.join(", ")}

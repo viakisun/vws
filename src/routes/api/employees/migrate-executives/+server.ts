@@ -1,70 +1,64 @@
-import { query } from "$lib/database/connection";
-import { json } from "@sveltejs/kit";
-import type { RequestHandler } from "./$types";
-import { logger } from "$lib/utils/logger";
+import { query } from '$lib/database/connection'
+import { json } from '@sveltejs/kit'
+import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger'
 
 // 이사급 직원들을 이사 명부로 이관하고 직원 명부에서 제외
 export const POST: RequestHandler = async () => {
   try {
     // 이사급 직원들을 찾기 (대표, 이사, 상무 등)
     const executivePositions = [
-      "대표",
-      "이사",
-      "상무",
-      "대표이사",
-      "연구소장",
-      "기술이사",
-      "상무이사",
-    ];
+      '대표',
+      '이사',
+      '상무',
+      '대표이사',
+      '연구소장',
+      '기술이사',
+      '상무이사',
+    ]
 
     const executiveEmployees = await query(
       `
 			SELECT * FROM employees 
-			WHERE position IN (${executivePositions.map((_, i) => `$${i + 1}`).join(", ")})
+			WHERE position IN (${executivePositions.map((_, i) => `$${i + 1}`).join(', ')})
 			AND status = 'active'
 		`,
       executivePositions,
-    );
+    )
 
     // 임원 직원 마이그레이션 시작
 
-    const migratedExecutives = [];
+    const migratedExecutives = []
 
     for (const employee of executiveEmployees.rows) {
       // 직책 매핑
-      let jobTitleName = "CEO"; // 기본값
-      if (employee.position.includes("대표")) {
-        jobTitleName = "CEO";
-      } else if (
-        employee.position.includes("연구소장") ||
-        employee.position.includes("기술이사")
-      ) {
-        jobTitleName = "CTO";
-      } else if (employee.position.includes("상무")) {
-        jobTitleName = "CFO";
-      } else if (employee.position.includes("이사")) {
-        jobTitleName = "Director";
+      let jobTitleName = 'CEO' // 기본값
+      if (employee.position.includes('대표')) {
+        jobTitleName = 'CEO'
+      } else if (employee.position.includes('연구소장') || employee.position.includes('기술이사')) {
+        jobTitleName = 'CTO'
+      } else if (employee.position.includes('상무')) {
+        jobTitleName = 'CFO'
+      } else if (employee.position.includes('이사')) {
+        jobTitleName = 'Director'
       }
 
       // 해당 직책 ID 찾기
-      const jobTitleResult = await query(
-        "SELECT id FROM job_titles WHERE name = $1",
-        [jobTitleName],
-      );
+      const jobTitleResult = await query('SELECT id FROM job_titles WHERE name = $1', [
+        jobTitleName,
+      ])
 
       if (jobTitleResult.rows.length === 0) {
         // 직책을 찾을 수 없음, 건너뛰기
-        continue;
+        continue
       }
 
-      const jobTitleId = jobTitleResult.rows[0].id;
+      const jobTitleId = jobTitleResult.rows[0].id
 
       // Executive ID 생성
-      const execIdResult = await query(
-        "SELECT COUNT(*) as count FROM executives",
-      );
-      const execCount = parseInt(execIdResult.rows[0].count) + 1;
-      const executiveId = `EXE${execCount.toString().padStart(3, "0")}`;
+      const execIdResult = await query('SELECT COUNT(*) as count FROM executives')
+      const execCount = parseInt(execIdResult.rows[0].count) + 1
+      const executiveId = `EXE${execCount.toString().padStart(3, '0')}`
 
       // 이사 명부에 추가
       const executiveResult = await query(
@@ -85,14 +79,14 @@ export const POST: RequestHandler = async () => {
           jobTitleId,
           employee.department,
           employee.hire_date,
-          "active",
+          'active',
           `${employee.position}로 임명된 임원진입니다.`,
           new Date(),
           new Date(),
         ],
-      );
+      )
 
-      migratedExecutives.push(executiveResult.rows[0]);
+      migratedExecutives.push(executiveResult.rows[0])
 
       // 직원 명부에서 비활성화 (완전 삭제하지 않고 상태만 변경)
       await query(
@@ -103,7 +97,7 @@ export const POST: RequestHandler = async () => {
 				WHERE id = $2
 			`,
         [new Date(), employee.id],
-      );
+      )
 
       // 임원 테이블로 마이그레이션 완료
     }
@@ -115,15 +109,15 @@ export const POST: RequestHandler = async () => {
         migratedCount: migratedExecutives.length,
         migratedExecutives: migratedExecutives,
       },
-    });
+    })
   } catch (error: any) {
-    logger.error("Error migrating executives:", error);
+    logger.error('Error migrating executives:', error)
     return json(
       {
         success: false,
-        error: error.message || "이사급 직원 이관에 실패했습니다.",
+        error: error.message || '이사급 직원 이관에 실패했습니다.',
       },
       { status: 500 },
-    );
+    )
   }
-};
+}

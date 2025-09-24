@@ -1,21 +1,21 @@
-import { query } from "$lib/database/connection";
-import { json } from "@sveltejs/kit";
-import { getCurrentUTC, formatDateForDisplay } from "$lib/utils/date-handler";
+import { query } from '$lib/database/connection'
+import { formatDateForDisplay, getCurrentUTC } from '$lib/utils/date-handler'
+import { json } from '@sveltejs/kit'
 
 export async function GET({ params, url }) {
   try {
-    const { employeeId } = params;
-    const period = url.searchParams.get("period"); // YYYY-MM 형식
-    const year = url.searchParams.get("year"); // YYYY 형식
+    const { employeeId } = params
+    const period = url.searchParams.get('period') // YYYY-MM 형식
+    const year = url.searchParams.get('year') // YYYY 형식
 
     if (!employeeId) {
       return json(
         {
           success: false,
-          error: "직원 ID가 필요합니다.",
+          error: '직원 ID가 필요합니다.',
         },
         { status: 400 },
-      );
+      )
     }
 
     // 연도별 데이터 요청인 경우
@@ -49,13 +49,13 @@ export async function GET({ params, url }) {
 				ORDER BY p.period DESC
 				`,
         [employeeId, `${year}-%`],
-      );
+      )
 
       return json({
         success: true,
         data: rows,
-        source: "yearly",
-      });
+        source: 'yearly',
+      })
     }
 
     // 1. 이번달 급여명세서가 있는지 확인
@@ -88,14 +88,14 @@ export async function GET({ params, url }) {
 				WHERE p.employee_id = $1 AND p.period = $2
 				`,
         [employeeId, period],
-      );
+      )
 
       if (currentPayslip.rows.length > 0) {
         return json({
           success: true,
           data: currentPayslip.rows[0],
-          source: "current",
-        });
+          source: 'current',
+        })
       }
     }
 
@@ -130,14 +130,14 @@ export async function GET({ params, url }) {
 			LIMIT 1
 			`,
       [employeeId],
-    );
+    )
 
     if (previousPayslip.rows.length > 0) {
       return json({
         success: true,
         data: previousPayslip.rows[0],
-        source: "previous",
-      });
+        source: 'previous',
+      })
     }
 
     // 3. 기본 템플릿 생성 (처음인 경우)
@@ -157,33 +157,31 @@ export async function GET({ params, url }) {
 			WHERE e.id = $1
 			`,
       [employeeId],
-    );
+    )
 
     if (employee.rows.length === 0) {
       return json(
         {
           success: false,
-          error: "직원을 찾을 수 없습니다.",
+          error: '직원을 찾을 수 없습니다.',
         },
         { status: 404 },
-      );
+      )
     }
 
-    const emp = employee.rows[0];
-    const baseSalary = emp.annual_salary
-      ? Math.round(emp.annual_salary / 12)
-      : 3000000;
-    const currentPeriod = period || getCurrentUTC().slice(0, 7);
+    const emp = employee.rows[0]
+    const baseSalary = emp.annual_salary ? Math.round(emp.annual_salary / 12) : 3000000
+    const currentPeriod = period || getCurrentUTC().slice(0, 7)
 
     // 기본 급여명세서 템플릿 생성
     const defaultPayslip = {
       employeeId: emp.id,
       period: currentPeriod,
-      payDate: formatDateForDisplay(getCurrentUTC(), "ISO"),
+      payDate: formatDateForDisplay(getCurrentUTC(), 'ISO'),
       employeeName: `${emp.last_name}${emp.first_name}`,
       employeeIdNumber: emp.employee_id,
-      department: emp.department || "부서없음",
-      position: emp.position || "연구원",
+      department: emp.department || '부서없음',
+      position: emp.position || '연구원',
       hireDate: emp.hire_date,
       baseSalary: baseSalary,
       totalPayments: baseSalary + 500000, // 기본급 + 기본 수당
@@ -191,130 +189,130 @@ export async function GET({ params, url }) {
       netSalary: baseSalary + 500000,
       payments: [
         {
-          id: "basic_salary",
-          name: "기본급",
+          id: 'basic_salary',
+          name: '기본급',
           amount: baseSalary,
-          type: "basic",
+          type: 'basic',
           isTaxable: true,
         },
         {
-          id: "position_allowance",
-          name: "직책수당",
+          id: 'position_allowance',
+          name: '직책수당',
           amount: Math.round(baseSalary * 0.1),
-          type: "allowance",
+          type: 'allowance',
           isTaxable: true,
         },
         {
-          id: "bonus",
-          name: "상여금",
+          id: 'bonus',
+          name: '상여금',
           amount: 0,
-          type: "bonus",
+          type: 'bonus',
           isTaxable: true,
         },
         {
-          id: "meal_allowance",
-          name: "식대",
+          id: 'meal_allowance',
+          name: '식대',
           amount: 300000,
-          type: "allowance",
+          type: 'allowance',
           isTaxable: false,
         },
         {
-          id: "vehicle_maintenance",
-          name: "차량유지",
+          id: 'vehicle_maintenance',
+          name: '차량유지',
           amount: 200000,
-          type: "allowance",
+          type: 'allowance',
           isTaxable: false,
         },
         {
-          id: "annual_leave_allowance",
-          name: "연차수당",
+          id: 'annual_leave_allowance',
+          name: '연차수당',
           amount: 0,
-          type: "allowance",
+          type: 'allowance',
           isTaxable: true,
         },
         {
-          id: "year_end_settlement",
-          name: "연말정산",
+          id: 'year_end_settlement',
+          name: '연말정산',
           amount: 0,
-          type: "settlement",
+          type: 'settlement',
           isTaxable: true,
         },
       ],
       deductions: [
         {
-          id: "health_insurance",
-          name: "건강보험",
+          id: 'health_insurance',
+          name: '건강보험',
           rate: 0.034,
-          type: "insurance",
+          type: 'insurance',
           amount: 0,
           isMandatory: true,
         },
         {
-          id: "long_term_care",
-          name: "장기요양보험",
+          id: 'long_term_care',
+          name: '장기요양보험',
           rate: 0.0034,
-          type: "insurance",
+          type: 'insurance',
           amount: 0,
           isMandatory: true,
         },
         {
-          id: "national_pension",
-          name: "국민연금",
+          id: 'national_pension',
+          name: '국민연금',
           rate: 0.045,
-          type: "pension",
+          type: 'pension',
           amount: 0,
           isMandatory: true,
         },
         {
-          id: "employment_insurance",
-          name: "고용보험",
+          id: 'employment_insurance',
+          name: '고용보험',
           rate: 0.008,
-          type: "insurance",
+          type: 'insurance',
           amount: 0,
           isMandatory: true,
         },
         {
-          id: "income_tax",
-          name: "갑근세",
+          id: 'income_tax',
+          name: '갑근세',
           rate: 0.13,
-          type: "tax",
+          type: 'tax',
           amount: 0,
           isMandatory: true,
         },
         {
-          id: "local_tax",
-          name: "주민세",
+          id: 'local_tax',
+          name: '주민세',
           rate: 0.013,
-          type: "tax",
+          type: 'tax',
           amount: 0,
           isMandatory: true,
         },
         {
-          id: "other",
-          name: "기타",
+          id: 'other',
+          name: '기타',
           rate: 0,
-          type: "other",
+          type: 'other',
           amount: 0,
           isMandatory: false,
         },
       ],
-      status: "draft",
+      status: 'draft',
       isGenerated: false,
-    };
+    }
 
     return json({
       success: true,
       data: defaultPayslip,
-      source: "default",
-    });
+      source: 'default',
+    })
   } catch (error) {
     return json(
       {
         success: false,
-        error: "직원 급여명세서를 가져오는데 실패했습니다.",
-        details: error instanceof Error ? error.message : "Unknown error",
+        error: '직원 급여명세서를 가져오는데 실패했습니다.',
+        details: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 },
-    );
+    )
   }
 }

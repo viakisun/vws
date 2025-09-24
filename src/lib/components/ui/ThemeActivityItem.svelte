@@ -1,37 +1,35 @@
 <script lang="ts">
-  import { formatDateForDisplay } from "$lib/utils/date-handler";
-  import ThemeBadge from "./ThemeBadge.svelte";
+  import { formatDateForDisplay } from '$lib/utils/date-handler'
+  import ThemeBadge from './ThemeBadge.svelte'
 
   interface Props {
-    title: string;
-    time: string;
-    description?: string;
-    type?: "success" | "warning" | "info" | "error";
-    icon?: any;
-    class?: string;
+    title: string
+    time: string
+    description?: string
+    type?: 'success' | 'warning' | 'info' | 'error'
+    icon?: any
+    class?: string
   }
 
   let {
     title,
     time,
     description,
-    type = "info",
+    type = 'info',
     icon,
-    class: className = "",
+    class: className = '',
     ...restProps
-  }: Props = $props();
+  }: Props = $props()
 
   // 날짜 포맷팅
-  const formattedTime = $derived(
-    time ? formatDateForDisplay(time, "KOREAN") : "",
-  );
+  const formattedTime = $derived(time ? formatDateForDisplay(time, 'KOREAN') : '')
 
   const typeConfig = {
-    success: { variant: "success" as const, label: "완료" },
-    warning: { variant: "warning" as const, label: "대기" },
-    info: { variant: "info" as const, label: "정보" },
-    error: { variant: "error" as const, label: "오류" },
-  };
+    success: { variant: 'success' as const, label: '완료' },
+    warning: { variant: 'warning' as const, label: '대기' },
+    info: { variant: 'info' as const, label: '정보' },
+    error: { variant: 'error' as const, label: '오류' },
+  }
 </script>
 
 <div

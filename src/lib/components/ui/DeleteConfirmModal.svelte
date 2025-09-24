@@ -1,38 +1,31 @@
 <script lang="ts">
-  import { createEventDispatcher } from "svelte";
-  import ThemeModal from "./ThemeModal.svelte";
-  import ThemeButton from "./ThemeButton.svelte";
-  import { AlertTriangleIcon, TrashIcon, ArchiveIcon } from "@lucide/svelte";
+  import { createEventDispatcher } from 'svelte'
+  import ThemeModal from './ThemeModal.svelte'
+  import ThemeButton from './ThemeButton.svelte'
+  import { AlertTriangleIcon, TrashIcon, ArchiveIcon } from '@lucide/svelte'
 
   interface Props {
-    open: boolean;
-    title: string;
-    message: string;
-    itemName?: string;
-    loading?: boolean;
-    showArchive?: boolean;
+    open: boolean
+    title: string
+    message: string
+    itemName?: string
+    loading?: boolean
+    showArchive?: boolean
   }
 
-  let {
-    open,
-    title,
-    message,
-    itemName = "",
-    loading = false,
-    showArchive = true,
-  }: Props = $props();
+  let { open, title, message, itemName = '', loading = false, showArchive = true }: Props = $props()
 
   const dispatch = createEventDispatcher<{
-    close: void;
-    confirm: { action: "delete" | "archive" };
-  }>();
+    close: void
+    confirm: { action: 'delete' | 'archive' }
+  }>()
 
-  function handleConfirm(action: "delete" | "archive") {
-    dispatch("confirm", { action });
+  function handleConfirm(action: 'delete' | 'archive') {
+    dispatch('confirm', { action })
   }
 
   function handleClose() {
-    dispatch("close");
+    dispatch('close')
   }
 </script>
 
@@ -63,14 +56,12 @@
     {/if}
 
     <div class="flex items-center justify-end gap-3">
-      <ThemeButton variant="ghost" onclick={handleClose} disabled={loading}
-        >취소</ThemeButton
-      >
+      <ThemeButton variant="ghost" onclick={handleClose} disabled={loading}>취소</ThemeButton>
 
       {#if showArchive}
         <ThemeButton
           variant="warning"
-          onclick={() => handleConfirm("archive")}
+          onclick={() => handleConfirm('archive')}
           disabled={loading}
           class="flex items-center gap-2"
         >
@@ -87,7 +78,7 @@
 
       <ThemeButton
         variant="error"
-        onclick={() => handleConfirm("delete")}
+        onclick={() => handleConfirm('delete')}
         disabled={loading}
         class="flex items-center gap-2"
       >

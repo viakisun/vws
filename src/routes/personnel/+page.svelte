@@ -81,8 +81,8 @@
   const orgOptions = $derived(
     Array.from(new Set(all.map((p) => p.organization))),
   );
-  const totalCount = $derived(all.length);
-  const activeCount = $derived(all.filter((p) => p.status === "재직").length);
+  const _totalCount = $derived(all.length);
+  const _activeCount = $derived(all.filter((p) => p.status === "재직").length);
 
   // KPI summary for selected quarter and current filter
   const kpiTotalCost = $derived(

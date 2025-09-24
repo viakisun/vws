@@ -1,61 +1,61 @@
 <script lang="ts">
-  import { createEventDispatcher } from "svelte";
-  import ThemeModal from "./ThemeModal.svelte";
-  import ThemeButton from "./ThemeButton.svelte";
+  import { createEventDispatcher } from 'svelte'
+  import ThemeModal from './ThemeModal.svelte'
+  import ThemeButton from './ThemeButton.svelte'
 
   interface Department {
-    id?: string;
-    name: string;
-    description: string;
-    status: "active" | "inactive";
-    max_employees?: number; // T/O (정원)
+    id?: string
+    name: string
+    description: string
+    status: 'active' | 'inactive'
+    max_employees?: number // T/O (정원)
   }
 
   interface Props {
-    open?: boolean;
-    department?: Department | null;
-    loading?: boolean;
+    open?: boolean
+    department?: Department | null
+    loading?: boolean
   }
 
-  let { open = false, department = null, loading = false }: Props = $props();
+  let { open = false, department = null, loading = false }: Props = $props()
 
-  const dispatch = createEventDispatcher();
+  const dispatch = createEventDispatcher()
 
   let formData = $state({
-    name: "",
-    description: "",
-    status: "active" as "active" | "inactive",
+    name: '',
+    description: '',
+    status: 'active' as 'active' | 'inactive',
     to: 0,
-  });
+  })
 
   // 부서 데이터가 변경될 때 폼 데이터 업데이트
   $effect(() => {
     if (department) {
-      formData.name = department.name || "";
-      formData.description = department.description || "";
-      formData.status = department.status || "active";
-      formData.to = department.max_employees || 0;
+      formData.name = department.name || ''
+      formData.description = department.description || ''
+      formData.status = department.status || 'active'
+      formData.to = department.max_employees || 0
     } else {
       // 새 부서 추가 시 기본값으로 리셋
-      formData.name = "";
-      formData.description = "";
-      formData.status = "active";
-      formData.to = 0;
+      formData.name = ''
+      formData.description = ''
+      formData.status = 'active'
+      formData.to = 0
     }
-  });
+  })
 
   function handleSave() {
     // 필수 필드 검증
     if (!formData.name?.trim()) {
-      alert("부서명은 필수 입력 항목입니다.");
-      return;
+      alert('부서명은 필수 입력 항목입니다.')
+      return
     }
 
-    dispatch("save", formData);
+    dispatch('save', formData)
   }
 
   function handleClose() {
-    dispatch("close");
+    dispatch('close')
   }
 </script>
 
@@ -63,14 +63,14 @@
   <div class="space-y-6">
     <div class="flex items-center justify-between">
       <h2 class="text-xl font-semibold" style:color="var(--color-text)">
-        {department ? "부서 수정" : "새 부서 추가"}
+        {department ? '부서 수정' : '새 부서 추가'}
       </h2>
     </div>
 
     <form
       onsubmit={(e) => {
-        e.preventDefault();
-        handleSave();
+        e.preventDefault()
+        handleSave()
       }}
       class="space-y-4"
     >
@@ -119,11 +119,7 @@
 
       <!-- T/O (정원) -->
       <div>
-        <label
-          for="dept-to"
-          class="block text-sm font-medium mb-2"
-          style:color="var(--color-text)"
-        >
+        <label for="dept-to" class="block text-sm font-medium mb-2" style:color="var(--color-text)">
           T/O (정원)
         </label>
         <input
@@ -167,15 +163,10 @@
   </div>
 
   <!-- 모달 액션 버튼 -->
-  <div
-    class="flex justify-end gap-2 pt-4 border-t"
-    style:border-color="var(--color-border)"
-  >
-    <ThemeButton variant="ghost" onclick={handleClose} disabled={loading}
-      >취소</ThemeButton
-    >
+  <div class="flex justify-end gap-2 pt-4 border-t" style:border-color="var(--color-border)">
+    <ThemeButton variant="ghost" onclick={handleClose} disabled={loading}>취소</ThemeButton>
     <ThemeButton variant="primary" onclick={handleSave} disabled={loading}>
-      {loading ? "저장 중..." : department ? "수정" : "추가"}
+      {loading ? '저장 중...' : department ? '수정' : '추가'}
     </ThemeButton>
   </div>
 </ThemeModal>

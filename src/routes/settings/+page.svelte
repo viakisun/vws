@@ -106,7 +106,7 @@
   }
 
   // 회사 정보 저장 핸들러
-  async function handleCompanySave(event: CustomEvent) {
+  async function handleCompanySave(_event: CustomEvent) {
     await fetchCompany();
   }
 

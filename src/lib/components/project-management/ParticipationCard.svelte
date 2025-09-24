@@ -1,7 +1,7 @@
 <script lang="ts">
-  import ThemeBadge from "$lib/components/ui/ThemeBadge.svelte";
-  import ThemeCard from "$lib/components/ui/ThemeCard.svelte";
-  import { ActivityIcon, UsersIcon } from "@lucide/svelte";
+  import ThemeBadge from '$lib/components/ui/ThemeBadge.svelte'
+  import ThemeCard from '$lib/components/ui/ThemeCard.svelte'
+  import { ActivityIcon, UsersIcon } from '@lucide/svelte'
 
   /**
    * @typedef {Object} EmployeeParticipation
@@ -12,7 +12,7 @@
    * @property {number} totalParticipationRate
    */
 
-  let { employeeParticipationSummary = [] } = $props();
+  let { employeeParticipationSummary = [] } = $props()
 </script>
 
 <div class="space-y-6">

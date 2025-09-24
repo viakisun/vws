@@ -1,12 +1,12 @@
-import { json } from "@sveltejs/kit";
-import { query } from "$lib/database/connection.js";
-import type { RequestHandler } from "./$types";
-import { logger } from "$lib/utils/logger";
+import { json } from '@sveltejs/kit'
+import { query } from '$lib/database/connection.js'
+import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger'
 
 export const POST: RequestHandler = async () => {
   try {
     // 기존 companies 테이블 삭제 후 새로 생성
-    await query("DROP TABLE IF EXISTS companies CASCADE");
+    await query('DROP TABLE IF EXISTS companies CASCADE')
 
     // 새 companies 테이블 생성
     await query(`
@@ -25,18 +25,15 @@ export const POST: RequestHandler = async () => {
 				created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 				updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 			)
-		`);
+		`)
 
     // 인덱스 생성
     await query(`
 			CREATE INDEX IF NOT EXISTS idx_companies_name ON companies(name);
-		`);
+		`)
 
     // 기존 회사 정보가 있는지 확인
-    const existingResult = await query(
-      "SELECT id FROM companies WHERE name = $1",
-      ["(주)비아"],
-    );
+    const existingResult = await query('SELECT id FROM companies WHERE name = $1', ['(주)비아'])
 
     if (existingResult.rows.length > 0) {
       // 기존 회사 정보 업데이트
@@ -53,16 +50,16 @@ export const POST: RequestHandler = async () => {
 				WHERE name = $8
 			`,
         [
-          "2019-03-10",
-          "박기선",
-          "소프트웨어 개발 및 공급업",
-          "전라북도 전주시 덕진구 유상로67, 전주혁신창업허브 513호",
-          "063-211-0814",
-          "063-211-0813",
+          '2019-03-10',
+          '박기선',
+          '소프트웨어 개발 및 공급업',
+          '전라북도 전주시 덕진구 유상로67, 전주혁신창업허브 513호',
+          '063-211-0814',
+          '063-211-0813',
           new Date(),
-          "(주)비아",
+          '(주)비아',
         ],
-      );
+      )
     } else {
       // 새 회사 정보 삽입
       await query(
@@ -73,31 +70,31 @@ export const POST: RequestHandler = async () => {
 				) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
 			`,
         [
-          "(주)비아",
-          "2019-03-10",
-          "박기선",
-          "소프트웨어 개발 및 공급업",
-          "전라북도 전주시 덕진구 유상로67, 전주혁신창업허브 513호",
-          "063-211-0814",
-          "063-211-0813",
+          '(주)비아',
+          '2019-03-10',
+          '박기선',
+          '소프트웨어 개발 및 공급업',
+          '전라북도 전주시 덕진구 유상로67, 전주혁신창업허브 513호',
+          '063-211-0814',
+          '063-211-0813',
           new Date(),
           new Date(),
         ],
-      );
+      )
     }
 
     return json({
       success: true,
-      message: "회사 정보 테이블이 생성되고 기본 데이터가 등록되었습니다.",
-    });
+      message: '회사 정보 테이블이 생성되고 기본 데이터가 등록되었습니다.',
+    })
   } catch (error: any) {
-    logger.error("Error setting up company table:", error);
+    logger.error('Error setting up company table:', error)
     return json(
       {
         success: false,
-        error: error.message || "회사 정보 테이블 생성에 실패했습니다.",
+        error: error.message || '회사 정보 테이블 생성에 실패했습니다.',
       },
       { status: 500 },
-    );
+    )
   }
-};
+}

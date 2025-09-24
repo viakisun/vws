@@ -96,7 +96,7 @@
   }
 
   // 예산 저장 완료 핸들러
-  function handleBudgetSaved(event: CustomEvent) {
+  function handleBudgetSaved(_event: CustomEvent) {
     dispatch("projectCreated", {
       success: true,
       data: { id: createdProjectId },
@@ -116,8 +116,6 @@
     resetForm();
   }
 </script>
-
-import {logger} from '$lib/utils/logger';
 
 <div class="max-w-2xl mx-auto p-6 bg-white rounded-lg shadow-lg">
   <h2 class="text-2xl font-bold text-gray-900 mb-6">새 프로젝트 생성</h2>
@@ -237,7 +235,7 @@ import {logger} from '$lib/utils/logger';
         readonly={false}
         onbudgetSaved={handleBudgetSaved}
       />
-    {:catch error}
+    {:catch _error}
       <div class="bg-red-50 border border-red-200 rounded-lg p-4">
         <div class="flex items-center">
           <XIcon class="w-5 h-5 text-red-500 mr-2" />

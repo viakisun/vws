@@ -166,7 +166,7 @@
           };
         });
       }
-    } catch (error) {
+    } catch (_error) {
       const currentDate = new Date();
       const currentYear = currentDate.getFullYear();
       const currentMonth = currentDate.getMonth() + 1;
@@ -224,7 +224,9 @@
           hireDate: emp.hire_date,
         }));
       }
-    } catch (error) {}
+    } catch (_error) {
+      /* intentionally ignored */
+    }
   }
 
   // 급여명세서 편집 모드 진입
@@ -529,7 +531,7 @@
       } else {
         alert(`저장에 실패했습니다: ${result.error}`);
       }
-    } catch (error) {
+    } catch (_error) {
       alert("저장 중 오류가 발생했습니다.");
     }
   }
@@ -628,7 +630,7 @@
           bind:value={selectedYear}
           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
-          {#each Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i) as year}
+          {#each Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i) as year (year)}
             <option value={year}>{year}년</option>
           {/each}
         </select>

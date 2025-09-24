@@ -1,13 +1,13 @@
 <script lang="ts">
-  import Card from "$lib/components/ui/Card.svelte";
-  import Badge from "$lib/components/ui/Badge.svelte";
-  import Progress from "$lib/components/ui/Progress.svelte";
-  import { projectsStore } from "$lib/stores/rnd";
-  import { page } from "$app/state";
-  import { formatKRW } from "$lib/utils/format";
+  import Card from '$lib/components/ui/Card.svelte'
+  import Badge from '$lib/components/ui/Badge.svelte'
+  import Progress from '$lib/components/ui/Progress.svelte'
+  import { projectsStore } from '$lib/stores/rnd'
+  import { page } from '$app/state'
+  import { formatKRW } from '$lib/utils/format'
 
-  const projectId = page.params.projectId;
-  const project = $derived($projectsStore.find((p) => p.id === projectId));
+  const projectId = page.params.projectId
+  const project = $derived($projectsStore.find((p) => p.id === projectId))
 </script>
 
 <h2 class="text-lg font-semibold mb-3">Project {projectId}</h2>
@@ -22,13 +22,13 @@
       <div>
         <div class="text-caption">상태</div>
         <Badge
-          color={project.status === "지연"
-            ? "yellow"
-            : project.status === "위험"
-              ? "red"
-              : project.status === "진행중"
-                ? "blue"
-                : "green"}>{project.status}</Badge
+          color={project.status === '지연'
+            ? 'yellow'
+            : project.status === '위험'
+              ? 'red'
+              : project.status === '진행중'
+                ? 'blue'
+                : 'green'}>{project.status}</Badge
         >
       </div>
       <div>

@@ -1,7 +1,7 @@
-import { writable } from "svelte/store";
-import type { Report } from "./types";
-import { logAudit } from "./core";
 import { logger } from "$lib/utils/logger";
+import { writable } from "svelte/store";
+import { logAudit } from "./core";
+import type { Report } from "./types";
 
 // 리포트 관리
 export const reports = writable<Report[]>([]);
@@ -38,9 +38,9 @@ export function generateWeeklyReport(
 
 // 주간 데이터 수집
 function collectWeeklyData(
-  projectId: string,
+  _projectId: string,
   weekStart: string,
-  weekEnd: string,
+  _weekEnd: string,
 ): any {
   // 마일스톤 달성률
   const milestoneProgress = calculateMilestoneProgress(
@@ -89,9 +89,9 @@ function collectWeeklyData(
 
 // 마일스톤 진행률 계산
 function calculateMilestoneProgress(
-  projectId: string,
+  _projectId: string,
   weekStart: string,
-  weekEnd: string,
+  _weekEnd: string,
 ): any {
   // 실제 구현에서는 milestones 스토어에서 데이터 가져오기
   const currentWeek = new Date(weekStart);
@@ -125,9 +125,9 @@ function calculateMilestoneProgress(
 
 // 예산 집행률 계산
 function calculateBudgetExecution(
-  projectId: string,
-  weekStart: string,
-  weekEnd: string,
+  _projectId: string,
+  _weekStart: string,
+  _weekEnd: string,
 ): any {
   // 실제 구현에서는 expenseItems 스토어에서 데이터 가져오기
   return {
@@ -160,9 +160,9 @@ function calculateBudgetExecution(
 
 // 인력 참여율 계산
 function calculateParticipationRate(
-  projectId: string,
-  weekStart: string,
-  weekEnd: string,
+  _projectId: string,
+  _weekStart: string,
+  _weekEnd: string,
 ): any {
   // 실제 구현에서는 participationAssignments 스토어에서 데이터 가져오기
   return {
@@ -191,9 +191,9 @@ function calculateParticipationRate(
 
 // 연구노트 제출률 계산
 function calculateResearchNoteSubmission(
-  projectId: string,
-  weekStart: string,
-  weekEnd: string,
+  _projectId: string,
+  _weekStart: string,
+  _weekEnd: string,
 ): any {
   // 실제 구현에서는 researchNotes 스토어에서 데이터 가져오기
   return {
@@ -213,9 +213,9 @@ function calculateResearchNoteSubmission(
 
 // 이슈 및 리스크 수집
 function collectIssuesAndRisks(
-  projectId: string,
-  weekStart: string,
-  weekEnd: string,
+  _projectId: string,
+  _weekStart: string,
+  _weekEnd: string,
 ): any {
   return {
     issues: [
@@ -249,7 +249,7 @@ function collectIssuesAndRisks(
 }
 
 // 다음 주 계획 생성
-function generateNextWeekPlan(projectId: string): any {
+function generateNextWeekPlan(_projectId: string): any {
   return {
     priorities: [
       {
@@ -321,9 +321,9 @@ export function generateQuarterlyReport(
 
 // 분기 데이터 수집
 function collectQuarterlyData(
-  projectId: string,
-  quarterStart: Date,
-  quarterEnd: Date,
+  _projectId: string,
+  _quarterStart: Date,
+  _quarterEnd: Date,
 ): any {
   return {
     quarter: Math.ceil((quarterStart.getMonth() + 1) / 3),
@@ -352,9 +352,9 @@ function collectQuarterlyData(
 
 // 경영진 요약 생성
 function generateExecutiveSummary(
-  projectId: string,
-  quarterStart: Date,
-  quarterEnd: Date,
+  _projectId: string,
+  _quarterStart: Date,
+  _quarterEnd: Date,
 ): any {
   return {
     overallStatus: "on-track",
@@ -372,9 +372,9 @@ function generateExecutiveSummary(
 
 // 성과 수집
 function collectAchievements(
-  projectId: string,
-  quarterStart: Date,
-  quarterEnd: Date,
+  _projectId: string,
+  _quarterStart: Date,
+  _quarterEnd: Date,
 ): any {
   return {
     milestones: [
@@ -411,9 +411,9 @@ function collectAchievements(
 
 // 도전과제 수집
 function collectChallenges(
-  projectId: string,
-  quarterStart: Date,
-  quarterEnd: Date,
+  _projectId: string,
+  _quarterStart: Date,
+  _quarterEnd: Date,
 ): any {
   return {
     technical: [
@@ -445,9 +445,9 @@ function collectChallenges(
 
 // 재무 요약 수집
 function collectFinancialSummary(
-  projectId: string,
-  quarterStart: Date,
-  quarterEnd: Date,
+  _projectId: string,
+  _quarterStart: Date,
+  _quarterEnd: Date,
 ): any {
   return {
     totalBudget: 100000000,
@@ -483,9 +483,9 @@ function collectFinancialSummary(
 
 // 인력 요약 수집
 function collectPersonnelSummary(
-  projectId: string,
-  quarterStart: Date,
-  quarterEnd: Date,
+  _projectId: string,
+  _quarterStart: Date,
+  _quarterEnd: Date,
 ): any {
   return {
     totalParticipants: 8,
@@ -513,7 +513,7 @@ function collectPersonnelSummary(
 }
 
 // 다음 분기 계획 생성
-function generateNextQuarterPlan(projectId: string): any {
+function generateNextQuarterPlan(_projectId: string): any {
   return {
     objectives: [
       {
@@ -550,7 +550,7 @@ function generateNextQuarterPlan(projectId: string): any {
 }
 
 // 권고사항 생성
-function generateRecommendations(projectId: string): any {
+function generateRecommendations(_projectId: string): any {
   return {
     immediate: [
       {
@@ -624,7 +624,7 @@ export function applyReportTemplate(
 // 리포트 내보내기
 export function exportReport(
   reportId: string,
-  format: "pdf" | "docx" | "html" | "excel",
+  _format: "pdf" | "docx" | "html" | "excel",
 ): string {
   let report: Report | undefined = undefined;
 
@@ -758,7 +758,7 @@ export function scheduleAutoReports(
 }
 
 // 리포트 통계
-export function getReportStatistics(projectId: string): any {
+export function getReportStatistics(_projectId: string): any {
   let projectReports: Report[] = [];
 
   reports.subscribe((list) => {

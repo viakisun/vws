@@ -1,6 +1,6 @@
+import { logger } from "$lib/utils/logger";
 import { writable } from "svelte/store";
 import type { AuditLog, Person } from "./types";
-import { logger } from "$lib/utils/logger";
 
 // 감사 로그 관리
 export const auditLogs = writable<AuditLog[]>([]);
@@ -343,7 +343,7 @@ function validateContext(
 }
 
 // 프로젝트 접근 권한 확인
-function checkProjectAccess(userId: string, projectId: string): boolean {
+function checkProjectAccess(_userId: string, _projectId: string): boolean {
   // 실제 구현에서는 프로젝트 참여자 목록을 확인
   return true; // 모의 구현
 }

@@ -1,112 +1,100 @@
 <script lang="ts">
-  import PayslipGenerator from "$lib/components/salary/PayslipGenerator.svelte";
-  import { loadPayslips, payslips } from "$lib/stores/salary/salary-store";
-  import { formatCurrency, formatDate } from "$lib/utils/format";
-  import {
-    CalendarIcon,
-    DownloadIcon,
-    FileTextIcon,
-    SearchIcon,
-    UserIcon,
-  } from "@lucide/svelte";
-  import { onMount } from "svelte";
+  import PayslipGenerator from '$lib/components/salary/PayslipGenerator.svelte'
+  import { loadPayslips, payslips } from '$lib/stores/salary/salary-store'
+  import { formatCurrency, formatDate } from '$lib/utils/format'
+  import { CalendarIcon, DownloadIcon, FileTextIcon, SearchIcon, UserIcon } from '@lucide/svelte'
+  import { onMount } from 'svelte'
 
-  let searchQuery = $state("");
-  let selectedPeriod = $state("");
-  let selectedEmployee = $state("");
+  let searchQuery = $state('')
+  let selectedPeriod = $state('')
+  let selectedEmployee = $state('')
 
   // 필터링된 급여명세서 목록
   const filteredPayslips = $derived(() => {
-    let filtered = [...$payslips];
+    let filtered = [...$payslips]
 
     if (searchQuery) {
-      const query = searchQuery.toLowerCase();
+      const query = searchQuery.toLowerCase()
       filtered = filtered.filter(
         (payroll) =>
           payroll.employeeName.toLowerCase().includes(query) ||
           payroll.employeeIdNumber.toLowerCase().includes(query) ||
           payroll.department.toLowerCase().includes(query),
-      );
+      )
     }
 
     if (selectedPeriod) {
-      filtered = filtered.filter((payroll) =>
-        payroll.payDate.startsWith(selectedPeriod),
-      );
+      filtered = filtered.filter((payroll) => payroll.payDate.startsWith(selectedPeriod))
     }
 
     if (selectedEmployee) {
-      filtered = filtered.filter(
-        (payroll) => payroll.employeeId === selectedEmployee,
-      );
+      filtered = filtered.filter((payroll) => payroll.employeeId === selectedEmployee)
     }
 
-    return filtered.sort((a, b) => b.payDate.localeCompare(a.payDate));
-  });
+    return filtered.sort((a, b) => b.payDate.localeCompare(a.payDate))
+  })
 
   // 기간 옵션
   const periodOptions = $derived(() => {
-    const periods = new Set();
+    const periods = new Set()
     $payslips.forEach((payslip) => {
-      const period = payslip.period;
-      periods.add(period);
-    });
-    return Array.from(periods).sort().reverse();
-  });
+      const period = payslip.period
+      periods.add(period)
+    })
+    return Array.from(periods).sort().reverse()
+  })
 
   // 직원 옵션
   const employeeOptions = $derived(() => {
-    const employees = new Map();
+    const employees = new Map()
     $payslips.forEach((payslip) => {
       employees.set(payslip.employeeId, {
         id: payslip.employeeId,
         name: payslip.employeeName,
-      });
-    });
-    return Array.from(employees.values()).sort((a, b) =>
-      a.name.localeCompare(b.name),
-    );
-  });
+      })
+    })
+    return Array.from(employees.values()).sort((a, b) => a.name.localeCompare(b.name))
+  })
 
   onMount(() => {
     void (async () => {
-      await loadPayslips();
-    })();
-  });
+      await loadPayslips()
+    })()
+  })
 
   // 상태별 색상
   function getStatusColor(status: string): string {
     switch (status) {
-      case "pending":
-        return "text-yellow-600 bg-yellow-100";
-      case "calculated":
-        return "text-blue-600 bg-blue-100";
-      case "approved":
-        return "text-green-600 bg-green-100";
-      case "paid":
-        return "text-purple-600 bg-purple-100";
-      case "error":
-        return "text-red-600 bg-red-100";
+      case 'pending':
+        return 'text-yellow-600 bg-yellow-100'
+      case 'calculated':
+        return 'text-blue-600 bg-blue-100'
+      case 'approved':
+        return 'text-green-600 bg-green-100'
+      case 'paid':
+        return 'text-purple-600 bg-purple-100'
+      case 'error':
+        return 'text-red-600 bg-red-100'
       default:
-        return "text-gray-600 bg-gray-100";
+        return 'text-gray-600 bg-gray-100'
     }
   }
 
   // 상태별 라벨
   function getStatusLabel(status: string): string {
     switch (status) {
-      case "pending":
-        return "대기중";
-      case "calculated":
-        return "계산완료";
-      case "approved":
-        return "승인완료";
-      case "paid":
-        return "지급완료";
-      case "error":
-        return "오류";
+      case 'pending':
+        return '대기중'
+      case 'calculated':
+        return '계산완료'
+      case 'approved':
+        return '승인완료'
+      case 'paid':
+        return '지급완료'
+      case 'error':
+        return '오류'
       default:
-        return "알수없음";
+        return '알수없음'
     }
   }
 </script>
@@ -150,10 +138,7 @@
           </div>
 
           <div class="relative">
-            <CalendarIcon
-              size={20}
-              class="absolute left-3 top-3 text-gray-400"
-            />
+            <CalendarIcon size={20} class="absolute left-3 top-3 text-gray-400" />
             <select
               bind:value={selectedPeriod}
               class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -181,9 +166,7 @@
       </div>
 
       <!-- 급여명세서 목록 -->
-      <div
-        class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden"
-      >
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
         <div class="overflow-x-auto">
           <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">
@@ -280,12 +263,8 @@
         {#if filteredPayslips().length === 0}
           <div class="text-center py-12">
             <FileTextIcon size={48} class="mx-auto text-gray-400" />
-            <h3 class="mt-2 text-sm font-medium text-gray-900">
-              급여명세서가 없습니다
-            </h3>
-            <p class="mt-1 text-sm text-gray-500">
-              검색 조건을 변경하거나 급여를 계산해보세요.
-            </p>
+            <h3 class="mt-2 text-sm font-medium text-gray-900">급여명세서가 없습니다</h3>
+            <p class="mt-1 text-sm text-gray-500">검색 조건을 변경하거나 급여를 계산해보세요.</p>
           </div>
         {/if}
       </div>

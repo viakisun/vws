@@ -9,6 +9,6 @@ export const logger = {
   error: (...args: unknown[]) => console.error(...args),
   debug: (...args: unknown[]) => console.debug(...args),
   trace: (...args: unknown[]) => console.trace(...args),
-} as const;
+} as const
 
-export default logger;
+export default logger

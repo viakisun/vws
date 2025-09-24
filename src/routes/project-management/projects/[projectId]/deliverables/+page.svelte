@@ -1,93 +1,91 @@
 <script lang="ts">
-  import Card from "$lib/components/ui/Card.svelte";
-  import Badge from "$lib/components/ui/Badge.svelte";
-  import { page } from "$app/state";
-  import { goto } from "$app/navigation";
+  import Card from '$lib/components/ui/Card.svelte'
+  import Badge from '$lib/components/ui/Badge.svelte'
+  import { page } from '$app/state'
+  import { goto } from '$app/navigation'
 
-  type DStatus = "준비" | "진행" | "완료" | "지연";
+  type DStatus = '준비' | '진행' | '완료' | '지연'
   interface Deliverable {
-    id: string;
-    title: string;
-    status: DStatus;
-    due: string;
-    owner: string;
+    id: string
+    title: string
+    status: DStatus
+    due: string
+    owner: string
   }
 
-  const projectId = page.params.projectId as string;
+  const projectId = page.params.projectId as string
   // mock per-project deliverables
   let items: Deliverable[] = [
     {
       id: `${projectId}-D1`,
-      title: "중간보고서",
-      status: "진행",
-      due: "2025-11-15",
-      owner: "김철수",
+      title: '중간보고서',
+      status: '진행',
+      due: '2025-11-15',
+      owner: '김철수',
     },
     {
       id: `${projectId}-D2`,
-      title: "프로토타입 v1",
-      status: "지연",
-      due: "2025-12-01",
-      owner: "이영희",
+      title: '프로토타입 v1',
+      status: '지연',
+      due: '2025-12-01',
+      owner: '이영희',
     },
     {
       id: `${projectId}-D3`,
-      title: "최종보고서",
-      status: "준비",
-      due: "2026-05-31",
-      owner: "박민수",
+      title: '최종보고서',
+      status: '준비',
+      due: '2026-05-31',
+      owner: '박민수',
     },
-  ];
+  ]
 
-  let status = $state("") as "" | DStatus;
-  let query = $state("");
+  let status = $state('') as '' | DStatus
+  let query = $state('')
 
   // initial read
-  let lastQuery = $state("");
-  if (typeof window !== "undefined") {
-    const sp = new URLSearchParams(window.location.search);
-    status = (sp.get("status") as typeof status) ?? "";
-    query = sp.get("q") ?? "";
-    lastQuery = sp.toString();
+  let lastQuery = $state('')
+  if (typeof window !== 'undefined') {
+    const sp = new URLSearchParams(window.location.search)
+    status = (sp.get('status') as typeof status) ?? ''
+    query = sp.get('q') ?? ''
+    lastQuery = sp.toString()
   }
   // sync to URL
   $effect(() => {
-    if (typeof window !== "undefined") {
-      const sp = new URLSearchParams(window.location.search);
-      if (status) sp.set("status", status);
-      else sp.delete("status");
-      if (query) sp.set("q", query);
-      else sp.delete("q");
-      const newQuery = sp.toString();
+    if (typeof window !== 'undefined') {
+      const sp = new URLSearchParams(window.location.search)
+      if (status) sp.set('status', status)
+      else sp.delete('status')
+      if (query) sp.set('q', query)
+      else sp.delete('q')
+      const newQuery = sp.toString()
       if (newQuery !== lastQuery) {
-        lastQuery = newQuery;
+        lastQuery = newQuery
         goto(`${window.location.pathname}?${newQuery}`, {
           replaceState: true,
           keepFocus: true,
           noScroll: true,
-        });
+        })
       }
     }
-  });
+  })
 
   const filtered = $derived(
     items.filter(
-      (d) =>
-        (status ? d.status === status : true) &&
-        (query ? d.title.includes(query) : true),
+      (d) => (status ? d.status === status : true) && (query ? d.title.includes(query) : true),
     ),
-  );
+  )
 
-  function colorOf(s: DStatus): "green" | "blue" | "yellow" | "red" {
-    if (s === "완료") return "green";
-    if (s === "진행") return "blue";
-    if (s === "지연") return "red";
-    return "yellow";
+  function colorOf(s: DStatus): 'green' | 'blue' | 'yellow' | 'red' {
+    if (s === '완료') return 'green'
+    if (s === '진행') return 'blue'
+    if (s === '지연') return 'red'
+    return 'yellow'
   }
 
-  let loading = $state(true);
-  if (typeof window !== "undefined") {
-    setTimeout(() => (loading = false), 300);
+  let loading = $state(true)
+  if (typeof window !== 'undefined') {
+    setTimeout(() => (loading = false), 300)
   }
 </script>
 
@@ -137,9 +135,7 @@
               <td class="px-3 py-2">{d.title}</td>
               <td class="px-3 py-2">{d.owner}</td>
               <td class="px-3 py-2">{d.due}</td>
-              <td class="px-3 py-2"
-                ><Badge color={colorOf(d.status)}>{d.status}</Badge></td
-              >
+              <td class="px-3 py-2"><Badge color={colorOf(d.status)}>{d.status}</Badge></td>
             </tr>
           {/each}
         </tbody>

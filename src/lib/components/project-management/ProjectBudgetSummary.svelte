@@ -83,8 +83,6 @@
   // }
 </script>
 
-import {logger} from '$lib/utils/logger';
-
 {#if loading}
   <div class="flex items-center justify-center py-4">
     <div

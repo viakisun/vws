@@ -1,7 +1,7 @@
-import { json } from "@sveltejs/kit";
-import type { RequestHandler } from "./$types";
-import { query } from "$lib/database/connection";
-import { logger } from "$lib/utils/logger";
+import { json } from '@sveltejs/kit'
+import type { RequestHandler } from './$types'
+import { query } from '$lib/database/connection'
+import { logger } from '$lib/utils/logger'
 
 // 부서 테이블에 T/O 컬럼 추가
 export const POST: RequestHandler = async () => {
@@ -10,7 +10,7 @@ export const POST: RequestHandler = async () => {
     await query(`
 			ALTER TABLE departments 
 			ADD COLUMN IF NOT EXISTS max_employees INTEGER DEFAULT 0
-		`);
+		`)
 
     // 기존 부서들의 T/O 설정
     await query(`
@@ -22,20 +22,20 @@ export const POST: RequestHandler = async () => {
 				ELSE 0
 			END
 			WHERE max_employees = 0 OR max_employees IS NULL
-		`);
+		`)
 
     return json({
       success: true,
-      message: "부서 테이블에 T/O 컬럼이 성공적으로 추가되었습니다.",
-    });
+      message: '부서 테이블에 T/O 컬럼이 성공적으로 추가되었습니다.',
+    })
   } catch (error: any) {
-    logger.error("Error adding TO column to departments:", error);
+    logger.error('Error adding TO column to departments:', error)
     return json(
       {
         success: false,
-        error: error.message || "T/O 컬럼 추가에 실패했습니다.",
+        error: error.message || 'T/O 컬럼 추가에 실패했습니다.',
       },
       { status: 500 },
-    );
+    )
   }
-};
+}

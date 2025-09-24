@@ -1,11 +1,11 @@
 // 자동 검증 훅 시스템
 
+import { logger } from "$lib/utils/logger";
 import { readFileSync, watch, writeFileSync } from "fs";
 import { extname, join } from "path";
 import { AICodingValidator } from "./ai-coding-guidelines";
 import { SafeChangeManager } from "./safe-change-manager";
 import { SchemaValidator } from "./schema-validation";
-import { logger } from "$lib/utils/logger";
 
 // 파일 변경 감지 및 자동 검증
 export class AutoValidationHooks {
@@ -213,7 +213,7 @@ export class AutoValidationHooks {
    */
   private static async executeAutoFix(
     plan: any,
-    validation: any,
+    _validation: any,
   ): Promise<void> {
     // 실제 자동 수정 로직은 여기에 구현
     // 예: 코드 포맷팅, 타입 수정, import 정리 등
@@ -223,7 +223,7 @@ export class AutoValidationHooks {
   /**
    * 의존성 분석
    */
-  private static async analyzeDependencies(filePath: string): Promise<any> {
+  private static async analyzeDependencies(_filePath: string): Promise<any> {
     // 간단한 의존성 분석
     return {
       riskLevel: "low",
@@ -351,4 +351,3 @@ echo "✅ [Git 훅] 커밋 후 검증 완료"
     };
   }
 }
-

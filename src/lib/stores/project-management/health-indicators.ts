@@ -1,7 +1,7 @@
-import { writable } from "svelte/store";
-import type { HealthIndicator } from "./types";
-import { logAudit } from "./core";
 import { logger } from "$lib/utils/logger";
+import { writable } from "svelte/store";
+import { logAudit } from "./core";
+import type { HealthIndicator } from "./types";
 
 // 헬스 인디케이터 관리
 export const healthIndicators = writable<HealthIndicator[]>([]);
@@ -46,7 +46,7 @@ export function calculateHealthIndicator(projectId: string): HealthIndicator {
 }
 
 // 일정 헬스 계산
-function calculateScheduleHealth(projectId: string): number {
+function calculateScheduleHealth(_projectId: string): number {
   // 1. 마일스톤 달성률 (40%)
   const milestoneScore = calculateMilestoneHealth(projectId);
 
@@ -64,7 +64,7 @@ function calculateScheduleHealth(projectId: string): number {
 }
 
 // 마일스톤 헬스 계산
-function calculateMilestoneHealth(projectId: string): number {
+function calculateMilestoneHealth(_projectId: string): number {
   // 실제 구현에서는 milestones 스토어에서 데이터 가져오기
   const mockMilestones = [
     { status: "completed", dueDate: "2024-01-15", completedDate: "2024-01-14" },
@@ -88,7 +88,7 @@ function calculateMilestoneHealth(projectId: string): number {
 }
 
 // 산출물 헬스 계산
-function calculateDeliverableHealth(projectId: string): number {
+function calculateDeliverableHealth(_projectId: string): number {
   // 실제 구현에서는 deliverables 데이터를 분석
   const mockDeliverables = [
     { status: "delivered", dueDate: "2024-01-15", deliveredDate: "2024-01-14" },
@@ -112,7 +112,7 @@ function calculateDeliverableHealth(projectId: string): number {
 }
 
 // 일정 준수율 계산
-function calculateScheduleCompliance(projectId: string): number {
+function calculateScheduleCompliance(_projectId: string): number {
   // 실제 구현에서는 프로젝트 일정과 실제 진행률을 비교
   const projectStart = new Date("2024-01-01");
   const projectEnd = new Date("2024-12-31");
@@ -138,7 +138,7 @@ function calculateScheduleCompliance(projectId: string): number {
 }
 
 // 예산 헬스 계산
-function calculateBudgetHealth(projectId: string): number {
+function calculateBudgetHealth(_projectId: string): number {
   // 1. 예산 집행률 (40%)
   const executionScore = calculateBudgetExecutionScore(projectId);
 
@@ -154,7 +154,7 @@ function calculateBudgetHealth(projectId: string): number {
 }
 
 // 예산 집행률 점수 계산
-function calculateBudgetExecutionScore(projectId: string): number {
+function calculateBudgetExecutionScore(_projectId: string): number {
   // 실제 구현에서는 예산 데이터를 분석
   const totalBudget = 100000000;
   const executedAmount = 60000000;
@@ -169,7 +169,7 @@ function calculateBudgetExecutionScore(projectId: string): number {
 }
 
 // 예산 효율성 점수 계산
-function calculateBudgetEfficiencyScore(projectId: string): number {
+function calculateBudgetEfficiencyScore(_projectId: string): number {
   // 실제 구현에서는 ROI, 비용 대비 성과 등을 분석
   const plannedROI = 150; // 계획된 ROI (%)
   const actualROI = 120; // 실제 ROI (%)
@@ -179,7 +179,7 @@ function calculateBudgetEfficiencyScore(projectId: string): number {
 }
 
 // 예산 편차 점수 계산
-function calculateBudgetVarianceScore(projectId: string): number {
+function calculateBudgetVarianceScore(_projectId: string): number {
   // 실제 구현에서는 카테고리별 예산 편차를 분석
   const categoryVariances = [
     { category: "PERSONNEL_CASH", variance: 5 }, // 5% 편차
@@ -200,7 +200,7 @@ function calculateBudgetVarianceScore(projectId: string): number {
 }
 
 // 인력 헬스 계산
-function calculatePeopleHealth(projectId: string): number {
+function calculatePeopleHealth(_projectId: string): number {
   // 1. 참여율 충족도 (40%)
   const participationScore = calculateParticipationHealth(projectId);
 
@@ -216,7 +216,7 @@ function calculatePeopleHealth(projectId: string): number {
 }
 
 // 참여율 헬스 계산
-function calculateParticipationHealth(projectId: string): number {
+function calculateParticipationHealth(_projectId: string): number {
   // 실제 구현에서는 participationAssignments 데이터를 분석
   const mockParticipants = [
     { personId: "person-1", assignedRate: 100, actualRate: 95 },
@@ -245,7 +245,7 @@ function calculateParticipationHealth(projectId: string): number {
 }
 
 // 인력 안정성 헬스 계산
-function calculateStabilityHealth(projectId: string): number {
+function calculateStabilityHealth(_projectId: string): number {
   // 실제 구현에서는 인력 이탈률, 교체 빈도 등을 분석
   const mockStabilityData = {
     totalParticipants: 8,
@@ -262,7 +262,7 @@ function calculateStabilityHealth(projectId: string): number {
 }
 
 // 성과 수준 헬스 계산
-function calculatePerformanceHealth(projectId: string): number {
+function calculatePerformanceHealth(_projectId: string): number {
   // 실제 구현에서는 성과 평가 데이터를 분석
   const mockPerformanceData = {
     excellent: 3,
@@ -287,7 +287,7 @@ function calculatePerformanceHealth(projectId: string): number {
 }
 
 // 리스크 헬스 계산
-function calculateRiskHealth(projectId: string): number {
+function calculateRiskHealth(_projectId: string): number {
   // 1. 기술적 리스크 (30%)
   const technicalRiskScore = calculateTechnicalRiskScore(projectId);
 
@@ -309,7 +309,7 @@ function calculateRiskHealth(projectId: string): number {
 }
 
 // 기술적 리스크 점수 계산
-function calculateTechnicalRiskScore(projectId: string): number {
+function calculateTechnicalRiskScore(_projectId: string): number {
   // 실제 구현에서는 기술적 이슈, 복잡도 등을 분석
   const mockTechnicalRisks = [
     { type: "complexity", level: "medium", impact: "high" },
@@ -331,7 +331,7 @@ function calculateTechnicalRiskScore(projectId: string): number {
 }
 
 // 일정 리스크 점수 계산
-function calculateScheduleRiskScore(projectId: string): number {
+function calculateScheduleRiskScore(_projectId: string): number {
   // 실제 구현에서는 일정 지연 위험을 분석
   const mockScheduleRisks = {
     delayedMilestones: 2,
@@ -350,7 +350,7 @@ function calculateScheduleRiskScore(projectId: string): number {
 }
 
 // 예산 리스크 점수 계산
-function calculateBudgetRiskScore(projectId: string): number {
+function calculateBudgetRiskScore(_projectId: string): number {
   // 실제 구현에서는 예산 초과 위험을 분석
   const mockBudgetRisks = {
     overrunCategories: 1,
@@ -371,7 +371,7 @@ function calculateBudgetRiskScore(projectId: string): number {
 }
 
 // 인력 리스크 점수 계산
-function calculatePeopleRiskScore(projectId: string): number {
+function calculatePeopleRiskScore(_projectId: string): number {
   // 실제 구현에서는 인력 이탈 위험을 분석
   const mockPeopleRisks = {
     keyPersonnelAtRisk: 1,

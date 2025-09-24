@@ -1,76 +1,67 @@
 <script lang="ts">
-  import { logger } from "$lib/utils/logger";
+  import { logger } from '$lib/utils/logger'
 
-  import { page } from "$app/stores";
-  import { onMount } from "svelte";
+  import { page } from '$app/stores'
+  import { onMount } from 'svelte'
 
-  let { children } = $props();
+  let { children } = $props()
 
   // 현재 사용자 역할 (실제로는 인증 시스템에서 가져옴)
   let currentUser = $state({
-    id: "user-001",
-    name: "김경영",
-    email: "kim.kyung@company.com",
-    department: "경영지원팀",
-    role: "MANAGEMENT_SUPPORT", // 경영지원팀 역할
-    permissions: ["READ_ALL", "WRITE_ALL", "APPROVE_ALL", "AUDIT_ALL"],
-  });
+    id: 'user-001',
+    name: '김경영',
+    email: 'kim.kyung@company.com',
+    department: '경영지원팀',
+    role: 'MANAGEMENT_SUPPORT', // 경영지원팀 역할
+    permissions: ['READ_ALL', 'WRITE_ALL', 'APPROVE_ALL', 'AUDIT_ALL'],
+  })
 
   // 네비게이션 메뉴 (역할별로 동적으로 표시)
   let navigationItems = $derived(() => {
     const baseItems = [
-      { name: "대시보드", href: "/rnd", icon: "📊" },
-      { name: "예산 관리", href: "/rnd/budget", icon: "💰" },
-      { name: "지출 관리", href: "/rnd/expenses", icon: "💳" },
-      { name: "인력 관리", href: "/rnd/personnel", icon: "👥" },
-      { name: "연구노트", href: "/rnd/research-notes", icon: "📝" },
-      { name: "리포트", href: "/rnd/reports", icon: "📈" },
-      { name: "결재 관리", href: "/rnd/approvals", icon: "✅" },
-      { name: "국가R&D 업로드", href: "/rnd/submissions", icon: "📤" },
-      { name: "감사 로그", href: "/rnd/audit", icon: "🔍" },
-    ];
+      { name: '대시보드', href: '/rnd', icon: '📊' },
+      { name: '예산 관리', href: '/rnd/budget', icon: '💰' },
+      { name: '지출 관리', href: '/rnd/expenses', icon: '💳' },
+      { name: '인력 관리', href: '/rnd/personnel', icon: '👥' },
+      { name: '연구노트', href: '/rnd/research-notes', icon: '📝' },
+      { name: '리포트', href: '/rnd/reports', icon: '📈' },
+      { name: '결재 관리', href: '/rnd/approvals', icon: '✅' },
+      { name: '국가R&D 업로드', href: '/rnd/submissions', icon: '📤' },
+      { name: '감사 로그', href: '/rnd/audit', icon: '🔍' },
+    ]
 
     // 역할별 메뉴 필터링
     switch (currentUser.role) {
-      case "EXECUTIVE":
+      case 'EXECUTIVE':
         return baseItems.filter((item) =>
-          ["대시보드", "예산 관리", "리포트", "감사 로그"].includes(item.name),
-        );
-      case "LAB_HEAD":
+          ['대시보드', '예산 관리', '리포트', '감사 로그'].includes(item.name),
+        )
+      case 'LAB_HEAD':
         return baseItems.filter((item) =>
-          ["대시보드", "예산 관리", "연구노트", "리포트", "결재 관리"].includes(
+          ['대시보드', '예산 관리', '연구노트', '리포트', '결재 관리'].includes(item.name),
+        )
+      case 'PM':
+        return baseItems.filter((item) =>
+          ['대시보드', '예산 관리', '지출 관리', '인력 관리', '연구노트', '리포트'].includes(
             item.name,
           ),
-        );
-      case "PM":
-        return baseItems.filter((item) =>
-          [
-            "대시보드",
-            "예산 관리",
-            "지출 관리",
-            "인력 관리",
-            "연구노트",
-            "리포트",
-          ].includes(item.name),
-        );
-      case "MANAGEMENT_SUPPORT":
-        return baseItems; // 경영지원팀은 모든 메뉴 접근 가능
-      case "RESEARCHER":
-        return baseItems.filter((item) =>
-          ["대시보드", "연구노트", "리포트"].includes(item.name),
-        );
+        )
+      case 'MANAGEMENT_SUPPORT':
+        return baseItems // 경영지원팀은 모든 메뉴 접근 가능
+      case 'RESEARCHER':
+        return baseItems.filter((item) => ['대시보드', '연구노트', '리포트'].includes(item.name))
       default:
-        return baseItems;
+        return baseItems
     }
-  });
+  })
 
   // 현재 경로 확인
-  let currentPath = $derived($page.url.pathname);
+  let currentPath = $derived($page.url.pathname)
 
   onMount(() => {
     // 사용자 정보 로드 및 권한 확인
-    logger.log("R&D 시스템 초기화:", currentUser);
-  });
+    logger.log('R&D 시스템 초기화:', currentUser)
+  })
 </script>
 
 <div class="min-h-screen bg-gray-50">
@@ -80,9 +71,7 @@
       <div class="flex justify-between items-center h-16">
         <div class="flex items-center">
           <div class="flex-shrink-0">
-            <h1 class="text-2xl font-bold text-gray-900">
-              R&D 통합관리 시스템
-            </h1>
+            <h1 class="text-2xl font-bold text-gray-900">R&D 통합관리 시스템</h1>
           </div>
           <nav class="hidden md:ml-10 md:flex md:space-x-8">
             {#each navigationItems() as item, idx (idx)}
@@ -103,16 +92,8 @@
 
         <div class="flex items-center space-x-4">
           <!-- 알림 -->
-          <button
-            type="button"
-            class="p-2 text-gray-400 hover:text-gray-500 relative"
-          >
-            <svg
-              class="h-6 w-6"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
+          <button type="button" class="p-2 text-gray-400 hover:text-gray-500 relative">
+            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path
                 stroke-linecap="round"
                 stroke-linejoin="round"
@@ -134,12 +115,8 @@
               </p>
               <p class="text-xs text-gray-500">{currentUser.department}</p>
             </div>
-            <div
-              class="h-8 w-8 bg-blue-500 rounded-full flex items-center justify-center"
-            >
-              <span class="text-sm font-medium text-white"
-                >{currentUser.name.charAt(0)}</span
-              >
+            <div class="h-8 w-8 bg-blue-500 rounded-full flex items-center justify-center">
+              <span class="text-sm font-medium text-white">{currentUser.name.charAt(0)}</span>
             </div>
           </div>
         </div>
@@ -149,9 +126,7 @@
 
   <!-- 모바일 메뉴 -->
   <div class="md:hidden">
-    <div
-      class="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-white border-b border-gray-200"
-    >
+    <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-white border-b border-gray-200">
       {#each navigationItems() as item, idx (idx)}
         <!-- TODO: replace index key with a stable id when model provides one -->
         <a

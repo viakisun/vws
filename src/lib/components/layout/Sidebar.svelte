@@ -85,9 +85,6 @@
             ? 'background: var(--color-primary);'
             : 'color: var(--color-text-secondary); background: transparent;'}
           "
-          style:hover={isCurrent
-            ? null
-            : "background: var(--color-surface-elevated)"}
           title={isCollapsed ? item.name : ""}
         >
           {#if isCurrent}

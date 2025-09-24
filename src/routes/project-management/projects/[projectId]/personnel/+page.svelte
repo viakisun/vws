@@ -1,68 +1,58 @@
 <script lang="ts">
-  import Card from "$lib/components/ui/Card.svelte";
-  import Badge from "$lib/components/ui/Badge.svelte";
-  import Progress from "$lib/components/ui/Progress.svelte";
-  import { page } from "$app/state";
-  import { projectsStore, quarterlyPersonnelBudgets } from "$lib/stores/rnd";
-  import { personnelStore } from "$lib/stores/personnel";
-  import { formatKRW } from "$lib/utils/format";
-  import type { Personnel } from "$lib/types";
+  import Card from '$lib/components/ui/Card.svelte'
+  import Badge from '$lib/components/ui/Badge.svelte'
+  import Progress from '$lib/components/ui/Progress.svelte'
+  import { page } from '$app/state'
+  import { projectsStore, quarterlyPersonnelBudgets } from '$lib/stores/rnd'
+  import { personnelStore } from '$lib/stores/personnel'
+  import { formatKRW } from '$lib/utils/format'
+  import type { Personnel } from '$lib/types'
 
-  const projectId = page.params.projectId as string;
-  const project = $derived($projectsStore.find((p) => p.id === projectId));
+  const projectId = page.params.projectId as string
+  const project = $derived($projectsStore.find((p) => p.id === projectId))
   const people = $derived(
-    $personnelStore.filter((p) =>
-      p.participations.some((pp) => pp.projectId === projectId),
-    ),
-  );
+    $personnelStore.filter((p) => p.participations.some((pp) => pp.projectId === projectId)),
+  )
 
   function currentQuarterLabel(): string {
-    const d = new Date();
-    const y = d.getFullYear();
-    const qn = Math.floor(d.getMonth() / 3) + 1;
-    return `${y}-Q${qn}`;
+    const d = new Date()
+    const y = d.getFullYear()
+    const qn = Math.floor(d.getMonth() / 3) + 1
+    return `${y}-Q${qn}`
   }
-  let quarter = $state(currentQuarterLabel());
+  let quarter = $state(currentQuarterLabel())
   const budgetMap = $derived(
-    ($quarterlyPersonnelBudgets[projectId as string] ?? {}) as Record<
-      string,
-      number
-    >,
-  );
+    ($quarterlyPersonnelBudgets[projectId as string] ?? {}) as Record<string, number>,
+  )
 
   function allocOf(person: Personnel): number {
-    const pp = person.participations.find((x) => x.projectId === projectId);
-    return pp ? pp.allocationPct : 0;
+    const pp = person.participations.find((x) => x.projectId === projectId)
+    return pp ? pp.allocationPct : 0
   }
   function quarterCost(person: Personnel): number {
     const breakdown =
-      person.participations.find((x) => x.projectId === projectId)
-        ?.quarterlyBreakdown?.[quarter] ?? 0;
-    if (breakdown > 0) return breakdown;
-    const alloc = allocOf(person);
-    const est = ((person.annualSalaryKRW ?? 0) * (alloc / 100)) / 4;
-    return Math.round(est);
+      person.participations.find((x) => x.projectId === projectId)?.quarterlyBreakdown?.[quarter] ??
+      0
+    if (breakdown > 0) return breakdown
+    const alloc = allocOf(person)
+    const est = ((person.annualSalaryKRW ?? 0) * (alloc / 100)) / 4
+    return Math.round(est)
   }
   function quarterBudget(person: Personnel): number {
-    const alloc = allocOf(person);
-    const base = budgetMap?.[quarter] ?? 0;
-    return Math.round(base * (alloc / 100));
+    const alloc = allocOf(person)
+    const base = budgetMap?.[quarter] ?? 0
+    return Math.round(base * (alloc / 100))
   }
 
   const totalBudget = $derived(
-    Object.entries(budgetMap).reduce(
-      (s, [k, v]) => (k === quarter ? s + v : s),
-      0,
-    ),
-  );
-  const totalCost = $derived(people.reduce((s, p) => s + quarterCost(p), 0));
-  const util = $derived(
-    totalBudget > 0 ? Math.round((totalCost / totalBudget) * 100) : 0,
-  );
+    Object.entries(budgetMap).reduce((s, [k, v]) => (k === quarter ? s + v : s), 0),
+  )
+  const totalCost = $derived(people.reduce((s, p) => s + quarterCost(p), 0))
+  const util = $derived(totalBudget > 0 ? Math.round((totalCost / totalBudget) * 100) : 0)
 
-  let loading = $state(true);
-  if (typeof window !== "undefined") {
-    setTimeout(() => (loading = false), 300);
+  let loading = $state(true)
+  if (typeof window !== 'undefined') {
+    setTimeout(() => (loading = false), 300)
   }
 </script>
 
@@ -136,12 +126,12 @@
                   {#if qb > 0}
                     <Badge
                       color={ratio >= 100
-                        ? "red"
+                        ? 'red'
                         : ratio >= 95
-                          ? "yellow"
+                          ? 'yellow'
                           : ratio >= 80
-                            ? "yellow"
-                            : "green"}>{ratio}%</Badge
+                            ? 'yellow'
+                            : 'green'}>{ratio}%</Badge
                     >
                   {:else}
                     -

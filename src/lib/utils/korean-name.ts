@@ -33,11 +33,11 @@
  * @returns 한국 이름 여부
  */
 export function isKoreanName(name: string): boolean {
-  if (!name || typeof name !== "string") return false;
+  if (!name || typeof name !== 'string') return false
 
   // 한글 정규식 (가-힣)
-  const koreanRegex = /^[가-힣\s]+$/;
-  return koreanRegex.test(name.trim());
+  const koreanRegex = /^[가-힣\s]+$/
+  return koreanRegex.test(name.trim())
 }
 
 /**
@@ -47,17 +47,17 @@ export function isKoreanName(name: string): boolean {
  * @returns 가공된 한국 이름 또는 원본 이름
  */
 export function formatKoreanName(firstName: string, lastName: string): string {
-  if (!firstName || !lastName) return "";
+  if (!firstName || !lastName) return ''
 
-  const fullName = `${firstName} ${lastName}`.trim();
+  const fullName = `${firstName} ${lastName}`.trim()
 
   // 한국 이름인 경우에만 성+이름 형태로 변환
   if (isKoreanName(fullName)) {
-    return `${firstName}${lastName}`;
+    return `${firstName}${lastName}`
   }
 
   // 한국 이름이 아닌 경우 원본 형태 유지
-  return fullName;
+  return fullName
 }
 
 /**
@@ -66,33 +66,33 @@ export function formatKoreanName(firstName: string, lastName: string): string {
  * @returns 가공된 이름 (예: "차지은")
  */
 export function processKoreanName(fullName: string): string {
-  if (!fullName || typeof fullName !== "string") return "";
+  if (!fullName || typeof fullName !== 'string') return ''
 
-  const trimmed = fullName.trim();
+  const trimmed = fullName.trim()
 
   // 한국 이름인 경우
   if (isKoreanName(trimmed)) {
     // 공백으로 분리
-    const parts = trimmed.split(/\s+/);
+    const parts = trimmed.split(/\s+/)
     if (parts.length === 2) {
-      const [first, second] = parts;
+      const [first, second] = parts
 
       // 일반적으로 성은 1글자, 이름은 2글자 이상
       if (first.length >= 2 && second.length === 1) {
         // "지은 차" -> "차지은" (이름 성 -> 성 이름)
-        return `${second}${first}`;
+        return `${second}${first}`
       } else if (first.length === 1 && second.length >= 2) {
         // "차 지은" -> "차지은" (이미 올바른 순서)
-        return `${first}${second}`;
+        return `${first}${second}`
       }
 
       // 기타 경우는 단순 결합
-      return `${first}${second}`;
+      return `${first}${second}`
     }
   }
 
   // 한국 이름이 아니거나 공백이 없는 경우 원본 반환
-  return trimmed;
+  return trimmed
 }
 
 /**
@@ -101,28 +101,27 @@ export function processKoreanName(fullName: string): string {
  * @returns { surname: string, givenName: string }
  */
 export function splitKoreanName(fullName: string): {
-  surname: string;
-  givenName: string;
+  surname: string
+  givenName: string
 } {
-  if (!fullName || typeof fullName !== "string")
-    return { surname: "", givenName: "" };
+  if (!fullName || typeof fullName !== 'string') return { surname: '', givenName: '' }
 
-  const trimmed = fullName.trim();
+  const trimmed = fullName.trim()
 
   // 한국 이름인지 확인
   if (isKoreanName(trimmed)) {
     // 공백으로 분리된 경우 (예: "지은 차")
-    const parts = trimmed.split(/\s+/);
+    const parts = trimmed.split(/\s+/)
     if (parts.length === 2) {
-      const [first, second] = parts;
+      const [first, second] = parts
 
       // 일반적으로 성은 1글자, 이름은 2글자 이상
       if (first.length >= 2 && second.length === 1) {
         // "지은 차" -> surname: "차", givenName: "지은"
-        return { surname: second, givenName: first };
+        return { surname: second, givenName: first }
       } else if (first.length === 1 && second.length >= 2) {
         // "차 지은" -> surname: "차", givenName: "지은"
-        return { surname: first, givenName: second };
+        return { surname: first, givenName: second }
       }
     }
 
@@ -132,24 +131,24 @@ export function splitKoreanName(fullName: string): {
       return {
         surname: trimmed.charAt(0),
         givenName: trimmed.slice(1),
-      };
+      }
     }
   }
 
   // 영문 이름인 경우 공백으로 분리
-  const parts = trimmed.split(" ");
+  const parts = trimmed.split(' ')
   if (parts.length >= 2) {
     return {
       surname: parts[0],
-      givenName: parts.slice(1).join(" "),
-    };
+      givenName: parts.slice(1).join(' '),
+    }
   }
 
   // 분리할 수 없는 경우 전체를 이름으로
   return {
-    surname: "",
+    surname: '',
     givenName: trimmed,
-  };
+  }
 }
 
 /**
@@ -158,21 +157,21 @@ export function splitKoreanName(fullName: string): {
  * @returns 표준 형식의 한국 이름
  */
 export function formatKoreanNameStandard(fullName: string): string {
-  if (!fullName || typeof fullName !== "string") return "";
+  if (!fullName || typeof fullName !== 'string') return ''
 
-  const trimmed = fullName.trim();
+  const trimmed = fullName.trim()
 
   // 이미 표준 형식인 경우 (띄어쓰기 없음)
-  if (!trimmed.includes(" ")) {
-    return trimmed;
+  if (!trimmed.includes(' ')) {
+    return trimmed
   }
 
   // 한국 이름인 경우 표준 형식으로 변환
   if (isKoreanName(trimmed)) {
-    const { surname, givenName } = splitKoreanName(trimmed);
-    return `${surname}${givenName}`;
+    const { surname, givenName } = splitKoreanName(trimmed)
+    return `${surname}${givenName}`
   }
 
   // 한국 이름이 아닌 경우 원본 반환
-  return trimmed;
+  return trimmed
 }

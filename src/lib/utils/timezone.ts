@@ -33,7 +33,7 @@ export const DEFAULT_TIMEZONE: Timezone = "KST";
  */
 export function utcToLocal(
   utcDate: Date,
-  timezone: Timezone = DEFAULT_TIMEZONE,
+  _timezone: Timezone = DEFAULT_TIMEZONE,
 ): Date {
   if (!utcDate || isNaN(utcDate.getTime())) {
     throw new Error("Invalid UTC date provided");
@@ -59,7 +59,7 @@ export function localToUtc(
     throw new Error("Invalid local date provided");
   }
 
-  const timezoneString = SUPPORTED_TIMEZONES[timezone];
+  const _timezoneString = SUPPORTED_TIMEZONES[timezone];
   // 표준 날짜 처리 함수 사용
   const utcDate = new Date(toUTC(localDate.toISOString()));
 
@@ -156,7 +156,7 @@ export function utcToDateTimeString(
   utcDate: Date,
   timezone: Timezone = DEFAULT_TIMEZONE,
 ): string {
-  const localDate = utcToLocal(utcDate, timezone);
+  const _localDate = utcToLocal(utcDate, timezone);
   const dateString = utcToDateString(utcDate, timezone);
   const timeString = utcToTimeString(utcDate, timezone);
   return `${dateString} ${timeString}`;

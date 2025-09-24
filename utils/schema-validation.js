@@ -9,7 +9,7 @@ const pool = new pg_1.Pool({
   database: 'postgres',
   user: 'postgres',
   password: 'viahubdev',
-  ssl: { rejectUnauthorized: false }
+  ssl: { rejectUnauthorized: false },
 })
 exports.pool = pool
 // 스키마 검증 유틸리티 클래스
@@ -25,7 +25,7 @@ class SchemaValidator {
       // 각 테이블별로 검증
       for (const rule of this.PROJECT_SCHEMA_RULES) {
         const actualColumn = actualSchema.find(
-          col => col.table_name === rule.tableName && col.column_name === rule.columnName
+          (col) => col.table_name === rule.tableName && col.column_name === rule.columnName,
         )
         if (!actualColumn) {
           // 칼럼이 존재하지 않는 경우
@@ -36,7 +36,7 @@ class SchemaValidator {
             expectedType: rule.expectedType,
             actualType: 'NOT_FOUND',
             issues: [`칼럼 '${rule.columnName}'이 테이블 '${rule.tableName}'에 존재하지 않습니다.`],
-            message: `필수 칼럼 누락: ${rule.tableName}.${rule.columnName}`
+            message: `필수 칼럼 누락: ${rule.tableName}.${rule.columnName}`,
           })
         } else {
           // 칼럼이 존재하는 경우 타입 검증
@@ -50,9 +50,9 @@ class SchemaValidator {
               actualType: actualColumn.data_type,
               issues: [
                 `칼럼 '${rule.columnName}'의 데이터 타입이 일치하지 않습니다.`,
-                `예상: ${rule.expectedType}, 실제: ${actualColumn.data_type}`
+                `예상: ${rule.expectedType}, 실제: ${actualColumn.data_type}`,
               ],
-              message: `데이터 타입 불일치: ${rule.tableName}.${rule.columnName}`
+              message: `데이터 타입 불일치: ${rule.tableName}.${rule.columnName}`,
             })
           } else {
             // 검증 통과
@@ -63,7 +63,7 @@ class SchemaValidator {
               expectedType: rule.expectedType,
               actualType: actualColumn.data_type,
               issues: [],
-              message: `검증 통과: ${rule.tableName}.${rule.columnName}`
+              message: `검증 통과: ${rule.tableName}.${rule.columnName}`,
             })
           }
         }
@@ -105,7 +105,7 @@ class SchemaValidator {
       numeric: ['numeric', 'decimal', 'real', 'double precision'],
       integer: ['integer', 'int4', 'bigint', 'int8'],
       date: ['date', 'timestamp without time zone', 'timestamp with time zone'],
-      boolean: ['boolean', 'bool']
+      boolean: ['boolean', 'bool'],
     }
     const expectedTypes = typeMappings[expected] || [expected]
     return expectedTypes.includes(actual)
@@ -150,7 +150,7 @@ class SchemaValidator {
             expectedType: 'naming_convention',
             actualType: column.data_type,
             issues,
-            message: `칼럼명 규칙 위반: ${column.table_name}.${column.column_name}`
+            message: `칼럼명 규칙 위반: ${column.table_name}.${column.column_name}`,
           })
         } else {
           results.push({
@@ -160,7 +160,7 @@ class SchemaValidator {
             expectedType: 'naming_convention',
             actualType: column.data_type,
             issues: [],
-            message: `칼럼명 규칙 준수: ${column.table_name}.${column.column_name}`
+            message: `칼럼명 규칙 준수: ${column.table_name}.${column.column_name}`,
           })
         }
       }
@@ -178,7 +178,7 @@ class SchemaValidator {
     try {
       // SELECT, INSERT, UPDATE, DELETE 쿼리에서 칼럼명 추출
       const columnMatches = query.match(/\b[a-zA-Z_][a-zA-Z0-9_]*\b/g) || []
-      const tableRules = this.PROJECT_SCHEMA_RULES.filter(rule => rule.tableName === tableName)
+      const tableRules = this.PROJECT_SCHEMA_RULES.filter((rule) => rule.tableName === tableName)
       for (const columnName of columnMatches) {
         // SQL 키워드나 함수명 제외
         const sqlKeywords = [
@@ -223,11 +223,11 @@ class SchemaValidator {
           'WHEN',
           'THEN',
           'ELSE',
-          'END'
+          'END',
         ]
         if (sqlKeywords.includes(columnName.toUpperCase())) continue
         // 테이블 규칙에서 해당 칼럼 찾기
-        const rule = tableRules.find(r => r.columnName === columnName)
+        const rule = tableRules.find((r) => r.columnName === columnName)
         if (!rule) {
           results.push({
             isValid: false,
@@ -236,7 +236,7 @@ class SchemaValidator {
             expectedType: 'defined_column',
             actualType: 'undefined',
             issues: [`칼럼 '${columnName}'이 테이블 '${tableName}'에 정의되지 않았습니다.`],
-            message: `정의되지 않은 칼럼 사용: ${tableName}.${columnName}`
+            message: `정의되지 않은 칼럼 사용: ${tableName}.${columnName}`,
           })
         }
       }
@@ -251,8 +251,8 @@ class SchemaValidator {
           expectedType: 'valid_query',
           actualType: 'error',
           issues: [`쿼리 파싱 오류: ${error instanceof Error ? error.message : 'Unknown error'}`],
-          message: '쿼리 파싱 실패'
-        }
+          message: '쿼리 파싱 실패',
+        },
       ]
     }
   }
@@ -261,7 +261,7 @@ class SchemaValidator {
    */
   static addSchemaRule(rule) {
     const existingIndex = this.PROJECT_SCHEMA_RULES.findIndex(
-      r => r.tableName === rule.tableName && r.columnName === rule.columnName
+      (r) => r.tableName === rule.tableName && r.columnName === rule.columnName,
     )
     if (existingIndex >= 0) {
       this.PROJECT_SCHEMA_RULES[existingIndex] = rule
@@ -279,7 +279,7 @@ class SchemaValidator {
    * 특정 테이블의 스키마 규칙 조회
    */
   static getTableSchemaRules(tableName) {
-    return this.PROJECT_SCHEMA_RULES.filter(rule => rule.tableName === tableName)
+    return this.PROJECT_SCHEMA_RULES.filter((rule) => rule.tableName === tableName)
   }
 }
 exports.SchemaValidator = SchemaValidator
@@ -291,42 +291,42 @@ SchemaValidator.PROJECT_SCHEMA_RULES = [
     columnName: 'id',
     expectedType: 'uuid',
     required: true,
-    description: '프로젝트 고유 식별자'
+    description: '프로젝트 고유 식별자',
   },
   {
     tableName: 'projects',
     columnName: 'title',
     expectedType: 'character varying',
     required: true,
-    description: '프로젝트 제목'
+    description: '프로젝트 제목',
   },
   {
     tableName: 'projects',
     columnName: 'budget_total',
     expectedType: 'numeric',
     required: false,
-    description: '프로젝트 총 예산'
+    description: '프로젝트 총 예산',
   },
   {
     tableName: 'projects',
     columnName: 'start_date',
     expectedType: 'date',
     required: true,
-    description: '프로젝트 시작일'
+    description: '프로젝트 시작일',
   },
   {
     tableName: 'projects',
     columnName: 'end_date',
     expectedType: 'date',
     required: true,
-    description: '프로젝트 종료일'
+    description: '프로젝트 종료일',
   },
   {
     tableName: 'projects',
     columnName: 'status',
     expectedType: 'character varying',
     required: false,
-    description: '프로젝트 상태'
+    description: '프로젝트 상태',
   },
   // project_budgets 테이블
   {
@@ -334,84 +334,84 @@ SchemaValidator.PROJECT_SCHEMA_RULES = [
     columnName: 'id',
     expectedType: 'uuid',
     required: true,
-    description: '예산 고유 식별자'
+    description: '예산 고유 식별자',
   },
   {
     tableName: 'project_budgets',
     columnName: 'project_id',
     expectedType: 'uuid',
     required: true,
-    description: '프로젝트 ID (외래키)'
+    description: '프로젝트 ID (외래키)',
   },
   {
     tableName: 'project_budgets',
     columnName: 'period_number',
     expectedType: 'integer',
     required: true,
-    description: '연차 번호'
+    description: '연차 번호',
   },
   {
     tableName: 'project_budgets',
     columnName: 'period_number',
     expectedType: 'integer',
     required: true,
-    description: '회계연도'
+    description: '회계연도',
   },
   {
     tableName: 'project_budgets',
     columnName: 'start_date',
     expectedType: 'date',
     required: true,
-    description: '연차 시작일'
+    description: '연차 시작일',
   },
   {
     tableName: 'project_budgets',
     columnName: 'end_date',
     expectedType: 'date',
     required: true,
-    description: '연차 종료일'
+    description: '연차 종료일',
   },
   {
     tableName: 'project_budgets',
     columnName: 'total_budget',
     expectedType: 'numeric',
     required: true,
-    description: '연차 총 예산'
+    description: '연차 총 예산',
   },
   {
     tableName: 'project_budgets',
     columnName: 'personnel_cost',
     expectedType: 'numeric',
     required: false,
-    description: '인건비'
+    description: '인건비',
   },
   {
     tableName: 'project_budgets',
     columnName: 'research_material_cost',
     expectedType: 'numeric',
     required: false,
-    description: '연구재료비'
+    description: '연구재료비',
   },
   {
     tableName: 'project_budgets',
     columnName: 'research_activity_cost',
     expectedType: 'numeric',
     required: false,
-    description: '연구활동비'
+    description: '연구활동비',
   },
   {
     tableName: 'project_budgets',
     columnName: 'indirect_cost',
     expectedType: 'numeric',
     required: false,
-    description: '간접비'
+    description: '간접비',
   },
   {
     tableName: 'project_budgets',
     columnName: 'spent_amount',
     expectedType: 'numeric',
     required: false,
-    description: '집행액'
+    description: '집행액',
   },
   // project_members 테이블
   {
@@ -419,56 +419,56 @@ SchemaValidator.PROJECT_SCHEMA_RULES = [
     columnName: 'id',
     expectedType: 'uuid',
     required: true,
-    description: '참여연구원 고유 식별자'
+    description: '참여연구원 고유 식별자',
   },
   {
     tableName: 'project_members',
     columnName: 'project_id',
     expectedType: 'uuid',
     required: true,
-    description: '프로젝트 ID (외래키)'
+    description: '프로젝트 ID (외래키)',
   },
   {
     tableName: 'project_members',
     columnName: 'employee_id',
     expectedType: 'uuid',
     required: true,
-    description: '직원 ID (외래키)'
+    description: '직원 ID (외래키)',
   },
   {
     tableName: 'project_members',
     columnName: 'role',
     expectedType: 'character varying',
     required: true,
-    description: '참여 역할'
+    description: '참여 역할',
   },
   {
     tableName: 'project_members',
     columnName: 'participation_rate',
     expectedType: 'numeric',
     required: true,
-    description: '참여율 (%)'
+    description: '참여율 (%)',
   },
   {
     tableName: 'project_members',
     columnName: 'monthly_amount',
     expectedType: 'numeric',
     required: true,
-    description: '월 급여액'
+    description: '월 급여액',
   },
   {
     tableName: 'project_members',
     columnName: 'start_date',
     expectedType: 'date',
     required: true,
-    description: '참여 시작일'
+    description: '참여 시작일',
   },
   {
     tableName: 'project_members',
     columnName: 'end_date',
     expectedType: 'date',
     required: true,
-    description: '참여 종료일'
+    description: '참여 종료일',
   },
   // employees 테이블
   {
@@ -476,42 +476,42 @@ SchemaValidator.PROJECT_SCHEMA_RULES = [
     columnName: 'id',
     expectedType: 'uuid',
     required: true,
-    description: '직원 고유 식별자'
+    description: '직원 고유 식별자',
   },
   {
     tableName: 'employees',
     columnName: 'first_name',
     expectedType: 'character varying',
     required: true,
-    description: '이름'
+    description: '이름',
   },
   {
     tableName: 'employees',
     columnName: 'last_name',
     expectedType: 'character varying',
     required: true,
-    description: '성'
+    description: '성',
   },
   {
     tableName: 'employees',
     columnName: 'hire_date',
     expectedType: 'date',
     required: false,
-    description: '입사일'
+    description: '입사일',
   },
   {
     tableName: 'employees',
     columnName: 'termination_date',
     expectedType: 'date',
     required: false,
-    description: '퇴사일'
+    description: '퇴사일',
   },
   {
     tableName: 'employees',
     columnName: 'status',
     expectedType: 'character varying',
     required: false,
-    description: '재직 상태'
+    description: '재직 상태',
   },
   // evidence_items 테이블
   {
@@ -519,62 +519,62 @@ SchemaValidator.PROJECT_SCHEMA_RULES = [
     columnName: 'id',
     expectedType: 'uuid',
     required: true,
-    description: '증빙 항목 고유 식별자'
+    description: '증빙 항목 고유 식별자',
   },
   {
     tableName: 'evidence_items',
     columnName: 'project_budget_id',
     expectedType: 'uuid',
     required: true,
-    description: '프로젝트 예산 ID (외래키)'
+    description: '프로젝트 예산 ID (외래키)',
   },
   {
     tableName: 'evidence_items',
     columnName: 'category_id',
     expectedType: 'uuid',
     required: true,
-    description: '증빙 카테고리 ID (외래키)'
+    description: '증빙 카테고리 ID (외래키)',
   },
   {
     tableName: 'evidence_items',
     columnName: 'name',
     expectedType: 'character varying',
     required: true,
-    description: '증빙 항목명'
+    description: '증빙 항목명',
   },
   {
     tableName: 'evidence_items',
     columnName: 'budget_amount',
     expectedType: 'numeric',
     required: false,
-    description: '예산 금액'
+    description: '예산 금액',
   },
   {
     tableName: 'evidence_items',
     columnName: 'spent_amount',
     expectedType: 'numeric',
     required: false,
-    description: '집행 금액'
+    description: '집행 금액',
   },
   {
     tableName: 'evidence_items',
     columnName: 'assignee_id',
     expectedType: 'uuid',
     required: false,
-    description: '담당자 ID (외래키)'
+    description: '담당자 ID (외래키)',
   },
   {
     tableName: 'evidence_items',
     columnName: 'assignee_name',
     expectedType: 'character varying',
     required: false,
-    description: '담당자명'
+    description: '담당자명',
   },
   {
     tableName: 'evidence_items',
     columnName: 'due_date',
     expectedType: 'date',
     required: false,
-    description: '마감일'
-  }
+    description: '마감일',
+  },
 ]

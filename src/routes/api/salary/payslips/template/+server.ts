@@ -126,8 +126,8 @@ export async function GET({ url }) {
     });
 
     // 테두리 설정
-    worksheet.eachRow((row, rowNumber) => {
-      row.eachCell((cell, colNumber) => {
+    worksheet.eachRow((row, _rowNumber) => {
+      row.eachCell((cell, _colNumber) => {
         cell.border = {
           top: { style: "thin" },
           left: { style: "thin" },

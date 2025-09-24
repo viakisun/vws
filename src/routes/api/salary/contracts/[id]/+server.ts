@@ -84,7 +84,7 @@ export const GET: RequestHandler = async ({ params }) => {
       success: true,
       data: salaryContract,
     });
-  } catch (error) {
+  } catch (_error) {
     return json(
       {
         success: false,
@@ -210,7 +210,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
         createdBy: updatedContract.created_by,
       },
     });
-  } catch (error) {
+  } catch (_error) {
     return json(
       {
         success: false,
@@ -249,7 +249,7 @@ export const DELETE: RequestHandler = async ({ params }) => {
       success: true,
       data: { id },
     });
-  } catch (error) {
+  } catch (_error) {
     return json(
       {
         success: false,

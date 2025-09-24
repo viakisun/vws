@@ -139,7 +139,7 @@
   });
 
   // 부서별 직급 매핑
-  const departmentPositionMapping = {
+  const _departmentPositionMapping = {
     개발팀: "연구개발",
     PSR팀: "연구개발",
     GRIT팀: "디자인",
@@ -219,8 +219,6 @@
   let isEdit = $derived(!!employee?.id);
   let title = $derived(isEdit ? "직원 정보 수정" : "새 직원 추가");
 </script>
-
-import {logger} from '$lib/utils/logger';
 
 <ThemeModal {open} size="lg" onclose={handleClose}>
   <div class="p-6">

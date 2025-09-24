@@ -1,16 +1,14 @@
 {
-	"recommendations": [
-		"svelte.svelte-vscode",
-		"bradlc.vscode-tailwindcss",
-		"esbenp.prettier-vscode",
-		"dbaeumer.vscode-eslint",
-		"ms-vscode.vscode-typescript-next",
-		"ms-vscode.vscode-json",
-		"formulahendry.auto-rename-tag",
-		"christian-kohler.path-intellisense",
-		"ms-vscode.vscode-typescript-next"
-	],
-	"unwantedRecommendations": [
-		"ms-vscode.vscode-typescript"
-	]
+  "recommendations": [
+    "svelte.svelte-vscode",
+    "bradlc.vscode-tailwindcss",
+    "esbenp.prettier-vscode",
+    "dbaeumer.vscode-eslint",
+    "ms-vscode.vscode-typescript-next",
+    "ms-vscode.vscode-json",
+    "formulahendry.auto-rename-tag",
+    "christian-kohler.path-intellisense",
+    "ms-vscode.vscode-typescript-next"
+  ],
+  "unwantedRecommendations": ["ms-vscode.vscode-typescript"]
 }

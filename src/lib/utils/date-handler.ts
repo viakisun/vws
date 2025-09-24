@@ -72,7 +72,7 @@ export function toUTC(date: DateInputFormat): StandardDate {
 
   try {
     let dateObj: Date;
-    const currentTimezone = getCurrentAppTimezone();
+    const _currentTimezone = getCurrentAppTimezone();
     const timezoneOffset = "+09:00"; // 서울 시간대 오프셋
 
     if (date instanceof Date) {
@@ -186,8 +186,8 @@ export function formatDateForDisplay(
     const year = localDate.getFullYear();
     const month = String(localDate.getMonth() + 1).padStart(2, "0");
     const day = String(localDate.getDate()).padStart(2, "0");
-    const hours = String(localDate.getHours()).padStart(2, "0");
-    const minutes = String(localDate.getMinutes()).padStart(2, "0");
+    const _hours = String(localDate.getHours()).padStart(2, "0");
+    const _minutes = String(localDate.getMinutes()).padStart(2, "0");
 
     switch (format) {
       case "FULL":
@@ -261,8 +261,8 @@ export function formatDateTimeForInput(utcDate: StandardDate | string): string {
     const year = localDate.getFullYear();
     const month = String(localDate.getMonth() + 1).padStart(2, "0");
     const day = String(localDate.getDate()).padStart(2, "0");
-    const hours = String(localDate.getHours()).padStart(2, "0");
-    const minutes = String(localDate.getMinutes()).padStart(2, "0");
+    const _hours = String(localDate.getHours()).padStart(2, "0");
+    const _minutes = String(localDate.getMinutes()).padStart(2, "0");
 
     return `${year}-${month}-${day}T${hours}:${minutes}`;
   } catch (error) {

@@ -1,159 +1,151 @@
 <script lang="ts">
-  import Badge from "$lib/components/ui/Badge.svelte";
-  import Card from "$lib/components/ui/Card.svelte";
-  import Modal from "$lib/components/ui/Modal.svelte";
-  import { employees, projects } from "$lib/stores/rd";
-  import { researchNotes } from "$lib/stores/rnd/mock-data";
-  import type { ResearchNote } from "$lib/stores/rnd/types";
-  import { keyOf } from "$lib/utils/keyOf";
-  import { onMount } from "svelte";
+  import Badge from '$lib/components/ui/Badge.svelte'
+  import Card from '$lib/components/ui/Card.svelte'
+  import Modal from '$lib/components/ui/Modal.svelte'
+  import { employees, projects } from '$lib/stores/rd'
+  import { researchNotes } from '$lib/stores/rnd/mock-data'
+  import type { ResearchNote } from '$lib/stores/rnd/types'
+  import { keyOf } from '$lib/utils/keyOf'
+  import { onMount } from 'svelte'
 
-  let selectedNote = $state<ResearchNote | null>(null);
-  let showDetailModal = $state(false);
-  let showCreateModal = $state(false);
-  let searchTerm = $state("");
-  let selectedProject = $state<string>("all");
-  let selectedAuthor = $state<string>("all");
-  let selectedWeek = $state<string>("all");
+  let selectedNote = $state<ResearchNote | null>(null)
+  let showDetailModal = $state(false)
+  let showCreateModal = $state(false)
+  let searchTerm = $state('')
+  let selectedProject = $state<string>('all')
+  let selectedAuthor = $state<string>('all')
+  let selectedWeek = $state<string>('all')
 
   // Form data for creating new research note
   let formData = $state({
-    projectId: "",
-    title: "",
-    content: "",
-    weekOf: "",
+    projectId: '',
+    title: '',
+    content: '',
+    weekOf: '',
     attachments: [] as string[],
-  });
+  })
 
   // Get filtered research notes
   let filteredNotes = $derived(() => {
-    let notes = $researchNotes;
+    let notes = $researchNotes
 
     if (searchTerm) {
       notes = notes.filter(
         (note: any) =>
           note.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
           note.contentMd.toLowerCase().includes(searchTerm.toLowerCase()),
-      );
+      )
     }
 
-    if (selectedProject !== "all") {
-      notes = notes.filter((note: any) => note.projectId === selectedProject);
+    if (selectedProject !== 'all') {
+      notes = notes.filter((note: any) => note.projectId === selectedProject)
     }
 
-    if (selectedAuthor !== "all") {
-      notes = notes.filter((note: any) => note.authorId === selectedAuthor);
+    if (selectedAuthor !== 'all') {
+      notes = notes.filter((note: any) => note.authorId === selectedAuthor)
     }
 
-    if (selectedWeek !== "all") {
-      notes = notes.filter((note: any) => note.weekOf === selectedWeek);
+    if (selectedWeek !== 'all') {
+      notes = notes.filter((note: any) => note.weekOf === selectedWeek)
     }
 
     return notes.sort(
-      (a: any, b: any) =>
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-    );
-  });
+      (a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+    )
+  })
 
   // Get unique weeks for filter
   let availableWeeks = $derived(() => {
-    const weeks = [...new Set($researchNotes.map((note: any) => note.weekOf))];
-    return weeks.sort();
-  });
+    const weeks = [...new Set($researchNotes.map((note: any) => note.weekOf))]
+    return weeks.sort()
+  })
 
   // Get person name by ID
   function getPersonName(personId: string): string {
-    const person = $employees.find((p: any) => p.id === personId);
-    return person ? person.name : "Unknown";
+    const person = $employees.find((p: any) => p.id === personId)
+    return person ? person.name : 'Unknown'
   }
 
   // Get project name by ID
   function getProjectName(projectId: string): string {
-    const project = $projects.find((p: any) => p.id === projectId);
-    return project ? project.name : "Unknown Project";
+    const project = $projects.find((p: any) => p.id === projectId)
+    return project ? project.name : 'Unknown Project'
   }
 
   // Show note detail
   function showNoteDetail(note: ResearchNote) {
-    selectedNote = note;
-    showDetailModal = true;
+    selectedNote = note
+    showDetailModal = true
   }
 
   // Create new research note
   function createNote() {
-    if (
-      !formData.projectId ||
-      !formData.title ||
-      !formData.content ||
-      !formData.weekOf
-    ) {
-      alert("모든 필수 필드를 입력해주세요.");
-      return;
+    if (!formData.projectId || !formData.title || !formData.content || !formData.weekOf) {
+      alert('모든 필수 필드를 입력해주세요.')
+      return
     }
 
     const newNote: ResearchNote = {
       id: `rn-${Date.now()}`,
       projectId: formData.projectId,
-      authorId: "emp-001", // Current user ID
+      authorId: 'emp-001', // Current user ID
       weekOf: formData.weekOf,
       title: formData.title,
       contentMd: formData.content,
       attachments: formData.attachments.map((att: string) => ({
         documentId: att,
-        description: "Attachment",
+        description: 'Attachment',
       })),
       createdAt: new Date().toISOString(),
-    };
+    }
 
-    $researchNotes.push(newNote);
+    $researchNotes.push(newNote)
 
     // Reset form
     formData = {
-      projectId: "",
-      title: "",
-      content: "",
-      weekOf: "",
+      projectId: '',
+      title: '',
+      content: '',
+      weekOf: '',
       attachments: [],
-    };
+    }
 
-    showCreateModal = false;
+    showCreateModal = false
   }
 
   // Sign research note
   function signNote(noteId: string) {
-    const note = $researchNotes.find((n: any) => n.id === noteId);
+    const note = $researchNotes.find((n: any) => n.id === noteId)
     if (note) {
-      note.signedAt = new Date().toISOString();
+      note.signedAt = new Date().toISOString()
     }
   }
 
   // Verify research note
   function verifyNote(noteId: string) {
-    const note = $researchNotes.find((n: any) => n.id === noteId);
+    const note = $researchNotes.find((n: any) => n.id === noteId)
     if (note) {
-      note.verifiedBy = "person-2"; // PM ID
+      note.verifiedBy = 'person-2' // PM ID
     }
   }
 
   // Format date
   function formatDate(dateString: string): string {
-    return new Date(dateString).toLocaleDateString("ko-KR");
+    return new Date(dateString).toLocaleDateString('ko-KR')
   }
 
   // Get status badge variant
-  function getStatusVariant(
-    note: ResearchNote,
-  ): "success" | "warning" | "danger" {
-    if (note.verifiedBy) return "success";
-    if (note.signedAt) return "warning";
-    return "danger";
+  function getStatusVariant(note: ResearchNote): 'success' | 'warning' | 'danger' {
+    if (note.verifiedBy) return 'success'
+    if (note.signedAt) return 'warning'
+    return 'danger'
   }
 
   // Get status text
   function getStatusText(note: ResearchNote): string {
-    if (note.verifiedBy) return "검인완료";
-    if (note.signedAt) return "서명완료";
-    return "미서명";
+    if (note.verifiedBy) return '검인완료'
+    if (note.signedAt) return '서명완료'
+    return '미서명'
   }
 
   onMount(() => {
@@ -161,24 +153,20 @@
     if ($researchNotes.length === 0) {
       // Dummy data will be loaded from init-dummy-data.ts
     }
-  });
+  })
 </script>
 
 <div class="container mx-auto p-6">
   <div class="mb-6">
     <h1 class="text-3xl font-bold text-gray-900 mb-2">연구노트 관리</h1>
-    <p class="text-gray-600">
-      연구진의 주간 연구노트 작성, 서명 및 검인을 관리합니다.
-    </p>
+    <p class="text-gray-600">연구진의 주간 연구노트 작성, 서명 및 검인을 관리합니다.</p>
   </div>
 
   <!-- Filters -->
   <div class="bg-white rounded-lg shadow-sm border p-4 mb-6">
     <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
       <div>
-        <label for="search" class="block text-sm font-medium text-gray-700 mb-1"
-          >검색</label
-        >
+        <label for="search" class="block text-sm font-medium text-gray-700 mb-1">검색</label>
         <input
           id="search"
           type="text"
@@ -188,9 +176,8 @@
         />
       </div>
       <div>
-        <label
-          for="project-filter"
-          class="block text-sm font-medium text-gray-700 mb-1">프로젝트</label
+        <label for="project-filter" class="block text-sm font-medium text-gray-700 mb-1"
+          >프로젝트</label
         >
         <select
           id="project-filter"
@@ -204,9 +191,8 @@
         </select>
       </div>
       <div>
-        <label
-          for="author-filter"
-          class="block text-sm font-medium text-gray-700 mb-1">작성자</label
+        <label for="author-filter" class="block text-sm font-medium text-gray-700 mb-1"
+          >작성자</label
         >
         <select
           id="author-filter"
@@ -220,10 +206,7 @@
         </select>
       </div>
       <div>
-        <label
-          for="week-filter"
-          class="block text-sm font-medium text-gray-700 mb-1">주차</label
-        >
+        <label for="week-filter" class="block text-sm font-medium text-gray-700 mb-1">주차</label>
         <select
           id="week-filter"
           bind:value={selectedWeek}
@@ -256,9 +239,7 @@
           <div class="flex-1">
             <div class="flex items-center gap-2 mb-2">
               <h3 class="text-lg font-semibold text-gray-900">{note.title}</h3>
-              <Badge variant={getStatusVariant(note)}
-                >{getStatusText(note)}</Badge
-              >
+              <Badge variant={getStatusVariant(note)}>{getStatusText(note)}</Badge>
             </div>
             <div class="text-sm text-gray-600 mb-2">
               <span class="font-medium">프로젝트:</span>
@@ -273,9 +254,7 @@
             <p class="text-gray-700 text-sm line-clamp-2">{note.contentMd}</p>
             {#if note.attachments.length > 0}
               <div class="mt-2">
-                <span class="text-xs text-gray-500"
-                  >첨부파일: {note.attachments.length}개</span
-                >
+                <span class="text-xs text-gray-500">첨부파일: {note.attachments.length}개</span>
               </div>
             {/if}
           </div>
@@ -315,9 +294,7 @@
   {#if filteredNotes().length === 0}
     <div class="text-center py-12">
       <div class="text-gray-400 text-6xl mb-4">📝</div>
-      <h3 class="text-lg font-medium text-gray-900 mb-2">
-        연구노트가 없습니다
-      </h3>
+      <h3 class="text-lg font-medium text-gray-900 mb-2">연구노트가 없습니다</h3>
       <p class="text-gray-500">새로운 연구노트를 작성해보세요.</p>
     </div>
   {/if}
@@ -385,9 +362,8 @@
 <Modal bind:open={showCreateModal} title="새 연구노트 작성">
   <div class="space-y-4">
     <div>
-      <label
-        for="create-project"
-        class="block text-sm font-medium text-gray-700 mb-1">프로젝트 *</label
+      <label for="create-project" class="block text-sm font-medium text-gray-700 mb-1"
+        >프로젝트 *</label
       >
       <select
         id="create-project"
@@ -401,10 +377,7 @@
       </select>
     </div>
     <div>
-      <label
-        for="create-week"
-        class="block text-sm font-medium text-gray-700 mb-1">주차 *</label
-      >
+      <label for="create-week" class="block text-sm font-medium text-gray-700 mb-1">주차 *</label>
       <input
         id="create-week"
         type="text"
@@ -414,10 +387,7 @@
       />
     </div>
     <div>
-      <label
-        for="create-title"
-        class="block text-sm font-medium text-gray-700 mb-1">제목 *</label
-      >
+      <label for="create-title" class="block text-sm font-medium text-gray-700 mb-1">제목 *</label>
       <input
         id="create-title"
         type="text"
@@ -427,9 +397,7 @@
       />
     </div>
     <div>
-      <label
-        for="create-content"
-        class="block text-sm font-medium text-gray-700 mb-1">내용 *</label
+      <label for="create-content" class="block text-sm font-medium text-gray-700 mb-1">내용 *</label
       >
       <textarea
         id="create-content"

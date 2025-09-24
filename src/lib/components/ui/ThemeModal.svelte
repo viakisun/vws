@@ -1,65 +1,61 @@
 <script lang="ts">
-  import { onMount } from "svelte";
+  import { onMount } from 'svelte'
 
   // Props
   interface Props {
-    open?: boolean;
-    size?: "sm" | "md" | "lg" | "xl" | "full";
-    closable?: boolean;
-    backdrop?: boolean;
-    class?: string;
-    onclose?: () => void;
-    children?: any;
+    open?: boolean
+    size?: 'sm' | 'md' | 'lg' | 'xl' | 'full'
+    closable?: boolean
+    backdrop?: boolean
+    class?: string
+    onclose?: () => void
+    children?: any
   }
 
   let {
     open = false,
-    size = "md",
+    size = 'md',
     closable = true,
     backdrop = true,
-    class: className = "",
+    class: className = '',
     onclose,
     children,
     ...restProps
-  }: Props = $props();
+  }: Props = $props()
 
   // Get modal classes
   function getModalClasses(): string {
-    const baseClasses = "theme-modal";
-    const sizeClass = `theme-modal-${size}`;
-    const stateClass = open ? "theme-modal-open" : "theme-modal-closed";
+    const baseClasses = 'theme-modal'
+    const sizeClass = `theme-modal-${size}`
+    const stateClass = open ? 'theme-modal-open' : 'theme-modal-closed'
 
-    return [baseClasses, sizeClass, stateClass, className]
-      .filter(Boolean)
-      .join(" ");
+    return [baseClasses, sizeClass, stateClass, className].filter(Boolean).join(' ')
   }
 
   // Get backdrop classes
   function getBackdropClasses(): string {
-    const baseClasses = "theme-modal-backdrop";
-    const stateClass = open
-      ? "theme-modal-backdrop-open"
-      : "theme-modal-backdrop-closed";
+    const baseClasses = 'theme-modal-backdrop'
+    const stateClass = open ? 'theme-modal-backdrop-open' : 'theme-modal-backdrop-closed'
 
-    return [baseClasses, stateClass].filter(Boolean).join(" ");
+    return [baseClasses, stateClass].filter(Boolean).join(' ')
   }
 
   // Handle backdrop click
   function handleBackdropClick(event: MouseEvent) {
     // 텍스트 선택이나 드래그 중일 때는 모달을 닫지 않음
     if (window.getSelection()?.toString()) {
-      return;
+      return
     }
 
     // 마우스 이벤트가 드래그나 선택과 관련된 경우 모달을 닫지 않음
     if (event.detail === 0) {
       // 드래그 이벤트는 detail이 0
-      return;
+      return
     }
 
     // 마우스 버튼이 왼쪽 버튼이고 단순 클릭인 경우만 처리
     if (event.button !== 0) {
-      return;
+      return
     }
 
     // 배경을 클릭했을 때만 모달을 닫음
@@ -67,47 +63,47 @@
       // 약간의 지연을 두어 드래그와 클릭을 구분
       setTimeout(() => {
         if (!window.getSelection()?.toString()) {
-          closeModal();
+          closeModal()
         }
-      }, 100);
+      }, 100)
     }
   }
 
   // Handle escape key
   function handleKeydown(event: KeyboardEvent) {
-    if (event.key === "Escape" && closable) {
-      closeModal();
+    if (event.key === 'Escape' && closable) {
+      closeModal()
     }
   }
 
   // Close modal
   function closeModal() {
     if (onclose) {
-      onclose();
+      onclose()
     }
   }
 
   // Handle close button click
   function handleCloseClick() {
-    closeModal();
+    closeModal()
   }
 
   // Add/remove event listeners
   onMount(() => {
-    document.addEventListener("keydown", handleKeydown);
+    document.addEventListener('keydown', handleKeydown)
     return () => {
-      document.removeEventListener("keydown", handleKeydown);
-    };
-  });
+      document.removeEventListener('keydown', handleKeydown)
+    }
+  })
 
   // Prevent body scroll when modal is open
   $effect(() => {
     if (open) {
-      document.body.style.overflow = "hidden";
+      document.body.style.overflow = 'hidden'
     } else {
-      document.body.style.overflow = "";
+      document.body.style.overflow = ''
     }
-  });
+  })
 </script>
 
 {#if open}
@@ -115,7 +111,7 @@
     class={getBackdropClasses()}
     onmousedown={handleBackdropClick}
     onkeydown={(e) => {
-      if (e.key === "Escape") handleCloseClick();
+      if (e.key === 'Escape') handleCloseClick()
     }}
     role="dialog"
     aria-modal="true"
@@ -129,12 +125,7 @@
           onclick={handleCloseClick}
           aria-label="Close modal"
         >
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-          >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M18 6L6 18M6 6l12 12" />
           </svg>
         </button>

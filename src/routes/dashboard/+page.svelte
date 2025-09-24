@@ -1,98 +1,77 @@
 <script lang="ts">
-  import Card from "$lib/components/ui/Card.svelte";
-  import Badge from "$lib/components/ui/Badge.svelte";
-  import Progress from "$lib/components/ui/Progress.svelte";
-  import Modal from "$lib/components/ui/Modal.svelte";
-  import {
-    TrendingUpIcon,
-    BriefcaseIcon,
-    CoinsIcon,
-    AlertTriangleIcon,
-  } from "@lucide/svelte";
-  import { projectsStore, budgetAlerts, overallBudget } from "$lib/stores/rnd";
-  import {
-    personnelStore,
-    estimateMonthlyCostKRW,
-  } from "$lib/stores/personnel";
-  import { formatKRW } from "$lib/utils/format";
+  import Card from '$lib/components/ui/Card.svelte'
+  import Badge from '$lib/components/ui/Badge.svelte'
+  import Progress from '$lib/components/ui/Progress.svelte'
+  import Modal from '$lib/components/ui/Modal.svelte'
+  import { TrendingUpIcon, BriefcaseIcon, CoinsIcon, AlertTriangleIcon } from '@lucide/svelte'
+  import { projectsStore, budgetAlerts, overallBudget } from '$lib/stores/rnd'
+  import { personnelStore, estimateMonthlyCostKRW } from '$lib/stores/personnel'
+  import { formatKRW } from '$lib/utils/format'
 
   type Kpi = {
-    label: string;
-    value: number | string;
-    icon: any;
-    numeric?: number;
-  };
+    label: string
+    value: number | string
+    icon: any
+    numeric?: number
+  }
 
-  let statusFilter = $state("") as
-    | ""
-    | "정상"
-    | "진행중"
-    | "지연"
-    | "위험"
-    | "완료";
-  let query = $state("");
-  let selectedId = $state<string | null>(null);
+  let statusFilter = $state('') as '' | '정상' | '진행중' | '지연' | '위험' | '완료'
+  let query = $state('')
+  let selectedId = $state<string | null>(null)
 
-  const ob = $derived($overallBudget);
+  const ob = $derived($overallBudget)
   const kpis = $derived([
-    { label: "총 프로젝트", value: $projectsStore.length, icon: BriefcaseIcon },
+    { label: '총 프로젝트', value: $projectsStore.length, icon: BriefcaseIcon },
     {
-      label: "예산 집행률",
+      label: '예산 집행률',
       value: `${(ob.utilization * 100).toFixed(1)}%`,
       numeric: ob.utilization * 100,
       icon: CoinsIcon,
     },
     {
-      label: "평균 진행률",
+      label: '평균 진행률',
       value: `${Math.round($projectsStore.reduce((s, p) => s + p.progressPct, 0) / Math.max($projectsStore.length, 1))}%`,
       numeric:
-        $projectsStore.reduce((s, p) => s + p.progressPct, 0) /
-        Math.max($projectsStore.length, 1),
+        $projectsStore.reduce((s, p) => s + p.progressPct, 0) / Math.max($projectsStore.length, 1),
       icon: TrendingUpIcon,
     },
     {
-      label: "리스크 경고",
-      value: $projectsStore.filter(
-        (p) => p.status === "위험" || p.status === "지연",
-      ).length,
+      label: '리스크 경고',
+      value: $projectsStore.filter((p) => p.status === '위험' || p.status === '지연').length,
       icon: AlertTriangleIcon,
     },
-  ] as Kpi[]);
+  ] as Kpi[])
 
-  const allProjects = $derived($projectsStore);
+  const allProjects = $derived($projectsStore)
   const filtered = $derived(
     allProjects.filter(
       (p) =>
         (statusFilter ? p.status === statusFilter : true) &&
         (query ? p.name.toLowerCase().includes(query.toLowerCase()) : true),
     ),
-  );
-  const selected = $derived(allProjects.find((p) => p.id === selectedId));
+  )
+  const selected = $derived(allProjects.find((p) => p.id === selectedId))
   const selectedMembers = $derived(
     selected
-      ? $personnelStore.filter((pr) =>
-          pr.participations.some((pp) => pp.projectId === selected.id),
-        )
+      ? $personnelStore.filter((pr) => pr.participations.some((pp) => pp.projectId === selected.id))
       : [],
-  );
+  )
   const selectedCostMonthly = $derived(
     selectedMembers.reduce((sum, pr) => {
-      const part = pr.participations.find(
-        (pp) => pp.projectId === selected?.id,
-      );
+      const part = pr.participations.find((pp) => pp.projectId === selected?.id)
       return (
         sum +
         (pr.annualSalaryKRW && part
           ? estimateMonthlyCostKRW(pr.annualSalaryKRW, part.allocationPct)
           : 0)
-      );
+      )
     }, 0),
-  );
+  )
   function openDetail(id: string) {
-    selectedId = id;
+    selectedId = id
   }
   function closeDetail() {
-    selectedId = null;
+    selectedId = null
   }
 </script>
 
@@ -157,13 +136,13 @@
             <div class="text-caption">집행 {formatKRW(p.spentKRW)}</div>
           </div>
           <Badge
-            color={p.status === "지연"
-              ? "yellow"
-              : p.status === "진행중"
-                ? "blue"
-                : p.status === "위험"
-                  ? "red"
-                  : "green"}>{p.status}</Badge
+            color={p.status === '지연'
+              ? 'yellow'
+              : p.status === '진행중'
+                ? 'blue'
+                : p.status === '위험'
+                  ? 'red'
+                  : 'green'}>{p.status}</Badge
           >
         </button>
       {/each}
@@ -177,11 +156,7 @@
           <li class="flex items-center justify-between">
             <span>{a.name}</span>
             <Badge
-              color={a.level === "over"
-                ? "red"
-                : a.level === "critical"
-                  ? "yellow"
-                  : "yellow"}
+              color={a.level === 'over' ? 'red' : a.level === 'critical' ? 'yellow' : 'yellow'}
             >
               {(a.utilization * 100).toFixed(1)}%
             </Badge>
@@ -191,23 +166,18 @@
     </Card>
   {/if}
 
-  <Modal
-    open={!!selected}
-    title={selected?.name ?? ""}
-    maxWidth="max-w-2xl"
-    onClose={closeDetail}
-  >
+  <Modal open={!!selected} title={selected?.name ?? ''} maxWidth="max-w-2xl" onClose={closeDetail}>
     {#if selected}
       <div class="space-y-4">
         <div class="flex items-center justify-between">
           <Badge
-            color={selected.status === "지연"
-              ? "yellow"
-              : selected.status === "진행중"
-                ? "blue"
-                : selected.status === "위험"
-                  ? "red"
-                  : "green"}>{selected.status}</Badge
+            color={selected.status === '지연'
+              ? 'yellow'
+              : selected.status === '진행중'
+                ? 'blue'
+                : selected.status === '위험'
+                  ? 'red'
+                  : 'green'}>{selected.status}</Badge
           >
           <div class="w-52"><Progress value={selected.progressPct} /></div>
         </div>
@@ -251,14 +221,10 @@
         <div>
           <div class="text-caption mb-1">인건비 요약</div>
           <div class="text-sm">
-            참여 인원 {selectedMembers.length}명 · 월 추정 {formatKRW(
-              selectedCostMonthly,
-            )}
+            참여 인원 {selectedMembers.length}명 · 월 추정 {formatKRW(selectedCostMonthly)}
           </div>
           <div class="mt-2">
-            <a
-              class="text-primary hover:underline"
-              href={`/personnel?projectId=${selected.id}`}
+            <a class="text-primary hover:underline" href={`/personnel?projectId=${selected.id}`}
               >상세 보기 (인건비 관리로 이동)</a
             >
           </div>

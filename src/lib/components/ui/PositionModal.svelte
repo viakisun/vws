@@ -1,76 +1,71 @@
 <script lang="ts">
-  import { createEventDispatcher } from "svelte";
-  import ThemeModal from "./ThemeModal.svelte";
-  import ThemeButton from "./ThemeButton.svelte";
+  import { createEventDispatcher } from 'svelte'
+  import ThemeModal from './ThemeModal.svelte'
+  import ThemeButton from './ThemeButton.svelte'
 
   interface Position {
-    id?: string;
-    name: string;
-    description: string;
-    department: string;
-    level: number;
-    status: "active" | "inactive";
+    id?: string
+    name: string
+    description: string
+    department: string
+    level: number
+    status: 'active' | 'inactive'
   }
 
   interface Props {
-    open?: boolean;
-    position?: Position | null;
-    departments?: Array<{ id: string; name: string }>;
-    loading?: boolean;
+    open?: boolean
+    position?: Position | null
+    departments?: Array<{ id: string; name: string }>
+    loading?: boolean
   }
 
-  let {
-    open = false,
-    position = null,
-    departments = [],
-    loading = false,
-  }: Props = $props();
+  let { open = false, position = null, departments = [], loading = false }: Props = $props()
 
-  const dispatch = createEventDispatcher();
+  const dispatch = createEventDispatcher()
 
   let formData = $state({
-    name: "",
-    description: "",
-    department: "",
+    name: '',
+    description: '',
+    department: '',
     level: 1,
-    status: "active" as "active" | "inactive",
-  });
+    status: 'active' as 'active' | 'inactive',
+  })
 
   // 직급 데이터가 변경될 때 폼 데이터 업데이트
   $effect(() => {
     if (position) {
-      formData.name = position.name || "";
-      formData.description = position.description || "";
-      formData.department = position.department || "";
-      formData.level = position.level || 1;
-      formData.status = position.status || "active";
+      formData.name = position.name || ''
+      formData.description = position.description || ''
+      formData.department = position.department || ''
+      formData.level = position.level || 1
+      formData.status = position.status || 'active'
     } else {
       // 새 직급 추가 시 기본값으로 리셋
-      formData.name = "";
-      formData.description = "";
-      formData.department = departments.length > 0 ? departments[0].name : "";
-      formData.level = 1;
-      formData.status = "active";
+      formData.name = ''
+      formData.description = ''
+      formData.department = departments.length > 0 ? departments[0].name : ''
+      formData.level = 1
+      formData.status = 'active'
     }
-  });
+  })
 
   function handleSave() {
     // 필수 필드 검증
     if (!formData.name?.trim()) {
-      alert("직급명은 필수 입력 항목입니다.");
-      return;
+      alert('직급명은 필수 입력 항목입니다.')
+      return
     }
 
     if (!formData.department?.trim()) {
-      alert("부서는 필수 선택 항목입니다.");
-      return;
+      alert('부서는 필수 선택 항목입니다.')
+      return
     }
 
-    dispatch("save", formData);
+    dispatch('save', formData)
   }
 
   function handleClose() {
-    dispatch("close");
+    dispatch('close')
   }
 </script>
 
@@ -78,14 +73,14 @@
   <div class="space-y-6">
     <div class="flex items-center justify-between">
       <h2 class="text-xl font-semibold" style:color="var(--color-text)">
-        {position ? "직급 수정" : "새 직급 추가"}
+        {position ? '직급 수정' : '새 직급 추가'}
       </h2>
     </div>
 
     <form
       onsubmit={(e) => {
-        e.preventDefault();
-        handleSave();
+        e.preventDefault()
+        handleSave()
       }}
       class="space-y-4"
     >
@@ -207,15 +202,10 @@
   </div>
 
   <!-- 모달 액션 버튼 -->
-  <div
-    class="flex justify-end gap-2 pt-4 border-t"
-    style:border-color="var(--color-border)"
-  >
-    <ThemeButton variant="ghost" onclick={handleClose} disabled={loading}
-      >취소</ThemeButton
-    >
+  <div class="flex justify-end gap-2 pt-4 border-t" style:border-color="var(--color-border)">
+    <ThemeButton variant="ghost" onclick={handleClose} disabled={loading}>취소</ThemeButton>
     <ThemeButton variant="primary" onclick={handleSave} disabled={loading}>
-      {loading ? "저장 중..." : position ? "수정" : "추가"}
+      {loading ? '저장 중...' : position ? '수정' : '추가'}
     </ThemeButton>
   </div>
 </ThemeModal>

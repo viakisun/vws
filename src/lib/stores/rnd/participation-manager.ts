@@ -1,7 +1,7 @@
-import { writable, derived, get } from "svelte/store";
+import { derived, get, writable } from "svelte/store";
+import type { Employee, Project } from "../rd";
 import { employees, projects } from "../rd";
 import type { ParticipationAssignment } from "./types";
-import type { Employee, Project } from "../rd";
 
 // 고도화된 참여율 관리 스토어
 export const participationAssignments = writable<ParticipationAssignment[]>([]);
@@ -234,7 +234,7 @@ export class ParticipationManager {
   static generateOptimizationRecommendations(): ParticipationRecommendation[] {
     const recommendations: ParticipationRecommendation[] = [];
     const conflicts = get(participationConflicts);
-    const monthlyAnalysis = this.analyzeMonthlyParticipation();
+    const _monthlyAnalysis = this.analyzeMonthlyParticipation();
 
     // 과부하 해결 추천
     const overloadConflicts = conflicts.filter(
@@ -388,7 +388,7 @@ export class ParticipationManager {
     const oldRate = assignment.ratePct;
 
     // 히스토리 기록
-    const history: ParticipationHistory = {
+    const _history: ParticipationHistory = {
       id: crypto.randomUUID(),
       personId: assignment.personId,
       projectId: assignment.projectId,
@@ -416,7 +416,7 @@ export class ParticipationManager {
 
   // 7. 참여율 예측 및 시뮬레이션
   static simulateParticipationChanges(
-    changes: Array<{
+    _changes: Array<{
       personId: string;
       projectId: string;
       newRate: number;

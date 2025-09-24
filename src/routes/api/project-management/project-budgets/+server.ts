@@ -3,15 +3,15 @@ import {
   transformArrayData,
   transformProjectBudgetData,
 } from "$lib/utils/api-data-transformer";
+import { logger } from "$lib/utils/logger";
 import { json } from "@sveltejs/kit";
 import type { RequestHandler } from "./$types";
-import { logger } from "$lib/utils/logger";
 
 // GET /api/project-management/project-budgets - 프로젝트 사업비 목록 조회
 export const GET: RequestHandler = async ({ url }) => {
   try {
     const projectId = url.searchParams.get("projectId");
-    const budgetCategoryId = url.searchParams.get("budgetCategoryId");
+    const _budgetCategoryId = url.searchParams.get("budgetCategoryId");
 
     let sqlQuery = `
 			SELECT 

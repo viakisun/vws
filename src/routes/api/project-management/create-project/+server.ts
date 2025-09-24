@@ -1,9 +1,9 @@
 import { formatDateForAPI } from "$lib/utils/date-calculator";
+import { logger } from "$lib/utils/logger";
 import { calculateBudgetAllocation } from "$lib/utils/salary-calculator";
 import { json } from "@sveltejs/kit";
 import { Pool } from "pg";
 import type { RequestHandler } from "./$types";
-import { logger } from "$lib/utils/logger";
 
 const pool = new Pool({
   host: "db-viahub.cdgqkcss8mpj.ap-northeast-2.rds.amazonaws.com",
@@ -264,11 +264,11 @@ async function createProjectBudgets(
       period.budget,
       data.budgetCategories.find((c) => c.name === "인건비")?.percentage || 0,
     );
-    const materialCost = calculateBudgetAllocation(
+    const _materialCost = calculateBudgetAllocation(
       period.budget,
       data.budgetCategories.find((c) => c.name === "재료비")?.percentage || 0,
     );
-    const activityCost = calculateBudgetAllocation(
+    const _activityCost = calculateBudgetAllocation(
       period.budget,
       data.budgetCategories.find((c) => c.name === "연구활동비")?.percentage ||
         0,
@@ -294,7 +294,7 @@ async function createProjectBudgets(
     `;
 
     // 각 비목의 총합 계산 (현금 + 현물)
-    const personnelCost =
+    const personnelCostTotal =
       (period.personnelCostCash || 0) + (period.personnelCostInKind || 0);
     const researchMaterialCost =
       (period.researchMaterialCostCash || 0) +
@@ -304,7 +304,7 @@ async function createProjectBudgets(
       (period.researchActivityCostInKind || 0);
     const researchStipend =
       (period.researchStipendCash || 0) + (period.researchStipendInKind || 0);
-    const indirectCost =
+    const indirectCostTotal =
       (period.indirectCostCash || 0) + (period.indirectCostInKind || 0);
 
     const result = await client.query(budgetQuery, [
@@ -531,7 +531,7 @@ async function validateCreatedProject(client: any, projectId: string) {
 }
 
 // 자동 검증 및 수정 실행 함수
-async function runAutoValidationAndFix(projectId: string) {
+async function _runAutoValidationAndFix(projectId: string) {
   try {
     logger.log("🛡️ [자동검증] 프로젝트 검증 룰 실행 시작");
 

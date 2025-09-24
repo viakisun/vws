@@ -1,17 +1,15 @@
 <script lang="ts">
-  import Card from "$lib/components/ui/Card.svelte";
-  import Progress from "$lib/components/ui/Progress.svelte";
-  import { overallBudget, quarterlyPersonnelBudgets } from "$lib/stores/rnd";
-  import { get } from "svelte/store";
-  const qb = get(quarterlyPersonnelBudgets);
-  const quarterSet = new Set<string>();
-  Object.values(qb).forEach((m) =>
-    Object.keys(m).forEach((q) => quarterSet.add(q)),
-  );
-  const quarters = Array.from(quarterSet).sort();
-  const ob = $derived($overallBudget);
+  import Card from '$lib/components/ui/Card.svelte'
+  import Progress from '$lib/components/ui/Progress.svelte'
+  import { overallBudget, quarterlyPersonnelBudgets } from '$lib/stores/rnd'
+  import { get } from 'svelte/store'
+  const qb = get(quarterlyPersonnelBudgets)
+  const quarterSet = new Set<string>()
+  Object.values(qb).forEach((m) => Object.keys(m).forEach((q) => quarterSet.add(q)))
+  const quarters = Array.from(quarterSet).sort()
+  const ob = $derived($overallBudget)
   function sumQuarter(q: string): number {
-    return Object.values(qb).reduce((s, m) => s + (m[q] ?? 0), 0);
+    return Object.values(qb).reduce((s, m) => s + (m[q] ?? 0), 0)
   }
 </script>
 
@@ -64,9 +62,7 @@
         {#each quarters as q, i (i)}
           <tr>
             <td class="px-3 py-2">{q}</td>
-            <td class="px-3 py-2 tabular-nums"
-              >{sumQuarter(q).toLocaleString()}원</td
-            >
+            <td class="px-3 py-2 tabular-nums">{sumQuarter(q).toLocaleString()}원</td>
           </tr>
         {/each}
       </tbody>

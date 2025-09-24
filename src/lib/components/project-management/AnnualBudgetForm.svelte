@@ -202,8 +202,6 @@
   }
 </script>
 
-import {logger} from '$lib/utils/logger';
-
 <div class="max-w-6xl mx-auto space-y-6">
   <div class="bg-white rounded-lg shadow-lg p-6">
     <h2 class="text-2xl font-bold text-gray-900 mb-6">연차별 예산 계획</h2>

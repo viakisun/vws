@@ -1,5 +1,5 @@
 import { writable } from "svelte/store";
-import type { BudgetCategoryMaster, ExpenseItem, Approval } from "./types";
+import type { Approval, BudgetCategoryMaster, ExpenseItem } from "./types";
 
 // 예산 카테고리 마스터 데이터
 export const budgetCategoryMaster = writable<BudgetCategoryMaster[]>([
@@ -245,7 +245,7 @@ export function isDocumentChecklistComplete(
   const category = categoryMaster.find((c) => c.categoryCode === categoryCode);
   if (!category) return false;
 
-  const requiredDocs = category.requiredDocs.filter((doc) => doc.required);
+  const _requiredDocs = category.requiredDocs.filter((doc) => doc.required);
 
   // 실제 구현에서는 documents 스토어에서 확인
   // 여기서는 간단히 true 반환

@@ -1,10 +1,10 @@
 // Project Management Setup API
 // 프로젝트 관리 시스템 데이터베이스 설정
 
-import { json } from "@sveltejs/kit";
-import { query } from "$lib/database/connection";
-import type { RequestHandler } from "./$types";
-import { logger } from "$lib/utils/logger";
+import { json } from '@sveltejs/kit'
+import { query } from '$lib/database/connection'
+import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger'
 
 export const POST: RequestHandler = async () => {
   try {
@@ -140,22 +140,22 @@ export const POST: RequestHandler = async () => {
 				created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 				updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 			)`,
-    ];
+    ]
 
     // 인덱스 생성 쿼리
     const indexQueries = [
-      "CREATE INDEX IF NOT EXISTS idx_projects_status ON projects(status)",
-      "CREATE INDEX IF NOT EXISTS idx_projects_manager ON projects(manager_id)",
-      "CREATE INDEX IF NOT EXISTS idx_projects_dates ON projects(start_date, end_date)",
-      "CREATE INDEX IF NOT EXISTS idx_project_members_project ON project_members(project_id)",
-      "CREATE INDEX IF NOT EXISTS idx_project_members_employee ON project_members(employee_id)",
-      "CREATE INDEX IF NOT EXISTS idx_project_members_status ON project_members(status)",
-      "CREATE INDEX IF NOT EXISTS idx_project_budgets_project ON project_budgets(project_id)",
-      "CREATE INDEX IF NOT EXISTS idx_project_budgets_period ON project_budgets(period_number)",
-      "CREATE INDEX IF NOT EXISTS idx_participation_rates_employee ON participation_rates(employee_id)",
-      "CREATE INDEX IF NOT EXISTS idx_participation_rates_project ON participation_rates(project_id)",
-      "CREATE INDEX IF NOT EXISTS idx_participation_rates_status ON participation_rates(status)",
-    ];
+      'CREATE INDEX IF NOT EXISTS idx_projects_status ON projects(status)',
+      'CREATE INDEX IF NOT EXISTS idx_projects_manager ON projects(manager_id)',
+      'CREATE INDEX IF NOT EXISTS idx_projects_dates ON projects(start_date, end_date)',
+      'CREATE INDEX IF NOT EXISTS idx_project_members_project ON project_members(project_id)',
+      'CREATE INDEX IF NOT EXISTS idx_project_members_employee ON project_members(employee_id)',
+      'CREATE INDEX IF NOT EXISTS idx_project_members_status ON project_members(status)',
+      'CREATE INDEX IF NOT EXISTS idx_project_budgets_project ON project_budgets(project_id)',
+      'CREATE INDEX IF NOT EXISTS idx_project_budgets_period ON project_budgets(period_number)',
+      'CREATE INDEX IF NOT EXISTS idx_participation_rates_employee ON participation_rates(employee_id)',
+      'CREATE INDEX IF NOT EXISTS idx_participation_rates_project ON participation_rates(project_id)',
+      'CREATE INDEX IF NOT EXISTS idx_participation_rates_status ON participation_rates(status)',
+    ]
 
     // 기본 데이터 삽입 쿼리
     const dataQueries = [
@@ -166,47 +166,46 @@ export const POST: RequestHandler = async () => {
 				('TRAVEL', '간접비', '연구활동 관련 출장비 및 회의비', 4),
 				('OTHER', '기타 비목', '기타 연구활동 관련 비용', 5)
 			ON CONFLICT (code) DO NOTHING`,
-    ];
+    ]
 
     // 트랜잭션으로 모든 쿼리 실행
-    await query("BEGIN");
+    await query('BEGIN')
 
     try {
       // 테이블 생성
       for (const setupQuery of setupQueries) {
-        await query(setupQuery);
+        await query(setupQuery)
       }
 
       // 인덱스 생성
       for (const indexQuery of indexQueries) {
-        await query(indexQuery);
+        await query(indexQuery)
       }
 
       // 기본 데이터 삽입
       for (const dataQuery of dataQueries) {
-        await query(dataQuery);
+        await query(dataQuery)
       }
 
-      await query("COMMIT");
+      await query('COMMIT')
 
       return json({
         success: true,
-        message:
-          "프로젝트 관리 시스템 데이터베이스가 성공적으로 설정되었습니다.",
-      });
+        message: '프로젝트 관리 시스템 데이터베이스가 성공적으로 설정되었습니다.',
+      })
     } catch (error) {
-      await query("ROLLBACK");
-      throw error;
+      await query('ROLLBACK')
+      throw error
     }
   } catch (error) {
-    logger.error("프로젝트 관리 시스템 설정 실패:", error);
+    logger.error('프로젝트 관리 시스템 설정 실패:', error)
     return json(
       {
         success: false,
-        message: "프로젝트 관리 시스템 설정에 실패했습니다.",
-        error: error instanceof Error ? error.message : "알 수 없는 오류",
+        message: '프로젝트 관리 시스템 설정에 실패했습니다.',
+        error: error instanceof Error ? error.message : '알 수 없는 오류',
       },
       { status: 500 },
-    );
+    )
   }
-};
+}

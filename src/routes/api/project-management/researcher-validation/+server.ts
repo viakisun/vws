@@ -1,9 +1,9 @@
 import { query } from "$lib/database/connection";
 import { getCurrentDateForAPI } from "$lib/utils/date-calculator";
+import { logger } from "$lib/utils/logger";
 import { calculateMonthlySalary } from "$lib/utils/salary-calculator";
 import { json } from "@sveltejs/kit";
 import type { RequestHandler } from "./$types";
-import { logger } from "$lib/utils/logger";
 
 interface ValidationResult {
   isValid: boolean;
@@ -327,7 +327,7 @@ async function performValidation(
 // 근로계약서 검증
 async function validateContract(
   member: any,
-  project: any,
+  _project: any,
 ): Promise<{ isValid: boolean; issues: ValidationIssue[] }> {
   const issues: ValidationIssue[] = [];
 

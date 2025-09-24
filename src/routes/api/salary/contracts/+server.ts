@@ -167,7 +167,7 @@ export const GET: RequestHandler = async ({ url }) => {
       success: true,
       data: response,
     });
-  } catch (error) {
+  } catch (_error) {
     return json(
       {
         success: false,
@@ -246,7 +246,7 @@ export const POST: RequestHandler = async ({ request }) => {
         createdBy: newContract.created_by,
       },
     });
-  } catch (error) {
+  } catch (_error) {
     return json(
       {
         success: false,

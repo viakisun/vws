@@ -1,13 +1,13 @@
-import { query } from "$lib/database/connection";
-import { json } from "@sveltejs/kit";
-import type { RequestHandler } from "./$types";
-import { logger } from "$lib/utils/logger";
+import { query } from '$lib/database/connection'
+import { json } from '@sveltejs/kit'
+import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger'
 
 // GET /api/project-management/alerts - 프로젝트 관리 알림 조회
 export const GET: RequestHandler = async ({ url }) => {
   try {
-    const limit = parseInt(url.searchParams.get("limit") || "10");
-    const type = url.searchParams.get("type"); // 'budget', 'participation', 'milestone', 'all'
+    const limit = parseInt(url.searchParams.get('limit') || '10')
+    const type = url.searchParams.get('type') // 'budget', 'participation', 'milestone', 'all'
 
     let sqlQuery = `
 			WITH budget_alerts AS (
@@ -80,32 +80,32 @@ export const GET: RequestHandler = async ({ url }) => {
 			SELECT * FROM participation_alerts
 			UNION ALL
 			SELECT * FROM deadline_alerts
-		`;
+		`
 
-    const params: unknown[] = [];
-    if (type && type !== "all") {
-      sqlQuery += ` WHERE alert_type = $1`;
-      params.push(type);
+    const params: unknown[] = []
+    if (type && type !== 'all') {
+      sqlQuery += ` WHERE alert_type = $1`
+      params.push(type)
     }
 
-    sqlQuery += ` ORDER BY severity DESC, created_at DESC LIMIT $${params.length + 1}`;
-    params.push(limit);
+    sqlQuery += ` ORDER BY severity DESC, created_at DESC LIMIT $${params.length + 1}`
+    params.push(limit)
 
-    const result = await query(sqlQuery, params);
+    const result = await query(sqlQuery, params)
 
     return json({
       success: true,
       data: result.rows,
-    });
+    })
   } catch (error) {
-    logger.error("프로젝트 관리 알림 조회 실패:", error);
+    logger.error('프로젝트 관리 알림 조회 실패:', error)
     return json(
       {
         success: false,
-        message: "알림을 불러오는데 실패했습니다.",
+        message: '알림을 불러오는데 실패했습니다.',
         error: (error as Error).message,
       },
       { status: 500 },
-    );
+    )
   }
-};
+}

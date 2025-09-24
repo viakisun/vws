@@ -7,10 +7,10 @@ import {
   formatDateForAPI,
   formatDateForKorean,
 } from "$lib/utils/date-calculator";
+import { logger } from "$lib/utils/logger";
 import { calculateMonthlySalary } from "$lib/utils/salary-calculator";
 import { json } from "@sveltejs/kit";
 import type { RequestHandler } from "./$types";
-import { logger } from "$lib/utils/logger";
 
 // GET /api/project-management/project-members - 프로젝트 멤버 목록 조회
 export const GET: RequestHandler = async ({ url }) => {
@@ -171,10 +171,10 @@ export const POST: RequestHandler = async ({ request }) => {
     );
 
     // 계약서에서 연봉을 가져오거나, 제공된 계약금액 사용
-    let finalContractAmount = contractAmount;
+    let _finalContractAmount = contractAmount;
     if (contractResult.rows.length > 0) {
       // 연봉을 월급으로 변환 (연봉 / 12)
-      finalContractAmount = contractResult.rows[0].annual_salary / 12;
+      _finalContractAmount = contractResult.rows[0].annual_salary / 12;
     } else {
       // 계약서가 없는 경우, 해당 직원의 모든 계약서 정보를 조회하여 안내 메시지 생성
       const allContractsResult = await query(
@@ -201,7 +201,7 @@ export const POST: RequestHandler = async ({ request }) => {
         // 계약서는 있지만 기간이 맞지 않는 경우
         const contracts = allContractsResult.rows;
         const projectStartDate = startDate ? new Date(startDate) : new Date();
-        const projectEndDate = endDate ? new Date(endDate) : new Date();
+        const _projectEndDate = endDate ? new Date(endDate) : new Date();
 
         // 가장 가까운 계약서 찾기
         const futureContracts = contracts.filter(
