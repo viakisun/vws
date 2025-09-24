@@ -25,7 +25,7 @@ async function createTestEvidenceData() {
 
     // 1. 프로젝트 예산 조회
     const budgetResult = await pool.query(`
-            SELECT pb.id, pb.period_number, pb.fiscal_year, p.title as project_title
+            SELECT pb.id, pb.period_number, p.title as project_title
             FROM project_budgets pb
             JOIN projects p ON pb.project_id = p.id
             ORDER BY pb.created_at DESC

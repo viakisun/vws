@@ -1,41 +1,41 @@
 <script lang="ts">
-  import { onMount } from 'svelte'
-  import Card from '$lib/components/ui/Card.svelte'
-  import Badge from '$lib/components/ui/Badge.svelte'
-  import Modal from '$lib/components/ui/Modal.svelte'
+  import { onMount } from "svelte";
+  import Card from "$lib/components/ui/Card.svelte";
+  import Badge from "$lib/components/ui/Badge.svelte";
+  import Modal from "$lib/components/ui/Modal.svelte";
   import {
     expenseItems,
     pendingExpenses,
     approvedExpenses,
     rejectedExpenses,
-    createExpenseRequest
-  } from '$lib/stores/rnd/expense-workflow'
+    createExpenseRequest,
+  } from "$lib/stores/rnd/expense-workflow";
   import {
     activeBudgetCategories,
-    getRequiredDocuments
-  } from '$lib/stores/rnd/budget-categories'
-  import { currentUser } from '$lib/stores/rnd/rbac'
-  import type { ExpenseItem } from '$lib/stores/rnd/types'
+    getRequiredDocuments,
+  } from "$lib/stores/rnd/budget-categories";
+  import { currentUser } from "$lib/stores/rnd/rbac";
+  import type { ExpenseItem } from "$lib/stores/rnd/types";
 
   // 상태 관리
-  let selectedTab = $state('all')
-  let searchQuery = $state('')
-  let statusFilter = $state('all')
-  let categoryFilter = $state('all')
-  let projectFilter = $state('all')
-  let showCreateModal = $state(false)
-  let showDetailModal = $state(false)
-  let selectedExpense: ExpenseItem | null = $state(null)
+  let selectedTab = $state("all");
+  let searchQuery = $state("");
+  let statusFilter = $state("all");
+  let categoryFilter = $state("all");
+  let projectFilter = $state("all");
+  let showCreateModal = $state(false);
+  let showDetailModal = $state(false);
+  let selectedExpense: ExpenseItem | null = $state(null);
 
   // 폼 데이터
   let expenseForm = $state({
-    projectId: '',
-    categoryCode: '',
+    projectId: "",
+    categoryCode: "",
     amount: 0,
-    currency: 'KRW' as const,
-    description: '',
-    deptOwner: ''
-  })
+    currency: "KRW" as const,
+    description: "",
+    deptOwner: "",
+  });
 
   // 통계 데이터
   let statistics = $state({
@@ -43,89 +43,98 @@
     pending: 0,
     approved: 0,
     rejected: 0,
-    totalAmount: 0
-  })
+    totalAmount: 0,
+  });
 
   // 필터링된 지출 항목
   let filteredExpenses = $derived(() => {
-    let items: ExpenseItem[] = []
-    expenseItems.subscribe(value => (items = value))()
+    let items: ExpenseItem[] = [];
+    expenseItems.subscribe((value) => (items = value))();
 
-    let filtered = items
+    let filtered = items;
 
     // 검색어 필터
     if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase()
+      const query = searchQuery.toLowerCase();
       filtered = filtered.filter(
-        item =>
+        (item) =>
           item.description.toLowerCase().includes(query) ||
-            item.categoryCode.toLowerCase().includes(query)
-      )
+          item.categoryCode.toLowerCase().includes(query),
+      );
     }
 
     // 상태 필터
-    if (statusFilter !== 'all') {
-      filtered = filtered.filter(item => item.status === statusFilter)
+    if (statusFilter !== "all") {
+      filtered = filtered.filter((item) => item.status === statusFilter);
     }
 
     // 카테고리 필터
-    if (categoryFilter !== 'all') {
-      filtered = filtered.filter(item => item.categoryCode === categoryFilter)
+    if (categoryFilter !== "all") {
+      filtered = filtered.filter(
+        (item) => item.categoryCode === categoryFilter,
+      );
     }
 
     // 프로젝트 필터
-    if (projectFilter !== 'all') {
-      filtered = filtered.filter(item => item.projectId === projectFilter)
+    if (projectFilter !== "all") {
+      filtered = filtered.filter((item) => item.projectId === projectFilter);
     }
 
-    return filtered
-  })
+    return filtered;
+  });
 
   // 탭별 데이터
   let tabData = $derived(() => {
     switch (selectedTab) {
-      case 'pending':
-        return $pendingExpenses
-      case 'approved':
-        return $approvedExpenses
-      case 'rejected':
-        return $rejectedExpenses
+      case "pending":
+        return $pendingExpenses;
+      case "approved":
+        return $approvedExpenses;
+      case "rejected":
+        return $rejectedExpenses;
       default:
-        return filteredExpenses()
+        return filteredExpenses();
     }
-  })
+  });
 
   // 통계 업데이트
   function updateStatistics() {
-    let items: ExpenseItem[] = []
-    expenseItems.subscribe(value => (items = value))()
+    let items: ExpenseItem[] = [];
+    expenseItems.subscribe((value) => (items = value))();
 
     statistics = {
       total: items.length,
-      pending: items.filter(item => item.status === 'pending_approval' || item.status === 'draft')
-        .length,
-      approved: items.filter(
-        item =>
-          item.status === 'approved' || item.status === 'executed' || item.status === 'completed'
+      pending: items.filter(
+        (item) => item.status === "pending_approval" || item.status === "draft",
       ).length,
-      rejected: items.filter(item => item.status === 'rejected').length,
-      totalAmount: items.reduce((sum, item) => sum + item.amount, 0)
-    }
+      approved: items.filter(
+        (item) =>
+          item.status === "approved" ||
+          item.status === "executed" ||
+          item.status === "completed",
+      ).length,
+      rejected: items.filter((item) => item.status === "rejected").length,
+      totalAmount: items.reduce((sum, item) => sum + item.amount, 0),
+    };
   }
 
   // 지출 요청 생성
   function handleCreateExpense() {
-    if (!expenseForm.projectId || !expenseForm.categoryCode || !expenseForm.amount) {
-      alert('필수 항목을 모두 입력해주세요.')
-      return
+    if (
+      !expenseForm.projectId ||
+      !expenseForm.categoryCode ||
+      !expenseForm.amount
+    ) {
+      alert("필수 항목을 모두 입력해주세요.");
+      return;
     }
 
-    let user: any = null
-    currentUser.subscribe(value => (user = value))()
+    let user: any = null;
+    currentUser.subscribe((value) => (user = value))();
 
     if (!user) {
-      alert('사용자 정보를 찾을 수 없습니다.')
-      return
+      alert("사용자 정보를 찾을 수 없습니다.");
+      return;
     }
 
     createExpenseRequest({
@@ -135,94 +144,94 @@
       amount: expenseForm.amount,
       currency: expenseForm.currency,
       description: expenseForm.description,
-      deptOwner: expenseForm.deptOwner
-    })
+      deptOwner: expenseForm.deptOwner,
+    });
 
     // 폼 초기화
     expenseForm = {
-      projectId: '',
-      categoryCode: '',
+      projectId: "",
+      categoryCode: "",
       amount: 0,
-      currency: 'KRW',
-      description: '',
-      deptOwner: ''
-    }
+      currency: "KRW",
+      description: "",
+      deptOwner: "",
+    };
 
-    showCreateModal = false
-    updateStatistics()
+    showCreateModal = false;
+    updateStatistics();
   }
 
   // 지출 항목 상세 보기
   function showExpenseDetail(expense: ExpenseItem) {
-    selectedExpense = expense
-    showDetailModal = true
+    selectedExpense = expense;
+    showDetailModal = true;
   }
 
   // 상태별 색상
   function getStatusColor(status: string) {
     switch (status) {
-      case 'draft':
-        return 'secondary'
-      case 'pending_approval':
-        return 'warning'
-      case 'approved':
-        return 'success'
-      case 'executed':
-        return 'success'
-      case 'completed':
-        return 'success'
-      case 'rejected':
-        return 'danger'
+      case "draft":
+        return "secondary";
+      case "pending_approval":
+        return "warning";
+      case "approved":
+        return "success";
+      case "executed":
+        return "success";
+      case "completed":
+        return "success";
+      case "rejected":
+        return "danger";
       default:
-        return 'secondary'
+        return "secondary";
     }
   }
 
   // 상태별 텍스트
   function getStatusText(status: string) {
     switch (status) {
-      case 'draft':
-        return '초안'
-      case 'pending_approval':
-        return '승인대기'
-      case 'approved':
-        return '승인됨'
-      case 'executed':
-        return '집행됨'
-      case 'completed':
-        return '완료'
-      case 'rejected':
-        return '반려됨'
+      case "draft":
+        return "초안";
+      case "pending_approval":
+        return "승인대기";
+      case "approved":
+        return "승인됨";
+      case "executed":
+        return "집행됨";
+      case "completed":
+        return "완료";
+      case "rejected":
+        return "반려됨";
       default:
-        return status
+        return status;
     }
   }
 
   // 금액 포맷팅
   function formatCurrency(amount: number) {
-    return new Intl.NumberFormat('ko-KR', {
-      style: 'currency',
-      currency: 'KRW',
-      minimumFractionDigits: 0
-    }).format(amount)
+    return new Intl.NumberFormat("ko-KR", {
+      style: "currency",
+      currency: "KRW",
+      minimumFractionDigits: 0,
+    }).format(amount);
   }
 
   // 날짜 포맷팅
   function formatDate(dateString: string) {
-    return new Date(dateString).toLocaleDateString('ko-KR')
+    return new Date(dateString).toLocaleDateString("ko-KR");
   }
 
   // 카테고리명 가져오기
   function getCategoryName(code: string) {
-    let categories: any[] = []
-    activeBudgetCategories.subscribe(value => (categories = value))()
-    const category = categories.find(cat => cat.code === code)
-    return category ? category.nameKo : code
+    let categories: any[] = [];
+    activeBudgetCategories.subscribe((value) => (categories = value))();
+    const category = categories.find((cat) => cat.code === code);
+    return category ? category.nameKo : code;
   }
 
   onMount(() => {
-    updateStatistics()
-  })
+    updateStatistics();
+  });
 </script>
 
 <div class="space-y-6">
@@ -232,7 +241,8 @@
       <h1 class="text-3xl font-bold text-gray-900">지출 관리</h1>
       <p class="mt-2 text-gray-600">지출 요청, 증빙 관리, 결재 워크플로우</p>
     </div>
-    <button type="button"
+    <button
+      type="button"
       onclick={() => (showCreateModal = true)}
       class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
     >
@@ -249,7 +259,9 @@
             <p class="text-sm font-medium text-gray-600">전체</p>
             <p class="text-2xl font-bold text-gray-900">{statistics.total}</p>
           </div>
-          <div class="h-12 w-12 bg-gray-100 rounded-full flex items-center justify-center">
+          <div
+            class="h-12 w-12 bg-gray-100 rounded-full flex items-center justify-center"
+          >
             <span class="text-gray-600 font-bold">📋</span>
           </div>
         </div>
@@ -261,9 +273,13 @@
         <div class="flex items-center justify-between">
           <div>
             <p class="text-sm font-medium text-gray-600">승인대기</p>
-            <p class="text-2xl font-bold text-yellow-600">{statistics.pending}</p>
+            <p class="text-2xl font-bold text-yellow-600">
+              {statistics.pending}
+            </p>
           </div>
-          <div class="h-12 w-12 bg-yellow-100 rounded-full flex items-center justify-center">
+          <div
+            class="h-12 w-12 bg-yellow-100 rounded-full flex items-center justify-center"
+          >
             <span class="text-yellow-600 font-bold">⏳</span>
           </div>
         </div>
@@ -275,9 +291,13 @@
         <div class="flex items-center justify-between">
           <div>
             <p class="text-sm font-medium text-gray-600">승인됨</p>
-            <p class="text-2xl font-bold text-green-600">{statistics.approved}</p>
+            <p class="text-2xl font-bold text-green-600">
+              {statistics.approved}
+            </p>
           </div>
-          <div class="h-12 w-12 bg-green-100 rounded-full flex items-center justify-center">
+          <div
+            class="h-12 w-12 bg-green-100 rounded-full flex items-center justify-center"
+          >
             <span class="text-green-600 font-bold">✅</span>
           </div>
         </div>
@@ -291,7 +311,9 @@
             <p class="text-sm font-medium text-gray-600">반려됨</p>
             <p class="text-2xl font-bold text-red-600">{statistics.rejected}</p>
           </div>
-          <div class="h-12 w-12 bg-red-100 rounded-full flex items-center justify-center">
+          <div
+            class="h-12 w-12 bg-red-100 rounded-full flex items-center justify-center"
+          >
             <span class="text-red-600 font-bold">❌</span>
           </div>
         </div>
@@ -303,9 +325,13 @@
         <div class="flex items-center justify-between">
           <div>
             <p class="text-sm font-medium text-gray-600">총 지출액</p>
-            <p class="text-2xl font-bold text-blue-600">{formatCurrency(statistics.totalAmount)}</p>
+            <p class="text-2xl font-bold text-blue-600">
+              {formatCurrency(statistics.totalAmount)}
+            </p>
           </div>
-          <div class="h-12 w-12 bg-blue-100 rounded-full flex items-center justify-center">
+          <div
+            class="h-12 w-12 bg-blue-100 rounded-full flex items-center justify-center"
+          >
             <span class="text-blue-600 font-bold">💰</span>
           </div>
         </div>
@@ -317,19 +343,27 @@
   <div class="bg-white p-6 rounded-lg shadow">
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-2">검색</label>
+        <label
+          class="block text-sm font-medium text-gray-700 mb-2"
+          for="field-search">검색</label
+        >
         <input
           type="text"
           bind:value={searchQuery}
           placeholder="설명 또는 카테고리 검색..."
           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          id="field-search"
         />
       </div>
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-2">상태</label>
+        <label
+          class="block text-sm font-medium text-gray-700 mb-2"
+          for="field-search">상태</label
+        >
         <select
           bind:value={statusFilter}
           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          id="field-status"
         >
           <option value="all">전체</option>
           <option value="draft">초안</option>
@@ -341,10 +375,14 @@
         </select>
       </div>
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-2">카테고리</label>
+        <label
+          class="block text-sm font-medium text-gray-700 mb-2"
+          for="field-search">카테고리</label
+        >
         <select
           bind:value={categoryFilter}
           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          id="field-status"
         >
           <option value="all">전체</option>
           {#each $activeBudgetCategories as category, i (i)}
@@ -353,10 +391,14 @@
         </select>
       </div>
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-2">프로젝트</label>
+        <label
+          class="block text-sm font-medium text-gray-700 mb-2"
+          for="field-search">프로젝트</label
+        >
         <select
           bind:value={projectFilter}
           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          id="field-status"
         >
           <option value="all">전체</option>
           <option value="proj-001">AI 프로젝트</option>
@@ -371,39 +413,43 @@
   <div class="bg-white rounded-lg shadow">
     <div class="border-b border-gray-200">
       <nav class="-mb-px flex space-x-8 px-6">
-        <button type="button"
-          onclick={() => (selectedTab = 'all')}
+        <button
+          type="button"
+          onclick={() => (selectedTab = "all")}
           class="py-4 px-1 border-b-2 font-medium text-sm transition-colors
             {selectedTab === 'all'
-              ? 'border-blue-500 text-blue-600'
-              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}"
+            ? 'border-blue-500 text-blue-600'
+            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}"
         >
           전체 ({statistics.total})
         </button>
-        <button type="button"
-          onclick={() => (selectedTab = 'pending')}
+        <button
+          type="button"
+          onclick={() => (selectedTab = "pending")}
           class="py-4 px-1 border-b-2 font-medium text-sm transition-colors
             {selectedTab === 'pending'
-              ? 'border-blue-500 text-blue-600'
-              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}"
+            ? 'border-blue-500 text-blue-600'
+            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}"
         >
           승인대기 ({statistics.pending})
         </button>
-        <button type="button"
-          onclick={() => (selectedTab = 'approved')}
+        <button
+          type="button"
+          onclick={() => (selectedTab = "approved")}
           class="py-4 px-1 border-b-2 font-medium text-sm transition-colors
             {selectedTab === 'approved'
-              ? 'border-blue-500 text-blue-600'
-              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}"
+            ? 'border-blue-500 text-blue-600'
+            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}"
         >
           승인됨 ({statistics.approved})
         </button>
-        <button type="button"
-          onclick={() => (selectedTab = 'rejected')}
+        <button
+          type="button"
+          onclick={() => (selectedTab = "rejected")}
           class="py-4 px-1 border-b-2 font-medium text-sm transition-colors
             {selectedTab === 'rejected'
-              ? 'border-blue-500 text-blue-600'
-              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}"
+            ? 'border-blue-500 text-blue-600'
+            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}"
         >
           반려됨 ({statistics.rejected})
         </button>
@@ -415,43 +461,55 @@
       {#if tabData().length === 0}
         <div class="text-center py-12">
           <div class="text-gray-400 text-6xl mb-4">📋</div>
-          <h3 class="text-lg font-medium text-gray-900 mb-2">지출 항목이 없습니다</h3>
+          <h3 class="text-lg font-medium text-gray-900 mb-2">
+            지출 항목이 없습니다
+          </h3>
           <p class="text-gray-500">새 지출 요청을 생성해보세요.</p>
         </div>
       {:else}
         <div class="space-y-4">
-          {#each tabData() as expense}
+          {#each tabData() as expense, idx (idx)}
+            <!-- TODO: replace index key with a stable id when model provides one -->
             <div
               class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
               onclick={() => showExpenseDetail(expense)}
-              onkeydown={e => e.key === 'Enter' && showExpenseDetail(expense)}
+              onkeydown={(e) => e.key === "Enter" && showExpenseDetail(expense)}
               role="button"
               tabindex="0"
             >
               <div class="flex items-center justify-between">
                 <div class="flex-1">
                   <div class="flex items-center space-x-4">
-                    <h3 class="text-lg font-medium text-gray-900">{expense.description}</h3>
+                    <h3 class="text-lg font-medium text-gray-900">
+                      {expense.description}
+                    </h3>
                     <Badge variant={getStatusColor(expense.status)}>
                       {getStatusText(expense.status)}
                     </Badge>
                   </div>
-                  <div class="mt-2 flex items-center space-x-6 text-sm text-gray-500">
-                    <span>카테고리: {getCategoryName(expense.categoryCode)}</span>
+                  <div
+                    class="mt-2 flex items-center space-x-6 text-sm text-gray-500"
+                  >
+                    <span
+                      >카테고리: {getCategoryName(expense.categoryCode)}</span
+                    >
                     <span>금액: {formatCurrency(expense.amount)}</span>
                     <span>담당부서: {expense.deptOwner}</span>
                     <span>생성일: {formatDate(expense.createdAt)}</span>
                   </div>
                 </div>
                 <div class="flex items-center space-x-2">
-                  <button type="button"
+                  <button
+                    type="button"
                     class="p-2 text-gray-400 hover:text-gray-600"
-                    aria-label="상세보기">
+                    aria-label="상세보기"
+                  >
                     <svg
                       class="h-5 w-5"
                       fill="none"
                       viewBox="0 0 24 24"
-                      stroke="currentColor">
+                      stroke="currentColor"
+                    >
                       <path
                         stroke-linecap="round"
                         stroke-linejoin="round"
@@ -471,15 +529,17 @@
 </div>
 
 <!-- 지출 요청 생성 모달 -->
-<Modal
-  bind:open={showCreateModal}
-  title="새 지출 요청">
+<Modal bind:open={showCreateModal} title="새 지출 요청">
   <div class="space-y-4">
     <div>
-      <label class="block text-sm font-medium text-gray-700 mb-1">프로젝트 *</label>
+      <label
+        class="block text-sm font-medium text-gray-700 mb-1"
+        for="field-search">프로젝트 *</label
+      >
       <select
         bind:value={expenseForm.projectId}
         class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        id="field-status"
       >
         <option value="">프로젝트 선택</option>
         <option value="proj-001">AI 프로젝트</option>
@@ -489,10 +549,14 @@
     </div>
 
     <div>
-      <label class="block text-sm font-medium text-gray-700 mb-1">카테고리 *</label>
+      <label
+        class="block text-sm font-medium text-gray-700 mb-1"
+        for="field-search">카테고리 *</label
+      >
       <select
         bind:value={expenseForm.categoryCode}
         class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        id="field-status"
       >
         <option value="">카테고리 선택</option>
         {#each $activeBudgetCategories as category, i (i)}
@@ -503,19 +567,27 @@
 
     <div class="grid grid-cols-2 gap-4">
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">금액 *</label>
+        <label
+          class="block text-sm font-medium text-gray-700 mb-1"
+          for="field-search">금액 *</label
+        >
         <input
           type="number"
           bind:value={expenseForm.amount}
           placeholder="0"
           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          id="field-search"
         />
       </div>
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">통화</label>
+        <label
+          class="block text-sm font-medium text-gray-700 mb-1"
+          for="field-search">통화</label
+        >
         <select
           bind:value={expenseForm.currency}
           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          id="field-status"
         >
           <option value="KRW">KRW (원)</option>
           <option value="USD">USD (달러)</option>
@@ -525,34 +597,44 @@
     </div>
 
     <div>
-      <label class="block text-sm font-medium text-gray-700 mb-1">설명 *</label>
+      <label
+        class="block text-sm font-medium text-gray-700 mb-1"
+        for="field-search">설명 *</label
+      >
       <textarea
         bind:value={expenseForm.description}
         rows="3"
         placeholder="지출 목적 및 상세 내용을 입력하세요"
         class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        id="field-status"
       ></textarea>
     </div>
 
     <div>
-      <label class="block text-sm font-medium text-gray-700 mb-1">담당부서</label>
+      <label
+        class="block text-sm font-medium text-gray-700 mb-1"
+        for="field-search">담당부서</label
+      >
       <input
         type="text"
         bind:value={expenseForm.deptOwner}
         placeholder="담당 부서명"
         class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        id="field-search"
       />
     </div>
   </div>
 
   <div class="flex justify-end space-x-3 mt-6">
-    <button type="button"
+    <button
+      type="button"
       onclick={() => (showCreateModal = false)}
       class="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
     >
       취소
     </button>
-    <button type="button"
+    <button
+      type="button"
       onclick={handleCreateExpense}
       class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
     >
@@ -562,9 +644,7 @@
 </Modal>
 
 <!-- 지출 항목 상세 모달 -->
-<Modal
-  bind:open={showDetailModal}
-  title="지출 항목 상세">
+<Modal bind:open={showDetailModal} title="지출 항목 상세">
   {#if selectedExpense}
     <div class="space-y-6">
       <!-- 기본 정보 -->
@@ -582,20 +662,31 @@
             </Badge>
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-500">카테고리</label>
-            <p class="text-sm text-gray-900">{getCategoryName(selectedExpense.categoryCode)}</p>
+            <label class="block text-sm font-medium text-gray-500"
+              >카테고리</label
+            >
+            <p class="text-sm text-gray-900">
+              {getCategoryName(selectedExpense.categoryCode)}
+            </p>
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-500">금액</label>
-            <p class="text-sm text-gray-900">{formatCurrency(selectedExpense.amount)}</p>
+            <p class="text-sm text-gray-900">
+              {formatCurrency(selectedExpense.amount)}
+            </p>
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-500">담당부서</label>
+            <label class="block text-sm font-medium text-gray-500"
+              >담당부서</label
+            >
             <p class="text-sm text-gray-900">{selectedExpense.deptOwner}</p>
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-500">생성일</label>
-            <p class="text-sm text-gray-900">{formatDate(selectedExpense.createdAt)}</p>
+            <label class="block text-sm font-medium text-gray-500">생성일</label
+            >
+            <p class="text-sm text-gray-900">
+              {formatDate(selectedExpense.createdAt)}
+            </p>
           </div>
         </div>
       </div>
@@ -604,8 +695,11 @@
       <div>
         <h3 class="text-lg font-medium text-gray-900 mb-4">필수 문서</h3>
         <div class="space-y-2">
-          {#each getRequiredDocuments(selectedExpense.categoryCode) as doc}
-            <div class="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg">
+          {#each getRequiredDocuments(selectedExpense.categoryCode) as doc, idx (idx)}
+            <!-- TODO: replace index key with a stable id when model provides one -->
+            <div
+              class="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg"
+            >
               <div class="flex-shrink-0">
                 {#if doc.required}
                   <span class="text-red-500">*</span>
@@ -614,7 +708,9 @@
                 {/if}
               </div>
               <div class="flex-1">
-                <p class="text-sm font-medium text-gray-900">{doc.description}</p>
+                <p class="text-sm font-medium text-gray-900">
+                  {doc.description}
+                </p>
                 <p class="text-xs text-gray-500">{doc.type}</p>
               </div>
               <div class="flex-shrink-0">
@@ -629,9 +725,13 @@
       <div>
         <h3 class="text-lg font-medium text-gray-900 mb-4">결재 워크플로우</h3>
         <div class="space-y-2">
-          <div class="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg">
+          <div
+            class="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg"
+          >
             <div class="flex-shrink-0">
-              <div class="h-8 w-8 bg-blue-100 rounded-full flex items-center justify-center">
+              <div
+                class="h-8 w-8 bg-blue-100 rounded-full flex items-center justify-center"
+              >
                 <span class="text-blue-600 text-sm font-bold">1</span>
               </div>
             </div>
@@ -643,9 +743,13 @@
               <Badge variant="warning">대기중</Badge>
             </div>
           </div>
-          <div class="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg">
+          <div
+            class="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg"
+          >
             <div class="flex-shrink-0">
-              <div class="h-8 w-8 bg-gray-100 rounded-full flex items-center justify-center">
+              <div
+                class="h-8 w-8 bg-gray-100 rounded-full flex items-center justify-center"
+              >
                 <span class="text-gray-600 text-sm font-bold">2</span>
               </div>
             </div>
@@ -662,18 +766,23 @@
     </div>
 
     <div class="flex justify-end space-x-3 mt-6">
-      <button type="button"
+      <button
+        type="button"
         onclick={() => (showDetailModal = false)}
         class="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
       >
         닫기
       </button>
-      {#if selectedExpense.status === 'pending_approval'}
-        <button type="button" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+      {#if selectedExpense.status === "pending_approval"}
+        <button
+          type="button"
+          class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
         >
           승인
         </button>
-        <button type="button" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+        <button
+          type="button"
+          class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
         >
           반려
         </button>

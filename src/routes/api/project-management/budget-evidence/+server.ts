@@ -1,16 +1,16 @@
-import { query } from '$lib/database/connection'
-import { json } from '@sveltejs/kit'
-import type { RequestHandler } from './$types'
-import { logger } from '$lib/utils/logger';
+import { query } from "$lib/database/connection";
+import { json } from "@sveltejs/kit";
+import type { RequestHandler } from "./$types";
+import { logger } from "$lib/utils/logger";
 
 // GET /api/project-management/budget-evidence - 증빙 내역 목록 조회
 export const GET: RequestHandler = async ({ url }) => {
   try {
-    const projectBudgetId = url.searchParams.get('projectBudgetId')
-    const projectId = url.searchParams.get('projectId')
-    const status = url.searchParams.get('status')
-    const evidenceType = url.searchParams.get('evidenceType')
-    const year = url.searchParams.get('year')
+    const projectBudgetId = url.searchParams.get("projectBudgetId");
+    const projectId = url.searchParams.get("projectId");
+    const status = url.searchParams.get("status");
+    const evidenceType = url.searchParams.get("evidenceType");
+    const year = url.searchParams.get("year");
 
     let sqlQuery = `
 			SELECT 
@@ -31,7 +31,7 @@ export const GET: RequestHandler = async ({ url }) => {
 				be.approved_at,
 				be.rejection_reason,
 				et.name as evidence_type_name,
-				pb.fiscal_year,
+				pb.period_number,
 				p.title as project_title,
 				creator.first_name as created_by_name,
 				approver.first_name as approved_by_name
@@ -42,66 +42,66 @@ export const GET: RequestHandler = async ({ url }) => {
 			LEFT JOIN employees creator ON be.created_by = creator.id
 			LEFT JOIN employees approver ON be.approved_by = approver.id
 			WHERE 1=1
-		`
+		`;
 
-    const params: unknown[] = []
-    let paramIndex = 1
+    const params: unknown[] = [];
+    let paramIndex = 1;
 
     if (projectBudgetId) {
-      sqlQuery += ` AND be.project_budget_id = $${paramIndex}`
-      params.push(projectBudgetId)
-      paramIndex++
+      sqlQuery += ` AND be.project_budget_id = $${paramIndex}`;
+      params.push(projectBudgetId);
+      paramIndex++;
     }
 
     if (projectId) {
-      sqlQuery += ` AND pb.project_id = $${paramIndex}`
-      params.push(projectId)
-      paramIndex++
+      sqlQuery += ` AND pb.project_id = $${paramIndex}`;
+      params.push(projectId);
+      paramIndex++;
     }
 
     if (status) {
-      sqlQuery += ` AND be.status = $${paramIndex}`
-      params.push(status)
-      paramIndex++
+      sqlQuery += ` AND be.status = $${paramIndex}`;
+      params.push(status);
+      paramIndex++;
     }
 
     if (evidenceType) {
-      sqlQuery += ` AND be.evidence_type = $${paramIndex}`
-      params.push(evidenceType)
-      paramIndex++
+      sqlQuery += ` AND be.evidence_type = $${paramIndex}`;
+      params.push(evidenceType);
+      paramIndex++;
     }
 
     if (year) {
-      sqlQuery += ` AND pb.fiscal_year = $${paramIndex}`
-      params.push(parseInt(year))
-      paramIndex++
+      sqlQuery += ` AND pb.period_number = $${paramIndex}`;
+      params.push(parseInt(year));
+      paramIndex++;
     }
 
-    sqlQuery += ' ORDER BY be.evidence_date DESC, be.created_at DESC'
+    sqlQuery += " ORDER BY be.evidence_date DESC, be.created_at DESC";
 
-    const result = await query(sqlQuery, params)
+    const result = await query(sqlQuery, params);
 
     return json({
       success: true,
-      data: result.rows
-    })
+      data: result.rows,
+    });
   } catch (error) {
-    logger.error('증빙 내역 조회 실패:', error)
+    logger.error("증빙 내역 조회 실패:", error);
     return json(
       {
         success: false,
-        message: '증빙 내역을 불러오는데 실패했습니다.',
-        error: (error as Error).message
+        message: "증빙 내역을 불러오는데 실패했습니다.",
+        error: (error as Error).message,
       },
-      { status: 500 }
-    )
+      { status: 500 },
+    );
   }
-}
+};
 
 // POST /api/project-management/budget-evidence - 증빙 내역 등록
 export const POST: RequestHandler = async ({ request }) => {
   try {
-    const data = await request.json()
+    const data = await request.json();
     const {
       projectBudgetId,
       evidenceType,
@@ -113,18 +113,24 @@ export const POST: RequestHandler = async ({ request }) => {
       fileName,
       fileSize,
       mimeType,
-      createdBy
-    } = data
+      createdBy,
+    } = data;
 
     // 필수 필드 검증
-    if (!projectBudgetId || !evidenceType || !title || !amount || !evidenceDate) {
+    if (
+      !projectBudgetId ||
+      !evidenceType ||
+      !title ||
+      !amount ||
+      !evidenceDate
+    ) {
       return json(
         {
           success: false,
-          message: '필수 필드가 누락되었습니다.'
+          message: "필수 필드가 누락되었습니다.",
         },
-        { status: 400 }
-      )
+        { status: 400 },
+      );
     }
 
     // 증빙 내역 등록
@@ -134,7 +140,7 @@ export const POST: RequestHandler = async ({ request }) => {
 				evidence_date, file_path, file_name, file_size, mime_type, created_by
 			) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
 			RETURNING *
-		`
+		`;
 
     const result = await query(insertQuery, [
       projectBudgetId,
@@ -147,23 +153,23 @@ export const POST: RequestHandler = async ({ request }) => {
       fileName || null,
       fileSize || null,
       mimeType || null,
-      createdBy || null
-    ])
+      createdBy || null,
+    ]);
 
     return json({
       success: true,
       data: result.rows[0],
-      message: '증빙 내역이 등록되었습니다.'
-    })
+      message: "증빙 내역이 등록되었습니다.",
+    });
   } catch (error) {
-    logger.error('증빙 내역 등록 실패:', error)
+    logger.error("증빙 내역 등록 실패:", error);
     return json(
       {
         success: false,
-        message: '증빙 내역 등록에 실패했습니다.',
-        error: (error as Error).message
+        message: "증빙 내역 등록에 실패했습니다.",
+        error: (error as Error).message,
       },
-      { status: 500 }
-    )
+      { status: 500 },
+    );
   }
-}
+};

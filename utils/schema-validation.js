@@ -352,7 +352,7 @@ SchemaValidator.PROJECT_SCHEMA_RULES = [
   },
   {
     tableName: 'project_budgets',
-    columnName: 'fiscal_year',
+    columnName: 'period_number',
     expectedType: 'integer',
     required: true,
     description: '회계연도'

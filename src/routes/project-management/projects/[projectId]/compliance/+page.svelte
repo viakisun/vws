@@ -1,82 +1,92 @@
 <script lang="ts">
-  import Card from '$lib/components/ui/Card.svelte'
-  import Badge from '$lib/components/ui/Badge.svelte'
-  import { page } from '$app/state'
-  import { goto } from '$app/navigation'
+  import Card from "$lib/components/ui/Card.svelte";
+  import Badge from "$lib/components/ui/Badge.svelte";
+  import { page } from "$app/state";
+  import { goto } from "$app/navigation";
 
-  type CStatus = '충족' | '미비' | '검토중'
+  type CStatus = "충족" | "미비" | "검토중";
   interface Rule {
-    id: string
-    category: '인건비' | '재료비' | '연구활동비' | '여비' | '보고'
-    title: string
-    status: CStatus
-    note?: string
+    id: string;
+    category: "인건비" | "재료비" | "연구활동비" | "여비" | "보고";
+    title: string;
+    status: CStatus;
+    note?: string;
   }
 
-  const projectId = page.params.projectId as string
+  const projectId = page.params.projectId as string;
   let rules: Rule[] = [
-    { id: `${projectId}-C1`, category: '인건비', title: '급여명세서 보관', status: '충족' },
+    {
+      id: `${projectId}-C1`,
+      category: "인건비",
+      title: "급여명세서 보관",
+      status: "충족",
+    },
     {
       id: `${projectId}-C2`,
-      category: '여비',
-      title: '출장보고서 첨부',
-      status: '미비',
-      note: '보고서 누락'
+      category: "여비",
+      title: "출장보고서 첨부",
+      status: "미비",
+      note: "보고서 누락",
     },
-    { id: `${projectId}-C3`, category: '보고', title: '월간 진도보고 제출', status: '검토중' }
-  ]
+    {
+      id: `${projectId}-C3`,
+      category: "보고",
+      title: "월간 진도보고 제출",
+      status: "검토중",
+    },
+  ];
 
-  let cat = $state('') as '' | Rule['category']
-  let status = $state('') as '' | CStatus
-  let query = $state('')
+  let cat = $state("") as "" | Rule["category"];
+  let status = $state("") as "" | CStatus;
+  let query = $state("");
 
-  let lastQuery = $state('')
-  if (typeof window !== 'undefined') {
-    const sp = new URLSearchParams(window.location.search)
-    cat = (sp.get('cat') as typeof cat) ?? ''
-    status = (sp.get('status') as typeof status) ?? ''
-    query = sp.get('q') ?? ''
-    lastQuery = sp.toString()
+  let lastQuery = $state("");
+  if (typeof window !== "undefined") {
+    const sp = new URLSearchParams(window.location.search);
+    cat = (sp.get("cat") as typeof cat) ?? "";
+    status = (sp.get("status") as typeof status) ?? "";
+    query = sp.get("q") ?? "";
+    lastQuery = sp.toString();
   }
   $effect(() => {
-    if (typeof window !== 'undefined') {
-      const sp = new URLSearchParams(window.location.search)
-      if (cat) sp.set('cat', cat)
-      else sp.delete('cat')
-      if (status) sp.set('status', status)
-      else sp.delete('status')
-      if (query) sp.set('q', query)
-      else sp.delete('q')
-      const newQuery = sp.toString()
+    if (typeof window !== "undefined") {
+      const sp = new URLSearchParams(window.location.search);
+      if (cat) sp.set("cat", cat);
+      else sp.delete("cat");
+      if (status) sp.set("status", status);
+      else sp.delete("status");
+      if (query) sp.set("q", query);
+      else sp.delete("q");
+      const newQuery = sp.toString();
       if (newQuery !== lastQuery) {
-        lastQuery = newQuery
+        lastQuery = newQuery;
         goto(`${window.location.pathname}?${newQuery}`, {
           replaceState: true,
           keepFocus: true,
-          noScroll: true
-        })
+          noScroll: true,
+        });
       }
     }
-  })
+  });
 
   const filtered = $derived(
     rules.filter(
-      r =>
+      (r) =>
         (cat ? r.category === cat : true) &&
-          (status ? r.status === status : true) &&
-          (query ? r.title.includes(query) : true)
-    )
-  )
+        (status ? r.status === status : true) &&
+        (query ? r.title.includes(query) : true),
+    ),
+  );
 
-  function colorOf(s: CStatus): 'green' | 'yellow' | 'red' {
-    if (s === '충족') return 'green'
-    if (s === '검토중') return 'yellow'
-    return 'red'
+  function colorOf(s: CStatus): "green" | "yellow" | "red" {
+    if (s === "충족") return "green";
+    if (s === "검토중") return "yellow";
+    return "red";
   }
 
-  let loading = $state(true)
-  if (typeof window !== 'undefined') {
-    setTimeout(() => (loading = false), 300)
+  let loading = $state(true);
+  if (typeof window !== "undefined") {
+    setTimeout(() => (loading = false), 300);
   }
 </script>
 
@@ -91,7 +101,8 @@
     />
     <select
       class="rounded-md border border-gray-200 px-2 py-1"
-      bind:value={cat}>
+      bind:value={cat}
+    >
       <option value="">카테고리: 전체</option>
       <option value="인건비">인건비</option>
       <option value="재료비">재료비</option>
@@ -101,7 +112,8 @@
     </select>
     <select
       class="rounded-md border border-gray-200 px-2 py-1"
-      bind:value={status}>
+      bind:value={status}
+    >
       <option value="">상태: 전체</option>
       <option value="충족">충족</option>
       <option value="검토중">검토중</option>
@@ -110,7 +122,8 @@
   </div>
   {#if loading}
     <div class="space-y-2">
-      {#each Array(8) as _}
+      {#each Array(8) as _, idx (idx)}
+        <!-- TODO: replace index key with a stable id when model provides one -->
         <div class="h-8 bg-gray-100 animate-pulse rounded"></div>
       {/each}
     </div>
@@ -132,8 +145,10 @@
               <td class="px-3 py-2">{r.id}</td>
               <td class="px-3 py-2">{r.category}</td>
               <td class="px-3 py-2">{r.title}</td>
-              <td class="px-3 py-2"><Badge color={colorOf(r.status)}>{r.status}</Badge></td>
-              <td class="px-3 py-2 text-gray-500">{r.note ?? '-'}</td>
+              <td class="px-3 py-2"
+                ><Badge color={colorOf(r.status)}>{r.status}</Badge></td
+              >
+              <td class="px-3 py-2 text-gray-500">{r.note ?? "-"}</td>
             </tr>
           {/each}
         </tbody>

@@ -1,16 +1,17 @@
-import { query } from '$lib/database/connection'
-import { json } from '@sveltejs/kit'
-import type { RequestHandler } from './$types'
-import { logger } from '$lib/utils/logger';
+import { query } from "$lib/database/connection";
+import { json } from "@sveltejs/kit";
+import type { RequestHandler } from "./$types";
+import { logger } from "$lib/utils/logger";
 
 // GET /api/project-management/employees - 직원 목록 조회 (프로젝트 멤버 추가용)
 export const GET: RequestHandler = async ({ url }) => {
   try {
-    const projectId = url.searchParams.get('projectId')
-    const department = url.searchParams.get('department')
-    const position = url.searchParams.get('position')
-    const search = url.searchParams.get('search')
-    const excludeProjectMembers = url.searchParams.get('excludeProjectMembers') === 'true'
+    const projectId = url.searchParams.get("projectId");
+    const department = url.searchParams.get("department");
+    const position = url.searchParams.get("position");
+    const search = url.searchParams.get("search");
+    const excludeProjectMembers =
+      url.searchParams.get("excludeProjectMembers") === "true";
 
     // 직원 목록 API 호출
 
@@ -33,21 +34,21 @@ export const GET: RequestHandler = async ({ url }) => {
 			FROM employees e
 			LEFT JOIN salary_contracts sc ON e.id = sc.employee_id AND sc.status = 'active'
 			WHERE e.status = 'active'
-		`
+		`;
 
-    const params: unknown[] = []
-    let paramIndex = 1
+    const params: unknown[] = [];
+    let paramIndex = 1;
 
     if (department) {
-      sqlQuery += ` AND e.department = $${paramIndex}`
-      params.push(department)
-      paramIndex++
+      sqlQuery += ` AND e.department = $${paramIndex}`;
+      params.push(department);
+      paramIndex++;
     }
 
     if (position) {
-      sqlQuery += ` AND e.position = $${paramIndex}`
-      params.push(position)
-      paramIndex++
+      sqlQuery += ` AND e.position = $${paramIndex}`;
+      params.push(position);
+      paramIndex++;
     }
 
     if (search) {
@@ -61,9 +62,9 @@ export const GET: RequestHandler = async ({ url }) => {
 				OR e.last_name ILIKE $${paramIndex} 
 				OR e.email ILIKE $${paramIndex} 
 				OR e.employee_id ILIKE $${paramIndex}
-			)`
-      params.push(`%${search}%`)
-      paramIndex++
+			)`;
+      params.push(`%${search}%`);
+      paramIndex++;
     }
 
     // 특정 프로젝트의 멤버를 제외
@@ -72,30 +73,30 @@ export const GET: RequestHandler = async ({ url }) => {
 				SELECT pm.employee_id 
 				FROM project_members pm 
 				WHERE pm.project_id = $${paramIndex} AND pm.status = 'active'
-			)`
-      params.push(projectId)
-      paramIndex++
+			)`;
+      params.push(projectId);
+      paramIndex++;
     }
 
-    sqlQuery += ' ORDER BY e.department ASC, e.last_name ASC, e.first_name ASC'
+    sqlQuery += " ORDER BY e.department ASC, e.last_name ASC, e.first_name ASC";
 
-    const result = await query(sqlQuery, params)
+    const result = await query(sqlQuery, params);
 
     // 직원 목록 쿼리 완료
 
     return json({
       success: true,
-      data: result.rows
-    })
+      data: result.rows,
+    });
   } catch (error) {
-    logger.error('직원 목록 조회 실패:', error)
+    logger.error("직원 목록 조회 실패:", error);
     return json(
       {
         success: false,
-        message: '직원 목록을 불러오는데 실패했습니다.',
-        error: (error as Error).message
+        message: "직원 목록을 불러오는데 실패했습니다.",
+        error: (error as Error).message,
       },
-      { status: 500 }
-    )
+      { status: 500 },
+    );
   }
-}
+};

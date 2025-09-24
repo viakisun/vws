@@ -1,5 +1,5 @@
-import { json } from '@sveltejs/kit'
-import { logger } from '$lib/utils/logger';
+import { json } from "@sveltejs/kit";
+import { logger } from "$lib/utils/logger";
 
 export async function GET() {
   try {
@@ -20,16 +20,19 @@ Smith,John,Michael,john.smith@company.com,010-5678-9012,개발팀,Senior Develop
 - 급여는 숫자만 입력해주세요 (예: 5000000)
 - 입사일은 YYYY-MM-DD 형식으로 입력해주세요 (예: 2022-01-15)
 - 상태는 active, inactive, on-leave, terminated 중 하나를 선택해주세요
-- 고용형태는 full-time, part-time, contract, intern 중 하나를 선택해주세요`
+- 고용형태는 full-time, part-time, contract, intern 중 하나를 선택해주세요`;
 
     return new Response(csvContent, {
       headers: {
-        'Content-Type': 'text/csv; charset=utf-8',
-        'Content-Disposition': 'attachment; filename="employee_template.csv"'
-      }
-    })
+        "Content-Type": "text/csv; charset=utf-8",
+        "Content-Disposition": 'attachment; filename="employee_template.csv"',
+      },
+    });
   } catch (error) {
-    logger.error('템플릿 생성 에러:', error)
-    return json({ error: '템플릿 생성 중 오류가 발생했습니다.' }, { status: 500 })
+    logger.error("템플릿 생성 에러:", error);
+    return json(
+      { error: "템플릿 생성 중 오류가 발생했습니다." },
+      { status: 500 },
+    );
   }
 }

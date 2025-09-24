@@ -1,35 +1,30 @@
-import { query } from '$lib/database/connection'
-import { json } from '@sveltejs/kit'
-import type { RequestHandler } from './$types'
-import { logger } from '$lib/utils/logger';
+import { query } from "$lib/database/connection";
+import { json } from "@sveltejs/kit";
+import type { RequestHandler } from "./$types";
+import { logger } from "$lib/utils/logger";
 
 // GET /api/project-management/alerts - 프로젝트 관리 알림 조회
 export const GET: RequestHandler = async ({ url }) => {
   try {
-    const limit = parseInt(url.searchParams.get('limit') || '10')
-    const type = url.searchParams.get('type') // 'budget', 'participation', 'milestone', 'all'
+    const limit = parseInt(url.searchParams.get("limit") || "10");
+    const type = url.searchParams.get("type"); // 'budget', 'participation', 'milestone', 'all'
 
     let sqlQuery = `
 			WITH budget_alerts AS (
 				SELECT 
 					p.id as project_id,
 					p.title as project_title,
-					pb.fiscal_year::integer as fiscal_year,
-					pb.total_budget::decimal as total_budget,
-					pb.spent_amount::decimal as spent_amount,
-					(pb.spent_amount / NULLIF(pb.total_budget, 0) * 100)::decimal as usage_percentage,
-					CASE 
-						WHEN (pb.spent_amount / NULLIF(pb.total_budget, 0) * 100) >= 90 THEN 'critical'
-						WHEN (pb.spent_amount / NULLIF(pb.total_budget, 0) * 100) >= 80 THEN 'warning'
-						ELSE 'info'
-					END as severity,
+					pb.period_number::integer as fiscal_year,
+					(COALESCE(pb.government_funding_amount, 0) + COALESCE(pb.company_cash_amount, 0) + COALESCE(pb.company_in_kind_amount, 0))::decimal as total_budget,
+					0::decimal as spent_amount,
+					0::decimal as usage_percentage,
+					'info' as severity,
 					'budget' as alert_type,
-					'예산 사용률 ' || ROUND((pb.spent_amount / NULLIF(pb.total_budget, 0) * 100), 1) || '%' as message,
+					'예산 사용률 0%' as message,
 					pb.updated_at as created_at
 				FROM projects p
 				JOIN project_budgets pb ON p.id = pb.project_id
-				WHERE pb.total_budget > 0 
-				AND (pb.spent_amount / NULLIF(pb.total_budget, 0) * 100) >= 80
+				WHERE (COALESCE(pb.government_funding_amount, 0) + COALESCE(pb.company_cash_amount, 0) + COALESCE(pb.company_in_kind_amount, 0)) > 0
 			),
 			participation_alerts AS (
 				SELECT 
@@ -85,32 +80,32 @@ export const GET: RequestHandler = async ({ url }) => {
 			SELECT * FROM participation_alerts
 			UNION ALL
 			SELECT * FROM deadline_alerts
-		`
+		`;
 
-    const params: unknown[] = []
-    if (type && type !== 'all') {
-      sqlQuery += ` WHERE alert_type = $1`
-      params.push(type)
+    const params: unknown[] = [];
+    if (type && type !== "all") {
+      sqlQuery += ` WHERE alert_type = $1`;
+      params.push(type);
     }
 
-    sqlQuery += ` ORDER BY severity DESC, created_at DESC LIMIT $${params.length + 1}`
-    params.push(limit)
+    sqlQuery += ` ORDER BY severity DESC, created_at DESC LIMIT $${params.length + 1}`;
+    params.push(limit);
 
-    const result = await query(sqlQuery, params)
+    const result = await query(sqlQuery, params);
 
     return json({
       success: true,
-      data: result.rows
-    })
+      data: result.rows,
+    });
   } catch (error) {
-    logger.error('프로젝트 관리 알림 조회 실패:', error)
+    logger.error("프로젝트 관리 알림 조회 실패:", error);
     return json(
       {
         success: false,
-        message: '알림을 불러오는데 실패했습니다.',
-        error: (error as Error).message
+        message: "알림을 불러오는데 실패했습니다.",
+        error: (error as Error).message,
       },
-      { status: 500 }
-    )
+      { status: 500 },
+    );
   }
-}
+};

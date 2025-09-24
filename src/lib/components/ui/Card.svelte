@@ -1,9 +1,9 @@
 <script lang="ts">
   let {
-    class: className = '',
-    header = '',
-    children
-  } = $props<{ class?: string; header?: string; children?: () => unknown }>()
+    class: className = "",
+    header = "",
+    children,
+  } = $props<{ class?: string; header?: string; children?: () => unknown }>();
 </script>
 
 <section class={`card ${className}`}>

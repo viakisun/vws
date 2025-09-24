@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { page } from '$app/stores'
+  import { page } from "$app/stores";
   import {
     HomeIcon,
     BarChart3Icon,
@@ -14,29 +14,29 @@
     MessageSquareIcon,
     ChevronLeftIcon,
     ChevronRightIcon,
-    DollarSignIcon
-  } from '@lucide/svelte'
-  import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
+    DollarSignIcon,
+  } from "@lucide/svelte";
+  import ThemeButton from "$lib/components/ui/ThemeButton.svelte";
 
-  let { isCollapsed = $bindable(true) } = $props<{ isCollapsed?: boolean }>()
+  let { isCollapsed = $bindable(true) } = $props<{ isCollapsed?: boolean }>();
 
   const navigationItems = [
-    { name: '대시보드', href: '/', icon: HomeIcon },
-    { name: '재무관리', href: '/finance', icon: BanknoteIcon },
-    { name: '급여관리', href: '/salary', icon: DollarSignIcon },
-    { name: '인사관리', href: '/hr', icon: UsersIcon },
-    { name: '연구개발', href: '/project-management', icon: FlaskConicalIcon },
-    { name: '영업관리', href: '/sales', icon: BriefcaseIcon },
-    { name: '고객관리', href: '/crm', icon: BuildingIcon },
-    { name: '일정관리', href: '/calendar', icon: CalendarIcon },
-    { name: '보고서', href: '/reports', icon: FileTextIcon },
-    { name: '분석', href: '/analytics', icon: BarChart3Icon },
-    { name: '메시지', href: '/messages', icon: MessageSquareIcon },
-    { name: '설정', href: '/settings', icon: SettingsIcon }
-  ]
+    { name: "대시보드", href: "/", icon: HomeIcon },
+    { name: "재무관리", href: "/finance", icon: BanknoteIcon },
+    { name: "급여관리", href: "/salary", icon: DollarSignIcon },
+    { name: "인사관리", href: "/hr", icon: UsersIcon },
+    { name: "연구개발", href: "/project-management", icon: FlaskConicalIcon },
+    { name: "영업관리", href: "/sales", icon: BriefcaseIcon },
+    { name: "고객관리", href: "/crm", icon: BuildingIcon },
+    { name: "일정관리", href: "/calendar", icon: CalendarIcon },
+    { name: "보고서", href: "/reports", icon: FileTextIcon },
+    { name: "분석", href: "/analytics", icon: BarChart3Icon },
+    { name: "메시지", href: "/messages", icon: MessageSquareIcon },
+    { name: "설정", href: "/settings", icon: SettingsIcon },
+  ];
 
   function toggleCollapse() {
-    isCollapsed = !isCollapsed
+    isCollapsed = !isCollapsed;
   }
 </script>
 
@@ -72,33 +72,39 @@
       {#each navigationItems as item (item.name)}
         {@const currentPath = $page.url.pathname}
         {@const isCurrent =
-          (item.href === '/' && currentPath === '/') ||
-            (item.href !== '/' && currentPath.startsWith(item.href))}
+          (item.href === "/" && currentPath === "/") ||
+          (item.href !== "/" && currentPath.startsWith(item.href))}
         <a
           href={item.href}
           class="group flex items-center px-3 py-3 text-sm font-medium rounded-xl transition-all duration-200 relative
-            {isCurrent ? 'text-white shadow-lg' : 'hover:scale-[1.02] hover:shadow-md'}"
+            {isCurrent
+            ? 'text-white shadow-lg'
+            : 'hover:scale-[1.02] hover:shadow-md'}"
           style="
             {isCurrent
-              ? 'background: var(--color-primary);'
-              : 'color: var(--color-text-secondary); background: transparent;'}
+            ? 'background: var(--color-primary);'
+            : 'color: var(--color-text-secondary); background: transparent;'}
           "
-          style:hover={isCurrent ? null : 'background: var(--color-surface-elevated)'}
-          title={isCollapsed ? item.name : ''}
+          style:hover={isCurrent
+            ? null
+            : "background: var(--color-surface-elevated)"}
+          title={isCollapsed ? item.name : ""}
         >
           {#if isCurrent}
-            <div class="absolute left-0 top-1/2 transform -translate-y-1/2 w-1 h-8 bg-white rounded-r-full"
+            <div
+              class="absolute left-0 top-1/2 transform -translate-y-1/2 w-1 h-8 bg-white rounded-r-full"
             ></div>
           {/if}
           {#if item.icon}
             <item.icon
               size={20}
-              class="flex-shrink-0 {isCurrent ? 'text-white' : ''}" />
+              class="flex-shrink-0 {isCurrent ? 'text-white' : ''}"
+            />
           {/if}
           {#if !isCollapsed}
-            <span
-              class="ml-3 font-medium"
-              class:text-white={isCurrent}>{item.name}</span>
+            <span class="ml-3 font-medium" class:text-white={isCurrent}
+              >{item.name}</span
+            >
           {/if}
           {#if isCurrent && !isCollapsed}
             <div class="ml-auto">

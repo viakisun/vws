@@ -1,7 +1,7 @@
 // 인사 관리 시스템 - 통합 스토어
 
 // 직원 관련 스토어
-export * from './employee-store.js'
+export * from "./employee-store.js";
 
 // 부서 관련 스토어 (향후 확장)
 // export * from './department-store.js';

@@ -1,237 +1,255 @@
-import { logger } from '$lib/utils/logger';
 <script lang="ts">
-  import { onMount } from 'svelte'
-  import { employees, projects } from '$lib/stores/rd'
-  import Badge from '$lib/components/ui/Badge.svelte'
-  import Card from '$lib/components/ui/Card.svelte'
-  import Modal from '$lib/components/ui/Modal.svelte'
+  import { logger } from "$lib/utils/logger";
+
+  import Badge from "$lib/components/ui/Badge.svelte";
+  import Card from "$lib/components/ui/Card.svelte";
+  import Modal from "$lib/components/ui/Modal.svelte";
+  import { employees, projects } from "$lib/stores/rd";
+  import { onMount } from "svelte";
 
   interface ReplacementCandidate {
-    id: string
-    originalPersonId: string
-    reason: string
-    priority: 'low' | 'medium' | 'high' | 'urgent'
-    status: 'pending' | 'in_progress' | 'completed' | 'cancelled' | 'approved' | 'rejected'
-    requestedBy: string
-    requestedAt: string
-    dueDate: string
-    projectId: string
-    effectiveDate: string
+    id: string;
+    originalPersonId: string;
+    reason: string;
+    priority: "low" | "medium" | "high" | "urgent";
+    status:
+      | "pending"
+      | "in_progress"
+      | "completed"
+      | "cancelled"
+      | "approved"
+      | "rejected";
+    requestedBy: string;
+    requestedAt: string;
+    dueDate: string;
+    projectId: string;
+    effectiveDate: string;
     candidates: Array<{
-      personId: string
-      score: number
-      reasons: string[]
-      availability: number
-      experience: string
-      salaryMatch: boolean
-      skillsMatch: string[]
-      recommended: boolean
-    }>
-    selectedCandidate?: string
-    notes: string
-    createdAt: string
-    updatedAt: string
+      personId: string;
+      score: number;
+      reasons: string[];
+      availability: number;
+      experience: string;
+      salaryMatch: boolean;
+      skillsMatch: string[];
+      recommended: boolean;
+    }>;
+    selectedCandidate?: string;
+    notes: string;
+    createdAt: string;
+    updatedAt: string;
   }
 
   // Mock replacement candidates data
   let replacementCandidates = $state<ReplacementCandidate[]>([
     {
-      id: 'replacement-1',
-      originalPersonId: 'person-1',
-      projectId: 'project-1',
-      reason: '퇴사',
-      effectiveDate: '2024-02-01',
-      status: 'pending',
-      priority: 'high',
-      requestedBy: 'emp-001',
-      requestedAt: '2024-01-15T00:00:00Z',
-      dueDate: '2024-02-01',
-      notes: '긴급 대체 인력 필요',
+      id: "replacement-1",
+      originalPersonId: "person-1",
+      projectId: "project-1",
+      reason: "퇴사",
+      effectiveDate: "2024-02-01",
+      status: "pending",
+      priority: "high",
+      requestedBy: "emp-001",
+      requestedAt: "2024-01-15T00:00:00Z",
+      dueDate: "2024-02-01",
+      notes: "긴급 대체 인력 필요",
       candidates: [
         {
-          personId: 'person-4',
+          personId: "person-4",
           score: 95,
-          reasons: ['동일 기술 스택', '유사 프로젝트 경험', '높은 성과 이력'],
+          reasons: ["동일 기술 스택", "유사 프로젝트 경험", "높은 성과 이력"],
           availability: 80,
           salaryMatch: true,
-          skillsMatch: ['AI/ML', 'Python', 'TensorFlow'],
-          experience: '5년',
-          recommended: true
+          skillsMatch: ["AI/ML", "Python", "TensorFlow"],
+          experience: "5년",
+          recommended: true,
         },
         {
-          personId: 'person-5',
+          personId: "person-5",
           score: 87,
-          reasons: ['강한 학습 능력', '팀워크 우수', '프로젝트 관리 경험'],
+          reasons: ["강한 학습 능력", "팀워크 우수", "프로젝트 관리 경험"],
           availability: 60,
           salaryMatch: true,
-          skillsMatch: ['Python', 'Data Science', 'Machine Learning'],
-          experience: '3년',
-          recommended: false
+          skillsMatch: ["Python", "Data Science", "Machine Learning"],
+          experience: "3년",
+          recommended: false,
         },
         {
-          personId: 'person-6',
+          personId: "person-6",
           score: 82,
-          reasons: ['도메인 전문성', '문제 해결 능력', '커뮤니케이션 스킬'],
+          reasons: ["도메인 전문성", "문제 해결 능력", "커뮤니케이션 스킬"],
           availability: 70,
           salaryMatch: false,
-          skillsMatch: ['AI/ML', 'Python', 'Research'],
-          experience: '4년',
-          recommended: false
-        }
+          skillsMatch: ["AI/ML", "Python", "Research"],
+          experience: "4년",
+          recommended: false,
+        },
       ],
-      createdAt: '2024-01-15T10:00:00Z',
-      updatedAt: '2024-01-15T10:00:00Z'
+      createdAt: "2024-01-15T10:00:00Z",
+      updatedAt: "2024-01-15T10:00:00Z",
     },
     {
-      id: 'replacement-2',
-      originalPersonId: 'person-2',
-      projectId: 'project-2',
-      reason: '프로젝트 변경',
-      effectiveDate: '2024-03-01',
-      status: 'approved',
-      priority: 'medium',
-      requestedBy: 'emp-002',
-      requestedAt: '2024-02-01T00:00:00Z',
-      dueDate: '2024-03-01',
-      notes: '프로젝트 우선순위 변경으로 인한 인력 재배치',
+      id: "replacement-2",
+      originalPersonId: "person-2",
+      projectId: "project-2",
+      reason: "프로젝트 변경",
+      effectiveDate: "2024-03-01",
+      status: "approved",
+      priority: "medium",
+      requestedBy: "emp-002",
+      requestedAt: "2024-02-01T00:00:00Z",
+      dueDate: "2024-03-01",
+      notes: "프로젝트 우선순위 변경으로 인한 인력 재배치",
       candidates: [
         {
-          personId: 'person-7',
+          personId: "person-7",
           score: 92,
-          reasons: ['UI/UX 전문성', 'React 경험', '사용자 중심 설계'],
+          reasons: ["UI/UX 전문성", "React 경험", "사용자 중심 설계"],
           availability: 90,
           salaryMatch: true,
-          skillsMatch: ['React', 'UI/UX', 'Frontend'],
-          experience: '4년',
-          recommended: true
+          skillsMatch: ["React", "UI/UX", "Frontend"],
+          experience: "4년",
+          recommended: true,
         },
         {
-          personId: 'person-8',
+          personId: "person-8",
           score: 85,
-          reasons: ['풀스택 개발', '빠른 적응력', '코드 품질'],
+          reasons: ["풀스택 개발", "빠른 적응력", "코드 품질"],
           availability: 75,
           salaryMatch: true,
-          skillsMatch: ['React', 'Node.js', 'Full Stack'],
-          experience: '3년',
-          recommended: false
-        }
+          skillsMatch: ["React", "Node.js", "Full Stack"],
+          experience: "3년",
+          recommended: false,
+        },
       ],
-      createdAt: '2024-01-20T14:30:00Z',
-      updatedAt: '2024-01-25T09:15:00Z'
+      createdAt: "2024-01-20T14:30:00Z",
+      updatedAt: "2024-01-25T09:15:00Z",
     },
     {
-      id: 'replacement-3',
-      originalPersonId: 'person-3',
-      projectId: 'project-1',
-      reason: '휴직',
-      effectiveDate: '2024-02-15',
-      status: 'in_progress',
-      priority: 'medium',
-      requestedBy: 'emp-003',
-      requestedAt: '2024-02-01T00:00:00Z',
-      dueDate: '2024-02-15',
-      notes: '개인 사정으로 인한 휴직',
+      id: "replacement-3",
+      originalPersonId: "person-3",
+      projectId: "project-1",
+      reason: "휴직",
+      effectiveDate: "2024-02-15",
+      status: "in_progress",
+      priority: "medium",
+      requestedBy: "emp-003",
+      requestedAt: "2024-02-01T00:00:00Z",
+      dueDate: "2024-02-15",
+      notes: "개인 사정으로 인한 휴직",
       candidates: [
         {
-          personId: 'person-9',
+          personId: "person-9",
           score: 88,
-          reasons: ['백엔드 전문성', 'API 설계', '데이터베이스 최적화'],
+          reasons: ["백엔드 전문성", "API 설계", "데이터베이스 최적화"],
           availability: 85,
           salaryMatch: true,
-          skillsMatch: ['Backend', 'API', 'Database'],
-          experience: '6년',
-          recommended: true
+          skillsMatch: ["Backend", "API", "Database"],
+          experience: "6년",
+          recommended: true,
         },
         {
-          personId: 'person-10',
+          personId: "person-10",
           score: 79,
-          reasons: ['시스템 아키텍처', '클라우드 경험', 'DevOps'],
+          reasons: ["시스템 아키텍처", "클라우드 경험", "DevOps"],
           availability: 65,
           salaryMatch: false,
-          skillsMatch: ['Backend', 'Cloud', 'DevOps'],
-          experience: '5년',
-          recommended: false
-        }
+          skillsMatch: ["Backend", "Cloud", "DevOps"],
+          experience: "5년",
+          recommended: false,
+        },
       ],
-      createdAt: '2024-01-25T16:45:00Z',
-      updatedAt: '2024-01-30T11:20:00Z'
-    }
-  ])
+      createdAt: "2024-01-25T16:45:00Z",
+      updatedAt: "2024-01-30T11:20:00Z",
+    },
+  ]);
 
-  let selectedReplacement = $state<ReplacementCandidate | null>(null)
-  let showDetailModal = $state(false)
-  let showCreateModal = $state(false)
-  let searchTerm = $state('')
-  let selectedProject = $state<string>('all')
-  let selectedStatus = $state<string>('all')
-  let selectedReason = $state<string>('all')
+  let selectedReplacement = $state<ReplacementCandidate | null>(null);
+  let showDetailModal = $state(false);
+  let showCreateModal = $state(false);
+  let searchTerm = $state("");
+  let selectedProject = $state<string>("all");
+  let selectedStatus = $state<string>("all");
+  let selectedReason = $state<string>("all");
 
   // Form data for creating new replacement request
   let formData = $state({
-    originalPersonId: '',
-    projectId: '',
-    reason: '',
-    effectiveDate: '',
-    priority: 'medium' as 'low' | 'medium' | 'high',
+    originalPersonId: "",
+    projectId: "",
+    reason: "",
+    effectiveDate: "",
+    priority: "medium" as "low" | "medium" | "high",
     requiredSkills: [] as string[],
-    experienceLevel: '',
-    salaryRange: '',
-    availability: 100
-  })
+    experienceLevel: "",
+    salaryRange: "",
+    availability: 100,
+  });
 
   // Get filtered replacements
   let filteredReplacements = $derived(() => {
-    let filtered = replacementCandidates
+    let filtered = replacementCandidates;
 
     if (searchTerm) {
-      filtered = filtered.filter(replacement => {
-        const originalPerson = $employees.find(p => p.id === replacement.originalPersonId)
+      filtered = filtered.filter((replacement) => {
+        const originalPerson = $employees.find(
+          (p) => p.id === replacement.originalPersonId,
+        );
         return (
-          originalPerson?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          originalPerson?.name
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase()) ||
           replacement.reason.toLowerCase().includes(searchTerm.toLowerCase())
-        )
-      })
+        );
+      });
     }
 
-    if (selectedProject !== 'all') {
-      filtered = filtered.filter(replacement => replacement.projectId === selectedProject)
+    if (selectedProject !== "all") {
+      filtered = filtered.filter(
+        (replacement) => replacement.projectId === selectedProject,
+      );
     }
 
-    if (selectedStatus !== 'all') {
-      filtered = filtered.filter(replacement => replacement.status === selectedStatus)
+    if (selectedStatus !== "all") {
+      filtered = filtered.filter(
+        (replacement) => replacement.status === selectedStatus,
+      );
     }
 
-    if (selectedReason !== 'all') {
-      filtered = filtered.filter(replacement => replacement.reason === selectedReason)
+    if (selectedReason !== "all") {
+      filtered = filtered.filter(
+        (replacement) => replacement.reason === selectedReason,
+      );
     }
 
     return filtered.sort(
-      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    )
-  })
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+    );
+  });
 
   // Get unique reasons for filter
   let availableReasons = $derived(() => {
-    const reasons = [...new Set(replacementCandidates.map(r => r.reason))]
-    return reasons
-  })
+    const reasons = [...new Set(replacementCandidates.map((r) => r.reason))];
+    return reasons;
+  });
 
   // Get person name by ID
   function getPersonName(personId: string): string {
-    const person = $employees.find(p => p.id === personId)
-    return person ? person.name : 'Unknown'
+    const person = $employees.find((p) => p.id === personId);
+    return person ? person.name : "Unknown";
   }
 
   // Get project name by ID
   function getProjectName(projectId: string): string {
-    const project = $projects.find((p: any) => p.id === projectId)
-    return project ? project.name : 'Unknown Project'
+    const project = $projects.find((p: any) => p.id === projectId);
+    return project ? project.name : "Unknown Project";
   }
 
   // Show replacement detail
   function showReplacementDetail(replacement: ReplacementCandidate) {
-    selectedReplacement = replacement
-    showDetailModal = true
+    selectedReplacement = replacement;
+    showDetailModal = true;
   }
 
   // Create new replacement request
@@ -242,12 +260,12 @@ import { logger } from '$lib/utils/logger';
       !formData.reason ||
       !formData.effectiveDate
     ) {
-      alert('모든 필수 필드를 입력해주세요.')
-      return
+      alert("모든 필수 필드를 입력해주세요.");
+      return;
     }
 
     // Find matching candidates based on criteria
-    const matchingCandidates = findMatchingCandidates(formData)
+    const matchingCandidates = findMatchingCandidates(formData);
 
     const newReplacement: ReplacementCandidate = {
       id: `replacement-${Date.now()}`,
@@ -255,172 +273,191 @@ import { logger } from '$lib/utils/logger';
       projectId: formData.projectId,
       reason: formData.reason,
       effectiveDate: formData.effectiveDate,
-      status: 'pending',
-      priority: 'medium',
-      requestedBy: 'emp-001',
+      status: "pending",
+      priority: "medium",
+      requestedBy: "emp-001",
       requestedAt: new Date().toISOString(),
       dueDate: formData.effectiveDate,
-      notes: '',
+      notes: "",
       candidates: matchingCandidates,
       createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    }
+      updatedAt: new Date().toISOString(),
+    };
 
-    replacementCandidates.push(newReplacement)
+    replacementCandidates.push(newReplacement);
 
     // Reset form
     formData = {
-      originalPersonId: '',
-      projectId: '',
-      reason: '',
-      effectiveDate: '',
-      priority: 'medium',
+      originalPersonId: "",
+      projectId: "",
+      reason: "",
+      effectiveDate: "",
+      priority: "medium",
       requiredSkills: [],
-      experienceLevel: '',
-      salaryRange: '',
-      availability: 100
-    }
+      experienceLevel: "",
+      salaryRange: "",
+      availability: 100,
+    };
 
-    showCreateModal = false
+    showCreateModal = false;
   }
 
   // Find matching candidates based on criteria
   function findMatchingCandidates(criteria: any) {
     // Mock algorithm - in real implementation, this would use ML/AI
-    const availablePersons = $employees.filter(p => p.id !== criteria.originalPersonId)
+    const availablePersons = $employees.filter(
+      (p) => p.id !== criteria.originalPersonId,
+    );
 
     return availablePersons.slice(0, 3).map((person, index) => ({
       personId: person.id,
       score: 95 - index * 10,
-      reasons: ['기술 스택 일치', '프로젝트 경험', '팀워크 우수'],
+      reasons: ["기술 스택 일치", "프로젝트 경험", "팀워크 우수"],
       availability: Math.floor(Math.random() * 40) + 60,
       salaryMatch: Math.random() > 0.3,
-      skillsMatch: ['Python', 'React', 'Database'],
+      skillsMatch: ["Python", "React", "Database"],
       experience: `${Math.floor(Math.random() * 5) + 2}년`,
-      recommended: index === 0
-    }))
+      recommended: index === 0,
+    }));
   }
 
   // Approve replacement
-  function approveReplacement(replacementId: string, candidatePersonId: string) {
-    const replacement = replacementCandidates.find(r => r.id === replacementId)
+  function approveReplacement(
+    replacementId: string,
+    candidatePersonId: string,
+  ) {
+    const replacement = replacementCandidates.find(
+      (r) => r.id === replacementId,
+    );
     if (replacement) {
-      replacement.status = 'approved'
-      replacement.updatedAt = new Date().toISOString()
+      replacement.status = "approved";
+      replacement.updatedAt = new Date().toISOString();
 
       // In real implementation, this would update project assignments
-      logger.log(`Approved replacement: ${candidatePersonId} for ${replacement.originalPersonId}`)
+      logger.log(
+        `Approved replacement: ${candidatePersonId} for ${replacement.originalPersonId}`,
+      );
     }
   }
 
   // Reject replacement
   function rejectReplacement(replacementId: string) {
-    const replacement = replacementCandidates.find(r => r.id === replacementId)
+    const replacement = replacementCandidates.find(
+      (r) => r.id === replacementId,
+    );
     if (replacement) {
-      replacement.status = 'rejected'
-      replacement.updatedAt = new Date().toISOString()
+      replacement.status = "rejected";
+      replacement.updatedAt = new Date().toISOString();
     }
   }
 
   // Add required skill
   function addRequiredSkill() {
-    formData.requiredSkills.push('')
+    formData.requiredSkills.push("");
   }
 
   // Remove required skill
   function removeRequiredSkill(index: number) {
-    formData.requiredSkills.splice(index, 1)
+    formData.requiredSkills.splice(index, 1);
   }
 
   // Format date
   function formatDate(dateString: string): string {
-    return new Date(dateString).toLocaleDateString('ko-KR')
+    return new Date(dateString).toLocaleDateString("ko-KR");
   }
 
   // Get status badge variant
-  function getStatusVariant(status: string): 'success' | 'warning' | 'danger' {
+  function getStatusVariant(
+    status: string,
+  ): "primary" | "success" | "warning" | "secondary" | "danger" {
     switch (status) {
-      case 'approved':
-        return 'success'
-      case 'in_progress':
-        return 'warning'
-      case 'rejected':
-        return 'danger'
+      case "approved":
+        return "success";
+      case "in_progress":
+        return "warning";
+      case "rejected":
+        return "danger";
       default:
-        return 'danger'
+        return "secondary";
     }
   }
 
   // Get status text
   function getStatusText(status: string): string {
     switch (status) {
-      case 'approved':
-        return '승인됨'
-      case 'in_progress':
-        return '진행중'
-      case 'rejected':
-        return '거부됨'
+      case "approved":
+        return "승인됨";
+      case "in_progress":
+        return "진행중";
+      case "rejected":
+        return "거부됨";
       default:
-        return '대기'
+        return "대기";
     }
   }
 
   // Get priority badge variant
-  function getPriorityVariant(priority: string): 'success' | 'warning' | 'danger' {
+  function getPriorityVariant(
+    priority: string,
+  ): "success" | "warning" | "danger" {
     switch (priority) {
-      case 'low':
-        return 'success'
-      case 'medium':
-        return 'warning'
-      case 'high':
-        return 'danger'
+      case "low":
+        return "success";
+      case "medium":
+        return "warning";
+      case "high":
+        return "danger";
       default:
-        return 'warning'
+        return "warning";
     }
   }
 
   // Get priority text
   function getPriorityText(priority: string): string {
     switch (priority) {
-      case 'low':
-        return '낮음'
-      case 'medium':
-        return '보통'
-      case 'high':
-        return '높음'
+      case "low":
+        return "낮음";
+      case "medium":
+        return "보통";
+      case "high":
+        return "높음";
       default:
-        return '보통'
+        return "보통";
     }
   }
 
   // Calculate match score color
   function getScoreColor(score: number): string {
-    if (score >= 90) return 'text-green-600'
-    if (score >= 80) return 'text-yellow-600'
-    return 'text-red-600'
+    if (score >= 90) return "text-green-600";
+    if (score >= 80) return "text-yellow-600";
+    return "text-red-600";
   }
 
   onMount(() => {
-  // Initialize dummy data if needed
-  })
+    // Initialize dummy data if needed
+  });
 </script>
 
 <div class="container mx-auto p-6">
   <div class="mb-6">
     <h1 class="text-3xl font-bold text-gray-900 mb-2">인력 대체 추천</h1>
-    <p class="text-gray-600">인력 이탈 시 AI 기반 대체 인력 추천 및 승인 프로세스를 관리합니다.</p>
+    <p class="text-gray-600">
+      인력 이탈 시 AI 기반 대체 인력 추천 및 승인 프로세스를 관리합니다.
+    </p>
   </div>
 
   <!-- Action Buttons -->
   <div class="flex gap-4 mb-6">
-    <button type="button"
+    <button
+      type="button"
       onclick={() => (showCreateModal = true)}
       class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
     >
       대체 요청 생성
     </button>
-    <button type="button"
-      onclick={() => alert('AI 추천 알고리즘을 실행합니다.')}
+    <button
+      type="button"
+      onclick={() => alert("AI 추천 알고리즘을 실행합니다.")}
       class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
     >
       AI 추천 실행
@@ -431,9 +468,9 @@ import { logger } from '$lib/utils/logger';
   <div class="bg-white rounded-lg shadow-sm border p-4 mb-6">
     <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
       <div>
-        <label
-          for="search"
-          class="block text-sm font-medium text-gray-700 mb-1">검색</label>
+        <label for="search" class="block text-sm font-medium text-gray-700 mb-1"
+          >검색</label
+        >
         <input
           id="search"
           type="text"
@@ -445,8 +482,7 @@ import { logger } from '$lib/utils/logger';
       <div>
         <label
           for="project-filter"
-          class="block text-sm font-medium text-gray-700 mb-1"
-        >프로젝트</label
+          class="block text-sm font-medium text-gray-700 mb-1">프로젝트</label
         >
         <select
           id="project-filter"
@@ -462,8 +498,7 @@ import { logger } from '$lib/utils/logger';
       <div>
         <label
           for="rnd-rep-status-filter"
-          class="block text-sm font-medium text-gray-700 mb-1"
-        >상태</label
+          class="block text-sm font-medium text-gray-700 mb-1">상태</label
         >
         <select
           id="rnd-rep-status-filter"
@@ -480,14 +515,16 @@ import { logger } from '$lib/utils/logger';
       <div>
         <label
           for="reason-filter"
-          class="block text-sm font-medium text-gray-700 mb-1">사유</label>
+          class="block text-sm font-medium text-gray-700 mb-1">사유</label
+        >
         <select
           id="reason-filter"
           bind:value={selectedReason}
           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           <option value="all">전체</option>
-          {#each availableReasons() as reason}
+          {#each availableReasons() as reason, idx (idx)}
+            <!-- TODO: replace index key with a stable id when model provides one -->
             <option value={reason}>{reason}</option>
           {/each}
         </select>
@@ -521,15 +558,17 @@ import { logger } from '$lib/utils/logger';
             </div>
           </div>
           <div class="flex gap-2 ml-4">
-            <button type="button"
+            <button
+              type="button"
               onclick={() => showReplacementDetail(replacement)}
               class="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500"
               aria-label="상세보기"
             >
               상세보기
             </button>
-            {#if replacement.status === 'pending'}
-              <button type="button"
+            {#if replacement.status === "pending"}
+              <button
+                type="button"
                 onclick={() => rejectReplacement(replacement.id)}
                 class="px-3 py-1 text-sm bg-red-100 text-red-700 rounded hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500"
               >
@@ -546,9 +585,13 @@ import { logger } from '$lib/utils/logger';
             {#each replacement.candidates.slice(0, 3) as candidate}
               <div class="bg-gray-50 p-4 rounded-md">
                 <div class="flex justify-between items-start mb-2">
-                  <h5 class="font-medium text-gray-900">{getPersonName(candidate.personId)}</h5>
+                  <h5 class="font-medium text-gray-900">
+                    {getPersonName(candidate.personId)}
+                  </h5>
                   <div class="flex items-center gap-2">
-                    <span class="text-sm font-bold {getScoreColor(candidate.score)}">
+                    <span
+                      class="text-sm font-bold {getScoreColor(candidate.score)}"
+                    >
                       {candidate.score}점
                     </span>
                     {#if candidate.recommended}
@@ -557,26 +600,37 @@ import { logger } from '$lib/utils/logger';
                   </div>
                 </div>
                 <div class="text-sm text-gray-600 space-y-1">
-                  <p><span class="font-medium">경력:</span> {candidate.experience}</p>
-                  <p><span class="font-medium">가용성:</span> {candidate.availability}%</p>
+                  <p>
+                    <span class="font-medium">경력:</span>
+                    {candidate.experience}
+                  </p>
+                  <p>
+                    <span class="font-medium">가용성:</span>
+                    {candidate.availability}%
+                  </p>
                   <p>
                     <span class="font-medium">급여 매치:</span>
-                    {candidate.salaryMatch ? '✓' : '✗'}
+                    {candidate.salaryMatch ? "✓" : "✗"}
                   </p>
                 </div>
                 <div class="mt-2">
                   <div class="text-xs text-gray-500 mb-1">주요 기술:</div>
                   <div class="flex flex-wrap gap-1">
-                    {#each candidate.skillsMatch.slice(0, 3) as skill}
-                      <span class="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded">
+                    {#each candidate.skillsMatch.slice(0, 3) as skill, idx (idx)}
+                      <!-- TODO: replace index key with a stable id when model provides one -->
+                      <span
+                        class="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded"
+                      >
                         {skill}
                       </span>
                     {/each}
                   </div>
                 </div>
-                {#if replacement.status === 'pending'}
-                  <button type="button"
-                    onclick={() => approveReplacement(replacement.id, candidate.personId)}
+                {#if replacement.status === "pending"}
+                  <button
+                    type="button"
+                    onclick={() =>
+                      approveReplacement(replacement.id, candidate.personId)}
                     class="w-full mt-3 px-3 py-1 text-sm bg-green-100 text-green-700 rounded hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-green-500"
                   >
                     승인
@@ -606,44 +660,54 @@ import { logger } from '$lib/utils/logger';
   {#if filteredReplacements().length === 0}
     <div class="text-center py-12">
       <div class="text-gray-400 text-6xl mb-4">👥</div>
-      <h3 class="text-lg font-medium text-gray-900 mb-2">대체 요청이 없습니다</h3>
+      <h3 class="text-lg font-medium text-gray-900 mb-2">
+        대체 요청이 없습니다
+      </h3>
       <p class="text-gray-500">새로운 인력 대체 요청을 생성해보세요.</p>
     </div>
   {/if}
 </div>
 
 <!-- Detail Modal -->
-<Modal
-  bind:open={showDetailModal}
-  title="대체 요청 상세">
+<Modal bind:open={showDetailModal} title="대체 요청 상세">
   {#if selectedReplacement}
     <div class="space-y-6">
       <div>
         <h3 class="text-xl font-semibold text-gray-900 mb-2">
-          {selectedReplacement && getPersonName(selectedReplacement.originalPersonId)} 대체 요청
+          {selectedReplacement &&
+            getPersonName(selectedReplacement.originalPersonId)} 대체 요청
         </h3>
         <div class="grid grid-cols-2 gap-4 text-sm">
           <div>
             <span class="font-medium text-gray-700">프로젝트:</span>
             <span class="ml-2"
-            >{selectedReplacement && getProjectName(selectedReplacement.projectId)}</span
+              >{selectedReplacement &&
+                getProjectName(selectedReplacement.projectId)}</span
             >
           </div>
           <div>
             <span class="font-medium text-gray-700">사유:</span>
-            <span class="ml-2">{selectedReplacement && selectedReplacement.reason}</span>
+            <span class="ml-2"
+              >{selectedReplacement && selectedReplacement.reason}</span
+            >
           </div>
           <div>
             <span class="font-medium text-gray-700">효력일:</span>
             <span class="ml-2"
-            >{selectedReplacement && formatDate(selectedReplacement.effectiveDate)}</span
+              >{selectedReplacement &&
+                formatDate(selectedReplacement.effectiveDate)}</span
             >
           </div>
           <div>
             <span class="font-medium text-gray-700">상태:</span>
             <span class="ml-2">
-              <Badge variant={selectedReplacement && getStatusVariant(selectedReplacement.status)}>
-                {selectedReplacement && getStatusText(selectedReplacement.status)}
+              <Badge
+                variant={selectedReplacement
+                  ? getStatusVariant(selectedReplacement.status)
+                  : "secondary"}
+              >
+                {selectedReplacement &&
+                  getStatusText(selectedReplacement.status)}
               </Badge>
             </span>
           </div>
@@ -654,7 +718,7 @@ import { logger } from '$lib/utils/logger';
       <div>
         <h4 class="font-medium text-gray-900 mb-3">모든 후보자</h4>
         <div class="space-y-4">
-          {#each selectedReplacement?.candidates || [] as candidate, index, i (i)}
+          {#each selectedReplacement?.candidates || [] as candidate, index (index)}
             <div class="bg-gray-50 p-4 rounded-md">
               <div class="flex justify-between items-start mb-3">
                 <div>
@@ -662,13 +726,14 @@ import { logger } from '$lib/utils/logger';
                     {index + 1}순위: {getPersonName(candidate.personId)}
                   </h5>
                   <div class="text-sm text-gray-600 mt-1">
-                    경력: {candidate.experience} | 가용성: {candidate.availability}% | 급여 매치: {candidate.salaryMatch
-                      ? '✓'
-                      : '✗'}
+                    경력: {candidate.experience} | 가용성: {candidate.availability}%
+                    | 급여 매치: {candidate.salaryMatch ? "✓" : "✗"}
                   </div>
                 </div>
                 <div class="text-right">
-                  <div class="text-2xl font-bold {getScoreColor(candidate.score)}">
+                  <div
+                    class="text-2xl font-bold {getScoreColor(candidate.score)}"
+                  >
                     {candidate.score}점
                   </div>
                   {#if candidate.recommended}
@@ -677,7 +742,9 @@ import { logger } from '$lib/utils/logger';
                 </div>
               </div>
               <div class="mb-3">
-                <div class="text-sm font-medium text-gray-700 mb-1">추천 이유:</div>
+                <div class="text-sm font-medium text-gray-700 mb-1">
+                  추천 이유:
+                </div>
                 <ul class="text-sm text-gray-600 space-y-1">
                   {#each candidate.reasons as reason, i (i)}
                     <li class="flex items-center gap-2">
@@ -688,20 +755,28 @@ import { logger } from '$lib/utils/logger';
                 </ul>
               </div>
               <div>
-                <div class="text-sm font-medium text-gray-700 mb-1">기술 스택:</div>
+                <div class="text-sm font-medium text-gray-700 mb-1">
+                  기술 스택:
+                </div>
                 <div class="flex flex-wrap gap-1">
                   {#each candidate.skillsMatch as skill, i (i)}
-                    <span class="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded">
+                    <span
+                      class="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded"
+                    >
                       {skill}
                     </span>
                   {/each}
                 </div>
               </div>
-              {#if selectedReplacement && selectedReplacement.status === 'pending'}
-                <button type="button"
+              {#if selectedReplacement && selectedReplacement.status === "pending"}
+                <button
+                  type="button"
                   onclick={() =>
                     selectedReplacement &&
-                      approveReplacement(selectedReplacement.id, candidate.personId)}
+                    approveReplacement(
+                      selectedReplacement.id,
+                      candidate.personId,
+                    )}
                   class="w-full mt-3 px-3 py-2 text-sm bg-green-100 text-green-700 rounded hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-green-500"
                 >
                   이 후보자 승인
@@ -716,16 +791,14 @@ import { logger } from '$lib/utils/logger';
 </Modal>
 
 <!-- Create Modal -->
-<Modal
-  bind:open={showCreateModal}
-  title="대체 요청 생성">
+<Modal bind:open={showCreateModal} title="대체 요청 생성">
   <div class="space-y-4">
     <div class="grid grid-cols-2 gap-4">
       <div>
         <label
           for="create-person"
           class="block text-sm font-medium text-gray-700 mb-1"
-        >대체 대상 *</label
+          >대체 대상 *</label
         >
         <select
           id="create-person"
@@ -741,8 +814,7 @@ import { logger } from '$lib/utils/logger';
       <div>
         <label
           for="create-project"
-          class="block text-sm font-medium text-gray-700 mb-1"
-        >프로젝트 *</label
+          class="block text-sm font-medium text-gray-700 mb-1">프로젝트 *</label
         >
         <select
           id="create-project"
@@ -761,7 +833,7 @@ import { logger } from '$lib/utils/logger';
         <label
           for="create-reason"
           class="block text-sm font-medium text-gray-700 mb-1"
-        >대체 사유 *</label
+          >대체 사유 *</label
         >
         <select
           id="create-reason"
@@ -779,8 +851,7 @@ import { logger } from '$lib/utils/logger';
       <div>
         <label
           for="create-date"
-          class="block text-sm font-medium text-gray-700 mb-1"
-        >효력일 *</label
+          class="block text-sm font-medium text-gray-700 mb-1">효력일 *</label
         >
         <input
           id="create-date"
@@ -794,8 +865,7 @@ import { logger } from '$lib/utils/logger';
       <div>
         <label
           for="create-priority"
-          class="block text-sm font-medium text-gray-700 mb-1"
-        >우선순위</label
+          class="block text-sm font-medium text-gray-700 mb-1">우선순위</label
         >
         <select
           id="create-priority"
@@ -810,8 +880,7 @@ import { logger } from '$lib/utils/logger';
       <div>
         <label
           for="create-experience"
-          class="block text-sm font-medium text-gray-700 mb-1"
-        >필요 경력</label
+          class="block text-sm font-medium text-gray-700 mb-1">필요 경력</label
         >
         <select
           id="create-experience"
@@ -828,8 +897,7 @@ import { logger } from '$lib/utils/logger';
     <div>
       <label
         for="create-salary"
-        class="block text-sm font-medium text-gray-700 mb-1"
-      >급여 범위</label
+        class="block text-sm font-medium text-gray-700 mb-1">급여 범위</label
       >
       <input
         id="create-salary"
@@ -851,7 +919,7 @@ import { logger } from '$lib/utils/logger';
         </button>
       </div>
       <div class="space-y-2">
-        {#each formData.requiredSkills as skill, index, i (i)}
+        {#each formData.requiredSkills as skill, index (index)}
           <div class="flex gap-2 items-center">
             <input
               type="text"
@@ -871,13 +939,15 @@ import { logger } from '$lib/utils/logger';
       </div>
     </div>
     <div class="flex justify-end gap-2 pt-4">
-      <button type="button"
+      <button
+        type="button"
         onclick={() => (showCreateModal = false)}
         class="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500"
       >
         취소
       </button>
-      <button type="button"
+      <button
+        type="button"
         onclick={createReplacementRequest}
         class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
       >

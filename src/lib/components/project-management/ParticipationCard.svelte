@@ -1,7 +1,7 @@
 <script lang="ts">
-  import ThemeBadge from '$lib/components/ui/ThemeBadge.svelte'
-  import ThemeCard from '$lib/components/ui/ThemeCard.svelte'
-  import { ActivityIcon, UsersIcon } from '@lucide/svelte'
+  import ThemeBadge from "$lib/components/ui/ThemeBadge.svelte";
+  import ThemeCard from "$lib/components/ui/ThemeCard.svelte";
+  import { ActivityIcon, UsersIcon } from "@lucide/svelte";
 
   /**
    * @typedef {Object} EmployeeParticipation
@@ -12,7 +12,7 @@
    * @property {number} totalParticipationRate
    */
 
-  let { employeeParticipationSummary = [] } = $props()
+  let { employeeParticipationSummary = [] } = $props();
 </script>
 
 <div class="space-y-6">
@@ -42,20 +42,25 @@
       <table class="min-w-full divide-y divide-gray-200">
         <thead class="bg-gray-50">
           <tr>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-            >직원</th
+            <th
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >직원</th
             >
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-            >부서</th
+            <th
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >부서</th
             >
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-            >참여 프로젝트</th
+            <th
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >참여 프로젝트</th
             >
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-            >총 참여율</th
+            <th
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >총 참여율</th
             >
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-            >상태</th
+            <th
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >상태</th
             >
           </tr>
         </thead>
@@ -64,17 +69,23 @@
             {#each employeeParticipationSummary as employee (employee.email)}
               <tr class="hover:bg-gray-50">
                 <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="text-sm font-medium text-gray-900">{employee.name}</div>
+                  <div class="text-sm font-medium text-gray-900">
+                    {employee.name}
+                  </div>
                   <div class="text-sm text-gray-500">{employee.email}</div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
                   <div class="text-sm text-gray-500">{employee.department}</div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="text-sm text-gray-900">{employee.activeProjects}개</div>
+                  <div class="text-sm text-gray-900">
+                    {employee.activeProjects}개
+                  </div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="text-sm text-gray-900">{employee.totalParticipationRate}%</div>
+                  <div class="text-sm text-gray-900">
+                    {employee.totalParticipationRate}%
+                  </div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
                   {#if employee.totalParticipationRate > 100}
@@ -89,9 +100,7 @@
             {/each}
           {:else}
             <tr>
-              <td
-                colspan="5"
-                class="px-6 py-12 text-center text-gray-500">
+              <td colspan="5" class="px-6 py-12 text-center text-gray-500">
                 <UsersIcon class="mx-auto h-12 w-12 text-gray-400" />
                 <p class="mt-2">참여율 데이터가 없습니다.</p>
               </td>

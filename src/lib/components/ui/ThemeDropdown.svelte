@@ -1,209 +1,215 @@
 <script lang="ts">
-  import { onMount } from 'svelte'
+  import { onMount } from "svelte";
 
   // Props
   interface Props {
-    open?: boolean
-    trigger?: 'hover' | 'click' | 'focus'
+    open?: boolean;
+    trigger?: "hover" | "click" | "focus";
     position?:
-      | 'bottom-left'
-      | 'bottom-right'
-      | 'top-left'
-      | 'top-right'
-      | 'left-top'
-      | 'left-bottom'
-      | 'right-top'
-      | 'right-bottom'
-    size?: 'sm' | 'md' | 'lg' | 'xl'
-    closable?: boolean
-    class?: string
-    onchange?: (open: boolean) => void
-    children?: any
-    triggerElement?: HTMLElement
+      | "bottom-left"
+      | "bottom-right"
+      | "top-left"
+      | "top-right"
+      | "left-top"
+      | "left-bottom"
+      | "right-top"
+      | "right-bottom";
+    size?: "sm" | "md" | "lg" | "xl";
+    closable?: boolean;
+    class?: string;
+    onchange?: (open: boolean) => void;
+    children?: any;
+    triggerElement?: HTMLElement;
   }
 
   let {
     open = false,
-    trigger = 'click',
-    position = 'bottom-left',
-    size = 'md',
+    trigger = "click",
+    position = "bottom-left",
+    size = "md",
     closable = true,
-    class: className = '',
+    class: className = "",
     onchange,
     children,
     triggerElement: externalTrigger,
     ...restProps
-  }: Props = $props()
+  }: Props = $props();
 
   // State
-  let dropdownElement = $state<HTMLElement | undefined>(undefined)
-  let triggerElement = $state<HTMLElement>(externalTrigger || ({} as HTMLElement))
-  let isVisible = $state(false)
+  let dropdownElement = $state<HTMLElement | undefined>(undefined);
+  let triggerElement = $state<HTMLElement>(
+    externalTrigger || ({} as HTMLElement),
+  );
+  let isVisible = $state(false);
 
   // Get dropdown classes
   function getDropdownClasses(): string {
-    const baseClasses = 'theme-dropdown'
-    const positionClass = `theme-dropdown-${position}`
-    const sizeClass = `theme-dropdown-${size}`
-    const stateClass = isVisible ? 'theme-dropdown-open' : 'theme-dropdown-closed'
+    const baseClasses = "theme-dropdown";
+    const positionClass = `theme-dropdown-${position}`;
+    const sizeClass = `theme-dropdown-${size}`;
+    const stateClass = isVisible
+      ? "theme-dropdown-open"
+      : "theme-dropdown-closed";
 
-    return [baseClasses, positionClass, sizeClass, stateClass, className].filter(Boolean).join(' ')
+    return [baseClasses, positionClass, sizeClass, stateClass, className]
+      .filter(Boolean)
+      .join(" ");
   }
 
   // Handle trigger click
   function handleTriggerClick() {
-    if (trigger === 'click') {
-      toggleDropdown()
+    if (trigger === "click") {
+      toggleDropdown();
     }
   }
 
   // Handle trigger hover
   function handleTriggerHover() {
-    if (trigger === 'hover') {
-      showDropdown()
+    if (trigger === "hover") {
+      showDropdown();
     }
   }
 
   // Handle trigger leave
   function handleTriggerLeave() {
-    if (trigger === 'hover') {
-      hideDropdown()
+    if (trigger === "hover") {
+      hideDropdown();
     }
   }
 
   // Handle trigger focus
   function handleTriggerFocus() {
-    if (trigger === 'focus') {
-      showDropdown()
+    if (trigger === "focus") {
+      showDropdown();
     }
   }
 
   // Handle trigger blur
   function handleTriggerBlur() {
-    if (trigger === 'focus') {
-      hideDropdown()
+    if (trigger === "focus") {
+      hideDropdown();
     }
   }
 
   // Toggle dropdown
   function toggleDropdown() {
     if (isVisible) {
-      hideDropdown()
+      hideDropdown();
     } else {
-      showDropdown()
+      showDropdown();
     }
   }
 
   // Show dropdown
   function showDropdown() {
-    isVisible = true
+    isVisible = true;
     if (onchange) {
-      onchange(true)
+      onchange(true);
     }
   }
 
   // Hide dropdown
   function hideDropdown() {
-    isVisible = false
+    isVisible = false;
     if (onchange) {
-      onchange(false)
+      onchange(false);
     }
   }
 
   // Handle click outside
   function handleClickOutside(event: MouseEvent) {
     if (closable && !dropdownElement?.contains(event.target as Node)) {
-      hideDropdown()
+      hideDropdown();
     }
   }
 
   // Handle escape key
   function handleKeydown(event: KeyboardEvent) {
-    if (event.key === 'Escape' && closable) {
-      hideDropdown()
+    if (event.key === "Escape" && closable) {
+      hideDropdown();
     }
   }
 
   // Update dropdown position
   function updatePosition() {
-    if (!dropdownElement || !triggerElement || !isVisible) return
+    if (!dropdownElement || !triggerElement || !isVisible) return;
 
-    const triggerRect = triggerElement.getBoundingClientRect()
-    const dropdownRect = dropdownElement.getBoundingClientRect()
+    const triggerRect = triggerElement.getBoundingClientRect();
+    const dropdownRect = dropdownElement.getBoundingClientRect();
     const viewport = {
       width: window.innerWidth,
-      height: window.innerHeight
-    }
+      height: window.innerHeight,
+    };
 
-    let top = 0
-    let left = 0
+    let top = 0;
+    let left = 0;
 
     switch (position) {
-      case 'bottom-left':
-        top = triggerRect.bottom + 8
-        left = triggerRect.left
-        break
-      case 'bottom-right':
-        top = triggerRect.bottom + 8
-        left = triggerRect.right - dropdownRect.width
-        break
-      case 'top-left':
-        top = triggerRect.top - dropdownRect.height - 8
-        left = triggerRect.left
-        break
-      case 'top-right':
-        top = triggerRect.top - dropdownRect.height - 8
-        left = triggerRect.right - dropdownRect.width
-        break
-      case 'left-top':
-        top = triggerRect.top
-        left = triggerRect.left - dropdownRect.width - 8
-        break
-      case 'left-bottom':
-        top = triggerRect.bottom - dropdownRect.height
-        left = triggerRect.left - dropdownRect.width - 8
-        break
-      case 'right-top':
-        top = triggerRect.top
-        left = triggerRect.right + 8
-        break
-      case 'right-bottom':
-        top = triggerRect.bottom - dropdownRect.height
-        left = triggerRect.right + 8
-        break
+      case "bottom-left":
+        top = triggerRect.bottom + 8;
+        left = triggerRect.left;
+        break;
+      case "bottom-right":
+        top = triggerRect.bottom + 8;
+        left = triggerRect.right - dropdownRect.width;
+        break;
+      case "top-left":
+        top = triggerRect.top - dropdownRect.height - 8;
+        left = triggerRect.left;
+        break;
+      case "top-right":
+        top = triggerRect.top - dropdownRect.height - 8;
+        left = triggerRect.right - dropdownRect.width;
+        break;
+      case "left-top":
+        top = triggerRect.top;
+        left = triggerRect.left - dropdownRect.width - 8;
+        break;
+      case "left-bottom":
+        top = triggerRect.bottom - dropdownRect.height;
+        left = triggerRect.left - dropdownRect.width - 8;
+        break;
+      case "right-top":
+        top = triggerRect.top;
+        left = triggerRect.right + 8;
+        break;
+      case "right-bottom":
+        top = triggerRect.bottom - dropdownRect.height;
+        left = triggerRect.right + 8;
+        break;
     }
 
     // Keep dropdown within viewport
-    if (left < 8) left = 8
+    if (left < 8) left = 8;
     if (left + dropdownRect.width > viewport.width - 8) {
-      left = viewport.width - dropdownRect.width - 8
+      left = viewport.width - dropdownRect.width - 8;
     }
-    if (top < 8) top = 8
+    if (top < 8) top = 8;
     if (top + dropdownRect.height > viewport.height - 8) {
-      top = viewport.height - dropdownRect.height - 8
+      top = viewport.height - dropdownRect.height - 8;
     }
 
-    dropdownElement.style.top = `${top}px`
-    dropdownElement.style.left = `${left}px`
+    dropdownElement.style.top = `${top}px`;
+    dropdownElement.style.left = `${left}px`;
   }
 
   // Update position when dropdown becomes visible
   $effect(() => {
     if (isVisible) {
-      updatePosition()
+      updatePosition();
     }
-  })
+  });
 
   // Add event listeners
   onMount(() => {
-    document.addEventListener('click', handleClickOutside)
-    document.addEventListener('keydown', handleKeydown)
+    document.addEventListener("click", handleClickOutside);
+    document.addEventListener("keydown", handleKeydown);
 
     return () => {
-      document.removeEventListener('click', handleClickOutside)
-      document.removeEventListener('keydown', handleKeydown)
-    }
-  })
+      document.removeEventListener("click", handleClickOutside);
+      document.removeEventListener("keydown", handleKeydown);
+    };
+  });
 </script>
 
 {#if externalTrigger}
@@ -220,17 +226,15 @@
   {/if}
 {:else}
   <!-- Internal trigger mode -->
-  <div
-    class="theme-dropdown-container"
-    {...restProps}>
+  <div class="theme-dropdown-container" {...restProps}>
     <div
       class="theme-dropdown-trigger"
       bind:this={triggerElement}
       onclick={handleTriggerClick}
-      onkeydown={e => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault()
-          handleTriggerClick()
+      onkeydown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          handleTriggerClick();
         }
       }}
       role="button"
@@ -341,7 +345,7 @@
   }
 
   /* Dark theme specific adjustments */
-  [data-theme='dark'] .theme-dropdown {
+  [data-theme="dark"] .theme-dropdown {
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
   }
 </style>

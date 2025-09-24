@@ -1,5 +1,5 @@
-import { json } from '@sveltejs/kit'
-import { logger } from '$lib/utils/logger';
+import { json } from "@sveltejs/kit";
+import { logger } from "$lib/utils/logger";
 
 export async function GET() {
   try {
@@ -17,16 +17,19 @@ AI 기반 데이터 분석 시스템,머신러닝을 활용한 데이터 분석 
 - 예산은 숫자만 입력해주세요 (예: 500000000)
 - 상태는 planning, active, completed, cancelled, on_hold 중 하나를 선택해주세요
 - 카테고리는 development, research, infrastructure, maintenance, other 중 하나를 선택해주세요
-- 우선순위는 low, medium, high, urgent 중 하나를 선택해주세요`
+- 우선순위는 low, medium, high, urgent 중 하나를 선택해주세요`;
 
     return new Response(csvContent, {
       headers: {
-        'Content-Type': 'text/csv; charset=utf-8',
-        'Content-Disposition': 'attachment; filename="project_template.csv"'
-      }
-    })
+        "Content-Type": "text/csv; charset=utf-8",
+        "Content-Disposition": 'attachment; filename="project_template.csv"',
+      },
+    });
   } catch (error) {
-    logger.error('템플릿 생성 에러:', error)
-    return json({ error: '템플릿 생성 중 오류가 발생했습니다.' }, { status: 500 })
+    logger.error("템플릿 생성 에러:", error);
+    return json(
+      { error: "템플릿 생성 중 오류가 발생했습니다." },
+      { status: 500 },
+    );
   }
 }

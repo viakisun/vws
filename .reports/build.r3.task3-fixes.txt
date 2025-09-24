@@ -1,0 +1,646 @@
+
+> workstream-svelte@0.0.1 build /Users/adminvia/devwork/_viahub/vws
+> vite build
+
+vite v7.1.7 building SSR bundle for production...
+transforming...
+오후 10:53:43 [vite-plugin-svelte] src/routes/hr/attendance/+page.svelte:297:10 A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+295:       <div class="p-6">
+296:         <div class="flex items-center space-x-4">
+297:           <label class="text-sm font-medium text-gray-700">직원 선택:</label>
+                                                                              ^
+298:           <select
+299:             bind:value={selectedEmployeeId}
+오후 10:53:43 [vite-plugin-svelte] src/routes/hr/attendance/+page.svelte:615:14 A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+613:           <div class="space-y-4">
+614:             <div>
+615:               <label class="block text-sm font-medium text-gray-700 mb-1">휴가 유형 *</label>
+                                                                                              ^
+616:               <select
+617:                 bind:value={leaveRequestForm.leaveTypeId}
+오후 10:53:43 [vite-plugin-svelte] src/routes/hr/attendance/+page.svelte:629:16 A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+627:             <div class="grid grid-cols-2 gap-4">
+628:               <div>
+629:                 <label class="block text-sm font-medium text-gray-700 mb-1">시작일 *</label>
+                                                                                              ^
+630:                 <input
+631:                   type="date"
+오후 10:53:43 [vite-plugin-svelte] src/routes/hr/attendance/+page.svelte:638:16 A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+636:               </div>
+637:               <div>
+638:                 <label class="block text-sm font-medium text-gray-700 mb-1">종료일 *</label>
+                                                                                              ^
+639:                 <input
+640:                   type="date"
+오후 10:53:43 [vite-plugin-svelte] src/routes/hr/attendance/+page.svelte:648:14 A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+646:             </div>
+647:             <div>
+648:               <label class="block text-sm font-medium text-gray-700 mb-1">사유</label>
+                                                                                         ^
+649:               <textarea
+650:                 bind:value={leaveRequestForm.reason}
+오후 10:53:43 [vite-plugin-svelte] src/routes/hr/attendance/+page.svelte:691:14 A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+689:           <div class="space-y-4">
+690:             <div>
+691:               <label class="block text-sm font-medium text-gray-700 mb-1">날짜 *</label>
+                                                                                           ^
+692:               <input
+693:                 type="date"
+오후 10:53:43 [vite-plugin-svelte] src/routes/hr/attendance/+page.svelte:701:16 A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+699:             <div class="grid grid-cols-2 gap-4">
+700:               <div>
+701:                 <label class="block text-sm font-medium text-gray-700 mb-1">출근시간</label>
+                                                                                             ^
+702:                 <input
+703:                   type="time"
+오후 10:53:43 [vite-plugin-svelte] src/routes/hr/attendance/+page.svelte:709:16 A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+707:               </div>
+708:               <div>
+709:                 <label class="block text-sm font-medium text-gray-700 mb-1">퇴근시간</label>
+                                                                                             ^
+710:                 <input
+711:                   type="time"
+오후 10:53:43 [vite-plugin-svelte] src/routes/hr/attendance/+page.svelte:718:14 A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+716:             </div>
+717:             <div>
+718:               <label class="block text-sm font-medium text-gray-700 mb-1">상태 *</label>
+                                                                                           ^
+719:               <select
+720:                 bind:value={attendanceForm.status}
+오후 10:53:43 [vite-plugin-svelte] src/routes/hr/attendance/+page.svelte:735:14 A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+733:             </div>
+734:             <div>
+735:               <label class="block text-sm font-medium text-gray-700 mb-1">비고</label>
+                                                                                         ^
+736:               <textarea
+737:                 bind:value={attendanceForm.notes}
+오후 10:53:43 [vite-plugin-svelte] src/routes/hr/employees/+page.svelte:535:14 A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+533:             </div>
+534:             <div>
+535:               <label class="block text-sm font-medium text-gray-700 mb-1">이름 *</label>
+                                                                                           ^
+536:               <input
+537:                 type="text"
+오후 10:53:43 [vite-plugin-svelte] src/routes/hr/employees/+page.svelte:544:14 A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+542:             </div>
+543:             <div>
+544:               <label class="block text-sm font-medium text-gray-700 mb-1">이메일 *</label>
+                                                                                            ^
+545:               <input
+546:                 type="email"
+오후 10:53:43 [vite-plugin-svelte] src/routes/hr/employees/+page.svelte:553:14 A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+551:             </div>
+552:             <div>
+553:               <label class="block text-sm font-medium text-gray-700 mb-1">전화번호 *</label>
+                                                                                             ^
+554:               <input
+555:                 type="tel"
+오후 10:53:43 [vite-plugin-svelte] src/routes/hr/employees/+page.svelte:562:14 A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+560:             </div>
+561:             <div>
+562:               <label class="block text-sm font-medium text-gray-700 mb-1">부서 *</label>
+                                                                                           ^
+563:               <input
+564:                 type="text"
+오후 10:53:43 [vite-plugin-svelte] src/routes/hr/employees/+page.svelte:571:14 A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+569:             </div>
+570:             <div>
+571:               <label class="block text-sm font-medium text-gray-700 mb-1">직급 *</label>
+                                                                                           ^
+572:               <input
+573:                 type="text"
+오후 10:53:43 [vite-plugin-svelte] src/routes/hr/employees/+page.svelte:580:14 A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+578:             </div>
+579:             <div>
+580:               <label class="block text-sm font-medium text-gray-700 mb-1">레벨 *</label>
+                                                                                           ^
+581:               <select
+582:                 bind:value={formData.level}
+오후 10:53:43 [vite-plugin-svelte] src/routes/hr/employees/+page.svelte:596:14 A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+594:             </div>
+595:             <div>
+596:               <label class="block text-sm font-medium text-gray-700 mb-1">고용 형태 *</label>
+                                                                                              ^
+597:               <select
+598:                 bind:value={formData.employmentType}
+오후 10:53:43 [vite-plugin-svelte] src/routes/hr/employees/+page.svelte:609:14 A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+607:             </div>
+608:             <div>
+609:               <label class="block text-sm font-medium text-gray-700 mb-1">입사일 *</label>
+                                                                                            ^
+610:               <input
+611:                 type="date"
+오후 10:53:43 [vite-plugin-svelte] src/routes/hr/employees/+page.svelte:618:14 A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+616:             </div>
+617:             <div>
+618:               <label class="block text-sm font-medium text-gray-700 mb-1">주소</label>
+                                                                                         ^
+619:               <input
+620:                 type="text"
+오후 10:53:43 [vite-plugin-svelte] src/routes/hr/employees/+page.svelte:658:14 A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+656:           <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+657:             <div>
+658:               <label class="block text-sm font-medium text-gray-700 mb-1">사번 *</label>
+                                                                                           ^
+659:               <input
+660:                 type="text"
+오후 10:53:43 [vite-plugin-svelte] src/routes/hr/employees/+page.svelte:667:14 A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+665:             </div>
+666:             <div>
+667:               <label class="block text-sm font-medium text-gray-700 mb-1">이름 *</label>
+                                                                                           ^
+668:               <input
+669:                 type="text"
+오후 10:53:43 [vite-plugin-svelte] src/routes/hr/employees/+page.svelte:676:14 A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+674:             </div>
+675:             <div>
+676:               <label class="block text-sm font-medium text-gray-700 mb-1">이메일 *</label>
+                                                                                            ^
+677:               <input
+678:                 type="email"
+오후 10:53:43 [vite-plugin-svelte] src/routes/hr/employees/+page.svelte:685:14 A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+683:             </div>
+684:             <div>
+685:               <label class="block text-sm font-medium text-gray-700 mb-1">전화번호 *</label>
+                                                                                             ^
+686:               <input
+687:                 type="tel"
+오후 10:53:43 [vite-plugin-svelte] src/routes/hr/employees/+page.svelte:694:14 A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+692:             </div>
+693:             <div>
+694:               <label class="block text-sm font-medium text-gray-700 mb-1">부서 *</label>
+                                                                                           ^
+695:               <input
+696:                 type="text"
+오후 10:53:43 [vite-plugin-svelte] src/routes/hr/employees/+page.svelte:703:14 A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+701:             </div>
+702:             <div>
+703:               <label class="block text-sm font-medium text-gray-700 mb-1">직급 *</label>
+                                                                                           ^
+704:               <input
+705:                 type="text"
+오후 10:53:43 [vite-plugin-svelte] src/routes/hr/employees/+page.svelte:712:14 A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+710:             </div>
+711:             <div>
+712:               <label class="block text-sm font-medium text-gray-700 mb-1">레벨 *</label>
+                                                                                           ^
+713:               <select
+714:                 bind:value={formData.level}
+오후 10:53:43 [vite-plugin-svelte] src/routes/hr/employees/+page.svelte:728:14 A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+726:             </div>
+727:             <div>
+728:               <label class="block text-sm font-medium text-gray-700 mb-1">고용 형태 *</label>
+                                                                                              ^
+729:               <select
+730:                 bind:value={formData.employmentType}
+오후 10:53:43 [vite-plugin-svelte] src/routes/hr/employees/+page.svelte:741:14 A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+739:             </div>
+740:             <div>
+741:               <label class="block text-sm font-medium text-gray-700 mb-1">입사일 *</label>
+                                                                                            ^
+742:               <input
+743:                 type="date"
+오후 10:53:43 [vite-plugin-svelte] src/routes/hr/employees/+page.svelte:750:14 A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+748:             </div>
+749:             <div>
+750:               <label class="block text-sm font-medium text-gray-700 mb-1">상태 *</label>
+                                                                                           ^
+751:               <select
+752:                 bind:value={formData.status}
+오후 10:53:43 [vite-plugin-svelte] src/routes/hr/employees/+page.svelte:794:18 A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+792:               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+793:                 <div>
+794:                   <label class="block text-sm font-medium text-gray-500">사번</label>
+                                                                                        ^
+795:                   <p class="text-sm text-gray-900">{selectedEmployee.employeeId}</p>
+796:                 </div>
+오후 10:53:43 [vite-plugin-svelte] src/routes/hr/employees/+page.svelte:798:18 A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+796:                 </div>
+797:                 <div>
+798:                   <label class="block text-sm font-medium text-gray-500">이름</label>
+                                                                                        ^
+799:                   <p class="text-sm text-gray-900">{selectedEmployee.name}</p>
+800:                 </div>
+오후 10:53:43 [vite-plugin-svelte] src/routes/hr/employees/+page.svelte:802:18 A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+800:                 </div>
+801:                 <div>
+802:                   <label class="block text-sm font-medium text-gray-500">이메일</label>
+                                                                                         ^
+803:                   <p class="text-sm text-gray-900">{selectedEmployee.email}</p>
+804:                 </div>
+오후 10:53:43 [vite-plugin-svelte] src/routes/hr/employees/+page.svelte:806:18 A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+804:                 </div>
+805:                 <div>
+806:                   <label class="block text-sm font-medium text-gray-500">전화번호</label>
+                                                                                          ^
+807:                   <p class="text-sm text-gray-900">{selectedEmployee.phone}</p>
+808:                 </div>
+오후 10:53:43 [vite-plugin-svelte] src/routes/hr/employees/+page.svelte:810:18 A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+808:                 </div>
+809:                 <div>
+810:                   <label class="block text-sm font-medium text-gray-500">부서</label>
+                                                                                        ^
+811:                   <p class="text-sm text-gray-900">{selectedEmployee.department}</p>
+812:                 </div>
+오후 10:53:43 [vite-plugin-svelte] src/routes/hr/employees/+page.svelte:814:18 A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+812:                 </div>
+813:                 <div>
+814:                   <label class="block text-sm font-medium text-gray-500">직급</label>
+                                                                                        ^
+815:                   <p class="text-sm text-gray-900">{selectedEmployee.position}</p>
+816:                 </div>
+오후 10:53:43 [vite-plugin-svelte] src/routes/hr/employees/+page.svelte:818:18 A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+816:                 </div>
+817:                 <div>
+818:                   <label class="block text-sm font-medium text-gray-500">레벨</label>
+                                                                                        ^
+819:                   <p class="text-sm text-gray-900">
+820:                     {getLevelText(selectedEmployee.level as Employee['level'])}
+오후 10:53:43 [vite-plugin-svelte] src/routes/hr/employees/+page.svelte:824:18 A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+822:                 </div>
+823:                 <div>
+824:                   <label class="block text-sm font-medium text-gray-500">고용 형태</label>
+                                                                                           ^
+825:                   <p class="text-sm text-gray-900">
+826:                     {getEmploymentTypeText(
+오후 10:53:43 [vite-plugin-svelte] src/routes/hr/employees/+page.svelte:832:18 A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+830:                 </div>
+831:                 <div>
+832:                   <label class="block text-sm font-medium text-gray-500">입사일</label>
+                                                                                         ^
+833:                   <p class="text-sm text-gray-900">{formatDate(selectedEmployee.hireDate)}</p>
+834:                 </div>
+오후 10:53:43 [vite-plugin-svelte] src/routes/hr/employees/+page.svelte:836:18 A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+834:                 </div>
+835:                 <div>
+836:                   <label class="block text-sm font-medium text-gray-500">상태</label>
+                                                                                        ^
+837:                   <Badge
+838:                     variant={getStatusBadgeVariant(selectedEmployee.status as Employee['status'])}
+오후 10:53:43 [vite-plugin-svelte] src/routes/hr/employees/+page.svelte:851:18 A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+849:               <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+850:                 <div>
+851:                   <label class="block text-sm font-medium text-gray-500">이름</label>
+                                                                                        ^
+852:                   <p class="text-sm text-gray-900">{selectedEmployee.emergencyContact.name}</p>
+853:                 </div>
+오후 10:53:43 [vite-plugin-svelte] src/routes/hr/employees/+page.svelte:855:18 A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+853:                 </div>
+854:                 <div>
+855:                   <label class="block text-sm font-medium text-gray-500">관계</label>
+                                                                                        ^
+856:                   <p class="text-sm text-gray-900">
+857:                     {selectedEmployee.emergencyContact.relationship}
+오후 10:53:43 [vite-plugin-svelte] src/routes/hr/employees/+page.svelte:861:18 A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+859:                 </div>
+860:                 <div>
+861:                   <label class="block text-sm font-medium text-gray-500">전화번호</label>
+                                                                                          ^
+862:                   <p class="text-sm text-gray-900">{selectedEmployee.emergencyContact.phone}</p>
+863:                 </div>
+오후 10:53:43 [vite-plugin-svelte] src/routes/hr/employees/+page.svelte:872:18 A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+870:               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+871:                 <div>
+872:                   <label class="block text-sm font-medium text-gray-500">생년월일</label>
+                                                                                          ^
+873:                   <p class="text-sm text-gray-900">
+874:                     {formatDate(selectedEmployee.personalInfo.birthDate)}
+오후 10:53:43 [vite-plugin-svelte] src/routes/hr/employees/+page.svelte:878:18 A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+876:                 </div>
+877:                 <div>
+878:                   <label class="block text-sm font-medium text-gray-500">성별</label>
+                                                                                        ^
+879:                   <p class="text-sm text-gray-900">
+880:                     {selectedEmployee.personalInfo.gender === 'male'
+오후 10:53:43 [vite-plugin-svelte] src/routes/hr/employees/+page.svelte:888:18 A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+886:                 </div>
+887:                 <div>
+888:                   <label class="block text-sm font-medium text-gray-500">국적</label>
+                                                                                        ^
+889:                   <p class="text-sm text-gray-900">{selectedEmployee.personalInfo.nationality}</p>
+890:                 </div>
+오후 10:53:43 [vite-plugin-svelte] src/routes/hr/employees/+page.svelte:892:18 A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+890:                 </div>
+891:                 <div>
+892:                   <label class="block text-sm font-medium text-gray-500">결혼 상태</label>
+                                                                                           ^
+893:                   <p class="text-sm text-gray-900">
+894:                     {selectedEmployee.personalInfo.maritalStatus === 'single'
+오후 10:53:43 [vite-plugin-svelte] src/routes/hr/employees/+page.svelte:912:20 A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+910:                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+911:                   <div>
+912:                     <label class="block text-sm font-medium text-gray-500">계약 유형</label>
+                                                                                             ^
+913:                     <p class="text-sm text-gray-900">{selectedContract.contractType}</p>
+914:                   </div>
+오후 10:53:43 [vite-plugin-svelte] src/routes/hr/employees/+page.svelte:916:20 A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+914:                   </div>
+915:                   <div>
+916:                     <label class="block text-sm font-medium text-gray-500">시작일</label>
+                                                                                           ^
+917:                     <p class="text-sm text-gray-900">{formatDate(selectedContract.startDate)}</p>
+918:                   </div>
+오후 10:53:43 [vite-plugin-svelte] src/routes/hr/employees/+page.svelte:920:20 A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+918:                   </div>
+919:                   <div>
+920:                     <label class="block text-sm font-medium text-gray-500">급여</label>
+                                                                                          ^
+921:                     <p class="text-sm text-gray-900">
+922:                       {selectedContract.salary.toLocaleString()}원 <!-- TODO: Replace with formatNumber function -->
+오후 10:53:43 [vite-plugin-svelte] src/routes/hr/employees/+page.svelte:926:20 A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+924:                   </div>
+925:                   <div>
+926:                     <label class="block text-sm font-medium text-gray-500">근무시간</label>
+                                                                                            ^
+927:                     <p class="text-sm text-gray-900">{selectedContract.workingHours}시간/주</p>
+928:                   </div>
+오후 10:53:43 [vite-plugin-svelte] src/routes/hr/recruitment/+page.svelte:192:12 A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+190:         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+191:           <div>
+192:             <label class="block text-sm font-medium text-gray-700 mb-2">상태</label>
+                                                                                       ^
+193:             <select
+194:               bind:value={statusFilter}
+오후 10:53:43 [vite-plugin-svelte] src/routes/hr/recruitment/+page.svelte:205:12 A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+203:           </div>
+204:           <div>
+205:             <label class="block text-sm font-medium text-gray-700 mb-2">부서</label>
+                                                                                       ^
+206:             <select
+207:               bind:value={departmentFilter}
+오후 10:53:43 [vite-plugin-svelte] src/routes/hr/recruitment/+page.svelte:311:16 A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+309:             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+310:               <div>
+311:                 <label class="block text-sm font-medium text-gray-700 mb-1">제목 *</label>
+                                                                                             ^
+312:                 <input
+313:                   type="text"
+오후 10:53:43 [vite-plugin-svelte] src/routes/hr/recruitment/+page.svelte:320:16 A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+318:               </div>
+319:               <div>
+320:                 <label class="block text-sm font-medium text-gray-700 mb-1">부서 *</label>
+                                                                                             ^
+321:                 <input
+322:                   type="text"
+오후 10:53:43 [vite-plugin-svelte] src/routes/hr/recruitment/+page.svelte:329:16 A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+327:               </div>
+328:               <div>
+329:                 <label class="block text-sm font-medium text-gray-700 mb-1">직급 *</label>
+                                                                                             ^
+330:                 <input
+331:                   type="text"
+오후 10:53:43 [vite-plugin-svelte] src/routes/hr/recruitment/+page.svelte:338:16 A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+336:               </div>
+337:               <div>
+338:                 <label class="block text-sm font-medium text-gray-700 mb-1">레벨 *</label>
+                                                                                             ^
+339:                 <input
+340:                   type="text"
+오후 10:53:43 [vite-plugin-svelte] src/routes/hr/recruitment/+page.svelte:349:14 A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+347: 
+348:             <div>
+349:               <label class="block text-sm font-medium text-gray-700 mb-1">직무 설명 *</label>
+                                                                                              ^
+350:               <textarea
+351:                 bind:value={jobPostingForm.description}
+오후 10:53:43 [vite-plugin-svelte] src/routes/hr/recruitment/+page.svelte:359:14 A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+357: 
+358:             <div>
+359:               <label class="block text-sm font-medium text-gray-700 mb-1">필수 요구사항</label>
+                                                                                              ^
+360:               <div class="space-y-2">
+361:                 {#each jobPostingForm.requirements as requirement, index (index)}
+오후 10:53:43 [vite-plugin-svelte] src/routes/hr/recruitment/+page.svelte:389:16 A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+387:             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+388:               <div>
+389:                 <label class="block text-sm font-medium text-gray-700 mb-1">최소 급여 *</label>
+                                                                                                ^
+390:                 <input
+391:                   type="number"
+오후 10:53:43 [vite-plugin-svelte] src/routes/hr/recruitment/+page.svelte:398:16 A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+396:               </div>
+397:               <div>
+398:                 <label class="block text-sm font-medium text-gray-700 mb-1">최대 급여 *</label>
+                                                                                                ^
+399:                 <input
+400:                   type="number"
+오후 10:53:43 [vite-plugin-svelte] src/routes/hr/recruitment/+page.svelte:410:16 A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+408:             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+409:               <div>
+410:                 <label class="block text-sm font-medium text-gray-700 mb-1">위치 *</label>
+                                                                                             ^
+411:                 <input
+412:                   type="text"
+오후 10:53:43 [vite-plugin-svelte] src/routes/hr/recruitment/+page.svelte:419:16 A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+417:               </div>
+418:               <div>
+419:                 <label class="block text-sm font-medium text-gray-700 mb-1">지원 마감일 *</label>
+                                                                                                 ^
+420:                 <input
+421:                   type="date"
+오후 10:53:43 [vite-plugin-svelte] src/routes/rnd/expenses/+page.svelte:318:8 A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+316:     <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+317:       <div>
+318:         <label class="block text-sm font-medium text-gray-700 mb-2">검색</label>
+                                                                                   ^
+319:         <input
+320:           type="text"
+오후 10:53:43 [vite-plugin-svelte] src/routes/rnd/expenses/+page.svelte:327:8 A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+325:       </div>
+326:       <div>
+327:         <label class="block text-sm font-medium text-gray-700 mb-2">상태</label>
+                                                                                   ^
+328:         <select
+329:           bind:value={statusFilter}
+오후 10:53:43 [vite-plugin-svelte] src/routes/rnd/expenses/+page.svelte:342:8 A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+340:       </div>
+341:       <div>
+342:         <label class="block text-sm font-medium text-gray-700 mb-2">카테고리</label>
+                                                                                     ^
+343:         <select
+344:           bind:value={categoryFilter}
+오후 10:53:43 [vite-plugin-svelte] src/routes/rnd/expenses/+page.svelte:354:8 A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+352:       </div>
+353:       <div>
+354:         <label class="block text-sm font-medium text-gray-700 mb-2">프로젝트</label>
+                                                                                     ^
+355:         <select
+356:           bind:value={projectFilter}
+오후 10:53:43 [vite-plugin-svelte] src/routes/rnd/expenses/+page.svelte:478:6 A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+476:   <div class="space-y-4">
+477:     <div>
+478:       <label class="block text-sm font-medium text-gray-700 mb-1">프로젝트 *</label>
+                                                                                     ^
+479:       <select
+480:         bind:value={expenseForm.projectId}
+오후 10:53:43 [vite-plugin-svelte] src/routes/rnd/expenses/+page.svelte:491:6 A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+489: 
+490:     <div>
+491:       <label class="block text-sm font-medium text-gray-700 mb-1">카테고리 *</label>
+                                                                                     ^
+492:       <select
+493:         bind:value={expenseForm.categoryCode}
+오후 10:53:43 [vite-plugin-svelte] src/routes/rnd/expenses/+page.svelte:505:8 A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+503:     <div class="grid grid-cols-2 gap-4">
+504:       <div>
+505:         <label class="block text-sm font-medium text-gray-700 mb-1">금액 *</label>
+                                                                                     ^
+506:         <input
+507:           type="number"
+오후 10:53:43 [vite-plugin-svelte] src/routes/rnd/expenses/+page.svelte:514:8 A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+512:       </div>
+513:       <div>
+514:         <label class="block text-sm font-medium text-gray-700 mb-1">통화</label>
+                                                                                   ^
+515:         <select
+516:           bind:value={expenseForm.currency}
+오후 10:53:43 [vite-plugin-svelte] src/routes/rnd/expenses/+page.svelte:527:6 A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+525: 
+526:     <div>
+527:       <label class="block text-sm font-medium text-gray-700 mb-1">설명 *</label>
+                                                                                   ^
+528:       <textarea
+529:         bind:value={expenseForm.description}
+오후 10:53:43 [vite-plugin-svelte] src/routes/rnd/expenses/+page.svelte:537:6 A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+535: 
+536:     <div>
+537:       <label class="block text-sm font-medium text-gray-700 mb-1">담당부서</label>
+                                                                                   ^
+538:       <input
+539:         type="text"
+오후 10:53:43 [vite-plugin-svelte] src/routes/rnd/expenses/+page.svelte:574:12 A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+572:         <div class="grid grid-cols-2 gap-4">
+573:           <div>
+574:             <label class="block text-sm font-medium text-gray-500">설명</label>
+                                                                                  ^
+575:             <p class="text-sm text-gray-900">{selectedExpense.description}</p>
+576:           </div>
+오후 10:53:43 [vite-plugin-svelte] src/routes/rnd/expenses/+page.svelte:578:12 A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+576:           </div>
+577:           <div>
+578:             <label class="block text-sm font-medium text-gray-500">상태</label>
+                                                                                  ^
+579:             <Badge variant={getStatusColor(selectedExpense.status)}>
+580:               {getStatusText(selectedExpense.status)}
+오후 10:53:43 [vite-plugin-svelte] src/routes/rnd/expenses/+page.svelte:584:12 A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+582:           </div>
+583:           <div>
+584:             <label class="block text-sm font-medium text-gray-500">카테고리</label>
+                                                                                    ^
+585:             <p class="text-sm text-gray-900">{getCategoryName(selectedExpense.categoryCode)}</p>
+586:           </div>
+오후 10:53:43 [vite-plugin-svelte] src/routes/rnd/expenses/+page.svelte:588:12 A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+586:           </div>
+587:           <div>
+588:             <label class="block text-sm font-medium text-gray-500">금액</label>
+                                                                                  ^
+589:             <p class="text-sm text-gray-900">{formatCurrency(selectedExpense.amount)}</p>
+590:           </div>
+오후 10:53:43 [vite-plugin-svelte] src/routes/rnd/expenses/+page.svelte:592:12 A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+590:           </div>
+591:           <div>
+592:             <label class="block text-sm font-medium text-gray-500">담당부서</label>
+                                                                                    ^
+593:             <p class="text-sm text-gray-900">{selectedExpense.deptOwner}</p>
+594:           </div>
+오후 10:53:43 [vite-plugin-svelte] src/routes/rnd/expenses/+page.svelte:596:12 A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+594:           </div>
+595:           <div>
+596:             <label class="block text-sm font-medium text-gray-500">생성일</label>
+                                                                                   ^
+597:             <p class="text-sm text-gray-900">{formatDate(selectedExpense.createdAt)}</p>
+598:           </div>
+✓ 69 modules transformed.
+✗ Build failed in 877ms
+error during build:
+[vite-plugin-svelte:compile] [plugin vite-plugin-svelte:compile] src/lib/components/project-management/ResearcherValidationTable.svelte (442:8): src/lib/components/project-management/ResearcherValidationTable.svelte:442:8 `{@const}` must be the immediate child of `{#snippet}`, `{#if}`, `{:else if}`, `{:else}`, `{#each}`, `{:then}`, `{:catch}`, `<svelte:fragment>`, `<svelte:boundary` or `<Component>`
+https://svelte.dev/e/const_tag_invalid_placement
+file: src/lib/components/project-management/ResearcherValidationTable.svelte:442:8 (/Users/adminvia/devwork/_viahub/vws/src/lib/components/project-management/ResearcherValidationTable.svelte)
+
+ 440 |  
+ 441 |          <!-- 검증 이슈 -->
+ 442 |          {@const memberIssues = validationState.issues.filter(
+                  ^
+ 443 |            issue => issue.memberId === selectedMember.id
+ 444 |          )}
+
+
+ ELIFECYCLE  Command failed with exit code 1.

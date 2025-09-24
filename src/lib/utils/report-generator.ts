@@ -1,31 +1,35 @@
-import type { BankAccount, Transaction, ExpectedTransaction } from '$lib/stores/funds'
-import type { BudgetCategory, BudgetGoal } from '$lib/stores/budget'
+import type {
+  BankAccount,
+  Transaction,
+  ExpectedTransaction,
+} from "$lib/stores/funds";
+import type { BudgetCategory, BudgetGoal } from "$lib/stores/budget";
 
 export interface FinancialReportData {
-  bankAccounts: BankAccount[]
-  transactions: Transaction[]
-  expectedTransactions: ExpectedTransaction[]
-  budgetCategories: BudgetCategory[]
-  budgetGoals: BudgetGoal[]
-  reportDate: string
-  reportPeriod: string
+  bankAccounts: BankAccount[];
+  transactions: Transaction[];
+  expectedTransactions: ExpectedTransaction[];
+  budgetCategories: BudgetCategory[];
+  budgetGoals: BudgetGoal[];
+  reportDate: string;
+  reportPeriod: string;
 }
 
 export interface ReportSummary {
-  totalBalance: number
-  totalIncome: number
-  totalExpense: number
-  netIncome: number
-  expectedIncome: number
-  expectedExpense: number
-  expectedNetIncome: number
-  budgetUtilization: number
-  goalProgress: number
+  totalBalance: number;
+  totalIncome: number;
+  totalExpense: number;
+  netIncome: number;
+  expectedIncome: number;
+  expectedExpense: number;
+  expectedNetIncome: number;
+  budgetUtilization: number;
+  goalProgress: number;
 }
 
 // HTML 보고서 생성
 export function generateHTMLReport(data: FinancialReportData): string {
-  const summary = calculateSummary(data)
+  const summary = calculateSummary(data);
 
   return `
 <!DOCTYPE html>
@@ -63,7 +67,7 @@ export function generateHTMLReport(data: FinancialReportData): string {
 	<div class="container">
 		<div class="header">
 			<h1>재무 보고서</h1>
-			<p>보고서 기간: ${data.reportPeriod} | 생성일: ${new Date().toLocaleDateString('ko-KR')}</p>
+			<p>보고서 기간: ${data.reportPeriod} | 생성일: ${new Date().toLocaleDateString("ko-KR")}</p>
 		</div>
 
 		<div class="summary">
@@ -81,7 +85,7 @@ export function generateHTMLReport(data: FinancialReportData): string {
 			</div>
 			<div class="summary-card">
 				<h3>순이익</h3>
-				<div class="value ${summary.netIncome >= 0 ? 'income' : 'expense'}">₩${summary.netIncome.toLocaleString()}</div>
+				<div class="value ${summary.netIncome >= 0 ? "income" : "expense"}">₩${summary.netIncome.toLocaleString()}</div>
 			</div>
 		</div>
 
@@ -99,16 +103,16 @@ export function generateHTMLReport(data: FinancialReportData): string {
 				<tbody>
 					${data.bankAccounts
             .map(
-              account => `
+              (account) => `
 						<tr>
 							<td>${account.name}</td>
-							<td>${account.bankName || '-'}</td>
+							<td>${account.bankName || "-"}</td>
 							<td>${account.accountNumber}</td>
 							<td class="text-right">₩${account.balance.toLocaleString()}</td>
 						</tr>
-					`
+					`,
             )
-            .join('')}
+            .join("")}
 				</tbody>
 			</table>
 		</div>
@@ -128,19 +132,19 @@ export function generateHTMLReport(data: FinancialReportData): string {
 				<tbody>
 					${data.transactions
             .map(
-              transaction => `
+              (transaction) => `
 						<tr>
-							<td>${new Date(transaction.date).toLocaleDateString('ko-KR')}</td>
+							<td>${new Date(transaction.date).toLocaleDateString("ko-KR")}</td>
 							<td>${transaction.description}</td>
 							<td>${transaction.category}</td>
-							<td class="text-right ${transaction.type === 'income' ? 'income' : 'expense'}">
-								${transaction.type === 'income' ? '+' : '-'}₩${transaction.amount.toLocaleString()}
+							<td class="text-right ${transaction.type === "income" ? "income" : "expense"}">
+								${transaction.type === "income" ? "+" : "-"}₩${transaction.amount.toLocaleString()}
 							</td>
-							<td>${transaction.type === 'income' ? '수입' : '지출'}</td>
+							<td>${transaction.type === "income" ? "수입" : "지출"}</td>
 						</tr>
-					`
+					`,
             )
-            .join('')}
+            .join("")}
 				</tbody>
 			</table>
 		</div>
@@ -159,8 +163,8 @@ export function generateHTMLReport(data: FinancialReportData): string {
 				</thead>
 				<tbody>
 					${data.budgetCategories
-            .map(category => {
-              const usage = (category.spent / category.amount) * 100
+            .map((category) => {
+              const usage = (category.spent / category.amount) * 100;
               return `
 							<tr>
 								<td>${category.name}</td>
@@ -169,14 +173,14 @@ export function generateHTMLReport(data: FinancialReportData): string {
 								<td class="text-right">${usage.toFixed(1)}%</td>
 								<td>
 									<div class="progress-bar">
-										<div class="progress-fill ${usage > 100 ? 'danger' : usage > 80 ? 'warning' : ''}" 
+										<div class="progress-fill ${usage > 100 ? "danger" : usage > 80 ? "warning" : ""}" 
 											 style="width: ${Math.min(usage, 100)}%"></div>
 									</div>
 								</td>
 							</tr>
-						`
+						`;
             })
-            .join('')}
+            .join("")}
 				</tbody>
 			</table>
 		</div>
@@ -187,84 +191,90 @@ export function generateHTMLReport(data: FinancialReportData): string {
 	</div>
 </body>
 </html>
-	`
+	`;
 }
 
 // CSV 보고서 생성
 export function generateCSVReport(data: FinancialReportData): string {
-  const summary = calculateSummary(data)
+  const summary = calculateSummary(data);
 
-  let csv = '재무 보고서\n'
-  csv += `보고서 기간,${data.reportPeriod}\n`
-  csv += `생성일,${new Date().toLocaleDateString('ko-KR')}\n\n`
+  let csv = "재무 보고서\n";
+  csv += `보고서 기간,${data.reportPeriod}\n`;
+  csv += `생성일,${new Date().toLocaleDateString("ko-KR")}\n\n`;
 
   // 요약 정보
-  csv += '요약 정보\n'
-  csv += '항목,금액\n'
-  csv += `총 잔고,${summary.totalBalance}\n`
-  csv += `총 수입,${summary.totalIncome}\n`
-  csv += `총 지출,${summary.totalExpense}\n`
-  csv += `순이익,${summary.netIncome}\n\n`
+  csv += "요약 정보\n";
+  csv += "항목,금액\n";
+  csv += `총 잔고,${summary.totalBalance}\n`;
+  csv += `총 수입,${summary.totalIncome}\n`;
+  csv += `총 지출,${summary.totalExpense}\n`;
+  csv += `순이익,${summary.netIncome}\n\n`;
 
   // 통장 잔고
-  csv += '통장 잔고\n'
-  csv += '계좌명,은행,계좌번호,잔고\n'
-  data.bankAccounts.forEach(account => {
-    csv += `${account.name},${account.bankName || ''},${account.accountNumber},${account.balance}\n`
-  })
-  csv += '\n'
+  csv += "통장 잔고\n";
+  csv += "계좌명,은행,계좌번호,잔고\n";
+  data.bankAccounts.forEach((account) => {
+    csv += `${account.name},${account.bankName || ""},${account.accountNumber},${account.balance}\n`;
+  });
+  csv += "\n";
 
   // 거래 내역
-  csv += '거래 내역\n'
-  csv += '날짜,내용,분류,금액,구분\n'
-  data.transactions.forEach(transaction => {
-    csv += `${transaction.date},${transaction.description},${transaction.category},${transaction.amount},${transaction.type === 'income' ? '수입' : '지출'}\n`
-  })
-  csv += '\n'
+  csv += "거래 내역\n";
+  csv += "날짜,내용,분류,금액,구분\n";
+  data.transactions.forEach((transaction) => {
+    csv += `${transaction.date},${transaction.description},${transaction.category},${transaction.amount},${transaction.type === "income" ? "수입" : "지출"}\n`;
+  });
+  csv += "\n";
 
   // 예산 현황
-  csv += '예산 현황\n'
-  csv += '카테고리,예산,사용액,사용률\n'
-  data.budgetCategories.forEach(category => {
-    const usage = (category.spent / category.amount) * 100
-    csv += `${category.name},${category.amount},${category.spent},${usage.toFixed(1)}%\n`
-  })
+  csv += "예산 현황\n";
+  csv += "카테고리,예산,사용액,사용률\n";
+  data.budgetCategories.forEach((category) => {
+    const usage = (category.spent / category.amount) * 100;
+    csv += `${category.name},${category.amount},${category.spent},${usage.toFixed(1)}%\n`;
+  });
 
-  return csv
+  return csv;
 }
 
 // 요약 정보 계산
 function calculateSummary(data: FinancialReportData): ReportSummary {
-  const totalBalance = data.bankAccounts.reduce((sum, account) => sum + account.balance, 0)
+  const totalBalance = data.bankAccounts.reduce(
+    (sum, account) => sum + account.balance,
+    0,
+  );
   const totalIncome = data.transactions
-    .filter(t => t.type === 'income')
-    .reduce((sum, t) => sum + t.amount, 0)
+    .filter((t) => t.type === "income")
+    .reduce((sum, t) => sum + t.amount, 0);
   const totalExpense = data.transactions
-    .filter(t => t.type === 'expense')
-    .reduce((sum, t) => sum + t.amount, 0)
+    .filter((t) => t.type === "expense")
+    .reduce((sum, t) => sum + t.amount, 0);
   const expectedIncome = data.expectedTransactions
-    .filter(t => t.type === 'income')
-    .reduce((sum, t) => sum + t.amount, 0)
+    .filter((t) => t.type === "income")
+    .reduce((sum, t) => sum + t.amount, 0);
   const expectedExpense = data.expectedTransactions
-    .filter(t => t.type === 'expense')
-    .reduce((sum, t) => sum + t.amount, 0)
+    .filter((t) => t.type === "expense")
+    .reduce((sum, t) => sum + t.amount, 0);
 
   const budgetUtilization =
     data.budgetCategories.length > 0
       ? (data.budgetCategories.reduce(
           (sum, category) => sum + category.spent / category.amount,
-          0
+          0,
         ) /
           data.budgetCategories.length) *
         100
-      : 0
+      : 0;
 
   const goalProgress =
     data.budgetGoals.length > 0
-      ? (data.budgetGoals.reduce((sum, goal) => sum + goal.currentAmount / goal.targetAmount, 0) /
+      ? (data.budgetGoals.reduce(
+          (sum, goal) => sum + goal.currentAmount / goal.targetAmount,
+          0,
+        ) /
           data.budgetGoals.length) *
         100
-      : 0
+      : 0;
 
   return {
     totalBalance,
@@ -275,20 +285,24 @@ function calculateSummary(data: FinancialReportData): ReportSummary {
     expectedExpense,
     expectedNetIncome: expectedIncome - expectedExpense,
     budgetUtilization,
-    goalProgress
-  }
+    goalProgress,
+  };
 }
 
 // 보고서 다운로드
-export function downloadReport(content: string, filename: string, type: 'html' | 'csv') {
-  const mimeType = type === 'html' ? 'text/html' : 'text/csv'
-  const blob = new Blob([content], { type: `${mimeType};charset=utf-8` })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = filename
-  document.body.appendChild(a)
-  a.click()
-  document.body.removeChild(a)
-  URL.revokeObjectURL(url)
+export function downloadReport(
+  content: string,
+  filename: string,
+  type: "html" | "csv",
+) {
+  const mimeType = type === "html" ? "text/html" : "text/csv";
+  const blob = new Blob([content], { type: `${mimeType};charset=utf-8` });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }

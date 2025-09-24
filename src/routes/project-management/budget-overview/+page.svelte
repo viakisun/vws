@@ -1,15 +1,17 @@
 <script lang="ts">
-  import Card from '$lib/components/ui/Card.svelte'
-  import Progress from '$lib/components/ui/Progress.svelte'
-  import { overallBudget, quarterlyPersonnelBudgets } from '$lib/stores/rnd'
-  import { get } from 'svelte/store'
-  const qb = get(quarterlyPersonnelBudgets)
-  const quarterSet = new Set<string>()
-  Object.values(qb).forEach(m => Object.keys(m).forEach(q => quarterSet.add(q)))
-  const quarters = Array.from(quarterSet).sort()
-  const ob = $derived($overallBudget)
+  import Card from "$lib/components/ui/Card.svelte";
+  import Progress from "$lib/components/ui/Progress.svelte";
+  import { overallBudget, quarterlyPersonnelBudgets } from "$lib/stores/rnd";
+  import { get } from "svelte/store";
+  const qb = get(quarterlyPersonnelBudgets);
+  const quarterSet = new Set<string>();
+  Object.values(qb).forEach((m) =>
+    Object.keys(m).forEach((q) => quarterSet.add(q)),
+  );
+  const quarters = Array.from(quarterSet).sort();
+  const ob = $derived($overallBudget);
   function sumQuarter(q: string): number {
-    return Object.values(qb).reduce((s, m) => s + (m[q] ?? 0), 0)
+    return Object.values(qb).reduce((s, m) => s + (m[q] ?? 0), 0);
   }
 </script>
 
@@ -20,7 +22,9 @@
     <div class="kpi">
       <div>
         <p class="text-caption">총 예산</p>
-        <div class="text-2xl font-bold">{ob.totalBudgetKRW.toLocaleString()}원</div>
+        <div class="text-2xl font-bold">
+          {ob.totalBudgetKRW.toLocaleString()}원
+        </div>
       </div>
     </div>
   </Card>
@@ -28,7 +32,9 @@
     <div class="kpi">
       <div>
         <p class="text-caption">총 집행</p>
-        <div class="text-2xl font-bold">{ob.totalSpentKRW.toLocaleString()}원</div>
+        <div class="text-2xl font-bold">
+          {ob.totalSpentKRW.toLocaleString()}원
+        </div>
       </div>
     </div>
   </Card>
@@ -36,7 +42,9 @@
     <div class="kpi">
       <div>
         <p class="text-caption">집행률</p>
-        <div class="text-2xl font-bold">{(ob.utilization * 100).toFixed(1)}%</div>
+        <div class="text-2xl font-bold">
+          {(ob.utilization * 100).toFixed(1)}%
+        </div>
         <div class="mt-3"><Progress value={ob.utilization * 100} /></div>
       </div>
     </div>
@@ -56,7 +64,9 @@
         {#each quarters as q, i (i)}
           <tr>
             <td class="px-3 py-2">{q}</td>
-            <td class="px-3 py-2 tabular-nums">{sumQuarter(q).toLocaleString()}원</td>
+            <td class="px-3 py-2 tabular-nums"
+              >{sumQuarter(q).toLocaleString()}원</td
+            >
           </tr>
         {/each}
       </tbody>

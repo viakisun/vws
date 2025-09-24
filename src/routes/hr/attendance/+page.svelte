@@ -1,106 +1,121 @@
 <script lang="ts">
-  import { onMount } from 'svelte'
-  import Card from '$lib/components/ui/Card.svelte'
-  import Badge from '$lib/components/ui/Badge.svelte'
-  import Modal from '$lib/components/ui/Modal.svelte'
-  import { formatDate } from '$lib/utils/format'
+  import { keyOf } from "$lib/utils/keyOf";
 
-  import { employees, getActiveEmployees } from '$lib/stores/hr'
+  import Badge from "$lib/components/ui/Badge.svelte";
+  import Card from "$lib/components/ui/Card.svelte";
+  import Modal from "$lib/components/ui/Modal.svelte";
+  import { formatDate } from "$lib/utils/format";
+  import { onMount } from "svelte";
+
+  import { employees, getActiveEmployees } from "$lib/stores/hr";
 
   import {
-    attendanceRecords,
-    leaveRequests,
-    leaveBalances,
-    leaveTypes,
     addAttendanceRecord,
-    updateAttendanceRecord,
+    approveLeaveRequest,
+    attendanceRecords,
+    calculateMonthlyAttendance,
     checkIn,
     checkOut,
-    requestLeave,
-    approveLeaveRequest,
-    rejectLeaveRequest,
-    calculateMonthlyAttendance,
     getAttendanceByEmployee,
-    getLeaveRequestsByEmployee,
     getLeaveBalanceByEmployee,
+    getLeaveRequestsByEmployee,
+    leaveBalances,
+    leaveRequests,
+    leaveTypes,
+    rejectLeaveRequest,
+    requestLeave,
+    updateAttendanceRecord,
     type AttendanceRecord,
-    type LeaveRequest
-  } from '$lib/stores/attendance'
+    type LeaveRequest,
+  } from "$lib/stores/attendance";
 
   // 현재 선택된 직원
-  let selectedEmployeeId = $state('')
-  let currentDate = new Date().toISOString().split('T')[0]
-  let selectedMonth = new Date().getMonth() + 1
-  let selectedYear = new Date().getFullYear()
+  let selectedEmployeeId = $state("");
+  let currentDate = new Date().toISOString().split("T")[0];
+  let selectedMonth = new Date().getMonth() + 1;
+  let selectedYear = new Date().getFullYear();
 
   // 모달 상태
-  let isLeaveRequestModalOpen = $state(false)
-  let isAttendanceModalOpen = $state(false)
-  let selectedAttendanceRecord = $state<AttendanceRecord | null>(null)
+  let isLeaveRequestModalOpen = $state(false);
+  let isAttendanceModalOpen = $state(false);
+  let selectedAttendanceRecord = $state<AttendanceRecord | null>(null);
 
   // 휴가 신청 폼
   let leaveRequestForm = $state({
-    leaveTypeId: '',
-    startDate: '',
-    endDate: '',
-    reason: ''
-  })
+    leaveTypeId: "",
+    startDate: "",
+    endDate: "",
+    reason: "",
+  });
 
   // 근태 기록 폼
   let attendanceForm = $state({
     date: currentDate,
-    checkIn: '',
-    checkOut: '',
-    status: 'present' as AttendanceRecord['status'],
-    notes: ''
-  })
+    checkIn: "",
+    checkOut: "",
+    status: "present" as AttendanceRecord["status"],
+    notes: "",
+  });
 
   // 현재 선택된 직원의 데이터
-  let selectedEmployee = $derived($employees.find(emp => emp.id === selectedEmployeeId))
-  let employeeAttendance = $derived(getAttendanceByEmployee(selectedEmployeeId, $attendanceRecords))
+  let selectedEmployee = $derived(
+    $employees.find((emp) => emp.id === selectedEmployeeId),
+  );
+  let employeeAttendance = $derived(
+    getAttendanceByEmployee(selectedEmployeeId, $attendanceRecords),
+  );
   let employeeLeaveRequests = $derived(
-    getLeaveRequestsByEmployee(selectedEmployeeId, $leaveRequests)
-  )
-  let employeeLeaveBalance = $derived(getLeaveBalanceByEmployee(selectedEmployeeId, $leaveBalances))
+    getLeaveRequestsByEmployee(selectedEmployeeId, $leaveRequests),
+  );
+  let employeeLeaveBalance = $derived(
+    getLeaveBalanceByEmployee(selectedEmployeeId, $leaveBalances),
+  );
   let monthlyStats = $derived(
-    calculateMonthlyAttendance(selectedEmployeeId, selectedYear, selectedMonth, $attendanceRecords)
-  )
+    calculateMonthlyAttendance(
+      selectedEmployeeId,
+      selectedYear,
+      selectedMonth,
+      $attendanceRecords,
+    ),
+  );
 
   // 오늘의 근태 기록
-  let todayAttendance = $derived(employeeAttendance.find(record => record.date === currentDate))
+  let todayAttendance = $derived(
+    employeeAttendance.find((record) => record.date === currentDate),
+  );
 
   // 함수들
   function openLeaveRequestModal() {
     leaveRequestForm = {
-      leaveTypeId: '',
-      startDate: '',
-      endDate: '',
-      reason: ''
-    }
-    isLeaveRequestModalOpen = true
+      leaveTypeId: "",
+      startDate: "",
+      endDate: "",
+      reason: "",
+    };
+    isLeaveRequestModalOpen = true;
   }
 
   function openAttendanceModal(record?: AttendanceRecord) {
     if (record) {
-      selectedAttendanceRecord = record
+      selectedAttendanceRecord = record;
       attendanceForm = {
         date: record.date,
-        checkIn: record.checkIn || '',
-        checkOut: record.checkOut || '',
+        checkIn: record.checkIn || "",
+        checkOut: record.checkOut || "",
         status: record.status,
-        notes: record.notes || ''
-      }
+        notes: record.notes || "",
+      };
     } else {
-      selectedAttendanceRecord = null
+      selectedAttendanceRecord = null;
       attendanceForm = {
         date: currentDate,
-        checkIn: '',
-        checkOut: '',
-        status: 'present',
-        notes: ''
-      }
+        checkIn: "",
+        checkOut: "",
+        status: "present",
+        notes: "",
+      };
     }
-    isAttendanceModalOpen = true
+    isAttendanceModalOpen = true;
   }
 
   function handleLeaveRequest() {
@@ -110,13 +125,16 @@
       !leaveRequestForm.startDate ||
       !leaveRequestForm.endDate
     ) {
-      alert('모든 필수 항목을 입력해주세요.')
-      return
+      alert("모든 필수 항목을 입력해주세요.");
+      return;
     }
 
-    const startDate = new Date(leaveRequestForm.startDate)
-    const endDate = new Date(leaveRequestForm.endDate)
-    const days = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1
+    const startDate = new Date(leaveRequestForm.startDate);
+    const endDate = new Date(leaveRequestForm.endDate);
+    const days =
+      Math.ceil(
+        (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24),
+      ) + 1;
 
     requestLeave({
       employeeId: selectedEmployeeId,
@@ -125,17 +143,17 @@
       endDate: leaveRequestForm.endDate,
       days,
       reason: leaveRequestForm.reason,
-      status: 'pending'
-    })
+      status: "pending",
+    });
 
-    isLeaveRequestModalOpen = false
-    alert('휴가 신청이 완료되었습니다.')
+    isLeaveRequestModalOpen = false;
+    alert("휴가 신청이 완료되었습니다.");
   }
 
   function handleAttendanceSubmit() {
     if (!selectedEmployeeId || !attendanceForm.date) {
-      alert('직원과 날짜를 선택해주세요.')
-      return
+      alert("직원과 날짜를 선택해주세요.");
+      return;
     }
 
     if (selectedAttendanceRecord) {
@@ -144,8 +162,8 @@
         checkIn: attendanceForm.checkIn,
         checkOut: attendanceForm.checkOut,
         status: attendanceForm.status,
-        notes: attendanceForm.notes
-      })
+        notes: attendanceForm.notes,
+      });
     } else {
       // 새 기록 추가
       addAttendanceRecord({
@@ -154,132 +172,132 @@
         checkIn: attendanceForm.checkIn,
         checkOut: attendanceForm.checkOut,
         status: attendanceForm.status,
-        notes: attendanceForm.notes
-      })
+        notes: attendanceForm.notes,
+      });
     }
 
-    isAttendanceModalOpen = false
+    isAttendanceModalOpen = false;
   }
 
   function handleCheckIn() {
     if (!selectedEmployeeId) {
-      alert('직원을 선택해주세요.')
-      return
+      alert("직원을 선택해주세요.");
+      return;
     }
-    checkIn(selectedEmployeeId)
-    alert('출근 체크가 완료되었습니다.')
+    checkIn(selectedEmployeeId);
+    alert("출근 체크가 완료되었습니다.");
   }
 
   function handleCheckOut() {
     if (!selectedEmployeeId) {
-      alert('직원을 선택해주세요.')
-      return
+      alert("직원을 선택해주세요.");
+      return;
     }
-    checkOut(selectedEmployeeId)
-    alert('퇴근 체크가 완료되었습니다.')
+    checkOut(selectedEmployeeId);
+    alert("퇴근 체크가 완료되었습니다.");
   }
 
   function approveLeave(leaveId: string) {
-    approveLeaveRequest(leaveId, 'HR팀')
-    alert('휴가가 승인되었습니다.')
+    approveLeaveRequest(leaveId, "HR팀");
+    alert("휴가가 승인되었습니다.");
   }
 
   function rejectLeave(leaveId: string) {
-    const reason = prompt('거부 사유를 입력해주세요:')
+    const reason = prompt("거부 사유를 입력해주세요:");
     if (reason) {
-      rejectLeaveRequest(leaveId, reason)
-      alert('휴가가 거부되었습니다.')
+      rejectLeaveRequest(leaveId, reason);
+      alert("휴가가 거부되었습니다.");
     }
   }
 
   function getStatusBadgeVariant(
-    status: AttendanceRecord['status']
-  ): 'success' | 'warning' | 'danger' | 'secondary' {
+    status: AttendanceRecord["status"],
+  ): "success" | "warning" | "danger" | "secondary" {
     switch (status) {
-      case 'present':
-        return 'success'
-      case 'late':
-        return 'warning'
-      case 'early-leave':
-        return 'warning'
-      case 'absent':
-        return 'danger'
-      case 'vacation':
-        return 'secondary'
-      case 'sick-leave':
-        return 'secondary'
+      case "present":
+        return "success";
+      case "late":
+        return "warning";
+      case "early-leave":
+        return "warning";
+      case "absent":
+        return "danger";
+      case "vacation":
+        return "secondary";
+      case "sick-leave":
+        return "secondary";
       default:
-        return 'secondary'
+        return "secondary";
     }
   }
 
-  function getStatusText(status: AttendanceRecord['status']): string {
+  function getStatusText(status: AttendanceRecord["status"]): string {
     switch (status) {
-      case 'present':
-        return '정상출근'
-      case 'late':
-        return '지각'
-      case 'early-leave':
-        return '조퇴'
-      case 'absent':
-        return '결근'
-      case 'vacation':
-        return '휴가'
-      case 'sick-leave':
-        return '병가'
-      case 'business-trip':
-        return '출장'
-      case 'half-day':
-        return '반차'
+      case "present":
+        return "정상출근";
+      case "late":
+        return "지각";
+      case "early-leave":
+        return "조퇴";
+      case "absent":
+        return "결근";
+      case "vacation":
+        return "휴가";
+      case "sick-leave":
+        return "병가";
+      case "business-trip":
+        return "출장";
+      case "half-day":
+        return "반차";
       default:
-        return status
+        return status;
     }
   }
 
   function getLeaveStatusBadgeVariant(
-    status: LeaveRequest['status']
-  ): 'warning' | 'success' | 'danger' | 'secondary' {
+    status: LeaveRequest["status"],
+  ): "warning" | "success" | "danger" | "secondary" {
     switch (status) {
-      case 'pending':
-        return 'warning'
-      case 'approved':
-        return 'success'
-      case 'rejected':
-        return 'danger'
-      case 'cancelled':
-        return 'secondary'
+      case "pending":
+        return "warning";
+      case "approved":
+        return "success";
+      case "rejected":
+        return "danger";
+      case "cancelled":
+        return "secondary";
       default:
-        return 'secondary'
+        return "secondary";
     }
   }
 
-  function getLeaveStatusText(status: LeaveRequest['status']): string {
+  function getLeaveStatusText(status: LeaveRequest["status"]): string {
     switch (status) {
-      case 'pending':
-        return '대기중'
-      case 'approved':
-        return '승인'
-      case 'rejected':
-        return '거부'
-      case 'cancelled':
-        return '취소'
+      case "pending":
+        return "대기중";
+      case "approved":
+        return "승인";
+      case "rejected":
+        return "거부";
+      case "cancelled":
+        return "취소";
       default:
-        return status
+        return status;
     }
   }
 
   function getLeaveTypeName(leaveTypeId: string): string {
-    const leaveType = $leaveTypes.find(type => type.id === leaveTypeId)
-    return leaveType ? leaveType.name : leaveTypeId
+    const leaveType = $leaveTypes.find((type) => type.id === leaveTypeId);
+    return leaveType ? leaveType.name : leaveTypeId;
   }
 
   onMount(() => {
     // 첫 번째 활성 직원을 기본 선택
-    const activeEmployees = getActiveEmployees($employees)
+    const activeEmployees = getActiveEmployees($employees);
     if (activeEmployees.length > 0) {
-      selectedEmployeeId = activeEmployees[0].id
+      selectedEmployeeId = activeEmployees[0].id;
     }
-  })
+  });
 </script>
 
 <div class="min-h-screen bg-gray-50 p-6">
@@ -287,21 +305,28 @@
     <!-- 헤더 -->
     <div class="mb-8">
       <h1 class="text-3xl font-bold text-gray-900">근태 관리</h1>
-      <p class="text-gray-600 mt-1">직원의 출퇴근 기록 및 휴가 신청을 관리합니다</p>
+      <p class="text-gray-600 mt-1">
+        직원의 출퇴근 기록 및 휴가 신청을 관리합니다
+      </p>
     </div>
 
     <!-- 직원 선택 -->
     <Card class="mb-6">
       <div class="p-6">
         <div class="flex items-center space-x-4">
-          <label class="text-sm font-medium text-gray-700">직원 선택:</label>
+          <label class="text-sm font-medium text-gray-700" for="field-employee"
+            >직원 선택:</label
+          >
           <select
             bind:value={selectedEmployeeId}
             class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            id="field-employee"
           >
             <option value="">직원을 선택하세요</option>
-            {#each getActiveEmployees($employees) as employee}
-              <option value={employee.id}>{employee.name} ({employee.employeeId})</option>
+            {#each getActiveEmployees($employees) as employee, i (keyOf(employee, i))}
+              <option value={employee.id}
+                >{employee.name} ({employee.employeeId})</option
+              >
             {/each}
           </select>
         </div>
@@ -312,33 +337,44 @@
       <!-- 오늘의 출퇴근 -->
       <Card class="mb-6">
         <div class="p-6">
-          <h3 class="text-lg font-semibold text-gray-900 mb-4">오늘의 출퇴근</h3>
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">
+            오늘의 출퇴근
+          </h3>
           <div class="flex items-center justify-between">
             <div class="flex items-center space-x-4">
               <div>
                 <p class="text-sm text-gray-600">출근시간</p>
-                <p class="text-lg font-semibold">{todayAttendance?.checkIn || '미체크'}</p>
+                <p class="text-lg font-semibold">
+                  {todayAttendance?.checkIn || "미체크"}
+                </p>
               </div>
               <div>
                 <p class="text-sm text-gray-600">퇴근시간</p>
-                <p class="text-lg font-semibold">{todayAttendance?.checkOut || '미체크'}</p>
+                <p class="text-lg font-semibold">
+                  {todayAttendance?.checkOut || "미체크"}
+                </p>
               </div>
               <div>
                 <p class="text-sm text-gray-600">근무시간</p>
-                <p class="text-lg font-semibold">{todayAttendance?.workHours || 0}시간</p>
+                <p class="text-lg font-semibold">
+                  {todayAttendance?.workHours || 0}시간
+                </p>
               </div>
             </div>
             <div class="flex space-x-2">
-              <button type="button"
+              <button
+                type="button"
                 onclick={handleCheckIn}
                 disabled={!!todayAttendance?.checkIn}
                 class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
               >
                 출근 체크
               </button>
-              <button type="button"
+              <button
+                type="button"
                 onclick={handleCheckOut}
-                disabled={!todayAttendance?.checkIn || !!todayAttendance?.checkOut}
+                disabled={!todayAttendance?.checkIn ||
+                  !!todayAttendance?.checkOut}
                 class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
               >
                 퇴근 체크
@@ -370,7 +406,9 @@
               </div>
               <div class="ml-4">
                 <p class="text-sm font-medium text-gray-600">정상출근</p>
-                <p class="text-2xl font-bold text-gray-900">{monthlyStats.presentDays}</p>
+                <p class="text-2xl font-bold text-gray-900">
+                  {monthlyStats.presentDays}
+                </p>
               </div>
             </div>
           </div>
@@ -396,7 +434,9 @@
               </div>
               <div class="ml-4">
                 <p class="text-sm font-medium text-gray-600">지각</p>
-                <p class="text-2xl font-bold text-gray-900">{monthlyStats.lateDays}</p>
+                <p class="text-2xl font-bold text-gray-900">
+                  {monthlyStats.lateDays}
+                </p>
               </div>
             </div>
           </div>
@@ -422,7 +462,9 @@
               </div>
               <div class="ml-4">
                 <p class="text-sm font-medium text-gray-600">결근</p>
-                <p class="text-2xl font-bold text-gray-900">{monthlyStats.absentDays}</p>
+                <p class="text-2xl font-bold text-gray-900">
+                  {monthlyStats.absentDays}
+                </p>
               </div>
             </div>
           </div>
@@ -448,7 +490,9 @@
               </div>
               <div class="ml-4">
                 <p class="text-sm font-medium text-gray-600">총 근무시간</p>
-                <p class="text-2xl font-bold text-gray-900">{monthlyStats.totalWorkHours}시간</p>
+                <p class="text-2xl font-bold text-gray-900">
+                  {monthlyStats.totalWorkHours}시간
+                </p>
               </div>
             </div>
           </div>
@@ -462,7 +506,8 @@
           <div class="p-6">
             <div class="flex justify-between items-center mb-4">
               <h3 class="text-lg font-semibold text-gray-900">근태 기록</h3>
-              <button type="button"
+              <button
+                type="button"
                 onclick={() => openAttendanceModal()}
                 class="px-3 py-1 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 transition-colors"
               >
@@ -470,13 +515,19 @@
               </button>
             </div>
             <div class="space-y-3">
-              {#each employeeAttendance.slice(0, 10) as record}
-                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              {#each employeeAttendance.slice(0, 10) as record, idx (idx)}
+                <!-- TODO: replace index key with a stable id when model provides one -->
+                <div
+                  class="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                >
                   <div class="flex items-center space-x-3">
                     <div>
-                      <p class="text-sm font-medium text-gray-900">{formatDate(record.date)}</p>
+                      <p class="text-sm font-medium text-gray-900">
+                        {formatDate(record.date)}
+                      </p>
                       <p class="text-xs text-gray-500">
-                        {record.checkIn || '미체크'} - {record.checkOut || '미체크'}
+                        {record.checkIn || "미체크"} - {record.checkOut ||
+                          "미체크"}
                       </p>
                     </div>
                   </div>
@@ -484,7 +535,8 @@
                     <Badge variant={getStatusBadgeVariant(record.status)}>
                       {getStatusText(record.status)}
                     </Badge>
-                    <button type="button"
+                    <button
+                      type="button"
                       onclick={() => openAttendanceModal(record)}
                       class="text-blue-600 hover:text-blue-900 text-sm"
                     >
@@ -502,7 +554,8 @@
           <div class="p-6">
             <div class="flex justify-between items-center mb-4">
               <h3 class="text-lg font-semibold text-gray-900">휴가 관리</h3>
-              <button type="button"
+              <button
+                type="button"
                 onclick={openLeaveRequestModal}
                 class="px-3 py-1 bg-green-600 text-white text-sm rounded-md hover:bg-green-700 transition-colors"
               >
@@ -517,8 +570,9 @@
                 {#each employeeLeaveBalance as balance, i (i)}
                   <div class="flex justify-between items-center">
                     <span class="text-sm text-gray-600">
-                      {$leaveTypes.find(type => type.id === balance.leaveTypeId)?.name ||
-                        balance.leaveTypeId}
+                      {$leaveTypes.find(
+                        (type) => type.id === balance.leaveTypeId,
+                      )?.name || balance.leaveTypeId}
                     </span>
                     <span class="text-sm font-medium text-gray-900">
                       {balance.remainingDays}일
@@ -532,29 +586,37 @@
             <div>
               <h4 class="text-sm font-medium text-gray-700 mb-2">신청 내역</h4>
               <div class="space-y-3">
-                {#each employeeLeaveRequests.slice(0, 5) as request}
-                  <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                {#each employeeLeaveRequests.slice(0, 5) as request, i (keyOf(request, i))}
+                  <div
+                    class="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                  >
                     <div>
                       <p class="text-sm font-medium text-gray-900">
                         {getLeaveTypeName(request.leaveTypeId)} ({request.days}일)
                       </p>
                       <p class="text-xs text-gray-500">
-                        {formatDate(request.startDate)} - {formatDate(request.endDate)}
+                        {formatDate(request.startDate)} - {formatDate(
+                          request.endDate,
+                        )}
                       </p>
                     </div>
                     <div class="flex items-center space-x-2">
-                      <Badge variant={getLeaveStatusBadgeVariant(request.status)}>
+                      <Badge
+                        variant={getLeaveStatusBadgeVariant(request.status)}
+                      >
                         {getLeaveStatusText(request.status)}
                       </Badge>
-                      {#if request.status === 'pending'}
+                      {#if request.status === "pending"}
                         <div class="flex space-x-1">
-                          <button type="button"
+                          <button
+                            type="button"
                             onclick={() => approveLeave(request.id)}
                             class="text-green-600 hover:text-green-900 text-xs"
                           >
                             승인
                           </button>
-                          <button type="button"
+                          <button
+                            type="button"
                             onclick={() => rejectLeave(request.id)}
                             class="text-red-600 hover:text-red-900 text-xs"
                           >
@@ -586,7 +648,9 @@
               d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
             />
           </svg>
-          <h3 class="text-lg font-medium text-gray-900 mb-2">직원을 선택하세요</h3>
+          <h3 class="text-lg font-medium text-gray-900 mb-2">
+            직원을 선택하세요
+          </h3>
           <p class="text-gray-500">근태 관리를 위해 직원을 선택해주세요.</p>
         </div>
       </Card>
@@ -597,18 +661,22 @@
       <div class="p-6">
         <h3 class="text-lg font-semibold text-gray-900 mb-4">휴가 신청</h3>
         <form
-          onsubmit={e => {
-            e.preventDefault()
-            handleLeaveRequest()
+          onsubmit={(e) => {
+            e.preventDefault();
+            handleLeaveRequest();
           }}
         >
           <div class="space-y-4">
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">휴가 유형 *</label>
+              <label
+                class="block text-sm font-medium text-gray-700 mb-1"
+                for="field-leavetype">휴가 유형 *</label
+              >
               <select
                 bind:value={leaveRequestForm.leaveTypeId}
                 required
                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                id="field-leavetype"
               >
                 <option value="">휴가 유형을 선택하세요</option>
                 {#each $leaveTypes as leaveType, i (i)}
@@ -618,31 +686,43 @@
             </div>
             <div class="grid grid-cols-2 gap-4">
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">시작일 *</label>
+                <label
+                  class="block text-sm font-medium text-gray-700 mb-1"
+                  for="field-startdate">시작일 *</label
+                >
                 <input
                   type="date"
                   bind:value={leaveRequestForm.startDate}
                   required
                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  id="field-startdate"
                 />
               </div>
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">종료일 *</label>
+                <label
+                  class="block text-sm font-medium text-gray-700 mb-1"
+                  for="field-enddate">종료일 *</label
+                >
                 <input
                   type="date"
                   bind:value={leaveRequestForm.endDate}
                   required
                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  id="field-enddate"
                 />
               </div>
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">사유</label>
+              <label
+                class="block text-sm font-medium text-gray-700 mb-1"
+                for="field-reason">사유</label
+              >
               <textarea
                 bind:value={leaveRequestForm.reason}
                 rows="3"
                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="휴가 신청 사유를 입력하세요"
+                id="field-reason"
               ></textarea>
             </div>
           </div>
@@ -670,48 +750,64 @@
     <Modal bind:open={isAttendanceModalOpen}>
       <div class="p-6">
         <h3 class="text-lg font-semibold text-gray-900 mb-4">
-          {selectedAttendanceRecord ? '근태 기록 수정' : '근태 기록 추가'}
+          {selectedAttendanceRecord ? "근태 기록 수정" : "근태 기록 추가"}
         </h3>
         <form
-          onsubmit={e => {
-            e.preventDefault()
-            handleAttendanceSubmit()
+          onsubmit={(e) => {
+            e.preventDefault();
+            handleAttendanceSubmit();
           }}
         >
           <div class="space-y-4">
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">날짜 *</label>
+              <label
+                class="block text-sm font-medium text-gray-700 mb-1"
+                for="field-date">날짜 *</label
+              >
               <input
                 type="date"
                 bind:value={attendanceForm.date}
                 required
                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                id="field-date"
               />
             </div>
             <div class="grid grid-cols-2 gap-4">
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">출근시간</label>
+                <label
+                  class="block text-sm font-medium text-gray-700 mb-1"
+                  for="field-checkin">출근시간</label
+                >
                 <input
                   type="time"
                   bind:value={attendanceForm.checkIn}
                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  id="field-checkin"
                 />
               </div>
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">퇴근시간</label>
+                <label
+                  class="block text-sm font-medium text-gray-700 mb-1"
+                  for="field-checkin">퇴근시간</label
+                >
                 <input
                   type="time"
                   bind:value={attendanceForm.checkOut}
                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  id="field-checkin"
                 />
               </div>
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">상태 *</label>
+              <label
+                class="block text-sm font-medium text-gray-700 mb-1"
+                for="field-status">상태 *</label
+              >
               <select
                 bind:value={attendanceForm.status}
                 required
                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                id="field-status"
               >
                 <option value="present">정상출근</option>
                 <option value="late">지각</option>
@@ -724,12 +820,16 @@
               </select>
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">비고</label>
+              <label
+                class="block text-sm font-medium text-gray-700 mb-1"
+                for="field-notes">비고</label
+              >
               <textarea
                 bind:value={attendanceForm.notes}
                 rows="3"
                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="추가 사항을 입력하세요"
+                id="field-notes"
               ></textarea>
             </div>
           </div>
@@ -746,7 +846,7 @@
               type="submit"
               class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
             >
-              {selectedAttendanceRecord ? '수정' : '추가'}
+              {selectedAttendanceRecord ? "수정" : "추가"}
             </button>
           </div>
         </form>

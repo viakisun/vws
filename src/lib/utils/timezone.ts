@@ -3,27 +3,27 @@
  * 모든 시간 처리를 UTC 기준으로 하고, 타임존 변환을 명확하게 관리합니다.
  */
 
-import { toUTC } from './date-handler'
+import { toUTC } from "./date-handler";
 
 // 지원하는 타임존 목록 (확장 가능)
 export const SUPPORTED_TIMEZONES = {
-  UTC: 'UTC',
-  KST: 'Asia/Seoul', // 한국 표준시 (UTC+9)
-  JST: 'Asia/Tokyo', // 일본 표준시 (UTC+9)
-  EST: 'America/New_York', // 미국 동부 표준시 (UTC-5)
-  PST: 'America/Los_Angeles', // 미국 서부 표준시 (UTC-8)
-  GMT: 'Europe/London', // 그리니치 표준시 (UTC+0)
-  CET: 'Europe/Paris', // 중앙유럽 표준시 (UTC+1)
-  CST: 'Asia/Shanghai', // 중국 표준시 (UTC+8)
-  IST: 'Asia/Kolkata', // 인도 표준시 (UTC+5:30)
-  AEST: 'Australia/Sydney', // 호주 동부 표준시 (UTC+10)
-  NZST: 'Pacific/Auckland' // 뉴질랜드 표준시 (UTC+12)
-} as const
+  UTC: "UTC",
+  KST: "Asia/Seoul", // 한국 표준시 (UTC+9)
+  JST: "Asia/Tokyo", // 일본 표준시 (UTC+9)
+  EST: "America/New_York", // 미국 동부 표준시 (UTC-5)
+  PST: "America/Los_Angeles", // 미국 서부 표준시 (UTC-8)
+  GMT: "Europe/London", // 그리니치 표준시 (UTC+0)
+  CET: "Europe/Paris", // 중앙유럽 표준시 (UTC+1)
+  CST: "Asia/Shanghai", // 중국 표준시 (UTC+8)
+  IST: "Asia/Kolkata", // 인도 표준시 (UTC+5:30)
+  AEST: "Australia/Sydney", // 호주 동부 표준시 (UTC+10)
+  NZST: "Pacific/Auckland", // 뉴질랜드 표준시 (UTC+12)
+} as const;
 
-export type Timezone = keyof typeof SUPPORTED_TIMEZONES
+export type Timezone = keyof typeof SUPPORTED_TIMEZONES;
 
 // 기본 타임존 설정 (한국 표준시)
-export const DEFAULT_TIMEZONE: Timezone = 'KST'
+export const DEFAULT_TIMEZONE: Timezone = "KST";
 
 /**
  * UTC 시간을 특정 타임존의 로컬 시간으로 변환
@@ -31,15 +31,18 @@ export const DEFAULT_TIMEZONE: Timezone = 'KST'
  * @param timezone 변환할 타임존
  * @returns 변환된 로컬 시간
  */
-export function utcToLocal(utcDate: Date, timezone: Timezone = DEFAULT_TIMEZONE): Date {
+export function utcToLocal(
+  utcDate: Date,
+  timezone: Timezone = DEFAULT_TIMEZONE,
+): Date {
   if (!utcDate || isNaN(utcDate.getTime())) {
-    throw new Error('Invalid UTC date provided')
+    throw new Error("Invalid UTC date provided");
   }
 
   // 표준 날짜 처리 함수 사용
-  const utcString = utcDate.toISOString()
-  const localDate = new Date(toUTC(utcString))
-  return localDate
+  const utcString = utcDate.toISOString();
+  const localDate = new Date(toUTC(utcString));
+  return localDate;
 }
 
 /**
@@ -48,18 +51,21 @@ export function utcToLocal(utcDate: Date, timezone: Timezone = DEFAULT_TIMEZONE)
  * @param timezone 로컬 시간의 타임존
  * @returns UTC 시간
  */
-export function localToUtc(localDate: Date, timezone: Timezone = DEFAULT_TIMEZONE): Date {
+export function localToUtc(
+  localDate: Date,
+  timezone: Timezone = DEFAULT_TIMEZONE,
+): Date {
   if (!localDate || isNaN(localDate.getTime())) {
-    throw new Error('Invalid local date provided')
+    throw new Error("Invalid local date provided");
   }
 
-  const timezoneString = SUPPORTED_TIMEZONES[timezone]
+  const timezoneString = SUPPORTED_TIMEZONES[timezone];
   // 표준 날짜 처리 함수 사용
-  const utcDate = new Date(toUTC(localDate.toISOString()))
+  const utcDate = new Date(toUTC(localDate.toISOString()));
 
   // 타임존 오프셋을 고려하여 UTC로 변환
-  const offset = getTimezoneOffset(timezone)
-  return new Date(utcDate.getTime() - offset * 60 * 1000)
+  const offset = getTimezoneOffset(timezone);
+  return new Date(utcDate.getTime() - offset * 60 * 1000);
 }
 
 /**
@@ -79,10 +85,10 @@ export function getTimezoneOffset(timezone: Timezone): number {
     CST: -480, // UTC+8 = -480분
     IST: -330, // UTC+5:30 = -330분
     AEST: -600, // UTC+10 = -600분
-    NZST: -720 // UTC+12 = -720분
-  }
+    NZST: -720, // UTC+12 = -720분
+  };
 
-  return offsets[timezone]
+  return offsets[timezone];
 }
 
 /**
@@ -91,12 +97,15 @@ export function getTimezoneOffset(timezone: Timezone): number {
  * @param timezone 변환할 타임존
  * @returns YYYY-MM-DD 형식의 날짜 문자열
  */
-export function utcToDateString(utcDate: Date, timezone: Timezone = DEFAULT_TIMEZONE): string {
-  const localDate = utcToLocal(utcDate, timezone)
-  const year = localDate.getFullYear()
-  const month = String(localDate.getMonth() + 1).padStart(2, '0')
-  const day = String(localDate.getDate()).padStart(2, '0')
-  return `${year}-${month}-${day}`
+export function utcToDateString(
+  utcDate: Date,
+  timezone: Timezone = DEFAULT_TIMEZONE,
+): string {
+  const localDate = utcToLocal(utcDate, timezone);
+  const year = localDate.getFullYear();
+  const month = String(localDate.getMonth() + 1).padStart(2, "0");
+  const day = String(localDate.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 }
 
 /**
@@ -105,16 +114,19 @@ export function utcToDateString(utcDate: Date, timezone: Timezone = DEFAULT_TIME
  * @param timezone 입력 날짜의 타임존
  * @returns UTC 시간
  */
-export function dateStringToUtc(dateString: string, timezone: Timezone = DEFAULT_TIMEZONE): Date {
+export function dateStringToUtc(
+  dateString: string,
+  timezone: Timezone = DEFAULT_TIMEZONE,
+): Date {
   if (!dateString || !dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
-    throw new Error('Invalid date string format. Expected YYYY-MM-DD')
+    throw new Error("Invalid date string format. Expected YYYY-MM-DD");
   }
 
   // 로컬 타임존에서 자정으로 해석
-  const [year, month, day] = dateString.split('-').map(Number)
-  const localDate = new Date(year, month - 1, day, 0, 0, 0, 0)
+  const [year, month, day] = dateString.split("-").map(Number);
+  const localDate = new Date(year, month - 1, day, 0, 0, 0, 0);
 
-  return localToUtc(localDate, timezone)
+  return localToUtc(localDate, timezone);
 }
 
 /**
@@ -123,12 +135,15 @@ export function dateStringToUtc(dateString: string, timezone: Timezone = DEFAULT
  * @param timezone 변환할 타임존
  * @returns HH:MM:SS 형식의 시간 문자열
  */
-export function utcToTimeString(utcDate: Date, timezone: Timezone = DEFAULT_TIMEZONE): string {
-  const localDate = utcToLocal(utcDate, timezone)
-  const hours = String(localDate.getHours()).padStart(2, '0')
-  const minutes = String(localDate.getMinutes()).padStart(2, '0')
-  const seconds = String(localDate.getSeconds()).padStart(2, '0')
-  return `${hours}:${minutes}:${seconds}`
+export function utcToTimeString(
+  utcDate: Date,
+  timezone: Timezone = DEFAULT_TIMEZONE,
+): string {
+  const localDate = utcToLocal(utcDate, timezone);
+  const hours = String(localDate.getHours()).padStart(2, "0");
+  const minutes = String(localDate.getMinutes()).padStart(2, "0");
+  const seconds = String(localDate.getSeconds()).padStart(2, "0");
+  return `${hours}:${minutes}:${seconds}`;
 }
 
 /**
@@ -137,11 +152,14 @@ export function utcToTimeString(utcDate: Date, timezone: Timezone = DEFAULT_TIME
  * @param timezone 변환할 타임존
  * @returns YYYY-MM-DD HH:MM:SS 형식의 날짜시간 문자열
  */
-export function utcToDateTimeString(utcDate: Date, timezone: Timezone = DEFAULT_TIMEZONE): string {
-  const localDate = utcToLocal(utcDate, timezone)
-  const dateString = utcToDateString(utcDate, timezone)
-  const timeString = utcToTimeString(utcDate, timezone)
-  return `${dateString} ${timeString}`
+export function utcToDateTimeString(
+  utcDate: Date,
+  timezone: Timezone = DEFAULT_TIMEZONE,
+): string {
+  const localDate = utcToLocal(utcDate, timezone);
+  const dateString = utcToDateString(utcDate, timezone);
+  const timeString = utcToTimeString(utcDate, timezone);
+  return `${dateString} ${timeString}`;
 }
 
 /**
@@ -149,7 +167,7 @@ export function utcToDateTimeString(utcDate: Date, timezone: Timezone = DEFAULT_
  * @returns 현재 UTC 시간
  */
 export function getCurrentUtcTime(): Date {
-  return new Date()
+  return new Date();
 }
 
 /**
@@ -157,8 +175,10 @@ export function getCurrentUtcTime(): Date {
  * @param timezone 타임존
  * @returns 현재 로컬 시간
  */
-export function getCurrentLocalTime(timezone: Timezone = DEFAULT_TIMEZONE): Date {
-  return utcToLocal(getCurrentUtcTime(), timezone)
+export function getCurrentLocalTime(
+  timezone: Timezone = DEFAULT_TIMEZONE,
+): Date {
+  return utcToLocal(getCurrentUtcTime(), timezone);
 }
 
 /**
@@ -168,12 +188,17 @@ export function getCurrentLocalTime(timezone: Timezone = DEFAULT_TIMEZONE): Date
  * @returns 일수
  */
 export function getDaysBetweenUtc(startUtc: Date, endUtc: Date): number {
-  if (!startUtc || !endUtc || isNaN(startUtc.getTime()) || isNaN(endUtc.getTime())) {
-    throw new Error('Invalid UTC dates provided')
+  if (
+    !startUtc ||
+    !endUtc ||
+    isNaN(startUtc.getTime()) ||
+    isNaN(endUtc.getTime())
+  ) {
+    throw new Error("Invalid UTC dates provided");
   }
 
-  const diffTime = endUtc.getTime() - startUtc.getTime()
-  return Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+  const diffTime = endUtc.getTime() - startUtc.getTime();
+  return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 }
 
 /**
@@ -184,12 +209,12 @@ export function getDaysBetweenUtc(startUtc: Date, endUtc: Date): number {
  */
 export function addDaysToUtc(utcDate: Date, days: number): Date {
   if (!utcDate || isNaN(utcDate.getTime())) {
-    throw new Error('Invalid UTC date provided')
+    throw new Error("Invalid UTC date provided");
   }
 
-  const result = new Date(utcDate)
-  result.setUTCDate(result.getUTCDate() + days)
-  return result
+  const result = new Date(utcDate);
+  result.setUTCDate(result.getUTCDate() + days);
+  return result;
 }
 
 /**
@@ -199,7 +224,7 @@ export function addDaysToUtc(utcDate: Date, days: number): Date {
  * @returns 계산된 UTC 시간
  */
 export function subtractDaysFromUtc(utcDate: Date, days: number): Date {
-  return addDaysToUtc(utcDate, -days)
+  return addDaysToUtc(utcDate, -days);
 }
 
 /**
@@ -213,21 +238,21 @@ export function formatUtcToLocal(
   utcDate: Date,
   timezone: Timezone = DEFAULT_TIMEZONE,
   options: Intl.DateTimeFormatOptions = {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    timeZoneName: 'short'
-  }
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    timeZoneName: "short",
+  },
 ): string {
   if (!utcDate || isNaN(utcDate.getTime())) {
-    throw new Error('Invalid UTC date provided')
+    throw new Error("Invalid UTC date provided");
   }
 
   // 표준 날짜 처리 함수 사용
-  return formatUtcToLocal(utcDate, timezone, options)
+  return formatUtcToLocal(utcDate, timezone, options);
 }
 
 /**
@@ -236,8 +261,11 @@ export function formatUtcToLocal(
  * @param timezone 타임존
  * @returns HTML date input용 YYYY-MM-DD 형식
  */
-export function utcToDateInput(utcDate: Date, timezone: Timezone = DEFAULT_TIMEZONE): string {
-  return utcToDateString(utcDate, timezone)
+export function utcToDateInput(
+  utcDate: Date,
+  timezone: Timezone = DEFAULT_TIMEZONE,
+): string {
+  return utcToDateString(utcDate, timezone);
 }
 
 /**
@@ -248,9 +276,9 @@ export function utcToDateInput(utcDate: Date, timezone: Timezone = DEFAULT_TIMEZ
  */
 export function dateInputToUtc(
   dateInputValue: string,
-  timezone: Timezone = DEFAULT_TIMEZONE
+  timezone: Timezone = DEFAULT_TIMEZONE,
 ): Date {
-  return dateStringToUtc(dateInputValue, timezone)
+  return dateStringToUtc(dateInputValue, timezone);
 }
 
 /**
@@ -260,10 +288,10 @@ export function dateInputToUtc(
  */
 export function utcToDbString(utcDate: Date): string {
   if (!utcDate || isNaN(utcDate.getTime())) {
-    throw new Error('Invalid UTC date provided')
+    throw new Error("Invalid UTC date provided");
   }
 
-  return utcDate.toISOString()
+  return utcDate.toISOString();
 }
 
 /**
@@ -273,28 +301,28 @@ export function utcToDbString(utcDate: Date): string {
  */
 export function dbStringToUtc(dbString: string): Date {
   if (!dbString) {
-    throw new Error('Invalid database string provided')
+    throw new Error("Invalid database string provided");
   }
 
-  const date = new Date(dbString)
+  const date = new Date(dbString);
   if (isNaN(date.getTime())) {
-    throw new Error('Invalid database string format')
+    throw new Error("Invalid database string format");
   }
 
-  return date
+  return date;
 }
 
 /**
  * 타임존 정보를 포함한 시간 정보 객체
  */
 export interface TimeInfo {
-  utc: Date
-  local: Date
-  timezone: Timezone
-  dateString: string // YYYY-MM-DD
-  timeString: string // HH:MM:SS
-  dateTimeString: string // YYYY-MM-DD HH:MM:SS
-  formatted: string // 포맷팅된 문자열
+  utc: Date;
+  local: Date;
+  timezone: Timezone;
+  dateString: string; // YYYY-MM-DD
+  timeString: string; // HH:MM:SS
+  dateTimeString: string; // YYYY-MM-DD HH:MM:SS
+  formatted: string; // 포맷팅된 문자열
 }
 
 /**
@@ -303,8 +331,11 @@ export interface TimeInfo {
  * @param timezone 타임존
  * @returns 시간 정보 객체
  */
-export function getTimeInfo(utcDate: Date, timezone: Timezone = DEFAULT_TIMEZONE): TimeInfo {
-  const local = utcToLocal(utcDate, timezone)
+export function getTimeInfo(
+  utcDate: Date,
+  timezone: Timezone = DEFAULT_TIMEZONE,
+): TimeInfo {
+  const local = utcToLocal(utcDate, timezone);
 
   return {
     utc: utcDate,
@@ -313,6 +344,6 @@ export function getTimeInfo(utcDate: Date, timezone: Timezone = DEFAULT_TIMEZONE
     dateString: utcToDateString(utcDate, timezone),
     timeString: utcToTimeString(utcDate, timezone),
     dateTimeString: utcToDateTimeString(utcDate, timezone),
-    formatted: formatUtcToLocal(utcDate, timezone)
-  }
+    formatted: formatUtcToLocal(utcDate, timezone),
+  };
 }

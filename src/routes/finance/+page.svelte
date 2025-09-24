@@ -1,16 +1,17 @@
-import { logger } from '$lib/utils/logger';
 <script lang="ts">
-  import { onMount } from 'svelte'
-  import PageLayout from '$lib/components/layout/PageLayout.svelte'
-  import ThemeCard from '$lib/components/ui/ThemeCard.svelte'
-  import ThemeBadge from '$lib/components/ui/ThemeBadge.svelte'
-  import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
-  import ThemeGrid from '$lib/components/ui/ThemeGrid.svelte'
-  import ThemeSpacer from '$lib/components/ui/ThemeSpacer.svelte'
-  import ThemeSectionHeader from '$lib/components/ui/ThemeSectionHeader.svelte'
-  import ThemeChartPlaceholder from '$lib/components/ui/ThemeChartPlaceholder.svelte'
-  import ThemeTabs from '$lib/components/ui/ThemeTabs.svelte'
-  import { formatCurrency, formatDate } from '$lib/utils/format'
+  import { logger } from "$lib/utils/logger";
+
+  import { onMount } from "svelte";
+  import PageLayout from "$lib/components/layout/PageLayout.svelte";
+  import ThemeCard from "$lib/components/ui/ThemeCard.svelte";
+  import ThemeBadge from "$lib/components/ui/ThemeBadge.svelte";
+  import ThemeButton from "$lib/components/ui/ThemeButton.svelte";
+  import ThemeGrid from "$lib/components/ui/ThemeGrid.svelte";
+  import ThemeSpacer from "$lib/components/ui/ThemeSpacer.svelte";
+  import ThemeSectionHeader from "$lib/components/ui/ThemeSectionHeader.svelte";
+  import ThemeChartPlaceholder from "$lib/components/ui/ThemeChartPlaceholder.svelte";
+  import ThemeTabs from "$lib/components/ui/ThemeTabs.svelte";
+  import { formatCurrency, formatDate } from "$lib/utils/format";
   import {
     TrendingUpIcon,
     TrendingDownIcon,
@@ -24,12 +25,12 @@ import { logger } from '$lib/utils/logger';
     BarChart3Icon,
     PieChartIcon,
     TargetIcon,
-    DollarSignIcon
-  } from '@lucide/svelte'
+    DollarSignIcon,
+  } from "@lucide/svelte";
 
   // 자금일보 데이터
   let fundsReport = $state({
-    date: new Date().toISOString().split('T')[0],
+    date: new Date().toISOString().split("T")[0],
     openingBalance: 50000000,
     closingBalance: 52000000,
     dailyInflow: 8000000,
@@ -37,170 +38,170 @@ import { logger } from '$lib/utils/logger';
     netFlow: 2000000,
     transactions: [
       {
-        id: 'txn-1',
-        type: 'inflow',
-        category: '매출',
-        description: 'ABC 테크놀로지 계약금',
+        id: "txn-1",
+        type: "inflow",
+        category: "매출",
+        description: "ABC 테크놀로지 계약금",
         amount: 5000000,
-        time: '09:30',
-        account: '주거래계좌'
+        time: "09:30",
+        account: "주거래계좌",
       },
       {
-        id: 'txn-2',
-        type: 'outflow',
-        category: '급여',
-        description: '1월 급여 지급',
+        id: "txn-2",
+        type: "outflow",
+        category: "급여",
+        description: "1월 급여 지급",
         amount: 3000000,
-        time: '10:00',
-        account: '급여계좌'
+        time: "10:00",
+        account: "급여계좌",
       },
       {
-        id: 'txn-3',
-        type: 'inflow',
-        category: '투자',
-        description: '투자 수익',
+        id: "txn-3",
+        type: "inflow",
+        category: "투자",
+        description: "투자 수익",
         amount: 2000000,
-        time: '14:30',
-        account: '투자계좌'
+        time: "14:30",
+        account: "투자계좌",
       },
       {
-        id: 'txn-4',
-        type: 'outflow',
-        category: '운영비',
-        description: '사무실 임대료',
+        id: "txn-4",
+        type: "outflow",
+        category: "운영비",
+        description: "사무실 임대료",
         amount: 1500000,
-        time: '16:00',
-        account: '운영계좌'
-      }
+        time: "16:00",
+        account: "운영계좌",
+      },
     ],
     accounts: [
       {
-        id: 'acc-1',
-        name: '주거래계좌',
-        bank: 'KB국민은행',
+        id: "acc-1",
+        name: "주거래계좌",
+        bank: "KB국민은행",
         balance: 25000000,
-        type: 'checking'
+        type: "checking",
       },
       {
-        id: 'acc-2',
-        name: '급여계좌',
-        bank: '신한은행',
+        id: "acc-2",
+        name: "급여계좌",
+        bank: "신한은행",
         balance: 15000000,
-        type: 'checking'
+        type: "checking",
       },
       {
-        id: 'acc-3',
-        name: '투자계좌',
-        bank: '하나은행',
+        id: "acc-3",
+        name: "투자계좌",
+        bank: "하나은행",
         balance: 12000000,
-        type: 'savings'
-      }
-    ]
-  })
+        type: "savings",
+      },
+    ],
+  });
 
   // 탭 정의
   const tabs = [
     {
-      id: 'funds-report',
-      label: '자금일보',
+      id: "funds-report",
+      label: "자금일보",
       icon: FileTextIcon,
-      badge: 'NEW'
+      badge: "NEW",
     },
     {
-      id: 'accounts',
-      label: '계좌관리',
-      icon: CreditCardIcon
+      id: "accounts",
+      label: "계좌관리",
+      icon: CreditCardIcon,
     },
     {
-      id: 'transactions',
-      label: '거래내역',
-      icon: ReceiptIcon
+      id: "transactions",
+      label: "거래내역",
+      icon: ReceiptIcon,
     },
     {
-      id: 'budget',
-      label: '예산관리',
-      icon: TargetIcon
+      id: "budget",
+      label: "예산관리",
+      icon: TargetIcon,
     },
     {
-      id: 'reports',
-      label: '보고서',
-      icon: BarChart3Icon
-    }
-  ]
+      id: "reports",
+      label: "보고서",
+      icon: BarChart3Icon,
+    },
+  ];
 
-  let activeTab = $state('funds-report')
+  let activeTab = $state("funds-report");
 
   // 통계 데이터
   const stats = [
     {
-      title: '현재 잔고',
+      title: "현재 잔고",
       value: formatCurrency(fundsReport.closingBalance),
-      change: '+4%',
-      changeType: 'positive' as const,
-      icon: DollarSignIcon
+      change: "+4%",
+      changeType: "positive" as const,
+      icon: DollarSignIcon,
     },
     {
-      title: '일일 유입',
+      title: "일일 유입",
       value: formatCurrency(fundsReport.dailyInflow),
-      change: '+12%',
-      changeType: 'positive' as const,
-      icon: TrendingUpIcon
+      change: "+12%",
+      changeType: "positive" as const,
+      icon: TrendingUpIcon,
     },
     {
-      title: '일일 유출',
+      title: "일일 유출",
       value: formatCurrency(fundsReport.dailyOutflow),
-      change: '-3%',
-      changeType: 'negative' as const,
-      icon: TrendingDownIcon
+      change: "-3%",
+      changeType: "negative" as const,
+      icon: TrendingDownIcon,
     },
     {
-      title: '순 유입',
+      title: "순 유입",
       value: formatCurrency(fundsReport.netFlow),
-      change: '+25%',
-      changeType: 'positive' as const,
-      icon: PiggyBankIcon
-    }
-  ]
+      change: "+25%",
+      changeType: "positive" as const,
+      icon: PiggyBankIcon,
+    },
+  ];
 
   // 액션 버튼들
   const actions = [
     {
-      label: '자금일보 생성',
+      label: "자금일보 생성",
       icon: FileTextIcon,
       onclick: () => generateFundsReport(),
-      variant: 'primary' as const
+      variant: "primary" as const,
     },
     {
-      label: 'AI 분석',
+      label: "AI 분석",
       icon: BrainIcon,
       onclick: () => analyzeWithAI(),
-      variant: 'success' as const
-    }
-  ]
+      variant: "success" as const,
+    },
+  ];
 
   // 자금일보 생성
   function generateFundsReport() {
-    logger.log('자금일보 생성')
+    logger.log("자금일보 생성");
   }
 
   // AI 분석
   function analyzeWithAI() {
-    logger.log('AI 분석 실행')
+    logger.log("AI 분석 실행");
   }
 
   // 거래 타입별 색상
   const getTransactionTypeColor = (type: string) => {
-    return type === 'inflow' ? 'success' : 'error'
-  }
+    return type === "inflow" ? "success" : "error";
+  };
 
   // 거래 타입별 아이콘
   const getTransactionTypeIcon = (type: string) => {
-    return type === 'inflow' ? TrendingUpIcon : TrendingDownIcon
-  }
+    return type === "inflow" ? TrendingUpIcon : TrendingDownIcon;
+  };
 
   onMount(() => {
-    logger.log('Finance 페이지 로드됨')
-  })
+    logger.log("Finance 페이지 로드됨");
+  });
 </script>
 
 <PageLayout
@@ -211,26 +212,19 @@ import { logger } from '$lib/utils/logger';
   searchPlaceholder="거래내역, 계좌명으로 검색..."
 >
   <!-- 탭 시스템 -->
-  <ThemeTabs
-    {tabs}
-    bind:activeTab
-    variant="underline"
-    size="md"
-    class="mb-6">
+  <ThemeTabs {tabs} bind:activeTab variant="underline" size="md" class="mb-6">
     {#snippet children(tab: any)}
-      {#if tab.id === 'funds-report'}
+      {#if tab.id === "funds-report"}
         <!-- 자금일보 탭 -->
         <ThemeSpacer size={6}>
           <!-- 자금일보 헤더 -->
           <ThemeCard class="p-6">
             <div class="flex items-center justify-between mb-6">
               <div>
-                <h3
-                  class="text-xl font-bold"
-                  style:color="var(--color-text)">자금일보</h3>
-                <p
-                  class="text-sm"
-                  style:color="var(--color-text-secondary)">
+                <h3 class="text-xl font-bold" style:color="var(--color-text)">
+                  자금일보
+                </h3>
+                <p class="text-sm" style:color="var(--color-text-secondary)">
                   {formatDate(fundsReport.date)} 기준
                 </p>
               </div>
@@ -246,30 +240,24 @@ import { logger } from '$lib/utils/logger';
                 <ThemeButton
                   variant="primary"
                   size="sm"
-                  onclick={generateFundsReport}>
-                  <FileTextIcon
-                    size={16}
-                    class="mr-2" />
+                  onclick={generateFundsReport}
+                >
+                  <FileTextIcon size={16} class="mr-2" />
                   일보 생성
                 </ThemeButton>
               </div>
             </div>
 
             <!-- 자금 현황 요약 -->
-            <ThemeGrid
-              cols={1}
-              mdCols={4}
-              gap={4}>
+            <ThemeGrid cols={1} mdCols={4} gap={4}>
               <div
                 class="p-4 rounded-lg text-center"
                 style:background="var(--color-surface-elevated)"
               >
-                <p
-                  class="text-sm"
-                  style:color="var(--color-text-secondary)">시작 잔고</p>
-                <p
-                  class="text-lg font-bold"
-                  style:color="var(--color-text)">
+                <p class="text-sm" style:color="var(--color-text-secondary)">
+                  시작 잔고
+                </p>
+                <p class="text-lg font-bold" style:color="var(--color-text)">
                   {formatCurrency(fundsReport.openingBalance)}
                 </p>
               </div>
@@ -277,12 +265,10 @@ import { logger } from '$lib/utils/logger';
                 class="p-4 rounded-lg text-center"
                 style:background="var(--color-surface-elevated)"
               >
-                <p
-                  class="text-sm"
-                  style:color="var(--color-text-secondary)">일일 유입</p>
-                <p
-                  class="text-lg font-bold"
-                  style:color="var(--color-success)">
+                <p class="text-sm" style:color="var(--color-text-secondary)">
+                  일일 유입
+                </p>
+                <p class="text-lg font-bold" style:color="var(--color-success)">
                   +{formatCurrency(fundsReport.dailyInflow)}
                 </p>
               </div>
@@ -290,12 +276,10 @@ import { logger } from '$lib/utils/logger';
                 class="p-4 rounded-lg text-center"
                 style:background="var(--color-surface-elevated)"
               >
-                <p
-                  class="text-sm"
-                  style:color="var(--color-text-secondary)">일일 유출</p>
-                <p
-                  class="text-lg font-bold"
-                  style:color="var(--color-error)">
+                <p class="text-sm" style:color="var(--color-text-secondary)">
+                  일일 유출
+                </p>
+                <p class="text-lg font-bold" style:color="var(--color-error)">
                   -{formatCurrency(fundsReport.dailyOutflow)}
                 </p>
               </div>
@@ -303,12 +287,10 @@ import { logger } from '$lib/utils/logger';
                 class="p-4 rounded-lg text-center"
                 style:background="var(--color-surface-elevated)"
               >
-                <p
-                  class="text-sm"
-                  style:color="var(--color-text-secondary)">종료 잔고</p>
-                <p
-                  class="text-lg font-bold"
-                  style:color="var(--color-primary)">
+                <p class="text-sm" style:color="var(--color-text-secondary)">
+                  종료 잔고
+                </p>
+                <p class="text-lg font-bold" style:color="var(--color-primary)">
                   {formatCurrency(fundsReport.closingBalance)}
                 </p>
               </div>
@@ -328,14 +310,16 @@ import { logger } from '$lib/utils/logger';
                   <div class="flex items-center gap-3">
                     <CreditCardIcon
                       size={20}
-                      style="color: var(--color-primary);" />
+                      style="color: var(--color-primary);"
+                    />
                     <div>
-                      <h4
-                        class="font-medium"
-                        style:color="var(--color-text)">{account.name}</h4>
+                      <h4 class="font-medium" style:color="var(--color-text)">
+                        {account.name}
+                      </h4>
                       <p
                         class="text-sm"
-                        style:color="var(--color-text-secondary)">
+                        style:color="var(--color-text-secondary)"
+                      >
                         {account.bank}
                       </p>
                     </div>
@@ -343,11 +327,16 @@ import { logger } from '$lib/utils/logger';
                   <div class="text-right">
                     <p
                       class="text-lg font-bold"
-                      style:color="var(--color-text)">
+                      style:color="var(--color-text)"
+                    >
                       {formatCurrency(account.balance)}
                     </p>
-                    <ThemeBadge variant={account.type === 'checking' ? 'primary' : 'success'}>
-                      {account.type === 'checking' ? '당좌' : '저축'}
+                    <ThemeBadge
+                      variant={account.type === "checking"
+                        ? "primary"
+                        : "success"}
+                    >
+                      {account.type === "checking" ? "당좌" : "저축"}
                     </ThemeBadge>
                   </div>
                 </div>
@@ -360,7 +349,9 @@ import { logger } from '$lib/utils/logger';
             <ThemeSectionHeader title="일일 거래내역" />
             <div class="space-y-3">
               {#each fundsReport.transactions as transaction, i (i)}
-                {@const IconComponent = getTransactionTypeIcon(transaction.type)}
+                {@const IconComponent = getTransactionTypeIcon(
+                  transaction.type,
+                )}
                 <div
                   class="flex items-center justify-between p-4 rounded-lg border"
                   style:border-color="var(--color-border)"
@@ -369,15 +360,15 @@ import { logger } from '$lib/utils/logger';
                   <div class="flex items-center gap-3">
                     <div
                       class="p-2 rounded-full"
-                      style:background="var(--color-surface)">
+                      style:background="var(--color-surface)"
+                    >
                       <IconComponent
                         size={16}
-                        style="color: var(--color-primary);" />
+                        style="color: var(--color-primary);"
+                      />
                     </div>
                     <div>
-                      <h4
-                        class="font-medium"
-                        style:color="var(--color-text)">
+                      <h4 class="font-medium" style:color="var(--color-text)">
                         {transaction.description}
                       </h4>
                       <div
@@ -395,11 +386,13 @@ import { logger } from '$lib/utils/logger';
                   <div class="text-right">
                     <p
                       class="text-lg font-bold"
-                      style:color="var(--color-{getTransactionTypeColor(transaction.type)})"
+                      style:color="var(--color-{getTransactionTypeColor(
+                        transaction.type,
+                      )})"
                     >
-                      {transaction.type === 'inflow' ? '+' : '-'}{formatCurrency(
-                        transaction.amount
-                      )}
+                      {transaction.type === "inflow"
+                        ? "+"
+                        : "-"}{formatCurrency(transaction.amount)}
                     </p>
                   </div>
                 </div>
@@ -408,37 +401,37 @@ import { logger } from '$lib/utils/logger';
           </ThemeCard>
 
           <!-- 자금 흐름 차트 -->
-          <ThemeGrid
-            cols={1}
-            lgCols={2}
-            gap={6}>
+          <ThemeGrid cols={1} lgCols={2} gap={6}>
             <ThemeCard class="p-6">
               <ThemeSectionHeader title="자금 흐름 분석" />
               <ThemeChartPlaceholder
                 title="일일 자금 흐름"
-                icon={BarChart3Icon} />
+                icon={BarChart3Icon}
+              />
             </ThemeCard>
 
             <ThemeCard class="p-6">
               <ThemeSectionHeader title="계좌별 분포" />
               <ThemeChartPlaceholder
                 title="계좌별 잔고 분포"
-                icon={PieChartIcon} />
+                icon={PieChartIcon}
+              />
             </ThemeCard>
           </ThemeGrid>
         </ThemeSpacer>
-      {:else if tab.id === 'accounts'}
+      {:else if tab.id === "accounts"}
         <!-- 계좌관리 탭 -->
         <ThemeSpacer size={6}>
           <ThemeCard class="p-6">
             <div class="flex items-center justify-between mb-6">
-              <h3
-                class="text-lg font-semibold"
-                style:color="var(--color-text)">계좌 관리</h3>
+              <h3 class="text-lg font-semibold" style:color="var(--color-text)">
+                계좌 관리
+              </h3>
               <ThemeButton
                 variant="primary"
                 size="sm"
-                class="flex items-center gap-2">
+                class="flex items-center gap-2"
+              >
                 <PlusIcon size={16} />
                 계좌 추가
               </ThemeButton>
@@ -454,14 +447,16 @@ import { logger } from '$lib/utils/logger';
                   <div class="flex items-center gap-3">
                     <CreditCardIcon
                       size={20}
-                      style="color: var(--color-primary);" />
+                      style="color: var(--color-primary);"
+                    />
                     <div>
-                      <h4
-                        class="font-medium"
-                        style:color="var(--color-text)">{account.name}</h4>
+                      <h4 class="font-medium" style:color="var(--color-text)">
+                        {account.name}
+                      </h4>
                       <p
                         class="text-sm"
-                        style:color="var(--color-text-secondary)">
+                        style:color="var(--color-text-secondary)"
+                      >
                         {account.bank}
                       </p>
                     </div>
@@ -469,12 +464,11 @@ import { logger } from '$lib/utils/logger';
                   <div class="flex items-center gap-2">
                     <span
                       class="text-lg font-bold"
-                      style:color="var(--color-text)">
+                      style:color="var(--color-text)"
+                    >
                       {formatCurrency(account.balance)}
                     </span>
-                    <ThemeButton
-                      variant="ghost"
-                      size="sm">
+                    <ThemeButton variant="ghost" size="sm">
                       <EditIcon size={16} />
                     </ThemeButton>
                   </div>
@@ -483,18 +477,19 @@ import { logger } from '$lib/utils/logger';
             </div>
           </ThemeCard>
         </ThemeSpacer>
-      {:else if tab.id === 'transactions'}
+      {:else if tab.id === "transactions"}
         <!-- 거래내역 탭 -->
         <ThemeSpacer size={6}>
           <ThemeCard class="p-6">
             <div class="flex items-center justify-between mb-6">
-              <h3
-                class="text-lg font-semibold"
-                style:color="var(--color-text)">거래내역</h3>
+              <h3 class="text-lg font-semibold" style:color="var(--color-text)">
+                거래내역
+              </h3>
               <ThemeButton
                 variant="primary"
                 size="sm"
-                class="flex items-center gap-2">
+                class="flex items-center gap-2"
+              >
                 <PlusIcon size={16} />
                 거래 추가
               </ThemeButton>
@@ -502,7 +497,9 @@ import { logger } from '$lib/utils/logger';
 
             <div class="space-y-4">
               {#each fundsReport.transactions as transaction, i (i)}
-                {@const IconComponent = getTransactionTypeIcon(transaction.type)}
+                {@const IconComponent = getTransactionTypeIcon(
+                  transaction.type,
+                )}
                 <div
                   class="flex items-center justify-between p-4 rounded-lg border"
                   style:border-color="var(--color-border)"
@@ -511,20 +508,21 @@ import { logger } from '$lib/utils/logger';
                   <div class="flex items-center gap-3">
                     <div
                       class="p-2 rounded-full"
-                      style:background="var(--color-surface)">
+                      style:background="var(--color-surface)"
+                    >
                       <IconComponent
                         size={16}
-                        style="color: var(--color-primary);" />
+                        style="color: var(--color-primary);"
+                      />
                     </div>
                     <div>
-                      <h4
-                        class="font-medium"
-                        style:color="var(--color-text)">
+                      <h4 class="font-medium" style:color="var(--color-text)">
                         {transaction.description}
                       </h4>
                       <p
                         class="text-sm"
-                        style:color="var(--color-text-secondary)">
+                        style:color="var(--color-text-secondary)"
+                      >
                         {transaction.category} • {transaction.time} • {transaction.account}
                       </p>
                     </div>
@@ -532,15 +530,15 @@ import { logger } from '$lib/utils/logger';
                   <div class="flex items-center gap-2">
                     <span
                       class="text-lg font-bold"
-                      style:color="var(--color-{getTransactionTypeColor(transaction.type)})"
+                      style:color="var(--color-{getTransactionTypeColor(
+                        transaction.type,
+                      )})"
                     >
-                      {transaction.type === 'inflow' ? '+' : '-'}{formatCurrency(
-                        transaction.amount
-                      )}
+                      {transaction.type === "inflow"
+                        ? "+"
+                        : "-"}{formatCurrency(transaction.amount)}
                     </span>
-                    <ThemeButton
-                      variant="ghost"
-                      size="sm">
+                    <ThemeButton variant="ghost" size="sm">
                       <EditIcon size={16} />
                     </ThemeButton>
                   </div>
@@ -549,28 +547,24 @@ import { logger } from '$lib/utils/logger';
             </div>
           </ThemeCard>
         </ThemeSpacer>
-      {:else if tab.id === 'budget'}
+      {:else if tab.id === "budget"}
         <!-- 예산관리 탭 -->
         <ThemeSpacer size={6}>
           <ThemeCard class="p-6">
             <ThemeSectionHeader title="예산 관리" />
-            <ThemeChartPlaceholder
-              title="예산 현황"
-              icon={TargetIcon} />
+            <ThemeChartPlaceholder title="예산 현황" icon={TargetIcon} />
           </ThemeCard>
         </ThemeSpacer>
-      {:else if tab.id === 'reports'}
+      {:else if tab.id === "reports"}
         <!-- 보고서 탭 -->
         <ThemeSpacer size={6}>
           <ThemeCard class="p-6">
             <ThemeSectionHeader title="재무 보고서" />
-            <ThemeGrid
-              cols={1}
-              mdCols={2}
-              gap={4}>
+            <ThemeGrid cols={1} mdCols={2} gap={4}>
               <ThemeButton
                 variant="secondary"
-                class="flex items-center gap-2 p-4 h-auto">
+                class="flex items-center gap-2 p-4 h-auto"
+              >
                 <FileTextIcon size={20} />
                 <div class="text-left">
                   <div class="font-medium">월간 재무보고서</div>
@@ -579,7 +573,8 @@ import { logger } from '$lib/utils/logger';
               </ThemeButton>
               <ThemeButton
                 variant="secondary"
-                class="flex items-center gap-2 p-4 h-auto">
+                class="flex items-center gap-2 p-4 h-auto"
+              >
                 <BarChart3Icon size={20} />
                 <div class="text-left">
                   <div class="font-medium">자금흐름표</div>

@@ -241,19 +241,16 @@ async function createProjectBudgets(projectId, data) {
 
     const budgetQuery = `
       INSERT INTO project_budgets (
-        project_id, fiscal_year, period_number, start_date, end_date, total_budget,
+        project_id, period_number, start_date, end_date, total_budget,
         personnel_cost, research_material_cost, research_activity_cost, indirect_cost,
         spent_amount, created_at, updated_at
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 0, NOW(), NOW())
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 0, NOW(), NOW())
       RETURNING id
     `
 
-    // fiscal_year는 시작일의 연도로 설정
-    const fiscalYear = new Date(period.startDate).getFullYear()
 
     const result = await pool.query(budgetQuery, [
       projectId,
-      fiscalYear,
       period.periodNumber,
       period.startDate,
       period.endDate,

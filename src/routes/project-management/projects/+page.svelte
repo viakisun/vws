@@ -1,13 +1,15 @@
 <script lang="ts">
-  import Card from '$lib/components/ui/Card.svelte'
-  import Badge from '$lib/components/ui/Badge.svelte'
-  import Progress from '$lib/components/ui/Progress.svelte'
-  import { projectsStore } from '$lib/stores/rnd'
-  import { formatKRW } from '$lib/utils/format'
-  let query = $state('')
+  import Card from "$lib/components/ui/Card.svelte";
+  import Badge from "$lib/components/ui/Badge.svelte";
+  import Progress from "$lib/components/ui/Progress.svelte";
+  import { projectsStore } from "$lib/stores/rnd";
+  import { formatKRW } from "$lib/utils/format";
+  let query = $state("");
   const projects = $derived(
-    $projectsStore.filter(p => (query ? p.name.includes(query) || p.id.includes(query) : true))
-  )
+    $projectsStore.filter((p) =>
+      query ? p.name.includes(query) || p.id.includes(query) : true,
+    ),
+  );
 </script>
 
 <h2 class="text-lg font-semibold mb-3">Projects</h2>
@@ -38,13 +40,13 @@
         </div>
         <div class="w-48"><Progress value={p.progressPct} /></div>
         <Badge
-          color={p.status === '지연'
-            ? 'yellow'
-            : p.status === '위험'
-            ? 'red'
-            : p.status === '진행중'
-            ? 'blue'
-            : 'green'}>{p.status}</Badge
+          color={p.status === "지연"
+            ? "yellow"
+            : p.status === "위험"
+              ? "red"
+              : p.status === "진행중"
+                ? "blue"
+                : "green"}>{p.status}</Badge
         >
       </a>
     </Card>

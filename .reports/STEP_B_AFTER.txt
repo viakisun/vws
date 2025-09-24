@@ -9,3 +9,4 @@ Changes Made:
 - Disabled no-restricted-syntax for client-side TypeScript and Svelte files
 - Added dedicated server-side configuration for API routes
 - Preserved business-critical rules where they matter most
+
