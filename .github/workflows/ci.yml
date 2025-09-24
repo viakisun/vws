@@ -14,12 +14,15 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: '20'
           cache: 'pnpm'
+          cache-dependency-path: pnpm-lock.yaml
       - uses: pnpm/action-setup@v4
         with:
           version: 9
-      - run: pnpm install --frozen-lockfile
+          run_install: false
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
       - run: pnpm format:check
       - run: pnpm lint --max-warnings=0
       - run: pnpm check
@@ -37,12 +40,15 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: '20'
           cache: 'pnpm'
+          cache-dependency-path: pnpm-lock.yaml
       - uses: pnpm/action-setup@v4
         with:
           version: 9
-      - run: pnpm install --frozen-lockfile
+          run_install: false
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
       - run: pnpm audit:ci
 
   perf:
@@ -53,12 +59,15 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: '20'
           cache: 'pnpm'
+          cache-dependency-path: pnpm-lock.yaml
       - uses: pnpm/action-setup@v4
         with:
           version: 9
-      - run: pnpm install --frozen-lockfile
+          run_install: false
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
       - run: pnpm build
       - run: pnpm dlx wait-on http://localhost:4173 & pnpm preview --port 4173 &
       - run: pnpm dlx @lhci/cli autorun --collect.url=http://localhost:4173 --upload.target=filesystem
@@ -76,12 +85,15 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: '20'
           cache: 'pnpm'
+          cache-dependency-path: pnpm-lock.yaml
       - uses: pnpm/action-setup@v4
         with:
           version: 9
-      - run: pnpm install --frozen-lockfile
+          run_install: false
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
       - run: pnpm build
       - name: 업로드(빌드 산출물)
         uses: actions/upload-artifact@v4

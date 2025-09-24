@@ -19,28 +19,33 @@ jobs:
       - name: 코드 체크아웃
         uses: actions/checkout@v4
 
-      - name: Node.js 설정
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
+          cache: 'pnpm'
+          cache-dependency-path: pnpm-lock.yaml
 
-      - name: 의존성 설치
-        run: npm ci
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+          run_install: false
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
       - name: 린트 검사 (PR/Push=errors only, Schedule=strict)
         run: |
           if [ "${{ github.event_name }}" = "schedule" ]; then
-            npm run lint:strict
+            pnpm run lint:strict
           else
-            npm run lint:ci
+            pnpm run lint:ci
           fi
 
       - name: 포맷 검사
-        run: npm run format:check
+        run: pnpm format && pnpm format:check
 
       - name: 빌드 테스트
-        run: npm run build
+        run: pnpm build
 
   security-scan:
     name: 보안 검사
@@ -51,17 +56,22 @@ jobs:
       - name: 코드 체크아웃
         uses: actions/checkout@v4
 
-      - name: Node.js 설정
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
+          cache: 'pnpm'
+          cache-dependency-path: pnpm-lock.yaml
 
-      - name: 의존성 설치
-        run: npm ci
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+          run_install: false
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
       - name: 보안 감사
-        run: npm run security:audit
+        run: pnpm run security:audit
 
   auto-validation:
     name: 자동 검증
@@ -73,17 +83,22 @@ jobs:
       - name: 코드 체크아웃
         uses: actions/checkout@v4
 
-      - name: Node.js 설정
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
+          cache: 'pnpm'
+          cache-dependency-path: pnpm-lock.yaml
 
-      - name: 의존성 설치
-        run: npm ci
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+          run_install: false
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
       - name: 린트 검사
-        run: npm run lint --max-warnings 10
+        run: pnpm run lint --max-warnings 10
 
   dependency-analysis:
     name: 의존성 분석
@@ -94,19 +109,24 @@ jobs:
       - name: 코드 체크아웃
         uses: actions/checkout@v4
 
-      - name: Node.js 설정
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
+          cache: 'pnpm'
+          cache-dependency-path: pnpm-lock.yaml
 
-      - name: 의존성 설치
-        run: npm ci
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+          run_install: false
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
       - name: 의존성 분석
         run: |
           echo "📦 의존성 분석 시작"
-          npm ls --depth=0
+          pnpm ls --depth=0
           echo "✅ 의존성 분석 완료"
 
   notification:
