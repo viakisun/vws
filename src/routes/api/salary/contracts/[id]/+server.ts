@@ -1,17 +1,14 @@
 // 개별 급여 계약 관리 API 엔드포인트
 
-import { query } from "$lib/database/connection.js";
-import type {
-  SalaryContract,
-  UpdateSalaryContractRequest,
-} from "$lib/types/salary-contracts";
-import { json } from "@sveltejs/kit";
-import type { RequestHandler } from "./$types";
+import { query } from '$lib/database/connection.js'
+import type { SalaryContract, UpdateSalaryContractRequest } from '$lib/types/salary-contracts'
+import { json } from '@sveltejs/kit'
+import type { RequestHandler } from './$types'
 
 // GET: 특정 급여 계약 조회
 export const GET: RequestHandler = async ({ params }) => {
   try {
-    const { id } = params;
+    const { id } = params
 
     const result = await query(
       `
@@ -36,28 +33,28 @@ export const GET: RequestHandler = async ({ params }) => {
 			WHERE sc.id = $1
 		`,
       [id],
-    );
+    )
 
     if (result.rows.length === 0) {
       return json(
         {
           success: false,
-          error: "급여 계약을 찾을 수 없습니다.",
+          error: '급여 계약을 찾을 수 없습니다.',
         },
         { status: 404 },
-      );
+      )
     }
 
-    const contract = result.rows[0];
+    const contract = result.rows[0]
 
     // 날짜를 KST로 변환
     const convertToKST = (dateString: string) => {
-      if (!dateString) return null;
-      const date = new Date(dateString);
+      if (!dateString) return null
+      const date = new Date(dateString)
       // UTC+9 (KST)로 변환
-      const kstDate = new Date(date.getTime() + 9 * 60 * 60 * 1000);
-      return kstDate.toISOString().split("T")[0]; // YYYY-MM-DD 형식으로 반환
-    };
+      const kstDate = new Date(date.getTime() + 9 * 60 * 60 * 1000)
+      return kstDate.toISOString().split('T')[0] // YYYY-MM-DD 형식으로 반환
+    }
 
     const salaryContract: SalaryContract = {
       id: contract.id,
@@ -78,120 +75,120 @@ export const GET: RequestHandler = async ({ params }) => {
       position: contract.position,
       contractEndDisplay: contract.contract_end_display,
       statusDisplay: contract.status_display,
-    };
+    }
 
     return json({
       success: true,
       data: salaryContract,
-    });
+    })
   } catch (_error) {
     return json(
       {
         success: false,
-        error: "급여 계약 조회에 실패했습니다.",
+        error: '급여 계약 조회에 실패했습니다.',
       },
       { status: 500 },
-    );
+    )
   }
-};
+}
 
 // PUT: 급여 계약 수정
 export const PUT: RequestHandler = async ({ params, request }) => {
   try {
-    const { id } = params;
-    const updateData: UpdateSalaryContractRequest = await request.json();
+    const { id } = params
+    const updateData: UpdateSalaryContractRequest = await request.json()
 
     // 업데이트할 필드 구성
-    const updateFields: string[] = [];
-    const queryParams: unknown[] = [];
-    let paramIndex = 1;
+    const updateFields: string[] = []
+    const queryParams: unknown[] = []
+    let paramIndex = 1
 
     if (updateData.startDate !== undefined) {
-      updateFields.push(`start_date = $${paramIndex}`);
-      queryParams.push(updateData.startDate);
-      paramIndex++;
+      updateFields.push(`start_date = $${paramIndex}`)
+      queryParams.push(updateData.startDate)
+      paramIndex++
     }
 
     if (updateData.endDate !== undefined) {
-      updateFields.push(`end_date = $${paramIndex}`);
-      queryParams.push(updateData.endDate || null);
-      paramIndex++;
+      updateFields.push(`end_date = $${paramIndex}`)
+      queryParams.push(updateData.endDate || null)
+      paramIndex++
     }
 
     if (updateData.annualSalary !== undefined) {
-      updateFields.push(`annual_salary = $${paramIndex}`);
-      queryParams.push(updateData.annualSalary);
-      paramIndex++;
+      updateFields.push(`annual_salary = $${paramIndex}`)
+      queryParams.push(updateData.annualSalary)
+      paramIndex++
     }
 
     if (updateData.monthlySalary !== undefined) {
-      updateFields.push(`monthly_salary = $${paramIndex}`);
-      queryParams.push(updateData.monthlySalary);
-      paramIndex++;
+      updateFields.push(`monthly_salary = $${paramIndex}`)
+      queryParams.push(updateData.monthlySalary)
+      paramIndex++
     }
 
     if (updateData.contractType !== undefined) {
-      updateFields.push(`contract_type = $${paramIndex}`);
-      queryParams.push(updateData.contractType);
-      paramIndex++;
+      updateFields.push(`contract_type = $${paramIndex}`)
+      queryParams.push(updateData.contractType)
+      paramIndex++
     }
 
     if (updateData.status !== undefined) {
-      updateFields.push(`status = $${paramIndex}`);
-      queryParams.push(updateData.status);
-      paramIndex++;
+      updateFields.push(`status = $${paramIndex}`)
+      queryParams.push(updateData.status)
+      paramIndex++
     }
 
     if (updateData.notes !== undefined) {
-      updateFields.push(`notes = $${paramIndex}`);
-      queryParams.push(updateData.notes || null);
-      paramIndex++;
+      updateFields.push(`notes = $${paramIndex}`)
+      queryParams.push(updateData.notes || null)
+      paramIndex++
     }
 
     if (updateFields.length === 0) {
       return json(
         {
           success: false,
-          error: "업데이트할 필드가 없습니다.",
+          error: '업데이트할 필드가 없습니다.',
         },
         { status: 400 },
-      );
+      )
     }
 
     // updated_at 자동 업데이트
-    updateFields.push(`updated_at = CURRENT_TIMESTAMP`);
-    queryParams.push(id);
+    updateFields.push(`updated_at = CURRENT_TIMESTAMP`)
+    queryParams.push(id)
 
     const result = await query(
       `
 			UPDATE salary_contracts 
-			SET ${updateFields.join(", ")}
+			SET ${updateFields.join(', ')}
 			WHERE id = $${paramIndex}
 			RETURNING *
 		`,
       queryParams,
-    );
+    )
 
     if (result.rows.length === 0) {
       return json(
         {
           success: false,
-          error: "급여 계약을 찾을 수 없습니다.",
+          error: '급여 계약을 찾을 수 없습니다.',
         },
         { status: 404 },
-      );
+      )
     }
 
-    const updatedContract = result.rows[0];
+    const updatedContract = result.rows[0]
 
     // 날짜를 KST로 변환
     const convertToKST = (dateString: string) => {
-      if (!dateString) return null;
-      const date = new Date(dateString);
+      if (!dateString) return null
+      const date = new Date(dateString)
       // UTC+9 (KST)로 변환
-      const kstDate = new Date(date.getTime() + 9 * 60 * 60 * 1000);
-      return kstDate.toISOString().split("T")[0]; // YYYY-MM-DD 형식으로 반환
-    };
+      const kstDate = new Date(date.getTime() + 9 * 60 * 60 * 1000)
+      return kstDate.toISOString().split('T')[0] // YYYY-MM-DD 형식으로 반환
+    }
 
     return json({
       success: true,
@@ -209,22 +206,22 @@ export const PUT: RequestHandler = async ({ params, request }) => {
         updatedAt: updatedContract.updated_at,
         createdBy: updatedContract.created_by,
       },
-    });
+    })
   } catch (_error) {
     return json(
       {
         success: false,
-        error: "급여 계약 수정에 실패했습니다.",
+        error: '급여 계약 수정에 실패했습니다.',
       },
       { status: 500 },
-    );
+    )
   }
-};
+}
 
 // DELETE: 급여 계약 삭제
 export const DELETE: RequestHandler = async ({ params }) => {
   try {
-    const { id } = params;
+    const { id } = params
 
     const result = await query(
       `
@@ -233,29 +230,29 @@ export const DELETE: RequestHandler = async ({ params }) => {
 			RETURNING id
 		`,
       [id],
-    );
+    )
 
     if (result.rows.length === 0) {
       return json(
         {
           success: false,
-          error: "급여 계약을 찾을 수 없습니다.",
+          error: '급여 계약을 찾을 수 없습니다.',
         },
         { status: 404 },
-      );
+      )
     }
 
     return json({
       success: true,
       data: { id },
-    });
+    })
   } catch (_error) {
     return json(
       {
         success: false,
-        error: "급여 계약 삭제에 실패했습니다.",
+        error: '급여 계약 삭제에 실패했습니다.',
       },
       { status: 500 },
-    );
+    )
   }
-};
+}

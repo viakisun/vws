@@ -1,105 +1,97 @@
 <script lang="ts">
-  import { logger } from "$lib/utils/logger";
+  import { logger } from '$lib/utils/logger'
 
-  import type { AnnualBudgetFormData } from "$lib/types/project-budget";
-  import { toUTC } from "$lib/utils/date-handler";
-  import { formatDateForInput } from "$lib/utils/format";
-  import { CheckIcon, PlusIcon, TrashIcon } from "@lucide/svelte";
-  import { createEventDispatcher } from "svelte";
+  import type { AnnualBudgetFormData } from '$lib/types/project-budget'
+  import { toUTC } from '$lib/utils/date-handler'
+  import { formatDateForInput } from '$lib/utils/format'
+  import { CheckIcon, PlusIcon, TrashIcon } from '@lucide/svelte'
+  import { createEventDispatcher } from 'svelte'
 
-  const dispatch = createEventDispatcher();
+  const dispatch = createEventDispatcher()
 
   let { projectId } = $props<{
-    projectId: string;
-  }>();
+    projectId: string
+  }>()
 
   // 간단한 연차별 예산 데이터 (기간 포함)
   let budgets = $state<AnnualBudgetFormData[]>([
     {
       year: 1,
-      startDate: "",
-      endDate: "",
+      startDate: '',
+      endDate: '',
       governmentFunding: 0,
       companyCash: 0,
       companyInKind: 0,
     },
-  ]);
+  ])
 
-  let isSubmitting = $state(false);
-  let validationErrors = $state<string[]>([]);
-  let isLoading = $state(true);
+  let isSubmitting = $state(false)
+  let validationErrors = $state<string[]>([])
+  let isLoading = $state(true)
 
   // 기존 예산 데이터 로드
   async function loadExistingBudgets() {
-    if (!projectId) return;
+    if (!projectId) return
 
     try {
-      isLoading = true;
-      const response = await fetch(
-        `/api/project-management/projects/${projectId}/annual-budgets`,
-      );
-      const result = await response.json();
+      isLoading = true
+      const response = await fetch(`/api/project-management/projects/${projectId}/annual-budgets`)
+      const result = await response.json()
 
-      if (
-        result.success &&
-        result.data?.budgets &&
-        result.data.budgets.length > 0
-      ) {
+      if (result.success && result.data?.budgets && result.data.budgets.length > 0) {
         // 기존 예산 데이터가 있으면 로드 (UTC 날짜 처리 함수 사용)
-        logger.log("기존 예산 데이터 로드:", result.data.budgets);
+        logger.log('기존 예산 데이터 로드:', result.data.budgets)
         budgets = result.data.budgets.map((budget) => ({
           year: budget.year,
-          startDate: budget.startDate
-            ? formatDateForInput(budget.startDate)
-            : "",
-          endDate: budget.endDate ? formatDateForInput(budget.endDate) : "",
+          startDate: budget.startDate ? formatDateForInput(budget.startDate) : '',
+          endDate: budget.endDate ? formatDateForInput(budget.endDate) : '',
           governmentFunding: budget.governmentFunding || 0,
           companyCash: budget.companyCash || 0,
           companyInKind: budget.companyInKind || 0,
-          notes: budget.notes || "",
-        }));
-        logger.log("변환된 예산 데이터:", budgets);
+          notes: budget.notes || '',
+        }))
+        logger.log('변환된 예산 데이터:', budgets)
       } else {
-        logger.log("기존 예산 데이터 없음 - 기본값 사용");
+        logger.log('기존 예산 데이터 없음 - 기본값 사용')
       }
     } catch (error) {
-      logger.error("기존 예산 데이터 로드 실패:", error);
+      logger.error('기존 예산 데이터 로드 실패:', error)
     } finally {
-      isLoading = false;
+      isLoading = false
     }
   }
 
   // 컴포넌트 마운트 시 기존 데이터 로드
   $effect(() => {
     if (projectId) {
-      loadExistingBudgets();
+      loadExistingBudgets()
     }
-  });
+  })
 
   // 연차 추가
   function addYear() {
-    const nextYear = budgets.length + 1;
-    const lastBudget = budgets[budgets.length - 1];
+    const nextYear = budgets.length + 1
+    const lastBudget = budgets[budgets.length - 1]
 
     // 이전 연차의 종료일 다음날을 시작일로 설정
-    let startDate = "";
-    let endDate = "";
+    let startDate = ''
+    let endDate = ''
 
     if (lastBudget?.endDate) {
       // UTC 기준으로 날짜 계산
-      const lastEndUTC = toUTC(lastBudget.endDate);
-      const lastEndDate = new Date(lastEndUTC);
+      const lastEndUTC = toUTC(lastBudget.endDate)
+      const lastEndDate = new Date(lastEndUTC)
 
       // 다음날을 시작일로 설정
-      const nextStartDate = new Date(lastEndDate);
-      nextStartDate.setUTCDate(nextStartDate.getUTCDate() + 1);
-      startDate = formatDateForInput(nextStartDate.toISOString());
+      const nextStartDate = new Date(lastEndDate)
+      nextStartDate.setUTCDate(nextStartDate.getUTCDate() + 1)
+      startDate = formatDateForInput(nextStartDate.toISOString())
 
       // 1년 후를 종료일로 설정
-      const nextEndDate = new Date(nextStartDate);
-      nextEndDate.setUTCFullYear(nextEndDate.getUTCFullYear() + 1);
-      nextEndDate.setUTCDate(nextEndDate.getUTCDate() - 1);
-      endDate = formatDateForInput(nextEndDate.toISOString());
+      const nextEndDate = new Date(nextStartDate)
+      nextEndDate.setUTCFullYear(nextEndDate.getUTCFullYear() + 1)
+      nextEndDate.setUTCDate(nextEndDate.getUTCDate() - 1)
+      endDate = formatDateForInput(nextEndDate.toISOString())
     }
 
     budgets.push({
@@ -109,173 +101,154 @@
       governmentFunding: 0,
       companyCash: 0,
       companyInKind: 0,
-    });
+    })
   }
 
   // 연차 삭제
   function removeYear(index: number) {
     if (budgets.length > 1) {
-      budgets.splice(index, 1);
+      budgets.splice(index, 1)
       // 연차 번호 재정렬
       budgets.forEach((budget, idx) => {
-        budget.year = idx + 1;
-      });
+        budget.year = idx + 1
+      })
     }
   }
 
   // 총액 계산
   function calculateTotal(budget: AnnualBudgetFormData): number {
-    return (
-      (budget.governmentFunding || 0) +
-      (budget.companyCash || 0) +
-      (budget.companyInKind || 0)
-    );
+    return (budget.governmentFunding || 0) + (budget.companyCash || 0) + (budget.companyInKind || 0)
   }
 
   // 전체 총액 계산
   function calculateGrandTotal(): number {
-    return budgets.reduce((sum, budget) => sum + calculateTotal(budget), 0);
+    return budgets.reduce((sum, budget) => sum + calculateTotal(budget), 0)
   }
 
   // 전체 사업 기간 계산 (UTC 기준)
   function calculateProjectPeriod(): {
-    startDate: string | null;
-    endDate: string | null;
+    startDate: string | null
+    endDate: string | null
   } {
-    const validBudgets = budgets.filter((b) => b.startDate && b.endDate);
+    const validBudgets = budgets.filter((b) => b.startDate && b.endDate)
     if (validBudgets.length === 0) {
-      return { startDate: null, endDate: null };
+      return { startDate: null, endDate: null }
     }
 
     // UTC 기준으로 날짜 변환
-    const startDatesUTC = validBudgets.map(
-      (b) => new Date(toUTC(b.startDate!)),
-    );
-    const endDatesUTC = validBudgets.map((b) => new Date(toUTC(b.endDate!)));
+    const startDatesUTC = validBudgets.map((b) => new Date(toUTC(b.startDate!)))
+    const endDatesUTC = validBudgets.map((b) => new Date(toUTC(b.endDate!)))
 
-    const projectStartDate = new Date(
-      Math.min(...startDatesUTC.map((d) => d.getTime())),
-    );
-    const projectEndDate = new Date(
-      Math.max(...endDatesUTC.map((d) => d.getTime())),
-    );
+    const projectStartDate = new Date(Math.min(...startDatesUTC.map((d) => d.getTime())))
+    const projectEndDate = new Date(Math.max(...endDatesUTC.map((d) => d.getTime())))
 
     return {
       startDate: formatDateForInput(projectStartDate.toISOString()),
       endDate: formatDateForInput(projectEndDate.toISOString()),
-    };
+    }
   }
 
   // 검증
   function validateForm(): boolean {
-    const errors: string[] = [];
+    const errors: string[] = []
 
     budgets.forEach((budget, _index) => {
-      const yearLabel = `${budget.year}차년도`;
+      const yearLabel = `${budget.year}차년도`
 
       // 기간 검증
       if (!budget.startDate) {
-        errors.push(`${yearLabel}: 시작일을 입력해주세요.`);
+        errors.push(`${yearLabel}: 시작일을 입력해주세요.`)
       }
       if (!budget.endDate) {
-        errors.push(`${yearLabel}: 종료일을 입력해주세요.`);
+        errors.push(`${yearLabel}: 종료일을 입력해주세요.`)
       }
 
       // 날짜 순서 검증 (UTC 기준)
       if (budget.startDate && budget.endDate) {
-        const startDateUTC = new Date(toUTC(budget.startDate));
-        const endDateUTC = new Date(toUTC(budget.endDate));
+        const startDateUTC = new Date(toUTC(budget.startDate))
+        const endDateUTC = new Date(toUTC(budget.endDate))
         if (startDateUTC > endDateUTC) {
-          errors.push(`${yearLabel}: 시작일이 종료일보다 늦을 수 없습니다.`);
+          errors.push(`${yearLabel}: 시작일이 종료일보다 늦을 수 없습니다.`)
         }
       }
 
       // 예산 검증
-      const total = calculateTotal(budget);
+      const total = calculateTotal(budget)
       if (total === 0) {
-        errors.push(`${yearLabel}: 예산을 입력해주세요.`);
+        errors.push(`${yearLabel}: 예산을 입력해주세요.`)
       }
-    });
+    })
 
     // 연차 간 기간 중복 검증
     for (let i = 0; i < budgets.length - 1; i++) {
-      const current = budgets[i];
-      const next = budgets[i + 1];
+      const current = budgets[i]
+      const next = budgets[i + 1]
 
       if (current.endDate && next.startDate) {
-        const currentEndUTC = new Date(toUTC(current.endDate));
-        const nextStartUTC = new Date(toUTC(next.startDate));
+        const currentEndUTC = new Date(toUTC(current.endDate))
+        const nextStartUTC = new Date(toUTC(next.startDate))
 
         if (currentEndUTC >= nextStartUTC) {
-          errors.push(
-            `${current.year}차년도와 ${next.year}차년도 기간이 중복됩니다.`,
-          );
+          errors.push(`${current.year}차년도와 ${next.year}차년도 기간이 중복됩니다.`)
         }
       }
     }
 
-    validationErrors = errors;
-    return errors.length === 0;
+    validationErrors = errors
+    return errors.length === 0
   }
 
   // 저장
   async function saveBudgets() {
-    if (!validateForm()) return;
+    if (!validateForm()) return
 
-    isSubmitting = true;
+    isSubmitting = true
 
     try {
       // 전체 사업 기간 계산
-      const projectPeriod = calculateProjectPeriod();
+      const projectPeriod = calculateProjectPeriod()
 
-      const response = await fetch(
-        `/api/project-management/projects/${projectId}/annual-budgets`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            budgets,
-            projectPeriod, // 전체 사업 기간도 함께 전송
-          }),
+      const response = await fetch(`/api/project-management/projects/${projectId}/annual-budgets`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
-      );
+        body: JSON.stringify({
+          budgets,
+          projectPeriod, // 전체 사업 기간도 함께 전송
+        }),
+      })
 
-      const result = await response.json();
+      const result = await response.json()
 
       if (result.success) {
-        dispatch("budgetSaved", result.data);
+        dispatch('budgetSaved', result.data)
       } else {
-        validationErrors = [result.error || "예산 저장에 실패했습니다."];
+        validationErrors = [result.error || '예산 저장에 실패했습니다.']
       }
     } catch (error) {
-      logger.error("예산 저장 오류:", error);
-      validationErrors = ["예산 저장 중 오류가 발생했습니다."];
+      logger.error('예산 저장 오류:', error)
+      validationErrors = ['예산 저장 중 오류가 발생했습니다.']
     } finally {
-      isSubmitting = false;
+      isSubmitting = false
     }
   }
 
   // 숫자 포맷팅
   function formatNumber(num: number): string {
-    return new Intl.NumberFormat("ko-KR").format(num);
+    return new Intl.NumberFormat('ko-KR').format(num)
   }
 </script>
 
 <div class="space-y-6">
   <div class="text-center">
     <h3 class="text-lg font-semibold text-gray-900">연차별 연구개발비 예산</h3>
-    <p class="text-sm text-gray-600 mt-1">
-      지원금, 기업부담금, 현물지원을 연차별로 입력하세요
-    </p>
+    <p class="text-sm text-gray-600 mt-1">지원금, 기업부담금, 현물지원을 연차별로 입력하세요</p>
   </div>
 
   {#if isLoading}
     <div class="flex items-center justify-center py-8">
-      <div
-        class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"
-      ></div>
+      <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
       <span class="ml-2 text-gray-600">기존 예산 데이터를 불러오는 중...</span>
     </div>
   {:else}
@@ -310,10 +283,7 @@
           <!-- 기간 설정 -->
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div>
-              <label
-                for="start-date-{index}"
-                class="block text-sm font-medium text-gray-700 mb-1"
-              >
+              <label for="start-date-{index}" class="block text-sm font-medium text-gray-700 mb-1">
                 시작일 *
               </label>
               <input
@@ -324,10 +294,7 @@
               />
             </div>
             <div>
-              <label
-                for="end-date-{index}"
-                class="block text-sm font-medium text-gray-700 mb-1"
-              >
+              <label for="end-date-{index}" class="block text-sm font-medium text-gray-700 mb-1">
                 종료일 *
               </label>
               <input
@@ -342,9 +309,7 @@
           <!-- 예산 입력 -->
           <div class="space-y-3">
             <!-- 단위 안내 -->
-            <div
-              class="text-xs text-gray-500 text-center bg-gray-50 py-1 rounded"
-            >
+            <div class="text-xs text-gray-500 text-center bg-gray-50 py-1 rounded">
               금액 단위: 천원 (예: 1000 입력 = 1,000천원)
             </div>
 
@@ -427,15 +392,12 @@
           <!-- 연차 소계 -->
           <div class="mt-3 p-3 bg-gray-50 rounded-md">
             <div class="text-sm font-medium text-gray-900">
-              {budget.year}차년도 사업비: {formatNumber(
-                calculateTotal(budget),
-              )}원
+              {budget.year}차년도 사업비: {formatNumber(calculateTotal(budget))}원
             </div>
             <div class="text-xs text-gray-500 mt-1">
-              지원금 {formatNumber(budget.governmentFunding || 0)}천원 +
-              기업부담금 {formatNumber(budget.companyCash || 0)}천원 + 현물지원 {formatNumber(
-                budget.companyInKind || 0,
-              )}천원
+              지원금 {formatNumber(budget.governmentFunding || 0)}천원 + 기업부담금 {formatNumber(
+                budget.companyCash || 0,
+              )}천원 + 현물지원 {formatNumber(budget.companyInKind || 0)}천원
             </div>
           </div>
         </div>
@@ -494,9 +456,7 @@
             <div class="text-lg font-semibold text-blue-900">
               {period.startDate} ~ {period.endDate}
             </div>
-            <div class="text-sm text-blue-600">
-              연차별 기간으로부터 자동 계산
-            </div>
+            <div class="text-sm text-blue-600">연차별 기간으로부터 자동 계산</div>
           </div>
         {:else}
           <div class="pt-3 border-t border-blue-200">
@@ -517,9 +477,7 @@
         class="flex items-center px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
       >
         {#if isSubmitting}
-          <div
-            class="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"
-          ></div>
+          <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
           저장 중...
         {:else}
           <CheckIcon class="w-4 h-4 mr-2" />

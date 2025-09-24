@@ -1,10 +1,10 @@
 <script lang="ts">
-  import Badge from "$lib/components/ui/Badge.svelte";
-  import Card from "$lib/components/ui/Card.svelte";
-  import Modal from "$lib/components/ui/Modal.svelte";
-  import { formatDate } from "$lib/utils/format";
-  import { keyOf } from "$lib/utils/keyOf";
-  import { onMount } from "svelte";
+  import Badge from '$lib/components/ui/Badge.svelte'
+  import Card from '$lib/components/ui/Card.svelte'
+  import Modal from '$lib/components/ui/Modal.svelte'
+  import { formatDate } from '$lib/utils/format'
+  import { keyOf } from '$lib/utils/keyOf'
+  import { onMount } from 'svelte'
 
   import {
     addJobPosting,
@@ -16,85 +16,83 @@
     updateJobPosting,
     type Candidate,
     type JobPosting,
-  } from "$lib/stores/recruitment";
+  } from '$lib/stores/recruitment'
 
   // 모달 상태
-  let isJobPostingModalOpen = $state(false);
-  let _isCandidateModalOpen = $state(false);
-  let _isInterviewModalOpen = $state(false);
-  let selectedJobPosting = $state<JobPosting | null>(null);
-  let _selectedCandidate = $state<Candidate | null>(null);
+  let isJobPostingModalOpen = $state(false)
+  let _isCandidateModalOpen = $state(false)
+  let _isInterviewModalOpen = $state(false)
+  let selectedJobPosting = $state<JobPosting | null>(null)
+  let _selectedCandidate = $state<Candidate | null>(null)
 
   // 필터
-  let statusFilter = $state("");
-  let departmentFilter = $state("");
+  let statusFilter = $state('')
+  let departmentFilter = $state('')
 
   // 폼 데이터
   let jobPostingForm = $state({
-    title: "",
-    department: "",
-    position: "",
-    level: "",
-    employmentType: "full-time" as JobPosting["employmentType"],
-    location: "",
-    description: "",
-    requirements: [""],
-    preferredQualifications: [""],
-    benefits: [""],
-    salaryRange: { min: 0, max: 0, currency: "KRW" },
-    applicationDeadline: "",
-  });
+    title: '',
+    department: '',
+    position: '',
+    level: '',
+    employmentType: 'full-time' as JobPosting['employmentType'],
+    location: '',
+    description: '',
+    requirements: [''],
+    preferredQualifications: [''],
+    benefits: [''],
+    salaryRange: { min: 0, max: 0, currency: 'KRW' },
+    applicationDeadline: '',
+  })
 
   let _candidateForm = $state({
-    jobPostingId: "",
+    jobPostingId: '',
     personalInfo: {
-      name: "",
-      email: "",
-      phone: "",
-      address: "",
-      birthDate: "",
-      gender: "male" as Candidate["personalInfo"]["gender"],
+      name: '',
+      email: '',
+      phone: '',
+      address: '',
+      birthDate: '',
+      gender: 'male' as Candidate['personalInfo']['gender'],
     },
     education: [
       {
-        degree: "",
-        school: "",
-        major: "",
+        degree: '',
+        school: '',
+        major: '',
         graduationYear: new Date().getFullYear(),
       },
     ],
     experience: [
       {
-        company: "",
-        position: "",
-        startDate: "",
-        endDate: "",
-        description: "",
+        company: '',
+        position: '',
+        startDate: '',
+        endDate: '',
+        description: '',
       },
     ],
-    skills: [""],
+    skills: [''],
     languages: [
       {
-        language: "",
-        proficiency: "intermediate" as Candidate["languages"][0]["proficiency"],
+        language: '',
+        proficiency: 'intermediate' as Candidate['languages'][0]['proficiency'],
       },
     ],
-  });
+  })
 
   // 필터링된 채용 공고
   let filteredJobPostings = $derived(() => {
-    let filtered = $jobPostings;
-    if (statusFilter)
-      filtered = filtered.filter((job) => job.status === statusFilter);
-    if (departmentFilter)
-      filtered = filtered.filter((job) => job.department === departmentFilter);
-    return filtered;
-  });
+    let filtered = $jobPostings
+    if (statusFilter) filtered = filtered.filter((job) => job.status === statusFilter)
+    if (departmentFilter) filtered = filtered.filter((job) => job.department === departmentFilter)
+    return filtered
+  })
 
   // 함수들
   function openJobPostingModal(jobPosting?: JobPosting) {
     if (jobPosting) {
-      selectedJobPosting = jobPosting;
+      selectedJobPosting = jobPosting
       jobPostingForm = {
         title: jobPosting.title,
         department: jobPosting.department,
@@ -108,85 +106,85 @@
         benefits: jobPosting.benefits,
         salaryRange: jobPosting.salaryRange,
         applicationDeadline: jobPosting.applicationDeadline,
-      };
+      }
     } else {
-      selectedJobPosting = null;
+      selectedJobPosting = null
       jobPostingForm = {
-        title: "",
-        department: "",
-        position: "",
-        level: "",
-        employmentType: "full-time",
-        location: "",
-        description: "",
-        requirements: [""],
-        preferredQualifications: [""],
-        benefits: [""],
-        salaryRange: { min: 0, max: 0, currency: "KRW" },
-        applicationDeadline: "",
-      };
+        title: '',
+        department: '',
+        position: '',
+        level: '',
+        employmentType: 'full-time',
+        location: '',
+        description: '',
+        requirements: [''],
+        preferredQualifications: [''],
+        benefits: [''],
+        salaryRange: { min: 0, max: 0, currency: 'KRW' },
+        applicationDeadline: '',
+      }
     }
-    isJobPostingModalOpen = true;
+    isJobPostingModalOpen = true
   }
 
   function handleJobPostingSubmit() {
     if (selectedJobPosting) {
-      updateJobPosting(selectedJobPosting.id, jobPostingForm);
+      updateJobPosting(selectedJobPosting.id, jobPostingForm)
     } else {
       addJobPosting({
         ...jobPostingForm,
-        status: "draft",
-        postedBy: "current-user",
-      });
+        status: 'draft',
+        postedBy: 'current-user',
+      })
     }
-    isJobPostingModalOpen = false;
+    isJobPostingModalOpen = false
   }
 
   function publishJob(jobId: string) {
-    publishJobPosting(jobId);
-    alert("채용 공고가 게시되었습니다.");
+    publishJobPosting(jobId)
+    alert('채용 공고가 게시되었습니다.')
   }
 
   function closeJob(jobId: string) {
-    closeJobPosting(jobId);
-    alert("채용 공고가 마감되었습니다.");
+    closeJobPosting(jobId)
+    alert('채용 공고가 마감되었습니다.')
   }
 
   function getStatusBadgeVariant(
-    status: JobPosting["status"],
-  ): "secondary" | "success" | "danger" | "warning" {
+    status: JobPosting['status'],
+  ): 'secondary' | 'success' | 'danger' | 'warning' {
     switch (status) {
-      case "draft":
-        return "secondary";
-      case "published":
-        return "success";
-      case "closed":
-        return "danger";
-      case "cancelled":
-        return "warning";
+      case 'draft':
+        return 'secondary'
+      case 'published':
+        return 'success'
+      case 'closed':
+        return 'danger'
+      case 'cancelled':
+        return 'warning'
       default:
-        return "secondary";
+        return 'secondary'
     }
   }
 
-  function getStatusText(status: JobPosting["status"]): string {
+  function getStatusText(status: JobPosting['status']): string {
     switch (status) {
-      case "draft":
-        return "임시저장";
-      case "published":
-        return "게시중";
-      case "closed":
-        return "마감";
-      case "cancelled":
-        return "취소";
+      case 'draft':
+        return '임시저장'
+      case 'published':
+        return '게시중'
+      case 'closed':
+        return '마감'
+      case 'cancelled':
+        return '취소'
       default:
-        return status;
+        return status
     }
   }
 
   onMount(() => {
     // 초기 데이터 로드
-  });
+  })
 </script>
 
 <div class="min-h-screen bg-gray-50 p-6">
@@ -211,9 +209,8 @@
       <div class="p-6">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <label
-              class="block text-sm font-medium text-gray-700 mb-2"
-              for="field-status">상태</label
+            <label class="block text-sm font-medium text-gray-700 mb-2" for="field-status"
+              >상태</label
             >
             <select
               bind:value={statusFilter}
@@ -228,9 +225,8 @@
             </select>
           </div>
           <div>
-            <label
-              class="block text-sm font-medium text-gray-700 mb-2"
-              for="field-status">부서</label
+            <label class="block text-sm font-medium text-gray-700 mb-2" for="field-status"
+              >부서</label
             >
             <select
               bind:value={departmentFilter}
@@ -249,8 +245,8 @@
             <button
               type="button"
               onclick={() => {
-                statusFilter = "";
-                departmentFilter = "";
+                statusFilter = ''
+                departmentFilter = ''
               }}
               class="w-full px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors"
             >
@@ -297,8 +293,7 @@
 
             <div class="flex justify-between items-center">
               <div class="text-sm text-gray-500">
-                지원자: {getRecruitmentStats(jobPosting.id, $candidates)
-                  .totalApplications}명
+                지원자: {getRecruitmentStats(jobPosting.id, $candidates).totalApplications}명
               </div>
               <div class="flex space-x-2">
                 <button
@@ -308,7 +303,7 @@
                 >
                   수정
                 </button>
-                {#if jobPosting.status === "draft"}
+                {#if jobPosting.status === 'draft'}
                   <button
                     type="button"
                     onclick={() => publishJob(jobPosting.id)}
@@ -316,7 +311,7 @@
                   >
                     게시
                   </button>
-                {:else if jobPosting.status === "published"}
+                {:else if jobPosting.status === 'published'}
                   <button
                     type="button"
                     onclick={() => closeJob(jobPosting.id)}
@@ -336,20 +331,19 @@
     <Modal bind:open={isJobPostingModalOpen}>
       <div class="p-6 max-w-4xl">
         <h3 class="text-lg font-semibold text-gray-900 mb-4">
-          {selectedJobPosting ? "채용 공고 수정" : "채용 공고 작성"}
+          {selectedJobPosting ? '채용 공고 수정' : '채용 공고 작성'}
         </h3>
         <form
           onsubmit={(e) => {
-            e.preventDefault();
-            handleJobPostingSubmit();
+            e.preventDefault()
+            handleJobPostingSubmit()
           }}
         >
           <div class="space-y-6">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label
-                  class="block text-sm font-medium text-gray-700 mb-1"
-                  for="field-status">제목 *</label
+                <label class="block text-sm font-medium text-gray-700 mb-1" for="field-status"
+                  >제목 *</label
                 >
                 <input
                   type="text"
@@ -360,9 +354,8 @@
                 />
               </div>
               <div>
-                <label
-                  class="block text-sm font-medium text-gray-700 mb-1"
-                  for="field-status">부서 *</label
+                <label class="block text-sm font-medium text-gray-700 mb-1" for="field-status"
+                  >부서 *</label
                 >
                 <input
                   type="text"
@@ -373,9 +366,8 @@
                 />
               </div>
               <div>
-                <label
-                  class="block text-sm font-medium text-gray-700 mb-1"
-                  for="field-status">직급 *</label
+                <label class="block text-sm font-medium text-gray-700 mb-1" for="field-status"
+                  >직급 *</label
                 >
                 <input
                   type="text"
@@ -386,9 +378,8 @@
                 />
               </div>
               <div>
-                <label
-                  class="block text-sm font-medium text-gray-700 mb-1"
-                  for="field-status">레벨 *</label
+                <label class="block text-sm font-medium text-gray-700 mb-1" for="field-status"
+                  >레벨 *</label
                 >
                 <input
                   type="text"
@@ -401,9 +392,8 @@
             </div>
 
             <div>
-              <label
-                class="block text-sm font-medium text-gray-700 mb-1"
-                for="field-status">직무 설명 *</label
+              <label class="block text-sm font-medium text-gray-700 mb-1" for="field-status"
+                >직무 설명 *</label
               >
               <textarea
                 bind:value={jobPostingForm.description}
@@ -415,9 +405,7 @@
             </div>
 
             <div>
-              <span class="block text-sm font-medium text-gray-700 mb-1"
-                >필수 요구사항</span
-              >
+              <span class="block text-sm font-medium text-gray-700 mb-1">필수 요구사항</span>
               <div class="space-y-2">
                 {#each jobPostingForm.requirements as _requirement, index (index)}
                   <div class="flex space-x-2">
@@ -428,8 +416,7 @@
                     />
                     <button
                       type="button"
-                      onclick={() =>
-                        jobPostingForm.requirements.splice(index, 1)}
+                      onclick={() => jobPostingForm.requirements.splice(index, 1)}
                       class="px-3 py-2 text-red-600 hover:text-red-900"
                     >
                       삭제
@@ -438,7 +425,7 @@
                 {/each}
                 <button
                   type="button"
-                  onclick={() => jobPostingForm.requirements.push("")}
+                  onclick={() => jobPostingForm.requirements.push('')}
                   class="text-blue-600 hover:text-blue-900 text-sm"
                 >
                   + 요구사항 추가
@@ -448,9 +435,8 @@
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label
-                  class="block text-sm font-medium text-gray-700 mb-1"
-                  for="field-status">최소 급여 *</label
+                <label class="block text-sm font-medium text-gray-700 mb-1" for="field-status"
+                  >최소 급여 *</label
                 >
                 <input
                   type="number"
@@ -461,9 +447,8 @@
                 />
               </div>
               <div>
-                <label
-                  class="block text-sm font-medium text-gray-700 mb-1"
-                  for="field-status">최대 급여 *</label
+                <label class="block text-sm font-medium text-gray-700 mb-1" for="field-status"
+                  >최대 급여 *</label
                 >
                 <input
                   type="number"
@@ -477,9 +462,8 @@
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label
-                  class="block text-sm font-medium text-gray-700 mb-1"
-                  for="field-status">위치 *</label
+                <label class="block text-sm font-medium text-gray-700 mb-1" for="field-status"
+                  >위치 *</label
                 >
                 <input
                   type="text"
@@ -490,9 +474,8 @@
                 />
               </div>
               <div>
-                <label
-                  class="block text-sm font-medium text-gray-700 mb-1"
-                  for="field-status">지원 마감일 *</label
+                <label class="block text-sm font-medium text-gray-700 mb-1" for="field-status"
+                  >지원 마감일 *</label
                 >
                 <input
                   type="date"
@@ -517,7 +500,7 @@
               type="submit"
               class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
             >
-              {selectedJobPosting ? "수정" : "저장"}
+              {selectedJobPosting ? '수정' : '저장'}
             </button>
           </div>
         </form>

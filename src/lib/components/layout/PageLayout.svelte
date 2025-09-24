@@ -18,12 +18,7 @@
     }>
   }
 
-  let {
-    title,
-    subtitle = '',
-    children,
-    stats = [],
-  }: Props = $props()
+  let { title, subtitle = '', children, stats = [] }: Props = $props()
 </script>
 
 <div>
@@ -45,7 +40,6 @@
       {/each}
     </ThemeGrid>
   {/if}
-
 
   <!-- 메인 콘텐츠 -->
   <ThemeSpacer size={6}>

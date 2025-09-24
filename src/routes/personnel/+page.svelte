@@ -1,128 +1,115 @@
 <script lang="ts">
-  import Card from "$lib/components/ui/Card.svelte";
-  import Badge from "$lib/components/ui/Badge.svelte";
-  import Modal from "$lib/components/ui/Modal.svelte";
-  import { formatKRW } from "$lib/utils/format";
-  import { personnelStore } from "$lib/stores/personnel";
-  import { quarterlyPersonnelBudgets, budgetThresholds } from "$lib/stores/rnd";
-  import { page } from "$app/state";
-  import { goto } from "$app/navigation";
-  import type { Personnel, Participation } from "$lib/types";
-  let quarter = $state("2025-Q3");
-  let selectedId = $state<string | null>(null);
-  let query = $state("");
-  let orgFilter = $state("");
-  let statusFilter = $state("") as "" | "재직" | "신규" | "퇴사예정";
-  let lastQuery = $state("");
+  import Card from '$lib/components/ui/Card.svelte'
+  import Badge from '$lib/components/ui/Badge.svelte'
+  import Modal from '$lib/components/ui/Modal.svelte'
+  import { formatKRW } from '$lib/utils/format'
+  import { personnelStore } from '$lib/stores/personnel'
+  import { quarterlyPersonnelBudgets, budgetThresholds } from '$lib/stores/rnd'
+  import { page } from '$app/state'
+  import { goto } from '$app/navigation'
+  import type { Personnel, Participation } from '$lib/types'
+  let quarter = $state('2025-Q3')
+  let selectedId = $state<string | null>(null)
+  let query = $state('')
+  let orgFilter = $state('')
+  let statusFilter = $state('') as '' | '재직' | '신규' | '퇴사예정'
+  let lastQuery = $state('')
 
   function personQuarterCost(p: Personnel): number {
     // 우선 순위: 참여 항목별 quarterlyBreakdown → 연봉 기반 추정치(분기)
     const breakdownSum = p.participations.reduce<number>(
-      (sum: number, pp: Participation) =>
-        sum + (pp.quarterlyBreakdown?.[quarter] ?? 0),
+      (sum: number, pp: Participation) => sum + (pp.quarterlyBreakdown?.[quarter] ?? 0),
       0,
-    );
-    if (breakdownSum > 0) return breakdownSum;
+    )
+    if (breakdownSum > 0) return breakdownSum
     // fallback: 연봉 * 참여율 / 4
     const est =
       ((p.annualSalaryKRW ?? 0) *
         (p.participations.reduce((s, pp) => s + pp.allocationPct, 0) / 100)) /
-      4;
-    return Math.round(est);
+      4
+    return Math.round(est)
   }
   function personQuarterBudget(p: Personnel): number {
-    const map = $quarterlyPersonnelBudgets;
+    const map = $quarterlyPersonnelBudgets
     return p.participations.reduce<number>(
       (sum: number, pp: Participation) =>
         sum + (map[pp.projectId]?.[quarter] ?? 0) * (pp.allocationPct / 100),
       0,
-    );
+    )
   }
 
   // available quarters
   const quarters = $derived(
     Array.from(
-      new Set(
-        Object.values($quarterlyPersonnelBudgets).flatMap((m) =>
-          Object.keys(m),
-        ),
-      ),
+      new Set(Object.values($quarterlyPersonnelBudgets).flatMap((m) => Object.keys(m))),
     ).sort(),
-  );
+  )
 
   // read initial quarter from URL if present
-  if (typeof window !== "undefined") {
-    const params = new URLSearchParams(window.location.search);
-    const urlQuarter = params.get("q");
+  if (typeof window !== 'undefined') {
+    const params = new URLSearchParams(window.location.search)
+    const urlQuarter = params.get('q')
     if (urlQuarter) {
-      quarter = urlQuarter;
+      quarter = urlQuarter
     }
-    lastQuery = params.toString();
+    lastQuery = params.toString()
   }
 
-  const projectId = page.url.searchParams.get("projectId");
-  const all = $derived($personnelStore);
+  const projectId = page.url.searchParams.get('projectId')
+  const all = $derived($personnelStore)
   const filtered = $derived(
     all.filter((p) => {
       const matchQuery = query
-        ? p.name.includes(query) ||
-          p.id.includes(query) ||
-          p.organization.includes(query)
-        : true;
+        ? p.name.includes(query) || p.id.includes(query) || p.organization.includes(query)
+        : true
       const matchProject = projectId
         ? p.participations.some((pp) => pp.projectId === projectId)
-        : true;
-      const matchOrg = orgFilter ? p.organization === orgFilter : true;
-      const matchStatus = statusFilter ? p.status === statusFilter : true;
-      return matchQuery && matchProject && matchOrg && matchStatus;
+        : true
+      const matchOrg = orgFilter ? p.organization === orgFilter : true
+      const matchStatus = statusFilter ? p.status === statusFilter : true
+      return matchQuery && matchProject && matchOrg && matchStatus
     }),
-  );
-  const selected = $derived(all.find((p) => p.id === selectedId));
-  const orgOptions = $derived(
-    Array.from(new Set(all.map((p) => p.organization))),
-  );
-  const _totalCount = $derived(all.length);
-  const _activeCount = $derived(all.filter((p) => p.status === "재직").length);
+  )
+  const selected = $derived(all.find((p) => p.id === selectedId))
+  const orgOptions = $derived(Array.from(new Set(all.map((p) => p.organization))))
+  const _totalCount = $derived(all.length)
+  const _activeCount = $derived(all.filter((p) => p.status === '재직').length)
 
   // KPI summary for selected quarter and current filter
-  const kpiTotalCost = $derived(
-    filtered.reduce((s, p) => s + personQuarterCost(p), 0),
-  );
-  const kpiTotalBudget = $derived(
-    filtered.reduce((s, p) => s + personQuarterBudget(p), 0),
-  );
+  const kpiTotalCost = $derived(filtered.reduce((s, p) => s + personQuarterCost(p), 0))
+  const kpiTotalBudget = $derived(filtered.reduce((s, p) => s + personQuarterBudget(p), 0))
   const kpiUtil = $derived(
     kpiTotalBudget > 0 ? Math.round((kpiTotalCost / kpiTotalBudget) * 100) : 0,
-  );
+  )
   const overCount = $derived(
     filtered.filter((p) => {
-      const b = personQuarterBudget(p);
-      return b > 0 && personQuarterCost(p) / b >= budgetThresholds.critical;
+      const b = personQuarterBudget(p)
+      return b > 0 && personQuarterCost(p) / b >= budgetThresholds.critical
     }).length,
-  );
+  )
 
   // URL sync for quarter only (q)
   $effect(() => {
-    if (typeof window !== "undefined") {
-      const params = new URLSearchParams(window.location.search);
-      if (quarter) params.set("q", quarter);
-      else params.delete("q");
-      const newQuery = params.toString();
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search)
+      if (quarter) params.set('q', quarter)
+      else params.delete('q')
+      const newQuery = params.toString()
       if (newQuery !== lastQuery) {
-        lastQuery = newQuery;
-        goto(`${window.location.pathname}${newQuery ? `?${newQuery}` : ""}`, {
+        lastQuery = newQuery
+        goto(`${window.location.pathname}${newQuery ? `?${newQuery}` : ''}`, {
           replaceState: true,
           keepFocus: true,
           noScroll: true,
-        });
+        })
       }
     }
-  });
+  })
 
   // skeleton loading for table
-  let loading = $state(true);
-  if (typeof window !== "undefined") {
-    setTimeout(() => (loading = false), 300);
+  let loading = $state(true)
+  if (typeof window !== 'undefined') {
+    setTimeout(() => (loading = false), 300)
   }
 </script>
 
@@ -209,17 +196,12 @@
         </thead>
         <tbody class="divide-y">
           {#each filtered as p, i (i)}
-            <tr
-              class="hover:bg-gray-50 cursor-pointer"
-              onclick={() => (selectedId = p.id)}
-            >
+            <tr class="hover:bg-gray-50 cursor-pointer" onclick={() => (selectedId = p.id)}>
               <td class="px-3 py-2">{p.id}</td>
               <td class="px-3 py-2">{p.name}</td>
               <td class="px-3 py-2">{p.organization}</td>
               <td class="px-3 py-2">{p.role}</td>
-              <td class="px-3 py-2"
-                >{p.annualSalaryKRW ? formatKRW(p.annualSalaryKRW) : "-"}</td
-              >
+              <td class="px-3 py-2">{p.annualSalaryKRW ? formatKRW(p.annualSalaryKRW) : '-'}</td>
               <td class="px-3 py-2">{p.participations.length}건</td>
               <td class="px-3 py-2">{formatKRW(personQuarterCost(p))}</td>
               <td class="px-3 py-2">
@@ -227,21 +209,19 @@
                   {@const util = personQuarterCost(p) / personQuarterBudget(p)}
                   <Badge
                     color={util >= budgetThresholds.over
-                      ? "red"
+                      ? 'red'
                       : util >= budgetThresholds.critical
-                        ? "yellow"
+                        ? 'yellow'
                         : util >= budgetThresholds.warning
-                          ? "yellow"
-                          : "green"}>{Math.round(util * 100)}%</Badge
+                          ? 'yellow'
+                          : 'green'}>{Math.round(util * 100)}%</Badge
                   >
                 {:else}
                   -
                 {/if}
               </td>
               <td class="px-3 py-2"
-                ><Badge color={p.status === "퇴사예정" ? "yellow" : "green"}
-                  >{p.status}</Badge
-                ></td
+                ><Badge color={p.status === '퇴사예정' ? 'yellow' : 'green'}>{p.status}</Badge></td
               >
             </tr>
           {/each}
@@ -251,11 +231,7 @@
   {/if}
 </Card>
 
-<Modal
-  open={!!selected}
-  title={selected?.name ?? ""}
-  onClose={() => (selectedId = null)}
->
+<Modal open={!!selected} title={selected?.name ?? ''} onClose={() => (selectedId = null)}>
   {#if selected}
     <div class="space-y-3 text-sm">
       <div class="grid grid-cols-2 gap-3">
@@ -272,9 +248,7 @@
         <div>
           <div class="text-caption">연봉</div>
           <div class="font-semibold">
-            {selected.annualSalaryKRW
-              ? formatKRW(selected.annualSalaryKRW)
-              : "-"}
+            {selected.annualSalaryKRW ? formatKRW(selected.annualSalaryKRW) : '-'}
           </div>
         </div>
       </div>
@@ -285,7 +259,7 @@
             <li>
               {pp.projectId} · {pp.allocationPct}% · {pp.startDate}{pp.endDate
                 ? ` ~ ${pp.endDate}`
-                : ""}
+                : ''}
             </li>
           {/each}
         </ul>

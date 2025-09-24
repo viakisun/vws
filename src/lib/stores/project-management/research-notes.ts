@@ -1,11 +1,11 @@
-import { writable } from "svelte/store";
-import { logAudit } from "./core";
-import type { Document, ResearchNote } from "./types";
+import { writable } from 'svelte/store'
+import { logAudit } from './core'
+import type { Document, ResearchNote } from './types'
 
 // 연구노트 관리
-export const researchNotes = writable<ResearchNote[]>([]);
-export const researchNoteAttachments = writable<Record<string, Document[]>>({});
-export const researchNoteSignatures = writable<Record<string, unknown[]>>({});
+export const researchNotes = writable<ResearchNote[]>([])
+export const researchNoteAttachments = writable<Record<string, Document[]>>({})
+export const researchNoteSignatures = writable<Record<string, unknown[]>>({})
 
 // 연구노트 생성
 export function createResearchNote(
@@ -26,47 +26,44 @@ export function createResearchNote(
     attachments,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
-  };
+  }
 
-  researchNotes.update((list) => [...list, note]);
-  logAudit("create", "research_note", note.id, {}, note);
+  researchNotes.update((list) => [...list, note])
+  logAudit('create', 'research_note', note.id, {}, note)
 
-  return note.id;
+  return note.id
 }
 
 // 연구노트 수정
-export function updateResearchNote(
-  noteId: string,
-  updates: Partial<ResearchNote>,
-): void {
+export function updateResearchNote(noteId: string, updates: Partial<ResearchNote>): void {
   researchNotes.update((list) => {
-    const index = list.findIndex((n) => n.id === noteId);
-    if (index === -1) return list;
+    const index = list.findIndex((n) => n.id === noteId)
+    if (index === -1) return list
 
-    const oldNote = list[index];
+    const oldNote = list[index]
     const updatedNote = {
       ...oldNote,
       ...updates,
       updatedAt: new Date().toISOString(),
-    };
+    }
 
-    const newList = [...list];
-    newList[index] = updatedNote;
+    const newList = [...list]
+    newList[index] = updatedNote
 
-    logAudit("update", "research_note", noteId, oldNote, updatedNote);
-    return newList;
-  });
+    logAudit('update', 'research_note', noteId, oldNote, updatedNote)
+    return newList
+  })
 }
 
 // 연구노트 삭제
 export function deleteResearchNote(noteId: string): void {
   researchNotes.update((list) => {
-    const note = list.find((n) => n.id === noteId);
+    const note = list.find((n) => n.id === noteId)
     if (note) {
-      logAudit("delete", "research_note", noteId, note, {});
+      logAudit('delete', 'research_note', noteId, note, {})
     }
-    return list.filter((n) => n.id !== noteId);
-  });
+    return list.filter((n) => n.id !== noteId)
+  })
 }
 
 // 첨부파일 추가
@@ -79,8 +76,8 @@ export function addResearchNoteAttachment(
 ): string {
   const attachment: Document = {
     id: crypto.randomUUID(),
-    projectId: "", // 연구노트의 프로젝트 ID로 설정
-    type: "other",
+    projectId: '', // 연구노트의 프로젝트 ID로 설정
+    type: 'other',
     filename,
     storageUrl,
     sha256,
@@ -88,19 +85,19 @@ export function addResearchNoteAttachment(
     meta: { description, noteId },
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
-  };
+  }
 
   researchNoteAttachments.update((attachments) => {
-    const noteAttachments = attachments[noteId] || [];
+    const noteAttachments = attachments[noteId] || []
     return {
       ...attachments,
       [noteId]: [...noteAttachments, attachment],
-    };
-  });
+    }
+  })
 
-  logAudit("add_attachment", "research_note", noteId, {}, attachment);
+  logAudit('add_attachment', 'research_note', noteId, {}, attachment)
 
-  return attachment.id;
+  return attachment.id
 }
 
 // 전자서명 추가
@@ -108,7 +105,7 @@ export function addResearchNoteSignature(
   noteId: string,
   signerId: string,
   signatureData: string,
-  signatureType: "author" | "verifier" = "author",
+  signatureType: 'author' | 'verifier' = 'author',
 ): string {
   const signature = {
     id: crypto.randomUUID(),
@@ -118,28 +115,22 @@ export function addResearchNoteSignature(
     signatureType,
     signedAt: new Date().toISOString(),
     verified: false,
-  };
+  }
 
   researchNoteSignatures.update((signatures) => {
-    const noteSignatures = signatures[noteId] || [];
+    const noteSignatures = signatures[noteId] || []
     return {
       ...signatures,
       [noteId]: [...noteSignatures, signature],
-    };
-  });
+    }
+  })
 
-  logAudit(
-    "add_signature",
-    "research_note",
-    noteId,
-    { signerId, signatureType },
-    signature,
-  );
+  logAudit('add_signature', 'research_note', noteId, { signerId, signatureType }, signature)
 
   // 연구노트 서명 상태 업데이트
-  updateResearchNote(noteId, { signedAt: signature.signedAt });
+  updateResearchNote(noteId, { signedAt: signature.signedAt })
 
-  return signature.id;
+  return signature.id
 }
 
 // 서명 검증
@@ -149,7 +140,7 @@ export function verifyResearchNoteSignature(
   verifierId: string,
 ): void {
   researchNoteSignatures.update((signatures) => {
-    const noteSignatures = signatures[noteId] || [];
+    const noteSignatures = signatures[noteId] || []
     const updatedSignatures = noteSignatures.map((sig) => {
       if (sig.id === signatureId) {
         return {
@@ -157,95 +148,80 @@ export function verifyResearchNoteSignature(
           verified: true,
           verifiedBy: verifierId,
           verifiedAt: new Date().toISOString(),
-        };
+        }
       }
-      return sig;
-    });
+      return sig
+    })
 
     return {
       ...signatures,
       [noteId]: updatedSignatures,
-    };
-  });
+    }
+  })
 
-  logAudit(
-    "verify_signature",
-    "research_note",
-    noteId,
-    { signatureId, verifierId },
-    {},
-  );
+  logAudit('verify_signature', 'research_note', noteId, { signatureId, verifierId }, {})
 
   // 연구노트 검증 상태 업데이트
-  updateResearchNote(noteId, { verifiedBy: verifierId });
+  updateResearchNote(noteId, { verifiedBy: verifierId })
 }
 
 // 프로젝트별 연구노트 목록
 export function getResearchNotesByProject(projectId: string): ResearchNote[] {
-  let projectNotes: ResearchNote[] = [];
+  let projectNotes: ResearchNote[] = []
 
   researchNotes.subscribe((list) => {
     projectNotes = list
       .filter((n) => n.projectId === projectId)
-      .sort(
-        (a, b) => new Date(b.weekOf).getTime() - new Date(a.weekOf).getTime(),
-      );
-  })();
+      .sort((a, b) => new Date(b.weekOf).getTime() - new Date(a.weekOf).getTime())
+  })()
 
-  return projectNotes;
+  return projectNotes
 }
 
 // 작성자별 연구노트 목록
 export function getResearchNotesByAuthor(authorId: string): ResearchNote[] {
-  let authorNotes: ResearchNote[] = [];
+  let authorNotes: ResearchNote[] = []
 
   researchNotes.subscribe((list) => {
     authorNotes = list
       .filter((n) => n.authorId === authorId)
-      .sort(
-        (a, b) => new Date(b.weekOf).getTime() - new Date(a.weekOf).getTime(),
-      );
-  })();
+      .sort((a, b) => new Date(b.weekOf).getTime() - new Date(a.weekOf).getTime())
+  })()
 
-  return authorNotes;
+  return authorNotes
 }
 
 // 주차별 연구노트 목록
-export function getResearchNotesByWeek(
-  projectId: string,
-  weekOf: string,
-): ResearchNote[] {
-  let weekNotes: ResearchNote[] = [];
+export function getResearchNotesByWeek(projectId: string, weekOf: string): ResearchNote[] {
+  let weekNotes: ResearchNote[] = []
 
   researchNotes.subscribe((list) => {
-    weekNotes = list.filter(
-      (n) => n.projectId === projectId && n.weekOf === weekOf,
-    );
-  })();
+    weekNotes = list.filter((n) => n.projectId === projectId && n.weekOf === weekOf)
+  })()
 
-  return weekNotes;
+  return weekNotes
 }
 
 // 연구노트별 첨부파일 목록
 export function getResearchNoteAttachments(noteId: string): Document[] {
-  let attachments: Document[] = [];
+  let attachments: Document[] = []
 
   researchNoteAttachments.subscribe((attachmentMap) => {
-    attachments = attachmentMap[noteId] || [];
-  })();
+    attachments = attachmentMap[noteId] || []
+  })()
 
-  return attachments;
+  return attachments
 }
 
 // 연구노트별 서명 목록
 export function getResearchNoteSignatures(noteId: string): unknown[] {
-  let signatures: unknown[] = [];
+  let signatures: unknown[] = []
 
   researchNoteSignatures.subscribe((signatureMap) => {
-    signatures = signatureMap[noteId] || [];
-  })();
+    signatures = signatureMap[noteId] || []
+  })()
 
-  return signatures;
+  return signatures
 }
 
 // 미제출 연구노트 체크
@@ -254,42 +230,40 @@ export function getMissingResearchNotes(
   startDate: string,
   endDate: string,
 ): {
-  missingWeeks: string[];
-  missingAuthors: string[];
+  missingWeeks: string[]
+  missingAuthors: string[]
 } {
-  const start = new Date(startDate);
-  const end = new Date(endDate);
-  const missingWeeks: string[] = [];
-  const missingAuthors: string[] = [];
+  const start = new Date(startDate)
+  const end = new Date(endDate)
+  const missingWeeks: string[] = []
+  const missingAuthors: string[] = []
 
   // 주차별로 체크
-  const currentDate = new Date(start);
+  const currentDate = new Date(start)
   while (currentDate <= end) {
-    const weekOf = getWeekOfYear(currentDate);
-    const weekNotes = getResearchNotesByWeek(projectId, weekOf);
+    const weekOf = getWeekOfYear(currentDate)
+    const weekNotes = getResearchNotesByWeek(projectId, weekOf)
 
     if (weekNotes.length === 0) {
-      missingWeeks.push(weekOf);
+      missingWeeks.push(weekOf)
     }
 
-    currentDate.setDate(currentDate.getDate() + 7);
+    currentDate.setDate(currentDate.getDate() + 7)
   }
 
   // 작성자별 체크 (실제 구현에서는 프로젝트 참여자 목록을 가져와야 함)
   // 여기서는 간단히 처리
 
-  return { missingWeeks, missingAuthors };
+  return { missingWeeks, missingAuthors }
 }
 
 // 주차 계산 (ISO 8601 기준)
 function getWeekOfYear(date: Date): string {
-  const year = date.getFullYear();
-  const firstDayOfYear = new Date(year, 0, 1);
-  const pastDaysOfYear = (date.getTime() - firstDayOfYear.getTime()) / 86400000;
-  const weekNumber = Math.ceil(
-    (pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7,
-  );
-  return `${year}-W${weekNumber.toString().padStart(2, "0")}`;
+  const year = date.getFullYear()
+  const firstDayOfYear = new Date(year, 0, 1)
+  const pastDaysOfYear = (date.getTime() - firstDayOfYear.getTime()) / 86400000
+  const weekNumber = Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7)
+  return `${year}-W${weekNumber.toString().padStart(2, '0')}`
 }
 
 // 연구노트 제출 현황
@@ -297,38 +271,33 @@ export function getResearchNoteSubmissionStatus(
   projectId: string,
   month: string,
 ): {
-  totalWeeks: number;
-  submittedWeeks: number;
-  submissionRate: number;
-  missingWeeks: string[];
+  totalWeeks: number
+  submittedWeeks: number
+  submissionRate: number
+  missingWeeks: string[]
 } {
-  const startDate = new Date(month + "-01");
-  const endDate = new Date(
-    startDate.getFullYear(),
-    startDate.getMonth() + 1,
-    0,
-  );
+  const startDate = new Date(month + '-01')
+  const endDate = new Date(startDate.getFullYear(), startDate.getMonth() + 1, 0)
 
   const { missingWeeks } = getMissingResearchNotes(
     projectId,
     startDate.toISOString(),
     endDate.toISOString(),
-  );
+  )
 
   // 해당 월의 총 주차 수 계산
   const totalWeeks = Math.ceil(
     (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24 * 7),
-  );
-  const submittedWeeks = totalWeeks - missingWeeks.length;
-  const submissionRate =
-    totalWeeks > 0 ? (submittedWeeks / totalWeeks) * 100 : 0;
+  )
+  const submittedWeeks = totalWeeks - missingWeeks.length
+  const submissionRate = totalWeeks > 0 ? (submittedWeeks / totalWeeks) * 100 : 0
 
   return {
     totalWeeks,
     submittedWeeks,
     submissionRate,
     missingWeeks,
-  };
+  }
 }
 
 // 연구노트 템플릿 생성
@@ -336,7 +305,7 @@ export function createResearchNoteTemplate(
   projectId: string,
   authorId: string,
   weekOf: string,
-  templateType: "weekly" | "experiment" | "analysis" | "meeting",
+  templateType: 'weekly' | 'experiment' | 'analysis' | 'meeting',
 ): string {
   const templates = {
     weekly: {
@@ -435,16 +404,10 @@ export function createResearchNoteTemplate(
 ## 다음 회의
 - `,
     },
-  };
+  }
 
-  const template = templates[templateType];
-  return createResearchNote(
-    projectId,
-    authorId,
-    weekOf,
-    template.title,
-    template.content,
-  );
+  const template = templates[templateType]
+  return createResearchNote(projectId, authorId, weekOf, template.title, template.content)
 }
 
 // 연구노트 검색
@@ -455,69 +418,69 @@ export function searchResearchNotes(
   startDate?: string,
   endDate?: string,
 ): ResearchNote[] {
-  let searchResults: ResearchNote[] = [];
+  let searchResults: ResearchNote[] = []
 
   researchNotes.subscribe((list) => {
     searchResults = list.filter((note) => {
       // 프로젝트 필터
-      if (note.projectId !== projectId) return false;
+      if (note.projectId !== projectId) return false
 
       // 작성자 필터
-      if (authorId && note.authorId !== authorId) return false;
+      if (authorId && note.authorId !== authorId) return false
 
       // 날짜 필터
-      if (startDate && note.weekOf < startDate) return false;
-      if (endDate && note.weekOf > endDate) return false;
+      if (startDate && note.weekOf < startDate) return false
+      if (endDate && note.weekOf > endDate) return false
 
       // 텍스트 검색
       if (query) {
-        const searchText = query.toLowerCase();
+        const searchText = query.toLowerCase()
         return (
           note.title.toLowerCase().includes(searchText) ||
           note.contentMd.toLowerCase().includes(searchText)
-        );
+        )
       }
 
-      return true;
-    });
-  })();
+      return true
+    })
+  })()
 
-  return searchResults;
+  return searchResults
 }
 
 // 연구노트 통계
 export function getResearchNoteStatistics(
   projectId: string,
-  _period: "month" | "quarter" | "year",
+  _period: 'month' | 'quarter' | 'year',
 ): {
-  totalNotes: number;
-  submittedNotes: number;
-  signedNotes: number;
-  verifiedNotes: number;
-  averageNotesPerWeek: number;
-  topAuthors: Array<{ authorId: string; count: number }>;
+  totalNotes: number
+  submittedNotes: number
+  signedNotes: number
+  verifiedNotes: number
+  averageNotesPerWeek: number
+  topAuthors: Array<{ authorId: string; count: number }>
 } {
-  const projectNotes = getResearchNotesByProject(projectId);
+  const projectNotes = getResearchNotesByProject(projectId)
 
-  const totalNotes = projectNotes.length;
-  const submittedNotes = projectNotes.filter((n) => n.signedAt).length;
-  const signedNotes = projectNotes.filter((n) => n.signedAt).length;
-  const verifiedNotes = projectNotes.filter((n) => n.verifiedBy).length;
+  const totalNotes = projectNotes.length
+  const submittedNotes = projectNotes.filter((n) => n.signedAt).length
+  const signedNotes = projectNotes.filter((n) => n.signedAt).length
+  const verifiedNotes = projectNotes.filter((n) => n.verifiedBy).length
 
   // 주차별 평균 계산
-  const weeks = new Set(projectNotes.map((n) => n.weekOf));
-  const averageNotesPerWeek = weeks.size > 0 ? totalNotes / weeks.size : 0;
+  const weeks = new Set(projectNotes.map((n) => n.weekOf))
+  const averageNotesPerWeek = weeks.size > 0 ? totalNotes / weeks.size : 0
 
   // 작성자별 통계
-  const authorCounts: Record<string, number> = {};
+  const authorCounts: Record<string, number> = {}
   projectNotes.forEach((note) => {
-    authorCounts[note.authorId] = (authorCounts[note.authorId] || 0) + 1;
-  });
+    authorCounts[note.authorId] = (authorCounts[note.authorId] || 0) + 1
+  })
 
   const topAuthors = Object.entries(authorCounts)
     .map(([authorId, count]) => ({ authorId, count }))
     .sort((a, b) => b.count - a.count)
-    .slice(0, 5);
+    .slice(0, 5)
 
   return {
     totalNotes,
@@ -526,22 +489,22 @@ export function getResearchNoteStatistics(
     verifiedNotes,
     averageNotesPerWeek,
     topAuthors,
-  };
+  }
 }
 
 // 연구노트 내보내기 (PDF/Word 형식)
 export function exportResearchNotes(
   projectId: string,
-  format: "pdf" | "docx" | "html",
+  format: 'pdf' | 'docx' | 'html',
   startDate?: string,
   endDate?: string,
 ): string {
-  const notes = getResearchNotesByProject(projectId);
+  const notes = getResearchNotesByProject(projectId)
   const filteredNotes = notes.filter((note) => {
-    if (startDate && note.weekOf < startDate) return false;
-    if (endDate && note.weekOf > endDate) return false;
-    return true;
-  });
+    if (startDate && note.weekOf < startDate) return false
+    if (endDate && note.weekOf > endDate) return false
+    return true
+  })
 
   // 실제 구현에서는 서버에서 PDF/Word 생성
   // 여기서는 HTML 형식으로 반환
@@ -566,34 +529,34 @@ export function exportResearchNotes(
 				</div>
 			`,
         )
-        .join("")}
+        .join('')}
 		</body>
 		</html>
-	`;
+	`
 
-  return html;
+  return html
 }
 
 // 연구노트 백업
 export function backupResearchNotes(projectId: string): {
-  notes: ResearchNote[];
-  attachments: Record<string, Document[]>;
-  signatures: Record<string, unknown[]>;
-  backupDate: string;
+  notes: ResearchNote[]
+  attachments: Record<string, Document[]>
+  signatures: Record<string, unknown[]>
+  backupDate: string
 } {
-  const notes = getResearchNotesByProject(projectId);
-  const attachments: Record<string, Document[]> = {};
-  const signatures: Record<string, unknown[]> = {};
+  const notes = getResearchNotesByProject(projectId)
+  const attachments: Record<string, Document[]> = {}
+  const signatures: Record<string, unknown[]> = {}
 
   notes.forEach((note) => {
-    attachments[note.id] = getResearchNoteAttachments(note.id);
-    signatures[note.id] = getResearchNoteSignatures(note.id);
-  });
+    attachments[note.id] = getResearchNoteAttachments(note.id)
+    signatures[note.id] = getResearchNoteSignatures(note.id)
+  })
 
   return {
     notes,
     attachments,
     signatures,
     backupDate: new Date().toISOString(),
-  };
+  }
 }

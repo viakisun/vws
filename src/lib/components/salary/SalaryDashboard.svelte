@@ -4,67 +4,67 @@
     departmentSalaryStats,
     loadPayslips,
     error,
-  } from "$lib/stores/salary/salary-store";
-  import { formatCurrency, formatPercentage } from "$lib/utils/format";
+  } from '$lib/stores/salary/salary-store'
+  import { formatCurrency, formatPercentage } from '$lib/utils/format'
   import {
     AlertCircleIcon,
     ClockIcon,
     FileTextIcon,
     CheckCircleIcon,
     DollarSignIcon,
-  } from "@lucide/svelte";
+  } from '@lucide/svelte'
 
-  let mounted = $state(false);
+  let mounted = $state(false)
 
   $effect(() => {
     if (!mounted) {
-      mounted = true;
+      mounted = true
       void (async () => {
-        await loadPayslips();
-      })();
+        await loadPayslips()
+      })()
     }
-  });
+  })
 
   // 상태별 색상 반환
   function getStatusColor(status: string): string {
     switch (status) {
-      case "draft":
-        return "text-gray-600 bg-gray-100";
-      case "calculated":
-        return "text-blue-600 bg-blue-100";
-      case "approved":
-        return "text-green-600 bg-green-100";
-      case "paid":
-        return "text-purple-600 bg-purple-100";
-      case "cancelled":
-        return "text-red-600 bg-red-100";
+      case 'draft':
+        return 'text-gray-600 bg-gray-100'
+      case 'calculated':
+        return 'text-blue-600 bg-blue-100'
+      case 'approved':
+        return 'text-green-600 bg-green-100'
+      case 'paid':
+        return 'text-purple-600 bg-purple-100'
+      case 'cancelled':
+        return 'text-red-600 bg-red-100'
       default:
-        return "text-gray-600 bg-gray-100";
+        return 'text-gray-600 bg-gray-100'
     }
   }
 
   // 상태별 아이콘 반환
   function _getStatusIcon(status: string) {
     switch (status) {
-      case "draft":
-        return ClockIcon;
-      case "calculated":
-        return FileTextIcon;
-      case "approved":
-        return CheckCircleIcon;
-      case "paid":
-        return DollarSignIcon;
-      case "cancelled":
-        return AlertCircleIcon;
+      case 'draft':
+        return ClockIcon
+      case 'calculated':
+        return FileTextIcon
+      case 'approved':
+        return CheckCircleIcon
+      case 'paid':
+        return DollarSignIcon
+      case 'cancelled':
+        return AlertCircleIcon
       default:
-        return ClockIcon;
+        return ClockIcon
     }
   }
 
   // 변화율 계산
   function _calculateChangeRate(current: number, previous: number): number {
-    if (previous === 0) return current > 0 ? 100 : 0;
-    return ((current - previous) / previous) * 100;
+    if (previous === 0) return current > 0 ? 100 : 0
+    return ((current - previous) / previous) * 100
   }
 </script>
 
@@ -72,9 +72,7 @@
   <!-- 로딩 및 에러 상태 -->
   {#if !mounted}
     <div class="flex items-center justify-center py-12">
-      <div
-        class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"
-      ></div>
+      <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
       <span class="ml-2 text-gray-600">급여 데이터를 불러오는 중...</span>
     </div>
   {:else if $error}
@@ -89,20 +87,14 @@
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <!-- 부서별 급여 현황 -->
       <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h3 class="text-lg font-semibold text-gray-900 mb-4">
-          부서별 급여 현황
-        </h3>
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">부서별 급여 현황</h3>
         <div class="space-y-4">
           {#each Object.entries($departmentSalaryStats) as [department, stats] (department)}
-            <div
-              class="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-            >
+            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
               <div class="flex-1">
                 <div class="flex items-center justify-between">
                   <h4 class="font-medium text-gray-900">{department}</h4>
-                  <span class="text-sm text-gray-500"
-                    >{stats.employeeCount}명</span
-                  >
+                  <span class="text-sm text-gray-500">{stats.employeeCount}명</span>
                 </div>
                 <div class="mt-1 grid grid-cols-2 gap-4 text-sm">
                   <div>
@@ -183,10 +175,7 @@
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
       <div class="flex items-center justify-between mb-4">
         <h3 class="text-lg font-semibold text-gray-900">최근 급여 이력</h3>
-        <button
-          type="button"
-          class="text-sm text-blue-600 hover:text-blue-800 font-medium"
-        >
+        <button type="button" class="text-sm text-blue-600 hover:text-blue-800 font-medium">
           전체 보기
         </button>
       </div>
@@ -224,18 +213,14 @@
           <tbody class="bg-white divide-y divide-gray-200">
             <!-- 현재 기간 -->
             <tr class="hover:bg-gray-50">
-              <td
-                class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900"
-              >
+              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                 {$salaryStatistics.currentPeriod}
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                 {$salaryStatistics.currentMonth.totalEmployees}명
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {formatCurrency(
-                  $salaryStatistics.currentMonth.totalGrossSalary,
-                )}
+                {formatCurrency($salaryStatistics.currentMonth.totalGrossSalary)}
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                 {formatCurrency($salaryStatistics.currentMonth.totalNetSalary)}
@@ -246,15 +231,15 @@
                     $salaryStatistics.currentMonth.status,
                   )}"
                 >
-                  {#if $salaryStatistics.currentMonth.status === "draft"}
+                  {#if $salaryStatistics.currentMonth.status === 'draft'}
                     초안
-                  {:else if $salaryStatistics.currentMonth.status === "calculated"}
+                  {:else if $salaryStatistics.currentMonth.status === 'calculated'}
                     계산 완료
-                  {:else if $salaryStatistics.currentMonth.status === "approved"}
+                  {:else if $salaryStatistics.currentMonth.status === 'approved'}
                     승인 완료
-                  {:else if $salaryStatistics.currentMonth.status === "paid"}
+                  {:else if $salaryStatistics.currentMonth.status === 'paid'}
                     지급 완료
-                  {:else if $salaryStatistics.currentMonth.status === "cancelled"}
+                  {:else if $salaryStatistics.currentMonth.status === 'cancelled'}
                     취소됨
                   {:else}
                     알 수 없음
@@ -264,18 +249,14 @@
             </tr>
             <!-- 이전 기간 -->
             <tr class="hover:bg-gray-50">
-              <td
-                class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900"
-              >
+              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                 {$salaryStatistics.previousPeriod}
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                 {$salaryStatistics.previousMonth.totalEmployees}명
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {formatCurrency(
-                  $salaryStatistics.previousMonth.totalGrossSalary,
-                )}
+                {formatCurrency($salaryStatistics.previousMonth.totalGrossSalary)}
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                 {formatCurrency($salaryStatistics.previousMonth.totalNetSalary)}
@@ -286,15 +267,15 @@
                     $salaryStatistics.previousMonth.status,
                   )}"
                 >
-                  {#if $salaryStatistics.previousMonth.status === "draft"}
+                  {#if $salaryStatistics.previousMonth.status === 'draft'}
                     초안
-                  {:else if $salaryStatistics.previousMonth.status === "calculated"}
+                  {:else if $salaryStatistics.previousMonth.status === 'calculated'}
                     계산 완료
-                  {:else if $salaryStatistics.previousMonth.status === "approved"}
+                  {:else if $salaryStatistics.previousMonth.status === 'approved'}
                     승인 완료
-                  {:else if $salaryStatistics.previousMonth.status === "paid"}
+                  {:else if $salaryStatistics.previousMonth.status === 'paid'}
                     지급 완료
-                  {:else if $salaryStatistics.previousMonth.status === "cancelled"}
+                  {:else if $salaryStatistics.previousMonth.status === 'cancelled'}
                     취소됨
                   {:else}
                     알 수 없음

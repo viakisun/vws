@@ -1,34 +1,30 @@
 <script lang="ts">
-  import { logger } from "$lib/utils/logger";
+  import { logger } from '$lib/utils/logger'
 
-  import type {
-    AnnualBudget,
-    AnnualBudgetFormData,
-    BudgetSummary,
-  } from "$lib/types/project-budget";
-  import { CheckIcon, PlusIcon, TrashIcon, XIcon } from "@lucide/svelte";
-  import { createEventDispatcher } from "svelte";
+  import type { AnnualBudget, AnnualBudgetFormData, BudgetSummary } from '$lib/types/project-budget'
+  import { CheckIcon, PlusIcon, TrashIcon, XIcon } from '@lucide/svelte'
+  import { createEventDispatcher } from 'svelte'
 
-  const dispatch = createEventDispatcher();
+  const dispatch = createEventDispatcher()
 
   // Props
   let {
-    projectId = "",
+    projectId = '',
     existingBudgets = [],
     readonly = false,
   } = $props<{
-    projectId?: string;
-    existingBudgets?: AnnualBudget[];
-    readonly?: boolean;
-  }>();
+    projectId?: string
+    existingBudgets?: AnnualBudget[]
+    readonly?: boolean
+  }>()
 
   // 폼 데이터 상태
-  let budgetData = $state<AnnualBudgetFormData[]>([]);
-  let isSubmitting = $state(false);
-  let validationErrors = $state<string[]>([]);
+  let budgetData = $state<AnnualBudgetFormData[]>([])
+  let isSubmitting = $state(false)
+  let validationErrors = $state<string[]>([])
 
   // 계산된 요약 정보
-  let budgetSummary = $derived(calculateBudgetSummary(budgetData));
+  let budgetSummary = $derived(calculateBudgetSummary(budgetData))
 
   // 초기화
   $effect(() => {
@@ -41,60 +37,46 @@
         companyCash: budget.companyCash,
         companyInKind: budget.companyInKind,
         notes: budget.notes,
-      }));
+      }))
     } else {
       // 기본적으로 1차년도 추가
-      addYear();
+      addYear()
     }
-  });
+  })
 
   // 연차 추가
   function addYear() {
-    const nextYear =
-      budgetData.length > 0
-        ? Math.max(...budgetData.map((b) => b.year)) + 1
-        : 1;
+    const nextYear = budgetData.length > 0 ? Math.max(...budgetData.map((b) => b.year)) + 1 : 1
     budgetData.push({
       year: nextYear,
-      startDate: "",
-      endDate: "",
+      startDate: '',
+      endDate: '',
       governmentFunding: 0,
       companyCash: 0,
       companyInKind: 0,
-      notes: "",
-    });
+      notes: '',
+    })
   }
 
   // 연차 삭제
   function removeYear(index: number) {
     if (budgetData.length > 1) {
-      budgetData.splice(index, 1);
+      budgetData.splice(index, 1)
       // 연차 번호 재정렬
       budgetData.forEach((budget, idx) => {
-        budget.year = idx + 1;
-      });
+        budget.year = idx + 1
+      })
     }
   }
 
   // 예산 요약 계산
-  function calculateBudgetSummary(
-    budgets: AnnualBudgetFormData[],
-  ): BudgetSummary {
-    const totalGovernmentFunding = budgets.reduce(
-      (sum, b) => sum + (b.governmentFunding || 0),
-      0,
-    );
-    const totalCompanyCash = budgets.reduce(
-      (sum, b) => sum + (b.companyCash || 0),
-      0,
-    );
-    const totalCompanyInKind = budgets.reduce(
-      (sum, b) => sum + (b.companyInKind || 0),
-      0,
-    );
-    const totalCash = totalGovernmentFunding + totalCompanyCash;
-    const totalInKind = totalCompanyInKind;
-    const totalBudget = totalCash + totalInKind;
+  function calculateBudgetSummary(budgets: AnnualBudgetFormData[]): BudgetSummary {
+    const totalGovernmentFunding = budgets.reduce((sum, b) => sum + (b.governmentFunding || 0), 0)
+    const totalCompanyCash = budgets.reduce((sum, b) => sum + (b.companyCash || 0), 0)
+    const totalCompanyInKind = budgets.reduce((sum, b) => sum + (b.companyInKind || 0), 0)
+    const totalCash = totalGovernmentFunding + totalCompanyCash
+    const totalInKind = totalCompanyInKind
+    const totalBudget = totalCash + totalInKind
 
     return {
       projectId,
@@ -105,100 +87,93 @@
       totalCompanyInKind,
       totalCash,
       totalInKind,
-      governmentFundingRatio:
-        totalBudget > 0 ? (totalGovernmentFunding / totalBudget) * 100 : 0,
+      governmentFundingRatio: totalBudget > 0 ? (totalGovernmentFunding / totalBudget) * 100 : 0,
       companyBurdenRatio:
-        totalBudget > 0
-          ? ((totalCompanyCash + totalCompanyInKind) / totalBudget) * 100
-          : 0,
+        totalBudget > 0 ? ((totalCompanyCash + totalCompanyInKind) / totalBudget) * 100 : 0,
       cashRatio: totalBudget > 0 ? (totalCash / totalBudget) * 100 : 0,
       inKindRatio: totalBudget > 0 ? (totalInKind / totalBudget) * 100 : 0,
-    };
+    }
   }
 
   // 폼 검증
   function validateForm(): boolean {
-    const errors: string[] = [];
+    const errors: string[] = []
 
     if (budgetData.length === 0) {
-      errors.push("최소 1개 연차의 예산을 입력해주세요.");
+      errors.push('최소 1개 연차의 예산을 입력해주세요.')
     }
 
     budgetData.forEach((budget) => {
-      const yearLabel = `${budget.year}차년도`;
+      const yearLabel = `${budget.year}차년도`
 
       if (budget.governmentFunding < 0) {
-        errors.push(`${yearLabel}: 지원금은 0 이상이어야 합니다.`);
+        errors.push(`${yearLabel}: 지원금은 0 이상이어야 합니다.`)
       }
 
       if (budget.companyCash < 0) {
-        errors.push(`${yearLabel}: 기업부담금(현금)은 0 이상이어야 합니다.`);
+        errors.push(`${yearLabel}: 기업부담금(현금)은 0 이상이어야 합니다.`)
       }
 
       if (budget.companyInKind < 0) {
-        errors.push(`${yearLabel}: 기업부담금(현물)은 0 이상이어야 합니다.`);
+        errors.push(`${yearLabel}: 기업부담금(현물)은 0 이상이어야 합니다.`)
       }
 
       const yearTotal =
-        (budget.governmentFunding || 0) +
-        (budget.companyCash || 0) +
-        (budget.companyInKind || 0);
+        (budget.governmentFunding || 0) + (budget.companyCash || 0) + (budget.companyInKind || 0)
       if (yearTotal === 0) {
-        errors.push(
-          `${yearLabel}: 총 예산이 0원입니다. 최소 하나의 예산 항목을 입력해주세요.`,
-        );
+        errors.push(`${yearLabel}: 총 예산이 0원입니다. 최소 하나의 예산 항목을 입력해주세요.`)
       }
 
       // 날짜 검증
       if (budget.startDate && budget.endDate) {
-        const startDate = new Date(budget.startDate);
-        const endDate = new Date(budget.endDate);
+        const startDate = new Date(budget.startDate)
+        const endDate = new Date(budget.endDate)
         if (startDate > endDate) {
-          errors.push(`${yearLabel}: 시작일이 종료일보다 늦을 수 없습니다.`);
+          errors.push(`${yearLabel}: 시작일이 종료일보다 늦을 수 없습니다.`)
         }
       }
-    });
+    })
 
-    validationErrors = errors;
-    return errors.length === 0;
+    validationErrors = errors
+    return errors.length === 0
   }
 
   // 저장
   async function saveBudgets() {
-    if (!validateForm()) return;
+    if (!validateForm()) return
 
-    isSubmitting = true;
+    isSubmitting = true
 
     try {
       const response = await window.fetch(
         `/api/project-management/projects/${projectId}/annual-budgets`,
         {
-          method: "POST",
+          method: 'POST',
           headers: {
-            "Content-Type": "application/json",
+            'Content-Type': 'application/json',
           },
           body: JSON.stringify({ budgets: budgetData }),
         },
-      );
+      )
 
-      const result = await response.json();
+      const result = await response.json()
 
       if (result.success) {
-        dispatch("budgetSaved", result.data);
+        dispatch('budgetSaved', result.data)
       } else {
-        validationErrors = [result.error || "예산 저장에 실패했습니다."];
+        validationErrors = [result.error || '예산 저장에 실패했습니다.']
       }
     } catch (error) {
-      logger.error("예산 저장 오류:", error);
-      validationErrors = ["예산 저장 중 오류가 발생했습니다."];
+      logger.error('예산 저장 오류:', error)
+      validationErrors = ['예산 저장 중 오류가 발생했습니다.']
     } finally {
-      isSubmitting = false;
+      isSubmitting = false
     }
   }
 
   // 숫자 포맷팅
   function formatCurrency(amount: number): string {
-    return new Intl.NumberFormat("ko-KR").format(amount);
+    return new Intl.NumberFormat('ko-KR').format(amount)
   }
 </script>
 
@@ -311,10 +286,7 @@
           <!-- 날짜 입력 -->
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             <div>
-              <label
-                for="start-date-{index}"
-                class="block text-sm font-medium text-gray-700 mb-1"
-              >
+              <label for="start-date-{index}" class="block text-sm font-medium text-gray-700 mb-1">
                 시작일 (선택사항)
               </label>
               <input
@@ -326,10 +298,7 @@
               />
             </div>
             <div>
-              <label
-                for="end-date-{index}"
-                class="block text-sm font-medium text-gray-700 mb-1"
-              >
+              <label for="end-date-{index}" class="block text-sm font-medium text-gray-700 mb-1">
                 종료일 (선택사항)
               </label>
               <input
@@ -406,20 +375,14 @@
               <div class="flex justify-between">
                 <span>현금 합계:</span>
                 <span class="font-medium">
-                  {formatCurrency(
-                    (budget.governmentFunding || 0) + (budget.companyCash || 0),
-                  )}원
+                  {formatCurrency((budget.governmentFunding || 0) + (budget.companyCash || 0))}원
                 </span>
               </div>
               <div class="flex justify-between">
                 <span>현물 합계:</span>
-                <span class="font-medium"
-                  >{formatCurrency(budget.companyInKind || 0)}원</span
-                >
+                <span class="font-medium">{formatCurrency(budget.companyInKind || 0)}원</span>
               </div>
-              <div
-                class="flex justify-between border-t pt-1 font-semibold text-gray-900"
-              >
+              <div class="flex justify-between border-t pt-1 font-semibold text-gray-900">
                 <span>{budget.year}차년도 사업비:</span>
                 <span>
                   {formatCurrency(
@@ -434,10 +397,7 @@
 
           <!-- 메모 -->
           <div>
-            <label
-              for="notes-{index}"
-              class="block text-sm font-medium text-gray-700 mb-1"
-            >
+            <label for="notes-{index}" class="block text-sm font-medium text-gray-700 mb-1">
               메모 (선택사항)
             </label>
             <textarea
@@ -463,9 +423,7 @@
           class="flex items-center px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
         >
           {#if isSubmitting}
-            <div
-              class="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"
-            ></div>
+            <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
             저장 중...
           {:else}
             <CheckIcon class="w-4 h-4 mr-2" />

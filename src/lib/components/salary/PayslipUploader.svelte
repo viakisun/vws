@@ -1,6 +1,6 @@
 <script lang="ts">
-  import ThemeButton from "$lib/components/ui/ThemeButton.svelte";
-  import ThemeModal from "$lib/components/ui/ThemeModal.svelte";
+  import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
+  import ThemeModal from '$lib/components/ui/ThemeModal.svelte'
   import {
     AlertCircleIcon,
     CalendarIcon,
@@ -9,57 +9,57 @@
     FileSpreadsheetIcon,
     UploadIcon,
     XCircleIcon,
-  } from "@lucide/svelte";
+  } from '@lucide/svelte'
 
   // Local types for this component
   type UploadResult = {
-    success?: boolean;
-    message?: string;
-    processedCount?: number;
-    errorCount?: number;
-    errors?: string[];
+    success?: boolean
+    message?: string
+    processedCount?: number
+    errorCount?: number
+    errors?: string[]
     results?: {
-      success?: number;
-      failed?: number;
-      errors?: string[];
-      details?: any[];
-    };
-  };
+      success?: number
+      failed?: number
+      errors?: string[]
+      details?: any[]
+    }
+  }
 
-  let showUploadModal = $state(false);
-  let selectedFile = $state<File | null>(null);
-  let selectedYear = $state(new Date().getFullYear());
-  let selectedMonth = $state(new Date().getMonth() + 1);
-  let isUploading = $state(false);
-  let uploadResult = $state<UploadResult | null>(null);
-  let showResultModal = $state(false);
+  let showUploadModal = $state(false)
+  let selectedFile = $state<File | null>(null)
+  let selectedYear = $state(new Date().getFullYear())
+  let selectedMonth = $state(new Date().getMonth() + 1)
+  let isUploading = $state(false)
+  let uploadResult = $state<UploadResult | null>(null)
+  let showResultModal = $state(false)
 
   // 월 옵션 생성
   const monthOptions = Array.from({ length: 12 }, (_, i) => ({
     value: i + 1,
     label: `${i + 1}월`,
-  }));
+  }))
 
   // 연도 옵션 생성 (현재 연도 기준 ±2년)
   const yearOptions = Array.from({ length: 5 }, (_, i) => {
-    const year = new Date().getFullYear() - 2 + i;
-    return { value: year, label: `${year}년` };
-  });
+    const year = new Date().getFullYear() - 2 + i
+    return { value: year, label: `${year}년` }
+  })
 
   // 파일 선택 처리
   function handleFileSelect(event: Event) {
-    const target = event.target as HTMLInputElement;
-    const file = target.files?.[0];
+    const target = event.target as HTMLInputElement
+    const file = target.files?.[0]
 
     if (file) {
       // 파일 확장자 검증
-      if (!file.name.endsWith(".xlsx") && !file.name.endsWith(".xls")) {
-        alert("엑셀 파일(.xlsx, .xls)만 업로드 가능합니다.");
-        target.value = "";
-        return;
+      if (!file.name.endsWith('.xlsx') && !file.name.endsWith('.xls')) {
+        alert('엑셀 파일(.xlsx, .xls)만 업로드 가능합니다.')
+        target.value = ''
+        return
       }
 
-      selectedFile = file;
+      selectedFile = file
     }
   }
 
@@ -68,97 +68,85 @@
     try {
       const response = await fetch(
         `/api/salary/payslips/template?year=${selectedYear}&month=${selectedMonth}`,
-      );
+      )
 
       if (!response.ok) {
-        throw new Error("템플릿 다운로드에 실패했습니다.");
+        throw new Error('템플릿 다운로드에 실패했습니다.')
       }
 
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `payslip_template_${selectedYear}_${selectedMonth}.xlsx`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `payslip_template_${selectedYear}_${selectedMonth}.xlsx`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      window.URL.revokeObjectURL(url)
     } catch (_error) {
-      alert("템플릿 다운로드에 실패했습니다.");
+      alert('템플릿 다운로드에 실패했습니다.')
     }
   }
 
   // 파일 업로드
   async function uploadFile() {
     if (!selectedFile) {
-      alert("파일을 선택해주세요.");
-      return;
+      alert('파일을 선택해주세요.')
+      return
     }
 
-    isUploading = true;
+    isUploading = true
 
     try {
-      const formData = new FormData();
-      formData.append("file", selectedFile);
-      formData.append(
-        "period",
-        `${selectedYear}-${String(selectedMonth).padStart(2, "0")}`,
-      );
+      const formData = new FormData()
+      formData.append('file', selectedFile)
+      formData.append('period', `${selectedYear}-${String(selectedMonth).padStart(2, '0')}`)
 
-      const response = await fetch("/api/salary/payslips/upload", {
-        method: "POST",
+      const response = await fetch('/api/salary/payslips/upload', {
+        method: 'POST',
         body: formData,
-      });
+      })
 
-      const result = await response.json();
+      const result = await response.json()
 
       if (result.success) {
-        uploadResult = result;
-        showResultModal = true;
-        showUploadModal = false;
-        selectedFile = null;
+        uploadResult = result
+        showResultModal = true
+        showUploadModal = false
+        selectedFile = null
       } else {
-        alert(`업로드 실패: ${result.error}`);
+        alert(`업로드 실패: ${result.error}`)
       }
     } catch (_error) {
-      alert("업로드 중 오류가 발생했습니다.");
+      alert('업로드 중 오류가 발생했습니다.')
     } finally {
-      isUploading = false;
+      isUploading = false
     }
   }
 
   // 모달 닫기
   function closeUploadModal() {
-    showUploadModal = false;
-    selectedFile = null;
+    showUploadModal = false
+    selectedFile = null
   }
 
   function closeResultModal() {
-    showResultModal = false;
-    uploadResult = null;
+    showResultModal = false
+    uploadResult = null
   }
 </script>
 
 <!-- 업로드 버튼 -->
-<ThemeButton
-  onclick={() => (showUploadModal = true)}
-  class="bg-green-600 hover:bg-green-700"
->
+<ThemeButton onclick={() => (showUploadModal = true)} class="bg-green-600 hover:bg-green-700">
   <UploadIcon size={16} class="mr-2" />
   엑셀 일괄 업로드
 </ThemeButton>
 
 <!-- 업로드 모달 -->
-<ThemeModal
-  open={showUploadModal}
-  onclose={() => (showUploadModal = false)}
-  size="lg"
->
+<ThemeModal open={showUploadModal} onclose={() => (showUploadModal = false)} size="lg">
   <div class="p-6">
     <div class="flex items-center justify-between mb-6">
-      <h2 class="text-xl font-semibold text-gray-900">
-        급여명세서 엑셀 업로드
-      </h2>
+      <h2 class="text-xl font-semibold text-gray-900">급여명세서 엑셀 업로드</h2>
       <button
         type="button"
         onclick={closeUploadModal}
@@ -177,9 +165,8 @@
         </h3>
         <div class="grid grid-cols-2 gap-4">
           <div>
-            <label
-              for="upload-year"
-              class="block text-sm font-medium text-blue-700 mb-2">연도</label
+            <label for="upload-year" class="block text-sm font-medium text-blue-700 mb-2"
+              >연도</label
             >
             <select
               id="upload-year"
@@ -192,9 +179,7 @@
             </select>
           </div>
           <div>
-            <label
-              for="upload-month"
-              class="block text-sm font-medium text-blue-700 mb-2">월</label
+            <label for="upload-month" class="block text-sm font-medium text-blue-700 mb-2">월</label
             >
             <select
               id="upload-month"
@@ -236,10 +221,7 @@
         </h3>
         <div class="space-y-4">
           <div>
-            <label
-              for="file-upload"
-              class="block text-sm font-medium text-gray-700 mb-2"
-            >
+            <label for="file-upload" class="block text-sm font-medium text-gray-700 mb-2">
               파일 선택
             </label>
             <input
@@ -252,12 +234,9 @@
           </div>
 
           {#if selectedFile}
-            <div
-              class="flex items-center p-3 bg-green-50 border border-green-200 rounded-md"
-            >
+            <div class="flex items-center p-3 bg-green-50 border border-green-200 rounded-md">
               <CheckCircleIcon size={20} class="text-green-600 mr-2" />
-              <span class="text-green-700 font-medium">{selectedFile.name}</span
-              >
+              <span class="text-green-700 font-medium">{selectedFile.name}</span>
             </div>
           {/if}
 
@@ -279,18 +258,14 @@
 
       <!-- 액션 버튼 -->
       <div class="flex justify-end space-x-3">
-        <ThemeButton variant="ghost" onclick={closeUploadModal}
-          >취소</ThemeButton
-        >
+        <ThemeButton variant="ghost" onclick={closeUploadModal}>취소</ThemeButton>
         <ThemeButton
           onclick={uploadFile}
           disabled={!selectedFile || isUploading}
           class="bg-green-600 hover:bg-green-700 disabled:bg-gray-400"
         >
           {#if isUploading}
-            <div
-              class="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"
-            ></div>
+            <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
             업로드 중...
           {:else}
             <UploadIcon size={16} class="mr-2" />
@@ -303,11 +278,7 @@
 </ThemeModal>
 
 <!-- 결과 모달 -->
-<ThemeModal
-  open={showResultModal}
-  onclose={() => (showResultModal = false)}
-  size="xl"
->
+<ThemeModal open={showResultModal} onclose={() => (showResultModal = false)} size="xl">
   <div class="p-6">
     <div class="flex items-center justify-between mb-6">
       <h2 class="text-xl font-semibold text-gray-900">업로드 결과</h2>
@@ -324,27 +295,21 @@
       <div class="space-y-6">
         <!-- 요약 정보 -->
         <div class="grid grid-cols-3 gap-4">
-          <div
-            class="bg-green-50 border border-green-200 rounded-lg p-4 text-center"
-          >
+          <div class="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
             <CheckCircleIcon size={32} class="text-green-600 mx-auto mb-2" />
             <div class="text-2xl font-bold text-green-700">
               {uploadResult.results.success}
             </div>
             <div class="text-sm text-green-600">성공</div>
           </div>
-          <div
-            class="bg-red-50 border border-red-200 rounded-lg p-4 text-center"
-          >
+          <div class="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
             <XCircleIcon size={32} class="text-red-600 mx-auto mb-2" />
             <div class="text-2xl font-bold text-red-700">
               {uploadResult.results.failed}
             </div>
             <div class="text-sm text-red-600">실패</div>
           </div>
-          <div
-            class="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center"
-          >
+          <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
             <FileSpreadsheetIcon size={32} class="text-blue-600 mx-auto mb-2" />
             <div class="text-2xl font-bold text-blue-700">
               {uploadResult.results.success + uploadResult.results.failed}
@@ -388,30 +353,24 @@
                       <td class="px-3 py-2">{detail.employeeId}</td>
                       <td class="px-3 py-2">{detail.name}</td>
                       <td class="px-3 py-2">
-                        {#if detail.status === "success"}
-                          <span
-                            class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs"
+                        {#if detail.status === 'success'}
+                          <span class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs"
                             >성공</span
                           >
                         {:else}
-                          <span
-                            class="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs"
+                          <span class="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs"
                             >실패</span
                           >
                         {/if}
                       </td>
                       <td class="px-3 py-2">
                         {#if detail.totalPayments}
-                          {new Intl.NumberFormat("ko-KR").format(
-                            detail.totalPayments,
-                          )}원
+                          {new Intl.NumberFormat('ko-KR').format(detail.totalPayments)}원
                         {/if}
                       </td>
                       <td class="px-3 py-2">
                         {#if detail.netSalary}
-                          {new Intl.NumberFormat("ko-KR").format(
-                            detail.netSalary,
-                          )}원
+                          {new Intl.NumberFormat('ko-KR').format(detail.netSalary)}원
                         {/if}
                       </td>
                     </tr>
@@ -424,10 +383,7 @@
 
         <!-- 액션 버튼 -->
         <div class="flex justify-end">
-          <ThemeButton
-            onclick={closeResultModal}
-            class="bg-blue-600 hover:bg-blue-700"
-          >
+          <ThemeButton onclick={closeResultModal} class="bg-blue-600 hover:bg-blue-700">
             확인
           </ThemeButton>
         </div>

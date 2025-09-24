@@ -96,7 +96,6 @@
     </div>
   </div>
 
-
   <!-- Right Section: Actions & User -->
   <div class="flex items-center space-x-3">
     <!-- Theme Toggle -->

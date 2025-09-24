@@ -1,6 +1,6 @@
 <script lang="ts">
-  import ThemeButton from "$lib/components/ui/ThemeButton.svelte";
-  import { formatCurrency } from "$lib/utils/format";
+  import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
+  import { formatCurrency } from '$lib/utils/format'
   import {
     AlertCircleIcon,
     EditIcon,
@@ -8,124 +8,118 @@
     PrinterIcon,
     SaveIcon,
     UserIcon,
-  } from "@lucide/svelte";
+  } from '@lucide/svelte'
 
   // Local types for this component
   type Employee = {
-    id?: string;
-    name?: string;
-    hireDate?: string;
-  };
+    id?: string
+    name?: string
+    hireDate?: string
+  }
 
   type Allowance = {
-    id?: string;
-    name?: string;
-    amount?: number;
-    type?: string;
-    isTaxable?: boolean;
-  };
+    id?: string
+    name?: string
+    amount?: number
+    type?: string
+    isTaxable?: boolean
+  }
 
   type Deduction = {
-    id?: string;
-    name?: string;
-    amount?: number;
-    rate?: number;
-    type?: string;
-    isMandatory?: boolean;
-  };
+    id?: string
+    name?: string
+    amount?: number
+    rate?: number
+    type?: string
+    isMandatory?: boolean
+  }
 
   type PayslipData = {
-    month?: number;
-    year?: number;
-    employeeId?: string;
-    employeeName?: string;
-    baseSalary?: number;
-    allowances?: Allowance[];
-    deductions?: Deduction[];
-    totalAllowances?: number;
-    totalDeductions?: number;
-    netSalary?: number;
-    status?: string;
-    label?: string;
-    hasData?: boolean;
-    isLocked?: boolean;
-    isBeforeHire?: boolean;
+    month?: number
+    year?: number
+    employeeId?: string
+    employeeName?: string
+    baseSalary?: number
+    allowances?: Allowance[]
+    deductions?: Deduction[]
+    totalAllowances?: number
+    totalDeductions?: number
+    netSalary?: number
+    status?: string
+    label?: string
+    hasData?: boolean
+    isLocked?: boolean
+    isBeforeHire?: boolean
     payslip?: {
-      baseSalary?: number;
-      totalPayments?: number;
-      totalDeductions?: number;
-      netSalary?: number;
-    };
+      baseSalary?: number
+      totalPayments?: number
+      totalDeductions?: number
+      netSalary?: number
+    }
     employeeInfo?: {
-      name?: string;
-    };
-    period?: string;
-    totalPayments?: number;
-  };
+      name?: string
+    }
+    period?: string
+    totalPayments?: number
+  }
 
-  let { payroll = undefined }: { payroll?: PayslipData } = $props();
+  let { payroll = undefined }: { payroll?: PayslipData } = $props()
 
-  let employeeList = $state<Employee[]>([]);
-  let selectedEmployeeId = $state("");
-  let selectedYear = $state(new Date().getFullYear());
-  let payslipData = $state<PayslipData[]>([]);
-  let isLoadingPayslipData = $state(false);
-  let editingMonth = $state<number | null>(null);
-  let editingPayslip = $state<PayslipData | null>(null);
+  let employeeList = $state<Employee[]>([])
+  let selectedEmployeeId = $state('')
+  let selectedYear = $state(new Date().getFullYear())
+  let payslipData = $state<PayslipData[]>([])
+  let isLoadingPayslipData = $state(false)
+  let editingMonth = $state<number | null>(null)
+  let editingPayslip = $state<PayslipData | null>(null)
 
   // 급여명세서 데이터 로드 (월별)
   async function loadPayslipData() {
     if (!selectedEmployeeId) {
-      payslipData = [];
-      return;
+      payslipData = []
+      return
     }
 
-    isLoadingPayslipData = true;
+    isLoadingPayslipData = true
     try {
       const response = await fetch(
         `/api/salary/payslips/employee/${selectedEmployeeId}?year=${selectedYear}`,
-      );
-      const result = await response.json();
+      )
+      const result = await response.json()
 
       // 현재 날짜 기준으로 허용 가능한 월 계산
-      const currentDate = new Date();
-      const currentYear = currentDate.getFullYear();
-      const currentMonth = currentDate.getMonth() + 1; // 1-12
+      const currentDate = new Date()
+      const currentYear = currentDate.getFullYear()
+      const currentMonth = currentDate.getMonth() + 1 // 1-12
 
       // 선택된 직원의 입사일 확인
-      const selectedEmployee = employeeList.find(
-        (emp) => emp.id === selectedEmployeeId,
-      );
-      const hireDate = selectedEmployee?.hireDate
-        ? new Date(selectedEmployee.hireDate)
-        : null;
-      const hireYear = hireDate ? hireDate.getFullYear() : null;
-      const hireMonth = hireDate ? hireDate.getMonth() + 1 : null;
+      const selectedEmployee = employeeList.find((emp) => emp.id === selectedEmployeeId)
+      const hireDate = selectedEmployee?.hireDate ? new Date(selectedEmployee.hireDate) : null
+      const hireYear = hireDate ? hireDate.getFullYear() : null
+      const hireMonth = hireDate ? hireDate.getMonth() + 1 : null
 
       if (result.success && result.data) {
         // 월별로 정리
         const monthlyData = Array.from({ length: 12 }, (_, i) => {
-          const month = i + 1;
-          const period = `${selectedYear}-${String(month).padStart(2, "0")}`;
+          const month = i + 1
+          const period = `${selectedYear}-${String(month).padStart(2, '0')}`
 
           // API 응답이 배열인지 단일 객체인지 확인
-          let payslip = null;
+          let payslip = null
           if (Array.isArray(result.data)) {
-            payslip = result.data.find((p: any) => p.period === period);
+            payslip = result.data.find((p: any) => p.period === period)
           } else if (result.data.period === period) {
-            payslip = result.data;
+            payslip = result.data
           }
 
           // 미래 월인지 확인 (현재 연도와 월 기준)
           const isFutureMonth =
-            selectedYear > currentYear ||
-            (selectedYear === currentYear && month > currentMonth);
+            selectedYear > currentYear || (selectedYear === currentYear && month > currentMonth)
 
           // 입사일 이전 월인지 확인
           const isBeforeHire =
             hireDate &&
-            (selectedYear < hireYear ||
-              (selectedYear === hireYear && month < hireMonth));
+            (selectedYear < hireYear || (selectedYear === hireYear && month < hireMonth))
 
           return {
             month,
@@ -136,93 +130,84 @@
             isFutureMonth,
             isBeforeHire,
             isLocked: isFutureMonth || isBeforeHire,
-          };
-        });
+          }
+        })
 
-        payslipData = monthlyData;
+        payslipData = monthlyData
       } else {
         // 데이터가 없어도 12개월 구조 생성
         payslipData = Array.from({ length: 12 }, (_, i) => {
-          const month = i + 1;
+          const month = i + 1
           const isFutureMonth =
-            selectedYear > currentYear ||
-            (selectedYear === currentYear && month > currentMonth);
+            selectedYear > currentYear || (selectedYear === currentYear && month > currentMonth)
 
           // 입사일 이전 월인지 확인
           const isBeforeHire =
             hireDate &&
-            (selectedYear < hireYear ||
-              (selectedYear === hireYear && month < hireMonth));
+            (selectedYear < hireYear || (selectedYear === hireYear && month < hireMonth))
 
           return {
             month,
-            period: `${selectedYear}-${String(month).padStart(2, "0")}`,
+            period: `${selectedYear}-${String(month).padStart(2, '0')}`,
             label: `${month}월`,
             payslip: null,
             hasData: false,
             isFutureMonth,
             isBeforeHire,
             isLocked: isFutureMonth || isBeforeHire,
-          };
-        });
+          }
+        })
       }
     } catch (_error) {
-      const currentDate = new Date();
-      const currentYear = currentDate.getFullYear();
-      const currentMonth = currentDate.getMonth() + 1;
+      const currentDate = new Date()
+      const currentYear = currentDate.getFullYear()
+      const currentMonth = currentDate.getMonth() + 1
 
       // 선택된 직원의 입사일 확인
-      const selectedEmployee = employeeList.find(
-        (emp) => emp.id === selectedEmployeeId,
-      );
-      const hireDate = selectedEmployee?.hireDate
-        ? new Date(selectedEmployee.hireDate)
-        : null;
-      const hireYear = hireDate ? hireDate.getFullYear() : null;
-      const hireMonth = hireDate ? hireDate.getMonth() + 1 : null;
+      const selectedEmployee = employeeList.find((emp) => emp.id === selectedEmployeeId)
+      const hireDate = selectedEmployee?.hireDate ? new Date(selectedEmployee.hireDate) : null
+      const hireYear = hireDate ? hireDate.getFullYear() : null
+      const hireMonth = hireDate ? hireDate.getMonth() + 1 : null
 
       payslipData = Array.from({ length: 12 }, (_, i) => {
-        const month = i + 1;
+        const month = i + 1
         const isFutureMonth =
-          selectedYear > currentYear ||
-          (selectedYear === currentYear && month > currentMonth);
+          selectedYear > currentYear || (selectedYear === currentYear && month > currentMonth)
 
         // 입사일 이전 월인지 확인
         const isBeforeHire =
-          hireDate &&
-          (selectedYear < hireYear ||
-            (selectedYear === hireYear && month < hireMonth));
+          hireDate && (selectedYear < hireYear || (selectedYear === hireYear && month < hireMonth))
 
         return {
           month,
-          period: `${selectedYear}-${String(month).padStart(2, "0")}`,
+          period: `${selectedYear}-${String(month).padStart(2, '0')}`,
           label: `${month}월`,
           payslip: null,
           hasData: false,
           isFutureMonth,
           isBeforeHire,
           isLocked: isFutureMonth || isBeforeHire,
-        };
-      });
+        }
+      })
     } finally {
-      isLoadingPayslipData = false;
+      isLoadingPayslipData = false
     }
   }
 
   // 직원 목록 로드
   async function loadEmployeeList() {
     try {
-      const response = await fetch("/api/employees");
-      const result = await response.json();
+      const response = await fetch('/api/employees')
+      const result = await response.json()
       if (result.success) {
         employeeList = result.data.map((emp: any) => ({
           id: emp.id,
           employeeId: emp.employee_id,
           name: `${emp.last_name}${emp.first_name} (${emp.position})`,
-          department: emp.department || "부서없음",
+          department: emp.department || '부서없음',
           position: emp.position,
           hireDate: emp.hire_date,
-        }));
+        }))
       }
     } catch (_error) {
       /* intentionally ignored */
@@ -231,229 +216,229 @@
 
   // 급여명세서 편집 모드 진입
   function enterEditMode(month: number, payslip?: any) {
-    editingMonth = month;
+    editingMonth = month
     if (payslip) {
       editingPayslip = {
         ...payslip,
         allowances: payslip.allowances || [
           {
-            id: "basic_salary",
-            name: "기본급",
-            type: "basic",
+            id: 'basic_salary',
+            name: '기본급',
+            type: 'basic',
             amount: 0,
             isTaxable: true,
           },
           {
-            id: "position_allowance",
-            name: "직책수당",
-            type: "allowance",
+            id: 'position_allowance',
+            name: '직책수당',
+            type: 'allowance',
             amount: 0,
             isTaxable: true,
           },
           {
-            id: "bonus",
-            name: "상여금",
-            type: "bonus",
+            id: 'bonus',
+            name: '상여금',
+            type: 'bonus',
             amount: 0,
             isTaxable: true,
           },
           {
-            id: "meal_allowance",
-            name: "식대",
-            type: "allowance",
+            id: 'meal_allowance',
+            name: '식대',
+            type: 'allowance',
             amount: 0,
             isTaxable: false,
           },
           {
-            id: "vehicle_maintenance",
-            name: "차량유지",
-            type: "allowance",
+            id: 'vehicle_maintenance',
+            name: '차량유지',
+            type: 'allowance',
             amount: 0,
             isTaxable: false,
           },
           {
-            id: "annual_leave_allowance",
-            name: "연차수당",
-            type: "allowance",
+            id: 'annual_leave_allowance',
+            name: '연차수당',
+            type: 'allowance',
             amount: 0,
             isTaxable: true,
           },
           {
-            id: "year_end_settlement",
-            name: "연말정산",
-            type: "settlement",
+            id: 'year_end_settlement',
+            name: '연말정산',
+            type: 'settlement',
             amount: 0,
             isTaxable: true,
           },
         ],
         deductions: payslip.deductions || [
           {
-            id: "health_insurance",
-            name: "건강보험",
+            id: 'health_insurance',
+            name: '건강보험',
             rate: 0.034,
-            type: "insurance",
+            type: 'insurance',
             amount: 0,
             isMandatory: true,
           },
           {
-            id: "long_term_care",
-            name: "장기요양보험",
+            id: 'long_term_care',
+            name: '장기요양보험',
             rate: 0.0034,
-            type: "insurance",
+            type: 'insurance',
             amount: 0,
             isMandatory: true,
           },
           {
-            id: "national_pension",
-            name: "국민연금",
+            id: 'national_pension',
+            name: '국민연금',
             rate: 0.045,
-            type: "pension",
+            type: 'pension',
             amount: 0,
             isMandatory: true,
           },
           {
-            id: "employment_insurance",
-            name: "고용보험",
+            id: 'employment_insurance',
+            name: '고용보험',
             rate: 0.008,
-            type: "insurance",
+            type: 'insurance',
             amount: 0,
             isMandatory: true,
           },
           {
-            id: "income_tax",
-            name: "갑근세",
+            id: 'income_tax',
+            name: '갑근세',
             rate: 0.13,
-            type: "tax",
+            type: 'tax',
             amount: 0,
             isMandatory: true,
           },
           {
-            id: "local_tax",
-            name: "주민세",
+            id: 'local_tax',
+            name: '주민세',
             rate: 0.013,
-            type: "tax",
+            type: 'tax',
             amount: 0,
             isMandatory: true,
           },
           {
-            id: "other",
-            name: "기타",
+            id: 'other',
+            name: '기타',
             rate: 0,
-            type: "other",
+            type: 'other',
             amount: 0,
             isMandatory: false,
           },
         ],
-      };
+      }
     } else {
       // 새 급여명세서 생성
       editingPayslip = {
-        period: `${selectedYear}-${String(month).padStart(2, "0")}`,
+        period: `${selectedYear}-${String(month).padStart(2, '0')}`,
         allowances: [
           {
-            id: "basic_salary",
-            name: "기본급",
-            type: "basic",
+            id: 'basic_salary',
+            name: '기본급',
+            type: 'basic',
             amount: 0,
             isTaxable: true,
           },
           {
-            id: "position_allowance",
-            name: "직책수당",
-            type: "allowance",
+            id: 'position_allowance',
+            name: '직책수당',
+            type: 'allowance',
             amount: 0,
             isTaxable: true,
           },
           {
-            id: "bonus",
-            name: "상여금",
-            type: "bonus",
+            id: 'bonus',
+            name: '상여금',
+            type: 'bonus',
             amount: 0,
             isTaxable: true,
           },
           {
-            id: "meal_allowance",
-            name: "식대",
-            type: "allowance",
+            id: 'meal_allowance',
+            name: '식대',
+            type: 'allowance',
             amount: 0,
             isTaxable: false,
           },
           {
-            id: "vehicle_maintenance",
-            name: "차량유지",
-            type: "allowance",
+            id: 'vehicle_maintenance',
+            name: '차량유지',
+            type: 'allowance',
             amount: 0,
             isTaxable: false,
           },
           {
-            id: "annual_leave_allowance",
-            name: "연차수당",
-            type: "allowance",
+            id: 'annual_leave_allowance',
+            name: '연차수당',
+            type: 'allowance',
             amount: 0,
             isTaxable: true,
           },
           {
-            id: "year_end_settlement",
-            name: "연말정산",
-            type: "settlement",
+            id: 'year_end_settlement',
+            name: '연말정산',
+            type: 'settlement',
             amount: 0,
             isTaxable: true,
           },
         ],
         deductions: [
           {
-            id: "health_insurance",
-            name: "건강보험",
+            id: 'health_insurance',
+            name: '건강보험',
             rate: 0.034,
-            type: "insurance",
+            type: 'insurance',
             amount: 0,
             isMandatory: true,
           },
           {
-            id: "long_term_care",
-            name: "장기요양보험",
+            id: 'long_term_care',
+            name: '장기요양보험',
             rate: 0.0034,
-            type: "insurance",
+            type: 'insurance',
             amount: 0,
             isMandatory: true,
           },
           {
-            id: "national_pension",
-            name: "국민연금",
+            id: 'national_pension',
+            name: '국민연금',
             rate: 0.045,
-            type: "pension",
+            type: 'pension',
             amount: 0,
             isMandatory: true,
           },
           {
-            id: "employment_insurance",
-            name: "고용보험",
+            id: 'employment_insurance',
+            name: '고용보험',
             rate: 0.008,
-            type: "insurance",
+            type: 'insurance',
             amount: 0,
             isMandatory: true,
           },
           {
-            id: "income_tax",
-            name: "갑근세",
+            id: 'income_tax',
+            name: '갑근세',
             rate: 0.13,
-            type: "tax",
+            type: 'tax',
             amount: 0,
             isMandatory: true,
           },
           {
-            id: "local_tax",
-            name: "주민세",
+            id: 'local_tax',
+            name: '주민세',
             rate: 0.013,
-            type: "tax",
+            type: 'tax',
             amount: 0,
             isMandatory: true,
           },
           {
-            id: "other",
-            name: "기타",
+            id: 'other',
+            name: '기타',
             rate: 0,
-            type: "other",
+            type: 'other',
             amount: 0,
             isMandatory: false,
           },
@@ -461,53 +446,51 @@
         totalPayments: 0,
         totalDeductions: 0,
         netSalary: 0,
-      };
+      }
     }
   }
 
   // 편집 모드 취소
   function cancelEdit() {
-    editingMonth = null;
-    editingPayslip = null;
+    editingMonth = null
+    editingPayslip = null
   }
 
   // 총액 재계산
   function recalculateTotals() {
-    if (!editingPayslip) return;
+    if (!editingPayslip) return
 
     editingPayslip.totalPayments = editingPayslip.allowances.reduce(
       (sum: number, item: any) => sum + (item.amount || 0),
       0,
-    );
+    )
     editingPayslip.totalDeductions = editingPayslip.deductions.reduce(
       (sum: number, item: any) => sum + (item.amount || 0),
       0,
-    );
-    editingPayslip.netSalary =
-      editingPayslip.totalPayments - editingPayslip.totalDeductions;
+    )
+    editingPayslip.netSalary = editingPayslip.totalPayments - editingPayslip.totalDeductions
   }
 
   // 급여명세서 저장
   async function savePayslip() {
-    if (!editingPayslip || !editingMonth) return;
+    if (!editingPayslip || !editingMonth) return
 
     try {
       // 총액 재계산
-      recalculateTotals();
+      recalculateTotals()
 
       // 기본급 계산 (지급사항에서 기본급 찾기)
       const basicSalary =
-        editingPayslip.allowances.find((a: any) => a.id === "basic_salary")
-          ?.amount || 0;
+        editingPayslip.allowances.find((a: any) => a.id === 'basic_salary')?.amount || 0
 
       // 지급일 설정 (해당 월의 마지막 날)
-      const [year, month] = editingPayslip.period.split("-");
-      const lastDay = new Date(parseInt(year), parseInt(month), 0).getDate();
-      const payDate = `${year}-${month.padStart(2, "0")}-${lastDay.toString().padStart(2, "0")}`;
+      const [year, month] = editingPayslip.period.split('-')
+      const lastDay = new Date(parseInt(year), parseInt(month), 0).getDate()
+      const payDate = `${year}-${month.padStart(2, '0')}-${lastDay.toString().padStart(2, '0')}`
 
-      const response = await fetch("/api/salary/payslips", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const response = await fetch('/api/salary/payslips', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           employeeId: selectedEmployeeId,
           period: editingPayslip.period,
@@ -518,85 +501,78 @@
           netSalary: editingPayslip.netSalary,
           payments: editingPayslip.allowances,
           deductions: editingPayslip.deductions,
-          status: "draft",
+          status: 'draft',
           isGenerated: false,
         }),
-      });
+      })
 
-      const result = await response.json();
+      const result = await response.json()
       if (result.success) {
-        alert("급여명세서가 저장되었습니다.");
-        cancelEdit();
-        loadPayslipData();
+        alert('급여명세서가 저장되었습니다.')
+        cancelEdit()
+        loadPayslipData()
       } else {
-        alert(`저장에 실패했습니다: ${result.error}`);
+        alert(`저장에 실패했습니다: ${result.error}`)
       }
     } catch (_error) {
-      alert("저장 중 오류가 발생했습니다.");
+      alert('저장 중 오류가 발생했습니다.')
     }
   }
 
   // 누락된 급여명세서 개수 계산 (잠금된 월 제외)
   function getMissingPayslipCount() {
-    return payslipData.filter((month) => !month.hasData && !month.isLocked)
-      .length;
+    return payslipData.filter((month) => !month.hasData && !month.isLocked).length
   }
 
   // 계약 기간 내 누락된 급여명세서 확인 (잠금된 월 제외)
   function getContractPeriodMissingPayslips() {
-    if (!selectedEmployeeId) return [];
+    if (!selectedEmployeeId) return []
 
-    const selectedEmployee = employeeList.find(
-      (emp) => emp.id === selectedEmployeeId,
-    );
-    if (!selectedEmployee?.hireDate) return [];
+    const selectedEmployee = employeeList.find((emp) => emp.id === selectedEmployeeId)
+    if (!selectedEmployee?.hireDate) return []
 
-    const hireDate = new Date(selectedEmployee.hireDate);
-    const currentDate = new Date();
-    const missingPeriods = [];
+    const hireDate = new Date(selectedEmployee.hireDate)
+    const currentDate = new Date()
+    const missingPeriods = []
 
     // 입사일부터 현재까지의 월별 확인
-    let current = new Date(hireDate.getFullYear(), hireDate.getMonth(), 1);
-    const end = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+    let current = new Date(hireDate.getFullYear(), hireDate.getMonth(), 1)
+    const end = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1)
 
     while (current <= end) {
-      const period = `${current.getFullYear()}-${String(current.getMonth() + 1).padStart(2, "0")}`;
-      const monthData = payslipData.find((month) => month.period === period);
+      const period = `${current.getFullYear()}-${String(current.getMonth() + 1).padStart(2, '0')}`
+      const monthData = payslipData.find((month) => month.period === period)
 
       // 잠금되지 않고 데이터가 없는 경우만 누락으로 간주
-      if (
-        monthData &&
-        !(monthData.hasData ?? false) &&
-        !(monthData.isLocked ?? false)
-      ) {
+      if (monthData && !(monthData.hasData ?? false) && !(monthData.isLocked ?? false)) {
         missingPeriods.push({
           period,
           year: current.getFullYear(),
           month: current.getMonth() + 1,
           label: `${current.getFullYear()}년 ${current.getMonth() + 1}월`,
-        });
+        })
       }
 
-      current.setMonth(current.getMonth() + 1);
+      current.setMonth(current.getMonth() + 1)
     }
 
-    return missingPeriods;
+    return missingPeriods
   }
 
   $effect(() => {
     void (async () => {
-      await loadEmployeeList();
-    })();
-  });
+      await loadEmployeeList()
+    })()
+  })
 
   // selectedEmployeeId나 selectedYear가 변경될 때마다 급여명세서 데이터 로드
   $effect(() => {
     if (selectedEmployeeId) {
-      loadPayslipData();
+      loadPayslipData()
     } else {
-      payslipData = [];
+      payslipData = []
     }
-  });
+  })
 </script>
 
 {#if !payroll}
@@ -605,9 +581,8 @@
     <!-- 직원 선택 및 연도 선택 -->
     <div class="flex items-center space-x-4">
       <div class="flex-1">
-        <label
-          for="employee-select"
-          class="block text-sm font-medium text-gray-700 mb-2">직원 선택</label
+        <label for="employee-select" class="block text-sm font-medium text-gray-700 mb-2"
+          >직원 선택</label
         >
         <select
           id="employee-select"
@@ -621,10 +596,7 @@
         </select>
       </div>
       <div class="w-32">
-        <label
-          for="year-select"
-          class="block text-sm font-medium text-gray-700 mb-2">연도</label
-        >
+        <label for="year-select" class="block text-sm font-medium text-gray-700 mb-2">연도</label>
         <select
           id="year-select"
           bind:value={selectedYear}
@@ -638,9 +610,7 @@
     </div>
 
     {#if selectedEmployeeId}
-      {@const selectedEmployee = employeeList.find(
-        (emp) => emp.id === selectedEmployeeId,
-      )}
+      {@const selectedEmployee = employeeList.find((emp) => emp.id === selectedEmployeeId)}
       {@const missingCount = getMissingPayslipCount()}
       {@const contractMissingPeriods = getContractPeriodMissingPayslips()}
 
@@ -650,9 +620,7 @@
           <div class="flex items-start">
             <AlertCircleIcon size={24} class="text-amber-600 mr-3 mt-0.5" />
             <div class="flex-1">
-              <h3 class="text-lg font-semibold text-amber-800 mb-2">
-                급여명세서 작성 필요
-              </h3>
+              <h3 class="text-lg font-semibold text-amber-800 mb-2">급여명세서 작성 필요</h3>
               <p class="text-amber-700 mb-4">
                 {selectedEmployee?.name}님의 {selectedYear}년 급여명세서 중
                 <strong>{missingCount}개월</strong>이 누락되었습니다.
@@ -662,10 +630,8 @@
                 {/if}
               </p>
               <p class="text-amber-600 text-sm">
-                아래 표에서 빨간색으로 표시된 월을 클릭하여 급여명세서를
-                작성해주세요.
-                <br />회색으로 표시된 월은 입사일 이전이거나 미래 월로 잠금되어
-                있습니다.
+                아래 표에서 빨간색으로 표시된 월을 클릭하여 급여명세서를 작성해주세요.
+                <br />회색으로 표시된 월은 입사일 이전이거나 미래 월로 잠금되어 있습니다.
               </p>
             </div>
           </div>
@@ -685,9 +651,7 @@
 
         {#if isLoadingPayslipData}
           <div class="flex items-center justify-center py-12">
-            <div
-              class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"
-            ></div>
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
             <span class="ml-2 text-gray-600">로딩 중...</span>
           </div>
         {:else}
@@ -734,20 +698,14 @@
                   {#if editingMonth === (monthData.month ?? 0)}
                     <!-- 편집 모드 행 -->
                     <tr class="bg-blue-50 border-2 border-blue-200">
-                      <td
-                        class="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-900"
-                      >
-                        {monthData.label ?? "Unknown"} (편집 중)
+                      <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-900">
+                        {monthData.label ?? 'Unknown'} (편집 중)
                       </td>
                       <td colspan="7" class="px-6 py-4">
                         <div class="space-y-4">
                           <!-- 지급사항 편집 -->
                           <div>
-                            <h4
-                              class="text-sm font-semibold text-gray-700 mb-2"
-                            >
-                              지급사항
-                            </h4>
+                            <h4 class="text-sm font-semibold text-gray-700 mb-2">지급사항</h4>
                             <div class="grid grid-cols-2 gap-2">
                               {#each editingPayslip.allowances as allowance, index (index)}
                                 <div class="flex items-center space-x-2">
@@ -756,12 +714,11 @@
                                     value={allowance.name}
                                     oninput={(
                                       e: Event & {
-                                        currentTarget: HTMLInputElement;
+                                        currentTarget: HTMLInputElement
                                       },
                                     ) => {
-                                      editingPayslip.allowances[index].name =
-                                        e.currentTarget.value;
-                                      recalculateTotals();
+                                      editingPayslip.allowances[index].name = e.currentTarget.value
+                                      recalculateTotals()
                                     }}
                                     class="flex-1 px-2 py-1 border border-gray-300 rounded text-sm"
                                   />
@@ -770,12 +727,12 @@
                                     value={allowance.amount}
                                     oninput={(
                                       e: Event & {
-                                        currentTarget: HTMLInputElement;
+                                        currentTarget: HTMLInputElement
                                       },
                                     ) => {
                                       editingPayslip.allowances[index].amount =
-                                        Number(e.currentTarget.value) || 0;
-                                      recalculateTotals();
+                                        Number(e.currentTarget.value) || 0
+                                      recalculateTotals()
                                     }}
                                     class="w-24 px-2 py-1 border border-gray-300 rounded text-sm text-right"
                                   />
@@ -786,11 +743,7 @@
 
                           <!-- 공제사항 편집 -->
                           <div>
-                            <h4
-                              class="text-sm font-semibold text-gray-700 mb-2"
-                            >
-                              공제사항
-                            </h4>
+                            <h4 class="text-sm font-semibold text-gray-700 mb-2">공제사항</h4>
                             <div class="grid grid-cols-2 gap-2">
                               {#each editingPayslip.deductions as deduction, index (index)}
                                 <div class="flex items-center space-x-2">
@@ -799,12 +752,11 @@
                                     value={deduction.name}
                                     oninput={(
                                       e: Event & {
-                                        currentTarget: HTMLInputElement;
+                                        currentTarget: HTMLInputElement
                                       },
                                     ) => {
-                                      editingPayslip.deductions[index].name =
-                                        e.currentTarget.value;
-                                      recalculateTotals();
+                                      editingPayslip.deductions[index].name = e.currentTarget.value
+                                      recalculateTotals()
                                     }}
                                     class="flex-1 px-2 py-1 border border-gray-300 rounded text-sm"
                                   />
@@ -813,12 +765,12 @@
                                     value={deduction.amount}
                                     oninput={(
                                       e: Event & {
-                                        currentTarget: HTMLInputElement;
+                                        currentTarget: HTMLInputElement
                                       },
                                     ) => {
                                       editingPayslip.deductions[index].amount =
-                                        Number(e.currentTarget.value) || 0;
-                                      recalculateTotals();
+                                        Number(e.currentTarget.value) || 0
+                                      recalculateTotals()
                                     }}
                                     class="w-24 px-2 py-1 border border-gray-300 rounded text-sm text-right"
                                   />
@@ -833,25 +785,19 @@
                               <div>
                                 <span class="font-medium">지급총액:</span>
                                 <span class="ml-2 font-semibold text-green-600"
-                                  >{formatCurrency(
-                                    editingPayslip.totalPayments,
-                                  )}</span
+                                  >{formatCurrency(editingPayslip.totalPayments)}</span
                                 >
                               </div>
                               <div>
                                 <span class="font-medium">공제총액:</span>
                                 <span class="ml-2 font-semibold text-red-600"
-                                  >{formatCurrency(
-                                    editingPayslip.totalDeductions,
-                                  )}</span
+                                  >{formatCurrency(editingPayslip.totalDeductions)}</span
                                 >
                               </div>
                               <div>
                                 <span class="font-medium">실지급액:</span>
                                 <span class="ml-2 font-semibold text-blue-600"
-                                  >{formatCurrency(
-                                    editingPayslip.netSalary,
-                                  )}</span
+                                  >{formatCurrency(editingPayslip.netSalary)}</span
                                 >
                               </div>
                             </div>
@@ -859,11 +805,7 @@
 
                           <!-- 액션 버튼 -->
                           <div class="flex justify-end space-x-2">
-                            <ThemeButton
-                              variant="ghost"
-                              size="sm"
-                              onclick={cancelEdit}
-                            >
+                            <ThemeButton variant="ghost" size="sm" onclick={cancelEdit}>
                               취소
                             </ThemeButton>
                             <ThemeButton
@@ -892,30 +834,26 @@
                           ? 'text-gray-400'
                           : 'text-gray-900'}"
                       >
-                        {monthData.label ?? "Unknown"}
+                        {monthData.label ?? 'Unknown'}
                         {#if monthData.isLocked ?? false}
                           <span class="ml-2 text-xs text-gray-500">
-                            {(monthData.isBeforeHire ?? false)
-                              ? "(입사전)"
-                              : "(잠금)"}
+                            {(monthData.isBeforeHire ?? false) ? '(입사전)' : '(잠금)'}
                           </span>
                         {/if}
                       </td>
                       <td
-                        class="px-6 py-4 whitespace-nowrap text-sm {(monthData.isLocked ??
-                        false)
+                        class="px-6 py-4 whitespace-nowrap text-sm {(monthData.isLocked ?? false)
                           ? 'text-gray-400'
                           : 'text-gray-500'}"
                       >
                         {(monthData.hasData ?? false)
                           ? formatCurrency(monthData.payslip?.baseSalary ?? 0)
                           : (monthData.isLocked ?? false)
-                            ? "잠금"
-                            : "-"}
+                            ? '잠금'
+                            : '-'}
                       </td>
                       <td
-                        class="px-6 py-4 whitespace-nowrap text-sm {(monthData.isLocked ??
-                        false)
+                        class="px-6 py-4 whitespace-nowrap text-sm {(monthData.isLocked ?? false)
                           ? 'text-gray-400'
                           : 'text-gray-500'}"
                       >
@@ -925,36 +863,30 @@
                                 (monthData.payslip?.baseSalary ?? 0),
                             )
                           : (monthData.isLocked ?? false)
-                            ? "잠금"
-                            : "-"}
+                            ? '잠금'
+                            : '-'}
                       </td>
                       <td
-                        class="px-6 py-4 whitespace-nowrap text-sm {(monthData.isLocked ??
-                        false)
+                        class="px-6 py-4 whitespace-nowrap text-sm {(monthData.isLocked ?? false)
                           ? 'text-gray-400'
                           : 'text-gray-500'}"
                       >
                         {(monthData.hasData ?? false)
-                          ? formatCurrency(
-                              monthData.payslip?.totalPayments ?? 0,
-                            )
+                          ? formatCurrency(monthData.payslip?.totalPayments ?? 0)
                           : (monthData.isLocked ?? false)
-                            ? "잠금"
-                            : "-"}
+                            ? '잠금'
+                            : '-'}
                       </td>
                       <td
-                        class="px-6 py-4 whitespace-nowrap text-sm {(monthData.isLocked ??
-                        false)
+                        class="px-6 py-4 whitespace-nowrap text-sm {(monthData.isLocked ?? false)
                           ? 'text-gray-400'
                           : 'text-gray-500'}"
                       >
                         {(monthData.hasData ?? false)
-                          ? formatCurrency(
-                              monthData.payslip?.totalDeductions || 0,
-                            )
+                          ? formatCurrency(monthData.payslip?.totalDeductions || 0)
                           : (monthData.isLocked ?? false)
-                            ? "잠금"
-                            : "-"}
+                            ? '잠금'
+                            : '-'}
                       </td>
                       <td
                         class="px-6 py-4 whitespace-nowrap text-sm font-medium {(monthData.isLocked ??
@@ -965,15 +897,15 @@
                         {(monthData.hasData ?? false)
                           ? formatCurrency(monthData.payslip?.netSalary || 0)
                           : (monthData.isLocked ?? false)
-                            ? "잠금"
-                            : "-"}
+                            ? '잠금'
+                            : '-'}
                       </td>
                       <td class="px-6 py-4 whitespace-nowrap">
                         {#if monthData.isLocked ?? false}
                           <span
                             class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-600"
                           >
-                            {monthData.isBeforeHire ? "입사전" : "잠금"}
+                            {monthData.isBeforeHire ? '입사전' : '잠금'}
                           </span>
                         {:else if monthData.hasData ?? false}
                           <span
@@ -989,19 +921,16 @@
                           </span>
                         {/if}
                       </td>
-                      <td
-                        class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium"
-                      >
+                      <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         {#if monthData.isLocked ?? false}
                           <span class="text-gray-400 text-sm">
-                            {monthData.isBeforeHire ? "입사전" : "잠금됨"}
+                            {monthData.isBeforeHire ? '입사전' : '잠금됨'}
                           </span>
                         {:else if monthData.hasData ?? false}
                           <ThemeButton
                             variant="ghost"
                             size="sm"
-                            onclick={() =>
-                              enterEditMode(monthData.month, monthData.payslip)}
+                            onclick={() => enterEditMode(monthData.month, monthData.payslip)}
                           >
                             <EditIcon size={16} class="mr-1" />
                             편집
@@ -1027,13 +956,9 @@
         {/if}
       </div>
     {:else}
-      <div
-        class="text-center py-12 bg-gray-50 rounded-lg border border-gray-200"
-      >
+      <div class="text-center py-12 bg-gray-50 rounded-lg border border-gray-200">
         <UserIcon size={48} class="mx-auto text-gray-400 mb-4" />
-        <p class="text-gray-500">
-          급여명세서를 조회하려면 직원을 선택해주세요.
-        </p>
+        <p class="text-gray-500">급여명세서를 조회하려면 직원을 선택해주세요.</p>
       </div>
     {/if}
   </div>
