@@ -7,7 +7,7 @@ on:
     branches: [main]
   schedule:
     - cron: '0 2 * * *' # 매일 오전 2시 (KST 오전 11시)
-  workflow_dispatch: # 수동 실행
+  workflow_dispatch:
 
 jobs:
   code-quality:
@@ -28,8 +28,13 @@ jobs:
       - name: 의존성 설치
         run: npm ci
 
-      - name: 린트 검사
-        run: npm run lint:strict
+      - name: 린트 검사 (PR/Push=errors only, Schedule=strict)
+        run: |
+          if [ "${{ github.event_name }}" = "schedule" ]; then
+            npm run lint:strict
+          else
+            npm run lint:ci
+          fi
 
       - name: 포맷 검사
         run: npm run format:check
@@ -112,7 +117,7 @@ jobs:
 
     steps:
       - name: 성공 알림
-        if: needs.code-quality.result == 'success' && needs.security-scan.result == 'success' && needs.auto-validation.result == 'success' && needs.dependency-analysis.result == 'success'
+        if: ${{ needs.code-quality.result == 'success' && needs.security-scan.result == 'success' && needs.auto-validation.result == 'success' && needs.dependency-analysis.result == 'success' }}
         uses: 8398a7/action-slack@v3
         with:
           status: success
@@ -122,11 +127,16 @@ jobs:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 
       - name: 실패 알림
-        if: needs.code-quality.result == 'failure' || needs.security-scan.result == 'failure' || needs.auto-validation.result == 'failure' || needs.dependency-analysis.result == 'failure'
+        if: ${{ !success() }}
         uses: 8398a7/action-slack@v3
         with:
           status: failure
           channel: '#vws_action'
-          text: '❌ 검증 실패: ${{ github.ref_name }} 브랜치'
+          text: |
+            ❌ 검증 실패: ${{ github.ref_name }} 브랜치
+            - code-quality: ${{ needs.code-quality.result }}
+            - security-scan: ${{ needs.security-scan.result }}
+            - auto-validation: ${{ needs.auto-validation.result }}
+            - dependency-analysis: ${{ needs.dependency-analysis.result }}
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}

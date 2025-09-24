@@ -251,7 +251,7 @@
                     </span>
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap">
-                    <PayslipGenerator {payroll} showPreview={true} />
+                    <PayslipGenerator {payroll} />
                   </td>
                 </tr>
               {/each}

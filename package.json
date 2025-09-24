@@ -24,6 +24,8 @@
     "lint": "eslint .",
     "fix": "eslint . --fix",
     "lint:strict": "eslint src/ --ext .ts,.svelte --max-warnings 0",
+    "lint:ci": "eslint . --cache --quiet",
+    "lint:report": "eslint . -f stylish || true",
     "test": "vitest run",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage",

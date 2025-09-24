@@ -1,9 +1,9 @@
 import { query } from '$lib/database/connection.js'
 import { formatDateForDisplay, toUTC } from '$lib/utils/date-handler.js'
 import { formatEmployeeName } from '$lib/utils/format.js'
+import { logger } from '$lib/utils/logger'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
-import { logger } from '$lib/utils/logger'
 
 // GET: 특정 직원 조회
 export const GET: RequestHandler = async ({ params }) => {
