@@ -9,15 +9,13 @@
     BuildingIcon,
     LogOutIcon,
     MoonIcon,
-    SearchIcon,
     SettingsIcon,
     SunIcon,
     UserIcon,
   } from '@lucide/svelte'
   import { onMount } from 'svelte'
 
-  // Search and notification state
-  let searchQuery = $state('')
+  // Notification state
   let showNotifications = $state(false)
   let showUserMenu = $state(false)
   let notificationsContainer: HTMLElement | undefined
@@ -98,24 +96,6 @@
     </div>
   </div>
 
-  <!-- Center Section: Search -->
-  <div class="flex-1 max-w-md mx-8">
-    <div class="relative">
-      <SearchIcon
-        size={16}
-        class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-      />
-      <input
-        type="search"
-        placeholder="검색..."
-        class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-        value={searchQuery}
-        oninput={(e: Event & { currentTarget: HTMLInputElement }) => {
-          searchQuery = e.currentTarget.value || ''
-        }}
-      />
-    </div>
-  </div>
 
   <!-- Right Section: Actions & User -->
   <div class="flex items-center space-x-3">
