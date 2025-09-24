@@ -1,5 +1,6 @@
 import { query } from '$lib/database/connection.js'
 import { formatDateForDisplay, toUTC } from '$lib/utils/date-handler.js'
+import { formatEmployeeName } from '$lib/utils/format.js'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
 import { logger } from '$lib/utils/logger'
@@ -266,7 +267,7 @@ export const DELETE: RequestHandler = async ({ params, url }) => {
 
       return json({
         success: true,
-        message: `${employee.first_name} ${employee.last_name}(${employee.employee_id}) 직원이 성공적으로 삭제되었습니다.`,
+        message: `${formatEmployeeName(employee)}(${employee.employee_id}) 직원이 성공적으로 삭제되었습니다.`,
         data: result.rows[0],
       })
     }

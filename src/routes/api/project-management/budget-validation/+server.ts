@@ -78,7 +78,6 @@ export const POST: RequestHandler = async ({ request }) => {
       return json({ error: '프로젝트 ID가 필요합니다.' }, { status: 400 })
     }
 
-    // eslint-disable-next-line no-restricted-syntax -- not a personal name composition (false positive)
     logger.log(`🔧 [예산 일관성 검증] 프로젝트 ${projectId} ${autoFix ? '자동 수정' : '검증'} 시작`)
 
     // 프로젝트 기본 정보 및 예산 조회
@@ -114,7 +113,6 @@ export const POST: RequestHandler = async ({ request }) => {
         newValue: totalBudgetFromBudgets,
       })
 
-      // eslint-disable-next-line no-restricted-syntax -- not a personal name composition (false positive)
       logger.log(
         `🔧 프로젝트 총 예산 수정: ${(parseFloat(project.budget_total) || 0).toLocaleString()}원 → ${totalBudgetFromBudgets.toLocaleString()}원`,
       )
@@ -147,7 +145,6 @@ export const POST: RequestHandler = async ({ request }) => {
     // 전체 검증 결과 생성
     const overallValidation = ValidationUtils.createOverallValidation(validationResults)
 
-    // eslint-disable-next-line no-restricted-syntax -- not a personal name composition (false positive)
     logger.log(
       `✅ [예산 일관성 검증] 완료 - ${validation.isValid ? '✅ 통과' : '❌ 실패'}${fixes.length > 0 ? `, ${fixes.length}개 수정` : ''}`,
     )

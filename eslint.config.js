@@ -198,14 +198,19 @@ export default [
       // === 이름 처리 강제 규칙 (서버 사이드에서만 적용) ===
       'no-restricted-syntax': [
         'error',
+        // 1) + 연산으로 성/이름을 단순 결합하는 경우만
         {
-          selector: 'TemplateLiteral[expressions.length=2]',
+          selector:
+            "BinaryExpression[operator='+'] > MemberExpression[property.name=/^(last_name|first_name)$/]",
           message:
-            '이름 조합 시 formatEmployeeName 또는 formatKoreanNameStandard 함수를 사용하세요.',
+            '이름 조합 시 formatEmployeeName 또는 formatKoreanNameStandard 함수를 사용하세요',
         },
+        // 2) 템플릿 리터럴에서 실제 이름 필드가 복수 포함된 경우만 (매우 제한적)
         {
-          selector: 'BinaryExpression[operator="+"] > Literal[value=" "]',
-          message: '이름 조합 시 공백을 직접 사용하지 마세요. 표준 함수를 사용하세요.',
+          selector:
+            'TemplateLiteral[expressions.length>=2] > MemberExpression[property.name=/^(last_name|first_name)$/]',
+          message:
+            '이름 조합 시 formatEmployeeName 또는 formatKoreanNameStandard 함수를 사용하세요',
         },
         // === 날짜 처리 강제 규칙 ===
         {
@@ -369,6 +374,14 @@ export default [
   // Allow console in scripts/migrations/tests; app code uses logger
   {
     files: ['scripts/**', 'migrations/**', 'tests/**'],
+    rules: {
+      'no-console': 'off',
+    },
+  },
+
+  // Logger utility exception - allow console statements in logger.ts
+  {
+    files: ['src/lib/utils/logger.ts'],
     rules: {
       'no-console': 'off',
     },

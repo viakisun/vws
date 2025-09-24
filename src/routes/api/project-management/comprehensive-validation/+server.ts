@@ -19,7 +19,6 @@ export const GET: RequestHandler = async ({ url }) => {
     const projectId = url.searchParams.get('projectId')
     const validationScope = url.searchParams.get('scope') || 'all'
 
-    // eslint-disable-next-line no-restricted-syntax -- not a personal name composition (false positive)
     logger.log(
       `🔍 [종합 검증] ${validationScope} 검증 시작${projectId ? ` - 프로젝트: ${projectId}` : ''}`,
     )
