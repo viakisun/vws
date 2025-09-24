@@ -225,12 +225,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
 
     // eslint-disable-next-line no-restricted-syntax -- not a personal name composition (false positive)
     const result = await query(
-      `
-			UPDATE projects 
-			SET ${updateFields.join(', ')}
-			WHERE id = $${paramIndex}
-			RETURNING *
-		`,
+      `UPDATE projects SET ${updateFields.join(', ')} WHERE id = $${paramIndex} RETURNING *`,
       updateValues,
     )
 

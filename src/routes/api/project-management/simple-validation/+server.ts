@@ -1,7 +1,7 @@
+import { logger } from '$lib/utils/logger'
 import { json } from '@sveltejs/kit'
 import { Pool } from 'pg'
 import type { RequestHandler } from './$types'
-import { logger } from '$lib/utils/logger'
 
 const pool = new Pool({
   host: 'db-viahub.cdgqkcss8mpj.ap-northeast-2.rds.amazonaws.com',
