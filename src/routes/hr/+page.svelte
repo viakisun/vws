@@ -1564,7 +1564,7 @@
 
               <!-- 팀별 직원 카드 그리드 -->
               <div class="space-y-8">
-                {#each Object.keys(paginatedGroupedEmployees) as teamName}
+                {#each Object.keys(paginatedGroupedEmployees) as teamName (teamName)}
                   <div class="space-y-4">
                     <!-- 팀 헤더 -->
                     <div
@@ -1898,7 +1898,7 @@
                   >
                     이전
                   </ThemeButton>
-                  {#each Array.from({ length: totalPages }, (_, i) => i + 1) as page}
+                  {#each Array.from({ length: totalPages }, (_, i) => i + 1) as page (page)}
                     <ThemeButton
                       variant={page === currentPage ? 'primary' : 'ghost'}
                       size="sm"
@@ -2156,7 +2156,7 @@
         <ThemeSpacer size={6}>
           <div class="space-y-6">
             <!-- 직급 카테고리별 관리 -->
-            {#each Object.entries(getPositionsByCategory()) as [category, categoryPositions]}
+            {#each Object.entries(getPositionsByCategory()) as [category, categoryPositions] (category)}
               <ThemeCard class="p-6">
                 <div class="flex items-center justify-between mb-6">
                   <div class="flex items-center gap-3">

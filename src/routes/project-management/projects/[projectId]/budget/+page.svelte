@@ -1,8 +1,8 @@
 <script lang="ts">
+  import { page } from '$app/state'
   import Card from '$lib/components/ui/Card.svelte'
   import Progress from '$lib/components/ui/Progress.svelte'
-  import { projectsStore, expenseDocsStore } from '$lib/stores/rnd'
-  import { page } from '$app/state'
+  import { expenseDocsStore, projectsStore } from '$lib/stores/rnd'
   import { formatKRW } from '$lib/utils/format'
 
   const projectId = page.params.projectId
@@ -69,7 +69,7 @@
         </div>
       {:else}
         <div class="grid grid-cols-2 gap-2 text-sm">
-          {#each Object.entries(categoryHints) as [k, v]}
+          {#each Object.entries(categoryHints) as [k, v] (k)}
             <div class="flex items-center justify-between">
               <span>{k}</span><span class="tabular-nums">{formatKRW(v)}</span>
             </div>
@@ -101,7 +101,7 @@
               </tr>
             </thead>
             <tbody class="divide-y">
-              {#each docs as d, i (i)}
+              {#each docs as d, _i (d.id)}
                 <tr>
                   <td class="px-3 py-2">{d.id} · {d.title}</td>
                   <td class="px-3 py-2">{d.category}</td>
