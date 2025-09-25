@@ -379,47 +379,35 @@
 </script>
 
 <PageLayout title="프로젝트 관리" subtitle="연구개발 프로젝트 및 참여율 관리 시스템">
-  <div>
-    <!-- 탭 네비게이션 -->
-    <ThemeTabs {tabs} {activeTab} onTabChange={handleTabChange} />
+  <!-- 탭 네비게이션 -->
+  <ThemeTabs {tabs} {activeTab} onTabChange={handleTabChange} />
 
-    <!-- 개요 탭 -->
-    {#if activeTab === 'overview'}
-      <div>
-        <!-- 프로젝트 개요 카드 -->
-        <ProjectOverviewCard {projectSummary} {alerts} />
-      </div>
-    {/if}
+  <!-- 개요 탭 -->
+  {#if activeTab === 'overview'}
+    <!-- 프로젝트 개요 카드 -->
+    <ProjectOverviewCard {projectSummary} {alerts} />
+  {/if}
 
-    <!-- 프로젝트 탭 -->
-    {#if activeTab === 'projects'}
-      <div>
-        <!-- 프로젝트 목록 카드 -->
-        <ProjectListCard
-          {projects}
-          {selectedProject}
-          {selectedProjectId}
-          loading={tabLoadingStates.projects}
-          error={tabErrors.projects}
-          on:create-project={() => (showCreateProjectModal = true)}
-          on:project-deleted={handleProjectDeleted}
-          on:refresh={loadProjectData}
-        />
-      </div>
-    {/if}
+  <!-- 프로젝트 탭 -->
+  {#if activeTab === 'projects'}
+    <!-- 프로젝트 목록 카드 -->
+    <ProjectListCard
+      {projects}
+      {selectedProject}
+      {selectedProjectId}
+      loading={tabLoadingStates.projects}
+      error={tabErrors.projects}
+      on:create-project={() => (showCreateProjectModal = true)}
+      on:project-deleted={handleProjectDeleted}
+      on:refresh={loadProjectData}
+    />
+  {/if}
 
-    <!-- 참여율 관리 탭 -->
-    {#if activeTab === 'participation'}
-      <div>
-        <!-- 참여율 관리 카드 -->
-        <ParticipationCard
-          {employeeParticipationSummary}
-          loading={tabLoadingStates.participation}
-          error={tabErrors.participation}
-        />
-      </div>
-    {/if}
-  </div>
+  <!-- 참여율 관리 탭 -->
+  {#if activeTab === 'participation'}
+    <!-- TODO::참여율 관리 카드 -->
+    <ParticipationCard {employeeParticipationSummary} error={tabErrors.participation} />
+  {/if}
 </PageLayout>
 
 <!-- 프로젝트 생성 모달 -->
