@@ -484,4 +484,3 @@ export class AICodingValidator {
     return VALIDATION_RULES
   }
 }
-
