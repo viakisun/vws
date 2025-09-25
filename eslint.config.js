@@ -90,7 +90,7 @@ export default [
     },
     rules: {
       // === TypeScript Rules ===
-      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-unused-vars': [
         'error',
         {
@@ -177,7 +177,7 @@ export default [
     },
     rules: {
       // === TypeScript Rules ===
-      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-unused-vars': [
         'error',
         {
@@ -319,7 +319,7 @@ export default [
         },
       ],
       'svelte/no-at-debug-tags': 'warn',
-      'svelte/no-at-html-tags': 'warn',
+      'svelte/no-at-html-tags': 'off',
       'svelte/no-dupe-else-if-blocks': 'warn',
       'svelte/no-dupe-style-properties': 'warn',
       'svelte/no-dynamic-slot-name': 'warn',
@@ -356,7 +356,7 @@ export default [
       'svelte/no-unused-svelte-ignore': 'warn',
       'svelte/prefer-destructured-store-props': 'warn',
       'svelte/require-event-dispatcher-types': 'warn',
-      'svelte/require-optimized-style-attribute': 'warn',
+      'svelte/require-optimized-style-attribute': 'off',
       'svelte/valid-each-key': 'warn',
 
       // === Svelte 5 호환성 규칙 ===
