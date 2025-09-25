@@ -102,11 +102,23 @@ jobs:
     name: 코드 커버리지
     runs-on: ubuntu-latest
     needs: quality
+    if: always()
     steps:
-      - uses: actions/download-artifact@v4
+      - name: Download coverage artifact (if available)
+        uses: actions/download-artifact@v4
+        continue-on-error: true
         with:
           name: coverage
           path: coverage
+      - name: Check if coverage exists
+        run: |
+          if [ -d "coverage" ] && [ "$(ls -A coverage)" ]; then
+            echo "Coverage data found"
+            ls -la coverage/
+          else
+            echo "No coverage data available - skipping coverage reporting"
+            exit 0
+          fi
       # Codecov 사용 시(선택): 저장소 시크릿에 CODECOV_TOKEN 필요
       # - uses: codecov/codecov-action@v4
       #   with:
