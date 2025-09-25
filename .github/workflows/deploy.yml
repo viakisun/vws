@@ -49,17 +49,34 @@ jobs:
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
           echo "Successfully pushed to ECR"
 
-      - name: ECS 서비스 업데이트
+      - name: ECS 클러스터 생성 (존재하지 않는 경우)
+        run: |
+          aws ecs describe-clusters --clusters vws-cluster --region ap-northeast-2 || \
+          aws ecs create-cluster \
+            --cluster-name vws-cluster \
+            --region ap-northeast-2
+
+      - name: ECS 서비스 업데이트 (선택사항)
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: vws-app
           IMAGE_TAG: ${{ github.sha }}
+        continue-on-error: true
         run: |
-          # ECS 클러스터 업데이트
-          aws ecs update-service \
-            --cluster vws-cluster \
-            --service vws-service \
-            --force-new-deployment
+          # ECS 서비스가 존재하는지 확인하고 업데이트
+          if aws ecs describe-services --cluster vws-cluster --services vws-service --region ap-northeast-2 --query 'services[0].status' --output text | grep -q "ACTIVE"; then
+            echo "Updating existing ECS service..."
+            aws ecs update-service \
+              --cluster vws-cluster \
+              --service vws-service \
+              --force-new-deployment \
+              --region ap-northeast-2
+            echo "ECS service updated successfully"
+          else
+            echo "ECS service does not exist. Skipping ECS update."
+            echo "Docker image has been built and pushed to ECR successfully."
+            echo "You can manually create the ECS service and task definition when ready."
+          fi
 
       - name: 배포 완료 알림
         if: success()
