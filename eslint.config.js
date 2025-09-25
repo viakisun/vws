@@ -330,7 +330,7 @@ export default [
       'svelte/no-shorthand-style-property-overrides': 'error',
       'svelte/no-unknown-style-directive-property': 'error',
       'svelte/no-useless-mustaches': 'error',
-      'svelte/require-each-key': 'warn',
+      'svelte/require-each-key': 'off',
       'svelte/require-stores-init': 'error',
       'svelte/require-store-callbacks-use-set-param': 'error',
       'svelte/block-lang': 'off', // Svelte 5에서는 TypeScript를 기본 지원
