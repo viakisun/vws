@@ -408,7 +408,7 @@
     <!-- 참여율 관리 탭 -->
     {#if activeTab === 'participation'}
       <!-- TODO::참여율 관리 카드 -->
-      <ParticipationCard {employeeParticipationSummary} error={tabErrors.participation} />
+      <ParticipationCard {employeeParticipationSummary} />
     {/if}
   {/if}
 </PageLayout>

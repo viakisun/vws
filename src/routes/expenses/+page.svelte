@@ -205,7 +205,7 @@
         <div class="text-caption mb-1">결재 이력</div>
         {#if $expenseHistories[selected.id]?.length}
           <ul class="space-y-1">
-            {#each $expenseHistories[selected.id] as h (h.id)}
+            {#each $expenseHistories[selected.id] as h, index (h.at + index)}
               <li class="flex items-center justify-between">
                 <span>{new Date(h.at).toLocaleString('ko-KR')}</span>
                 <Badge

@@ -178,7 +178,6 @@ async function validateProjectData(data: ProjectCreationRequest) {
   const totalBudgetFromPeriods = data.annualPeriods.reduce((sum, period) => sum + period.budget, 0)
   if (Math.abs(totalBudgetFromPeriods - data.totalBudget) > 1000) {
     // 1000원 허용 오차
-    // eslint-disable-next-line no-restricted-syntax -- not a personal name composition (false positive)
     errors.push(
       `연차별 예산 합계(${totalBudgetFromPeriods.toLocaleString()}원)와 총 예산(${data.totalBudget.toLocaleString()}원)이 일치하지 않습니다.`,
     )
@@ -213,7 +212,6 @@ async function validateProjectData(data: ProjectCreationRequest) {
       0,
     )
     if (totalParticipationRate > 100) {
-      // eslint-disable-next-line no-restricted-syntax -- not a personal name composition (false positive)
       errors.push(
         `${period.periodNumber}차년도 참여연구원 참여율 합계(${totalParticipationRate}%)가 100%를 초과합니다.`,
       )
@@ -327,7 +325,6 @@ async function createProjectBudgets(client: any, projectId: string, data: Projec
     ])
 
     budgetIds.push(result.rows[0].id)
-    // eslint-disable-next-line no-restricted-syntax -- not a personal name composition (false positive)
     logger.log(`💰 [생성] ${period.periodNumber}차년도 예산 생성 완료 - ID: ${result.rows[0].id}`)
   }
 
@@ -375,7 +372,6 @@ async function createProjectMembers(client: any, projectId: string, data: Projec
     ])
 
     memberIds.push(result.rows[0].id)
-    // eslint-disable-next-line no-restricted-syntax -- not a personal name composition (false positive)
     logger.log(`👥 [생성] 참여연구원 ${member.employeeId} 등록 완료 - ID: ${result.rows[0].id}`)
   }
 
@@ -498,7 +494,6 @@ async function validateCreatedProject(client: any, projectId: string) {
   const projectBudget = parseFloat(projectResult.rows[0].budget_total)
 
   if (Math.abs(totalBudgetFromDB - projectBudget) > 1000) {
-    // eslint-disable-next-line no-restricted-syntax -- not a personal name composition (false positive)
     errors.push(
       `데이터베이스의 연차별 예산 합계(${totalBudgetFromDB.toLocaleString()}원)와 프로젝트 총 예산(${projectBudget.toLocaleString()}원)이 일치하지 않습니다.`,
     )

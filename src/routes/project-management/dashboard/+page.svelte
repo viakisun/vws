@@ -11,7 +11,7 @@
     projectsStore,
     quarterlyPersonnelBudgets,
   } from '$lib/stores/rnd'
-  import { formatDateForDisplay, getCurrentUTC, getDateDifference } from '$lib/utils/date-handler'
+  import { formatDateForDisplay, getCurrentUTC } from '$lib/utils/date-handler'
 
   const ob = $derived($overallBudget)
   const avgProgress = $derived(
@@ -66,10 +66,10 @@
       for (const p of $projectsStore) {
         const start = p.startDate
         const due = p.dueDate
-        const totalDays = getDateDifference(start, due)
+        const totalDays = Math.floor((new Date(due).getTime() - new Date(start).getTime()) / (1000 * 60 * 60 * 24))
         // 오늘이 시작 이전이면 0일 경과로 간주
         const cappedToday = todayIso < start ? start : todayIso > due ? due : todayIso
-        const elapsedDays = Math.max(1, getDateDifference(start, cappedToday))
+        const elapsedDays = Math.max(1, Math.floor((new Date(cappedToday).getTime() - new Date(start).getTime()) / (1000 * 60 * 60 * 24)))
         const burn = p.spentKRW / Math.max(1, elapsedDays)
         const projected = burn * totalDays
         totalBudget += p.budgetKRW

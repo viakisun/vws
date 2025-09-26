@@ -187,7 +187,7 @@ export class ParticipationManager {
   }
 
   // 3. 스킬 매칭 계산 (단순화)
-  static calculateSkillMatch(employee: Employee, project: Project): number {
+  static calculateSkillMatch(_employee: Employee, _project: Project): number {
     // 스킬 매칭을 단순화하여 항상 1.0 반환
     return 1.0
   }

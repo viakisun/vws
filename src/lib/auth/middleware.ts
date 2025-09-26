@@ -164,7 +164,7 @@ export function hasPermission(userRole: string, permission: string): boolean {
 // Permission middleware
 export function requirePermission(permission: string): RequestHandler {
   return async (event: RequestEvent): Promise<Response> => {
-    const { request } = event
+    const { request: _request } = event
     const user = event.locals.user
 
     if (!user) {
@@ -228,9 +228,9 @@ export function rateLimit(maxRequests: number, windowMs: number): RequestHandler
 // Input validation
 export function validateInput(schema: { parse: (data: unknown) => unknown }): RequestHandler {
   return async (event: RequestEvent): Promise<Response> => {
-    const { request } = event
+    const { request: _request } = event
     try {
-      const body = await request.json()
+      const body = await _request.json()
       const validated = schema.parse(body)
       event.locals.validatedBody = validated
       return new Response()

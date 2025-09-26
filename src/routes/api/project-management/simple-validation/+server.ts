@@ -199,7 +199,7 @@ async function validateBudgetConsistency(client: any, projectId: string) {
         ]
       : [],
     message: hasIssues
-      ? // eslint-disable-next-line no-restricted-syntax -- not a personal name composition (false positive)
+      ?  
         `예산 불일치: 프로젝트 총 예산 ${projectTotal.toLocaleString()}원 vs 연차별 예산 합계 ${budgetSum.toLocaleString()}원`
       : '예산 일관성 검증 통과',
   }
@@ -211,15 +211,21 @@ async function fixPersonnelCost(client: any, projectId: string, issues: unknown[
     let fixedCount = 0
 
     for (const issue of issues) {
-      await client.query(
-        `
+      // 타입 가드: issue가 필요한 속성을 가지고 있는지 확인
+      if (typeof issue === 'object' && issue !== null && 
+          'actualPersonnelCost' in issue && 'periodId' in issue) {
+        const typedIssue = issue as { actualPersonnelCost: number; periodId: string }
+        
+        await client.query(
+          `
 				UPDATE project_budgets 
 				SET personnel_cost = $1, updated_at = CURRENT_TIMESTAMP
 				WHERE id = $2
 			`,
-        [issue.actualPersonnelCost, issue.periodId],
-      )
-      fixedCount++
+          [typedIssue.actualPersonnelCost, typedIssue.periodId],
+        )
+        fixedCount++
+      }
     }
 
     return {
@@ -242,15 +248,20 @@ async function fixBudgetConsistency(client: any, projectId: string, issues: unkn
     let fixedCount = 0
 
     for (const issue of issues) {
-      await client.query(
-        `
+      // 타입 가드: issue가 필요한 속성을 가지고 있는지 확인
+      if (typeof issue === 'object' && issue !== null && 'budgetSum' in issue) {
+        const typedIssue = issue as { budgetSum: number }
+        
+        await client.query(
+          `
 				UPDATE projects 
 				SET budget_total = $1, updated_at = CURRENT_TIMESTAMP
 				WHERE id = $2
 			`,
-        [issue.budgetSum, projectId],
-      )
-      fixedCount++
+          [typedIssue.budgetSum, projectId],
+        )
+        fixedCount++
+      }
     }
 
     return {

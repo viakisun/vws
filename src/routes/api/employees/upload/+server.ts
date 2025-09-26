@@ -1,6 +1,6 @@
 import { json } from '@sveltejs/kit'
 
-export async function POST({ request }) {
+export async function POST({ request: _request }) {
   // TODO: 엑셀 업로드 기능 구현 필요
   // 현재 ExcelJS 타입 오류로 인해 임시 비활성화
   return json({ 

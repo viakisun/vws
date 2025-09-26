@@ -1,5 +1,6 @@
-import { logger } from '$lib/utils/logger'
+import { getCurrentUTC } from '$lib/utils/date-handler'
 import { Pool } from 'pg'
+import { logger } from '$lib/utils/logger'
 
 // 데이터베이스 연결 풀
 const pool = new Pool({
@@ -254,7 +255,7 @@ export class ValidationUtils {
       projectTitle,
       validationResults,
       overallValidation,
-      generatedAt: new Date().toISOString(),
+      generatedAt: getCurrentUTC(),
     }
   }
 

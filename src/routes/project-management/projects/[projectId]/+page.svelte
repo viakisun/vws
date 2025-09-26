@@ -5,6 +5,7 @@
   import { projectsStore } from '$lib/stores/rnd'
   import { page } from '$app/state'
   import { formatKRW } from '$lib/utils/format'
+  import { getProjectStatusColor } from '$lib/utils/project-status'
 
   const projectId = page.params.projectId
   const project = $derived($projectsStore.find((p) => p.id === projectId))
@@ -21,15 +22,7 @@
       </div>
       <div>
         <div class="text-caption">상태</div>
-        <Badge
-          color={project.status === '지연'
-            ? 'yellow'
-            : project.status === '위험'
-              ? 'red'
-              : project.status === '진행중'
-                ? 'blue'
-                : 'green'}>{project.status}</Badge
-        >
+        <Badge color={getProjectStatusColor(project.status)}>{project.status}</Badge>
       </div>
       <div>
         <div class="text-caption">진행률</div>

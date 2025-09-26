@@ -46,7 +46,7 @@ const STATUSES: Project['status'][] = ['active', 'planning', 'completed', 'cance
 const initialProjects: Project[] = Array.from({ length: 10 }).map((_, i) => {
   const id = `P-${pad(i + 1)}`
   const budgetKRW = randInt(200_000_000, 500_000_000)
-  const spentKRW = randInt(Math.floor(budgetKRW * 0.2), Math.floor(budgetKRW * 0.9))
+  const _spentKRW = randInt(Math.floor(budgetKRW * 0.2), Math.floor(budgetKRW * 0.9))
   const progressPct = randInt(10, 95)
   const startYear = 2025
   const startMonth = pick([1, 4, 7, 10])

@@ -110,13 +110,13 @@
     }
   }
 
-  $effect(async () => {
+  $effect(() => {
     if (!mounted) {
       mounted = true
       // 기본 데이터 로드
-      await loadPayslips()
-      await loadContractStats()
-      await loadSalaryStats()
+      loadPayslips()
+      loadContractStats()
+      loadSalaryStats()
     }
   })
 

@@ -4,7 +4,7 @@
  * UTC+9 (Asia/Seoul) 타임존 적용
  */
 
-import { getCurrentUTC, toUTC } from './date-handler'
+import { getCurrentUTC, toUTC, formatDateForInput } from './date-handler'
 
 /**
  * 프로젝트 연차별 기간 계산 (UTC+9 타임존 적용)
@@ -174,8 +174,7 @@ export function formatDateForAPI(date: string | Date): string {
   }
 
   // 다른 형식의 문자열인 경우 기존 로직 사용
-  const d = new Date(date)
-  return d.toISOString().split('T')[0]
+  return formatDateForInput(toUTC(date))
 }
 
 /**

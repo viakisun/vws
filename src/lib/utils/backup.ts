@@ -1,6 +1,7 @@
 import type { BankAccount, Transaction, ExpectedTransaction } from '$lib/stores/funds'
 import type { BudgetCategory, BudgetGoal } from '$lib/stores/budget'
 import type { Notification, NotificationSettings } from '$lib/stores/notifications'
+import { getCurrentUTC, formatDateForInput } from '$lib/utils/date-handler'
 import { logger } from '$lib/utils/logger'
 
 export interface BackupData {
@@ -29,7 +30,7 @@ export function createBackup(
 ): BackupData {
   return {
     version: '1.0.0',
-    timestamp: new Date().toISOString(),
+    timestamp: getCurrentUTC(),
     data: {
       bankAccounts,
       transactions,
@@ -49,7 +50,7 @@ export function downloadBackup(backupData: BackupData) {
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
-  a.download = `workstream-backup-${new Date().toISOString().split('T')[0]}.json`
+  a.download = `workstream-backup-${formatDateForInput(getCurrentUTC())}.json`
   document.body.appendChild(a)
   a.click()
   document.body.removeChild(a)

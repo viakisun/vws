@@ -1,5 +1,6 @@
 import type { DatabaseCompany, DatabaseProject, DatabaseUser } from '$lib/types'
 import { logger } from '$lib/utils/logger'
+import { toUTC, formatDateForDisplay } from '$lib/utils/date-handler'
 import { config } from 'dotenv'
 import type { PoolClient, QueryResult } from 'pg'
 import { Pool } from 'pg'
@@ -9,6 +10,90 @@ config()
 
 // Database connection pool
 let pool: Pool | null = null
+
+// =============================================
+// DATE HANDLING UTILITIES
+// =============================================
+
+/**
+ * 데이터베이스에서 가져온 날짜를 안전하게 처리
+ * TIMESTAMP WITH TIME ZONE -> 표시용 문자열로 변환
+ */
+export function processDatabaseDate(dateValue: any): string {
+  if (!dateValue) return ''
+  
+  try {
+    // PostgreSQL TIMESTAMP WITH TIME ZONE는 이미 UTC로 저장됨
+    if (dateValue instanceof Date) {
+      return formatDateForDisplay(toUTC(dateValue))
+    }
+    
+    if (typeof dateValue === 'string') {
+      // ISO 문자열인 경우 그대로 사용
+      if (dateValue.includes('T') || dateValue.includes('Z')) {
+        return formatDateForDisplay(dateValue)
+      }
+      // DATE 형식인 경우 시간대 정보 추가
+      return formatDateForDisplay(`${dateValue}T00:00:00Z`)
+    }
+    
+    return String(dateValue)
+  } catch (error) {
+    logger.error('Date processing error:', error, 'for value:', dateValue)
+    return ''
+  }
+}
+
+/**
+ * 사용자 입력 날짜를 데이터베이스 저장용으로 변환
+ * 다양한 형식 -> UTC TIMESTAMP WITH TIME ZONE
+ */
+export function prepareDateForDatabase(dateValue: any): string {
+  if (!dateValue) return ''
+  
+  try {
+    const utcDate = toUTC(dateValue)
+    return utcDate || ''
+  } catch (error) {
+    logger.error('Date preparation error:', error, 'for value:', dateValue)
+    return ''
+  }
+}
+
+/**
+ * 데이터베이스 쿼리 결과의 모든 날짜 필드를 처리
+ */
+export function processQueryResultDates(result: QueryResult): QueryResult {
+  if (!result.rows || result.rows.length === 0) {
+    return result
+  }
+  
+  // 날짜 필드 목록 (TIMESTAMP WITH TIME ZONE 칼럼들)
+  const dateFields = [
+    'created_at', 'updated_at', 'last_login',
+    'date', 'hire_date', 'start_date', 'end_date',
+    'period_start', 'period_end', 'last_contact',
+    'next_action_date', 'renewal_date', 'approved_at',
+    'decided_at', 'signed_at', 'generated_at'
+  ]
+  
+  const processedRows = result.rows.map(row => {
+    const processedRow = { ...row }
+    
+    dateFields.forEach(field => {
+      if (field in processedRow && processedRow[field]) {
+        processedRow[field] = processDatabaseDate(processedRow[field])
+      }
+    })
+    
+    return processedRow
+  })
+  
+  return {
+    ...result,
+    rows: processedRows
+  }
+}
 
 // Database configuration - AWS only
 const getDbConfig = () => {
@@ -71,7 +156,8 @@ export async function query<T extends Record<string, unknown> = any>(
   const client = await getConnection()
   try {
     const result = await client.query<T>(text, params)
-    return result
+    // 자동으로 날짜 필드 처리
+    return processQueryResultDates(result) as QueryResult<T>
   } finally {
     client.release()
   }

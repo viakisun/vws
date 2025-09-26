@@ -109,14 +109,14 @@ export const POST: RequestHandler = async ({ request }) => {
     if (hireDate && periodEndDate < hireDate) {
       isValid = false
       reason = 'HIRED_AFTER_PROJECT_PERIOD'
-      // eslint-disable-next-line no-restricted-syntax -- not a personal name composition (false positive)
+       
       message = `프로젝트 기간(${formatDateForDisplay(toUTC(periodStartDate), 'KOREAN')} ~ ${formatDateForDisplay(toUTC(periodEndDate), 'KOREAN')}) 이후에 입사한 직원입니다.`
     }
 
     if (terminationDate && periodStartDate > terminationDate) {
       isValid = false
       reason = 'TERMINATED_BEFORE_PROJECT_PERIOD'
-      // eslint-disable-next-line no-restricted-syntax -- not a personal name composition (false positive)
+       
       message = `프로젝트 기간(${formatDateForDisplay(toUTC(periodStartDate), 'KOREAN')} ~ ${formatDateForDisplay(toUTC(periodEndDate), 'KOREAN')}) 이전에 퇴사한 직원입니다.`
     }
 

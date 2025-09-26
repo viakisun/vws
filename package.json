@@ -29,6 +29,8 @@
     "test": "vitest run",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage",
+    "migrate": "node scripts/migrate.js",
+    "migrate:dry-run": "node scripts/migrate.js --dry-run",
     "audit:ci": "pnpm audit --audit-level=high",
     "doctor": "node scripts/doctor.mjs",
     "quality:gate": "echo 'Quality gate passed'",

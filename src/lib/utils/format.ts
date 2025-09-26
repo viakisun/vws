@@ -58,7 +58,7 @@ export function getRelativeTime(dateString: string): string {
   if (!dateString) return ''
 
   // 통합된 날짜 처리 시스템 사용
-  return formatDateForDisplay(dateString, 'RELATIVE')
+  return formatDateForDisplay(dateString, 'FULL')
 }
 
 export function pct(n: number): string {

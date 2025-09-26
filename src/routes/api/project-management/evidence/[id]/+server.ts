@@ -166,7 +166,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
 
     Object.entries(fieldsToUpdate).forEach(([key, value]) => {
       if (value !== undefined) {
-        // eslint-disable-next-line no-restricted-syntax -- not a personal name composition (false positive)
+         
         updateFields.push(`${key} = $${paramIndex++}`)
         updateValues.push(value)
       }
@@ -185,7 +185,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
     updateFields.push(`updated_at = CURRENT_TIMESTAMP`)
     updateValues.push(id) // Add id as the last parameter for WHERE clause
 
-    // eslint-disable-next-line no-restricted-syntax -- not a personal name composition (false positive)
+     
     const result = await query(
       `UPDATE evidence_items SET ${updateFields.join(', ')} WHERE id = $${paramIndex} RETURNING *`,
       updateValues,

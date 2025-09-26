@@ -17,7 +17,7 @@
   import ThemeModal from '$lib/components/ui/ThemeModal.svelte'
   import ThemeSpacer from '$lib/components/ui/ThemeSpacer.svelte'
   import ThemeTabs from '$lib/components/ui/ThemeTabs.svelte'
-  import { formatDateForDisplay, getCurrentUTC, getDateDifference } from '$lib/utils/date-handler'
+  import { formatDateForDisplay, getCurrentUTC } from '$lib/utils/date-handler'
   import { formatDate, formatEmployeeName } from '$lib/utils/format'
   import {
     AlertCircleIcon,
@@ -166,7 +166,7 @@
   // 직책 데이터 가져오기
   async function fetchJobTitles() {
     try {
-      jobTitleLoading = true
+      _jobTitleLoading = true
       const response = await fetch('/api/job-titles')
       if (response.ok) {
         const result = await response.json()
@@ -175,7 +175,7 @@
     } catch (err) {
       logger.error('Error fetching job titles:', err)
     } finally {
-      jobTitleLoading = false
+      _jobTitleLoading = false
     }
   }
 
@@ -312,12 +312,12 @@
   // 이사 관리 관련 상태
   let executives = $state<Executive[]>([])
   let jobTitles = $state<JobTitle[]>([])
-  let showExecutiveModal = $state(false)
-  let showJobTitleModal = $state(false)
-  let selectedExecutive = $state<any>(null)
-  let selectedJobTitle = $state<any>(null)
+  let _showExecutiveModal = $state(false)
+  let _showJobTitleModal = $state(false)
+  let _selectedExecutive = $state<any>(null)
+  let _selectedJobTitle = $state<any>(null)
   let executiveLoading = $state(false)
-  let jobTitleLoading = $state(false)
+  let _jobTitleLoading = $state(false)
 
   // 직원 검색 및 필터링 상태
   let searchQuery = $state('')
@@ -506,7 +506,7 @@
   )
 
   // 액션 버튼들
-  const actions = [
+  const _actions = [
     {
       label: '직원 추가',
       icon: PlusIcon,
@@ -551,7 +551,7 @@
       )
       .slice(0, 3)
       .forEach((emp: Employee) => {
-        const daysSinceHire = getDateDifference(emp.hire_date, getCurrentUTC())
+        const daysSinceHire = Math.floor((new Date().getTime() - new Date(emp.hire_date).getTime()) / (1000 * 60 * 60 * 24))
         const hireDate = formatDateForDisplay(emp.hire_date, 'KOREAN')
         activities.push({
           type: 'hire',
@@ -587,7 +587,7 @@
       )
       .slice(0, 3)
       .forEach((emp: Employee) => {
-        const daysLeft = Math.ceil(getDateDifference(getCurrentUTC(), emp.termination_date))
+        const daysLeft = Math.ceil((new Date(emp.termination_date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
         const isContract = emp.employment_type === 'contract'
         const terminationDate = formatDateForDisplay(emp.termination_date, 'KOREAN')
         activities.push({
@@ -624,7 +624,7 @@
       )
       .slice(0, 3)
       .forEach((emp: Employee) => {
-        const daysSinceTermination = getDateDifference(emp.termination_date, getCurrentUTC())
+        const daysSinceTermination = Math.floor((new Date().getTime() - new Date(emp.termination_date).getTime()) / (1000 * 60 * 60 * 24))
         const terminationDate = formatDateForDisplay(emp.termination_date, 'KOREAN')
         activities.push({
           type: 'termination',
@@ -1207,13 +1207,13 @@
 
   // 이사 관리 함수들
   function openAddExecutiveModal() {
-    selectedExecutive = null
-    showExecutiveModal = true
+    _selectedExecutive = null
+    _showExecutiveModal = true
   }
 
   function openEditExecutiveModal(executive: Executive) {
-    selectedExecutive = executive
-    showExecutiveModal = true
+    _selectedExecutive = executive
+    _showExecutiveModal = true
   }
 
   async function handleExecutiveDelete(executive: Executive) {
@@ -1239,8 +1239,8 @@
 
   // 직책 관리 함수들
   function openAddJobTitleModal(level?: string) {
-    selectedJobTitle = null
-    showJobTitleModal = true
+    _selectedJobTitle = null
+    _showJobTitleModal = true
     // 레벨 정보를 모달에 전달할 수 있도록 설정
     if (level) {
       // 모달에서 레벨 정보를 사용할 수 있도록 상태 설정
@@ -1248,8 +1248,8 @@
   }
 
   function openEditJobTitleModal(jobTitle: JobTitle) {
-    selectedJobTitle = jobTitle
-    showJobTitleModal = true
+    _selectedJobTitle = jobTitle
+    _showJobTitleModal = true
   }
 
   async function handleJobTitleDelete(jobTitle: JobTitle) {

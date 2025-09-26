@@ -279,7 +279,6 @@ export const PUT: RequestHandler = async ({ params, request }) => {
         : null,
       endDate: updatedBudget.end_date ? formatDateForDisplay(updatedBudget.end_date, 'ISO') : null,
       governmentFunding,
-      governmentFundingInKind: 0,
       companyCash,
       companyInKind,
       totalCash,

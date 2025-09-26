@@ -1,6 +1,7 @@
 // 인사 관리 시스템 유틸리티 함수
 
 import type { Employee, EmployeeLevel, EmployeeStatus, EmploymentType } from '$lib/types/hr'
+import { toUTC, formatDateForInput } from '$lib/utils/date-handler'
 
 // ===== 직원 관련 유틸리티 =====
 
@@ -213,8 +214,7 @@ export function formatDate(dateString: string): string {
  */
 export function formatDateShort(dateString: string): string {
   if (!dateString) return ''
-  const date = new Date(dateString)
-  return date.toISOString().split('T')[0]
+  return formatDateForInput(toUTC(dateString))
 }
 
 /**

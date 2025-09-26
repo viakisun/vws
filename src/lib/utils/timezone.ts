@@ -3,7 +3,7 @@
  * 모든 시간 처리를 UTC 기준으로 하고, 타임존 변환을 명확하게 관리합니다.
  */
 
-import { toUTC } from './date-handler'
+import { toUTC, getCurrentUTC } from './date-handler'
 
 // 지원하는 타임존 목록 (확장 가능)
 export const SUPPORTED_TIMEZONES = {
@@ -37,7 +37,7 @@ export function utcToLocal(utcDate: Date, _timezone: Timezone = DEFAULT_TIMEZONE
   }
 
   // 표준 날짜 처리 함수 사용
-  const utcString = utcDate.toISOString()
+  const utcString = toUTC(utcDate)
   const localDate = new Date(toUTC(utcString))
   return localDate
 }
@@ -55,7 +55,7 @@ export function localToUtc(localDate: Date, timezone: Timezone = DEFAULT_TIMEZON
 
   const _timezoneString = SUPPORTED_TIMEZONES[timezone]
   // 표준 날짜 처리 함수 사용
-  const utcDate = new Date(toUTC(localDate.toISOString()))
+  const utcDate = new Date(toUTC(toUTC(localDate)))
 
   // 타임존 오프셋을 고려하여 UTC로 변환
   const offset = getTimezoneOffset(timezone)
@@ -263,7 +263,7 @@ export function utcToDbString(utcDate: Date): string {
     throw new Error('Invalid UTC date provided')
   }
 
-  return utcDate.toISOString()
+  return getCurrentUTC()
 }
 
 /**
