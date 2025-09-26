@@ -423,6 +423,9 @@ export default [
       'node_modules/**',
       '*.config.js',
       '*.config.cjs',
+      // Reports & logs
+      '.reports/**',
+      'eslint.*.json',
     ],
   },
 
