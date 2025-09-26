@@ -380,6 +380,7 @@
 </script>
 
 <PageLayout title="프로젝트 관리" subtitle="연구개발 프로젝트 및 참여율 관리 시스템">
+  {#if browser}
   <!-- 탭 네비게이션 -->
   <ThemeTabs {tabs} {activeTab} onTabChange={handleTabChange} />
 
@@ -412,6 +413,8 @@
 </PageLayout>
 
 <!-- 프로젝트 생성 모달 -->
+{#if browser}
 <ThemeModal open={showCreateProjectModal} onclose={() => (showCreateProjectModal = false)}>
   <ProjectCreationForm on:projectCreated={handleProjectCreated} />
 </ThemeModal>
+{/if}
