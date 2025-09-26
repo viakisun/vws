@@ -26,6 +26,8 @@
     job_title_name?: string
     job_title_level?: number
     job_title_category?: string
+    created_at?: string
+    updated_at?: string
   }
 
   interface Props {
@@ -33,12 +35,13 @@
     employee?: Employee | null
     loading?: boolean
     departments?: Array<{ id: string; name: string }>
-    positions?: Array<{ id: string; name: string; department: string }>
+    positions?: Array<{ id: string; name?: string; title?: string; department?: string; department_id?: string }>
     jobTitles?: Array<{
       id: string
-      name: string
-      level: number
-      category: string
+      name?: string
+      title?: string
+      level: string | number
+      category?: string
     }>
   }
 
@@ -53,7 +56,7 @@
 
   const dispatch = createEventDispatcher<{
     close: void
-    save: Employee
+    save: import('$lib/types').Employee
   }>()
 
   // 폼 데이터
@@ -204,9 +207,12 @@
     // 수정 모드일 때는 id를 포함
     if (employee?.id) {
       dataToSave.id = employee.id
+    } else {
+      // 새 직원 추가 시 임시 id 생성 (서버에서 실제 id 할당)
+      dataToSave.id = 'temp-' + Date.now()
     }
 
-    dispatch('save', dataToSave)
+    dispatch('save', dataToSave as import('$lib/types').Employee)
   }
 
   function handleClose() {

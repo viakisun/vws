@@ -1,4 +1,5 @@
 <script lang="ts">
+  import type { Department, Employee, Executive, JobTitle, Position } from '$lib/types'
   import { logger } from '$lib/utils/logger'
 
   import PageLayout from '$lib/components/layout/PageLayout.svelte'
@@ -51,7 +52,7 @@
   import { contracts, loadContracts } from '$lib/stores/salary/contract-store'
 
   // 데이터베이스 직원 데이터
-  let employees = $state<any[]>([])
+  let employees = $state<Employee[]>([])
   let loading = $state(true)
   let error = $state<string | null>(null)
 
@@ -128,7 +129,8 @@
   // 생성일 순으로 정렬된 부서 목록
   let sortedDepartments = $derived(() => {
     return [...departments].sort(
-      (a: any, b: any) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
+      (a: Department, b: Department) =>
+        new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
     )
   })
 
@@ -190,9 +192,9 @@
   // 직책을 레벨별로 분류
   function _getJobTitlesByLevel() {
     const levels = {
-      'C-Level': jobTitles.filter((jt) => jt.level === 1),
-      Management: jobTitles.filter((jt) => jt.level === 2),
-      Specialist: jobTitles.filter((jt) => jt.level === 3),
+      'C-Level': jobTitles.filter((jt) => String(jt.level) === '1'),
+      Management: jobTitles.filter((jt) => String(jt.level) === '2'),
+      Specialist: jobTitles.filter((jt) => String(jt.level) === '3'),
     }
     return levels
   }
@@ -201,7 +203,7 @@
   let teamTO = $derived(() => {
     const toMap: any = {}
     if (departments) {
-      departments.forEach((dept: any) => {
+      departments.forEach((dept: Department) => {
         toMap[dept.name] = dept.max_employees || 0
       })
     }
@@ -211,7 +213,8 @@
   // 반응형 데이터 (데이터베이스 기반)
   let totalEmployees = $derived(() => {
     // 재직중인 직원만 카운트 (이사 제외)
-    const activeEmployeeCount = employees?.filter((emp: any) => emp.status === 'active').length || 0
+    const activeEmployeeCount =
+      employees?.filter((emp: Employee) => emp.status === 'active').length || 0
     return activeEmployeeCount
   })
 
@@ -229,7 +232,7 @@
   })
 
   let _totalDepartments = $derived(
-    () => [...new Set(employees?.map((emp: any) => emp.department) || [])].length,
+    () => [...new Set(employees?.map((emp: Employee) => emp.department) || [])].length,
   )
   let activeRecruitments = $derived(
     () => $jobPostings.filter((job) => job.status === 'published').length,
@@ -297,8 +300,8 @@
   let deleteLoading = $state(false)
 
   // 조직 관리 관련 상태
-  let departments = $state<any[]>([])
-  let positions = $state<any[]>([])
+  let departments = $state<Department[]>([])
+  let positions = $state<Position[]>([])
   let showDepartmentModal = $state(false)
   let showPositionModal = $state(false)
   let selectedDepartment = $state<any>(null)
@@ -307,14 +310,14 @@
   let positionLoading = $state(false)
 
   // 이사 관리 관련 상태
-  let executives = $state<any[]>([])
-  let jobTitles = $state<any[]>([])
-  let _showExecutiveModal = $state(false)
-  let _showJobTitleModal = $state(false)
-  let _selectedExecutive = $state<any>(null)
-  let _selectedJobTitle = $state<any>(null)
+  let executives = $state<Executive[]>([])
+  let jobTitles = $state<JobTitle[]>([])
+  let showExecutiveModal = $state(false)
+  let showJobTitleModal = $state(false)
+  let selectedExecutive = $state<any>(null)
+  let selectedJobTitle = $state<any>(null)
   let executiveLoading = $state(false)
-  let _jobTitleLoading = $state(false)
+  let jobTitleLoading = $state(false)
 
   // 직원 검색 및 필터링 상태
   let searchQuery = $state('')
@@ -358,9 +361,9 @@
   // 팀별로 그룹화된 직원 목록
   let _groupedEmployees = $derived(
     (() => {
-      const groups: { [key: string]: any[] } = {}
+      const groups: { [key: string]: Employee[] } = {}
 
-      filteredEmployees.forEach((employee: any) => {
+      filteredEmployees.forEach((employee: Employee) => {
         const team = employee.department || '기타'
         if (!groups[team]) {
           groups[team] = []
@@ -383,7 +386,7 @@
   )
 
   // 팀 리더 및 임원인지 확인하는 함수
-  function isTeamLead(employee: any): boolean {
+  function isTeamLead(employee: Employee): boolean {
     const leadershipPositions = [
       'Team Lead',
       'CEO',
@@ -402,7 +405,7 @@
   }
 
   // 직원을 정렬하는 함수 (임원/팀 리더 우선, 퇴사자는 퇴사일 역순)
-  function sortEmployees(employees: any[]): any[] {
+  function sortEmployees(employees: Employee[]): Employee[] {
     return employees.sort((a, b) => {
       // 퇴사자인 경우 퇴사일 역순으로 정렬
       if (a.status === 'terminated' && b.status === 'terminated') {
@@ -433,9 +436,9 @@
   // 페이지네이션된 직원들을 팀별로 그룹화 (임원/팀 리더 우선 정렬)
   let paginatedGroupedEmployees = $derived(
     (() => {
-      const groups: { [key: string]: any[] } = {}
+      const groups: { [key: string]: Employee[] } = {}
 
-      paginatedEmployees.forEach((employee: any) => {
+      paginatedEmployees.forEach((employee: Employee) => {
         const team = employee.department || '기타'
         if (!groups[team]) {
           groups[team] = []
@@ -539,12 +542,15 @@
 
     employees
       .filter(
-        (emp: any) =>
+        (emp: Employee) =>
           emp.status === 'active' && emp.hire_date && new Date(emp.hire_date) >= threeMonthsAgo,
       )
-      .sort((a: any, b: any) => new Date(b.hire_date).getTime() - new Date(a.hire_date).getTime())
+      .sort(
+        (a: Employee, b: Employee) =>
+          new Date(b.hire_date).getTime() - new Date(a.hire_date).getTime(),
+      )
       .slice(0, 3)
-      .forEach((emp: any) => {
+      .forEach((emp: Employee) => {
         const daysSinceHire = getDateDifference(emp.hire_date, getCurrentUTC())
         const hireDate = formatDateForDisplay(emp.hire_date, 'KOREAN')
         activities.push({
@@ -569,18 +575,18 @@
 
     employees
       .filter(
-        (emp: any) =>
+        (emp: Employee) =>
           emp.status === 'active' &&
           emp.termination_date &&
           new Date(emp.termination_date) > new Date() && // 미래 날짜
           new Date(emp.termination_date) <= oneMonthFromNow, // 1개월 이내
       )
       .sort(
-        (a: any, b: any) =>
-          new Date(a.termination_date).getTime() - new Date(b.termination_date).getTime(),
+        (a: Employee, b: Employee) =>
+          new Date(a.termination_date!).getTime() - new Date(b.termination_date!).getTime(),
       )
       .slice(0, 3)
-      .forEach((emp: any) => {
+      .forEach((emp: Employee) => {
         const daysLeft = Math.ceil(getDateDifference(getCurrentUTC(), emp.termination_date))
         const isContract = emp.employment_type === 'contract'
         const terminationDate = formatDateForDisplay(emp.termination_date, 'KOREAN')
@@ -607,17 +613,17 @@
 
     employees
       .filter(
-        (emp: any) =>
+        (emp: Employee) =>
           emp.status === 'terminated' &&
           emp.termination_date &&
           new Date(emp.termination_date) >= threeMonthsAgoForTermination,
       )
       .sort(
-        (a: any, b: any) =>
-          new Date(b.termination_date).getTime() - new Date(a.termination_date).getTime(),
+        (a: Employee, b: Employee) =>
+          new Date(b.termination_date!).getTime() - new Date(a.termination_date!).getTime(),
       )
       .slice(0, 3)
-      .forEach((emp: any) => {
+      .forEach((emp: Employee) => {
         const daysSinceTermination = getDateDifference(emp.termination_date, getCurrentUTC())
         const terminationDate = formatDateForDisplay(emp.termination_date, 'KOREAN')
         activities.push({
@@ -637,57 +643,59 @@
       })
 
     // 부서별 인원 변화 (최근 입사/퇴사로 인한 변화)
-    const departmentChanges = employees.reduce((acc: any, emp: any) => {
+    const departmentChanges = employees.reduce((acc: Record<string, { hires: Employee[]; terminations: Employee[] }>, emp: Employee) => {
       if (!acc[emp.department]) {
         acc[emp.department] = { hires: [], terminations: [] }
       }
 
       if (emp.status === 'active' && emp.hire_date && new Date(emp.hire_date) >= threeMonthsAgo) {
-        acc[emp.department].hires.push(formatEmployeeName(emp))
+        acc[emp.department].hires.push(emp)
       }
       if (
         emp.status === 'terminated' &&
         emp.termination_date &&
         new Date(emp.termination_date) >= threeMonthsAgoForTermination
       ) {
-        acc[emp.department].terminations.push(formatEmployeeName(emp))
+        acc[emp.department].terminations.push(emp)
       }
 
       return acc
     }, {})
 
     // 변화가 있는 부서 정보 추가
-    Object.entries(departmentChanges).forEach(([dept, changes]: [string, any]) => {
-      if (changes.hires.length > 0 || changes.terminations.length > 0) {
-        const netChange = changes.hires.length - changes.terminations.length
-        if (netChange !== 0) {
-          let description = `${dept} 부서: `
-          if (changes.hires.length > 0) {
-            description += `입사 ${changes.hires.length}명(${changes.hires.join(', ')})`
-          }
-          if (changes.terminations.length > 0) {
-            if (changes.hires.length > 0) description += ', '
-            description += `퇴사 ${changes.terminations.length}명(${changes.terminations.join(', ')})`
-          }
-          description += ` (순증감: ${netChange > 0 ? '+' : ''}${netChange}명)`
+    Object.entries(departmentChanges).forEach(
+      ([dept, changes]: [string, { hires: Employee[]; terminations: Employee[] }]) => {
+        if (changes.hires.length > 0 || changes.terminations.length > 0) {
+          const netChange = changes.hires.length - changes.terminations.length
+          if (netChange !== 0) {
+            let description = `${dept} 부서: `
+            if (changes.hires.length > 0) {
+              description += `입사 ${changes.hires.length}명(${changes.hires.map(formatEmployeeName).join(', ')})`
+            }
+            if (changes.terminations.length > 0) {
+              if (changes.hires.length > 0) description += ', '
+              description += `퇴사 ${changes.terminations.length}명(${changes.terminations.map(formatEmployeeName).join(', ')})`
+            }
+            description += ` (순증감: ${netChange > 0 ? '+' : ''}${netChange}명)`
 
-          activities.push({
-            type: 'department_change',
-            title: '부서 인원 변화',
-            description: description,
-            time: new Date().toISOString(),
-            icon: BuildingIcon,
-            color: netChange > 0 ? 'text-blue-600' : 'text-red-600',
-            metadata: {
-              department: dept,
-              netChange,
-              hires: changes.hires,
-              terminations: changes.terminations,
-            },
-          })
+            activities.push({
+              type: 'department_change',
+              title: '부서 인원 변화',
+              description: description,
+              time: new Date().toISOString(),
+              icon: BuildingIcon,
+              color: netChange > 0 ? 'text-blue-600' : 'text-red-600',
+              metadata: {
+                department: dept,
+                netChange,
+                hires: changes.hires,
+                terminations: changes.terminations,
+              },
+            })
+          }
         }
-      }
-    })
+      },
+    )
 
     // 시간순 정렬 후 최대 8개 반환
     return activities
@@ -701,7 +709,7 @@
 
     // 모든 직원 카운트 (이사 포함)
     const deptCounts = employees.reduce(
-      (acc: any, emp: any) => {
+      (acc: Record<string, number>, emp: Employee) => {
         acc[emp.department] = (acc[emp.department] || 0) + 1
         return acc
       },
@@ -709,7 +717,7 @@
     )
 
     // departments 데이터를 기반으로 부서별 데이터 생성 (부서없음 포함)
-    const deptData = departments.map((dept: any) => {
+    const deptData = departments.map((dept: Department) => {
       const currentCount = deptCounts[dept.name] || 0
       const departmentTO = teamTO()[dept.name] || 0
       const percentage = Math.round((currentCount / totalEmployees()) * 100)
@@ -942,7 +950,7 @@
   }
 
   // 직원 추가/수정
-  async function handleEmployeeSave(event: any) {
+  async function handleEmployeeSave(event: CustomEvent<import('$lib/types').Employee>) {
     try {
       const employeeData = event.detail
       employeeLoading = true
@@ -1024,13 +1032,13 @@
   }
 
   // 직원 수정 모달 열기
-  function openEditEmployeeModal(employee: any) {
+  function openEditEmployeeModal(employee: Employee) {
     selectedEmployee = employee
     showEmployeeModal = true
   }
 
   // 직원 삭제 모달 열기
-  function openDeleteEmployeeModal(employee: any) {
+  function openDeleteEmployeeModal(employee: Employee) {
     selectedEmployee = employee
     showDeleteModal = true
   }
@@ -1059,7 +1067,7 @@
   }
 
   // 부서 관리 함수들
-  async function handleDepartmentSave(event: any) {
+  async function handleDepartmentSave(event: CustomEvent<Department>) {
     try {
       const departmentData = event.detail
       departmentLoading = true
@@ -1094,7 +1102,7 @@
     }
   }
 
-  async function handleDepartmentDelete(department: any, hardDelete = false) {
+  async function handleDepartmentDelete(department: Department, hardDelete = false) {
     try {
       const url = `/api/departments/${department.id}${hardDelete ? '?hard=true' : ''}`
       const response = await fetch(url, {
@@ -1119,13 +1127,13 @@
     showDepartmentModal = true
   }
 
-  function openEditDepartmentModal(department: any) {
+  function openEditDepartmentModal(department: Department) {
     selectedDepartment = department
     showDepartmentModal = true
   }
 
   // 직급 관리 함수들
-  async function handlePositionSave(event: any) {
+  async function handlePositionSave(event: CustomEvent<Position>) {
     try {
       const positionData = event.detail
       positionLoading = true
@@ -1158,7 +1166,7 @@
     }
   }
 
-  async function handlePositionDelete(position: any, hardDelete = false) {
+  async function handlePositionDelete(position: Position, hardDelete = false) {
     try {
       const url = `/api/positions/${position.id}${hardDelete ? '?hard=true' : ''}`
       const response = await fetch(url, {
@@ -1194,13 +1202,13 @@
     showExecutiveModal = true
   }
 
-  function openEditExecutiveModal(executive: any) {
+  function openEditExecutiveModal(executive: Executive) {
     selectedExecutive = executive
     showExecutiveModal = true
   }
 
-  async function handleExecutiveDelete(executive: any) {
-    if (confirm(`정말로 ${formatEmployeeName(executive)} 이사를 삭제하시겠습니까?`)) {
+  async function handleExecutiveDelete(executive: Executive) {
+    if (confirm(`정말로 ${executive.name} 이사를 삭제하시겠습니까?`)) {
       try {
         const response = await fetch(`/api/executives/${executive.id}`, {
           method: 'DELETE',
@@ -1230,13 +1238,13 @@
     }
   }
 
-  function openEditJobTitleModal(jobTitle: any) {
+  function openEditJobTitleModal(jobTitle: JobTitle) {
     selectedJobTitle = jobTitle
     showJobTitleModal = true
   }
 
-  async function handleJobTitleDelete(jobTitle: any) {
-    if (confirm(`정말로 ${jobTitle.name} 직책을 삭제하시겠습니까?`)) {
+  async function handleJobTitleDelete(jobTitle: JobTitle) {
+    if (confirm(`정말로 ${jobTitle.name || jobTitle.title} 직책을 삭제하시겠습니까?`)) {
       try {
         const response = await fetch(`/api/job-titles/${jobTitle.id}`, {
           method: 'DELETE',
@@ -1256,7 +1264,7 @@
     }
   }
 
-  function openEditPositionModal(position: any) {
+  function openEditPositionModal(position: Position) {
     selectedPosition = position
     showPositionModal = true
   }
@@ -1266,8 +1274,6 @@
   title="인사관리"
   subtitle="직원 정보, 채용, 성과 관리"
   {stats}
-  {actions}
-  searchPlaceholder="직원명, 부서, 직급으로 검색..."
 >
   <!-- 탭 시스템 -->
   <ThemeTabs
@@ -1278,7 +1284,7 @@
     class="mb-6"
     onTabChange={handleTabChange}
   >
-    {#snippet children(tab: any)}
+    {#snippet children(tab)}
       {#if tab.id === 'overview'}
         <!-- 개요 탭 -->
         <ThemeSpacer size={6}>
@@ -2059,7 +2065,7 @@
                           <UsersIcon size={16} style="color: var(--color-text-secondary);" />
                           <span class="text-sm font-medium" style:color="var(--color-text)">
                             {employees?.filter(
-                              (emp: any) =>
+                              (emp: Employee) =>
                                 emp.status === 'active' && emp.department === department.name,
                             ).length || 0}
                             {#if department.max_employees !== undefined && department.max_employees > 0}
@@ -2072,7 +2078,7 @@
                         {#if department.max_employees !== undefined && department.max_employees > 0}
                           {@const currentCount =
                             employees?.filter(
-                              (emp: any) =>
+                              (emp: Employee) =>
                                 emp.status === 'active' && emp.department === department.name,
                             ).length || 0}
                           {@const maxCount = department.max_employees}
@@ -2207,10 +2213,10 @@
                       <div class="flex items-start justify-between mb-3">
                         <div class="flex-1">
                           <h4 class="font-medium" style:color="var(--color-text)">
-                            {position.name}
+                            {position.name || position.title}
                           </h4>
                           <p class="text-sm" style:color="var(--color-text-secondary)">
-                            {position.department}
+                            {position.department || position.department_id}
                           </p>
                           <div class="flex items-center gap-2 mt-2">
                             <ThemeBadge variant="default" size="sm">
@@ -2371,7 +2377,7 @@
                       <div class="flex-1">
                         <div class="flex items-center gap-3 mb-1">
                           <h4 class="font-semibold text-lg" style:color="var(--color-text)">
-                            {formatEmployeeName(executive)}
+                            {executive.name}
                           </h4>
                           <ThemeBadge
                             variant={executive.status === 'active' ? 'success' : 'warning'}
@@ -2383,7 +2389,7 @@
                           <div class="flex items-center gap-2">
                             <BriefcaseIcon size={14} style="color: var(--color-text-secondary);" />
                             <span class="text-sm" style:color="var(--color-text)">
-                              {executive.job_title_name}
+                              {executive.job_title_name || executive.position}
                             </span>
                           </div>
                           <div class="flex items-center gap-2">
@@ -2395,7 +2401,7 @@
                           <div class="flex items-center gap-2">
                             <UserCheckIcon size={14} style="color: var(--color-text-secondary);" />
                             <span class="text-xs" style:color="var(--color-text-secondary)">
-                              레벨: {executive.job_title_level}
+                              레벨: {executive.job_title_level || executive.level}
                             </span>
                           </div>
                         </div>
@@ -2454,10 +2460,10 @@
                     <div class="flex-1">
                       <div class="flex items-center gap-3 mb-1">
                         <h4 class="font-semibold text-lg" style:color="var(--color-text)">
-                          {jobTitle.name}
+                          {jobTitle.name || jobTitle.title}
                         </h4>
-                        <ThemeBadge variant={jobTitle.is_active ? 'success' : 'warning'}>
-                          {jobTitle.is_active ? '활성' : '비활성'}
+                        <ThemeBadge variant={jobTitle.status === 'active' ? 'success' : 'warning'}>
+                          {jobTitle.status === 'active' ? '활성' : '비활성'}
                         </ThemeBadge>
                       </div>
                       {#if jobTitle.description}
@@ -2481,7 +2487,7 @@
                         <div class="flex items-center gap-2">
                           <TagIcon size={14} style="color: var(--color-text-secondary);" />
                           <span class="text-xs" style:color="var(--color-text-secondary)">
-                            카테고리: {jobTitle.category}
+                            카테고리: {jobTitle.category || '미분류'}
                           </span>
                         </div>
                       </div>

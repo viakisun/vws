@@ -1,7 +1,8 @@
+import type { DatabaseCompany, DatabaseProject, DatabaseUser } from '$lib/types'
+import { logger } from '$lib/utils/logger'
 import { config } from 'dotenv'
 import type { PoolClient, QueryResult } from 'pg'
 import { Pool } from 'pg'
-import { logger } from '$lib/utils/logger'
 
 // Load environment variables
 config()
@@ -120,54 +121,7 @@ export async function healthCheck(): Promise<boolean> {
   }
 }
 
-// Database types
-export interface DatabaseUser {
-  id: string
-  email: string
-  name: string
-  department?: string
-  position?: string
-  role: string
-  is_active: boolean
-  last_login?: Date
-  created_at: Date
-  updated_at: Date
-}
-
-export interface DatabaseCompany {
-  id: string
-  name: string
-  type: string
-  industry?: string
-  status: string
-  contact_person?: string
-  email?: string
-  phone?: string
-  address?: string
-  website?: string
-  revenue?: number
-  employees?: number
-  notes?: string
-  tags: unknown[]
-  created_at: Date
-  updated_at: Date
-}
-
-export interface DatabaseProject {
-  id: string
-  code: string
-  title: string
-  description?: string
-  sponsor?: string
-  sponsor_type?: string
-  start_date?: Date
-  end_date?: Date
-  manager_id?: string
-  status: string
-  budget_total?: number
-  created_at: Date
-  updated_at: Date
-}
+// Database types are now imported from $lib/types
 
 export interface DatabaseExpenseItem {
   id: string

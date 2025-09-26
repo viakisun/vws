@@ -1,5 +1,5 @@
+import type { Approval, Milestone } from '$lib/types'
 import { writable } from 'svelte/store'
-import type { Milestone, Approval } from './types'
 import { logAudit } from './core'
 
 // 마일스톤 관리

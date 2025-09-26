@@ -1,7 +1,7 @@
+import type { ReplacementRecommendation } from '$lib/types'
 import { logger } from '$lib/utils/logger'
 import { writable } from 'svelte/store'
 import { logAudit } from './core'
-import type { ReplacementRecommendation } from './types'
 
 // 대체 추천 시스템
 export const replacementRecommendations = writable<ReplacementRecommendation[]>([])

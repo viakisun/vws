@@ -1,6 +1,6 @@
+import type { AuditLog, Person } from '$lib/types'
 import { logger } from '$lib/utils/logger'
 import { writable } from 'svelte/store'
-import type { AuditLog, Person } from './types'
 
 // 감사 로그 관리
 export const auditLogs = writable<AuditLog[]>([])

@@ -1,25 +1,25 @@
-import { writable } from 'svelte/store'
 import type {
-  Person,
-  Employment,
-  SalaryHistory,
-  Project,
-  ProjectBudgetCategory,
-  Milestone,
-  ParticipationAssignment,
-  ExpenseItem,
-  Document,
   Approval,
-  ResearchNote,
-  Report,
-  SubmissionBundle,
   AuditLog,
   BudgetCategoryMaster,
+  Document,
+  Employment,
+  ExpenseItem,
   HealthIndicator,
+  Milestone,
   Notification,
-  SLAAlert,
+  ParticipationAssignment,
+  Person,
+  Project,
+  ProjectBudgetCategory,
   ReplacementRecommendation,
-} from './types'
+  Report,
+  ResearchNote,
+  SLAAlert,
+  SalaryHistory,
+  SubmissionBundle,
+} from '$lib/types'
+import { writable } from 'svelte/store'
 
 // 핵심 엔티티 스토어
 export const persons = writable<Person[]>([])

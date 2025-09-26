@@ -1,8 +1,8 @@
+import type { Notification, SLAAlert } from '$lib/types'
 import { getCurrentUTC } from '$lib/utils/date-handler'
 import { logger } from '$lib/utils/logger'
 import { writable } from 'svelte/store'
 import { logAudit } from './core'
-import type { Notification, SLAAlert } from './types'
 
 // SLA 알림 관리
 export const slaAlerts = writable<SLAAlert[]>([])

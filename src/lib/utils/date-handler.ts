@@ -153,6 +153,26 @@ export function toUTC(date: DateInputFormat): StandardDate {
 }
 
 /**
+ * UTC 날짜를 서울 시간으로 변환
+ */
+export function seoulDate(utcDate: StandardDate | string): Date {
+  if (!utcDate) return new Date()
+
+  try {
+    const date = new Date(utcDate)
+    if (isNaN(date.getTime())) {
+      return new Date()
+    }
+
+    // 서울 시간대로 변환
+    return new Date(date.toLocaleString('en-US', { timeZone: 'Asia/Seoul' }))
+  } catch (error) {
+    logger.error('Seoul date conversion error:', error, 'for date:', utcDate)
+    return new Date()
+  }
+}
+
+/**
  * UTC 날짜를 서울 시간으로 변환하여 표시용 형식으로 포맷팅
  */
 export function formatDateForDisplay(
@@ -247,8 +267,8 @@ export function formatDateTimeForInput(utcDate: StandardDate | string): string {
     const year = localDate.getFullYear()
     const month = String(localDate.getMonth() + 1).padStart(2, '0')
     const day = String(localDate.getDate()).padStart(2, '0')
-    const _hours = String(localDate.getHours()).padStart(2, '0')
-    const _minutes = String(localDate.getMinutes()).padStart(2, '0')
+    const hours = String(localDate.getHours()).padStart(2, '0')
+    const minutes = String(localDate.getMinutes()).padStart(2, '0')
 
     return `${year}-${month}-${day}T${hours}:${minutes}`
   } catch (error) {

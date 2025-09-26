@@ -1,5 +1,5 @@
+import type { Person } from '$lib/types'
 import { writable } from 'svelte/store'
-import type { Person } from './types'
 
 // RBAC 권한 정의
 export const ROLES = {
