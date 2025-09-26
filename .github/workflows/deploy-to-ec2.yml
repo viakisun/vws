@@ -59,24 +59,24 @@ jobs:
 
             # Nginx 버퍼 설정 적용 (502 에러 방지)
             echo "🔧 Nginx 버퍼 설정 적용 중..."
-            
+
             # 백업 파일 생성
             sudo cp /etc/nginx/conf.d/00-proxy-buffers.conf /etc/nginx/conf.d/00-proxy-buffers.conf.backup.$(date +%Y%m%d_%H%M%S) 2>/dev/null || true
-            
+
             # Nginx 버퍼 설정 파일 생성/업데이트
             # SvelteKit SSR의 대형 응답 헤더(Set-Cookie 등)로 인한 "upstream sent too big header" 502 에러 방지
             # vws.conf가 교체되어도 이 설정은 conf.d 전역 파일로 안전하게 유지됨
             sudo tee /etc/nginx/conf.d/00-proxy-buffers.conf > /dev/null << 'EOF'
-# Nginx Proxy Buffer 설정 - SvelteKit SSR 대형 헤더 대응
-# 목적: "upstream sent too big header while reading response header from upstream" 502 에러 방지
-# 안전성: vws.conf 교체 시에도 conf.d 전역 설정으로 유지됨
-# 설정 근거: 보수적 메모리 사용(총 512KB), 일반 트래픽에서 안정적 성능
+            # Nginx Proxy Buffer 설정 - SvelteKit SSR 대형 헤더 대응
+            # 목적: "upstream sent too big header while reading response header from upstream" 502 에러 방지
+            # 안전성: vws.conf 교체 시에도 conf.d 전역 설정으로 유지됨
+            # 설정 근거: 보수적 메모리 사용(총 512KB), 일반 트래픽에서 안정적 성능
 
-proxy_buffer_size 64k;
-proxy_buffers 8 64k;
-proxy_busy_buffers_size 128k;
-large_client_header_buffers 8 64k;
-EOF
+            proxy_buffer_size 64k;
+            proxy_buffers 8 64k;
+            proxy_busy_buffers_size 128k;
+            large_client_header_buffers 8 64k;
+            EOF
 
             # Nginx 설정 문법 검사
             echo "🧪 Nginx 설정 문법 검사 중..."
@@ -95,18 +95,18 @@ EOF
             # Nginx 설정 적용
             echo "🔄 Nginx 설정 적용 중..."
             sudo systemctl reload nginx
-            
+
             # 헬스체크 수행
             echo "🏥 헬스체크 수행 중..."
             sleep 5
             HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" https://ws.viahub.dev/project-management?tab=projects || echo "000")
-            
+
             if [[ "$HTTP_CODE" =~ ^[23][0-9][0-9]$ ]]; then
                 echo "✅ 헬스체크 성공 (HTTP $HTTP_CODE)"
             else
                 echo "⚠️ 헬스체크 경고 (HTTP $HTTP_CODE) - 서비스 확인 필요"
             fi
-            
+
             # 최근 "too big header" 에러 확인 (참고용)
             echo "📊 최근 Nginx 에러 로그 확인:"
             sudo tail -n 20 /var/log/nginx/error.log | grep -i "too big header" || echo "  - 'too big header' 에러 없음"
