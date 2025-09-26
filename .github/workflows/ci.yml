@@ -1,10 +1,13 @@
 name: ci
 on:
   push:
-    branches: ['**']
+    branches: ['main', 'develop']
+  pull_request:
+    branches: ['main']
 
 permissions:
   contents: read
+  statuses: write
 
 jobs:
   quality:
@@ -22,7 +25,7 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
       - run: pnpm format:check
-      - run: pnpm lint --max-warnings=1000 || echo "Lint completed with warnings"
+      - run: pnpm lint:ci
       - name: TypeScript check (warnings only)
         run: pnpm run typecheck || echo "TypeScript check completed with warnings"
       - name: Run tests (if available)
@@ -48,7 +51,7 @@ jobs:
           run_install: false
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-      - run: pnpm audit:ci
+      - run: pnpm security:audit
 
   perf:
     name: 성능 테스트
@@ -123,3 +126,23 @@ jobs:
       # - uses: codecov/codecov-action@v4
       #   with:
       #     token: ${{ secrets.CODECOV_TOKEN }}
+
+  notify:
+    name: Slack 알림
+    runs-on: ubuntu-latest
+    needs: [quality, security, perf, build]
+    if: always()
+    steps:
+      - name: Slack 알림
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          channel: '#vws-dev'
+          text: |
+            🚀 **VWS CI 결과**
+            *브랜치:* ${{ github.ref_name }}
+            *커밋:* ${{ github.sha }}
+            *상태:* ${{ job.status }}
+            *워크플로우:* ${{ github.workflow }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}

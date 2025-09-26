@@ -2,17 +2,15 @@ name: EC2 배포 (ws.viahub.dev)
 
 on:
   workflow_dispatch:
-  push:
+  workflow_run:
+    workflows: ['ci', 'Docker 배포']
+    types: [completed]
     branches: [main]
-    paths-ignore:
-      - 'README.md'
-      - 'docs/**'
-      - 'scripts/**'
 
 jobs:
   deploy-ec2:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: 코드 체크아웃
         uses: actions/checkout@v4
@@ -48,14 +46,14 @@ jobs:
           script: |
             # ECR 로그인
             aws ecr get-login-password --region ap-northeast-2 | docker login --username AWS --password-stdin ${{ steps.login-ecr.outputs.registry }}
-            
+
             # 기존 컨테이너 중지 및 제거
             docker stop vws-app || true
             docker rm vws-app || true
-            
+
             # 최신 이미지 다운로드
             docker pull ${{ steps.login-ecr.outputs.registry }}/vws-app:latest
-            
+
             # 새 컨테이너 실행
             docker run -d \
               --name vws-app \
@@ -63,7 +61,7 @@ jobs:
               -p 3000:3000 \
               -e NODE_ENV=production \
               ${{ steps.login-ecr.outputs.registry }}/vws-app:latest
-            
+
             # 배포 완료 확인
             sleep 10
             docker ps | grep vws-app
