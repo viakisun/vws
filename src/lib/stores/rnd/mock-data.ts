@@ -1,6 +1,7 @@
 // Mock data for R&D pages
 import { writable } from 'svelte/store'
 import type { ResearchNote, Report, SubmissionBundle, Document, ExpenseItem } from './types'
+import { DocumentType } from './types'
 
 // Mock research notes
 const mockResearchNotes: ResearchNote[] = [
@@ -68,11 +69,11 @@ const mockDocuments: Document[] = [
   {
     id: 'doc-001',
     expenseId: 'exp-001',
-    documentType: 'receipt',
-    fileName: 'receipt-001.pdf',
-    fileUrl: '/uploads/receipt-001.pdf',
-    uploadedBy: 'emp-001',
-    uploadedAt: '2024-01-15T10:00:00Z',
+    type: DocumentType.RECEIPT,
+    filename: 'receipt-001.pdf',
+    storageUrl: '/uploads/receipt-001.pdf',
+    createdBy: 'emp-001',
+    createdAt: '2024-01-15T10:00:00Z',
     status: 'approved',
   },
 ]

@@ -16,9 +16,11 @@
       href?: string
       color?: 'blue' | 'green' | 'purple' | 'orange' | 'red' | 'yellow' | 'indigo' | 'pink'
     }>
+    actions?: any
+    searchPlaceholder?: string
   }
 
-  let { title, subtitle = '', children, stats = [] }: Props = $props()
+  let { title, subtitle = '', children, stats = [], actions, searchPlaceholder }: Props = $props()
 </script>
 
 <div>

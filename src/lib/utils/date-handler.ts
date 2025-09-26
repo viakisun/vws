@@ -209,7 +209,7 @@ export function formatDateForDisplay(
       case 'KOREAN':
         return `${year}년 ${month}월 ${day}일`
       case 'RELATIVE':
-        return getRelativeTime(seoulDate)
+        return getRelativeTime(seoulDate(utcDate))
       default:
         return `${year}. ${month}. ${day}.`
     }

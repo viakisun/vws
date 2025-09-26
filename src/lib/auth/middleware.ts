@@ -59,7 +59,7 @@ export function authenticate(requiredRoles?: string[]): RequestHandler {
       }
 
       // Add user to request context
-      ;(request as Record<string, unknown>).user = user
+      event.locals.user = user
 
       return new Response() // Continue to the next handler
     } catch {
@@ -165,7 +165,7 @@ export function hasPermission(userRole: string, permission: string): boolean {
 export function requirePermission(permission: string): RequestHandler {
   return async (event: RequestEvent): Promise<Response> => {
     const { request } = event
-    const user = (request as Record<string, unknown>).user
+    const user = event.locals.user
 
     if (!user) {
       return error(401, { message: 'Authentication required' })
@@ -226,13 +226,13 @@ export function rateLimit(maxRequests: number, windowMs: number): RequestHandler
 }
 
 // Input validation
-export function validateInput(schema: unknown): RequestHandler {
+export function validateInput(schema: { parse: (data: unknown) => unknown }): RequestHandler {
   return async (event: RequestEvent): Promise<Response> => {
     const { request } = event
     try {
       const body = await request.json()
       const validated = schema.parse(body)
-      ;(request as Record<string, unknown>).validatedBody = validated
+      event.locals.validatedBody = validated
       return new Response()
     } catch {
       return error(400, { message: 'Invalid input data' })
@@ -282,7 +282,7 @@ export function securityHeaders(): RequestHandler {
 export function auditLog(action: string, entity: string): RequestHandler {
   return async (event: RequestEvent): Promise<Response> => {
     const { request } = event
-    const user = (request as Record<string, unknown>).user
+    const user = event.locals.user
     const clientIP = request.headers.get('x-forwarded-for') || 'unknown'
     const userAgent = request.headers.get('user-agent') || 'unknown'
 

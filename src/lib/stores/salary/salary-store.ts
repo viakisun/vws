@@ -101,14 +101,14 @@ export const employeeSalaryStatus = derived(
     return currentPayslip
       ? {
           employeeId: currentPayslip.employeeId,
-          employeeName: currentPayslip.employeeInfo?.name || '알 수 없음',
-          department: currentPayslip.employeeInfo?.department || '부서없음',
-          position: currentPayslip.employeeInfo?.position || '연구원',
-          baseSalary: currentPayslip.salaryInfo?.baseSalary || 0,
-          totalAllowances: currentPayslip.totals?.totalAllowances || 0,
-          totalDeductions: currentPayslip.totals?.totalDeductions || 0,
-          grossSalary: currentPayslip.totals?.totalPayments || 0,
-          netSalary: currentPayslip.totals?.netSalary || 0,
+          employeeName: currentPayslip.employeeName || '알 수 없음',
+          department: currentPayslip.department || '부서없음',
+          position: currentPayslip.position || '연구원',
+          baseSalary: currentPayslip.baseSalary || 0,
+          totalAllowances: currentPayslip.totalPayments || 0,
+          totalDeductions: currentPayslip.totalDeductions || 0,
+          grossSalary: currentPayslip.totalPayments || 0,
+          netSalary: currentPayslip.netSalary || 0,
           status: currentPayslip.status,
           payDate: currentPayslip.payDate,
         }
@@ -130,7 +130,7 @@ export const departmentSalaryStats = derived(payslips, ($payslips) => {
   > = {}
 
   $payslips.forEach((payslip) => {
-    const department = payslip.employeeInfo?.department || '부서없음'
+    const department = payslip.department || '부서없음'
     if (!stats[department]) {
       stats[department] = {
         employeeCount: 0,
@@ -144,8 +144,8 @@ export const departmentSalaryStats = derived(payslips, ($payslips) => {
     const deptStats = stats[department]
     if (deptStats) {
       deptStats.employeeCount++
-      deptStats.totalGrossSalary += parseFloat(String(payslip.totals?.totalPayments || 0))
-      deptStats.totalNetSalary += parseFloat(String(payslip.totals?.netSalary || 0))
+      deptStats.totalGrossSalary += parseFloat(String(payslip.totalPayments || 0))
+      deptStats.totalNetSalary += parseFloat(String(payslip.netSalary || 0))
     }
   })
 

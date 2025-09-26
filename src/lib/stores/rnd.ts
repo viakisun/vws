@@ -41,7 +41,7 @@ const NAMES = [
   'OCR 엔진',
   '예지보전',
 ]
-const STATUSES: Project['status'][] = ['정상', '진행중', '지연', '위험', '완료']
+const STATUSES: Project['status'][] = ['active', 'planning', 'completed', 'cancelled', 'suspended']
 
 const initialProjects: Project[] = Array.from({ length: 10 }).map((_, i) => {
   const id = `P-${pad(i + 1)}`
@@ -54,16 +54,24 @@ const initialProjects: Project[] = Array.from({ length: 10 }).map((_, i) => {
   const endMonth = pick([3, 6, 9, 12])
   return {
     id,
-    name: `${NAMES[i]} 프로젝트` as string,
+    code: `P${pad(i + 1)}`,
+    title: `${NAMES[i]} 프로젝트`,
+    description: `${NAMES[i]} 프로젝트 설명`,
+    sponsorType: 'government',
     status: pick(STATUSES),
-    budgetKRW,
-    spentKRW,
-    progressPct,
+    budgetTotal: budgetKRW,
+    budgetCurrency: 'KRW',
+    researchType: 'applied',
+    technologyArea: pick(ORGS),
+    priority: 'medium',
     startDate: dateISO(startYear, startMonth, 1),
-    dueDate: dateISO(endYear, endMonth, 30),
-    organization: pick(ORGS),
-    personnelIds: [],
-    risks: [],
+    endDate: dateISO(endYear, endMonth, 30),
+    managerId: `manager-${i}`,
+    managerName: `Manager ${i + 1}`,
+    memberCount: randInt(3, 8),
+    totalParticipationRate: progressPct,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   }
 })
 

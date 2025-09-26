@@ -5,6 +5,17 @@ import { calculateMonthlySalary } from '$lib/utils/salary-calculator'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
 
+// 프로젝트 멤버 타입 정의
+interface ProjectMember {
+  id: string // 사번
+  employee_name: string // 직원 이름
+  participation_rate: number | string // 참여율
+  monthly_amount: number | string // 월간 금액
+  start_date?: string // 시작일
+  end_date?: string // 종료일
+  contract_amount?: number | string // 계약 금액
+}
+
 interface ValidationResult {
   isValid: boolean
   issues: ValidationIssue[]
@@ -217,7 +228,7 @@ export const POST: RequestHandler = async ({ request }) => {
 }
 
 // 검증 로직 실행
-async function performValidation(project: any, members: unknown[]): Promise<ValidationResult> {
+async function performValidation(project: any, members: ProjectMember[]): Promise<ValidationResult> {
   const issues: ValidationIssue[] = []
   let validMembers = 0
 
@@ -232,7 +243,9 @@ async function performValidation(project: any, members: unknown[]): Promise<Vali
     }
 
     // 2. 참여율 검증
-    const participationRate = parseFloat(member.participation_rate) || 0
+    const participationRate = typeof member.participation_rate === 'string' 
+      ? parseFloat(member.participation_rate) || 0 
+      : member.participation_rate || 0
     if (participationRate > 100) {
       issues.push({
         type: 'participation_rate_excess',
@@ -247,7 +260,9 @@ async function performValidation(project: any, members: unknown[]): Promise<Vali
     }
 
     // 3. 월간 금액 검증 (계약서 대비)
-    const monthlyAmount = parseFloat(member.monthly_amount) || 0
+    const monthlyAmount = typeof member.monthly_amount === 'string' 
+      ? parseFloat(member.monthly_amount) || 0 
+      : member.monthly_amount || 0
 
     // 실제 근로계약서에서 연봉 가져오기
     const contractResult = await query(

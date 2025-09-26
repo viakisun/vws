@@ -20,10 +20,10 @@
       : 0,
   )
   const riskCounts = $derived({
-    위험: $projectsStore.filter((p) => p.status === '위험').length,
-    지연: $projectsStore.filter((p) => p.status === '지연').length,
-    진행중: $projectsStore.filter((p) => p.status === '진행중').length,
-    정상: $projectsStore.filter((p) => p.status === '정상' || p.status === '완료').length,
+    위험: $projectsStore.filter((p) => p.status === 'suspended').length,
+    지연: $projectsStore.filter((p) => p.status === 'suspended').length,
+    진행중: $projectsStore.filter((p) => p.status === 'active').length,
+    정상: $projectsStore.filter((p) => p.status === 'active' || p.status === 'completed').length,
   })
   const overAllocated = $derived(
     $personnelStore.filter(

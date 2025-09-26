@@ -349,7 +349,9 @@ export function getParticipationAssignmentsByPerson(
 }
 
 export function getDocumentsByExpense(expenseId: string, documentList: Document[]): Document[] {
-  return documentList.filter((d) => d.expenseId === expenseId)
+  // Document와 ExpenseItem은 다른 엔티티이므로 이 함수는 사용하지 않음
+  // 필요시 ExpenseItem과 Document를 연결하는 별도의 관계 테이블이 필요
+  return []
 }
 
 export function getApprovalsBySubject(

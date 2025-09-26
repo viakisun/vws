@@ -15,7 +15,7 @@
     numeric?: number
   }
 
-  let statusFilter = $state('') as '' | '정상' | '진행중' | '지연' | '위험' | '완료'
+  let statusFilter = $state('') as '' | 'active' | 'planning' | 'completed' | 'cancelled' | 'suspended'
   let query = $state('')
   let selectedId = $state<string | null>(null)
 
@@ -37,7 +37,7 @@
     },
     {
       label: '리스크 경고',
-      value: $projectsStore.filter((p) => p.status === '위험' || p.status === '지연').length,
+      value: $projectsStore.filter((p) => p.status === 'suspended').length,
       icon: AlertTriangleIcon,
     },
   ] as Kpi[])
@@ -136,11 +136,11 @@
             <div class="text-caption">집행 {formatKRW(p.spentKRW)}</div>
           </div>
           <Badge
-            color={p.status === '지연'
+            color={p.status === 'suspended'
               ? 'yellow'
-              : p.status === '진행중'
+              : p.status === 'active'
                 ? 'blue'
-                : p.status === '위험'
+                : p.status === 'suspended'
                   ? 'red'
                   : 'green'}>{p.status}</Badge
           >

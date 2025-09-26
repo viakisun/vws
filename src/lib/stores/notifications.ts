@@ -109,7 +109,7 @@ export function updateNotificationSettings(settings: NotificationSettings) {
 }
 
 // 예산 초과 알림 체크
-export function checkBudgetOverage(budgetCategories: unknown[]) {
+export function checkBudgetOverage(budgetCategories: Array<{ spent: number; amount: number; name: string }>) {
   budgetCategories.forEach((category) => {
     const usage = (category.spent / category.amount) * 100
 
@@ -134,7 +134,12 @@ export function checkBudgetOverage(budgetCategories: unknown[]) {
 }
 
 // 목표 마감일 알림 체크
-export function checkGoalDeadlines(budgetGoals: unknown[]) {
+export function checkGoalDeadlines(budgetGoals: Array<{ 
+  name: string; 
+  deadline: string; 
+  currentAmount: number; 
+  targetAmount: number 
+}>) {
   const now = new Date()
   const oneWeekFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)
 
@@ -157,13 +162,16 @@ export function checkGoalDeadlines(budgetGoals: unknown[]) {
 }
 
 // 잔고 부족 알림 체크
-export function checkLowBalance(bankAccounts: unknown[], transactions: unknown[]) {
+export function checkLowBalance(
+  bankAccounts: Array<{ balance: number }>, 
+  transactions: Array<{ type: string; amount: number }>
+) {
   const monthlyExpense =
     transactions
-      .filter((t: any) => t.type === 'expense')
-      .reduce((sum: number, t: any) => sum + t.amount, 0) / 12 // 월평균 지출
+      .filter((t) => t.type === 'expense')
+      .reduce((sum, t) => sum + t.amount, 0) / 12 // 월평균 지출
 
-  const totalBalance = bankAccounts.reduce((sum: number, account: any) => sum + account.balance, 0)
+  const totalBalance = bankAccounts.reduce((sum, account) => sum + account.balance, 0)
 
   if (totalBalance < monthlyExpense * 2) {
     addNotification({

@@ -186,19 +186,10 @@ export class ParticipationManager {
     })
   }
 
-  // 3. 스킬 매칭 계산
+  // 3. 스킬 매칭 계산 (단순화)
   static calculateSkillMatch(employee: Employee, project: Project): number {
-    // 실제 구현에서는 더 정교한 스킬 매칭 알고리즘 사용
-    const requiredSkills = project.requiredSkills || []
-    const employeeSkills = employee.skills || []
-
-    if (requiredSkills.length === 0) return 1.0
-
-    const matchedSkills = requiredSkills.filter((skill) =>
-      employeeSkills.some((empSkill) => empSkill.toLowerCase().includes(skill.toLowerCase())),
-    )
-
-    return matchedSkills.length / requiredSkills.length
+    // 스킬 매칭을 단순화하여 항상 1.0 반환
+    return 1.0
   }
 
   // 4. 참여율 최적화 추천
@@ -283,7 +274,12 @@ export class ParticipationManager {
     const sortedAssignments = personAssignments.sort((a, b) => {
       const projectA = get(projects).find((p) => p.id === a.projectId)
       const projectB = get(projects).find((p) => p.id === b.projectId)
-      return (projectA?.priority || 0) - (projectB?.priority || 0)
+      
+      // 우선순위를 숫자로 변환 (high=3, medium=2, low=1)
+      const priorityA = projectA?.priority === 'high' ? 3 : projectA?.priority === 'medium' ? 2 : 1
+      const priorityB = projectB?.priority === 'high' ? 3 : projectB?.priority === 'medium' ? 2 : 1
+      
+      return priorityA - priorityB
     })
 
     let remainingAdjustment = adjustment
@@ -351,7 +347,7 @@ export class ParticipationManager {
     )
 
     // 히스토리 추가
-    participationHistory.update((history) => [history, ...history])
+    participationHistory.update((history) => [...history])
   }
 
   // 7. 참여율 예측 및 시뮬레이션

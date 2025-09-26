@@ -674,7 +674,7 @@ export function updateBudgetCategory(id: UUID, updates: Partial<BudgetCategory>)
         ...categories[index],
         ...updates,
         updatedAt: new Date().toISOString(),
-      }
+      } as BudgetCategory
       updated = true
     }
     return categories

@@ -135,6 +135,7 @@ export interface DatabaseExpenseItem {
   dept_owner?: string
   created_at: Date
   updated_at: Date
+  [key: string]: unknown
 }
 
 export interface DatabaseEmployee {
@@ -156,6 +157,7 @@ export interface DatabaseEmployee {
   emergency_contact?: any
   created_at: Date
   updated_at: Date
+  [key: string]: unknown
 }
 
 export interface DatabaseTransaction {
@@ -170,6 +172,7 @@ export interface DatabaseTransaction {
   created_by: string
   created_at: Date
   updated_at: Date
+  [key: string]: unknown
 }
 
 // Utility functions for common database operations

@@ -38,13 +38,13 @@ export async function POST({ request }) {
       }
 
       // 헤더 추출 (첫 번째 행)
-      headers = rows[0].values.slice(1) as string[] // ExcelJS는 1-based indexing
+      headers = rows[0].values?.slice(1) as string[] || [] // ExcelJS는 1-based indexing
       // Excel 헤더 파싱 완료
 
       // 데이터 추출
       data = rows.slice(1).map((row, _index) => {
         const rowData: any = {}
-        const rowValues = row.values.slice(1) as unknown[] // ExcelJS는 1-based indexing
+        const rowValues = row.values?.slice(1) as unknown[] || [] // ExcelJS는 1-based indexing
         headers.forEach((header, headerIndex) => {
           rowData[header] = rowValues[headerIndex] || ''
         })
@@ -183,6 +183,9 @@ export async function POST({ request }) {
 
       // 미들네임 처리 (선택사항)
       const middleName = row['미들네임'] ? String(row['미들네임']).trim() : ''
+
+      // 이메일 처리
+      const email = row['이메일'] ? String(row['이메일']).trim() : ''
 
       // employee_id 생성 (V00001 형식)
       // 업로드 시에는 임시로 인덱스 기반 생성, 실제 저장 시에는 순차적으로 할당

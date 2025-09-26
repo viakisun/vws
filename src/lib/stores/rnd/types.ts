@@ -204,6 +204,7 @@ export interface Document {
   verifiedAt?: DateString
   meta: Record<string, unknown>
   createdAt: DateString
+  createdBy?: UUID
 }
 
 export enum DocumentType {

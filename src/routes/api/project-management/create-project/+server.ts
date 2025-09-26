@@ -25,6 +25,21 @@ interface ProjectCreationRequest {
     startDate: string
     endDate: string
     budget: number
+    // 예산 세부 항목들 (현금/현물 구분)
+    personnelCostCash?: number
+    personnelCostInKind?: number
+    researchMaterialCostCash?: number
+    researchMaterialCostInKind?: number
+    researchActivityCostCash?: number
+    researchActivityCostInKind?: number
+    researchStipendCash?: number
+    researchStipendInKind?: number
+    indirectCostCash?: number
+    indirectCostInKind?: number
+    // 정부지원금 및 회사 부담금
+    governmentFundingAmount?: number
+    companyCashAmount?: number
+    companyInKindAmount?: number
   }[]
   budgetCategories: {
     name: string

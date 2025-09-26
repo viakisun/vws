@@ -4,10 +4,27 @@ import { logger } from '$lib/utils/logger'
 import { writable } from 'svelte/store'
 import { logAudit } from './core'
 
+// SLA 정책 타입 정의
+interface SLAPolicy {
+  name: string
+  entityType: string
+  stages: Array<{
+    stage: string
+    slaDays: number
+    alerts: Array<{
+      daysBefore?: number
+      daysAfter?: number
+      type: string
+      message: string
+    }>
+  }>
+  escalationPath?: unknown[]
+}
+
 // SLA 알림 관리
 export const slaAlerts = writable<SLAAlert[]>([])
 export const notifications = writable<Notification[]>([])
-export const escalationPolicies = writable<Record<string, unknown>>({})
+export const escalationPolicies = writable<Record<string, SLAPolicy>>({})
 
 // SLA 정책 정의
 export function defineSlaPolicies(): void {
@@ -161,6 +178,7 @@ export function createSlaAlert(
     message,
     severity,
     assignedTo,
+    triggeredAt: new Date().toISOString(),
     status: 'active',
     createdAt: new Date().toISOString(),
   }
@@ -325,8 +343,8 @@ function getAssignedUsers(
 }
 
 // 에스컬레이션 정책 가져오기
-function getEscalationPolicies(): Record<string, unknown> {
-  let policies: Record<string, unknown> = {}
+function getEscalationPolicies(): Record<string, SLAPolicy> {
+  let policies: Record<string, SLAPolicy> = {}
   escalationPolicies.subscribe((p) => {
     policies = p
   })()
@@ -560,12 +578,11 @@ export function createSlaTemplate(
   stages: unknown[],
   escalationPath: unknown[],
 ): void {
-  const template = {
+  const template: SLAPolicy = {
     name: templateName,
     entityType,
-    stages,
+    stages: stages as SLAPolicy['stages'],
     escalationPath,
-    createdAt: new Date().toISOString(),
   }
 
   escalationPolicies.update((policies) => ({

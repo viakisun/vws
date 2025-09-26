@@ -225,30 +225,9 @@ export interface BudgetCategory {
   }
 }
 
-export interface BudgetCategoryMaster {
-  id: string
-  name: string
-  code: string
-  description: string
-  parentId?: string
-  level: number
-  isActive: boolean
-  createdAt: string
-  updatedAt: string
-  categoryCode?: string
-  nameKo?: string
-}
+// BudgetCategoryMaster는 BudgetCategory와 동일한 타입 별칭으로 정의됨
 
-export interface ProjectBudgetCategory {
-  id: string
-  projectId: string
-  categoryId: string
-  budgetAmount: number
-  spentAmount: number
-  currency: string
-  createdAt: string
-  updatedAt: string
-}
+// ProjectBudgetCategory는 BudgetCategory와 동일한 타입 별칭으로 정의됨
 
 export interface ExpenseItem {
   id: string
@@ -448,6 +427,7 @@ export interface Notification {
   title: string
   message: string
   type: 'info' | 'warning' | 'error' | 'success'
+  priority?: string
   read: boolean
   createdAt: string
   actionUrl?: string
@@ -462,7 +442,9 @@ export interface SLAAlert {
   message: string
   triggeredAt: string
   resolvedAt?: string
-  assignedTo?: string
+  assignedTo?: string | string[]
+  status?: string
+  createdAt?: string
 }
 
 export interface ReplacementRecommendation {

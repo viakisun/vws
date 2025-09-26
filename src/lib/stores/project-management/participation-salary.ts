@@ -6,8 +6,24 @@ import { logAudit, persons, projects } from './core'
 export const participationAssignments = writable<ParticipationAssignment[]>([])
 export const salaryHistory = writable<SalaryHistory[]>([])
 
+// 월별 인건비 배분 데이터 타입
+interface MonthlyAllocation {
+  projectId: string
+  personId: string
+  allocatedAmount: number
+  participationRate: number
+  month: string
+  // 추가 속성들
+  projectCode?: string
+  projectTitle?: string
+  personName?: string
+  baseSalary?: number
+  workingRatio?: number
+  currency?: string
+}
+
 // 월별 인건비 배분표
-export const monthlySalaryAllocations = writable<Record<string, unknown[]>>({})
+export const monthlySalaryAllocations = writable<Record<string, MonthlyAllocation[]>>({})
 
 // 참여율 배정
 export function assignParticipation(
@@ -19,13 +35,20 @@ export function assignParticipation(
 ): string {
   const assignment: ParticipationAssignment = {
     id: crypto.randomUUID(),
+    employeeId: personId, // personId를 employeeId로 매핑
     projectId,
+    participationRate: ratePct, // ratePct를 participationRate로 매핑
+    startDate: dateFrom, // dateFrom을 startDate로 매핑
+    endDate: dateTo, // dateTo를 endDate로 매핑
+    role: 'researcher', // 기본 역할 설정
+    status: 'active', // 기본 상태 설정
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    // 추가 속성들 (기존 코드와의 호환성을 위해 유지)
     personId,
     dateFrom,
     dateTo,
     ratePct,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
   }
 
   participationAssignments.update((assignments) => [...assignments, assignment])
@@ -74,11 +97,17 @@ export function addSalaryChange(
 ): string {
   const salaryRecord: SalaryHistory = {
     id: crypto.randomUUID(),
+    employeeId: personId, // personId를 employeeId로 매핑
+    effectiveDate: effectiveFrom, // effectiveFrom을 effectiveDate로 매핑
+    salary: baseSalary, // baseSalary를 salary로 매핑
+    currency,
+    changeReason: 'salary_adjustment', // 기본 변경 사유
+    approvedBy: 'system', // 기본 승인자
+    createdAt: new Date().toISOString(),
+    // 추가 속성들 (기존 코드와의 호환성을 위해 유지)
     personId,
     effectiveFrom,
     baseSalary,
-    currency,
-    createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   }
 
@@ -101,7 +130,7 @@ export function recalculateMonthlyAllocations(): void {
       projects.subscribe((projectList) => {
         persons.subscribe((personList) => {
           // 월별로 그룹화하여 계산
-          const monthlyData: Record<string, unknown[]> = {}
+          const monthlyData: Record<string, MonthlyAllocation[]> = {}
 
           assignments.forEach((assignment) => {
             const project = projectList.find((p) => p.id === assignment.projectId)
@@ -190,8 +219,8 @@ function getDaysInMonth(month: Date): number {
 }
 
 // 프로젝트별 월별 인건비 집계
-export function getProjectMonthlyAllocations(projectId: string, month: string): unknown[] {
-  let allocations: unknown[] = []
+export function getProjectMonthlyAllocations(projectId: string, month: string): MonthlyAllocation[] {
+  let allocations: MonthlyAllocation[] = []
 
   monthlySalaryAllocations.subscribe((monthlyData) => {
     allocations = monthlyData[month]?.filter((a) => a.projectId === projectId) || []
@@ -230,8 +259,8 @@ export function getProjectTotalPersonnelCost(
 }
 
 // 개인별 월별 참여 현황
-export function getPersonMonthlyParticipation(personId: string, month: string): unknown[] {
-  let participations: unknown[] = []
+export function getPersonMonthlyParticipation(personId: string, month: string): MonthlyAllocation[] {
+  let participations: MonthlyAllocation[] = []
 
   monthlySalaryAllocations.subscribe((monthlyData) => {
     participations = monthlyData[month]?.filter((a) => a.personId === personId) || []

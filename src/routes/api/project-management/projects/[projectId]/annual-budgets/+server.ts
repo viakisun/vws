@@ -59,6 +59,7 @@ export const GET: RequestHandler = async ({ params }) => {
 
     // 예산 요약 계산
     const summary: BudgetSummary = {
+      projectId: projectId,
       totalYears: budgets.length,
       totalGovernmentFunding: budgets.reduce((sum, b) => sum + b.governmentFunding, 0),
       totalCompanyCash: budgets.reduce((sum, b) => sum + b.companyCash, 0),

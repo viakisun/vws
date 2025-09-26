@@ -44,13 +44,13 @@ export async function POST({ request }) {
       }
 
       // 헤더 추출 (첫 번째 행)
-      headers = rows[0].values.slice(1) as string[] // ExcelJS는 1-based indexing
+      headers = rows[0].values?.slice(1) as string[] || [] // ExcelJS는 1-based indexing
       logger.log('프로젝트 Excel 파싱된 헤더:', headers)
 
       // 데이터 추출
       data = rows.slice(1).map((row, index) => {
         const rowData: any = {}
-        const rowValues = row.values.slice(1) as unknown[] // ExcelJS는 1-based indexing
+        const rowValues = row.values?.slice(1) as unknown[] || [] // ExcelJS는 1-based indexing
         headers.forEach((header, headerIndex) => {
           rowData[header] = rowValues[headerIndex] || ''
         })

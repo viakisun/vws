@@ -40,7 +40,7 @@ export const POST: RequestHandler = async ({ request }) => {
         role: user.role,
       },
       config.jwt.secret,
-      { expiresIn: config.jwt.expiresIn },
+      { expiresIn: config.jwt.expiresIn as string },
     )
 
     // Update last login

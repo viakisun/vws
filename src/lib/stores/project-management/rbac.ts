@@ -17,36 +17,36 @@ export type Role = keyof typeof ROLES
 // 권한 매트릭스
 export const PERMISSIONS = {
   // Project 권한
-  PROJECT_READ: ['R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'R7'],
-  PROJECT_CREATE: ['R4'],
-  PROJECT_UPDATE: ['R2', 'R4'],
-  PROJECT_APPROVE: ['R6'],
-  PROJECT_LOCK: ['R7'],
+  PROJECT_READ: ['R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'R7'] as Role[],
+  PROJECT_CREATE: ['R4'] as Role[],
+  PROJECT_UPDATE: ['R2', 'R4'] as Role[],
+  PROJECT_APPROVE: ['R6'] as Role[],
+  PROJECT_LOCK: ['R7'] as Role[],
 
   // ExpenseItem 권한
-  EXPENSE_READ: ['R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'R7'],
-  EXPENSE_CREATE: ['R1', 'R2'],
-  EXPENSE_UPDATE: ['R3', 'R4'],
-  EXPENSE_APPROVE: ['R2', 'R4', 'R5'],
-  EXPENSE_LOCK: ['R4'],
+  EXPENSE_READ: ['R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'R7'] as Role[],
+  EXPENSE_CREATE: ['R1', 'R2'] as Role[],
+  EXPENSE_UPDATE: ['R3', 'R4'] as Role[],
+  EXPENSE_APPROVE: ['R2', 'R4', 'R5'] as Role[],
+  EXPENSE_LOCK: ['R4'] as Role[],
 
   // Document 권한
-  DOCUMENT_READ: ['R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'R7'],
-  DOCUMENT_CREATE: ['R1', 'R2', 'R3'],
-  DOCUMENT_UPDATE: ['R4'],
-  DOCUMENT_LOCK: ['R4'],
+  DOCUMENT_READ: ['R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'R7'] as Role[],
+  DOCUMENT_CREATE: ['R1', 'R2', 'R3'] as Role[],
+  DOCUMENT_UPDATE: ['R4'] as Role[],
+  DOCUMENT_LOCK: ['R4'] as Role[],
 
   // ResearchNote 권한
-  RESEARCH_NOTE_READ: ['R1', 'R2', 'R5'],
-  RESEARCH_NOTE_CREATE: ['R1'],
-  RESEARCH_NOTE_UPDATE: ['R1'],
-  RESEARCH_NOTE_APPROVE: ['R2'],
+  RESEARCH_NOTE_READ: ['R1', 'R2', 'R5'] as Role[],
+  RESEARCH_NOTE_CREATE: ['R1'] as Role[],
+  RESEARCH_NOTE_UPDATE: ['R1'] as Role[],
+  RESEARCH_NOTE_APPROVE: ['R2'] as Role[],
 
   // SubmissionBundle 권한
-  BUNDLE_READ: ['R4', 'R6', 'R7'],
-  BUNDLE_CREATE: ['R4'],
-  BUNDLE_APPROVE: ['R4'],
-  BUNDLE_LOCK: ['R7'],
+  BUNDLE_READ: ['R4', 'R6', 'R7'] as Role[],
+  BUNDLE_CREATE: ['R4'] as Role[],
+  BUNDLE_APPROVE: ['R4'] as Role[],
+  BUNDLE_LOCK: ['R7'] as Role[],
 } as const
 
 export type Permission = keyof typeof PERMISSIONS

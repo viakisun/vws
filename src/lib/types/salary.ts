@@ -111,7 +111,7 @@ export interface Payslip {
   netSalary: number
   payments: PaymentItem[]
   deductions: DeductionItem[]
-  status?: PayslipStatus
+  status?: PayrollStatus
   generatedAt?: string
   generatedBy?: string
 }
@@ -144,8 +144,6 @@ export interface PayslipTotals {
   taxableIncome: number // 과세소득
   nonTaxableIncome: number // 비과세소득
 }
-
-export type PayslipStatus = 'generated' | 'sent' | 'viewed' | 'downloaded'
 
 // ===== 급여명세서 세부 항목 타입 =====
 export interface PaymentItem {
