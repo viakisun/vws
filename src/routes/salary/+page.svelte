@@ -147,6 +147,7 @@
   <meta name="description" content="전체 직원 급여 관리 및 급여명세서 출력" />
 </svelte:head>
 
+{#if browser}
 <PageLayout
   title="급여 관리"
   subtitle="전체 직원 급여 현황 및 계약 관리"
@@ -211,3 +212,4 @@
     {/snippet}
   </ThemeTabs>
 </PageLayout>
+{/if}

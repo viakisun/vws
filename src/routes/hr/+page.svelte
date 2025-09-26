@@ -1265,6 +1265,7 @@
   }
 </script>
 
+{#if browser}
 <PageLayout
   title="인사관리"
   subtitle="직원 정보, 채용, 성과 관리"
@@ -2698,6 +2699,7 @@
     </div>
   </ThemeModal>
 </PageLayout>
+{/if}
 
 <!-- 직원 추가/수정 모달 -->
 <EmployeeModal
