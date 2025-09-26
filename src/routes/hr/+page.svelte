@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { browser } from '$app/environment'
   import { logger } from '$lib/utils/logger'
 
   import PageLayout from '$lib/components/layout/PageLayout.svelte'
@@ -764,14 +763,12 @@
 
   // 컴포넌트 마운트 시 데이터 로드
   $effect(() => {
-    if (browser) {
-      fetchEmployees()
-      fetchDepartments()
-      fetchPositions()
-      fetchExecutives()
-      fetchJobTitles()
-      loadContracts() // 급여 계약 데이터 로드
-    }
+    fetchEmployees()
+    fetchDepartments()
+    fetchPositions()
+    fetchExecutives()
+    fetchJobTitles()
+    loadContracts() // 급여 계약 데이터 로드
   })
 
   // 탭 변경 시 해당 탭의 데이터 로드
@@ -1265,7 +1262,6 @@
   }
 </script>
 
-{#if browser}
 <PageLayout
   title="인사관리"
   subtitle="직원 정보, 채용, 성과 관리"
@@ -2699,7 +2695,6 @@
     </div>
   </ThemeModal>
 </PageLayout>
-{/if}
 
 <!-- 직원 추가/수정 모달 -->
 <EmployeeModal
