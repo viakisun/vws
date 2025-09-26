@@ -162,25 +162,49 @@ pnpm build
 
 다음 시크릿들을 각각 추가:
 
-| Secret 이름             | 값                             | 설명                    |
-| ----------------------- | ------------------------------ | ----------------------- |
-| `AWS_ACCESS_KEY_ID`     | IAM 사용자의 Access Key ID     | AWS 액세스 키           |
-| `AWS_SECRET_ACCESS_KEY` | IAM 사용자의 Secret Access Key | AWS 시크릿 키           |
-| `EC2_HOST`              | EC2 퍼블릭 IP                  | EC2 인스턴스 IP         |
-| `EC2_USER`              | `ec2-user`                     | EC2 SSH 사용자명        |
-| `EC2_SSH_KEY`           | SSH 프라이빗 키 내용           | EC2 SSH 키              |
-| `SLACK_WEBHOOK_URL`     | Slack 웹훅 URL                 | Slack 알림용 (선택사항) |
+| Secret 이름             | 값                                 | 설명                   | 필수 여부 |
+| ----------------------- | ---------------------------------- | ---------------------- | --------- |
+| `AWS_ACCESS_KEY_ID`     | IAM 사용자의 Access Key ID         | AWS 액세스 키          | ✅ 필수   |
+| `AWS_SECRET_ACCESS_KEY` | IAM 사용자의 Secret Access Key     | AWS 시크릿 키          | ✅ 필수   |
+| `EC2_HOST`              | EC2 퍼블릭 IP (예: 15.165.161.212) | EC2 인스턴스 IP        | ✅ 필수   |
+| `EC2_USER`              | `ec2-user`                         | EC2 SSH 사용자명       | ✅ 필수   |
+| `EC2_SSH_KEY`           | SSH 프라이빗 키 전체 내용          | EC2 SSH 키 (.pem 파일) | ✅ 필수   |
+| `SLACK_WEBHOOK_URL`     | Slack 웹훅 URL                     | Slack 알림용           | ❌ 선택   |
 
-#### 4.1.3. SSH 키 생성 및 설정
+**중요**: 모든 필수 시크릿이 정확히 설정되어야 자동 배포가 작동합니다!
+
+#### 4.1.3. SSH 키 설정
+
+**방법 1: 기존 .pem 키 사용 (권장)**
+
+```bash
+# EC2 인스턴스 생성 시 다운로드한 .pem 키 사용
+cat ~/Downloads/vws-ec2-key.pem
+
+# 이 내용을 EC2_SSH_KEY 시크릿에 복사
+```
+
+**방법 2: 새 SSH 키 생성**
 
 ```bash
 # SSH 키 쌍 생성 (로컬에서 실행)
 ssh-keygen -t rsa -b 4096 -f ~/.ssh/vws-ec2-key
 
-# 공개키는 EC2 키 페어로 등록
 # 프라이빗키 내용을 EC2_SSH_KEY 시크릿에 저장
 cat ~/.ssh/vws-ec2-key
+
+# 공개키는 EC2 키 페어로 등록 (AWS 콘솔에서)
+cat ~/.ssh/vws-ec2-key.pub
 ```
+
+**SSH 키 형식 확인**:
+
+- SSH 키는 다음 형식으로 시작하고 끝나야 합니다:
+  ```
+  -----BEGIN RSA PRIVATE KEY-----
+  ... (키 내용) ...
+  -----END RSA PRIVATE KEY-----
+  ```
 
 ---
 
@@ -216,12 +240,14 @@ cat ~/.ssh/vws-ec2-key
 - 보안 그룹 이름: `vws-security-group`
 - **인바운드 보안 그룹 규칙 추가**:
 
-| 유형       | 프로토콜 | 포트 범위 | 소스      | 설명        |
-| ---------- | -------- | --------- | --------- | ----------- |
-| SSH        | TCP      | 22        | 내 IP     | SSH 접속    |
-| HTTP       | TCP      | 80        | 0.0.0.0/0 | 웹 접속     |
-| HTTPS      | TCP      | 443       | 0.0.0.0/0 | HTTPS 접속  |
-| Custom TCP | TCP      | 3000      | 0.0.0.0/0 | VWS 앱 포트 |
+| 유형       | 프로토콜 | 포트 범위 | 소스      | 설명                        |
+| ---------- | -------- | --------- | --------- | --------------------------- |
+| SSH        | TCP      | 22        | 0.0.0.0/0 | SSH 접속 (GitHub Actions용) |
+| HTTP       | TCP      | 80        | 0.0.0.0/0 | 웹 접속                     |
+| HTTPS      | TCP      | 443       | 0.0.0.0/0 | HTTPS 접속                  |
+| Custom TCP | TCP      | 3000      | 0.0.0.0/0 | VWS 앱 포트                 |
+
+**중요**: SSH 포트는 GitHub Actions에서 접속할 수 있도록 `0.0.0.0/0`으로 설정해야 합니다!
 
 #### 5.1.6. 스토리지 구성
 
@@ -508,6 +534,35 @@ git push origin main
 - 모든 워크플로우가 성공적으로 완료되는지 확인
 - `https://ws.viahub.dev`에서 최신 변경사항이 반영되었는지 확인
 
+#### 7.3.4. 자동 배포 파이프라인 검증
+
+**완전한 자동 배포 플로우**:
+
+```
+1. main 브랜치에 코드 푸시
+   ↓
+2. CI 워크플로우 실행 (코드 품질, 보안, 성능 테스트)
+   ↓
+3. CI 성공 시 Docker 배포 워크플로우 자동 실행
+   ↓
+4. Docker 이미지 빌드 및 ECR 푸시
+   ↓
+5. EC2 배포 워크플로우 자동 실행
+   ↓
+6. EC2에 최신 애플리케이션 자동 배포
+   ↓
+7. https://ws.viahub.dev에서 최신 버전 확인
+```
+
+**검증 체크리스트**:
+
+- [ ] GitHub Secrets가 모두 올바르게 설정됨
+- [ ] EC2 보안 그룹에서 SSH 포트가 0.0.0.0/0으로 열려있음
+- [ ] IAM 역할이 EC2에 연결됨
+- [ ] 도메인 설정이 완료됨
+- [ ] SSL 인증서가 발급됨
+- [ ] 자동 배포가 정상 작동함
+
 ---
 
 ## 8. 문제 해결
@@ -561,6 +616,49 @@ sudo journalctl -u certbot
    - AWS 자격 증명 문제
    - 권한 부족
    - 네트워크 연결 문제
+   - SSH 연결 문제 (아래 SSH 문제 해결 섹션 참조)
+
+#### 8.1.5. SSH 연결 문제 해결
+
+**문제 1: "missing server host" 오류**
+
+- **원인**: `EC2_HOST` 시크릿이 누락되거나 비어있음
+- **해결**: GitHub Secrets에 `EC2_HOST` 추가 (값: EC2 퍼블릭 IP)
+
+**문제 2: "can't connect without a private SSH key" 오류**
+
+- **원인**: `EC2_SSH_KEY` 시크릿이 누락되거나 잘못 설정됨
+- **해결**: SSH 키 전체 내용을 GitHub Secrets에 복사
+
+**문제 3: "ssh: no key found" 오류**
+
+- **원인**: SSH 키 형식이 잘못됨
+- **해결**: SSH 키가 다음 형식으로 시작하고 끝나는지 확인:
+  ```
+  -----BEGIN RSA PRIVATE KEY-----
+  ... (키 내용) ...
+  -----END RSA PRIVATE KEY-----
+  ```
+
+**문제 4: "Invalid user" 오류**
+
+- **원인**: `EC2_USER` 시크릿이 누락됨
+- **해결**: GitHub Secrets에 `EC2_USER` 추가 (값: `ec2-user`)
+
+**문제 5: "ssh: handshake failed" 오류**
+
+- **원인**: 보안 그룹에서 SSH 포트가 제한되어 있음
+- **해결**: EC2 보안 그룹에서 SSH (포트 22)를 `0.0.0.0/0`으로 설정
+
+**SSH 연결 테스트 방법**:
+
+```bash
+# 로컬에서 SSH 연결 테스트
+ssh -i ~/Downloads/vws-ec2-key.pem ec2-user@YOUR_EC2_IP
+
+# SSH 키 형식 검증
+ssh-keygen -y -f ~/Downloads/vws-ec2-key.pem
+```
 
 ### 8.2. 로그 확인 명령어
 
