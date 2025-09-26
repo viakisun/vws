@@ -410,6 +410,7 @@
     <!-- TODO::참여율 관리 카드 -->
     <ParticipationCard {employeeParticipationSummary} error={tabErrors.participation} />
   {/if}
+  {/if}
 </PageLayout>
 
 <!-- 프로젝트 생성 모달 -->
