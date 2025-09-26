@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { browser } from '$app/environment'
   import { logger } from '$lib/utils/logger'
 
   import PageLayout from '$lib/components/layout/PageLayout.svelte'
@@ -763,12 +764,14 @@
 
   // 컴포넌트 마운트 시 데이터 로드
   $effect(() => {
-    fetchEmployees()
-    fetchDepartments()
-    fetchPositions()
-    fetchExecutives()
-    fetchJobTitles()
-    loadContracts() // 급여 계약 데이터 로드
+    if (browser) {
+      fetchEmployees()
+      fetchDepartments()
+      fetchPositions()
+      fetchExecutives()
+      fetchJobTitles()
+      loadContracts() // 급여 계약 데이터 로드
+    }
   })
 
   // 탭 변경 시 해당 탭의 데이터 로드

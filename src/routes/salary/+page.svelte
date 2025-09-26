@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { browser } from '$app/environment'
   import { page } from '$app/stores'
   import { goto } from '$app/navigation'
   import PageLayout from '$lib/components/layout/PageLayout.svelte'
@@ -111,7 +112,7 @@
   }
 
   $effect(async () => {
-    if (!mounted) {
+    if (!mounted && browser) {
       mounted = true
       // 기본 데이터 로드
       await loadPayslips()
