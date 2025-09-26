@@ -123,7 +123,8 @@ export function toUTC(date: DateInputFormat): StandardDate {
     // UTC로 변환하여 ISO 문자열 반환
     return dateObj.toISOString() as StandardDate
   } catch (error) {
-    logger.error('Date conversion error:', error, 'for input:', date)
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    logger.error('Date conversion error:', errorMessage, 'for input:', date)
     return '' as StandardDate
   }
 }

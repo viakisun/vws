@@ -1,6 +1,6 @@
 import type { DatabaseCompany, DatabaseProject, DatabaseUser } from '$lib/types'
 import { logger } from '$lib/utils/logger'
-import { toUTC, formatDateForDisplay } from '$lib/utils/date-handler'
+import { toUTC, formatDateForDisplay, type DateInputFormat } from '$lib/utils/date-handler'
 import { config } from 'dotenv'
 import type { PoolClient, QueryResult } from 'pg'
 import { Pool } from 'pg'
@@ -19,7 +19,7 @@ let pool: Pool | null = null
  * 데이터베이스에서 가져온 날짜를 안전하게 처리
  * TIMESTAMP WITH TIME ZONE -> 표시용 문자열로 변환
  */
-export function processDatabaseDate(dateValue: any): string {
+export function processDatabaseDate(dateValue: unknown): string {
   if (!dateValue) return ''
   
   try {
@@ -48,11 +48,11 @@ export function processDatabaseDate(dateValue: any): string {
  * 사용자 입력 날짜를 데이터베이스 저장용으로 변환
  * 다양한 형식 -> UTC TIMESTAMP WITH TIME ZONE
  */
-export function prepareDateForDatabase(dateValue: any): string {
+export function prepareDateForDatabase(dateValue: unknown): string {
   if (!dateValue) return ''
   
   try {
-    const utcDate = toUTC(dateValue)
+    const utcDate = toUTC(dateValue as DateInputFormat)
     return utcDate || ''
   } catch (error) {
     logger.error('Date preparation error:', error, 'for value:', dateValue)
@@ -106,16 +106,20 @@ const getDbConfig = () => {
     ssl: {
       rejectUnauthorized: false,
     },
+    // 성능 최적화 설정
+    max: 20, // 최대 연결 수
+    min: 5,  // 최소 연결 수
+    idleTimeoutMillis: 30000, // 30초
+    connectionTimeoutMillis: 2000, // 2초
+    acquireTimeoutMillis: 60000, // 60초
+    createTimeoutMillis: 30000, // 30초
+    destroyTimeoutMillis: 5000, // 5초
+    reapIntervalMillis: 1000, // 1초
+    createRetryIntervalMillis: 200, // 200ms
   }
 }
 
-const dbConfig = {
-  ...getDbConfig(),
-  max: 20, // Maximum number of clients in the pool
-  idleTimeoutMillis: 30000, // Close idle clients after 30 seconds
-  connectionTimeoutMillis: 10000, // Return an error after 10 seconds if connection could not be established
-  acquireTimeoutMillis: 10000, // Return an error after 10 seconds if client could not be acquired from pool
-}
+const dbConfig = getDbConfig()
 
 // Initialize database connection pool
 export function initializeDatabase(): Pool {
@@ -240,7 +244,11 @@ export interface DatabaseEmployee {
   salary?: number
   status: string
   address?: string
-  emergency_contact?: any
+  emergency_contact?: {
+    name?: string
+    phone?: string
+    relationship?: string
+  }
   created_at: Date
   updated_at: Date
   [key: string]: unknown

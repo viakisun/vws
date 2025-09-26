@@ -3,6 +3,8 @@ import { config } from '$lib/utils/config'
 import type { RequestEvent, RequestHandler } from '@sveltejs/kit'
 import { error, redirect } from '@sveltejs/kit'
 import jwt from 'jsonwebtoken'
+import { logger } from '$lib/utils/logger'
+import { checkRateLimit, validateCSRFToken } from '$lib/utils/security'
 
 // JWT token interface
 export interface JWTPayload {
@@ -179,64 +181,56 @@ export function requirePermission(permission: string): RequestHandler {
   }
 }
 
-// Rate limiting
-const rateLimitMap = new Map<string, { count: number; resetTime: number }>()
+// 기존 rateLimit 함수는 제거하고 새로운 보안 강화 버전 사용
 
-export function rateLimit(maxRequests: number, windowMs: number): RequestHandler {
+// Rate limiting middleware
+export function rateLimit(maxRequests: number = 100, windowMs: number = 15 * 60 * 1000): RequestHandler {
   return async (event: RequestEvent): Promise<Response> => {
-    const { getClientAddress } = event
-    const clientIP = getClientAddress()
-    const now = Date.now()
-
-    // Clean up old entries
-    for (const [key, value] of rateLimitMap.entries()) {
-      if (value.resetTime < now) {
-        rateLimitMap.delete(key)
-      }
+    const clientIP = event.getClientAddress()
+    const rateLimitResult = checkRateLimit(clientIP, maxRequests, windowMs)
+    
+    if (!rateLimitResult.allowed) {
+      logger.warn('Rate limit exceeded', { 
+        clientIP, 
+        limit: maxRequests, 
+        window: windowMs 
+      })
+      return error(429, { 
+        message: 'Too many requests. Please try again later.'
+      })
     }
-
-    // Get or create rate limit entry
-    let rateLimitData = rateLimitMap.get(clientIP)
-    if (!rateLimitData || rateLimitData.resetTime < now) {
-      rateLimitData = { count: 0, resetTime: now + windowMs }
-      rateLimitMap.set(clientIP, rateLimitData)
-    }
-
-    // Check rate limit
-    if (rateLimitData.count >= maxRequests) {
-      return new Response(
-        JSON.stringify({
-          message: 'Too many requests',
-        }),
-        {
-          status: 429,
-          headers: {
-            'Content-Type': 'application/json',
-            'Retry-After': Math.ceil((rateLimitData.resetTime - now) / 1000).toString(),
-          },
-        },
-      )
-    }
-
-    // Increment counter
-    rateLimitData.count++
-
+    
+    // Rate limit headers 추가
+    event.setHeaders({
+      'X-RateLimit-Limit': maxRequests.toString(),
+      'X-RateLimit-Remaining': rateLimitResult.remaining.toString(),
+      'X-RateLimit-Reset': new Date(rateLimitResult.resetTime).toISOString()
+    })
+    
     return new Response()
   }
 }
 
-// Input validation
-export function validateInput(schema: { parse: (data: unknown) => unknown }): RequestHandler {
+// CSRF protection middleware
+export function csrfProtection(): RequestHandler {
   return async (event: RequestEvent): Promise<Response> => {
-    const { request: _request } = event
-    try {
-      const body = await _request.json()
-      const validated = schema.parse(body)
-      event.locals.validatedBody = validated
+    if (event.request.method === 'GET' || event.request.method === 'HEAD') {
       return new Response()
-    } catch {
-      return error(400, { message: 'Invalid input data' })
     }
+    
+    const token = event.request.headers.get('x-csrf-token')
+    const sessionToken = event.cookies.get('csrf-token')
+    
+    if (!validateCSRFToken(token || '', sessionToken || '')) {
+      logger.warn('CSRF token validation failed', {
+        url: event.url.pathname,
+        method: event.request.method,
+        clientIP: event.getClientAddress()
+      })
+      return error(403, { message: 'Invalid CSRF token' })
+    }
+    
+    return new Response()
   }
 }
 

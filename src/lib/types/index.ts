@@ -465,7 +465,7 @@ export interface AuditLog {
   action: string
   entity: string
   entityId: string
-  diff: { old: any; new: any }
+  diff: { old: Record<string, unknown>; new: Record<string, unknown> }
   at: string
   metadata?: Record<string, unknown>
   // 추가 속성들
