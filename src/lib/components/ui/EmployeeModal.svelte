@@ -425,17 +425,41 @@
           <label for="salary" class="block text-sm font-medium mb-2" style:color="var(--color-text)"
             >급여 *</label
           >
-          <input
-            id="salary"
-            type="number"
-            bind:value={formData.salary}
-            placeholder="급여를 입력하세요"
-            required
-            class="w-full px-3 py-2 border rounded-md text-sm"
-            style:background="var(--color-surface)"
-            style:border-color="var(--color-border)"
-            style:color="var(--color-text)"
-          />
+          <div class="flex items-center gap-2">
+            <div class="relative flex-1">
+              <input
+                id="salary"
+                type="number"
+                bind:value={formData.salary}
+                placeholder="급여를 입력하세요"
+                required
+                readonly
+                disabled
+                class="w-full px-3 py-2 border rounded-md text-sm cursor-not-allowed opacity-60"
+                style:border-color="var(--color-border)"
+                style:color="var(--color-text-secondary)"
+                style:background="var(--color-surface)"
+                title="급여는 근로계약서를 통해 관리됩니다"
+              />
+              <div
+                class="absolute inset-0 bg-gray-100 bg-opacity-50 pointer-events-none rounded-md"
+              ></div>
+            </div>
+            <button
+              type="button"
+              onclick={() => {
+                // 급여 관리 페이지로 이동
+                window.location.href = '/salary'
+              }}
+              class="px-3 py-2 text-xs bg-blue-100 text-blue-600 rounded-md hover:bg-blue-200 transition-colors whitespace-nowrap shadow-sm"
+              title="급여 수정은 근로계약서를 통해 관리됩니다"
+            >
+              급여 관리
+            </button>
+          </div>
+          <p class="text-xs mt-1 text-gray-500 italic">
+            * 급여 수정은 근로계약서를 통해 관리됩니다
+          </p>
         </div>
 
         <!-- 입사일 -->

@@ -995,8 +995,26 @@
                   </div>
                   <div>
                     <span class="block text-sm font-medium text-gray-500">급여</span>
-                    <p class="text-sm text-gray-900">
-                      {new Intl.NumberFormat('ko-KR').format(selectedContract.salary)}원
+                    <div class="flex items-center gap-2">
+                      <div class="bg-gray-100 px-3 py-2 rounded-md border border-gray-300">
+                        <p class="text-sm text-gray-600 font-medium">
+                          {new Intl.NumberFormat('ko-KR').format(selectedContract.salary)}원
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onclick={() => {
+                          // 급여 관리 페이지로 이동
+                          window.location.href = '/salary'
+                        }}
+                        class="text-xs px-3 py-2 bg-blue-100 text-blue-600 rounded hover:bg-blue-200 transition-colors shadow-sm"
+                        title="급여 수정은 근로계약서를 통해 관리됩니다"
+                      >
+                        급여 관리
+                      </button>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1 italic">
+                      * 급여 수정은 근로계약서를 통해 관리됩니다
                     </p>
                   </div>
                   <div>

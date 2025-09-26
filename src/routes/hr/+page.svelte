@@ -1737,23 +1737,33 @@
                                   style="color: var(--color-text-secondary);"
                                   class="flex-shrink-0"
                                 />
-                                <span
-                                  class="text-sm font-medium truncate"
-                                  style:color="var(--color-primary)"
+                                <div class="bg-gray-100 px-2 py-1 rounded border border-gray-300">
+                                  <span class="text-sm font-medium truncate text-gray-600">
+                                    {Math.round(currentSalary.annualSalary / 10000)}만원
+                                  </span>
+                                  <span class="text-xs text-gray-500 ml-1">
+                                    ({currentSalary.contractType === 'full_time'
+                                      ? '정규직'
+                                      : currentSalary.contractType === 'contractor'
+                                        ? '계약직'
+                                        : currentSalary.contractType === 'part_time'
+                                          ? '파트타임'
+                                          : currentSalary.contractType === 'intern'
+                                            ? '인턴'
+                                            : currentSalary.contractType})
+                                  </span>
+                                </div>
+                                <button
+                                  type="button"
+                                  onclick={() => {
+                                    // 급여 관리 페이지로 이동
+                                    window.location.href = '/salary'
+                                  }}
+                                  class="text-xs px-2 py-1 bg-blue-100 text-blue-600 rounded hover:bg-blue-200 transition-colors shadow-sm"
+                                  title="급여 수정은 근로계약서를 통해 관리됩니다"
                                 >
-                                  {Math.round(currentSalary.annualSalary / 10000)}만원
-                                </span>
-                                <span class="text-xs text-gray-500">
-                                  ({currentSalary.contractType === 'full_time'
-                                    ? '정규직'
-                                    : currentSalary.contractType === 'contractor'
-                                      ? '계약직'
-                                      : currentSalary.contractType === 'part_time'
-                                        ? '파트타임'
-                                        : currentSalary.contractType === 'intern'
-                                          ? '인턴'
-                                          : currentSalary.contractType})
-                                </span>
+                                  급여 관리
+                                </button>
                               </div>
                             {:else}
                               <div class="flex items-center gap-2 min-w-0">
