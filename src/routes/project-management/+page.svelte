@@ -12,6 +12,7 @@
   import ThemeTabs from '$lib/components/ui/ThemeTabs.svelte'
   import { BarChart3Icon, FlaskConicalIcon, PercentIcon } from '@lucide/svelte'
   import { onMount } from 'svelte'
+  import { browser } from '$app/environment'
 
   /**
    * @typedef {Object} Project
@@ -370,7 +371,7 @@
 
   // 초기화 - 첫 번째 탭만 로드
   $effect(() => {
-    if (!mounted) {
+    if (!mounted && browser) {
       mounted = true
       // 초기 탭 데이터 로드
       loadTabData(activeTab)
