@@ -1,9 +1,6 @@
 name: Docker 배포
 
 on:
-  push:
-    branches: [main]
-  workflow_dispatch:
   workflow_run:
     workflows: ['ci']
     types: [completed]
@@ -12,6 +9,8 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    # CI 워크플로우가 성공했을 때만 실행
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
 
     steps:
       - name: 코드 체크아웃
