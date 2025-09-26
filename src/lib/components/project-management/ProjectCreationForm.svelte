@@ -212,7 +212,7 @@
         projectId={createdProjectId || ''}
         existingBudgets={[]}
         readonly={false}
-        onbudgetSaved={handleBudgetSaved}
+        on:budgetSaved={handleBudgetSaved}
       />
     {:catch _error}
       <div class="bg-red-50 border border-red-200 rounded-lg p-4">

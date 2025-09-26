@@ -4,6 +4,7 @@
   import Progress from '$lib/components/ui/Progress.svelte'
   import { projectsStore } from '$lib/stores/rnd'
   import { formatKRW } from '$lib/utils/format'
+  import { getProjectStatusColor } from '$lib/utils/project-status'
   let query = $state('')
   const projects = $derived(
     $projectsStore.filter((p) => (query ? p.name.includes(query) || p.id.includes(query) : true)),
@@ -37,15 +38,7 @@
           <div class="text-caption">집행 {formatKRW(p.spentKRW)}</div>
         </div>
         <div class="w-48"><Progress value={p.progressPct} /></div>
-        <Badge
-          color={p.status === '지연'
-            ? 'yellow'
-            : p.status === '위험'
-              ? 'red'
-              : p.status === '진행중'
-                ? 'blue'
-                : 'green'}>{p.status}</Badge
-        >
+        <Badge color={getProjectStatusColor(p.status)}>{p.status}</Badge>
       </a>
     </Card>
   {/each}

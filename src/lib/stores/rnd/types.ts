@@ -205,6 +205,7 @@ export interface Document {
   meta: Record<string, unknown>
   createdAt: DateString
   createdBy?: UUID
+  status?: string
 }
 
 export enum DocumentType {

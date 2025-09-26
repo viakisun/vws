@@ -145,8 +145,8 @@ export class ParticipationManager {
     }>
   }> {
     const assignments = get(participationAssignments)
-    const employees = get(employees)
-    const projects = get(projects)
+    const employeesData = get(employees)
+    const projectsData = get(projects)
 
     // 최근 12개월 분석
     const months = []
@@ -157,14 +157,14 @@ export class ParticipationManager {
     }
 
     return months.map((month) => {
-      const personAnalysis = employees.map((employee) => {
+      const personAnalysis = employeesData.map((employee) => {
         const personAssignments = assignments.filter(
           (a) =>
             a.personId === employee.id && a.dateFrom <= `${month}-31` && a.dateTo >= `${month}-01`,
         )
 
         const projects = personAssignments.map((assignment) => {
-          const project = projects.find((p) => p.id === assignment.projectId)
+          const project = projectsData.find((p) => p.id === assignment.projectId)
           return {
             projectId: assignment.projectId,
             projectName: project?.name || 'Unknown',
@@ -408,11 +408,11 @@ export class ParticipationManager {
 
   // 8. 월별 비용 계산
   static calculateMonthlyCost(monthData: any): number {
-    const employees = get(employees)
+    const employeesData = get(employees)
     let totalCost = 0
 
     monthData.personAnalysis.forEach((personData: any) => {
-      const employee = employees.find((e) => e.id === personData.personId)
+      const employee = employeesData.find((e) => e.id === personData.personId)
       if (employee) {
         // 월급의 참여율 비율로 계산
         const monthlySalary = employee.salary

@@ -279,7 +279,7 @@ async function performValidation(project: any, members: ProjectMember[]): Promis
 			ORDER BY sc.start_date DESC
 			LIMIT 1
 		`,
-      [member.employee_id, member.start_date, member.end_date],
+      [member.id, member.start_date, member.end_date],
     )
 
     let contractAmount = 0
@@ -307,7 +307,6 @@ async function performValidation(project: any, members: ProjectMember[]): Promis
           expectedMonthlyAmount,
           contractAmount,
           participationRate,
-          salaryMultiplier,
         },
       })
       memberHasIssues = true

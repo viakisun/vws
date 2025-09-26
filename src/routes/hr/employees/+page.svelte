@@ -3,6 +3,7 @@
   import Card from '$lib/components/ui/Card.svelte'
   import Modal from '$lib/components/ui/Modal.svelte'
   import { formatDate } from '$lib/utils/format'
+  import { getCurrentUTC } from '$lib/utils/date-handler'
   import { onMount } from 'svelte'
 
   import {

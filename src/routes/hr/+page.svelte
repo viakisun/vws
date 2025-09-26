@@ -882,6 +882,14 @@
   async function uploadExcel() {
     if (!uploadFile) return
 
+    // TODO: 엑셀 업로드 기능 구현 필요
+    uploadStatus = 'error'
+    uploadMessage = '엑셀 업로드 기능은 현재 개발 중입니다. 추후 구현 예정입니다.'
+    uploadProgress = 0
+    return
+
+    // 아래 코드는 추후 구현 예정
+    /*
     uploadStatus = 'uploading'
     uploadProgress = 0
     uploadMessage = '파일을 업로드하는 중...'
@@ -929,6 +937,7 @@
       uploadMessage = '업로드 중 오류가 발생했습니다. 파일 형식을 확인해주세요.'
       logger.error('Upload error:', error)
     }
+    */
   }
 
   // 업로드 모달 열기

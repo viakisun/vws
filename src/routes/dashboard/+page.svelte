@@ -7,6 +7,7 @@
   import { projectsStore, budgetAlerts, overallBudget } from '$lib/stores/rnd'
   import { personnelStore, estimateMonthlyCostKRW } from '$lib/stores/personnel'
   import { formatKRW } from '$lib/utils/format'
+  import { getProjectStatusColor, getProjectStatusFilterOptions } from '$lib/utils/project-status'
 
   type Kpi = {
     label: string
@@ -37,7 +38,7 @@
     },
     {
       label: '리스크 경고',
-      value: $projectsStore.filter((p) => p.status === 'suspended').length,
+      value: $projectsStore.filter((p) => p.status === 'suspended' || p.status === 'cancelled').length,
       icon: AlertTriangleIcon,
     },
   ] as Kpi[])
@@ -109,12 +110,9 @@
         class="w-full sm:w-48 rounded-md border border-gray-200 bg-white px-2 py-1.5 text-sm"
         bind:value={statusFilter}
       >
-        <option value="">상태: 전체</option>
-        <option value="정상">정상</option>
-        <option value="진행중">진행중</option>
-        <option value="지연">지연</option>
-        <option value="위험">위험</option>
-        <option value="완료">완료</option>
+        {#each getProjectStatusFilterOptions() as option}
+          <option value={option.value}>{option.label}</option>
+        {/each}
       </select>
     </div>
     <div class="divide-y">
@@ -135,15 +133,7 @@
             <div>예산 {formatKRW(p.budgetKRW)}</div>
             <div class="text-caption">집행 {formatKRW(p.spentKRW)}</div>
           </div>
-          <Badge
-            color={p.status === 'suspended'
-              ? 'yellow'
-              : p.status === 'active'
-                ? 'blue'
-                : p.status === 'suspended'
-                  ? 'red'
-                  : 'green'}>{p.status}</Badge
-          >
+          <Badge color={getProjectStatusColor(p.status)}>{p.status}</Badge>
         </button>
       {/each}
     </div>
@@ -170,15 +160,7 @@
     {#if selected}
       <div class="space-y-4">
         <div class="flex items-center justify-between">
-          <Badge
-            color={selected.status === '지연'
-              ? 'yellow'
-              : selected.status === '진행중'
-                ? 'blue'
-                : selected.status === '위험'
-                  ? 'red'
-                  : 'green'}>{selected.status}</Badge
-          >
+          <Badge color={getProjectStatusColor(selected.status)}>{selected.status}</Badge>
           <div class="w-52"><Progress value={selected.progressPct} /></div>
         </div>
         <div class="grid grid-cols-2 gap-4 text-sm">
