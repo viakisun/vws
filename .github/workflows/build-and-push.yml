@@ -1,4 +1,4 @@
-name: Docker 이미지 빌드 및 ECR 푸시
+name: ECR 이미지 빌드 및 푸시
 
 on:
   workflow_run:

@@ -3,7 +3,7 @@ name: EC2 배포 (ws.viahub.dev)
 on:
   workflow_dispatch:
   workflow_run:
-    workflows: ['Docker 이미지 빌드 및 ECR 푸시']
+    workflows: ['ECR 이미지 빌드 및 푸시']
     types: [completed]
     branches: [main]
 
