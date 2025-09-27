@@ -11,16 +11,12 @@
   import EmployeeModal from '$lib/components/ui/EmployeeModal.svelte'
   import OrganizationChart from '$lib/components/ui/OrganizationChart.svelte'
   import PositionModal from '$lib/components/ui/PositionModal.svelte'
-  import ThemeActivityItem from '$lib/components/ui/ThemeActivityItem.svelte'
   import ThemeBadge from '$lib/components/ui/ThemeBadge.svelte'
   import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
   import ThemeCard from '$lib/components/ui/ThemeCard.svelte'
-  import ThemeChartPlaceholder from '$lib/components/ui/ThemeChartPlaceholder.svelte'
-  import ThemeGrid from '$lib/components/ui/ThemeGrid.svelte'
   import ThemeModal from '$lib/components/ui/ThemeModal.svelte'
   import ThemeSpacer from '$lib/components/ui/ThemeSpacer.svelte'
   import ThemeTabs from '$lib/components/ui/ThemeTabs.svelte'
-  import { formatDateForDisplay, getCurrentUTC } from '$lib/utils/date-handler'
   import { formatDate, formatEmployeeName } from '$lib/utils/format'
   import {
     AlertCircleIcon,
@@ -42,25 +38,24 @@
     PlusIcon,
     TagIcon,
     TrashIcon,
-    TrendingUpIcon,
     UserCheckIcon,
-    UserMinusIcon,
     UserPlusIcon,
     UsersIcon,
   } from '@lucide/svelte'
+
   // HR 스토어들
-
   import { jobPostings } from '$lib/stores/recruitment'
-  // 급여 계약 스토어
   import { contracts, loadContracts } from '$lib/stores/salary/contract-store'
+  import { hrDashboardStore } from '$lib/stores/hr/hr-dashboard-store.svelte'
 
-  // 데이터베이스 직원 데이터
-  let employees = $state<Employee[]>([])
-  let loading = $state(true)
-  let error = $state<string | null>(null)
+  // HR 대시보드 컴포넌트들
+  import HRStatsCards from '$lib/components/hr/dashboard/HRStatsCards.svelte'
+  import HROverviewTab from '$lib/components/hr/dashboard/HROverviewTab.svelte'
 
-  // 안전한 퍼센트 계산 유틸리티
-  const safePct = (num: number, den: number) => (den > 0 ? Math.round((num / den) * 100) : 0)
+  // 데이터베이스 직원 데이터 - 스토어에서 가져옴
+  let employees = $derived(hrDashboardStore.employees)
+  let loading = $derived(hrDashboardStore.loading)
+  let error = $derived(hrDashboardStore.error)
 
   // 직원별 현재 급여 정보 가져오기
   function getCurrentSalary(employeeId: string): {
@@ -72,7 +67,7 @@
       (contract) =>
         contract.employeeId === employeeId &&
         contract.status === 'active' &&
-        (!contract.endDate || new Date(contract.endDate) > new Date(getCurrentUTC())),
+        (!contract.endDate || new Date(contract.endDate) > new Date()),
     )
 
     if (activeContract) {
@@ -99,38 +94,13 @@
     return employeeId || `V${(index + 1).toString().padStart(5, '0')}`
   }
 
-  // 직원 데이터 가져오기 (모든 직원 - 재직자 + 퇴사자)
-  async function fetchEmployees() {
-    try {
-      loading = true
-      error = null
-      const response = await fetch('/api/employees?status=all')
-      if (response.ok) {
-        const result = await response.json()
-        employees = result.data || result.employees || []
-      } else {
-        error = '직원 데이터를 불러오는데 실패했습니다.'
-      }
-    } catch (err) {
-      error = '직원 데이터를 불러오는데 실패했습니다.'
-      logger.error('Error fetching employees:', err)
-    } finally {
-      loading = false
-    }
-  }
-
-  // 부서 데이터 가져오기
-  async function fetchDepartments() {
-    try {
-      const response = await fetch('/api/departments')
-      if (response.ok) {
-        const result = await response.json()
-        departments = result.data || result.departments || []
-      }
-    } catch (err) {
-      logger.error('Error fetching departments:', err)
-    }
-  }
+  // 스토어에서 데이터 가져오기
+  let departments = $derived(hrDashboardStore.departments)
+  let positions = $derived(hrDashboardStore.positions)
+  let executives = $derived(hrDashboardStore.executives)
+  let jobTitles = $derived(hrDashboardStore.jobTitles)
+  let executiveLoading = $derived(hrDashboardStore.executiveLoading)
+  let _jobTitleLoading = $derived(hrDashboardStore._jobTitleLoading)
 
   // 생성일 순으로 정렬된 부서 목록
   let sortedDepartments = $derived(() => {
@@ -139,51 +109,6 @@
         new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
     )
   })
-
-  // 직급 데이터 가져오기
-  async function fetchPositions() {
-    try {
-      const response = await fetch('/api/positions')
-      if (response.ok) {
-        const result = await response.json()
-        positions = result.data || result.positions || []
-      }
-    } catch (err) {
-      logger.error('Error fetching positions:', err)
-    }
-  }
-
-  // 이사 데이터 가져오기
-  async function fetchExecutives() {
-    try {
-      executiveLoading = true
-      const response = await fetch('/api/executives')
-      if (response.ok) {
-        const result = await response.json()
-        executives = result.data || result.executives || []
-      }
-    } catch (err) {
-      logger.error('Error fetching executives:', err)
-    } finally {
-      executiveLoading = false
-    }
-  }
-
-  // 직책 데이터 가져오기
-  async function fetchJobTitles() {
-    try {
-      _jobTitleLoading = true
-      const response = await fetch('/api/job-titles')
-      if (response.ok) {
-        const result = await response.json()
-        jobTitles = result.data || result.jobTitles || []
-      }
-    } catch (err) {
-      logger.error('Error fetching job titles:', err)
-    } finally {
-      _jobTitleLoading = false
-    }
-  }
 
   // 직급을 카테고리별로 분류
   function getPositionsByCategory() {
@@ -205,44 +130,10 @@
     return levels
   }
 
-  // T/O (정원) 정보 - 데이터베이스에서 가져옴
-  let teamTO = $derived((): Record<string, number> => {
-    const toMap: Record<string, number> = {}
-    if (departments) {
-      departments.forEach((dept: Department) => {
-        toMap[dept.name] = dept.max_employees || 0
-      })
-    }
-    return toMap
-  })
-
-  // 반응형 데이터 (데이터베이스 기반)
-  let totalEmployees = $derived((): number => {
-    // 재직중인 직원만 카운트 (이사 제외)
-    const activeEmployeeCount =
-      employees?.filter((emp: Employee) => emp.status === 'active').length || 0
-    return activeEmployeeCount
-  })
-
-  let _totalAllEmployees = $derived(() => {
-    // 모든 직원 카운트 (재직자 + 퇴사자, 이사 제외)
-    return employees?.length || 0
-  })
-
-  let _totalTO = $derived(() => {
-    // 부서별 T/O 카운트를 단순히 합산
-    return Object.values(teamTO as Record<string, number>).reduce(
-      (sum: number, to: number) => sum + to,
-      0,
-    )
-  })
-
-  let _totalDepartments = $derived(
-    () => [...new Set(employees?.map((emp: Employee) => emp.department) || [])].length,
-  )
-  let activeRecruitments = $derived(
-    (): number => $jobPostings.filter((job) => job.status === 'published').length,
-  )
+  // 스토어에서 가져온 데이터들 (필요시 사용)
+  let _totalAllEmployees = $derived(hrDashboardStore._totalAllEmployees)
+  let _totalTO = $derived(hrDashboardStore._totalTO)
+  let _totalDepartments = $derived(hrDashboardStore._totalDepartments)
 
   // 탭 정의
   const tabs = [
@@ -315,8 +206,6 @@
   let deleteLoading = $state(false)
 
   // 조직 관리 관련 상태
-  let departments = $state<Department[]>([])
-  let positions = $state<Position[]>([])
   let showDepartmentModal = $state(false)
   let showPositionModal = $state(false)
   let selectedDepartment = $state<Department | null>(null)
@@ -325,14 +214,10 @@
   let positionLoading = $state(false)
 
   // 이사 관리 관련 상태
-  let executives = $state<Executive[]>([])
-  let jobTitles = $state<JobTitle[]>([])
   let _showExecutiveModal = $state(false)
   let _showJobTitleModal = $state(false)
   let _selectedExecutive = $state<Executive | null>(null)
   let _selectedJobTitle = $state<JobTitle | null>(null)
-  let executiveLoading = $state(false)
-  let _jobTitleLoading = $state(false)
 
   // 직원 검색 및 필터링 상태
   let searchQuery = $state('')
@@ -496,23 +381,7 @@
     })(),
   )
 
-  // 통계 데이터 - $derived로 반응형 배열 생성
-  let stats = $derived([
-    {
-      title: '직원 수',
-      value: `${totalEmployees}`,
-      change: '+5%',
-      changeType: 'positive' as const,
-      icon: UsersIcon,
-    },
-    {
-      title: '진행중인 채용',
-      value: `${activeRecruitments}`,
-      change: '+2',
-      changeType: 'positive' as const,
-      icon: UserPlusIcon,
-    },
-  ])
+  // 통계 데이터는 HRStatsCards 컴포넌트에서 처리
 
   // 액션 버튼들
   const _actions = [
@@ -533,285 +402,39 @@
     },
   ]
 
-  // 최근 활동 데이터
-  let recentActivities = $derived(() => {
-    const activities: Array<{
-      type: string
-      title: string
-      description: string
-      time: string
-      icon: any
-      color: string
-      metadata?: any
-    }> = []
+  // 활동 데이터와 부서 데이터는 각각의 컴포넌트에서 처리
 
-    // 데이터가 없으면 빈 배열 반환
-    if (!employees || employees.length === 0) {
-      console.log('recentActivities: No employees data available')
-      return activities
-    }
-
-    console.log('recentActivities: Processing', employees.length, 'employees')
-
-    // 최근 입사자 (최근 3개월 이내)
-    const threeMonthsAgo = new Date(getCurrentUTC())
-    threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3)
-
-    const recentHires = employees.filter(
-      (emp: Employee) =>
-        emp.status === 'active' && emp.hire_date && new Date(emp.hire_date) >= threeMonthsAgo,
-    )
-
-    console.log(
-      'recentActivities: Found',
-      recentHires.length,
-      'recent hires since',
-      threeMonthsAgo.toISOString(),
-    )
-
-    recentHires
-      .sort(
-        (a: Employee, b: Employee) =>
-          new Date(b.hire_date).getTime() - new Date(a.hire_date).getTime(),
-      )
-      .slice(0, 3)
-      .forEach((emp: Employee) => {
-        const daysSinceHire = Math.floor(
-          (new Date().getTime() - new Date(emp.hire_date).getTime()) / (1000 * 60 * 60 * 24),
-        )
-        const hireDate = formatDateForDisplay(emp.hire_date, 'KOREAN')
-        activities.push({
-          type: 'hire',
-          title: '신규 입사',
-          description: `${formatEmployeeName(emp)}님이 ${hireDate}에 ${emp.department} ${emp.position}로 입사했습니다. (${daysSinceHire}일 경과)`,
-          time: emp.hire_date,
-          icon: UserPlusIcon,
-          color: 'text-green-600',
-          metadata: {
-            daysSinceHire,
-            department: emp.department,
-            position: emp.position,
-            employeeName: formatEmployeeName(emp),
-          },
-        })
-      })
-
-    // 퇴직 예정자 (1개월 이내)
-    const oneMonthFromNow = new Date(getCurrentUTC())
-    oneMonthFromNow.setMonth(oneMonthFromNow.getMonth() + 1)
-
-    employees
-      .filter(
-        (emp: Employee) =>
-          emp.status === 'active' &&
-          emp.termination_date &&
-          new Date(emp.termination_date) > new Date() && // 미래 날짜
-          new Date(emp.termination_date) <= oneMonthFromNow, // 1개월 이내
-      )
-      .sort(
-        (a: Employee, b: Employee) =>
-          new Date(a.termination_date!).getTime() - new Date(b.termination_date!).getTime(),
-      )
-      .slice(0, 3)
-      .forEach((emp: Employee) => {
-        const daysLeft = Math.ceil(
-          (new Date(emp.termination_date || '').getTime() - new Date().getTime()) /
-            (1000 * 60 * 60 * 24),
-        )
-        const isContract = emp.employment_type === 'contract'
-        const terminationDate = formatDateForDisplay(emp.termination_date || '', 'KOREAN')
-        activities.push({
-          type: 'termination_pending',
-          title: isContract ? '계약 만료 예정' : '퇴직 예정',
-          description: `${formatEmployeeName(emp)}님(${emp.department} ${emp.position})이 ${terminationDate}에 ${isContract ? '계약 만료' : '퇴직'} 예정입니다. (${daysLeft}일 남음)`,
-          time: emp.termination_date || '',
-          icon: CalendarIcon,
-          color: 'text-orange-600',
-          metadata: {
-            daysLeft,
-            employmentType: emp.employment_type,
-            department: emp.department,
-            employeeName: formatEmployeeName(emp),
-            position: emp.position,
-          },
-        })
-      })
-
-    // 최근 퇴사자 (최근 3개월 이내)
-    const threeMonthsAgoForTermination = new Date(getCurrentUTC())
-    threeMonthsAgoForTermination.setMonth(threeMonthsAgoForTermination.getMonth() - 3)
-
-    employees
-      .filter(
-        (emp: Employee) =>
-          emp.status === 'terminated' &&
-          emp.termination_date &&
-          new Date(emp.termination_date) >= threeMonthsAgoForTermination,
-      )
-      .sort(
-        (a: Employee, b: Employee) =>
-          new Date(b.termination_date!).getTime() - new Date(a.termination_date!).getTime(),
-      )
-      .slice(0, 3)
-      .forEach((emp: Employee) => {
-        const daysSinceTermination = Math.floor(
-          (new Date().getTime() - new Date(emp.termination_date || '').getTime()) /
-            (1000 * 60 * 60 * 24),
-        )
-        const terminationDate = formatDateForDisplay(emp.termination_date || '', 'KOREAN')
-        activities.push({
-          type: 'termination',
-          title: '퇴사 완료',
-          description: `${formatEmployeeName(emp)}님(${emp.department} ${emp.position})이 ${terminationDate}에 퇴사했습니다. (${daysSinceTermination}일 경과)`,
-          time: emp.termination_date || '',
-          icon: UserMinusIcon,
-          color: 'text-red-600',
-          metadata: {
-            daysSinceTermination,
-            department: emp.department,
-            employeeName: formatEmployeeName(emp),
-            position: emp.position,
-          },
-        })
-      })
-
-    // 부서별 인원 변화 (최근 입사/퇴사로 인한 변화)
-    const departmentChanges = employees.reduce(
-      (acc: Record<string, { hires: Employee[]; terminations: Employee[] }>, emp: Employee) => {
-        if (!acc[emp.department]) {
-          acc[emp.department] = { hires: [], terminations: [] }
-        }
-
-        if (emp.status === 'active' && emp.hire_date && new Date(emp.hire_date) >= threeMonthsAgo) {
-          acc[emp.department].hires.push(emp)
-        }
-        if (
-          emp.status === 'terminated' &&
-          emp.termination_date &&
-          new Date(emp.termination_date) >= threeMonthsAgoForTermination
-        ) {
-          acc[emp.department].terminations.push(emp)
-        }
-
-        return acc
-      },
-      {},
-    )
-
-    // 변화가 있는 부서 정보 추가
-    Object.entries(departmentChanges).forEach(
-      ([dept, changes]: [string, { hires: Employee[]; terminations: Employee[] }]) => {
-        if (changes.hires.length > 0 || changes.terminations.length > 0) {
-          const netChange = changes.hires.length - changes.terminations.length
-          if (netChange !== 0) {
-            let description = `${dept} 부서: `
-            if (changes.hires.length > 0) {
-              description += `입사 ${changes.hires.length}명(${changes.hires.map(formatEmployeeName).join(', ')})`
-            }
-            if (changes.terminations.length > 0) {
-              if (changes.hires.length > 0) description += ', '
-              description += `퇴사 ${changes.terminations.length}명(${changes.terminations.map(formatEmployeeName).join(', ')})`
-            }
-            description += ` (순증감: ${netChange > 0 ? '+' : ''}${netChange}명)`
-
-            activities.push({
-              type: 'department_change',
-              title: '부서 인원 변화',
-              description: description,
-              time: new Date().toISOString(),
-              icon: BuildingIcon,
-              color: netChange > 0 ? 'text-blue-600' : 'text-red-600',
-              metadata: {
-                department: dept,
-                netChange,
-                hires: changes.hires,
-                terminations: changes.terminations,
-              },
-            })
-          }
-        }
-      },
-    )
-
-    // 시간순 정렬 후 최대 8개 반환
-    return activities
-      .sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime())
-      .slice(0, 8)
-  })
-
-  // 부서별 직원 데이터 (T/O 포함)
-  let departmentData = $derived(() => {
-    if (!employees || employees.length === 0 || !departments || departments.length === 0) return []
-
-    // 모든 직원 카운트 (이사 포함)
-    const deptCounts = employees.reduce(
-      (acc: Record<string, number>, emp: Employee) => {
-        acc[emp.department] = (acc[emp.department] || 0) + 1
-        return acc
-      },
-      {} as Record<string, number>,
-    )
-
-    // departments 데이터를 기반으로 부서별 데이터 생성 (부서없음 포함)
-    const deptData = departments.map((dept: Department) => {
-      const currentCount = deptCounts[dept.name] || 0
-      const departmentTO = teamTO[dept.name] || 0
-      const percentage = safePct(currentCount, totalEmployees)
-
-      return {
-        department: dept.name,
-        count: currentCount,
-        to: departmentTO,
-        percentage,
-        // T/O 대비 현재 인원 비율
-        toPercentage: departmentTO > 0 ? Math.round((currentCount / departmentTO) * 100) : 0,
-        // T/O 상태 (여유/충족/초과)
-        toStatus:
-          departmentTO === 0
-            ? 'unlimited'
-            : currentCount > departmentTO
-              ? 'over'
-              : currentCount === departmentTO
-                ? 'full'
-                : 'available',
-      }
-    })
-
-    // 부서 정렬 순서: 대표 → 전략기획실 → 연구소 → 각 팀들 → 부서없음
-    return deptData.sort((a, b) => {
-      const order: { [key: string]: number } = {
-        대표: 1,
-        전략기획실: 2,
-        연구소: 3,
-        부서없음: 999,
-      }
-
-      const aOrder = order[a.department] || 100
-      const bOrder = order[b.department] || 100
-
-      if (aOrder !== bOrder) {
-        return aOrder - bOrder
-      }
-
-      // 같은 우선순위 내에서는 알파벳 순
-      return a.department.localeCompare(b.department)
-    })
-  })
-
-  // 최근 채용 공고
+  // 최근 채용 공고 데이터
   let recentJobPostings = $derived(() => {
     return $jobPostings
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
       .slice(0, 5)
   })
 
+  // 데이터 새로고침 함수들
+  async function fetchEmployees() {
+    await hrDashboardStore.fetchEmployees()
+  }
+
+  async function fetchDepartments() {
+    await hrDashboardStore.fetchDepartments()
+  }
+
+  async function fetchPositions() {
+    await hrDashboardStore.fetchPositions()
+  }
+
+  async function fetchExecutives() {
+    await hrDashboardStore.fetchExecutives()
+  }
+
+  async function fetchJobTitles() {
+    await hrDashboardStore.fetchJobTitles()
+  }
+
   // 컴포넌트 마운트 시 데이터 로드
   $effect(() => {
-    fetchEmployees()
-    fetchDepartments()
-    fetchPositions()
-    fetchExecutives()
-    fetchJobTitles()
+    hrDashboardStore.initialize()
     loadContracts() // 급여 계약 데이터 로드
   })
 
@@ -824,23 +447,23 @@
     switch (currentTab) {
       case 'employees':
         logger.log('Loading employees data...')
-        fetchEmployees()
+        hrDashboardStore.fetchEmployees()
         break
       case 'departments':
         logger.log('Loading departments data...')
-        fetchDepartments()
+        hrDashboardStore.fetchDepartments()
         break
       case 'positions':
         logger.log('Loading positions data...')
-        fetchPositions()
+        hrDashboardStore.fetchPositions()
         break
       case 'executives':
         logger.log('Loading executives data...')
-        fetchExecutives()
+        hrDashboardStore.fetchExecutives()
         break
       case 'job-titles':
         logger.log('Loading job titles data...')
-        fetchJobTitles()
+        hrDashboardStore.fetchJobTitles()
         break
     }
   })
@@ -855,6 +478,21 @@
       goto(`${u.pathname}?${u.searchParams.toString()}`, { keepFocus: true, noScroll: true })
     }
   }
+
+  // HR 탭 변경 이벤트 리스너
+  $effect(() => {
+    if (browser) {
+      const handleHRTabChange = (event: CustomEvent) => {
+        handleTabChange(event.detail)
+      }
+
+      window.addEventListener('hr-tab-change', handleHRTabChange)
+
+      return () => {
+        window.removeEventListener('hr-tab-change', handleHRTabChange)
+      }
+    }
+  })
 
   // 파일 업로드 처리
   function handleFileSelect(event: Event) {
@@ -1320,7 +958,10 @@
   }
 </script>
 
-<PageLayout title="인사관리" subtitle="직원 정보, 채용, 성과 관리" {stats}>
+<PageLayout title="인사관리" subtitle="직원 정보, 채용, 성과 관리">
+  <!-- 통계 카드들 -->
+  <HRStatsCards />
+
   <!-- 탭 시스템 -->
   <ThemeTabs
     tabs={tabs as any}
@@ -1332,196 +973,8 @@
   >
     {#snippet children(tab)}
       {#if tab.id === 'overview'}
-        <!-- 개요 탭 -->
-        <ThemeSpacer size={6}>
-          <!-- 메인 대시보드 -->
-          <ThemeGrid cols={1} lgCols={2} gap={6}>
-            <!-- 부서별 직원 현황 -->
-            <ThemeCard class="p-6">
-              <div class="mb-6">
-                <h3 class="text-lg font-semibold" style:color="var(--color-text)">
-                  부서별 직원 현황 (T/O)
-                </h3>
-                <p class="text-sm mt-1" style:color="var(--color-text-secondary)">
-                  현재 인원 / 정원 (T/O) • 색상: 🟢여유 🟡충족 🔴초과 ⚪미설정
-                </p>
-              </div>
-              <ThemeSpacer size={4}>
-                {#each departmentData as dept (dept.department)}
-                  <!-- TODO: replace index key with a stable id when model provides one -->
-                  <div
-                    class="flex items-center justify-between p-3 rounded-lg"
-                    style:background="var(--color-surface-elevated)"
-                  >
-                    <div class="flex items-center gap-3">
-                      <BuildingIcon size={20} style="color: var(--color-primary);" />
-                      <div>
-                        <h4 class="font-medium" style:color="var(--color-text)">
-                          {dept.department}
-                        </h4>
-                        <div class="flex items-center gap-2">
-                          <p class="text-sm" style:color="var(--color-text-secondary)">
-                            {dept.count}명
-                            {#if dept.to > 0}
-                              / {dept.to}명
-                            {:else}
-                              / ∞
-                            {/if}
-                          </p>
-                          <!-- T/O 상태 표시 -->
-                          {#if dept.toStatus === 'over'}
-                            <div class="w-2 h-2 rounded-full bg-red-500" title="정원 초과"></div>
-                          {:else if dept.toStatus === 'full'}
-                            <div class="w-2 h-2 rounded-full bg-yellow-500" title="정원 충족"></div>
-                          {:else if dept.toStatus === 'available'}
-                            <div class="w-2 h-2 rounded-full bg-green-500" title="여유 있음"></div>
-                          {:else}
-                            <div class="w-2 h-2 rounded-full bg-gray-400" title="T/O 미설정"></div>
-                          {/if}
-                        </div>
-                      </div>
-                    </div>
-                    <div class="flex items-center gap-2">
-                      <!-- T/O 대비 비율 -->
-                      {#if dept.to > 0}
-                        <ThemeBadge
-                          variant={dept.toStatus === 'over'
-                            ? 'error'
-                            : dept.toStatus === 'full'
-                              ? 'warning'
-                              : 'success'}
-                          size="sm"
-                        >
-                          {dept.toPercentage}%
-                        </ThemeBadge>
-                      {/if}
-                      <!-- 전체 대비 비율 -->
-                      <ThemeBadge variant="info" size="sm">{dept.percentage}%</ThemeBadge>
-                    </div>
-                  </div>
-                {/each}
-              </ThemeSpacer>
-            </ThemeCard>
-
-            <!-- 최근 활동 -->
-            <ThemeCard class="p-6">
-              <div class="mb-6">
-                <h3 class="text-lg font-semibold" style:color="var(--color-text)">최근 활동</h3>
-              </div>
-              <ThemeSpacer size={4}>
-                {#each recentActivities as activity, i (`${activity.time}:${activity.title}:${i}`)}
-                  <!-- TODO: replace index key with a stable id when model provides one -->
-                  <ThemeActivityItem
-                    title={activity.title}
-                    time={activity.time}
-                    description={activity.description}
-                    icon={activity.icon}
-                  />
-                {/each}
-              </ThemeSpacer>
-            </ThemeCard>
-          </ThemeGrid>
-
-          <!-- 차트 섹션 -->
-          <ThemeGrid cols={1} lgCols={2} gap={6}>
-            <!-- 부서별 분포 차트 -->
-            <ThemeCard class="p-6">
-              <div class="mb-6">
-                <h3 class="text-lg font-semibold" style:color="var(--color-text)">
-                  부서별 직원 분포
-                </h3>
-              </div>
-              <ThemeChartPlaceholder title="부서별 직원 수" icon={TrendingUpIcon} />
-            </ThemeCard>
-
-            <!-- 채용 현황 차트 -->
-            <ThemeCard class="p-6">
-              <div class="mb-6">
-                <h3 class="text-lg font-semibold" style:color="var(--color-text)">채용 현황</h3>
-              </div>
-              <ThemeChartPlaceholder title="월별 채용 현황" icon={UserPlusIcon} />
-            </ThemeCard>
-          </ThemeGrid>
-
-          <!-- 최근 채용 공고 -->
-          <ThemeCard class="p-6">
-            <div class="flex items-center justify-between mb-6">
-              <h3 class="text-lg font-semibold" style:color="var(--color-text)">최근 채용 공고</h3>
-              <ThemeButton
-                variant="primary"
-                size="sm"
-                class="flex items-center gap-2"
-                onclick={() => {
-                  // 채용관리 탭으로 이동
-                  activeTab = 'recruitment'
-                }}
-              >
-                <PlusIcon size={16} />
-                새 공고
-              </ThemeButton>
-            </div>
-
-            <div class="space-y-4">
-              {#each recentJobPostings as job (job.id ?? `${job.createdAt}:${job.title}`)}
-                <!-- TODO: replace index key with a stable id when model provides one -->
-                <div
-                  class="flex items-center justify-between p-4 rounded-lg border"
-                  style:border-color="var(--color-border)"
-                  style:background="var(--color-surface-elevated)"
-                >
-                  <div class="flex-1">
-                    <h4 class="font-medium" style:color="var(--color-text)">
-                      {job.title}
-                    </h4>
-                    <p class="text-sm" style:color="var(--color-text-secondary)">
-                      {job.department} • {job.employmentType}
-                    </p>
-                    <div class="flex items-center gap-2 mt-2">
-                      <ThemeBadge variant={job.status === 'published' ? 'success' : 'warning'}>
-                        {job.status === 'published' ? '모집중' : '마감'}
-                      </ThemeBadge>
-                      <span class="text-xs" style:color="var(--color-text-secondary)">
-                        {formatDate(job.createdAt)}
-                      </span>
-                    </div>
-                  </div>
-                  <div class="flex items-center gap-2">
-                    <ThemeButton
-                      variant="ghost"
-                      size="sm"
-                      onclick={() => {
-                        // TODO: 채용 공고 상세 보기
-                        alert('채용 공고 상세 보기 기능은 준비 중입니다.')
-                      }}
-                    >
-                      <EyeIcon size={16} />
-                    </ThemeButton>
-                    <ThemeButton
-                      variant="ghost"
-                      size="sm"
-                      onclick={() => {
-                        // TODO: 채용 공고 수정
-                        alert('채용 공고 수정 기능은 준비 중입니다.')
-                      }}
-                    >
-                      <EditIcon size={16} />
-                    </ThemeButton>
-                    <ThemeButton
-                      variant="ghost"
-                      size="sm"
-                      onclick={() => {
-                        // TODO: 채용 공고 삭제
-                        alert('채용 공고 삭제 기능은 준비 중입니다.')
-                      }}
-                    >
-                      <TrashIcon size={16} />
-                    </ThemeButton>
-                  </div>
-                </div>
-              {/each}
-            </div>
-          </ThemeCard>
-        </ThemeSpacer>
+        <!-- 개요 탭 - 분리된 컴포넌트 사용 -->
+        <HROverviewTab />
       {:else if tab.id === 'employees'}
         <!-- 직원관리 탭 -->
         <ThemeSpacer size={6}>
