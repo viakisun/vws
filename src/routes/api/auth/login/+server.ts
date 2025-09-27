@@ -163,7 +163,10 @@ export const POST: RequestHandler = async ({ request }) => {
     const userResponse: UserResponse = {
       id: user.id,
       email: user.email,
-      name: (user.first_name && user.last_name) ? `${user.first_name} ${user.last_name}` : user.email.split('@')[0],
+      name:
+        user.first_name && user.last_name
+          ? `${user.first_name} ${user.last_name}`
+          : user.email.split('@')[0],
       role: user.role,
       department: user.department,
       position: user.position,
