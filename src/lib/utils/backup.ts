@@ -120,7 +120,7 @@ export function loadAutoBackup(): BackupData | null {
       return null
     }
 
-    const backupData = JSON.parse(backupString)
+    const backupData = JSON.parse(backupString) as unknown
     if (validateBackup(backupData)) {
       return backupData
     }
@@ -143,7 +143,7 @@ export function readBackupFile(file: File): Promise<BackupData> {
           throw new Error('파일 읽기 실패')
         }
 
-        const backupData = JSON.parse(result)
+        const backupData = JSON.parse(result) as unknown
         if (validateBackup(backupData)) {
           resolve(backupData)
         } else {

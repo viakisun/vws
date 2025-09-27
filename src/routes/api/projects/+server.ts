@@ -108,7 +108,7 @@ export const POST: RequestHandler = async ({ request }) => {
       return json(response, { status: 400 })
     }
 
-    const project = await DatabaseService.createProject(projectData as any)
+    const project = await DatabaseService.createProject(projectData as Partial<DatabaseProject>)
 
     const response: ApiResponse<Project> = {
       success: true,

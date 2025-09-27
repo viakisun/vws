@@ -254,7 +254,7 @@ export function transformArrayData<T>(
  * 일반적인 snake_case to camelCase 변환
  */
 export function toCamelCase(str: string): string {
-  return str.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase())
+  return str.replace(/_([a-z])/g, (_, letter) => (letter as string).toUpperCase())
 }
 
 /**

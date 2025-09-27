@@ -55,7 +55,7 @@ export const projectActions = {
       const response = await fetch(`/api/project-management/projects?${params}`)
       if (!response.ok) throw new Error('프로젝트 목록을 불러오는데 실패했습니다.')
 
-      const data = await response.json()
+      const data = await response.json() as ApiResponse<Project[]>
       projectStore.update((state) => ({
         ...state,
         projects: data.data || [],
@@ -86,12 +86,12 @@ export const projectActions = {
       logger.log('프로젝트 생성 응답 상태:', response.status)
 
       if (!response.ok) {
-        const errorData = await response.json()
+        const errorData = await response.json() as ApiResponse<unknown>
         logger.error('프로젝트 생성 API 에러 응답:', errorData)
-        throw new Error(errorData.message || '프로젝트 생성에 실패했습니다.')
+        throw new Error((errorData as any).message || '프로젝트 생성에 실패했습니다.')
       }
 
-      const data = await response.json()
+      const data = await response.json() as ApiResponse<Project>
       logger.log('프로젝트 생성 성공 응답:', data)
 
       projectStore.update((state) => ({
@@ -126,11 +126,11 @@ export const projectActions = {
       })
 
       if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.message || '프로젝트 수정에 실패했습니다.')
+        const errorData = await response.json() as ApiResponse<unknown>
+        throw new Error((errorData as any).message || '프로젝트 수정에 실패했습니다.')
       }
 
-      const data = await response.json()
+      const data = await response.json() as ApiResponse<Project>
       projectStore.update((state) => ({
         ...state,
         projects: state.projects.map((p) => (p.id === id ? data.data : p)),
@@ -158,8 +158,8 @@ export const projectActions = {
       })
 
       if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.message || '프로젝트 삭제에 실패했습니다.')
+        const errorData = await response.json() as ApiResponse<unknown>
+        throw new Error((errorData as any).message || '프로젝트 삭제에 실패했습니다.')
       }
 
       projectStore.update((state) => ({
@@ -183,7 +183,7 @@ export const projectActions = {
       const response = await fetch('/api/project-management/summary')
       if (!response.ok) throw new Error('프로젝트 요약 정보를 불러오는데 실패했습니다.')
 
-      const data = await response.json()
+      const data = await response.json() as ApiResponse<Project[]>
       projectStore.update((state) => ({
         ...state,
         summary: data.data,
@@ -202,7 +202,7 @@ export const projectMemberActions = {
       const response = await fetch(`/api/project-management/projects/${projectId}/members`)
       if (!response.ok) throw new Error('프로젝트 멤버 목록을 불러오는데 실패했습니다.')
 
-      const data = await response.json()
+      const data = await response.json() as ApiResponse<Project[]>
       projectStore.update((state) => ({
         ...state,
         projectMembers: data.data || [],
@@ -224,11 +224,11 @@ export const projectMemberActions = {
       })
 
       if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.message || '프로젝트 멤버 추가에 실패했습니다.')
+        const errorData = await response.json() as ApiResponse<unknown>
+        throw new Error((errorData as any).message || '프로젝트 멤버 추가에 실패했습니다.')
       }
 
-      const data = await response.json()
+      const data = await response.json() as ApiResponse<ProjectMember>
       projectStore.update((state) => ({
         ...state,
         projectMembers: [...state.projectMembers, data.data],
@@ -258,11 +258,11 @@ export const projectMemberActions = {
       })
 
       if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.message || '프로젝트 멤버 수정에 실패했습니다.')
+        const errorData = await response.json() as ApiResponse<unknown>
+        throw new Error((errorData as any).message || '프로젝트 멤버 수정에 실패했습니다.')
       }
 
-      const data = await response.json()
+      const data = await response.json() as ApiResponse<ProjectMember>
       projectStore.update((state) => ({
         ...state,
         projectMembers: state.projectMembers.map((m) => (m.id === id ? data.data : m)),
@@ -290,8 +290,8 @@ export const projectMemberActions = {
       })
 
       if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.message || '프로젝트 멤버 삭제에 실패했습니다.')
+        const errorData = await response.json() as ApiResponse<unknown>
+        throw new Error((errorData as any).message || '프로젝트 멤버 삭제에 실패했습니다.')
       }
 
       projectStore.update((state) => ({
@@ -325,7 +325,7 @@ export const participationRateActions = {
       const response = await fetch(`/api/project-management/participation-rates?${params}`)
       if (!response.ok) throw new Error('참여율 현황을 불러오는데 실패했습니다.')
 
-      const data = await response.json()
+      const data = await response.json() as ApiResponse<Project[]>
       projectStore.update((state) => ({
         ...state,
         participationRates: data.data || [],
@@ -341,7 +341,7 @@ export const participationRateActions = {
       const response = await fetch('/api/project-management/participation-rates/summary')
       if (!response.ok) throw new Error('개인별 참여율 요약을 불러오는데 실패했습니다.')
 
-      const data = await response.json()
+      const data = await response.json() as ApiResponse<Project[]>
       projectStore.update((state) => ({
         ...state,
         employeeParticipationSummary: data.data || [],
@@ -363,11 +363,11 @@ export const participationRateActions = {
       })
 
       if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.message || '참여율 업데이트에 실패했습니다.')
+        const errorData = await response.json() as ApiResponse<unknown>
+        throw new Error((errorData as any).message || '참여율 업데이트에 실패했습니다.')
       }
 
-      const data = await response.json()
+      const data = await response.json() as ApiResponse<Project[]>
       projectStore.update((state) => ({
         ...state,
         participationRates: state.participationRates.map((r) =>
@@ -399,7 +399,7 @@ export const participationRateActions = {
       const response = await fetch(`/api/project-management/participation-rates/history?${params}`)
       if (!response.ok) throw new Error('참여율 변경 이력을 불러오는데 실패했습니다.')
 
-      const data = await response.json()
+      const data = await response.json() as ApiResponse<Project[]>
       projectStore.update((state) => ({
         ...state,
         participationRateHistory: data.data || [],
@@ -418,7 +418,7 @@ export const budgetActions = {
       const response = await fetch(`/api/project-management/projects/${projectId}/budgets`)
       if (!response.ok) throw new Error('프로젝트 사업비를 불러오는데 실패했습니다.')
 
-      const data = await response.json()
+      const data = await response.json() as ApiResponse<Project[]>
       projectStore.update((state) => ({
         ...state,
         projectBudgets: data.data || [],
@@ -434,7 +434,7 @@ export const budgetActions = {
       const response = await fetch('/api/project-management/budgets/summary-by-year')
       if (!response.ok) throw new Error('연차별 사업비 요약을 불러오는데 실패했습니다.')
 
-      const data = await response.json()
+      const data = await response.json() as ApiResponse<Project[]>
       projectStore.update((state) => ({
         ...state,
         budgetSummaryByYear: data.data || [],
@@ -462,11 +462,11 @@ export const budgetActions = {
       })
 
       if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.message || '사업비 저장에 실패했습니다.')
+        const errorData = await response.json() as ApiResponse<unknown>
+        throw new Error((errorData as any).message || '사업비 저장에 실패했습니다.')
       }
 
-      const data = await response.json()
+      const data = await response.json() as ApiResponse<Project[]>
       projectStore.update((state) => ({
         ...state,
         projectBudgets: isUpdate
@@ -495,7 +495,7 @@ export const alertActions = {
       const response = await fetch('/api/project-management/alerts')
       if (!response.ok) throw new Error('알림을 불러오는데 실패했습니다.')
 
-      const data = await response.json()
+      const data = await response.json() as ApiResponse<Project[]>
       projectStore.update((state) => ({
         ...state,
         alerts: data.data || [],

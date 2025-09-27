@@ -252,7 +252,7 @@ export async function deleteContract(contractId: string): Promise<boolean> {
       method: 'DELETE',
     })
 
-    const result: ApiResponse<{ id: string }> = await response.json()
+    const result = await response.json() as ApiResponse<{ id: string }>
 
     if (result.success) {
       // 목록에서 해당 계약 제거

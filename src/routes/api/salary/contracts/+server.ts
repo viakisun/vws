@@ -215,7 +215,7 @@ export const POST: RequestHandler = async ({ request }) => {
       ],
     )
 
-    const newContract = result.rows[0]
+    const newContract = result.rows[0] as DatabaseSalaryContract
 
     return json({
       success: true,

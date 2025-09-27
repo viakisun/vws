@@ -291,7 +291,7 @@ export async function deleteEmployee(id: string): Promise<boolean> {
       method: 'DELETE',
     })
 
-    const result: ApiResponse<void> = await response.json()
+    const result = await response.json() as ApiResponse<void>
 
     if (result.success) {
       employees.update((current) => current.filter((emp) => emp.id !== id))

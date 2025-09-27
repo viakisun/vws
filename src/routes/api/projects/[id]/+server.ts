@@ -98,7 +98,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
       ],
     )
 
-    const updatedProject: Project[] = result.rows
+    const updatedProject = result.rows as Project[]
     const response: ApiResponse<Project> = {
       success: true,
       data: updatedProject[0],

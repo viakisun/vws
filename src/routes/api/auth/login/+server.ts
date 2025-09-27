@@ -155,7 +155,7 @@ export const POST: RequestHandler = async ({ request }) => {
     } catch (dbError) {
       logger.error('Failed to update last login time', {
         userId: user.id,
-        error: dbError,
+        error: dbError as unknown,
       })
       // 로그인 시간 업데이트 실패는 로그인을 막지 않음
     }
