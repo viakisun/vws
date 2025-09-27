@@ -165,7 +165,7 @@ export function hasPermission(userRole: string, permission: string): boolean {
 
 // Permission middleware
 export function requirePermission(permission: string): RequestHandler {
-  return async (event: RequestEvent): Promise<Response> => {
+  return (event: RequestEvent): Response => {
     const { request: _request } = event
     const user = event.locals.user
 
@@ -188,7 +188,7 @@ export function rateLimit(
   maxRequests: number = 100,
   windowMs: number = 15 * 60 * 1000,
 ): RequestHandler {
-  return async (event: RequestEvent): Promise<Response> => {
+  return (event: RequestEvent): Response => {
     const clientIP = event.getClientAddress()
     const rateLimitResult = checkRateLimit(clientIP, maxRequests, windowMs)
 
@@ -216,7 +216,7 @@ export function rateLimit(
 
 // CSRF protection middleware
 export function csrfProtection(): RequestHandler {
-  return async (event: RequestEvent): Promise<Response> => {
+  return (event: RequestEvent): Response => {
     if (event.request.method === 'GET' || event.request.method === 'HEAD') {
       return new Response()
     }
@@ -239,7 +239,7 @@ export function csrfProtection(): RequestHandler {
 
 // CORS middleware
 export function cors(origins: string[] = ['*']): RequestHandler {
-  return async (event: RequestEvent): Promise<Response> => {
+  return (event: RequestEvent): Response => {
     const { request } = event
     const origin = request.headers.get('origin')
 
@@ -260,7 +260,7 @@ export function cors(origins: string[] = ['*']): RequestHandler {
 
 // Security headers
 export function securityHeaders(): RequestHandler {
-  return async (_event: RequestEvent): Promise<Response> => {
+  return (_event: RequestEvent): Response => {
     return new Response(null, {
       headers: {
         'X-Content-Type-Options': 'nosniff',

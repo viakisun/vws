@@ -20,7 +20,7 @@ jobs:
           node-version: '20'
       - uses: pnpm/action-setup@v4
         with:
-          version: 9
+          version: 10.17.1
           run_install: false
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -29,13 +29,14 @@ jobs:
       - name: TypeScript check (warnings only)
         run: pnpm run typecheck || echo "TypeScript check completed with warnings"
       - name: Run tests (if available)
-        run: pnpm test -- --coverage --reporter=dot || echo "No tests found, skipping test step"
+        run: pnpm test:coverage || echo "No tests found, skipping test step"
       - name: 업로드(커버리지)
         uses: actions/upload-artifact@v4
         if: always()
+        continue-on-error: true
         with:
           name: coverage
-          path: coverage
+          path: coverage/
 
   security:
     name: 보안 스캔
@@ -47,7 +48,7 @@ jobs:
           node-version: '20'
       - uses: pnpm/action-setup@v4
         with:
-          version: 9
+          version: 10.17.1
           run_install: false
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -64,7 +65,7 @@ jobs:
           node-version: '20'
       - uses: pnpm/action-setup@v4
         with:
-          version: 9
+          version: 10.17.1
           run_install: false
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -88,7 +89,7 @@ jobs:
           node-version: '20'
       - uses: pnpm/action-setup@v4
         with:
-          version: 9
+          version: 10.17.1
           run_install: false
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -112,7 +113,7 @@ jobs:
         continue-on-error: true
         with:
           name: coverage
-          path: coverage
+          path: coverage/
       - name: Check if coverage exists
         run: |
           if [ -d "coverage" ] && [ "$(ls -A coverage)" ]; then
