@@ -1,6 +1,9 @@
 <script lang="ts">
   import type { Department, Employee, Executive, JobTitle, Position } from '$lib/types'
   import { logger } from '$lib/utils/logger'
+  import { browser } from '$app/environment'
+  import { page } from '$app/stores'
+  import { goto } from '$app/navigation'
 
   import PageLayout from '$lib/components/layout/PageLayout.svelte'
   import DeleteConfirmModal from '$lib/components/ui/DeleteConfirmModal.svelte'
@@ -55,6 +58,9 @@
   let employees = $state<Employee[]>([])
   let loading = $state(true)
   let error = $state<string | null>(null)
+
+  // 안전한 퍼센트 계산 유틸리티
+  const safePct = (num: number, den: number) => (den > 0 ? Math.round((num / den) * 100) : 0)
 
   // 직원별 현재 급여 정보 가져오기
   function getCurrentSalary(employeeId: string): {
@@ -200,8 +206,8 @@
   }
 
   // T/O (정원) 정보 - 데이터베이스에서 가져옴
-  let teamTO = $derived(() => {
-    const toMap: any = {}
+  let teamTO = $derived((): Record<string, number> => {
+    const toMap: Record<string, number> = {}
     if (departments) {
       departments.forEach((dept: Department) => {
         toMap[dept.name] = dept.max_employees || 0
@@ -211,7 +217,7 @@
   })
 
   // 반응형 데이터 (데이터베이스 기반)
-  let totalEmployees = $derived(() => {
+  let totalEmployees = $derived((): number => {
     // 재직중인 직원만 카운트 (이사 제외)
     const activeEmployeeCount =
       employees?.filter((emp: Employee) => emp.status === 'active').length || 0
@@ -225,7 +231,7 @@
 
   let _totalTO = $derived(() => {
     // 부서별 T/O 카운트를 단순히 합산
-    return Object.values(teamTO() as Record<string, number>).reduce(
+    return Object.values(teamTO as Record<string, number>).reduce(
       (sum: number, to: number) => sum + to,
       0,
     )
@@ -235,7 +241,7 @@
     () => [...new Set(employees?.map((emp: Employee) => emp.department) || [])].length,
   )
   let activeRecruitments = $derived(
-    () => $jobPostings.filter((job) => job.status === 'published').length,
+    (): number => $jobPostings.filter((job) => job.status === 'published').length,
   )
 
   // 탭 정의
@@ -280,9 +286,18 @@
       label: '조직도',
       icon: BuildingIcon,
     },
-  ]
+  ] as const
+  type TabId = (typeof tabs)[number]['id']
+  const TAB_IDS = new Set<TabId>(tabs.map((t) => t.id))
 
-  let activeTab = $state('overview')
+  let activeTab = $state<TabId>('overview')
+
+  // URL ↔ 탭 동기화
+  $effect(() => {
+    const q = $page.url.searchParams.get('tab')
+    const next = q && TAB_IDS.has(q as TabId) ? (q as TabId) : 'overview'
+    if (next !== activeTab) activeTab = next
+  })
 
   // 업로드 관련 상태
   let showUploadModal = $state(false)
@@ -295,7 +310,7 @@
   // 직원 관리 관련 상태
   let showEmployeeModal = $state(false)
   let showDeleteModal = $state(false)
-  let selectedEmployee = $state<any>(null)
+  let selectedEmployee = $state<Employee | null>(null)
   let employeeLoading = $state(false)
   let deleteLoading = $state(false)
 
@@ -304,8 +319,8 @@
   let positions = $state<Position[]>([])
   let showDepartmentModal = $state(false)
   let showPositionModal = $state(false)
-  let selectedDepartment = $state<any>(null)
-  let selectedPosition = $state<any>(null)
+  let selectedDepartment = $state<Department | null>(null)
+  let selectedPosition = $state<Position | null>(null)
   let departmentLoading = $state(false)
   let positionLoading = $state(false)
 
@@ -314,8 +329,8 @@
   let jobTitles = $state<JobTitle[]>([])
   let _showExecutiveModal = $state(false)
   let _showJobTitleModal = $state(false)
-  let _selectedExecutive = $state<any>(null)
-  let _selectedJobTitle = $state<any>(null)
+  let _selectedExecutive = $state<Executive | null>(null)
+  let _selectedJobTitle = $state<JobTitle | null>(null)
   let executiveLoading = $state(false)
   let _jobTitleLoading = $state(false)
 
@@ -399,8 +414,8 @@
       '상무',
     ]
     return (
-      leadershipPositions.includes(employee.job_title_name) ||
-      leadershipPositions.includes(employee.position)
+      leadershipPositions.includes(employee.job_title_name || '') ||
+      leadershipPositions.includes(employee.position || '')
     )
   }
 
@@ -481,29 +496,23 @@
     })(),
   )
 
-  // 통계 데이터
-  let stats = $derived(
-    (() => {
-      const statsData = [
-        {
-          title: '직원 수',
-          value: `${totalEmployees()}`,
-          change: '+5%',
-          changeType: 'positive' as const,
-          icon: UsersIcon,
-        },
-        {
-          title: '진행중인 채용',
-          value: activeRecruitments(),
-          change: '+2',
-          changeType: 'positive' as const,
-          icon: UserPlusIcon,
-        },
-      ]
-
-      return statsData
-    })(),
-  )
+  // 통계 데이터 - $derived로 반응형 배열 생성
+  let stats = $derived([
+    {
+      title: '직원 수',
+      value: `${totalEmployees}`,
+      change: '+5%',
+      changeType: 'positive' as const,
+      icon: UsersIcon,
+    },
+    {
+      title: '진행중인 채용',
+      value: `${activeRecruitments}`,
+      change: '+2',
+      changeType: 'positive' as const,
+      icon: UserPlusIcon,
+    },
+  ])
 
   // 액션 버튼들
   const _actions = [
@@ -536,15 +545,31 @@
       metadata?: any
     }> = []
 
+    // 데이터가 없으면 빈 배열 반환
+    if (!employees || employees.length === 0) {
+      console.log('recentActivities: No employees data available')
+      return activities
+    }
+
+    console.log('recentActivities: Processing', employees.length, 'employees')
+
     // 최근 입사자 (최근 3개월 이내)
     const threeMonthsAgo = new Date(getCurrentUTC())
     threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3)
 
-    employees
-      .filter(
-        (emp: Employee) =>
-          emp.status === 'active' && emp.hire_date && new Date(emp.hire_date) >= threeMonthsAgo,
-      )
+    const recentHires = employees.filter(
+      (emp: Employee) =>
+        emp.status === 'active' && emp.hire_date && new Date(emp.hire_date) >= threeMonthsAgo,
+    )
+
+    console.log(
+      'recentActivities: Found',
+      recentHires.length,
+      'recent hires since',
+      threeMonthsAgo.toISOString(),
+    )
+
+    recentHires
       .sort(
         (a: Employee, b: Employee) =>
           new Date(b.hire_date).getTime() - new Date(a.hire_date).getTime(),
@@ -590,15 +615,16 @@
       .slice(0, 3)
       .forEach((emp: Employee) => {
         const daysLeft = Math.ceil(
-          (new Date(emp.termination_date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24),
+          (new Date(emp.termination_date || '').getTime() - new Date().getTime()) /
+            (1000 * 60 * 60 * 24),
         )
         const isContract = emp.employment_type === 'contract'
-        const terminationDate = formatDateForDisplay(emp.termination_date, 'KOREAN')
+        const terminationDate = formatDateForDisplay(emp.termination_date || '', 'KOREAN')
         activities.push({
           type: 'termination_pending',
           title: isContract ? '계약 만료 예정' : '퇴직 예정',
           description: `${formatEmployeeName(emp)}님(${emp.department} ${emp.position})이 ${terminationDate}에 ${isContract ? '계약 만료' : '퇴직'} 예정입니다. (${daysLeft}일 남음)`,
-          time: emp.termination_date,
+          time: emp.termination_date || '',
           icon: CalendarIcon,
           color: 'text-orange-600',
           metadata: {
@@ -629,14 +655,15 @@
       .slice(0, 3)
       .forEach((emp: Employee) => {
         const daysSinceTermination = Math.floor(
-          (new Date().getTime() - new Date(emp.termination_date).getTime()) / (1000 * 60 * 60 * 24),
+          (new Date().getTime() - new Date(emp.termination_date || '').getTime()) /
+            (1000 * 60 * 60 * 24),
         )
-        const terminationDate = formatDateForDisplay(emp.termination_date, 'KOREAN')
+        const terminationDate = formatDateForDisplay(emp.termination_date || '', 'KOREAN')
         activities.push({
           type: 'termination',
           title: '퇴사 완료',
           description: `${formatEmployeeName(emp)}님(${emp.department} ${emp.position})이 ${terminationDate}에 퇴사했습니다. (${daysSinceTermination}일 경과)`,
-          time: emp.termination_date,
+          time: emp.termination_date || '',
           icon: UserMinusIcon,
           color: 'text-red-600',
           metadata: {
@@ -728,8 +755,8 @@
     // departments 데이터를 기반으로 부서별 데이터 생성 (부서없음 포함)
     const deptData = departments.map((dept: Department) => {
       const currentCount = deptCounts[dept.name] || 0
-      const departmentTO = teamTO()[dept.name] || 0
-      const percentage = Math.round((currentCount / totalEmployees()) * 100)
+      const departmentTO = teamTO[dept.name] || 0
+      const percentage = safePct(currentCount, totalEmployees)
 
       return {
         department: dept.name,
@@ -818,10 +845,15 @@
     }
   })
 
-  // 탭 변경 핸들러
+  // 탭 변경 핸들러 (URL 동기화)
   function handleTabChange(tabId: string) {
-    logger.log('HR Tab change requested:', tabId)
-    activeTab = tabId
+    const id = TAB_IDS.has(tabId as TabId) ? (tabId as TabId) : 'overview'
+    if (activeTab !== id) activeTab = id
+    if (browser) {
+      const u = new URL(window.location.href)
+      u.searchParams.set('tab', id)
+      goto(`${u.pathname}?${u.searchParams.toString()}`, { keepFocus: true, noScroll: true })
+    }
   }
 
   // 파일 업로드 처리
@@ -1291,7 +1323,7 @@
 <PageLayout title="인사관리" subtitle="직원 정보, 채용, 성과 관리" {stats}>
   <!-- 탭 시스템 -->
   <ThemeTabs
-    {tabs}
+    tabs={tabs as any}
     bind:activeTab
     variant="underline"
     size="md"
@@ -1315,7 +1347,7 @@
                 </p>
               </div>
               <ThemeSpacer size={4}>
-                {#each departmentData() as dept, idx (idx)}
+                {#each departmentData as dept (dept.department)}
                   <!-- TODO: replace index key with a stable id when model provides one -->
                   <div
                     class="flex items-center justify-between p-3 rounded-lg"
@@ -1377,7 +1409,7 @@
                 <h3 class="text-lg font-semibold" style:color="var(--color-text)">최근 활동</h3>
               </div>
               <ThemeSpacer size={4}>
-                {#each recentActivities() as activity, idx (idx)}
+                {#each recentActivities as activity, i (`${activity.time}:${activity.title}:${i}`)}
                   <!-- TODO: replace index key with a stable id when model provides one -->
                   <ThemeActivityItem
                     title={activity.title}
@@ -1430,7 +1462,7 @@
             </div>
 
             <div class="space-y-4">
-              {#each recentJobPostings() as job, idx (idx)}
+              {#each recentJobPostings as job (job.id ?? `${job.createdAt}:${job.title}`)}
                 <!-- TODO: replace index key with a stable id when model provides one -->
                 <div
                   class="flex items-center justify-between p-4 rounded-lg border"
@@ -1759,18 +1791,18 @@
                                 />
                                 <div class="bg-gray-100 px-2 py-1 rounded border border-gray-300">
                                   <span class="text-sm font-medium truncate text-gray-600">
-                                    {Math.round(currentSalary.annualSalary / 10000)}만원
+                                    {Math.round((currentSalary?.annualSalary || 0) / 10000)}만원
                                   </span>
                                   <span class="text-xs text-gray-500 ml-1">
-                                    ({currentSalary.contractType === 'full_time'
+                                    ({currentSalary?.contractType === 'full_time'
                                       ? '정규직'
-                                      : currentSalary.contractType === 'contractor'
+                                      : currentSalary?.contractType === 'contractor'
                                         ? '계약직'
-                                        : currentSalary.contractType === 'part_time'
+                                        : currentSalary?.contractType === 'part_time'
                                           ? '파트타임'
-                                          : currentSalary.contractType === 'intern'
+                                          : currentSalary?.contractType === 'intern'
                                             ? '인턴'
-                                            : currentSalary.contractType})
+                                            : currentSalary?.contractType || '미정'})
                                   </span>
                                 </div>
                                 <button
@@ -1971,7 +2003,7 @@
             </div>
 
             <div class="space-y-4">
-              {#each recentJobPostings() as job, idx (idx)}
+              {#each recentJobPostings as job (job.id ?? `${job.createdAt}:${job.title}`)}
                 <!-- TODO: replace index key with a stable id when model provides one -->
                 <div
                   class="flex items-center justify-between p-4 rounded-lg border"
@@ -2040,7 +2072,7 @@
             </div>
 
             <div class="space-y-3">
-              {#each sortedDepartments() as department (department.id)}
+              {#each sortedDepartments as department (department.id)}
                 <div
                   class="flex items-center justify-between p-4 rounded-lg border"
                   style:border-color="var(--color-border)"
@@ -2719,7 +2751,7 @@
 <!-- 직원 추가/수정 모달 -->
 <EmployeeModal
   open={showEmployeeModal}
-  employee={selectedEmployee}
+  employee={selectedEmployee as any}
   loading={employeeLoading}
   {departments}
   {positions}
@@ -2751,7 +2783,7 @@
 <!-- 부서 관리 모달 -->
 <DepartmentModal
   open={showDepartmentModal}
-  department={selectedDepartment}
+  department={selectedDepartment as any}
   loading={departmentLoading}
   on:close={() => {
     showDepartmentModal = false
@@ -2763,7 +2795,7 @@
 <!-- 직급 관리 모달 -->
 <PositionModal
   open={showPositionModal}
-  position={selectedPosition}
+  position={selectedPosition as any}
   {departments}
   loading={positionLoading}
   on:close={() => {

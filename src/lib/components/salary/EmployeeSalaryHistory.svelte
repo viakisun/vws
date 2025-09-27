@@ -26,6 +26,20 @@
     employeeName?: string
     department?: string
     status?: string
+    employeeInfo?: {
+      name?: string
+      employeeId?: string
+      department?: string
+      position?: string
+    }
+    salaryInfo?: {
+      baseSalary?: number
+    }
+    totals?: {
+      totalAllowances?: number
+      totalDeductions?: number
+      netSalary?: number
+    }
   }
 
   // Narrow helper to coerce unknown values to number safely
@@ -40,7 +54,7 @@
 
   // 모달 상태
   let showDetailsModal = $state(false)
-  let selectedPayroll = $state(null)
+  let selectedPayroll = $state<PayrollData | null>(null)
 
   // Cast payslips to permissive type
   const payrolls = $derived(() => ($payslips as unknown as PayrollData[]) ?? [])
@@ -48,7 +62,7 @@
   // 기간 옵션 생성
   const periodOptions = $derived(() => {
     const periods = new Set()
-    payrolls().forEach((payslip) => {
+    payrolls.forEach((payslip) => {
       const period = payslip.period // YYYY-MM 형식
       periods.add(period)
     })
@@ -57,7 +71,7 @@
 
   // 필터링된 급여 이력
   const filteredHistory = $derived(() => {
-    let filtered = [...payrolls()]
+    let filtered = [...payrolls]
 
     // 검색 필터
     if (searchQuery) {
@@ -125,16 +139,13 @@
 
   // 통계 계산
   const statistics = $derived(() => {
-    const total = filteredHistory().length
-    const totalGrossSalary = filteredHistory().reduce(
+    const total = filteredHistory.length
+    const totalGrossSalary = filteredHistory.reduce(
       (sum, payroll) => sum + num(payroll.grossSalary),
       0,
     )
-    const totalNetSalary = filteredHistory().reduce(
-      (sum, payroll) => sum + num(payroll.netSalary),
-      0,
-    )
-    const totalDeductions = filteredHistory().reduce(
+    const totalNetSalary = filteredHistory.reduce((sum, payroll) => sum + num(payroll.netSalary), 0)
+    const totalDeductions = filteredHistory.reduce(
       (sum, payroll) => sum + num(payroll.totalDeductions),
       0,
     )
@@ -260,7 +271,7 @@
       <div class="flex items-center justify-between">
         <div>
           <p class="text-sm font-medium text-gray-600">총 급여 건수</p>
-          <p class="text-2xl font-bold text-gray-900">{statistics().total}건</p>
+          <p class="text-2xl font-bold text-gray-900">{statistics.total}건</p>
         </div>
         <div class="p-2 bg-blue-100 rounded-full">
           <FileTextIcon size={20} class="text-blue-600" />
@@ -273,7 +284,7 @@
         <div>
           <p class="text-sm font-medium text-gray-600">총 지급액</p>
           <p class="text-2xl font-bold text-gray-900">
-            {formatCurrency(statistics().totalGrossSalary)}
+            {formatCurrency(statistics.totalGrossSalary)}
           </p>
         </div>
         <div class="p-2 bg-green-100 rounded-full">
@@ -287,7 +298,7 @@
         <div>
           <p class="text-sm font-medium text-gray-600">총 실지급액</p>
           <p class="text-2xl font-bold text-gray-900">
-            {formatCurrency(statistics().totalNetSalary)}
+            {formatCurrency(statistics.totalNetSalary)}
           </p>
         </div>
         <div class="p-2 bg-purple-100 rounded-full">
@@ -301,7 +312,7 @@
         <div>
           <p class="text-sm font-medium text-gray-600">평균 급여</p>
           <p class="text-2xl font-bold text-gray-900">
-            {formatCurrency(statistics().averageGrossSalary)}
+            {formatCurrency(statistics.averageGrossSalary)}
           </p>
         </div>
         <div class="p-2 bg-yellow-100 rounded-full">
@@ -331,7 +342,7 @@
           class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
         >
           <option value="">전체 기간</option>
-          {#each periodOptions() as period, i (i)}
+          {#each periodOptions as period, i (i)}
             <option value={period}>{period}</option>
           {/each}
         </select>
@@ -425,7 +436,7 @@
           </tr>
         </thead>
         <tbody class="bg-white divide-y divide-gray-200">
-          {#each filteredHistory() as payroll, i (i)}
+          {#each filteredHistory as payroll, i (i)}
             <tr class="hover:bg-gray-50">
               <td class="px-6 py-4 whitespace-nowrap">
                 <div class="flex items-center">
@@ -434,7 +445,7 @@
                       class="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center"
                     >
                       <span class="text-sm font-medium text-blue-600">
-                        {payroll.employeeName.charAt(0)}
+                        {(payroll.employeeName || 'U').charAt(0)}
                       </span>
                     </div>
                   </div>
@@ -472,10 +483,10 @@
               <td class="px-6 py-4 whitespace-nowrap">
                 <span
                   class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {getStatusColor(
-                    payroll.status,
+                    payroll.status || 'pending',
                   )}"
                 >
-                  {getStatusLabel(payroll.status)}
+                  {getStatusLabel(payroll.status || 'pending')}
                 </span>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -503,7 +514,7 @@
     </div>
 
     <!-- 결과가 없을 때 -->
-    {#if filteredHistory().length === 0}
+    {#if filteredHistory.length === 0}
       <div class="text-center py-12">
         <FileTextIcon size={48} class="mx-auto text-gray-400" />
         <h3 class="mt-2 text-sm font-medium text-gray-900">급여 이력이 없습니다</h3>
@@ -544,25 +555,25 @@
             <div>
               <span class="block text-sm font-medium text-gray-700">직원명</span>
               <p class="mt-1 text-sm text-gray-900">
-                {selectedPayroll.employeeInfo.name}
+                {selectedPayroll?.employeeInfo?.name || '-'}
               </p>
             </div>
             <div>
               <span class="block text-sm font-medium text-gray-700">사번</span>
               <p class="mt-1 text-sm text-gray-900">
-                {selectedPayroll.employeeInfo.employeeId}
+                {selectedPayroll?.employeeInfo?.employeeId || '-'}
               </p>
             </div>
             <div>
               <span class="block text-sm font-medium text-gray-700">부서</span>
               <p class="mt-1 text-sm text-gray-900">
-                {selectedPayroll.employeeInfo.department}
+                {selectedPayroll?.employeeInfo?.department || '-'}
               </p>
             </div>
             <div>
               <span class="block text-sm font-medium text-gray-700">직위</span>
               <p class="mt-1 text-sm text-gray-900">
-                {selectedPayroll.employeeInfo.position}
+                {selectedPayroll?.employeeInfo?.position || '-'}
               </p>
             </div>
           </div>
@@ -574,25 +585,25 @@
               <div>
                 <span class="block text-sm font-medium text-gray-700">기본급</span>
                 <p class="mt-1 text-sm text-gray-900">
-                  {formatCurrency(selectedPayroll.salaryInfo.baseSalary)}
+                  {formatCurrency(selectedPayroll?.salaryInfo?.baseSalary || 0)}
                 </p>
               </div>
               <div>
                 <span class="block text-sm font-medium text-gray-700">총 수당</span>
                 <p class="mt-1 text-sm text-green-600">
-                  {formatCurrency(selectedPayroll.totals.totalAllowances)}
+                  {formatCurrency(selectedPayroll?.totals?.totalAllowances || 0)}
                 </p>
               </div>
               <div>
                 <span class="block text-sm font-medium text-gray-700">총 공제</span>
                 <p class="mt-1 text-sm text-red-600">
-                  {formatCurrency(selectedPayroll.totals.totalDeductions)}
+                  {formatCurrency(selectedPayroll?.totals?.totalDeductions || 0)}
                 </p>
               </div>
               <div>
                 <span class="block text-sm font-medium text-gray-700">실지급액</span>
                 <p class="mt-1 text-lg font-bold text-gray-900">
-                  {formatCurrency(selectedPayroll.totals.netSalary)}
+                  {formatCurrency(selectedPayroll?.totals?.netSalary || 0)}
                 </p>
               </div>
             </div>

@@ -298,32 +298,32 @@
           <div class="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
             <CheckCircleIcon size={32} class="text-green-600 mx-auto mb-2" />
             <div class="text-2xl font-bold text-green-700">
-              {uploadResult.results.success}
+              {uploadResult.results?.success || 0}
             </div>
             <div class="text-sm text-green-600">성공</div>
           </div>
           <div class="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
             <XCircleIcon size={32} class="text-red-600 mx-auto mb-2" />
             <div class="text-2xl font-bold text-red-700">
-              {uploadResult.results.failed}
+              {uploadResult.results?.failed || 0}
             </div>
             <div class="text-sm text-red-600">실패</div>
           </div>
           <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
             <FileSpreadsheetIcon size={32} class="text-blue-600 mx-auto mb-2" />
             <div class="text-2xl font-bold text-blue-700">
-              {uploadResult.results.success + uploadResult.results.failed}
+              {(uploadResult.results?.success || 0) + (uploadResult.results?.failed || 0)}
             </div>
             <div class="text-sm text-blue-600">총 처리</div>
           </div>
         </div>
 
         <!-- 오류 목록 -->
-        {#if uploadResult.results.errors.length > 0}
+        {#if uploadResult.results?.errors && uploadResult.results.errors.length > 0}
           <div class="bg-red-50 border border-red-200 rounded-lg p-4">
             <h3 class="text-lg font-semibold text-red-800 mb-3">오류 목록</h3>
             <div class="max-h-40 overflow-y-auto">
-              {#each uploadResult.results.errors as error, i (i)}
+              {#each uploadResult.results?.errors || [] as error, i (i)}
                 <div class="text-sm text-red-700 py-1">{error}</div>
               {/each}
             </div>
@@ -331,7 +331,7 @@
         {/if}
 
         <!-- 상세 결과 -->
-        {#if uploadResult.results.details.length > 0}
+        {#if uploadResult.results?.details && uploadResult.results.details.length > 0}
           <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
             <h3 class="text-lg font-semibold text-gray-800 mb-3">상세 결과</h3>
             <div class="max-h-60 overflow-y-auto">
@@ -347,7 +347,7 @@
                   </tr>
                 </thead>
                 <tbody>
-                  {#each uploadResult.results.details as detail, i (i)}
+                  {#each uploadResult.results?.details || [] as detail, i (i)}
                     <tr class="border-t">
                       <td class="px-3 py-2">{detail.row}</td>
                       <td class="px-3 py-2">{detail.employeeId}</td>

@@ -76,7 +76,7 @@
   // 급여명세서 데이터 로드 (월별)
   async function loadPayslipData() {
     if (!selectedEmployeeId) {
-      payslipData = []
+      payslipData = [] as any
       return
     }
 
@@ -119,6 +119,8 @@
           // 입사일 이전 월인지 확인
           const isBeforeHire =
             hireDate &&
+            hireYear &&
+            hireMonth &&
             (selectedYear < hireYear || (selectedYear === hireYear && month < hireMonth))
 
           return {
@@ -133,7 +135,7 @@
           }
         })
 
-        payslipData = monthlyData
+        payslipData = monthlyData as any
       } else {
         // 데이터가 없어도 12개월 구조 생성
         payslipData = Array.from({ length: 12 }, (_, i) => {
@@ -144,6 +146,8 @@
           // 입사일 이전 월인지 확인
           const isBeforeHire =
             hireDate &&
+            hireYear &&
+            hireMonth &&
             (selectedYear < hireYear || (selectedYear === hireYear && month < hireMonth))
 
           return {
@@ -156,7 +160,7 @@
             isBeforeHire,
             isLocked: isFutureMonth || isBeforeHire,
           }
-        })
+        }) as any
       }
     } catch (_error) {
       const currentDate = new Date()
@@ -176,7 +180,10 @@
 
         // 입사일 이전 월인지 확인
         const isBeforeHire =
-          hireDate && (selectedYear < hireYear || (selectedYear === hireYear && month < hireMonth))
+          hireDate &&
+          hireYear &&
+          hireMonth &&
+          (selectedYear < hireYear || (selectedYear === hireYear && month < hireMonth))
 
         return {
           month,
@@ -188,7 +195,7 @@
           isBeforeHire,
           isLocked: isFutureMonth || isBeforeHire,
         }
-      })
+      }) as any
     } finally {
       isLoadingPayslipData = false
     }
@@ -460,15 +467,16 @@
   function recalculateTotals() {
     if (!editingPayslip) return
 
-    editingPayslip.totalPayments = editingPayslip.allowances.reduce(
+    editingPayslip.totalPayments = (editingPayslip.allowances || []).reduce(
       (sum: number, item: any) => sum + (item.amount || 0),
       0,
     )
-    editingPayslip.totalDeductions = editingPayslip.deductions.reduce(
+    editingPayslip.totalDeductions = (editingPayslip.deductions || []).reduce(
       (sum: number, item: any) => sum + (item.amount || 0),
       0,
     )
-    editingPayslip.netSalary = editingPayslip.totalPayments - editingPayslip.totalDeductions
+    editingPayslip.netSalary =
+      (editingPayslip.totalPayments || 0) - (editingPayslip.totalDeductions || 0)
   }
 
   // 급여명세서 저장
@@ -481,10 +489,10 @@
 
       // 기본급 계산 (지급사항에서 기본급 찾기)
       const basicSalary =
-        editingPayslip.allowances.find((a: any) => a.id === 'basic_salary')?.amount || 0
+        (editingPayslip.allowances || []).find((a: any) => a.id === 'basic_salary')?.amount || 0
 
       // 지급일 설정 (해당 월의 마지막 날)
-      const [year, month] = editingPayslip.period.split('-')
+      const [year, month] = (editingPayslip.period || '').split('-')
       const lastDay = new Date(parseInt(year), parseInt(month), 0).getDate()
       const payDate = `${year}-${month.padStart(2, '0')}-${lastDay.toString().padStart(2, '0')}`
 
@@ -499,8 +507,8 @@
           totalPayments: editingPayslip.totalPayments,
           totalDeductions: editingPayslip.totalDeductions,
           netSalary: editingPayslip.netSalary,
-          payments: editingPayslip.allowances,
-          deductions: editingPayslip.deductions,
+          payments: editingPayslip.allowances || [],
+          deductions: editingPayslip.deductions || [],
           status: 'draft',
           isGenerated: false,
         }),
@@ -533,7 +541,7 @@
 
     const hireDate = new Date(selectedEmployee.hireDate)
     const currentDate = new Date()
-    const missingPeriods = []
+    const missingPeriods: any[] = []
 
     // 입사일부터 현재까지의 월별 확인
     let current = new Date(hireDate.getFullYear(), hireDate.getMonth(), 1)
@@ -570,7 +578,7 @@
     if (selectedEmployeeId) {
       loadPayslipData()
     } else {
-      payslipData = []
+      payslipData = [] as any
     }
   })
 </script>
@@ -707,7 +715,7 @@
                           <div>
                             <h4 class="text-sm font-semibold text-gray-700 mb-2">지급사항</h4>
                             <div class="grid grid-cols-2 gap-2">
-                              {#each editingPayslip.allowances as allowance, index (index)}
+                              {#each editingPayslip?.allowances || [] as allowance, index (index)}
                                 <div class="flex items-center space-x-2">
                                   <input
                                     type="text"
@@ -717,7 +725,10 @@
                                         currentTarget: HTMLInputElement
                                       },
                                     ) => {
-                                      editingPayslip.allowances[index].name = e.currentTarget.value
+                                      if (editingPayslip?.allowances?.[index]) {
+                                        editingPayslip.allowances[index].name =
+                                          e.currentTarget.value
+                                      }
                                       recalculateTotals()
                                     }}
                                     class="flex-1 px-2 py-1 border border-gray-300 rounded text-sm"
@@ -730,8 +741,10 @@
                                         currentTarget: HTMLInputElement
                                       },
                                     ) => {
-                                      editingPayslip.allowances[index].amount =
-                                        Number(e.currentTarget.value) || 0
+                                      if (editingPayslip?.allowances?.[index]) {
+                                        editingPayslip.allowances[index].amount =
+                                          Number(e.currentTarget.value) || 0
+                                      }
                                       recalculateTotals()
                                     }}
                                     class="w-24 px-2 py-1 border border-gray-300 rounded text-sm text-right"
@@ -745,7 +758,7 @@
                           <div>
                             <h4 class="text-sm font-semibold text-gray-700 mb-2">공제사항</h4>
                             <div class="grid grid-cols-2 gap-2">
-                              {#each editingPayslip.deductions as deduction, index (index)}
+                              {#each editingPayslip?.deductions || [] as deduction, index (index)}
                                 <div class="flex items-center space-x-2">
                                   <input
                                     type="text"
@@ -755,7 +768,10 @@
                                         currentTarget: HTMLInputElement
                                       },
                                     ) => {
-                                      editingPayslip.deductions[index].name = e.currentTarget.value
+                                      if (editingPayslip?.deductions?.[index]) {
+                                        editingPayslip.deductions[index].name =
+                                          e.currentTarget.value
+                                      }
                                       recalculateTotals()
                                     }}
                                     class="flex-1 px-2 py-1 border border-gray-300 rounded text-sm"
@@ -768,8 +784,10 @@
                                         currentTarget: HTMLInputElement
                                       },
                                     ) => {
-                                      editingPayslip.deductions[index].amount =
-                                        Number(e.currentTarget.value) || 0
+                                      if (editingPayslip?.deductions?.[index]) {
+                                        editingPayslip.deductions[index].amount =
+                                          Number(e.currentTarget.value) || 0
+                                      }
                                       recalculateTotals()
                                     }}
                                     class="w-24 px-2 py-1 border border-gray-300 rounded text-sm text-right"
@@ -785,19 +803,19 @@
                               <div>
                                 <span class="font-medium">지급총액:</span>
                                 <span class="ml-2 font-semibold text-green-600"
-                                  >{formatCurrency(editingPayslip.totalPayments)}</span
+                                  >{formatCurrency(editingPayslip?.totalPayments || 0)}</span
                                 >
                               </div>
                               <div>
                                 <span class="font-medium">공제총액:</span>
                                 <span class="ml-2 font-semibold text-red-600"
-                                  >{formatCurrency(editingPayslip.totalDeductions)}</span
+                                  >{formatCurrency(editingPayslip?.totalDeductions || 0)}</span
                                 >
                               </div>
                               <div>
                                 <span class="font-medium">실지급액:</span>
                                 <span class="ml-2 font-semibold text-blue-600"
-                                  >{formatCurrency(editingPayslip.netSalary)}</span
+                                  >{formatCurrency(editingPayslip?.netSalary || 0)}</span
                                 >
                               </div>
                             </div>
@@ -930,7 +948,8 @@
                           <ThemeButton
                             variant="ghost"
                             size="sm"
-                            onclick={() => enterEditMode(monthData.month, monthData.payslip)}
+                            onclick={() =>
+                              enterEditMode(monthData.month || 1, monthData.payslip || undefined)}
                           >
                             <EditIcon size={16} class="mr-1" />
                             편집
@@ -939,7 +958,7 @@
                           <ThemeButton
                             variant="ghost"
                             size="sm"
-                            onclick={() => enterEditMode(monthData.month)}
+                            onclick={() => enterEditMode(monthData.month || 1)}
                             class="border-red-300 text-red-700 hover:bg-red-50"
                           >
                             <PlusIcon size={16} class="mr-1" />

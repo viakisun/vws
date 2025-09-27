@@ -374,12 +374,12 @@
 
   // 증빙 내역 관리 상태
   let showEvidenceModal = $state(false)
-  let selectedBudgetForEvidence = $state(null)
-  let _evidenceList = $state([])
+  let selectedBudgetForEvidence = $state<any>(null)
+  let _evidenceList = $state<any[]>([])
   let selectedEvidencePeriod = $state(1)
   let showEvidenceDetailModal = $state(false)
-  let selectedEvidenceItem = $state(null)
-  let _evidenceTypes = $state([])
+  let selectedEvidenceItem = $state<any>(null)
+  let _evidenceTypes = $state<any[]>([])
   let expandedEvidenceSections = $state({
     personnel: true,
     material: true,
@@ -393,8 +393,8 @@
   let isRunningValidation = $state(false)
   let validationHistory = $state<any[]>([])
   let _autoValidationEnabled = $state(true)
-  let evidenceCategories = $state([])
-  let evidenceItems = $state([])
+  let evidenceCategories = $state<any[]>([])
+  let evidenceItems = $state<any[]>([])
   let isLoadingEvidence = $state(false)
 
   // 증빙 추가 폼
@@ -1323,7 +1323,7 @@
 
     try {
       isLoadingEvidence = true
-      let allEvidenceItems = []
+      let allEvidenceItems: any[] = []
 
       // 모든 연차의 증빙 데이터를 로드
       for (const budget of projectBudgets) {
@@ -1731,7 +1731,7 @@
 
     let totalCash = 0
     let totalInKind = 0
-    const monthlyCosts = []
+    const monthlyCosts: any[] = []
 
     // 월별 데이터 생성
     const currentDate = new Date(startDate)

@@ -1,6 +1,7 @@
 // Project Management Store
 // 프로젝트 관리 시스템의 메인 스토어
 
+import type { ApiResponse } from '$lib/types/database'
 import type {
   BudgetAlert,
   BudgetSummaryByYear,
@@ -96,7 +97,7 @@ export const projectActions = {
 
       projectStore.update((state) => ({
         ...state,
-        projects: [...state.projects, data.data],
+        projects: data.data ? [...state.projects, data.data] : state.projects,
         loading: false,
       }))
 
@@ -133,7 +134,7 @@ export const projectActions = {
       const data = (await response.json()) as ApiResponse<Project>
       projectStore.update((state) => ({
         ...state,
-        projects: state.projects.map((p) => (p.id === id ? data.data : p)),
+        projects: state.projects.map((p) => (p.id === id && data.data ? data.data : p)),
         loading: false,
       }))
 
@@ -186,7 +187,7 @@ export const projectActions = {
       const data = (await response.json()) as ApiResponse<Project[]>
       projectStore.update((state) => ({
         ...state,
-        summary: data.data,
+        summary: data.data as any,
       }))
     } catch (error) {
       logger.error('프로젝트 요약 정보 로드 실패:', error)
@@ -205,7 +206,7 @@ export const projectMemberActions = {
       const data = (await response.json()) as ApiResponse<Project[]>
       projectStore.update((state) => ({
         ...state,
-        projectMembers: data.data || [],
+        projectMembers: (data.data || []) as unknown as ProjectMember[],
       }))
     } catch (error) {
       logger.error('프로젝트 멤버 목록 로드 실패:', error)
@@ -231,7 +232,7 @@ export const projectMemberActions = {
       const data = (await response.json()) as ApiResponse<ProjectMember>
       projectStore.update((state) => ({
         ...state,
-        projectMembers: [...state.projectMembers, data.data],
+        projectMembers: data.data ? [...state.projectMembers, data.data] : state.projectMembers,
         loading: false,
       }))
 
@@ -265,7 +266,7 @@ export const projectMemberActions = {
       const data = (await response.json()) as ApiResponse<ProjectMember>
       projectStore.update((state) => ({
         ...state,
-        projectMembers: state.projectMembers.map((m) => (m.id === id ? data.data : m)),
+        projectMembers: state.projectMembers.map((m) => (m.id === id && data.data ? data.data : m)),
         loading: false,
       }))
 
@@ -328,7 +329,7 @@ export const participationRateActions = {
       const data = (await response.json()) as ApiResponse<Project[]>
       projectStore.update((state) => ({
         ...state,
-        participationRates: data.data || [],
+        participationRates: (data.data || []) as unknown as ParticipationRate[],
       }))
     } catch (error) {
       logger.error('참여율 현황 로드 실패:', error)
@@ -344,7 +345,8 @@ export const participationRateActions = {
       const data = (await response.json()) as ApiResponse<Project[]>
       projectStore.update((state) => ({
         ...state,
-        employeeParticipationSummary: data.data || [],
+        employeeParticipationSummary: (data.data ||
+          []) as unknown as EmployeeParticipationSummary[],
       }))
     } catch (error) {
       logger.error('개인별 참여율 요약 로드 실패:', error)
@@ -402,7 +404,7 @@ export const participationRateActions = {
       const data = (await response.json()) as ApiResponse<Project[]>
       projectStore.update((state) => ({
         ...state,
-        participationRateHistory: data.data || [],
+        participationRateHistory: (data.data || []) as unknown as ParticipationRateHistory[],
       }))
     } catch (error) {
       logger.error('참여율 변경 이력 로드 실패:', error)
@@ -421,7 +423,7 @@ export const budgetActions = {
       const data = (await response.json()) as ApiResponse<Project[]>
       projectStore.update((state) => ({
         ...state,
-        projectBudgets: data.data || [],
+        projectBudgets: (data.data || []) as unknown as ProjectBudget[],
       }))
     } catch (error) {
       logger.error('프로젝트 사업비 로드 실패:', error)
@@ -437,7 +439,7 @@ export const budgetActions = {
       const data = (await response.json()) as ApiResponse<Project[]>
       projectStore.update((state) => ({
         ...state,
-        budgetSummaryByYear: data.data || [],
+        budgetSummaryByYear: (data.data || []) as unknown as BudgetSummaryByYear[],
       }))
     } catch (error) {
       logger.error('연차별 사업비 요약 로드 실패:', error)
@@ -470,8 +472,12 @@ export const budgetActions = {
       projectStore.update((state) => ({
         ...state,
         projectBudgets: isUpdate
-          ? state.projectBudgets.map((b) => (b.id === budgetData.id ? data.data : b))
-          : [...state.projectBudgets, data.data],
+          ? state.projectBudgets.map((b) =>
+              b.id === budgetData.id && data.data ? (data.data as any) : b,
+            )
+          : data.data
+            ? [...state.projectBudgets, data.data as any]
+            : state.projectBudgets,
         loading: false,
       }))
 
@@ -498,7 +504,7 @@ export const alertActions = {
       const data = (await response.json()) as ApiResponse<Project[]>
       projectStore.update((state) => ({
         ...state,
-        alerts: data.data || [],
+        alerts: (data.data || []) as unknown as (ParticipationRateAlert | BudgetAlert)[],
       }))
     } catch (error) {
       logger.error('알림 로드 실패:', error)

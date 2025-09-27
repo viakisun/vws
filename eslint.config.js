@@ -5,11 +5,19 @@ import sveltePlugin from 'eslint-plugin-svelte'
 import unusedImports from 'eslint-plugin-unused-imports'
 import svelteParser from 'svelte-eslint-parser'
 import prettierConfig from 'eslint-config-prettier'
+import prettierPlugin from 'eslint-plugin-prettier'
 
 /** @type {import('eslint').Linter.Config[]} */
 export default [
   // Base configuration
   js.configs.recommended,
+
+  // Prettier 플러그인 설정
+  {
+    plugins: {
+      prettier: prettierPlugin,
+    },
+  },
 
   // Prettier 충돌 방지 설정 (마지막에 추가해야 함)
   prettierConfig,

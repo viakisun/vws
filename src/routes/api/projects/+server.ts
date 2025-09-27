@@ -1,5 +1,5 @@
 import { DatabaseService } from '$lib/database/connection'
-import type { ApiResponse } from '$lib/types/database'
+import type { ApiResponse, DatabaseProject } from '$lib/types/database'
 import { logger } from '$lib/utils/logger'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
