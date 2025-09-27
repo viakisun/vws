@@ -1,9 +1,66 @@
 import { query } from '$lib/database/connection'
+import type { ApiResponse } from '$lib/types/database'
 import { getCurrentDateForAPI } from '$lib/utils/date-calculator'
 import { logger } from '$lib/utils/logger'
 import { calculateMonthlySalary } from '$lib/utils/salary-calculator'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
+
+interface DatabaseProject {
+  id: string
+  title: string
+  code: string
+  start_date: string
+  end_date: string
+  budget_total: string
+  [key: string]: unknown
+}
+
+interface DatabaseProjectMember {
+  id: string
+  project_id: string
+  employee_id: string
+  start_date: string
+  end_date: string
+  participation_rate: string
+  monthly_amount: string
+  status: string
+  created_at: string
+  employee_name: string
+  first_name: string
+  last_name: string
+  employee_email: string
+  employee_department: string
+  employee_position: string
+  [key: string]: unknown
+}
+
+interface DatabaseSalaryContract {
+  annual_salary: string
+  monthly_salary: string
+  start_date: string
+  end_date: string
+  status: string
+  [key: string]: unknown
+}
+
+interface FixRequest {
+  projectId: string
+  fixes: Array<{
+    type: string
+    memberId: string
+    oldValue: number
+    newValue: number
+  }>
+}
+
+interface AppliedFix {
+  memberId: string
+  type: string
+  action: string
+  success: boolean
+  error?: string
+}
 
 // 프로젝트 멤버 타입 정의
 interface ProjectMember {
@@ -39,7 +96,7 @@ interface ValidationIssue {
   memberId: string
   memberName: string
   suggestedFix?: string
-  data?: any
+  data?: Record<string, unknown>
 }
 
 // GET: 참여연구원 검증 실행
@@ -60,7 +117,7 @@ export const GET: RequestHandler = async ({ url }) => {
     logger.log(`🔍 [참여연구원 검증] 프로젝트 ${projectId} 검증 시작`)
 
     // 1. 프로젝트 기본 정보 조회
-    const projectResult = await query(
+    const projectResult = await query<DatabaseProject>(
       `
 			SELECT id, title, code, start_date, end_date, budget_total
 			FROM projects 
@@ -70,19 +127,14 @@ export const GET: RequestHandler = async ({ url }) => {
     )
 
     if (projectResult.rows.length === 0) {
-      return json(
-        {
-          success: false,
-          error: '프로젝트를 찾을 수 없습니다.',
-        },
-        { status: 404 },
-      )
+      const response: ApiResponse<null> = { success: false, error: '프로젝트를 찾을 수 없습니다.' }
+      return json(response, { status: 404 })
     }
 
     const project = projectResult.rows[0]
 
     // 2. 참여연구원 목록 조회
-    const membersResult = await query(
+    const membersResult = await query<DatabaseProjectMember>(
       `
 			SELECT 
 				pm.*,
@@ -115,7 +167,10 @@ export const GET: RequestHandler = async ({ url }) => {
       `✅ [참여연구원 검증] 완료 - ${validationResult.isValid ? '✅ 통과' : '❌ 실패'} (${validationResult.issues.length}개 이슈)`,
     )
 
-    return json({
+    const response: ApiResponse<{
+      project: { id: string; title: string; code: string }
+      validation: ValidationResult
+    }> = {
       success: true,
       data: {
         project: {
@@ -125,38 +180,32 @@ export const GET: RequestHandler = async ({ url }) => {
         },
         validation: validationResult,
       },
-    })
-  } catch (error) {
+    }
+
+    return json(response)
+  } catch (error: unknown) {
     logger.error('참여연구원 검증 오류:', error)
-    return json(
-      {
-        success: false,
-        error: '검증 중 오류가 발생했습니다.',
-        details: error instanceof Error ? error.message : 'Unknown error',
-      },
-      { status: 500 },
-    )
+    const response: ApiResponse<null> = {
+      success: false,
+      error: error instanceof Error ? error.message : '검증 중 오류가 발생했습니다.',
+    }
+    return json(response, { status: 500 })
   }
 }
 
 // POST: 자동 수정 실행
 export const POST: RequestHandler = async ({ request }) => {
   try {
-    const { projectId, fixes } = await request.json()
+    const { projectId, fixes } = await request.json() as FixRequest
 
     if (!projectId) {
-      return json(
-        {
-          success: false,
-          error: '프로젝트 ID가 필요합니다.',
-        },
-        { status: 400 },
-      )
+      const response: ApiResponse<null> = { success: false, error: '프로젝트 ID가 필요합니다.' }
+      return json(response, { status: 400 })
     }
 
     logger.log(`🔧 [참여연구원 자동 수정] 프로젝트 ${projectId} 수정 시작`)
 
-    const appliedFixes: Array<{ memberId: any; type: any; action: string; success: boolean; error?: string }> = []
+    const appliedFixes: AppliedFix[] = []
 
     // 각 수정사항 적용
     for (const fix of fixes || []) {
@@ -203,7 +252,10 @@ export const POST: RequestHandler = async ({ request }) => {
       `✅ [참여연구원 자동 수정] 완료 - ${appliedFixes.filter((f) => f.success).length}/${appliedFixes.length}개 성공`,
     )
 
-    return json({
+    const response: ApiResponse<{
+      appliedFixes: AppliedFix[]
+      summary: { total: number; successful: number; failed: number }
+    }> = {
       success: true,
       data: {
         appliedFixes,
@@ -213,22 +265,21 @@ export const POST: RequestHandler = async ({ request }) => {
           failed: appliedFixes.filter((f) => !f.success).length,
         },
       },
-    })
-  } catch (error) {
+    }
+
+    return json(response)
+  } catch (error: unknown) {
     logger.error('자동 수정 오류:', error)
-    return json(
-      {
-        success: false,
-        error: '자동 수정 중 오류가 발생했습니다.',
-        details: error instanceof Error ? error.message : 'Unknown error',
-      },
-      { status: 500 },
-    )
+    const response: ApiResponse<null> = {
+      success: false,
+      error: error instanceof Error ? error.message : '자동 수정 중 오류가 발생했습니다.',
+    }
+    return json(response, { status: 500 })
   }
 }
 
 // 검증 로직 실행
-async function performValidation(project: any, members: ProjectMember[]): Promise<ValidationResult> {
+async function performValidation(project: DatabaseProject, members: ProjectMember[]): Promise<ValidationResult> {
   const issues: ValidationIssue[] = []
   let validMembers = 0
 
@@ -265,7 +316,7 @@ async function performValidation(project: any, members: ProjectMember[]): Promis
       : member.monthly_amount || 0
 
     // 실제 근로계약서에서 연봉 가져오기
-    const contractResult = await query(
+    const contractResult = await query<DatabaseSalaryContract>(
       `
 			SELECT sc.annual_salary, sc.monthly_salary, sc.start_date, sc.end_date, sc.status
 			FROM salary_contracts sc
@@ -286,7 +337,7 @@ async function performValidation(project: any, members: ProjectMember[]): Promis
     if (contractResult.rows.length > 0) {
       // 월급이 있으면 월급 기준, 없으면 연봉/12 기준
       const contract = contractResult.rows[0]
-      contractAmount = contract.monthly_salary || contract.annual_salary / 12
+      contractAmount = parseFloat(contract.monthly_salary || '0') || parseFloat(contract.annual_salary || '0') / 12
     }
 
     // 예상 월간 금액 계산
@@ -338,13 +389,13 @@ async function performValidation(project: any, members: ProjectMember[]): Promis
 
 // 근로계약서 검증
 async function validateContract(
-  member: any,
-  _project: any,
+  member: ProjectMember,
+  _project: DatabaseProject,
 ): Promise<{ isValid: boolean; issues: ValidationIssue[] }> {
   const issues: ValidationIssue[] = []
 
   // 프로젝트 참여 기간과 겹치는 계약서 조회
-  const contractResult = await query(
+  const contractResult = await query<DatabaseSalaryContract>(
     `
 		SELECT sc.annual_salary, sc.monthly_salary, sc.start_date, sc.end_date, sc.status
 		FROM salary_contracts sc
@@ -358,19 +409,19 @@ async function validateContract(
 		ORDER BY sc.start_date DESC
 		LIMIT 1
 	`,
-    [member.employee_id, member.start_date, member.end_date],
+    [member.id, member.start_date, member.end_date],
   )
 
   if (contractResult.rows.length === 0) {
     // 계약서가 없는 경우
-    const allContractsResult = await query(
+    const allContractsResult = await query<DatabaseSalaryContract>(
       `
 			SELECT sc.start_date, sc.end_date, sc.annual_salary, sc.status
 			FROM salary_contracts sc
 			WHERE sc.employee_id = $1
 			ORDER BY sc.start_date DESC
 		`,
-      [member.employee_id],
+      [member.id],
     )
 
     if (allContractsResult.rows.length === 0) {
@@ -414,12 +465,20 @@ async function validateContract(
 
 // 중복 참여 검증
 async function validateDuplicateParticipation(
-  member: any,
+  member: ProjectMember,
 ): Promise<{ isValid: boolean; issues: ValidationIssue[] }> {
   const issues: ValidationIssue[] = []
 
   // 동일 직원의 다른 프로젝트 참여 조회
-  const duplicateResult = await query(
+  const duplicateResult = await query<{
+    id: string
+    project_id: string
+    start_date: string
+    end_date: string
+    participation_rate: string
+    project_title: string
+    [key: string]: unknown
+  }>(
     `
 		SELECT pm.id, pm.project_id, pm.start_date, pm.end_date, pm.participation_rate,
 			   p.title as project_title
@@ -434,14 +493,14 @@ async function validateDuplicateParticipation(
 				(COALESCE($3, CURRENT_DATE) <= pm.start_date AND COALESCE($4, CURRENT_DATE) >= pm.start_date)
 			)
 	`,
-    [member.employee_id, member.id, member.start_date, member.end_date],
+    [member.id, member.id, member.start_date, member.end_date],
   )
 
   if (duplicateResult.rows.length > 0) {
     // 참여율 합계 계산
     const totalParticipationRate =
       duplicateResult.rows.reduce((sum, p) => sum + (parseFloat(p.participation_rate) || 0), 0) +
-      (parseFloat(member.participation_rate) || 0)
+      (parseFloat(String(member.participation_rate)) || 0)
 
     if (totalParticipationRate > 100) {
       issues.push({

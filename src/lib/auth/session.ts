@@ -63,7 +63,7 @@ export class SessionManager {
       const storedUser = window.localStorage.getItem('user_data')
 
       if (storedToken && storedUser) {
-        const user = JSON.parse(storedUser)
+        const user = JSON.parse(storedUser) as Record<string, unknown>
         this.sessionStore.update((session) => ({
           ...session,
           user,
@@ -211,13 +211,13 @@ export class SessionManager {
         body: JSON.stringify({ email, password }),
       })
 
-      const data = await response.json()
+      const data = await response.json() as Record<string, unknown>
 
       if (response.ok && data.success) {
-        this.setSession(data.user, data.token)
+        this.setSession(data.user as Record<string, unknown>, data.token as string)
         return { success: true }
       } else {
-        return { success: false, message: data.message || 'Login failed' }
+        return { success: false, message: (data.message as string) || 'Login failed' }
       }
     } catch {
       // logger.error('Login error:', error)
@@ -259,15 +259,15 @@ export class SessionManager {
       })
 
       if (response.ok) {
-        const data = await response.json()
+        const data = await response.json() as Record<string, unknown>
         if (data.success && data.token) {
           this.sessionStore.update((session) => ({
             ...session,
-            token: data.token,
+            token: data.token as string,
           }))
 
           if (browser) {
-            window.localStorage.setItem('auth_token', data.token)
+            window.localStorage.setItem('auth_token', data.token as string)
           }
           return true
         }
@@ -331,17 +331,17 @@ export const sessionManager = SessionManager.getInstance()
 export function useSession() {
   return {
     subscribe: session.subscribe,
-    login: sessionManager.login.bind(sessionManager),
-    logout: sessionManager.logout.bind(sessionManager),
-    isAuthenticated: sessionManager.isAuthenticated.bind(sessionManager),
-    hasRole: sessionManager.hasRole.bind(sessionManager),
-    hasAnyRole: sessionManager.hasAnyRole.bind(sessionManager),
-    isAdmin: sessionManager.isAdmin.bind(sessionManager),
-    isManager: sessionManager.isManager.bind(sessionManager),
-    isEmployee: sessionManager.isEmployee.bind(sessionManager),
-    isViewer: sessionManager.isViewer.bind(sessionManager),
-    getCurrentUser: sessionManager.getCurrentUser.bind(sessionManager),
-    apiRequest: sessionManager.apiRequest.bind(sessionManager),
+    login: sessionManager.login.bind(sessionManager) as typeof sessionManager.login,
+    logout: sessionManager.logout.bind(sessionManager) as typeof sessionManager.logout,
+    isAuthenticated: sessionManager.isAuthenticated.bind(sessionManager) as typeof sessionManager.isAuthenticated,
+    hasRole: sessionManager.hasRole.bind(sessionManager) as typeof sessionManager.hasRole,
+    hasAnyRole: sessionManager.hasAnyRole.bind(sessionManager) as typeof sessionManager.hasAnyRole,
+    isAdmin: sessionManager.isAdmin.bind(sessionManager) as typeof sessionManager.isAdmin,
+    isManager: sessionManager.isManager.bind(sessionManager) as typeof sessionManager.isManager,
+    isEmployee: sessionManager.isEmployee.bind(sessionManager) as typeof sessionManager.isEmployee,
+    isViewer: sessionManager.isViewer.bind(sessionManager) as typeof sessionManager.isViewer,
+    getCurrentUser: sessionManager.getCurrentUser.bind(sessionManager) as typeof sessionManager.getCurrentUser,
+    apiRequest: sessionManager.apiRequest.bind(sessionManager) as typeof sessionManager.apiRequest,
   }
 }
 

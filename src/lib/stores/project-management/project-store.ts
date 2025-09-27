@@ -2,20 +2,20 @@
 // 프로젝트 관리 시스템의 메인 스토어
 
 import type {
-  BudgetAlert,
-  BudgetSummaryByYear,
-  EmployeeParticipationSummary,
-  ParticipationRate,
-  ParticipationRateAlert,
-  ParticipationRateFilters,
-  ParticipationRateHistory,
-  ParticipationRateStats,
-  Project,
-  ProjectBudget,
-  ProjectFilters,
-  ProjectMember,
-  ProjectStatusStats,
-  ProjectSummary,
+    BudgetAlert,
+    BudgetSummaryByYear,
+    EmployeeParticipationSummary,
+    ParticipationRate,
+    ParticipationRateAlert,
+    ParticipationRateFilters,
+    ParticipationRateHistory,
+    ParticipationRateStats,
+    Project,
+    ProjectBudget,
+    ProjectFilters,
+    ProjectMember,
+    ProjectStatusStats,
+    ProjectSummary,
 } from '$lib/types'
 import { logger } from '$lib/utils/logger'
 import { derived, writable } from 'svelte/store'
@@ -48,7 +48,7 @@ export const projectActions = {
       const params = new URLSearchParams()
       if (filters) {
         Object.entries(filters).forEach(([key, value]) => {
-          if (value) params.append(key, value)
+          if (value) params.append(key, String(value))
         })
       }
 
@@ -71,7 +71,7 @@ export const projectActions = {
   },
 
   // 프로젝트 생성
-  async createProject(projectData: any) {
+  async createProject(projectData: Record<string, unknown>) {
     projectStore.update((state) => ({ ...state, loading: true, error: null }))
 
     try {
@@ -115,7 +115,7 @@ export const projectActions = {
   },
 
   // 프로젝트 수정
-  async updateProject(id: string, projectData: any) {
+  async updateProject(id: string, projectData: Record<string, unknown>) {
     projectStore.update((state) => ({ ...state, loading: true, error: null }))
 
     try {
@@ -213,7 +213,7 @@ export const projectMemberActions = {
   },
 
   // 프로젝트 멤버 추가
-  async addProjectMember(memberData: any) {
+  async addProjectMember(memberData: Record<string, unknown>) {
     projectStore.update((state) => ({ ...state, loading: true, error: null }))
 
     try {
@@ -247,7 +247,7 @@ export const projectMemberActions = {
   },
 
   // 프로젝트 멤버 수정
-  async updateProjectMember(id: string, memberData: any) {
+  async updateProjectMember(id: string, memberData: Record<string, unknown>) {
     projectStore.update((state) => ({ ...state, loading: true, error: null }))
 
     try {
@@ -318,7 +318,7 @@ export const participationRateActions = {
       const params = new URLSearchParams()
       if (filters) {
         Object.entries(filters).forEach(([key, value]) => {
-          if (value) params.append(key, value)
+          if (value) params.append(key, String(value))
         })
       }
 
@@ -352,7 +352,7 @@ export const participationRateActions = {
   },
 
   // 참여율 업데이트
-  async updateParticipationRate(rateData: any) {
+  async updateParticipationRate(rateData: Record<string, unknown>) {
     projectStore.update((state) => ({ ...state, loading: true, error: null }))
 
     try {
@@ -372,7 +372,7 @@ export const participationRateActions = {
         ...state,
         participationRates: state.participationRates.map((r) =>
           r.employeeId === rateData.employeeId && r.projectId === rateData.projectId
-            ? { ...r, participationRate: rateData.participationRate }
+            ? { ...r, participationRate: Number(rateData.participationRate) || 0 }
             : r,
         ),
         loading: false,
@@ -445,7 +445,7 @@ export const budgetActions = {
   },
 
   // 사업비 생성/수정
-  async saveProjectBudget(budgetData: any) {
+  async saveProjectBudget(budgetData: Record<string, unknown>) {
     projectStore.update((state) => ({ ...state, loading: true, error: null }))
 
     try {

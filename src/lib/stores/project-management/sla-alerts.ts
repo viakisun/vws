@@ -18,7 +18,7 @@ interface SLAPolicy {
       message: string
     }>
   }>
-  escalationPath?: unknown[]
+  escalationPath?: Array<{ role: string; userId: string }>
 }
 
 // SLA 알림 관리
@@ -158,7 +158,7 @@ export function defineSlaPolicies(): void {
     },
   }
 
-  escalationPolicies.set(policies)
+  escalationPolicies.set(policies as unknown as Record<string, SLAPolicy>)
 }
 
 // SLA 알림 생성
@@ -221,7 +221,7 @@ export function checkSlaCompliance(entityType: string, entityId: string): void {
 
   // 각 단계별 SLA 체크
   if (policy.stages && Array.isArray(policy.stages)) {
-    policy.stages.forEach((stage: any) => {
+    policy.stages.forEach((stage) => {
       checkStageSla(entityType, entityId, stage, policy.escalationPath || [])
     })
   }
@@ -231,8 +231,8 @@ export function checkSlaCompliance(entityType: string, entityId: string): void {
 function checkStageSla(
   entityType: string,
   entityId: string,
-  stage: any,
-  escalationPath: unknown[],
+  stage: { stage: string; slaDays: number; alerts: Array<{ daysBefore?: number; daysAfter?: number; type: string; message: string }> },
+  escalationPath: Array<{ role: string; userId: string }>,
 ): void {
   const entityData = getEntityData(entityType, entityId)
   if (!entityData) return
@@ -240,16 +240,16 @@ function checkStageSla(
   const currentStage = getCurrentStage(entityType, entityId)
   if (currentStage !== stage.stage) return
 
-  const daysElapsed = calculateDaysElapsed(entityData.createdAt, stage.slaDays)
+  const daysElapsed = calculateDaysElapsed(String(entityData.createdAt), stage.slaDays)
 
   // 알림 조건 체크
-  stage.alerts.forEach((alert: any) => {
+  stage.alerts.forEach((alert) => {
     if (shouldTriggerAlert(daysElapsed, alert)) {
       const assignedTo = getAssignedUsers(entityType, entityId, escalationPath)
       createSlaAlert(
         entityType,
         entityId,
-        alert.type,
+        alert.type as 'sla-warning' | 'sla-breach' | 'escalation',
         alert.message,
         getSeverityFromAlertType(alert.type),
         assignedTo,
@@ -259,7 +259,7 @@ function checkStageSla(
 }
 
 // 엔티티 데이터 가져오기
-function getEntityData(entityType: string, entityId: string): any {
+function getEntityData(entityType: string, entityId: string): Record<string, unknown> | null {
   // 실제 구현에서는 해당 엔티티의 데이터를 가져옴
   switch (entityType) {
     case 'expense':
@@ -310,7 +310,7 @@ function calculateDaysElapsed(createdAt: string, slaDays: number): number {
 }
 
 // 알림 발송 조건 체크
-function shouldTriggerAlert(daysElapsed: number, alert: any): boolean {
+function shouldTriggerAlert(daysElapsed: number, alert: { daysBefore?: number; daysAfter?: number; type: string; message: string }): boolean {
   if (alert.daysBefore !== undefined) {
     return daysElapsed === -alert.daysBefore
   } else if (alert.daysAfter !== undefined) {
@@ -399,7 +399,7 @@ export function escalateSlaAlert(alertId: string, escalatedBy: string, reason: s
 }
 
 // SLA 통계
-export function getSlaStatistics(period: 'day' | 'week' | 'month'): any {
+export function getSlaStatistics(period: 'day' | 'week' | 'month'): Record<string, unknown> {
   let allAlerts: SLAAlert[] = []
 
   slaAlerts.subscribe((alerts) => {
@@ -483,7 +483,7 @@ function calculateAverageResolutionTime(alerts: SLAAlert[]): number {
 }
 
 // SLA 대시보드 데이터
-export function getSlaDashboardData(): any {
+export function getSlaDashboardData(): Record<string, unknown> {
   const dayStats = getSlaStatistics('day')
   const weekStats = getSlaStatistics('week')
   const monthStats = getSlaStatistics('month')
@@ -505,9 +505,9 @@ export function getSlaDashboardData(): any {
     monthStats,
     recentAlerts,
     trends: {
-      alertsTrend: calculateTrend(dayStats.totalAlerts, weekStats.totalAlerts),
-      resolutionTrend: calculateTrend(dayStats.resolutionRate, weekStats.resolutionRate),
-      escalationTrend: calculateTrend(dayStats.escalationRate, weekStats.escalationRate),
+      alertsTrend: calculateTrend(Number(dayStats.totalAlerts), Number(weekStats.totalAlerts)),
+      resolutionTrend: calculateTrend(Number(dayStats.resolutionRate), Number(weekStats.resolutionRate)),
+      escalationTrend: calculateTrend(Number(dayStats.escalationRate), Number(weekStats.escalationRate)),
     },
   }
 }
@@ -594,7 +594,7 @@ export function createSlaTemplate(
     name: templateName,
     entityType,
     stages: stages as SLAPolicy['stages'],
-    escalationPath,
+    escalationPath: escalationPath as Array<{ role: string; userId: string }>,
   }
 
   escalationPolicies.update((policies) => ({

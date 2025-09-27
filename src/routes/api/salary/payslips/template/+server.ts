@@ -1,16 +1,30 @@
 import { query } from '$lib/database/connection'
-import { formatEmployeeName } from '$lib/utils/format'
 import { toUTC } from '$lib/utils/date-handler'
+import { formatEmployeeName } from '$lib/utils/format'
+import { logger } from '$lib/utils/logger'
 import { json } from '@sveltejs/kit'
 import ExcelJS from 'exceljs'
+import type { RequestHandler } from './$types'
 
-export async function GET({ url }) {
+interface EmployeeData {
+  id: string
+  employee_id: string
+  first_name: string
+  last_name: string
+  department: string
+  position: string
+  hire_date: string
+  annual_salary: string | null
+  [key: string]: unknown
+}
+
+export const GET: RequestHandler = async ({ url }) => {
   try {
     const year = url.searchParams.get('year') || new Date().getFullYear().toString()
     const month = url.searchParams.get('month') || (new Date().getMonth() + 1).toString()
 
     // 모든 직원 정보 조회
-    const { rows: employees } = await query(
+    const result = await query<EmployeeData>(
       `
 			SELECT 
 				e.id,
@@ -27,6 +41,8 @@ export async function GET({ url }) {
 			ORDER BY e.department, e.employee_id
 			`,
     )
+
+    const employees = result.rows
 
     // 엑셀 워크북 생성
     const workbook = new ExcelJS.Workbook()
@@ -80,8 +96,8 @@ export async function GET({ url }) {
     })
 
     // 데이터 행 추가
-    employees.forEach((employee: any) => {
-      const baseSalary = employee.annual_salary ? Math.round(employee.annual_salary / 12) : 3000000
+    employees.forEach((employee) => {
+      const baseSalary = employee.annual_salary ? Math.round(parseFloat(employee.annual_salary) / 12) : 3000000
       const hireDate = employee.hire_date ? toUTC(new Date(employee.hire_date)).split('T')[0] : ''
 
       const row = [
@@ -183,12 +199,12 @@ export async function GET({ url }) {
         'Content-Disposition': `attachment; filename*=UTF-8''${encodedFileName}`,
       },
     })
-  } catch (error) {
+  } catch (error: unknown) {
+    logger.error('Error generating payslip template:', error)
     return json(
       {
         success: false,
-        error: '엑셀 템플릿 생성에 실패했습니다.',
-        details: error instanceof Error ? error.message : 'Unknown error',
+        error: error instanceof Error ? error.message : '엑셀 템플릿 생성에 실패했습니다.',
       },
       { status: 500 },
     )

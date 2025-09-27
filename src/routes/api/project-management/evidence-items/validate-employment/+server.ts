@@ -1,29 +1,70 @@
+import { query } from '$lib/database/connection'
+import type { ApiResponse } from '$lib/types/database'
 import { formatDateForDisplay, toUTC } from '$lib/utils/date-handler'
 import { formatEmployeeName } from '$lib/utils/format'
 import { logger } from '$lib/utils/logger'
 import { json } from '@sveltejs/kit'
-import { Pool } from 'pg'
 import type { RequestHandler } from './$types'
 
-const pool = new Pool({
-  host: 'db-viahub.cdgqkcss8mpj.ap-northeast-2.rds.amazonaws.com',
-  port: 5432,
-  database: 'postgres',
-  user: 'postgres',
-  password: 'viahubdev',
-  ssl: { rejectUnauthorized: false },
-})
+interface EmployeeData {
+  id: string
+  first_name: string
+  last_name: string
+  hire_date: string
+  termination_date: string | null
+  status: string
+  [key: string]: unknown
+}
+
+interface BudgetData {
+  start_date: string
+  end_date: string
+  period_number: number
+  [key: string]: unknown
+}
+
+interface ValidationRequest {
+  assigneeId: string
+  dueDate: string
+  projectBudgetId: string
+}
+
+interface ValidationResult {
+  isValid: boolean
+  reason: string
+  message: string
+  warnings: string[]
+}
+
+interface EmployeeInfo {
+  id: string
+  name: string
+  hireDate: string
+  terminationDate: string | null
+  status: string
+}
+
+interface ProjectPeriod {
+  startDate: string
+  endDate: string
+  periodNumber: number
+  fiscalYear: number
+}
 
 export const POST: RequestHandler = async ({ request }) => {
   try {
-    const { assigneeId, dueDate, projectBudgetId } = await request.json()
+    const { assigneeId, dueDate, projectBudgetId } = (await request.json()) as ValidationRequest
 
     if (!assigneeId || !dueDate || !projectBudgetId) {
-      return json({ error: '담당자 ID, 기한, 프로젝트 예산 ID가 필요합니다.' }, { status: 400 })
+      const response: ApiResponse<null> = {
+        success: false,
+        error: '담당자 ID, 기한, 프로젝트 예산 ID가 필요합니다.',
+      }
+      return json(response, { status: 400 })
     }
 
     // 담당자의 재직 정보 조회
-    const employeeResult = await pool.query(
+    const employeeResult = await query<EmployeeData>(
       `
 			SELECT 
 				id,
@@ -39,11 +80,12 @@ export const POST: RequestHandler = async ({ request }) => {
     )
 
     if (employeeResult.rows.length === 0) {
-      return json({
+      const response: ApiResponse<null> = {
         success: false,
         error: 'EMPLOYEE_NOT_FOUND',
         message: '담당 직원을 찾을 수 없습니다.',
-      })
+      }
+      return json(response, { status: 404 })
     }
 
     const employee = employeeResult.rows[0]
@@ -52,7 +94,7 @@ export const POST: RequestHandler = async ({ request }) => {
     const terminationDate = employee.termination_date ? new Date(employee.termination_date) : null
 
     // 프로젝트 예산 기간 조회
-    const budgetResult = await pool.query(
+    const budgetResult = await query<BudgetData>(
       `
 			SELECT 
 				start_date,
@@ -65,11 +107,12 @@ export const POST: RequestHandler = async ({ request }) => {
     )
 
     if (budgetResult.rows.length === 0) {
-      return json({
+      const response: ApiResponse<null> = {
         success: false,
         error: 'BUDGET_NOT_FOUND',
         message: '프로젝트 예산 정보를 찾을 수 없습니다.',
-      })
+      }
+      return json(response, { status: 404 })
     }
 
     const budget = budgetResult.rows[0]
@@ -140,39 +183,51 @@ export const POST: RequestHandler = async ({ request }) => {
       }
     }
 
-    return json({
+    const validation: ValidationResult = {
+      isValid,
+      reason,
+      message,
+      warnings,
+    }
+
+    const employeeInfo: EmployeeInfo = {
+      id: employee.id,
+      name: formatEmployeeName(employee),
+      hireDate: employee.hire_date,
+      terminationDate: employee.termination_date,
+      status: employee.status,
+    }
+
+    const projectPeriod: ProjectPeriod = {
+      startDate: budget.start_date,
+      endDate: budget.end_date,
+      periodNumber: budget.period_number,
+      fiscalYear: budget.period_number,
+    }
+
+    const response: ApiResponse<{
+      validation: ValidationResult
+      employee: EmployeeInfo
+      projectPeriod: ProjectPeriod
+      dueDate: string
+    }> = {
       success: true,
-      validation: {
-        isValid,
-        reason,
-        message,
-        warnings,
+      data: {
+        validation,
+        employee: employeeInfo,
+        projectPeriod,
+        dueDate,
       },
-      employee: {
-        id: employee.id,
-        name: formatEmployeeName(employee),
-        hireDate: employee.hire_date,
-        terminationDate: employee.termination_date,
-        status: employee.status,
-      },
-      projectPeriod: {
-        startDate: budget.start_date,
-        endDate: budget.end_date,
-        periodNumber: budget.period_number,
-        fiscalYear: budget.period_number,
-      },
-      dueDate: dueDate,
-    })
-  } catch (error) {
+    }
+
+    return json(response)
+  } catch (error: unknown) {
     logger.error('Employment validation error:', error)
-    return json(
-      {
-        success: false,
-        error: 'VALIDATION_ERROR',
-        message: '재직 기간 검증 중 오류가 발생했습니다.',
-        details: error instanceof Error ? error.message : 'Unknown error',
-      },
-      { status: 500 },
-    )
+    const response: ApiResponse<null> = {
+      success: false,
+      error: 'VALIDATION_ERROR',
+      message: '재직 기간 검증 중 오류가 발생했습니다.',
+    }
+    return json(response, { status: 500 })
   }
 }

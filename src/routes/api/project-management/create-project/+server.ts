@@ -1,18 +1,10 @@
+import { query } from '$lib/database/connection'
+import type { ApiResponse } from '$lib/types/database'
 import { formatDateForAPI } from '$lib/utils/date-calculator'
 import { logger } from '$lib/utils/logger'
 import { calculateBudgetAllocation } from '$lib/utils/salary-calculator'
 import { json } from '@sveltejs/kit'
-import { Pool } from 'pg'
 import type { RequestHandler } from './$types'
-
-const pool = new Pool({
-  host: 'db-viahub.cdgqkcss8mpj.ap-northeast-2.rds.amazonaws.com',
-  port: 5432,
-  database: 'postgres',
-  user: 'postgres',
-  password: 'viahubdev',
-  ssl: { rejectUnauthorized: false },
-})
 
 interface ProjectCreationRequest {
   name: string
@@ -59,13 +51,30 @@ interface ProjectCreationRequest {
   }
 }
 
-export const POST: RequestHandler = async ({ request }) => {
-  const client = await pool.connect()
+interface ValidationResult {
+  isValid: boolean
+  errors: string[]
+}
 
+interface ProjectCreationResponse {
+  projectId: string
+  budgetIds: string[]
+  memberIds: string[]
+  evidenceIds: string[]
+  validation: ValidationResult
+  autoValidation: {
+    success: boolean
+    results: unknown[]
+    errors: string[]
+    fixedIssues: number
+  }
+}
+
+export const POST: RequestHandler = async ({ request }) => {
   try {
     logger.log('🚀 [1단계] 프로젝트 생성 요청 시작')
 
-    const data: ProjectCreationRequest = await request.json()
+    const data = (await request.json()) as ProjectCreationRequest
     logger.log('📋 [1단계] 요청 데이터:', JSON.stringify(data, null, 2))
 
     // 입력 데이터 검증
@@ -73,32 +82,37 @@ export const POST: RequestHandler = async ({ request }) => {
     const validationResult = await validateProjectData(data)
     if (!validationResult.isValid) {
       logger.log('❌ [2단계] 검증 실패:', validationResult.errors)
-      return json({ success: false, errors: validationResult.errors }, { status: 400 })
+      const response: ApiResponse<null> = {
+        success: false,
+        error: validationResult.errors.join(', '),
+      }
+      return json(response, { status: 400 })
     }
     logger.log('✅ [2단계] 입력 데이터 검증 완료')
 
-    await client.query('BEGIN')
+    await query('BEGIN')
     logger.log('🔄 [3단계] 데이터베이스 트랜잭션 시작')
 
     // 프로젝트 생성
     logger.log('📝 [4단계] 프로젝트 기본 정보 생성')
-    const projectId = await createProject(client, data)
+    const projectId = await createProject(data)
     logger.log(`✅ [4단계] 프로젝트 생성 완료 - ID: ${projectId}`)
 
     // 연차별 예산 생성
     logger.log('💰 [5단계] 연차별 예산 생성')
-    const budgetIds = await createProjectBudgets(client, projectId, data)
+    const budgetIds = await createProjectBudgets(projectId, data)
     logger.log(`✅ [5단계] 연차별 예산 생성 완료 - ${budgetIds.length}개 연차`)
 
     // 참여연구원 생성
     logger.log('👥 [6단계] 참여연구원 생성')
-    const memberIds = await createProjectMembers(client, projectId, data)
+    const memberIds = await createProjectMembers(projectId, data)
     logger.log(`✅ [6단계] 참여연구원 생성 완료 - ${memberIds.length}명`)
 
     // 증빙 항목 자동 생성 (설정된 경우)
+    let evidenceIds: string[] = []
     if (data.evidenceSettings.autoGenerate) {
       logger.log('📄 [7단계] 증빙 항목 자동 생성')
-      const evidenceIds = await createEvidenceItems(client, projectId, data)
+      evidenceIds = await createEvidenceItems(projectId, data)
       logger.log(`✅ [7단계] 증빙 항목 자동 생성 완료 - ${evidenceIds.length}개 항목`)
     } else {
       logger.log('⏭️ [7단계] 증빙 항목 자동 생성 건너뜀 (설정 비활성화)')
@@ -106,11 +120,15 @@ export const POST: RequestHandler = async ({ request }) => {
 
     // 검증 로직 실행
     logger.log('🔍 [8단계] 생성된 데이터 검증')
-    const finalValidation = await validateCreatedProject(client, projectId)
+    const finalValidation = await validateCreatedProject(projectId)
     if (!finalValidation.isValid) {
       logger.log('❌ [8단계] 최종 검증 실패:', finalValidation.errors)
-      await client.query('ROLLBACK')
-      return json({ success: false, errors: finalValidation.errors }, { status: 400 })
+      await query('ROLLBACK')
+      const response: ApiResponse<null> = {
+        success: false,
+        error: finalValidation.errors.join(', '),
+      }
+      return json(response, { status: 400 })
     }
     logger.log('✅ [8단계] 최종 검증 완료')
 
@@ -123,29 +141,34 @@ export const POST: RequestHandler = async ({ request }) => {
       fixedIssues: 0,
     }
 
-    await client.query('COMMIT')
+    await query('COMMIT')
     logger.log('✅ [10단계] 데이터베이스 트랜잭션 커밋 완료')
 
-    const result = {
-      success: true,
+    const result: ProjectCreationResponse = {
       projectId,
       budgetIds,
       memberIds,
-      evidenceIds: data.evidenceSettings.autoGenerate
-        ? await createEvidenceItems(client, projectId, data)
-        : [],
+      evidenceIds,
       validation: finalValidation,
       autoValidation: autoValidationResult,
     }
 
+    const response: ApiResponse<ProjectCreationResponse> = {
+      success: true,
+      data: result,
+      message: '프로젝트가 성공적으로 생성되었습니다.',
+    }
+
     logger.log('🎉 [완료] 프로젝트 생성 성공:', result)
-    return json(result)
-  } catch (error) {
+    return json(response)
+  } catch (error: unknown) {
     logger.error('💥 [오류] 프로젝트 생성 중 오류 발생:', error)
-    await client.query('ROLLBACK')
-    return json({ success: false, error: error.message }, { status: 500 })
-  } finally {
-    client.release()
+    await query('ROLLBACK')
+    const response: ApiResponse<null> = {
+      success: false,
+      error: error instanceof Error ? error.message : '프로젝트 생성 중 오류가 발생했습니다.',
+    }
+    return json(response, { status: 500 })
   }
 }
 
@@ -222,7 +245,7 @@ async function validateProjectData(data: ProjectCreationRequest) {
 }
 
 // 프로젝트 생성 함수
-async function createProject(client: any, data: ProjectCreationRequest) {
+async function createProject(data: ProjectCreationRequest): Promise<string> {
   logger.log('📝 [생성] 프로젝트 기본 정보 삽입')
 
   const projectQuery = `
@@ -233,7 +256,7 @@ async function createProject(client: any, data: ProjectCreationRequest) {
     RETURNING id
   `
 
-  const result = await client.query(projectQuery, [
+  const result = await query(projectQuery, [
     `PRJ-${Date.now()}`, // 프로젝트 코드 자동 생성
     data.name,
     data.description,
@@ -249,7 +272,7 @@ async function createProject(client: any, data: ProjectCreationRequest) {
 }
 
 // 연차별 예산 생성 함수
-async function createProjectBudgets(client: any, projectId: string, data: ProjectCreationRequest) {
+async function createProjectBudgets(projectId: string, data: ProjectCreationRequest): Promise<string[]> {
   logger.log('💰 [생성] 연차별 예산 삽입 시작')
 
   const budgetIds: string[] = []
@@ -299,7 +322,7 @@ async function createProjectBudgets(client: any, projectId: string, data: Projec
     const researchStipend = (period.researchStipendCash || 0) + (period.researchStipendInKind || 0)
     const _indirectCostTotal = (period.indirectCostCash || 0) + (period.indirectCostInKind || 0)
 
-    const result = await client.query(budgetQuery, [
+    const result = await query(budgetQuery, [
       projectId,
       period.periodNumber,
       period.startDate,
@@ -332,7 +355,7 @@ async function createProjectBudgets(client: any, projectId: string, data: Projec
 }
 
 // 참여연구원 생성 함수
-async function createProjectMembers(client: any, projectId: string, data: ProjectCreationRequest) {
+async function createProjectMembers(projectId: string, data: ProjectCreationRequest): Promise<string[]> {
   logger.log('👥 [생성] 참여연구원 삽입 시작')
 
   const memberIds: string[] = []
@@ -361,7 +384,7 @@ async function createProjectMembers(client: any, projectId: string, data: Projec
       RETURNING id
     `
 
-    const result = await client.query(memberQuery, [
+    const result = await query(memberQuery, [
       projectId,
       member.employeeId,
       member.role,
@@ -379,7 +402,7 @@ async function createProjectMembers(client: any, projectId: string, data: Projec
 }
 
 // 증빙 항목 자동 생성 함수
-async function createEvidenceItems(client: any, projectId: string, data: ProjectCreationRequest) {
+async function createEvidenceItems(projectId: string, data: ProjectCreationRequest): Promise<string[]> {
   logger.log('📄 [생성] 증빙 항목 자동 생성 시작')
 
   const evidenceIds: string[] = []
@@ -389,7 +412,7 @@ async function createEvidenceItems(client: any, projectId: string, data: Project
     logger.log(`📄 [생성] ${period.periodNumber}차년도 증빙 항목 생성`)
 
     // 해당 연차의 예산 ID 조회
-    const budgetResult = await client.query(
+    const budgetResult = await query(
       'SELECT id FROM project_budgets WHERE project_id = $1 AND period_number = $2',
       [projectId, period.periodNumber],
     )
@@ -405,7 +428,7 @@ async function createEvidenceItems(client: any, projectId: string, data: Project
     for (const category of data.budgetCategories) {
       if (category.percentage > 0) {
         // 카테고리 ID 조회 (기본 카테고리 사용)
-        const categoryResult = await client.query(
+        const categoryResult = await query(
           'SELECT id FROM evidence_categories WHERE name = $1 LIMIT 1',
           [category.name],
         )
@@ -415,7 +438,7 @@ async function createEvidenceItems(client: any, projectId: string, data: Project
           categoryId = categoryResult.rows[0].id
         } else {
           // 카테고리가 없으면 기본 카테고리 생성
-          const createCategoryResult = await client.query(
+          const createCategoryResult = await query(
             'INSERT INTO evidence_categories (name, description) VALUES ($1, $2) RETURNING id',
             [category.name, `${category.name} 증빙 항목`],
           )
@@ -438,7 +461,7 @@ async function createEvidenceItems(client: any, projectId: string, data: Project
         // 중앙화된 날짜 변환 함수 사용 (UTC+9 타임존 적용)
         const formattedDueDate = formatDateForAPI(dueDate)
 
-        const result = await client.query(evidenceQuery, [
+        const result = await query(evidenceQuery, [
           projectBudgetId,
           categoryId,
           `${category.name} 증빙`,
@@ -458,19 +481,19 @@ async function createEvidenceItems(client: any, projectId: string, data: Project
 }
 
 // 생성된 프로젝트 검증 함수
-async function validateCreatedProject(client: any, projectId: string) {
+async function validateCreatedProject(projectId: string): Promise<ValidationResult> {
   logger.log('🔍 [검증] 생성된 프로젝트 데이터 검증 시작')
 
   const errors: string[] = []
 
   // 프로젝트 기본 정보 확인
-  const projectResult = await client.query('SELECT * FROM projects WHERE id = $1', [projectId])
+  const projectResult = await query('SELECT * FROM projects WHERE id = $1', [projectId])
   if (projectResult.rows.length === 0) {
     errors.push('프로젝트가 생성되지 않았습니다.')
   }
 
   // 연차별 예산 확인
-  const budgetResult = await client.query(
+  const budgetResult = await query(
     'SELECT * FROM project_budgets WHERE project_id = $1 ORDER BY period_number',
     [projectId],
   )
@@ -479,7 +502,7 @@ async function validateCreatedProject(client: any, projectId: string) {
   }
 
   // 참여연구원 확인
-  const memberResult = await client.query('SELECT * FROM project_members WHERE project_id = $1', [
+  const memberResult = await query('SELECT * FROM project_members WHERE project_id = $1', [
     projectId,
   ])
   if (memberResult.rows.length === 0) {
@@ -528,7 +551,7 @@ async function _runAutoValidationAndFix(projectId: string) {
     logger.log('🛡️ [자동검증] 검증 룰 실행 완료:', result)
 
     return result
-  } catch (error) {
+  } catch (error: unknown) {
     logger.error('💥 [자동검증] 오류:', error)
     return {
       success: false,

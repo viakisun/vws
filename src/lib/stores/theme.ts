@@ -274,13 +274,13 @@ export const themeCSS = `
 // Utility functions for components
 export function useTheme() {
   return {
-    subscribe: themeManager.subscribe.bind(themeManager),
-    subscribeToCurrent: themeManager.subscribeToCurrent.bind(themeManager),
-    subscribeToConfig: themeManager.subscribeToConfig.bind(themeManager),
-    setTheme: themeManager.setTheme.bind(themeManager),
-    toggleTheme: themeManager.toggleTheme.bind(themeManager),
-    getTheme: themeManager.getTheme.bind(themeManager),
-    getAvailableThemes: themeManager.getAvailableThemes.bind(themeManager),
+    subscribe: themeManager.subscribe.bind(themeManager) as typeof themeManager.subscribe,
+    subscribeToCurrent: themeManager.subscribeToCurrent.bind(themeManager) as typeof themeManager.subscribeToCurrent,
+    subscribeToConfig: themeManager.subscribeToConfig.bind(themeManager) as typeof themeManager.subscribeToConfig,
+    setTheme: themeManager.setTheme.bind(themeManager) as typeof themeManager.setTheme,
+    toggleTheme: themeManager.toggleTheme.bind(themeManager) as typeof themeManager.toggleTheme,
+    getTheme: themeManager.getTheme.bind(themeManager) as typeof themeManager.getTheme,
+    getAvailableThemes: themeManager.getAvailableThemes.bind(themeManager) as typeof themeManager.getAvailableThemes,
   }
 }
 

@@ -1,7 +1,45 @@
-import { json, error } from '@sveltejs/kit'
-import type { RequestHandler } from './$types'
 import { DatabaseService } from '$lib/database/connection'
+import type { ApiResponse } from '$lib/types/database'
 import { logger } from '$lib/utils/logger'
+import { json } from '@sveltejs/kit'
+import type { RequestHandler } from './$types'
+
+interface UpdateProjectRequest {
+  title?: string
+  description?: string
+  sponsor?: string
+  sponsor_type?: string
+  start_date?: string
+  end_date?: string
+  manager_id?: string
+  status?: string
+  budget_total?: number
+  [key: string]: unknown
+}
+
+interface Project {
+  id: string
+  code: string
+  title: string
+  description?: string
+  sponsor?: string
+  sponsor_type: string
+  start_date?: string
+  end_date?: string
+  manager_id?: string
+  status: string
+  budget_total?: number
+  research_type?: string
+  technology_area?: string
+  priority: string
+  created_at: string
+  updated_at: string
+  [key: string]: unknown
+}
+
+interface DeleteResponse {
+  message: string
+}
 
 // GET /api/projects/[id] - Get project by ID
 export const GET: RequestHandler = async ({ params }) => {
@@ -9,29 +47,43 @@ export const GET: RequestHandler = async ({ params }) => {
     const project = await DatabaseService.getProjectById(params.id)
 
     if (!project) {
-      return error(404, { message: 'Project not found' })
+      const response: ApiResponse<null> = {
+        success: false,
+        error: '프로젝트를 찾을 수 없습니다.',
+      }
+      return json(response, { status: 404 })
     }
 
-    return json({
+    const response: ApiResponse<Project> = {
       success: true,
-      data: project,
-    })
-  } catch (err) {
-    logger.error('Get project error:', err)
-    return error(500, { message: 'Internal server error' })
+      data: project as unknown as Project,
+    }
+
+    return json(response)
+  } catch (error: unknown) {
+    logger.error('Get project error:', error)
+    const response: ApiResponse<null> = {
+      success: false,
+      error: error instanceof Error ? error.message : '프로젝트 조회 중 오류가 발생했습니다.',
+    }
+    return json(response, { status: 500 })
   }
 }
 
 // PUT /api/projects/[id] - Update project
 export const PUT: RequestHandler = async ({ params, request }) => {
   try {
-    const updateData = await request.json()
+    const updateData = await request.json() as UpdateProjectRequest
     const projectId = params.id
 
     // Check if project exists
     const existingProject = await DatabaseService.getProjectById(projectId)
     if (!existingProject) {
-      return error(404, { message: 'Project not found' })
+      const response: ApiResponse<null> = {
+        success: false,
+        error: '프로젝트를 찾을 수 없습니다.',
+      }
+      return json(response, { status: 404 })
     }
 
     // Update project
@@ -63,13 +115,19 @@ export const PUT: RequestHandler = async ({ params, request }) => {
       ],
     )
 
-    return json({
+    const response: ApiResponse<Project> = {
       success: true,
-      data: result.rows[0],
-    })
-  } catch (err) {
-    logger.error('Update project error:', err)
-    return error(500, { message: 'Internal server error' })
+      data: result.rows[0] as Project,
+    }
+
+    return json(response)
+  } catch (error: unknown) {
+    logger.error('Update project error:', error)
+    const response: ApiResponse<null> = {
+      success: false,
+      error: error instanceof Error ? error.message : '프로젝트 수정 중 오류가 발생했습니다.',
+    }
+    return json(response, { status: 500 })
   }
 }
 
@@ -81,7 +139,11 @@ export const DELETE: RequestHandler = async ({ params }) => {
     // Check if project exists
     const existingProject = await DatabaseService.getProjectById(projectId)
     if (!existingProject) {
-      return error(404, { message: 'Project not found' })
+      const response: ApiResponse<null> = {
+        success: false,
+        error: '프로젝트를 찾을 수 없습니다.',
+      }
+      return json(response, { status: 404 })
     }
 
     // Check if project has associated data
@@ -90,21 +152,31 @@ export const DELETE: RequestHandler = async ({ params }) => {
       [projectId],
     )
 
-    if (parseInt(expenseCount.rows[0].count) > 0) {
-      return error(400, {
-        message: 'Cannot delete project with associated expense items',
-      })
+    if (parseInt(expenseCount.rows[0].count as string) > 0) {
+      const response: ApiResponse<null> = {
+        success: false,
+        error: '관련된 경비 항목이 있는 프로젝트는 삭제할 수 없습니다.',
+      }
+      return json(response, { status: 400 })
     }
 
     // Delete project
     await DatabaseService.query('DELETE FROM projects WHERE id = $1', [projectId])
 
-    return json({
+    const response: ApiResponse<DeleteResponse> = {
       success: true,
-      message: 'Project deleted successfully',
-    })
-  } catch (err) {
-    logger.error('Delete project error:', err)
-    return error(500, { message: 'Internal server error' })
+      data: {
+        message: '프로젝트가 성공적으로 삭제되었습니다.',
+      },
+    }
+
+    return json(response)
+  } catch (error: unknown) {
+    logger.error('Delete project error:', error)
+    const response: ApiResponse<null> = {
+      success: false,
+      error: error instanceof Error ? error.message : '프로젝트 삭제 중 오류가 발생했습니다.',
+    }
+    return json(response, { status: 500 })
   }
 }

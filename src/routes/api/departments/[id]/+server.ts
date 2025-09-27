@@ -1,12 +1,20 @@
+import { query } from '$lib/database/connection'
+import type { ApiResponse, DatabaseDepartment } from '$lib/types/database'
+import { logger } from '$lib/utils/logger'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
-import { query } from '$lib/database/connection'
-import { logger } from '$lib/utils/logger'
+
+interface UpdateDepartmentRequest {
+  name: string
+  description?: string
+  status?: string
+  max_employees?: number
+}
 
 // 특정 부서 조회
 export const GET: RequestHandler = async ({ params }) => {
   try {
-    const result = await query(
+    const result = await query<DatabaseDepartment>(
       `
 			SELECT id, name, description, status, max_employees, created_at, updated_at
 			FROM departments
@@ -25,16 +33,18 @@ export const GET: RequestHandler = async ({ params }) => {
       )
     }
 
-    return json({
+    const response: ApiResponse<DatabaseDepartment> = {
       success: true,
       data: result.rows[0],
-    })
-  } catch (error: any) {
+    }
+
+    return json(response)
+  } catch (error: unknown) {
     logger.error('Error fetching department:', error)
     return json(
       {
         success: false,
-        error: error.message || '부서 정보를 가져오는데 실패했습니다.',
+        error: error instanceof Error ? error.message : '부서 정보를 가져오는데 실패했습니다.',
       },
       { status: 500 },
     )
@@ -44,7 +54,7 @@ export const GET: RequestHandler = async ({ params }) => {
 // 부서 정보 수정
 export const PUT: RequestHandler = async ({ params, request }) => {
   try {
-    const data = await request.json()
+    const data = await request.json() as UpdateDepartmentRequest
 
     // 필수 필드 검증
     if (!data.name || data.name.trim() === '') {
@@ -58,7 +68,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
     }
 
     // 중복 부서명 검증 (자기 자신 제외)
-    const existingDept = await query(
+    const existingDept = await query<{ id: string }>(
       'SELECT id FROM departments WHERE LOWER(name) = LOWER($1) AND id != $2',
       [data.name.trim(), params.id],
     )
@@ -73,7 +83,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
       )
     }
 
-    const result = await query(
+    const result = await query<DatabaseDepartment>(
       `
 			UPDATE departments SET
 				name = $2,
@@ -89,7 +99,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
         data.name.trim(),
         data.description?.trim() || '',
         data.status || 'active',
-        data.to || 0,
+        data.max_employees || 0,
         new Date(),
       ],
     )
@@ -104,17 +114,19 @@ export const PUT: RequestHandler = async ({ params, request }) => {
       )
     }
 
-    return json({
+    const response: ApiResponse<DatabaseDepartment> = {
       success: true,
       data: result.rows[0],
       message: '부서 정보가 성공적으로 수정되었습니다.',
-    })
-  } catch (error: any) {
+    }
+
+    return json(response)
+  } catch (error: unknown) {
     logger.error('Error updating department:', error)
     return json(
       {
         success: false,
-        error: error.message || '부서 정보 수정에 실패했습니다.',
+        error: error instanceof Error ? error.message : '부서 정보 수정에 실패했습니다.',
       },
       { status: 500 },
     )
@@ -129,7 +141,7 @@ export const DELETE: RequestHandler = async ({ params, url }) => {
 
     if (hardDelete) {
       // 하드 삭제: 부서를 사용하는 직원이 있는지 확인
-      const employeesInDept = await query(
+      const employeesInDept = await query<{ count: string }>(
         'SELECT COUNT(*) as count FROM employees WHERE department = (SELECT name FROM departments WHERE id = $1)',
         [params.id],
       )
@@ -145,7 +157,7 @@ export const DELETE: RequestHandler = async ({ params, url }) => {
       }
 
       // 하드 삭제 실행
-      const result = await query('DELETE FROM departments WHERE id = $1 RETURNING id, name', [
+      const result = await query<{ id: string; name: string }>('DELETE FROM departments WHERE id = $1 RETURNING id, name', [
         params.id,
       ])
 
@@ -159,13 +171,16 @@ export const DELETE: RequestHandler = async ({ params, url }) => {
         )
       }
 
-      return json({
+      const response: ApiResponse<null> = {
         success: true,
+        data: null,
         message: '부서가 완전히 삭제되었습니다.',
-      })
+      }
+
+      return json(response)
     } else {
       // 소프트 삭제: 상태를 'inactive'로 변경
-      const result = await query(
+      const result = await query<{ id: string; name: string; status: string }>(
         `
 				UPDATE departments SET
 					status = 'inactive',
@@ -186,17 +201,20 @@ export const DELETE: RequestHandler = async ({ params, url }) => {
         )
       }
 
-      return json({
+      const response: ApiResponse<null> = {
         success: true,
+        data: null,
         message: '부서가 비활성화되었습니다.',
-      })
+      }
+
+      return json(response)
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error('Error deleting department:', error)
     return json(
       {
         success: false,
-        error: error.message || '부서 삭제에 실패했습니다.',
+        error: error instanceof Error ? error.message : '부서 삭제에 실패했습니다.',
       },
       { status: 500 },
     )

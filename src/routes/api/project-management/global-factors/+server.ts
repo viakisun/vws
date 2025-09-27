@@ -1,8 +1,28 @@
 // 글로벌 팩터 관리 API
 import { query } from '$lib/database/connection'
+import type { ApiResponse } from '$lib/types/database'
+import { logger } from '$lib/utils/logger'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
-import { logger } from '$lib/utils/logger'
+
+interface GlobalFactor {
+  factor_name: string
+  factor_value: string
+  description: string
+  updated_at: string
+  [key: string]: unknown
+}
+
+interface GlobalFactorUpdateRequest {
+  factorName: string
+  factorValue: number
+  description?: string
+}
+
+interface GlobalFactorResponse {
+  factors: Record<string, number>
+  descriptions: Record<string, string>
+}
 
 // GET /api/project-management/global-factors - 글로벌 팩터 조회
 export const GET: RequestHandler = async () => {
@@ -23,7 +43,7 @@ export const GET: RequestHandler = async () => {
     // salary_multiplier는 제거됨
 
     // 글로벌 팩터 조회
-    const result = await query(`
+    const result = await query<GlobalFactor>(`
 			SELECT factor_name, factor_value, description, updated_at
 			FROM global_factors
 			ORDER BY factor_name
@@ -38,43 +58,40 @@ export const GET: RequestHandler = async () => {
       descriptions[row.factor_name] = row.description
     })
 
-    return json({
+    const response: ApiResponse<GlobalFactorResponse> = {
       success: true,
       data: {
         factors,
         descriptions,
       },
-    })
-  } catch (error) {
+    }
+
+    return json(response)
+  } catch (error: unknown) {
     logger.error('글로벌 팩터 조회 실패:', error)
-    return json(
-      {
-        success: false,
-        message: '글로벌 팩터를 불러오는데 실패했습니다.',
-        error: (error as Error).message,
-      },
-      { status: 500 },
-    )
+    const response: ApiResponse<null> = {
+      success: false,
+      error: error instanceof Error ? error.message : '글로벌 팩터를 불러오는데 실패했습니다.',
+    }
+    return json(response, { status: 500 })
   }
 }
 
 // PUT /api/project-management/global-factors - 글로벌 팩터 업데이트
 export const PUT: RequestHandler = async ({ request }) => {
   try {
-    const { factorName, factorValue, description } = await request.json()
+    const { factorName, factorValue, description } = (await request.json()) as GlobalFactorUpdateRequest
 
     if (!factorName || factorValue === undefined) {
-      return json(
-        {
-          success: false,
-          message: '팩터 이름과 값은 필수입니다.',
-        },
-        { status: 400 },
-      )
+      const response: ApiResponse<null> = {
+        success: false,
+        error: '팩터 이름과 값은 필수입니다.',
+      }
+      return json(response, { status: 400 })
     }
 
     // 팩터 업데이트
-    const result = await query(
+    const result = await query<GlobalFactor>(
       `
 			UPDATE global_factors 
 			SET factor_value = $1, description = $2, updated_at = CURRENT_TIMESTAMP
@@ -85,29 +102,26 @@ export const PUT: RequestHandler = async ({ request }) => {
     )
 
     if (result.rows.length === 0) {
-      return json(
-        {
-          success: false,
-          message: '해당 팩터를 찾을 수 없습니다.',
-        },
-        { status: 404 },
-      )
+      const response: ApiResponse<null> = {
+        success: false,
+        error: '해당 팩터를 찾을 수 없습니다.',
+      }
+      return json(response, { status: 404 })
     }
 
-    return json({
+    const response: ApiResponse<GlobalFactor> = {
       success: true,
-      message: '글로벌 팩터가 성공적으로 업데이트되었습니다.',
       data: result.rows[0],
-    })
-  } catch (error) {
+      message: '글로벌 팩터가 성공적으로 업데이트되었습니다.',
+    }
+
+    return json(response)
+  } catch (error: unknown) {
     logger.error('글로벌 팩터 업데이트 실패:', error)
-    return json(
-      {
-        success: false,
-        message: '글로벌 팩터 업데이트에 실패했습니다.',
-        error: (error as Error).message,
-      },
-      { status: 500 },
-    )
+    const response: ApiResponse<null> = {
+      success: false,
+      error: error instanceof Error ? error.message : '글로벌 팩터 업데이트에 실패했습니다.',
+    }
+    return json(response, { status: 500 })
   }
 }

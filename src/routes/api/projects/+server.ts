@@ -1,7 +1,51 @@
-import { json, error } from '@sveltejs/kit'
-import type { RequestHandler } from './$types'
 import { DatabaseService } from '$lib/database/connection'
+import type { ApiResponse } from '$lib/types/database'
 import { logger } from '$lib/utils/logger'
+import { json } from '@sveltejs/kit'
+import type { RequestHandler } from './$types'
+
+interface ProjectQueryParams {
+  status?: string
+  manager_id?: string
+  limit?: number
+  offset?: number
+}
+
+interface CreateProjectRequest {
+  code: string
+  title: string
+  description?: string
+  sponsor?: string
+  sponsor_type?: string
+  start_date?: string
+  end_date?: string
+  manager_id?: string
+  budget_total?: number
+  research_type?: string
+  technology_area?: string
+  priority?: string
+  [key: string]: unknown
+}
+
+interface Project {
+  id: string
+  code: string
+  title: string
+  description?: string
+  sponsor?: string
+  sponsor_type: string
+  start_date?: string
+  end_date?: string
+  manager_id?: string
+  status: string
+  budget_total?: number
+  research_type?: string
+  technology_area?: string
+  priority: string
+  created_at: string
+  updated_at: string
+  [key: string]: unknown
+}
 
 // GET /api/projects - Get all projects
 export const GET: RequestHandler = async ({ url }) => {
@@ -11,32 +55,44 @@ export const GET: RequestHandler = async ({ url }) => {
     const limit = url.searchParams.get('limit')
     const offset = url.searchParams.get('offset')
 
-    const projects = await DatabaseService.getProjects({
+    const queryParams: ProjectQueryParams = {
       status: status || undefined,
       manager_id: manager_id || undefined,
       limit: limit ? parseInt(limit) : undefined,
       offset: offset ? parseInt(offset) : undefined,
-    })
+    }
 
-    return json({
+    const projects = await DatabaseService.getProjects(queryParams)
+
+    const response: ApiResponse<Project[]> = {
       success: true,
-      data: projects,
+      data: projects as unknown as Project[],
       count: projects.length,
-    })
-  } catch (err) {
-    logger.error('Get projects error:', err)
-    return error(500, { message: 'Internal server error' })
+    }
+
+    return json(response)
+  } catch (error: unknown) {
+    logger.error('Get projects error:', error)
+    const response: ApiResponse<null> = {
+      success: false,
+      error: error instanceof Error ? error.message : '프로젝트 목록 조회 중 오류가 발생했습니다.',
+    }
+    return json(response, { status: 500 })
   }
 }
 
 // POST /api/projects - Create new project
 export const POST: RequestHandler = async ({ request }) => {
   try {
-    const projectData = await request.json()
+    const projectData = await request.json() as CreateProjectRequest
 
     // Validate required fields
     if (!projectData.code || !projectData.title) {
-      return error(400, { message: 'Project code and title are required' })
+      const response: ApiResponse<null> = {
+        success: false,
+        error: '프로젝트 코드와 제목은 필수입니다.',
+      }
+      return json(response, { status: 400 })
     }
 
     // Check if project code already exists
@@ -45,20 +101,27 @@ export const POST: RequestHandler = async ({ request }) => {
     ])
 
     if (existingProject.rows.length > 0) {
-      return error(400, { message: 'Project code already exists' })
+      const response: ApiResponse<null> = {
+        success: false,
+        error: '이미 존재하는 프로젝트 코드입니다.',
+      }
+      return json(response, { status: 400 })
     }
 
-    const project = await DatabaseService.createProject(projectData)
+    const project = await DatabaseService.createProject(projectData as any)
 
-    return json(
-      {
-        success: true,
-        data: project,
-      },
-      { status: 201 },
-    )
-  } catch (err) {
-    logger.error('Create project error:', err)
-    return error(500, { message: 'Internal server error' })
+    const response: ApiResponse<Project> = {
+      success: true,
+      data: project as unknown as Project,
+    }
+
+    return json(response, { status: 201 })
+  } catch (error: unknown) {
+    logger.error('Create project error:', error)
+    const response: ApiResponse<null> = {
+      success: false,
+      error: error instanceof Error ? error.message : '프로젝트 생성 중 오류가 발생했습니다.',
+    }
+    return json(response, { status: 500 })
   }
 }

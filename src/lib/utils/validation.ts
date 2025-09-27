@@ -1,6 +1,6 @@
 import { getCurrentUTC } from '$lib/utils/date-handler'
-import { Pool } from 'pg'
 import { logger } from '$lib/utils/logger'
+import { Pool } from 'pg'
 
 // 데이터베이스 연결 풀
 const pool = new Pool({
@@ -18,7 +18,7 @@ export interface ValidationResult {
   reason: string
   message: string
   issues?: string[]
-  details?: any
+  details?: Record<string, unknown>
 }
 
 // 데이터베이스에서 가져오는 멤버 데이터 타입
@@ -29,6 +29,8 @@ export interface ProjectMember {
   participation_rate: string | number
   first_name?: string
   last_name?: string
+  hire_date?: string
+  termination_date?: string
 }
 
 // 데이터베이스에서 가져오는 예산 데이터 타입
@@ -38,6 +40,7 @@ export interface ProjectBudget {
   total_budget?: string | number
   spent_amount?: string | number
   period_number?: number
+  personnel_cost?: string | number
 }
 
 // 데이터베이스에서 가져오는 증빙 항목 데이터 타입
@@ -84,7 +87,7 @@ export class ValidationUtils {
     reason: string,
     message: string,
     issues?: string[],
-    details?: any,
+    details?: Record<string, unknown>,
   ): ValidationResult {
     return {
       isValid,
@@ -247,14 +250,19 @@ export class ValidationUtils {
     projectId: string,
     projectTitle: string,
     validationResults: ValidationResult[],
-    overallValidation: any,
+    overallValidation: ValidationResult,
   ): ValidationResponse {
     return {
       success: true,
       projectId,
       projectTitle,
       validationResults,
-      overallValidation,
+      overallValidation: {
+        isValid: overallValidation.isValid,
+        totalItems: validationResults.length,
+        validItems: validationResults.filter(r => r.isValid).length,
+        invalidItems: validationResults.filter(r => !r.isValid).length,
+      },
       generatedAt: getCurrentUTC(),
     }
   }
@@ -262,7 +270,7 @@ export class ValidationUtils {
   /**
    * 에러 응답 생성
    */
-  static createErrorResponse(error: any, message: string = '검증 중 오류가 발생했습니다.') {
+  static createErrorResponse(error: unknown, message: string = '검증 중 오류가 발생했습니다.') {
     return {
       success: false,
       error: message,
@@ -273,7 +281,7 @@ export class ValidationUtils {
   /**
    * 프로젝트 예산 업데이트
    */
-  static async updateProjectBudget(budgetId: string, data: any): Promise<boolean> {
+  static async updateProjectBudget(budgetId: string, data: Record<string, unknown>): Promise<boolean> {
     try {
       const fields = Object.keys(data)
         .map((key, index) => `${key} = $${index + 2}`)
@@ -291,7 +299,7 @@ export class ValidationUtils {
   /**
    * 프로젝트 업데이트
    */
-  static async updateProject(projectId: string, data: any): Promise<boolean> {
+  static async updateProject(projectId: string, data: Record<string, unknown>): Promise<boolean> {
     try {
       const fields = Object.keys(data)
         .map((key, index) => `${key} = $${index + 2}`)
@@ -309,7 +317,7 @@ export class ValidationUtils {
   /**
    * 프로젝트 멤버 업데이트
    */
-  static async updateProjectMember(memberId: string, data: any): Promise<boolean> {
+  static async updateProjectMember(memberId: string, data: Record<string, unknown>): Promise<boolean> {
     try {
       const fields = Object.keys(data)
         .map((key, index) => `${key} = $${index + 2}`)
@@ -327,7 +335,7 @@ export class ValidationUtils {
   /**
    * 증빙 항목 업데이트
    */
-  static async updateEvidenceItem(itemId: string, data: any): Promise<boolean> {
+  static async updateEvidenceItem(itemId: string, data: Record<string, unknown>): Promise<boolean> {
     try {
       const fields = Object.keys(data)
         .map((key, index) => `${key} = $${index + 2}`)
@@ -385,8 +393,8 @@ export class PersonnelCostValidator {
   /**
    * 인건비 검증
    */
-  static validatePersonnelCost(budget: any, actualCost: number): ValidationResult {
-    const budgetedCost = parseFloat(budget.personnel_cost) || 0
+  static validatePersonnelCost(budget: ProjectBudget, actualCost: number): ValidationResult {
+    const budgetedCost = parseFloat(String(budget.personnel_cost)) || 0
     const isWithinTolerance = ValidationUtils.isAmountWithinTolerance(budgetedCost, actualCost)
 
     if (isWithinTolerance) {
@@ -412,7 +420,7 @@ export class EmploymentPeriodValidator {
   /**
    * 참여연구원 재직 기간 검증
    */
-  static validateMemberEmploymentPeriod(member: any, project: any): ValidationResult {
+  static validateMemberEmploymentPeriod(member: ProjectMember, project: { start_date: string; end_date: string }): ValidationResult {
     const memberStartDate = new Date(member.start_date)
     const _memberEndDate = new Date(member.end_date)
     const hireDate = member.hire_date ? new Date(member.hire_date) : null
@@ -433,7 +441,7 @@ export class EmploymentPeriodValidator {
     }
 
     // 2. 퇴사한 직원인지 확인
-    if (member.status === 'terminated' && terminationDate) {
+    if ((member as any).status === 'terminated' && terminationDate) {
       if (memberStartDate > terminationDate) {
         issues.push(
           `퇴사일: ${terminationDate.toLocaleDateString()}, 참여시작일: ${memberStartDate.toLocaleDateString()}`,
@@ -449,8 +457,8 @@ export class EmploymentPeriodValidator {
     }
 
     // 4. 현재 비활성 상태인 직원인지 확인
-    if (member.status === 'inactive') {
-      issues.push(`상태: ${member.status}`)
+    if ((member as any).status === 'inactive') {
+      issues.push(`상태: ${(member as any).status}`)
     }
 
     // 5. 프로젝트 기간과 재직 기간이 겹치는지 확인
@@ -481,7 +489,7 @@ export class EmploymentPeriodValidator {
   /**
    * 증빙 항목 재직 기간 검증
    */
-  static validateEvidenceEmploymentPeriod(evidence: any, employee: any): ValidationResult {
+  static validateEvidenceEmploymentPeriod(evidence: EvidenceItem, employee: { hire_date: string; termination_date?: string }): ValidationResult {
     if (!employee) {
       return ValidationUtils.createValidationResult(
         false,
@@ -490,14 +498,14 @@ export class EmploymentPeriodValidator {
       )
     }
 
-    const dueDate = new Date(evidence.due_date)
+    const dueDate = new Date((evidence as any).due_date)
     const hireDate = employee.hire_date ? new Date(employee.hire_date) : null
     const terminationDate = employee.termination_date ? new Date(employee.termination_date) : null
 
     const issues: string[] = []
 
     // 1. 퇴사한 직원인지 확인
-    if (employee.status === 'terminated' || terminationDate) {
+    if ((employee as any).status === 'terminated' || terminationDate) {
       if (terminationDate && dueDate > terminationDate) {
         issues.push(
           `퇴사일(${terminationDate.toLocaleDateString()}) 이후에 인건비가 집행되었습니다.`,
@@ -511,13 +519,13 @@ export class EmploymentPeriodValidator {
     }
 
     // 3. 현재 비활성 상태인 직원인지 확인
-    if (employee.status === 'inactive') {
+    if ((employee as any).status === 'inactive') {
       issues.push('비활성 상태인 직원에게 인건비가 집행되었습니다.')
     }
 
     // 4. 프로젝트 기간과 재직 기간이 겹치는지 확인
-    const periodStartDate = new Date(evidence.period_start_date)
-    const periodEndDate = new Date(evidence.period_end_date)
+    const periodStartDate = new Date((evidence as any).period_start_date)
+    const periodEndDate = new Date((evidence as any).period_end_date)
 
     if (hireDate && periodEndDate < hireDate) {
       issues.push(
@@ -596,12 +604,12 @@ export class BudgetConsistencyValidator {
   /**
    * 예산 일관성 검증
    */
-  static validateBudgetConsistency(project: any, budgets: ProjectBudget[]): ValidationResult {
+  static validateBudgetConsistency(project: { total_budget: string | number }, budgets: ProjectBudget[]): ValidationResult {
     const totalBudgetFromBudgets = budgets.reduce((sum, budget) => {
       return sum + (parseFloat(String(budget.total_budget)) || 0)
     }, 0)
 
-    const projectTotalBudget = parseFloat(project.budget_total) || 0
+    const projectTotalBudget = parseFloat(String(project.total_budget)) || 0
 
     if (ValidationUtils.isAmountWithinTolerance(projectTotalBudget, totalBudgetFromBudgets)) {
       return ValidationUtils.createValidationResult(true, 'VALID', '예산이 일관성 있습니다.')
@@ -629,9 +637,9 @@ export class UsageRateValidator {
   /**
    * 사용률 검증
    */
-  static validateUsageRate(budget: any, evidenceItems: EvidenceItem[]): ValidationResult {
-    const totalBudget = parseFloat(budget.total_budget) || 0
-    const spentAmount = parseFloat(budget.spent_amount) || 0
+  static validateUsageRate(budget: ProjectBudget, evidenceItems: EvidenceItem[]): ValidationResult {
+    const totalBudget = parseFloat(String(budget.total_budget)) || 0
+    const spentAmount = parseFloat(String(budget.spent_amount)) || 0
     const overallUsageRate = totalBudget > 0 ? (spentAmount / totalBudget) * 100 : 0
 
     const categories = ['인건비', '재료비', '연구활동비', '간접비']
@@ -651,16 +659,16 @@ export class UsageRateValidator {
       let categoryBudget = 0
       switch (categoryName) {
         case '인건비':
-          categoryBudget = parseFloat(budget.personnel_cost) || 0
+          categoryBudget = parseFloat(String(budget.personnel_cost)) || 0
           break
         case '재료비':
-          categoryBudget = parseFloat(budget.research_material_cost) || 0
+          categoryBudget = parseFloat(String((budget as any).research_material_cost)) || 0
           break
         case '연구활동비':
-          categoryBudget = parseFloat(budget.research_activity_cost) || 0
+          categoryBudget = parseFloat(String((budget as any).research_activity_cost)) || 0
           break
         case '간접비':
-          categoryBudget = parseFloat(budget.indirect_cost) || 0
+          categoryBudget = parseFloat(String((budget as any).indirect_cost)) || 0
           break
       }
 

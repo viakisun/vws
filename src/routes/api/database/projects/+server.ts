@@ -1,7 +1,8 @@
-import { json } from '@sveltejs/kit'
 import { DatabaseService } from '$lib/database/connection'
-import type { RequestHandler } from './$types'
+import type { ApiResponse } from '$lib/types/database'
 import { logger } from '$lib/utils/logger'
+import { json } from '@sveltejs/kit'
+import type { RequestHandler } from './$types'
 
 export const GET: RequestHandler = async ({ url }) => {
   try {
@@ -17,49 +18,39 @@ export const GET: RequestHandler = async ({ url }) => {
       offset,
     })
 
-    return json({
+    const response: ApiResponse<typeof projects> = {
       success: true,
       data: projects,
-      pagination: {
-        limit,
-        offset,
-        total: projects.length,
-      },
-    })
-  } catch (error) {
+    }
+    return json(response)
+  } catch (error: unknown) {
     logger.error('Get projects error:', error)
-    return json(
-      {
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
-      },
-      { status: 500 },
-    )
+    const response: ApiResponse<null> = {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    }
+    return json(response, { status: 500 })
   }
 }
 
 export const POST: RequestHandler = async ({ request }) => {
   try {
-    const projectData = await request.json()
+    const projectData = await request.json() as Record<string, unknown>
 
     const newProject = await DatabaseService.createProject(projectData)
 
-    return json(
-      {
-        success: true,
-        data: newProject,
-        message: 'Project created successfully',
-      },
-      { status: 201 },
-    )
-  } catch (error) {
+    const response: ApiResponse<typeof newProject> = {
+      success: true,
+      data: newProject,
+      message: 'Project created successfully',
+    }
+    return json(response, { status: 201 })
+  } catch (error: unknown) {
     logger.error('Create project error:', error)
-    return json(
-      {
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
-      },
-      { status: 500 },
-    )
+    const response: ApiResponse<null> = {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    }
+    return json(response, { status: 500 })
   }
 }

@@ -1,12 +1,33 @@
+import { query } from '$lib/database/connection'
+import type { ApiResponse } from '$lib/types/database'
+import { logger } from '$lib/utils/logger'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
-import { query } from '$lib/database/connection'
-import { logger } from '$lib/utils/logger'
+
+interface JobTitleInfo {
+  id: string
+  name: string
+  level: number
+  category: string
+  description?: string
+  is_active: boolean
+  created_at: string
+  updated_at: string
+  [key: string]: unknown
+}
+
+interface UpdateJobTitleRequest {
+  name: string
+  level: number
+  category: string
+  description?: string
+  is_active?: boolean
+}
 
 // 특정 직책 조회
 export const GET: RequestHandler = async ({ params }) => {
   try {
-    const result = await query(
+    const result = await query<JobTitleInfo>(
       `
 			SELECT id, name, level, category, description, is_active, created_at, updated_at
 			FROM job_titles
@@ -25,16 +46,18 @@ export const GET: RequestHandler = async ({ params }) => {
       )
     }
 
-    return json({
+    const response: ApiResponse<JobTitleInfo> = {
       success: true,
       data: result.rows[0],
-    })
-  } catch (error: any) {
+    }
+
+    return json(response)
+  } catch (error: unknown) {
     logger.error('Error fetching job title:', error)
     return json(
       {
         success: false,
-        error: error.message || '직책 정보를 가져오는데 실패했습니다.',
+        error: error instanceof Error ? error.message : '직책 정보를 가져오는데 실패했습니다.',
       },
       { status: 500 },
     )
@@ -44,7 +67,7 @@ export const GET: RequestHandler = async ({ params }) => {
 // 직책 정보 수정
 export const PUT: RequestHandler = async ({ params, request }) => {
   try {
-    const data = await request.json()
+    const data = await request.json() as UpdateJobTitleRequest
 
     // 필수 필드 검증
     if (!data.name || data.name.trim() === '') {
@@ -78,7 +101,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
     }
 
     // 중복 직책명 검증 (자신 제외)
-    const existingTitle = await query(
+    const existingTitle = await query<{ id: string }>(
       'SELECT id FROM job_titles WHERE LOWER(name) = LOWER($1) AND id != $2',
       [data.name.trim(), params.id],
     )
@@ -93,7 +116,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
       )
     }
 
-    const result = await query(
+    const result = await query<JobTitleInfo>(
       `
 			UPDATE job_titles SET
 				name = $1,
@@ -126,17 +149,19 @@ export const PUT: RequestHandler = async ({ params, request }) => {
       )
     }
 
-    return json({
+    const response: ApiResponse<JobTitleInfo> = {
       success: true,
       data: result.rows[0],
       message: '직책 정보가 성공적으로 수정되었습니다.',
-    })
-  } catch (error: any) {
+    }
+
+    return json(response)
+  } catch (error: unknown) {
     logger.error('Error updating job title:', error)
     return json(
       {
         success: false,
-        error: error.message || '직책 정보 수정에 실패했습니다.',
+        error: error instanceof Error ? error.message : '직책 정보 수정에 실패했습니다.',
       },
       { status: 500 },
     )
@@ -147,7 +172,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
 export const DELETE: RequestHandler = async ({ params }) => {
   try {
     // 해당 직책을 사용하는 이사가 있는지 확인
-    const executivesUsingTitle = await query(
+    const executivesUsingTitle = await query<{ count: string }>(
       'SELECT COUNT(*) as count FROM executives WHERE job_title_id = $1 AND status = $2',
       [params.id, 'active'],
     )
@@ -162,7 +187,7 @@ export const DELETE: RequestHandler = async ({ params }) => {
       )
     }
 
-    const result = await query(
+    const result = await query<{ id: string; name: string }>(
       `
 			UPDATE job_titles SET
 				is_active = false,
@@ -183,16 +208,19 @@ export const DELETE: RequestHandler = async ({ params }) => {
       )
     }
 
-    return json({
+    const response: ApiResponse<null> = {
       success: true,
+      data: null,
       message: '직책이 비활성화되었습니다.',
-    })
-  } catch (error: any) {
+    }
+
+    return json(response)
+  } catch (error: unknown) {
     logger.error('Error deleting job title:', error)
     return json(
       {
         success: false,
-        error: error.message || '직책 삭제에 실패했습니다.',
+        error: error instanceof Error ? error.message : '직책 삭제에 실패했습니다.',
       },
       { status: 500 },
     )

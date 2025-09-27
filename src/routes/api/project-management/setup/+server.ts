@@ -1,10 +1,11 @@
 // Project Management Setup API
 // 프로젝트 관리 시스템 데이터베이스 설정
 
-import { json } from '@sveltejs/kit'
 import { query } from '$lib/database/connection'
-import type { RequestHandler } from './$types'
+import type { ApiResponse } from '$lib/types/database'
 import { logger } from '$lib/utils/logger'
+import { json } from '@sveltejs/kit'
+import type { RequestHandler } from './$types'
 
 export const POST: RequestHandler = async () => {
   try {
@@ -189,23 +190,24 @@ export const POST: RequestHandler = async () => {
 
       await query('COMMIT')
 
-      return json({
+      const response: ApiResponse<null> = {
         success: true,
+        data: null,
         message: '프로젝트 관리 시스템 데이터베이스가 성공적으로 설정되었습니다.',
-      })
-    } catch (error) {
+      }
+
+      return json(response)
+    } catch (error: unknown) {
       await query('ROLLBACK')
       throw error
     }
-  } catch (error) {
+  } catch (error: unknown) {
     logger.error('프로젝트 관리 시스템 설정 실패:', error)
-    return json(
-      {
-        success: false,
-        message: '프로젝트 관리 시스템 설정에 실패했습니다.',
-        error: error instanceof Error ? error.message : '알 수 없는 오류',
-      },
-      { status: 500 },
-    )
+    const response: ApiResponse<null> = {
+      success: false,
+      data: null,
+      error: error instanceof Error ? error.message : '프로젝트 관리 시스템 설정에 실패했습니다.',
+    }
+    return json(response, { status: 500 })
   }
 }

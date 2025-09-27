@@ -1,14 +1,14 @@
 // 급여 계약 관리 Svelte Store
 
 import type {
-  ApiResponse,
-  CreateSalaryContractRequest,
-  CurrentSalaryInfo,
-  PaginatedResponse,
-  SalaryContract,
-  SalaryContractFilter,
-  SalaryContractStats,
-  UpdateSalaryContractRequest,
+    ApiResponse,
+    CreateSalaryContractRequest,
+    CurrentSalaryInfo,
+    PaginatedResponse,
+    SalaryContract,
+    SalaryContractFilter,
+    SalaryContractStats,
+    UpdateSalaryContractRequest,
 } from '$lib/types/salary-contracts'
 import { derived, writable } from 'svelte/store'
 
@@ -118,7 +118,7 @@ export async function loadContracts(filter?: Partial<SalaryContractFilter>): Pro
     params.append('limit', String(currentPagination.limit))
 
     const response = await fetch(`/api/salary/contracts?${params.toString()}`)
-    const result: ApiResponse<PaginatedResponse<SalaryContract>> = await response.json()
+    const result = await response.json() as ApiResponse<PaginatedResponse<SalaryContract>>
 
     if (result.success && result.data) {
       contracts.set(result.data.data)
@@ -144,7 +144,7 @@ export async function loadContractStats(): Promise<void> {
 
   try {
     const response = await fetch('/api/salary/contracts/stats')
-    const result: ApiResponse<SalaryContractStats> = await response.json()
+    const result = await response.json() as ApiResponse<SalaryContractStats>
 
     if (result.success && result.data) {
       contractStats.set(result.data)
@@ -163,7 +163,7 @@ export async function loadEmployeeSalaryInfo(employeeId: string): Promise<void> 
 
   try {
     const response = await fetch(`/api/salary/contracts/employee/${employeeId}`)
-    const result: ApiResponse<CurrentSalaryInfo> = await response.json()
+    const result = await response.json() as ApiResponse<CurrentSalaryInfo>
 
     if (result.success && result.data) {
       currentSalaryInfo.set(result.data)
@@ -191,7 +191,7 @@ export async function createContract(contractData: CreateSalaryContractRequest):
       body: JSON.stringify(contractData),
     })
 
-    const result: ApiResponse<SalaryContract> = await response.json()
+    const result = await response.json() as ApiResponse<SalaryContract>
 
     if (result.success && result.data) {
       // 새 계약을 목록에 추가
@@ -225,7 +225,7 @@ export async function updateContract(
       body: JSON.stringify(updateData),
     })
 
-    const result: ApiResponse<SalaryContract> = await response.json()
+    const result = await response.json() as ApiResponse<SalaryContract>
 
     if (result.success && result.data) {
       // 전체 목록을 다시 로드하여 완전한 데이터로 업데이트
@@ -277,7 +277,7 @@ export async function loadContract(contractId: string): Promise<void> {
 
   try {
     const response = await fetch(`/api/salary/contracts/${contractId}`)
-    const result: ApiResponse<SalaryContract> = await response.json()
+    const result = await response.json() as ApiResponse<SalaryContract>
 
     if (result.success && result.data) {
       selectedContract.set(result.data)

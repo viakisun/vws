@@ -1,6 +1,6 @@
 import type { DatabaseCompany, DatabaseProject, DatabaseUser } from '$lib/types'
+import { formatDateForDisplay, toUTC, type DateInputFormat } from '$lib/utils/date-handler'
 import { logger } from '$lib/utils/logger'
-import { toUTC, formatDateForDisplay, type DateInputFormat } from '$lib/utils/date-handler'
 import { config } from 'dotenv'
 import type { PoolClient, QueryResult } from 'pg'
 import { Pool } from 'pg'
@@ -78,7 +78,7 @@ export function processQueryResultDates(result: QueryResult): QueryResult {
   ]
   
   const processedRows = result.rows.map(row => {
-    const processedRow = { ...row }
+    const processedRow: Record<string, unknown> = { ...(row as Record<string, unknown>) }
     
     dateFields.forEach(field => {
       if (field in processedRow && processedRow[field]) {
@@ -197,15 +197,15 @@ export async function healthCheck(): Promise<boolean> {
   try {
     // Starting database health check
     const result = await query('SELECT 1 as health')
-    const isHealthy = result.rows[0]?.health === 1
+    const isHealthy = (result.rows[0] as Record<string, unknown>)?.health === 1
 
     return isHealthy
   } catch (error) {
     logger.error('Database health check failed:', error)
     logger.error('Error details:', {
       message: error instanceof Error ? error.message : 'Unknown error',
-      code: (error as any)?.code,
-      detail: (error as any)?.detail,
+      code: (error as Record<string, unknown>)?.code,
+      detail: (error as Record<string, unknown>)?.detail,
     })
     return false
   }
@@ -284,7 +284,7 @@ export class DatabaseService {
 			 RETURNING *`,
       [
         userData.email,
-        (userData as any).password_hash,
+        (userData as Record<string, unknown>).password_hash,
         userData.name,
         userData.department,
         userData.position,

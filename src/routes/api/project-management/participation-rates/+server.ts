@@ -2,6 +2,7 @@
 // 참여율 관리 API
 
 import { query } from '$lib/database/connection'
+import type { ApiResponse } from '$lib/types/database'
 import { logger } from '$lib/utils/logger'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
@@ -30,7 +31,7 @@ export const GET: RequestHandler = async ({ url }) => {
 		`
 
     const conditions: string[] = []
-    const params: any[] = []
+    const params: (string | number)[] = []
     let paramIndex = 1
 
     if (employeeId) {
@@ -91,50 +92,46 @@ export const GET: RequestHandler = async ({ url }) => {
       })
     }
 
-    return json({
+    const response: ApiResponse<typeof participationRates> = {
       success: true,
       data: participationRates,
-      total: participationRates.length,
-    })
-  } catch (error) {
+      count: participationRates.length,
+    }
+
+    return json(response)
+  } catch (error: unknown) {
     logger.error('참여율 현황 조회 실패:', error)
-    return json(
-      {
-        success: false,
-        message: '참여율 현황을 불러오는데 실패했습니다.',
-        error: error instanceof Error ? error.message : '알 수 없는 오류',
-      },
-      { status: 500 },
-    )
+    const response: ApiResponse<null> = {
+      success: false,
+      message: '참여율 현황을 불러오는데 실패했습니다.',
+      error: error instanceof Error ? error.message : '알 수 없는 오류',
+    }
+    return json(response, { status: 500 })
   }
 }
 
 // 참여율 업데이트
 export const PUT: RequestHandler = async ({ request }) => {
   try {
-    const data = await request.json()
+    const data = await request.json() as Record<string, unknown>
     const { employeeId, projectId, participationRate, changeReason, notes } = data
 
     // 필수 필드 검증
     if (!employeeId || !projectId || participationRate === undefined) {
-      return json(
-        {
-          success: false,
-          message: '직원 ID, 프로젝트 ID, 참여율은 필수입니다.',
-        },
-        { status: 400 },
-      )
+      const response: ApiResponse<null> = {
+        success: false,
+        message: '직원 ID, 프로젝트 ID, 참여율은 필수입니다.',
+      }
+      return json(response, { status: 400 })
     }
 
     // 참여율 범위 검증
     if (participationRate < 0 || participationRate > 100) {
-      return json(
-        {
-          success: false,
-          message: '참여율은 0-100 사이의 값이어야 합니다.',
-        },
-        { status: 400 },
-      )
+      const response: ApiResponse<null> = {
+        success: false,
+        message: '참여율은 0-100 사이의 값이어야 합니다.',
+      }
+      return json(response, { status: 400 })
     }
 
     // 기존 참여율 조회
@@ -147,13 +144,11 @@ export const PUT: RequestHandler = async ({ request }) => {
     )
 
     if (existingRate.rows.length === 0) {
-      return json(
-        {
-          success: false,
-          message: '해당 프로젝트의 활성 참여율을 찾을 수 없습니다.',
-        },
-        { status: 404 },
-      )
+      const response: ApiResponse<null> = {
+        success: false,
+        message: '해당 프로젝트의 활성 참여율을 찾을 수 없습니다.',
+      }
+      return json(response, { status: 404 })
     }
 
     const oldRate = existingRate.rows[0]
@@ -200,7 +195,10 @@ export const PUT: RequestHandler = async ({ request }) => {
 
       await query('COMMIT')
 
-      return json({
+      const response: ApiResponse<Record<string, unknown> & {
+        totalParticipationRate: number
+        isOverLimit: boolean
+      }> = {
         success: true,
         data: {
           ...updateResult.rows[0],
@@ -208,20 +206,19 @@ export const PUT: RequestHandler = async ({ request }) => {
           isOverLimit: totalRate > 100,
         },
         message: '참여율이 성공적으로 업데이트되었습니다.',
-      })
-    } catch (error) {
+      }
+      return json(response)
+    } catch (error: unknown) {
       await query('ROLLBACK')
       throw error
     }
-  } catch (error) {
+  } catch (error: unknown) {
     logger.error('참여율 업데이트 실패:', error)
-    return json(
-      {
-        success: false,
-        message: '참여율 업데이트에 실패했습니다.',
-        error: error instanceof Error ? error.message : '알 수 없는 오류',
-      },
-      { status: 500 },
-    )
+    const response: ApiResponse<null> = {
+      success: false,
+      message: '참여율 업데이트에 실패했습니다.',
+      error: error instanceof Error ? error.message : '알 수 없는 오류',
+    }
+    return json(response, { status: 500 })
   }
 }

@@ -1,14 +1,65 @@
+import { query } from '$lib/database/connection'
+import type { ApiResponse } from '$lib/types/database'
+import { formatEmployeeName } from '$lib/utils/format'
+import { logger } from '$lib/utils/logger'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
-import { query } from '$lib/database/connection'
-import { logger } from '$lib/utils/logger'
-import { formatEmployeeName } from '$lib/utils/format'
+
+interface EmployeeData {
+  id: string
+  first_name: string
+  last_name: string
+  email: string
+  department: string
+  position: string
+  salary: number
+  status: string
+  job_title_id: string
+  job_title_name: string
+  job_title_level: number
+  job_title_category: string
+  [key: string]: unknown
+}
+
+interface EmployeeNode {
+  name: string
+  position: string
+  email: string
+  salary: number
+  job_title: string
+  isTeamLead: boolean
+}
+
+interface DepartmentNode {
+  name: string
+  position: string
+  type: string
+  children: EmployeeNode[]
+}
+
+interface ExecutiveNode {
+  name: string
+  position: string
+  email: string
+  children: DepartmentNode[]
+}
+
+interface OrganizationStructure {
+  [executiveName: string]: ExecutiveNode
+}
+
+interface OrganizationMetadata {
+  totalEmployees: number
+  totalDepartments: number
+  totalExecutives: number
+  departments: string[]
+}
 
 // 조직도 데이터 생성 (동적)
 export const GET: RequestHandler = async () => {
   try {
     // 모든 직원 데이터 조회 (직책 정보 포함)
-    const employeesResult = await query(`
+    const employeesResult = await query<EmployeeData>(`
 			SELECT 
 				e.id,
 				e.first_name,
@@ -28,11 +79,11 @@ export const GET: RequestHandler = async () => {
 			ORDER BY e.department, e.position
 		`)
 
-    const employees = Array.isArray(employeesResult) ? employeesResult : employeesResult.rows || []
+    const employees = employeesResult.rows || []
 
     // 부서별로 직원 그룹화
-    const departmentGroups: { [key: string]: unknown[] } = {}
-    employees.forEach((emp: any) => {
+    const departmentGroups: { [key: string]: EmployeeNode[] } = {}
+    employees.forEach((emp) => {
       const dept = emp.department || '기타'
       if (!departmentGroups[dept]) {
         departmentGroups[dept] = []
@@ -55,11 +106,11 @@ export const GET: RequestHandler = async () => {
     }
 
     // 동적으로 조직도 구조 생성
-    const orgStructure: { [key: string]: any } = {}
+    const orgStructure: OrganizationStructure = {}
 
     // 각 임원별로 구조 생성
     Object.entries(executiveDepartmentMapping).forEach(([executiveName, departments]) => {
-      const children: unknown[] = []
+      const children: DepartmentNode[] = []
 
       departments.forEach((deptName) => {
         // 해당 부서에 직원이 있는지 확인
@@ -91,7 +142,7 @@ export const GET: RequestHandler = async () => {
     )
 
     if (unmappedDepartments.length > 0) {
-      const otherChildren: unknown[] = []
+      const otherChildren: DepartmentNode[] = []
       unmappedDepartments.forEach((deptName) => {
         otherChildren.push({
           name: deptName,
@@ -109,23 +160,29 @@ export const GET: RequestHandler = async () => {
       }
     }
 
-    return json({
+    const metadata: OrganizationMetadata = {
+      totalEmployees: employees.length,
+      totalDepartments: Object.keys(departmentGroups).length,
+      totalExecutives: Object.keys(orgStructure).length,
+      departments: Object.keys(departmentGroups),
+    }
+
+    const response: ApiResponse<OrganizationStructure> = {
       success: true,
       data: orgStructure,
-      metadata: {
-        totalEmployees: employees.length,
-        totalDepartments: Object.keys(departmentGroups).length,
-        totalExecutives: Object.keys(orgStructure).length,
-        departments: Object.keys(departmentGroups),
-      },
       message: '조직도 데이터가 성공적으로 생성되었습니다.',
+    }
+
+    return json({
+      ...response,
+      metadata,
     })
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error('Error generating organization chart:', error)
     return json(
       {
         success: false,
-        error: error.message || '조직도 생성에 실패했습니다.',
+        error: error instanceof Error ? error.message : '조직도 생성에 실패했습니다.',
       },
       { status: 500 },
     )

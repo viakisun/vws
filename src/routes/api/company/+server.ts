@@ -1,12 +1,43 @@
-import { json } from '@sveltejs/kit'
 import { query } from '$lib/database/connection.js'
-import type { RequestHandler } from './$types'
+import type { ApiResponse } from '$lib/types/database'
 import { logger } from '$lib/utils/logger'
+import { json } from '@sveltejs/kit'
+import type { RequestHandler } from './$types'
+
+interface CompanyInfo {
+  id: string
+  name: string
+  establishment_date?: string
+  ceo_name?: string
+  business_type?: string
+  address?: string
+  phone?: string
+  fax?: string
+  email?: string
+  website?: string
+  registration_number?: string
+  created_at: string
+  updated_at: string
+  [key: string]: unknown
+}
+
+interface CreateCompanyRequest {
+  name: string
+  establishment_date?: string
+  ceo_name?: string
+  business_type?: string
+  address?: string
+  phone?: string
+  fax?: string
+  email?: string
+  website?: string
+  registration_number?: string
+}
 
 // GET /api/company - 회사 정보 조회
 export const GET: RequestHandler = async () => {
   try {
-    const result = await query(`
+    const result = await query<CompanyInfo>(`
 			SELECT 
 				id, name, establishment_date, ceo_name, business_type,
 				address, phone, fax, email, website, registration_number,
@@ -18,17 +49,19 @@ export const GET: RequestHandler = async () => {
 
     const company = result.rows.length > 0 ? result.rows[0] : null
 
-    return json({
+    const response: ApiResponse<CompanyInfo | null> = {
       success: true,
       data: company,
       message: company ? '회사 정보를 성공적으로 조회했습니다.' : '등록된 회사 정보가 없습니다.',
-    })
-  } catch (error: any) {
+    }
+
+    return json(response)
+  } catch (error: unknown) {
     logger.error('Error fetching company:', error)
     return json(
       {
         success: false,
-        error: error.message || '회사 정보 조회에 실패했습니다.',
+        error: error instanceof Error ? error.message : '회사 정보 조회에 실패했습니다.',
       },
       { status: 500 },
     )
@@ -38,7 +71,7 @@ export const GET: RequestHandler = async () => {
 // POST /api/company - 회사 정보 등록/수정
 export const POST: RequestHandler = async ({ request }) => {
   try {
-    const data = await request.json()
+    const data = await request.json() as CreateCompanyRequest
 
     // 필수 필드 검증
     if (!data.name) {
@@ -52,13 +85,13 @@ export const POST: RequestHandler = async ({ request }) => {
     }
 
     // 기존 회사 정보가 있는지 확인
-    const existingResult = await query('SELECT id FROM companies LIMIT 1')
+    const existingResult = await query<{ id: string }>('SELECT id FROM companies LIMIT 1')
     const existingCompany = existingResult.rows.length > 0
 
-    let result
+    let result: { rows: CompanyInfo[] }
     if (existingCompany) {
       // 기존 회사 정보 업데이트
-      result = await query(
+      result = await query<CompanyInfo>(
         `
 				UPDATE companies SET
 					name = $1,
@@ -93,7 +126,7 @@ export const POST: RequestHandler = async ({ request }) => {
       )
     } else {
       // 새 회사 정보 등록
-      result = await query(
+      result = await query<CompanyInfo>(
         `
 				INSERT INTO companies (
 					name, establishment_date, ceo_name, business_type,
@@ -121,19 +154,21 @@ export const POST: RequestHandler = async ({ request }) => {
       )
     }
 
-    return json({
+    const response: ApiResponse<CompanyInfo> = {
       success: true,
       data: result.rows[0],
       message: existingCompany
         ? '회사 정보가 성공적으로 수정되었습니다.'
         : '회사 정보가 성공적으로 등록되었습니다.',
-    })
-  } catch (error: any) {
+    }
+
+    return json(response)
+  } catch (error: unknown) {
     logger.error('Error saving company:', error)
     return json(
       {
         success: false,
-        error: error.message || '회사 정보 저장에 실패했습니다.',
+        error: error instanceof Error ? error.message : '회사 정보 저장에 실패했습니다.',
       },
       { status: 500 },
     )

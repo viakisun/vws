@@ -1,7 +1,8 @@
 import { query } from '$lib/database/connection'
+import type { ApiResponse } from '$lib/types/database'
+import { logger } from '$lib/utils/logger'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
-import { logger } from '$lib/utils/logger'
 
 // GET /api/project-management/employees/[id]/contract - 특정 직원의 참여기간 내 계약 정보 조회
 export const GET: RequestHandler = async ({ params, url }) => {
@@ -11,13 +12,11 @@ export const GET: RequestHandler = async ({ params, url }) => {
     const endDate = url.searchParams.get('endDate')
 
     if (!startDate || !endDate) {
-      return json(
-        {
-          success: false,
-          message: '시작일과 종료일이 필요합니다.',
-        },
-        { status: 400 },
-      )
+      const response: ApiResponse<null> = {
+        success: false,
+        message: '시작일과 종료일이 필요합니다.',
+      }
+      return json(response, { status: 400 })
     }
 
     // 계약 정보 조회
@@ -80,25 +79,26 @@ export const GET: RequestHandler = async ({ params, url }) => {
         message = '해당 직원의 활성 계약이 없습니다.'
       }
 
-      return json({
+      const response: ApiResponse<null> = {
         success: false,
         message,
         data: null,
-        debug: {
-          requestedPeriod: { startDate, endDate },
-          availableContracts: allContractsResult.rows.map((c) => ({
-            start_date: c.start_date,
-            end_date: c.end_date,
-            annual_salary: c.annual_salary,
-          })),
-        },
-      })
+      }
+      return json(response)
     }
 
     const contract = result.rows[0]
     // 계약 정보 조회 완료
 
-    return json({
+    const response: ApiResponse<{
+      id: unknown
+      employee_id: unknown
+      annual_salary: unknown
+      start_date: unknown
+      end_date: unknown
+      status: unknown
+      contract_type: unknown
+    }> = {
       success: true,
       data: {
         id: contract.id,
@@ -109,16 +109,15 @@ export const GET: RequestHandler = async ({ params, url }) => {
         status: contract.status,
         contract_type: contract.contract_type,
       },
-    })
-  } catch (error) {
+    }
+    return json(response)
+  } catch (error: unknown) {
     logger.error('계약 정보 조회 실패:', error)
-    return json(
-      {
-        success: false,
-        message: '계약 정보를 불러오는데 실패했습니다.',
-        error: error instanceof Error ? error.message : '알 수 없는 오류',
-      },
-      { status: 500 },
-    )
+    const response: ApiResponse<null> = {
+      success: false,
+      message: '계약 정보를 불러오는데 실패했습니다.',
+      error: error instanceof Error ? error.message : '알 수 없는 오류',
+    }
+    return json(response, { status: 500 })
   }
 }

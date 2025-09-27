@@ -251,9 +251,9 @@ export function createOnboardingProcess(
 
   const checklistItems: OnboardingChecklistItem[] = []
   if (template && typeof template === 'object' && 'checklistItems' in template) {
-    const items = (template as any).checklistItems
+    const items = (template as Record<string, unknown>).checklistItems
     if (Array.isArray(items)) {
-      checklistItems.push(...items.map((item: any) => ({
+      checklistItems.push(...items.map((item: Record<string, unknown>) => ({
         ...item,
         id: `item-${Date.now()}-${Math.random()}`,
         status: 'pending' as const,

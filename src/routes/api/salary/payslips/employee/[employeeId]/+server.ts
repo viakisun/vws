@@ -1,9 +1,83 @@
 import { query } from '$lib/database/connection'
+import type { ApiResponse } from '$lib/types/database'
 import { formatDateForDisplay, getCurrentUTC } from '$lib/utils/date-handler'
-import { json } from '@sveltejs/kit'
 import { formatEmployeeName } from '$lib/utils/format'
+import { logger } from '$lib/utils/logger'
+import { json } from '@sveltejs/kit'
+import type { RequestHandler } from './$types'
 
-export async function GET({ params, url }) {
+interface PayslipData {
+  id: string
+  employeeId: string
+  period: string
+  payDate: string
+  baseSalary: number
+  totalPayments: number
+  totalDeductions: number
+  netSalary: number
+  payments: unknown
+  deductions: unknown
+  status: string
+  isGenerated: boolean
+  createdAt: string
+  updatedAt: string
+  employeeName: string
+  employeeIdNumber: string
+  department: string
+  position: string
+  hireDate: string
+  [key: string]: unknown
+}
+
+interface EmployeeData {
+  id: string
+  employee_id: string
+  first_name: string
+  last_name: string
+  department: string
+  position: string
+  hire_date: string
+  annual_salary: string | null
+  [key: string]: unknown
+}
+
+interface PaymentItem {
+  id: string
+  name: string
+  amount: number
+  type: string
+  isTaxable: boolean
+}
+
+interface DeductionItem {
+  id: string
+  name: string
+  rate: number
+  type: string
+  amount: number
+  isMandatory: boolean
+}
+
+interface DefaultPayslip {
+  employeeId: string
+  period: string
+  payDate: string
+  employeeName: string
+  employeeIdNumber: string
+  department: string
+  position: string
+  hireDate: string
+  baseSalary: number
+  totalPayments: number
+  totalDeductions: number
+  netSalary: number
+  payments: PaymentItem[]
+  deductions: DeductionItem[]
+  status: string
+  isGenerated: boolean
+}
+
+export const GET: RequestHandler = async ({ params, url }) => {
   try {
     const { employeeId } = params
     const period = url.searchParams.get('period') // YYYY-MM 형식
@@ -21,7 +95,7 @@ export async function GET({ params, url }) {
 
     // 연도별 데이터 요청인 경우
     if (year) {
-      const { rows } = await query(
+      const result = await query<PayslipData>(
         `
 				SELECT
 					p.id,
@@ -52,16 +126,20 @@ export async function GET({ params, url }) {
         [employeeId, `${year}-%`],
       )
 
-      return json({
+      const response: ApiResponse<PayslipData[]> = {
         success: true,
-        data: rows,
+        data: result.rows,
+      }
+
+      return json({
+        ...response,
         source: 'yearly',
       })
     }
 
     // 1. 이번달 급여명세서가 있는지 확인
     if (period) {
-      const currentPayslip = await query(
+      const currentPayslip = await query<PayslipData>(
         `
 				SELECT
 					p.id,
@@ -92,16 +170,20 @@ export async function GET({ params, url }) {
       )
 
       if (currentPayslip.rows.length > 0) {
-        return json({
+        const response: ApiResponse<PayslipData> = {
           success: true,
           data: currentPayslip.rows[0],
+        }
+
+        return json({
+          ...response,
           source: 'current',
         })
       }
     }
 
     // 2. 지난달 급여명세서가 있는지 확인
-    const previousPayslip = await query(
+    const previousPayslip = await query<PayslipData>(
       `
 			SELECT
 				p.id,
@@ -134,15 +216,19 @@ export async function GET({ params, url }) {
     )
 
     if (previousPayslip.rows.length > 0) {
-      return json({
+      const response: ApiResponse<PayslipData> = {
         success: true,
         data: previousPayslip.rows[0],
+      }
+
+      return json({
+        ...response,
         source: 'previous',
       })
     }
 
     // 3. 기본 템플릿 생성 (처음인 경우)
-    const employee = await query(
+    const employee = await query<EmployeeData>(
       `
 			SELECT
 				e.id,
@@ -171,11 +257,11 @@ export async function GET({ params, url }) {
     }
 
     const emp = employee.rows[0]
-    const baseSalary = emp.annual_salary ? Math.round(emp.annual_salary / 12) : 3000000
+    const baseSalary = emp.annual_salary ? Math.round(parseFloat(emp.annual_salary) / 12) : 3000000
     const currentPeriod = period || getCurrentUTC().slice(0, 7)
 
     // 기본 급여명세서 템플릿 생성
-    const defaultPayslip = {
+    const defaultPayslip: DefaultPayslip = {
       employeeId: emp.id,
       period: currentPeriod,
       payDate: formatDateForDisplay(getCurrentUTC(), 'ISO'),
@@ -238,7 +324,7 @@ export async function GET({ params, url }) {
           type: 'settlement',
           isTaxable: true,
         },
-      ],
+      ] as PaymentItem[],
       deductions: [
         {
           id: 'health_insurance',
@@ -296,22 +382,26 @@ export async function GET({ params, url }) {
           amount: 0,
           isMandatory: false,
         },
-      ],
+      ] as DeductionItem[],
       status: 'draft',
       isGenerated: false,
     }
 
-    return json({
+    const response: ApiResponse<DefaultPayslip> = {
       success: true,
       data: defaultPayslip,
+    }
+
+    return json({
+      ...response,
       source: 'default',
     })
-  } catch (error) {
+  } catch (error: unknown) {
+    logger.error('Error fetching employee payslip:', error)
     return json(
       {
         success: false,
-        error: '직원 급여명세서를 가져오는데 실패했습니다.',
-        details: error instanceof Error ? error.message : 'Unknown error',
+        error: error instanceof Error ? error.message : '직원 급여명세서를 가져오는데 실패했습니다.',
       },
       { status: 500 },
     )

@@ -2,9 +2,10 @@
 // Evidence Documents API
 
 import { query } from '$lib/database/connection'
+import type { ApiResponse } from '$lib/types/database'
+import { logger } from '$lib/utils/logger'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
-import { logger } from '$lib/utils/logger'
 
 // 증빙 서류 목록 조회
 export const GET: RequestHandler = async ({ url }) => {
@@ -50,52 +51,47 @@ export const GET: RequestHandler = async ({ url }) => {
 
     const result = await query(queryText, params)
 
-    return json({
+    const response: ApiResponse<typeof result.rows> = {
       success: true,
       data: result.rows,
       count: result.rows.length,
-    })
-  } catch (error) {
+    }
+    return json(response)
+  } catch (error: unknown) {
     logger.error('증빙 서류 조회 실패:', error)
-    return json(
-      {
-        success: false,
-        message: '증빙 서류 조회에 실패했습니다.',
-        error: error instanceof Error ? error.message : '알 수 없는 오류',
-      },
-      { status: 500 },
-    )
+    const response: ApiResponse<null> = {
+      success: false,
+      message: '증빙 서류 조회에 실패했습니다.',
+      error: error instanceof Error ? error.message : '알 수 없는 오류',
+    }
+    return json(response, { status: 500 })
   }
 }
 
 // 증빙 서류 생성 (파일 업로드 정보 저장)
 export const POST: RequestHandler = async ({ request }) => {
   try {
-    const data = await request.json()
+    const data = await request.json() as Record<string, unknown>
     const { evidenceItemId, documentType, documentName, filePath, fileSize, mimeType, uploaderId } =
       data
 
     // 필수 필드 검증
     if (!evidenceItemId || !documentType || !documentName) {
-      return json(
-        {
-          success: false,
-          message: '필수 필드가 누락되었습니다.',
-        },
-        { status: 400 },
-      )
+      const response: ApiResponse<null> = {
+        success: false,
+        message: '필수 필드가 누락되었습니다.',
+      }
+      return json(response, { status: 400 })
     }
 
     // 증빙 항목 존재 확인
     const itemCheck = await query('SELECT id FROM evidence_items WHERE id = $1', [evidenceItemId])
     if (itemCheck.rows.length === 0) {
-      return json(
-        {
-          success: false,
-          message: '증빙 항목을 찾을 수 없습니다.',
-        },
-        { status: 404 },
-      )
+      const response: ApiResponse<null> = {
+        success: false,
+        message: '증빙 항목을 찾을 수 없습니다.',
+      }
+      return json(response, { status: 404 })
     }
 
     // 증빙 서류 생성
@@ -129,20 +125,19 @@ export const POST: RequestHandler = async ({ request }) => {
       [newDocument.id],
     )
 
-    return json({
+    const response: ApiResponse<typeof detailResult.rows[0]> = {
       success: true,
       data: detailResult.rows[0],
       message: '증빙 서류가 성공적으로 등록되었습니다.',
-    })
-  } catch (error) {
+    }
+    return json(response)
+  } catch (error: unknown) {
     logger.error('증빙 서류 생성 실패:', error)
-    return json(
-      {
-        success: false,
-        message: '증빙 서류 생성에 실패했습니다.',
-        error: error instanceof Error ? error.message : '알 수 없는 오류',
-      },
-      { status: 500 },
-    )
+    const response: ApiResponse<null> = {
+      success: false,
+      message: '증빙 서류 생성에 실패했습니다.',
+      error: error instanceof Error ? error.message : '알 수 없는 오류',
+    }
+    return json(response, { status: 500 })
   }
 }

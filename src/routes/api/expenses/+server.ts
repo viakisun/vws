@@ -1,7 +1,30 @@
-import { json, error } from '@sveltejs/kit'
-import type { RequestHandler } from './$types'
 import { DatabaseService } from '$lib/database/connection'
+import type { ApiResponse } from '$lib/types/database'
 import { logger } from '$lib/utils/logger'
+import { json } from '@sveltejs/kit'
+import type { RequestHandler } from './$types'
+
+interface ExpenseItem {
+  id: string
+  project_id: string
+  category_code: string
+  amount: number
+  requester_id: string
+  status: string
+  description?: string
+  created_at: string
+  updated_at: string
+  [key: string]: unknown
+}
+
+interface CreateExpenseRequest {
+  project_id: string
+  category_code: string
+  amount: number
+  requester_id: string
+  description?: string
+  status?: string
+}
 
 // GET /api/expenses - Get all expense items
 export const GET: RequestHandler = async ({ url }) => {
@@ -20,21 +43,27 @@ export const GET: RequestHandler = async ({ url }) => {
       offset: offset ? parseInt(offset) : undefined,
     })
 
-    return json({
+    const response: ApiResponse<ExpenseItem[]> = {
       success: true,
-      data: expenses,
+      data: expenses as unknown as ExpenseItem[],
       count: expenses.length,
-    })
-  } catch (err) {
-    logger.error('Get expenses error:', err)
-    return error(500, { message: 'Internal server error' })
+    }
+
+    return json(response)
+  } catch (error: unknown) {
+    logger.error('Get expenses error:', error)
+    const response: ApiResponse<null> = {
+      success: false,
+      error: error instanceof Error ? error.message : '경비 목록 조회 중 오류가 발생했습니다.',
+    }
+    return json(response, { status: 500 })
   }
 }
 
 // POST /api/expenses - Create new expense item
 export const POST: RequestHandler = async ({ request }) => {
   try {
-    const expenseData = await request.json()
+    const expenseData = await request.json() as CreateExpenseRequest
 
     // Validate required fields
     if (
@@ -43,33 +72,46 @@ export const POST: RequestHandler = async ({ request }) => {
       !expenseData.amount ||
       !expenseData.requester_id
     ) {
-      return error(400, {
-        message: 'Project ID, category code, amount, and requester ID are required',
-      })
+      const response: ApiResponse<null> = {
+        success: false,
+        error: '프로젝트 ID, 카테고리 코드, 금액, 요청자 ID는 필수입니다.',
+      }
+      return json(response, { status: 400 })
     }
 
     // Validate amount
     if (expenseData.amount <= 0) {
-      return error(400, { message: 'Amount must be greater than 0' })
+      const response: ApiResponse<null> = {
+        success: false,
+        error: '금액은 0보다 커야 합니다.',
+      }
+      return json(response, { status: 400 })
     }
 
     // Check if project exists
     const project = await DatabaseService.getProjectById(expenseData.project_id)
     if (!project) {
-      return error(400, { message: 'Project not found' })
+      const response: ApiResponse<null> = {
+        success: false,
+        error: '프로젝트를 찾을 수 없습니다.',
+      }
+      return json(response, { status: 400 })
     }
 
-    const expense = await DatabaseService.createExpenseItem(expenseData)
+    const expense = await DatabaseService.createExpenseItem(expenseData as unknown as Partial<import('$lib/database/connection').DatabaseExpenseItem>)
 
-    return json(
-      {
-        success: true,
-        data: expense,
-      },
-      { status: 201 },
-    )
-  } catch (err) {
-    logger.error('Create expense error:', err)
-    return error(500, { message: 'Internal server error' })
+    const response: ApiResponse<ExpenseItem> = {
+      success: true,
+      data: expense as unknown as ExpenseItem,
+    }
+
+    return json(response, { status: 201 })
+  } catch (error: unknown) {
+    logger.error('Create expense error:', error)
+    const response: ApiResponse<null> = {
+      success: false,
+      error: error instanceof Error ? error.message : '경비 항목 생성 중 오류가 발생했습니다.',
+    }
+    return json(response, { status: 500 })
   }
 }

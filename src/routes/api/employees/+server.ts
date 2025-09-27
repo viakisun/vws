@@ -1,4 +1,5 @@
 import { query } from '$lib/database/connection.js'
+import type { ApiResponse, DatabaseEmployee } from '$lib/types/database'
 import { formatDateForDisplay, toUTC } from '$lib/utils/date-handler.js'
 import { logger } from '$lib/utils/logger'
 import { json } from '@sveltejs/kit'
@@ -28,7 +29,7 @@ export const GET: RequestHandler = async ({ url }) => {
       paramIndex++
     }
 
-    const result = await query(
+    const result = await query<DatabaseEmployee>(
       `
 			SELECT 
 				e.id, e.employee_id, e.first_name, e.last_name, e.email, e.phone,
@@ -44,7 +45,7 @@ export const GET: RequestHandler = async ({ url }) => {
     )
 
     // 날짜 필드를 서울 시간대로 변환하여 반환
-    const employees = result.rows.map((row) => ({
+    const employees = result.rows.map((row: DatabaseEmployee) => ({
       ...row,
       hire_date: row.hire_date ? formatDateForDisplay(row.hire_date, 'ISO') : null,
       birth_date: row.birth_date ? formatDateForDisplay(row.birth_date, 'ISO') : null,
@@ -53,10 +54,12 @@ export const GET: RequestHandler = async ({ url }) => {
         : null,
     }))
 
-    return json({
+    const response: ApiResponse<unknown[]> = {
       success: true,
       data: employees,
-    })
+    }
+
+    return json(response)
   } catch (error) {
     logger.error('Error fetching employees:', error)
     return json(
@@ -140,7 +143,7 @@ export const POST: RequestHandler = async ({ request }) => {
 
     // employee_id 생성 (기존 4자리 숫자 규칙 유지)
     // 기존 숫자 사번 중 최대값을 찾아서 다음 사번 생성
-    const countResult = await query(`
+    const countResult = await query<{ max_id: number }>(`
 			SELECT MAX(CAST(employee_id AS INTEGER)) as max_id 
 			FROM employees 
 			WHERE employee_id ~ '^[0-9]+$' AND LENGTH(employee_id) <= 4
@@ -164,7 +167,7 @@ export const POST: RequestHandler = async ({ request }) => {
       }
     }
 
-    const result = await query(
+    const result = await query<DatabaseEmployee>(
       `
 			INSERT INTO employees (
 				employee_id, first_name, last_name, email, phone,
@@ -206,11 +209,13 @@ export const POST: RequestHandler = async ({ request }) => {
         : null,
     }
 
-    return json({
+    const response: ApiResponse<unknown> = {
       success: true,
       data: formattedEmployee,
       message: '직원이 성공적으로 추가되었습니다.',
-    })
+    }
+
+    return json(response)
   } catch (error) {
     logger.error('Error adding employee:', error)
     return json(
@@ -320,7 +325,7 @@ export const PUT: RequestHandler = async ({ request }) => {
     // 상태는 사용자가 직접 설정한 값 사용 (퇴사일이 있어도 자동으로 terminated로 변경하지 않음)
     const status = data.status || 'active'
 
-    const result = await query(
+    const result = await query<DatabaseEmployee>(
       `
 			UPDATE employees SET
 				first_name = $2,
@@ -382,11 +387,13 @@ export const PUT: RequestHandler = async ({ request }) => {
         : null,
     }
 
-    return json({
+    const response: ApiResponse<unknown> = {
       success: true,
       data: formattedEmployee,
       message: '직원 정보가 성공적으로 수정되었습니다.',
-    })
+    }
+
+    return json(response)
   } catch (error) {
     logger.error('Error updating employee:', error)
     return json(

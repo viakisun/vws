@@ -1,6 +1,7 @@
-import { query } from '$lib/database/connection.js'
+import { query } from '$lib/database/connection'
+import type { ApiResponse } from '$lib/types/database'
 import type { AnnualBudget, AnnualBudgetFormData, BudgetSummary } from '$lib/types/project-budget'
-import { formatDateForDisplay, toUTC } from '$lib/utils/date-handler.js'
+import { formatDateForDisplay, toUTC } from '$lib/utils/date-handler'
 import { logger } from '$lib/utils/logger'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
@@ -82,22 +83,22 @@ export const GET: RequestHandler = async ({ params }) => {
       summary.inKindRatio = (summary.totalInKind / summary.totalBudget) * 100
     }
 
-    return json({
+    const response: ApiResponse<{ budgets: AnnualBudget[]; summary: BudgetSummary }> = {
       success: true,
       data: {
         budgets,
         summary,
       },
-    })
-  } catch (error) {
+    }
+
+    return json(response)
+  } catch (error: unknown) {
     logger.error('연차별 예산 조회 실패:', error)
-    return json(
-      {
-        success: false,
-        error: '연차별 예산을 조회하는데 실패했습니다.',
-      },
-      { status: 500 },
-    )
+    const response: ApiResponse<null> = {
+      success: false,
+      error: error instanceof Error ? error.message : '연차별 예산을 조회하는데 실패했습니다.',
+    }
+    return json(response, { status: 500 })
   }
 }
 
@@ -187,22 +188,22 @@ export const POST: RequestHandler = async ({ params, request }) => {
       }
     })
 
-    return json({
+    const response: ApiResponse<{ budgets: AnnualBudget[] }> = {
       success: true,
       data: {
         budgets: createdBudgets,
       },
       message: '연차별 예산이 성공적으로 생성되었습니다.',
-    })
-  } catch (error) {
+    }
+
+    return json(response)
+  } catch (error: unknown) {
     logger.error('연차별 예산 생성 실패:', error)
-    return json(
-      {
-        success: false,
-        error: '연차별 예산 생성에 실패했습니다.',
-      },
-      { status: 500 },
-    )
+    const response: ApiResponse<null> = {
+      success: false,
+      error: error instanceof Error ? error.message : '연차별 예산 생성에 실패했습니다.',
+    }
+    return json(response, { status: 500 })
   }
 }
 
@@ -290,22 +291,22 @@ export const PUT: RequestHandler = async ({ params, request }) => {
       updatedAt: updatedBudget.updated_at,
     }
 
-    return json({
+    const response: ApiResponse<{ budget: AnnualBudget }> = {
       success: true,
       data: {
         budget,
       },
       message: '연차별 예산이 성공적으로 수정되었습니다.',
-    })
-  } catch (error) {
+    }
+
+    return json(response)
+  } catch (error: unknown) {
     logger.error('연차별 예산 수정 실패:', error)
-    return json(
-      {
-        success: false,
-        error: '연차별 예산 수정에 실패했습니다.',
-      },
-      { status: 500 },
-    )
+    const response: ApiResponse<null> = {
+      success: false,
+      error: error instanceof Error ? error.message : '연차별 예산 수정에 실패했습니다.',
+    }
+    return json(response, { status: 500 })
   }
 }
 
@@ -340,18 +341,19 @@ export const DELETE: RequestHandler = async ({ params, request }) => {
       )
     }
 
-    return json({
+    const response: ApiResponse<null> = {
       success: true,
+      data: null,
       message: '연차별 예산이 성공적으로 삭제되었습니다.',
-    })
-  } catch (error) {
+    }
+
+    return json(response)
+  } catch (error: unknown) {
     logger.error('연차별 예산 삭제 실패:', error)
-    return json(
-      {
-        success: false,
-        error: '연차별 예산 삭제에 실패했습니다.',
-      },
-      { status: 500 },
-    )
+    const response: ApiResponse<null> = {
+      success: false,
+      error: error instanceof Error ? error.message : '연차별 예산 삭제에 실패했습니다.',
+    }
+    return json(response, { status: 500 })
   }
 }

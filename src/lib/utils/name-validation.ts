@@ -4,9 +4,9 @@
  * 이 모듈은 이름 처리가 표준 방식으로 이루어지도록 강제하는 도구들을 제공합니다.
  */
 
+import { logger } from '$lib/utils/logger'
 import { formatEmployeeName } from './format'
 import { formatKoreanNameStandard } from './korean-name'
-import { logger } from '$lib/utils/logger'
 
 /**
  * 이름 표시를 위한 타입 가드
@@ -64,7 +64,7 @@ export function enforceStandardName(name: string, context: string = '이름'): S
 /**
  * 런타임 검증을 위한 데코레이터 함수
  */
-export function withNameValidation<T extends (...args: unknown[]) => any>(
+export function withNameValidation<T extends (...args: unknown[]) => unknown>(
   fn: T,
   context: string = '함수',
 ): T {

@@ -1,12 +1,33 @@
+import { query } from '$lib/database/connection'
+import type { ApiResponse } from '$lib/types/database'
+import { logger } from '$lib/utils/logger'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
-import { query } from '$lib/database/connection'
-import { logger } from '$lib/utils/logger'
+
+interface PositionInfo {
+  id: string
+  name: string
+  description?: string
+  department: string
+  level: number
+  status: string
+  created_at: string
+  updated_at: string
+  [key: string]: unknown
+}
+
+interface UpdatePositionRequest {
+  name: string
+  description?: string
+  department: string
+  level?: number
+  status?: string
+}
 
 // 특정 직급 조회
 export const GET: RequestHandler = async ({ params }) => {
   try {
-    const result = await query(
+    const result = await query<PositionInfo>(
       `
 			SELECT id, name, description, department, level, status, created_at, updated_at
 			FROM positions
@@ -25,16 +46,18 @@ export const GET: RequestHandler = async ({ params }) => {
       )
     }
 
-    return json({
+    const response: ApiResponse<PositionInfo> = {
       success: true,
       data: result.rows[0],
-    })
-  } catch (error: any) {
+    }
+
+    return json(response)
+  } catch (error: unknown) {
     logger.error('Error fetching position:', error)
     return json(
       {
         success: false,
-        error: error.message || '직급 정보를 가져오는데 실패했습니다.',
+        error: error instanceof Error ? error.message : '직급 정보를 가져오는데 실패했습니다.',
       },
       { status: 500 },
     )
@@ -44,7 +67,7 @@ export const GET: RequestHandler = async ({ params }) => {
 // 직급 정보 수정
 export const PUT: RequestHandler = async ({ params, request }) => {
   try {
-    const data = await request.json()
+    const data = await request.json() as UpdatePositionRequest
 
     // 필수 필드 검증
     if (!data.name || data.name.trim() === '') {
@@ -68,7 +91,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
     }
 
     // 중복 직급명 검증 (자기 자신 제외, 같은 부서 내에서)
-    const existingPos = await query(
+    const existingPos = await query<{ id: string }>(
       'SELECT id FROM positions WHERE LOWER(name) = LOWER($1) AND department = $2 AND id != $3',
       [data.name.trim(), data.department.trim(), params.id],
     )
@@ -83,7 +106,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
       )
     }
 
-    const result = await query(
+    const result = await query<PositionInfo>(
       `
 			UPDATE positions SET
 				name = $2,
@@ -116,17 +139,19 @@ export const PUT: RequestHandler = async ({ params, request }) => {
       )
     }
 
-    return json({
+    const response: ApiResponse<PositionInfo> = {
       success: true,
       data: result.rows[0],
       message: '직급 정보가 성공적으로 수정되었습니다.',
-    })
-  } catch (error: any) {
+    }
+
+    return json(response)
+  } catch (error: unknown) {
     logger.error('Error updating position:', error)
     return json(
       {
         success: false,
-        error: error.message || '직급 정보 수정에 실패했습니다.',
+        error: error instanceof Error ? error.message : '직급 정보 수정에 실패했습니다.',
       },
       { status: 500 },
     )
@@ -141,7 +166,7 @@ export const DELETE: RequestHandler = async ({ params, url }) => {
 
     if (hardDelete) {
       // 하드 삭제: 직급을 사용하는 직원이 있는지 확인
-      const employeesInPos = await query(
+      const employeesInPos = await query<{ count: string }>(
         'SELECT COUNT(*) as count FROM employees WHERE position = (SELECT name FROM positions WHERE id = $1)',
         [params.id],
       )
@@ -157,7 +182,7 @@ export const DELETE: RequestHandler = async ({ params, url }) => {
       }
 
       // 하드 삭제 실행
-      const result = await query('DELETE FROM positions WHERE id = $1 RETURNING id, name', [
+      const result = await query<{ id: string; name: string }>('DELETE FROM positions WHERE id = $1 RETURNING id, name', [
         params.id,
       ])
 
@@ -171,13 +196,16 @@ export const DELETE: RequestHandler = async ({ params, url }) => {
         )
       }
 
-      return json({
+      const response: ApiResponse<null> = {
         success: true,
+        data: null,
         message: '직급이 완전히 삭제되었습니다.',
-      })
+      }
+
+      return json(response)
     } else {
       // 소프트 삭제: 상태를 'inactive'로 변경
-      const result = await query(
+      const result = await query<{ id: string; name: string; status: string }>(
         `
 				UPDATE positions SET
 					status = 'inactive',
@@ -198,17 +226,20 @@ export const DELETE: RequestHandler = async ({ params, url }) => {
         )
       }
 
-      return json({
+      const response: ApiResponse<null> = {
         success: true,
+        data: null,
         message: '직급이 비활성화되었습니다.',
-      })
+      }
+
+      return json(response)
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error('Error deleting position:', error)
     return json(
       {
         success: false,
-        error: error.message || '직급 삭제에 실패했습니다.',
+        error: error instanceof Error ? error.message : '직급 삭제에 실패했습니다.',
       },
       { status: 500 },
     )

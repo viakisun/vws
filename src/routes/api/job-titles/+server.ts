@@ -1,7 +1,28 @@
+import { query } from '$lib/database/connection'
+import type { ApiResponse } from '$lib/types/database'
+import { logger } from '$lib/utils/logger'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
-import { query } from '$lib/database/connection'
-import { logger } from '$lib/utils/logger'
+
+interface JobTitleInfo {
+  id: string
+  name: string
+  level: number
+  category: string
+  description?: string
+  is_active: boolean
+  created_at: string
+  updated_at: string
+  [key: string]: unknown
+}
+
+interface CreateJobTitleRequest {
+  name: string
+  level: number
+  category: string
+  description?: string
+  is_active?: boolean
+}
 
 // 직책 목록 조회
 export const GET: RequestHandler = async ({ url }) => {
@@ -12,7 +33,7 @@ export const GET: RequestHandler = async ({ url }) => {
     const level = searchParams.get('level')
 
     let whereClause = ''
-    const params: unknown[] = []
+    const params: (string | number | boolean)[] = []
 
     if (status === 'active') {
       whereClause = 'WHERE is_active = $1'
@@ -39,7 +60,7 @@ export const GET: RequestHandler = async ({ url }) => {
       params.push(parseInt(level))
     }
 
-    const result = await query(
+    const result = await query<JobTitleInfo>(
       `
 			SELECT id, name, level, category, description, is_active, created_at, updated_at
 			FROM job_titles
@@ -49,16 +70,18 @@ export const GET: RequestHandler = async ({ url }) => {
       params,
     )
 
-    return json({
+    const response: ApiResponse<JobTitleInfo[]> = {
       success: true,
       data: result.rows,
-    })
-  } catch (error: any) {
+    }
+
+    return json(response)
+  } catch (error: unknown) {
     logger.error('Error fetching job titles:', error)
     return json(
       {
         success: false,
-        error: error.message || '직책 목록을 가져오는데 실패했습니다.',
+        error: error instanceof Error ? error.message : '직책 목록을 가져오는데 실패했습니다.',
       },
       { status: 500 },
     )
@@ -68,7 +91,7 @@ export const GET: RequestHandler = async ({ url }) => {
 // 새 직책 생성
 export const POST: RequestHandler = async ({ request }) => {
   try {
-    const data = await request.json()
+    const data = await request.json() as CreateJobTitleRequest
 
     // 필수 필드 검증
     if (!data.name || data.name.trim() === '') {
@@ -102,7 +125,7 @@ export const POST: RequestHandler = async ({ request }) => {
     }
 
     // 중복 직책명 검증
-    const existingTitle = await query('SELECT id FROM job_titles WHERE LOWER(name) = LOWER($1)', [
+    const existingTitle = await query<{ id: string }>('SELECT id FROM job_titles WHERE LOWER(name) = LOWER($1)', [
       data.name.trim(),
     ])
 
@@ -116,7 +139,7 @@ export const POST: RequestHandler = async ({ request }) => {
       )
     }
 
-    const result = await query(
+    const result = await query<JobTitleInfo>(
       `
 			INSERT INTO job_titles (name, level, category, description, is_active, created_at, updated_at)
 			VALUES ($1, $2, $3, $4, $5, $6, $7)
@@ -133,17 +156,19 @@ export const POST: RequestHandler = async ({ request }) => {
       ],
     )
 
-    return json({
+    const response: ApiResponse<JobTitleInfo> = {
       success: true,
       data: result.rows[0],
       message: '직책이 성공적으로 생성되었습니다.',
-    })
-  } catch (error: any) {
+    }
+
+    return json(response)
+  } catch (error: unknown) {
     logger.error('Error creating job title:', error)
     return json(
       {
         success: false,
-        error: error.message || '직책 생성에 실패했습니다.',
+        error: error instanceof Error ? error.message : '직책 생성에 실패했습니다.',
       },
       { status: 500 },
     )

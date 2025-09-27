@@ -412,16 +412,17 @@ export class ParticipationManager {
   }
 
   // 8. 월별 비용 계산
-  static calculateMonthlyCost(monthData: any): number {
+  static calculateMonthlyCost(monthData: Record<string, unknown>): number {
     const employeesData = get(employees)
     let totalCost = 0
 
-    monthData.personAnalysis.forEach((personData: any) => {
-      const employee = employeesData.find((e) => e.id === personData.personId)
+    const personAnalysis = monthData.personAnalysis as Array<Record<string, unknown>>
+    personAnalysis.forEach((personData) => {
+      const employee = employeesData.find((e) => e.id === String(personData.personId))
       if (employee) {
         // 월급의 참여율 비율로 계산
         const monthlySalary = employee.salary
-        const participationCost = monthlySalary * (personData.totalRate / 100)
+        const participationCost = monthlySalary * (Number(personData.totalRate) / 100)
         totalCost += participationCost
       }
     })
@@ -472,11 +473,11 @@ export const participationTrends = derived(participationHistory, (history) => {
     }
 
     if (change.newRate > change.oldRate) {
-      monthlyChanges[month].increases++
+      (monthlyChanges[month] as Record<string, unknown>).increases = (Number((monthlyChanges[month] as Record<string, unknown>).increases) + 1)
     } else if (change.newRate < change.oldRate) {
-      monthlyChanges[month].decreases++
+      (monthlyChanges[month] as Record<string, unknown>).decreases = (Number((monthlyChanges[month] as Record<string, unknown>).decreases) + 1)
     }
-    monthlyChanges[month].total++
+    (monthlyChanges[month] as Record<string, unknown>).total = (Number((monthlyChanges[month] as Record<string, unknown>).total) + 1)
   })
 
   return {

@@ -1,8 +1,9 @@
 import { DatabaseService } from '$lib/database/connection'
+import type { ApiResponse } from '$lib/types/database'
 import { config } from '$lib/utils/config'
-import { logger } from '$lib/utils/logger'
 import { toUTC } from '$lib/utils/date-handler'
-import { error, json } from '@sveltejs/kit'
+import { logger } from '$lib/utils/logger'
+import { json } from '@sveltejs/kit'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import type { RequestHandler } from './$types'
@@ -30,55 +31,93 @@ interface UserResponse {
   last_login?: string
 }
 
+interface LoginRequest {
+  email: string
+  password: string
+}
+
+interface LoginResponse {
+  user: UserResponse
+  token: string
+  expiresIn: number
+}
+
 export const POST: RequestHandler = async ({ request }) => {
   try {
     // 요청 본문 파싱 및 검증
-    const body = await request.json()
-    const { email, password } = body
+    const { email, password } = (await request.json()) as LoginRequest
 
     // 입력값 검증
     if (!email || !password) {
       logger.warn('Login attempt with missing credentials', { email: !!email, password: !!password })
-      return error(400, '이메일과 비밀번호를 입력해주세요.')
+      const response: ApiResponse<null> = {
+        success: false,
+        error: '이메일과 비밀번호를 입력해주세요.',
+      }
+      return json(response, { status: 400 })
     }
 
     // 이메일 형식 검증
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(email)) {
       logger.warn('Login attempt with invalid email format', { email })
-      return error(400, '올바른 이메일 형식을 입력해주세요.')
+      const response: ApiResponse<null> = {
+        success: false,
+        error: '올바른 이메일 형식을 입력해주세요.',
+      }
+      return json(response, { status: 400 })
     }
 
     // 비밀번호 길이 검증
     if (password.length < 6) {
       logger.warn('Login attempt with short password', { email })
-      return error(400, '비밀번호는 최소 6자 이상이어야 합니다.')
+      const response: ApiResponse<null> = {
+        success: false,
+        error: '비밀번호는 최소 6자 이상이어야 합니다.',
+      }
+      return json(response, { status: 400 })
     }
 
     // 데이터베이스에서 사용자 조회
     const user = await DatabaseService.getUserByEmail(email)
     if (!user) {
       logger.warn('Login attempt with non-existent email', { email })
-      return error(401, '이메일 또는 비밀번호가 올바르지 않습니다.')
+      const response: ApiResponse<null> = {
+        success: false,
+        error: '이메일 또는 비밀번호가 올바르지 않습니다.',
+      }
+      return json(response, { status: 401 })
     }
 
     // 사용자 활성 상태 확인
     if (!user.is_active) {
       logger.warn('Login attempt with deactivated account', { email, userId: user.id })
-      return error(401, '비활성화된 계정입니다. 관리자에게 문의하세요.')
+      const response: ApiResponse<null> = {
+        success: false,
+        error: '비활성화된 계정입니다. 관리자에게 문의하세요.',
+      }
+      return json(response, { status: 401 })
     }
 
     // 비밀번호 검증
     const passwordHash = (user as any).password_hash
     if (!passwordHash) {
       logger.error('User found without password hash', { email, userId: user.id })
-      return error(500, '계정 설정에 문제가 있습니다. 관리자에게 문의하세요.')
+      const response: ApiResponse<null> = {
+        success: false,
+        error: '계정 설정에 문제가 있습니다. 관리자에게 문의하세요.',
+      }
+      return json(response, { status: 500 })
     }
 
     const isValidPassword = await bcrypt.compare(password, passwordHash)
     if (!isValidPassword) {
       logger.warn('Login attempt with invalid password', { email, userId: user.id })
-      return error(401, '이메일 또는 비밀번호가 올바르지 않습니다.')
+      const response: ApiResponse<null> = {
+        success: false,
+        error: '이메일 또는 비밀번호가 올바르지 않습니다.',
+      }
+      return json(response, { status: 401 })
     }
 
     // JWT 토큰 페이로드 생성
@@ -134,26 +173,42 @@ export const POST: RequestHandler = async ({ request }) => {
     }
 
     // 성공 응답 반환
-    return json({
+    const response: ApiResponse<LoginResponse> = {
       success: true,
       message: '로그인에 성공했습니다.',
-      user: userResponse,
-      token,
-      expiresIn: 24 * 60 * 60, // 초 단위
-    })
+      data: {
+        user: userResponse,
+        token,
+        expiresIn: 24 * 60 * 60, // 초 단위
+      },
+    }
 
-  } catch (err) {
-    logger.error('Login error:', err)
+    return json(response)
+
+  } catch (error: unknown) {
+    logger.error('Login error:', error)
     
     // 에러 타입에 따른 구체적인 응답
-    if (err instanceof SyntaxError) {
-      return error(400, '잘못된 요청 형식입니다.')
+    if (error instanceof SyntaxError) {
+      const response: ApiResponse<null> = {
+        success: false,
+        error: '잘못된 요청 형식입니다.',
+      }
+      return json(response, { status: 400 })
     }
     
-    if (err instanceof Error && err.message.includes('database')) {
-      return error(503, '데이터베이스 연결에 문제가 있습니다. 잠시 후 다시 시도해주세요.')
+    if (error instanceof Error && error.message.includes('database')) {
+      const response: ApiResponse<null> = {
+        success: false,
+        error: '데이터베이스 연결에 문제가 있습니다. 잠시 후 다시 시도해주세요.',
+      }
+      return json(response, { status: 503 })
     }
 
-    return error(500, '서버 내부 오류가 발생했습니다. 잠시 후 다시 시도해주세요.')
+    const response: ApiResponse<null> = {
+      success: false,
+      error: '서버 내부 오류가 발생했습니다. 잠시 후 다시 시도해주세요.',
+    }
+    return json(response, { status: 500 })
   }
 }

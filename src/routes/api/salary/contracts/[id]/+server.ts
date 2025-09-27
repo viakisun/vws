@@ -1,17 +1,41 @@
 // 개별 급여 계약 관리 API 엔드포인트
 
-import { query } from '$lib/database/connection.js'
+import { query } from '$lib/database/connection'
+import type { ApiResponse } from '$lib/types/database'
 import type { SalaryContract, UpdateSalaryContractRequest } from '$lib/types/salary-contracts'
 import { toUTC } from '$lib/utils/date-handler'
+import { logger } from '$lib/utils/logger'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
+
+interface DatabaseSalaryContract {
+  id: string
+  employee_id: string
+  start_date: string
+  end_date: string | null
+  annual_salary: string
+  monthly_salary: string
+  contract_type: string
+  status: string
+  notes: string | null
+  created_at: string
+  updated_at: string
+  created_by: string | null
+  employee_name: string
+  employee_id_number: string
+  department: string
+  position: string
+  contract_end_display: string
+  status_display: string
+  [key: string]: unknown
+}
 
 // GET: 특정 급여 계약 조회
 export const GET: RequestHandler = async ({ params }) => {
   try {
     const { id } = params
 
-    const result = await query(
+    const result = await query<DatabaseSalaryContract>(
       `
 			SELECT 
 				sc.*,
@@ -49,8 +73,8 @@ export const GET: RequestHandler = async ({ params }) => {
     const contract = result.rows[0]
 
     // 날짜를 KST로 변환
-    const convertToKST = (dateString: string) => {
-      if (!dateString) return null
+    const convertToKST = (dateString: string | null): string | undefined => {
+      if (!dateString) return undefined
       const date = new Date(dateString)
       // UTC+9 (KST)로 변환
       const kstDate = new Date(date.getTime() + 9 * 60 * 60 * 1000)
@@ -61,15 +85,15 @@ export const GET: RequestHandler = async ({ params }) => {
       id: contract.id,
       employeeId: contract.employee_id,
       startDate: convertToKST(contract.start_date) || '',
-      endDate: convertToKST(contract.end_date) || undefined,
+      endDate: convertToKST(contract.end_date),
       annualSalary: parseFloat(contract.annual_salary),
       monthlySalary: parseFloat(contract.monthly_salary),
-      contractType: contract.contract_type,
-      status: contract.status,
-      notes: contract.notes,
+      contractType: contract.contract_type as 'full_time' | 'part_time' | 'contract' | 'intern',
+      status: contract.status as 'active' | 'expired' | 'terminated' | 'draft',
+      notes: contract.notes || undefined,
       createdAt: contract.created_at,
       updatedAt: contract.updated_at,
-      createdBy: contract.created_by,
+      createdBy: contract.created_by || undefined,
       employeeName: contract.employee_name,
       employeeIdNumber: contract.employee_id_number,
       department: contract.department,
@@ -78,15 +102,18 @@ export const GET: RequestHandler = async ({ params }) => {
       statusDisplay: contract.status_display,
     }
 
-    return json({
+    const response: ApiResponse<SalaryContract> = {
       success: true,
       data: salaryContract,
-    })
-  } catch (_error) {
+    }
+
+    return json(response)
+  } catch (error: unknown) {
+    logger.error('Error fetching salary contract:', error)
     return json(
       {
         success: false,
-        error: '급여 계약 조회에 실패했습니다.',
+        error: error instanceof Error ? error.message : '급여 계약 조회에 실패했습니다.',
       },
       { status: 500 },
     )
@@ -101,7 +128,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
 
     // 업데이트할 필드 구성
     const updateFields: string[] = []
-    const queryParams: unknown[] = []
+    const queryParams: (string | number | null)[] = []
     let paramIndex = 1
 
     if (updateData.startDate !== undefined) {
@@ -161,7 +188,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
     queryParams.push(id)
 
      
-    const result = await query(
+    const result = await query<DatabaseSalaryContract>(
       `UPDATE salary_contracts SET ${updateFields.join(', ')} WHERE id = $${paramIndex} RETURNING *`,
       queryParams,
     )
@@ -179,36 +206,39 @@ export const PUT: RequestHandler = async ({ params, request }) => {
     const updatedContract = result.rows[0]
 
     // 날짜를 KST로 변환
-    const convertToKST = (dateString: string) => {
-      if (!dateString) return null
+    const convertToKST = (dateString: string | null): string | undefined => {
+      if (!dateString) return undefined
       const date = new Date(dateString)
       // UTC+9 (KST)로 변환
       const kstDate = new Date(date.getTime() + 9 * 60 * 60 * 1000)
       return toUTC(kstDate).split('T')[0] // YYYY-MM-DD 형식으로 반환
     }
 
-    return json({
+    const response: ApiResponse<Partial<SalaryContract>> = {
       success: true,
       data: {
         id: updatedContract.id,
         employeeId: updatedContract.employee_id,
-        startDate: convertToKST(updatedContract.start_date),
+        startDate: convertToKST(updatedContract.start_date) || '',
         endDate: convertToKST(updatedContract.end_date),
         annualSalary: parseFloat(updatedContract.annual_salary),
         monthlySalary: parseFloat(updatedContract.monthly_salary),
-        contractType: updatedContract.contract_type,
-        status: updatedContract.status,
-        notes: updatedContract.notes,
+        contractType: updatedContract.contract_type as 'full_time' | 'part_time' | 'contract' | 'intern',
+        status: updatedContract.status as 'active' | 'expired' | 'terminated' | 'draft',
+        notes: updatedContract.notes || undefined,
         createdAt: updatedContract.created_at,
         updatedAt: updatedContract.updated_at,
-        createdBy: updatedContract.created_by,
+        createdBy: updatedContract.created_by || undefined,
       },
-    })
-  } catch (_error) {
+    }
+
+    return json(response)
+  } catch (error: unknown) {
+    logger.error('Error updating salary contract:', error)
     return json(
       {
         success: false,
-        error: '급여 계약 수정에 실패했습니다.',
+        error: error instanceof Error ? error.message : '급여 계약 수정에 실패했습니다.',
       },
       { status: 500 },
     )
@@ -220,7 +250,7 @@ export const DELETE: RequestHandler = async ({ params }) => {
   try {
     const { id } = params
 
-    const result = await query(
+    const result = await query<{ id: string }>(
       `
 			DELETE FROM salary_contracts 
 			WHERE id = $1
@@ -239,15 +269,18 @@ export const DELETE: RequestHandler = async ({ params }) => {
       )
     }
 
-    return json({
+    const response: ApiResponse<{ id: string }> = {
       success: true,
       data: { id },
-    })
-  } catch (_error) {
+    }
+
+    return json(response)
+  } catch (error: unknown) {
+    logger.error('Error deleting salary contract:', error)
     return json(
       {
         success: false,
-        error: '급여 계약 삭제에 실패했습니다.',
+        error: error instanceof Error ? error.message : '급여 계약 삭제에 실패했습니다.',
       },
       { status: 500 },
     )

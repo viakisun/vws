@@ -1,4 +1,5 @@
 import { query } from '$lib/database/connection'
+import type { ApiResponse } from '$lib/types/database'
 import { logger } from '$lib/utils/logger'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
@@ -6,8 +7,8 @@ import type { RequestHandler } from './$types'
 // 데이터베이스 테이블 생성
 export const POST: RequestHandler = async ({ request }) => {
   try {
-    const data = await request.json()
-    const { tables } = data
+    const data = await request.json() as Record<string, unknown>
+    const { tables } = data as { tables: string[] }
 
     const results: Array<{ table: string; success: boolean; message: string }> = []
 
@@ -51,26 +52,28 @@ export const POST: RequestHandler = async ({ request }) => {
             message: '직급 테이블이 생성되었습니다.',
           })
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
         results.push({
           table,
           success: false,
-          message: `테이블 생성 실패: ${error.message}`,
+          message: `테이블 생성 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`,
         })
       }
     }
 
-    return json({
+    const response: ApiResponse<unknown> = {
       success: true,
-      results,
+      data: results,
       message: '데이터베이스 설정이 완료되었습니다.',
-    })
-  } catch (error: any) {
+    }
+
+    return json(response)
+  } catch (error: unknown) {
     logger.error('Error setting up database:', error)
     return json(
       {
         success: false,
-        error: error.message || '데이터베이스 설정에 실패했습니다.',
+        error: error instanceof Error ? error.message : '데이터베이스 설정에 실패했습니다.',
       },
       { status: 500 },
     )

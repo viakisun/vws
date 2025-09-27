@@ -2,6 +2,7 @@
 // 개별 프로젝트 관련 API
 
 import { query } from '$lib/database/connection'
+import type { ApiResponse, DatabaseProject, DatabaseProjectBudget, DatabaseProjectMember } from '$lib/types/database'
 import {
     transformArrayData,
     transformMilestoneData,
@@ -20,7 +21,7 @@ export const GET: RequestHandler = async ({ params }) => {
     const { id } = params
 
     // 프로젝트 기본 정보 조회
-    const projectResult = await query(
+    const projectResult = await query<DatabaseProject>(
       `
 			SELECT 
 				p.*,
@@ -49,7 +50,7 @@ export const GET: RequestHandler = async ({ params }) => {
     const project = projectResult.rows[0]
 
     // 프로젝트 멤버 목록 조회
-    const membersResult = await query(
+    const membersResult = await query<DatabaseProjectMember>(
       `
 			SELECT 
 				pm.*,
@@ -64,7 +65,7 @@ export const GET: RequestHandler = async ({ params }) => {
     )
 
     // 프로젝트 사업비 조회
-    const budgetsResult = await query(
+    const budgetsResult = await query<DatabaseProjectBudget>(
       `
 			SELECT * FROM project_budgets
 			WHERE project_id = $1
@@ -104,7 +105,7 @@ export const GET: RequestHandler = async ({ params }) => {
     const transformedMilestones = transformArrayData(milestonesResult.rows, transformMilestoneData)
     const transformedRisks = transformArrayData(risksResult.rows, transformRiskData)
 
-    return json({
+    const response: ApiResponse<unknown> = {
       success: true,
       data: {
         ...transformedProject,
@@ -113,7 +114,9 @@ export const GET: RequestHandler = async ({ params }) => {
         milestones: transformedMilestones,
         risks: transformedRisks,
       },
-    })
+    }
+
+    return json(response)
   } catch (error) {
     logger.error('프로젝트 조회 실패:', error)
     return json(
@@ -182,7 +185,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
 
     // 업데이트할 필드들 동적 생성
     const updateFields: string[] = []
-    const updateValues: any[] = []
+    const updateValues: (string | number | null)[] = []
     let paramIndex = 1
 
     const fieldsToUpdate = {

@@ -1,14 +1,53 @@
-import { query } from '$lib/database/connection.js'
-import { formatDateForDisplay, toUTC } from '$lib/utils/date-handler.js'
-import { formatEmployeeName } from '$lib/utils/format.js'
+import { query } from '$lib/database/connection'
+import type { ApiResponse } from '$lib/types/database'
+import { formatDateForDisplay, toUTC } from '$lib/utils/date-handler'
+import { formatEmployeeName } from '$lib/utils/format'
 import { logger } from '$lib/utils/logger'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
 
+interface EmployeeWithJobTitle {
+  id: string
+  employee_id: string
+  first_name: string
+  last_name: string
+  email: string
+  phone: string
+  department: string
+  position: string
+  salary: string
+  hire_date: string
+  birth_date?: string
+  termination_date?: string
+  status: string
+  employment_type: string
+  job_title_id: string
+  created_at: string
+  updated_at: string
+  job_title_name: string
+  job_title_level: string
+  job_title_category: string
+  [key: string]: unknown
+}
+
+interface UpdateEmployeeRequest {
+  first_name: string
+  last_name: string
+  email: string
+  phone?: string
+  department: string
+  position: string
+  salary: number
+  hire_date?: string
+  status?: string
+  employment_type?: string
+  job_title_id?: string
+}
+
 // GET: 특정 직원 조회
 export const GET: RequestHandler = async ({ params }) => {
   try {
-    const result = await query(
+    const result = await query<EmployeeWithJobTitle>(
       `
 			SELECT 
 				e.id, e.employee_id, e.first_name, e.last_name, e.email, e.phone,
@@ -36,23 +75,25 @@ export const GET: RequestHandler = async ({ params }) => {
     const employee = result.rows[0]
     const formattedEmployee = {
       ...employee,
-      hire_date: employee.hire_date ? formatDateForDisplay(employee.hire_date, 'ISO') : null,
-      birth_date: employee.birth_date ? formatDateForDisplay(employee.birth_date, 'ISO') : null,
+      hire_date: employee.hire_date ? formatDateForDisplay(employee.hire_date, 'ISO') : '',
+      birth_date: employee.birth_date ? formatDateForDisplay(employee.birth_date, 'ISO') : '',
       termination_date: employee.termination_date
         ? formatDateForDisplay(employee.termination_date, 'ISO')
-        : null,
+        : '',
     }
 
-    return json({
+    const response: ApiResponse<EmployeeWithJobTitle> = {
       success: true,
-      data: formattedEmployee,
-    })
-  } catch (error) {
+      data: formattedEmployee as EmployeeWithJobTitle,
+    }
+
+    return json(response)
+  } catch (error: unknown) {
     logger.error('Error fetching employee:', error)
     return json(
       {
         success: false,
-        error: '직원 정보를 가져오는데 실패했습니다.',
+        error: error instanceof Error ? error.message : '직원 정보를 가져오는데 실패했습니다.',
       },
       { status: 500 },
     )
@@ -62,7 +103,7 @@ export const GET: RequestHandler = async ({ params }) => {
 // PUT: 직원 정보 수정
 export const PUT: RequestHandler = async ({ params, request }) => {
   try {
-    const data = await request.json()
+    const data = await request.json() as UpdateEmployeeRequest
 
     // 필수 필드 검증
     const requiredFields = ['first_name', 'last_name', 'email', 'department', 'position', 'salary']
@@ -93,7 +134,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
       }
     }
 
-    const result = await query(
+    const result = await query<EmployeeWithJobTitle>(
       `
 			UPDATE employees SET
 				first_name = $2,
@@ -121,7 +162,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
         data.phone?.trim() || '',
         data.department.trim(),
         data.position.trim(),
-        parseFloat(data.salary),
+        data.salary,
         hireDate ? toUTC(hireDate).split('T')[0] : null,
         data.status || 'active',
         data.employment_type || 'full-time',
@@ -144,24 +185,26 @@ export const PUT: RequestHandler = async ({ params, request }) => {
     const employee = result.rows[0]
     const formattedEmployee = {
       ...employee,
-      hire_date: employee.hire_date ? formatDateForDisplay(employee.hire_date, 'ISO') : null,
-      birth_date: employee.birth_date ? formatDateForDisplay(employee.birth_date, 'ISO') : null,
+      hire_date: employee.hire_date ? formatDateForDisplay(employee.hire_date, 'ISO') : '',
+      birth_date: employee.birth_date ? formatDateForDisplay(employee.birth_date, 'ISO') : '',
       termination_date: employee.termination_date
         ? formatDateForDisplay(employee.termination_date, 'ISO')
-        : null,
+        : '',
     }
 
-    return json({
+    const response: ApiResponse<EmployeeWithJobTitle> = {
       success: true,
-      data: formattedEmployee,
+      data: formattedEmployee as EmployeeWithJobTitle,
       message: '직원 정보가 성공적으로 수정되었습니다.',
-    })
-  } catch (error) {
+    }
+
+    return json(response)
+  } catch (error: unknown) {
     logger.error('Error updating employee:', error)
     return json(
       {
         success: false,
-        error: '직원 정보 수정에 실패했습니다.',
+        error: error instanceof Error ? error.message : '직원 정보 수정에 실패했습니다.',
       },
       { status: 500 },
     )
@@ -175,7 +218,7 @@ export const DELETE: RequestHandler = async ({ params, url }) => {
 
     if (archive) {
       // 아카이브 (soft delete) - 상태를 'terminated'로 변경
-      const result = await query(
+      const result = await query<{ id: string; employee_id: string; first_name: string; last_name: string; status: string }>(
         `
 				UPDATE employees SET
 					status = 'terminated',
@@ -196,16 +239,18 @@ export const DELETE: RequestHandler = async ({ params, url }) => {
         )
       }
 
-      return json({
+      const response: ApiResponse<{ id: string; employee_id: string; first_name: string; last_name: string; status: string }> = {
         success: true,
         message: '직원이 퇴사 처리되었습니다.',
         data: result.rows[0],
-      })
+      }
+
+      return json(response)
     } else {
       // 완전 삭제 전 안전장치 확인
 
       // 1. 직원 존재 확인
-      const existingEmployee = await query(
+      const existingEmployee = await query<{ id: string; employee_id: string; first_name: string; last_name: string }>(
         'SELECT id, employee_id, first_name, last_name FROM employees WHERE id = $1',
         [params.id],
       )
@@ -223,7 +268,7 @@ export const DELETE: RequestHandler = async ({ params, url }) => {
       const employee = existingEmployee.rows[0]
 
       // 2. 프로젝트 참여 여부 확인
-      const projectParticipation = await query(
+      const projectParticipation = await query<{ count: string }>(
         'SELECT COUNT(*) as count FROM project_members WHERE employee_id = $1',
         [params.id],
       )
@@ -240,7 +285,7 @@ export const DELETE: RequestHandler = async ({ params, url }) => {
       }
 
       // 3. 근로계약서 확인
-      const contractCount = await query(
+      const contractCount = await query<{ count: string }>(
         'SELECT COUNT(*) as count FROM salary_contracts WHERE employee_id = $1',
         [params.id],
       )
@@ -256,7 +301,7 @@ export const DELETE: RequestHandler = async ({ params, url }) => {
       }
 
       // 4. 안전하게 직원 삭제
-      const result = await query(
+      const result = await query<{ id: string; employee_id: string; first_name: string; last_name: string }>(
         `
 				DELETE FROM employees
 				WHERE id = $1
@@ -265,19 +310,20 @@ export const DELETE: RequestHandler = async ({ params, url }) => {
         [params.id],
       )
 
-      return json({
+      const response: ApiResponse<{ id: string; employee_id: string; first_name: string; last_name: string }> = {
         success: true,
         message: `${formatEmployeeName(employee)}(${employee.employee_id}) 직원이 성공적으로 삭제되었습니다.`,
         data: result.rows[0],
-      })
+      }
+
+      return json(response)
     }
-  } catch (error) {
+  } catch (error: unknown) {
     logger.error('Error deleting employee:', error)
     return json(
       {
         success: false,
-        error: '직원 삭제에 실패했습니다.',
-        details: error instanceof Error ? error.message : '알 수 없는 오류',
+        error: error instanceof Error ? error.message : '직원 삭제에 실패했습니다.',
       },
       { status: 500 },
     )

@@ -1,7 +1,8 @@
-import { json } from '@sveltejs/kit'
 import { query } from '$lib/database/connection.js'
-import type { RequestHandler } from './$types'
+import type { ApiResponse } from '$lib/types/database'
 import { logger } from '$lib/utils/logger'
+import { json } from '@sveltejs/kit'
+import type { RequestHandler } from './$types'
 
 export const POST: RequestHandler = async () => {
   try {
@@ -83,18 +84,17 @@ export const POST: RequestHandler = async () => {
       )
     }
 
-    return json({
+    const response: ApiResponse<null> = {
       success: true,
       message: '회사 정보 테이블이 생성되고 기본 데이터가 등록되었습니다.',
-    })
-  } catch (error: any) {
+    }
+    return json(response)
+  } catch (error: unknown) {
     logger.error('Error setting up company table:', error)
-    return json(
-      {
-        success: false,
-        error: error.message || '회사 정보 테이블 생성에 실패했습니다.',
-      },
-      { status: 500 },
-    )
+    const response: ApiResponse<null> = {
+      success: false,
+      error: error instanceof Error ? error.message : '회사 정보 테이블 생성에 실패했습니다.',
+    }
+    return json(response, { status: 500 })
   }
 }

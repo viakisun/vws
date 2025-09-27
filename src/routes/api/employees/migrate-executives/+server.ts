@@ -1,4 +1,5 @@
 import { query } from '$lib/database/connection'
+import type { ApiResponse } from '$lib/types/database'
 import { logger } from '$lib/utils/logger'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
@@ -28,18 +29,20 @@ export const POST: RequestHandler = async () => {
 
     // 임원 직원 마이그레이션 시작
 
-    const migratedExecutives: any[] = []
+    const migratedExecutives: unknown[] = []
 
     for (const employee of executiveEmployees.rows) {
+      const emp = employee as Record<string, unknown>
       // 직책 매핑
       let jobTitleName = 'CEO' // 기본값
-      if (employee.position.includes('대표')) {
+      const position = String(emp.position)
+      if (position.includes('대표')) {
         jobTitleName = 'CEO'
-      } else if (employee.position.includes('연구소장') || employee.position.includes('기술이사')) {
+      } else if (position.includes('연구소장') || position.includes('기술이사')) {
         jobTitleName = 'CTO'
-      } else if (employee.position.includes('상무')) {
+      } else if (position.includes('상무')) {
         jobTitleName = 'CFO'
-      } else if (employee.position.includes('이사')) {
+      } else if (position.includes('이사')) {
         jobTitleName = 'Director'
       }
 
@@ -53,11 +56,11 @@ export const POST: RequestHandler = async () => {
         continue
       }
 
-      const jobTitleId = jobTitleResult.rows[0].id
+      const jobTitleId = (jobTitleResult.rows[0] as Record<string, unknown>).id
 
       // Executive ID 생성
       const execIdResult = await query('SELECT COUNT(*) as count FROM executives')
-      const execCount = parseInt(execIdResult.rows[0].count) + 1
+      const execCount = parseInt(String((execIdResult.rows[0] as Record<string, unknown>).count)) + 1
       const executiveId = `EXE${execCount.toString().padStart(3, '0')}`
 
       // 이사 명부에 추가
@@ -72,15 +75,15 @@ export const POST: RequestHandler = async () => {
 			`,
         [
           executiveId,
-          employee.first_name,
-          employee.last_name,
-          employee.email,
-          employee.phone,
+          emp.first_name,
+          emp.last_name,
+          emp.email,
+          emp.phone,
           jobTitleId,
-          employee.department,
-          employee.hire_date,
+          emp.department,
+          emp.hire_date,
           'active',
-          `${employee.position}로 임명된 임원진입니다.`,
+          `${position}로 임명된 임원진입니다.`,
           new Date(),
           new Date(),
         ],
@@ -96,26 +99,28 @@ export const POST: RequestHandler = async () => {
 					updated_at = $1
 				WHERE id = $2
 			`,
-        [new Date(), employee.id],
+        [new Date(), emp.id],
       )
 
       // 임원 테이블로 마이그레이션 완료
     }
 
-    return json({
+    const response: ApiResponse<unknown> = {
       success: true,
       message: `${migratedExecutives.length}명의 이사급 직원이 이사 명부로 이관되었습니다.`,
       data: {
         migratedCount: migratedExecutives.length,
         migratedExecutives: migratedExecutives,
       },
-    })
-  } catch (error: any) {
+    }
+
+    return json(response)
+  } catch (error: unknown) {
     logger.error('Error migrating executives:', error)
     return json(
       {
         success: false,
-        error: error.message || '이사급 직원 이관에 실패했습니다.',
+        error: error instanceof Error ? error.message : '이사급 직원 이관에 실패했습니다.',
       },
       { status: 500 },
     )

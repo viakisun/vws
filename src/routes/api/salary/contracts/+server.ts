@@ -1,10 +1,10 @@
 // 급여 계약 관리 API 엔드포인트
 
 import { query } from '$lib/database/connection.js'
+import type { DatabaseSalaryContract } from '$lib/types/database'
 import type {
-  CreateSalaryContractRequest,
-  PaginatedResponse,
-  SalaryContract,
+    CreateSalaryContractRequest,
+    PaginatedResponse
 } from '$lib/types/salary-contracts'
 import { formatDateForDisplay, toUTC } from '$lib/utils/date-handler.js'
 import { json } from '@sveltejs/kit'
@@ -27,7 +27,7 @@ export const GET: RequestHandler = async ({ url }) => {
 
     // WHERE 조건 구성
     const conditions: string[] = []
-    const params: unknown[] = []
+    const params: (string | number)[] = []
     let paramIndex = 1
 
     if (employeeId) {
@@ -86,7 +86,7 @@ export const GET: RequestHandler = async ({ url }) => {
     const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : ''
 
     // 전체 개수 조회
-    const countResult = await query(
+    const countResult = await query<{ total: string }>(
       `
 			SELECT COUNT(*) as total
 			FROM salary_contracts sc
@@ -101,7 +101,7 @@ export const GET: RequestHandler = async ({ url }) => {
     const offset = (page - 1) * limit
 
     // 급여 계약 목록 조회 (최적화된 쿼리)
-    const result = await query(
+    const result = await query<DatabaseSalaryContract>(
       `
 			SELECT 
 				sc.id,
@@ -129,14 +129,14 @@ export const GET: RequestHandler = async ({ url }) => {
       [...params, limit, offset],
     )
 
-    const contracts: SalaryContract[] = result.rows.map((row) => {
+    const contracts = result.rows.map((row: DatabaseSalaryContract) => {
       return {
         id: row.id,
         employeeId: row.employee_id,
         startDate: row.start_date ? formatDateForDisplay(row.start_date, 'ISO') : '',
         endDate: row.end_date ? formatDateForDisplay(row.end_date, 'ISO') : '',
-        annualSalary: parseFloat(row.annual_salary),
-        monthlySalary: parseFloat(row.monthly_salary),
+        annualSalary: parseFloat(String(row.annual_salary)),
+        monthlySalary: parseFloat(String(row.monthly_salary)),
         contractType: row.contract_type,
         status: row.status,
         notes: row.notes,
@@ -152,7 +152,7 @@ export const GET: RequestHandler = async ({ url }) => {
       }
     })
 
-    const response: PaginatedResponse<SalaryContract> = {
+    const response: PaginatedResponse<unknown> = {
       data: contracts,
       total,
       page,

@@ -1,7 +1,8 @@
-import { json } from '@sveltejs/kit'
 import { DatabaseService } from '$lib/database/connection'
-import type { RequestHandler } from './$types'
+import type { ApiResponse } from '$lib/types/database'
 import { logger } from '$lib/utils/logger'
+import { json } from '@sveltejs/kit'
+import type { RequestHandler } from './$types'
 
 export const GET: RequestHandler = async ({ url }) => {
   try {
@@ -15,49 +16,39 @@ export const GET: RequestHandler = async ({ url }) => {
       offset,
     })
 
-    return json({
+    const response: ApiResponse<typeof users> = {
       success: true,
       data: users,
-      pagination: {
-        limit,
-        offset,
-        total: users.length,
-      },
-    })
-  } catch (error) {
+    }
+    return json(response)
+  } catch (error: unknown) {
     logger.error('Get users error:', error)
-    return json(
-      {
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
-      },
-      { status: 500 },
-    )
+    const response: ApiResponse<null> = {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    }
+    return json(response, { status: 500 })
   }
 }
 
 export const POST: RequestHandler = async ({ request }) => {
   try {
-    const userData = await request.json()
+    const userData = await request.json() as Record<string, unknown>
 
     const newUser = await DatabaseService.createUser(userData)
 
-    return json(
-      {
-        success: true,
-        data: newUser,
-        message: 'User created successfully',
-      },
-      { status: 201 },
-    )
-  } catch (error) {
+    const response: ApiResponse<typeof newUser> = {
+      success: true,
+      data: newUser,
+      message: 'User created successfully',
+    }
+    return json(response, { status: 201 })
+  } catch (error: unknown) {
     logger.error('Create user error:', error)
-    return json(
-      {
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
-      },
-      { status: 500 },
-    )
+    const response: ApiResponse<null> = {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    }
+    return json(response, { status: 500 })
   }
 }

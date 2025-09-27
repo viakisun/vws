@@ -1,12 +1,48 @@
+import { query } from '$lib/database/connection'
+import type { ApiResponse } from '$lib/types/database'
+import { logger } from '$lib/utils/logger'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
-import { query } from '$lib/database/connection'
-import { logger } from '$lib/utils/logger'
+
+interface ExecutiveInfo {
+  id: string
+  executive_id: string
+  first_name: string
+  last_name: string
+  email: string
+  phone?: string
+  department?: string
+  appointment_date?: string
+  term_end_date?: string
+  status: string
+  bio?: string
+  profile_image_url?: string
+  created_at: string
+  updated_at: string
+  job_title_name?: string
+  job_title_level?: string
+  job_title_category?: string
+  [key: string]: unknown
+}
+
+interface UpdateExecutiveRequest {
+  first_name: string
+  last_name?: string
+  email: string
+  phone?: string
+  job_title_id: string
+  department?: string
+  appointment_date?: string
+  term_end_date?: string
+  status?: string
+  bio?: string
+  profile_image_url?: string
+}
 
 // 특정 이사 조회
 export const GET: RequestHandler = async ({ params }) => {
   try {
-    const result = await query(
+    const result = await query<ExecutiveInfo>(
       `
 			SELECT 
 				e.id, e.executive_id, e.first_name, e.last_name, e.email, e.phone,
@@ -30,16 +66,18 @@ export const GET: RequestHandler = async ({ params }) => {
       )
     }
 
-    return json({
+    const response: ApiResponse<ExecutiveInfo> = {
       success: true,
       data: result.rows[0],
-    })
-  } catch (error: any) {
+    }
+
+    return json(response)
+  } catch (error: unknown) {
     logger.error('Error fetching executive:', error)
     return json(
       {
         success: false,
-        error: error.message || '이사 정보를 가져오는데 실패했습니다.',
+        error: error instanceof Error ? error.message : '이사 정보를 가져오는데 실패했습니다.',
       },
       { status: 500 },
     )
@@ -49,7 +87,7 @@ export const GET: RequestHandler = async ({ params }) => {
 // 이사 정보 수정
 export const PUT: RequestHandler = async ({ params, request }) => {
   try {
-    const data = await request.json()
+    const data = await request.json() as UpdateExecutiveRequest
 
     // 필수 필드 검증
     if (!data.first_name || data.first_name.trim() === '') {
@@ -83,7 +121,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
     }
 
     // 이메일 중복 검증 (자신 제외)
-    const existingExec = await query(
+    const existingExec = await query<{ id: string }>(
       'SELECT id FROM executives WHERE LOWER(email) = LOWER($1) AND id != $2',
       [data.email.trim(), params.id],
     )
@@ -98,7 +136,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
       )
     }
 
-    const result = await query(
+    const result = await query<ExecutiveInfo>(
       `
 			UPDATE executives SET
 				first_name = $1,
@@ -144,17 +182,19 @@ export const PUT: RequestHandler = async ({ params, request }) => {
       )
     }
 
-    return json({
+    const response: ApiResponse<ExecutiveInfo> = {
       success: true,
       data: result.rows[0],
       message: '이사 정보가 성공적으로 수정되었습니다.',
-    })
-  } catch (error: any) {
+    }
+
+    return json(response)
+  } catch (error: unknown) {
     logger.error('Error updating executive:', error)
     return json(
       {
         success: false,
-        error: error.message || '이사 정보 수정에 실패했습니다.',
+        error: error instanceof Error ? error.message : '이사 정보 수정에 실패했습니다.',
       },
       { status: 500 },
     )
@@ -164,7 +204,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
 // 이사 삭제 (비활성화)
 export const DELETE: RequestHandler = async ({ params }) => {
   try {
-    const result = await query(
+    const result = await query<{ id: string; executive_id: string; first_name: string; last_name: string }>(
       `
 			UPDATE executives SET
 				status = 'inactive',
@@ -185,16 +225,19 @@ export const DELETE: RequestHandler = async ({ params }) => {
       )
     }
 
-    return json({
+    const response: ApiResponse<null> = {
       success: true,
+      data: null,
       message: '이사가 비활성화되었습니다.',
-    })
-  } catch (error: any) {
+    }
+
+    return json(response)
+  } catch (error: unknown) {
     logger.error('Error deleting executive:', error)
     return json(
       {
         success: false,
-        error: error.message || '이사 삭제에 실패했습니다.',
+        error: error instanceof Error ? error.message : '이사 삭제에 실패했습니다.',
       },
       { status: 500 },
     )

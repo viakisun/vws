@@ -1,15 +1,40 @@
 // 급여 계약 통계 API 엔드포인트
 
-import { query } from '$lib/database/connection.js'
+import { query } from '$lib/database/connection'
+import type { ApiResponse } from '$lib/types/database'
 import type { SalaryContractStats } from '$lib/types/salary-contracts'
+import { logger } from '$lib/utils/logger'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
+
+interface DatabaseStats {
+  total_contracts: string
+  active_contracts: string
+  expired_contracts: string
+  average_annual_salary: string
+  average_monthly_salary: string
+  total_annual_salary: string
+  total_monthly_salary: string
+  [key: string]: unknown
+}
+
+interface TypeStats {
+  contract_type: string
+  count: string
+  [key: string]: unknown
+}
+
+interface DepartmentStats {
+  department: string
+  count: string
+  [key: string]: unknown
+}
 
 // GET: 급여 계약 통계 조회
 export const GET: RequestHandler = async () => {
   try {
     // 기본 통계 조회
-    const statsResult = await query(`
+    const statsResult = await query<DatabaseStats>(`
 			SELECT 
 				COUNT(*) as total_contracts,
 				COUNT(CASE WHEN sc.status = 'active' THEN 1 END) as active_contracts,
@@ -24,7 +49,7 @@ export const GET: RequestHandler = async () => {
 		`)
 
     // 계약 유형별 통계
-    const typeStatsResult = await query(`
+    const typeStatsResult = await query<TypeStats>(`
 			SELECT 
 				sc.contract_type,
 				COUNT(*) as count
@@ -35,7 +60,7 @@ export const GET: RequestHandler = async () => {
 		`)
 
     // 부서별 통계
-    const deptStatsResult = await query(`
+    const deptStatsResult = await query<DepartmentStats>(`
 			SELECT 
 				COALESCE(e.department, '부서없음') as department,
 				COUNT(*) as count
@@ -71,15 +96,18 @@ export const GET: RequestHandler = async () => {
       contractsByDepartment,
     }
 
-    return json({
+    const response: ApiResponse<SalaryContractStats> = {
       success: true,
       data: salaryContractStats,
-    })
-  } catch (_error) {
+    }
+
+    return json(response)
+  } catch (error: unknown) {
+    logger.error('Error fetching salary contract stats:', error)
     return json(
       {
         success: false,
-        error: '급여 계약 통계 조회에 실패했습니다.',
+        error: error instanceof Error ? error.message : '급여 계약 통계 조회에 실패했습니다.',
       },
       { status: 500 },
     )

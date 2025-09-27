@@ -1,7 +1,7 @@
-import type { BankAccount, Transaction, ExpectedTransaction } from '$lib/stores/funds'
 import type { BudgetCategory, BudgetGoal } from '$lib/stores/budget'
+import type { BankAccount, ExpectedTransaction, Transaction } from '$lib/stores/funds'
 import type { Notification, NotificationSettings } from '$lib/stores/notifications'
-import { getCurrentUTC, formatDateForInput } from '$lib/utils/date-handler'
+import { formatDateForInput, getCurrentUTC } from '$lib/utils/date-handler'
 import { logger } from '$lib/utils/logger'
 
 export interface BackupData {
@@ -58,12 +58,13 @@ export function downloadBackup(backupData: BackupData) {
 }
 
 // 백업 파일 검증
-export function validateBackup(data: any): data is BackupData {
+export function validateBackup(data: unknown): data is BackupData {
   if (!data || typeof data !== 'object') {
     return false
   }
 
-  if (!data.version || !data.timestamp || !data.data) {
+  const dataObj = data as Record<string, unknown>
+  if (!dataObj.version || !dataObj.timestamp || !dataObj.data) {
     return false
   }
 
@@ -77,8 +78,9 @@ export function validateBackup(data: any): data is BackupData {
     'notificationSettings',
   ]
 
+  const dataData = dataObj.data as Record<string, unknown>
   return requiredFields.every(
-    (field) => Array.isArray(data.data[field]) || typeof data.data[field] === 'object',
+    (field) => Array.isArray(dataData[field]) || typeof dataData[field] === 'object',
   )
 }
 

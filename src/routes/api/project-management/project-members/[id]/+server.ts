@@ -1,4 +1,5 @@
 import { query } from '$lib/database/connection'
+import type { ApiResponse, DatabaseProjectMember } from '$lib/types/database'
 import {
     calculateParticipationPeriod,
     formatDateForAPI,
@@ -13,7 +14,7 @@ import type { RequestHandler } from './$types'
 // GET /api/project-management/project-members/[id] - 특정 프로젝트 멤버 조회
 export const GET: RequestHandler = async ({ params }) => {
   try {
-    const result = await query(
+    const result = await query<DatabaseProjectMember>(
       `
 			SELECT 
 				pm.*,
@@ -51,14 +52,16 @@ export const GET: RequestHandler = async ({ params }) => {
     const memberData = result.rows[0]
     const formattedMemberData = {
       ...memberData,
-      start_date: formatDateForAPI(memberData.start_date),
-      end_date: formatDateForAPI(memberData.end_date),
+      start_date: formatDateForAPI(memberData.start_date || ''),
+      end_date: formatDateForAPI(memberData.end_date || ''),
     }
 
-    return json({
+    const response: ApiResponse<unknown> = {
       success: true,
       data: formattedMemberData,
-    })
+    }
+
+    return json(response)
   } catch (error) {
     logger.error('프로젝트 멤버 조회 실패:', error)
     return json(
@@ -131,7 +134,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
 
     // 멤버 수정
     const updateFields: string[] = []
-    const updateValues: any[] = []
+    const updateValues: (string | number | null)[] = []
     let paramIndex = 1
 
     if (role !== undefined) {
@@ -156,7 +159,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
       // UTC+9 타임존 적용 (TIMESTAMP 타입으로 저장)
       const formattedStartDate = new Date(startDate + 'T00:00:00.000+09:00')
       updateFields.push(`start_date = $${paramIndex}`)
-      updateValues.push(formattedStartDate)
+      updateValues.push(formattedStartDate.toISOString())
       paramIndex++
     }
 
@@ -175,7 +178,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
       // UTC+9 타임존 적용 (TIMESTAMP 타입으로 저장)
       const formattedEndDate = new Date(endDate + 'T23:59:59.999+09:00')
       updateFields.push(`end_date = $${paramIndex}`)
-      updateValues.push(formattedEndDate)
+      updateValues.push(formattedEndDate.toISOString())
       paramIndex++
     }
 

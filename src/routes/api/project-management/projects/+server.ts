@@ -2,6 +2,7 @@
 // 프로젝트 관리 시스템의 프로젝트 관련 API
 
 import { query } from '$lib/database/connection'
+import type { ApiResponse, DatabaseProject } from '$lib/types/database'
 import { transformArrayData, transformProjectData } from '$lib/utils/api-data-transformer'
 import { logger } from '$lib/utils/logger'
 import { json } from '@sveltejs/kit'
@@ -32,7 +33,7 @@ export const GET: RequestHandler = async ({ url }) => {
 		`
 
     const conditions: string[] = []
-    const params: any[] = []
+    const params: (string | number)[] = []
     let paramIndex = 1
 
     if (status && status !== 'all') {
@@ -87,33 +88,51 @@ export const GET: RequestHandler = async ({ url }) => {
 			ORDER BY p.created_at DESC
 		`
 
-    const result = await query(sqlQuery, params)
+    const result = await query<DatabaseProject>(sqlQuery, params)
 
     // 데이터 변환: snake_case를 camelCase로 변환
     const transformedData = transformArrayData(result.rows, transformProjectData)
 
-    return json({
+    const response: ApiResponse<unknown[]> = {
       success: true,
       data: transformedData,
-      total: transformedData.length,
-    })
-  } catch (error) {
+      count: transformedData.length,
+    }
+
+    return json(response)
+  } catch (error: unknown) {
     logger.error('프로젝트 목록 조회 실패:', error)
-    return json(
-      {
-        success: false,
-        message: '프로젝트 목록을 불러오는데 실패했습니다.',
-        error: error instanceof Error ? error.message : '알 수 없는 오류',
-      },
-      { status: 500 },
-    )
+    const response: ApiResponse<null> = {
+      success: false,
+      error: error instanceof Error ? error.message : '프로젝트 목록을 불러오는데 실패했습니다.',
+    }
+    return json(response, { status: 500 })
   }
+}
+
+interface CreateProjectRequest {
+  code: string
+  title: string
+  description?: string
+  status?: string
+  [key: string]: unknown
+}
+
+interface ProjectResponse {
+  id: string
+  code: string
+  title: string
+  description?: string
+  status: string
+  created_at: string
+  updated_at: string
+  [key: string]: unknown
 }
 
 // 간소화된 프로젝트 생성
 export const POST: RequestHandler = async ({ request }) => {
   try {
-    const data = await request.json()
+    const data = await request.json() as CreateProjectRequest
     const {
       code,
       title,
@@ -123,38 +142,32 @@ export const POST: RequestHandler = async ({ request }) => {
 
     // 필수 필드 검증
     if (!code || !title) {
-      return json(
-        {
-          success: false,
-          error: '프로젝트 코드와 제목은 필수입니다.',
-        },
-        { status: 400 },
-      )
+      const response: ApiResponse<null> = {
+        success: false,
+        error: '프로젝트 코드와 제목은 필수입니다.',
+      }
+      return json(response, { status: 400 })
     }
 
     // 상태 값 검증 - 기획, 진행, 완료만 허용
     const validStatuses = ['planning', 'active', 'completed']
     if (!validStatuses.includes(status)) {
-      return json(
-        {
-          success: false,
-          error: '유효하지 않은 프로젝트 상태입니다. (기획, 진행, 완료 중 선택)',
-        },
-        { status: 400 },
-      )
+      const response: ApiResponse<null> = {
+        success: false,
+        error: '유효하지 않은 프로젝트 상태입니다. (기획, 진행, 완료 중 선택)',
+      }
+      return json(response, { status: 400 })
     }
 
     // 프로젝트 코드 중복 확인
     const existingProject = await query('SELECT id FROM projects WHERE code = $1', [code])
 
     if (existingProject.rows.length > 0) {
-      return json(
-        {
-          success: false,
-          error: '이미 존재하는 프로젝트 코드입니다.',
-        },
-        { status: 400 },
-      )
+      const response: ApiResponse<null> = {
+        success: false,
+        error: '이미 존재하는 프로젝트 코드입니다.',
+      }
+      return json(response, { status: 400 })
     }
 
     // 간소화된 프로젝트 생성
@@ -168,25 +181,23 @@ export const POST: RequestHandler = async ({ request }) => {
       [code, title, description, status],
     )
 
-    const project = result.rows[0]
+    const project = result.rows[0] as ProjectResponse
 
     // 데이터 변환: snake_case를 camelCase로 변환
     const transformedProject = transformProjectData(project)
 
-    return json({
+    const response: ApiResponse<unknown> = {
       success: true,
       data: transformedProject,
-      message: '프로젝트가 성공적으로 생성되었습니다.',
-    })
-  } catch (error) {
+    }
+
+    return json(response)
+  } catch (error: unknown) {
     logger.error('프로젝트 생성 실패:', error)
-    return json(
-      {
-        success: false,
-        error: '프로젝트 생성에 실패했습니다.',
-        details: error instanceof Error ? error.message : '알 수 없는 오류',
-      },
-      { status: 500 },
-    )
+    const response: ApiResponse<null> = {
+      success: false,
+      error: error instanceof Error ? error.message : '프로젝트 생성에 실패했습니다.',
+    }
+    return json(response, { status: 500 })
   }
 }

@@ -2,6 +2,7 @@
 // Individual Evidence Item API
 
 import { query } from '$lib/database/connection'
+import type { ApiResponse } from '$lib/types/database'
 import { logger } from '$lib/utils/logger'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
@@ -92,7 +93,7 @@ export const GET: RequestHandler = async ({ params }) => {
       [id],
     )
 
-    return json({
+    const response: ApiResponse<unknown> = {
       success: true,
       data: {
         ...evidenceItem,
@@ -100,7 +101,9 @@ export const GET: RequestHandler = async ({ params }) => {
         schedules: schedulesResult.rows,
         reviewHistory: reviewHistoryResult.rows,
       },
-    })
+    }
+
+    return json(response)
   } catch (error) {
     logger.error('증빙 항목 조회 실패:', error)
     return json(
@@ -147,7 +150,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
 
     // 업데이트할 필드들 동적 생성
     const updateFields: string[] = []
-    const updateValues: any[] = []
+    const updateValues: (string | number | null)[] = []
     let paramIndex = 1
 
     const fieldsToUpdate = {

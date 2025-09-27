@@ -1,7 +1,8 @@
 import { query } from '$lib/database/connection'
+import type { ApiResponse } from '$lib/types/database'
+import { logger } from '$lib/utils/logger'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
-import { logger } from '$lib/utils/logger'
 
 // GET /api/project-management/budget-evidence - 증빙 내역 목록 조회
 export const GET: RequestHandler = async ({ url }) => {
@@ -81,27 +82,26 @@ export const GET: RequestHandler = async ({ url }) => {
 
     const result = await query(sqlQuery, params)
 
-    return json({
+    const response: ApiResponse<typeof result.rows> = {
       success: true,
       data: result.rows,
-    })
-  } catch (error) {
+    }
+    return json(response)
+  } catch (error: unknown) {
     logger.error('증빙 내역 조회 실패:', error)
-    return json(
-      {
-        success: false,
-        message: '증빙 내역을 불러오는데 실패했습니다.',
-        error: (error as Error).message,
-      },
-      { status: 500 },
-    )
+    const response: ApiResponse<null> = {
+      success: false,
+      message: '증빙 내역을 불러오는데 실패했습니다.',
+      error: error instanceof Error ? error.message : 'Unknown error',
+    }
+    return json(response, { status: 500 })
   }
 }
 
 // POST /api/project-management/budget-evidence - 증빙 내역 등록
 export const POST: RequestHandler = async ({ request }) => {
   try {
-    const data = await request.json()
+    const data = await request.json() as Record<string, unknown>
     const {
       projectBudgetId,
       evidenceType,
@@ -118,13 +118,11 @@ export const POST: RequestHandler = async ({ request }) => {
 
     // 필수 필드 검증
     if (!projectBudgetId || !evidenceType || !title || !amount || !evidenceDate) {
-      return json(
-        {
-          success: false,
-          message: '필수 필드가 누락되었습니다.',
-        },
-        { status: 400 },
-      )
+      const response: ApiResponse<null> = {
+        success: false,
+        message: '필수 필드가 누락되었습니다.',
+      }
+      return json(response, { status: 400 })
     }
 
     // 증빙 내역 등록
@@ -150,20 +148,19 @@ export const POST: RequestHandler = async ({ request }) => {
       createdBy || null,
     ])
 
-    return json({
+    const response: ApiResponse<typeof result.rows[0]> = {
       success: true,
       data: result.rows[0],
       message: '증빙 내역이 등록되었습니다.',
-    })
-  } catch (error) {
+    }
+    return json(response)
+  } catch (error: unknown) {
     logger.error('증빙 내역 등록 실패:', error)
-    return json(
-      {
-        success: false,
-        message: '증빙 내역 등록에 실패했습니다.',
-        error: (error as Error).message,
-      },
-      { status: 500 },
-    )
+    const response: ApiResponse<null> = {
+      success: false,
+      message: '증빙 내역 등록에 실패했습니다.',
+      error: error instanceof Error ? error.message : 'Unknown error',
+    }
+    return json(response, { status: 500 })
   }
 }

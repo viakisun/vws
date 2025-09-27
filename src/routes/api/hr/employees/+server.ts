@@ -1,10 +1,64 @@
 // 인사 관리 시스템 - 직원 API 엔드포인트
 
-import { json } from '@sveltejs/kit'
-import { query } from '$lib/database/connection.js'
-import type { RequestHandler } from './$types'
-import type { Employee, PaginatedResponse } from '$lib/types/hr'
+import { query } from '$lib/database/connection'
+import type { ApiResponse } from '$lib/types/database'
+import type { EmergencyContact, Employee, EmployeeLevel, EmployeeStatus, EmploymentType, PaginatedResponse, PersonalInfo } from '$lib/types/hr'
 import { logger } from '$lib/utils/logger'
+import { json } from '@sveltejs/kit'
+import type { RequestHandler } from './$types'
+
+interface DatabaseEmployee {
+  id: string
+  employee_id: string
+  name: string
+  email: string
+  phone: string
+  address: string
+  department: string
+  position: string
+  level: string
+  employment_type: string
+  hire_date: string
+  birth_date: string
+  status: string
+  manager_id: string
+  profile_image: string
+  emergency_contact: string
+  personal_info: string
+  termination_date: string
+  created_at: string
+  updated_at: string
+  [key: string]: unknown
+}
+
+interface CreateEmployeeRequest {
+  employeeId: string
+  name: string
+  email: string
+  phone: string
+  address?: string
+  department: string
+  position: string
+  level?: string
+  employmentType?: string
+  hireDate: string
+  birthDate?: string
+  status?: string
+  managerId?: string
+  profileImage?: string
+  emergencyContact?: {
+    name: string
+    relationship: string
+    phone: string
+  }
+  personalInfo?: {
+    birthDate: string
+    gender: string
+    nationality: string
+    maritalStatus: string
+  }
+  terminationDate?: string
+}
 
 // GET: 직원 목록 조회 (페이지네이션 및 필터링 지원)
 export const GET: RequestHandler = async ({ url }) => {
@@ -84,7 +138,7 @@ export const GET: RequestHandler = async ({ url }) => {
     const orderDirection = sortOrder.toUpperCase() === 'ASC' ? 'ASC' : 'DESC'
 
     // 전체 개수 조회
-    const countResult = await query(
+    const countResult = await query<{ total: string }>(
       `
 			SELECT COUNT(*) as total
 			FROM employees e
@@ -98,7 +152,7 @@ export const GET: RequestHandler = async ({ url }) => {
     const offset = (page - 1) * limit
 
     // 직원 목록 조회
-    const result = await query(
+    const result = await query<DatabaseEmployee>(
       `
 			SELECT 
 				e.id,
@@ -140,24 +194,24 @@ export const GET: RequestHandler = async ({ url }) => {
         address: row.address,
         department: row.department,
         position: row.position,
-        level: row.level,
-        employmentType: row.employment_type,
+        level: row.level as EmployeeLevel,
+        employmentType: row.employment_type as EmploymentType,
         hireDate: row.hire_date,
         birthDate: row.birth_date,
-        status: row.status,
+        status: row.status as EmployeeStatus,
         managerId: row.manager_id,
         profileImage: row.profile_image,
-        emergencyContact: row.emergency_contact || {
+        emergencyContact: (row.emergency_contact ? JSON.parse(row.emergency_contact) : {
           name: '',
           relationship: '',
           phone: '',
-        },
-        personalInfo: row.personal_info || {
+        }) as EmergencyContact,
+        personalInfo: (row.personal_info ? JSON.parse(row.personal_info) : {
           birthDate: '',
-          gender: 'other',
+          gender: 'other' as const,
           nationality: '',
-          maritalStatus: 'single',
-        },
+          maritalStatus: 'single' as const,
+        }) as PersonalInfo,
         terminationDate: row.termination_date,
         createdAt: row.created_at,
         updatedAt: row.updated_at,
@@ -168,16 +222,18 @@ export const GET: RequestHandler = async ({ url }) => {
       totalPages,
     }
 
-    return json({
+    const apiResponse: ApiResponse<PaginatedResponse<Employee>> = {
       success: true,
       data: response,
-    })
-  } catch (error) {
+    }
+
+    return json(apiResponse)
+  } catch (error: unknown) {
     logger.error('Error fetching employees:', error)
     return json(
       {
         success: false,
-        error: '직원 목록을 가져오는데 실패했습니다.',
+        error: error instanceof Error ? error.message : '직원 목록을 가져오는데 실패했습니다.',
       },
       { status: 500 },
     )
@@ -187,7 +243,7 @@ export const GET: RequestHandler = async ({ url }) => {
 // POST: 새 직원 추가
 export const POST: RequestHandler = async ({ request }) => {
   try {
-    const employeeData = await request.json()
+    const employeeData = await request.json() as CreateEmployeeRequest
 
     // 필수 필드 검증
     const requiredFields = [
@@ -212,7 +268,7 @@ export const POST: RequestHandler = async ({ request }) => {
     }
 
     // 이메일 중복 검사
-    const existingEmployee = await query(
+    const existingEmployee = await query<{ id: string }>(
       'SELECT id FROM employees WHERE email = $1 OR employee_id = $2',
       [employeeData.email, employeeData.employeeId],
     )
@@ -228,7 +284,7 @@ export const POST: RequestHandler = async ({ request }) => {
     }
 
     // 직원 추가
-    const result = await query(
+    const result = await query<DatabaseEmployee>(
       `
 			INSERT INTO employees (
 				employee_id, name, email, phone, address, department, position, level,
@@ -243,19 +299,19 @@ export const POST: RequestHandler = async ({ request }) => {
         employeeData.name,
         employeeData.email,
         employeeData.phone,
-        employeeData.address,
+        employeeData.address || '',
         employeeData.department,
         employeeData.position,
         employeeData.level || 'mid',
         employeeData.employmentType || 'full-time',
         employeeData.hireDate,
-        employeeData.birthDate,
+        employeeData.birthDate || '',
         employeeData.status || 'active',
-        employeeData.managerId,
-        employeeData.profileImage,
+        employeeData.managerId || '',
+        employeeData.profileImage || '',
         JSON.stringify(employeeData.emergencyContact || {}),
         JSON.stringify(employeeData.personalInfo || {}),
-        employeeData.terminationDate,
+        employeeData.terminationDate || '',
       ],
     )
 
@@ -272,38 +328,37 @@ export const POST: RequestHandler = async ({ request }) => {
       address: result.rows[0].address,
       department: result.rows[0].department,
       position: result.rows[0].position,
-      level: result.rows[0].level,
-      employmentType: result.rows[0].employment_type,
+      level: result.rows[0].level as EmployeeLevel,
+      employmentType: result.rows[0].employment_type as EmploymentType,
       hireDate: result.rows[0].hire_date,
       birthDate: result.rows[0].birth_date,
-      status: result.rows[0].status,
+      status: result.rows[0].status as EmployeeStatus,
       managerId: result.rows[0].manager_id,
       profileImage: result.rows[0].profile_image,
-      emergencyContact: result.rows[0].emergency_contact || {
+      emergencyContact: (result.rows[0].emergency_contact ? JSON.parse(result.rows[0].emergency_contact) : {
         name: '',
         relationship: '',
         phone: '',
-      },
-      personalInfo: result.rows[0].personal_info || {
+      }) as EmergencyContact,
+      personalInfo: (result.rows[0].personal_info ? JSON.parse(result.rows[0].personal_info) : {
         birthDate: '',
-        gender: 'other',
+        gender: 'other' as const,
         nationality: '',
-        maritalStatus: 'single',
-      },
+        maritalStatus: 'single' as const,
+      }) as PersonalInfo,
       terminationDate: result.rows[0].termination_date,
       createdAt: result.rows[0].created_at,
       updatedAt: result.rows[0].updated_at,
     }
 
-    return json(
-      {
-        success: true,
-        data: newEmployee,
-        message: '직원이 성공적으로 추가되었습니다.',
-      },
-      { status: 201 },
-    )
-  } catch (error) {
+    const response: ApiResponse<Employee> = {
+      success: true,
+      data: newEmployee,
+      message: '직원이 성공적으로 추가되었습니다.',
+    }
+
+    return json(response, { status: 201 })
+  } catch (error: unknown) {
     logger.error('Error creating employee:', error)
     return json(
       {

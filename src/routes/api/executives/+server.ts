@@ -1,7 +1,43 @@
+import { query } from '$lib/database/connection'
+import type { ApiResponse } from '$lib/types/database'
+import { logger } from '$lib/utils/logger'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
-import { query } from '$lib/database/connection'
-import { logger } from '$lib/utils/logger'
+
+interface ExecutiveInfo {
+  id: string
+  executive_id: string
+  first_name: string
+  last_name: string
+  email: string
+  phone?: string
+  department?: string
+  appointment_date?: string
+  term_end_date?: string
+  status: string
+  bio?: string
+  profile_image_url?: string
+  created_at: string
+  updated_at: string
+  job_title_name?: string
+  job_title_level?: string
+  job_title_category?: string
+  [key: string]: unknown
+}
+
+interface CreateExecutiveRequest {
+  first_name: string
+  last_name?: string
+  email: string
+  phone?: string
+  job_title_id: string
+  department?: string
+  appointment_date?: string
+  term_end_date?: string
+  status?: string
+  bio?: string
+  profile_image_url?: string
+}
 
 // 이사 목록 조회
 export const GET: RequestHandler = async ({ url }) => {
@@ -11,7 +47,7 @@ export const GET: RequestHandler = async ({ url }) => {
     const department = searchParams.get('department')
 
     let whereClause = ''
-    const params: unknown[] = []
+    const params: (string | number)[] = []
 
     if (status === 'active') {
       whereClause = 'WHERE e.status = $1'
@@ -29,7 +65,7 @@ export const GET: RequestHandler = async ({ url }) => {
       params.push(department)
     }
 
-    const result = await query(
+    const result = await query<ExecutiveInfo>(
       `
 			SELECT 
 				e.id, e.executive_id, e.first_name, e.last_name, e.email, e.phone,
@@ -44,16 +80,18 @@ export const GET: RequestHandler = async ({ url }) => {
       params,
     )
 
-    return json({
+    const response: ApiResponse<ExecutiveInfo[]> = {
       success: true,
       data: result.rows,
-    })
-  } catch (error: any) {
+    }
+
+    return json(response)
+  } catch (error: unknown) {
     logger.error('Error fetching executives:', error)
     return json(
       {
         success: false,
-        error: error.message || '이사 목록을 가져오는데 실패했습니다.',
+        error: error instanceof Error ? error.message : '이사 목록을 가져오는데 실패했습니다.',
       },
       { status: 500 },
     )
@@ -63,7 +101,7 @@ export const GET: RequestHandler = async ({ url }) => {
 // 새 이사 생성
 export const POST: RequestHandler = async ({ request }) => {
   try {
-    const data = await request.json()
+    const data = await request.json() as CreateExecutiveRequest
 
     // 필수 필드 검증
     if (!data.first_name || data.first_name.trim() === '') {
@@ -97,7 +135,7 @@ export const POST: RequestHandler = async ({ request }) => {
     }
 
     // 이메일 중복 검증
-    const existingExec = await query('SELECT id FROM executives WHERE LOWER(email) = LOWER($1)', [
+    const existingExec = await query<{ id: string }>('SELECT id FROM executives WHERE LOWER(email) = LOWER($1)', [
       data.email.trim(),
     ])
 
@@ -112,11 +150,11 @@ export const POST: RequestHandler = async ({ request }) => {
     }
 
     // Executive ID 생성
-    const execIdResult = await query('SELECT COUNT(*) as count FROM executives')
+    const execIdResult = await query<{ count: string }>('SELECT COUNT(*) as count FROM executives')
     const execCount = parseInt(execIdResult.rows[0].count) + 1
     const executiveId = `EXE${execCount.toString().padStart(3, '0')}`
 
-    const result = await query(
+    const result = await query<ExecutiveInfo>(
       `
 			INSERT INTO executives (
 				executive_id, first_name, last_name, email, phone, job_title_id, 
@@ -145,17 +183,19 @@ export const POST: RequestHandler = async ({ request }) => {
       ],
     )
 
-    return json({
+    const response: ApiResponse<ExecutiveInfo> = {
       success: true,
       data: result.rows[0],
       message: '이사가 성공적으로 생성되었습니다.',
-    })
-  } catch (error: any) {
+    }
+
+    return json(response)
+  } catch (error: unknown) {
     logger.error('Error creating executive:', error)
     return json(
       {
         success: false,
-        error: error.message || '이사 생성에 실패했습니다.',
+        error: error instanceof Error ? error.message : '이사 생성에 실패했습니다.',
       },
       { status: 500 },
     )

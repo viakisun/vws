@@ -1,7 +1,7 @@
 // 인사 관리 시스템 - 직원 스토어
 
-import { writable, derived } from 'svelte/store'
-import type { Employee, EmployeeSearchFilter, EmployeeStatistics, ApiResponse } from '$lib/types/hr'
+import type { ApiResponse, Employee, EmployeeSearchFilter, EmployeeStatistics } from '$lib/types/hr'
+import { derived, writable } from 'svelte/store'
 
 // ===== 기본 스토어 =====
 export const employees = writable<Employee[]>([])
@@ -203,7 +203,7 @@ export async function loadEmployees(): Promise<void> {
 
   try {
     const response = await fetch('/api/employees')
-    const result: ApiResponse<Employee[]> = await response.json()
+    const result = await response.json() as ApiResponse<Employee[]>
 
     if (result.success && result.data) {
       employees.set(result.data)
@@ -233,7 +233,7 @@ export async function addEmployee(
       body: JSON.stringify(employee),
     })
 
-    const result: ApiResponse<Employee> = await response.json()
+    const result = await response.json() as ApiResponse<Employee>
 
     if (result.success && result.data) {
       employees.update((current) => [...current, result.data!])
@@ -264,7 +264,7 @@ export async function updateEmployee(id: string, updates: Partial<Employee>): Pr
       body: JSON.stringify(updates),
     })
 
-    const result: ApiResponse<Employee> = await response.json()
+    const result = await response.json() as ApiResponse<Employee>
 
     if (result.success && result.data) {
       employees.update((current) => current.map((emp) => (emp.id === id ? result.data! : emp)))

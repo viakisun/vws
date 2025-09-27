@@ -2,9 +2,49 @@
 // Evidence Management API
 
 import { query } from '$lib/database/connection'
+import type { ApiResponse } from '$lib/types/database'
+import { logger } from '$lib/utils/logger'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
-import { logger } from '$lib/utils/logger'
+
+interface EvidenceItem {
+  id: string
+  project_budget_id: string
+  category_id: string
+  name: string
+  description?: string
+  budget_amount: number
+  spent_amount: number
+  assignee_id?: string
+  assignee_name?: string
+  due_date?: string
+  start_date?: string
+  end_date?: string
+  status: string
+  created_at: string
+  updated_at: string
+  category_name?: string
+  assignee_full_name?: string
+  period_number?: number
+  document_count?: number
+  approved_document_count?: number
+  schedule_count?: number
+  overdue_schedule_count?: number
+  [key: string]: unknown
+}
+
+interface CreateEvidenceRequest {
+  projectBudgetId: string
+  categoryId: string
+  name: string
+  description?: string
+  budgetAmount: number
+  assigneeId?: string
+  assigneeName?: string
+  dueDate?: string
+  startDate?: string
+  endDate?: string
+}
 
 // 증빙 항목 목록 조회
 export const GET: RequestHandler = async ({ url }) => {
@@ -64,30 +104,28 @@ export const GET: RequestHandler = async ({ url }) => {
 			ORDER BY ei.created_at DESC
 		`
 
-    const result = await query(queryText, params)
+    const result = await query<EvidenceItem>(queryText, params)
 
-    return json({
+    const response: ApiResponse<EvidenceItem[]> = {
       success: true,
       data: result.rows,
       count: result.rows.length,
-    })
-  } catch (error) {
+    }
+
+    return json(response)
+  } catch (error: unknown) {
     logger.error('증빙 항목 조회 실패:', error)
-    return json(
-      {
-        success: false,
-        message: '증빙 항목 조회에 실패했습니다.',
-        error: error instanceof Error ? error.message : '알 수 없는 오류',
-      },
-      { status: 500 },
-    )
+    const response: ApiResponse<null> = {
+      success: false,
+      error: error instanceof Error ? error.message : '증빙 항목 조회에 실패했습니다.',
+    }
+    return json(response, { status: 500 })
   }
 }
 
 // 증빙 항목 생성
 export const POST: RequestHandler = async ({ request }) => {
   try {
-    const data = await request.json()
     const {
       projectBudgetId,
       categoryId,
@@ -99,17 +137,15 @@ export const POST: RequestHandler = async ({ request }) => {
       dueDate,
       startDate,
       endDate,
-    } = data
+    } = (await request.json()) as CreateEvidenceRequest
 
     // 필수 필드 검증
     if (!projectBudgetId || !categoryId || !name || !budgetAmount) {
-      return json(
-        {
-          success: false,
-          message: '필수 필드가 누락되었습니다.',
-        },
-        { status: 400 },
-      )
+      const response: ApiResponse<null> = {
+        success: false,
+        error: '필수 필드가 누락되었습니다.',
+      }
+      return json(response, { status: 400 })
     }
 
     // 프로젝트 예산 존재 확인
@@ -117,13 +153,11 @@ export const POST: RequestHandler = async ({ request }) => {
       projectBudgetId,
     ])
     if (budgetCheck.rows.length === 0) {
-      return json(
-        {
-          success: false,
-          message: '프로젝트 예산을 찾을 수 없습니다.',
-        },
-        { status: 404 },
-      )
+      const response: ApiResponse<null> = {
+        success: false,
+        error: '프로젝트 예산을 찾을 수 없습니다.',
+      }
+      return json(response, { status: 404 })
     }
 
     // 증빙 카테고리 존재 확인
@@ -131,17 +165,15 @@ export const POST: RequestHandler = async ({ request }) => {
       categoryId,
     ])
     if (categoryCheck.rows.length === 0) {
-      return json(
-        {
-          success: false,
-          message: '증빙 카테고리를 찾을 수 없습니다.',
-        },
-        { status: 404 },
-      )
+      const response: ApiResponse<null> = {
+        success: false,
+        error: '증빙 카테고리를 찾을 수 없습니다.',
+      }
+      return json(response, { status: 404 })
     }
 
     // 증빙 항목 생성
-    const result = await query(
+    const result = await query<EvidenceItem>(
       `
 			INSERT INTO evidence_items (
 				project_budget_id, category_id, name, description, budget_amount,
@@ -166,7 +198,7 @@ export const POST: RequestHandler = async ({ request }) => {
     const newEvidenceItem = result.rows[0]
 
     // 생성된 증빙 항목의 상세 정보 조회
-    const detailResult = await query(
+    const detailResult = await query<EvidenceItem>(
       `
 			SELECT 
 				ei.*,
@@ -182,20 +214,19 @@ export const POST: RequestHandler = async ({ request }) => {
       [newEvidenceItem.id],
     )
 
-    return json({
+    const response: ApiResponse<EvidenceItem> = {
       success: true,
       data: detailResult.rows[0],
       message: '증빙 항목이 성공적으로 생성되었습니다.',
-    })
-  } catch (error) {
+    }
+
+    return json(response)
+  } catch (error: unknown) {
     logger.error('증빙 항목 생성 실패:', error)
-    return json(
-      {
-        success: false,
-        message: '증빙 항목 생성에 실패했습니다.',
-        error: error instanceof Error ? error.message : '알 수 없는 오류',
-      },
-      { status: 500 },
-    )
+    const response: ApiResponse<null> = {
+      success: false,
+      error: error instanceof Error ? error.message : '증빙 항목 생성에 실패했습니다.',
+    }
+    return json(response, { status: 500 })
   }
 }

@@ -1,7 +1,8 @@
 import { query } from '$lib/database/connection'
+import type { ApiResponse } from '$lib/types/database'
+import { logger } from '$lib/utils/logger'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
-import { logger } from '$lib/utils/logger'
 
 // GET /api/project-management/budget-evidence/[id] - 특정 증빙 내역 조회
 export const GET: RequestHandler = async ({ params }) => {
@@ -28,29 +29,26 @@ export const GET: RequestHandler = async ({ params }) => {
     const result = await query(sqlQuery, [id])
 
     if (result.rows.length === 0) {
-      return json(
-        {
-          success: false,
-          message: '증빙 내역을 찾을 수 없습니다.',
-        },
-        { status: 404 },
-      )
+      const response: ApiResponse<null> = {
+        success: false,
+        message: '증빙 내역을 찾을 수 없습니다.',
+      }
+      return json(response, { status: 404 })
     }
 
-    return json({
+    const response: ApiResponse<typeof result.rows[0]> = {
       success: true,
       data: result.rows[0],
-    })
-  } catch (error) {
+    }
+    return json(response)
+  } catch (error: unknown) {
     logger.error('증빙 내역 조회 실패:', error)
-    return json(
-      {
-        success: false,
-        message: '증빙 내역을 불러오는데 실패했습니다.',
-        error: (error as Error).message,
-      },
-      { status: 500 },
-    )
+    const response: ApiResponse<null> = {
+      success: false,
+      message: '증빙 내역을 불러오는데 실패했습니다.',
+      error: error instanceof Error ? error.message : 'Unknown error',
+    }
+    return json(response, { status: 500 })
   }
 }
 
@@ -58,7 +56,7 @@ export const GET: RequestHandler = async ({ params }) => {
 export const PUT: RequestHandler = async ({ params, request }) => {
   try {
     const { id } = params
-    const data = await request.json()
+    const data = await request.json() as Record<string, unknown>
     const {
       evidenceType,
       title,

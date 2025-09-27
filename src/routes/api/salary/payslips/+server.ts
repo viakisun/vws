@@ -1,9 +1,49 @@
 import { query } from '$lib/database/connection'
+import type { ApiResponse } from '$lib/types/database'
 import { toUTC } from '$lib/utils/date-handler'
+import { logger } from '$lib/utils/logger'
 import { json } from '@sveltejs/kit'
+import type { RequestHandler } from './$types'
+
+interface PayslipData {
+  id: string
+  employeeId: string
+  period: string
+  payDate: string
+  baseSalary: number
+  totalPayments: number
+  totalDeductions: number
+  netSalary: number
+  payments: unknown
+  deductions: unknown
+  status: string
+  isGenerated: boolean
+  createdAt: string
+  updatedAt: string
+  employeeName: string
+  employeeIdNumber: string
+  department: string
+  position: string
+  hireDate: string
+  [key: string]: unknown
+}
+
+interface CreatePayslipRequest {
+  employeeId: string
+  period: string
+  payDate: string
+  baseSalary?: number
+  totalPayments?: number
+  totalDeductions?: number
+  netSalary?: number
+  payments?: unknown
+  deductions?: unknown
+  status?: string
+  isGenerated?: boolean
+}
 
 // 새로운 단순화된 payslips API (기존 API 교체)
-export async function GET({ url }) {
+export const GET: RequestHandler = async ({ url }) => {
   try {
     const employeeId = url.searchParams.get('employeeId')
     const period = url.searchParams.get('period') // YYYY-MM 형식
@@ -34,7 +74,7 @@ export async function GET({ url }) {
     const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : ''
 
     // 기존 payslips 테이블 사용 (마이그레이션 전)
-    const { rows } = await query(
+    const result = await query<PayslipData>(
       `
 			SELECT
 				p.id,
@@ -65,22 +105,27 @@ export async function GET({ url }) {
       params,
     )
 
-    return json({ success: true, data: rows })
-  } catch (error) {
+    const response: ApiResponse<PayslipData[]> = {
+      success: true,
+      data: result.rows,
+    }
+
+    return json(response)
+  } catch (error: unknown) {
+    logger.error('Error fetching payslips:', error)
     return json(
       {
         success: false,
-        error: '급여명세서 목록을 가져오는데 실패했습니다.',
-        details: error instanceof Error ? error.message : 'Unknown error',
+        error: error instanceof Error ? error.message : '급여명세서 목록을 가져오는데 실패했습니다.',
       },
       { status: 500 },
     )
   }
 }
 
-export async function POST({ request }) {
+export const POST: RequestHandler = async ({ request }) => {
   try {
-    const payslipData = await request.json()
+    const payslipData = await request.json() as CreatePayslipRequest
 
     const {
       employeeId,
@@ -115,7 +160,7 @@ export async function POST({ request }) {
     const payPeriodEnd = toUTC(new Date(parseInt(year), parseInt(month), 0)).split('T')[0] // 해당 월의 마지막 날
 
     // 기존 급여명세서가 있는지 확인
-    const existingPayslip = await query(
+    const existingPayslip = await query<{ id: string }>(
       'SELECT id FROM payslips WHERE employee_id = $1 AND period = $2',
       [employeeId, period],
     )
@@ -123,7 +168,7 @@ export async function POST({ request }) {
     let result
     if (existingPayslip.rows.length > 0) {
       // 기존 급여명세서 업데이트
-      result = await query(
+      result = await query<PayslipData>(
         `
 				UPDATE payslips SET
 					pay_date = $3,
@@ -148,20 +193,20 @@ export async function POST({ request }) {
           payDate,
           payPeriodStart,
           payPeriodEnd,
-          baseSalary,
-          totalPayments,
-          totalDeductions,
-          netSalary,
-          totalPayments,
-          JSON.stringify(payments),
-          JSON.stringify(deductions),
-          status,
-          isGenerated,
+          baseSalary || 0,
+          totalPayments || 0,
+          totalDeductions || 0,
+          netSalary || 0,
+          totalPayments || 0,
+          JSON.stringify(payments || {}),
+          JSON.stringify(deductions || {}),
+          status || 'draft',
+          isGenerated || false,
         ],
       )
     } else {
       // 새 급여명세서 생성
-      result = await query(
+      result = await query<PayslipData>(
         `
 				INSERT INTO payslips (
 					employee_id, period, pay_date, pay_period_start, pay_period_end,
@@ -177,26 +222,31 @@ export async function POST({ request }) {
           payDate,
           payPeriodStart,
           payPeriodEnd,
-          baseSalary,
-          totalPayments,
-          totalDeductions,
-          netSalary,
-          totalPayments,
-          JSON.stringify(payments),
-          JSON.stringify(deductions),
-          status,
-          isGenerated,
+          baseSalary || 0,
+          totalPayments || 0,
+          totalDeductions || 0,
+          netSalary || 0,
+          totalPayments || 0,
+          JSON.stringify(payments || {}),
+          JSON.stringify(deductions || {}),
+          status || 'draft',
+          isGenerated || false,
         ],
       )
     }
 
-    return json({ success: true, data: result.rows[0] })
-  } catch (error) {
+    const response: ApiResponse<PayslipData> = {
+      success: true,
+      data: result.rows[0],
+    }
+
+    return json(response)
+  } catch (error: unknown) {
+    logger.error('Error saving payslip:', error)
     return json(
       {
         success: false,
-        error: '급여명세서 저장에 실패했습니다.',
-        details: error instanceof Error ? error.message : 'Unknown error',
+        error: error instanceof Error ? error.message : '급여명세서 저장에 실패했습니다.',
       },
       { status: 500 },
     )

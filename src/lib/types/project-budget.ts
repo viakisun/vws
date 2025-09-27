@@ -63,7 +63,7 @@ export interface BudgetSummary {
 }
 
 // API 응답 타입
-export interface BudgetApiResponse<T = any> {
+export interface BudgetApiResponse<T = unknown> {
   success: boolean
   data?: T
   error?: string
