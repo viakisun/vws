@@ -388,8 +388,35 @@
                   bind:value={$userTimezone}
                   onchange={(e: Event & { currentTarget: HTMLSelectElement }) => {
                     const timezone = e.currentTarget.value
-                    if (['UTC', 'KST', 'JST', 'EST', 'PST', 'GMT', 'CET', 'CST', 'IST', 'AEST', 'NZST'].includes(timezone)) {
-                      setUserTimezone(timezone as 'UTC' | 'KST' | 'JST' | 'EST' | 'PST' | 'GMT' | 'CET' | 'CST' | 'IST' | 'AEST' | 'NZST')
+                    if (
+                      [
+                        'UTC',
+                        'KST',
+                        'JST',
+                        'EST',
+                        'PST',
+                        'GMT',
+                        'CET',
+                        'CST',
+                        'IST',
+                        'AEST',
+                        'NZST',
+                      ].includes(timezone)
+                    ) {
+                      setUserTimezone(
+                        timezone as
+                          | 'UTC'
+                          | 'KST'
+                          | 'JST'
+                          | 'EST'
+                          | 'PST'
+                          | 'GMT'
+                          | 'CET'
+                          | 'CST'
+                          | 'IST'
+                          | 'AEST'
+                          | 'NZST',
+                      )
                     }
                   }}
                   class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"

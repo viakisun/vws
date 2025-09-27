@@ -101,7 +101,7 @@ export const GET: RequestHandler = async ({ url }) => {
 // POST /api/project-management/budget-evidence - 증빙 내역 등록
 export const POST: RequestHandler = async ({ request }) => {
   try {
-    const data = await request.json() as Record<string, unknown>
+    const data = (await request.json()) as Record<string, unknown>
     const {
       projectBudgetId,
       evidenceType,
@@ -148,7 +148,7 @@ export const POST: RequestHandler = async ({ request }) => {
       createdBy || null,
     ])
 
-    const response: ApiResponse<typeof result.rows[0]> = {
+    const response: ApiResponse<(typeof result.rows)[0]> = {
       success: true,
       data: result.rows[0],
       message: '증빙 내역이 등록되었습니다.',

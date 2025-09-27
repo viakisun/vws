@@ -63,7 +63,7 @@ export const GET: RequestHandler = async ({ url }) => {
 // POST /api/expenses - Create new expense item
 export const POST: RequestHandler = async ({ request }) => {
   try {
-    const expenseData = await request.json() as CreateExpenseRequest
+    const expenseData = (await request.json()) as CreateExpenseRequest
 
     // Validate required fields
     if (
@@ -98,7 +98,9 @@ export const POST: RequestHandler = async ({ request }) => {
       return json(response, { status: 400 })
     }
 
-    const expense = await DatabaseService.createExpenseItem(expenseData as unknown as Partial<import('$lib/database/connection').DatabaseExpenseItem>)
+    const expense = await DatabaseService.createExpenseItem(
+      expenseData as unknown as Partial<import('$lib/database/connection').DatabaseExpenseItem>,
+    )
 
     const response: ApiResponse<ExpenseItem> = {
       success: true,

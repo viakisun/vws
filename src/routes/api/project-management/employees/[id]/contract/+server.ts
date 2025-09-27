@@ -4,6 +4,16 @@ import { logger } from '$lib/utils/logger'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
 
+interface SalaryContract {
+  id: string
+  employee_id: string
+  annual_salary: number
+  start_date: string
+  end_date?: string
+  status: string
+  contract_type: string
+}
+
 // GET /api/project-management/employees/[id]/contract - 특정 직원의 참여기간 내 계약 정보 조회
 export const GET: RequestHandler = async ({ params, url }) => {
   try {
@@ -38,6 +48,7 @@ export const GET: RequestHandler = async ({ params, url }) => {
 		`
 
     const allContractsResult = await query(allContractsQuery, [id])
+    const allContracts: SalaryContract[] = allContractsResult.rows
     // 해당 직원의 모든 활성 계약 조회 완료
 
     // 참여기간과 겹치는 활성 계약 조회 (더 유연한 조건)
@@ -66,14 +77,15 @@ export const GET: RequestHandler = async ({ params, url }) => {
 		`
 
     const result = await query(contractQuery, [id, startDate, endDate])
+    const contracts: SalaryContract[] = result.rows
 
-    if (result.rows.length === 0) {
+    if (contracts.length === 0) {
       // 계약이 없을 때 더 자세한 정보 제공
-      const hasAnyContracts = allContractsResult.rows.length > 0
+      const hasAnyContracts = allContracts.length > 0
       let message = '해당 기간에 유효한 계약이 없습니다.'
 
       if (hasAnyContracts) {
-        const latestContract = allContractsResult.rows[0]
+        const latestContract = allContracts[0]
         message = `해당 기간(${startDate} ~ ${endDate})에 유효한 계약이 없습니다. 최신 계약: ${latestContract.start_date} ~ ${latestContract.end_date || '무기한'}`
       } else {
         message = '해당 직원의 활성 계약이 없습니다.'
@@ -87,28 +99,12 @@ export const GET: RequestHandler = async ({ params, url }) => {
       return json(response)
     }
 
-    const contract = result.rows[0]
+    const contract = contracts[0]
     // 계약 정보 조회 완료
 
-    const response: ApiResponse<{
-      id: unknown
-      employee_id: unknown
-      annual_salary: unknown
-      start_date: unknown
-      end_date: unknown
-      status: unknown
-      contract_type: unknown
-    }> = {
+    const response: ApiResponse<SalaryContract> = {
       success: true,
-      data: {
-        id: contract.id,
-        employee_id: contract.employee_id,
-        annual_salary: contract.annual_salary,
-        start_date: contract.start_date,
-        end_date: contract.end_date,
-        status: contract.status,
-        contract_type: contract.contract_type,
-      },
+      data: contract,
     }
     return json(response)
   } catch (error: unknown) {

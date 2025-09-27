@@ -66,10 +66,17 @@
       for (const p of $projectsStore) {
         const start = p.startDate
         const due = p.dueDate
-        const totalDays = Math.floor((new Date(due).getTime() - new Date(start).getTime()) / (1000 * 60 * 60 * 24))
+        const totalDays = Math.floor(
+          (new Date(due).getTime() - new Date(start).getTime()) / (1000 * 60 * 60 * 24),
+        )
         // 오늘이 시작 이전이면 0일 경과로 간주
         const cappedToday = todayIso < start ? start : todayIso > due ? due : todayIso
-        const elapsedDays = Math.max(1, Math.floor((new Date(cappedToday).getTime() - new Date(start).getTime()) / (1000 * 60 * 60 * 24)))
+        const elapsedDays = Math.max(
+          1,
+          Math.floor(
+            (new Date(cappedToday).getTime() - new Date(start).getTime()) / (1000 * 60 * 60 * 24),
+          ),
+        )
         const burn = p.spentKRW / Math.max(1, elapsedDays)
         const projected = burn * totalDays
         totalBudget += p.budgetKRW

@@ -87,7 +87,7 @@ export const GET: RequestHandler = async ({ params }) => {
 // 이사 정보 수정
 export const PUT: RequestHandler = async ({ params, request }) => {
   try {
-    const data = await request.json() as UpdateExecutiveRequest
+    const data = (await request.json()) as UpdateExecutiveRequest
 
     // 필수 필드 검증
     if (!data.first_name || data.first_name.trim() === '') {
@@ -204,7 +204,12 @@ export const PUT: RequestHandler = async ({ params, request }) => {
 // 이사 삭제 (비활성화)
 export const DELETE: RequestHandler = async ({ params }) => {
   try {
-    const result = await query<{ id: string; executive_id: string; first_name: string; last_name: string }>(
+    const result = await query<{
+      id: string
+      executive_id: string
+      first_name: string
+      last_name: string
+    }>(
       `
 			UPDATE executives SET
 				status = 'inactive',

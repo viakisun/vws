@@ -2,10 +2,7 @@
 
 import { query } from '$lib/database/connection.js'
 import type { DatabaseSalaryContract } from '$lib/types/database'
-import type {
-    CreateSalaryContractRequest,
-    PaginatedResponse
-} from '$lib/types/salary-contracts'
+import type { CreateSalaryContractRequest, PaginatedResponse } from '$lib/types/salary-contracts'
 import { formatDateForDisplay, toUTC } from '$lib/utils/date-handler.js'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'

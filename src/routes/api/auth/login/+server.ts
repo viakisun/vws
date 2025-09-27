@@ -1,5 +1,5 @@
 import { DatabaseService } from '$lib/database/connection'
-import type { ApiResponse } from '$lib/types/database'
+import type { ApiResponse, DatabaseEmployee } from '$lib/types/database'
 import { config } from '$lib/utils/config'
 import { toUTC } from '$lib/utils/date-handler'
 import { logger } from '$lib/utils/logger'
@@ -49,7 +49,10 @@ export const POST: RequestHandler = async ({ request }) => {
 
     // 입력값 검증
     if (!email || !password) {
-      logger.warn('Login attempt with missing credentials', { email: !!email, password: !!password })
+      logger.warn('Login attempt with missing credentials', {
+        email: !!email,
+        password: !!password,
+      })
       const response: ApiResponse<null> = {
         success: false,
         error: '이메일과 비밀번호를 입력해주세요.',
@@ -100,7 +103,8 @@ export const POST: RequestHandler = async ({ request }) => {
     }
 
     // 비밀번호 검증
-    const passwordHash = (user as any).password_hash
+    const userWithPassword = user as DatabaseEmployee & { password_hash: string }
+    const passwordHash = userWithPassword.password_hash
     if (!passwordHash) {
       logger.error('User found without password hash', { email, userId: user.id })
       const response: ApiResponse<null> = {
@@ -127,7 +131,7 @@ export const POST: RequestHandler = async ({ request }) => {
       email: user.email,
       role: user.role,
       iat: now,
-      exp: now + (24 * 60 * 60), // 24시간 후 만료
+      exp: now + 24 * 60 * 60, // 24시간 후 만료
     }
 
     // JWT 토큰 생성
@@ -141,19 +145,16 @@ export const POST: RequestHandler = async ({ request }) => {
     // 마지막 로그인 시간 업데이트
     try {
       const { query } = await import('$lib/database/connection')
-      await query(
-        'UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = $1',
-        [user.id]
-      )
-      logger.info('User login successful', { 
-        userId: user.id, 
-        email: user.email, 
-        role: user.role 
+      await query('UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = $1', [user.id])
+      logger.info('User login successful', {
+        userId: user.id,
+        email: user.email,
+        role: user.role,
       })
     } catch (dbError) {
-      logger.error('Failed to update last login time', { 
-        userId: user.id, 
-        error: dbError 
+      logger.error('Failed to update last login time', {
+        userId: user.id,
+        error: dbError,
       })
       // 로그인 시간 업데이트 실패는 로그인을 막지 않음
     }
@@ -162,14 +163,16 @@ export const POST: RequestHandler = async ({ request }) => {
     const userResponse: UserResponse = {
       id: user.id,
       email: user.email,
-      name: user.name || user.email.split('@')[0],
+      name: (user.first_name && user.last_name) ? `${user.first_name} ${user.last_name}` : user.email.split('@')[0],
       role: user.role,
       department: user.department,
       position: user.position,
-      is_active: user.is_active,
-      created_at: user.created_at instanceof Date ? toUTC(user.created_at) : toUTC(String(user.created_at)),
-      updated_at: user.updated_at instanceof Date ? toUTC(user.updated_at) : toUTC(String(user.updated_at)),
-      last_login: user.last_login instanceof Date ? toUTC(user.last_login) : (user.last_login ? toUTC(String(user.last_login)) : undefined),
+      is_active: user.status === 'active',
+      created_at:
+        user.created_at instanceof Date ? toUTC(user.created_at) : toUTC(String(user.created_at)),
+      updated_at:
+        user.updated_at instanceof Date ? toUTC(user.updated_at) : toUTC(String(user.updated_at)),
+      last_login: undefined, // last_login 필드는 DatabaseEmployee에 없음
     }
 
     // 성공 응답 반환
@@ -184,10 +187,9 @@ export const POST: RequestHandler = async ({ request }) => {
     }
 
     return json(response)
-
   } catch (error: unknown) {
     logger.error('Login error:', error)
-    
+
     // 에러 타입에 따른 구체적인 응답
     if (error instanceof SyntaxError) {
       const response: ApiResponse<null> = {
@@ -196,7 +198,7 @@ export const POST: RequestHandler = async ({ request }) => {
       }
       return json(response, { status: 400 })
     }
-    
+
     if (error instanceof Error && error.message.includes('database')) {
       const response: ApiResponse<null> = {
         success: false,

@@ -71,7 +71,7 @@ export const GET: RequestHandler = async () => {
 // POST /api/company - 회사 정보 등록/수정
 export const POST: RequestHandler = async ({ request }) => {
   try {
-    const data = await request.json() as CreateCompanyRequest
+    const data = (await request.json()) as CreateCompanyRequest
 
     // 필수 필드 검증
     if (!data.name) {

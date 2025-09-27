@@ -91,7 +91,7 @@ export const GET: RequestHandler = async ({ url }) => {
 // 새 직책 생성
 export const POST: RequestHandler = async ({ request }) => {
   try {
-    const data = await request.json() as CreateJobTitleRequest
+    const data = (await request.json()) as CreateJobTitleRequest
 
     // 필수 필드 검증
     if (!data.name || data.name.trim() === '') {
@@ -125,9 +125,10 @@ export const POST: RequestHandler = async ({ request }) => {
     }
 
     // 중복 직책명 검증
-    const existingTitle = await query<{ id: string }>('SELECT id FROM job_titles WHERE LOWER(name) = LOWER($1)', [
-      data.name.trim(),
-    ])
+    const existingTitle = await query<{ id: string }>(
+      'SELECT id FROM job_titles WHERE LOWER(name) = LOWER($1)',
+      [data.name.trim()],
+    )
 
     if (existingTitle.rows.length > 0) {
       return json(

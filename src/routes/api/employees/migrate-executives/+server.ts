@@ -60,7 +60,8 @@ export const POST: RequestHandler = async () => {
 
       // Executive ID 생성
       const execIdResult = await query('SELECT COUNT(*) as count FROM executives')
-      const execCount = parseInt(String((execIdResult.rows[0] as Record<string, unknown>).count)) + 1
+      const execCount =
+        parseInt(String((execIdResult.rows[0] as Record<string, unknown>).count)) + 1
       const executiveId = `EXE${execCount.toString().padStart(3, '0')}`
 
       // 이사 명부에 추가

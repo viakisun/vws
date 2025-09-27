@@ -20,7 +20,14 @@
     searchPlaceholder?: string
   }
 
-  let { title, subtitle = '', children, stats = [], actions: _actions, searchPlaceholder: _searchPlaceholder }: Props = $props()
+  let {
+    title,
+    subtitle = '',
+    children,
+    stats = [],
+    actions: _actions,
+    searchPlaceholder: _searchPlaceholder,
+  }: Props = $props()
 </script>
 
 <div>

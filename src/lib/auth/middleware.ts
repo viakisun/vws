@@ -184,29 +184,32 @@ export function requirePermission(permission: string): RequestHandler {
 // 기존 rateLimit 함수는 제거하고 새로운 보안 강화 버전 사용
 
 // Rate limiting middleware
-export function rateLimit(maxRequests: number = 100, windowMs: number = 15 * 60 * 1000): RequestHandler {
+export function rateLimit(
+  maxRequests: number = 100,
+  windowMs: number = 15 * 60 * 1000,
+): RequestHandler {
   return async (event: RequestEvent): Promise<Response> => {
     const clientIP = event.getClientAddress()
     const rateLimitResult = checkRateLimit(clientIP, maxRequests, windowMs)
-    
+
     if (!rateLimitResult.allowed) {
-      logger.warn('Rate limit exceeded', { 
-        clientIP, 
-        limit: maxRequests, 
-        window: windowMs 
+      logger.warn('Rate limit exceeded', {
+        clientIP,
+        limit: maxRequests,
+        window: windowMs,
       })
-      return error(429, { 
-        message: 'Too many requests. Please try again later.'
+      return error(429, {
+        message: 'Too many requests. Please try again later.',
       })
     }
-    
+
     // Rate limit headers 추가
     event.setHeaders({
       'X-RateLimit-Limit': maxRequests.toString(),
       'X-RateLimit-Remaining': rateLimitResult.remaining.toString(),
-      'X-RateLimit-Reset': new Date(rateLimitResult.resetTime).toISOString()
+      'X-RateLimit-Reset': new Date(rateLimitResult.resetTime).toISOString(),
     })
-    
+
     return new Response()
   }
 }
@@ -217,19 +220,19 @@ export function csrfProtection(): RequestHandler {
     if (event.request.method === 'GET' || event.request.method === 'HEAD') {
       return new Response()
     }
-    
+
     const token = event.request.headers.get('x-csrf-token')
     const sessionToken = event.cookies.get('csrf-token')
-    
+
     if (!validateCSRFToken(token || '', sessionToken || '')) {
       logger.warn('CSRF token validation failed', {
         url: event.url.pathname,
         method: event.request.method,
-        clientIP: event.getClientAddress()
+        clientIP: event.getClientAddress(),
       })
       return error(403, { message: 'Invalid CSRF token' })
     }
-    
+
     return new Response()
   }
 }

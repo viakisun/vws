@@ -67,7 +67,7 @@ export const GET: RequestHandler = async ({ params }) => {
 // 직책 정보 수정
 export const PUT: RequestHandler = async ({ params, request }) => {
   try {
-    const data = await request.json() as UpdateJobTitleRequest
+    const data = (await request.json()) as UpdateJobTitleRequest
 
     // 필수 필드 검증
     if (!data.name || data.name.trim() === '') {

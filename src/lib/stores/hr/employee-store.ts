@@ -203,7 +203,7 @@ export async function loadEmployees(): Promise<void> {
 
   try {
     const response = await fetch('/api/employees')
-    const result = await response.json() as ApiResponse<Employee[]>
+    const result = (await response.json()) as ApiResponse<Employee[]>
 
     if (result.success && result.data) {
       employees.set(result.data)
@@ -233,7 +233,7 @@ export async function addEmployee(
       body: JSON.stringify(employee),
     })
 
-    const result = await response.json() as ApiResponse<Employee>
+    const result = (await response.json()) as ApiResponse<Employee>
 
     if (result.success && result.data) {
       employees.update((current) => [...current, result.data!])
@@ -264,7 +264,7 @@ export async function updateEmployee(id: string, updates: Partial<Employee>): Pr
       body: JSON.stringify(updates),
     })
 
-    const result = await response.json() as ApiResponse<Employee>
+    const result = (await response.json()) as ApiResponse<Employee>
 
     if (result.success && result.data) {
       employees.update((current) => current.map((emp) => (emp.id === id ? result.data! : emp)))

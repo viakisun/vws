@@ -16,7 +16,13 @@
     numeric?: number
   }
 
-  let statusFilter = $state('') as '' | 'active' | 'planning' | 'completed' | 'cancelled' | 'suspended'
+  let statusFilter = $state('') as
+    | ''
+    | 'active'
+    | 'planning'
+    | 'completed'
+    | 'cancelled'
+    | 'suspended'
   let query = $state('')
   let selectedId = $state<string | null>(null)
 
@@ -38,7 +44,8 @@
     },
     {
       label: '리스크 경고',
-      value: $projectsStore.filter((p) => p.status === 'suspended' || p.status === 'cancelled').length,
+      value: $projectsStore.filter((p) => p.status === 'suspended' || p.status === 'cancelled')
+        .length,
       icon: AlertTriangleIcon,
     },
   ] as Kpi[])

@@ -1,11 +1,12 @@
 import { query } from '$lib/database/connection'
 import type { ApiResponse, DatabaseProjectMember } from '$lib/types/database'
 import {
-    calculateParticipationPeriod,
-    formatDateForAPI,
-    isValidDate,
-    isValidDateRange,
+  calculateParticipationPeriod,
+  formatDateForAPI,
+  isValidDate,
+  isValidDateRange,
 } from '$lib/utils/date-calculator'
+import { toUTC } from '$lib/utils/date-handler'
 import { logger } from '$lib/utils/logger'
 import { calculateMonthlySalary } from '$lib/utils/salary-calculator'
 import { json } from '@sveltejs/kit'
@@ -159,7 +160,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
       // UTC+9 타임존 적용 (TIMESTAMP 타입으로 저장)
       const formattedStartDate = new Date(startDate + 'T00:00:00.000+09:00')
       updateFields.push(`start_date = $${paramIndex}`)
-      updateValues.push(formattedStartDate.toISOString())
+      updateValues.push(toUTC(formattedStartDate))
       paramIndex++
     }
 
@@ -178,7 +179,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
       // UTC+9 타임존 적용 (TIMESTAMP 타입으로 저장)
       const formattedEndDate = new Date(endDate + 'T23:59:59.999+09:00')
       updateFields.push(`end_date = $${paramIndex}`)
-      updateValues.push(formattedEndDate.toISOString())
+      updateValues.push(toUTC(formattedEndDate))
       paramIndex++
     }
 
@@ -287,7 +288,6 @@ export const PUT: RequestHandler = async ({ params, request }) => {
     updateFields.push(`updated_at = CURRENT_TIMESTAMP`)
     updateValues.push(params.id)
 
-     
     const _result = await query(
       `UPDATE project_members SET ${updateFields.join(', ')} WHERE id = $${paramIndex} RETURNING *`,
       updateValues,

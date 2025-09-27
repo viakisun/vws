@@ -8,7 +8,7 @@ import type { RequestHandler } from './$types'
 export const PUT: RequestHandler = async ({ params, request }) => {
   try {
     const { id } = params
-    const data = await request.json() as Record<string, unknown>
+    const data = (await request.json()) as Record<string, unknown>
     const { approvedBy } = data
 
     // 증빙 내역 존재 확인
@@ -36,7 +36,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
 
     const result = await query(updateQuery, [id, approvedBy])
 
-    const response: ApiResponse<typeof result.rows[0]> = {
+    const response: ApiResponse<(typeof result.rows)[0]> = {
       success: true,
       data: result.rows[0],
       message: '증빙 내역이 승인되었습니다.',

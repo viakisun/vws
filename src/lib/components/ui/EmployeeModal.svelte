@@ -35,7 +35,13 @@
     employee?: Employee | null
     loading?: boolean
     departments?: Array<{ id: string; name: string }>
-    positions?: Array<{ id: string; name?: string; title?: string; department?: string; department_id?: string }>
+    positions?: Array<{
+      id: string
+      name?: string
+      title?: string
+      department?: string
+      department_id?: string
+    }>
     jobTitles?: Array<{
       id: string
       name?: string

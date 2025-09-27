@@ -2,14 +2,19 @@
 // 개별 프로젝트 관련 API
 
 import { query } from '$lib/database/connection'
-import type { ApiResponse, DatabaseProject, DatabaseProjectBudget, DatabaseProjectMember } from '$lib/types/database'
+import type {
+  ApiResponse,
+  DatabaseProject,
+  DatabaseProjectBudget,
+  DatabaseProjectMember,
+} from '$lib/types/database'
 import {
-    transformArrayData,
-    transformMilestoneData,
-    transformProjectBudgetData,
-    transformProjectData,
-    transformProjectMemberData,
-    transformRiskData,
+  transformArrayData,
+  transformMilestoneData,
+  transformProjectBudgetData,
+  transformProjectData,
+  transformProjectMemberData,
+  transformRiskData,
 } from '$lib/utils/api-data-transformer'
 import { logger } from '$lib/utils/logger'
 import { json } from '@sveltejs/kit'
@@ -207,7 +212,6 @@ export const PUT: RequestHandler = async ({ params, request }) => {
 
     Object.entries(fieldsToUpdate).forEach(([key, value]) => {
       if (value !== undefined) {
-         
         updateFields.push(`${key} = $${paramIndex++}`)
         updateValues.push(value)
       }
@@ -226,7 +230,6 @@ export const PUT: RequestHandler = async ({ params, request }) => {
     updateFields.push(`updated_at = CURRENT_TIMESTAMP`)
     updateValues.push(id)
 
-     
     const result = await query(
       `UPDATE projects SET ${updateFields.join(', ')} WHERE id = $${paramIndex} RETURNING *`,
       updateValues,

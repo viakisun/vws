@@ -247,16 +247,23 @@ async function validateBudgetConsistency(projectId: string): Promise<ValidationR
 }
 
 // 인건비 자동 수정
-async function fixPersonnelCost(projectId: string, issues: unknown[]): Promise<{ success: boolean; fixedCount: number; error: string | null }> {
+async function fixPersonnelCost(
+  projectId: string,
+  issues: unknown[],
+): Promise<{ success: boolean; fixedCount: number; error: string | null }> {
   try {
     let fixedCount = 0
 
     for (const issue of issues) {
       // 타입 가드: issue가 필요한 속성을 가지고 있는지 확인
-      if (typeof issue === 'object' && issue !== null && 
-          'actualPersonnelCost' in issue && 'periodId' in issue) {
+      if (
+        typeof issue === 'object' &&
+        issue !== null &&
+        'actualPersonnelCost' in issue &&
+        'periodId' in issue
+      ) {
         const typedIssue = issue as PersonnelCostIssue
-        
+
         await query(
           `
 				UPDATE project_budgets 
@@ -284,7 +291,10 @@ async function fixPersonnelCost(projectId: string, issues: unknown[]): Promise<{
 }
 
 // 예산 일관성 자동 수정
-async function fixBudgetConsistency(projectId: string, issues: unknown[]): Promise<{ success: boolean; fixedCount: number; error: string | null }> {
+async function fixBudgetConsistency(
+  projectId: string,
+  issues: unknown[],
+): Promise<{ success: boolean; fixedCount: number; error: string | null }> {
   try {
     let fixedCount = 0
 
@@ -292,7 +302,7 @@ async function fixBudgetConsistency(projectId: string, issues: unknown[]): Promi
       // 타입 가드: issue가 필요한 속성을 가지고 있는지 확인
       if (typeof issue === 'object' && issue !== null && 'budgetSum' in issue) {
         const typedIssue = issue as BudgetConsistencyIssue
-        
+
         await query(
           `
 				UPDATE projects 
@@ -344,7 +354,7 @@ export const GET: RequestHandler = async ({ url }) => {
 
 export const POST: RequestHandler = async ({ request }) => {
   try {
-    const { projectId } = await request.json() as { projectId: string }
+    const { projectId } = (await request.json()) as { projectId: string }
 
     if (!projectId) {
       const response: ApiResponse<null> = { success: false, error: '프로젝트 ID가 필요합니다.' }

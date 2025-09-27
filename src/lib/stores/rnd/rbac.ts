@@ -111,9 +111,12 @@ export const userRoles = writable<UserRole[]>([])
 export const userPermissions = derived(userRoles, ($userRoles) => {
   const permissions = new Set<Permission>()
   $userRoles.forEach((role) => {
-    PERMISSION_MATRIX[role]?.forEach((permission) => {
-      permissions.add(permission)
-    })
+    const rolePermissions = PERMISSION_MATRIX[role]
+    if (rolePermissions) {
+      rolePermissions.forEach((permission) => {
+        permissions.add(permission)
+      })
+    }
   })
   return Array.from(permissions)
 })

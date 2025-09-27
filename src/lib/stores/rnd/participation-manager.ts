@@ -274,11 +274,11 @@ export class ParticipationManager {
     const sortedAssignments = personAssignments.sort((a, b) => {
       const projectA = get(projects).find((p) => p.id === a.projectId)
       const projectB = get(projects).find((p) => p.id === b.projectId)
-      
+
       // 우선순위를 숫자로 변환 (high=3, medium=2, low=1)
       const priorityA = projectA?.priority === 'high' ? 3 : projectA?.priority === 'medium' ? 2 : 1
       const priorityB = projectB?.priority === 'high' ? 3 : projectB?.priority === 'medium' ? 2 : 1
-      
+
       return priorityA - priorityB
     })
 
@@ -473,11 +473,14 @@ export const participationTrends = derived(participationHistory, (history) => {
     }
 
     if (change.newRate > change.oldRate) {
-      (monthlyChanges[month] as Record<string, unknown>).increases = (Number((monthlyChanges[month] as Record<string, unknown>).increases) + 1)
+      ;(monthlyChanges[month] as Record<string, unknown>).increases =
+        Number((monthlyChanges[month] as Record<string, unknown>).increases) + 1
     } else if (change.newRate < change.oldRate) {
-      (monthlyChanges[month] as Record<string, unknown>).decreases = (Number((monthlyChanges[month] as Record<string, unknown>).decreases) + 1)
+      ;(monthlyChanges[month] as Record<string, unknown>).decreases =
+        Number((monthlyChanges[month] as Record<string, unknown>).decreases) + 1
     }
-    (monthlyChanges[month] as Record<string, unknown>).total = (Number((monthlyChanges[month] as Record<string, unknown>).total) + 1)
+    ;(monthlyChanges[month] as Record<string, unknown>).total =
+      Number((monthlyChanges[month] as Record<string, unknown>).total) + 1
   })
 
   return {

@@ -347,7 +347,9 @@ export class SchemaValidator {
       // 각 테이블별로 검증
       for (const rule of this.PROJECT_SCHEMA_RULES) {
         const actualColumn = actualSchema.find(
-          (col) => (col as Record<string, unknown>).table_name === rule.tableName && (col as Record<string, unknown>).column_name === rule.columnName,
+          (col) =>
+            (col as Record<string, unknown>).table_name === rule.tableName &&
+            (col as Record<string, unknown>).column_name === rule.columnName,
         )
 
         if (!actualColumn) {

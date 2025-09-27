@@ -211,7 +211,7 @@ export class SessionManager {
         body: JSON.stringify({ email, password }),
       })
 
-      const data = await response.json() as Record<string, unknown>
+      const data = (await response.json()) as Record<string, unknown>
 
       if (response.ok && data.success) {
         this.setSession(data.user as Record<string, unknown>, data.token as string)
@@ -259,7 +259,7 @@ export class SessionManager {
       })
 
       if (response.ok) {
-        const data = await response.json() as Record<string, unknown>
+        const data = (await response.json()) as Record<string, unknown>
         if (data.success && data.token) {
           this.sessionStore.update((session) => ({
             ...session,
@@ -333,14 +333,18 @@ export function useSession() {
     subscribe: session.subscribe,
     login: sessionManager.login.bind(sessionManager) as typeof sessionManager.login,
     logout: sessionManager.logout.bind(sessionManager) as typeof sessionManager.logout,
-    isAuthenticated: sessionManager.isAuthenticated.bind(sessionManager) as typeof sessionManager.isAuthenticated,
+    isAuthenticated: sessionManager.isAuthenticated.bind(
+      sessionManager,
+    ) as typeof sessionManager.isAuthenticated,
     hasRole: sessionManager.hasRole.bind(sessionManager) as typeof sessionManager.hasRole,
     hasAnyRole: sessionManager.hasAnyRole.bind(sessionManager) as typeof sessionManager.hasAnyRole,
     isAdmin: sessionManager.isAdmin.bind(sessionManager) as typeof sessionManager.isAdmin,
     isManager: sessionManager.isManager.bind(sessionManager) as typeof sessionManager.isManager,
     isEmployee: sessionManager.isEmployee.bind(sessionManager) as typeof sessionManager.isEmployee,
     isViewer: sessionManager.isViewer.bind(sessionManager) as typeof sessionManager.isViewer,
-    getCurrentUser: sessionManager.getCurrentUser.bind(sessionManager) as typeof sessionManager.getCurrentUser,
+    getCurrentUser: sessionManager.getCurrentUser.bind(
+      sessionManager,
+    ) as typeof sessionManager.getCurrentUser,
     apiRequest: sessionManager.apiRequest.bind(sessionManager) as typeof sessionManager.apiRequest,
   }
 }

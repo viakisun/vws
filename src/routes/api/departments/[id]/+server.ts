@@ -54,7 +54,7 @@ export const GET: RequestHandler = async ({ params }) => {
 // 부서 정보 수정
 export const PUT: RequestHandler = async ({ params, request }) => {
   try {
-    const data = await request.json() as UpdateDepartmentRequest
+    const data = (await request.json()) as UpdateDepartmentRequest
 
     // 필수 필드 검증
     if (!data.name || data.name.trim() === '') {
@@ -157,9 +157,10 @@ export const DELETE: RequestHandler = async ({ params, url }) => {
       }
 
       // 하드 삭제 실행
-      const result = await query<{ id: string; name: string }>('DELETE FROM departments WHERE id = $1 RETURNING id, name', [
-        params.id,
-      ])
+      const result = await query<{ id: string; name: string }>(
+        'DELETE FROM departments WHERE id = $1 RETURNING id, name',
+        [params.id],
+      )
 
       if (result.rows.length === 0) {
         return json(

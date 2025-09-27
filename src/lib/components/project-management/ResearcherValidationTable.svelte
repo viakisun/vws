@@ -5,13 +5,13 @@
   import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
   import ThemeCard from '$lib/components/ui/ThemeCard.svelte'
   import {
-      AlertTriangleIcon,
-      CheckCircleIcon,
-      RefreshCwIcon,
-      SettingsIcon,
-      UserIcon,
-      WrenchIcon,
-      XCircleIcon,
+    AlertTriangleIcon,
+    CheckCircleIcon,
+    RefreshCwIcon,
+    SettingsIcon,
+    UserIcon,
+    WrenchIcon,
+    XCircleIcon,
   } from '@lucide/svelte'
   import { onMount } from 'svelte'
 

@@ -80,9 +80,11 @@ export function transformProjectData(project: Record<string, unknown>) {
     // 추가 필드들
     ...(manager_name ? { managerName: String(manager_name) } : {}),
     ...(member_count ? { memberCount: parseInt(String(member_count)) || 0 } : {}),
-    ...(total_participation_rate ? {
-      totalParticipationRate: parseInt(String(total_participation_rate)) || 0,
-    } : {}),
+    ...(total_participation_rate
+      ? {
+          totalParticipationRate: parseInt(String(total_participation_rate)) || 0,
+        }
+      : {}),
   }
 }
 
@@ -197,15 +199,19 @@ export function transformEmployeeData(employee: Record<string, unknown>) {
     createdAt: employee.created_at,
     updatedAt: employee.updated_at,
     // 직원 이름을 표준 형식으로 변환
-    ...(lastName && firstName ? {
-        displayName: formatEmployeeName({
-          last_name: String(lastName),
-          first_name: String(firstName),
-        }),
-      } : {}),
-    ...(employee.name ? {
-      name: formatKoreanNameStandard(String(employee.name)),
-    } : {}),
+    ...(lastName && firstName
+      ? {
+          displayName: formatEmployeeName({
+            last_name: String(lastName),
+            first_name: String(firstName),
+          }),
+        }
+      : {}),
+    ...(employee.name
+      ? {
+          name: formatKoreanNameStandard(String(employee.name)),
+        }
+      : {}),
   }
 }
 
@@ -221,19 +227,26 @@ export function transformEvidenceItemData(evidence: Record<string, unknown>) {
     createdAt: evidence.created_at,
     updatedAt: evidence.updated_at,
     // 담당자 이름을 표준 형식으로 변환
-    ...(evidence.assignee_full_name ? {
-      assigneeFullName: formatKoreanNameStandard(String(evidence.assignee_full_name)),
-    } : {}),
-    ...(evidence.assignee_name ? {
-      assigneeName: formatKoreanNameStandard(String(evidence.assignee_name)),
-    } : {}),
+    ...(evidence.assignee_full_name
+      ? {
+          assigneeFullName: formatKoreanNameStandard(String(evidence.assignee_full_name)),
+        }
+      : {}),
+    ...(evidence.assignee_name
+      ? {
+          assigneeName: formatKoreanNameStandard(String(evidence.assignee_name)),
+        }
+      : {}),
   }
 }
 
 /**
  * 배열 데이터 일괄 변환
  */
-export function transformArrayData<T>(data: unknown[], transformer: (item: Record<string, unknown>) => T): T[] {
+export function transformArrayData<T>(
+  data: unknown[],
+  transformer: (item: Record<string, unknown>) => T,
+): T[] {
   return data.map(transformer)
 }
 

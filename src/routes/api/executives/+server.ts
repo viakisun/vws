@@ -101,7 +101,7 @@ export const GET: RequestHandler = async ({ url }) => {
 // 새 이사 생성
 export const POST: RequestHandler = async ({ request }) => {
   try {
-    const data = await request.json() as CreateExecutiveRequest
+    const data = (await request.json()) as CreateExecutiveRequest
 
     // 필수 필드 검증
     if (!data.first_name || data.first_name.trim() === '') {
@@ -135,9 +135,10 @@ export const POST: RequestHandler = async ({ request }) => {
     }
 
     // 이메일 중복 검증
-    const existingExec = await query<{ id: string }>('SELECT id FROM executives WHERE LOWER(email) = LOWER($1)', [
-      data.email.trim(),
-    ])
+    const existingExec = await query<{ id: string }>(
+      'SELECT id FROM executives WHERE LOWER(email) = LOWER($1)',
+      [data.email.trim()],
+    )
 
     if (existingExec.rows.length > 0) {
       return json(

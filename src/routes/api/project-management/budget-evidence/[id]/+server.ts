@@ -36,7 +36,7 @@ export const GET: RequestHandler = async ({ params }) => {
       return json(response, { status: 404 })
     }
 
-    const response: ApiResponse<typeof result.rows[0]> = {
+    const response: ApiResponse<(typeof result.rows)[0]> = {
       success: true,
       data: result.rows[0],
     }
@@ -56,7 +56,7 @@ export const GET: RequestHandler = async ({ params }) => {
 export const PUT: RequestHandler = async ({ params, request }) => {
   try {
     const { id } = params
-    const data = await request.json() as Record<string, unknown>
+    const data = (await request.json()) as Record<string, unknown>
     const {
       evidenceType,
       title,

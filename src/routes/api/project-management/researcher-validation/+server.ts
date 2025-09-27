@@ -162,7 +162,6 @@ export const GET: RequestHandler = async ({ url }) => {
     // 3. 검증 실행
     const validationResult = await performValidation(project, members)
 
-     
     logger.log(
       `✅ [참여연구원 검증] 완료 - ${validationResult.isValid ? '✅ 통과' : '❌ 실패'} (${validationResult.issues.length}개 이슈)`,
     )
@@ -196,7 +195,7 @@ export const GET: RequestHandler = async ({ url }) => {
 // POST: 자동 수정 실행
 export const POST: RequestHandler = async ({ request }) => {
   try {
-    const { projectId, fixes } = await request.json() as FixRequest
+    const { projectId, fixes } = (await request.json()) as FixRequest
 
     if (!projectId) {
       const response: ApiResponse<null> = { success: false, error: '프로젝트 ID가 필요합니다.' }
@@ -219,7 +218,7 @@ export const POST: RequestHandler = async ({ request }) => {
             appliedFixes.push({
               memberId: fix.memberId,
               type: fix.type,
-               
+
               action: `참여율 ${fix.oldValue}% → ${fix.newValue}%로 조정`,
               success: true,
             })
@@ -247,7 +246,6 @@ export const POST: RequestHandler = async ({ request }) => {
       }
     }
 
-     
     logger.log(
       `✅ [참여연구원 자동 수정] 완료 - ${appliedFixes.filter((f) => f.success).length}/${appliedFixes.length}개 성공`,
     )
@@ -279,7 +277,10 @@ export const POST: RequestHandler = async ({ request }) => {
 }
 
 // 검증 로직 실행
-async function performValidation(project: DatabaseProject, members: ProjectMember[]): Promise<ValidationResult> {
+async function performValidation(
+  project: DatabaseProject,
+  members: ProjectMember[],
+): Promise<ValidationResult> {
   const issues: ValidationIssue[] = []
   let validMembers = 0
 
@@ -294,9 +295,10 @@ async function performValidation(project: DatabaseProject, members: ProjectMembe
     }
 
     // 2. 참여율 검증
-    const participationRate = typeof member.participation_rate === 'string' 
-      ? parseFloat(member.participation_rate) || 0 
-      : member.participation_rate || 0
+    const participationRate =
+      typeof member.participation_rate === 'string'
+        ? parseFloat(member.participation_rate) || 0
+        : member.participation_rate || 0
     if (participationRate > 100) {
       issues.push({
         type: 'participation_rate_excess',
@@ -311,9 +313,10 @@ async function performValidation(project: DatabaseProject, members: ProjectMembe
     }
 
     // 3. 월간 금액 검증 (계약서 대비)
-    const monthlyAmount = typeof member.monthly_amount === 'string' 
-      ? parseFloat(member.monthly_amount) || 0 
-      : member.monthly_amount || 0
+    const monthlyAmount =
+      typeof member.monthly_amount === 'string'
+        ? parseFloat(member.monthly_amount) || 0
+        : member.monthly_amount || 0
 
     // 실제 근로계약서에서 연봉 가져오기
     const contractResult = await query<DatabaseSalaryContract>(
@@ -337,7 +340,8 @@ async function performValidation(project: DatabaseProject, members: ProjectMembe
     if (contractResult.rows.length > 0) {
       // 월급이 있으면 월급 기준, 없으면 연봉/12 기준
       const contract = contractResult.rows[0]
-      contractAmount = parseFloat(contract.monthly_salary || '0') || parseFloat(contract.annual_salary || '0') / 12
+      contractAmount =
+        parseFloat(contract.monthly_salary || '0') || parseFloat(contract.annual_salary || '0') / 12
     }
 
     // 예상 월간 금액 계산
@@ -348,7 +352,7 @@ async function performValidation(project: DatabaseProject, members: ProjectMembe
       issues.push({
         type: 'amount_excess',
         severity: 'warning',
-         
+
         message: `월간 금액이 예상 금액을 초과합니다 (${monthlyAmount.toLocaleString()}원 vs ${expectedMonthlyAmount.toLocaleString()}원)`,
         memberId: member.id,
         memberName: member.employee_name,
@@ -428,13 +432,12 @@ async function validateContract(
       issues.push({
         type: 'contract_missing',
         severity: 'error',
-         
+
         message: '해당 기간의 근로계약서가 없습니다',
         memberId: member.id,
         memberName: member.employee_name,
         suggestedFix: '급여 계약서를 등록하거나 프로젝트 참여 기간을 조정하세요',
         data: {
-           
           participationPeriod: `${member.start_date} ~ ${member.end_date}`,
           contracts: [],
         },
@@ -443,13 +446,12 @@ async function validateContract(
       issues.push({
         type: 'contract_period_mismatch',
         severity: 'error',
-         
+
         message: '프로젝트 참여 기간에 해당하는 근로계약서가 없습니다',
         memberId: member.id,
         memberName: member.employee_name,
         suggestedFix: '근로계약서 기간을 확인하거나 프로젝트 참여 기간을 조정하세요',
         data: {
-           
           participationPeriod: `${member.start_date} ~ ${member.end_date}`,
           contracts: allContractsResult.rows,
         },
@@ -509,7 +511,7 @@ async function validateDuplicateParticipation(
         message: `동일 기간에 여러 프로젝트 참여율 합계가 100%를 초과합니다 (${totalParticipationRate.toFixed(1)}%)`,
         memberId: member.id,
         memberName: member.employee_name,
-         
+
         suggestedFix: '참여율을 조정하거나 참여 기간을 변경하세요',
         data: {
           totalParticipationRate,
@@ -517,7 +519,7 @@ async function validateDuplicateParticipation(
             projectId: p.project_id,
             projectTitle: p.project_title,
             participationRate: parseFloat(p.participation_rate) || 0,
-             
+
             period: `${p.start_date} ~ ${p.end_date}`,
           })),
         },

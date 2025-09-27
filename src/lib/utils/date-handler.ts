@@ -44,7 +44,7 @@ const SEOUL_OFFSET = '+09:00'
 
 /**
  * 🔥 저장용: 사용자 입력을 UTC로 변환
- * 
+ *
  * 사용법: 데이터베이스에 저장할 때
  * 예시: const utcDate = toUTC(userInput)
  */
@@ -131,7 +131,7 @@ export function toUTC(date: DateInputFormat): StandardDate {
 
 /**
  * 🔥 표시용: UTC 날짜를 서울 시간으로 변환하여 표시
- * 
+ *
  * 사용법: 사용자에게 날짜를 표시할 때
  * 예시: const displayDate = formatDateForDisplay(utcDate)
  */
@@ -175,7 +175,7 @@ export function formatDateForDisplay(
 
 /**
  * 🔥 입력용: UTC 날짜를 HTML input 형식으로 변환
- * 
+ *
  * 사용법: HTML date input에 바인딩할 때
  * 예시: <input type="date" bind:value={formatDateForInput(utcDate)} />
  */
@@ -204,7 +204,7 @@ export function formatDateForInput(utcDate: StandardDate | string): string {
 
 /**
  * 🔥 현재시간: 현재 시간을 UTC로 반환
- * 
+ *
  * 사용법: 현재 시간을 저장할 때
  * 예시: const now = getCurrentUTC()
  */
@@ -214,7 +214,7 @@ export function getCurrentUTC(): StandardDate {
 
 /**
  * 🔥 검증용: 날짜 유효성 검사
- * 
+ *
  * 사용법: 사용자 입력 검증할 때
  * 예시: if (!isValidDate(userInput)) { throw new Error('Invalid date') }
  */
@@ -233,22 +233,22 @@ export function isValidDate(date: DateInputFormat): boolean {
 
 /**
  * 📚 사용 가이드라인
- * 
+ *
  * 1. 저장할 때:
  *    const utcDate = toUTC(userInput)
  *    await query('INSERT INTO table (date) VALUES ($1)', [utcDate])
- * 
+ *
  * 2. 표시할 때:
  *    const displayDate = formatDateForDisplay(utcDate)
  *    <span>{displayDate}</span>
- * 
+ *
  * 3. HTML input에 바인딩할 때:
  *    <input type="date" bind:value={formatDateForInput(utcDate)} />
- * 
+ *
  * 4. 현재 시간 저장할 때:
  *    const now = getCurrentUTC()
  *    await query('UPDATE table SET updated_at = $1', [now])
- * 
+ *
  * 5. 입력 검증할 때:
  *    if (!isValidDate(userInput)) {
  *      throw new Error('올바른 날짜를 입력해주세요.')

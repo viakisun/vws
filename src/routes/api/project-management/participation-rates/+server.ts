@@ -2,7 +2,7 @@
 // 참여율 관리 API
 
 import { query } from '$lib/database/connection'
-import type { ApiResponse } from '$lib/types/database'
+import type { ApiResponse, DatabaseParticipationRate } from '$lib/types/database'
 import { logger } from '$lib/utils/logger'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
@@ -61,7 +61,7 @@ export const GET: RequestHandler = async ({ url }) => {
     sqlQuery += ' ORDER BY e.first_name, e.last_name, pr.start_date DESC'
 
     const result = await query(sqlQuery, params)
-    let participationRates = result.rows
+    let participationRates: DatabaseParticipationRate[] = result.rows
 
     // 참여율 상태별 필터링
     if (participationStatus) {
@@ -92,7 +92,7 @@ export const GET: RequestHandler = async ({ url }) => {
       })
     }
 
-    const response: ApiResponse<typeof participationRates> = {
+    const response: ApiResponse<DatabaseParticipationRate[]> = {
       success: true,
       data: participationRates,
       count: participationRates.length,
@@ -113,7 +113,7 @@ export const GET: RequestHandler = async ({ url }) => {
 // 참여율 업데이트
 export const PUT: RequestHandler = async ({ request }) => {
   try {
-    const data = await request.json() as Record<string, unknown>
+    const data = (await request.json()) as Record<string, unknown>
     const { employeeId, projectId, participationRate, changeReason, notes } = data
 
     // 필수 필드 검증
@@ -142,8 +142,9 @@ export const PUT: RequestHandler = async ({ request }) => {
 		`,
       [employeeId, projectId],
     )
+    const existingRateData: DatabaseParticipationRate[] = existingRate.rows
 
-    if (existingRate.rows.length === 0) {
+    if (existingRateData.length === 0) {
       const response: ApiResponse<null> = {
         success: false,
         message: '해당 프로젝트의 활성 참여율을 찾을 수 없습니다.',
@@ -151,7 +152,7 @@ export const PUT: RequestHandler = async ({ request }) => {
       return json(response, { status: 404 })
     }
 
-    const oldRate = existingRate.rows[0]
+    const oldRate = existingRateData[0]
 
     // 트랜잭션 시작
     await query('BEGIN')
@@ -169,6 +170,7 @@ export const PUT: RequestHandler = async ({ request }) => {
 			`,
         [participationRate, oldRate.id],
       )
+      const updatedRate: DatabaseParticipationRate[] = updateResult.rows
 
       // 변경 이력 생성
       await query(
@@ -191,17 +193,20 @@ export const PUT: RequestHandler = async ({ request }) => {
         [employeeId],
       )
 
-      const totalRate = totalRateResult.rows[0]?.total_rate || 0
+      const totalRateData = totalRateResult.rows[0] as { total_rate: number } | undefined
+      const totalRate = totalRateData?.total_rate || 0
 
       await query('COMMIT')
 
-      const response: ApiResponse<Record<string, unknown> & {
-        totalParticipationRate: number
-        isOverLimit: boolean
-      }> = {
+      const response: ApiResponse<
+        DatabaseParticipationRate & {
+          totalParticipationRate: number
+          isOverLimit: boolean
+        }
+      > = {
         success: true,
         data: {
-          ...updateResult.rows[0],
+          ...updatedRate[0],
           totalParticipationRate: totalRate,
           isOverLimit: totalRate > 100,
         },

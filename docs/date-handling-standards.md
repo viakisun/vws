@@ -2,26 +2,30 @@
 
 ## 🎯 목적
 
-이 문서는 VWS 시스템에서 날짜/시간을 일관되고 안전하게 처리하기 위한 표준을 정의합니다. 
+이 문서는 VWS 시스템에서 날짜/시간을 일관되고 안전하게 처리하기 위한 표준을 정의합니다.
 시간대 문제를 근본적으로 해결하고, 개발자들이 올바른 날짜 처리를 할 수 있도록 가이드합니다.
 
 ## 📋 핵심 원칙
 
 ### 1. 데이터베이스 저장: UTC
+
 - 모든 날짜는 **UTC (ISO 8601)** 형식으로 저장
 - `TIMESTAMP WITH TIME ZONE` 타입 사용 (DATE 타입 사용 금지)
 
 ### 2. 사용자 표시: 서울 시간
+
 - 모든 사용자에게는 **Asia/Seoul** 시간대로 표시
 - 자동으로 UTC → 서울 시간 변환
 
 ### 3. 사용자 입력: 다양한 형식 지원
+
 - 사용자가 입력한 날짜는 현재 설정된 시간대로 해석
 - 자동으로 UTC로 변환하여 저장
 
 ## 🛠️ 구현된 해결책
 
 ### 데이터베이스 스키마 수정
+
 ```sql
 -- ❌ 기존 (문제 있음)
 hire_date DATE,
@@ -35,6 +39,7 @@ end_date TIMESTAMP WITH TIME ZONE,
 ```
 
 ### 마이그레이션 실행
+
 ```bash
 # 마이그레이션 실행
 npm run migrate
@@ -44,6 +49,7 @@ npm run migrate:dry-run
 ```
 
 ### 자동 날짜 처리
+
 ```typescript
 // 데이터베이스 쿼리 결과는 자동으로 날짜 처리됨
 const result = await query('SELECT * FROM employees')
@@ -57,16 +63,18 @@ await query('INSERT INTO employees (hire_date) VALUES ($1)', [hireDate])
 ## 📚 사용법
 
 ### 1. 날짜 표시
+
 ```typescript
 import { formatDateForDisplay } from '$lib/utils/date-handler'
 
 // UTC 날짜를 사용자에게 표시
 const displayDate = formatDateForDisplay(utcDate, 'FULL') // "2024. 01. 15."
-const shortDate = formatDateForDisplay(utcDate, 'SHORT')   // "01/15"
+const shortDate = formatDateForDisplay(utcDate, 'SHORT') // "01/15"
 const koreanDate = formatDateForDisplay(utcDate, 'KOREAN') // "2024년 01월 15일"
 ```
 
 ### 2. HTML Input 처리
+
 ```typescript
 import { formatDateForInput, toUTC } from '$lib/utils/date-handler'
 
@@ -78,6 +86,7 @@ const utcDate = toUTC(inputValue)
 ```
 
 ### 3. 현재 시간
+
 ```typescript
 import { getCurrentUTC, getCurrentSeoulAsUTC } from '$lib/utils/date-handler'
 
@@ -89,6 +98,7 @@ const nowSeoulUTC = getCurrentSeoulAsUTC()
 ```
 
 ### 4. 날짜 검증
+
 ```typescript
 import { isValidDate, isValidDateRange } from '$lib/utils/date-handler'
 
@@ -106,6 +116,7 @@ if (!isValidDateRange(startDate, endDate)) {
 ## 🚫 금지사항
 
 ### 절대 사용하지 말 것
+
 ```typescript
 // ❌ 직접 로컬 날짜 사용
 new Date().toLocaleDateString()
@@ -122,6 +133,7 @@ Date.now()
 ```
 
 ### 올바른 방법
+
 ```typescript
 // ✅ 표준 함수 사용
 formatDateForDisplay(utcDate)
@@ -132,6 +144,7 @@ getCurrentUTC()
 ## 🔧 문제 해결
 
 ### 1. 시간대 오류
+
 ```typescript
 // 문제: 시간이 9시간 차이남
 // 원인: UTC와 로컬 시간 혼용
@@ -142,6 +155,7 @@ const displayDate = formatDateForDisplay(utcDate)
 ```
 
 ### 2. 날짜 형식 오류
+
 ```typescript
 // 문제: "Invalid Date" 오류
 // 원인: 잘못된 날짜 형식
@@ -155,14 +169,13 @@ if (isValidDate(userInput)) {
 ```
 
 ### 3. 데이터베이스 타입 오류
+
 ```typescript
 // 문제: "Type 'Date' is not assignable to type 'string'"
 // 원인: Date 객체를 직접 사용
 
 // 해결: 문자열로 변환
-const dateString = utcDate instanceof Date 
-  ? utcDate.toISOString() 
-  : String(utcDate)
+const dateString = utcDate instanceof Date ? utcDate.toISOString() : String(utcDate)
 ```
 
 ## 📊 마이그레이션된 테이블
@@ -189,6 +202,7 @@ const dateString = utcDate instanceof Date
 ## 🧪 테스트
 
 ### 마이그레이션 후 테스트
+
 ```bash
 # 1. 빌드 테스트
 npm run build
@@ -204,6 +218,7 @@ npm run check
 ```
 
 ### 수동 테스트 시나리오
+
 1. **입사일 입력**: 다양한 형식으로 입력해보기
 2. **프로젝트 기간**: 시작일/종료일 검증
 3. **시간대 변경**: 브라우저 시간대 변경 후 테스트
@@ -212,12 +227,14 @@ npm run check
 ## 📈 모니터링
 
 ### 로그 확인
+
 ```typescript
 // 날짜 처리 오류는 자동으로 로깅됨
 logger.error('Date processing error:', error, 'for input:', dateValue)
 ```
 
 ### 성능 모니터링
+
 - 마이그레이션 후 쿼리 성능 확인
 - 날짜 인덱스 사용률 모니터링
 - 시간대 변환 오버헤드 측정

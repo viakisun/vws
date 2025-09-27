@@ -80,7 +80,8 @@ export const GET: RequestHandler = async () => {
 // PUT /api/project-management/global-factors - 글로벌 팩터 업데이트
 export const PUT: RequestHandler = async ({ request }) => {
   try {
-    const { factorName, factorValue, description } = (await request.json()) as GlobalFactorUpdateRequest
+    const { factorName, factorValue, description } =
+      (await request.json()) as GlobalFactorUpdateRequest
 
     if (!factorName || factorValue === undefined) {
       const response: ApiResponse<null> = {

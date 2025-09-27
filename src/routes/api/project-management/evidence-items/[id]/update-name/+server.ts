@@ -4,11 +4,10 @@ import { logger } from '$lib/utils/logger'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
 
-
 export const PUT: RequestHandler = async ({ params, request }) => {
   try {
     const evidenceId = params.id
-    const data = await request.json() as Record<string, unknown>
+    const data = (await request.json()) as Record<string, unknown>
     const { newName } = data
 
     if (!evidenceId || !newName) {
@@ -38,7 +37,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
       return json(response, { status: 404 })
     }
 
-    const response: ApiResponse<typeof result.rows[0]> = {
+    const response: ApiResponse<(typeof result.rows)[0]> = {
       success: true,
       message: '증빙 항목 이름이 업데이트되었습니다.',
       data: result.rows[0],

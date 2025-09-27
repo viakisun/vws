@@ -551,7 +551,9 @@
       )
       .slice(0, 3)
       .forEach((emp: Employee) => {
-        const daysSinceHire = Math.floor((new Date().getTime() - new Date(emp.hire_date).getTime()) / (1000 * 60 * 60 * 24))
+        const daysSinceHire = Math.floor(
+          (new Date().getTime() - new Date(emp.hire_date).getTime()) / (1000 * 60 * 60 * 24),
+        )
         const hireDate = formatDateForDisplay(emp.hire_date, 'KOREAN')
         activities.push({
           type: 'hire',
@@ -587,7 +589,9 @@
       )
       .slice(0, 3)
       .forEach((emp: Employee) => {
-        const daysLeft = Math.ceil((new Date(emp.termination_date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
+        const daysLeft = Math.ceil(
+          (new Date(emp.termination_date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24),
+        )
         const isContract = emp.employment_type === 'contract'
         const terminationDate = formatDateForDisplay(emp.termination_date, 'KOREAN')
         activities.push({
@@ -624,7 +628,9 @@
       )
       .slice(0, 3)
       .forEach((emp: Employee) => {
-        const daysSinceTermination = Math.floor((new Date().getTime() - new Date(emp.termination_date).getTime()) / (1000 * 60 * 60 * 24))
+        const daysSinceTermination = Math.floor(
+          (new Date().getTime() - new Date(emp.termination_date).getTime()) / (1000 * 60 * 60 * 24),
+        )
         const terminationDate = formatDateForDisplay(emp.termination_date, 'KOREAN')
         activities.push({
           type: 'termination',
@@ -643,24 +649,27 @@
       })
 
     // 부서별 인원 변화 (최근 입사/퇴사로 인한 변화)
-    const departmentChanges = employees.reduce((acc: Record<string, { hires: Employee[]; terminations: Employee[] }>, emp: Employee) => {
-      if (!acc[emp.department]) {
-        acc[emp.department] = { hires: [], terminations: [] }
-      }
+    const departmentChanges = employees.reduce(
+      (acc: Record<string, { hires: Employee[]; terminations: Employee[] }>, emp: Employee) => {
+        if (!acc[emp.department]) {
+          acc[emp.department] = { hires: [], terminations: [] }
+        }
 
-      if (emp.status === 'active' && emp.hire_date && new Date(emp.hire_date) >= threeMonthsAgo) {
-        acc[emp.department].hires.push(emp)
-      }
-      if (
-        emp.status === 'terminated' &&
-        emp.termination_date &&
-        new Date(emp.termination_date) >= threeMonthsAgoForTermination
-      ) {
-        acc[emp.department].terminations.push(emp)
-      }
+        if (emp.status === 'active' && emp.hire_date && new Date(emp.hire_date) >= threeMonthsAgo) {
+          acc[emp.department].hires.push(emp)
+        }
+        if (
+          emp.status === 'terminated' &&
+          emp.termination_date &&
+          new Date(emp.termination_date) >= threeMonthsAgoForTermination
+        ) {
+          acc[emp.department].terminations.push(emp)
+        }
 
-      return acc
-    }, {})
+        return acc
+      },
+      {},
+    )
 
     // 변화가 있는 부서 정보 추가
     Object.entries(departmentChanges).forEach(
@@ -1279,11 +1288,7 @@
   }
 </script>
 
-<PageLayout
-  title="인사관리"
-  subtitle="직원 정보, 채용, 성과 관리"
-  {stats}
->
+<PageLayout title="인사관리" subtitle="직원 정보, 채용, 성과 관리" {stats}>
   <!-- 탭 시스템 -->
   <ThemeTabs
     {tabs}

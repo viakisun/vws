@@ -35,7 +35,7 @@ export const GET: RequestHandler = async ({ url }) => {
 
 export const POST: RequestHandler = async ({ request }) => {
   try {
-    const projectData = await request.json() as Record<string, unknown>
+    const projectData = (await request.json()) as Record<string, unknown>
 
     const newProject = await DatabaseService.createProject(projectData)
 

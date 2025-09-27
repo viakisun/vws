@@ -54,7 +54,7 @@ export const GET: RequestHandler = async ({ url }) => {
         : null,
     }))
 
-    const response: ApiResponse<unknown[]> = {
+    const response: ApiResponse<DatabaseEmployee[]> = {
       success: true,
       data: employees,
     }
@@ -199,7 +199,8 @@ export const POST: RequestHandler = async ({ request }) => {
     )
 
     // 응답 데이터의 날짜를 서울 시간대로 변환
-    const employee = result.rows[0]
+    const employeeData: DatabaseEmployee[] = result.rows
+    const employee = employeeData[0]
     const formattedEmployee = {
       ...employee,
       hire_date: employee.hire_date ? formatDateForDisplay(employee.hire_date, 'ISO') : null,
@@ -209,7 +210,7 @@ export const POST: RequestHandler = async ({ request }) => {
         : null,
     }
 
-    const response: ApiResponse<unknown> = {
+    const response: ApiResponse<DatabaseEmployee> = {
       success: true,
       data: formattedEmployee,
       message: '직원이 성공적으로 추가되었습니다.',

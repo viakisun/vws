@@ -116,7 +116,8 @@ export const GET: RequestHandler = async ({ url }) => {
     return json(
       {
         success: false,
-        error: error instanceof Error ? error.message : '급여명세서 목록을 가져오는데 실패했습니다.',
+        error:
+          error instanceof Error ? error.message : '급여명세서 목록을 가져오는데 실패했습니다.',
       },
       { status: 500 },
     )
@@ -125,7 +126,7 @@ export const GET: RequestHandler = async ({ url }) => {
 
 export const POST: RequestHandler = async ({ request }) => {
   try {
-    const payslipData = await request.json() as CreatePayslipRequest
+    const payslipData = (await request.json()) as CreatePayslipRequest
 
     const {
       employeeId,
@@ -154,9 +155,9 @@ export const POST: RequestHandler = async ({ request }) => {
 
     // period에서 시작일과 종료일 계산 (예: "2025-09" -> "2025-09-01", "2025-09-30")
     const [year, month] = period.split('-')
-     
+
     const payPeriodStart = `${year}-${month.padStart(2, '0')}-01`
-     
+
     const payPeriodEnd = toUTC(new Date(parseInt(year), parseInt(month), 0)).split('T')[0] // 해당 월의 마지막 날
 
     // 기존 급여명세서가 있는지 확인
@@ -235,9 +236,10 @@ export const POST: RequestHandler = async ({ request }) => {
       )
     }
 
+    const payslipData: PayslipData[] = result.rows
     const response: ApiResponse<PayslipData> = {
       success: true,
-      data: result.rows[0],
+      data: payslipData[0],
     }
 
     return json(response)

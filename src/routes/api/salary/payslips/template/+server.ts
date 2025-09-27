@@ -97,7 +97,9 @@ export const GET: RequestHandler = async ({ url }) => {
 
     // 데이터 행 추가
     employees.forEach((employee) => {
-      const baseSalary = employee.annual_salary ? Math.round(parseFloat(employee.annual_salary) / 12) : 3000000
+      const baseSalary = employee.annual_salary
+        ? Math.round(parseFloat(employee.annual_salary) / 12)
+        : 3000000
       const hireDate = employee.hire_date ? toUTC(new Date(employee.hire_date)).split('T')[0] : ''
 
       const row = [
@@ -120,11 +122,11 @@ export const GET: RequestHandler = async ({ url }) => {
         0, // 갑근세
         0, // 주민세
         0, // 기타
-         
+
         `=SUM(F${worksheet.rowCount}:L${worksheet.rowCount})`, // 지급총액
-         
+
         `=SUM(M${worksheet.rowCount}:S${worksheet.rowCount})`, // 공제총액
-         
+
         `=T${worksheet.rowCount}-U${worksheet.rowCount}`, // 실지급액
       ]
 
@@ -189,7 +191,7 @@ export const GET: RequestHandler = async ({ url }) => {
     const buffer = await workbook.xlsx.writeBuffer()
 
     // 한글 파일명을 URL 인코딩
-     
+
     const fileName = `급여명세서_${year}년${month}월_템플릿.xlsx`
     const encodedFileName = encodeURIComponent(fileName)
 

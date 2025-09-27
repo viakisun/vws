@@ -275,12 +275,18 @@ export const themeCSS = `
 export function useTheme() {
   return {
     subscribe: themeManager.subscribe.bind(themeManager) as typeof themeManager.subscribe,
-    subscribeToCurrent: themeManager.subscribeToCurrent.bind(themeManager) as typeof themeManager.subscribeToCurrent,
-    subscribeToConfig: themeManager.subscribeToConfig.bind(themeManager) as typeof themeManager.subscribeToConfig,
+    subscribeToCurrent: themeManager.subscribeToCurrent.bind(
+      themeManager,
+    ) as typeof themeManager.subscribeToCurrent,
+    subscribeToConfig: themeManager.subscribeToConfig.bind(
+      themeManager,
+    ) as typeof themeManager.subscribeToConfig,
     setTheme: themeManager.setTheme.bind(themeManager) as typeof themeManager.setTheme,
     toggleTheme: themeManager.toggleTheme.bind(themeManager) as typeof themeManager.toggleTheme,
     getTheme: themeManager.getTheme.bind(themeManager) as typeof themeManager.getTheme,
-    getAvailableThemes: themeManager.getAvailableThemes.bind(themeManager) as typeof themeManager.getAvailableThemes,
+    getAvailableThemes: themeManager.getAvailableThemes.bind(
+      themeManager,
+    ) as typeof themeManager.getAvailableThemes,
   }
 }
 

@@ -132,7 +132,7 @@ interface ProjectResponse {
 // 간소화된 프로젝트 생성
 export const POST: RequestHandler = async ({ request }) => {
   try {
-    const data = await request.json() as CreateProjectRequest
+    const data = (await request.json()) as CreateProjectRequest
     const {
       code,
       title,

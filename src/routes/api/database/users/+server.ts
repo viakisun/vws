@@ -33,7 +33,7 @@ export const GET: RequestHandler = async ({ url }) => {
 
 export const POST: RequestHandler = async ({ request }) => {
   try {
-    const userData = await request.json() as Record<string, unknown>
+    const userData = (await request.json()) as Record<string, unknown>
 
     const newUser = await DatabaseService.createUser(userData)
 

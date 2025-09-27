@@ -5,12 +5,12 @@ import { formatEmployeeName } from '$lib/utils/format'
 import { logger } from '$lib/utils/logger'
 import { SchemaValidator } from '$lib/utils/schema-validation'
 import {
-    BudgetConsistencyValidator,
-    EmploymentPeriodValidator,
-    ParticipationRateValidator,
-    PersonnelCostValidator,
-    UsageRateValidator,
-    ValidationUtils,
+  BudgetConsistencyValidator,
+  EmploymentPeriodValidator,
+  ParticipationRateValidator,
+  PersonnelCostValidator,
+  UsageRateValidator,
+  ValidationUtils,
 } from '$lib/utils/validation'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
@@ -117,13 +117,21 @@ export const GET: RequestHandler = async ({ url }) => {
         ])
 
         results.schema = {
-          database: schemaResults.map(result => ({
+          database: schemaResults.map((result) => ({
             isValid: result.isValid,
-            issues: result.issues.map(issue => ({ type: 'database', message: issue, severity: 'error' as const }))
+            issues: result.issues.map((issue) => ({
+              type: 'database',
+              message: issue,
+              severity: 'error' as const,
+            })),
           })),
-          naming: namingResults.map(result => ({
+          naming: namingResults.map((result) => ({
             isValid: result.isValid,
-            issues: result.issues.map(issue => ({ type: 'naming', message: issue, severity: 'error' as const }))
+            issues: result.issues.map((issue) => ({
+              type: 'naming',
+              message: issue,
+              severity: 'error' as const,
+            })),
           })),
           summary: {
             total: schemaResults.length + namingResults.length,
@@ -156,7 +164,11 @@ export const GET: RequestHandler = async ({ url }) => {
             name: 'user_id',
             result: {
               isValid: AICodingValidator.validateColumnName('user_id').isValid,
-              issues: AICodingValidator.validateColumnName('user_id').issues.map(issue => ({ type: 'column', message: issue, severity: 'error' as const }))
+              issues: AICodingValidator.validateColumnName('user_id').issues.map((issue) => ({
+                type: 'column',
+                message: issue,
+                severity: 'error' as const,
+              })),
             },
           },
           {
@@ -164,7 +176,11 @@ export const GET: RequestHandler = async ({ url }) => {
             name: 'userId',
             result: {
               isValid: AICodingValidator.validateColumnName('userId').isValid,
-              issues: AICodingValidator.validateColumnName('userId').issues.map(issue => ({ type: 'column', message: issue, severity: 'error' as const }))
+              issues: AICodingValidator.validateColumnName('userId').issues.map((issue) => ({
+                type: 'column',
+                message: issue,
+                severity: 'error' as const,
+              })),
             },
           },
           {
@@ -172,7 +188,11 @@ export const GET: RequestHandler = async ({ url }) => {
             name: 'projectId',
             result: {
               isValid: AICodingValidator.validateVariableName('projectId').isValid,
-              issues: AICodingValidator.validateVariableName('projectId').issues.map(issue => ({ type: 'variable', message: issue, severity: 'error' as const }))
+              issues: AICodingValidator.validateVariableName('projectId').issues.map((issue) => ({
+                type: 'variable',
+                message: issue,
+                severity: 'error' as const,
+              })),
             },
           },
           {
@@ -180,7 +200,11 @@ export const GET: RequestHandler = async ({ url }) => {
             name: 'project_id',
             result: {
               isValid: AICodingValidator.validateVariableName('project_id').isValid,
-              issues: AICodingValidator.validateVariableName('project_id').issues.map(issue => ({ type: 'variable', message: issue, severity: 'error' as const }))
+              issues: AICodingValidator.validateVariableName('project_id').issues.map((issue) => ({
+                type: 'variable',
+                message: issue,
+                severity: 'error' as const,
+              })),
             },
           },
           {
@@ -188,7 +212,9 @@ export const GET: RequestHandler = async ({ url }) => {
             name: 'validateProject',
             result: {
               isValid: AICodingValidator.validateFunctionName('validateProject').isValid,
-              issues: AICodingValidator.validateFunctionName('validateProject').issues.map(issue => ({ type: 'function', message: issue, severity: 'error' as const }))
+              issues: AICodingValidator.validateFunctionName('validateProject').issues.map(
+                (issue) => ({ type: 'function', message: issue, severity: 'error' as const }),
+              ),
             },
           },
           {
@@ -196,7 +222,9 @@ export const GET: RequestHandler = async ({ url }) => {
             name: 'project_validate',
             result: {
               isValid: AICodingValidator.validateFunctionName('project_validate').isValid,
-              issues: AICodingValidator.validateFunctionName('project_validate').issues.map(issue => ({ type: 'function', message: issue, severity: 'error' as const }))
+              issues: AICodingValidator.validateFunctionName('project_validate').issues.map(
+                (issue) => ({ type: 'function', message: issue, severity: 'error' as const }),
+              ),
             },
           },
           {
@@ -204,7 +232,9 @@ export const GET: RequestHandler = async ({ url }) => {
             name: 'ValidationUtils',
             result: {
               isValid: AICodingValidator.validateClassName('ValidationUtils').isValid,
-              issues: AICodingValidator.validateClassName('ValidationUtils').issues.map(issue => ({ type: 'class', message: issue, severity: 'error' as const }))
+              issues: AICodingValidator.validateClassName('ValidationUtils').issues.map(
+                (issue) => ({ type: 'class', message: issue, severity: 'error' as const }),
+              ),
             },
           },
           {
@@ -212,7 +242,9 @@ export const GET: RequestHandler = async ({ url }) => {
             name: 'validation_utils',
             result: {
               isValid: AICodingValidator.validateClassName('validation_utils').isValid,
-              issues: AICodingValidator.validateClassName('validation_utils').issues.map(issue => ({ type: 'class', message: issue, severity: 'error' as const }))
+              issues: AICodingValidator.validateClassName('validation_utils').issues.map(
+                (issue) => ({ type: 'class', message: issue, severity: 'error' as const }),
+              ),
             },
           },
         ]
@@ -328,7 +360,9 @@ export const GET: RequestHandler = async ({ url }) => {
       return result !== null && 'error' in result
     }
 
-    function hasSummary(result: ValidationResults | null): result is SchemaResults | CodingResults | ProjectResults {
+    function hasSummary(
+      result: ValidationResults | null,
+    ): result is SchemaResults | CodingResults | ProjectResults {
       return result !== null && !isErrorResult(result) && 'summary' in result
     }
 
@@ -342,8 +376,12 @@ export const GET: RequestHandler = async ({ url }) => {
     if (hasSummary(results.schema)) {
       results.summary.issues.push(
         ...[
-          ...results.schema.database.filter((r) => !r.isValid).flatMap((r) => r.issues.map(issue => issue.message)),
-          ...results.schema.naming.filter((r) => !r.isValid).flatMap((r) => r.issues.map(issue => issue.message)),
+          ...results.schema.database
+            .filter((r) => !r.isValid)
+            .flatMap((r) => r.issues.map((issue) => issue.message)),
+          ...results.schema.naming
+            .filter((r) => !r.isValid)
+            .flatMap((r) => r.issues.map((issue) => issue.message)),
         ],
       )
     }
@@ -352,7 +390,7 @@ export const GET: RequestHandler = async ({ url }) => {
       results.summary.issues.push(
         ...results.coding.sampleValidations
           .filter((v) => !v.result.isValid)
-          .flatMap((v) => v.result.issues.map(issue => issue.message)),
+          .flatMap((v) => v.result.issues.map((issue) => issue.message)),
       )
     }
 
@@ -394,7 +432,8 @@ export const GET: RequestHandler = async ({ url }) => {
 
 export const POST: RequestHandler = async ({ request }) => {
   try {
-    const { validationType, name, code, language, tableName, query } = (await request.json()) as ValidationRequest
+    const { validationType, name, code, language, tableName, query } =
+      (await request.json()) as ValidationRequest
 
     logger.log(`🔍 [종합 검증] ${validationType} 검증 시작`)
 
@@ -402,7 +441,7 @@ export const POST: RequestHandler = async ({ request }) => {
 
     // 검증 타입별 처리
     switch (validationType) {
-      case 'column':
+      case 'column': {
         if (!name) {
           const response: ApiResponse<null> = { success: false, error: '컬럼명이 필요합니다.' }
           return json(response, { status: 400 })
@@ -410,10 +449,15 @@ export const POST: RequestHandler = async ({ request }) => {
         const columnResult = AICodingValidator.validateColumnName(name)
         validationResult = {
           isValid: columnResult.isValid,
-          issues: columnResult.issues.map(issue => ({ type: 'column', message: issue, severity: 'error' as const }))
+          issues: columnResult.issues.map((issue) => ({
+            type: 'column',
+            message: issue,
+            severity: 'error' as const,
+          })),
         }
         break
-      case 'variable':
+      }
+      case 'variable': {
         if (!name) {
           const response: ApiResponse<null> = { success: false, error: '변수명이 필요합니다.' }
           return json(response, { status: 400 })
@@ -421,10 +465,15 @@ export const POST: RequestHandler = async ({ request }) => {
         const variableResult = AICodingValidator.validateVariableName(name)
         validationResult = {
           isValid: variableResult.isValid,
-          issues: variableResult.issues.map(issue => ({ type: 'variable', message: issue, severity: 'error' as const }))
+          issues: variableResult.issues.map((issue) => ({
+            type: 'variable',
+            message: issue,
+            severity: 'error' as const,
+          })),
         }
         break
-      case 'function':
+      }
+      case 'function': {
         if (!name) {
           const response: ApiResponse<null> = { success: false, error: '함수명이 필요합니다.' }
           return json(response, { status: 400 })
@@ -432,10 +481,15 @@ export const POST: RequestHandler = async ({ request }) => {
         const functionResult = AICodingValidator.validateFunctionName(name)
         validationResult = {
           isValid: functionResult.isValid,
-          issues: functionResult.issues.map(issue => ({ type: 'function', message: issue, severity: 'error' as const }))
+          issues: functionResult.issues.map((issue) => ({
+            type: 'function',
+            message: issue,
+            severity: 'error' as const,
+          })),
         }
         break
-      case 'class':
+      }
+      case 'class': {
         if (!name) {
           const response: ApiResponse<null> = { success: false, error: '클래스명이 필요합니다.' }
           return json(response, { status: 400 })
@@ -443,10 +497,15 @@ export const POST: RequestHandler = async ({ request }) => {
         const classResult = AICodingValidator.validateClassName(name)
         validationResult = {
           isValid: classResult.isValid,
-          issues: classResult.issues.map(issue => ({ type: 'class', message: issue, severity: 'error' as const }))
+          issues: classResult.issues.map((issue) => ({
+            type: 'class',
+            message: issue,
+            severity: 'error' as const,
+          })),
         }
         break
-      case 'sql':
+      }
+      case 'sql': {
         if (!query) {
           const response: ApiResponse<null> = { success: false, error: 'SQL 쿼리가 필요합니다.' }
           return json(response, { status: 400 })
@@ -454,35 +513,60 @@ export const POST: RequestHandler = async ({ request }) => {
         const sqlResult = AICodingValidator.validateSQLQuery(query)
         validationResult = {
           isValid: sqlResult.isValid,
-          issues: sqlResult.issues.map(issue => ({ type: 'sql', message: issue, severity: 'error' as const }))
+          issues: sqlResult.issues.map((issue) => ({
+            type: 'sql',
+            message: issue,
+            severity: 'error' as const,
+          })),
         }
         break
-      case 'code':
+      }
+      case 'code': {
         if (!code || !language) {
           const response: ApiResponse<null> = { success: false, error: '코드와 언어가 필요합니다.' }
           return json(response, { status: 400 })
         }
-        const codeResult = AICodingValidator.validateCode(code, language as 'typescript' | 'sql' | 'javascript')
+        const codeResult = AICodingValidator.validateCode(
+          code,
+          language as 'typescript' | 'sql' | 'javascript',
+        )
         validationResult = {
           isValid: codeResult.isValid,
-          issues: codeResult.issues.map(issue => ({ type: 'code', message: issue.message, severity: issue.severity }))
+          issues: codeResult.issues.map((issue) => ({
+            type: 'code',
+            message: issue.message,
+            severity: issue.severity,
+          })),
         }
         break
-      case 'query-columns':
+      }
+      case 'query-columns': {
         if (!query || !tableName) {
-          const response: ApiResponse<null> = { success: false, error: '쿼리와 테이블명이 필요합니다.' }
+          const response: ApiResponse<null> = {
+            success: false,
+            error: '쿼리와 테이블명이 필요합니다.',
+          }
           return json(response, { status: 400 })
         }
         const queryResults = SchemaValidator.validateQueryColumns(query, tableName)
-        const allIssues = queryResults.flatMap(result => result.issues)
+        const allIssues = queryResults.flatMap((result) => result.issues)
         validationResult = {
-          isValid: queryResults.every(result => result.isValid),
-          issues: allIssues.map(issue => ({ type: 'query', message: issue, severity: 'error' as const }))
+          isValid: queryResults.every((result) => result.isValid),
+          issues: allIssues.map((issue) => ({
+            type: 'query',
+            message: issue,
+            severity: 'error' as const,
+          })),
         }
         break
-      default:
-        const response: ApiResponse<null> = { success: false, error: '지원하지 않는 검증 타입입니다.' }
+      }
+      default: {
+        const response: ApiResponse<null> = {
+          success: false,
+          error: '지원하지 않는 검증 타입입니다.',
+        }
         return json(response, { status: 400 })
+      }
     }
 
     logger.log(`✅ [종합 검증] 완료 - ${validationResult?.isValid ? '통과' : '실패'}`)

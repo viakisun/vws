@@ -23,19 +23,28 @@ export function escapeHtml(unsafe: string): string {
 export function sanitizeSqlInput(input: string): string {
   // 기본적인 SQL 키워드 제거
   const dangerousKeywords = [
-    'DROP', 'DELETE', 'INSERT', 'UPDATE', 'ALTER', 'CREATE',
-    'EXEC', 'EXECUTE', 'UNION', 'SELECT', 'SCRIPT'
+    'DROP',
+    'DELETE',
+    'INSERT',
+    'UPDATE',
+    'ALTER',
+    'CREATE',
+    'EXEC',
+    'EXECUTE',
+    'UNION',
+    'SELECT',
+    'SCRIPT',
   ]
-  
+
   let sanitized = input
-  dangerousKeywords.forEach(keyword => {
+  dangerousKeywords.forEach((keyword) => {
     const regex = new RegExp(`\\b${keyword}\\b`, 'gi')
     sanitized = sanitized.replace(regex, '')
   })
-  
+
   // 특수 문자 제거
   sanitized = sanitized.replace(/[;'"]/g, '')
-  
+
   return sanitized.trim()
 }
 
@@ -91,14 +100,18 @@ export function validatePasswordStrength(password: string): {
   return {
     isValid: score >= 4,
     score,
-    feedback
+    feedback,
   }
 }
 
 /**
  * 파일 업로드 검증
  */
-export function validateFileUpload(file: File, allowedTypes: string[], maxSize: number): {
+export function validateFileUpload(
+  file: File,
+  allowedTypes: string[],
+  maxSize: number,
+): {
   isValid: boolean
   error?: string
 } {
@@ -106,7 +119,7 @@ export function validateFileUpload(file: File, allowedTypes: string[], maxSize: 
   if (file.size > maxSize) {
     return {
       isValid: false,
-      error: `파일 크기는 ${Math.round(maxSize / 1024 / 1024)}MB를 초과할 수 없습니다.`
+      error: `파일 크기는 ${Math.round(maxSize / 1024 / 1024)}MB를 초과할 수 없습니다.`,
     }
   }
 
@@ -114,7 +127,7 @@ export function validateFileUpload(file: File, allowedTypes: string[], maxSize: 
   if (!allowedTypes.includes(file.type)) {
     return {
       isValid: false,
-      error: `허용되지 않는 파일 형식입니다. 허용된 형식: ${allowedTypes.join(', ')}`
+      error: `허용되지 않는 파일 형식입니다. 허용된 형식: ${allowedTypes.join(', ')}`,
     }
   }
 
@@ -127,7 +140,7 @@ export function validateFileUpload(file: File, allowedTypes: string[], maxSize: 
 export function generateCSRFToken(): string {
   const array = new Uint8Array(32)
   crypto.getRandomValues(array)
-  return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('')
+  return Array.from(array, (byte) => byte.toString(16).padStart(2, '0')).join('')
 }
 
 /**
@@ -151,9 +164,10 @@ export function validateCSRFToken(token: string, sessionToken: string): boolean 
  * IP 주소 검증
  */
 export function isValidIP(ip: string): boolean {
-  const ipv4Regex = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/
+  const ipv4Regex =
+    /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/
   const ipv6Regex = /^(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$/
-  
+
   return ipv4Regex.test(ip) || ipv6Regex.test(ip)
 }
 
@@ -163,9 +177,9 @@ export function isValidIP(ip: string): boolean {
 const requestCounts = new Map<string, { count: number; resetTime: number }>()
 
 export function checkRateLimit(
-  identifier: string, 
-  maxRequests: number = 100, 
-  windowMs: number = 15 * 60 * 1000 // 15분
+  identifier: string,
+  maxRequests: number = 100,
+  windowMs: number = 15 * 60 * 1000, // 15분
 ): { allowed: boolean; remaining: number; resetTime: number } {
   const now = Date.now()
   const key = identifier
@@ -175,12 +189,12 @@ export function checkRateLimit(
     // 새로운 윈도우 시작
     requestCounts.set(key, {
       count: 1,
-      resetTime: now + windowMs
+      resetTime: now + windowMs,
     })
     return {
       allowed: true,
       remaining: maxRequests - 1,
-      resetTime: now + windowMs
+      resetTime: now + windowMs,
     }
   }
 
@@ -188,7 +202,7 @@ export function checkRateLimit(
     return {
       allowed: false,
       remaining: 0,
-      resetTime: current.resetTime
+      resetTime: current.resetTime,
     }
   }
 
@@ -199,7 +213,7 @@ export function checkRateLimit(
   return {
     allowed: true,
     remaining: maxRequests - current.count,
-    resetTime: current.resetTime
+    resetTime: current.resetTime,
   }
 }
 
@@ -210,10 +224,10 @@ export function maskSensitiveData(data: string, visibleChars: number = 4): strin
   if (data.length <= visibleChars) {
     return '*'.repeat(data.length)
   }
-  
+
   const visible = data.slice(-visibleChars)
   const masked = '*'.repeat(data.length - visibleChars)
-  
+
   return masked + visible
 }
 
@@ -223,12 +237,12 @@ export function maskSensitiveData(data: string, visibleChars: number = 4): strin
 export function sanitizeLogData(data: Record<string, unknown>): Record<string, unknown> {
   const sensitiveKeys = ['password', 'token', 'secret', 'key', 'ssn', 'creditCard']
   const sanitized = { ...data }
-  
+
   for (const key of Object.keys(sanitized)) {
-    if (sensitiveKeys.some(sensitive => key.toLowerCase().includes(sensitive))) {
+    if (sensitiveKeys.some((sensitive) => key.toLowerCase().includes(sensitive))) {
       sanitized[key] = '[REDACTED]'
     }
   }
-  
+
   return sanitized
 }

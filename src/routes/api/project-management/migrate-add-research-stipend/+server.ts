@@ -2,6 +2,12 @@ import { query } from '$lib/database/connection'
 import { json } from '@sveltejs/kit'
 import { logger } from '$lib/utils/logger'
 
+interface ColumnInfo {
+  column_name: string
+  data_type: string
+  column_default: string | null
+}
+
 export async function POST() {
   try {
     logger.log('🔄 연구수당 컬럼 추가 마이그레이션 시작...')
@@ -38,12 +44,13 @@ export async function POST() {
 			ORDER BY column_name
 		`)
 
-    logger.log('📋 추가된 컬럼들:', columns.rows)
+    const columnData: ColumnInfo[] = columns.rows
+    logger.log('📋 추가된 컬럼들:', columnData)
 
     return json({
       success: true,
       message: '연구수당 컬럼이 성공적으로 추가되었습니다.',
-      addedColumns: columns.rows.map((row) => ({
+      addedColumns: columnData.map((row) => ({
         name: row.column_name,
         type: row.data_type,
         default: row.column_default,

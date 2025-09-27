@@ -2,6 +2,14 @@ import { query } from '$lib/database/connection'
 import { json } from '@sveltejs/kit'
 import { logger } from '$lib/utils/logger'
 
+interface ColumnInfo {
+  table_name: string
+  column_name: string
+  data_type: string
+  numeric_precision: number | null
+  numeric_scale: number | null
+}
+
 export async function POST() {
   try {
     logger.log('🔄 참여율 컬럼을 DECIMAL로 변경하는 마이그레이션 시작...')
@@ -35,12 +43,13 @@ export async function POST() {
 			ORDER BY table_name
 		`)
 
-    logger.log('📋 변경된 컬럼들:', columns.rows)
+    const columnData: ColumnInfo[] = columns.rows
+    logger.log('📋 변경된 컬럼들:', columnData)
 
     return json({
       success: true,
       message: '참여율 컬럼이 성공적으로 DECIMAL(5,2)로 변경되었습니다.',
-      updatedColumns: columns.rows.map((row) => ({
+      updatedColumns: columnData.map((row) => ({
         table: row.table_name,
         column: row.column_name,
         type: row.data_type,

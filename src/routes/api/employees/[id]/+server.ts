@@ -103,7 +103,7 @@ export const GET: RequestHandler = async ({ params }) => {
 // PUT: 직원 정보 수정
 export const PUT: RequestHandler = async ({ params, request }) => {
   try {
-    const data = await request.json() as UpdateEmployeeRequest
+    const data = (await request.json()) as UpdateEmployeeRequest
 
     // 필수 필드 검증
     const requiredFields = ['first_name', 'last_name', 'email', 'department', 'position', 'salary']
@@ -218,7 +218,13 @@ export const DELETE: RequestHandler = async ({ params, url }) => {
 
     if (archive) {
       // 아카이브 (soft delete) - 상태를 'terminated'로 변경
-      const result = await query<{ id: string; employee_id: string; first_name: string; last_name: string; status: string }>(
+      const result = await query<{
+        id: string
+        employee_id: string
+        first_name: string
+        last_name: string
+        status: string
+      }>(
         `
 				UPDATE employees SET
 					status = 'terminated',
@@ -239,7 +245,13 @@ export const DELETE: RequestHandler = async ({ params, url }) => {
         )
       }
 
-      const response: ApiResponse<{ id: string; employee_id: string; first_name: string; last_name: string; status: string }> = {
+      const response: ApiResponse<{
+        id: string
+        employee_id: string
+        first_name: string
+        last_name: string
+        status: string
+      }> = {
         success: true,
         message: '직원이 퇴사 처리되었습니다.',
         data: result.rows[0],
@@ -250,10 +262,12 @@ export const DELETE: RequestHandler = async ({ params, url }) => {
       // 완전 삭제 전 안전장치 확인
 
       // 1. 직원 존재 확인
-      const existingEmployee = await query<{ id: string; employee_id: string; first_name: string; last_name: string }>(
-        'SELECT id, employee_id, first_name, last_name FROM employees WHERE id = $1',
-        [params.id],
-      )
+      const existingEmployee = await query<{
+        id: string
+        employee_id: string
+        first_name: string
+        last_name: string
+      }>('SELECT id, employee_id, first_name, last_name FROM employees WHERE id = $1', [params.id])
 
       if (existingEmployee.rows.length === 0) {
         return json(
@@ -301,7 +315,12 @@ export const DELETE: RequestHandler = async ({ params, url }) => {
       }
 
       // 4. 안전하게 직원 삭제
-      const result = await query<{ id: string; employee_id: string; first_name: string; last_name: string }>(
+      const result = await query<{
+        id: string
+        employee_id: string
+        first_name: string
+        last_name: string
+      }>(
         `
 				DELETE FROM employees
 				WHERE id = $1
@@ -310,7 +329,12 @@ export const DELETE: RequestHandler = async ({ params, url }) => {
         [params.id],
       )
 
-      const response: ApiResponse<{ id: string; employee_id: string; first_name: string; last_name: string }> = {
+      const response: ApiResponse<{
+        id: string
+        employee_id: string
+        first_name: string
+        last_name: string
+      }> = {
         success: true,
         message: `${formatEmployeeName(employee)}(${employee.employee_id}) 직원이 성공적으로 삭제되었습니다.`,
         data: result.rows[0],

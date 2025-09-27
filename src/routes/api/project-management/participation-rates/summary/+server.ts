@@ -5,6 +5,17 @@ import { json } from '@sveltejs/kit'
 import { query } from '$lib/database/connection'
 import type { RequestHandler } from './$types'
 import { logger } from '$lib/utils/logger'
+import type { ApiResponse } from '$lib/types/database'
+
+interface ParticipationSummary {
+  employee_id: string
+  employee_name: string
+  department?: string
+  position?: string
+  active_projects: number
+  total_participation_rate: number
+  participation_status: 'OVER_LIMIT' | 'FULL' | 'AVAILABLE'
+}
 
 export const GET: RequestHandler = async () => {
   try {
@@ -28,6 +39,7 @@ export const GET: RequestHandler = async () => {
 			GROUP BY e.id, e.first_name, e.last_name, e.department, e.position
 			ORDER BY e.first_name, e.last_name
 		`)
+    const summaryData: ParticipationSummary[] = summaryResult.rows
 
     // 각 직원의 프로젝트별 참여율 상세 정보
     const projectDetailsResult = await query(`
@@ -45,10 +57,11 @@ export const GET: RequestHandler = async () => {
 			WHERE pr.status = 'active'
 			ORDER BY pr.employee_id, pr.participation_rate DESC
 		`)
+    const projectDetailsData = projectDetailsResult.rows
 
     // 프로젝트별 정보를 직원별로 그룹화
     const projectDetailsMap = new Map()
-    projectDetailsResult.rows.forEach((row) => {
+    projectDetailsData.forEach((row) => {
       if (!projectDetailsMap.has(row.employee_id)) {
         projectDetailsMap.set(row.employee_id, [])
       }
@@ -63,7 +76,7 @@ export const GET: RequestHandler = async () => {
     })
 
     // 요약 데이터에 프로젝트 상세 정보 추가
-    const summary = summaryResult.rows.map((row) => ({
+    const summary = summaryData.map((row) => ({
       employeeId: row.employee_id,
       employeeName: row.employee_name,
       department: row.department,
@@ -89,13 +102,17 @@ export const GET: RequestHandler = async () => {
           : 0,
     }
 
-    return json({
+    const response: ApiResponse<{
+      summary: typeof summary
+      stats: typeof stats
+    }> = {
       success: true,
       data: {
         summary,
         stats,
       },
-    })
+    }
+    return json(response)
   } catch (error) {
     logger.error('참여율 요약 조회 실패:', error)
     return json(

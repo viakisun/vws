@@ -35,7 +35,7 @@ export const GET: RequestHandler = async ({ url }) => {
 
 export const POST: RequestHandler = async ({ request }) => {
   try {
-    const employeeData = await request.json() as Record<string, unknown>
+    const employeeData = (await request.json()) as Record<string, unknown>
 
     const newEmployee = await DatabaseService.createEmployee(employeeData)
 

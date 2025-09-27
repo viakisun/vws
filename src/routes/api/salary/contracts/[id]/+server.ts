@@ -187,7 +187,6 @@ export const PUT: RequestHandler = async ({ params, request }) => {
     updateFields.push(`updated_at = CURRENT_TIMESTAMP`)
     queryParams.push(id)
 
-     
     const result = await query<DatabaseSalaryContract>(
       `UPDATE salary_contracts SET ${updateFields.join(', ')} WHERE id = $${paramIndex} RETURNING *`,
       queryParams,
@@ -223,7 +222,11 @@ export const PUT: RequestHandler = async ({ params, request }) => {
         endDate: convertToKST(updatedContract.end_date),
         annualSalary: parseFloat(updatedContract.annual_salary),
         monthlySalary: parseFloat(updatedContract.monthly_salary),
-        contractType: updatedContract.contract_type as 'full_time' | 'part_time' | 'contract' | 'intern',
+        contractType: updatedContract.contract_type as
+          | 'full_time'
+          | 'part_time'
+          | 'contract'
+          | 'intern',
         status: updatedContract.status as 'active' | 'expired' | 'terminated' | 'draft',
         notes: updatedContract.notes || undefined,
         createdAt: updatedContract.created_at,

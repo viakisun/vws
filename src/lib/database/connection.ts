@@ -21,13 +21,13 @@ let pool: Pool | null = null
  */
 export function processDatabaseDate(dateValue: unknown): string {
   if (!dateValue) return ''
-  
+
   try {
     // PostgreSQL TIMESTAMP WITH TIME ZONE는 이미 UTC로 저장됨
     if (dateValue instanceof Date) {
       return formatDateForDisplay(toUTC(dateValue))
     }
-    
+
     if (typeof dateValue === 'string') {
       // ISO 문자열인 경우 그대로 사용
       if (dateValue.includes('T') || dateValue.includes('Z')) {
@@ -36,7 +36,7 @@ export function processDatabaseDate(dateValue: unknown): string {
       // DATE 형식인 경우 시간대 정보 추가
       return formatDateForDisplay(`${dateValue}T00:00:00Z`)
     }
-    
+
     return String(dateValue)
   } catch (error) {
     logger.error('Date processing error:', error, 'for value:', dateValue)
@@ -50,7 +50,7 @@ export function processDatabaseDate(dateValue: unknown): string {
  */
 export function prepareDateForDatabase(dateValue: unknown): string {
   if (!dateValue) return ''
-  
+
   try {
     const utcDate = toUTC(dateValue as DateInputFormat)
     return utcDate || ''
@@ -67,31 +67,42 @@ export function processQueryResultDates(result: QueryResult): QueryResult {
   if (!result.rows || result.rows.length === 0) {
     return result
   }
-  
+
   // 날짜 필드 목록 (TIMESTAMP WITH TIME ZONE 칼럼들)
   const dateFields = [
-    'created_at', 'updated_at', 'last_login',
-    'date', 'hire_date', 'start_date', 'end_date',
-    'period_start', 'period_end', 'last_contact',
-    'next_action_date', 'renewal_date', 'approved_at',
-    'decided_at', 'signed_at', 'generated_at'
+    'created_at',
+    'updated_at',
+    'last_login',
+    'date',
+    'hire_date',
+    'start_date',
+    'end_date',
+    'period_start',
+    'period_end',
+    'last_contact',
+    'next_action_date',
+    'renewal_date',
+    'approved_at',
+    'decided_at',
+    'signed_at',
+    'generated_at',
   ]
-  
-  const processedRows = result.rows.map(row => {
+
+  const processedRows = result.rows.map((row) => {
     const processedRow: Record<string, unknown> = { ...(row as Record<string, unknown>) }
-    
-    dateFields.forEach(field => {
+
+    dateFields.forEach((field) => {
       if (field in processedRow && processedRow[field]) {
         processedRow[field] = processDatabaseDate(processedRow[field])
       }
     })
-    
+
     return processedRow
   })
-  
+
   return {
     ...result,
-    rows: processedRows
+    rows: processedRows,
   }
 }
 
@@ -108,7 +119,7 @@ const getDbConfig = () => {
     },
     // 성능 최적화 설정
     max: 20, // 최대 연결 수
-    min: 5,  // 최소 연결 수
+    min: 5, // 최소 연결 수
     idleTimeoutMillis: 30000, // 30초
     connectionTimeoutMillis: 2000, // 2초
     acquireTimeoutMillis: 60000, // 60초

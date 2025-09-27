@@ -20,4 +20,21 @@ declare global {
   }
 }
 
+// Svelte 5 runes
+declare global {
+  function $props<T = Record<string, any>>(): T
+  function $state<T>(initial: T): T
+  function $derived<T>(fn: () => T): T
+  function $effect(fn: () => void | (() => void)): void
+}
+
+// svelteHTML namespace
+declare global {
+  namespace svelteHTML {
+    interface HTMLAttributes<_T = any> {
+      [key: string]: any
+    }
+  }
+}
+
 export {}

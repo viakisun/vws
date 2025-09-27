@@ -1,5 +1,5 @@
 import { DatabaseService } from '$lib/database/connection'
-import type { ApiResponse } from '$lib/types/database'
+import type { ApiResponse, DatabaseProject } from '$lib/types/database'
 import { logger } from '$lib/utils/logger'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
@@ -17,25 +17,8 @@ interface UpdateProjectRequest {
   [key: string]: unknown
 }
 
-interface Project {
-  id: string
-  code: string
-  title: string
-  description?: string
-  sponsor?: string
-  sponsor_type: string
-  start_date?: string
-  end_date?: string
-  manager_id?: string
-  status: string
-  budget_total?: number
-  research_type?: string
-  technology_area?: string
-  priority: string
-  created_at: string
-  updated_at: string
-  [key: string]: unknown
-}
+// Project 인터페이스는 DatabaseProject를 사용
+type Project = DatabaseProject
 
 interface DeleteResponse {
   message: string
@@ -56,7 +39,7 @@ export const GET: RequestHandler = async ({ params }) => {
 
     const response: ApiResponse<Project> = {
       success: true,
-      data: project as unknown as Project,
+      data: project as Project,
     }
 
     return json(response)
@@ -73,7 +56,7 @@ export const GET: RequestHandler = async ({ params }) => {
 // PUT /api/projects/[id] - Update project
 export const PUT: RequestHandler = async ({ params, request }) => {
   try {
-    const updateData = await request.json() as UpdateProjectRequest
+    const updateData = (await request.json()) as UpdateProjectRequest
     const projectId = params.id
 
     // Check if project exists
@@ -115,9 +98,10 @@ export const PUT: RequestHandler = async ({ params, request }) => {
       ],
     )
 
+    const updatedProject: Project[] = result.rows
     const response: ApiResponse<Project> = {
       success: true,
-      data: result.rows[0] as Project,
+      data: updatedProject[0],
     }
 
     return json(response)
@@ -152,7 +136,8 @@ export const DELETE: RequestHandler = async ({ params }) => {
       [projectId],
     )
 
-    if (parseInt(expenseCount.rows[0].count as string) > 0) {
+    const expenseCountData = expenseCount.rows[0] as { count: string }
+    if (parseInt(expenseCountData.count) > 0) {
       const response: ApiResponse<null> = {
         success: false,
         error: '관련된 경비 항목이 있는 프로젝트는 삭제할 수 없습니다.',

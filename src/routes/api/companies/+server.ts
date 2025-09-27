@@ -64,7 +64,7 @@ export const GET: RequestHandler = async ({ url }) => {
 // POST /api/companies - Create new company
 export const POST: RequestHandler = async ({ request }) => {
   try {
-    const companyData = await request.json() as CreateCompanyRequest
+    const companyData = (await request.json()) as CreateCompanyRequest
 
     // Validate required fields
     if (!companyData.name || !companyData.type) {

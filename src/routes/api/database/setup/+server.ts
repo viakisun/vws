@@ -7,7 +7,7 @@ import type { RequestHandler } from './$types'
 // 데이터베이스 테이블 생성
 export const POST: RequestHandler = async ({ request }) => {
   try {
-    const data = await request.json() as Record<string, unknown>
+    const data = (await request.json()) as Record<string, unknown>
     const { tables } = data as { tables: string[] }
 
     const results: Array<{ table: string; success: boolean; message: string }> = []

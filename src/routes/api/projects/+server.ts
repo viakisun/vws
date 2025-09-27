@@ -84,7 +84,7 @@ export const GET: RequestHandler = async ({ url }) => {
 // POST /api/projects - Create new project
 export const POST: RequestHandler = async ({ request }) => {
   try {
-    const projectData = await request.json() as CreateProjectRequest
+    const projectData = (await request.json()) as CreateProjectRequest
 
     // Validate required fields
     if (!projectData.code || !projectData.title) {

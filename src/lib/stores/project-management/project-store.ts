@@ -2,20 +2,20 @@
 // 프로젝트 관리 시스템의 메인 스토어
 
 import type {
-    BudgetAlert,
-    BudgetSummaryByYear,
-    EmployeeParticipationSummary,
-    ParticipationRate,
-    ParticipationRateAlert,
-    ParticipationRateFilters,
-    ParticipationRateHistory,
-    ParticipationRateStats,
-    Project,
-    ProjectBudget,
-    ProjectFilters,
-    ProjectMember,
-    ProjectStatusStats,
-    ProjectSummary,
+  BudgetAlert,
+  BudgetSummaryByYear,
+  EmployeeParticipationSummary,
+  ParticipationRate,
+  ParticipationRateAlert,
+  ParticipationRateFilters,
+  ParticipationRateHistory,
+  ParticipationRateStats,
+  Project,
+  ProjectBudget,
+  ProjectFilters,
+  ProjectMember,
+  ProjectStatusStats,
+  ProjectSummary,
 } from '$lib/types'
 import { logger } from '$lib/utils/logger'
 import { derived, writable } from 'svelte/store'

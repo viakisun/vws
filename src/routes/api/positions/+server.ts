@@ -81,7 +81,7 @@ export const GET: RequestHandler = async ({ url }) => {
 // 새 직급 생성
 export const POST: RequestHandler = async ({ request }) => {
   try {
-    const data = await request.json() as CreatePositionRequest
+    const data = (await request.json()) as CreatePositionRequest
 
     // 필수 필드 검증
     if (!data.name || data.name.trim() === '') {

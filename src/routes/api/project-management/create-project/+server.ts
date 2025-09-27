@@ -272,7 +272,10 @@ async function createProject(data: ProjectCreationRequest): Promise<string> {
 }
 
 // 연차별 예산 생성 함수
-async function createProjectBudgets(projectId: string, data: ProjectCreationRequest): Promise<string[]> {
+async function createProjectBudgets(
+  projectId: string,
+  data: ProjectCreationRequest,
+): Promise<string[]> {
   logger.log('💰 [생성] 연차별 예산 삽입 시작')
 
   const budgetIds: string[] = []
@@ -355,7 +358,10 @@ async function createProjectBudgets(projectId: string, data: ProjectCreationRequ
 }
 
 // 참여연구원 생성 함수
-async function createProjectMembers(projectId: string, data: ProjectCreationRequest): Promise<string[]> {
+async function createProjectMembers(
+  projectId: string,
+  data: ProjectCreationRequest,
+): Promise<string[]> {
   logger.log('👥 [생성] 참여연구원 삽입 시작')
 
   const memberIds: string[] = []
@@ -402,7 +408,10 @@ async function createProjectMembers(projectId: string, data: ProjectCreationRequ
 }
 
 // 증빙 항목 자동 생성 함수
-async function createEvidenceItems(projectId: string, data: ProjectCreationRequest): Promise<string[]> {
+async function createEvidenceItems(
+  projectId: string,
+  data: ProjectCreationRequest,
+): Promise<string[]> {
   logger.log('📄 [생성] 증빙 항목 자동 생성 시작')
 
   const evidenceIds: string[] = []

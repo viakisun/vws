@@ -21,9 +21,9 @@
     "noUncheckedIndexedAccess": false
   },
   "include": [
-    "src/**/*.d.ts", 
-    "src/**/*.ts", 
-    "src/**/*.js", 
+    "src/**/*.d.ts",
+    "src/**/*.ts",
+    "src/**/*.js",
     "src/**/*.svelte",
     "scripts/**/*.ts",
     "scripts/**/*.js",

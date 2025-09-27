@@ -169,7 +169,6 @@ export const PUT: RequestHandler = async ({ params, request }) => {
 
     Object.entries(fieldsToUpdate).forEach(([key, value]) => {
       if (value !== undefined) {
-         
         updateFields.push(`${key} = $${paramIndex++}`)
         updateValues.push(value)
       }
@@ -188,7 +187,6 @@ export const PUT: RequestHandler = async ({ params, request }) => {
     updateFields.push(`updated_at = CURRENT_TIMESTAMP`)
     updateValues.push(id) // Add id as the last parameter for WHERE clause
 
-     
     const result = await query(
       `UPDATE evidence_items SET ${updateFields.join(', ')} WHERE id = $${paramIndex} RETURNING *`,
       updateValues,

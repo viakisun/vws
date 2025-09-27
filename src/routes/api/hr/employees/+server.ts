@@ -2,7 +2,15 @@
 
 import { query } from '$lib/database/connection'
 import type { ApiResponse } from '$lib/types/database'
-import type { EmergencyContact, Employee, EmployeeLevel, EmployeeStatus, EmploymentType, PaginatedResponse, PersonalInfo } from '$lib/types/hr'
+import type {
+  EmergencyContact,
+  Employee,
+  EmployeeLevel,
+  EmployeeStatus,
+  EmploymentType,
+  PaginatedResponse,
+  PersonalInfo,
+} from '$lib/types/hr'
 import { logger } from '$lib/utils/logger'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
@@ -201,17 +209,21 @@ export const GET: RequestHandler = async ({ url }) => {
         status: row.status as EmployeeStatus,
         managerId: row.manager_id,
         profileImage: row.profile_image,
-        emergencyContact: (row.emergency_contact ? JSON.parse(row.emergency_contact) : {
-          name: '',
-          relationship: '',
-          phone: '',
-        }) as EmergencyContact,
-        personalInfo: (row.personal_info ? JSON.parse(row.personal_info) : {
-          birthDate: '',
-          gender: 'other' as const,
-          nationality: '',
-          maritalStatus: 'single' as const,
-        }) as PersonalInfo,
+        emergencyContact: (row.emergency_contact
+          ? JSON.parse(row.emergency_contact)
+          : {
+              name: '',
+              relationship: '',
+              phone: '',
+            }) as EmergencyContact,
+        personalInfo: (row.personal_info
+          ? JSON.parse(row.personal_info)
+          : {
+              birthDate: '',
+              gender: 'other' as const,
+              nationality: '',
+              maritalStatus: 'single' as const,
+            }) as PersonalInfo,
         terminationDate: row.termination_date,
         createdAt: row.created_at,
         updatedAt: row.updated_at,
@@ -243,7 +255,7 @@ export const GET: RequestHandler = async ({ url }) => {
 // POST: 새 직원 추가
 export const POST: RequestHandler = async ({ request }) => {
   try {
-    const employeeData = await request.json() as CreateEmployeeRequest
+    const employeeData = (await request.json()) as CreateEmployeeRequest
 
     // 필수 필드 검증
     const requiredFields = [
@@ -335,17 +347,21 @@ export const POST: RequestHandler = async ({ request }) => {
       status: result.rows[0].status as EmployeeStatus,
       managerId: result.rows[0].manager_id,
       profileImage: result.rows[0].profile_image,
-      emergencyContact: (result.rows[0].emergency_contact ? JSON.parse(result.rows[0].emergency_contact) : {
-        name: '',
-        relationship: '',
-        phone: '',
-      }) as EmergencyContact,
-      personalInfo: (result.rows[0].personal_info ? JSON.parse(result.rows[0].personal_info) : {
-        birthDate: '',
-        gender: 'other' as const,
-        nationality: '',
-        maritalStatus: 'single' as const,
-      }) as PersonalInfo,
+      emergencyContact: (result.rows[0].emergency_contact
+        ? JSON.parse(result.rows[0].emergency_contact)
+        : {
+            name: '',
+            relationship: '',
+            phone: '',
+          }) as EmergencyContact,
+      personalInfo: (result.rows[0].personal_info
+        ? JSON.parse(result.rows[0].personal_info)
+        : {
+            birthDate: '',
+            gender: 'other' as const,
+            nationality: '',
+            maritalStatus: 'single' as const,
+          }) as PersonalInfo,
       terminationDate: result.rows[0].termination_date,
       createdAt: result.rows[0].created_at,
       updatedAt: result.rows[0].updated_at,

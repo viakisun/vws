@@ -260,8 +260,8 @@ export class ValidationUtils {
       overallValidation: {
         isValid: overallValidation.isValid,
         totalItems: validationResults.length,
-        validItems: validationResults.filter(r => r.isValid).length,
-        invalidItems: validationResults.filter(r => !r.isValid).length,
+        validItems: validationResults.filter((r) => r.isValid).length,
+        invalidItems: validationResults.filter((r) => !r.isValid).length,
       },
       generatedAt: getCurrentUTC(),
     }
@@ -281,7 +281,10 @@ export class ValidationUtils {
   /**
    * 프로젝트 예산 업데이트
    */
-  static async updateProjectBudget(budgetId: string, data: Record<string, unknown>): Promise<boolean> {
+  static async updateProjectBudget(
+    budgetId: string,
+    data: Record<string, unknown>,
+  ): Promise<boolean> {
     try {
       const fields = Object.keys(data)
         .map((key, index) => `${key} = $${index + 2}`)
@@ -317,7 +320,10 @@ export class ValidationUtils {
   /**
    * 프로젝트 멤버 업데이트
    */
-  static async updateProjectMember(memberId: string, data: Record<string, unknown>): Promise<boolean> {
+  static async updateProjectMember(
+    memberId: string,
+    data: Record<string, unknown>,
+  ): Promise<boolean> {
     try {
       const fields = Object.keys(data)
         .map((key, index) => `${key} = $${index + 2}`)
@@ -420,7 +426,10 @@ export class EmploymentPeriodValidator {
   /**
    * 참여연구원 재직 기간 검증
    */
-  static validateMemberEmploymentPeriod(member: ProjectMember, project: { start_date: string; end_date: string }): ValidationResult {
+  static validateMemberEmploymentPeriod(
+    member: ProjectMember,
+    project: { start_date: string; end_date: string },
+  ): ValidationResult {
     const memberStartDate = new Date(member.start_date)
     const _memberEndDate = new Date(member.end_date)
     const hireDate = member.hire_date ? new Date(member.hire_date) : null
@@ -489,7 +498,10 @@ export class EmploymentPeriodValidator {
   /**
    * 증빙 항목 재직 기간 검증
    */
-  static validateEvidenceEmploymentPeriod(evidence: EvidenceItem, employee: { hire_date: string; termination_date?: string }): ValidationResult {
+  static validateEvidenceEmploymentPeriod(
+    evidence: EvidenceItem,
+    employee: { hire_date: string; termination_date?: string },
+  ): ValidationResult {
     if (!employee) {
       return ValidationUtils.createValidationResult(
         false,
@@ -604,7 +616,10 @@ export class BudgetConsistencyValidator {
   /**
    * 예산 일관성 검증
    */
-  static validateBudgetConsistency(project: { total_budget: string | number }, budgets: ProjectBudget[]): ValidationResult {
+  static validateBudgetConsistency(
+    project: { total_budget: string | number },
+    budgets: ProjectBudget[],
+  ): ValidationResult {
     const totalBudgetFromBudgets = budgets.reduce((sum, budget) => {
       return sum + (parseFloat(String(budget.total_budget)) || 0)
     }, 0)
@@ -658,18 +673,22 @@ export class UsageRateValidator {
 
       let categoryBudget = 0
       switch (categoryName) {
-        case '인건비':
+        case '인건비': {
           categoryBudget = parseFloat(String(budget.personnel_cost)) || 0
           break
-        case '재료비':
+        }
+        case '재료비': {
           categoryBudget = parseFloat(String((budget as any).research_material_cost)) || 0
           break
-        case '연구활동비':
+        }
+        case '연구활동비': {
           categoryBudget = parseFloat(String((budget as any).research_activity_cost)) || 0
           break
-        case '간접비':
+        }
+        case '간접비': {
           categoryBudget = parseFloat(String((budget as any).indirect_cost)) || 0
           break
+        }
       }
 
       const categoryUsageRate = categoryBudget > 0 ? (categorySpent / categoryBudget) * 100 : 0

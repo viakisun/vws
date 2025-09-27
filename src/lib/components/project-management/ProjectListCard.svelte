@@ -31,7 +31,7 @@
   } = $props()
 
   // 간소화된 상태 한글 변환
-  function getStatusLabel(status) {
+  function getStatusLabel(status: string) {
     switch (status) {
       case 'active':
         return '진행'
@@ -45,7 +45,7 @@
   }
 
   // 프로젝트 선택
-  function selectProject(project) {
+  function selectProject(project: any) {
     selectedProject = project
     selectedProjectId = project.id
   }
@@ -56,7 +56,7 @@
   }
 
   // 프로젝트 삭제 이벤트 처리
-  function handleProjectDeleted(event) {
+  function handleProjectDeleted(event: any) {
     const { projectId } = event.detail
 
     // 삭제된 프로젝트가 현재 선택된 프로젝트라면 선택 해제
@@ -66,7 +66,7 @@
     }
 
     // 프로젝트 목록에서 삭제된 프로젝트 제거
-    projects = projects.filter((p) => p.id !== projectId)
+    projects = projects.filter((p: any) => p.id !== projectId)
 
     // 상위 컴포넌트에 삭제 이벤트 전달
     dispatch('project-deleted', { projectId })
@@ -92,7 +92,7 @@
           <select
             bind:value={selectedProjectId}
             onchange={(e: Event & { currentTarget: HTMLSelectElement }) => {
-              const project = projects.find((p) => p.id === e.currentTarget.value)
+              const project = projects.find((p: any) => p.id === e.currentTarget.value)
               if (project) selectProject(project)
             }}
             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -120,9 +120,9 @@
           <div class="flex items-center space-x-4 text-sm text-gray-600">
             <span>총 {projects.length}개</span>
             <span>•</span>
-            <span>활성: {projects.filter((p) => p.status === 'active').length}개</span>
+            <span>활성: {projects.filter((p: any) => p.status === 'active').length}개</span>
             <span>•</span>
-            <span>완료: {projects.filter((p) => p.status === 'completed').length}개</span>
+            <span>완료: {projects.filter((p: any) => p.status === 'completed').length}개</span>
           </div>
         {/if}
       </div>

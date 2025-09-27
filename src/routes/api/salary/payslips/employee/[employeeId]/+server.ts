@@ -401,7 +401,8 @@ export const GET: RequestHandler = async ({ params, url }) => {
     return json(
       {
         success: false,
-        error: error instanceof Error ? error.message : '직원 급여명세서를 가져오는데 실패했습니다.',
+        error:
+          error instanceof Error ? error.message : '직원 급여명세서를 가져오는데 실패했습니다.',
       },
       { status: 500 },
     )

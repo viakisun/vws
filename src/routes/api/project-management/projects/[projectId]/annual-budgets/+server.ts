@@ -1,5 +1,5 @@
 import { query } from '$lib/database/connection'
-import type { ApiResponse } from '$lib/types/database'
+import type { ApiResponse, DatabaseProjectBudget } from '$lib/types/database'
 import type { AnnualBudget, AnnualBudgetFormData, BudgetSummary } from '$lib/types/project-budget'
 import { formatDateForDisplay, toUTC } from '$lib/utils/date-handler'
 import { logger } from '$lib/utils/logger'
@@ -26,7 +26,8 @@ export const GET: RequestHandler = async ({ params }) => {
     )
 
     // 데이터 변환 및 처리 (연차별 예산용 칼럼 사용)
-    const budgets: AnnualBudget[] = budgetResult.rows.map((row) => {
+    const budgetData: DatabaseProjectBudget[] = budgetResult.rows
+    const budgets: AnnualBudget[] = budgetData.map((row) => {
       // 연차별 예산용 칼럼에서 직접 가져오기
       const governmentFunding = parseFloat(row.government_funding_amount) || 0
       const companyCash = parseFloat(row.company_cash_amount) || 0
@@ -156,7 +157,8 @@ export const POST: RequestHandler = async ({ params, request }) => {
       [projectId],
     )
 
-    const createdBudgets: AnnualBudget[] = result.rows.map((row) => {
+    const createdBudgetData: DatabaseProjectBudget[] = result.rows
+    const createdBudgets: AnnualBudget[] = createdBudgetData.map((row) => {
       // 연차별 예산용 칼럼에서 직접 가져오기
       const governmentFunding = parseFloat(row.government_funding_amount) || 0
       const companyCash = parseFloat(row.company_cash_amount) || 0
@@ -278,7 +280,9 @@ export const PUT: RequestHandler = async ({ params, request }) => {
       startDate: updatedBudget.start_date
         ? formatDateForDisplay(updatedBudget.start_date, 'ISO')
         : undefined,
-      endDate: updatedBudget.end_date ? formatDateForDisplay(updatedBudget.end_date, 'ISO') : undefined,
+      endDate: updatedBudget.end_date
+        ? formatDateForDisplay(updatedBudget.end_date, 'ISO')
+        : undefined,
       governmentFunding,
       companyCash,
       companyInKind,

@@ -72,6 +72,25 @@ export interface DatabaseProjectMember {
   [key: string]: unknown
 }
 
+export interface DatabaseParticipationRate {
+  id: string
+  employee_id: string
+  project_id: string
+  start_date: string
+  end_date?: string
+  participation_rate: number
+  status: string
+  notes?: string
+  created_at: string
+  updated_at: string
+  // JOIN 결과 필드
+  employee_name?: string
+  department?: string
+  project_name?: string
+  project_code?: string
+  [key: string]: unknown
+}
+
 export interface DatabaseProjectBudget {
   id: string
   project_id: string
@@ -164,7 +183,6 @@ export interface DatabaseJobTitle {
   created_at: string
   updated_at: string
 }
-
 
 export interface DatabasePosition {
   id: string

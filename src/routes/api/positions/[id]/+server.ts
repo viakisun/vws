@@ -67,7 +67,7 @@ export const GET: RequestHandler = async ({ params }) => {
 // 직급 정보 수정
 export const PUT: RequestHandler = async ({ params, request }) => {
   try {
-    const data = await request.json() as UpdatePositionRequest
+    const data = (await request.json()) as UpdatePositionRequest
 
     // 필수 필드 검증
     if (!data.name || data.name.trim() === '') {
@@ -182,9 +182,10 @@ export const DELETE: RequestHandler = async ({ params, url }) => {
       }
 
       // 하드 삭제 실행
-      const result = await query<{ id: string; name: string }>('DELETE FROM positions WHERE id = $1 RETURNING id, name', [
-        params.id,
-      ])
+      const result = await query<{ id: string; name: string }>(
+        'DELETE FROM positions WHERE id = $1 RETURNING id, name',
+        [params.id],
+      )
 
       if (result.rows.length === 0) {
         return json(

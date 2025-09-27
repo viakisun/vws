@@ -231,7 +231,11 @@ export function checkSlaCompliance(entityType: string, entityId: string): void {
 function checkStageSla(
   entityType: string,
   entityId: string,
-  stage: { stage: string; slaDays: number; alerts: Array<{ daysBefore?: number; daysAfter?: number; type: string; message: string }> },
+  stage: {
+    stage: string
+    slaDays: number
+    alerts: Array<{ daysBefore?: number; daysAfter?: number; type: string; message: string }>
+  },
   escalationPath: Array<{ role: string; userId: string }>,
 ): void {
   const entityData = getEntityData(entityType, entityId)
@@ -310,7 +314,10 @@ function calculateDaysElapsed(createdAt: string, slaDays: number): number {
 }
 
 // 알림 발송 조건 체크
-function shouldTriggerAlert(daysElapsed: number, alert: { daysBefore?: number; daysAfter?: number; type: string; message: string }): boolean {
+function shouldTriggerAlert(
+  daysElapsed: number,
+  alert: { daysBefore?: number; daysAfter?: number; type: string; message: string },
+): boolean {
   if (alert.daysBefore !== undefined) {
     return daysElapsed === -alert.daysBefore
   } else if (alert.daysAfter !== undefined) {
@@ -386,7 +393,9 @@ export function escalateSlaAlert(alertId: string, escalatedBy: string, reason: s
       ...alert,
       status: 'escalated' as const,
       severity: 'critical' as const,
-      assignedTo: Array.isArray(alert.assignedTo) ? [...alert.assignedTo, 'EXECUTIVE'] : ['EXECUTIVE'], // 상위 레벨로 에스컬레이션
+      assignedTo: Array.isArray(alert.assignedTo)
+        ? [...alert.assignedTo, 'EXECUTIVE']
+        : ['EXECUTIVE'], // 상위 레벨로 에스컬레이션
     }
 
     const newList = [...alerts]
@@ -506,8 +515,14 @@ export function getSlaDashboardData(): Record<string, unknown> {
     recentAlerts,
     trends: {
       alertsTrend: calculateTrend(Number(dayStats.totalAlerts), Number(weekStats.totalAlerts)),
-      resolutionTrend: calculateTrend(Number(dayStats.resolutionRate), Number(weekStats.resolutionRate)),
-      escalationTrend: calculateTrend(Number(dayStats.escalationRate), Number(weekStats.escalationRate)),
+      resolutionTrend: calculateTrend(
+        Number(dayStats.resolutionRate),
+        Number(weekStats.resolutionRate),
+      ),
+      escalationTrend: calculateTrend(
+        Number(dayStats.escalationRate),
+        Number(weekStats.escalationRate),
+      ),
     },
   }
 }

@@ -1,11 +1,11 @@
 // 급여 관리 시스템 - 급여 스토어
 
 import type {
-    ApiResponse,
-    Payslip,
-    SalaryHistory,
-    SalarySearchFilter,
-    SalaryStructure,
+  ApiResponse,
+  Payslip,
+  SalaryHistory,
+  SalarySearchFilter,
+  SalaryStructure,
 } from '$lib/types/salary'
 import { derived, writable } from 'svelte/store'
 
@@ -212,7 +212,7 @@ export async function loadSalaryStructures(): Promise<void> {
 
   try {
     const response = await fetch('/api/salary/structures')
-    const result = await response.json() as ApiResponse<SalaryStructure[]>
+    const result = (await response.json()) as ApiResponse<SalaryStructure[]>
 
     if (result.success && result.data) {
       salaryStructures.set(result.data)
@@ -233,7 +233,7 @@ export async function loadPayslips(): Promise<void> {
 
   try {
     const response = await fetch('/api/salary/payslips')
-    const result = await response.json() as ApiResponse<Payslip[]>
+    const result = (await response.json()) as ApiResponse<Payslip[]>
 
     if (result.success && result.data) {
       payslips.set(result.data)
@@ -255,7 +255,7 @@ export async function loadSalaryHistory(employeeId?: string): Promise<void> {
   try {
     const url = employeeId ? `/api/salary/history/${employeeId}` : '/api/salary/history'
     const response = await fetch(url)
-    const result = await response.json() as ApiResponse<SalaryHistory[]>
+    const result = (await response.json()) as ApiResponse<SalaryHistory[]>
 
     if (result.success && result.data) {
       salaryHistory.set(result.data)
@@ -285,7 +285,7 @@ export async function addSalaryStructure(
       body: JSON.stringify(structure),
     })
 
-    const result = await response.json() as ApiResponse<SalaryStructure>
+    const result = (await response.json()) as ApiResponse<SalaryStructure>
 
     if (result.success && result.data) {
       salaryStructures.update((current) => [...current, result.data!])
@@ -319,7 +319,7 @@ export async function updateSalaryStructure(
       body: JSON.stringify(updates),
     })
 
-    const result = await response.json() as ApiResponse<SalaryStructure>
+    const result = (await response.json()) as ApiResponse<SalaryStructure>
 
     if (result.success && result.data) {
       salaryStructures.update((current) =>

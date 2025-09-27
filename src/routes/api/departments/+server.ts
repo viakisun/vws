@@ -55,7 +55,7 @@ export const GET: RequestHandler = async ({ url }) => {
 // 새 부서 생성
 export const POST: RequestHandler = async ({ request }) => {
   try {
-    const data = await request.json() as CreateDepartmentRequest
+    const data = (await request.json()) as CreateDepartmentRequest
 
     // 필수 필드 검증
     if (!data.name || data.name.trim() === '') {
@@ -69,9 +69,10 @@ export const POST: RequestHandler = async ({ request }) => {
     }
 
     // 중복 부서명 검증
-    const existingDept = await query<{ id: string }>('SELECT id FROM departments WHERE LOWER(name) = LOWER($1)', [
-      data.name.trim(),
-    ])
+    const existingDept = await query<{ id: string }>(
+      'SELECT id FROM departments WHERE LOWER(name) = LOWER($1)',
+      [data.name.trim()],
+    )
 
     if (existingDept.rows.length > 0) {
       return json(

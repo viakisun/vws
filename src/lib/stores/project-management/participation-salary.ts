@@ -201,7 +201,7 @@ function getSalaryForMonth(personId: string, month: Date, salaries: SalaryHistor
       return bDate - aDate
     })
 
-  return validSalaries.length > 0 ? (validSalaries[0].baseSalary || 0) : 0
+  return validSalaries.length > 0 ? validSalaries[0].baseSalary || 0 : 0
 }
 
 // 특정 월의 근무일 수 계산
@@ -223,7 +223,10 @@ function getDaysInMonth(month: Date): number {
 }
 
 // 프로젝트별 월별 인건비 집계
-export function getProjectMonthlyAllocations(projectId: string, month: string): MonthlyAllocation[] {
+export function getProjectMonthlyAllocations(
+  projectId: string,
+  month: string,
+): MonthlyAllocation[] {
   let allocations: MonthlyAllocation[] = []
 
   monthlySalaryAllocations.subscribe((monthlyData) => {
@@ -263,7 +266,10 @@ export function getProjectTotalPersonnelCost(
 }
 
 // 개인별 월별 참여 현황
-export function getPersonMonthlyParticipation(personId: string, month: string): MonthlyAllocation[] {
+export function getPersonMonthlyParticipation(
+  personId: string,
+  month: string,
+): MonthlyAllocation[] {
   let participations: MonthlyAllocation[] = []
 
   monthlySalaryAllocations.subscribe((monthlyData) => {

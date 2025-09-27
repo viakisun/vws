@@ -14,7 +14,7 @@ export const GET: RequestHandler = async ({ url }) => {
   try {
     // TODO: 스키마 검증 로직 구현 예정
     // 현재는 검증 기능이 개발 중이므로 임시로 비활성화
-    
+
     const validationType = url.searchParams.get('type') || 'all'
 
     logger.warn('Schema validation API is currently disabled.')
@@ -23,7 +23,7 @@ export const GET: RequestHandler = async ({ url }) => {
       message: '스키마 검증 기능은 현재 개발 중입니다.',
       validationType,
       todo: 'SchemaValidator 구현 필요',
-      status: 'development'
+      status: 'development',
     }
 
     const response: ApiResponse<SchemaValidationResponse> = {

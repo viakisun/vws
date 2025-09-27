@@ -44,7 +44,7 @@ export const GET: RequestHandler = async () => {
 // 증빙 카테고리 생성
 export const POST: RequestHandler = async ({ request }) => {
   try {
-    const data = await request.json() as Record<string, unknown>
+    const data = (await request.json()) as Record<string, unknown>
     const { name, description } = data
 
     // 필수 필드 검증
@@ -76,7 +76,7 @@ export const POST: RequestHandler = async ({ request }) => {
       [name, description],
     )
 
-    const response: ApiResponse<typeof result.rows[0]> = {
+    const response: ApiResponse<(typeof result.rows)[0]> = {
       success: true,
       data: result.rows[0],
       message: '증빙 카테고리가 성공적으로 생성되었습니다.',
