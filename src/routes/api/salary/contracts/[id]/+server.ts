@@ -124,7 +124,7 @@ export const GET: RequestHandler = async ({ params }) => {
 export const PUT: RequestHandler = async ({ params, request }) => {
   try {
     const { id } = params
-    const updateData = await request.json() as UpdateSalaryContractRequest
+    const updateData = (await request.json()) as UpdateSalaryContractRequest
 
     // 업데이트할 필드 구성
     const updateFields: string[] = []

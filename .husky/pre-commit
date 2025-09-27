@@ -1,0 +1,14 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+echo "🔧 Running pre-commit checks..."
+
+# 포맷팅 체크 및 자동 수정
+echo "📝 Checking and fixing code formatting..."
+pnpm format
+
+# ESLint 체크 (경고는 허용하되 에러는 방지)
+echo "🔍 Running ESLint check..."
+pnpm lint:ci
+
+echo "✅ Pre-commit checks completed!"

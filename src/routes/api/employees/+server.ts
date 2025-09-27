@@ -75,11 +75,14 @@ export const GET: RequestHandler = async ({ url }) => {
 // POST: 새 직원 추가
 export const POST: RequestHandler = async ({ request }) => {
   try {
-    const data = await request.json() as Partial<DatabaseEmployee>
+    const data = (await request.json()) as Partial<DatabaseEmployee>
 
     // 필수 필드 검증
     const requiredFields = ['first_name', 'last_name', 'email', 'department', 'position', 'salary']
-    const missingFields = requiredFields.filter((field) => !data[field as keyof DatabaseEmployee] || data[field as keyof DatabaseEmployee] === '')
+    const missingFields = requiredFields.filter(
+      (field) =>
+        !data[field as keyof DatabaseEmployee] || data[field as keyof DatabaseEmployee] === '',
+    )
 
     if (missingFields.length > 0) {
       return json(
@@ -232,7 +235,7 @@ export const POST: RequestHandler = async ({ request }) => {
 // PUT: 직원 정보 수정
 export const PUT: RequestHandler = async ({ request }) => {
   try {
-    const data = await request.json() as Partial<DatabaseEmployee>
+    const data = (await request.json()) as Partial<DatabaseEmployee>
 
     // 필수 필드 검증
     if (!data.id) {

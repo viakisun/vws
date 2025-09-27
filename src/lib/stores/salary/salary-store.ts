@@ -354,7 +354,7 @@ export async function generatePayslip(employeeId: string, period: string): Promi
       body: JSON.stringify({ employeeId, period }),
     })
 
-    const result = await response.json() as ApiResponse<Payslip>
+    const result = (await response.json()) as ApiResponse<Payslip>
 
     if (result.success && result.data) {
       payslips.update((current) => [...current, result.data!])
