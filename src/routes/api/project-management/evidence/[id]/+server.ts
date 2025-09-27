@@ -146,8 +146,8 @@ export const PUT: RequestHandler = async ({ params, request }) => {
     }
 
     // 업데이트할 필드들 동적 생성
-    const updateFields = []
-    const updateValues = []
+    const updateFields: string[] = []
+    const updateValues: any[] = []
     let paramIndex = 1
 
     const fieldsToUpdate = {

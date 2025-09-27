@@ -60,8 +60,8 @@ export const GET: RequestHandler = async ({ params }) => {
     const salaryContract: SalaryContract = {
       id: contract.id,
       employeeId: contract.employee_id,
-      startDate: convertToKST(contract.start_date),
-      endDate: convertToKST(contract.end_date),
+      startDate: convertToKST(contract.start_date) || '',
+      endDate: convertToKST(contract.end_date) || undefined,
       annualSalary: parseFloat(contract.annual_salary),
       monthlySalary: parseFloat(contract.monthly_salary),
       contractType: contract.contract_type,

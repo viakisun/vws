@@ -1,9 +1,9 @@
 import { query } from '$lib/database/connection'
 import {
-  calculateParticipationPeriod,
-  formatDateForAPI,
-  isValidDate,
-  isValidDateRange,
+    calculateParticipationPeriod,
+    formatDateForAPI,
+    isValidDate,
+    isValidDateRange,
 } from '$lib/utils/date-calculator'
 import { logger } from '$lib/utils/logger'
 import { calculateMonthlySalary } from '$lib/utils/salary-calculator'
@@ -130,8 +130,8 @@ export const PUT: RequestHandler = async ({ params, request }) => {
     }
 
     // 멤버 수정
-    const updateFields = []
-    const updateValues = []
+    const updateFields: string[] = []
+    const updateValues: any[] = []
     let paramIndex = 1
 
     if (role !== undefined) {

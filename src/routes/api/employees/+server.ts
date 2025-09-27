@@ -1,8 +1,8 @@
 import { query } from '$lib/database/connection.js'
 import { formatDateForDisplay, toUTC } from '$lib/utils/date-handler.js'
+import { logger } from '$lib/utils/logger'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
-import { logger } from '$lib/utils/logger'
 
 // GET: 직원 목록 조회
 export const GET: RequestHandler = async ({ url }) => {
@@ -88,11 +88,21 @@ export const POST: RequestHandler = async ({ request }) => {
       )
     }
 
-    // 생일 처리
-    let birthDate = null
+    // 생일 처리 (UTC로 변환)
+    let birthDate: string | null = null
     if (data.birth_date) {
-      birthDate = new Date(data.birth_date)
-      if (isNaN(birthDate.getTime())) {
+      try {
+        birthDate = toUTC(data.birth_date)
+        if (!birthDate) {
+          return json(
+            {
+              success: false,
+              error: '올바르지 않은 생일 형식입니다.',
+            },
+            { status: 400 },
+          )
+        }
+      } catch (error) {
         return json(
           {
             success: false,
@@ -103,11 +113,21 @@ export const POST: RequestHandler = async ({ request }) => {
       }
     }
 
-    // 퇴사일 처리
-    let terminationDate = null
+    // 퇴사일 처리 (UTC로 변환)
+    let terminationDate: string | null = null
     if (data.termination_date) {
-      terminationDate = new Date(data.termination_date)
-      if (isNaN(terminationDate.getTime())) {
+      try {
+        terminationDate = toUTC(data.termination_date)
+        if (!terminationDate) {
+          return json(
+            {
+              success: false,
+              error: '올바르지 않은 퇴사일 형식입니다.',
+            },
+            { status: 400 },
+          )
+        }
+      } catch (error) {
         return json(
           {
             success: false,
@@ -232,11 +252,21 @@ export const PUT: RequestHandler = async ({ request }) => {
       )
     }
 
-    // 생일 처리
-    let birthDate = null
+    // 생일 처리 (UTC로 변환)
+    let birthDate: string | null = null
     if (data.birth_date) {
-      birthDate = new Date(data.birth_date)
-      if (isNaN(birthDate.getTime())) {
+      try {
+        birthDate = toUTC(data.birth_date)
+        if (!birthDate) {
+          return json(
+            {
+              success: false,
+              error: '올바르지 않은 생일 형식입니다.',
+            },
+            { status: 400 },
+          )
+        }
+      } catch (error) {
         return json(
           {
             success: false,
@@ -247,11 +277,21 @@ export const PUT: RequestHandler = async ({ request }) => {
       }
     }
 
-    // 퇴사일 처리
-    let terminationDate = null
+    // 퇴사일 처리 (UTC로 변환)
+    let terminationDate: string | null = null
     if (data.termination_date) {
-      terminationDate = new Date(data.termination_date)
-      if (isNaN(terminationDate.getTime())) {
+      try {
+        terminationDate = toUTC(data.termination_date)
+        if (!terminationDate) {
+          return json(
+            {
+              success: false,
+              error: '올바르지 않은 퇴사일 형식입니다.',
+            },
+            { status: 400 },
+          )
+        }
+      } catch (error) {
         return json(
           {
             success: false,

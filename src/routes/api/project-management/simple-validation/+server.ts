@@ -109,7 +109,7 @@ async function validatePersonnelCost(client: any, projectId: string) {
     [projectId],
   )
 
-  const issues = []
+  const issues: Array<{ periodNumber: any; budgetPersonnelCost: number; actualPersonnelCost: number; difference: number; periodId: any }> = []
 
   for (const budget of budgetResult.rows) {
     const budgetStartDate = new Date(budget.start_date)

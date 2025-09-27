@@ -34,6 +34,8 @@ export default [
       parserOptions: {
         ecmaVersion: 2022,
         sourceType: 'module',
+        project: './tsconfig.json',
+        tsconfigRootDir: import.meta.dirname,
       },
       globals: {
         // Browser globals
@@ -100,6 +102,22 @@ export default [
         },
       ],
       'unused-imports/no-unused-imports': 'error',
+
+      // === TypeScript Type Checking Rules (IDE-friendly) ===
+      '@typescript-eslint/no-unsafe-assignment': 'warn',
+      '@typescript-eslint/no-unsafe-call': 'warn',
+      '@typescript-eslint/no-unsafe-member-access': 'warn',
+      '@typescript-eslint/no-unsafe-return': 'warn',
+      '@typescript-eslint/no-unsafe-argument': 'warn',
+      '@typescript-eslint/restrict-template-expressions': 'off', // 너무 엄격함
+      '@typescript-eslint/restrict-plus-operands': 'off', // 너무 엄격함
+      '@typescript-eslint/no-floating-promises': 'warn',
+      '@typescript-eslint/await-thenable': 'warn',
+      '@typescript-eslint/no-misused-promises': 'warn',
+      '@typescript-eslint/require-await': 'warn',
+      '@typescript-eslint/no-unnecessary-type-assertion': 'warn',
+      '@typescript-eslint/prefer-nullish-coalescing': 'off', // strictNullChecks 필요
+      '@typescript-eslint/prefer-optional-chain': 'warn',
 
       // === General Rules ===
       'no-console': 'warn',
@@ -121,6 +139,8 @@ export default [
       parserOptions: {
         ecmaVersion: 2022,
         sourceType: 'module',
+        project: './tsconfig.json',
+        tsconfigRootDir: import.meta.dirname,
       },
       globals: {
         // Browser globals
@@ -187,6 +207,22 @@ export default [
         },
       ],
       'unused-imports/no-unused-imports': 'error',
+
+      // === TypeScript Type Checking Rules (IDE-friendly) ===
+      '@typescript-eslint/no-unsafe-assignment': 'warn',
+      '@typescript-eslint/no-unsafe-call': 'warn',
+      '@typescript-eslint/no-unsafe-member-access': 'warn',
+      '@typescript-eslint/no-unsafe-return': 'warn',
+      '@typescript-eslint/no-unsafe-argument': 'warn',
+      '@typescript-eslint/restrict-template-expressions': 'off', // 너무 엄격함
+      '@typescript-eslint/restrict-plus-operands': 'off', // 너무 엄격함
+      '@typescript-eslint/no-floating-promises': 'warn',
+      '@typescript-eslint/await-thenable': 'warn',
+      '@typescript-eslint/no-misused-promises': 'warn',
+      '@typescript-eslint/require-await': 'warn',
+      '@typescript-eslint/no-unnecessary-type-assertion': 'warn',
+      '@typescript-eslint/prefer-nullish-coalescing': 'off', // strictNullChecks 필요
+      '@typescript-eslint/prefer-optional-chain': 'warn',
 
       // === General Rules ===
       'no-console': 'warn',
@@ -318,6 +354,22 @@ export default [
           caughtErrorsIgnorePattern: '^_',
         },
       ],
+
+      // === TypeScript Type Checking Rules (Svelte files don't support type checking) ===
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+      '@typescript-eslint/no-unsafe-call': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/no-unsafe-return': 'off',
+      '@typescript-eslint/no-unsafe-argument': 'off',
+      '@typescript-eslint/restrict-template-expressions': 'off',
+      '@typescript-eslint/restrict-plus-operands': 'off',
+      '@typescript-eslint/no-floating-promises': 'off',
+      '@typescript-eslint/await-thenable': 'off',
+      '@typescript-eslint/no-misused-promises': 'off',
+      '@typescript-eslint/require-await': 'off',
+      '@typescript-eslint/no-unnecessary-type-assertion': 'off',
+      '@typescript-eslint/prefer-nullish-coalescing': 'off',
+      '@typescript-eslint/prefer-optional-chain': 'off',
       'svelte/no-at-debug-tags': 'warn',
       'svelte/no-at-html-tags': 'off',
       'svelte/no-dupe-else-if-blocks': 'warn',
@@ -426,6 +478,14 @@ export default [
       // Reports & logs
       '.reports/**',
       'eslint.*.json',
+      // Generated files
+      'coverage/**',
+      'test-results/**',
+      '.nyc_output/**',
+      // Lock files
+      'package-lock.json',
+      'pnpm-lock.yaml',
+      'yarn.lock',
     ],
   },
 

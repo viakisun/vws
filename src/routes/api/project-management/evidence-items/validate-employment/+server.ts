@@ -80,7 +80,7 @@ export const POST: RequestHandler = async ({ request }) => {
     let isValid = true
     let reason = 'VALID'
     let message = '재직 기간이 유효합니다.'
-    const warnings = []
+    const warnings: string[] = []
 
     // 1. 퇴사한 직원인지 확인
     if (employee.status === 'terminated' || terminationDate) {

@@ -1,9 +1,9 @@
 import { query } from '$lib/database/connection.js'
 import type { AnnualBudget, AnnualBudgetFormData, BudgetSummary } from '$lib/types/project-budget'
 import { formatDateForDisplay, toUTC } from '$lib/utils/date-handler.js'
+import { logger } from '$lib/utils/logger'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
-import { logger } from '$lib/utils/logger'
 
 // GET: 연차별 예산 조회 (project_budgets 테이블 사용)
 export const GET: RequestHandler = async ({ params }) => {
@@ -40,8 +40,8 @@ export const GET: RequestHandler = async ({ params }) => {
         id: row.id,
         projectId: row.project_id,
         year: row.period_number, // period_number만 사용
-        startDate: row.start_date ? formatDateForDisplay(row.start_date, 'ISO') : null,
-        endDate: row.end_date ? formatDateForDisplay(row.end_date, 'ISO') : null,
+        startDate: row.start_date ? formatDateForDisplay(row.start_date, 'ISO') : undefined,
+        endDate: row.end_date ? formatDateForDisplay(row.end_date, 'ISO') : undefined,
         governmentFunding,
         governmentFundingCash: governmentFunding, // 연차별 예산에서는 정부지원금을 현금으로 간주
         governmentFundingInKind: 0, // 연차별 예산에서는 정부지원금을 현물로 구분하지 않음
@@ -170,8 +170,8 @@ export const POST: RequestHandler = async ({ params, request }) => {
         id: row.id,
         projectId: row.project_id,
         year: row.period_number,
-        startDate: row.start_date ? formatDateForDisplay(row.start_date, 'ISO') : null,
-        endDate: row.end_date ? formatDateForDisplay(row.end_date, 'ISO') : null,
+        startDate: row.start_date ? formatDateForDisplay(row.start_date, 'ISO') : undefined,
+        endDate: row.end_date ? formatDateForDisplay(row.end_date, 'ISO') : undefined,
         governmentFunding,
         governmentFundingCash: governmentFunding,
         governmentFundingInKind: 0,
@@ -276,8 +276,8 @@ export const PUT: RequestHandler = async ({ params, request }) => {
       year: updatedBudget.period_number,
       startDate: updatedBudget.start_date
         ? formatDateForDisplay(updatedBudget.start_date, 'ISO')
-        : null,
-      endDate: updatedBudget.end_date ? formatDateForDisplay(updatedBudget.end_date, 'ISO') : null,
+        : undefined,
+      endDate: updatedBudget.end_date ? formatDateForDisplay(updatedBudget.end_date, 'ISO') : undefined,
       governmentFunding,
       companyCash,
       companyInKind,

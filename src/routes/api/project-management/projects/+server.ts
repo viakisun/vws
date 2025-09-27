@@ -3,9 +3,9 @@
 
 import { query } from '$lib/database/connection'
 import { transformArrayData, transformProjectData } from '$lib/utils/api-data-transformer'
+import { logger } from '$lib/utils/logger'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
-import { logger } from '$lib/utils/logger'
 
 // 프로젝트 목록 조회
 export const GET: RequestHandler = async ({ url }) => {
@@ -31,8 +31,8 @@ export const GET: RequestHandler = async ({ url }) => {
 			LEFT JOIN project_members pm ON p.id = pm.project_id AND pm.status = 'active'
 		`
 
-    const conditions = []
-    const params = []
+    const conditions: string[] = []
+    const params: any[] = []
     let paramIndex = 1
 
     if (status && status !== 'all') {

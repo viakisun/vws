@@ -3,12 +3,12 @@
 
 import { query } from '$lib/database/connection'
 import {
-  transformArrayData,
-  transformMilestoneData,
-  transformProjectBudgetData,
-  transformProjectData,
-  transformProjectMemberData,
-  transformRiskData,
+    transformArrayData,
+    transformMilestoneData,
+    transformProjectBudgetData,
+    transformProjectData,
+    transformProjectMemberData,
+    transformRiskData,
 } from '$lib/utils/api-data-transformer'
 import { logger } from '$lib/utils/logger'
 import { json } from '@sveltejs/kit'
@@ -181,8 +181,8 @@ export const PUT: RequestHandler = async ({ params, request }) => {
     }
 
     // 업데이트할 필드들 동적 생성
-    const updateFields = []
-    const updateValues = []
+    const updateFields: string[] = []
+    const updateValues: any[] = []
     let paramIndex = 1
 
     const fieldsToUpdate = {

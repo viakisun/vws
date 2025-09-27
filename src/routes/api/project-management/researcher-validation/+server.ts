@@ -156,7 +156,7 @@ export const POST: RequestHandler = async ({ request }) => {
 
     logger.log(`🔧 [참여연구원 자동 수정] 프로젝트 ${projectId} 수정 시작`)
 
-    const appliedFixes = []
+    const appliedFixes: Array<{ memberId: any; type: any; action: string; success: boolean; error?: string }> = []
 
     // 각 수정사항 적용
     for (const fix of fixes || []) {

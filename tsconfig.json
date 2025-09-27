@@ -9,9 +9,9 @@
     "skipLibCheck": true,
     "sourceMap": true,
     "strict": false,
-    "moduleResolution": "bundler",
+    "moduleResolution": "node",
     "noImplicitAny": false,
-    "strictNullChecks": false,
+    "strictNullChecks": true,
     "noImplicitReturns": false,
     "noUnusedLocals": false,
     "noUnusedParameters": false,
@@ -20,5 +20,16 @@
     "noPropertyAccessFromIndexSignature": false,
     "noUncheckedIndexedAccess": false
   },
-  "include": ["src/**/*.d.ts", "src/**/*.ts", "src/**/*.js", "src/**/*.svelte"]
+  "include": [
+    "src/**/*.d.ts", 
+    "src/**/*.ts", 
+    "src/**/*.js", 
+    "src/**/*.svelte",
+    "scripts/**/*.ts",
+    "scripts/**/*.js",
+    "utils/**/*.ts",
+    "utils/**/*.js",
+    "*.ts",
+    "*.js"
+  ]
 }

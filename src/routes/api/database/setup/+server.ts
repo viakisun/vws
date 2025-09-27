@@ -1,7 +1,7 @@
-import { json } from '@sveltejs/kit'
-import type { RequestHandler } from './$types'
 import { query } from '$lib/database/connection'
 import { logger } from '$lib/utils/logger'
+import { json } from '@sveltejs/kit'
+import type { RequestHandler } from './$types'
 
 // 데이터베이스 테이블 생성
 export const POST: RequestHandler = async ({ request }) => {
@@ -9,7 +9,7 @@ export const POST: RequestHandler = async ({ request }) => {
     const data = await request.json()
     const { tables } = data
 
-    const results = []
+    const results: Array<{ table: string; success: boolean; message: string }> = []
 
     for (const table of tables) {
       try {

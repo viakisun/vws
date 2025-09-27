@@ -149,7 +149,7 @@ export class ParticipationManager {
     const projectsData = get(projects)
 
     // 최근 12개월 분석
-    const months = []
+    const months: string[] = []
     for (let i = 0; i < 12; i++) {
       const date = new Date()
       date.setMonth(date.getMonth() - i)
@@ -367,8 +367,13 @@ export class ParticipationManager {
     recommendations: string[]
   } {
     // 시뮬레이션 로직 구현
-    const monthlyImpact = []
-    const recommendations = []
+    const monthlyImpact: Array<{
+      month: string
+      overloadCount: number
+      underutilizedCount: number
+      totalCost: number
+    }> = []
+    const recommendations: string[] = []
 
     // 최근 6개월 시뮬레이션
     for (let i = 0; i < 6; i++) {

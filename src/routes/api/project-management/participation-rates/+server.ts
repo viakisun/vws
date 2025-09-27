@@ -1,10 +1,10 @@
 // Project Management API - Participation Rates
 // 참여율 관리 API
 
-import { json } from '@sveltejs/kit'
 import { query } from '$lib/database/connection'
-import type { RequestHandler } from './$types'
 import { logger } from '$lib/utils/logger'
+import { json } from '@sveltejs/kit'
+import type { RequestHandler } from './$types'
 
 // 참여율 현황 조회
 export const GET: RequestHandler = async ({ url }) => {
@@ -29,8 +29,8 @@ export const GET: RequestHandler = async ({ url }) => {
 			WHERE 1=1
 		`
 
-    const conditions = []
-    const params = []
+    const conditions: string[] = []
+    const params: any[] = []
     let paramIndex = 1
 
     if (employeeId) {

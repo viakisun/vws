@@ -4,12 +4,12 @@ import { formatEmployeeName } from '$lib/utils/format'
 import { logger } from '$lib/utils/logger'
 import { SchemaValidator } from '$lib/utils/schema-validation'
 import {
-  BudgetConsistencyValidator,
-  EmploymentPeriodValidator,
-  ParticipationRateValidator,
-  PersonnelCostValidator,
-  UsageRateValidator,
-  ValidationUtils,
+    BudgetConsistencyValidator,
+    EmploymentPeriodValidator,
+    ParticipationRateValidator,
+    PersonnelCostValidator,
+    UsageRateValidator,
+    ValidationUtils,
 } from '$lib/utils/validation'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
@@ -142,7 +142,7 @@ export const GET: RequestHandler = async ({ url }) => {
         ])
 
         // 각 검증 실행
-        const validations = []
+        const validations: Array<{ type: string; period?: any; member?: string; validation: any }> = []
 
         // 인건비 검증
         for (const budget of budgets) {

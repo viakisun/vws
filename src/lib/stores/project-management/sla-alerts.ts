@@ -220,9 +220,11 @@ export function checkSlaCompliance(entityType: string, entityId: string): void {
   if (!policy) return
 
   // 각 단계별 SLA 체크
-  policy.stages.forEach((stage: any) => {
-    checkStageSla(entityType, entityId, stage, policy.escalationPath)
-  })
+  if (policy.stages && Array.isArray(policy.stages)) {
+    policy.stages.forEach((stage: any) => {
+      checkStageSla(entityType, entityId, stage, policy.escalationPath || [])
+    })
+  }
 }
 
 // 단계별 SLA 체크
@@ -384,7 +386,7 @@ export function escalateSlaAlert(alertId: string, escalatedBy: string, reason: s
       ...alert,
       status: 'escalated' as const,
       severity: 'critical' as const,
-      assignedTo: [...alert.assignedTo, 'EXECUTIVE'], // 상위 레벨로 에스컬레이션
+      assignedTo: Array.isArray(alert.assignedTo) ? [...alert.assignedTo, 'EXECUTIVE'] : ['EXECUTIVE'], // 상위 레벨로 에스컬레이션
     }
 
     const newList = [...alerts]
@@ -407,7 +409,10 @@ export function getSlaStatistics(period: 'day' | 'week' | 'month'): any {
   const now = new Date()
   const periodStart = getPeriodStart(now, period)
 
-  const periodAlerts = allAlerts.filter((alert) => new Date(alert.createdAt) >= periodStart)
+  const periodAlerts = allAlerts.filter((alert) => {
+    const createdAt = alert.createdAt ? new Date(alert.createdAt) : new Date(0)
+    return createdAt >= periodStart
+  })
 
   const totalAlerts = periodAlerts.length
   const activeAlerts = periodAlerts.filter((a) => a.status === 'active').length
@@ -469,8 +474,8 @@ function calculateAverageResolutionTime(alerts: SLAAlert[]): number {
   if (resolvedAlerts.length === 0) return 0
 
   const totalTime = resolvedAlerts.reduce((sum, alert) => {
-    const created = new Date(alert.createdAt).getTime()
-    const resolved = new Date(alert.resolvedAt!).getTime()
+    const created = alert.createdAt ? new Date(alert.createdAt).getTime() : 0
+    const resolved = alert.resolvedAt ? new Date(alert.resolvedAt).getTime() : 0
     return sum + (resolved - created)
   }, 0)
 
@@ -486,7 +491,11 @@ export function getSlaDashboardData(): any {
   let recentAlerts: SLAAlert[] = []
   slaAlerts.subscribe((alerts) => {
     recentAlerts = alerts
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .sort((a, b) => {
+        const aDate = a.createdAt ? new Date(a.createdAt).getTime() : 0
+        const bDate = b.createdAt ? new Date(b.createdAt).getTime() : 0
+        return bDate - aDate
+      })
       .slice(0, 10)
   })()
 
@@ -548,7 +557,10 @@ export function exportSlaAlerts(format: 'json' | 'csv' | 'excel', period?: strin
   slaAlerts.subscribe((alerts) => {
     if (period) {
       const periodStart = getPeriodStart(new Date(), period)
-      allAlerts = alerts.filter((alert) => new Date(alert.createdAt) >= periodStart)
+      allAlerts = alerts.filter((alert) => {
+        const createdAt = alert.createdAt ? new Date(alert.createdAt) : new Date(0)
+        return createdAt >= periodStart
+      })
     } else {
       allAlerts = alerts
     }

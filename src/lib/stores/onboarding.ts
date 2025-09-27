@@ -249,12 +249,17 @@ export function createOnboardingProcess(
     })()
   }
 
-  const checklistItems: OnboardingChecklistItem[] =
-    template?.checklistItems?.map((item: any) => ({
-      ...item,
-      id: `item-${Date.now()}-${Math.random()}`,
-      status: 'pending' as const,
-    })) || []
+  const checklistItems: OnboardingChecklistItem[] = []
+  if (template && typeof template === 'object' && 'checklistItems' in template) {
+    const items = (template as any).checklistItems
+    if (Array.isArray(items)) {
+      checklistItems.push(...items.map((item: any) => ({
+        ...item,
+        id: `item-${Date.now()}-${Math.random()}`,
+        status: 'pending' as const,
+      })))
+    }
+  }
 
   const newProcess: OnboardingProcess = {
     id: `onboarding-${Date.now()}`,

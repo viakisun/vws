@@ -7,100 +7,151 @@
 -- BACKUP AND SAFETY CHECKS
 -- =============================================
 
--- Create backup tables for critical data
-CREATE TABLE IF NOT EXISTS backup_transactions AS SELECT * FROM transactions;
-CREATE TABLE IF NOT EXISTS backup_employees AS SELECT * FROM employees;
-CREATE TABLE IF NOT EXISTS backup_leave_requests AS SELECT * FROM leave_requests;
-CREATE TABLE IF NOT EXISTS backup_projects AS SELECT * FROM projects;
-CREATE TABLE IF NOT EXISTS backup_reports AS SELECT * FROM reports;
-CREATE TABLE IF NOT EXISTS backup_leads AS SELECT * FROM leads;
-CREATE TABLE IF NOT EXISTS backup_sales_activities AS SELECT * FROM sales_activities;
-CREATE TABLE IF NOT EXISTS backup_customer_interactions AS SELECT * FROM customer_interactions;
-CREATE TABLE IF NOT EXISTS backup_contracts AS SELECT * FROM contracts;
+-- Create backup tables for critical data (only if tables exist)
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'transactions') THEN
+        CREATE TABLE IF NOT EXISTS backup_transactions AS SELECT * FROM transactions;
+    END IF;
+    
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'employees') THEN
+        CREATE TABLE IF NOT EXISTS backup_employees AS SELECT * FROM employees;
+    END IF;
+    
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'leave_requests') THEN
+        CREATE TABLE IF NOT EXISTS backup_leave_requests AS SELECT * FROM leave_requests;
+    END IF;
+    
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'projects') THEN
+        CREATE TABLE IF NOT EXISTS backup_projects AS SELECT * FROM projects;
+    END IF;
+    
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'reports') THEN
+        CREATE TABLE IF NOT EXISTS backup_reports AS SELECT * FROM reports;
+    END IF;
+    
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'leads') THEN
+        CREATE TABLE IF NOT EXISTS backup_leads AS SELECT * FROM leads;
+    END IF;
+    
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'sales_activities') THEN
+        CREATE TABLE IF NOT EXISTS backup_sales_activities AS SELECT * FROM sales_activities;
+    END IF;
+    
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'customer_interactions') THEN
+        CREATE TABLE IF NOT EXISTS backup_customer_interactions AS SELECT * FROM customer_interactions;
+    END IF;
+    
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'contracts') THEN
+        CREATE TABLE IF NOT EXISTS backup_contracts AS SELECT * FROM contracts;
+    END IF;
+END $$;
 
 -- =============================================
 -- CONVERT DATE COLUMNS TO TIMESTAMP WITH TIME ZONE
 -- =============================================
 
 -- 1. transactions.date
-ALTER TABLE transactions 
-ALTER COLUMN date TYPE TIMESTAMP WITH TIME ZONE 
-USING date::TIMESTAMP WITH TIME ZONE;
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'transactions' AND column_name = 'date' AND data_type = 'date') THEN
+        ALTER TABLE transactions ALTER COLUMN date TYPE TIMESTAMP WITH TIME ZONE USING date::TIMESTAMP WITH TIME ZONE;
+    END IF;
+END $$;
 
 -- 2. employees.hire_date
-ALTER TABLE employees 
-ALTER COLUMN hire_date TYPE TIMESTAMP WITH TIME ZONE 
-USING hire_date::TIMESTAMP WITH TIME ZONE;
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'employees' AND column_name = 'hire_date' AND data_type = 'date') THEN
+        ALTER TABLE employees ALTER COLUMN hire_date TYPE TIMESTAMP WITH TIME ZONE USING hire_date::TIMESTAMP WITH TIME ZONE;
+    END IF;
+END $$;
 
 -- 3. leave_requests.start_date
-ALTER TABLE leave_requests 
-ALTER COLUMN start_date TYPE TIMESTAMP WITH TIME ZONE 
-USING start_date::TIMESTAMP WITH TIME ZONE;
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'leave_requests' AND column_name = 'start_date' AND data_type = 'date') THEN
+        ALTER TABLE leave_requests ALTER COLUMN start_date TYPE TIMESTAMP WITH TIME ZONE USING start_date::TIMESTAMP WITH TIME ZONE;
+    END IF;
+END $$;
 
 -- 4. leave_requests.end_date
-ALTER TABLE leave_requests 
-ALTER COLUMN end_date TYPE TIMESTAMP WITH TIME ZONE 
-USING end_date::TIMESTAMP WITH TIME ZONE;
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'leave_requests' AND column_name = 'end_date' AND data_type = 'date') THEN
+        ALTER TABLE leave_requests ALTER COLUMN end_date TYPE TIMESTAMP WITH TIME ZONE USING end_date::TIMESTAMP WITH TIME ZONE;
+    END IF;
+END $$;
 
 -- 5. projects.start_date
-ALTER TABLE projects 
-ALTER COLUMN start_date TYPE TIMESTAMP WITH TIME ZONE 
-USING start_date::TIMESTAMP WITH TIME ZONE;
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'projects' AND column_name = 'start_date' AND data_type = 'date') THEN
+        ALTER TABLE projects ALTER COLUMN start_date TYPE TIMESTAMP WITH TIME ZONE USING start_date::TIMESTAMP WITH TIME ZONE;
+    END IF;
+END $$;
 
 -- 6. projects.end_date
-ALTER TABLE projects 
-ALTER COLUMN end_date TYPE TIMESTAMP WITH TIME ZONE 
-USING end_date::TIMESTAMP WITH TIME ZONE;
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'projects' AND column_name = 'end_date' AND data_type = 'date') THEN
+        ALTER TABLE projects ALTER COLUMN end_date TYPE TIMESTAMP WITH TIME ZONE USING end_date::TIMESTAMP WITH TIME ZONE;
+    END IF;
+END $$;
 
--- 7. reports.period_start
-ALTER TABLE reports 
-ALTER COLUMN period_start TYPE TIMESTAMP WITH TIME ZONE 
-USING period_start::TIMESTAMP WITH TIME ZONE;
-
--- 8. reports.period_end
-ALTER TABLE reports 
-ALTER COLUMN period_end TYPE TIMESTAMP WITH TIME ZONE 
-USING period_end::TIMESTAMP WITH TIME ZONE;
-
--- 9. leads.last_contact
-ALTER TABLE leads 
-ALTER COLUMN last_contact TYPE TIMESTAMP WITH TIME ZONE 
-USING last_contact::TIMESTAMP WITH TIME ZONE;
-
--- 10. sales_activities.date
-ALTER TABLE sales_activities 
-ALTER COLUMN date TYPE TIMESTAMP WITH TIME ZONE 
-USING date::TIMESTAMP WITH TIME ZONE;
-
--- 11. sales_activities.next_action_date
-ALTER TABLE sales_activities 
-ALTER COLUMN next_action_date TYPE TIMESTAMP WITH TIME ZONE 
-USING next_action_date::TIMESTAMP WITH TIME ZONE;
-
--- 12. customer_interactions.date
-ALTER TABLE customer_interactions 
-ALTER COLUMN date TYPE TIMESTAMP WITH TIME ZONE 
-USING date::TIMESTAMP WITH TIME ZONE;
-
--- 13. customer_interactions.next_action_date
-ALTER TABLE customer_interactions 
-ALTER COLUMN next_action_date TYPE TIMESTAMP WITH TIME ZONE 
-USING next_action_date::TIMESTAMP WITH TIME ZONE;
-
--- 14. contracts.start_date
-ALTER TABLE contracts 
-ALTER COLUMN start_date TYPE TIMESTAMP WITH TIME ZONE 
-USING start_date::TIMESTAMP WITH TIME ZONE;
-
--- 15. contracts.end_date
-ALTER TABLE contracts 
-ALTER COLUMN end_date TYPE TIMESTAMP WITH TIME ZONE 
-USING end_date::TIMESTAMP WITH TIME ZONE;
-
--- 16. contracts.renewal_date
-ALTER TABLE contracts 
-ALTER COLUMN renewal_date TYPE TIMESTAMP WITH TIME ZONE 
-USING renewal_date::TIMESTAMP WITH TIME ZONE;
+-- 7-16. Other tables (with existence checks)
+DO $$
+BEGIN
+    -- reports.period_start
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'reports' AND column_name = 'period_start' AND data_type = 'date') THEN
+        ALTER TABLE reports ALTER COLUMN period_start TYPE TIMESTAMP WITH TIME ZONE USING period_start::TIMESTAMP WITH TIME ZONE;
+    END IF;
+    
+    -- reports.period_end
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'reports' AND column_name = 'period_end' AND data_type = 'date') THEN
+        ALTER TABLE reports ALTER COLUMN period_end TYPE TIMESTAMP WITH TIME ZONE USING period_end::TIMESTAMP WITH TIME ZONE;
+    END IF;
+    
+    -- leads.last_contact
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'leads' AND column_name = 'last_contact' AND data_type = 'date') THEN
+        ALTER TABLE leads ALTER COLUMN last_contact TYPE TIMESTAMP WITH TIME ZONE USING last_contact::TIMESTAMP WITH TIME ZONE;
+    END IF;
+    
+    -- sales_activities.date
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'sales_activities' AND column_name = 'date' AND data_type = 'date') THEN
+        ALTER TABLE sales_activities ALTER COLUMN date TYPE TIMESTAMP WITH TIME ZONE USING date::TIMESTAMP WITH TIME ZONE;
+    END IF;
+    
+    -- sales_activities.next_action_date
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'sales_activities' AND column_name = 'next_action_date' AND data_type = 'date') THEN
+        ALTER TABLE sales_activities ALTER COLUMN next_action_date TYPE TIMESTAMP WITH TIME ZONE USING next_action_date::TIMESTAMP WITH TIME ZONE;
+    END IF;
+    
+    -- customer_interactions.date
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'customer_interactions' AND column_name = 'date' AND data_type = 'date') THEN
+        ALTER TABLE customer_interactions ALTER COLUMN date TYPE TIMESTAMP WITH TIME ZONE USING date::TIMESTAMP WITH TIME ZONE;
+    END IF;
+    
+    -- customer_interactions.next_action_date
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'customer_interactions' AND column_name = 'next_action_date' AND data_type = 'date') THEN
+        ALTER TABLE customer_interactions ALTER COLUMN next_action_date TYPE TIMESTAMP WITH TIME ZONE USING next_action_date::TIMESTAMP WITH TIME ZONE;
+    END IF;
+    
+    -- contracts.start_date
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'contracts' AND column_name = 'start_date' AND data_type = 'date') THEN
+        ALTER TABLE contracts ALTER COLUMN start_date TYPE TIMESTAMP WITH TIME ZONE USING start_date::TIMESTAMP WITH TIME ZONE;
+    END IF;
+    
+    -- contracts.end_date
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'contracts' AND column_name = 'end_date' AND data_type = 'date') THEN
+        ALTER TABLE contracts ALTER COLUMN end_date TYPE TIMESTAMP WITH TIME ZONE USING end_date::TIMESTAMP WITH TIME ZONE;
+    END IF;
+    
+    -- contracts.renewal_date
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'contracts' AND column_name = 'renewal_date' AND data_type = 'date') THEN
+        ALTER TABLE contracts ALTER COLUMN renewal_date TYPE TIMESTAMP WITH TIME ZONE USING renewal_date::TIMESTAMP WITH TIME ZONE;
+    END IF;
+END $$;
 
 -- =============================================
 -- UPDATE INDEXES

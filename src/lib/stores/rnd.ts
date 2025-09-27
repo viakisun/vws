@@ -130,7 +130,7 @@ export const quarterlyPersonnelBudgets = writable<Record<string, Record<string, 
   (function () {
     const map: Record<string, Record<string, number>> = {}
     for (const p of initialProjects) {
-      const total = Math.floor(p.budgetKRW * 0.6)
+      const total = Math.floor((p.budgetKRW || 0) * 0.6)
       const per = Math.floor(total / QUARTERS.length)
       map[p.id] = {} as Record<string, number>
       for (const q of QUARTERS) {
@@ -156,7 +156,9 @@ export const overallBudget = derived(projectsStore, (arr) => {
 export const budgetAlerts = derived(projectsStore, (arr) => {
   return arr
     .map((p) => {
-      const util = p.budgetKRW > 0 ? p.spentKRW / p.budgetKRW : 0
+      const budgetKRW = p.budgetKRW || 0
+      const spentKRW = p.spentKRW || 0
+      const util = budgetKRW > 0 ? spentKRW / budgetKRW : 0
       let level: 'warning' | 'critical' | 'over' | null = null
       if (util >= budgetThresholds.over) level = 'over'
       else if (util >= budgetThresholds.critical) level = 'critical'

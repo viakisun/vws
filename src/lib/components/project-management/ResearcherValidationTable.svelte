@@ -5,13 +5,13 @@
   import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
   import ThemeCard from '$lib/components/ui/ThemeCard.svelte'
   import {
-    AlertTriangleIcon,
-    CheckCircleIcon,
-    RefreshCwIcon,
-    SettingsIcon,
-    UserIcon,
-    WrenchIcon,
-    XCircleIcon,
+      AlertTriangleIcon,
+      CheckCircleIcon,
+      RefreshCwIcon,
+      SettingsIcon,
+      UserIcon,
+      WrenchIcon,
+      XCircleIcon,
   } from '@lucide/svelte'
   import { onMount } from 'svelte'
 
@@ -19,17 +19,12 @@
   let {
     projectId,
     members = [],
-    onMemberUpdate,
+    onMemberUpdate = () => {},
   }: {
     projectId: string
     members?: any[]
     onMemberUpdate?: (_memberId: string, _updates: any) => void
   } = $props()
-
-  // Default function for onMemberUpdate
-  if (!onMemberUpdate) {
-    onMemberUpdate = () => {}
-  }
 
   // State
   let validationState = $state({

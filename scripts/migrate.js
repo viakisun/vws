@@ -11,10 +11,14 @@
  *   node scripts/migrate.js
  */
 
-const { readFileSync } = require('fs')
-const { join } = require('path')
-const { Pool } = require('pg')
-const { config } = require('dotenv')
+import { config } from 'dotenv'
+import { readFileSync, readdirSync } from 'fs'
+import { dirname, join } from 'path'
+import { Pool } from 'pg'
+import { fileURLToPath } from 'url'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
 
 // 환경 변수 로드
 config()
@@ -57,7 +61,18 @@ async function runMigration() {
     
     // 마이그레이션 파일 읽기
     log('📖 마이그레이션 파일을 읽는 중...', 'blue')
-    const migrationSQL = readFileSync(MIGRATION_FILE, 'utf8')
+    const migrationsDir = join(__dirname, '../src/lib/database/migrations')
+    const migrationFiles = readdirSync(migrationsDir)
+      .filter((file) => file.endsWith('.sql'))
+      .sort()
+    
+    if (migrationFiles.length === 0) {
+      throw new Error('마이그레이션 파일을 찾을 수 없습니다.')
+    }
+    
+    // 가장 최신 마이그레이션 파일 실행 (002-simple-date-to-timestamp.sql)
+    const latestMigration = migrationFiles.find(file => file.includes('002-simple-date-to-timestamp')) || migrationFiles[0]
+    const migrationSQL = readFileSync(join(migrationsDir, latestMigration), 'utf8')
     
     if (!migrationSQL.trim()) {
       throw new Error('마이그레이션 파일이 비어있습니다.')
@@ -168,17 +183,15 @@ async function runMigration() {
 }
 
 // 스크립트 실행
-if (require.main === module) {
-  runMigration()
-    .then(() => {
-      log('🏁 마이그레이션 프로세스가 완료되었습니다.', 'green')
-      process.exit(0)
-    })
-    .catch((error) => {
-      log(`💥 치명적 오류: ${error.message}`, 'red')
-      console.error(error)
-      process.exit(1)
-    })
-}
+runMigration()
+  .then(() => {
+    log('🏁 마이그레이션 프로세스가 완료되었습니다.', 'green')
+    process.exit(0)
+  })
+  .catch((error) => {
+    log(`💥 치명적 오류: ${error.message}`, 'red')
+    console.error(error)
+    process.exit(1)
+  })
 
-module.exports = { runMigration }
+export { runMigration }

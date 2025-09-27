@@ -139,8 +139,8 @@ export function recalculateMonthlyAllocations(): void {
             if (!project || !person) return
 
             // 배정 기간의 각 월에 대해 계산
-            const startDate = new Date(assignment.dateFrom)
-            const endDate = new Date(assignment.dateTo)
+            const startDate = assignment.dateFrom ? new Date(assignment.dateFrom) : new Date()
+            const endDate = assignment.dateTo ? new Date(assignment.dateTo) : new Date()
 
             const currentDate = new Date(startDate.getFullYear(), startDate.getMonth(), 1)
             const endMonth = new Date(endDate.getFullYear(), endDate.getMonth(), 1)
@@ -161,16 +161,16 @@ export function recalculateMonthlyAllocations(): void {
               const workingRatio = workingDays / totalDays
 
               // 인건비 계산
-              const monthlyAllocation = {
+              const monthlyAllocation: MonthlyAllocation = {
                 projectId: project.id,
                 projectCode: project.code,
                 projectTitle: project.title,
                 personId: person.id,
                 personName: person.name,
-                participationRate: assignment.ratePct,
+                participationRate: assignment.ratePct || 0,
                 baseSalary: monthlySalary,
                 workingRatio,
-                allocatedAmount: monthlySalary * (assignment.ratePct / 100) * workingRatio,
+                allocatedAmount: monthlySalary * ((assignment.ratePct || 0) / 100) * workingRatio,
                 currency: 'KRW',
                 month: monthKey,
               }
@@ -194,10 +194,14 @@ function getSalaryForMonth(personId: string, month: Date, salaries: SalaryHistor
   // 해당 월에 유효한 급여 정보 찾기
   const validSalaries = salaries
     .filter((s) => s.personId === personId)
-    .filter((s) => new Date(s.effectiveFrom) <= month)
-    .sort((a, b) => new Date(b.effectiveFrom).getTime() - new Date(a.effectiveFrom).getTime())
+    .filter((s) => s.effectiveFrom && new Date(s.effectiveFrom) <= month)
+    .sort((a, b) => {
+      const aDate = a.effectiveFrom ? new Date(a.effectiveFrom).getTime() : 0
+      const bDate = b.effectiveFrom ? new Date(b.effectiveFrom).getTime() : 0
+      return bDate - aDate
+    })
 
-  return validSalaries.length > 0 ? validSalaries[0].baseSalary : 0
+  return validSalaries.length > 0 ? (validSalaries[0].baseSalary || 0) : 0
 }
 
 // 특정 월의 근무일 수 계산
@@ -301,7 +305,11 @@ export function getSalaryHistory(personId: string): SalaryHistory[] {
   salaryHistory.subscribe((salaries) => {
     history = salaries
       .filter((s) => s.personId === personId)
-      .sort((a, b) => new Date(b.effectiveFrom).getTime() - new Date(a.effectiveFrom).getTime())
+      .sort((a, b) => {
+        const aDate = a.effectiveFrom ? new Date(a.effectiveFrom).getTime() : 0
+        const bDate = b.effectiveFrom ? new Date(b.effectiveFrom).getTime() : 0
+        return bDate - aDate
+      })
   })()
 
   return history
@@ -320,7 +328,11 @@ export function getParticipationHistory(personId: string): ParticipationAssignme
   participationAssignments.subscribe((assignments) => {
     history = assignments
       .filter((a) => a.personId === personId)
-      .sort((a, b) => new Date(b.dateFrom).getTime() - new Date(a.dateFrom).getTime())
+      .sort((a, b) => {
+        const aDate = a.dateFrom ? new Date(a.dateFrom).getTime() : 0
+        const bDate = b.dateFrom ? new Date(b.dateFrom).getTime() : 0
+        return bDate - aDate
+      })
   })()
 
   return history
@@ -333,7 +345,11 @@ export function getProjectParticipants(projectId: string): ParticipationAssignme
   participationAssignments.subscribe((assignments) => {
     participants = assignments
       .filter((a) => a.projectId === projectId)
-      .sort((a, b) => new Date(a.dateFrom).getTime() - new Date(b.dateFrom).getTime())
+      .sort((a, b) => {
+        const aDate = a.dateFrom ? new Date(a.dateFrom).getTime() : 0
+        const bDate = b.dateFrom ? new Date(b.dateFrom).getTime() : 0
+        return aDate - bDate
+      })
   })()
 
   return participants
@@ -346,7 +362,7 @@ export function generateMonthlyAllocationReport(month: string): string {
   monthlySalaryAllocations.subscribe((monthlyData) => {
     const monthData = monthlyData[month] || []
     monthData.forEach((allocation) => {
-      report += `${allocation.projectCode},${allocation.projectTitle},${allocation.personName},${allocation.participationRate}%,${allocation.baseSalary.toLocaleString()},${(allocation.workingRatio * 100).toFixed(1)}%,${allocation.allocatedAmount.toLocaleString()},${allocation.currency}\n`
+      report += `${allocation.projectCode || ''},${allocation.projectTitle || ''},${allocation.personName || ''},${allocation.participationRate}%,${(allocation.baseSalary || 0).toLocaleString()},${((allocation.workingRatio || 0) * 100).toFixed(1)}%,${allocation.allocatedAmount.toLocaleString()},${allocation.currency || 'KRW'}\n`
     })
   })()
 
@@ -363,7 +379,7 @@ export function applySalaryChange(
   // 기존 급여 정보의 종료일 설정
   salaryHistory.update((history) => {
     return history.map((salary) => {
-      if (salary.personId === personId && !salary.updatedAt.includes('ended')) {
+      if (salary.personId === personId && salary.updatedAt && !salary.updatedAt.includes('ended')) {
         return {
           ...salary,
           updatedAt: new Date().toISOString() + ' (ended)',
@@ -404,8 +420,8 @@ export function applyLeaveAdjustment(
     return assignments.map((assignment) => {
       if (assignment.personId === personId && assignment.projectId === projectId) {
         // 휴가 기간과 겹치는 부분이 있는지 확인
-        const assignmentStart = new Date(assignment.dateFrom)
-        const assignmentEnd = new Date(assignment.dateTo)
+        const assignmentStart = assignment.dateFrom ? new Date(assignment.dateFrom) : new Date()
+        const assignmentEnd = assignment.dateTo ? new Date(assignment.dateTo) : new Date()
         const leaveStartDate = new Date(leaveStart)
         const leaveEndDate = new Date(leaveEnd)
 
