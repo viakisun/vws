@@ -10,7 +10,7 @@ interface SchemaValidationResponse {
   status: string
 }
 
-export const GET: RequestHandler = async ({ url }) => {
+export const GET: RequestHandler = ({ url }) => {
   try {
     // TODO: 스키마 검증 로직 구현 예정
     // 현재는 검증 기능이 개발 중이므로 임시로 비활성화

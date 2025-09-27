@@ -106,7 +106,7 @@ export function utcToDateString(utcDate: Date, timezone: Timezone = DEFAULT_TIME
  * @returns UTC 시간
  */
 export function dateStringToUtc(dateString: string, timezone: Timezone = DEFAULT_TIMEZONE): Date {
-  if (!dateString || !dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
+  if (!dateString?.match(/^\d{4}-\d{2}-\d{2}$/)) {
     throw new Error('Invalid date string format. Expected YYYY-MM-DD')
   }
 

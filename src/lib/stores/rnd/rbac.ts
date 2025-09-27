@@ -136,7 +136,7 @@ export function hasPermission(permission: Permission, userRoles: UserRole[]): bo
 export function canPerformAction(entity: string, action: string, userRoles: UserRole[]): boolean {
   return userRoles.some((role) => {
     const entityPermissions = ENTITY_PERMISSIONS[entity]
-    if (!entityPermissions || !entityPermissions[role]) {
+    if (!entityPermissions?.[role]) {
       return false
     }
     return entityPermissions[role].includes(action)

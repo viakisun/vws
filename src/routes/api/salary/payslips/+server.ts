@@ -236,10 +236,10 @@ export const POST: RequestHandler = async ({ request }) => {
       )
     }
 
-    const payslipData: PayslipData[] = result.rows
+    const payslipResults: PayslipData[] = result.rows
     const response: ApiResponse<PayslipData> = {
       success: true,
-      data: payslipData[0],
+      data: payslipResults[0],
     }
 
     return json(response)

@@ -2,6 +2,7 @@ import { DatabaseService } from '$lib/database/connection'
 import type { ApiResponse, DatabaseEmployee } from '$lib/types/database'
 import { config } from '$lib/utils/config'
 import { toUTC } from '$lib/utils/date-handler'
+import { formatEmployeeName } from '$lib/utils/hr'
 import { logger } from '$lib/utils/logger'
 import { json } from '@sveltejs/kit'
 import bcrypt from 'bcryptjs'
@@ -165,7 +166,7 @@ export const POST: RequestHandler = async ({ request }) => {
       email: user.email,
       name:
         user.first_name && user.last_name
-          ? `${user.first_name} ${user.last_name}`
+          ? formatEmployeeName(user.first_name, user.last_name)
           : user.email.split('@')[0],
       role: user.role,
       department: user.department,

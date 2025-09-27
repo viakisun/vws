@@ -3,7 +3,7 @@ import { logger } from '$lib/utils/logger'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
 
-export const POST: RequestHandler = async ({ request: _request }) => {
+export const POST: RequestHandler = ({ request: _request }) => {
   // TODO: 급여명세서 엑셀 업로드 기능 구현 필요
   // 현재 ExcelJS 타입 오류로 인해 임시 비활성화
   logger.warn('Payslip Excel upload functionality is currently disabled.')

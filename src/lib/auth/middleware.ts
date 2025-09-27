@@ -24,7 +24,7 @@ export function authenticate(requiredRoles?: string[]): RequestHandler {
       let token: string | null = null
 
       const authHeader = request.headers.get('authorization')
-      if (authHeader && authHeader.startsWith('Bearer ')) {
+      if (authHeader?.startsWith('Bearer ')) {
         token = authHeader.substring(7)
       } else {
         token = cookies.get('auth_token') || null
@@ -43,7 +43,7 @@ export function authenticate(requiredRoles?: string[]): RequestHandler {
 
       // Get user from database
       const user = await DatabaseService.getUserById(payload.userId)
-      if (!user || !user.is_active) {
+      if (!user?.is_active) {
         if (url.pathname.startsWith('/api/')) {
           return error(401, { message: 'Invalid or inactive user' })
         } else {

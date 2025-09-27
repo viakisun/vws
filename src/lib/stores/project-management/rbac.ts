@@ -56,23 +56,23 @@ export const currentUser = writable<Person | null>(null)
 
 // 권한 체크 함수들
 export function hasRole(user: Person | null, role: Role): boolean {
-  if (!user || !user.roleSet) return false
+  if (!user?.roleSet) return false
   return user.roleSet.includes(role)
 }
 
 export function hasPermission(user: Person | null, permission: Permission): boolean {
-  if (!user || !user.roleSet) return false
+  if (!user?.roleSet) return false
   const allowedRoles = PERMISSIONS[permission]
   return user.roleSet.some((role) => allowedRoles.includes(role as Role))
 }
 
 export function hasAnyRole(user: Person | null, roles: Role[]): boolean {
-  if (!user || !user.roleSet) return false
+  if (!user?.roleSet) return false
   return roles.some((role) => user.roleSet!.includes(role))
 }
 
 export function hasAllRoles(user: Person | null, roles: Role[]): boolean {
-  if (!user || !user.roleSet) return false
+  if (!user?.roleSet) return false
   return roles.every((role) => user.roleSet!.includes(role))
 }
 
@@ -228,12 +228,12 @@ export function canManageResearchNote(user: Person | null, _noteId: string): boo
 
 // 사용자 역할 정보 가져오기
 export function getUserRoles(user: Person | null): string[] {
-  if (!user || !user.roleSet) return []
+  if (!user?.roleSet) return []
   return user.roleSet.map((role) => ROLES[role as Role])
 }
 
 export function getUserRoleNames(user: Person | null): string[] {
-  if (!user || !user.roleSet) return []
+  if (!user?.roleSet) return []
   return user.roleSet.map((role) => ROLES[role as Role])
 }
 

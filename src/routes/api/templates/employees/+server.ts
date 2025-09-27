@@ -1,7 +1,7 @@
 import { logger } from '$lib/utils/logger'
 import { json } from '@sveltejs/kit'
 
-export async function GET() {
+export function GET() {
   try {
     // CSV 템플릿 데이터
     const csvContent = `성,이름,미들네임,이메일,전화번호,부서,직급,급여,입사일,상태,고용형태
