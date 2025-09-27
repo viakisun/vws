@@ -66,12 +66,14 @@
     "@vitest/ui": "^3.2.4",
     "autoprefixer": "^10.4.21",
     "eslint": "^9.35.0",
+    "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-jsx-a11y": "^6.10.2",
     "eslint-plugin-svelte": "^3.12.3",
     "eslint-plugin-unused-imports": "^4.2.0",
     "husky": "^9.1.7",
     "jsdom": "^26.1.0",
+    "lint-staged": "^16.2.1",
     "postcss": "^8.5.6",
     "prettier": "^3.6.2",
     "prettier-plugin-svelte": "^3.4.0",
@@ -95,5 +97,14 @@
     "jspdf": "^3.0.2",
     "mermaid": "^11.11.0",
     "pg": "^8.16.3"
+  },
+  "lint-staged": {
+    "*.{js,ts,jsx,tsx,svelte}": [
+      "prettier --write",
+      "eslint --max-warnings 800"
+    ],
+    "*.{json,md,yml,yaml}": [
+      "prettier --write"
+    ]
   }
 }

@@ -4,11 +4,15 @@ import tsParser from '@typescript-eslint/parser'
 import sveltePlugin from 'eslint-plugin-svelte'
 import unusedImports from 'eslint-plugin-unused-imports'
 import svelteParser from 'svelte-eslint-parser'
+import prettierConfig from 'eslint-config-prettier'
 
 /** @type {import('eslint').Linter.Config[]} */
 export default [
   // Base configuration
   js.configs.recommended,
+
+  // Prettier 충돌 방지 설정 (마지막에 추가해야 함)
+  prettierConfig,
 
   // Global overrides for no-undef handling
   {
@@ -16,6 +20,14 @@ export default [
     rules: {
       // TypeScript handles undefined names; avoid false positives in TS/Svelte
       'no-undef': 'off',
+
+      // Prettier 충돌 방지 - Prettier가 처리하는 포맷팅 규칙들 비활성화
+      'prettier/prettier': 'error',
+      indent: 'off',
+      quotes: 'off',
+      semi: 'off',
+      'comma-dangle': 'off',
+      'max-len': 'off',
     },
   },
   {
