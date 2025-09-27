@@ -43,8 +43,10 @@
     "typecheck": "svelte-kit sync && svelte-check --fail-on-warnings false"
   },
   "engines": {
-    "node": ">=18.13"
+    "node": ">=18.13",
+    "pnpm": ">=10.17.0"
   },
+  "packageManager": "pnpm@10.17.1",
   "devDependencies": {
     "@fontsource/fira-mono": "^5.0.0",
     "@neoconfetti/svelte": "^2.0.0",
