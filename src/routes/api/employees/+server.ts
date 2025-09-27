@@ -60,8 +60,8 @@ export const GET: RequestHandler = async ({ url }) => {
     }
 
     return json(response)
-  } catch (error) {
-    logger.error('Error fetching employees:', error)
+  } catch (_error) {
+    logger.error('Error fetching employees:', _error)
     return json(
       {
         success: false,
@@ -105,7 +105,7 @@ export const POST: RequestHandler = async ({ request }) => {
             { status: 400 },
           )
         }
-      } catch (error) {
+      } catch (_error) {
         return json(
           {
             success: false,
@@ -130,7 +130,7 @@ export const POST: RequestHandler = async ({ request }) => {
             { status: 400 },
           )
         }
-      } catch (error) {
+      } catch (_error) {
         return json(
           {
             success: false,
@@ -216,8 +216,8 @@ export const POST: RequestHandler = async ({ request }) => {
     }
 
     return json(response)
-  } catch (error) {
-    logger.error('Error adding employee:', error)
+  } catch (_error) {
+    logger.error('Error adding employee:', _error)
     return json(
       {
         success: false,
@@ -271,7 +271,7 @@ export const PUT: RequestHandler = async ({ request }) => {
             { status: 400 },
           )
         }
-      } catch (error) {
+      } catch (_error) {
         return json(
           {
             success: false,
@@ -296,7 +296,7 @@ export const PUT: RequestHandler = async ({ request }) => {
             { status: 400 },
           )
         }
-      } catch (error) {
+      } catch (_error) {
         return json(
           {
             success: false,
@@ -394,8 +394,8 @@ export const PUT: RequestHandler = async ({ request }) => {
     }
 
     return json(response)
-  } catch (error) {
-    logger.error('Error updating employee:', error)
+  } catch (_error) {
+    logger.error('Error updating employee:', _error)
     return json(
       {
         success: false,

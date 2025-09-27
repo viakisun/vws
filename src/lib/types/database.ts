@@ -118,6 +118,8 @@ export interface DatabaseDepartment {
   description?: string
   status: string
   max_employees?: number
+  manager_id?: string
+  is_active: boolean
   created_at: string
   updated_at: string
   [key: string]: unknown
@@ -163,15 +165,6 @@ export interface DatabaseJobTitle {
   updated_at: string
 }
 
-export interface DatabaseDepartment {
-  id: string
-  name: string
-  description?: string
-  manager_id?: string
-  is_active: boolean
-  created_at: string
-  updated_at: string
-}
 
 export interface DatabasePosition {
   id: string
