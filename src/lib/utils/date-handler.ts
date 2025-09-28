@@ -142,10 +142,43 @@ export function formatDateForDisplay(
   if (!utcDate) return ''
 
   try {
-    const date = new Date(utcDate)
+    // 날짜 형식 정규화
+    let normalizedDate = utcDate.toString().trim()
+    
+    // YYYY. MM. DD. 형식을 YYYY-MM-DD로 변환 (공백 제거 포함)
+    if (normalizedDate.includes('.')) {
+      normalizedDate = normalizedDate
+        .replace(/\s+/g, '') // 모든 공백 제거
+        .replace(/\./g, '-') // 점을 하이픈으로 변환
+        .replace(/-$/, '') // 끝의 하이픈 제거
+    }
+    
+    // 이미 ISO 형식인지 확인
+    const date = new Date(normalizedDate)
     if (isNaN(date.getTime())) {
-      logger.warn('Invalid UTC date for display:', utcDate)
-      return ''
+      // 다른 형식 시도
+      const altDate = new Date(utcDate.toString())
+      if (isNaN(altDate.getTime())) {
+        logger.warn('Invalid UTC date for display:', utcDate)
+        return ''
+      }
+      // altDate 사용
+      const year = altDate.getFullYear()
+      const month = String(altDate.getMonth() + 1).padStart(2, '0')
+      const day = String(altDate.getDate()).padStart(2, '0')
+      
+      switch (format) {
+        case 'FULL':
+          return `${year}. ${month}. ${day}.`
+        case 'SHORT':
+          return `${month}/${day}`
+        case 'ISO':
+          return `${year}-${month}-${day}`
+        case 'KOREAN':
+          return `${year}년 ${month}월 ${day}일`
+        default:
+          return `${year}. ${month}. ${day}.`
+      }
     }
 
     // 서울 시간대로 변환

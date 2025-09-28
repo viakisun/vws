@@ -1,9 +1,10 @@
 <script lang="ts">
+  import { browser } from '$app/environment'
+  import { goto } from '$app/navigation'
+  import { page } from '$app/state'
   import type { Department, Employee, Executive, JobTitle, Position } from '$lib/types'
   import { logger } from '$lib/utils/logger'
-  import { browser } from '$app/environment'
-  import { page } from '$app/stores'
-  import { goto } from '$app/navigation'
+  import { onMount } from 'svelte'
 
   import PageLayout from '$lib/components/layout/PageLayout.svelte'
   import DeleteConfirmModal from '$lib/components/ui/DeleteConfirmModal.svelte'
@@ -19,38 +20,36 @@
   import ThemeTabs from '$lib/components/ui/ThemeTabs.svelte'
   import { formatDate, formatEmployeeName } from '$lib/utils/format'
   import {
-    AlertCircleIcon,
-    BarChart3Icon,
-    BriefcaseIcon,
-    BuildingIcon,
-    CalendarIcon,
-    CheckCircleIcon,
-    CrownIcon,
-    DollarSignIcon,
-    DownloadIcon,
-    EditIcon,
-    EyeIcon,
-    FileSpreadsheetIcon,
-    FileTextIcon,
-    FlaskConicalIcon,
-    MailIcon,
-    PhoneIcon,
-    PlusIcon,
-    TagIcon,
-    TrashIcon,
-    UserCheckIcon,
-    UserPlusIcon,
-    UsersIcon,
+      AlertCircleIcon,
+      BarChart3Icon,
+      BriefcaseIcon,
+      BuildingIcon,
+      CalendarIcon,
+      CheckCircleIcon,
+      CrownIcon,
+      DollarSignIcon,
+      DownloadIcon,
+      EditIcon,
+      EyeIcon,
+      FileSpreadsheetIcon,
+      FileTextIcon,
+      FlaskConicalIcon,
+      MailIcon,
+      PhoneIcon,
+      PlusIcon,
+      TagIcon,
+      TrashIcon,
+      UserCheckIcon,
+      UserPlusIcon,
+      UsersIcon,
   } from '@lucide/svelte'
-
-  // HR 스토어들
+// HR 스토어들
+  import { hrDashboardStore } from '$lib/stores/hr/hr-dashboard-store.svelte'
   import { jobPostings } from '$lib/stores/recruitment'
   import { contracts, loadContracts } from '$lib/stores/salary/contract-store'
-  import { hrDashboardStore } from '$lib/stores/hr/hr-dashboard-store.svelte'
-
-  // HR 대시보드 컴포넌트들
-  import HRStatsCards from '$lib/components/hr/dashboard/HRStatsCards.svelte'
+// HR 대시보드 컴포넌트들
   import HROverviewTab from '$lib/components/hr/dashboard/HROverviewTab.svelte'
+  import HRStatsCards from '$lib/components/hr/dashboard/HRStatsCards.svelte'
 
   // 데이터베이스 직원 데이터 - 스토어에서 가져옴
   let employees = $derived(hrDashboardStore.employees)
@@ -94,7 +93,7 @@
     return employeeId || `V${(index + 1).toString().padStart(5, '0')}`
   }
 
-  // 스토어에서 데이터 가져오기
+  // 스토어에서 데이터 가져오기 (직접 참조)
   let departments = $derived(hrDashboardStore.departments)
   let positions = $derived(hrDashboardStore.positions)
   let executives = $derived(hrDashboardStore.executives)
@@ -102,13 +101,23 @@
   let executiveLoading = $derived(hrDashboardStore.executiveLoading)
   let _jobTitleLoading = $derived(hrDashboardStore._jobTitleLoading)
 
-  // 생성일 순으로 정렬된 부서 목록
-  let sortedDepartments = $derived(() => {
-    return [...departments].sort(
+  // 생성일 순으로 정렬된 부서 목록 (간단한 함수로 처리)
+  function getSortedDepartments() {
+    console.log('getSortedDepartments: departments length:', departments.length)
+    console.log('getSortedDepartments: departments:', departments)
+    
+    if (departments.length === 0) {
+      console.log('getSortedDepartments: no departments, returning empty array')
+      return []
+    }
+    
+    const sorted = [...departments].sort(
       (a: Department, b: Department) =>
         new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
     )
-  })
+    console.log('getSortedDepartments: sorted result:', sorted)
+    return sorted
+  }
 
   // 직급을 카테고리별로 분류
   function getPositionsByCategory() {
@@ -184,14 +193,14 @@
   let activeTab = $state<TabId>('overview')
 
   // URL ↔ 탭 동기화
-  $effect(() => {
+  function syncTabFromURL() {
     // 페이지가 마운트된 후에만 URL 파라미터 처리
     if (typeof window !== 'undefined') {
-      const q = $page?.url?.searchParams?.get('tab')
+      const q = page.url.searchParams.get('tab')
       const next = q && TAB_IDS.has(q as TabId) ? (q as TabId) : 'overview'
       if (next !== activeTab) activeTab = next
     }
-  })
+  }
 
   // 업로드 관련 상태
   let showUploadModal = $state(false)
@@ -422,15 +431,13 @@
   const fetchJobTitles = () => hrDashboardStore.fetchJobTitles()
 
   // 컴포넌트 마운트 시 데이터 로드
-  $effect(() => {
+  function initializeData() {
     hrDashboardStore.initialize()
     loadContracts() // 급여 계약 데이터 로드
-  })
+  }
 
   // 탭 변경 시 해당 탭의 데이터 로드
-  $effect(() => {
-    // activeTab 변경을 감지하여 데이터 로드
-    const currentTab = activeTab
+  function loadTabData(currentTab: TabId) {
     logger.log('HR Tab changed to:', currentTab)
 
     switch (currentTab) {
@@ -455,12 +462,18 @@
         hrDashboardStore.fetchJobTitles()
         break
     }
-  })
+  }
 
   // 탭 변경 핸들러 (URL 동기화)
   function handleTabChange(tabId: string) {
+    console.log('HR handleTabChange called with:', tabId)
     const id = TAB_IDS.has(tabId as TabId) ? (tabId as TabId) : 'overview'
-    if (activeTab !== id) activeTab = id
+    console.log('HR handleTabChange - resolved id:', id, 'current activeTab:', activeTab)
+    
+    // activeTab 업데이트
+    activeTab = id
+    console.log('HR handleTabChange - calling loadTabData with:', id)
+    loadTabData(id) // 탭 변경 시 데이터 로드
     if (browser) {
       const u = new URL(window.location.href)
       u.searchParams.set('tab', id)
@@ -469,7 +482,7 @@
   }
 
   // HR 탭 변경 이벤트 리스너
-  $effect(() => {
+  function setupHRTabListener() {
     if (browser) {
       const handleHRTabChange = (event: CustomEvent) => {
         handleTabChange(event.detail)
@@ -481,7 +494,7 @@
         window.removeEventListener('hr-tab-change', handleHRTabChange)
       }
     }
-  })
+  }
 
   // 파일 업로드 처리
   function handleFileSelect(event: Event) {
@@ -695,11 +708,16 @@
   }
 
   // 검색/필터 변경 시 첫 페이지로 이동
-  $effect(() => {
-    searchQuery
-    departmentFilter
-    statusFilter
+  function resetPageOnFilterChange() {
     currentPage = 1
+  }
+
+  // 컴포넌트 마운트 시 초기화
+  onMount(() => {
+    initializeData()
+    syncTabFromURL()
+    setupHRTabListener()
+    loadTabData(activeTab)
   })
 
   // 직원 추가 모달 열기
@@ -1015,6 +1033,7 @@
                     <input
                       type="text"
                       bind:value={searchQuery}
+                      oninput={resetPageOnFilterChange}
                       placeholder="이름, 이메일, 부서로 검색..."
                       class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                       style:border-color="var(--color-border)"
@@ -1025,6 +1044,7 @@
                   <div class="flex gap-2">
                     <select
                       bind:value={departmentFilter}
+                      onchange={resetPageOnFilterChange}
                       class="px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                       style:border-color="var(--color-border)"
                       style:background="var(--color-input-background)"
@@ -1042,6 +1062,7 @@
                     </select>
                     <select
                       bind:value={statusFilter}
+                      onchange={resetPageOnFilterChange}
                       class="px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                       style:border-color="var(--color-border)"
                       style:background="var(--color-input-background)"
@@ -1514,7 +1535,7 @@
             </div>
 
             <div class="space-y-3">
-              {#each sortedDepartments as department (department.id)}
+              {#each getSortedDepartments() as department (department.id)}
                 <div
                   class="flex items-center justify-between p-4 rounded-lg border"
                   style:border-color="var(--color-border)"

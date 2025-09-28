@@ -1,90 +1,63 @@
-import { query } from '$lib/database/connection'
-import type { ApiResponse, DatabaseDepartment } from '$lib/types/database'
-import { logger } from '$lib/utils/logger'
-import { json } from '@sveltejs/kit'
-import type { RequestHandler } from './$types'
-
-interface UpdateDepartmentRequest {
-  name: string
-  description?: string
-  status?: string
-  max_employees?: number
-}
+import { query } from '$lib/database/connection';
+import { json } from '@sveltejs/kit';
+import type { RequestHandler } from './$types';
 
 // 특정 부서 조회
 export const GET: RequestHandler = async ({ params }) => {
-  try {
-    const result = await query<DatabaseDepartment>(
-      `
+	try {
+		const result = await query(`
 			SELECT id, name, description, status, max_employees, created_at, updated_at
 			FROM departments
 			WHERE id = $1
-		`,
-      [params.id],
-    )
+		`, [params.id]);
 
-    if (result.rows.length === 0) {
-      return json(
-        {
-          success: false,
-          error: '부서를 찾을 수 없습니다.',
-        },
-        { status: 404 },
-      )
-    }
+		if (result.rows.length === 0) {
+			return json({
+				success: false,
+				error: '부서를 찾을 수 없습니다.'
+			}, { status: 404 });
+		}
 
-    const response: ApiResponse<DatabaseDepartment> = {
-      success: true,
-      data: result.rows[0],
-    }
-
-    return json(response)
-  } catch (error: unknown) {
-    logger.error('Error fetching department:', error)
-    return json(
-      {
-        success: false,
-        error: error instanceof Error ? error.message : '부서 정보를 가져오는데 실패했습니다.',
-      },
-      { status: 500 },
-    )
-  }
-}
+		return json({
+			success: true,
+			data: result.rows[0]
+		});
+	} catch (error: any) {
+		console.error('Error fetching department:', error);
+		return json({
+			success: false,
+			error: error.message || '부서 정보를 가져오는데 실패했습니다.'
+		}, { status: 500 });
+	}
+};
 
 // 부서 정보 수정
 export const PUT: RequestHandler = async ({ params, request }) => {
-  try {
-    const data = (await request.json()) as UpdateDepartmentRequest
+	try {
+		const data = await request.json();
+		
+		// 필수 필드 검증
+		if (!data.name || data.name.trim() === '') {
+			return json({
+				success: false,
+				error: '부서명은 필수 입력 항목입니다.'
+			}, { status: 400 });
+		}
 
-    // 필수 필드 검증
-    if (!data.name || data.name.trim() === '') {
-      return json(
-        {
-          success: false,
-          error: '부서명은 필수 입력 항목입니다.',
-        },
-        { status: 400 },
-      )
-    }
+		// 중복 부서명 검증 (자기 자신 제외)
+		const existingDept = await query(
+			'SELECT id FROM departments WHERE LOWER(name) = LOWER($1) AND id != $2',
+			[data.name.trim(), params.id]
+		);
 
-    // 중복 부서명 검증 (자기 자신 제외)
-    const existingDept = await query<{ id: string }>(
-      'SELECT id FROM departments WHERE LOWER(name) = LOWER($1) AND id != $2',
-      [data.name.trim(), params.id],
-    )
+		if (existingDept.rows.length > 0) {
+			return json({
+				success: false,
+				error: '이미 존재하는 부서명입니다.'
+			}, { status: 400 });
+		}
 
-    if (existingDept.rows.length > 0) {
-      return json(
-        {
-          success: false,
-          error: '이미 존재하는 부서명입니다.',
-        },
-        { status: 400 },
-      )
-    }
-
-    const result = await query<DatabaseDepartment>(
-      `
+		const result = await query(`
 			UPDATE departments SET
 				name = $2,
 				description = $3,
@@ -93,131 +66,100 @@ export const PUT: RequestHandler = async ({ params, request }) => {
 				updated_at = $6
 			WHERE id = $1
 			RETURNING id, name, description, status, max_employees, created_at, updated_at
-		`,
-      [
-        params.id,
-        data.name.trim(),
-        data.description?.trim() || '',
-        data.status || 'active',
-        data.max_employees || 0,
-        new Date(),
-      ],
-    )
+		`, [
+			params.id,
+			data.name.trim(),
+			data.description?.trim() || '',
+			data.status || 'active',
+			data.to || 0,
+			new Date()
+		]);
 
-    if (result.rows.length === 0) {
-      return json(
-        {
-          success: false,
-          error: '부서를 찾을 수 없습니다.',
-        },
-        { status: 404 },
-      )
-    }
+		if (result.rows.length === 0) {
+			return json({
+				success: false,
+				error: '부서를 찾을 수 없습니다.'
+			}, { status: 404 });
+		}
 
-    const response: ApiResponse<DatabaseDepartment> = {
-      success: true,
-      data: result.rows[0],
-      message: '부서 정보가 성공적으로 수정되었습니다.',
-    }
-
-    return json(response)
-  } catch (error: unknown) {
-    logger.error('Error updating department:', error)
-    return json(
-      {
-        success: false,
-        error: error instanceof Error ? error.message : '부서 정보 수정에 실패했습니다.',
-      },
-      { status: 500 },
-    )
-  }
-}
+		return json({
+			success: true,
+			data: result.rows[0],
+			message: '부서 정보가 성공적으로 수정되었습니다.'
+		});
+	} catch (error: any) {
+		console.error('Error updating department:', error);
+		return json({
+			success: false,
+			error: error.message || '부서 정보 수정에 실패했습니다.'
+		}, { status: 500 });
+	}
+};
 
 // 부서 삭제
 export const DELETE: RequestHandler = async ({ params, url }) => {
-  try {
-    const searchParams = url.searchParams
-    const hardDelete = searchParams.get('hard') === 'true'
+	try {
+		const searchParams = url.searchParams;
+		const hardDelete = searchParams.get('hard') === 'true';
 
-    if (hardDelete) {
-      // 하드 삭제: 부서를 사용하는 직원이 있는지 확인
-      const employeesInDept = await query<{ count: string }>(
-        'SELECT COUNT(*) as count FROM employees WHERE department = (SELECT name FROM departments WHERE id = $1)',
-        [params.id],
-      )
+		if (hardDelete) {
+			// 하드 삭제: 부서를 사용하는 직원이 있는지 확인
+			const employeesInDept = await query(
+				'SELECT COUNT(*) as count FROM employees WHERE department = (SELECT name FROM departments WHERE id = $1)',
+				[params.id]
+			);
 
-      if (parseInt(employeesInDept.rows[0].count) > 0) {
-        return json(
-          {
-            success: false,
-            error: '해당 부서에 소속된 직원이 있어 삭제할 수 없습니다.',
-          },
-          { status: 400 },
-        )
-      }
+			if (parseInt(employeesInDept.rows[0].count) > 0) {
+				return json({
+					success: false,
+					error: '해당 부서에 소속된 직원이 있어 삭제할 수 없습니다.'
+				}, { status: 400 });
+			}
 
-      // 하드 삭제 실행
-      const result = await query<{ id: string; name: string }>(
-        'DELETE FROM departments WHERE id = $1 RETURNING id, name',
-        [params.id],
-      )
+			// 하드 삭제 실행
+			const result = await query(
+				'DELETE FROM departments WHERE id = $1 RETURNING id, name',
+				[params.id]
+			);
 
-      if (result.rows.length === 0) {
-        return json(
-          {
-            success: false,
-            error: '부서를 찾을 수 없습니다.',
-          },
-          { status: 404 },
-        )
-      }
+			if (result.rows.length === 0) {
+				return json({
+					success: false,
+					error: '부서를 찾을 수 없습니다.'
+				}, { status: 404 });
+			}
 
-      const response: ApiResponse<null> = {
-        success: true,
-        data: null,
-        message: '부서가 완전히 삭제되었습니다.',
-      }
-
-      return json(response)
-    } else {
-      // 소프트 삭제: 상태를 'inactive'로 변경
-      const result = await query<{ id: string; name: string; status: string }>(
-        `
+			return json({
+				success: true,
+				message: '부서가 완전히 삭제되었습니다.'
+			});
+		} else {
+			// 소프트 삭제: 상태를 'inactive'로 변경
+			const result = await query(`
 				UPDATE departments SET
 					status = 'inactive',
 					updated_at = $2
 				WHERE id = $1
 				RETURNING id, name, status
-			`,
-        [params.id, new Date()],
-      )
+			`, [params.id, new Date()]);
 
-      if (result.rows.length === 0) {
-        return json(
-          {
-            success: false,
-            error: '부서를 찾을 수 없습니다.',
-          },
-          { status: 404 },
-        )
-      }
+			if (result.rows.length === 0) {
+				return json({
+					success: false,
+					error: '부서를 찾을 수 없습니다.'
+				}, { status: 404 });
+			}
 
-      const response: ApiResponse<null> = {
-        success: true,
-        data: null,
-        message: '부서가 비활성화되었습니다.',
-      }
-
-      return json(response)
-    }
-  } catch (error: unknown) {
-    logger.error('Error deleting department:', error)
-    return json(
-      {
-        success: false,
-        error: error instanceof Error ? error.message : '부서 삭제에 실패했습니다.',
-      },
-      { status: 500 },
-    )
-  }
-}
+			return json({
+				success: true,
+				message: '부서가 비활성화되었습니다.'
+			});
+		}
+	} catch (error: any) {
+		console.error('Error deleting department:', error);
+		return json({
+			success: false,
+			error: error.message || '부서 삭제에 실패했습니다.'
+		}, { status: 500 });
+	}
+};
