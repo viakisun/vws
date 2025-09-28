@@ -2,22 +2,21 @@
   import ThemeCard from '$lib/components/ui/ThemeCard.svelte'
   import ThemeSpacer from '$lib/components/ui/ThemeSpacer.svelte'
   import ThemeActivityItem from '$lib/components/ui/ThemeActivityItem.svelte'
-  import { UserPlusIcon, CalendarIcon, UserMinusIcon, BuildingIcon } from '@lucide/svelte'
   import { hrDashboardStore } from '$lib/stores/hr/hr-dashboard-store.svelte'
 
   // 아이콘 매핑 함수
   function getActivityIcon(type: string) {
     switch (type) {
       case 'hire':
-        return UserPlusIcon
+        return '👤'
       case 'termination_pending':
-        return CalendarIcon
+        return '📅'
       case 'termination':
-        return UserMinusIcon
+        return '❌'
       case 'department_change':
-        return BuildingIcon
+        return '🏢'
       default:
-        return UserPlusIcon
+        return '👤'
     }
   }
 </script>

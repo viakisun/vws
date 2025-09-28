@@ -33,6 +33,20 @@ declare global {
   namespace svelteHTML {
     interface HTMLAttributes<_T = any> {
       [key: string]: any
+      align?: string
+    }
+
+    interface IntrinsicElements {
+      [elemName: string]: any
+    }
+
+    interface ElementTagNameMap {
+      [key: string]: HTMLElement
+    }
+
+    // HTMLDivElement specific attributes
+    interface HTMLDivElementAttributes extends HTMLAttributes<HTMLDivElement> {
+      align?: string
     }
   }
 }

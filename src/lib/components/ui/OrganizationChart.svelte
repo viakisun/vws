@@ -2,7 +2,6 @@
   import { logger } from '$lib/utils/logger'
 
   import { onMount } from 'svelte'
-  import { DownloadIcon, PrinterIcon } from '@lucide/svelte'
 
   interface Employee {
     name: string
@@ -150,16 +149,14 @@
         onclick={togglePrintView}
         class="flex items-center gap-1 px-3 py-1 bg-gray-600 text-white rounded text-sm hover:bg-gray-700 transition-colors"
       >
-        <PrinterIcon class="w-3 h-3" />
-        프린트
+        🖨️ 프린트
       </button>
       <button
         type="button"
         onclick={downloadCSV}
         class="flex items-center gap-1 px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 transition-colors"
       >
-        <DownloadIcon class="w-3 h-3" />
-        CSV
+        📥 CSV
       </button>
     </div>
   </div>

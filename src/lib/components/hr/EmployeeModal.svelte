@@ -2,7 +2,6 @@
   import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
   import ThemeModal from '$lib/components/ui/ThemeModal.svelte'
   import type { Employee, EmployeeLevel, EmployeeStatus, EmploymentType } from '$lib/types/hr'
-  import { CalendarIcon, MailIcon, PhoneIcon, SaveIcon, UserIcon, XIcon } from '@lucide/svelte'
   import { createEventDispatcher } from 'svelte'
 
   interface Props {
@@ -233,9 +232,7 @@
       <h2>
         {employee ? '직원 정보 수정' : '새 직원 추가'}
       </h2>
-      <button type="button" onclick={handleClose}>
-        <XIcon size={20} />
-      </button>
+      <button type="button" onclick={handleClose}> ✕ </button>
     </div>
 
     <form
@@ -246,10 +243,7 @@
     >
       <!-- 기본 정보 섹션 -->
       <div>
-        <h3>
-          <UserIcon size={20} />
-          기본 정보
-        </h3>
+        <h3>👤 기본 정보</h3>
         <div>
           <div>
             <label for="employeeId">사번 *</label>
@@ -290,10 +284,7 @@
 
       <!-- 직무 정보 섹션 -->
       <div>
-        <h3>
-          <CalendarIcon size={20} />
-          직무 정보
-        </h3>
+        <h3>📅 직무 정보</h3>
         <div>
           <div>
             <label for="department">부서 *</label>
@@ -344,10 +335,7 @@
 
       <!-- 비상 연락처 섹션 -->
       <div>
-        <h3>
-          <PhoneIcon size={20} />
-          비상 연락처
-        </h3>
+        <h3>📞 비상 연락처</h3>
         <div>
           <div>
             <label for="emergencyName">이름</label>
@@ -381,10 +369,7 @@
 
       <!-- 개인 정보 섹션 -->
       <div>
-        <h3>
-          <UserIcon size={20} />
-          개인 정보
-        </h3>
+        <h3>👤 개인 정보</h3>
         <div>
           <div>
             <label for="gender">성별</label>
@@ -428,10 +413,7 @@
       <!-- 상태 정보 섹션 -->
       {#if employee}
         <div>
-          <h3>
-            <MailIcon size={20} />
-            상태 정보
-          </h3>
+          <h3>📧 상태 정보</h3>
           <div>
             <div>
               <label for="status">상태</label>
@@ -459,7 +441,7 @@
           {#if loading}
             <div></div>
           {:else}
-            <SaveIcon size={16} />
+            💾
           {/if}
           {employee ? '수정' : '추가'}
         </ThemeButton>

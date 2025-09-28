@@ -29,6 +29,8 @@
     "scripts/**/*.js",
     "utils/**/*.ts",
     "utils/**/*.js",
+    "tests/**/*.ts",
+    "tests/**/*.js",
     "*.ts",
     "*.js"
   ]

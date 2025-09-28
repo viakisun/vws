@@ -2,7 +2,6 @@
   import ThemeCard from '$lib/components/ui/ThemeCard.svelte'
   import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
   import ThemeBadge from '$lib/components/ui/ThemeBadge.svelte'
-  import { PlusIcon, EyeIcon, EditIcon, TrashIcon } from '@lucide/svelte'
   import { jobPostings } from '$lib/stores/recruitment'
   import { formatDate } from '$lib/utils/format'
 
@@ -33,8 +32,7 @@
       class="flex items-center gap-2"
       onclick={goToRecruitment}
     >
-      <PlusIcon size={16} />
-      새 공고
+      ➕ 새 공고
     </ThemeButton>
   </div>
 
@@ -70,7 +68,7 @@
               alert('채용 공고 상세 보기 기능은 준비 중입니다.')
             }}
           >
-            <EyeIcon size={16} />
+            👁️
           </ThemeButton>
           <ThemeButton
             variant="ghost"
@@ -80,7 +78,7 @@
               alert('채용 공고 수정 기능은 준비 중입니다.')
             }}
           >
-            <EditIcon size={16} />
+            ✏️
           </ThemeButton>
           <ThemeButton
             variant="ghost"
@@ -90,7 +88,7 @@
               alert('채용 공고 삭제 기능은 준비 중입니다.')
             }}
           >
-            <TrashIcon size={16} />
+            🗑️
           </ThemeButton>
         </div>
       </div>

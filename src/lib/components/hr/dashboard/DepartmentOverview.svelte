@@ -2,7 +2,6 @@
   import ThemeCard from '$lib/components/ui/ThemeCard.svelte'
   import ThemeSpacer from '$lib/components/ui/ThemeSpacer.svelte'
   import ThemeBadge from '$lib/components/ui/ThemeBadge.svelte'
-  import { BuildingIcon } from '@lucide/svelte'
   import { hrDashboardStore } from '$lib/stores/hr/hr-dashboard-store.svelte'
 </script>
 
@@ -20,7 +19,7 @@
         style:background="var(--color-surface-elevated)"
       >
         <div class="flex items-center gap-3">
-          <BuildingIcon size={20} style="color: var(--color-primary);" />
+          <span style:color="var(--color-primary)" style:font-size="20px">🏢</span>
           <div>
             <h4 class="font-medium" style:color="var(--color-text)">
               {dept.department}

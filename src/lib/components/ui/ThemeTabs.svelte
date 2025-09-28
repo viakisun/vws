@@ -36,7 +36,7 @@
   }: Props = $props()
 
   let currentTab = $state(activeTab)
-  let tabContainer: HTMLDivElement
+  let tabContainer: HTMLElement | undefined
   let scrollPosition = $state(0)
   let canScrollLeft = $state(false)
   let canScrollRight = $state(false)

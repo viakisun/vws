@@ -1,7 +1,6 @@
 <script lang="ts">
   import ThemeStatCard from '$lib/components/ui/ThemeStatCard.svelte'
   import ThemeGrid from '$lib/components/ui/ThemeGrid.svelte'
-  import { UsersIcon, UserPlusIcon } from '@lucide/svelte'
   import { hrDashboardStore } from '$lib/stores/hr/hr-dashboard-store.svelte'
   import { jobPostings } from '$lib/stores/recruitment'
 
@@ -12,14 +11,14 @@
       value: `${hrDashboardStore.totalEmployees}`,
       change: '+5%',
       changeType: 'positive' as const,
-      icon: UsersIcon,
+      icon: '👥',
     },
     {
       title: '진행중인 채용',
       value: `${$jobPostings.filter((job) => job.status === 'published').length}`,
       change: '+2',
       changeType: 'positive' as const,
-      icon: UserPlusIcon,
+      icon: '👤',
     },
   ])
 </script>

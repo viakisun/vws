@@ -5,15 +5,6 @@
   import ThemeSectionHeader from '$lib/components/ui/ThemeSectionHeader.svelte'
   import { error, isLoading, loadPayslips, payslips } from '$lib/stores/salary/salary-store'
   import { formatCurrency, formatDate } from '$lib/utils/format'
-  import {
-    CalendarIcon,
-    ClockIcon,
-    FilterIcon,
-    MinusIcon,
-    TrendingDownIcon,
-    TrendingUpIcon,
-    UserIcon,
-  } from '@lucide/svelte'
 
   // Minimal type for payroll data
   type PayrollData = {
@@ -35,30 +26,11 @@
   let showFilters = $state(false)
   let selectedEmployee = $state('')
   let selectedDepartment = $state('')
-  let selectedContractType = $state('')
   let selectedStatus = $state('')
+  let selectedEmploymentStatus = $state('') // 재직중/퇴직 필터
 
   // 직원 목록
   let employees = $state<any[]>([])
-
-  // 월별 옵션 동적 생성 (최근 12개월)
-  function generateMonthOptions(): Array<{ value: string; label: string }> {
-    const options: Array<{ value: string; label: string }> = []
-    const now = new Date()
-
-    for (let i = 0; i < 12; i++) {
-      const date = new Date(now.getFullYear(), now.getMonth() - i)
-      const year = date.getFullYear()
-      const month = String(date.getMonth() + 1).padStart(2, '0')
-      const period = `${year}-${month}`
-      const label = `${year}년 ${month}월`
-      options.push({ value: period, label })
-    }
-
-    return options
-  }
-
-  const monthOptions = generateMonthOptions()
 
   $effect(() => {
     void (async () => {
@@ -77,12 +49,13 @@
       const result = await response.json()
       if (result.success) {
         employees = [
-          { id: '', name: '전체 직원', department: '' },
+          { id: '', name: '전체 직원', department: '', status: '' },
           ...result.data.map((emp: any) => ({
             id: emp.id,
             name: `${emp.last_name}${emp.first_name} (${emp.position})`,
             department: emp.department || '부서없음',
             position: emp.position,
+            status: emp.status || 'active',
           })),
         ]
       }
@@ -108,6 +81,14 @@
     // 상태 필터
     if (selectedStatus) {
       filtered = filtered.filter((payroll) => payroll.status === selectedStatus)
+    }
+
+    // 재직 상태 필터
+    if (selectedEmploymentStatus) {
+      const employeeIds = employees
+        .filter((emp) => emp.status === selectedEmploymentStatus)
+        .map((emp) => emp.id)
+      filtered = filtered.filter((payroll) => employeeIds.includes(payroll.employeeId || ''))
     }
 
     return filtered
@@ -157,9 +138,38 @@
   function clearFilters() {
     selectedEmployee = ''
     selectedDepartment = ''
-    selectedContractType = ''
     selectedStatus = ''
+    selectedEmploymentStatus = ''
   }
+
+  // 이력 개수 계산
+  const historyCounts = $derived(() => {
+    const counts = {
+      total: localFilteredPayslips.length,
+      active: 0,
+      terminated: 0,
+      byEmployee: {} as Record<string, number>,
+    }
+
+    // 직원별 이력 개수 계산
+    localFilteredPayslips.forEach((payroll) => {
+      if (payroll.employeeId) {
+        counts.byEmployee[payroll.employeeId] = (counts.byEmployee[payroll.employeeId] || 0) + 1
+
+        // 직원 상태별 개수 계산
+        const employee = employees.find((emp) => emp.id === payroll.employeeId)
+        if (employee) {
+          if (employee.status === 'active') {
+            counts.active++
+          } else if (employee.status === 'terminated') {
+            counts.terminated++
+          }
+        }
+      }
+    })
+
+    return counts
+  })
 
   // 급여 변화 계산
   function calculateSalaryChange(
@@ -233,10 +243,24 @@
   <!-- 헤더 및 필터 -->
   <ThemeCard class="p-6">
     <div class="flex items-center justify-between mb-4">
-      <ThemeSectionHeader title="급여 이력 추적" />
+      <div>
+        <ThemeSectionHeader title="급여 이력 추적" />
+        <div class="mt-2 flex items-center space-x-4 text-sm text-gray-600">
+          <span
+            >총 이력: <span class="font-semibold text-blue-600">{historyCounts.total}건</span></span
+          >
+          <span
+            >재직중: <span class="font-semibold text-green-600">{historyCounts.active}건</span
+            ></span
+          >
+          <span
+            >퇴직: <span class="font-semibold text-red-600">{historyCounts.terminated}건</span
+            ></span
+          >
+        </div>
+      </div>
       <div class="flex items-center space-x-3">
         <ThemeButton variant="secondary" size="sm" onclick={() => (showFilters = !showFilters)}>
-          <FilterIcon size={16} class="mr-2" />
           필터
         </ThemeButton>
       </div>
@@ -255,6 +279,11 @@
               : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'}"
           >
             {employee.name}
+            {#if employee.id && historyCounts.byEmployee[employee.id]}
+              <span class="ml-1 text-xs bg-gray-200 px-1.5 py-0.5 rounded-full">
+                {historyCounts.byEmployee[employee.id]}건
+              </span>
+            {/if}
           </button>
         {/each}
       </div>
@@ -263,7 +292,7 @@
     <!-- 필터 영역 -->
     {#if showFilters}
       <div
-        class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-4 p-4 bg-gray-50 rounded-lg"
+        class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4 p-4 bg-gray-50 rounded-lg"
       >
         <div>
           <label for="history-department" class="block text-sm font-medium text-gray-700 mb-1"
@@ -287,23 +316,25 @@
           </select>
         </div>
         <div>
-          <label for="history-period" class="block text-sm font-medium text-gray-700 mb-1"
-            >급여 기간</label
+          <label
+            for="history-employment-status"
+            class="block text-sm font-medium text-gray-700 mb-1">재직 상태</label
           >
           <select
-            id="history-period"
-            bind:value={selectedContractType}
+            id="history-employment-status"
+            bind:value={selectedEmploymentStatus}
             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="">전체</option>
-            {#each monthOptions as option, i (i)}
-              <option value={option.value}>{option.label}</option>
-            {/each}
+            <option value="active">재직중</option>
+            <option value="terminated">퇴직</option>
+            <option value="inactive">비활성</option>
+            <option value="on-leave">휴직중</option>
           </select>
         </div>
         <div>
           <label for="history-status" class="block text-sm font-medium text-gray-700 mb-1"
-            >상태</label
+            >급여 상태</label
           >
           <select
             id="history-status"
@@ -336,7 +367,7 @@
     </div>
   {:else if selectedEmployeeHistory.length === 0}
     <div class="text-center py-12">
-      <ClockIcon size={48} class="mx-auto text-gray-400 mb-4" />
+      <div class="text-6xl mb-4">📄</div>
       <p class="text-gray-500">
         {selectedEmployee ? '선택한 직원의 급여 이력이 없습니다.' : '급여 이력이 없습니다.'}
       </p>
@@ -349,16 +380,14 @@
           <div class="flex-1">
             <div class="flex items-center space-x-4 mb-4">
               <div class="flex items-center space-x-2">
-                <CalendarIcon size={20} class="text-gray-400" />
                 <span class="text-lg font-semibold text-gray-900">
-                  {formatDate(String(payroll.payDate ?? ''))} 지급분
+                  📅 {formatDate(String(payroll.payDate ?? ''))} 지급분
                 </span>
               </div>
               {#if !selectedEmployee}
                 <div class="flex items-center space-x-2">
-                  <UserIcon size={16} class="text-gray-400" />
                   <span class="text-sm text-gray-600"
-                    >{payroll.employeeName ?? ''} ({payroll.department ?? ''})</span
+                    >👤 {payroll.employeeName ?? ''} ({payroll.department ?? ''})</span
                   >
                 </div>
               {/if}
@@ -401,18 +430,17 @@
                 <div class="text-sm text-gray-500 mb-2">이전 급여 대비 변화</div>
                 <div class="flex items-center space-x-2">
                   {#if change.direction === 'up'}
-                    <TrendingUpIcon size={20} class="text-green-500" />
                     <span class="text-green-600 font-semibold">
-                      +{formatCurrency(change.change)} (+{change.percentage.toFixed(1)}%)
+                      📈 +{formatCurrency(change.change)} (+{change.percentage.toFixed(1)}%)
                     </span>
                   {:else if change.direction === 'down'}
-                    <TrendingDownIcon size={20} class="text-red-500" />
                     <span class="text-red-600 font-semibold">
-                      -{formatCurrency(Math.abs(change.change))} (-{change.percentage.toFixed(1)}%)
+                      📉 -{formatCurrency(Math.abs(change.change))} (-{change.percentage.toFixed(
+                        1,
+                      )}%)
                     </span>
                   {:else}
-                    <MinusIcon size={20} class="text-gray-500" />
-                    <span class="text-gray-500 font-semibold">변화 없음</span>
+                    <span class="text-gray-500 font-semibold">➖ 변화 없음</span>
                   {/if}
                 </div>
               </div>
@@ -457,18 +485,15 @@
               <div class="text-sm text-gray-600">총 변화</div>
               <div class="flex items-center justify-center space-x-1">
                 {#if totalChange > 0}
-                  <TrendingUpIcon size={20} class="text-green-500" />
                   <span class="text-xl font-bold text-green-600">
-                    +{formatCurrency(totalChange)}
+                    📈 +{formatCurrency(totalChange)}
                   </span>
                 {:else if totalChange < 0}
-                  <TrendingDownIcon size={20} class="text-red-500" />
                   <span class="text-xl font-bold text-red-600">
-                    -{formatCurrency(Math.abs(totalChange))}
+                    📉 -{formatCurrency(Math.abs(totalChange))}
                   </span>
                 {:else}
-                  <MinusIcon size={20} class="text-gray-500" />
-                  <span class="text-xl font-bold text-gray-500">변화 없음</span>
+                  <span class="text-xl font-bold text-gray-500">➖ 변화 없음</span>
                 {/if}
               </div>
               <div class="text-xs text-gray-500">
