@@ -1,9 +1,7 @@
-#!/bin/sh
+#!/bin/bash
 
 echo "🔧 Running pre-commit checks..."
 
-# lint-staged 실행 (staged files에 대해서만 prettier + eslint 실행)
-# Pre-commit hook temporarily disabled
-# npx lint-staged
-
+# 임시로 pre-commit 훅 비활성화 (shell 환경 문제로 인해)
+echo "⚠️ Pre-commit hook temporarily disabled due to shell environment issue"
 echo "✅ Pre-commit checks completed successfully!"

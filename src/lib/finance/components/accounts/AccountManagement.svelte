@@ -1,14 +1,14 @@
 <script lang="ts">
-  import { onMount } from 'svelte'
-  import type { Account, Bank, CreateAccountRequest } from '$lib/finance/types'
   import { accountService } from '$lib/finance/services'
+  import type { Account, Bank, CreateAccountRequest } from '$lib/finance/types'
   import {
-    formatCurrency,
-    formatAccountNumber,
-    formatAccountType,
-    formatAccountStatus,
+      formatAccountNumber,
+      formatAccountStatus,
+      formatAccountType,
+      formatCurrency,
   } from '$lib/finance/utils'
-  import { PlusIcon, EditIcon, TrashIcon, EyeIcon } from '@lucide/svelte'
+  import { EditIcon, PlusIcon, TrashIcon } from '@lucide/svelte'
+  import { onMount } from 'svelte'
 
   // State
   let accounts = $state<Account[]>([])
@@ -303,8 +303,9 @@
         <div class="space-y-4">
           <!-- 계좌명 -->
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">계좌명</label>
+            <label for="account-name" class="block text-sm font-medium text-gray-700 mb-1">계좌명</label>
             <input
+              id="account-name"
               type="text"
               bind:value={formData.name}
               required
@@ -315,8 +316,9 @@
 
           <!-- 계좌번호 -->
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">계좌번호</label>
+            <label for="account-number" class="block text-sm font-medium text-gray-700 mb-1">계좌번호</label>
             <input
+              id="account-number"
               type="text"
               bind:value={formData.accountNumber}
               required
@@ -327,8 +329,9 @@
 
           <!-- 은행 -->
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">은행</label>
+            <label for="account-bank" class="block text-sm font-medium text-gray-700 mb-1">은행</label>
             <select
+              id="account-bank"
               bind:value={formData.bankId}
               required
               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -342,8 +345,9 @@
 
           <!-- 계좌 타입 -->
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">계좌 타입</label>
+            <label for="account-type" class="block text-sm font-medium text-gray-700 mb-1">계좌 타입</label>
             <select
+              id="account-type"
               bind:value={formData.accountType}
               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
@@ -357,8 +361,9 @@
 
           <!-- 초기 잔액 -->
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">초기 잔액</label>
+            <label for="account-balance" class="block text-sm font-medium text-gray-700 mb-1">초기 잔액</label>
             <input
+              id="account-balance"
               type="number"
               bind:value={formData.initialBalance}
               min="0"
@@ -370,8 +375,9 @@
 
           <!-- 설명 -->
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">설명 (선택사항)</label>
+            <label for="account-description" class="block text-sm font-medium text-gray-700 mb-1">설명 (선택사항)</label>
             <textarea
+              id="account-description"
               bind:value={formData.description}
               rows="2"
               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -382,11 +388,12 @@
           <!-- 주요 계좌 여부 -->
           <div class="flex items-center">
             <input
+              id="account-primary"
               type="checkbox"
               bind:checked={formData.isPrimary}
               class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
             />
-            <label class="ml-2 block text-sm text-gray-700">주요 계좌로 설정</label>
+            <label for="account-primary" class="ml-2 block text-sm text-gray-700">주요 계좌로 설정</label>
           </div>
         </div>
 

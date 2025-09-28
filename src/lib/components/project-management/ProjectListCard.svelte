@@ -2,25 +2,19 @@
   import ProjectDetailView from '$lib/components/project-management/ProjectDetailView.svelte'
   import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
   import ThemeCard from '$lib/components/ui/ThemeCard.svelte'
+  import type { Project } from '$lib/types/index'
   import { FlaskConicalIcon, PlusIcon } from '@lucide/svelte'
   import { createEventDispatcher } from 'svelte'
 
-  /**
-   * @typedef {Object} Project
-   * @property {string} id
-   * @property {string} title
-   * @property {string} code
-   * @property {string} [description]
-   * @property {string} [startDate]
-   * @property {string} [endDate]
-   * @property {'planning' | 'active' | 'completed'} status
-   * @property {'internal' | 'government' | 'private' | 'international'} [sponsorType]
-   * @property {'low' | 'medium' | 'high' | 'critical'} [priority]
-   * @property {'basic' | 'applied' | 'development'} [researchType]
-   * @property {string} [updatedAt]
-   */
-
   const dispatch = createEventDispatcher()
+
+  interface Props {
+    projects?: Project[]
+    selectedProject?: Project | null
+    selectedProjectId?: string
+    loading?: boolean
+    error?: string | null
+  }
 
   let {
     projects = [],
@@ -28,7 +22,7 @@
     selectedProjectId = '',
     loading = false,
     error = null,
-  } = $props()
+  }: Props = $props()
 
   // 간소화된 상태 한글 변환
   function getStatusLabel(status: string) {
@@ -45,7 +39,7 @@
   }
 
   // 프로젝트 선택
-  function selectProject(project: any) {
+  function selectProject(project: Project) {
     selectedProject = project
     selectedProjectId = project.id
   }
@@ -56,17 +50,17 @@
   }
 
   // 프로젝트 삭제 이벤트 처리
-  function handleProjectDeleted(event: any) {
+  function handleProjectDeleted(event: CustomEvent<{ projectId: string }>) {
     const { projectId } = event.detail
 
     // 삭제된 프로젝트가 현재 선택된 프로젝트라면 선택 해제
-    if (selectedProject && selectedProject.id === projectId) {
+    if (selectedProject && (selectedProject as Project).id === projectId) {
       selectedProject = null
       selectedProjectId = ''
     }
 
     // 프로젝트 목록에서 삭제된 프로젝트 제거
-    projects = projects.filter((p: any) => p.id !== projectId)
+    projects = projects.filter((p: Project) => p.id !== projectId)
 
     // 상위 컴포넌트에 삭제 이벤트 전달
     dispatch('project-deleted', { projectId })

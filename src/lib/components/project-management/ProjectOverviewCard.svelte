@@ -3,26 +3,21 @@
   import ThemeCard from '$lib/components/ui/ThemeCard.svelte'
   import { formatCurrency, formatDate } from '$lib/utils/format'
   import {
-    ActivityIcon,
-    AlertTriangleIcon,
-    DollarSignIcon,
-    FlaskConicalIcon,
-    UsersIcon,
+      ActivityIcon,
+      AlertTriangleIcon,
+      DollarSignIcon,
+      FlaskConicalIcon,
+      UsersIcon,
   } from '@lucide/svelte'
 
-  /**
-   * @typedef {Object} ProjectSummary
-   * @property {number} totalProjects
-   * @property {number} activeProjects
-   * @property {number} totalBudget
-   * @property {number} currentYearBudget
-   * @property {number} totalMembers
-   * @property {number} activeMembers
-   * @property {number} overParticipationEmployees
-   * @property {Array<{title: string, code: string, status: string, updatedAt: string}>} [recentActivities]
-   */
+  import type { ProjectSummary } from '$lib/types/index'
 
-  let { projectSummary = null, alerts = [] } = $props()
+  interface Props {
+    projectSummary?: ProjectSummary | null
+    alerts?: unknown[]
+  }
+
+  let { projectSummary = null, alerts = [] }: Props = $props()
 
   // 간소화된 상태 배지 색상
   function getStatusBadgeColor(status) {

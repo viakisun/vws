@@ -1,9 +1,9 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { loadPayslips, loadSalaryHistory } from '$lib/stores/salary/salary-store'
+import { loadPayslips, loadSalaryHistory } from '$lib/stores/salary/salary-store';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Mock fetch
 const mockFetch = vi.fn()
-global.fetch = mockFetch as unknown as typeof fetch
+;(globalThis as any).fetch = mockFetch as unknown as typeof fetch
 
 describe('Salary Store', () => {
   beforeEach(() => {
@@ -46,7 +46,7 @@ describe('Salary Store', () => {
 
       await loadPayslips()
 
-      expect(global.fetch).toHaveBeenCalledWith('/api/salary/payslips')
+      expect(globalThis.fetch).toHaveBeenCalledWith('/api/salary/payslips')
     })
 
     it('should handle API errors', async () => {
@@ -60,7 +60,7 @@ describe('Salary Store', () => {
 
       await loadPayslips()
 
-      expect(global.fetch).toHaveBeenCalledWith('/api/salary/payslips')
+      expect(globalThis.fetch).toHaveBeenCalledWith('/api/salary/payslips')
     })
 
     it('should handle network errors', async () => {
@@ -68,7 +68,7 @@ describe('Salary Store', () => {
 
       await loadPayslips()
 
-      expect(global.fetch).toHaveBeenCalledWith('/api/salary/payslips')
+      expect(globalThis.fetch).toHaveBeenCalledWith('/api/salary/payslips')
     })
   })
 
@@ -102,7 +102,7 @@ describe('Salary Store', () => {
 
       await loadSalaryHistory()
 
-      expect(global.fetch).toHaveBeenCalledWith('/api/salary/history')
+      expect(globalThis.fetch).toHaveBeenCalledWith('/api/salary/history')
     })
 
     it('should load salary history for specific employee', async () => {
@@ -134,7 +134,7 @@ describe('Salary Store', () => {
 
       await loadSalaryHistory('emp1')
 
-      expect(global.fetch).toHaveBeenCalledWith('/api/salary/history/emp1')
+      expect(globalThis.fetch).toHaveBeenCalledWith('/api/salary/history/emp1')
     })
 
     it('should handle API errors', async () => {
@@ -148,7 +148,7 @@ describe('Salary Store', () => {
 
       await loadSalaryHistory()
 
-      expect(global.fetch).toHaveBeenCalledWith('/api/salary/history')
+      expect(globalThis.fetch).toHaveBeenCalledWith('/api/salary/history')
     })
 
     it('should handle network errors', async () => {
@@ -156,7 +156,7 @@ describe('Salary Store', () => {
 
       await loadSalaryHistory()
 
-      expect(global.fetch).toHaveBeenCalledWith('/api/salary/history')
+      expect(globalThis.fetch).toHaveBeenCalledWith('/api/salary/history')
     })
   })
 })

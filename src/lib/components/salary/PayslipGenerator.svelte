@@ -1,6 +1,7 @@
 <script lang="ts">
   import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
   import { formatCurrency, formatNumber } from '$lib/utils/format'
+  import { formatKoreanNameStandard, sortKoreanNames } from '$lib/utils/korean-name'
   import {
       AlertCircleIcon,
       EditIcon,
@@ -10,7 +11,6 @@
       UserIcon,
   } from '@lucide/svelte'
   import { onMount } from 'svelte'
-  import { sortKoreanNames, formatKoreanNameStandard } from '$lib/utils/korean-name'
 
   // Local types for this component
   type Employee = {
@@ -19,6 +19,7 @@
     name?: string
     department?: string
     position?: string
+    status?: 'active' | 'inactive' | 'terminated'
     hireDate?: string
   }
 
@@ -83,12 +84,12 @@
   let isLoadingContract = $state(false)
 
   // 직원 선택 시 자동으로 데이터 로드
-  $effect(() => {
+  function handleEmployeeChange() {
     if (selectedEmployeeId) {
       loadEmployeeContract(selectedEmployeeId, selectedYear)
       loadPayslipData()
     }
-  })
+  }
 
   // 급여명세서 데이터 로드 (월별)
   async function loadPayslipData() {
@@ -797,6 +798,7 @@
         <select
           id="employee-select"
           bind:value={selectedEmployeeId}
+          onchange={handleEmployeeChange}
           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           <option value="">직원을 선택하세요</option>

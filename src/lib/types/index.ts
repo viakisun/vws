@@ -483,12 +483,21 @@ export interface ProjectSummary {
   totalBudget: number
   currentYearBudget: number
   totalMembers: number
+  activeMembers: number
   overParticipationEmployees: number
+  recentActivities?: Array<{
+    title: string
+    code: string
+    status: string
+    updatedAt: string
+  }>
 }
 
 export interface EmployeeParticipationSummary {
   employeeId: string
   employeeName: string
+  name: string
+  email: string
   department: string
   activeProjects: number
   totalParticipationRate: number

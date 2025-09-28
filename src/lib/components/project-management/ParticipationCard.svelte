@@ -1,18 +1,14 @@
 <script lang="ts">
   import ThemeBadge from '$lib/components/ui/ThemeBadge.svelte'
   import ThemeCard from '$lib/components/ui/ThemeCard.svelte'
+  import type { EmployeeParticipationSummary } from '$lib/types/index'
   import { ActivityIcon, UsersIcon } from '@lucide/svelte'
 
-  /**
-   * @typedef {Object} EmployeeParticipation
-   * @property {string} name
-   * @property {string} email
-   * @property {string} department
-   * @property {number} activeProjects
-   * @property {number} totalParticipationRate
-   */
+  interface Props {
+    employeeParticipationSummary?: EmployeeParticipationSummary[]
+  }
 
-  let { employeeParticipationSummary = [] } = $props()
+  let { employeeParticipationSummary = [] }: Props = $props()
 </script>
 
 <div class="space-y-6">
