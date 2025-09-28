@@ -14,7 +14,7 @@ export const GET: RequestHandler = async ({ url }) => {
     const year = url.searchParams.get('year')
 
     let sqlQuery = `
-			SELECT 
+			SELECT
 				be.id,
 				be.project_budget_id,
 				be.evidence_type,
@@ -128,7 +128,7 @@ export const POST: RequestHandler = async ({ request }) => {
     // 증빙 내역 등록
     const insertQuery = `
 			INSERT INTO budget_evidence (
-				project_budget_id, evidence_type, title, description, amount, 
+				project_budget_id, evidence_type, title, description, amount,
 				evidence_date, file_path, file_name, file_size, mime_type, created_by
 			) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
 			RETURNING *
@@ -139,7 +139,7 @@ export const POST: RequestHandler = async ({ request }) => {
       evidenceType,
       title,
       description || null,
-      parseFloat(amount),
+      parseFloat(String(amount)),
       evidenceDate,
       filePath || null,
       fileName || null,

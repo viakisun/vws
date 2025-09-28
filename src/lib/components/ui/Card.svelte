@@ -3,7 +3,7 @@
     class: className = '',
     header = '',
     children,
-  } = $props<{ class?: string; header?: string; children?: () => unknown }>()
+  } = $props<{ class?: string; header?: string; children?: import('svelte').Snippet }>()
 </script>
 
 <section class={`card ${className}`}>

@@ -45,7 +45,7 @@
   let mounted = $state(false)
 
   // 급여 통계 데이터
-  let salaryStats = $state([])
+  let salaryStats: any[] = $state([])
 
   // 탭 변경 함수
   function handleTabChange(tabId: string) {

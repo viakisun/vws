@@ -74,7 +74,7 @@
 
   // 상태 변수들
   let mounted = $state(false)
-  let projects = $state([])
+  let projects: any[] = $state([])
   let projectSummary = $state(null)
   let employeeParticipationSummary = $state([])
   let alerts = $state([])
@@ -145,7 +145,7 @@
   })
 
   // 프로젝트 관련 상태
-  let selectedProject = $state(null)
+  let selectedProject: any = $state(null)
   let selectedProjectId = $state('')
   let showCreateProjectModal = $state(false)
 
@@ -213,9 +213,9 @@
   }
 
   // 개선된 프로젝트 데이터 검증 함수 (기획 단계 완화)
-  function validateProjectData(projectData) {
-    const issues = []
-    const warnings = []
+  function validateProjectData(projectData: any) {
+    const issues: string[] = []
+    const warnings: string[] = []
 
     if (!Array.isArray(projectData)) {
       issues.push('프로젝트 데이터가 배열이 아닙니다.')
@@ -353,7 +353,7 @@
   }
 
   // 프로젝트 삭제 이벤트 처리
-  function handleProjectDeleted(event) {
+  function handleProjectDeleted(event: any) {
     const { projectId } = event.detail
 
     // 삭제된 프로젝트가 현재 선택된 프로젝트라면 선택 해제

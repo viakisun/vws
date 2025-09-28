@@ -42,8 +42,8 @@
   let employees = $state<any[]>([])
 
   // 월별 옵션 동적 생성 (최근 12개월)
-  function generateMonthOptions() {
-    const options = []
+  function generateMonthOptions(): Array<{ value: string; label: string }> {
+    const options: Array<{ value: string; label: string }> = []
     const now = new Date()
 
     for (let i = 0; i < 12; i++) {
@@ -117,18 +117,22 @@
   const salaryHistoryByEmployee = $derived((): Record<string, PayrollData[]> => {
     const historyMap: Record<string, PayrollData[]> = {}
 
-    localFilteredPayslips().forEach((payslip) => {
-      if (!historyMap[payslip.employeeId]) {
+    localFilteredPayslips.forEach((payslip) => {
+      if (payslip.employeeId && !historyMap[payslip.employeeId]) {
         historyMap[payslip.employeeId] = []
       }
-      historyMap[payslip.employeeId].push(payslip)
+      if (payslip.employeeId) {
+        historyMap[payslip.employeeId].push(payslip)
+      }
     })
 
     // 각 직원별로 급여를 지급일 기준으로 정렬 (최신순)
     Object.keys(historyMap).forEach((employeeId) => {
-      historyMap[employeeId].sort(
-        (a, b) => new Date(b.payDate).getTime() - new Date(a.payDate).getTime(),
-      )
+      historyMap[employeeId].sort((a, b) => {
+        const dateA = a.payDate ? new Date(a.payDate).getTime() : 0
+        const dateB = b.payDate ? new Date(b.payDate).getTime() : 0
+        return dateB - dateA
+      })
     })
 
     return historyMap
@@ -138,9 +142,11 @@
   const selectedEmployeeHistory = $derived((): PayrollData[] => {
     if (!selectedEmployee) {
       // 직원이 선택되지 않았으면 모든 급여 이력을 평면화하여 반환
-      const result = [...localFilteredPayslips()].sort(
-        (a, b) => new Date(b.payDate).getTime() - new Date(a.payDate).getTime(),
-      )
+      const result = [...localFilteredPayslips].sort((a, b) => {
+        const dateA = a.payDate ? new Date(a.payDate).getTime() : 0
+        const dateB = b.payDate ? new Date(b.payDate).getTime() : 0
+        return dateB - dateA
+      })
       return result
     }
     const result = salaryHistoryByEmployee[selectedEmployee] || []
@@ -328,7 +334,7 @@
     <div class="bg-red-50 border border-red-200 rounded-lg p-4">
       <span class="text-red-800">{$error}</span>
     </div>
-  {:else if selectedEmployeeHistory().length === 0}
+  {:else if selectedEmployeeHistory.length === 0}
     <div class="text-center py-12">
       <ClockIcon size={48} class="mx-auto text-gray-400 mb-4" />
       <p class="text-gray-500">
@@ -337,7 +343,7 @@
     </div>
   {:else}
     <!-- 선택된 직원의 급여 이력 -->
-    {#each selectedEmployeeHistory() as payroll, index (index)}
+    {#each selectedEmployeeHistory as payroll, index (index)}
       <ThemeCard class="p-6">
         <div class="flex items-start justify-between">
           <div class="flex-1">
@@ -390,7 +396,7 @@
 
             <!-- 급여 변화 표시 -->
             {#if index > 0}
-              {@const change = calculateSalaryChange(selectedEmployeeHistory(), index)}
+              {@const change = calculateSalaryChange(selectedEmployeeHistory, index)}
               <div class="mt-4 p-3 bg-gray-50 rounded-lg">
                 <div class="text-sm text-gray-500 mb-2">이전 급여 대비 변화</div>
                 <div class="flex items-center space-x-2">
@@ -417,9 +423,9 @@
     {/each}
 
     <!-- 급여 변화 요약 -->
-    {#if selectedEmployeeHistory().length > 1}
-      {@const firstContract = selectedEmployeeHistory()[0]}
-      {@const lastContract = selectedEmployeeHistory()[selectedEmployeeHistory().length - 1]}
+    {#if selectedEmployeeHistory.length > 1}
+      {@const firstContract = selectedEmployeeHistory[0]}
+      {@const lastContract = selectedEmployeeHistory[selectedEmployeeHistory.length - 1]}
       {@const totalChange = (lastContract.annualSalary ?? 0) - (firstContract.annualSalary ?? 0)}
       {@const totalPercentage =
         (firstContract.annualSalary ?? 0) > 0

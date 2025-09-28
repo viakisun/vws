@@ -388,7 +388,7 @@
             </div>
 
             <div class="space-y-4">
-              {#each filteredLeads() as lead, i (keyOf(lead, i))}
+              {#each filteredLeads as lead, i (keyOf(lead, i))}
                 <div
                   class="flex items-center justify-between p-4 rounded-lg border"
                   style:border-color="var(--color-border)"

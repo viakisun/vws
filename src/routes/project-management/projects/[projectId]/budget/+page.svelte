@@ -9,7 +9,7 @@
   const project = $derived($projectsStore.find((p) => p.id === projectId))
   const docs = $derived($expenseDocsStore.filter((d) => d.projectId === projectId))
   const utilization = $derived(
-    project ? Math.round((project.spentKRW / project.budgetKRW) * 100) : 0,
+    project ? Math.round(((project.spentKRW || 0) / (project.budgetKRW || 1)) * 100) : 0,
   )
   const categoryHints = $derived(
     (function () {
@@ -35,7 +35,7 @@
       <div class="kpi">
         <div>
           <div class="text-caption">총 예산</div>
-          <div class="text-2xl font-bold">{formatKRW(project.budgetKRW)}</div>
+          <div class="text-2xl font-bold">{formatKRW(project.budgetKRW || 0)}</div>
         </div>
       </div>
     </Card>
@@ -43,7 +43,7 @@
       <div class="kpi">
         <div>
           <div class="text-caption">집행</div>
-          <div class="text-2xl font-bold">{formatKRW(project.spentKRW)}</div>
+          <div class="text-2xl font-bold">{formatKRW(project.spentKRW || 0)}</div>
         </div>
       </div>
     </Card>

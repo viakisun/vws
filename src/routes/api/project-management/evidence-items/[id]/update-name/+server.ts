@@ -21,7 +21,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
     // 증빙 항목 이름 업데이트
     const result = await query(
       `
-			UPDATE evidence_items 
+			UPDATE evidence_items
 			SET name = $1, updated_at = CURRENT_TIMESTAMP
 			WHERE id = $2
 			RETURNING id, name, assignee_name, due_date
@@ -48,7 +48,6 @@ export const PUT: RequestHandler = async ({ params, request }) => {
     const response: ApiResponse<null> = {
       success: false,
       error: '증빙 항목 이름 업데이트 중 오류가 발생했습니다.',
-      details: error instanceof Error ? error.message : 'Unknown error',
     }
     return json(response, { status: 500 })
   }

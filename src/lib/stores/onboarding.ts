@@ -254,11 +254,19 @@ export function createOnboardingProcess(
     const items = (template as Record<string, unknown>).checklistItems
     if (Array.isArray(items)) {
       checklistItems.push(
-        ...items.map((item: Record<string, unknown>) => ({
-          ...item,
-          id: `item-${Date.now()}-${Math.random()}`,
-          status: 'pending' as const,
-        })),
+        ...items.map(
+          (item: Record<string, unknown>) =>
+            ({
+              ...item,
+              id: `item-${Date.now()}-${Math.random()}`,
+              status: 'pending' as const,
+              title: (item.title as string) || '',
+              description: (item.description as string) || '',
+              category: (item.category as OnboardingChecklistItem['category']) || 'equipment',
+              assignedTo: (item.assignedTo as string) || '',
+              required: (item.required as boolean) || false,
+            }) as OnboardingChecklistItem,
+        ),
       )
     }
   }

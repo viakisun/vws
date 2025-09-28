@@ -71,8 +71,8 @@ export const GET: RequestHandler = async ({ url }) => {
 
     if (search) {
       conditions.push(`(
-				CONCAT(e.last_name, e.first_name) ILIKE $${paramIndex} OR 
-				e.employee_id ILIKE $${paramIndex} OR 
+				CONCAT(e.last_name, e.first_name) ILIKE $${paramIndex} OR
+				e.employee_id ILIKE $${paramIndex} OR
 				e.department ILIKE $${paramIndex} OR
 				e.position ILIKE $${paramIndex}
 			)`)
@@ -100,7 +100,7 @@ export const GET: RequestHandler = async ({ url }) => {
     // 급여 계약 목록 조회 (최적화된 쿼리)
     const result = await query<DatabaseSalaryContract>(
       `
-			SELECT 
+			SELECT
 				sc.id,
 				sc.employee_id,
 				sc.start_date,
@@ -226,8 +226,8 @@ export const POST: RequestHandler = async ({ request }) => {
           ? formatDateForDisplay(newContract.start_date, 'ISO')
           : null,
         endDate: newContract.end_date ? formatDateForDisplay(newContract.end_date, 'ISO') : null,
-        annualSalary: parseFloat(newContract.annual_salary),
-        monthlySalary: parseFloat(newContract.monthly_salary),
+        annualSalary: parseFloat(String(newContract.annual_salary || 0)) || 0,
+        monthlySalary: parseFloat(String(newContract.monthly_salary || 0)) || 0,
         contractType: newContract.contract_type,
         status: newContract.status,
         notes: newContract.notes,

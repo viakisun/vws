@@ -16,7 +16,9 @@
   const ob = $derived($overallBudget)
   const avgProgress = $derived(
     $projectsStore.length
-      ? Math.round($projectsStore.reduce((s, p) => s + p.progressPct, 0) / $projectsStore.length)
+      ? Math.round(
+          $projectsStore.reduce((s, p) => s + (p.progressPct || 0), 0) / $projectsStore.length,
+        )
       : 0,
   )
   const riskCounts = $derived({
@@ -67,20 +69,22 @@
         const start = p.startDate
         const due = p.dueDate
         const totalDays = Math.floor(
-          (new Date(due).getTime() - new Date(start).getTime()) / (1000 * 60 * 60 * 24),
+          (new Date(due || '').getTime() - new Date(start || '').getTime()) / (1000 * 60 * 60 * 24),
         )
         // 오늘이 시작 이전이면 0일 경과로 간주
-        const cappedToday = todayIso < start ? start : todayIso > due ? due : todayIso
+        const cappedToday =
+          todayIso < (start || '') ? start || '' : todayIso > (due || '') ? due || '' : todayIso
         const elapsedDays = Math.max(
           1,
           Math.floor(
-            (new Date(cappedToday).getTime() - new Date(start).getTime()) / (1000 * 60 * 60 * 24),
+            (new Date(cappedToday).getTime() - new Date(start || '').getTime()) /
+              (1000 * 60 * 60 * 24),
           ),
         )
-        const burn = p.spentKRW / Math.max(1, elapsedDays)
+        const burn = (p.spentKRW || 0) / Math.max(1, elapsedDays)
         const projected = burn * totalDays
-        totalBudget += p.budgetKRW
-        totalProjected += Math.min(projected, p.budgetKRW * 2) // clamp to avoid runaway
+        totalBudget += p.budgetKRW || 0
+        totalProjected += Math.min(projected, (p.budgetKRW || 0) * 2) // clamp to avoid runaway
       }
       const utilization = totalBudget > 0 ? totalProjected / totalBudget : 0
       return { totalBudget, totalProjected, utilization }
@@ -106,8 +110,8 @@
     (function () {
       return $projectsStore
         .map((p) => {
-          const expected = (p.progressPct / 100) * p.budgetKRW
-          const delta = p.spentKRW - expected
+          const expected = ((p.progressPct || 0) / 100) * (p.budgetKRW || 0)
+          const delta = (p.spentKRW || 0) - expected
           return { id: p.id, name: p.name, spent: p.spentKRW, expected, delta }
         })
         .sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta))
@@ -470,7 +474,7 @@
             <tr>
               <td class="px-3 py-2">{b.name}</td>
               <td class="px-3 py-2 tabular-nums">{b.expected.toLocaleString()}원</td>
-              <td class="px-3 py-2 tabular-nums">{b.spent.toLocaleString()}원</td>
+              <td class="px-3 py-2 tabular-nums">{(b.spent || 0).toLocaleString()}원</td>
               <td class="px-3 py-2 tabular-nums">{b.delta.toLocaleString()}원</td>
             </tr>
           {/each}

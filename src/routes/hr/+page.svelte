@@ -411,26 +411,12 @@
       .slice(0, 5)
   })
 
-  // 데이터 새로고침 함수들
-  async function fetchEmployees() {
-    await hrDashboardStore.fetchEmployees()
-  }
-
-  async function fetchDepartments() {
-    await hrDashboardStore.fetchDepartments()
-  }
-
-  async function fetchPositions() {
-    await hrDashboardStore.fetchPositions()
-  }
-
-  async function fetchExecutives() {
-    await hrDashboardStore.fetchExecutives()
-  }
-
-  async function fetchJobTitles() {
-    await hrDashboardStore.fetchJobTitles()
-  }
+  // 데이터 새로고침 함수들 - 스토어 메서드를 직접 사용
+  const fetchEmployees = () => hrDashboardStore.fetchEmployees()
+  const fetchDepartments = () => hrDashboardStore.fetchDepartments()
+  const fetchPositions = () => hrDashboardStore.fetchPositions()
+  const fetchExecutives = () => hrDashboardStore.fetchExecutives()
+  const fetchJobTitles = () => hrDashboardStore.fetchJobTitles()
 
   // 컴포넌트 마운트 시 데이터 로드
   $effect(() => {

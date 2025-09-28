@@ -31,7 +31,7 @@ export const GET: RequestHandler = async ({ url }) => {
 
     const result = await query<DatabaseEmployee>(
       `
-			SELECT 
+			SELECT
 				e.id, e.employee_id, e.first_name, e.last_name, e.email, e.phone,
 				e.department, e.position, e.salary, e.hire_date, e.birth_date, e.termination_date, e.status,
 				e.employment_type, e.job_title_id, e.created_at, e.updated_at,
@@ -147,8 +147,8 @@ export const POST: RequestHandler = async ({ request }) => {
     // employee_id 생성 (기존 4자리 숫자 규칙 유지)
     // 기존 숫자 사번 중 최대값을 찾아서 다음 사번 생성
     const countResult = await query<{ max_id: number }>(`
-			SELECT MAX(CAST(employee_id AS INTEGER)) as max_id 
-			FROM employees 
+			SELECT MAX(CAST(employee_id AS INTEGER)) as max_id
+			FROM employees
 			WHERE employee_id ~ '^[0-9]+$' AND LENGTH(employee_id) <= 4
 		`)
     const maxId = countResult.rows[0]?.max_id || 1000
@@ -189,7 +189,7 @@ export const POST: RequestHandler = async ({ request }) => {
         data.phone?.trim() || '',
         data.department?.trim() || '',
         data.position?.trim() || '',
-        parseFloat(data.salary) || 0,
+        parseFloat(String(data.salary || 0)) || 0,
         hireDate ? toUTC(hireDate).split('T')[0] : null,
         birthDate ? toUTC(birthDate).split('T')[0] : null,
         terminationDate ? toUTC(terminationDate).split('T')[0] : null,
@@ -359,7 +359,7 @@ export const PUT: RequestHandler = async ({ request }) => {
         data.phone?.trim() || '',
         data.department?.trim() || '',
         data.position?.trim() || '',
-        parseFloat(data.salary) || 0,
+        parseFloat(String(data.salary || 0)) || 0,
         hireDate ? toUTC(hireDate).split('T')[0] : null,
         birthDate ? toUTC(birthDate).split('T')[0] : null,
         terminationDate ? toUTC(terminationDate).split('T')[0] : null,

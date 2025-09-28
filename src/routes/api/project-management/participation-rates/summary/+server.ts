@@ -21,14 +21,14 @@ export const GET: RequestHandler = async () => {
   try {
     // 개인별 참여율 요약 조회
     const summaryResult = await query(`
-			SELECT 
+			SELECT
 				e.id as employee_id,
 				e.first_name || ' ' || e.last_name as employee_name,
 				e.department,
 				e.position,
 				COUNT(pr.project_id) as active_projects,
 				COALESCE(SUM(CASE WHEN pr.status = 'active' THEN pr.participation_rate ELSE 0 END), 0) as total_participation_rate,
-				CASE 
+				CASE
 					WHEN COALESCE(SUM(CASE WHEN pr.status = 'active' THEN pr.participation_rate ELSE 0 END), 0) > 100 THEN 'OVER_LIMIT'
 					WHEN COALESCE(SUM(CASE WHEN pr.status = 'active' THEN pr.participation_rate ELSE 0 END), 0) = 100 THEN 'FULL'
 					ELSE 'AVAILABLE'
@@ -43,7 +43,7 @@ export const GET: RequestHandler = async () => {
 
     // 각 직원의 프로젝트별 참여율 상세 정보
     const projectDetailsResult = await query(`
-			SELECT 
+			SELECT
 				pr.employee_id,
 				pr.project_id,
 				p.title as project_name,
@@ -81,8 +81,8 @@ export const GET: RequestHandler = async () => {
       employeeName: row.employee_name,
       department: row.department,
       position: row.position,
-      activeProjects: parseInt(row.active_projects),
-      totalParticipationRate: parseInt(row.total_participation_rate),
+      activeProjects: parseInt(String(row.active_projects)),
+      totalParticipationRate: parseInt(String(row.total_participation_rate)),
       participationStatus: row.participation_status,
       projects: projectDetailsMap.get(row.employee_id) || [],
     }))

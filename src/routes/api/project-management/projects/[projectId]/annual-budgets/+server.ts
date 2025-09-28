@@ -14,12 +14,12 @@ export const GET: RequestHandler = async ({ params }) => {
     // project_budgets 테이블에서 연차별 예산 조회 (연차별 예산용 칼럼 사용)
     const budgetResult = await query(
       `
-			SELECT 
+			SELECT
 				id, project_id, period_number, start_date, end_date,
 				government_funding_amount, company_cash_amount, company_in_kind_amount,
 				created_at, updated_at
-			FROM project_budgets 
-			WHERE project_id = $1 
+			FROM project_budgets
+			WHERE project_id = $1
 			ORDER BY period_number
 			`,
       [projectId],
@@ -29,9 +29,9 @@ export const GET: RequestHandler = async ({ params }) => {
     const budgetData: DatabaseProjectBudget[] = budgetResult.rows
     const budgets: AnnualBudget[] = budgetData.map((row) => {
       // 연차별 예산용 칼럼에서 직접 가져오기
-      const governmentFunding = parseFloat(row.government_funding_amount) || 0
-      const companyCash = parseFloat(row.company_cash_amount) || 0
-      const companyInKind = parseFloat(row.company_in_kind_amount) || 0
+      const governmentFunding = parseFloat(String(row.government_funding_amount || 0)) || 0
+      const companyCash = parseFloat(String(row.company_cash_amount || 0)) || 0
+      const companyInKind = parseFloat(String(row.company_in_kind_amount || 0)) || 0
 
       // 총 현금/현물 계산
       const totalCash = governmentFunding + companyCash // 정부지원금 + 기업부담금 현금
@@ -146,12 +146,12 @@ export const POST: RequestHandler = async ({ params, request }) => {
     // 생성된 데이터 조회
     const result = await query(
       `
-			SELECT 
+			SELECT
 				id, project_id, period_number, start_date, end_date,
 				government_funding_amount, company_cash_amount, company_in_kind_amount,
 				created_at, updated_at
-			FROM project_budgets 
-			WHERE project_id = $1 
+			FROM project_budgets
+			WHERE project_id = $1
 			ORDER BY period_number
 			`,
       [projectId],
@@ -160,9 +160,9 @@ export const POST: RequestHandler = async ({ params, request }) => {
     const createdBudgetData: DatabaseProjectBudget[] = result.rows
     const createdBudgets: AnnualBudget[] = createdBudgetData.map((row) => {
       // 연차별 예산용 칼럼에서 직접 가져오기
-      const governmentFunding = parseFloat(row.government_funding_amount) || 0
-      const companyCash = parseFloat(row.company_cash_amount) || 0
-      const companyInKind = parseFloat(row.company_in_kind_amount) || 0
+      const governmentFunding = parseFloat(String(row.government_funding_amount || 0)) || 0
+      const companyCash = parseFloat(String(row.company_cash_amount || 0)) || 0
+      const companyInKind = parseFloat(String(row.company_in_kind_amount || 0)) || 0
 
       // 총 현금/현물 계산
       const totalCash = governmentFunding + companyCash

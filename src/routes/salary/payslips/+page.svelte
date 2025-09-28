@@ -144,7 +144,7 @@
               class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="">전체 기간</option>
-              {#each periodOptions() as period, i (i)}
+              {#each periodOptions as period, i (i)}
                 <option value={period}>{period}</option>
               {/each}
             </select>
@@ -157,7 +157,7 @@
               class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="">전체 직원</option>
-              {#each employeeOptions() as employee, i (i)}
+              {#each employeeOptions as employee, i (i)}
                 <option value={employee.id}>{employee.name}</option>
               {/each}
             </select>
@@ -204,7 +204,7 @@
               </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
-              {#each filteredPayslips() as payroll, i (i)}
+              {#each filteredPayslips as payroll, i (i)}
                 <tr class="hover:bg-gray-50">
                   <td class="px-6 py-4 whitespace-nowrap">
                     <div class="flex items-center">
@@ -244,10 +244,10 @@
                   <td class="px-6 py-4 whitespace-nowrap">
                     <span
                       class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {getStatusColor(
-                        payroll.status,
+                        payroll.status || '',
                       )}"
                     >
-                      {getStatusLabel(payroll.status)}
+                      {getStatusLabel(payroll.status || '')}
                     </span>
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap">
@@ -260,7 +260,7 @@
         </div>
 
         <!-- 결과가 없을 때 -->
-        {#if filteredPayslips().length === 0}
+        {#if filteredPayslips.length === 0}
           <div class="text-center py-12">
             <FileTextIcon size={48} class="mx-auto text-gray-400" />
             <h3 class="mt-2 text-sm font-medium text-gray-900">급여명세서가 없습니다</h3>

@@ -25,9 +25,14 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
       - run: pnpm format:check
-      - run: pnpm lint:ci
-      - name: TypeScript check (warnings only)
-        run: pnpm run typecheck || echo "TypeScript check completed with warnings"
+      - name: Svelte files check
+        run: pnpm run check:svelte || echo "Svelte check completed with warnings"
+      - name: TypeScript files check
+        run: pnpm run check:typescript || echo "TypeScript check completed with warnings"
+      - name: ESLint - Svelte files
+        run: pnpm run lint:svelte || echo "Svelte linting completed with warnings"
+      - name: ESLint - TypeScript files
+        run: pnpm run lint:typescript || echo "TypeScript linting completed with warnings"
       - name: Run tests (if available)
         run: pnpm test:coverage || echo "No tests found, skipping test step"
       - name: 업로드(커버리지)

@@ -15,7 +15,7 @@
     title?: string
     maxWidth?: string
     onClose?: () => void
-    children?: () => unknown
+    children?: import('svelte').Snippet
   }>()
 
   function close() {

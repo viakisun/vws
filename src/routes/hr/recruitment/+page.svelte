@@ -259,7 +259,7 @@
 
     <!-- 채용 공고 목록 -->
     <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-      {#each filteredJobPostings() as jobPosting, i (keyOf(jobPosting, i))}
+      {#each filteredJobPostings as jobPosting, i (keyOf(jobPosting, i))}
         <Card>
           <div class="p-6">
             <div class="flex justify-between items-start mb-4">

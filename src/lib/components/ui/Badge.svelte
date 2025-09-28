@@ -8,7 +8,7 @@
     color?: 'gray' | 'green' | 'red' | 'yellow' | 'blue'
     variant?: 'primary' | 'secondary' | 'success' | 'warning' | 'danger'
     class?: string
-    children?: unknown
+    children?: import('svelte').Snippet
   }>()
 
   const colorClasses: Record<string, string> = {

@@ -415,7 +415,7 @@
             </div>
 
             <div class="space-y-4">
-              {#each filteredCustomers() as customer, i (keyOf(customer, i))}
+              {#each filteredCustomers as customer, i (keyOf(customer, i))}
                 <div
                   class="flex items-center justify-between p-4 rounded-lg border"
                   style:border-color="var(--color-border)"

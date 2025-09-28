@@ -18,7 +18,7 @@ export const GET: RequestHandler = async ({ url }) => {
     const department = searchParams.get('department')
 
     let sqlQuery = `
-			SELECT 
+			SELECT
 				pr.*,
 				e.first_name || ' ' || e.last_name as employee_name,
 				e.department,
@@ -115,6 +115,7 @@ export const PUT: RequestHandler = async ({ request }) => {
   try {
     const data = (await request.json()) as Record<string, unknown>
     const { employeeId, projectId, participationRate, changeReason, notes } = data
+    const rate = Number(participationRate) || 0
 
     // 필수 필드 검증
     if (!employeeId || !projectId || participationRate === undefined) {
@@ -126,7 +127,7 @@ export const PUT: RequestHandler = async ({ request }) => {
     }
 
     // 참여율 범위 검증
-    if (participationRate < 0 || participationRate > 100) {
+    if (rate < 0 || rate > 100) {
       const response: ApiResponse<null> = {
         success: false,
         message: '참여율은 0-100 사이의 값이어야 합니다.',
@@ -162,7 +163,7 @@ export const PUT: RequestHandler = async ({ request }) => {
       const updateResult = await query(
         `
 				UPDATE participation_rates
-				SET 
+				SET
 					participation_rate = $1,
 					updated_at = CURRENT_TIMESTAMP
 				WHERE id = $2

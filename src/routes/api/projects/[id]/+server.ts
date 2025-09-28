@@ -1,5 +1,6 @@
 import { DatabaseService } from '$lib/database/connection'
-import type { ApiResponse, DatabaseProject } from '$lib/types/database'
+import type { ApiResponse } from '$lib/types/database'
+import type { DatabaseProject } from '$lib/types/index'
 import { logger } from '$lib/utils/logger'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
@@ -39,7 +40,7 @@ export const GET: RequestHandler = async ({ params }) => {
 
     const response: ApiResponse<Project> = {
       success: true,
-      data: project as Project,
+      data: project as unknown as Project,
     }
 
     return json(response)
@@ -71,7 +72,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
 
     // Update project
     const result = await DatabaseService.query(
-      `UPDATE projects 
+      `UPDATE projects
 			 SET title = COALESCE($1, title),
 			     description = COALESCE($2, description),
 			     sponsor = COALESCE($3, sponsor),

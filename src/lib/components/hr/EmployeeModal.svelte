@@ -21,7 +21,21 @@
   }>()
 
   // 폼 데이터
-  let formData = $state<Partial<Employee>>({
+  let formData = $state<
+    Partial<Employee> & {
+      emergencyContact: {
+        name: string
+        relationship: string
+        phone: string
+      }
+      personalInfo: {
+        birthDate: string
+        gender: string
+        nationality: string
+        maritalStatus: string
+      }
+    }
+  >({
     employeeId: '',
     name: '',
     email: '',

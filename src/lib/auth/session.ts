@@ -63,7 +63,7 @@ export class SessionManager {
       const storedUser = window.localStorage.getItem('user_data')
 
       if (storedToken && storedUser) {
-        const user = JSON.parse(storedUser) as Record<string, unknown>
+        const user = JSON.parse(storedUser) as User
         this.sessionStore.update((session) => ({
           ...session,
           user,
@@ -214,7 +214,7 @@ export class SessionManager {
       const data = (await response.json()) as Record<string, unknown>
 
       if (response.ok && data.success) {
-        this.setSession(data.user as Record<string, unknown>, data.token as string)
+        this.setSession(data.user as User, data.token as string)
         return { success: true }
       } else {
         return { success: false, message: (data.message as string) || 'Login failed' }

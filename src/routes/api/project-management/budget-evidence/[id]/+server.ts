@@ -10,7 +10,7 @@ export const GET: RequestHandler = async ({ params }) => {
     const { id } = params
 
     const sqlQuery = `
-			SELECT 
+			SELECT
 				be.*,
 				et.name as evidence_type_name,
 				pb.period_number,
@@ -83,8 +83,8 @@ export const PUT: RequestHandler = async ({ params, request }) => {
 
     // 증빙 내역 수정
     const updateQuery = `
-			UPDATE budget_evidence 
-			SET 
+			UPDATE budget_evidence
+			SET
 				evidence_type = COALESCE($2, evidence_type),
 				title = COALESCE($3, title),
 				description = COALESCE($4, description),
@@ -104,7 +104,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
       evidenceType,
       title,
       description,
-      amount ? parseFloat(amount) : null,
+      amount ? parseFloat(String(amount)) : null,
       evidenceDate,
       filePath,
       fileName,

@@ -30,11 +30,11 @@
       </div>
       <div>
         <div class="text-caption">예산</div>
-        <div class="font-semibold">{formatKRW(project.budgetKRW)}</div>
+        <div class="font-semibold">{formatKRW(project.budgetKRW || 0)}</div>
       </div>
       <div>
         <div class="text-caption">집행</div>
-        <div class="font-semibold">{formatKRW(project.spentKRW)}</div>
+        <div class="font-semibold">{formatKRW(project.spentKRW || 0)}</div>
       </div>
       <div>
         <div class="text-caption">기간</div>

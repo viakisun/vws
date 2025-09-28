@@ -267,11 +267,11 @@
       return
     }
 
-    // endDate가 빈 문자열인 경우 null로 변환하고, 날짜를 한국시간으로 처리
+    // endDate가 빈 문자열인 경우 undefined로 변환하고, 날짜를 한국시간으로 처리
     const submitData = {
       ...formData,
       startDate: formData.startDate + 'T00:00:00+09:00',
-      endDate: formData.endDate === '' ? null : formData.endDate + 'T00:00:00+09:00',
+      endDate: formData.endDate === '' ? undefined : formData.endDate + 'T00:00:00+09:00',
     }
 
     let success = false
@@ -579,7 +579,7 @@
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
                   <div class="text-sm text-gray-900">
-                    {formatDate(contract.startDate)} ~ {contract.endDate
+                    {formatDate(contract.startDate || '')} ~ {contract.endDate
                       ? formatDate(contract.endDate)
                       : '무기한'}
                   </div>
@@ -593,13 +593,13 @@
                   </div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                  <ThemeBadge class={getContractTypeColor(contract.contractType)}>
-                    {getContractTypeLabel(contract.contractType)}
+                  <ThemeBadge class={getContractTypeColor(contract.contractType!)}>
+                    {getContractTypeLabel(contract.contractType!)}
                   </ThemeBadge>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                  <ThemeBadge class={getStatusColor(contract.status)}>
-                    {getStatusLabel(contract.status)}
+                  <ThemeBadge class={getStatusColor(contract.status!)}>
+                    {getStatusLabel(contract.status!)}
                   </ThemeBadge>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">

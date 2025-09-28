@@ -127,7 +127,7 @@
       fullName = formatEmployeeName(employee)
 
       logger.log('Form data set:', formData)
-      logger.log('Filtered positions:', filteredPositions())
+      logger.log('Filtered positions:', filteredPositions)
     } else {
       // 새 직원 추가 시 기본값으로 리셋
       formData.first_name = ''
@@ -390,19 +390,19 @@
             style:color="var(--color-text)"
           >
             <option value="">직급을 선택하세요</option>
-            {#each filteredPositions() as pos, idx (idx)}
+            {#each filteredPositions as pos, idx (idx)}
               <!-- TODO: replace index key with a stable id when model provides one -->
               <option value={pos.name}>{pos.name} ({pos.department})</option>
             {/each}
           </select>
           <!-- 디버깅 정보 -->
-          {#if filteredPositions().length === 0}
+          {#if filteredPositions.length === 0}
             <p class="text-xs text-red-500 mt-1">
               직급 데이터가 없습니다. positions: {positions.length}개
             </p>
           {:else}
             <p class="text-xs text-green-500 mt-1">
-              직급 {filteredPositions().length}개 로드됨
+              직급 {filteredPositions.length}개 로드됨
             </p>
           {/if}
         </div>

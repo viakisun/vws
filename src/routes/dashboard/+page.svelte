@@ -37,9 +37,10 @@
     },
     {
       label: '평균 진행률',
-      value: `${Math.round($projectsStore.reduce((s, p) => s + p.progressPct, 0) / Math.max($projectsStore.length, 1))}%`,
+      value: `${Math.round($projectsStore.reduce((s, p) => s + (p.progressPct || 0), 0) / Math.max($projectsStore.length, 1))}%`,
       numeric:
-        $projectsStore.reduce((s, p) => s + p.progressPct, 0) / Math.max($projectsStore.length, 1),
+        $projectsStore.reduce((s, p) => s + (p.progressPct || 0), 0) /
+        Math.max($projectsStore.length, 1),
       icon: TrendingUpIcon,
     },
     {
@@ -55,7 +56,7 @@
     allProjects.filter(
       (p) =>
         (statusFilter ? p.status === statusFilter : true) &&
-        (query ? p.name.toLowerCase().includes(query.toLowerCase()) : true),
+        (query ? (p.name || '').toLowerCase().includes(query.toLowerCase()) : true),
     ),
   )
   const selected = $derived(allProjects.find((p) => p.id === selectedId))
@@ -137,8 +138,8 @@
             <Progress value={p.progressPct} />
           </div>
           <div class="hidden sm:block text-sm text-right">
-            <div>예산 {formatKRW(p.budgetKRW)}</div>
-            <div class="text-caption">집행 {formatKRW(p.spentKRW)}</div>
+            <div>예산 {formatKRW(p.budgetKRW || 0)}</div>
+            <div class="text-caption">집행 {formatKRW(p.spentKRW || 0)}</div>
           </div>
           <Badge color={getProjectStatusColor(p.status)}>{p.status}</Badge>
         </button>
@@ -173,11 +174,11 @@
         <div class="grid grid-cols-2 gap-4 text-sm">
           <div>
             <div class="text-caption">예산</div>
-            <div class="font-semibold">{formatKRW(selected.budgetKRW)}</div>
+            <div class="font-semibold">{formatKRW(selected.budgetKRW || 0)}</div>
           </div>
           <div>
             <div class="text-caption">집행</div>
-            <div class="font-semibold">{formatKRW(selected.spentKRW)}</div>
+            <div class="font-semibold">{formatKRW(selected.spentKRW || 0)}</div>
           </div>
           <div>
             <div class="text-caption">기간</div>
@@ -192,11 +193,11 @@
         </div>
         <div>
           <div class="text-caption mb-1">리스크</div>
-          {#if selected.risks.length === 0}
+          {#if (selected.risks || []).length === 0}
             <div class="text-sm text-gray-500">등록된 리스크 없음</div>
           {:else}
             <ul class="list-disc pl-5 text-sm space-y-1">
-              {#each selected.risks as r, i (i)}
+              {#each selected.risks || [] as r, i (i)}
                 <li>
                   <span class="font-medium">[{r.severity}]</span>
                   {r.description}

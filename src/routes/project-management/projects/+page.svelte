@@ -7,7 +7,9 @@
   import { getProjectStatusColor } from '$lib/utils/project-status'
   let query = $state('')
   const projects = $derived(
-    $projectsStore.filter((p) => (query ? p.name.includes(query) || p.id.includes(query) : true)),
+    $projectsStore.filter((p) =>
+      query ? (p.name || '').includes(query) || (p.id || '').includes(query) : true,
+    ),
   )
 </script>
 
@@ -34,10 +36,10 @@
           <div class="text-caption">{p.id}</div>
         </div>
         <div class="hidden sm:block text-sm text-right">
-          <div>예산 {formatKRW(p.budgetKRW)}</div>
-          <div class="text-caption">집행 {formatKRW(p.spentKRW)}</div>
+          <div>예산 {formatKRW(p.budgetKRW || 0)}</div>
+          <div class="text-caption">집행 {formatKRW(p.spentKRW || 0)}</div>
         </div>
-        <div class="w-48"><Progress value={p.progressPct} /></div>
+        <div class="w-48"><Progress value={p.progressPct || 0} /></div>
         <Badge color={getProjectStatusColor(p.status)}>{p.status}</Badge>
       </a>
     </Card>

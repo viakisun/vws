@@ -13,9 +13,9 @@ export interface DatabaseEmployee {
   department?: string
   position?: string
   salary?: number
-  hire_date?: string
-  birth_date?: string
-  termination_date?: string
+  hire_date?: string | null
+  birth_date?: string | null
+  termination_date?: string | null
   status: string
   employment_type?: string
   job_title_id?: string
