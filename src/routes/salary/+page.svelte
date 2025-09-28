@@ -1,21 +1,19 @@
 <script lang="ts">
-  import { page } from '$app/stores'
   import { goto } from '$app/navigation'
+  import { page } from '$app/state'
   import PageLayout from '$lib/components/layout/PageLayout.svelte'
-  import ThemeTabs from '$lib/components/ui/ThemeTabs.svelte'
-  import ThemeSpacer from '$lib/components/ui/ThemeSpacer.svelte'
-  import SalaryDashboard from '$lib/components/salary/SalaryDashboard.svelte'
-  import SalaryContracts from '$lib/components/salary/SalaryContracts.svelte'
-  import SalaryHistory from '$lib/components/salary/SalaryHistory.svelte'
   import PayslipGenerator from '$lib/components/salary/PayslipGenerator.svelte'
   import PayslipUploader from '$lib/components/salary/PayslipUploader.svelte'
-  import { DollarSignIcon, UsersIcon, FileTextIcon, CheckCircleIcon } from '@lucide/svelte'
-  import { onMount } from 'svelte'
+  import SalaryContracts from '$lib/components/salary/SalaryContracts.svelte'
+  import SalaryDashboard from '$lib/components/salary/SalaryDashboard.svelte'
+  import ThemeSpacer from '$lib/components/ui/ThemeSpacer.svelte'
+  import ThemeTabs from '$lib/components/ui/ThemeTabs.svelte'
   import { loadContracts, loadContractStats } from '$lib/stores/salary/contract-store'
   import { loadPayslips } from '$lib/stores/salary/salary-store'
   import { formatCurrency } from '$lib/utils/format'
-  import { BarChartIcon, ClockIcon, PrinterIcon } from '@lucide/svelte'
   import { logger } from '$lib/utils/logger'
+  import { BarChartIcon, CheckCircleIcon, DollarSignIcon, FileTextIcon, PrinterIcon, UsersIcon } from '@lucide/svelte'
+  import { onMount } from 'svelte'
 
   // 탭 정의
   const tabs = [
@@ -30,11 +28,6 @@
       icon: FileTextIcon,
     },
     {
-      id: 'history',
-      label: '급여 이력',
-      icon: ClockIcon,
-    },
-    {
       id: 'payslips',
       label: '급여명세서',
       icon: PrinterIcon,
@@ -46,7 +39,8 @@
 
   // 페이지 마운트 후 URL 파라미터 처리
   onMount(() => {
-    activeTab = $page?.url?.searchParams?.get('tab') || 'overview'
+    activeTab = page.url.searchParams.get('tab') || 'overview'
+    updateData()
   })
   let mounted = $state(false)
 
@@ -57,7 +51,7 @@
   function handleTabChange(tabId: string) {
     activeTab = tabId
     // URL 파라미터 업데이트
-    const url = new URL($page.url)
+    const url = new URL(page.url)
     url.searchParams.set('tab', tabId)
     goto(url.toString(), { replaceState: true })
   }
@@ -116,7 +110,7 @@
     }
   }
 
-  $effect(() => {
+  function updateData() {
     if (!mounted) {
       mounted = true
       // 기본 데이터 로드
@@ -124,10 +118,10 @@
       loadContractStats()
       loadSalaryStats()
     }
-  })
+  }
 
   // 탭 변경 시 데이터 로드
-  $effect(() => {
+  function loadTabContent() {
     if (!mounted) return
 
     const currentTab = activeTab
@@ -137,14 +131,12 @@
       case 'contracts':
         loadContracts()
         break
-      case 'history':
-        loadPayslips() // 급여 이력 탭에서는 payslips 로드
-        break
       case 'payslips':
         // 급여명세서 탭은 별도 데이터 로드 불필요
         break
     }
-  })
+  
+}
 </script>
 
 <svelte:head>
@@ -177,11 +169,6 @@
         <!-- 급여 계약 탭 -->
         <ThemeSpacer size={6}>
           <SalaryContracts />
-        </ThemeSpacer>
-      {:else if tab.id === 'history'}
-        <!-- 급여 이력 탭 -->
-        <ThemeSpacer size={6}>
-          <SalaryHistory />
         </ThemeSpacer>
       {:else if tab.id === 'payslips'}
         <!-- 급여명세서 탭 -->

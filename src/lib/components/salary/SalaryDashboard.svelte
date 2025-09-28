@@ -1,29 +1,34 @@
 <script lang="ts">
   import {
-    salaryStatistics,
-    departmentSalaryStats,
-    loadPayslips,
-    error,
+      departmentSalaryStats,
+      error,
+      loadPayslips,
+      salaryStatistics,
   } from '$lib/stores/salary/salary-store'
   import { formatCurrency, formatPercentage } from '$lib/utils/format'
   import {
-    AlertCircleIcon,
-    ClockIcon,
-    FileTextIcon,
-    CheckCircleIcon,
-    DollarSignIcon,
+      AlertCircleIcon,
+      CheckCircleIcon,
+      ClockIcon,
+      DollarSignIcon,
+      FileTextIcon,
   } from '@lucide/svelte'
+  import { onMount } from 'svelte'
 
   let mounted = $state(false)
 
-  $effect(() => {
+  onMount(() => {
+    updateData()
+  })
+
+  function updateData() {
     if (!mounted) {
       mounted = true
       void (async () => {
         await loadPayslips()
       })()
     }
-  })
+  }
 
   // 상태별 색상 반환
   function getStatusColor(status: string): string {
@@ -66,6 +71,12 @@
     if (previous === 0) return current > 0 ? 100 : 0
     return ((current - previous) / previous) * 100
   }
+
+
+  // 컴포넌트 마운트 시 초기화
+  onMount(() => {
+    // 초기화 함수들 호출
+  })
 </script>
 
 <div class="space-y-6">

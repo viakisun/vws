@@ -2,13 +2,15 @@
   import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
   import { formatCurrency, formatNumber } from '$lib/utils/format'
   import {
-    AlertCircleIcon,
-    EditIcon,
-    PlusIcon,
-    PrinterIcon,
-    SaveIcon,
-    UserIcon,
+      AlertCircleIcon,
+      EditIcon,
+      PlusIcon,
+      PrinterIcon,
+      SaveIcon,
+      UserIcon,
   } from '@lucide/svelte'
+  import { onMount } from 'svelte'
+  import { sortKoreanNames, formatKoreanNameStandard } from '$lib/utils/korean-name'
 
   // Local types for this component
   type Employee = {
@@ -69,14 +71,24 @@
   let { payroll = undefined }: { payroll?: PayslipData } = $props()
 
   let employeeList = $state<Employee[]>([])
+  let allEmployees = $state<Employee[]>([]) // 전체 직원 목록
   let selectedEmployeeId = $state('')
   let selectedYear = $state(new Date().getFullYear())
+  let showOnlyActive = $state(true) // 재직중인 직원만 표시
   let payslipData = $state<PayslipData[]>([])
   let isLoadingPayslipData = $state(false)
   let editingMonth = $state<number | null>(null)
   let editingPayslip = $state<PayslipData | null>(null)
   let employeeContract = $state<any>(null)
   let isLoadingContract = $state(false)
+
+  // 직원 선택 시 자동으로 데이터 로드
+  $effect(() => {
+    if (selectedEmployeeId) {
+      loadEmployeeContract(selectedEmployeeId, selectedYear)
+      loadPayslipData()
+    }
+  })
 
   // 급여명세서 데이터 로드 (월별)
   async function loadPayslipData() {
@@ -88,7 +100,7 @@
     isLoadingPayslipData = true
     try {
       const response = await fetch(
-        `/api/salary/payslips/employee/${selectedEmployeeId}?year=${selectedYear}`,
+        `/api/salary/payslips?employeeId=${selectedEmployeeId}&year=${selectedYear}`,
       )
       const result = await response.json()
 
@@ -179,23 +191,62 @@
   // 직원 목록 로드
   async function loadEmployeeList() {
     try {
-      const response = await fetch('/api/employees')
+      console.log('HR API 호출 시작...')
+      const response = await fetch('/api/hr/employees')
+      console.log('응답 상태:', response.status, response.statusText)
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+      }
+      
       const result = await response.json()
-      if (result.success) {
-        employeeList = result.data.map((emp: any) => ({
-          id: emp.id,
-          employeeId: emp.employee_id,
-          name: `${emp.last_name}${emp.first_name} (${emp.position})`,
-          department: emp.department || '부서없음',
-          position: emp.position,
-          hireDate: emp.hire_date,
-        }))
+      console.log('HR API 응답:', result)
+      
+      if (result.success && result.data && result.data.data && Array.isArray(result.data.data)) {
+        console.log('HR API 응답:', result)
+        
+        // 전체 직원 목록 저장 (한국 이름 순으로 정렬)
+        allEmployees = result.data.data
+          .map((emp: any) => ({
+            id: emp.id,
+            employeeId: emp.employeeId,
+            name: formatKoreanNameStandard(emp.name), // "성+이름" 형식으로 변환
+            department: emp.department || '부서없음',
+            position: emp.position,
+            hireDate: emp.hireDate,
+            status: emp.status,
+          }))
+          .sort((a: any, b: any) => sortKoreanNames(a.name, b.name))
+        
+        // 필터링된 직원 목록 업데이트
+        updateEmployeeList()
+        console.log('전체 직원 목록 로드됨:', allEmployees.length, '명')
+        console.log('표시할 직원 목록:', employeeList.length, '명')
+      } else {
+        console.error('HR API 실패 또는 데이터 형식 오류:', result)
+        allEmployees = []
+        employeeList = []
       }
     } catch (error) {
       console.error('직원 목록 로드 실패:', error)
       employeeList = []
       alert('직원 목록을 불러올 수 없습니다. 데이터베이스 연결을 확인하세요.')
     }
+  }
+
+  // 직원 목록 필터링 함수
+  function updateEmployeeList() {
+    if (showOnlyActive) {
+      employeeList = allEmployees.filter(emp => emp.status === 'active')
+    } else {
+      employeeList = allEmployees
+    }
+  }
+
+  // 재직중인 직원만 표시 토글
+  function toggleActiveFilter() {
+    showOnlyActive = !showOnlyActive
+    updateEmployeeList()
   }
 
   // 직원의 급여 계약 정보 로드 (특정 기간 내 유효한 계약)
@@ -208,10 +259,7 @@
     isLoadingContract = true
     try {
       // 해당 기간에 유효한 계약 정보를 가져오기 위한 API 호출
-      const targetDate = year && month ? `${year}-${String(month).padStart(2, '0')}-01` : undefined
-      const url = targetDate
-        ? `/api/salary/contracts/employee/${employeeId}?date=${targetDate}`
-        : `/api/salary/contracts/employee/${employeeId}`
+      const url = `/api/salary/contracts?employeeId=${employeeId}`
 
       const response = await fetch(url)
       const result = await response.json()
@@ -219,15 +267,30 @@
       console.log('API 응답 전체:', result)
       console.log('API URL:', url)
 
-      if (result.success && result.data?.currentContract) {
-        employeeContract = result.data.currentContract
-        console.log(`계약 정보 로드 성공 (${targetDate || '현재'}):`, employeeContract)
-        console.log('계약 월급:', employeeContract.monthlySalary)
-        console.log('계약 연봉:', employeeContract.annualSalary)
-        console.log('모든 필드:', Object.keys(employeeContract))
+      if (result.success && result.data?.data && Array.isArray(result.data.data) && result.data.data.length > 0) {
+        console.log('계약 데이터 배열:', result.data.data)
+        
+        // 현재 활성 계약 찾기 (endDate가 비어있거나 미래인 것)
+        const currentContract = result.data.data.find((contract: any) => 
+          contract.status === 'active' && (!contract.endDate || new Date(contract.endDate) > new Date())
+        )
+        
+        if (currentContract) {
+          employeeContract = currentContract
+          console.log(`계약 정보 로드 성공:`, employeeContract)
+          console.log('계약 시작일:', employeeContract.startDate)
+          console.log('계약 종료일:', employeeContract.endDate)
+          console.log('계약 상태:', employeeContract.status)
+          console.log('계약 월급:', employeeContract.monthlySalary)
+          console.log('계약 연봉:', employeeContract.annualSalary)
+        } else {
+          employeeContract = null
+          console.log('활성 계약 정보를 찾을 수 없습니다.')
+          console.log('전체 계약 데이터:', result.data.data)
+        }
       } else {
         employeeContract = null
-        console.log('해당 기간의 계약 정보를 찾을 수 없습니다.')
+        console.log('해당 직원의 계약 정보를 찾을 수 없습니다.')
         console.log('API 응답:', result)
       }
     } catch (error) {
@@ -657,30 +720,53 @@
 
   // 특정 월이 계약 기간 내에 있는지 확인
   function isWithinContractPeriod(year: number, month: number) {
-    if (!employeeContract) return true // 계약 정보가 없으면 허용
+    if (!employeeContract) {
+      console.log('계약 정보가 없어서 계약 기간 확인 불가:', { year, month })
+      return true // 계약 정보가 없으면 허용
+    }
 
     const contractStartDate = new Date(employeeContract.startDate)
     const contractEndDate = employeeContract.endDate ? new Date(employeeContract.endDate) : null
+    
+    // 해당 월의 첫째 날과 마지막 날을 모두 고려
+    const monthStartDate = new Date(year, month - 1, 1) // 해당 월의 첫째 날
+    const monthEndDate = new Date(year, month, 0) // 해당 월의 마지막 날
 
-    const targetDate = new Date(year, month - 1, 1) // month는 1-12이므로 0-11로 변환
+    console.log('계약 기간 확인:', {
+      year,
+      month,
+      monthStartDate: monthStartDate.toISOString(),
+      monthEndDate: monthEndDate.toISOString(),
+      contractStartDate: contractStartDate.toISOString(),
+      contractEndDate: contractEndDate?.toISOString() || '없음',
+      employeeContract: employeeContract
+    })
 
-    // 계약 시작일 이전이면 false
-    if (targetDate < contractStartDate) return false
+    // 해당 월이 계약 시작일 이전이면 false (월의 마지막 날이 계약 시작일보다 이전)
+    if (monthEndDate < contractStartDate) {
+      console.log('계약 시작일 이전:', monthEndDate.toISOString(), '<', contractStartDate.toISOString())
+      return false
+    }
 
-    // 계약 종료일이 있고 그 이후면 false
-    if (contractEndDate && targetDate > contractEndDate) return false
+    // 계약 종료일이 있고 해당 월이 그 이후면 false (월의 첫째 날이 계약 종료일보다 이후)
+    if (contractEndDate && monthStartDate > contractEndDate) {
+      console.log('계약 종료일 이후:', monthStartDate.toISOString(), '>', contractEndDate.toISOString())
+      return false
+    }
 
+    console.log('계약 기간 내:', `${year}년 ${month}월`)
     return true
   }
 
-  $effect(() => {
+  function syncData() {
     void (async () => {
       await loadEmployeeList()
     })()
-  })
+  }
 
   // selectedEmployeeId나 selectedYear가 변경될 때마다 급여명세서 데이터 로드
-  $effect(() => {
+  function updateData() {
+
     if (selectedEmployeeId) {
       // 기본적으로 현재 날짜 기준 계약 정보 로드
       loadEmployeeContract(selectedEmployeeId)
@@ -689,6 +775,13 @@
       payslipData = [] as any
       employeeContract = null
     }
+  
+}
+
+
+  // 컴포넌트 마운트 시 초기화
+  onMount(() => {
+    loadEmployeeList()
   })
 </script>
 
@@ -708,7 +801,7 @@
         >
           <option value="">직원을 선택하세요</option>
           {#each employeeList as employee, i (i)}
-            <option value={employee.id}>{employee.name}</option>
+            <option value={employee.id}>{employee.name} ({employee.position})</option>
           {/each}
         </select>
       </div>
@@ -723,6 +816,17 @@
             <option value={year}>{year}년</option>
           {/each}
         </select>
+      </div>
+      <div class="flex items-center">
+        <label class="flex items-center space-x-2 text-sm text-gray-700">
+          <input
+            type="checkbox"
+            bind:checked={showOnlyActive}
+            onchange={toggleActiveFilter}
+            class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+          />
+          <span>재직중인 직원만</span>
+        </label>
       </div>
     </div>
 

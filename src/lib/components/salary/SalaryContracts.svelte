@@ -8,16 +8,21 @@
   import type { CreateSalaryContractRequest, SalaryContract } from '$lib/types/salary-contracts'
   import { formatCurrency, formatDate, formatDateForInput } from '$lib/utils/format'
   import {
-    CalendarIcon,
-    DollarSignIcon,
-    FileTextIcon,
-    FilterIcon,
-    PencilIcon,
-    PlusIcon,
-    SearchIcon,
-    TrashIcon,
-    UserIcon,
+      CalendarIcon,
+      DollarSignIcon,
+      FileTextIcon,
+      FilterIcon,
+      PencilIcon,
+      PlusIcon,
+      SearchIcon,
+      TrashIcon,
+      UserIcon,
   } from '@lucide/svelte'
+  import { onMount } from 'svelte'
+
+  onMount(() => {
+    updateData()
+  })
 
   // Local types for this component
   type Employee = {
@@ -107,7 +112,7 @@
     })(),
   )
 
-  $effect(() => {
+  function updateData() {
     if (!mounted) {
       mounted = true
       void (async () => {
@@ -134,7 +139,7 @@
         }
       })()
     }
-  })
+  }
 
   // 직원 목록 로드
   async function loadEmployees() {
@@ -354,6 +359,12 @@
       formData.annualSalary = formData.monthlySalary * 12
     }
   }
+
+
+  // 컴포넌트 마운트 시 초기화
+  onMount(() => {
+    // 초기화 함수들 호출
+  })
 </script>
 
 <div class="space-y-6">
