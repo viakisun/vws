@@ -10,6 +10,7 @@
   import PayslipGenerator from '$lib/components/salary/PayslipGenerator.svelte'
   import PayslipUploader from '$lib/components/salary/PayslipUploader.svelte'
   import { DollarSignIcon, UsersIcon, FileTextIcon, CheckCircleIcon } from '@lucide/svelte'
+  import { onMount } from 'svelte'
   import { loadContracts, loadContractStats } from '$lib/stores/salary/contract-store'
   import { loadPayslips } from '$lib/stores/salary/salary-store'
   import { formatCurrency } from '$lib/utils/format'
@@ -41,7 +42,12 @@
   ]
 
   // URL 파라미터에서 탭 상태 가져오기
-  let activeTab = $state($page.url.searchParams.get('tab') || 'overview')
+  let activeTab = $state('overview')
+
+  // 페이지 마운트 후 URL 파라미터 처리
+  onMount(() => {
+    activeTab = $page?.url?.searchParams?.get('tab') || 'overview'
+  })
   let mounted = $state(false)
 
   // 급여 통계 데이터

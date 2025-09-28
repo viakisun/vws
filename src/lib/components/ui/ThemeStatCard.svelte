@@ -133,6 +133,7 @@
             color
           ].bg} dark:{colorClasses[color].dark.bg}"
         >
+          <!-- Lucide 아이콘 컴포넌트인 경우 -->
           <IconComponent
             class="h-6 w-6 {colorClasses[color].text} dark:{colorClasses[color].dark.text}"
           />

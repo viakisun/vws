@@ -76,11 +76,11 @@ export function validateSnakeCaseField(fieldName: string): boolean {
 
 // 필드명 변환 함수들
 export function toCamelCase(str: string): string {
-  return str.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase())
+  return str.replace(/_([a-z])/g, (_, letter: string) => letter.toUpperCase())
 }
 
 export function toSnakeCase(str: string): string {
-  return str.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`)
+  return str.replace(/[A-Z]/g, (letter: string) => `_${letter.toLowerCase()}`)
 }
 
 // 필드명 규칙 위반 시 에러를 던지는 함수

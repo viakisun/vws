@@ -70,7 +70,7 @@
     <!-- Navigation -->
     <nav class="flex-1 px-3 py-4 space-y-1">
       {#each navigationItems as item (item.name)}
-        {@const currentPath = $page.url.pathname}
+        {@const currentPath = $page?.url?.pathname || ''}
         {@const isCurrent =
           (item.href === '/' && currentPath === '/') ||
           (item.href !== '/' && currentPath.startsWith(item.href))}

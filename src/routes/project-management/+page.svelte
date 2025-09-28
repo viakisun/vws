@@ -70,7 +70,12 @@
   ]
 
   // URL 파라미터에서 활성 탭 관리
-  let activeTab = $state($page.url.searchParams.get('tab') || 'overview')
+  let activeTab = $state('overview')
+
+  // 페이지 마운트 후 URL 파라미터 처리
+  onMount(() => {
+    activeTab = $page?.url?.searchParams?.get('tab') || 'overview'
+  })
 
   // 상태 변수들
   let mounted = $state(false)

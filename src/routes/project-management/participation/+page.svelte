@@ -35,8 +35,14 @@
   import { onMount } from 'svelte'
 
   // URL 파라미터에서 정렬 옵션 가져오기
-  let sortOrder = $derived($page.url.searchParams.get('sort') || 'desc')
-  let sortBy = $derived($page.url.searchParams.get('sortBy') || 'participationRate')
+  let sortOrder = $state('desc')
+  let sortBy = $state('participationRate')
+
+  // 페이지 마운트 후 URL 파라미터 처리
+  onMount(() => {
+    sortOrder = $page?.url?.searchParams?.get('sort') || 'desc'
+    sortBy = $page?.url?.searchParams?.get('sortBy') || 'participationRate'
+  })
 
   // 상태 관리
   let searchTerm = $state('')

@@ -20,6 +20,7 @@
   >
     <div class="text-center">
       {#if icon}
+        <!-- Lucide 아이콘 컴포넌트인 경우 -->
         <icon class="w-8 h-8 mx-auto mb-2" style:color="var(--color-primary)"></icon>
       {/if}
       <span class="text-sm" style:color="var(--color-text-secondary)">차트 영역</span>

@@ -3,6 +3,7 @@
   import ThemeGrid from '$lib/components/ui/ThemeGrid.svelte'
   import { hrDashboardStore } from '$lib/stores/hr/hr-dashboard-store.svelte'
   import { jobPostings } from '$lib/stores/recruitment'
+  import { UsersIcon, UserIcon } from '@lucide/svelte'
 
   // 통계 데이터 - $derived로 반응형 배열 생성
   let stats = $derived([
@@ -11,14 +12,14 @@
       value: `${hrDashboardStore.totalEmployees}`,
       change: '+5%',
       changeType: 'positive' as const,
-      icon: '👥',
+      icon: UsersIcon,
     },
     {
       title: '진행중인 채용',
       value: `${$jobPostings.filter((job) => job.status === 'published').length}`,
       change: '+2',
       changeType: 'positive' as const,
-      icon: '👤',
+      icon: UserIcon,
     },
   ])
 </script>

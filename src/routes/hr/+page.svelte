@@ -185,9 +185,12 @@
 
   // URL ↔ 탭 동기화
   $effect(() => {
-    const q = $page.url.searchParams.get('tab')
-    const next = q && TAB_IDS.has(q as TabId) ? (q as TabId) : 'overview'
-    if (next !== activeTab) activeTab = next
+    // 페이지가 마운트된 후에만 URL 파라미터 처리
+    if (typeof window !== 'undefined') {
+      const q = $page?.url?.searchParams?.get('tab')
+      const next = q && TAB_IDS.has(q as TabId) ? (q as TabId) : 'overview'
+      if (next !== activeTab) activeTab = next
+    }
   })
 
   // 업로드 관련 상태
