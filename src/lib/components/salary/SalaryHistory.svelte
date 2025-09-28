@@ -3,7 +3,6 @@
   import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
   import ThemeCard from '$lib/components/ui/ThemeCard.svelte'
   import ThemeSectionHeader from '$lib/components/ui/ThemeSectionHeader.svelte'
-  import { error, isLoading, loadPayslips, payslips } from '$lib/stores/salary/salary-store'
   import { formatCurrency, formatDate } from '$lib/utils/format'
 
   // Minimal type for payroll data
@@ -34,15 +33,48 @@
   // 직원 목록
   let employees = $state<any[]>([])
 
+  // 급여 데이터
+  let payslipData = $state<PayrollData[]>([])
+  let isLoadingData = $state(false)
+  let dataError = $state<string | null>(null)
+
   $effect(() => {
     void (async () => {
       if (!mounted) {
         mounted = true
-        await loadPayslips() // 모든 급여명세서 데이터 로드
+        await loadPayslipData() // 직접 API 호출로 데이터 로드
         await loadEmployees()
       }
     })()
   })
+
+  // 급여 데이터 직접 로드
+  async function loadPayslipData() {
+    isLoadingData = true
+    dataError = null
+
+    try {
+      const response = await fetch('/api/salary/payslips')
+      const result = await response.json()
+
+      if (result.success && result.data) {
+        payslipData = result.data.map((payslip: any) => ({
+          ...payslip,
+          grossSalary: payslip.totalPayments || payslip.grossSalary || 0,
+          annualSalary: (payslip.totalPayments || payslip.grossSalary || 0) * 12,
+          startDate: payslip.hireDate || payslip.startDate,
+        }))
+      } else {
+        dataError = result.error || '급여 데이터를 불러오는데 실패했습니다.'
+        payslipData = []
+      }
+    } catch (_error) {
+      dataError = '알 수 없는 오류가 발생했습니다.'
+      payslipData = []
+    } finally {
+      isLoadingData = false
+    }
+  }
 
   // 직원 목록 로드
   async function loadEmployees() {
@@ -68,15 +100,7 @@
 
   // 필터링된 급여명세서 데이터 목록 (로컬 필터)
   const localFilteredPayslips = $derived((): PayrollData[] => {
-    let filtered = $payslips as unknown as PayrollData[]
-
-    // API 데이터를 컴포넌트에서 기대하는 형태로 변환
-    filtered = filtered.map((payroll) => ({
-      ...payroll,
-      grossSalary: payroll.totalPayments || payroll.grossSalary || 0, // API의 totalPayments를 grossSalary로 매핑
-      annualSalary: (payroll.totalPayments || payroll.grossSalary || 0) * 12, // 연봉 계산
-      startDate: payroll.hireDate || payroll.startDate, // hireDate를 startDate로 매핑
-    }))
+    let filtered = [...payslipData]
 
     // 직원 필터
     if (selectedEmployee) {
@@ -371,14 +395,14 @@
   </ThemeCard>
 
   <!-- 급여 이력 목록 -->
-  {#if $isLoading}
+  {#if isLoadingData}
     <div class="flex items-center justify-center py-12">
       <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
       <span class="ml-2 text-gray-600">로딩 중...</span>
     </div>
-  {:else if $error}
+  {:else if dataError}
     <div class="bg-red-50 border border-red-200 rounded-lg p-4">
-      <span class="text-red-800">{$error}</span>
+      <span class="text-red-800">{dataError}</span>
     </div>
   {:else if selectedEmployeeHistory.length === 0}
     <div class="text-center py-12">
