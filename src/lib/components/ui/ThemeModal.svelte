@@ -97,13 +97,15 @@
   })
 
   // Prevent body scroll when modal is open
-  $effect(() => {
+  function updateData() {
+
     if (open) {
       document.body.style.overflow = 'hidden'
     } else {
       document.body.style.overflow = ''
     }
-  })
+  
+}
 </script>
 
 {#if open}

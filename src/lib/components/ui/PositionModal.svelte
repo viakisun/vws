@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { createEventDispatcher } from 'svelte'
-  import ThemeModal from './ThemeModal.svelte'
+  import { createEventDispatcher, onMount } from 'svelte'
   import ThemeButton from './ThemeButton.svelte'
+  import ThemeModal from './ThemeModal.svelte'
 
   interface Position {
     id?: string
@@ -32,7 +32,8 @@
   })
 
   // 직급 데이터가 변경될 때 폼 데이터 업데이트
-  $effect(() => {
+  function updateData() {
+
     if (position) {
       formData.name = position.name || ''
       formData.description = position.description || ''
@@ -47,7 +48,8 @@
       formData.level = 1
       formData.status = 'active'
     }
-  })
+  
+}
 
   function handleSave() {
     // 필수 필드 검증
@@ -67,6 +69,12 @@
   function handleClose() {
     dispatch('close')
   }
+
+
+  // 컴포넌트 마운트 시 초기화
+  onMount(() => {
+    // 초기화 함수들 호출
+  })
 </script>
 
 <ThemeModal {open} onclose={handleClose} size="md">

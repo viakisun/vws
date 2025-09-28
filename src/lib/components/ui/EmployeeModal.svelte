@@ -1,5 +1,6 @@
 <script lang="ts">
   import { logger } from '$lib/utils/logger'
+  import { onMount } from 'svelte'
 
   import { formatEmployeeName } from '$lib/utils/format'
   import { splitKoreanName } from '$lib/utils/korean-name'
@@ -89,17 +90,19 @@
   let fullName = $state('')
 
   // 전체 이름이 변경될 때 성/이름 자동 분리
-  $effect(() => {
+  function updateData() {
+
     if (fullName && !employee?.id) {
       // 새 직원 추가 시에만 자동 분리
       const { surname, givenName } = splitKoreanName(fullName)
       formData.last_name = surname
       formData.first_name = givenName
     }
-  })
+  
+}
 
   // 직원 데이터가 변경될 때 폼 데이터 업데이트
-  $effect(() => {
+  function updateFormDataFromEmployee() {
     if (employee) {
       logger.log('Employee data loaded:', employee)
       logger.log('Available positions:', positions)
@@ -145,7 +148,8 @@
       formData.job_title_id = ''
       fullName = ''
     }
-  })
+  
+}
 
   // 부서별 직급 매핑
   const _departmentPositionMapping = {
@@ -227,6 +231,12 @@
 
   let isEdit = $derived(!!employee?.id)
   let title = $derived(isEdit ? '직원 정보 수정' : '새 직원 추가')
+
+
+  // 컴포넌트 마운트 시 초기화
+  onMount(() => {
+    // 초기화 함수들 호출
+  })
 </script>
 
 <ThemeModal {open} size="lg" onclose={handleClose}>

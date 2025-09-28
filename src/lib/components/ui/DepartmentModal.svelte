@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { createEventDispatcher } from 'svelte'
-  import ThemeModal from './ThemeModal.svelte'
+  import { createEventDispatcher, onMount } from 'svelte'
   import ThemeButton from './ThemeButton.svelte'
+  import ThemeModal from './ThemeModal.svelte'
 
   interface Department {
     id?: string
@@ -29,7 +29,8 @@
   })
 
   // 부서 데이터가 변경될 때 폼 데이터 업데이트
-  $effect(() => {
+  function updateData() {
+
     if (department) {
       formData.name = department.name || ''
       formData.description = department.description || ''
@@ -42,7 +43,8 @@
       formData.status = 'active'
       formData.to = 0
     }
-  })
+  
+}
 
   function handleSave() {
     // 필수 필드 검증
@@ -57,6 +59,12 @@
   function handleClose() {
     dispatch('close')
   }
+
+
+  // 컴포넌트 마운트 시 초기화
+  onMount(() => {
+    // 초기화 함수들 호출
+  })
 </script>
 
 <ThemeModal {open} onclose={handleClose} size="md">

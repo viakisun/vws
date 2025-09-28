@@ -188,11 +188,13 @@
   }
 
   // Update position when dropdown becomes visible
-  $effect(() => {
+  function updateData() {
+
     if (isVisible) {
       updatePosition()
     }
-  })
+  
+}
 
   // Add event listeners
   onMount(() => {

@@ -24,7 +24,7 @@
 
   let {
     tabs,
-    activeTab = $bindable(tabs[0]?.id || ''),
+    activeTab = $bindable(),
     children,
     class: className = '',
     orientation = 'horizontal',
@@ -35,17 +35,36 @@
     ...restProps
   }: Props = $props()
 
+  // activeTab이 없으면 첫 번째 탭을 기본값으로 설정
+  if (!activeTab && tabs.length > 0) {
+    activeTab = tabs[0].id
+  }
+
   let currentTab = $state(activeTab)
   let tabContainer: HTMLElement | undefined
   let scrollPosition = $state(0)
   let canScrollLeft = $state(false)
   let canScrollRight = $state(false)
 
+  // activeTab이 변경될 때 currentTab 동기화
+  function updateData() {
+
+    currentTab = activeTab
+  
+}
+
   // 탭 변경 핸들러
   function handleTabChange(tabId: string) {
+    console.log('ThemeTabs - handleTabChange called with:', tabId)
+    console.log('ThemeTabs - current activeTab:', activeTab)
+    console.log('ThemeTabs - current currentTab:', currentTab)
+
     if (tabs.find((tab) => tab.id === tabId)?.disabled) return
 
     currentTab = tabId
+    activeTab = tabId // bindable activeTab 업데이트
+    console.log('ThemeTabs - after update - activeTab:', activeTab)
+    console.log('ThemeTabs - after update - currentTab:', currentTab)
     onTabChange?.(tabId)
   }
 

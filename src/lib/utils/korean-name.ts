@@ -175,3 +175,43 @@ export function formatKoreanNameStandard(fullName: string): string {
   // 한국 이름이 아닌 경우 원본 반환
   return trimmed
 }
+
+/**
+ * 한국 이름을 "성 이름" 형식으로 포맷팅 (띄어쓰기 있음)
+ * @param fullName 전체 이름 (다양한 형식 지원)
+ * @returns "성 이름" 형식의 한국 이름
+ */
+export function formatKoreanNameWithSpace(fullName: string): string {
+  if (!fullName || typeof fullName !== 'string') return ''
+
+  const trimmed = fullName.trim()
+
+  // 한국 이름인 경우 "성 이름" 형식으로 변환
+  if (isKoreanName(trimmed)) {
+    const { surname, givenName } = splitKoreanName(trimmed)
+    return `${surname} ${givenName}`
+  }
+
+  // 한국 이름이 아닌 경우 원본 반환
+  return trimmed
+}
+
+/**
+ * 한국 이름 정렬 함수
+ * @param a 첫 번째 이름
+ * @param b 두 번째 이름
+ * @returns 정렬 순서 (-1, 0, 1)
+ */
+export function sortKoreanNames(a: string, b: string): number {
+  if (!a || !b) return 0
+
+  const { surname: surnameA, givenName: givenNameA } = splitKoreanName(a)
+  const { surname: surnameB, givenName: givenNameB } = splitKoreanName(b)
+
+  // 성으로 먼저 비교
+  const surnameCompare = surnameA.localeCompare(surnameB, 'ko-KR')
+  if (surnameCompare !== 0) return surnameCompare
+
+  // 성이 같으면 이름으로 비교
+  return givenNameA.localeCompare(givenNameB, 'ko-KR')
+}

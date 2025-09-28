@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { createEventDispatcher } from 'svelte'
   import type { BudgetCategory, BudgetGoal } from '$lib/stores/budget'
+  import { createEventDispatcher, onMount } from 'svelte'
 
   const dispatch = createEventDispatcher()
 
@@ -92,12 +92,20 @@
     }
   }
 
-  $effect(() => {
+  function updateData() {
+
     if (isOpen) {
       initializeForm()
     } else {
       resetForm()
     }
+  
+}
+
+
+  // 컴포넌트 마운트 시 초기화
+  onMount(() => {
+    // 초기화 함수들 호출
   })
 </script>
 

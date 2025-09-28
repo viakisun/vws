@@ -1,5 +1,6 @@
 <script lang="ts">
   import { logger } from '$lib/utils/logger'
+  import { onMount } from 'svelte'
 
   import { XIcon } from '@lucide/svelte'
 
@@ -41,7 +42,8 @@
   })
 
   // 회사 정보가 변경될 때 폼 데이터 업데이트
-  $effect(() => {
+  function updateData() {
+
     if (company) {
       formData = {
         name: company.name || '',
@@ -69,7 +71,8 @@
         registration_number: '',
       }
     }
-  })
+  
+}
 
   // 저장 함수
   async function handleSave() {
@@ -107,6 +110,12 @@
       onclose()
     }
   }
+
+
+  // 컴포넌트 마운트 시 초기화
+  onMount(() => {
+    // 초기화 함수들 호출
+  })
 </script>
 
 {#if open}
