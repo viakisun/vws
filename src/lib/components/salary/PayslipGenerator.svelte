@@ -112,9 +112,9 @@
             payslip = result.data
           }
 
-          // 미래 월인지 확인 (현재 연도와 월 기준)
+          // 미래 월인지 확인 (다음 달부터만 잠금)
           const isFutureMonth =
-            selectedYear > currentYear || (selectedYear === currentYear && month > currentMonth)
+            selectedYear > currentYear || (selectedYear === currentYear && month > currentMonth + 1)
 
           // 입사일 이전 월인지 확인
           const isBeforeHire =
@@ -141,7 +141,7 @@
         payslipData = Array.from({ length: 12 }, (_, i) => {
           const month = i + 1
           const isFutureMonth =
-            selectedYear > currentYear || (selectedYear === currentYear && month > currentMonth)
+            selectedYear > currentYear || (selectedYear === currentYear && month > currentMonth + 1)
 
           // 입사일 이전 월인지 확인
           const isBeforeHire =
@@ -176,7 +176,7 @@
       payslipData = Array.from({ length: 12 }, (_, i) => {
         const month = i + 1
         const isFutureMonth =
-          selectedYear > currentYear || (selectedYear === currentYear && month > currentMonth)
+          selectedYear > currentYear || (selectedYear === currentYear && month > currentMonth + 1)
 
         // 입사일 이전 월인지 확인
         const isBeforeHire =
