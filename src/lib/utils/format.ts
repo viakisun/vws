@@ -6,6 +6,10 @@ export function formatKRW(amount: number): string {
   })
 }
 
+// 숫자 포맷팅 모드
+export type NumberFormatMode = 'thousands' | 'exact'
+
+// 천원 단위 포맷팅 (뒤 세자리 생략)
 export function formatCurrency(
   amount: number | string | undefined | null,
   includeUnit: boolean = true,
@@ -25,6 +29,42 @@ export function formatCurrency(
   const thousandAmount = Math.floor(numAmount / 1000)
 
   return thousandAmount.toLocaleString('ko-KR') + (includeUnit ? '천원' : '')
+}
+
+// 정확한 숫자 포맷팅 (세자리 수 단위 콤마)
+export function formatNumber(
+  amount: number | string | undefined | null,
+  includeUnit: boolean = false,
+  unit: string = '원',
+): string {
+  if (amount === undefined || amount === null) {
+    return includeUnit ? `0${unit}` : '0'
+  }
+
+  // 문자열인 경우 숫자로 변환
+  const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount
+
+  if (isNaN(numAmount)) {
+    return includeUnit ? `0${unit}` : '0'
+  }
+
+  // 정수로 변환 (소수점 제거)
+  const intAmount = Math.floor(numAmount)
+
+  return intAmount.toLocaleString('ko-KR') + (includeUnit ? unit : '')
+}
+
+// 통합 숫자 포맷팅 함수
+export function formatAmount(
+  amount: number | string | undefined | null,
+  mode: NumberFormatMode = 'thousands',
+  includeUnit: boolean = true,
+): string {
+  if (mode === 'exact') {
+    return formatNumber(amount, includeUnit, '원')
+  } else {
+    return formatCurrency(amount, includeUnit)
+  }
 }
 
 export function formatPercentage(value: number | undefined | null): string {

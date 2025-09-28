@@ -625,6 +625,14 @@
                             'active',
                           createdAt: contract.createdAt ?? new Date().toISOString(),
                           updatedAt: contract.updatedAt ?? new Date().toISOString(),
+                          notes: contract.notes ?? undefined,
+                          createdBy: undefined,
+                          contractEndDisplay: undefined,
+                          statusDisplay: undefined,
+                          employeeName: '',
+                          employeeIdNumber: '',
+                          department: '',
+                          position: '',
                         }
                         openEditModal(asSalaryContract)
                       }}
@@ -653,6 +661,14 @@
                             'active',
                           createdAt: contract.createdAt ?? new Date().toISOString(),
                           updatedAt: contract.updatedAt ?? new Date().toISOString(),
+                          notes: contract.notes ?? undefined,
+                          createdBy: undefined,
+                          contractEndDisplay: undefined,
+                          statusDisplay: undefined,
+                          employeeName: '',
+                          employeeIdNumber: '',
+                          department: '',
+                          position: '',
                         }
                         openDeleteModal(asSalaryContract)
                       }}

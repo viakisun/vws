@@ -1,26 +1,31 @@
 // 급여 계약 관련 타입 정의
 
-export interface SalaryContract {
-  id: string
-  employeeId: string
-  startDate: string
-  endDate?: string
-  annualSalary: number
-  monthlySalary: number
+import type { CamelCaseFields } from './field-naming'
+
+export interface SalaryContract
+  extends Pick<
+    CamelCaseFields,
+    | 'id'
+    | 'employeeId'
+    | 'startDate'
+    | 'endDate'
+    | 'monthlySalary'
+    | 'annualSalary'
+    | 'contractType'
+    | 'status'
+    | 'notes'
+    | 'createdAt'
+    | 'updatedAt'
+    | 'createdBy'
+    | 'employeeName'
+    | 'employeeIdNumber'
+    | 'department'
+    | 'position'
+    | 'contractEndDisplay'
+    | 'statusDisplay'
+  > {
   contractType: 'full_time' | 'part_time' | 'contract' | 'intern'
   status: 'active' | 'expired' | 'terminated' | 'draft'
-  notes?: string
-  createdAt: string
-  updatedAt: string
-  createdBy?: string
-
-  // 조인된 데이터
-  employeeName?: string
-  employeeIdNumber?: string
-  department?: string
-  position?: string
-  contractEndDisplay?: string
-  statusDisplay?: string
 }
 
 export interface CreateSalaryContractRequest {

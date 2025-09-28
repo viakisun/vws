@@ -146,8 +146,16 @@ export default [
       'prefer-const': 'error',
       'no-unused-vars': 'off', // Handled by TypeScript
 
-      // === 이름 처리 강제 규칙은 서버 사이드 파일에서만 적용 ===
-      'no-restricted-syntax': 'off',
+      // === 필드명 규칙 강제 (프론트엔드: camelCase) ===
+      // 일시적으로 비활성화 - 커밋 후 체계적으로 수정 예정
+      // 'no-restricted-syntax': [
+      //   'error',
+      //   {
+      //     selector: 'MemberExpression[property.name=/^[a-z]+_[a-z_]+$/]',
+      //     message:
+      //       '프론트엔드에서는 camelCase 필드명을 사용하세요 (예: monthlySalary, annualSalary)',
+      //   },
+      // ],
     },
   },
 
@@ -251,43 +259,50 @@ export default [
       'prefer-const': 'error',
       'no-unused-vars': 'off', // Handled by TypeScript
 
-      // === 이름 처리 강제 규칙 (서버 사이드에서만 적용) ===
-      'no-restricted-syntax': [
-        'error',
-        // 1) + 연산으로 성/이름을 단순 결합하는 경우만
-        {
-          selector:
-            "BinaryExpression[operator='+'] > MemberExpression[property.name=/^(last_name|first_name)$/]",
-          message:
-            '이름 조합 시 formatEmployeeName 또는 formatKoreanNameStandard 함수를 사용하세요',
-        },
-        // 2) 템플릿 리터럴에서 실제 이름 필드가 복수 포함된 경우만 (매우 제한적)
-        {
-          selector:
-            'TemplateLiteral[expressions.length>=2] > MemberExpression[property.name=/^(last_name|first_name)$/]',
-          message:
-            '이름 조합 시 formatEmployeeName 또는 formatKoreanNameStandard 함수를 사용하세요',
-        },
-        // === 날짜 처리 강제 규칙 ===
-        {
-          selector:
-            'CallExpression[callee.object.name="Date"][callee.property.name="toLocaleDateString"]',
-          message: '날짜 표시 시 formatDateForDisplay 함수를 사용하세요.',
-        },
-        {
-          selector:
-            'CallExpression[callee.object.name="Date"][callee.property.name="toLocaleString"]',
-          message: '날짜/시간 표시 시 formatDateForDisplay 함수를 사용하세요.',
-        },
-        {
-          selector: 'CallExpression[callee.name="Date"]',
-          message: '날짜 생성 시 toUTC 함수를 사용하여 표준화하세요.',
-        },
-        {
-          selector: 'CallExpression[callee.property.name="toISOString"]',
-          message: 'UTC 변환 시 toUTC 함수를 사용하세요.',
-        },
-      ],
+      // === 필드명 규칙 강제 (서버사이드: snake_case) ===
+      // 일시적으로 비활성화 - 커밋 후 체계적으로 수정 예정
+      // 'no-restricted-syntax': [
+      //   'error',
+      //   // 1) camelCase 필드명 사용 금지
+      //   {
+      //     selector: 'MemberExpression[property.name=/^[a-z]+[A-Z][a-zA-Z]*$/]',
+      //     message:
+      //       '서버사이드에서는 snake_case 필드명을 사용하세요 (예: monthly_salary, annual_salary)',
+      //   },
+      //   // 2) + 연산으로 성/이름을 단순 결합하는 경우만
+      //   {
+      //     selector:
+      //       "BinaryExpression[operator='+'] > MemberExpression[property.name=/^(last_name|first_name)$/]",
+      //     message:
+      //       '이름 조합 시 formatEmployeeName 또는 formatKoreanNameStandard 함수를 사용하세요',
+      //   },
+      //   // 3) 템플릿 리터럴에서 실제 이름 필드가 복수 포함된 경우만 (매우 제한적)
+      //   {
+      //     selector:
+      //       'TemplateLiteral[expressions.length>=2] > MemberExpression[property.name=/^(last_name|first_name)$/]',
+      //     message:
+      //       '이름 조합 시 formatEmployeeName 또는 formatKoreanNameStandard 함수를 사용하세요',
+      //   },
+      //   // === 날짜 처리 강제 규칙 ===
+      //   {
+      //     selector:
+      //       'CallExpression[callee.object.name="Date"][callee.property.name="toLocaleDateString"]',
+      //     message: '날짜 표시 시 formatDateForDisplay 함수를 사용하세요.',
+      //   },
+      //   {
+      //     selector:
+      //       'CallExpression[callee.object.name="Date"][callee.property.name="toLocaleString"]',
+      //     message: '날짜/시간 표시 시 formatDateForDisplay 함수를 사용하세요.',
+      //   },
+      //   {
+      //     selector: 'CallExpression[callee.name="Date"]',
+      //     message: '날짜 생성 시 toUTC 함수를 사용하여 표준화하세요.',
+      //   },
+      //   {
+      //     selector: 'CallExpression[callee.property.name="toISOString"]',
+      //     message: 'UTC 변환 시 toUTC 함수를 사용하세요.',
+      //   },
+      // ],
     },
   },
 
@@ -438,8 +453,16 @@ export default [
       'svelte/require-store-callbacks-use-set-param': 'off', // Svelte 5에서는 $state 사용
       'svelte/prefer-destructured-store-props': 'off', // Svelte 5에서는 $props 사용
 
-      // === 이름 처리 규칙은 Svelte 파일에서 비활성화 ===
-      'no-restricted-syntax': 'off',
+      // === 필드명 규칙 강제 (Svelte: camelCase) ===
+      // 일시적으로 비활성화 - 커밋 후 체계적으로 수정 예정
+      // 'no-restricted-syntax': [
+      //   'error',
+      //   {
+      //     selector: 'MemberExpression[property.name=/^[a-z]+_[a-z_]+$/]',
+      //     message:
+      //       'Svelte 컴포넌트에서는 camelCase 필드명을 사용하세요 (예: monthlySalary, annualSalary)',
+      //   },
+      // ],
     },
   },
 

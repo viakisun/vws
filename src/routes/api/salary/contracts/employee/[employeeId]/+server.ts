@@ -4,6 +4,7 @@ import { query } from '$lib/database/connection'
 import type { ApiResponse } from '$lib/types/database'
 import type { CurrentSalaryInfo, SalaryContract } from '$lib/types/salary-contracts'
 import { logger } from '$lib/utils/logger'
+import { formatEmployeeName } from '$lib/utils/name-handling'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
 
@@ -36,14 +37,15 @@ interface ContractWithDisplay {
 }
 
 // GET: 특정 직원의 급여 계약 정보 조회
-export const GET: RequestHandler = async ({ params }) => {
+export const GET: RequestHandler = async ({ params, url }) => {
   try {
-    const { employeeId } = params
+    const { employeeId: employee_id } = params
+    const target_date = url.searchParams.get('date') // YYYY-MM-DD 형식
 
     // 직원 기본 정보 조회
     const employeeResult = await query<EmployeeInfo>(
       `
-			SELECT 
+			SELECT
 				e.id,
 				e.employee_id,
 				CONCAT(e.last_name, e.first_name) as employee_name,
@@ -53,7 +55,7 @@ export const GET: RequestHandler = async ({ params }) => {
 			FROM employees e
 			WHERE e.id = $1
 		`,
-      [employeeId],
+      [employee_id],
     )
 
     if (employeeResult.rows.length === 0) {
@@ -68,42 +70,43 @@ export const GET: RequestHandler = async ({ params }) => {
 
     const employee = employeeResult.rows[0]
 
-    // 현재 유효한 급여 계약 조회
+    // 특정 날짜에 유효한 급여 계약 조회 (날짜가 없으면 현재 날짜 사용)
+    const query_date = target_date || new Date().toISOString().split('T')[0]
     const currentContractResult = await query<ContractWithDisplay>(
       `
-			SELECT 
+			SELECT
 				sc.*,
-				CASE 
+				CASE
 					WHEN sc.end_date IS NULL THEN '무기한'
 					ELSE TO_CHAR(sc.end_date, 'YYYY-MM-DD')
 				END as contract_end_display,
-				CASE 
+				CASE
 					WHEN sc.status = 'active' AND sc.end_date IS NULL THEN '진행중 (무기한)'
-					WHEN sc.status = 'active' AND sc.end_date >= CURRENT_DATE THEN '진행중'
-					WHEN sc.status = 'expired' OR sc.end_date < CURRENT_DATE THEN '만료됨'
+					WHEN sc.status = 'active' AND sc.end_date >= $2::date THEN '진행중'
+					WHEN sc.status = 'expired' OR sc.end_date < $2::date THEN '만료됨'
 					ELSE sc.status
 				END as status_display
 			FROM salary_contracts sc
-			WHERE sc.employee_id = $1 
-				AND sc.status = 'active' 
-				AND sc.start_date <= CURRENT_DATE 
-				AND (sc.end_date IS NULL OR sc.end_date >= CURRENT_DATE)
+			WHERE sc.employee_id = $1
+				AND sc.status = 'active'
+				AND sc.start_date <= $2::date
+				AND (sc.end_date IS NULL OR sc.end_date >= $2::date)
 			ORDER BY sc.start_date DESC
 			LIMIT 1
 		`,
-      [employeeId],
+      [employee_id, query_date],
     )
 
     // 급여 계약 이력 조회
     const historyResult = await query<ContractWithDisplay>(
       `
-			SELECT 
+			SELECT
 				sc.*,
-				CASE 
+				CASE
 					WHEN sc.end_date IS NULL THEN '무기한'
 					ELSE TO_CHAR(sc.end_date, 'YYYY-MM-DD')
 				END as contract_end_display,
-				CASE 
+				CASE
 					WHEN sc.status = 'active' AND sc.end_date IS NULL THEN '진행중 (무기한)'
 					WHEN sc.status = 'active' AND sc.end_date >= CURRENT_DATE THEN '진행중'
 					WHEN sc.status = 'expired' OR sc.end_date < CURRENT_DATE THEN '만료됨'
@@ -113,7 +116,7 @@ export const GET: RequestHandler = async ({ params }) => {
 			WHERE sc.employee_id = $1
 			ORDER BY sc.start_date DESC
 		`,
-      [employeeId],
+      [employee_id],
     )
 
     // 현재 계약 데이터 변환
@@ -135,6 +138,12 @@ export const GET: RequestHandler = async ({ params }) => {
         createdBy: contract.created_by || undefined,
         contractEndDisplay: contract.contract_end_display,
         statusDisplay: contract.status_display,
+        employeeName: employeeResult.rows[0]
+          ? formatEmployeeName(employeeResult.rows[0].last_name, employeeResult.rows[0].first_name)
+          : '',
+        employeeIdNumber: employeeResult.rows[0]?.employee_id || '',
+        department: employeeResult.rows[0]?.department || '',
+        position: employeeResult.rows[0]?.position || '',
       }
     }
 
@@ -154,6 +163,12 @@ export const GET: RequestHandler = async ({ params }) => {
       createdBy: contract.created_by || undefined,
       contractEndDisplay: contract.contract_end_display,
       statusDisplay: contract.status_display,
+      employeeName: employeeResult.rows[0]
+        ? formatEmployeeName(employeeResult.rows[0].last_name, employeeResult.rows[0].first_name)
+        : '',
+      employeeIdNumber: employeeResult.rows[0]?.employee_id || '',
+      department: employeeResult.rows[0]?.department || '',
+      position: employeeResult.rows[0]?.position || '',
     }))
 
     if (!currentContract) {

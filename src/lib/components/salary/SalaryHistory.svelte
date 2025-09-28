@@ -3,7 +3,7 @@
   import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
   import ThemeCard from '$lib/components/ui/ThemeCard.svelte'
   import ThemeSectionHeader from '$lib/components/ui/ThemeSectionHeader.svelte'
-  import { formatCurrency, formatDate } from '$lib/utils/format'
+  import { formatCurrency, formatNumber, formatDate } from '$lib/utils/format'
 
   // Minimal type for payroll data
   type PayrollData = {
@@ -86,7 +86,7 @@
           { id: '', name: '전체 직원', department: '', status: '' },
           ...result.data.map((emp: any) => ({
             id: emp.id,
-            name: `${emp.last_name}${emp.first_name} (${emp.position})`,
+            name: `${emp.lastName}${emp.firstName} (${emp.position})`,
             department: emp.department || '부서없음',
             position: emp.position,
             status: emp.status || 'active',
@@ -100,7 +100,7 @@
 
   // 필터링된 급여명세서 데이터 목록 (로컬 필터)
   const localFilteredPayslips = $derived((): PayrollData[] => {
-    let filtered = [...payslipData]
+    let filtered = [...(payslipData || [])]
 
     // 직원 필터
     if (selectedEmployee) {
@@ -118,7 +118,7 @@
     }
 
     // 재직 상태 필터
-    if (selectedEmploymentStatus) {
+    if (selectedEmploymentStatus && employees && Array.isArray(employees)) {
       const employeeIds = employees
         .filter((emp) => emp.status === selectedEmploymentStatus)
         .map((emp) => emp.id)
@@ -132,14 +132,16 @@
   const salaryHistoryByEmployee = $derived((): Record<string, PayrollData[]> => {
     const historyMap: Record<string, PayrollData[]> = {}
 
-    localFilteredPayslips.forEach((payslip) => {
-      if (payslip.employeeId && !historyMap[payslip.employeeId]) {
-        historyMap[payslip.employeeId] = []
-      }
-      if (payslip.employeeId) {
-        historyMap[payslip.employeeId].push(payslip)
-      }
-    })
+    if (localFilteredPayslips && Array.isArray(localFilteredPayslips)) {
+      localFilteredPayslips.forEach((payslip) => {
+        if (payslip?.employeeId && !historyMap[payslip.employeeId]) {
+          historyMap[payslip.employeeId] = []
+        }
+        if (payslip?.employeeId) {
+          historyMap[payslip.employeeId].push(payslip)
+        }
+      })
+    }
 
     // 각 직원별로 급여를 지급일 기준으로 정렬 (최신순)
     Object.keys(historyMap).forEach((employeeId) => {
@@ -179,28 +181,31 @@
   // 이력 개수 계산
   const historyCounts = $derived(() => {
     const counts = {
-      total: localFilteredPayslips.length,
+      total: localFilteredPayslips?.length || 0,
       active: 0,
       terminated: 0,
       byEmployee: {} as Record<string, number>,
     }
 
-    // 직원별 이력 개수 계산
-    localFilteredPayslips.forEach((payroll) => {
-      if (payroll.employeeId) {
-        counts.byEmployee[payroll.employeeId] = (counts.byEmployee[payroll.employeeId] || 0) + 1
+    // 데이터가 있을 때만 계산
+    if (localFilteredPayslips && Array.isArray(localFilteredPayslips)) {
+      // 직원별 이력 개수 계산
+      localFilteredPayslips.forEach((payroll) => {
+        if (payroll?.employeeId) {
+          counts.byEmployee[payroll.employeeId] = (counts.byEmployee[payroll.employeeId] || 0) + 1
 
-        // 직원 상태별 개수 계산
-        const employee = employees.find((emp) => emp.id === payroll.employeeId)
-        if (employee) {
-          if (employee.status === 'active') {
-            counts.active++
-          } else if (employee.status === 'terminated') {
-            counts.terminated++
+          // 직원 상태별 개수 계산
+          const employee = employees?.find((emp) => emp.id === payroll.employeeId)
+          if (employee) {
+            if (employee.status === 'active') {
+              counts.active++
+            } else if (employee.status === 'terminated') {
+              counts.terminated++
+            }
           }
         }
-      }
-    })
+      })
+    }
 
     return counts
   })
@@ -318,7 +323,7 @@
               : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'}"
           >
             {employee.name}
-            {#if employee.id && historyCounts.byEmployee[employee.id]}
+            {#if employee.id && historyCounts.byEmployee?.[employee.id]}
               <span class="ml-1 text-xs bg-gray-200 px-1.5 py-0.5 rounded-full">
                 {historyCounts.byEmployee[employee.id]}건
               </span>
@@ -439,25 +444,25 @@
               <div class="space-y-2">
                 <div class="text-sm text-gray-500">기본급</div>
                 <div class="text-xl font-bold text-gray-900">
-                  {formatCurrency(payroll.baseSalary ?? 0)}
+                  {formatNumber(payroll.baseSalary ?? 0, true, '원')}
                 </div>
               </div>
               <div class="space-y-2">
                 <div class="text-sm text-gray-500">총 지급액</div>
                 <div class="text-xl font-semibold text-gray-900">
-                  {formatCurrency(payroll.grossSalary ?? payroll.totalPayments ?? 0)}
+                  {formatNumber(payroll.grossSalary ?? payroll.totalPayments ?? 0, true, '원')}
                 </div>
               </div>
               <div class="space-y-2">
                 <div class="text-sm text-gray-500">총 공제액</div>
                 <div class="text-lg font-semibold text-red-600">
-                  {formatCurrency(payroll.totalDeductions ?? 0)}
+                  {formatNumber(payroll.totalDeductions ?? 0, true, '원')}
                 </div>
               </div>
               <div class="space-y-2">
                 <div class="text-sm text-gray-500">실지급액</div>
                 <div class="text-2xl font-bold text-green-600">
-                  {formatCurrency(payroll.netSalary ?? 0)}
+                  {formatNumber(payroll.netSalary ?? 0, true, '원')}
                 </div>
               </div>
             </div>
@@ -470,11 +475,13 @@
                 <div class="flex items-center space-x-2">
                   {#if change.direction === 'up'}
                     <span class="text-green-600 font-semibold">
-                      📈 +{formatCurrency(change.change)} (+{change.percentage.toFixed(1)}%)
+                      📈 +{formatNumber(change.change, true, '원')} (+{change.percentage.toFixed(
+                        1,
+                      )}%)
                     </span>
                   {:else if change.direction === 'down'}
                     <span class="text-red-600 font-semibold">
-                      📉 -{formatCurrency(Math.abs(change.change))} (-{change.percentage.toFixed(
+                      📉 -{formatNumber(Math.abs(change.change), true, '원')} (-{change.percentage.toFixed(
                         1,
                       )}%)
                     </span>
@@ -524,11 +531,11 @@
               <div class="flex items-center justify-center space-x-1">
                 {#if totalChange > 0}
                   <span class="text-xl font-bold text-green-600">
-                    📈 +{formatCurrency(totalChange)}
+                    📈 +{formatNumber(totalChange, true, '원')}
                   </span>
                 {:else if totalChange < 0}
                   <span class="text-xl font-bold text-red-600">
-                    📉 -{formatCurrency(Math.abs(totalChange))}
+                    📉 -{formatNumber(Math.abs(totalChange), true, '원')}
                   </span>
                 {:else}
                   <span class="text-xl font-bold text-gray-500">➖ 변화 없음</span>
