@@ -13,7 +13,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "start": "node build/index.js",
-    "prepare": "husky",
+    "prepare": "if command -v husky >/dev/null 2>&1; then husky; else echo 'Husky not found, skipping...'; fi",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
     "check:svelte": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json 2>&1 | grep '\\.svelte:' || echo 'No .svelte errors found'",
