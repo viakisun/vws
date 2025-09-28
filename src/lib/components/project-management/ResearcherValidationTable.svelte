@@ -199,11 +199,13 @@
   })
 
   // 멤버 데이터 변경 시 재검증
-  $effect(() => {
+  function updateData() {
+
     if (projectId && members.length > 0 && !validationState.isValidating) {
       runValidation()
     }
-  })
+  
+}
 </script>
 
 <div class="space-y-4">

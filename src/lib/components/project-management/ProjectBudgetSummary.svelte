@@ -1,5 +1,6 @@
 <script lang="ts">
   import { logger } from '$lib/utils/logger'
+  import { onMount } from 'svelte'
 
   import type { BudgetSummary } from '$lib/types/project-budget'
   import { formatDate } from '$lib/utils/format'
@@ -58,7 +59,8 @@
   }
 
   // 프로젝트 ID 변경 시 또는 refreshTrigger 변경 시 데이터 로드
-  $effect(() => {
+  function updateData() {
+
     if (projectId) {
       loadBudgetSummary()
     }
@@ -66,7 +68,8 @@
     if (refreshTrigger > 0) {
       loadBudgetSummary()
     }
-  })
+  
+}
 
   // 숫자 포맷팅 (천원 단위)
   function formatCurrency(amount: number): string {
@@ -81,6 +84,12 @@
   //   if (ratio >= 30) return 'text-orange-600'
   //   return 'text-red-600'
   // }
+
+
+  // 컴포넌트 마운트 시 초기화
+  onMount(() => {
+    loadBudgetSummary()
+  })
 </script>
 
 {#if loading}

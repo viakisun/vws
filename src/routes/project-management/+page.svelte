@@ -1,8 +1,9 @@
 <script lang="ts">
   import { logger } from '$lib/utils/logger'
 
+  import { browser } from '$app/environment'
   import { goto } from '$app/navigation'
-  import { page } from '$app/stores'
+  import { page } from '$app/state'
   import PageLayout from '$lib/components/layout/PageLayout.svelte'
   import ParticipationCard from '$lib/components/project-management/ParticipationCard.svelte'
   import ProjectCreationForm from '$lib/components/project-management/ProjectCreationForm.svelte'
@@ -12,7 +13,6 @@
   import ThemeTabs from '$lib/components/ui/ThemeTabs.svelte'
   import { BarChart3Icon, FlaskConicalIcon, PercentIcon } from '@lucide/svelte'
   import { onMount } from 'svelte'
-  import { browser } from '$app/environment'
 
   /**
    * @typedef {Object} Project
@@ -74,7 +74,9 @@
 
   // 페이지 마운트 후 URL 파라미터 처리
   onMount(() => {
-    activeTab = $page?.url?.searchParams?.get('tab') || 'overview'
+    activeTab = page.url.searchParams.get('tab') || 'overview'
+    loadInitialTabContent()
+    updateData()
   })
 
   // 상태 변수들
@@ -137,17 +139,14 @@
 
   // Svelte 5: 탭 변경 시 데이터 로드 (무한 루프 방지)
   let lastLoadedTab = $state('')
-  $effect(() => {
+  function updateData() {
+
     if (mounted && activeTab && activeTab !== lastLoadedTab) {
       lastLoadedTab = activeTab
       loadTabData(activeTab)
     }
-  })
-
-  // Svelte 5: 컴포넌트 마운트 시 mounted 상태 설정
-  onMount(() => {
-    mounted = true
-  })
+  
+  }
 
   // 프로젝트 관련 상태
   let selectedProject: any = $state(null)
@@ -157,9 +156,10 @@
   // 탭 변경 핸들러
   function handleTabChange(tabId) {
     activeTab = tabId
-    const url = new URL($page.url)
+    const url = new URL(page.url)
     url.searchParams.set('tab', tabId)
     goto(url.toString(), { replaceState: true })
+    loadTabData(tabId)
   }
 
   // API 호출 함수들
@@ -375,13 +375,13 @@
   }
 
   // 초기화 - 첫 번째 탭만 로드
-  $effect(() => {
+  function loadInitialTabContent() {
     if (!mounted && browser) {
       mounted = true
       // 초기 탭 데이터 로드
       loadTabData(activeTab)
     }
-  })
+  }
 </script>
 
 <PageLayout title="프로젝트 관리" subtitle="연구개발 프로젝트 및 참여율 관리 시스템">

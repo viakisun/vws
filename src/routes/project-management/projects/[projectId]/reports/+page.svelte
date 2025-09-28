@@ -3,6 +3,7 @@
   import { page } from '$app/state'
   import Badge from '$lib/components/ui/Badge.svelte'
   import Card from '$lib/components/ui/Card.svelte'
+  import { onMount } from 'svelte'
 
   type RStatus = '작성중' | '제출' | '반려'
   interface Report {
@@ -47,7 +48,7 @@
     query = sp.get('q') ?? ''
     lastQuery = sp.toString()
   }
-  $effect(() => {
+  function updateData() {
     if (typeof window !== 'undefined') {
       const sp = new URLSearchParams(window.location.search)
       if (status) sp.set('status', status)
@@ -64,7 +65,7 @@
         })
       }
     }
-  })
+  }
 
   const filtered = $derived(
     items.filter(
@@ -97,6 +98,12 @@
     a.click()
     URL.revokeObjectURL(url)
   }
+
+
+  // 컴포넌트 마운트 시 초기화
+  onMount(() => {
+    // 초기화 함수들 호출
+  })
 </script>
 
 <h3 class="text-lg font-semibold mb-3">Progress Reports · {projectId}</h3>

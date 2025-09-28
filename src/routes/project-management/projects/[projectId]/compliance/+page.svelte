@@ -1,8 +1,9 @@
 <script lang="ts">
-  import Card from '$lib/components/ui/Card.svelte'
-  import Badge from '$lib/components/ui/Badge.svelte'
-  import { page } from '$app/state'
   import { goto } from '$app/navigation'
+  import { page } from '$app/state'
+  import Badge from '$lib/components/ui/Badge.svelte'
+  import Card from '$lib/components/ui/Card.svelte'
+  import { onMount } from 'svelte'
 
   type CStatus = '충족' | '미비' | '검토중'
   interface Rule {
@@ -48,7 +49,7 @@
     query = sp.get('q') ?? ''
     lastQuery = sp.toString()
   }
-  $effect(() => {
+  function updateData() {
     if (typeof window !== 'undefined') {
       const sp = new URLSearchParams(window.location.search)
       if (cat) sp.set('cat', cat)
@@ -67,7 +68,7 @@
         })
       }
     }
-  })
+  }
 
   const filtered = $derived(
     rules.filter(
@@ -88,6 +89,12 @@
   if (typeof window !== 'undefined') {
     setTimeout(() => (loading = false), 300)
   }
+
+
+  // 컴포넌트 마운트 시 초기화
+  onMount(() => {
+    // 초기화 함수들 호출
+  })
 </script>
 
 <h3 class="text-lg font-semibold mb-3">Compliance Monitoring · {projectId}</h3>

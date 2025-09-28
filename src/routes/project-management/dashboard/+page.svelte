@@ -4,14 +4,15 @@
   import Progress from '$lib/components/ui/Progress.svelte'
   import { personnelStore } from '$lib/stores/personnel'
   import {
-    budgetAlerts,
-    expenseDocsStore,
-    getQuarterSummary,
-    overallBudget,
-    projectsStore,
-    quarterlyPersonnelBudgets,
+      budgetAlerts,
+      expenseDocsStore,
+      getQuarterSummary,
+      overallBudget,
+      projectsStore,
+      quarterlyPersonnelBudgets,
   } from '$lib/stores/rnd'
   import { formatDateForDisplay, getCurrentUTC } from '$lib/utils/date-handler'
+  import { onMount } from 'svelte'
 
   const ob = $derived($overallBudget)
   const avgProgress = $derived(
@@ -162,7 +163,8 @@
   )
 
   // URL sync
-  $effect(() => {
+  function updateData() {
+
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search)
       if (selectedQuarter) params.set('q', selectedQuarter)
@@ -174,7 +176,8 @@
         window.history.replaceState(null, '', url)
       }
     }
-  })
+  
+}
 
   // Headcount churn (최근 4분기)
   function sortQs(labels: string[]): string[] {
@@ -238,6 +241,12 @@
   if (typeof window !== 'undefined') {
     setTimeout(() => (loading = false), 300)
   }
+
+
+  // 컴포넌트 마운트 시 초기화
+  onMount(() => {
+    // 초기화 함수들 호출
+  })
 </script>
 
 <h2 class="text-lg font-semibold mb-4">Project Overview Dashboard</h2>

@@ -1,8 +1,9 @@
 <script lang="ts">
-  import Card from '$lib/components/ui/Card.svelte'
-  import Badge from '$lib/components/ui/Badge.svelte'
-  import { page } from '$app/state'
   import { goto } from '$app/navigation'
+  import { page } from '$app/state'
+  import Badge from '$lib/components/ui/Badge.svelte'
+  import Card from '$lib/components/ui/Card.svelte'
+  import { onMount } from 'svelte'
 
   type DStatus = '준비' | '진행' | '완료' | '지연'
   interface Deliverable {
@@ -51,7 +52,7 @@
     lastQuery = sp.toString()
   }
   // sync to URL
-  $effect(() => {
+  function updateData() {
     if (typeof window !== 'undefined') {
       const sp = new URLSearchParams(window.location.search)
       if (status) sp.set('status', status)
@@ -68,7 +69,7 @@
         })
       }
     }
-  })
+  }
 
   const filtered = $derived(
     items.filter(
@@ -87,6 +88,12 @@
   if (typeof window !== 'undefined') {
     setTimeout(() => (loading = false), 300)
   }
+
+
+  // 컴포넌트 마운트 시 초기화
+  onMount(() => {
+    // 초기화 함수들 호출
+  })
 </script>
 
 <h3 class="text-lg font-semibold mb-3">Deliverables · {projectId}</h3>

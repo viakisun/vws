@@ -1,11 +1,12 @@
 <script lang="ts">
-  import Card from '$lib/components/ui/Card.svelte'
-  import Badge from '$lib/components/ui/Badge.svelte'
-  import { page } from '$app/state'
-  import { expenseDocsStore } from '$lib/stores/rnd'
-  import { formatKRW } from '$lib/utils/format'
-  import type { ExpenseDocument } from '$lib/types'
   import { goto } from '$app/navigation'
+  import { page } from '$app/state'
+  import Badge from '$lib/components/ui/Badge.svelte'
+  import Card from '$lib/components/ui/Card.svelte'
+  import { expenseDocsStore } from '$lib/stores/rnd'
+  import type { ExpenseDocument } from '$lib/types'
+  import { formatKRW } from '$lib/utils/format'
+  import { onMount } from 'svelte'
 
   const projectId = page.params.projectId as string
   const all = $derived($expenseDocsStore.filter((d) => d.projectId === projectId))
@@ -23,7 +24,7 @@
   }
 
   // sync to URL
-  $effect(() => {
+  function updateData() {
     if (typeof window !== 'undefined') {
       const sp = new URLSearchParams(window.location.search)
       if (status) sp.set('status', status)
@@ -40,7 +41,7 @@
         })
       }
     }
-  })
+  }
 
   const filtered = $derived(
     all.filter(
@@ -77,6 +78,12 @@
   if (typeof window !== 'undefined') {
     setTimeout(() => (loading = false), 300)
   }
+
+
+  // 컴포넌트 마운트 시 초기화
+  onMount(() => {
+    // 초기화 함수들 호출
+  })
 </script>
 
 <h3 class="text-lg font-semibold mb-3">Project Expenses · {projectId}</h3>

@@ -1,5 +1,6 @@
 <script lang="ts">
   import { logger } from '$lib/utils/logger'
+  import { onMount } from 'svelte'
 
   import type { AnnualBudgetFormData } from '$lib/types/project-budget'
   import { toUTC } from '$lib/utils/date-handler'
@@ -62,11 +63,13 @@
   }
 
   // 컴포넌트 마운트 시 기존 데이터 로드
-  $effect(() => {
+  function updateData() {
+
     if (projectId) {
       loadExistingBudgets()
     }
-  })
+  
+}
 
   // 연차 추가
   function addYear() {
@@ -238,6 +241,12 @@
   function formatNumber(num: number): string {
     return new Intl.NumberFormat('ko-KR').format(num)
   }
+
+
+  // 컴포넌트 마운트 시 초기화
+  onMount(() => {
+    // 초기화 함수들 호출
+  })
 </script>
 
 <div class="space-y-6">

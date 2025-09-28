@@ -1,5 +1,6 @@
 <script lang="ts">
   import { logger } from '$lib/utils/logger'
+  import { onMount } from 'svelte'
 
   import type { AnnualBudget, AnnualBudgetFormData, BudgetSummary } from '$lib/types/project-budget'
   import { CheckIcon, PlusIcon, TrashIcon, XIcon } from '@lucide/svelte'
@@ -27,7 +28,7 @@
   let budgetSummary = $derived(calculateBudgetSummary(budgetData))
 
   // 초기화
-  $effect(() => {
+  function updateData() {
     if (existingBudgets.length > 0) {
       budgetData = existingBudgets.map((budget) => ({
         year: budget.year,
@@ -42,7 +43,7 @@
       // 기본적으로 1차년도 추가
       addYear()
     }
-  })
+  }
 
   // 연차 추가
   function addYear() {
@@ -175,6 +176,12 @@
   function formatCurrency(amount: number): string {
     return new Intl.NumberFormat('ko-KR').format(amount)
   }
+
+
+  // 컴포넌트 마운트 시 초기화
+  onMount(() => {
+    // 초기화 함수들 호출
+  })
 </script>
 
 <div class="max-w-6xl mx-auto space-y-6">

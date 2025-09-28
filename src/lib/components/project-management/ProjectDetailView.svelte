@@ -1,5 +1,6 @@
 <script lang="ts">
   import { logger } from '$lib/utils/logger'
+  import { onMount } from 'svelte'
 
   import ThemeBadge from '$lib/components/ui/ThemeBadge.svelte'
   import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
@@ -9,27 +10,27 @@
   import { isKoreanName } from '$lib/utils/korean-name'
   import { calculateMonthlySalary } from '$lib/utils/salary-calculator'
   import {
-    AlertTriangleIcon,
-    CalendarIcon,
-    CheckCircleIcon,
-    CheckIcon,
-    ChevronDownIcon,
-    ChevronRightIcon,
-    ChevronUpIcon,
-    DollarSignIcon,
-    EditIcon,
-    FileTextIcon,
-    PlusIcon,
-    RefreshCwIcon,
-    ShieldAlertIcon,
-    ShieldCheckIcon,
-    TrashIcon,
-    UserIcon,
-    UsersIcon,
-    XCircleIcon,
-    XIcon,
+      AlertTriangleIcon,
+      CalendarIcon,
+      CheckCircleIcon,
+      CheckIcon,
+      ChevronDownIcon,
+      ChevronRightIcon,
+      ChevronUpIcon,
+      DollarSignIcon,
+      EditIcon,
+      FileTextIcon,
+      PlusIcon,
+      RefreshCwIcon,
+      ShieldAlertIcon,
+      ShieldCheckIcon,
+      TrashIcon,
+      UserIcon,
+      UsersIcon,
+      XCircleIcon,
+      XIcon,
   } from '@lucide/svelte'
-  import { createEventDispatcher, onMount } from 'svelte'
+  import { createEventDispatcher } from 'svelte'
 
   const dispatch = createEventDispatcher()
 
@@ -307,11 +308,11 @@
   let { selectedProject }: { selectedProject: any } = $props()
 
   // 프로젝트 변경 시 기간 업데이트
-  $effect(() => {
+  function handleProjectChange() {
     if (selectedProject?.id) {
       updateProjectPeriodFromBudgets()
     }
-  })
+  }
 
   // 모달 상태
   let showBudgetModal = $state(false)
@@ -1801,7 +1802,7 @@
   }
 
   // 초기화
-  $effect(() => {
+  function initializeProjectData() {
     if (selectedProject && selectedProject.id) {
       loadProjectMembers()
       loadProjectBudgets()
@@ -1810,13 +1811,13 @@
       loadEvidenceTypes()
       loadEvidenceCategories()
     }
-  })
+  }
 
-  // Svelte 5: 증빙 데이터 로드
-  $effect(() => {
-    if (selectedProject && projectBudgets.length > 0) {
-      loadEvidenceItems()
-    }
+  // 컴포넌트 마운트 시 초기화
+  onMount(() => {
+    handleProjectChange()
+    initializeProjectData()
+    loadEvidenceItems()
   })
 </script>
 
