@@ -25,7 +25,7 @@
     subtitle = '',
     children,
     stats = [],
-    actions: _actions,
+    actions = [],
     searchPlaceholder: _searchPlaceholder,
   }: Props = $props()
 </script>
@@ -33,6 +33,24 @@
 <div>
   <!-- 페이지 헤더 -->
   <ThemePageHeader {title} {subtitle} children={undefined} />
+
+  <!-- 액션 버튼들 -->
+  {#if actions.length > 0}
+    <div class="mb-6 flex flex-wrap gap-3">
+      {#each actions as action}
+        <button
+          type="button"
+          onclick={action.onclick}
+          class="theme-button theme-button-{action.variant || 'primary'} theme-button-md"
+        >
+          {#if action.icon}
+            <action.icon size={18} class="mr-2" />
+          {/if}
+          {action.label}
+        </button>
+      {/each}
+    </div>
+  {/if}
 
   <!-- 통계 카드들 -->
   {#if stats.length > 0}

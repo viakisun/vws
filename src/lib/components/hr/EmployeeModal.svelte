@@ -2,7 +2,7 @@
   import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
   import ThemeModal from '$lib/components/ui/ThemeModal.svelte'
   import type { Employee, EmployeeLevel, EmployeeStatus, EmploymentType } from '$lib/types/hr'
-  import { createEventDispatcher } from 'svelte'
+  import { createEventDispatcher, onMount } from 'svelte'
 
   interface Props {
     open: boolean
@@ -111,7 +111,8 @@
   ]
 
   // 직원 데이터가 변경될 때 폼 데이터 초기화
-  $effect(() => {
+  function updateData() {
+
     if (employee) {
       formData = {
         ...employee,
@@ -154,7 +155,8 @@
         },
       }
     }
-  })
+  
+}
 
   // 폼 유효성 검사
   function validateForm(): boolean {
@@ -224,6 +226,12 @@
   function handleClose() {
     dispatch('close')
   }
+
+
+  // 컴포넌트 마운트 시 초기화
+  onMount(() => {
+    // 초기화 함수들 호출
+  })
 </script>
 
 <ThemeModal {open} onclose={handleClose}>
