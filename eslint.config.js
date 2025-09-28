@@ -147,7 +147,7 @@ export default [
       'no-unused-vars': 'off', // Handled by TypeScript
 
       // === 필드명 규칙 강제 (프론트엔드: camelCase) ===
-      // 일시적으로 비활성화 - 커밋 후 체계적으로 수정 예정
+      // 일시적으로 비활성화 - 점진적 수정 전략 수립 중
       // 'no-restricted-syntax': [
       //   'error',
       //   {
@@ -260,7 +260,7 @@ export default [
       'no-unused-vars': 'off', // Handled by TypeScript
 
       // === 필드명 규칙 강제 (서버사이드: snake_case) ===
-      // 일시적으로 비활성화 - 커밋 후 체계적으로 수정 예정
+      // 일시적으로 비활성화 - 점진적 수정 전략 수립 중
       // 'no-restricted-syntax': [
       //   'error',
       //   // 1) camelCase 필드명 사용 금지
@@ -454,7 +454,7 @@ export default [
       'svelte/prefer-destructured-store-props': 'off', // Svelte 5에서는 $props 사용
 
       // === 필드명 규칙 강제 (Svelte: camelCase) ===
-      // 일시적으로 비활성화 - 커밋 후 체계적으로 수정 예정
+      // 일시적으로 비활성화 - 점진적 수정 전략 수립 중
       // 'no-restricted-syntax': [
       //   'error',
       //   {
