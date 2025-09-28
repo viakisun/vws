@@ -484,7 +484,7 @@ export default [
 
   // Node/CommonJS scripts and utility JS files
   {
-    files: ['scripts/**/*.js', 'utils/**/*.js'],
+    files: ['scripts/**/*.js', 'scripts/**/*.cjs', 'utils/**/*.js'],
     languageOptions: {
       ecmaVersion: 2022,
       sourceType: 'script',
