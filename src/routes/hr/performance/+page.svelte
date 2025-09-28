@@ -82,9 +82,11 @@
   })
 
   // Update review form year when selectedYear changes
-  $effect(() => {
+  function updateData() {
+
     reviewForm.reviewPeriod.year = selectedYear
-  })
+  
+}
 
   let feedbackForm = $state({
     revieweeId: '',

@@ -1,13 +1,14 @@
 <script lang="ts">
-  import Card from '$lib/components/ui/Card.svelte'
-  import Badge from '$lib/components/ui/Badge.svelte'
-  import Modal from '$lib/components/ui/Modal.svelte'
-  import { formatKRW } from '$lib/utils/format'
-  import { personnelStore } from '$lib/stores/personnel'
-  import { quarterlyPersonnelBudgets, budgetThresholds } from '$lib/stores/rnd'
-  import { page } from '$app/state'
   import { goto } from '$app/navigation'
-  import type { Personnel, Participation } from '$lib/types'
+  import { page } from '$app/state'
+  import Badge from '$lib/components/ui/Badge.svelte'
+  import Card from '$lib/components/ui/Card.svelte'
+  import Modal from '$lib/components/ui/Modal.svelte'
+  import { personnelStore } from '$lib/stores/personnel'
+  import { budgetThresholds, quarterlyPersonnelBudgets } from '$lib/stores/rnd'
+  import type { Participation, Personnel } from '$lib/types'
+  import { formatKRW } from '$lib/utils/format'
+  import { onMount } from 'svelte'
   let quarter = $state('2025-Q3')
   let selectedId = $state<string | null>(null)
   let query = $state('')
@@ -89,7 +90,7 @@
   )
 
   // URL sync for quarter only (q)
-  $effect(() => {
+  function updateData() {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search)
       if (quarter) params.set('q', quarter)
@@ -104,13 +105,19 @@
         })
       }
     }
-  })
+  }
 
   // skeleton loading for table
   let loading = $state(true)
   if (typeof window !== 'undefined') {
     setTimeout(() => (loading = false), 300)
   }
+
+
+  // 컴포넌트 마운트 시 초기화
+  onMount(() => {
+    // 초기화 함수들 호출
+  })
 </script>
 
 <Card header="인력 비용 관리">

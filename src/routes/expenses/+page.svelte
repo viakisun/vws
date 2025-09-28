@@ -1,18 +1,19 @@
 <script lang="ts">
-  import Card from '$lib/components/ui/Card.svelte'
+  import { goto } from '$app/navigation'
+  import { page } from '$app/state'
   import Badge from '$lib/components/ui/Badge.svelte'
+  import Card from '$lib/components/ui/Card.svelte'
   import Modal from '$lib/components/ui/Modal.svelte'
-  import { formatKRW } from '$lib/utils/format'
   import {
-    expenseDocsStore,
-    updateExpenseStatus,
-    expenseHistories,
-    addExpenseHistory,
+      addExpenseHistory,
+      expenseDocsStore,
+      expenseHistories,
+      updateExpenseStatus,
   } from '$lib/stores/rnd'
   import { pushToast } from '$lib/stores/toasts'
-  import { page } from '$app/state'
-  import { goto } from '$app/navigation'
   import type { ExpenseDocument } from '$lib/types'
+  import { formatKRW } from '$lib/utils/format'
+  import { onMount } from 'svelte'
 
   let status = $state((page.url.searchParams.get('status') as '' | '대기' | '승인' | '반려') || '')
   let query = $state(page.url.searchParams.get('q') || '')
@@ -47,7 +48,7 @@
   }
 
   // URL 동기화
-  $effect(() => {
+  function handleFilterChange() {
     const sp = new URLSearchParams(page.url.searchParams)
     if (query) sp.set('q', query)
     else sp.delete('q')
@@ -57,7 +58,7 @@
     if (newUrl !== page.url.pathname + (page.url.search ? page.url.search : '')) {
       goto(newUrl, { replaceState: true, noScroll: true, keepFocus: true })
     }
-  })
+  }
 
   // 간단한 컴플라이언스 검증: 카테고리별 최소 첨부 개수 요구
   const requiredAttachments: Record<string, number> = {
@@ -81,6 +82,12 @@
     const have = d.attachments ?? 0
     return have >= req.length ? [] : req.slice(have)
   }
+
+
+  // 컴포넌트 마운트 시 초기화
+  onMount(() => {
+    // 초기화 함수들 호출
+  })
 </script>
 
 <Card header="R&D 비용 증빙 문서">

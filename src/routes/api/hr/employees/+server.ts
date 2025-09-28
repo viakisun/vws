@@ -3,13 +3,13 @@
 import { query } from '$lib/database/connection'
 import type { ApiResponse } from '$lib/types/database'
 import type {
-  EmergencyContact,
-  Employee,
-  EmployeeLevel,
-  EmployeeStatus,
-  EmploymentType,
-  PaginatedResponse,
-  PersonalInfo,
+    EmergencyContact,
+    Employee,
+    EmployeeLevel,
+    EmployeeStatus,
+    EmploymentType,
+    PaginatedResponse,
+    PersonalInfo,
 } from '$lib/types/hr'
 import { logger } from '$lib/utils/logger'
 import { json } from '@sveltejs/kit'
@@ -91,7 +91,7 @@ export const GET: RequestHandler = async ({ url }) => {
     // 검색 조건
     if (search) {
       conditions.push(`(
-				e.name ILIKE $${paramIndex} OR 
+				CONCAT(e.first_name, ' ', e.last_name) ILIKE $${paramIndex} OR 
 				e.email ILIKE $${paramIndex} OR 
 				e.employee_id ILIKE $${paramIndex}
 			)`)
@@ -165,22 +165,18 @@ export const GET: RequestHandler = async ({ url }) => {
 			SELECT 
 				e.id,
 				e.employee_id,
-				e.name,
+				CONCAT(e.first_name, ' ', e.last_name) as name,
 				e.email,
 				e.phone,
 				e.address,
 				e.department,
 				e.position,
-				e.level,
+				e.position as level,
 				e.employment_type,
 				e.hire_date,
-				e.birth_date,
 				e.status,
 				e.manager_id,
-				e.profile_image,
 				e.emergency_contact,
-				e.personal_info,
-				e.termination_date,
 				e.created_at,
 				e.updated_at
 			FROM employees e
