@@ -89,7 +89,10 @@ export const projectActions = {
       if (!response.ok) {
         const errorData = (await response.json()) as ApiResponse<unknown>
         logger.error('프로젝트 생성 API 에러 응답:', errorData)
-        throw new Error((errorData as any).message || '프로젝트 생성에 실패했습니다.')
+        throw new Error(
+          ((errorData as unknown as Record<string, unknown>).message as string) ||
+            '프로젝트 생성에 실패했습니다.',
+        )
       }
 
       const data = (await response.json()) as ApiResponse<Project>
@@ -128,7 +131,10 @@ export const projectActions = {
 
       if (!response.ok) {
         const errorData = (await response.json()) as ApiResponse<unknown>
-        throw new Error((errorData as any).message || '프로젝트 수정에 실패했습니다.')
+        throw new Error(
+          ((errorData as unknown as Record<string, unknown>).message as string) ||
+            '프로젝트 수정에 실패했습니다.',
+        )
       }
 
       const data = (await response.json()) as ApiResponse<Project>
@@ -160,7 +166,10 @@ export const projectActions = {
 
       if (!response.ok) {
         const errorData = (await response.json()) as ApiResponse<unknown>
-        throw new Error((errorData as any).message || '프로젝트 삭제에 실패했습니다.')
+        throw new Error(
+          ((errorData as unknown as Record<string, unknown>).message as string) ||
+            '프로젝트 삭제에 실패했습니다.',
+        )
       }
 
       projectStore.update((state) => ({
@@ -187,7 +196,7 @@ export const projectActions = {
       const data = (await response.json()) as ApiResponse<Project[]>
       projectStore.update((state) => ({
         ...state,
-        summary: data.data as any,
+        summary: data.data as unknown as ProjectSummary,
       }))
     } catch (error) {
       logger.error('프로젝트 요약 정보 로드 실패:', error)
@@ -226,7 +235,10 @@ export const projectMemberActions = {
 
       if (!response.ok) {
         const errorData = (await response.json()) as ApiResponse<unknown>
-        throw new Error((errorData as any).message || '프로젝트 멤버 추가에 실패했습니다.')
+        throw new Error(
+          ((errorData as unknown as Record<string, unknown>).message as string) ||
+            '프로젝트 멤버 추가에 실패했습니다.',
+        )
       }
 
       const data = (await response.json()) as ApiResponse<ProjectMember>
@@ -260,7 +272,10 @@ export const projectMemberActions = {
 
       if (!response.ok) {
         const errorData = (await response.json()) as ApiResponse<unknown>
-        throw new Error((errorData as any).message || '프로젝트 멤버 수정에 실패했습니다.')
+        throw new Error(
+          ((errorData as unknown as Record<string, unknown>).message as string) ||
+            '프로젝트 멤버 수정에 실패했습니다.',
+        )
       }
 
       const data = (await response.json()) as ApiResponse<ProjectMember>
@@ -292,7 +307,10 @@ export const projectMemberActions = {
 
       if (!response.ok) {
         const errorData = (await response.json()) as ApiResponse<unknown>
-        throw new Error((errorData as any).message || '프로젝트 멤버 삭제에 실패했습니다.')
+        throw new Error(
+          ((errorData as unknown as Record<string, unknown>).message as string) ||
+            '프로젝트 멤버 삭제에 실패했습니다.',
+        )
       }
 
       projectStore.update((state) => ({
@@ -366,7 +384,10 @@ export const participationRateActions = {
 
       if (!response.ok) {
         const errorData = (await response.json()) as ApiResponse<unknown>
-        throw new Error((errorData as any).message || '참여율 업데이트에 실패했습니다.')
+        throw new Error(
+          ((errorData as unknown as Record<string, unknown>).message as string) ||
+            '참여율 업데이트에 실패했습니다.',
+        )
       }
 
       const data = (await response.json()) as ApiResponse<Project[]>
@@ -465,7 +486,10 @@ export const budgetActions = {
 
       if (!response.ok) {
         const errorData = (await response.json()) as ApiResponse<unknown>
-        throw new Error((errorData as any).message || '사업비 저장에 실패했습니다.')
+        throw new Error(
+          ((errorData as unknown as Record<string, unknown>).message as string) ||
+            '사업비 저장에 실패했습니다.',
+        )
       }
 
       const data = (await response.json()) as ApiResponse<Project[]>
@@ -473,10 +497,10 @@ export const budgetActions = {
         ...state,
         projectBudgets: isUpdate
           ? state.projectBudgets.map((b) =>
-              b.id === budgetData.id && data.data ? (data.data as any) : b,
+              b.id === budgetData.id && data.data ? (data.data as unknown as ProjectBudget) : b,
             )
           : data.data
-            ? [...state.projectBudgets, data.data as any]
+            ? [...state.projectBudgets, data.data as unknown as ProjectBudget]
             : state.projectBudgets,
         loading: false,
       }))

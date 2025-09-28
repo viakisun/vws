@@ -14,7 +14,7 @@ export async function POST() {
 
     // 1. project_budgets 테이블에 연구수당 컬럼 추가
     await query(`
-			ALTER TABLE project_budgets 
+			ALTER TABLE project_budgets
 			ADD COLUMN IF NOT EXISTS research_stipend DECIMAL(15,2) DEFAULT 0,
 			ADD COLUMN IF NOT EXISTS research_stipend_cash DECIMAL(15,2) DEFAULT 0,
 			ADD COLUMN IF NOT EXISTS research_stipend_in_kind DECIMAL(15,2) DEFAULT 0
@@ -24,12 +24,12 @@ export async function POST() {
 
     // 2. 기존 데이터의 연구수당 컬럼을 0으로 초기화
     await query(`
-			UPDATE project_budgets 
-			SET research_stipend = 0, 
-			    research_stipend_cash = 0, 
-			    research_stipend_in_kind = 0 
-			WHERE research_stipend IS NULL 
-			   OR research_stipend_cash IS NULL 
+			UPDATE project_budgets
+			SET research_stipend = 0,
+			    research_stipend_cash = 0,
+			    research_stipend_in_kind = 0
+			WHERE research_stipend IS NULL
+			   OR research_stipend_cash IS NULL
 			   OR research_stipend_in_kind IS NULL
 		`)
 
@@ -37,14 +37,14 @@ export async function POST() {
 
     // 3. 컬럼 추가 확인
     const columns = await query(`
-			SELECT column_name, data_type, column_default 
-			FROM information_schema.columns 
-			WHERE table_name = 'project_budgets' 
+			SELECT column_name, data_type, column_default
+			FROM information_schema.columns
+			WHERE table_name = 'project_budgets'
 			AND column_name LIKE '%research_stipend%'
 			ORDER BY column_name
 		`)
 
-    const columnData: ColumnInfo[] = columns.rows
+    const columnData = columns.rows as ColumnInfo[]
     logger.log('📋 추가된 컬럼들:', columnData)
 
     return json({

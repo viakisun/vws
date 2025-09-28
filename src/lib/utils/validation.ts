@@ -105,7 +105,7 @@ export class ValidationUtils {
     if (result.rows.length === 0) {
       throw new Error('프로젝트를 찾을 수 없습니다.')
     }
-    return result.rows[0]
+    return result.rows[0] as Record<string, unknown>
   }
 
   /**
@@ -116,7 +116,7 @@ export class ValidationUtils {
       'SELECT * FROM project_budgets WHERE project_id = $1 ORDER BY period_number',
       [projectId],
     )
-    return result.rows
+    return result.rows as Record<string, unknown>[]
   }
 
   /**
@@ -125,7 +125,7 @@ export class ValidationUtils {
   static async getProjectMembers(projectId: string) {
     const result = await pool.query(
       `
-			SELECT 
+			SELECT
 				pm.*,
 				e.first_name,
 				e.last_name,
@@ -142,7 +142,7 @@ export class ValidationUtils {
 		`,
       [projectId],
     )
-    return result.rows
+    return result.rows as Record<string, unknown>[]
   }
 
   /**
@@ -150,7 +150,7 @@ export class ValidationUtils {
    */
   static async getEvidenceItems(projectId: string, categoryName?: string) {
     let query = `
-			SELECT 
+			SELECT
 				ei.*,
 				pb.period_number,
 				pb.period_number,
@@ -172,7 +172,7 @@ export class ValidationUtils {
     query += ' ORDER BY pb.period_number, ei.due_date'
 
     const result = await pool.query(query, params)
-    return result.rows
+    return result.rows as Record<string, unknown>[]
   }
 
   /**
@@ -181,7 +181,7 @@ export class ValidationUtils {
   static async getEmployeeInfo(employeeId: string) {
     const result = await pool.query(
       `
-			SELECT 
+			SELECT
 				id,
 				first_name,
 				last_name,
@@ -191,12 +191,12 @@ export class ValidationUtils {
 				employment_type,
 				department,
 				position
-			FROM employees 
+			FROM employees
 			WHERE id = $1
 		`,
       [employeeId],
     )
-    return result.rows[0] || null
+    return (result.rows[0] as Record<string, unknown>) || null
   }
 
   /**
@@ -450,7 +450,7 @@ export class EmploymentPeriodValidator {
     }
 
     // 2. 퇴사한 직원인지 확인
-    if ((member as any).status === 'terminated' && terminationDate) {
+    if ((member as unknown as Record<string, unknown>).status === 'terminated' && terminationDate) {
       if (memberStartDate > terminationDate) {
         issues.push(
           `퇴사일: ${terminationDate.toLocaleDateString()}, 참여시작일: ${memberStartDate.toLocaleDateString()}`,
@@ -466,8 +466,8 @@ export class EmploymentPeriodValidator {
     }
 
     // 4. 현재 비활성 상태인 직원인지 확인
-    if ((member as any).status === 'inactive') {
-      issues.push(`상태: ${(member as any).status}`)
+    if ((member as unknown as Record<string, unknown>).status === 'inactive') {
+      issues.push(`상태: ${(member as unknown as Record<string, unknown>).status}`)
     }
 
     // 5. 프로젝트 기간과 재직 기간이 겹치는지 확인
@@ -510,14 +510,17 @@ export class EmploymentPeriodValidator {
       )
     }
 
-    const dueDate = new Date((evidence as any).due_date)
+    const dueDate = new Date((evidence as unknown as Record<string, unknown>).due_date as string)
     const hireDate = employee.hire_date ? new Date(employee.hire_date) : null
     const terminationDate = employee.termination_date ? new Date(employee.termination_date) : null
 
     const issues: string[] = []
 
     // 1. 퇴사한 직원인지 확인
-    if ((employee as any).status === 'terminated' || terminationDate) {
+    if (
+      (employee as unknown as Record<string, unknown>).status === 'terminated' ||
+      terminationDate
+    ) {
       if (terminationDate && dueDate > terminationDate) {
         issues.push(
           `퇴사일(${terminationDate.toLocaleDateString()}) 이후에 인건비가 집행되었습니다.`,
@@ -531,13 +534,17 @@ export class EmploymentPeriodValidator {
     }
 
     // 3. 현재 비활성 상태인 직원인지 확인
-    if ((employee as any).status === 'inactive') {
+    if ((employee as unknown as Record<string, unknown>).status === 'inactive') {
       issues.push('비활성 상태인 직원에게 인건비가 집행되었습니다.')
     }
 
     // 4. 프로젝트 기간과 재직 기간이 겹치는지 확인
-    const periodStartDate = new Date((evidence as any).period_start_date)
-    const periodEndDate = new Date((evidence as any).period_end_date)
+    const periodStartDate = new Date(
+      (evidence as unknown as Record<string, unknown>).period_start_date as string,
+    )
+    const periodEndDate = new Date(
+      (evidence as unknown as Record<string, unknown>).period_end_date as string,
+    )
 
     if (hireDate && periodEndDate < hireDate) {
       issues.push(
@@ -678,15 +685,22 @@ export class UsageRateValidator {
           break
         }
         case '재료비': {
-          categoryBudget = parseFloat(String((budget as any).research_material_cost)) || 0
+          categoryBudget =
+            parseFloat(
+              String((budget as unknown as Record<string, unknown>).research_material_cost),
+            ) || 0
           break
         }
         case '연구활동비': {
-          categoryBudget = parseFloat(String((budget as any).research_activity_cost)) || 0
+          categoryBudget =
+            parseFloat(
+              String((budget as unknown as Record<string, unknown>).research_activity_cost),
+            ) || 0
           break
         }
         case '간접비': {
-          categoryBudget = parseFloat(String((budget as any).indirect_cost)) || 0
+          categoryBudget =
+            parseFloat(String((budget as unknown as Record<string, unknown>).indirect_cost)) || 0
           break
         }
       }

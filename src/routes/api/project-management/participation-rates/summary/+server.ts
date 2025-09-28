@@ -39,7 +39,7 @@ export const GET: RequestHandler = async () => {
 			GROUP BY e.id, e.first_name, e.last_name, e.department, e.position
 			ORDER BY e.first_name, e.last_name
 		`)
-    const summaryData: ParticipationSummary[] = summaryResult.rows
+    const summaryData = summaryResult.rows as ParticipationSummary[]
 
     // 각 직원의 프로젝트별 참여율 상세 정보
     const projectDetailsResult = await query(`
@@ -57,15 +57,16 @@ export const GET: RequestHandler = async () => {
 			WHERE pr.status = 'active'
 			ORDER BY pr.employee_id, pr.participation_rate DESC
 		`)
-    const projectDetailsData = projectDetailsResult.rows
+    const projectDetailsData = projectDetailsResult.rows as Record<string, unknown>[]
 
     // 프로젝트별 정보를 직원별로 그룹화
-    const projectDetailsMap = new Map()
-    projectDetailsData.forEach((row) => {
-      if (!projectDetailsMap.has(row.employee_id)) {
-        projectDetailsMap.set(row.employee_id, [])
+    const projectDetailsMap = new Map<string, Array<Record<string, unknown>>>()
+    projectDetailsData.forEach((row: Record<string, unknown>) => {
+      const employeeId = String(row.employee_id || '')
+      if (!projectDetailsMap.has(employeeId)) {
+        projectDetailsMap.set(employeeId, [])
       }
-      projectDetailsMap.get(row.employee_id).push({
+      projectDetailsMap.get(employeeId)?.push({
         projectId: row.project_id,
         projectName: row.project_name,
         projectCode: row.project_code,

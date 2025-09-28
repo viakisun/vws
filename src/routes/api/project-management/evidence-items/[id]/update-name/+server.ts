@@ -37,10 +37,10 @@ export const PUT: RequestHandler = async ({ params, request }) => {
       return json(response, { status: 404 })
     }
 
-    const response: ApiResponse<(typeof result.rows)[0]> = {
+    const response: ApiResponse<Record<string, unknown>> = {
       success: true,
       message: '증빙 항목 이름이 업데이트되었습니다.',
-      data: result.rows[0],
+      data: result.rows[0] as Record<string, unknown>,
     }
     return json(response)
   } catch (error: unknown) {

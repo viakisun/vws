@@ -6,9 +6,10 @@ import type { RequestHandler } from './$types'
 // GET /api/project-management/project-budgets/[id] - 특정 프로젝트 사업비 조회
 export const GET: RequestHandler = async ({ params }) => {
   try {
+    const { id } = params as Record<string, string>
     const result = await query(
       `
-			SELECT 
+			SELECT
 				pb.*,
 				p.title as project_title,
 				p.code as project_code
@@ -16,7 +17,7 @@ export const GET: RequestHandler = async ({ params }) => {
 			JOIN projects p ON pb.project_id = p.id
 			WHERE pb.id = $1
 		`,
-      [params.id],
+      [id],
     )
 
     if (result.rows.length === 0) {
@@ -31,7 +32,7 @@ export const GET: RequestHandler = async ({ params }) => {
 
     return json({
       success: true,
-      data: result.rows[0],
+      data: result.rows[0] as Record<string, unknown>,
     })
   } catch (error) {
     logger.error('프로젝트 사업비 조회 실패:', error)
@@ -49,7 +50,8 @@ export const GET: RequestHandler = async ({ params }) => {
 // PUT /api/project-management/project-budgets/[id] - 프로젝트 사업비 수정
 export const PUT: RequestHandler = async ({ params, request }) => {
   try {
-    const data = await request.json()
+    const { id } = params as Record<string, string>
+    const data = (await request.json()) as Record<string, unknown>
     const {
       periodNumber = 1,
       startDate,
@@ -69,7 +71,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
     } = data
 
     // 사업비 존재 확인
-    const existingBudget = await query('SELECT * FROM project_budgets WHERE id = $1', [params.id])
+    const existingBudget = await query('SELECT * FROM project_budgets WHERE id = $1', [id])
 
     if (existingBudget.rows.length === 0) {
       return json(
@@ -82,17 +84,19 @@ export const PUT: RequestHandler = async ({ params, request }) => {
     }
 
     // 각 비목의 총합 계산 (현금 + 현물) - 로직으로 계산하므로 DB에 저장하지 않음
-    const personnelCost = personnelCostCash + personnelCostInKind
-    const researchMaterialCost = researchMaterialCostCash + researchMaterialCostInKind
-    const researchActivityCost = researchActivityCostCash + researchActivityCostInKind
-    const researchStipend = researchStipendCash + researchStipendInKind
-    const indirectCost = indirectCostCash + indirectCostInKind
+    const personnelCost = Number(personnelCostCash || 0) + Number(personnelCostInKind || 0)
+    const researchMaterialCost =
+      Number(researchMaterialCostCash || 0) + Number(researchMaterialCostInKind || 0)
+    const researchActivityCost =
+      Number(researchActivityCostCash || 0) + Number(researchActivityCostInKind || 0)
+    const researchStipend = Number(researchStipendCash || 0) + Number(researchStipendInKind || 0)
+    const indirectCost = Number(indirectCostCash || 0) + Number(indirectCostInKind || 0)
 
     // 사업비 수정
     const _result = await query(
       `
-			UPDATE project_budgets 
-			SET 
+			UPDATE project_budgets
+			SET
 				period_number = $1,
 				start_date = $2,
 				end_date = $3,
@@ -134,14 +138,14 @@ export const PUT: RequestHandler = async ({ params, request }) => {
         researchStipendInKind,
         indirectCostCash,
         indirectCostInKind,
-        params.id,
+        id,
       ],
     )
 
     // 수정된 사업비 정보와 관련 정보 조회
     const budgetWithDetails = await query(
       `
-			SELECT 
+			SELECT
 				pb.*,
 				p.title as project_title,
 				p.code as project_code
@@ -149,12 +153,12 @@ export const PUT: RequestHandler = async ({ params, request }) => {
 			JOIN projects p ON pb.project_id = p.id
 			WHERE pb.id = $1
 		`,
-      [params.id],
+      [id],
     )
 
     return json({
       success: true,
-      data: budgetWithDetails.rows[0],
+      data: budgetWithDetails.rows[0] as Record<string, unknown>,
       message: '프로젝트 사업비가 성공적으로 수정되었습니다.',
     })
   } catch (error) {
@@ -173,8 +177,9 @@ export const PUT: RequestHandler = async ({ params, request }) => {
 // DELETE /api/project-management/project-budgets/[id] - 프로젝트 사업비 삭제
 export const DELETE: RequestHandler = async ({ params }) => {
   try {
+    const { id } = params as Record<string, string>
     // 사업비 존재 확인
-    const existingBudget = await query('SELECT * FROM project_budgets WHERE id = $1', [params.id])
+    const existingBudget = await query('SELECT * FROM project_budgets WHERE id = $1', [id])
 
     if (existingBudget.rows.length === 0) {
       return json(
@@ -187,7 +192,7 @@ export const DELETE: RequestHandler = async ({ params }) => {
     }
 
     // 사업비 삭제
-    await query('DELETE FROM project_budgets WHERE id = $1', [params.id])
+    await query('DELETE FROM project_budgets WHERE id = $1', [id])
 
     return json({
       success: true,

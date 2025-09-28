@@ -175,7 +175,7 @@ export const GET: RequestHandler = async ({ url }) => {
 // POST: 급여 계약 생성
 export const POST: RequestHandler = async ({ request }) => {
   try {
-    const contractData: CreateSalaryContractRequest = await request.json()
+    const contractData = (await request.json()) as CreateSalaryContractRequest
 
     // 필수 필드 검증
     if (

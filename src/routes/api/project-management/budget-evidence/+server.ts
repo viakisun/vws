@@ -148,9 +148,9 @@ export const POST: RequestHandler = async ({ request }) => {
       createdBy || null,
     ])
 
-    const response: ApiResponse<(typeof result.rows)[0]> = {
+    const response: ApiResponse<Record<string, unknown>> = {
       success: true,
-      data: result.rows[0],
+      data: result.rows[0] as Record<string, unknown>,
       message: '증빙 내역이 등록되었습니다.',
     }
     return json(response)

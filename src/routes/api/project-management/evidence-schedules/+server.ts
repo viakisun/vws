@@ -15,7 +15,7 @@ export const GET: RequestHandler = async ({ url }) => {
     const priority = url.searchParams.get('priority')
 
     let queryText = `
-			SELECT 
+			SELECT
 				es.*,
 				ei.name as evidence_item_name,
 				CONCAT(assignee.last_name, assignee.first_name) as assignee_name
@@ -57,7 +57,7 @@ export const GET: RequestHandler = async ({ url }) => {
 
     return json({
       success: true,
-      data: result.rows,
+      data: result.rows as Record<string, unknown>[],
       count: result.rows.length,
     })
   } catch (error) {
@@ -76,7 +76,7 @@ export const GET: RequestHandler = async ({ url }) => {
 // 증빙 일정 생성
 export const POST: RequestHandler = async ({ request }) => {
   try {
-    const data = await request.json()
+    const data = (await request.json()) as Record<string, unknown>
     const { evidenceItemId, taskName, description, dueDate, assigneeId, priority = 'medium' } = data
 
     // 필수 필드 검증
@@ -113,12 +113,12 @@ export const POST: RequestHandler = async ({ request }) => {
       [evidenceItemId, taskName, description, dueDate, assigneeId, priority],
     )
 
-    const newSchedule = result.rows[0]
+    const newSchedule = result.rows[0] as Record<string, unknown>
 
     // 생성된 일정의 상세 정보 조회
     const detailResult = await query(
       `
-			SELECT 
+			SELECT
 				es.*,
 				ei.name as evidence_item_name,
 				CONCAT(assignee.last_name, assignee.first_name) as assignee_name
@@ -127,12 +127,12 @@ export const POST: RequestHandler = async ({ request }) => {
 			LEFT JOIN employees assignee ON es.assignee_id = assignee.id
 			WHERE es.id = $1
 		`,
-      [newSchedule.id],
+      [String(newSchedule.id || '')],
     )
 
     return json({
       success: true,
-      data: detailResult.rows[0],
+      data: detailResult.rows[0] as Record<string, unknown>,
       message: '증빙 일정이 성공적으로 생성되었습니다.',
     })
   } catch (error) {

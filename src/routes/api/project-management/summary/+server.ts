@@ -13,7 +13,7 @@ export const GET: RequestHandler = async () => {
 
     // 기본 프로젝트 통계
     const projectStatsResult = await query(`
-			SELECT 
+			SELECT
 				COUNT(*) as total_projects,
 				COUNT(CASE WHEN status = 'active' THEN 1 END) as active_projects,
 				COUNT(CASE WHEN status = 'completed' THEN 1 END) as completed_projects,
@@ -26,7 +26,7 @@ export const GET: RequestHandler = async () => {
     // 총 사업비 통계
     const budgetStatsResult = await query(
       `
-			SELECT 
+			SELECT
 				COALESCE(SUM(budget_total), 0) as total_budget,
 				COALESCE(SUM(CASE WHEN EXTRACT(YEAR FROM start_date) = $1 THEN budget_total ELSE 0 END), 0) as current_year_budget
 			FROM projects
@@ -37,7 +37,7 @@ export const GET: RequestHandler = async () => {
 
     // 참여 연구원 수
     const memberStatsResult = await query(`
-			SELECT 
+			SELECT
 				COUNT(DISTINCT pm.employee_id) as total_members,
 				COUNT(DISTINCT CASE WHEN pm.status = 'active' THEN pm.employee_id END) as active_members
 			FROM project_members pm
@@ -49,7 +49,7 @@ export const GET: RequestHandler = async () => {
     const overParticipationResult = await query(`
 			SELECT COUNT(*) as over_participation_count
 			FROM (
-				SELECT 
+				SELECT
 					pr.employee_id,
 					SUM(pr.participation_rate) as total_rate
 				FROM participation_rates pr
@@ -61,7 +61,7 @@ export const GET: RequestHandler = async () => {
 
     // 연차별 사업비 현황
     const budgetByYearResult = await query(`
-			SELECT 
+			SELECT
 				period_number,
 				COUNT(project_id) as project_count,
 				SUM(COALESCE(government_funding_amount, 0) + COALESCE(company_cash_amount, 0) + COALESCE(company_in_kind_amount, 0)) as total_budget,
@@ -78,7 +78,7 @@ export const GET: RequestHandler = async () => {
 
     // 최근 프로젝트 활동
     const recentActivitiesResult = await query(`
-			SELECT 
+			SELECT
 				p.id,
 				p.code,
 				p.title,
@@ -93,7 +93,7 @@ export const GET: RequestHandler = async () => {
 
     // 프로젝트 상태별 분포
     const statusDistributionResult = await query(`
-			SELECT 
+			SELECT
 				status,
 				COUNT(*) as count,
 				ROUND(COUNT(*) * 100.0 / SUM(COUNT(*)) OVER(), 1) as percentage
@@ -104,7 +104,7 @@ export const GET: RequestHandler = async () => {
 
     // 스폰서 유형별 분포
     const sponsorTypeDistributionResult = await query(`
-			SELECT 
+			SELECT
 				sponsor_type,
 				COUNT(*) as count,
 				ROUND(COUNT(*) * 100.0 / SUM(COUNT(*)) OVER(), 1) as percentage
@@ -116,7 +116,7 @@ export const GET: RequestHandler = async () => {
 
     // 우선순위별 분포
     const priorityDistributionResult = await query(`
-			SELECT 
+			SELECT
 				priority,
 				COUNT(*) as count,
 				ROUND(COUNT(*) * 100.0 / SUM(COUNT(*)) OVER(), 1) as percentage
@@ -128,7 +128,7 @@ export const GET: RequestHandler = async () => {
 
     // 마일스톤 현황
     const milestoneStatsResult = await query(`
-			SELECT 
+			SELECT
 				COUNT(*) as total_milestones,
 				COUNT(CASE WHEN status = 'completed' THEN 1 END) as completed_milestones,
 				COUNT(CASE WHEN status = 'pending' AND milestone_date < CURRENT_DATE THEN 1 END) as overdue_milestones,
@@ -138,7 +138,7 @@ export const GET: RequestHandler = async () => {
 
     // 위험 요소 현황
     const riskStatsResult = await query(`
-			SELECT 
+			SELECT
 				COUNT(*) as total_risks,
 				COUNT(CASE WHEN status = 'open' THEN 1 END) as open_risks,
 				COUNT(CASE WHEN status = 'mitigated' THEN 1 END) as mitigated_risks,
@@ -147,43 +147,44 @@ export const GET: RequestHandler = async () => {
 			FROM project_risks
 		`)
 
-    const projectStats = projectStatsResult.rows[0]
-    const budgetStats = budgetStatsResult.rows[0]
-    const memberStats = memberStatsResult.rows[0]
-    const overParticipation = overParticipationResult.rows[0]
+    const projectStats = projectStatsResult.rows[0] as Record<string, unknown>
+    const budgetStats = budgetStatsResult.rows[0] as Record<string, unknown>
+    const memberStats = memberStatsResult.rows[0] as Record<string, unknown>
+    const overParticipation = overParticipationResult.rows[0] as Record<string, unknown>
 
     const summary = {
       // 기본 통계
-      totalProjects: parseInt(projectStats.total_projects) || 0,
-      activeProjects: parseInt(projectStats.active_projects) || 0,
-      completedProjects: parseInt(projectStats.completed_projects) || 0,
-      planningProjects: parseInt(projectStats.planning_projects) || 0,
-      cancelledProjects: parseInt(projectStats.cancelled_projects) || 0,
-      suspendedProjects: parseInt(projectStats.suspended_projects) || 0,
+      totalProjects: parseInt(String(projectStats.total_projects || 0)) || 0,
+      activeProjects: parseInt(String(projectStats.active_projects || 0)) || 0,
+      completedProjects: parseInt(String(projectStats.completed_projects || 0)) || 0,
+      planningProjects: parseInt(String(projectStats.planning_projects || 0)) || 0,
+      cancelledProjects: parseInt(String(projectStats.cancelled_projects || 0)) || 0,
+      suspendedProjects: parseInt(String(projectStats.suspended_projects || 0)) || 0,
 
       // 사업비 통계
-      totalBudget: parseFloat(budgetStats.total_budget) || 0,
-      currentYearBudget: parseFloat(budgetStats.current_year_budget) || 0,
+      totalBudget: parseFloat(String(budgetStats.total_budget || 0)) || 0,
+      currentYearBudget: parseFloat(String(budgetStats.current_year_budget || 0)) || 0,
 
       // 연구원 통계
-      totalMembers: parseInt(memberStats.total_members) || 0,
-      activeMembers: parseInt(memberStats.active_members) || 0,
-      overParticipationEmployees: parseInt(overParticipation.over_participation_count) || 0,
+      totalMembers: parseInt(String(memberStats.total_members || 0)) || 0,
+      activeMembers: parseInt(String(memberStats.active_members || 0)) || 0,
+      overParticipationEmployees:
+        parseInt(String(overParticipation.over_participation_count || 0)) || 0,
 
       // 연차별 사업비
-      budgetByYear: budgetByYearResult.rows.map((row) => ({
-        fiscalYear: parseInt(row.period_number),
-        projectCount: parseInt(row.project_count),
-        totalBudget: parseFloat(row.total_budget) || 0,
-        personnelCost: parseFloat(row.personnel_cost) || 0,
-        researchMaterialCost: parseFloat(row.research_material_cost) || 0,
-        researchActivityCost: parseFloat(row.research_activity_cost) || 0,
-        indirectCost: parseFloat(row.indirect_cost) || 0,
-        spentAmount: parseFloat(row.spent_amount) || 0,
+      budgetByYear: budgetByYearResult.rows.map((row: Record<string, unknown>) => ({
+        fiscalYear: parseInt(String(row.period_number || 0)) || 0,
+        projectCount: parseInt(String(row.project_count || 0)) || 0,
+        totalBudget: parseFloat(String(row.total_budget || 0)) || 0,
+        personnelCost: parseFloat(String(row.personnel_cost || 0)) || 0,
+        researchMaterialCost: parseFloat(String(row.research_material_cost || 0)) || 0,
+        researchActivityCost: parseFloat(String(row.research_activity_cost || 0)) || 0,
+        indirectCost: parseFloat(String(row.indirect_cost || 0)) || 0,
+        spentAmount: parseFloat(String(row.spent_amount || 0)) || 0,
       })),
 
       // 최근 활동
-      recentActivities: recentActivitiesResult.rows.map((row) => ({
+      recentActivities: recentActivitiesResult.rows.map((row: Record<string, unknown>) => ({
         id: row.id,
         code: row.code,
         title: row.title,
@@ -193,39 +194,75 @@ export const GET: RequestHandler = async () => {
       })),
 
       // 분포 통계
-      statusDistribution: statusDistributionResult.rows.map((row) => ({
+      statusDistribution: statusDistributionResult.rows.map((row: Record<string, unknown>) => ({
         status: row.status,
-        count: parseInt(row.count),
-        percentage: parseFloat(row.percentage),
+        count: parseInt(String(row.count || 0)) || 0,
+        percentage: parseFloat(String(row.percentage || 0)) || 0,
       })),
 
-      sponsorTypeDistribution: sponsorTypeDistributionResult.rows.map((row) => ({
-        sponsorType: row.sponsor_type,
-        count: parseInt(row.count),
-        percentage: parseFloat(row.percentage),
-      })),
+      sponsorTypeDistribution: sponsorTypeDistributionResult.rows.map(
+        (row: Record<string, unknown>) => ({
+          sponsorType: row.sponsor_type,
+          count: parseInt(String(row.count || 0)) || 0,
+          percentage: parseFloat(String(row.percentage || 0)) || 0,
+        }),
+      ),
 
-      priorityDistribution: priorityDistributionResult.rows.map((row) => ({
+      priorityDistribution: priorityDistributionResult.rows.map((row: Record<string, unknown>) => ({
         priority: row.priority,
-        count: parseInt(row.count),
-        percentage: parseFloat(row.percentage),
+        count: parseInt(String(row.count || 0)) || 0,
+        percentage: parseFloat(String(row.percentage || 0)) || 0,
       })),
 
       // 마일스톤 통계
       milestoneStats: {
-        totalMilestones: parseInt(milestoneStatsResult.rows[0]?.total_milestones) || 0,
-        completedMilestones: parseInt(milestoneStatsResult.rows[0]?.completed_milestones) || 0,
-        overdueMilestones: parseInt(milestoneStatsResult.rows[0]?.overdue_milestones) || 0,
-        upcomingMilestones: parseInt(milestoneStatsResult.rows[0]?.upcoming_milestones) || 0,
+        totalMilestones:
+          parseInt(
+            String(
+              (milestoneStatsResult.rows[0] as Record<string, unknown>)?.total_milestones || 0,
+            ),
+          ) || 0,
+        completedMilestones:
+          parseInt(
+            String(
+              (milestoneStatsResult.rows[0] as Record<string, unknown>)?.completed_milestones || 0,
+            ),
+          ) || 0,
+        overdueMilestones:
+          parseInt(
+            String(
+              (milestoneStatsResult.rows[0] as Record<string, unknown>)?.overdue_milestones || 0,
+            ),
+          ) || 0,
+        upcomingMilestones:
+          parseInt(
+            String(
+              (milestoneStatsResult.rows[0] as Record<string, unknown>)?.upcoming_milestones || 0,
+            ),
+          ) || 0,
       },
 
       // 위험 요소 통계
       riskStats: {
-        totalRisks: parseInt(riskStatsResult.rows[0]?.total_risks) || 0,
-        openRisks: parseInt(riskStatsResult.rows[0]?.open_risks) || 0,
-        mitigatedRisks: parseInt(riskStatsResult.rows[0]?.mitigated_risks) || 0,
-        closedRisks: parseInt(riskStatsResult.rows[0]?.closed_risks) || 0,
-        criticalRisks: parseInt(riskStatsResult.rows[0]?.critical_risks) || 0,
+        totalRisks:
+          parseInt(
+            String((riskStatsResult.rows[0] as Record<string, unknown>)?.total_risks || 0),
+          ) || 0,
+        openRisks:
+          parseInt(String((riskStatsResult.rows[0] as Record<string, unknown>)?.open_risks || 0)) ||
+          0,
+        mitigatedRisks:
+          parseInt(
+            String((riskStatsResult.rows[0] as Record<string, unknown>)?.mitigated_risks || 0),
+          ) || 0,
+        closedRisks:
+          parseInt(
+            String((riskStatsResult.rows[0] as Record<string, unknown>)?.closed_risks || 0),
+          ) || 0,
+        criticalRisks:
+          parseInt(
+            String((riskStatsResult.rows[0] as Record<string, unknown>)?.critical_risks || 0),
+          ) || 0,
       },
     }
 

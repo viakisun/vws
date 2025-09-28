@@ -28,7 +28,7 @@ export const GET: RequestHandler = async ({ params }) => {
     // 프로젝트 기본 정보 조회
     const projectResult = await query<DatabaseProject>(
       `
-			SELECT 
+			SELECT
 				p.*,
 				e.first_name || ' ' || e.last_name as manager_name,
 				COUNT(pm.id) as member_count,
@@ -57,7 +57,7 @@ export const GET: RequestHandler = async ({ params }) => {
     // 프로젝트 멤버 목록 조회
     const membersResult = await query<DatabaseProjectMember>(
       `
-			SELECT 
+			SELECT
 				pm.*,
 				e.first_name || ' ' || e.last_name as employee_name,
 				e.department
@@ -92,7 +92,7 @@ export const GET: RequestHandler = async ({ params }) => {
     // 프로젝트 위험 요소 조회
     const risksResult = await query(
       `
-			SELECT 
+			SELECT
 				pr.*,
 				e.first_name || ' ' || e.last_name as owner_name
 			FROM project_risks pr
@@ -138,8 +138,8 @@ export const GET: RequestHandler = async ({ params }) => {
 // 프로젝트 수정
 export const PUT: RequestHandler = async ({ params, request }) => {
   try {
-    const { id } = params
-    const data = await request.json()
+    const { id } = params as Record<string, string>
+    const data = (await request.json()) as Record<string, unknown>
     const {
       code,
       title,
@@ -193,7 +193,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
     const updateValues: (string | number | null)[] = []
     let paramIndex = 1
 
-    const fieldsToUpdate = {
+    const fieldsToUpdate: Record<string, unknown> = {
       code,
       title,
       description,
@@ -213,7 +213,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
     Object.entries(fieldsToUpdate).forEach(([key, value]) => {
       if (value !== undefined) {
         updateFields.push(`${key} = $${paramIndex++}`)
-        updateValues.push(value)
+        updateValues.push(value as string | number | null)
       }
     })
 
@@ -235,12 +235,12 @@ export const PUT: RequestHandler = async ({ params, request }) => {
       updateValues,
     )
 
-    const _updatedProject = result.rows[0]
+    const _updatedProject = result.rows[0] as Record<string, unknown>
 
     // 업데이트된 프로젝트 정보와 함께 반환
     const projectWithDetails = await query(
       `
-			SELECT 
+			SELECT
 				p.*,
 				e.first_name || ' ' || e.last_name as manager_name,
 				COUNT(pm.id) as member_count,
@@ -255,7 +255,9 @@ export const PUT: RequestHandler = async ({ params, request }) => {
     )
 
     // 데이터 변환: snake_case를 camelCase로 변환
-    const transformedProject = transformProjectData(projectWithDetails.rows[0])
+    const transformedProject = transformProjectData(
+      projectWithDetails.rows[0] as Record<string, unknown>,
+    )
 
     return json({
       success: true,
@@ -278,7 +280,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
 // 프로젝트 삭제
 export const DELETE: RequestHandler = async ({ params }) => {
   try {
-    const { id } = params
+    const { id } = params as Record<string, string>
 
     // 프로젝트 존재 확인
     const existingProject = await query('SELECT id, status FROM projects WHERE id = $1', [id])
@@ -293,7 +295,7 @@ export const DELETE: RequestHandler = async ({ params }) => {
       )
     }
 
-    const _project = existingProject.rows[0]
+    const _project = existingProject.rows[0] as Record<string, unknown>
 
     // 프로젝트 삭제 가능 여부 확인 (모든 상태에서 삭제 가능)
     // 프로젝트 삭제 요청 처리
@@ -305,7 +307,7 @@ export const DELETE: RequestHandler = async ({ params }) => {
       // 1. evidence_items 먼저 삭제 (project_budgets를 참조)
       await query(
         `
-				DELETE FROM evidence_items 
+				DELETE FROM evidence_items
 				WHERE project_budget_id IN (
 					SELECT id FROM project_budgets WHERE project_id = $1
 				)

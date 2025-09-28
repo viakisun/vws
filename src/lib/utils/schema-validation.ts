@@ -347,9 +347,9 @@ export class SchemaValidator {
       // 각 테이블별로 검증
       for (const rule of this.PROJECT_SCHEMA_RULES) {
         const actualColumn = actualSchema.find(
-          (col) =>
-            (col as Record<string, unknown>).table_name === rule.tableName &&
-            (col as Record<string, unknown>).column_name === rule.columnName,
+          (col: Record<string, unknown>) =>
+            String(col.table_name || '') === rule.tableName &&
+            String(col.column_name || '') === rule.columnName,
         )
 
         if (!actualColumn) {
@@ -365,17 +365,18 @@ export class SchemaValidator {
           })
         } else {
           // 칼럼이 존재하는 경우 타입 검증
-          const typeMatch = this.compareDataTypes(rule.expectedType, actualColumn.data_type)
+          const actualDataType = String(actualColumn.data_type || '')
+          const typeMatch = this.compareDataTypes(rule.expectedType, actualDataType)
           if (!typeMatch) {
             results.push({
               isValid: false,
               tableName: rule.tableName,
               columnName: rule.columnName,
               expectedType: rule.expectedType,
-              actualType: actualColumn.data_type,
+              actualType: actualDataType,
               issues: [
                 `칼럼 '${rule.columnName}'의 데이터 타입이 일치하지 않습니다.`,
-                `예상: ${rule.expectedType}, 실제: ${actualColumn.data_type}`,
+                `예상: ${rule.expectedType}, 실제: ${actualDataType}`,
               ],
               message: `데이터 타입 불일치: ${rule.tableName}.${rule.columnName}`,
             })
@@ -386,7 +387,7 @@ export class SchemaValidator {
               tableName: rule.tableName,
               columnName: rule.columnName,
               expectedType: rule.expectedType,
-              actualType: actualColumn.data_type,
+              actualType: actualDataType,
               issues: [],
               message: `검증 통과: ${rule.tableName}.${rule.columnName}`,
             })
@@ -404,21 +405,21 @@ export class SchemaValidator {
   /**
    * 실제 데이터베이스 스키마 조회
    */
-  private static async getActualDatabaseSchema() {
+  private static async getActualDatabaseSchema(): Promise<Record<string, unknown>[]> {
     const result = await pool.query(`
-			SELECT 
+			SELECT
 				table_name,
 				column_name,
 				data_type,
 				is_nullable,
 				column_default
-			FROM information_schema.columns 
+			FROM information_schema.columns
 			WHERE table_schema = 'public'
 			AND table_name IN ('projects', 'project_budgets', 'project_members', 'employees', 'evidence_items', 'evidence_categories')
 			ORDER BY table_name, ordinal_position
 		`)
 
-    return result.rows
+    return result.rows as Record<string, unknown>[]
   }
 
   /**
@@ -454,28 +455,32 @@ export class SchemaValidator {
 
       // 칼럼명 규칙 검증
       for (const column of actualSchema) {
+        const columnRecord = column
+        const columnName = String(columnRecord.column_name || '')
+        const dataType = String(columnRecord.data_type || '')
+        const tableName = String(columnRecord.table_name || '')
         const issues: string[] = []
 
         // 1. 소문자 사용 검증
-        if (column.column_name !== column.column_name.toLowerCase()) {
+        if (columnName !== columnName.toLowerCase()) {
           issues.push('칼럼명은 소문자로 작성해야 합니다.')
         }
 
         // 2. 언더스코어 사용 검증 (camelCase 금지)
-        if (column.column_name.includes('-') || /[A-Z]/.test(column.column_name)) {
+        if (columnName.includes('-') || /[A-Z]/.test(columnName)) {
           issues.push('칼럼명은 언더스코어(_)를 사용해야 합니다. (camelCase 금지)')
         }
 
         // 3. 예약어 사용 검증
         const reservedWords = ['name', 'type', 'order', 'group', 'user', 'date', 'time']
-        if (reservedWords.includes(column.column_name.toLowerCase())) {
-          issues.push(`예약어 '${column.column_name}' 사용을 피해야 합니다.`)
+        if (reservedWords.includes(columnName.toLowerCase())) {
+          issues.push(`예약어 '${columnName}' 사용을 피해야 합니다.`)
         }
 
         // 4. 외래키 명명 규칙 검증
-        if (column.column_name.endsWith('_id') && column.data_type === 'uuid') {
+        if (columnName.endsWith('_id') && dataType === 'uuid') {
           // 외래키는 테이블명_id 형태여야 함
-          const expectedTableName = column.column_name.replace('_id', '')
+          const expectedTableName = columnName.replace('_id', '')
           if (!expectedTableName || expectedTableName.length < 2) {
             issues.push('외래키 칼럼명은 의미있는 테이블명_id 형태여야 합니다.')
           }
@@ -484,22 +489,22 @@ export class SchemaValidator {
         if (issues.length > 0) {
           results.push({
             isValid: false,
-            tableName: column.table_name,
-            columnName: column.column_name,
+            tableName,
+            columnName,
             expectedType: 'naming_convention',
-            actualType: column.data_type,
+            actualType: dataType,
             issues,
-            message: `칼럼명 규칙 위반: ${column.table_name}.${column.column_name}`,
+            message: `칼럼명 규칙 위반: ${tableName}.${columnName}`,
           })
         } else {
           results.push({
             isValid: true,
-            tableName: column.table_name,
-            columnName: column.column_name,
+            tableName,
+            columnName,
             expectedType: 'naming_convention',
-            actualType: column.data_type,
+            actualType: dataType,
             issues: [],
-            message: `칼럼명 규칙 준수: ${column.table_name}.${column.column_name}`,
+            message: `칼럼명 규칙 준수: ${tableName}.${columnName}`,
           })
         }
       }

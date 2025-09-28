@@ -23,8 +23,8 @@ export const PUT: RequestHandler = async ({ params, request }) => {
 
     // 증빙 내역 승인
     const updateQuery = `
-			UPDATE budget_evidence 
-			SET 
+			UPDATE budget_evidence
+			SET
 				status = 'approved',
 				approved_by = $2,
 				approved_at = CURRENT_TIMESTAMP,
@@ -36,9 +36,9 @@ export const PUT: RequestHandler = async ({ params, request }) => {
 
     const result = await query(updateQuery, [id, approvedBy])
 
-    const response: ApiResponse<(typeof result.rows)[0]> = {
+    const response: ApiResponse<Record<string, unknown>> = {
       success: true,
-      data: result.rows[0],
+      data: result.rows[0] as Record<string, unknown>,
       message: '증빙 내역이 승인되었습니다.',
     }
     return json(response)

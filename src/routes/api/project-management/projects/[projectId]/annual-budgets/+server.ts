@@ -9,7 +9,7 @@ import type { RequestHandler } from './$types'
 // GET: 연차별 예산 조회 (project_budgets 테이블 사용)
 export const GET: RequestHandler = async ({ params }) => {
   try {
-    const { projectId } = params
+    const { projectId } = params as Record<string, string>
 
     // project_budgets 테이블에서 연차별 예산 조회 (연차별 예산용 칼럼 사용)
     const budgetResult = await query(
@@ -26,7 +26,7 @@ export const GET: RequestHandler = async ({ params }) => {
     )
 
     // 데이터 변환 및 처리 (연차별 예산용 칼럼 사용)
-    const budgetData: DatabaseProjectBudget[] = budgetResult.rows
+    const budgetData = budgetResult.rows as DatabaseProjectBudget[]
     const budgets: AnnualBudget[] = budgetData.map((row) => {
       // 연차별 예산용 칼럼에서 직접 가져오기
       const governmentFunding = parseFloat(String(row.government_funding_amount || 0)) || 0
@@ -106,8 +106,10 @@ export const GET: RequestHandler = async ({ params }) => {
 // POST: 연차별 예산 생성 (project_budgets 테이블 사용)
 export const POST: RequestHandler = async ({ params, request }) => {
   try {
-    const { projectId } = params
-    const { budgets }: { budgets: AnnualBudgetFormData[] } = await request.json()
+    const { projectId } = params as Record<string, string>
+    const { budgets }: { budgets: AnnualBudgetFormData[] } = (await request.json()) as {
+      budgets: AnnualBudgetFormData[]
+    }
 
     if (!budgets || budgets.length === 0) {
       return json(
@@ -157,7 +159,7 @@ export const POST: RequestHandler = async ({ params, request }) => {
       [projectId],
     )
 
-    const createdBudgetData: DatabaseProjectBudget[] = result.rows
+    const createdBudgetData = result.rows as DatabaseProjectBudget[]
     const createdBudgets: AnnualBudget[] = createdBudgetData.map((row) => {
       // 연차별 예산용 칼럼에서 직접 가져오기
       const governmentFunding = parseFloat(String(row.government_funding_amount || 0)) || 0
@@ -212,9 +214,9 @@ export const POST: RequestHandler = async ({ params, request }) => {
 // PUT: 연차별 예산 수정 (project_budgets 테이블 사용)
 export const PUT: RequestHandler = async ({ params, request }) => {
   try {
-    const { projectId } = params
+    const { projectId } = params as Record<string, string>
     const { year, budgetData }: { year: number; budgetData: AnnualBudgetFormData } =
-      await request.json()
+      (await request.json()) as { year: number; budgetData: AnnualBudgetFormData }
 
     // 입력 검증
     if (!year || !budgetData) {
@@ -261,12 +263,12 @@ export const PUT: RequestHandler = async ({ params, request }) => {
       )
     }
 
-    const updatedBudget = result.rows[0]
+    const updatedBudget = result.rows[0] as Record<string, unknown>
 
     // 연차별 예산용 칼럼에서 직접 가져오기
-    const governmentFunding = parseFloat(updatedBudget.government_funding_amount) || 0
-    const companyCash = parseFloat(updatedBudget.company_cash_amount) || 0
-    const companyInKind = parseFloat(updatedBudget.company_in_kind_amount) || 0
+    const governmentFunding = parseFloat(String(updatedBudget.government_funding_amount || 0)) || 0
+    const companyCash = parseFloat(String(updatedBudget.company_cash_amount || 0)) || 0
+    const companyInKind = parseFloat(String(updatedBudget.company_in_kind_amount || 0)) || 0
 
     // 총 현금/현물 계산
     const totalCash = governmentFunding + companyCash
@@ -274,14 +276,14 @@ export const PUT: RequestHandler = async ({ params, request }) => {
     const yearlyTotal = totalCash + totalInKind
 
     const budget: AnnualBudget = {
-      id: updatedBudget.id,
-      projectId: updatedBudget.project_id,
-      year: updatedBudget.period_number,
+      id: String(updatedBudget.id || ''),
+      projectId: String(updatedBudget.project_id || ''),
+      year: Number(updatedBudget.period_number || 0),
       startDate: updatedBudget.start_date
-        ? formatDateForDisplay(updatedBudget.start_date, 'ISO')
+        ? formatDateForDisplay(String(updatedBudget.start_date), 'ISO')
         : undefined,
       endDate: updatedBudget.end_date
-        ? formatDateForDisplay(updatedBudget.end_date, 'ISO')
+        ? formatDateForDisplay(String(updatedBudget.end_date), 'ISO')
         : undefined,
       governmentFunding,
       companyCash,
@@ -291,8 +293,8 @@ export const PUT: RequestHandler = async ({ params, request }) => {
       yearlyTotal,
       status: 'draft',
       notes: '',
-      createdAt: updatedBudget.created_at,
-      updatedAt: updatedBudget.updated_at,
+      createdAt: String(updatedBudget.created_at || ''),
+      updatedAt: String(updatedBudget.updated_at || ''),
     }
 
     const response: ApiResponse<{ budget: AnnualBudget }> = {
@@ -317,8 +319,8 @@ export const PUT: RequestHandler = async ({ params, request }) => {
 // DELETE: 연차별 예산 삭제 (project_budgets 테이블 사용)
 export const DELETE: RequestHandler = async ({ params, request }) => {
   try {
-    const { projectId } = params
-    const { year }: { year: number } = await request.json()
+    const { projectId } = params as Record<string, string>
+    const { year }: { year: number } = (await request.json()) as { year: number }
 
     if (!year) {
       return json(

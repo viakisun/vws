@@ -280,7 +280,10 @@ export function canAccessMenu(menuName: string, roles: UserRole[]): boolean {
 /**
  * 데이터 마스킹 (민감 정보 보호)
  */
-export function maskSensitiveData(data: any, roles: UserRole[]): any {
+export function maskSensitiveData(
+  data: Record<string, unknown>,
+  roles: UserRole[],
+): Record<string, unknown> {
   if (!data) return data
 
   // 경영지원팀과 경영진만 급여 정보 조회 가능
@@ -299,7 +302,7 @@ export function maskSensitiveData(data: any, roles: UserRole[]): any {
 
   if (!canViewPersonalInfo) {
     if (data.phone) data.phone = '***-****-****'
-    if (data.email) data.email = data.email.replace(/(.{2}).*(@.*)/, '$1***$2')
+    if (data.email) data.email = String(data.email).replace(/(.{2}).*(@.*)/, '$1***$2')
   }
 
   return data

@@ -17,10 +17,10 @@ export const GET: RequestHandler = async ({ params }) => {
   try {
     const result = await query<DatabaseProjectMember>(
       `
-			SELECT 
+			SELECT
 				pm.*,
-				CASE 
-					WHEN e.first_name ~ '^[가-힣]+$' AND e.last_name ~ '^[가-힣]+$' 
+				CASE
+					WHEN e.first_name ~ '^[가-힣]+$' AND e.last_name ~ '^[가-힣]+$'
 					THEN CONCAT(e.last_name, ' ', e.first_name)
 					ELSE CONCAT(e.first_name, ' ', e.last_name)
 				END as employee_name,
@@ -50,11 +50,11 @@ export const GET: RequestHandler = async ({ params }) => {
     }
 
     // TIMESTAMP 데이터를 YYYY-MM-DD 형식으로 변환 (중앙화된 함수 사용)
-    const memberData = result.rows[0]
+    const memberData = result.rows[0] as Record<string, unknown>
     const formattedMemberData = {
       ...memberData,
-      start_date: formatDateForAPI(memberData.start_date || ''),
-      end_date: formatDateForAPI(memberData.end_date || ''),
+      start_date: formatDateForAPI(String(memberData.start_date || '')),
+      end_date: formatDateForAPI(String(memberData.end_date || '')),
     }
 
     const response: ApiResponse<unknown> = {
@@ -79,7 +79,7 @@ export const GET: RequestHandler = async ({ params }) => {
 // PUT /api/project-management/project-members/[id] - 프로젝트 멤버 수정
 export const PUT: RequestHandler = async ({ params, request }) => {
   try {
-    const data = await request.json()
+    const data = (await request.json()) as Record<string, unknown>
     const {
       role,
       startDate,
@@ -110,7 +110,10 @@ export const PUT: RequestHandler = async ({ params, request }) => {
     }
 
     // 참여율 검증 (0-100 사이)
-    if (participationRate !== undefined && (participationRate < 0 || participationRate > 100)) {
+    if (
+      participationRate !== undefined &&
+      (Number(participationRate || 0) < 0 || Number(participationRate || 0) > 100)
+    ) {
       return json(
         {
           success: false,
@@ -140,14 +143,15 @@ export const PUT: RequestHandler = async ({ params, request }) => {
 
     if (role !== undefined) {
       updateFields.push(`role = $${paramIndex}`)
-      updateValues.push(role)
+      updateValues.push(String(role || ''))
       paramIndex++
     }
 
     // 참여기간 수정 시 UTC+9 타임존 적용 및 유효성 검증
     if (startDate !== undefined) {
+      const startDateStr = String(startDate || '')
       // 날짜 유효성 검증
-      if (!isValidDate(startDate)) {
+      if (!isValidDate(startDateStr)) {
         return json(
           {
             success: false,
@@ -158,15 +162,16 @@ export const PUT: RequestHandler = async ({ params, request }) => {
       }
 
       // UTC+9 타임존 적용 (TIMESTAMP 타입으로 저장)
-      const formattedStartDate = new Date(startDate + 'T00:00:00.000+09:00')
+      const formattedStartDate = new Date(startDateStr + 'T00:00:00.000+09:00')
       updateFields.push(`start_date = $${paramIndex}`)
       updateValues.push(toUTC(formattedStartDate))
       paramIndex++
     }
 
     if (endDate !== undefined) {
+      const endDateStr = String(endDate || '')
       // 날짜 유효성 검증
-      if (!isValidDate(endDate)) {
+      if (!isValidDate(endDateStr)) {
         return json(
           {
             success: false,
@@ -177,7 +182,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
       }
 
       // UTC+9 타임존 적용 (TIMESTAMP 타입으로 저장)
-      const formattedEndDate = new Date(endDate + 'T23:59:59.999+09:00')
+      const formattedEndDate = new Date(endDateStr + 'T23:59:59.999+09:00')
       updateFields.push(`end_date = $${paramIndex}`)
       updateValues.push(toUTC(formattedEndDate))
       paramIndex++
@@ -185,7 +190,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
 
     // 시작일과 종료일이 모두 변경되는 경우 날짜 범위 검증
     if (startDate !== undefined && endDate !== undefined) {
-      if (!isValidDateRange(startDate, endDate)) {
+      if (!isValidDateRange(String(startDate || ''), String(endDate || ''))) {
         return json(
           {
             success: false,
@@ -196,18 +201,18 @@ export const PUT: RequestHandler = async ({ params, request }) => {
       }
 
       // 프로젝트 기간과의 겹침 검증
-      const currentMember = existingMember.rows[0]
+      const currentMember = existingMember.rows[0] as Record<string, unknown>
       const projectResult = await query('SELECT start_date, end_date FROM projects WHERE id = $1', [
-        currentMember.project_id,
+        String(currentMember.project_id || ''),
       ])
 
       if (projectResult.rows.length > 0) {
-        const project = projectResult.rows[0]
+        const project = projectResult.rows[0] as Record<string, unknown>
         const participationValidation = calculateParticipationPeriod(
-          startDate,
-          endDate,
-          project.start_date,
-          project.end_date,
+          String(startDate || ''),
+          String(endDate || ''),
+          String(project.start_date || ''),
+          String(project.end_date || ''),
         )
 
         if (!participationValidation.isValid) {
@@ -225,13 +230,13 @@ export const PUT: RequestHandler = async ({ params, request }) => {
 
     if (participationRate !== undefined) {
       updateFields.push(`participation_rate = $${paramIndex}`)
-      updateValues.push(participationRate)
+      updateValues.push(Number(participationRate || 0))
       paramIndex++
     }
 
     if (contributionType !== undefined) {
       updateFields.push(`contribution_type = $${paramIndex}`)
-      updateValues.push(contributionType)
+      updateValues.push(String(contributionType || ''))
       paramIndex++
     }
 
@@ -239,14 +244,14 @@ export const PUT: RequestHandler = async ({ params, request }) => {
 
     if (status !== undefined) {
       updateFields.push(`status = $${paramIndex}`)
-      updateValues.push(status)
+      updateValues.push(String(status || ''))
       paramIndex++
     }
 
     // 참여율이 변경된 경우 월간금액 재계산
     if (participationRate !== undefined) {
-      const currentMember = existingMember.rows[0]
-      const finalParticipationRate = participationRate
+      const currentMember = existingMember.rows[0] as Record<string, unknown>
+      const finalParticipationRate = Number(participationRate || 0)
 
       // 실제 근로계약서에서 최신 금액 조회
       const contractResult = await query(
@@ -265,13 +270,14 @@ export const PUT: RequestHandler = async ({ params, request }) => {
 				ORDER BY sc.start_date DESC
 				LIMIT 1
 			`,
-        [currentMember.employee_id, currentMember.start_date, currentMember.end_date],
+        [String(currentMember.employee_id || ''), currentMember.start_date, currentMember.end_date],
       )
 
       let contractMonthlySalary = 0
       if (contractResult.rows.length > 0) {
-        const contract = contractResult.rows[0]
-        contractMonthlySalary = contract.monthly_salary || contract.annual_salary / 12
+        const contract = contractResult.rows[0] as Record<string, unknown>
+        contractMonthlySalary =
+          Number(contract.monthly_salary || 0) || Number(contract.annual_salary || 0) / 12
       }
 
       // 월간 금액 계산: 중앙화된 급여 계산 함수 사용
@@ -296,10 +302,10 @@ export const PUT: RequestHandler = async ({ params, request }) => {
     // 수정된 멤버 정보와 관련 정보 조회
     const memberWithDetails = await query(
       `
-			SELECT 
+			SELECT
 				pm.*,
-				CASE 
-					WHEN e.first_name ~ '^[가-힣]+$' AND e.last_name ~ '^[가-힣]+$' 
+				CASE
+					WHEN e.first_name ~ '^[가-힣]+$' AND e.last_name ~ '^[가-힣]+$'
 					THEN CONCAT(e.last_name, ' ', e.first_name)
 					ELSE CONCAT(e.first_name, ' ', e.last_name)
 				END as employee_name,
@@ -319,11 +325,11 @@ export const PUT: RequestHandler = async ({ params, request }) => {
     )
 
     // TIMESTAMP 데이터를 YYYY-MM-DD 형식으로 변환 (중앙화된 함수 사용)
-    const memberData = memberWithDetails.rows[0]
+    const memberData = memberWithDetails.rows[0] as Record<string, unknown>
     const formattedMemberData = {
       ...memberData,
-      start_date: formatDateForAPI(memberData.start_date),
-      end_date: formatDateForAPI(memberData.end_date),
+      start_date: formatDateForAPI(String(memberData.start_date || '')),
+      end_date: formatDateForAPI(String(memberData.end_date || '')),
     }
 
     return json({

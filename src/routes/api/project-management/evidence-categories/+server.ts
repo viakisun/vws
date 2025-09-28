@@ -12,7 +12,7 @@ export const GET: RequestHandler = async () => {
   try {
     const result = await query(
       `
-			SELECT 
+			SELECT
 				ec.*,
 				COUNT(ei.id) as item_count,
 				COUNT(CASE WHEN ei.status = 'completed' THEN 1 END) as completed_count,
@@ -76,9 +76,9 @@ export const POST: RequestHandler = async ({ request }) => {
       [name, description],
     )
 
-    const response: ApiResponse<(typeof result.rows)[0]> = {
+    const response: ApiResponse<Record<string, unknown>> = {
       success: true,
-      data: result.rows[0],
+      data: result.rows[0] as Record<string, unknown>,
       message: '증빙 카테고리가 성공적으로 생성되었습니다.',
     }
     return json(response)

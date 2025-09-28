@@ -7,7 +7,7 @@ import type { RequestHandler } from './$types'
 // GET /api/project-management/budget-evidence/[id] - 특정 증빙 내역 조회
 export const GET: RequestHandler = async ({ params }) => {
   try {
-    const { id } = params
+    const { id } = params as Record<string, string>
 
     const sqlQuery = `
 			SELECT
@@ -36,9 +36,9 @@ export const GET: RequestHandler = async ({ params }) => {
       return json(response, { status: 404 })
     }
 
-    const response: ApiResponse<(typeof result.rows)[0]> = {
+    const response: ApiResponse<Record<string, unknown>> = {
       success: true,
-      data: result.rows[0],
+      data: result.rows[0] as Record<string, unknown>,
     }
     return json(response)
   } catch (error: unknown) {
@@ -55,7 +55,7 @@ export const GET: RequestHandler = async ({ params }) => {
 // PUT /api/project-management/budget-evidence/[id] - 증빙 내역 수정
 export const PUT: RequestHandler = async ({ params, request }) => {
   try {
-    const { id } = params
+    const { id } = params as Record<string, string>
     const data = (await request.json()) as Record<string, unknown>
     const {
       evidenceType,
@@ -114,7 +114,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
 
     return json({
       success: true,
-      data: result.rows[0],
+      data: result.rows[0] as Record<string, unknown>,
       message: '증빙 내역이 수정되었습니다.',
     })
   } catch (error) {
@@ -133,7 +133,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
 // DELETE /api/project-management/budget-evidence/[id] - 증빙 내역 삭제
 export const DELETE: RequestHandler = async ({ params }) => {
   try {
-    const { id } = params
+    const { id } = params as Record<string, string>
 
     // 증빙 내역 존재 확인
     const existingEvidence = await query('SELECT * FROM budget_evidence WHERE id = $1', [id])

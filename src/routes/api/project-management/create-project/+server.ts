@@ -79,7 +79,7 @@ export const POST: RequestHandler = async ({ request }) => {
 
     // 입력 데이터 검증
     logger.log('🔍 [2단계] 입력 데이터 검증 시작')
-    const validationResult = await validateProjectData(data)
+    const validationResult = validateProjectData(data)
     if (!validationResult.isValid) {
       logger.log('❌ [2단계] 검증 실패:', validationResult.errors)
       const response: ApiResponse<null> = {
@@ -173,7 +173,7 @@ export const POST: RequestHandler = async ({ request }) => {
 }
 
 // 입력 데이터 검증 함수
-async function validateProjectData(data: ProjectCreationRequest) {
+function validateProjectData(data: ProjectCreationRequest) {
   const errors: string[] = []
 
   logger.log('🔍 [검증] 프로젝트 기본 정보 검증')
@@ -250,7 +250,7 @@ async function createProject(data: ProjectCreationRequest): Promise<string> {
 
   const projectQuery = `
     INSERT INTO projects (
-      code, title, description, start_date, end_date, budget_total, 
+      code, title, description, start_date, end_date, budget_total,
       status, created_at, updated_at
     ) VALUES ($1, $2, $3, $4, $5, $6, 'active', NOW(), NOW())
     RETURNING id
@@ -265,7 +265,7 @@ async function createProject(data: ProjectCreationRequest): Promise<string> {
     data.totalBudget,
   ])
 
-  const projectId = result.rows[0].id
+  const projectId = String((result.rows[0] as Record<string, unknown>).id || '')
   logger.log(`📝 [생성] 프로젝트 생성 완료 - ID: ${projectId}`)
 
   return projectId
@@ -350,8 +350,9 @@ async function createProjectBudgets(
       period.companyInKindAmount || 0,
     ])
 
-    budgetIds.push(result.rows[0].id)
-    logger.log(`💰 [생성] ${period.periodNumber}차년도 예산 생성 완료 - ID: ${result.rows[0].id}`)
+    const budgetId = String((result.rows[0] as Record<string, unknown>).id || '')
+    budgetIds.push(budgetId)
+    logger.log(`💰 [생성] ${period.periodNumber}차년도 예산 생성 완료 - ID: ${budgetId}`)
   }
 
   return budgetIds
@@ -400,8 +401,9 @@ async function createProjectMembers(
       formatMemberDateToUtc(member.endDate),
     ])
 
-    memberIds.push(result.rows[0].id)
-    logger.log(`👥 [생성] 참여연구원 ${member.employeeId} 등록 완료 - ID: ${result.rows[0].id}`)
+    const memberId = String((result.rows[0] as Record<string, unknown>).id || '')
+    memberIds.push(memberId)
+    logger.log(`👥 [생성] 참여연구원 ${member.employeeId} 등록 완료 - ID: ${memberId}`)
   }
 
   return memberIds
@@ -431,7 +433,7 @@ async function createEvidenceItems(
       continue
     }
 
-    const projectBudgetId = budgetResult.rows[0].id
+    const projectBudgetId = String((budgetResult.rows[0] as Record<string, unknown>).id || '')
 
     // 예산 항목별로 증빙 항목 생성
     for (const category of data.budgetCategories) {
@@ -442,16 +444,16 @@ async function createEvidenceItems(
           [category.name],
         )
 
-        let categoryId = null
+        let categoryId: string | null = null
         if (categoryResult.rows.length > 0) {
-          categoryId = categoryResult.rows[0].id
+          categoryId = String((categoryResult.rows[0] as Record<string, unknown>).id || '')
         } else {
           // 카테고리가 없으면 기본 카테고리 생성
           const createCategoryResult = await query(
             'INSERT INTO evidence_categories (name, description) VALUES ($1, $2) RETURNING id',
             [category.name, `${category.name} 증빙 항목`],
           )
-          categoryId = createCategoryResult.rows[0].id
+          categoryId = String((createCategoryResult.rows[0] as Record<string, unknown>).id || '')
         }
 
         const evidenceQuery = `
@@ -478,9 +480,10 @@ async function createEvidenceItems(
           formattedDueDate,
         ])
 
-        evidenceIds.push(result.rows[0].id)
+        const evidenceId = String((result.rows[0] as Record<string, unknown>).id || '')
+        evidenceIds.push(evidenceId)
         logger.log(
-          `📄 [생성] ${period.periodNumber}차년도 ${category.name} 증빙 항목 생성 완료 - ID: ${result.rows[0].id}`,
+          `📄 [생성] ${period.periodNumber}차년도 ${category.name} 증빙 항목 생성 완료 - ID: ${evidenceId}`,
         )
       }
     }
@@ -519,15 +522,20 @@ async function validateCreatedProject(projectId: string): Promise<ValidationResu
   }
 
   // 예산 합계 검증
-  const totalBudgetFromDB = budgetResult.rows.reduce(
-    (sum, budget) => sum + parseFloat(budget.total_budget),
+  const totalBudgetFromDB = (budgetResult.rows as Record<string, unknown>[]).reduce(
+    (sum, budget) => {
+      const budgetRecord = budget
+      return sum + parseFloat(String(budgetRecord.total_budget || 0))
+    },
     0,
   )
-  const projectBudget = parseFloat(projectResult.rows[0].budget_total)
+  const projectBudget = parseFloat(
+    String((projectResult.rows[0] as Record<string, unknown>).budget_total || 0),
+  )
 
   if (Math.abs(totalBudgetFromDB - projectBudget) > 1000) {
     errors.push(
-      `데이터베이스의 연차별 예산 합계(${totalBudgetFromDB.toLocaleString()}원)와 프로젝트 총 예산(${projectBudget.toLocaleString()}원)이 일치하지 않습니다.`,
+      `데이터베이스의 연차별 예산 합계(${Number(totalBudgetFromDB).toLocaleString()}원)와 프로젝트 총 예산(${Number(projectBudget).toLocaleString()}원)이 일치하지 않습니다.`,
     )
   }
 
@@ -556,7 +564,7 @@ async function _runAutoValidationAndFix(projectId: string) {
       throw new Error(`검증 API 호출 실패: ${response.status}`)
     }
 
-    const result = await response.json()
+    const result = (await response.json()) as Record<string, unknown>
     logger.log('🛡️ [자동검증] 검증 룰 실행 완료:', result)
 
     return result

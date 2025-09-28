@@ -15,10 +15,10 @@ export const GET: RequestHandler = async ({ url }) => {
     const role = url.searchParams.get('role')
 
     let sqlQuery = `
-			SELECT 
+			SELECT
 				pm.*,
-				CASE 
-					WHEN e.first_name ~ '^[가-힣]+$' AND e.last_name ~ '^[가-힣]+$' 
+				CASE
+					WHEN e.first_name ~ '^[가-힣]+$' AND e.last_name ~ '^[가-힣]+$'
 					THEN CONCAT(e.last_name, e.first_name)
 					ELSE CONCAT(e.first_name, ' ', e.last_name)
 				END as employee_name,
@@ -67,7 +67,10 @@ export const GET: RequestHandler = async ({ url }) => {
     const result = await query(sqlQuery, params)
 
     // 데이터 변환: snake_case를 camelCase로 변환
-    const transformedData = transformArrayData(result.rows, transformProjectMemberData)
+    const transformedData = transformArrayData(
+      result.rows as Record<string, unknown>[],
+      transformProjectMemberData,
+    )
 
     return json({
       success: true,
@@ -89,7 +92,7 @@ export const GET: RequestHandler = async ({ url }) => {
 // POST /api/project-management/project-members - 프로젝트 멤버 추가
 export const POST: RequestHandler = async ({ request }) => {
   try {
-    const data = await request.json()
+    const data = (await request.json()) as Record<string, unknown>
     const {
       projectId,
       employeeId,
@@ -114,7 +117,7 @@ export const POST: RequestHandler = async ({ request }) => {
     }
 
     // 참여율 검증 (0-100 사이)
-    if (participationRate < 0 || participationRate > 100) {
+    if (Number(participationRate || 0) < 0 || Number(participationRate || 0) > 100) {
       return json(
         {
           success: false,
@@ -162,10 +165,11 @@ export const POST: RequestHandler = async ({ request }) => {
     )
 
     // 계약서에서 연봉을 가져오거나, 제공된 계약금액 사용
-    let _finalContractAmount = contractAmount
+    let _finalContractAmount = Number(contractAmount || 0)
     if (contractResult.rows.length > 0) {
       // 연봉을 월급으로 변환 (연봉 / 12)
-      _finalContractAmount = contractResult.rows[0].annual_salary / 12
+      const contractRow = contractResult.rows[0] as Record<string, unknown>
+      _finalContractAmount = Number(contractRow.annual_salary || 0) / 12
     } else {
       // 계약서가 없는 경우, 해당 직원의 모든 계약서 정보를 조회하여 안내 메시지 생성
       const allContractsResult = await query(
@@ -191,24 +195,31 @@ export const POST: RequestHandler = async ({ request }) => {
       } else {
         // 계약서는 있지만 기간이 맞지 않는 경우
         const contracts = allContractsResult.rows
-        const projectStartDate = startDate ? new Date(startDate) : new Date()
-        const _projectEndDate = endDate ? new Date(endDate) : new Date()
+        const projectStartDate = startDate ? new Date(String(startDate)) : new Date()
+        const _projectEndDate = endDate ? new Date(String(endDate)) : new Date()
 
         // 가장 가까운 계약서 찾기
-        const futureContracts = contracts.filter((c) => new Date(c.start_date) > projectStartDate)
-        const pastContracts = contracts.filter((c) => new Date(c.start_date) <= projectStartDate)
+        const futureContracts = contracts.filter(
+          (c: Record<string, unknown>) => new Date(String(c.start_date || '')) > projectStartDate,
+        )
+        const pastContracts = contracts.filter(
+          (c: Record<string, unknown>) => new Date(String(c.start_date || '')) <= projectStartDate,
+        )
 
         let message = `프로젝트 참여 기간(${startDate || '시작일 미정'} ~ ${endDate || '종료일 미정'})에 해당 직원이 재직 중이 아닙니다.\n\n`
 
         if (futureContracts.length > 0) {
-          const nextContract = futureContracts[futureContracts.length - 1] // 가장 가까운 미래 계약
-          const contractStartDate = formatDateForKorean(nextContract.start_date)
+          const nextContract = futureContracts[futureContracts.length - 1] as Record<
+            string,
+            unknown
+          > // 가장 가까운 미래 계약
+          const contractStartDate = formatDateForKorean(String(nextContract.start_date || ''))
           message += `다음 계약 시작일: ${contractStartDate}\n`
           message += `해당 날짜부터 프로젝트 참여가 가능합니다.`
         } else if (pastContracts.length > 0) {
-          const lastContract = pastContracts[0]
+          const lastContract = pastContracts[0] as Record<string, unknown>
           if (lastContract.end_date) {
-            const contractEndDate = formatDateForKorean(lastContract.end_date)
+            const contractEndDate = formatDateForKorean(String(lastContract.end_date || ''))
             message += `마지막 계약 종료일: ${contractEndDate}\n`
             message += `해당 직원은 이미 퇴사한 상태입니다.`
           } else {
@@ -221,7 +232,7 @@ export const POST: RequestHandler = async ({ request }) => {
             success: false,
             message: message,
             errorCode: 'CONTRACT_PERIOD_MISMATCH',
-            contracts: contracts.map((c) => ({
+            contracts: contracts.map((c: Record<string, unknown>) => ({
               startDate: c.start_date,
               endDate: c.end_date,
               status: c.status,
@@ -235,14 +246,15 @@ export const POST: RequestHandler = async ({ request }) => {
     // 실제 근로계약서에서 월급 가져오기
     let contractMonthlySalary = 0
     if (contractResult.rows.length > 0) {
-      const contract = contractResult.rows[0]
-      contractMonthlySalary = contract.monthly_salary || contract.annual_salary / 12
+      const contract = contractResult.rows[0] as Record<string, unknown>
+      contractMonthlySalary =
+        Number(contract.monthly_salary || 0) || Number(contract.annual_salary || 0) / 12
     }
 
     // 월간 금액 계산: 중앙화된 급여 계산 함수 사용
     const monthlyAmount = calculateMonthlySalary(
       contractMonthlySalary * 12, // 연봉으로 변환
-      participationRate,
+      Number(participationRate || 0),
     )
 
     // 프로젝트 멤버 추가 (contract_amount 제거)
@@ -268,10 +280,10 @@ export const POST: RequestHandler = async ({ request }) => {
     // 추가된 멤버 정보와 관련 정보 조회
     const memberWithDetails = await query(
       `
-			SELECT 
+			SELECT
 				pm.*,
-				CASE 
-					WHEN e.first_name ~ '^[가-힣]+$' AND e.last_name ~ '^[가-힣]+$' 
+				CASE
+					WHEN e.first_name ~ '^[가-힣]+$' AND e.last_name ~ '^[가-힣]+$'
 					THEN CONCAT(e.last_name, e.first_name)
 					ELSE CONCAT(e.first_name, ' ', e.last_name)
 				END as employee_name,
@@ -287,15 +299,15 @@ export const POST: RequestHandler = async ({ request }) => {
 			JOIN projects p ON pm.project_id = p.id
 			WHERE pm.id = $1
 		`,
-      [result.rows[0].id],
+      [String((result.rows[0] as Record<string, unknown>).id || '')],
     )
 
     // TIMESTAMP 데이터를 YYYY-MM-DD 형식으로 변환 (중앙화된 함수 사용)
-    const memberData = memberWithDetails.rows[0]
+    const memberData = memberWithDetails.rows[0] as Record<string, unknown>
     const formattedMemberData = {
       ...memberData,
-      start_date: formatDateForAPI(memberData.start_date),
-      end_date: formatDateForAPI(memberData.end_date),
+      start_date: formatDateForAPI(String(memberData.start_date || '')),
+      end_date: formatDateForAPI(String(memberData.end_date || '')),
     }
 
     return json({

@@ -17,7 +17,7 @@ interface SalaryContract {
 // GET /api/project-management/employees/[id]/contract - 특정 직원의 참여기간 내 계약 정보 조회
 export const GET: RequestHandler = async ({ params, url }) => {
   try {
-    const { id } = params
+    const { id } = params as Record<string, string>
     const startDate = url.searchParams.get('startDate')
     const endDate = url.searchParams.get('endDate')
 
@@ -33,7 +33,7 @@ export const GET: RequestHandler = async ({ params, url }) => {
 
     // 먼저 해당 직원의 모든 활성 계약을 확인
     const allContractsQuery = `
-			SELECT 
+			SELECT
 				sc.id,
 				sc.employee_id,
 				sc.annual_salary,
@@ -42,18 +42,18 @@ export const GET: RequestHandler = async ({ params, url }) => {
 				sc.status,
 				sc.contract_type
 			FROM salary_contracts sc
-			WHERE sc.employee_id = $1 
+			WHERE sc.employee_id = $1
 				AND sc.status = 'active'
 			ORDER BY sc.start_date DESC
 		`
 
     const allContractsResult = await query(allContractsQuery, [id])
-    const allContracts: SalaryContract[] = allContractsResult.rows
+    const allContracts = allContractsResult.rows as SalaryContract[]
     // 해당 직원의 모든 활성 계약 조회 완료
 
     // 참여기간과 겹치는 활성 계약 조회 (더 유연한 조건)
     const contractQuery = `
-			SELECT 
+			SELECT
 				sc.id,
 				sc.employee_id,
 				sc.annual_salary,
@@ -62,7 +62,7 @@ export const GET: RequestHandler = async ({ params, url }) => {
 				sc.status,
 				sc.contract_type
 			FROM salary_contracts sc
-			WHERE sc.employee_id = $1 
+			WHERE sc.employee_id = $1
 				AND sc.status = 'active'
 				AND (
 					-- 계약이 참여기간과 겹치거나
@@ -77,7 +77,7 @@ export const GET: RequestHandler = async ({ params, url }) => {
 		`
 
     const result = await query(contractQuery, [id, startDate, endDate])
-    const contracts: SalaryContract[] = result.rows
+    const contracts = result.rows as SalaryContract[]
 
     if (contracts.length === 0) {
       // 계약이 없을 때 더 자세한 정보 제공

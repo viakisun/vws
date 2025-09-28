@@ -61,23 +61,23 @@ export const GET: RequestHandler = async ({ url }) => {
     sqlQuery += ' ORDER BY e.first_name, e.last_name, pr.start_date DESC'
 
     const result = await query(sqlQuery, params)
-    let participationRates: DatabaseParticipationRate[] = result.rows
+    let participationRates = result.rows as DatabaseParticipationRate[]
 
     // 참여율 상태별 필터링
     if (participationStatus) {
-      const employeeTotals = new Map()
+      const employeeTotals = new Map<string, number>()
 
       // 각 직원별 총 참여율 계산
-      participationRates.forEach((rate) => {
+      participationRates.forEach((rate: DatabaseParticipationRate) => {
         if (rate.status === 'active') {
           const current = employeeTotals.get(rate.employee_id) || 0
-          employeeTotals.set(rate.employee_id, current + rate.participation_rate)
+          employeeTotals.set(rate.employee_id, current + Number(rate.participation_rate || 0))
         }
       })
 
       // 상태별 필터링
-      participationRates = participationRates.filter((rate) => {
-        const totalRate = employeeTotals.get(rate.employee_id) || 0
+      participationRates = participationRates.filter((rate: DatabaseParticipationRate) => {
+        const totalRate = Number(employeeTotals.get(rate.employee_id) || 0)
 
         switch (participationStatus) {
           case 'OVER_LIMIT':
@@ -143,7 +143,7 @@ export const PUT: RequestHandler = async ({ request }) => {
 		`,
       [employeeId, projectId],
     )
-    const existingRateData: DatabaseParticipationRate[] = existingRate.rows
+    const existingRateData = existingRate.rows as DatabaseParticipationRate[]
 
     if (existingRateData.length === 0) {
       const response: ApiResponse<null> = {
@@ -171,7 +171,7 @@ export const PUT: RequestHandler = async ({ request }) => {
 			`,
         [participationRate, oldRate.id],
       )
-      const updatedRate: DatabaseParticipationRate[] = updateResult.rows
+      const updatedRate = updateResult.rows as DatabaseParticipationRate[]
 
       // 변경 이력 생성
       await query(
@@ -194,8 +194,8 @@ export const PUT: RequestHandler = async ({ request }) => {
         [employeeId],
       )
 
-      const totalRateData = totalRateResult.rows[0] as { total_rate: number } | undefined
-      const totalRate = totalRateData?.total_rate || 0
+      const totalRateData = totalRateResult.rows[0] as Record<string, unknown> | undefined
+      const totalRate = Number(totalRateData?.total_rate || 0)
 
       await query('COMMIT')
 

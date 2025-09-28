@@ -236,7 +236,7 @@ export const POST: RequestHandler = async ({ request }) => {
       )
     }
 
-    const payslipResults = result.rows as PayslipData[]
+    const payslipResults = (result as { rows: PayslipData[] }).rows
     const response: ApiResponse<PayslipData> = {
       success: true,
       data: payslipResults[0],

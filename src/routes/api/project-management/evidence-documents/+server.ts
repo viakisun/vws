@@ -35,7 +35,7 @@ export const GET: RequestHandler = async ({ url }) => {
     const status = url.searchParams.get('status')
 
     let queryText = `
-			SELECT 
+			SELECT
 				ed.*,
 				ei.name as evidence_item_name,
 				uploader.first_name || ' ' || uploader.last_name as uploader_name,
@@ -70,7 +70,7 @@ export const GET: RequestHandler = async ({ url }) => {
     queryText += ` ORDER BY ed.upload_date DESC`
 
     const result = await query(queryText, params)
-    const documents: EvidenceDocument[] = result.rows
+    const documents = result.rows as EvidenceDocument[]
 
     const response: ApiResponse<EvidenceDocument[]> = {
       success: true,
@@ -119,7 +119,7 @@ export const POST: RequestHandler = async ({ request }) => {
     const result = await query(
       `
 			INSERT INTO evidence_documents (
-				evidence_item_id, document_type, document_name, file_path, 
+				evidence_item_id, document_type, document_name, file_path,
 				file_size, mime_type, uploader_id
 			) VALUES ($1, $2, $3, $4, $5, $6, $7)
 			RETURNING *
@@ -127,13 +127,13 @@ export const POST: RequestHandler = async ({ request }) => {
       [evidenceItemId, documentType, documentName, filePath, fileSize, mimeType, uploaderId],
     )
 
-    const newDocumentData: EvidenceDocument[] = result.rows
+    const newDocumentData = result.rows as EvidenceDocument[]
     const newDocument = newDocumentData[0]
 
     // 생성된 서류의 상세 정보 조회
     const detailResult = await query(
       `
-			SELECT 
+			SELECT
 				ed.*,
 				ei.name as evidence_item_name,
 				uploader.first_name || ' ' || uploader.last_name as uploader_name,
@@ -146,7 +146,7 @@ export const POST: RequestHandler = async ({ request }) => {
 		`,
       [newDocument.id],
     )
-    const documentDetail: EvidenceDocument[] = detailResult.rows
+    const documentDetail = detailResult.rows as EvidenceDocument[]
 
     const response: ApiResponse<EvidenceDocument> = {
       success: true,

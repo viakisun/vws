@@ -166,7 +166,9 @@ export const POST: RequestHandler = async ({ request }) => {
       email: user.email,
       name:
         user.first_name && user.last_name
-          ? formatKoreanNameStandard(user.first_name.concat(' ').concat(user.last_name))
+          ? formatKoreanNameStandard(
+              String(user.first_name).concat(' ').concat(String(user.last_name)),
+            )
           : user.email.split('@')[0],
       role: user.role,
       department: user.department,

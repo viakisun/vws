@@ -11,7 +11,7 @@ export const GET: RequestHandler = async ({ url }) => {
     const _budgetCategoryId = url.searchParams.get('budgetCategoryId')
 
     let sqlQuery = `
-			SELECT 
+			SELECT
 				pb.*,
 				p.title as project_title,
 				p.code as project_code
@@ -34,7 +34,10 @@ export const GET: RequestHandler = async ({ url }) => {
     const result = await query(sqlQuery, params)
 
     // 데이터 변환: snake_case를 camelCase로 변환
-    const transformedData = transformArrayData(result.rows, transformProjectBudgetData)
+    const transformedData = transformArrayData(
+      result.rows as Record<string, unknown>[],
+      transformProjectBudgetData,
+    )
 
     return json({
       success: true,
@@ -56,7 +59,7 @@ export const GET: RequestHandler = async ({ url }) => {
 // POST /api/project-management/project-budgets - 프로젝트 사업비 생성
 export const POST: RequestHandler = async ({ request }) => {
   try {
-    const data = await request.json()
+    const data = (await request.json()) as Record<string, unknown>
     const {
       projectId,
       periodNumber = 1,
@@ -104,11 +107,13 @@ export const POST: RequestHandler = async ({ request }) => {
     }
 
     // 각 비목의 총합 계산 (현금 + 현물) - 로직으로 계산하므로 DB에 저장하지 않음
-    const personnelCost = personnelCostCash + personnelCostInKind
-    const researchMaterialCost = researchMaterialCostCash + researchMaterialCostInKind
-    const researchActivityCost = researchActivityCostCash + researchActivityCostInKind
-    const researchStipend = researchStipendCash + researchStipendInKind
-    const indirectCost = indirectCostCash + indirectCostInKind
+    const personnelCost = Number(personnelCostCash || 0) + Number(personnelCostInKind || 0)
+    const researchMaterialCost =
+      Number(researchMaterialCostCash || 0) + Number(researchMaterialCostInKind || 0)
+    const researchActivityCost =
+      Number(researchActivityCostCash || 0) + Number(researchActivityCostInKind || 0)
+    const researchStipend = Number(researchStipendCash || 0) + Number(researchStipendInKind || 0)
+    const indirectCost = Number(indirectCostCash || 0) + Number(indirectCostInKind || 0)
 
     // 사업비 생성
     const result = await query(
@@ -151,7 +156,7 @@ export const POST: RequestHandler = async ({ request }) => {
     // 생성된 사업비 정보와 관련 정보 조회
     const budgetWithDetails = await query(
       `
-			SELECT 
+			SELECT
 				pb.*,
 				p.title as project_title,
 				p.code as project_code
@@ -159,12 +164,12 @@ export const POST: RequestHandler = async ({ request }) => {
 			JOIN projects p ON pb.project_id = p.id
 			WHERE pb.id = $1
 		`,
-      [result.rows[0].id],
+      [String((result.rows[0] as Record<string, unknown>).id || '')],
     )
 
     return json({
       success: true,
-      data: budgetWithDetails.rows[0],
+      data: budgetWithDetails.rows[0] as Record<string, unknown>,
       message: '프로젝트 사업비가 성공적으로 생성되었습니다.',
     })
   } catch (error) {

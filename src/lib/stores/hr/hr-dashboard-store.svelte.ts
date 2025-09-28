@@ -125,9 +125,9 @@ export class HRDashboardStore {
       title: string
       description: string
       time: string
-      icon: any
+      icon: unknown
       color: string
-      metadata?: any
+      metadata?: Record<string, unknown>
     }> = []
 
     // 데이터가 없으면 빈 배열 반환
@@ -321,8 +321,8 @@ export class HRDashboardStore {
       this.error = null
       const response = await fetch('/api/employees?status=all')
       if (response.ok) {
-        const result = await response.json()
-        this.employees = result.data || result.employees || []
+        const result = (await response.json()) as Record<string, unknown>
+        this.employees = (result.data as Employee[]) || (result.employees as Employee[]) || []
       } else {
         this.error = '직원 데이터를 불러오는데 실패했습니다.'
       }
@@ -338,8 +338,9 @@ export class HRDashboardStore {
     try {
       const response = await fetch('/api/departments')
       if (response.ok) {
-        const result = await response.json()
-        this.departments = result.data || result.departments || []
+        const result = (await response.json()) as Record<string, unknown>
+        this.departments =
+          (result.data as Department[]) || (result.departments as Department[]) || []
       }
     } catch (err) {
       logger.error('Error fetching departments:', err)
@@ -350,8 +351,8 @@ export class HRDashboardStore {
     try {
       const response = await fetch('/api/positions')
       if (response.ok) {
-        const result = await response.json()
-        this.positions = result.data || result.positions || []
+        const result = (await response.json()) as Record<string, unknown>
+        this.positions = (result.data as Position[]) || (result.positions as Position[]) || []
       }
     } catch (err) {
       logger.error('Error fetching positions:', err)
@@ -363,8 +364,8 @@ export class HRDashboardStore {
       this.executiveLoading = true
       const response = await fetch('/api/executives')
       if (response.ok) {
-        const result = await response.json()
-        this.executives = result.data || result.executives || []
+        const result = (await response.json()) as Record<string, unknown>
+        this.executives = (result.data as Executive[]) || (result.executives as Executive[]) || []
       }
     } catch (err) {
       logger.error('Error fetching executives:', err)
@@ -378,8 +379,8 @@ export class HRDashboardStore {
       this._jobTitleLoading = true
       const response = await fetch('/api/job-titles')
       if (response.ok) {
-        const result = await response.json()
-        this.jobTitles = result.data || result.jobTitles || []
+        const result = (await response.json()) as Record<string, unknown>
+        this.jobTitles = (result.data as JobTitle[]) || (result.jobTitles as JobTitle[]) || []
       }
     } catch (err) {
       logger.error('Error fetching job titles:', err)

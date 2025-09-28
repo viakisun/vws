@@ -10,12 +10,12 @@ import type { RequestHandler } from './$types'
 // 증빙 항목 상세 조회
 export const GET: RequestHandler = async ({ params }) => {
   try {
-    const { id } = params
+    const { id } = params as Record<string, string>
 
     // 증빙 항목 상세 정보 조회
     const result = await query(
       `
-			SELECT 
+			SELECT
 				ei.*,
 				ec.name as category_name,
 				CONCAT(e.last_name, e.first_name) as assignee_full_name,
@@ -47,12 +47,12 @@ export const GET: RequestHandler = async ({ params }) => {
       )
     }
 
-    const evidenceItem = result.rows[0]
+    const evidenceItem = result.rows[0] as Record<string, unknown>
 
     // 증빙 서류 목록 조회
     const documentsResult = await query(
       `
-			SELECT 
+			SELECT
 				ed.*,
 				uploader.first_name || ' ' || uploader.last_name as uploader_name,
 				reviewer.first_name || ' ' || reviewer.last_name as reviewer_name
@@ -68,7 +68,7 @@ export const GET: RequestHandler = async ({ params }) => {
     // 증빙 일정 목록 조회
     const schedulesResult = await query(
       `
-			SELECT 
+			SELECT
 				es.*,
 				CONCAT(assignee.last_name, assignee.first_name) as assignee_name
 			FROM evidence_schedules es
@@ -82,7 +82,7 @@ export const GET: RequestHandler = async ({ params }) => {
     // 증빙 검토 이력 조회
     const reviewHistoryResult = await query(
       `
-			SELECT 
+			SELECT
 				erh.*,
 				reviewer.first_name || ' ' || reviewer.last_name as reviewer_name
 			FROM evidence_review_history erh
@@ -97,9 +97,9 @@ export const GET: RequestHandler = async ({ params }) => {
       success: true,
       data: {
         ...evidenceItem,
-        documents: documentsResult.rows,
-        schedules: schedulesResult.rows,
-        reviewHistory: reviewHistoryResult.rows,
+        documents: documentsResult.rows as Record<string, unknown>[],
+        schedules: schedulesResult.rows as Record<string, unknown>[],
+        reviewHistory: reviewHistoryResult.rows as Record<string, unknown>[],
       },
     }
 
@@ -120,8 +120,8 @@ export const GET: RequestHandler = async ({ params }) => {
 // 증빙 항목 수정
 export const PUT: RequestHandler = async ({ params, request }) => {
   try {
-    const { id } = params
-    const data = await request.json()
+    const { id } = params as Record<string, string>
+    const data = (await request.json()) as Record<string, unknown>
     const {
       name,
       description,
@@ -153,7 +153,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
     const updateValues: (string | number | null)[] = []
     let paramIndex = 1
 
-    const fieldsToUpdate = {
+    const fieldsToUpdate: Record<string, unknown> = {
       name,
       description,
       budget_amount: budgetAmount,
@@ -170,7 +170,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
     Object.entries(fieldsToUpdate).forEach(([key, value]) => {
       if (value !== undefined) {
         updateFields.push(`${key} = $${paramIndex++}`)
-        updateValues.push(value)
+        updateValues.push(value as string | number | null)
       }
     })
 
@@ -192,12 +192,12 @@ export const PUT: RequestHandler = async ({ params, request }) => {
       updateValues,
     )
 
-    const _updatedItem = result.rows[0]
+    const _updatedItem = result.rows[0] as Record<string, unknown>
 
     // 업데이트된 증빙 항목의 상세 정보 조회
     const detailResult = await query(
       `
-			SELECT 
+			SELECT
 				ei.*,
 				ec.name as category_name,
 				CONCAT(e.last_name, e.first_name) as assignee_full_name,
@@ -213,7 +213,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
 
     return json({
       success: true,
-      data: detailResult.rows[0],
+      data: detailResult.rows[0] as Record<string, unknown>,
       message: '증빙 항목이 성공적으로 수정되었습니다.',
     })
   } catch (error) {
@@ -232,7 +232,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
 // 증빙 항목 삭제
 export const DELETE: RequestHandler = async ({ params }) => {
   try {
-    const { id } = params
+    const { id } = params as Record<string, string>
 
     // 증빙 항목 존재 확인
     const existingItem = await query('SELECT id FROM evidence_items WHERE id = $1', [id])
