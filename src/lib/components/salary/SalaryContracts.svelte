@@ -8,15 +8,15 @@
   import type { CreateSalaryContractRequest, SalaryContract } from '$lib/types/salary-contracts'
   import { formatCurrency, formatDate, formatDateForInput } from '$lib/utils/format'
   import {
-      CalendarIcon,
-      DollarSignIcon,
-      FileTextIcon,
-      FilterIcon,
-      PencilIcon,
-      PlusIcon,
-      SearchIcon,
-      TrashIcon,
-      UserIcon,
+    CalendarIcon,
+    DollarSignIcon,
+    FileTextIcon,
+    FilterIcon,
+    PencilIcon,
+    PlusIcon,
+    SearchIcon,
+    TrashIcon,
+    UserIcon,
   } from '@lucide/svelte'
   import { onMount } from 'svelte'
 
@@ -359,7 +359,6 @@
       formData.annualSalary = formData.monthlySalary * 12
     }
   }
-
 
   // 컴포넌트 마운트 시 초기화
   onMount(() => {

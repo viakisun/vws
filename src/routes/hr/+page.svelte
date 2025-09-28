@@ -20,34 +20,34 @@
   import ThemeTabs from '$lib/components/ui/ThemeTabs.svelte'
   import { formatDate, formatEmployeeName } from '$lib/utils/format'
   import {
-      AlertCircleIcon,
-      BarChart3Icon,
-      BriefcaseIcon,
-      BuildingIcon,
-      CalendarIcon,
-      CheckCircleIcon,
-      CrownIcon,
-      DollarSignIcon,
-      DownloadIcon,
-      EditIcon,
-      EyeIcon,
-      FileSpreadsheetIcon,
-      FileTextIcon,
-      FlaskConicalIcon,
-      MailIcon,
-      PhoneIcon,
-      PlusIcon,
-      TagIcon,
-      TrashIcon,
-      UserCheckIcon,
-      UserPlusIcon,
-      UsersIcon,
+    AlertCircleIcon,
+    BarChart3Icon,
+    BriefcaseIcon,
+    BuildingIcon,
+    CalendarIcon,
+    CheckCircleIcon,
+    CrownIcon,
+    DollarSignIcon,
+    DownloadIcon,
+    EditIcon,
+    EyeIcon,
+    FileSpreadsheetIcon,
+    FileTextIcon,
+    FlaskConicalIcon,
+    MailIcon,
+    PhoneIcon,
+    PlusIcon,
+    TagIcon,
+    TrashIcon,
+    UserCheckIcon,
+    UserPlusIcon,
+    UsersIcon,
   } from '@lucide/svelte'
-// HR 스토어들
+  // HR 스토어들
   import { hrDashboardStore } from '$lib/stores/hr/hr-dashboard-store.svelte'
   import { jobPostings } from '$lib/stores/recruitment'
   import { contracts, loadContracts } from '$lib/stores/salary/contract-store'
-// HR 대시보드 컴포넌트들
+  // HR 대시보드 컴포넌트들
   import HROverviewTab from '$lib/components/hr/dashboard/HROverviewTab.svelte'
   import HRStatsCards from '$lib/components/hr/dashboard/HRStatsCards.svelte'
 
@@ -105,12 +105,12 @@
   function getSortedDepartments() {
     console.log('getSortedDepartments: departments length:', departments.length)
     console.log('getSortedDepartments: departments:', departments)
-    
+
     if (departments.length === 0) {
       console.log('getSortedDepartments: no departments, returning empty array')
       return []
     }
-    
+
     const sorted = [...departments].sort(
       (a: Department, b: Department) =>
         new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
@@ -469,7 +469,7 @@
     console.log('HR handleTabChange called with:', tabId)
     const id = TAB_IDS.has(tabId as TabId) ? (tabId as TabId) : 'overview'
     console.log('HR handleTabChange - resolved id:', id, 'current activeTab:', activeTab)
-    
+
     // activeTab 업데이트
     activeTab = id
     console.log('HR handleTabChange - calling loadTabData with:', id)

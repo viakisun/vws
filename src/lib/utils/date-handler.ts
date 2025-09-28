@@ -144,7 +144,7 @@ export function formatDateForDisplay(
   try {
     // 날짜 형식 정규화
     let normalizedDate = utcDate.toString().trim()
-    
+
     // YYYY. MM. DD. 형식을 YYYY-MM-DD로 변환 (공백 제거 포함)
     if (normalizedDate.includes('.')) {
       normalizedDate = normalizedDate
@@ -152,7 +152,7 @@ export function formatDateForDisplay(
         .replace(/\./g, '-') // 점을 하이픈으로 변환
         .replace(/-$/, '') // 끝의 하이픈 제거
     }
-    
+
     // 이미 ISO 형식인지 확인
     const date = new Date(normalizedDate)
     if (isNaN(date.getTime())) {
@@ -166,7 +166,7 @@ export function formatDateForDisplay(
       const year = altDate.getFullYear()
       const month = String(altDate.getMonth() + 1).padStart(2, '0')
       const day = String(altDate.getDate()).padStart(2, '0')
-      
+
       switch (format) {
         case 'FULL':
           return `${year}. ${month}. ${day}.`

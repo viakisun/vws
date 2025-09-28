@@ -12,25 +12,25 @@
   import ThemeSectionHeader from '$lib/components/ui/ThemeSectionHeader.svelte'
   import ThemeStatCard from '$lib/components/ui/ThemeStatCard.svelte'
   import {
-      recommendations as aiRecommendations,
-      employees,
-      participations,
-      projects,
+    recommendations as aiRecommendations,
+    employees,
+    participations,
+    projects,
   } from '$lib/stores/rd'
   import { initializeParticipationManager } from '$lib/stores/rnd/participation-manager'
   import { formatCurrency } from '$lib/utils/format'
   import {
-      AlertTriangleIcon,
-      DollarSignIcon,
-      DownloadIcon,
-      FilterIcon,
-      PercentIcon,
-      PlusIcon,
-      TargetIcon,
-      UserIcon,
-      UsersIcon,
-      XCircleIcon,
-      ZapIcon,
+    AlertTriangleIcon,
+    DollarSignIcon,
+    DownloadIcon,
+    FilterIcon,
+    PercentIcon,
+    PlusIcon,
+    TargetIcon,
+    UserIcon,
+    UsersIcon,
+    XCircleIcon,
+    ZapIcon,
   } from '@lucide/svelte'
   import { onMount } from 'svelte'
 

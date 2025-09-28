@@ -2,84 +2,84 @@ name: 품질 검증
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [main, develop]
   pull_request:
-    branches: [ main, develop ]
+    branches: [main, develop]
 
 jobs:
   quality-check:
     runs-on: ubuntu-latest
-    
+
     steps:
-    - name: 코드 체크아웃
-      uses: actions/checkout@v4
-      
-    - name: Node.js 설정
-      uses: actions/setup-node@v4
-      with:
-        node-version: '18'
-        cache: 'npm'
-        
-    - name: 의존성 설치
-      run: npm ci
-      
-    - name: 타입 체크
-      run: npm run check
-      
-    - name: 린트 검사 (수정 금지)
-      run: npm run lint
-      
-    - name: 반응성 패턴 검증
-      run: |
-        echo "🔍 반응성 패턴 검증 중..."
-        
-        # 금지된 패턴 검사
-        FORBIDDEN_PATTERNS=(
-          "\$effect\(\(\) => \{"
-          "derivedFunction\(\)"
-          ";\("
-        )
-        
-        ERROR_COUNT=0
-        
-        for pattern in "${FORBIDDEN_PATTERNS[@]}"; do
-          if grep -r "$pattern" src/ --include="*.svelte" --include="*.ts"; then
-            echo "❌ 금지된 패턴 발견: $pattern"
-            echo "   이벤트 기반 접근법을 사용하세요."
-            ERROR_COUNT=$((ERROR_COUNT + 1))
+      - name: 코드 체크아웃
+        uses: actions/checkout@v4
+
+      - name: Node.js 설정
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: 의존성 설치
+        run: npm ci
+
+      - name: 타입 체크
+        run: npm run check
+
+      - name: 린트 검사 (수정 금지)
+        run: npm run lint
+
+      - name: 반응성 패턴 검증
+        run: |
+          echo "🔍 반응성 패턴 검증 중..."
+
+          # 금지된 패턴 검사
+          FORBIDDEN_PATTERNS=(
+            "\$effect\(\(\) => \{"
+            "derivedFunction\(\)"
+            ";\("
+          )
+
+          ERROR_COUNT=0
+
+          for pattern in "${FORBIDDEN_PATTERNS[@]}"; do
+            if grep -r "$pattern" src/ --include="*.svelte" --include="*.ts"; then
+              echo "❌ 금지된 패턴 발견: $pattern"
+              echo "   이벤트 기반 접근법을 사용하세요."
+              ERROR_COUNT=$((ERROR_COUNT + 1))
+            fi
+          done
+
+          # 필수 패턴 검사
+          REQUIRED_PATTERNS=(
+            "handleFilterChange\|handleChange\|updateData"
+          )
+
+          for pattern in "${REQUIRED_PATTERNS[@]}"; do
+            if ! grep -r "$pattern" src/ --include="*.svelte" --include="*.ts" > /dev/null; then
+              echo "⚠️  권장 패턴이 없습니다: $pattern"
+              echo "   이벤트 기반 업데이트 메서드를 추가하세요."
+            fi
+          done
+
+          if [ $ERROR_COUNT -gt 0 ]; then
+            echo "🚫 품질 검증 실패: 반응성 패턴을 수정하세요."
+            exit 1
           fi
-        done
-        
-        # 필수 패턴 검사
-        REQUIRED_PATTERNS=(
-          "handleFilterChange\|handleChange\|updateData"
-        )
-        
-        for pattern in "${REQUIRED_PATTERNS[@]}"; do
-          if ! grep -r "$pattern" src/ --include="*.svelte" --include="*.ts" > /dev/null; then
-            echo "⚠️  권장 패턴이 없습니다: $pattern"
-            echo "   이벤트 기반 업데이트 메서드를 추가하세요."
-          fi
-        done
-        
-        if [ $ERROR_COUNT -gt 0 ]; then
-          echo "🚫 품질 검증 실패: 반응성 패턴을 수정하세요."
-          exit 1
-        fi
-        
-        echo "✅ 반응성 패턴 검증 완료"
-        
-    - name: 빌드 테스트
-      run: npm run build
-      
-    - name: 테스트 실행
-      run: npm test
-      
-    - name: 커버리지 리포트
-      run: npm run test:coverage
-      
-    - name: 보안 검사
-      run: npm audit
-      
-    - name: 의존성 검사
-      run: npm outdated
+
+          echo "✅ 반응성 패턴 검증 완료"
+
+      - name: 빌드 테스트
+        run: npm run build
+
+      - name: 테스트 실행
+        run: npm test
+
+      - name: 커버리지 리포트
+        run: npm run test:coverage
+
+      - name: 보안 검사
+        run: npm audit
+
+      - name: 의존성 검사
+        run: npm outdated

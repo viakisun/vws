@@ -64,12 +64,10 @@
 
   // 컴포넌트 마운트 시 기존 데이터 로드
   function updateData() {
-
     if (projectId) {
       loadExistingBudgets()
     }
-  
-}
+  }
 
   // 연차 추가
   function addYear() {
@@ -241,7 +239,6 @@
   function formatNumber(num: number): string {
     return new Intl.NumberFormat('ko-KR').format(num)
   }
-
 
   // 컴포넌트 마운트 시 초기화
   onMount(() => {

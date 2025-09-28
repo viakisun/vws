@@ -108,15 +108,17 @@ export const GET: RequestHandler = async ({ url }) => {
         name: row.account_name,
         accountNumber: row.account_number,
         bankId: row.bank_id || '',
-        bank: row.bank_name ? {
-          id: row.bank_id || '',
-          name: row.bank_name,
-          code: '',
-          color: '#3B82F6',
-          isActive: true,
-          createdAt: '',
-          updatedAt: '',
-        } : undefined,
+        bank: row.bank_name
+          ? {
+              id: row.bank_id || '',
+              name: row.bank_name,
+              code: '',
+              color: '#3B82F6',
+              isActive: true,
+              createdAt: '',
+              updatedAt: '',
+            }
+          : undefined,
         accountType: 'checking',
         balance: 0,
         status: 'active',

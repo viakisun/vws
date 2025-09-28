@@ -12,7 +12,14 @@
   import { loadPayslips } from '$lib/stores/salary/salary-store'
   import { formatCurrency } from '$lib/utils/format'
   import { logger } from '$lib/utils/logger'
-  import { BarChartIcon, CheckCircleIcon, DollarSignIcon, FileTextIcon, PrinterIcon, UsersIcon } from '@lucide/svelte'
+  import {
+    BarChartIcon,
+    CheckCircleIcon,
+    DollarSignIcon,
+    FileTextIcon,
+    PrinterIcon,
+    UsersIcon,
+  } from '@lucide/svelte'
   import { onMount } from 'svelte'
 
   // 탭 정의
@@ -135,8 +142,7 @@
         // 급여명세서 탭은 별도 데이터 로드 불필요
         break
     }
-  
-}
+  }
 </script>
 
 <svelte:head>

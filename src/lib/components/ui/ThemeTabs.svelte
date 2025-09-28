@@ -48,10 +48,8 @@
 
   // activeTab이 변경될 때 currentTab 동기화
   function updateData() {
-
     currentTab = activeTab
-  
-}
+  }
 
   // 탭 변경 핸들러
   function handleTabChange(tabId: string) {

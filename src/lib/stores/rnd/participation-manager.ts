@@ -474,13 +474,13 @@ export const participationTrends = derived(participationHistory, (history) => {
 
     if (change.newRate > change.oldRate) {
       // 이벤트 기반 업데이트 사용monthlyChanges[month] as Record<string, unknown>).increases =
-        Number((monthlyChanges[month] as Record<string, unknown>).increases) + 1
+      Number((monthlyChanges[month] as Record<string, unknown>).increases) + 1
     } else if (change.newRate < change.oldRate) {
       // 이벤트 기반 업데이트 사용monthlyChanges[month] as Record<string, unknown>).decreases =
-        Number((monthlyChanges[month] as Record<string, unknown>).decreases) + 1
+      Number((monthlyChanges[month] as Record<string, unknown>).decreases) + 1
     }
     // 이벤트 기반 업데이트 사용monthlyChanges[month] as Record<string, unknown>).total =
-      Number((monthlyChanges[month] as Record<string, unknown>).total) + 1
+    Number((monthlyChanges[month] as Record<string, unknown>).total) + 1
   })
 
   return {

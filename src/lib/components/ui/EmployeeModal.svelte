@@ -91,15 +91,13 @@
 
   // 전체 이름이 변경될 때 성/이름 자동 분리
   function updateData() {
-
     if (fullName && !employee?.id) {
       // 새 직원 추가 시에만 자동 분리
       const { surname, givenName } = splitKoreanName(fullName)
       formData.last_name = surname
       formData.first_name = givenName
     }
-  
-}
+  }
 
   // 직원 데이터가 변경될 때 폼 데이터 업데이트
   function updateFormDataFromEmployee() {
@@ -148,8 +146,7 @@
       formData.job_title_id = ''
       fullName = ''
     }
-  
-}
+  }
 
   // 부서별 직급 매핑
   const _departmentPositionMapping = {
@@ -231,7 +228,6 @@
 
   let isEdit = $derived(!!employee?.id)
   let title = $derived(isEdit ? '직원 정보 수정' : '새 직원 추가')
-
 
   // 컴포넌트 마운트 시 초기화
   onMount(() => {

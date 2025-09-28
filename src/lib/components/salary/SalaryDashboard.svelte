@@ -1,17 +1,17 @@
 <script lang="ts">
   import {
-      departmentSalaryStats,
-      error,
-      loadPayslips,
-      salaryStatistics,
+    departmentSalaryStats,
+    error,
+    loadPayslips,
+    salaryStatistics,
   } from '$lib/stores/salary/salary-store'
   import { formatCurrency, formatPercentage } from '$lib/utils/format'
   import {
-      AlertCircleIcon,
-      CheckCircleIcon,
-      ClockIcon,
-      DollarSignIcon,
-      FileTextIcon,
+    AlertCircleIcon,
+    CheckCircleIcon,
+    ClockIcon,
+    DollarSignIcon,
+    FileTextIcon,
   } from '@lucide/svelte'
   import { onMount } from 'svelte'
 
@@ -71,7 +71,6 @@
     if (previous === 0) return current > 0 ? 100 : 0
     return ((current - previous) / previous) * 100
   }
-
 
   // 컴포넌트 마운트 시 초기화
   onMount(() => {

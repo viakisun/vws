@@ -33,7 +33,6 @@
 
   // 직급 데이터가 변경될 때 폼 데이터 업데이트
   function updateData() {
-
     if (position) {
       formData.name = position.name || ''
       formData.description = position.description || ''
@@ -48,8 +47,7 @@
       formData.level = 1
       formData.status = 'active'
     }
-  
-}
+  }
 
   function handleSave() {
     // 필수 필드 검증
@@ -69,7 +67,6 @@
   function handleClose() {
     dispatch('close')
   }
-
 
   // 컴포넌트 마운트 시 초기화
   onMount(() => {

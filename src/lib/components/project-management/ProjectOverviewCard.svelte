@@ -3,11 +3,11 @@
   import ThemeCard from '$lib/components/ui/ThemeCard.svelte'
   import { formatCurrency, formatDate } from '$lib/utils/format'
   import {
-      ActivityIcon,
-      AlertTriangleIcon,
-      DollarSignIcon,
-      FlaskConicalIcon,
-      UsersIcon,
+    ActivityIcon,
+    AlertTriangleIcon,
+    DollarSignIcon,
+    FlaskConicalIcon,
+    UsersIcon,
   } from '@lucide/svelte'
 
   import type { ProjectSummary } from '$lib/types/index'

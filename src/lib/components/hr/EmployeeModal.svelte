@@ -112,7 +112,6 @@
 
   // 직원 데이터가 변경될 때 폼 데이터 초기화
   function updateData() {
-
     if (employee) {
       formData = {
         ...employee,
@@ -155,8 +154,7 @@
         },
       }
     }
-  
-}
+  }
 
   // 폼 유효성 검사
   function validateForm(): boolean {
@@ -226,7 +224,6 @@
   function handleClose() {
     dispatch('close')
   }
-
 
   // 컴포넌트 마운트 시 초기화
   onMount(() => {

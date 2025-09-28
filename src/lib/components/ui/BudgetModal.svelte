@@ -93,15 +93,12 @@
   }
 
   function updateData() {
-
     if (isOpen) {
       initializeForm()
     } else {
       resetForm()
     }
-  
-}
-
+  }
 
   // 컴포넌트 마운트 시 초기화
   onMount(() => {

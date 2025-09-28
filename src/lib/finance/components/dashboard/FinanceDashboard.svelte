@@ -48,12 +48,10 @@
 
   // 날짜 변경 시 데이터 재로드
   function updateData() {
-
     if (date) {
       loadDashboardData()
     }
-  
-}
+  }
 
   // 현금흐름 트렌드 계산
   let netCashFlowTrend = $state<'positive' | 'negative' | 'neutral'>('neutral')

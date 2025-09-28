@@ -140,12 +140,10 @@
   // Svelte 5: 탭 변경 시 데이터 로드 (무한 루프 방지)
   let lastLoadedTab = $state('')
   function updateData() {
-
     if (mounted && activeTab && activeTab !== lastLoadedTab) {
       lastLoadedTab = activeTab
       loadTabData(activeTab)
     }
-  
   }
 
   // 프로젝트 관련 상태

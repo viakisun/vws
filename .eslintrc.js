@@ -4,7 +4,7 @@ module.exports = {
   plugins: ['custom-rules'],
   rules: {
     'custom-rules/no-complex-effect': 'error',
-    'custom-rules/no-template-function-calls': 'error'
+    'custom-rules/no-template-function-calls': 'error',
   },
   overrides: [
     {
@@ -12,8 +12,8 @@ module.exports = {
       rules: {
         // Svelte 특화 규칙
         'custom-rules/no-complex-effect': 'error',
-        'custom-rules/no-template-function-calls': 'error'
-      }
-    }
-  ]
-};
+        'custom-rules/no-template-function-calls': 'error',
+      },
+    },
+  ],
+}

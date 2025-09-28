@@ -2,10 +2,10 @@
   import { accountService } from '$lib/finance/services'
   import type { Account, Bank, CreateAccountRequest } from '$lib/finance/types'
   import {
-      formatAccountNumber,
-      formatAccountStatus,
-      formatAccountType,
-      formatCurrency,
+    formatAccountNumber,
+    formatAccountStatus,
+    formatAccountType,
+    formatCurrency,
   } from '$lib/finance/utils'
   import { EditIcon, PlusIcon, TrashIcon } from '@lucide/svelte'
   import { onMount } from 'svelte'
@@ -303,7 +303,9 @@
         <div class="space-y-4">
           <!-- 계좌명 -->
           <div>
-            <label for="account-name" class="block text-sm font-medium text-gray-700 mb-1">계좌명</label>
+            <label for="account-name" class="block text-sm font-medium text-gray-700 mb-1"
+              >계좌명</label
+            >
             <input
               id="account-name"
               type="text"
@@ -316,7 +318,9 @@
 
           <!-- 계좌번호 -->
           <div>
-            <label for="account-number" class="block text-sm font-medium text-gray-700 mb-1">계좌번호</label>
+            <label for="account-number" class="block text-sm font-medium text-gray-700 mb-1"
+              >계좌번호</label
+            >
             <input
               id="account-number"
               type="text"
@@ -329,7 +333,9 @@
 
           <!-- 은행 -->
           <div>
-            <label for="account-bank" class="block text-sm font-medium text-gray-700 mb-1">은행</label>
+            <label for="account-bank" class="block text-sm font-medium text-gray-700 mb-1"
+              >은행</label
+            >
             <select
               id="account-bank"
               bind:value={formData.bankId}
@@ -345,7 +351,9 @@
 
           <!-- 계좌 타입 -->
           <div>
-            <label for="account-type" class="block text-sm font-medium text-gray-700 mb-1">계좌 타입</label>
+            <label for="account-type" class="block text-sm font-medium text-gray-700 mb-1"
+              >계좌 타입</label
+            >
             <select
               id="account-type"
               bind:value={formData.accountType}
@@ -361,7 +369,9 @@
 
           <!-- 초기 잔액 -->
           <div>
-            <label for="account-balance" class="block text-sm font-medium text-gray-700 mb-1">초기 잔액</label>
+            <label for="account-balance" class="block text-sm font-medium text-gray-700 mb-1"
+              >초기 잔액</label
+            >
             <input
               id="account-balance"
               type="number"
@@ -375,7 +385,9 @@
 
           <!-- 설명 -->
           <div>
-            <label for="account-description" class="block text-sm font-medium text-gray-700 mb-1">설명 (선택사항)</label>
+            <label for="account-description" class="block text-sm font-medium text-gray-700 mb-1"
+              >설명 (선택사항)</label
+            >
             <textarea
               id="account-description"
               bind:value={formData.description}
@@ -393,7 +405,9 @@
               bind:checked={formData.isPrimary}
               class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
             />
-            <label for="account-primary" class="ml-2 block text-sm text-gray-700">주요 계좌로 설정</label>
+            <label for="account-primary" class="ml-2 block text-sm text-gray-700"
+              >주요 계좌로 설정</label
+            >
           </div>
         </div>
 

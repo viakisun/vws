@@ -189,12 +189,10 @@
 
   // Update position when dropdown becomes visible
   function updateData() {
-
     if (isVisible) {
       updatePosition()
     }
-  
-}
+  }
 
   // Add event listeners
   onMount(() => {

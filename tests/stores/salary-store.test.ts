@@ -1,5 +1,5 @@
-import { loadPayslips, loadSalaryHistory } from '$lib/stores/salary/salary-store';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { loadPayslips, loadSalaryHistory } from '$lib/stores/salary/salary-store'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 // Mock fetch
 const mockFetch = vi.fn()

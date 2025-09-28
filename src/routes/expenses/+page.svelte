@@ -5,10 +5,10 @@
   import Card from '$lib/components/ui/Card.svelte'
   import Modal from '$lib/components/ui/Modal.svelte'
   import {
-      addExpenseHistory,
-      expenseDocsStore,
-      expenseHistories,
-      updateExpenseStatus,
+    addExpenseHistory,
+    expenseDocsStore,
+    expenseHistories,
+    updateExpenseStatus,
   } from '$lib/stores/rnd'
   import { pushToast } from '$lib/stores/toasts'
   import type { ExpenseDocument } from '$lib/types'
@@ -82,7 +82,6 @@
     const have = d.attachments ?? 0
     return have >= req.length ? [] : req.slice(have)
   }
-
 
   // 컴포넌트 마운트 시 초기화
   onMount(() => {

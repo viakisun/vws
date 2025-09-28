@@ -43,7 +43,6 @@
 
   // 회사 정보가 변경될 때 폼 데이터 업데이트
   function updateData() {
-
     if (company) {
       formData = {
         name: company.name || '',
@@ -71,8 +70,7 @@
         registration_number: '',
       }
     }
-  
-}
+  }
 
   // 저장 함수
   async function handleSave() {
@@ -110,7 +108,6 @@
       onclose()
     }
   }
-
 
   // 컴포넌트 마운트 시 초기화
   onMount(() => {

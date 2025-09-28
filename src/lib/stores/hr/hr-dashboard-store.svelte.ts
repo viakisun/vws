@@ -339,14 +339,14 @@ export class HRDashboardStore {
       console.log('fetchDepartments: Starting API call to /api/departments')
       const response = await fetch('/api/departments')
       console.log('fetchDepartments: Response status:', response.status)
-      
+
       if (response.ok) {
         const result = (await response.json()) as Record<string, unknown>
         console.log('fetchDepartments: API result:', result)
-        
+
         this.departments =
           (result.data as Department[]) || (result.departments as Department[]) || []
-        
+
         console.log('fetchDepartments: Loaded departments:', this.departments)
       } else {
         console.error('fetchDepartments: API call failed with status:', response.status)

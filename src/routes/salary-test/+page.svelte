@@ -23,11 +23,11 @@
 
 <div class="container mx-auto p-6">
   <h1 class="text-2xl font-bold mb-4">급여 시스템 테스트</h1>
-  
+
   <div class="bg-white rounded-lg shadow p-6">
     <h2 class="text-lg font-semibold mb-2">API 테스트 결과</h2>
     <p class="text-gray-700">{testData}</p>
-    
+
     <div class="mt-4">
       <p class="text-sm text-gray-500">
         마운트 상태: {mounted ? '완료' : '대기 중'}

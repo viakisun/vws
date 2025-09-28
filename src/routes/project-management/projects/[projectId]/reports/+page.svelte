@@ -99,7 +99,6 @@
     URL.revokeObjectURL(url)
   }
 
-
   // 컴포넌트 마운트 시 초기화
   onMount(() => {
     // 초기화 함수들 호출
