@@ -14,12 +14,14 @@
     position?: string
     baseSalary?: number
     grossSalary?: number
+    totalPayments?: number // API에서 오는 필드명
     totalDeductions?: number
     netSalary?: number
     status?: string
     payDate?: string | Date
     annualSalary?: number
     startDate?: string
+    hireDate?: string
   }
 
   let mounted = $state(false)
@@ -67,6 +69,14 @@
   // 필터링된 급여명세서 데이터 목록 (로컬 필터)
   const localFilteredPayslips = $derived((): PayrollData[] => {
     let filtered = $payslips as unknown as PayrollData[]
+
+    // API 데이터를 컴포넌트에서 기대하는 형태로 변환
+    filtered = filtered.map((payroll) => ({
+      ...payroll,
+      grossSalary: payroll.totalPayments || payroll.grossSalary || 0, // API의 totalPayments를 grossSalary로 매핑
+      annualSalary: (payroll.totalPayments || payroll.grossSalary || 0) * 12, // 연봉 계산
+      startDate: payroll.hireDate || payroll.startDate, // hireDate를 startDate로 매핑
+    }))
 
     // 직원 필터
     if (selectedEmployee) {
@@ -180,8 +190,13 @@
       return { change: 0, percentage: 0, direction: 'same' }
     }
 
-    const currentSalary = parseFloat(String(payslips[index].netSalary))
-    const previousSalary = parseFloat(String(payslips[index - 1].netSalary))
+    // grossSalary 또는 totalPayments를 사용하여 변화 계산
+    const currentSalary = parseFloat(
+      String(payslips[index].grossSalary || payslips[index].totalPayments || 0),
+    )
+    const previousSalary = parseFloat(
+      String(payslips[index - 1].grossSalary || payslips[index - 1].totalPayments || 0),
+    )
     const change = currentSalary - previousSalary
     const percentage = previousSalary > 0 ? (change / previousSalary) * 100 : 0
 
@@ -406,7 +421,7 @@
               <div class="space-y-2">
                 <div class="text-sm text-gray-500">총 지급액</div>
                 <div class="text-xl font-semibold text-gray-900">
-                  {formatCurrency(payroll.grossSalary ?? 0)}
+                  {formatCurrency(payroll.grossSalary ?? payroll.totalPayments ?? 0)}
                 </div>
               </div>
               <div class="space-y-2">
@@ -454,11 +469,10 @@
     {#if selectedEmployeeHistory.length > 1}
       {@const firstContract = selectedEmployeeHistory[0]}
       {@const lastContract = selectedEmployeeHistory[selectedEmployeeHistory.length - 1]}
-      {@const totalChange = (lastContract.annualSalary ?? 0) - (firstContract.annualSalary ?? 0)}
-      {@const totalPercentage =
-        (firstContract.annualSalary ?? 0) > 0
-          ? (totalChange / (firstContract.annualSalary ?? 0)) * 100
-          : 0}
+      {@const firstSalary = (firstContract.grossSalary ?? firstContract.totalPayments ?? 0) * 12}
+      {@const lastSalary = (lastContract.grossSalary ?? lastContract.totalPayments ?? 0) * 12}
+      {@const totalChange = lastSalary - firstSalary}
+      {@const totalPercentage = firstSalary > 0 ? (totalChange / firstSalary) * 100 : 0}
       <ThemeCard class="p-6">
         <ThemeSectionHeader title="급여 변화 요약" />
         <div class="mt-4 space-y-4">
@@ -466,7 +480,7 @@
             <div class="text-center p-4 bg-gray-50 rounded-lg">
               <div class="text-sm text-gray-600">첫 계약 연봉</div>
               <div class="text-xl font-bold text-gray-900">
-                {formatCurrency(firstContract.annualSalary ?? 0)}
+                {formatCurrency(firstSalary)}
               </div>
               <div class="text-xs text-gray-500">
                 {formatDate(firstContract.startDate ?? '')}
@@ -475,7 +489,7 @@
             <div class="text-center p-4 bg-gray-50 rounded-lg">
               <div class="text-sm text-gray-600">현재 연봉</div>
               <div class="text-xl font-bold text-gray-900">
-                {formatCurrency(lastContract.annualSalary ?? 0)}
+                {formatCurrency(lastSalary)}
               </div>
               <div class="text-xs text-gray-500">
                 {formatDate(lastContract.startDate ?? '')}

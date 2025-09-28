@@ -3546,17 +3546,10 @@
   {#if showEvidenceDetailModal}
     <ThemeModal open={showEvidenceDetailModal} onclose={() => (showEvidenceDetailModal = false)}>
       <div class="p-6 max-w-4xl">
-        <div class="flex items-center justify-between mb-4">
+        <div class="mb-4">
           <h3 class="text-lg font-medium text-gray-900">
             {selectedEvidenceItem?.name} 증빙 관리
           </h3>
-          <button
-            type="button"
-            onclick={() => (showEvidenceDetailModal = false)}
-            class="text-gray-400 hover:text-gray-600"
-          >
-            <XIcon size={20} />
-          </button>
         </div>
 
         {#if selectedEvidenceItem}
@@ -3802,15 +3795,8 @@
   {#if showEvidenceModal}
     <ThemeModal open={showEvidenceModal} onclose={() => (showEvidenceModal = false)}>
       <div class="p-6 max-w-2xl">
-        <div class="flex items-center justify-between mb-4">
+        <div class="mb-4">
           <h3 class="text-lg font-medium text-gray-900">증빙 항목 추가</h3>
-          <button
-            type="button"
-            onclick={() => (showEvidenceModal = false)}
-            class="text-gray-400 hover:text-gray-600"
-          >
-            <XIcon size={20} />
-          </button>
         </div>
 
         <div class="space-y-4">
@@ -4220,11 +4206,8 @@
   <!-- 검증 결과 모달 -->
   <ThemeModal open={showValidationModal} onclose={() => (showValidationModal = false)}>
     <div class="max-w-4xl">
-      <div class="flex justify-between items-center mb-4">
+      <div class="mb-4">
         <h3 class="text-lg font-semibold text-gray-900">프로젝트 검증 결과</h3>
-        <ThemeButton variant="ghost" onclick={() => (showValidationModal = false)}>
-          <XIcon size={16} />
-        </ThemeButton>
       </div>
 
       {#if validationResults}

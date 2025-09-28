@@ -145,15 +145,8 @@
 <!-- 업로드 모달 -->
 <ThemeModal open={showUploadModal} onclose={() => (showUploadModal = false)} size="lg">
   <div class="p-6">
-    <div class="flex items-center justify-between mb-6">
+    <div class="mb-6">
       <h2 class="text-xl font-semibold text-gray-900">급여명세서 엑셀 업로드</h2>
-      <button
-        type="button"
-        onclick={closeUploadModal}
-        class="p-2 text-gray-400 hover:text-gray-600"
-      >
-        <XCircleIcon size={20} />
-      </button>
     </div>
 
     <div class="space-y-6">
@@ -280,15 +273,8 @@
 <!-- 결과 모달 -->
 <ThemeModal open={showResultModal} onclose={() => (showResultModal = false)} size="xl">
   <div class="p-6">
-    <div class="flex items-center justify-between mb-6">
+    <div class="mb-6">
       <h2 class="text-xl font-semibold text-gray-900">업로드 결과</h2>
-      <button
-        type="button"
-        onclick={closeResultModal}
-        class="p-2 text-gray-400 hover:text-gray-600"
-      >
-        <XCircleIcon size={20} />
-      </button>
     </div>
 
     {#if uploadResult}

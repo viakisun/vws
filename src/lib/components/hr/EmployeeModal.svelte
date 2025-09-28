@@ -226,13 +226,12 @@
   }
 </script>
 
-<ThemeModal {open}>
+<ThemeModal {open} onclose={handleClose}>
   <div>
     <div>
       <h2>
         {employee ? '직원 정보 수정' : '새 직원 추가'}
       </h2>
-      <button type="button" onclick={handleClose}> ✕ </button>
     </div>
 
     <form
