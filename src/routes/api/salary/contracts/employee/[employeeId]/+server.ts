@@ -139,7 +139,10 @@ export const GET: RequestHandler = async ({ params, url }) => {
         contractEndDisplay: contract.contract_end_display,
         statusDisplay: contract.status_display,
         employeeName: employeeResult.rows[0]
-          ? formatEmployeeName(employeeResult.rows[0].last_name, employeeResult.rows[0].first_name)
+          ? formatEmployeeName(
+              String(employeeResult.rows[0].last_name || ''),
+              String(employeeResult.rows[0].first_name || ''),
+            )
           : '',
         employeeIdNumber: employeeResult.rows[0]?.employee_id || '',
         department: employeeResult.rows[0]?.department || '',
@@ -164,7 +167,10 @@ export const GET: RequestHandler = async ({ params, url }) => {
       contractEndDisplay: contract.contract_end_display,
       statusDisplay: contract.status_display,
       employeeName: employeeResult.rows[0]
-        ? formatEmployeeName(employeeResult.rows[0].last_name, employeeResult.rows[0].first_name)
+        ? formatEmployeeName(
+            String(employeeResult.rows[0].last_name || ''),
+            String(employeeResult.rows[0].first_name || ''),
+          )
         : '',
       employeeIdNumber: employeeResult.rows[0]?.employee_id || '',
       department: employeeResult.rows[0]?.department || '',
