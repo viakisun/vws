@@ -16,8 +16,6 @@
     "lint:typescript": "eslint src/ --ext .ts --no-fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "quality": "node scripts/quality-check.js",
-    "quality:ci": "npm run check && npm run lint && npm run quality && npm run build",
     "test": "vitest",
     "test:coverage": "vitest --coverage",
     "security:audit": "npm audit",
