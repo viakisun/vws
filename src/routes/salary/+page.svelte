@@ -128,7 +128,7 @@
   }
 
   // 탭 변경 시 데이터 로드
-  function loadTabContent() {
+  function _loadTabContent() {
     if (!mounted) return
 
     const currentTab = activeTab

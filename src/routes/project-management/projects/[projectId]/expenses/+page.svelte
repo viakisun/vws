@@ -24,7 +24,7 @@
   }
 
   // sync to URL
-  function updateData() {
+  function _updateData() {
     if (typeof window !== 'undefined') {
       const sp = new URLSearchParams(window.location.search)
       if (status) sp.set('status', status)

@@ -100,6 +100,7 @@
         <h3 class="text-lg font-medium text-gray-900 mb-2">자금일보 시스템 초기화</h3>
         <p class="text-gray-500 mb-4">데이터베이스를 초기화하고 샘플 데이터를 생성합니다.</p>
         <button
+          type="button"
           onclick={initializeDatabase}
           disabled={isLoading}
           class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"

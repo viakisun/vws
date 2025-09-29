@@ -4,6 +4,17 @@ import { logger } from '$lib/utils/logger'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
 
+// 증빙 내역 타입 정의
+interface BudgetEvidence {
+  id: string
+  status: string
+  approved_by?: string
+  approved_at?: string
+  rejection_reason?: string
+  updated_at: string
+  [key: string]: unknown
+}
+
 // PUT /api/project-management/budget-evidence/[id]/reject - 증빙 내역 거부
 export const PUT: RequestHandler = async ({ params, request }) => {
   try {
@@ -12,7 +23,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
     const { approvedBy, rejectionReason } = data
 
     // 증빙 내역 존재 확인
-    const existingEvidence = await query('SELECT * FROM budget_evidence WHERE id = $1', [id])
+    const existingEvidence = await query<BudgetEvidence>('SELECT * FROM budget_evidence WHERE id = $1', [id])
     if (existingEvidence.rows.length === 0) {
       const response: ApiResponse<null> = {
         success: false,
@@ -34,11 +45,11 @@ export const PUT: RequestHandler = async ({ params, request }) => {
 			RETURNING *
 		`
 
-    const result = await query(updateQuery, [id, approvedBy, rejectionReason])
+    const result = await query<BudgetEvidence>(updateQuery, [id, approvedBy, rejectionReason])
 
-    const response: ApiResponse<Record<string, unknown>> = {
+    const response: ApiResponse<BudgetEvidence> = {
       success: true,
-      data: result.rows[0] as Record<string, unknown>,
+      data: result.rows[0] as BudgetEvidence,
       message: '증빙 내역이 거부되었습니다.',
     }
     return json(response)

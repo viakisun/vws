@@ -163,7 +163,7 @@
   )
 
   // URL sync
-  function updateData() {
+  function _updateData() {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search)
       if (selectedQuarter) params.set('q', selectedQuarter)

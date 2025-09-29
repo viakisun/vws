@@ -48,7 +48,7 @@
   }
 
   // URL 동기화
-  function handleFilterChange() {
+  function _handleFilterChange() {
     const sp = new URLSearchParams(page.url.searchParams)
     if (query) sp.set('q', query)
     else sp.delete('q')

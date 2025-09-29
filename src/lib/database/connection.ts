@@ -164,7 +164,7 @@ export async function getConnection(): Promise<PoolClient> {
 }
 
 // Execute a query with parameters
-export async function query<T extends Record<string, unknown> = any>(
+export async function query<T extends Record<string, unknown> = Record<string, unknown>>(
   text: string,
   params?: unknown[],
 ): Promise<QueryResult<T>> {

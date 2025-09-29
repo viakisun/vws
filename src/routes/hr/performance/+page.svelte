@@ -82,7 +82,7 @@
   })
 
   // Update review form year when selectedYear changes
-  function updateData() {
+  function _updateData() {
     reviewForm.reviewPeriod.year = selectedYear
   }
 
