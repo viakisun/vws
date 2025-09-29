@@ -1,6 +1,6 @@
+import { getDatabasePool } from '$lib/finance/services/database/connection'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
-import { getDatabasePool } from '$lib/finance/services/database/connection'
 
 // 스키마 SQL을 직접 정의 (파일 의존성 제거)
 const FINANCE_SCHEMA_SQL = `
