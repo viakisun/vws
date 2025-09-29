@@ -2,6 +2,7 @@
   import '../app.css'
   import Header from '$lib/components/layout/Header.svelte'
   import Sidebar from '$lib/components/layout/Sidebar.svelte'
+  import VersionInfo from '$lib/components/ui/VersionInfo.svelte'
   import { toasts } from '$lib/stores/toasts'
   import { themeManager } from '$lib/stores/theme'
   import { onMount } from 'svelte'
@@ -31,6 +32,16 @@
       </div>
     </main>
   </div>
+
+  <!-- Footer with version info -->
+  <footer class="border-t px-6 py-2" style:border-color="var(--color-border)">
+    <div class="flex justify-between items-center">
+      <VersionInfo />
+      <div class="text-xs text-gray-400">
+        © 2024 VWS. All rights reserved.
+      </div>
+    </div>
+  </footer>
 </div>
 
 <!-- Toast notifications -->

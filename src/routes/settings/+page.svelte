@@ -20,6 +20,7 @@
     ClockIcon,
     DatabaseIcon,
     FileTextIcon,
+    InfoIcon,
     PaletteIcon,
     PlusIcon,
     ShieldIcon,
@@ -84,6 +85,11 @@
       id: 'data',
       label: '데이터',
       icon: DatabaseIcon,
+    },
+    {
+      id: 'system',
+      label: '시스템 정보',
+      icon: InfoIcon,
     },
   ]
 
@@ -536,6 +542,139 @@
               </p>
             </div>
           </ThemeCard>
+        </ThemeSpacer>
+      {:else if tab.id === 'system'}
+        <!-- 시스템 정보 탭 -->
+        <ThemeSpacer size={6}>
+          <div class="space-y-6">
+            <!-- 헤더 -->
+            <div>
+              <h2 class="text-2xl font-bold" style:color="var(--color-text)">시스템 정보</h2>
+              <p class="text-sm mt-1" style:color="var(--color-text-secondary)">
+                애플리케이션 버전 및 시스템 상태를 확인합니다
+              </p>
+            </div>
+
+            <!-- 버전 정보 -->
+            <ThemeCard>
+              <div class="space-y-4">
+                <div class="flex items-center gap-3">
+                  <InfoIcon class="w-5 h-5" style="color: var(--color-text-secondary);" />
+                  <h3 class="text-lg font-semibold" style:color="var(--color-text)">애플리케이션 정보</h3>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div class="space-y-2">
+                    <div class="text-sm font-medium" style:color="var(--color-text-secondary)">버전</div>
+                    <div class="text-sm font-mono px-3 py-2 rounded" style="background: var(--color-surface); color: var(--color-text);">
+                      v0.2.0
+                    </div>
+                  </div>
+                  
+                  <div class="space-y-2">
+                    <div class="text-sm font-medium" style:color="var(--color-text-secondary)">환경</div>
+                    <div class="text-sm px-3 py-2 rounded bg-green-100 text-green-800">
+                      Development
+                    </div>
+                  </div>
+                  
+                  <div class="space-y-2">
+                    <div class="text-sm font-medium" style:color="var(--color-text-secondary)">빌드 날짜</div>
+                    <div class="text-sm font-mono px-3 py-2 rounded" style="background: var(--color-surface); color: var(--color-text);">
+                      {new Date().toISOString().split('T')[0]}
+                    </div>
+                  </div>
+                  
+                  <div class="space-y-2">
+                    <div class="text-sm font-medium" style:color="var(--color-text-secondary)">상태</div>
+                    <div class="text-sm px-3 py-2 rounded bg-green-100 text-green-800">
+                      정상
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </ThemeCard>
+
+            <!-- 기술 스택 -->
+            <ThemeCard>
+              <div class="space-y-4">
+                <div class="flex items-center gap-3">
+                  <FileTextIcon class="w-5 h-5" style="color: var(--color-text-secondary);" />
+                  <h3 class="text-lg font-semibold" style:color="var(--color-text)">기술 스택</h3>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div class="space-y-3">
+                    <div>
+                      <div class="text-sm font-medium" style:color="var(--color-text-secondary)">프론트엔드</div>
+                      <div class="text-sm px-3 py-2 rounded mt-1" style="background: var(--color-surface); color: var(--color-text);">
+                        SvelteKit 5 + TypeScript
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <div class="text-sm font-medium" style:color="var(--color-text-secondary)">스타일링</div>
+                      <div class="text-sm px-3 py-2 rounded mt-1" style="background: var(--color-surface); color: var(--color-text);">
+                        TailwindCSS
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div class="space-y-3">
+                    <div>
+                      <div class="text-sm font-medium" style:color="var(--color-text-secondary)">백엔드</div>
+                      <div class="text-sm px-3 py-2 rounded mt-1" style="background: var(--color-surface); color: var(--color-text);">
+                        Node.js + PostgreSQL
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <div class="text-sm font-medium" style:color="var(--color-text-secondary)">빌드 도구</div>
+                      <div class="text-sm px-3 py-2 rounded mt-1" style="background: var(--color-surface); color: var(--color-text);">
+                        Vite
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </ThemeCard>
+
+            <!-- 시스템 상태 -->
+            <ThemeCard>
+              <div class="space-y-4">
+                <div class="flex items-center gap-3">
+                  <BellIcon class="w-5 h-5" style="color: var(--color-text-secondary);" />
+                  <h3 class="text-lg font-semibold" style:color="var(--color-text)">시스템 상태</h3>
+                </div>
+                
+                <div class="space-y-3">
+                  <div class="flex items-center justify-between">
+                    <span class="text-sm" style:color="var(--color-text)">데이터베이스 연결</span>
+                    <div class="flex items-center gap-2">
+                      <div class="w-2 h-2 rounded-full bg-green-500"></div>
+                      <span class="text-sm text-green-600">연결됨</span>
+                    </div>
+                  </div>
+                  
+                  <div class="flex items-center justify-between">
+                    <span class="text-sm" style:color="var(--color-text)">API 서버</span>
+                    <div class="flex items-center gap-2">
+                      <div class="w-2 h-2 rounded-full bg-green-500"></div>
+                      <span class="text-sm text-green-600">정상</span>
+                    </div>
+                  </div>
+                  
+                  <div class="flex items-center justify-between">
+                    <span class="text-sm" style:color="var(--color-text)">파일 시스템</span>
+                    <div class="flex items-center gap-2">
+                      <div class="w-2 h-2 rounded-full bg-green-500"></div>
+                      <span class="text-sm text-green-600">정상</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </ThemeCard>
+          </div>
         </ThemeSpacer>
       {/if}
     {/snippet}
