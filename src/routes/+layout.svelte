@@ -37,9 +37,7 @@
   <footer class="border-t px-6 py-2" style:border-color="var(--color-border)">
     <div class="flex justify-between items-center">
       <VersionInfo />
-      <div class="text-xs text-gray-400">
-        © 2024 VWS. All rights reserved.
-      </div>
+      <div class="text-xs text-gray-400">© 2024 VWS. All rights reserved.</div>
     </div>
   </footer>
 </div>
