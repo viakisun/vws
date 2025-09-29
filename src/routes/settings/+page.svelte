@@ -574,7 +574,7 @@
                       class="text-sm font-mono px-3 py-2 rounded"
                       style="background: var(--color-surface); color: var(--color-text);"
                     >
-                      v0.2.0
+                      v0.2.1
                     </div>
                   </div>
 

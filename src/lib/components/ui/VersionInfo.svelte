@@ -2,7 +2,7 @@
   import { onMount } from 'svelte'
   import { page } from '$app/stores'
 
-  let version = $state('0.2.0')
+	let version = $state('0.2.1')
   let buildDate = $state('')
   let environment = $state('')
 
