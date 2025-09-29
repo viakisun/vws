@@ -1,16 +1,6 @@
+import { query } from '$lib/database/connection'
 import { getCurrentUTC } from '$lib/utils/date-handler'
 import { logger } from '$lib/utils/logger'
-import { Pool } from 'pg'
-
-// 데이터베이스 연결 풀
-const pool = new Pool({
-  host: 'db-viahub.cdgqkcss8mpj.ap-northeast-2.rds.amazonaws.com',
-  port: 5432,
-  database: 'postgres',
-  user: 'postgres',
-  password: 'viahubdev',
-  ssl: { rejectUnauthorized: false },
-})
 
 // 검증 결과 타입 정의
 export interface ValidationResult {
@@ -73,7 +63,7 @@ export class ValidationUtils {
 
   // 쿼리 메서드
   static async query(text: string, params?: unknown[]) {
-    return await pool.query(text, params)
+    return await query(text, params)
   }
 
   // 프로젝트 ID로 조회
@@ -101,7 +91,7 @@ export class ValidationUtils {
    * 프로젝트 기본 정보 조회
    */
   static async getProjectInfo(projectId: string) {
-    const result = await pool.query('SELECT * FROM projects WHERE id = $1', [projectId])
+    const result = await query('SELECT * FROM projects WHERE id = $1', [projectId])
     if (result.rows.length === 0) {
       throw new Error('프로젝트를 찾을 수 없습니다.')
     }
@@ -112,7 +102,7 @@ export class ValidationUtils {
    * 프로젝트 예산 정보 조회
    */
   static async getProjectBudgets(projectId: string) {
-    const result = await pool.query(
+    const result = await query(
       'SELECT * FROM project_budgets WHERE project_id = $1 ORDER BY period_number',
       [projectId],
     )
@@ -123,7 +113,7 @@ export class ValidationUtils {
    * 프로젝트 참여연구원 정보 조회 (인사 데이터 포함)
    */
   static async getProjectMembers(projectId: string) {
-    const result = await pool.query(
+    const result = await query(
       `
 			SELECT
 				pm.*,
@@ -171,7 +161,7 @@ export class ValidationUtils {
 
     query += ' ORDER BY pb.period_number, ei.due_date'
 
-    const result = await pool.query(query, params)
+    const result = await query(query, params)
     return result.rows as Record<string, unknown>[]
   }
 
@@ -179,7 +169,7 @@ export class ValidationUtils {
    * 직원 정보 조회
    */
   static async getEmployeeInfo(employeeId: string) {
-    const result = await pool.query(
+    const result = await query(
       `
 			SELECT
 				id,

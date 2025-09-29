@@ -1,8 +1,6 @@
-import { getDatabasePool } from '../database/connection'
+import { query } from '$lib/database/connection'
 
 export class AlertGenerator {
-  private pool = getDatabasePool()
-
   // 예산 초과 알림 생성
   async generateBudgetExceededAlert(
     budgetId: string,
@@ -10,10 +8,9 @@ export class AlertGenerator {
     actualAmount: number,
   ): Promise<void> {
     try {
-      const budget = await this.pool.query(
-        'SELECT name, category_id FROM finance_budgets WHERE id = $1',
-        [budgetId],
-      )
+      const budget = await query('SELECT name, category_id FROM finance_budgets WHERE id = $1', [
+        budgetId,
+      ])
 
       if (budget.rows.length === 0) return
 
@@ -38,7 +35,7 @@ export class AlertGenerator {
   // 잔액 부족 알림 생성
   async generateLowBalanceAlert(accountId: string, currentBalance: number): Promise<void> {
     try {
-      const account = await this.pool.query(
+      const account = await query(
         'SELECT name, alert_threshold FROM finance_accounts WHERE id = $1',
         [accountId],
       )
@@ -72,7 +69,7 @@ export class AlertGenerator {
   ): Promise<void> {
     try {
       // 평균 거래 금액의 3배 이상인 경우 알림
-      const avgAmount = await this.pool.query(
+      const avgAmount = await query(
         "SELECT AVG(amount) as avg_amount FROM finance_transactions WHERE account_id = $1 AND created_at >= NOW() - INTERVAL '30 days'",
         [accountId],
       )
@@ -81,9 +78,7 @@ export class AlertGenerator {
       const threshold = averageAmount * 3
 
       if (amount > threshold && averageAmount > 0) {
-        const account = await this.pool.query('SELECT name FROM finance_accounts WHERE id = $1', [
-          accountId,
-        ])
+        const account = await query('SELECT name FROM finance_accounts WHERE id = $1', [accountId])
 
         if (account.rows.length === 0) return
 
@@ -115,7 +110,7 @@ export class AlertGenerator {
     budgetId?: string
   }): Promise<void> {
     try {
-      await this.pool.query(
+      await query(
         `
         INSERT INTO finance_alerts (type, severity, title, message, account_id, transaction_id, budget_id)
         VALUES ($1, $2, $3, $4, $5, $6, $7)
@@ -147,13 +142,13 @@ export class AlertGenerator {
       await this.generateUnusualTransactionAlert(transactionId, amount, accountId)
 
       // 2. 예산 초과 알림 체크
-      const budgets = await this.pool.query(
+      const budgets = await query(
         "SELECT id, planned_amount FROM finance_budgets WHERE category_id = $1 AND status = 'active'",
         [categoryId],
       )
 
       for (const budget of budgets.rows) {
-        const actualAmount = await this.pool.query(
+        const actualAmount = await query(
           `
           SELECT COALESCE(SUM(amount), 0) as total
           FROM finance_transactions
@@ -173,9 +168,7 @@ export class AlertGenerator {
       }
 
       // 3. 잔액 부족 알림 체크
-      const account = await this.pool.query('SELECT balance FROM finance_accounts WHERE id = $1', [
-        accountId,
-      ])
+      const account = await query('SELECT balance FROM finance_accounts WHERE id = $1', [accountId])
 
       if (account.rows.length > 0) {
         const currentBalance = parseFloat(account.rows[0].balance)

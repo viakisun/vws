@@ -1,4 +1,4 @@
-import { getDatabasePool } from '../database/connection'
+import { query } from '$lib/database/connection'
 
 export interface FinancialHealthScore {
   overallScore: number // 전체 점수 (0-100)
@@ -18,8 +18,6 @@ export interface FinancialHealthScore {
 }
 
 export class FinancialHealthAnalyzer {
-  private pool = getDatabasePool()
-
   // 전체 재무 건강도 분석
   async analyzeFinancialHealth(): Promise<FinancialHealthScore> {
     try {
@@ -278,14 +276,14 @@ export class FinancialHealthAnalyzer {
 
   // 헬퍼 메서드들
   private async getCurrentTotalBalance(): Promise<number> {
-    const result = await this.pool.query(
+    const result = await query(
       "SELECT SUM(balance) as total FROM finance_accounts WHERE status = 'active'",
     )
     return parseFloat(result.rows[0].total || 0)
   }
 
   private async getMonthlyIncome(): Promise<number> {
-    const result = await this.pool.query(
+    const result = await query(
       `
       SELECT SUM(amount) as total
       FROM finance_transactions
@@ -298,7 +296,7 @@ export class FinancialHealthAnalyzer {
   }
 
   private async getMonthlyExpense(): Promise<number> {
-    const result = await this.pool.query(
+    const result = await query(
       `
       SELECT SUM(amount) as total
       FROM finance_transactions
@@ -311,21 +309,21 @@ export class FinancialHealthAnalyzer {
   }
 
   private async getActiveAccountCount(): Promise<number> {
-    const result = await this.pool.query(
+    const result = await query(
       "SELECT COUNT(*) as count FROM finance_accounts WHERE status = 'active'",
     )
     return parseInt(result.rows[0].count || 0)
   }
 
   private async getTransactionCount(): Promise<number> {
-    const result = await this.pool.query(
+    const result = await query(
       "SELECT COUNT(*) as count FROM finance_transactions WHERE status = 'completed'",
     )
     return parseInt(result.rows[0].count || 0)
   }
 
   private async getBudgetData(): Promise<{ totalBudgets: number; complianceRate: number }> {
-    const result = await this.pool.query(
+    const result = await query(
       `
       SELECT
         COUNT(*) as total_budgets,
@@ -342,12 +340,12 @@ export class FinancialHealthAnalyzer {
   }
 
   private async getLoanData(): Promise<any> {
-    const result = await this.pool.query('SELECT COUNT(*) as count FROM finance_loans')
+    const result = await query('SELECT COUNT(*) as count FROM finance_loans')
     return { totalLoans: parseInt(result.rows[0].count || 0) }
   }
 
   private async getRecentTrendData(months: number, offset: number = 0): Promise<any> {
-    const result = await this.pool.query(
+    const result = await query(
       `
       SELECT
         SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END) as income,

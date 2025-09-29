@@ -1,31 +1,16 @@
-import { Pool } from 'pg'
+// Finance 모듈은 메인 데이터베이스 연결을 사용
+import { getConnection } from '$lib/database/connection'
 
-// PostgreSQL 연결 풀 생성
-let pool: Pool | null = null
-
-export function getDatabasePool(): Pool {
-  if (!pool) {
-    pool = new Pool({
-      connectionString: process.env.DATABASE_URL || 'postgresql://localhost:5432/finance',
-      max: 20, // 최대 연결 수
-      idleTimeoutMillis: 30000, // 30초
-      connectionTimeoutMillis: 2000, // 2초
-    })
-
-    // 연결 에러 처리
-    pool.on('error', (err) => {
-      console.error('Unexpected error on idle client', err)
-    })
-  }
-
-  return pool
+// Finance 모듈용 래퍼 함수들
+export function getDatabasePool() {
+  // 메인 데이터베이스 연결을 사용
+  return getConnection()
 }
 
 // 데이터베이스 연결 테스트
 export async function testConnection(): Promise<boolean> {
   try {
-    const pool = getDatabasePool()
-    const client = await pool.connect()
+    const client = await getConnection()
     await client.query('SELECT NOW()')
     client.release()
     return true
@@ -35,10 +20,8 @@ export async function testConnection(): Promise<boolean> {
   }
 }
 
-// 연결 풀 종료
+// 연결 풀 종료 (메인 연결은 메인에서 관리)
 export async function closePool(): Promise<void> {
-  if (pool) {
-    await pool.end()
-    pool = null
-  }
+  // 메인 데이터베이스 연결은 메인에서 관리하므로 여기서는 아무것도 하지 않음
+  console.log('Finance module using main database connection - no action needed')
 }

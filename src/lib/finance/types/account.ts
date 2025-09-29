@@ -34,7 +34,6 @@ export interface CreateAccountRequest {
   accountNumber: string
   bankId: string
   accountType: AccountType
-  initialBalance: number
   description?: string
   isPrimary?: boolean
   alertThreshold?: number

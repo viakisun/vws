@@ -1,4 +1,4 @@
-import { getDatabasePool } from '../database/connection'
+import { query } from '$lib/database/connection'
 // 타입 정의
 interface FinancialForecast {
   month: string
@@ -15,8 +15,6 @@ interface AccountBalanceHistory {
 }
 
 export class AssetForecaster {
-  private pool = getDatabasePool()
-
   // 월말 자산 예측
   async forecastMonthlyAssets(months: number = 12): Promise<FinancialForecast[]> {
     try {
@@ -109,7 +107,7 @@ export class AssetForecaster {
     const startDate = new Date()
     startDate.setMonth(startDate.getMonth() - months)
 
-    const result = await this.pool.query(
+    const result = await query(
       `
       SELECT
         DATE_TRUNC('month', transaction_date) as month,
@@ -133,7 +131,7 @@ export class AssetForecaster {
     const startDate = new Date()
     startDate.setDate(startDate.getDate() - days)
 
-    const result = await this.pool.query(
+    const result = await query(
       `
       SELECT
         transaction_date as date,
@@ -261,7 +259,7 @@ export class AssetForecaster {
 
   // 현재 총 잔액 조회
   private async getCurrentTotalBalance(): Promise<number> {
-    const result = await this.pool.query(
+    const result = await query(
       "SELECT SUM(balance) as total_balance FROM finance_accounts WHERE status = 'active'",
     )
 

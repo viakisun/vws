@@ -1,7 +1,82 @@
-import { json } from '@sveltejs/kit'
-import type { RequestHandler } from './$types'
+import { query } from '$lib/database/connection'
 import { transactionDbService } from '$lib/finance/services/database/transaction-db-service'
 import type { UpdateTransactionRequest } from '$lib/finance/types'
+import { json } from '@sveltejs/kit'
+import type { RequestHandler } from './$types'
+
+// 거래 타입별 계좌 잔액 업데이트 함수
+async function updateAccountBalance(
+  accountId: string,
+  amount: number,
+  type: string,
+): Promise<void> {
+  try {
+    let balanceChange = 0
+
+    switch (type) {
+      case 'income':
+        balanceChange = amount
+        break
+      case 'expense':
+        balanceChange = -amount
+        break
+      case 'transfer':
+      case 'adjustment':
+        balanceChange = 0
+        break
+      default:
+        console.warn(`알 수 없는 거래 타입: ${type}`)
+        balanceChange = 0
+    }
+
+    if (balanceChange !== 0) {
+      await query(
+        'UPDATE finance_accounts SET balance = balance + $1, updated_at = NOW() WHERE id = $2',
+        [balanceChange, accountId],
+      )
+    }
+  } catch (error) {
+    console.error('계좌 잔액 업데이트 실패:', error)
+    throw error
+  }
+}
+
+// 거래 타입별 계좌 잔액 되돌리기 함수 (수정/삭제 시 사용)
+async function reverseAccountBalance(
+  accountId: string,
+  amount: number,
+  type: string,
+): Promise<void> {
+  try {
+    let balanceChange = 0
+
+    switch (type) {
+      case 'income':
+        balanceChange = -amount // 수입을 되돌리면 잔액 감소
+        break
+      case 'expense':
+        balanceChange = amount // 지출을 되돌리면 잔액 증가
+        break
+      case 'transfer':
+      case 'adjustment':
+        balanceChange = 0
+        break
+      default:
+        console.warn(`알 수 없는 거래 타입: ${type}`)
+        balanceChange = 0
+    }
+
+    if (balanceChange !== 0) {
+      await query(
+        'UPDATE finance_accounts SET balance = balance + $1, updated_at = NOW() WHERE id = $2',
+        [balanceChange, accountId],
+      )
+    }
+  } catch (error) {
+    console.error('계좌 잔액 되돌리기 실패:', error)
+    throw error
+  }
+}
 
 export const PUT: RequestHandler = async ({ params, request }) => {
   try {
@@ -48,12 +123,50 @@ export const PUT: RequestHandler = async ({ params, request }) => {
       )
     }
 
-    const updatedTransaction = await transactionDbService.updateTransaction(id, data)
+    // 트랜잭션 시작
+    await query('BEGIN')
 
-    return json({
-      success: true,
-      data: updatedTransaction,
-    })
+    try {
+      // 기존 거래 정보 조회 (잔액 되돌리기 위해)
+      const existingTransaction = await query(
+        'SELECT account_id, amount, type FROM finance_transactions WHERE id = $1',
+        [id],
+      )
+
+      if (existingTransaction.rows.length === 0) {
+        await query('ROLLBACK')
+        return json(
+          {
+            success: false,
+            error: '거래를 찾을 수 없습니다.',
+          },
+          { status: 404 },
+        )
+      }
+
+      const existing = existingTransaction.rows[0]
+
+      // 거래 수정
+      const updatedTransaction = await transactionDbService.updateTransaction(id, data)
+
+      // 기존 거래의 잔액 영향 되돌리기
+      await reverseAccountBalance(existing.account_id, existing.amount, existing.type)
+
+      // 새로운 거래의 잔액 영향 적용
+      await updateAccountBalance(data.accountId, data.amount, data.type)
+
+      // 트랜잭션 커밋
+      await query('COMMIT')
+
+      return json({
+        success: true,
+        data: updatedTransaction,
+      })
+    } catch (error) {
+      // 트랜잭션 롤백
+      await query('ROLLBACK')
+      throw error
+    }
   } catch (error) {
     console.error('거래 수정 실패:', error)
     return json(
@@ -70,12 +183,88 @@ export const DELETE: RequestHandler = async ({ params }) => {
   try {
     const { id } = params
 
-    await transactionDbService.deleteTransaction(id)
+    // ID 유효성 검증
+    if (!id || typeof id !== 'string') {
+      return json(
+        {
+          success: false,
+          error: '유효하지 않은 거래 ID입니다.',
+        },
+        { status: 400 },
+      )
+    }
 
-    return json({
-      success: true,
-      message: '거래가 삭제되었습니다.',
-    })
+    // UUID 형식 검증 (더 유연한 패턴)
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+    if (!uuidRegex.test(id)) {
+      return json(
+        {
+          success: false,
+          error: '올바르지 않은 거래 ID 형식입니다.',
+        },
+        { status: 400 },
+      )
+    }
+
+    // 트랜잭션 시작
+    await query('BEGIN')
+
+    try {
+      // 삭제 전 거래 정보 조회 (존재 여부 및 잔액 되돌리기 위해)
+      const existingTransaction = await query(
+        'SELECT account_id, amount, type, description FROM finance_transactions WHERE id = $1',
+        [id],
+      )
+
+      if (existingTransaction.rows.length === 0) {
+        await query('ROLLBACK')
+        return json(
+          {
+            success: false,
+            error: '거래를 찾을 수 없습니다.',
+          },
+          { status: 404 },
+        )
+      }
+
+      const existing = existingTransaction.rows[0]
+
+      // 거래 삭제 (ID로 정확히 하나만 삭제)
+      const deleteResult = await query('DELETE FROM finance_transactions WHERE id = $1', [id])
+
+      // 삭제된 행이 없는 경우 (이미 삭제되었거나 존재하지 않음)
+      if (deleteResult.rowCount === 0) {
+        await query('ROLLBACK')
+        return json(
+          {
+            success: false,
+            error: '거래가 이미 삭제되었거나 존재하지 않습니다.',
+          },
+          { status: 404 },
+        )
+      }
+
+      // 거래의 잔액 영향 되돌리기
+      await reverseAccountBalance(existing.account_id, existing.amount, existing.type)
+
+      // 트랜잭션 커밋
+      await query('COMMIT')
+
+      return json({
+        success: true,
+        message: `거래 "${existing.description}"이 삭제되었습니다.`,
+        deletedTransaction: {
+          id,
+          description: existing.description,
+          amount: existing.amount,
+          type: existing.type,
+        },
+      })
+    } catch (error) {
+      // 트랜잭션 롤백
+      await query('ROLLBACK')
+      throw error
+    }
   } catch (error) {
     console.error('거래 삭제 실패:', error)
     return json(

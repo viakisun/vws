@@ -1,26 +1,24 @@
+import { query } from '$lib/database/connection'
+import type { Bank } from '$lib/finance/types'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
-import { getDatabasePool } from '$lib/finance/services/database/connection'
-import type { Bank } from '$lib/finance/types'
 
 // 은행 목록 조회
 export const GET: RequestHandler = async ({ url }) => {
   try {
-    const pool = getDatabasePool()
-
     const isActive = url.searchParams.get('isActive')
 
-    let query = 'SELECT * FROM finance_banks'
+    let queryText = 'SELECT * FROM finance_banks'
     const params: any[] = []
 
     if (isActive !== null) {
-      query += ' WHERE is_active = $1'
+      queryText += ' WHERE is_active = $1'
       params.push(isActive === 'true')
     }
 
-    query += ' ORDER BY name ASC'
+    queryText += ' ORDER BY name ASC'
 
-    const result = await pool.query(query, params)
+    const result = await query(queryText, params)
 
     const banks: Bank[] = result.rows.map((row) => ({
       id: row.id,

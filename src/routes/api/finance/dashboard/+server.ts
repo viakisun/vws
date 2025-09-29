@@ -1,13 +1,11 @@
+import { query } from '$lib/database/connection'
+import type { AccountBalance, FinanceDashboard, UpcomingPayment } from '$lib/finance/types'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
-import { getDatabasePool } from '$lib/finance/services/database/connection'
-import type { FinanceDashboard, AccountBalance, UpcomingPayment } from '$lib/finance/types'
 
 // 자금일보 대시보드 데이터 조회
 export const GET: RequestHandler = async ({ url }) => {
   try {
-    const pool = getDatabasePool()
-
     const date = url.searchParams.get('date') || new Date().toISOString().split('T')[0]
 
     // 현재 잔액 조회
@@ -25,31 +23,34 @@ export const GET: RequestHandler = async ({ url }) => {
       ORDER BY a.is_primary DESC, a.balance DESC
     `
 
-    const balanceResult = await pool.query(balanceQuery)
+    const balanceResult = await query(balanceQuery)
     const currentBalance = balanceResult.rows.reduce((sum, row) => sum + parseFloat(row.balance), 0)
 
-    // 오늘 거래 내역 조회
-    const todayQuery = `
-      SELECT
-        SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END) as total_income,
-        SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END) as total_expense,
-        COUNT(*) as transaction_count
-      FROM finance_transactions
-      WHERE DATE(transaction_date) = $1 AND status = 'completed'
-    `
-
-    const todayResult = await pool.query(todayQuery, [date])
-    const todayIncome = parseFloat(todayResult.rows[0].total_income || 0)
-    const todayExpense = parseFloat(todayResult.rows[0].total_expense || 0)
-    const todayTransactionCount = parseInt(todayResult.rows[0].transaction_count || 0)
-
-    // 이번달 예상 지출 조회
+    // 이번달 거래 내역 조회
     const currentMonth = new Date().toISOString().substring(0, 7) // YYYY-MM
     const nextMonth = new Date()
     nextMonth.setMonth(nextMonth.getMonth() + 1)
     const nextMonthStr = nextMonth.toISOString().substring(0, 7) // YYYY-MM
 
     const monthlyQuery = `
+      SELECT
+        SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END) as total_income,
+        SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END) as total_expense,
+        COUNT(*) as transaction_count
+      FROM finance_transactions
+      WHERE transaction_date >= $1 AND transaction_date < $2 AND status = 'completed'
+    `
+
+    const monthlyResult = await query(monthlyQuery, [
+      `${currentMonth}-01`,
+      `${nextMonthStr}-01`, // 다음 달 1일
+    ])
+    const monthlyIncome = parseFloat(monthlyResult.rows[0].total_income || 0)
+    const monthlyExpense = parseFloat(monthlyResult.rows[0].total_expense || 0)
+    const monthlyTransactionCount = parseInt(monthlyResult.rows[0].transaction_count || 0)
+
+    // 이번달 카테고리별 지출 조회
+    const categoryQuery = `
       SELECT
         c.name as category_name,
         SUM(t.amount) as total_amount
@@ -61,7 +62,7 @@ export const GET: RequestHandler = async ({ url }) => {
       ORDER BY total_amount DESC
     `
 
-    const monthlyResult = await pool.query(monthlyQuery, [
+    const categoryResult = await query(categoryQuery, [
       `${currentMonth}-01`,
       `${nextMonthStr}-01`, // 다음 달 1일
     ])
@@ -104,7 +105,7 @@ export const GET: RequestHandler = async ({ url }) => {
       LIMIT 10
     `
 
-    const recentTransactionsResult = await pool.query(recentTransactionsQuery)
+    const recentTransactionsResult = await query(recentTransactionsQuery)
     const recentTransactions = recentTransactionsResult.rows.map((row) => ({
       id: row.id,
       accountId: row.account_id,
@@ -160,15 +161,15 @@ export const GET: RequestHandler = async ({ url }) => {
 
     const dashboard: FinanceDashboard = {
       currentBalance,
-      monthlyIncome: todayIncome,
-      monthlyExpense: todayExpense,
-      netCashFlow: todayIncome - todayExpense,
+      monthlyIncome: monthlyIncome,
+      monthlyExpense: monthlyExpense,
+      netCashFlow: monthlyIncome - monthlyExpense,
       accountBalances,
       recentTransactions,
       upcomingPayments,
       budgetStatus: {
         totalBudget: 0,
-        totalSpent: todayExpense,
+        totalSpent: monthlyExpense,
         remainingBudget: 0,
         utilizationRate: 0,
         overBudgetCount: 0,

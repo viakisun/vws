@@ -1,15 +1,5 @@
+import { query } from '$lib/database/connection'
 import { logger } from '$lib/utils/logger'
-import { Pool } from 'pg'
-
-// 데이터베이스 연결 풀
-const pool = new Pool({
-  host: 'db-viahub.cdgqkcss8mpj.ap-northeast-2.rds.amazonaws.com',
-  port: 5432,
-  database: 'postgres',
-  user: 'postgres',
-  password: 'viahubdev',
-  ssl: { rejectUnauthorized: false },
-})
 
 // 스키마 검증 결과 타입
 export interface SchemaValidationResult {
@@ -406,7 +396,7 @@ export class SchemaValidator {
    * 실제 데이터베이스 스키마 조회
    */
   private static async getActualDatabaseSchema(): Promise<Record<string, unknown>[]> {
-    const result = await pool.query(`
+    const result = await query(`
 			SELECT
 				table_name,
 				column_name,

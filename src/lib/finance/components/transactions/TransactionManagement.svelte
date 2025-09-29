@@ -1,61 +1,46 @@
 <script lang="ts">
-  import { onMount } from 'svelte'
+  import { accountService, transactionService } from '$lib/finance/services'
   import type {
-    Transaction,
     Account,
-    TransactionCategory,
     CreateTransactionRequest,
+    Transaction,
+    TransactionCategory,
   } from '$lib/finance/types'
-  import { transactionService, accountService } from '$lib/finance/services'
+  import { formatCurrency, formatDate } from '$lib/finance/utils'
   import {
-    formatCurrency,
-    formatDate,
-    formatTransactionType,
-    formatTransactionStatus,
-  } from '$lib/finance/utils'
+    formatDateForDisplay,
+    formatDateTimeForInput,
+    getCurrentUTC,
+    toUTC,
+  } from '$lib/utils/date-handler'
+  import { EditIcon, PlusIcon, SearchIcon, TrashIcon } from '@lucide/svelte'
+  import { onMount } from 'svelte'
 
-  // 추가 유틸리티 함수
-  function formatTime(date: string): string {
-    return new Date(date).toLocaleTimeString('ko-KR', {
-      hour: '2-digit',
-      minute: '2-digit',
-    })
+  // 유틸리티 함수들 - 표준 날짜 처리 함수 사용
+  function getCurrentUTCTimestamp(): string {
+    return getCurrentUTC()
   }
 
-  // 금액 포맷팅 함수
   function formatAmountInput(value: number): string {
     return value.toLocaleString('ko-KR')
   }
 
-  // 금액 파싱 함수 (콤마 제거)
   function parseAmountInput(value: string): number {
     return parseInt(value.replace(/,/g, '')) || 0
   }
 
-  // 현재 날짜/시간을 UTC timestamp로 반환
-  function getCurrentUTCTimestamp(): string {
-    return new Date().toISOString()
-  }
-
-  // datetime-local 값을 UTC timestamp로 변환
   function convertToUTCTimestamp(datetimeLocal: string): string {
     if (!datetimeLocal) return getCurrentUTCTimestamp()
-    return new Date(datetimeLocal).toISOString()
+    return toUTC(datetimeLocal)
   }
 
-  // UTC timestamp를 datetime-local 형식으로 변환
   function convertToDateTimeLocal(timestamp: string): string {
-    if (!timestamp) return ''
-    const date = new Date(timestamp)
-    const year = date.getFullYear()
-    const month = String(date.getMonth() + 1).padStart(2, '0')
-    const day = String(date.getDate()).padStart(2, '0')
-    const hours = String(date.getHours()).padStart(2, '0')
-    const minutes = String(date.getMinutes()).padStart(2, '0')
-    return `${year}-${month}-${day}T${hours}:${minutes}`
+    if (!timestamp || timestamp === 'null' || timestamp === '') {
+      return formatDateTimeForInput(getCurrentUTC())
+    }
+    return formatDateTimeForInput(timestamp)
   }
 
-  // 금액 입력 처리
   function handleAmountInput(event: Event) {
     const target = event.target as HTMLInputElement
     const value = target.value.replace(/,/g, '')
@@ -64,12 +49,14 @@
     amountInput = formatAmountInput(numValue)
   }
 
-  // 날짜/시간 입력 처리
   function handleDateTimeInput(event: Event) {
     const target = event.target as HTMLInputElement
     formData.transactionDate = convertToUTCTimestamp(target.value)
   }
-  import { PlusIcon, SearchIcon, FilterIcon, EditIcon, TrashIcon } from '@lucide/svelte'
+
+  function formatTime(date: string): string {
+    return formatDateForDisplay(date, 'SHORT')
+  }
 
   // State
   let transactions = $state<Transaction[]>([])
@@ -78,6 +65,32 @@
   let isLoading = $state(false)
   let error = $state<string | null>(null)
   let showAddModal = $state(false)
+
+  // 카테고리를 타입별로 그룹화
+  let groupedCategories = $state<Record<string, TransactionCategory[]>>({})
+
+  // 카테고리 그룹화 함수
+  function groupCategoriesByType(categories: TransactionCategory[]) {
+    const grouped: Record<string, TransactionCategory[]> = {
+      income: [],
+      expense: [],
+      transfer: [],
+      adjustment: [],
+    }
+
+    categories.forEach((category) => {
+      if (grouped[category.type]) {
+        grouped[category.type].push(category)
+      }
+    })
+
+    // 각 타입별로 이름순 정렬
+    Object.keys(grouped).forEach((type) => {
+      grouped[type].sort((a, b) => a.name.localeCompare(b.name))
+    })
+
+    return grouped
+  }
 
   // 필터
   let searchTerm = $state('')
@@ -159,6 +172,7 @@
       transactions = transactionsData.transactions
       accounts = accountsData
       categories = categoriesData
+      groupedCategories = groupCategoriesByType(categories)
 
       // 필터링된 데이터 업데이트
       updateFilteredData()
@@ -216,13 +230,13 @@
       amount: transaction.amount,
       type: transaction.type,
       description: transaction.description,
-      transactionDate: transaction.transactionDate,
+      transactionDate: transaction.transactionDate || getCurrentUTC(),
       referenceNumber: transaction.referenceNumber || '',
       notes: transaction.notes || '',
       tags: transaction.tags || [],
     }
     amountInput = formatAmountInput(transaction.amount)
-    dateTimeInput = convertToDateTimeLocal(transaction.transactionDate)
+    dateTimeInput = convertToDateTimeLocal(transaction.transactionDate || getCurrentUTC())
     showEditModal = true
   }
 
@@ -256,6 +270,11 @@
       return
     }
 
+    // 중복 요청 방지
+    if (isLoading) {
+      return
+    }
+
     try {
       isLoading = true
       error = null
@@ -284,8 +303,16 @@
   let totalExpense = $state(0)
   let netAmount = $state(0)
 
+  // 필터링된 계좌 목록
+  let filteredAccounts = $state<Account[]>([])
+
   // 필터링 및 통계 계산 함수
   function updateFilteredData() {
+    // 계좌 필터링: 선택된 계좌가 있으면 해당 계좌만 표시
+    filteredAccounts = selectedAccount
+      ? accounts.filter((account) => account.id === selectedAccount)
+      : accounts
+
     filteredTransactions = transactions.filter((transaction) => {
       if (searchTerm && !transaction.description.toLowerCase().includes(searchTerm.toLowerCase())) {
         return false
@@ -464,7 +491,12 @@
             >
               <option value="">모든 카테고리</option>
               {#each categories as category}
-                <option value={category.id}>{category.name}</option>
+                <option value={category.id}>
+                  {category.name}
+                  {#if category.accountingCode}
+                    ({category.accountingCode})
+                  {/if}
+                </option>
               {/each}
             </select>
           </div>
@@ -504,9 +536,9 @@
     </div>
   {:else if accounts.length > 0}
     <div class="space-y-6">
-      {#each accounts as account}
+      {#each filteredAccounts as account}
         {@const accountTransactions = filteredTransactions.filter(
-          (t) => t.accountId === account.id,
+          (t) => t.accountId === account.id || t.account?.id === account.id,
         )}
         <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
           <!-- 계좌 헤더 -->
@@ -612,9 +644,14 @@
                             class="w-3 h-3 rounded-full mr-2"
                             style="background-color: {transaction.category?.color || '#6B7280'}"
                           ></div>
-                          <span class="text-sm text-gray-900"
-                            >{transaction.category?.name || '알 수 없음'}</span
-                          >
+                          <span class="text-sm text-gray-900">
+                            {transaction.category?.name || '알 수 없음'}
+                            {#if transaction.category?.accountingCode}
+                              <span class="text-xs text-gray-500 ml-1">
+                                ({transaction.category.accountingCode})
+                              </span>
+                            {/if}
+                          </span>
                         </div>
                       </td>
                       <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -744,7 +781,12 @@
             >
               <option value="">카테고리를 선택하세요</option>
               {#each categories as category}
-                <option value={category.id}>{category.name}</option>
+                <option value={category.id}>
+                  {category.name}
+                  {#if category.accountingCode}
+                    ({category.accountingCode})
+                  {/if}
+                </option>
               {/each}
             </select>
           </div>
@@ -883,7 +925,12 @@
             >
               <option value="">카테고리를 선택하세요</option>
               {#each categories as category}
-                <option value={category.id}>{category.name}</option>
+                <option value={category.id}>
+                  {category.name}
+                  {#if category.accountingCode}
+                    ({category.accountingCode})
+                  {/if}
+                </option>
               {/each}
             </select>
           </div>

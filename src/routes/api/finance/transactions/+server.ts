@@ -1,14 +1,74 @@
+import { query } from '$lib/database/connection'
 import { alertGenerator } from '$lib/finance/services/alerts/alert-generator'
-import { getDatabasePool } from '$lib/finance/services/database/connection'
 import type { CreateTransactionRequest, Transaction } from '$lib/finance/types'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
 
+// 거래 타입별 계좌 잔액 업데이트 함수
+async function updateAccountBalance(
+  accountId: string,
+  amount: number,
+  type: string,
+): Promise<void> {
+  try {
+    let balanceChange = 0
+
+    switch (type) {
+      case 'income':
+        // 수입: 잔액 증가 (+)
+        balanceChange = amount
+        break
+      case 'expense':
+        // 지출: 잔액 감소 (-)
+        balanceChange = -amount
+        break
+      case 'transfer':
+        // 이체: 별도 처리 필요 (출금 계좌와 입금 계좌 모두 필요)
+        // 이 함수에서는 단일 계좌만 처리하므로 잔액 변화 없음
+        balanceChange = 0
+        break
+      case 'adjustment':
+        // 조정: 잔액 변화 없음 (0)
+        balanceChange = 0
+        break
+      default:
+        console.warn(`알 수 없는 거래 타입: ${type}`)
+        balanceChange = 0
+    }
+
+    // 잔액 업데이트 (transfer와 adjustment는 잔액 변화 없음)
+    if (balanceChange !== 0) {
+      // 잔액이 음수가 되는지 확인
+      const currentBalanceResult = await query(
+        'SELECT balance FROM finance_accounts WHERE id = $1',
+        [accountId],
+      )
+
+      if (currentBalanceResult.rows.length === 0) {
+        throw new Error('계좌를 찾을 수 없습니다.')
+      }
+
+      const currentBalance = parseFloat(currentBalanceResult.rows[0].balance)
+      const newBalance = currentBalance + balanceChange
+
+      if (newBalance < 0) {
+        throw new Error('계좌 잔액이 부족합니다. 잔액은 0원보다 작을 수 없습니다.')
+      }
+
+      await query(
+        'UPDATE finance_accounts SET balance = balance + $1, updated_at = NOW() WHERE id = $2',
+        [balanceChange, accountId],
+      )
+    }
+  } catch (error) {
+    console.error('계좌 잔액 업데이트 실패:', error)
+    throw error
+  }
+}
+
 // 거래 내역 조회
 export const GET: RequestHandler = async ({ url }) => {
   try {
-    const pool = getDatabasePool()
-
     // 쿼리 파라미터 파싱
     const accountId = url.searchParams.get('accountId')
     const categoryId = url.searchParams.get('categoryId')
@@ -24,7 +84,7 @@ export const GET: RequestHandler = async ({ url }) => {
     const offset = (page - 1) * limit
 
     // 동적 쿼리 구성
-    let query = `
+    let queryText = `
       SELECT
         t.*,
         a.name as account_name,
@@ -44,61 +104,61 @@ export const GET: RequestHandler = async ({ url }) => {
     let paramIndex = 1
 
     if (accountId) {
-      query += ` AND t.account_id = $${paramIndex++}`
+      queryText += ` AND t.account_id = $${paramIndex++}`
       params.push(accountId)
     }
 
     if (categoryId) {
-      query += ` AND t.category_id = $${paramIndex++}`
+      queryText += ` AND t.category_id = $${paramIndex++}`
       params.push(categoryId)
     }
 
     if (type) {
-      query += ` AND t.type = $${paramIndex++}`
+      queryText += ` AND t.type = $${paramIndex++}`
       params.push(type)
     }
 
     if (status) {
-      query += ` AND t.status = $${paramIndex++}`
+      queryText += ` AND t.status = $${paramIndex++}`
       params.push(status)
     }
 
     if (dateFrom) {
-      query += ` AND t.transaction_date >= $${paramIndex++}`
+      queryText += ` AND t.transaction_date >= $${paramIndex++}`
       params.push(dateFrom)
     }
 
     if (dateTo) {
-      query += ` AND t.transaction_date <= $${paramIndex++}`
+      queryText += ` AND t.transaction_date <= $${paramIndex++}`
       params.push(dateTo)
     }
 
     if (amountMin) {
-      query += ` AND t.amount >= $${paramIndex++}`
+      queryText += ` AND t.amount >= $${paramIndex++}`
       params.push(parseFloat(amountMin))
     }
 
     if (amountMax) {
-      query += ` AND t.amount <= $${paramIndex++}`
+      queryText += ` AND t.amount <= $${paramIndex++}`
       params.push(parseFloat(amountMax))
     }
 
     if (search) {
-      query += ` AND (t.description ILIKE $${paramIndex++} OR t.reference_number ILIKE $${paramIndex++})`
+      queryText += ` AND (t.description ILIKE $${paramIndex++} OR t.reference_number ILIKE $${paramIndex++})`
       params.push(`%${search}%`, `%${search}%`)
     }
 
     // 총 개수 조회
-    const countQuery = query.replace(/SELECT.*FROM/, 'SELECT COUNT(*) FROM')
-    const countResult = await pool.query(countQuery, params)
+    const countQuery = queryText.replace(/SELECT.*FROM/, 'SELECT COUNT(*) FROM')
+    const countResult = await query(countQuery, params)
     const total = parseInt(countResult.rows[0].count)
 
     // 페이징 적용
-    query += ` ORDER BY t.transaction_date DESC, t.created_at DESC`
-    query += ` LIMIT $${paramIndex++} OFFSET $${paramIndex++}`
+    queryText += ` ORDER BY t.transaction_date DESC, t.created_at DESC`
+    queryText += ` LIMIT $${paramIndex++} OFFSET $${paramIndex++}`
     params.push(limit, offset)
 
-    const result = await pool.query(query, params)
+    const result = await query(queryText, params)
 
     const transactions: Transaction[] = result.rows.map((row) => ({
       id: row.id,
@@ -179,7 +239,6 @@ export const GET: RequestHandler = async ({ url }) => {
 // 새 거래 생성
 export const POST: RequestHandler = async ({ request }) => {
   try {
-    const pool = getDatabasePool()
     const body: CreateTransactionRequest = await request.json()
 
     // 필수 필드 검증
@@ -200,7 +259,7 @@ export const POST: RequestHandler = async ({ request }) => {
     }
 
     // 거래 생성
-    const query = `
+    const queryText = `
       INSERT INTO finance_transactions (
         account_id, category_id, amount, type, description,
         transaction_date, reference_number, notes, tags,
@@ -223,8 +282,11 @@ export const POST: RequestHandler = async ({ request }) => {
       body.recurringPattern ? JSON.stringify(body.recurringPattern) : null,
     ]
 
-    const result = await pool.query(query, params)
+    const result = await query(queryText, params)
     const transaction = result.rows[0]
+
+    // 거래 타입별 계좌 잔액 업데이트
+    await updateAccountBalance(body.accountId, body.amount, body.type)
 
     // 알림 생성 (비동기로 실행)
     alertGenerator

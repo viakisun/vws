@@ -1,14 +1,9 @@
 <script lang="ts">
-  import { onMount } from 'svelte'
-  import type { FinanceDashboard } from '$lib/finance/types'
   import { dashboardService } from '$lib/finance/services'
-  import { formatCurrency, formatAmount, formatDate } from '$lib/finance/utils'
-  import {
-    TrendingUpIcon,
-    TrendingDownIcon,
-    AlertTriangleIcon,
-    CheckCircleIcon,
-  } from '@lucide/svelte'
+  import type { FinanceDashboard } from '$lib/finance/types'
+  import { formatAmount, formatCurrency, formatDate } from '$lib/finance/utils'
+  import { AlertTriangleIcon, TrendingDownIcon, TrendingUpIcon } from '@lucide/svelte'
+  import { onMount } from 'svelte'
 
   // Props
   interface Props {
@@ -98,10 +93,10 @@
   </div>
 {:else if dashboardData}
   <div class="space-y-6">
-    <!-- 오늘의 자금 현황 -->
+    <!-- 이번달 자금 현황 -->
     <div class="bg-white rounded-lg border border-gray-200 p-6">
       <div class="flex items-center justify-between mb-4">
-        <h3 class="text-lg font-medium text-gray-900">오늘의 자금 현황</h3>
+        <h3 class="text-lg font-medium text-gray-900">이번달 자금 현황</h3>
         <span class="text-sm text-gray-500">{formatDate(date, 'long')}</span>
       </div>
 
@@ -114,20 +109,20 @@
           <div class="text-sm text-gray-600">현재 잔액</div>
         </div>
 
-        <!-- 오늘 수입 -->
+        <!-- 이번달 수입 -->
         <div class="text-center p-4 bg-green-50 rounded-lg">
           <div class="text-2xl font-semibold text-green-600">
             {formatAmount(dashboardData.monthlyIncome)}
           </div>
-          <div class="text-sm text-gray-600">오늘 수입</div>
+          <div class="text-sm text-gray-600">이번달 수입</div>
         </div>
 
-        <!-- 오늘 지출 -->
+        <!-- 이번달 지출 -->
         <div class="text-center p-4 bg-red-50 rounded-lg">
           <div class="text-2xl font-semibold text-red-600">
             {formatAmount(dashboardData.monthlyExpense)}
           </div>
-          <div class="text-sm text-gray-600">오늘 지출</div>
+          <div class="text-sm text-gray-600">이번달 지출</div>
         </div>
 
         <!-- 순 현금흐름 -->

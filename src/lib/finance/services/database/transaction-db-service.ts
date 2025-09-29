@@ -1,22 +1,11 @@
+import { query } from '$lib/database/connection'
 import type { Transaction, UpdateTransactionRequest } from '$lib/finance/types'
-import { getDatabasePool } from './connection'
 
 export class TransactionDbService {
-  private async query(text: string, params?: any[]): Promise<any> {
-    const pool = getDatabasePool()
-    const client = await pool.connect()
-    try {
-      const result = await client.query(text, params)
-      return result
-    } finally {
-      client.release()
-    }
-  }
-
   // 거래 수정
   async updateTransaction(id: string, data: UpdateTransactionRequest): Promise<Transaction> {
     try {
-      const result = await this.query(
+      const result = await query(
         `UPDATE finance_transactions
          SET account_id = $1, category_id = $2, amount = $3, type = $4,
              description = $5, transaction_date = $6, reference_number = $7,
@@ -51,7 +40,7 @@ export class TransactionDbService {
   // 거래 삭제
   async deleteTransaction(id: string): Promise<void> {
     try {
-      const result = await this.query('DELETE FROM finance_transactions WHERE id = $1', [id])
+      const result = await query('DELETE FROM finance_transactions WHERE id = $1', [id])
 
       if (result.rowCount === 0) {
         throw new Error('거래를 찾을 수 없습니다.')
@@ -66,7 +55,7 @@ export class TransactionDbService {
   private async enrichTransaction(transaction: any): Promise<Transaction> {
     try {
       // 계좌 정보 조회
-      const accountResult = await this.query(
+      const accountResult = await query(
         `SELECT a.*, b.name as bank_name
          FROM finance_accounts a
          JOIN finance_banks b ON a.bank_id = b.id
@@ -75,7 +64,7 @@ export class TransactionDbService {
       )
 
       // 카테고리 정보 조회
-      const categoryResult = await this.query('SELECT * FROM finance_categories WHERE id = $1', [
+      const categoryResult = await query('SELECT * FROM finance_categories WHERE id = $1', [
         transaction.category_id,
       ])
 

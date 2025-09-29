@@ -1,18 +1,11 @@
+import { query } from '$lib/database/connection'
+import type { Account, CreateAccountRequest } from '$lib/finance/types'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
-import { getDatabasePool } from '$lib/finance/services/database/connection'
-import type {
-  Account,
-  CreateAccountRequest,
-  UpdateAccountRequest,
-  AccountFilter,
-} from '$lib/finance/types'
 
 // 계좌 목록 조회
 export const GET: RequestHandler = async ({ url }) => {
   try {
-    const pool = getDatabasePool()
-
     // 쿼리 파라미터 파싱
     const bankId = url.searchParams.get('bankId')
     const accountType = url.searchParams.get('accountType')
@@ -21,7 +14,7 @@ export const GET: RequestHandler = async ({ url }) => {
     const search = url.searchParams.get('search')
 
     // 동적 쿼리 구성
-    let query = `
+    let queryText = `
       SELECT
         a.*,
         b.name as bank_name,
@@ -35,33 +28,33 @@ export const GET: RequestHandler = async ({ url }) => {
     let paramIndex = 1
 
     if (bankId) {
-      query += ` AND a.bank_id = $${paramIndex++}`
+      queryText += ` AND a.bank_id = $${paramIndex++}`
       params.push(bankId)
     }
 
     if (accountType) {
-      query += ` AND a.account_type = $${paramIndex++}`
+      queryText += ` AND a.account_type = $${paramIndex++}`
       params.push(accountType)
     }
 
     if (status) {
-      query += ` AND a.status = $${paramIndex++}`
+      queryText += ` AND a.status = $${paramIndex++}`
       params.push(status)
     }
 
     if (isPrimary !== null) {
-      query += ` AND a.is_primary = $${paramIndex++}`
+      queryText += ` AND a.is_primary = $${paramIndex++}`
       params.push(isPrimary === 'true')
     }
 
     if (search) {
-      query += ` AND (a.name ILIKE $${paramIndex++} OR a.account_number ILIKE $${paramIndex++})`
+      queryText += ` AND (a.name ILIKE $${paramIndex++} OR a.account_number ILIKE $${paramIndex++})`
       params.push(`%${search}%`, `%${search}%`)
     }
 
-    query += ` ORDER BY a.is_primary DESC, a.created_at DESC`
+    queryText += ` ORDER BY a.is_primary DESC, a.created_at DESC`
 
-    const result = await pool.query(query, params)
+    const result = await query(queryText, params)
 
     const accounts: Account[] = result.rows.map((row) => ({
       id: row.id,
@@ -98,7 +91,7 @@ export const GET: RequestHandler = async ({ url }) => {
       {
         success: false,
         data: [],
-        error: '계좌 목록을 조회할 수 없습니다.',
+        error: `계좌 목록을 조회할 수 없습니다: ${error instanceof Error ? error.message : '알 수 없는 오류'}`,
       },
       { status: 500 },
     )
@@ -108,7 +101,6 @@ export const GET: RequestHandler = async ({ url }) => {
 // 새 계좌 생성
 export const POST: RequestHandler = async ({ request }) => {
   try {
-    const pool = getDatabasePool()
     const body: CreateAccountRequest = await request.json()
 
     // 필수 필드 검증
@@ -123,7 +115,7 @@ export const POST: RequestHandler = async ({ request }) => {
     }
 
     // 계좌 생성
-    const query = `
+    const queryText = `
       INSERT INTO finance_accounts (
         name, account_number, bank_id, account_type,
         balance, description, is_primary, alert_threshold
@@ -142,7 +134,7 @@ export const POST: RequestHandler = async ({ request }) => {
       body.alertThreshold || null,
     ]
 
-    const result = await pool.query(query, params)
+    const result = await query(queryText, params)
     const account = result.rows[0]
 
     return json({

@@ -236,6 +236,37 @@ export function formatDateForInput(utcDate: StandardDate | string): string {
 }
 
 /**
+ * 🔥 입력용: UTC 날짜를 datetime-local 형식으로 변환
+ *
+ * 사용법: datetime-local 입력 필드에 사용
+ * 예시: <input type="datetime-local" bind:value={formatDateTimeForInput(utcDate)} />
+ */
+export function formatDateTimeForInput(utcDate: StandardDate | string): string {
+  if (!utcDate) return ''
+
+  try {
+    const date = new Date(utcDate)
+    if (isNaN(date.getTime())) {
+      return ''
+    }
+
+    // 서울 시간대로 변환하여 YYYY-MM-DDTHH:MM 형식으로 반환
+    const localDate = new Date(date.toLocaleString('en-US', { timeZone: SEOUL_TIMEZONE }))
+
+    const year = localDate.getFullYear()
+    const month = String(localDate.getMonth() + 1).padStart(2, '0')
+    const day = String(localDate.getDate()).padStart(2, '0')
+    const hours = String(localDate.getHours()).padStart(2, '0')
+    const minutes = String(localDate.getMinutes()).padStart(2, '0')
+
+    return `${year}-${month}-${day}T${hours}:${minutes}`
+  } catch (error) {
+    logger.error('DateTime input formatting error:', error, 'for date:', utcDate)
+    return ''
+  }
+}
+
+/**
  * 🔥 현재시간: 현재 시간을 UTC로 반환
  *
  * 사용법: 현재 시간을 저장할 때

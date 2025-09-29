@@ -1,7 +1,7 @@
-import { emailService } from '../email/email-service'
-import { getDatabasePool } from '../database/connection'
-import { assetForecaster } from '../forecasting/asset-forecaster'
+import { query } from '$lib/database/connection'
 import { financialHealthAnalyzer } from '../analysis/financial-health'
+import { emailService } from '../email/email-service'
+import { assetForecaster } from '../forecasting/asset-forecaster'
 
 export interface ScheduledReport {
   id: string
@@ -16,7 +16,6 @@ export interface ScheduledReport {
 }
 
 export class ReportScheduler {
-  private pool = getDatabasePool()
   private schedules: Map<string, ScheduledReport> = new Map()
   private intervalId?: NodeJS.Timeout
 
@@ -151,16 +150,14 @@ export class ReportScheduler {
   // 일일 리포트 데이터 생성
   private async generateDailyReportData(date: string): Promise<any> {
     try {
-      const pool = getDatabasePool()
-
       // 현재 총 잔액
-      const balanceResult = await pool.query(
+      const balanceResult = await query(
         "SELECT SUM(balance) as total FROM finance_accounts WHERE status = 'active'",
       )
       const currentBalance = parseFloat(balanceResult.rows[0].total || 0)
 
       // 당일 거래 내역
-      const transactionResult = await pool.query(
+      const transactionResult = await query(
         `
       SELECT
         SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END) as income,
@@ -177,7 +174,7 @@ export class ReportScheduler {
       const transactionCount = parseInt(transactionResult.rows[0].count || 0)
 
       // 계좌 수
-      const accountResult = await pool.query(
+      const accountResult = await query(
         "SELECT COUNT(*) as count FROM finance_accounts WHERE status = 'active'",
       )
       const accountCount = parseInt(accountResult.rows[0].count || 0)
@@ -216,10 +213,8 @@ export class ReportScheduler {
   // 주간 리포트 데이터 생성
   private async generateWeeklyReportData(startDate: Date, endDate: Date): Promise<any> {
     try {
-      const pool = getDatabasePool()
-
       // 주간 거래 내역
-      const transactionResult = await pool.query(
+      const transactionResult = await query(
         `
       SELECT
         SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END) as income,
@@ -236,13 +231,13 @@ export class ReportScheduler {
       const transactionCount = parseInt(transactionResult.rows[0].count || 0)
 
       // 현재 총 잔액
-      const balanceResult = await pool.query(
+      const balanceResult = await query(
         "SELECT SUM(balance) as total FROM finance_accounts WHERE status = 'active'",
       )
       const currentBalance = parseFloat(balanceResult.rows[0].total || 0)
 
       // 계좌 수
-      const accountResult = await pool.query(
+      const accountResult = await query(
         "SELECT COUNT(*) as count FROM finance_accounts WHERE status = 'active'",
       )
       const accountCount = parseInt(accountResult.rows[0].count || 0)
@@ -280,10 +275,8 @@ export class ReportScheduler {
   // 월간 리포트 데이터 생성
   private async generateMonthlyReportData(startDate: Date, endDate: Date): Promise<any> {
     try {
-      const pool = getDatabasePool()
-
       // 월간 거래 내역
-      const transactionResult = await pool.query(
+      const transactionResult = await query(
         `
       SELECT
         SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END) as income,
@@ -300,7 +293,7 @@ export class ReportScheduler {
       const transactionCount = parseInt(transactionResult.rows[0].count || 0)
 
       // 계좌별 요약
-      const accountResult = await pool.query(
+      const accountResult = await query(
         `
       SELECT name, balance
       FROM finance_accounts
@@ -314,7 +307,7 @@ export class ReportScheduler {
       }))
 
       // 예산 분석
-      const budgetResult = await pool.query(
+      const budgetResult = await query(
         `
       SELECT
         name,

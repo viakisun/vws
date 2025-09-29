@@ -15,6 +15,9 @@ export interface TransactionCategory extends BaseEntity {
   description?: string
   isActive: boolean
   isSystem: boolean // 시스템 기본 카테고리 여부
+  accountingCode?: string // 회계 코드 (예: 4110, 5110 등)
+  taxCode?: string // 세무 코드 (예: 01, 02 등)
+  isDefault: boolean // 기본 선택 여부
 }
 
 // 거래 정보

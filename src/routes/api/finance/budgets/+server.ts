@@ -1,13 +1,11 @@
+import { query } from '$lib/database/connection'
+import type { Budget, CreateBudgetRequest } from '$lib/finance/types'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
-import { getDatabasePool } from '$lib/finance/services/database/connection'
-import type { Budget, CreateBudgetRequest, UpdateBudgetRequest } from '$lib/finance/types'
 
 // 예산 목록 조회
 export const GET: RequestHandler = async ({ url }) => {
   try {
-    const pool = getDatabasePool()
-
     // 쿼리 파라미터 파싱
     const type = url.searchParams.get('type')
     const period = url.searchParams.get('period')
@@ -19,7 +17,7 @@ export const GET: RequestHandler = async ({ url }) => {
     const status = url.searchParams.get('status')
 
     // 동적 쿼리 구성
-    let query = `
+    let queryText = `
       SELECT
         b.*,
         c.name as category_name,
@@ -35,48 +33,48 @@ export const GET: RequestHandler = async ({ url }) => {
     let paramIndex = 1
 
     if (type) {
-      query += ` AND b.type = $${paramIndex++}`
+      queryText += ` AND b.type = $${paramIndex++}`
       params.push(type)
     }
 
     if (period) {
-      query += ` AND b.period = $${paramIndex++}`
+      queryText += ` AND b.period = $${paramIndex++}`
       params.push(period)
     }
 
     if (year) {
-      query += ` AND b.year = $${paramIndex++}`
+      queryText += ` AND b.year = $${paramIndex++}`
       params.push(parseInt(year))
     }
 
     if (month) {
-      query += ` AND b.month = $${paramIndex++}`
+      queryText += ` AND b.month = $${paramIndex++}`
       params.push(parseInt(month))
     }
 
     if (quarter) {
-      query += ` AND b.quarter = $${paramIndex++}`
+      queryText += ` AND b.quarter = $${paramIndex++}`
       params.push(parseInt(quarter))
     }
 
     if (categoryId) {
-      query += ` AND b.category_id = $${paramIndex++}`
+      queryText += ` AND b.category_id = $${paramIndex++}`
       params.push(categoryId)
     }
 
     if (accountId) {
-      query += ` AND b.account_id = $${paramIndex++}`
+      queryText += ` AND b.account_id = $${paramIndex++}`
       params.push(accountId)
     }
 
     if (status) {
-      query += ` AND b.status = $${paramIndex++}`
+      queryText += ` AND b.status = $${paramIndex++}`
       params.push(status)
     }
 
-    query += ` ORDER BY b.year DESC, b.month DESC, b.created_at DESC`
+    queryText += ` ORDER BY b.year DESC, b.month DESC, b.created_at DESC`
 
-    const result = await pool.query(query, params)
+    const result = await query(queryText, params)
 
     const budgets: Budget[] = result.rows.map((row) => ({
       id: row.id,
@@ -135,7 +133,7 @@ export const GET: RequestHandler = async ({ url }) => {
       {
         success: false,
         data: [],
-        error: '예산 목록을 조회할 수 없습니다.',
+        error: `예산 목록을 조회할 수 없습니다: ${error instanceof Error ? error.message : '알 수 없는 오류'}`,
       },
       { status: 500 },
     )
@@ -145,7 +143,6 @@ export const GET: RequestHandler = async ({ url }) => {
 // 새 예산 생성
 export const POST: RequestHandler = async ({ request }) => {
   try {
-    const pool = getDatabasePool()
     const body: CreateBudgetRequest = await request.json()
 
     // 필수 필드 검증
@@ -160,7 +157,7 @@ export const POST: RequestHandler = async ({ request }) => {
     }
 
     // 예산 생성
-    const query = `
+    const queryText = `
       INSERT INTO finance_budgets (
         name, type, period, year, month, quarter,
         category_id, account_id, planned_amount,
@@ -184,7 +181,7 @@ export const POST: RequestHandler = async ({ request }) => {
       body.isRecurring || false,
     ]
 
-    const result = await pool.query(query, params)
+    const result = await query(queryText, params)
     const budget = result.rows[0]
 
     return json({

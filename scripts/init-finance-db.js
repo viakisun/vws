@@ -7,22 +7,13 @@
  * node scripts/init-finance-db.js
  */
 
-import { Pool } from 'pg'
 import { readFileSync } from 'fs'
-import { join, dirname } from 'path'
+import { dirname, join } from 'path'
 import { fileURLToPath } from 'url'
+import { query } from '../src/lib/database/connection.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
-
-// 데이터베이스 연결 설정
-const pool = new Pool({
-  host: process.env.DB_HOST || 'localhost',
-  port: parseInt(process.env.DB_PORT || '5432'),
-  database: process.env.DB_NAME || 'viahub',
-  user: process.env.DB_USER || 'postgres',
-  password: process.env.DB_PASSWORD || 'password',
-})
 
 async function initializeFinanceDatabase() {
   console.log('🏦 재무관리 시스템 데이터베이스 초기화 시작...')
@@ -32,23 +23,21 @@ async function initializeFinanceDatabase() {
     console.log('📋 스키마 생성 중...')
     const schemaPath = join(__dirname, '../src/lib/database/migrations/finance-schema.sql')
     const schemaSQL = readFileSync(schemaPath, 'utf8')
-    await pool.query(schemaSQL)
+    await query(schemaSQL)
     console.log('✅ 스키마 생성 완료')
 
     // 초기 데이터 삽입
     console.log('📊 초기 데이터 삽입 중...')
     const dataPath = join(__dirname, '../src/lib/database/migrations/finance-initial-data.sql')
     const dataSQL = readFileSync(dataPath, 'utf8')
-    await pool.query(dataSQL)
+    await query(dataSQL)
     console.log('✅ 초기 데이터 삽입 완료')
 
     // 결과 확인
-    const banksResult = await pool.query('SELECT COUNT(*) as count FROM banks')
-    const accountsResult = await pool.query('SELECT COUNT(*) as count FROM accounts')
-    const categoriesResult = await pool.query(
-      'SELECT COUNT(*) as count FROM transaction_categories',
-    )
-    const transactionsResult = await pool.query('SELECT COUNT(*) as count FROM transactions')
+    const banksResult = await query('SELECT COUNT(*) as count FROM banks')
+    const accountsResult = await query('SELECT COUNT(*) as count FROM accounts')
+    const categoriesResult = await query('SELECT COUNT(*) as count FROM transaction_categories')
+    const transactionsResult = await query('SELECT COUNT(*) as count FROM transactions')
 
     console.log('\n🎉 재무관리 시스템 초기화 완료!')
     console.log(`📊 생성된 데이터:`)
@@ -59,8 +48,6 @@ async function initializeFinanceDatabase() {
   } catch (error) {
     console.error('❌ 데이터베이스 초기화 실패:', error)
     process.exit(1)
-  } finally {
-    await pool.end()
   }
 }
 
