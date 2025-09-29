@@ -23,7 +23,10 @@ export const PUT: RequestHandler = async ({ params, request }) => {
     const { approvedBy, rejectionReason } = data
 
     // 증빙 내역 존재 확인
-    const existingEvidence = await query<BudgetEvidence>('SELECT * FROM budget_evidence WHERE id = $1', [id])
+    const existingEvidence = await query<BudgetEvidence>(
+      'SELECT * FROM budget_evidence WHERE id = $1',
+      [id],
+    )
     if (existingEvidence.rows.length === 0) {
       const response: ApiResponse<null> = {
         success: false,
