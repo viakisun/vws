@@ -25,7 +25,7 @@
     return value.toLocaleString('ko-KR')
   }
 
-  function parseAmountInput(value: string): number {
+  function _parseAmountInput(value: string): number {
     return parseInt(value.replace(/,/g, '')) || 0
   }
 
@@ -67,7 +67,7 @@
   let showAddModal = $state(false)
 
   // 카테고리를 타입별로 그룹화
-  let groupedCategories = $state<Record<string, TransactionCategory[]>>({})
+  let _groupedCategories = $state<Record<string, TransactionCategory[]>>({})
 
   // 카테고리 그룹화 함수
   function groupCategoriesByType(categories: TransactionCategory[]) {
@@ -114,21 +114,24 @@
         dateFrom = today
         dateTo = today
         break
-      case '1W':
+      case '1W': {
         const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
         dateFrom = weekAgo.toISOString().split('T')[0]
         dateTo = today
         break
-      case '1M':
+      }
+      case '1M': {
         const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
         dateFrom = monthAgo.toISOString().split('T')[0]
         dateTo = today
         break
-      case '3M':
+      }
+      case '3M': {
         const threeMonthsAgo = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000)
         dateFrom = threeMonthsAgo.toISOString().split('T')[0]
         dateTo = today
         break
+      }
       case 'ALL':
         dateFrom = ''
         dateTo = ''
@@ -172,7 +175,7 @@
       transactions = transactionsData.transactions
       accounts = accountsData
       categories = categoriesData
-      groupedCategories = groupCategoriesByType(categories)
+      _groupedCategories = groupCategoriesByType(categories)
 
       // 필터링된 데이터 업데이트
       updateFilteredData()

@@ -47,7 +47,7 @@
   let canScrollRight = $state(false)
 
   // activeTab이 변경될 때 currentTab 동기화
-  function updateData() {
+  function _updateData() {
     currentTab = activeTab
   }
 

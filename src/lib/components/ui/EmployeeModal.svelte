@@ -90,7 +90,7 @@
   let fullName = $state('')
 
   // 전체 이름이 변경될 때 성/이름 자동 분리
-  function updateData() {
+  function _updateData() {
     if (fullName && !employee?.id) {
       // 새 직원 추가 시에만 자동 분리
       const { surname, givenName } = splitKoreanName(fullName)
@@ -100,7 +100,7 @@
   }
 
   // 직원 데이터가 변경될 때 폼 데이터 업데이트
-  function updateFormDataFromEmployee() {
+  function _updateFormDataFromEmployee() {
     if (employee) {
       logger.log('Employee data loaded:', employee)
       logger.log('Available positions:', positions)

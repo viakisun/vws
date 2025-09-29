@@ -56,9 +56,9 @@ export interface ValidationResponse {
 
 // 공통 검증 유틸리티 함수들
 export class ValidationUtils {
-  // 데이터베이스 연결 풀 접근자
+  // 데이터베이스 연결 풀 접근자 (deprecated - use query function instead)
   static get pool() {
-    return pool
+    throw new Error('Use query function from $lib/database/connection instead')
   }
 
   // 쿼리 메서드
@@ -139,7 +139,7 @@ export class ValidationUtils {
    * 증빙 항목 정보 조회
    */
   static async getEvidenceItems(projectId: string, categoryName?: string) {
-    let query = `
+    let queryText = `
 			SELECT
 				ei.*,
 				pb.period_number,
@@ -155,13 +155,13 @@ export class ValidationUtils {
     const params = [projectId]
 
     if (categoryName) {
-      query += ' AND ec.name = $2'
+      queryText += ' AND ec.name = $2'
       params.push(categoryName)
     }
 
-    query += ' ORDER BY pb.period_number, ei.due_date'
+    queryText += ' ORDER BY pb.period_number, ei.due_date'
 
-    const result = await query(query, params)
+    const result = await query(queryText, params)
     return result.rows as Record<string, unknown>[]
   }
 
@@ -718,4 +718,4 @@ export class UsageRateValidator {
   }
 }
 
-export { pool }
+// pool export removed - using centralized query function

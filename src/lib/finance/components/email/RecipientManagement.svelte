@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { onMount } from 'svelte'
   import type { EmailRecipient } from '$lib/finance/services/email/email-service'
-  import { PlusIcon, EditIcon, TrashIcon, MailIcon, BellIcon } from '@lucide/svelte'
+  import { BellIcon, EditIcon, MailIcon, PlusIcon, TrashIcon } from '@lucide/svelte'
+  import { onMount } from 'svelte'
 
   // State
   let recipients = $state<EmailRecipient[]>([])
@@ -9,7 +9,7 @@
   let error = $state<string | null>(null)
   let showAddModal = $state(false)
   let showEditModal = $state(false)
-  let editingRecipient = $state<EmailRecipient | null>(null)
+  let _editingRecipient = $state<EmailRecipient | null>(null)
 
   // 폼 데이터
   let formData = $state({
@@ -123,7 +123,7 @@
 
   // 수신자 편집 모달 열기
   function openEditModal(recipient: EmailRecipient) {
-    editingRecipient = recipient
+    _editingRecipient = recipient
     formData = {
       name: recipient.name,
       email: recipient.email,

@@ -123,6 +123,7 @@ export class TransactionDbService {
               description: categoryResult.rows[0].description,
               isActive: categoryResult.rows[0].is_active,
               isSystem: categoryResult.rows[0].is_system,
+              isDefault: categoryResult.rows[0].is_default || false,
               createdAt: categoryResult.rows[0].created_at,
               updatedAt: categoryResult.rows[0].updated_at,
             }

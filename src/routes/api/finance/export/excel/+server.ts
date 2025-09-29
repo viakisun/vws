@@ -1,11 +1,10 @@
+import { query } from '$lib/database/connection'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
-import { getDatabasePool } from '$lib/finance/services/database/connection'
 
 // 엑셀 데이터 내보내기
 export const GET: RequestHandler = async ({ url }) => {
   try {
-    const pool = getDatabasePool()
     const type = url.searchParams.get('type') || 'transactions'
     const startDate = url.searchParams.get('startDate')
     const endDate = url.searchParams.get('endDate')
@@ -15,19 +14,19 @@ export const GET: RequestHandler = async ({ url }) => {
 
     switch (type) {
       case 'transactions':
-        data = await exportTransactions(pool, startDate || undefined, endDate || undefined)
+        data = await exportTransactions(startDate || undefined, endDate || undefined)
         filename = `거래내역_${new Date().toISOString().split('T')[0]}.csv`
         break
       case 'accounts':
-        data = await exportAccounts(pool)
+        data = await exportAccounts()
         filename = `계좌목록_${new Date().toISOString().split('T')[0]}.csv`
         break
       case 'budgets':
-        data = await exportBudgets(pool)
+        data = await exportBudgets()
         filename = `예산목록_${new Date().toISOString().split('T')[0]}.csv`
         break
       case 'loans':
-        data = await exportLoans(pool)
+        data = await exportLoans()
         filename = `대출계획_${new Date().toISOString().split('T')[0]}.csv`
         break
       default:
@@ -62,8 +61,8 @@ export const GET: RequestHandler = async ({ url }) => {
 }
 
 // 거래 내역 내보내기
-async function exportTransactions(pool: any, startDate?: string, endDate?: string) {
-  let query = `
+async function exportTransactions(startDate?: string, endDate?: string) {
+  let queryText = `
     SELECT
       t.transaction_date as "거래일",
       t.description as "설명",
@@ -86,24 +85,24 @@ async function exportTransactions(pool: any, startDate?: string, endDate?: strin
   let paramIndex = 1
 
   if (startDate) {
-    query += ` AND t.transaction_date >= $${paramIndex++}`
+    queryText += ` AND t.transaction_date >= $${paramIndex++}`
     params.push(startDate)
   }
 
   if (endDate) {
-    query += ` AND t.transaction_date <= $${paramIndex++}`
+    queryText += ` AND t.transaction_date <= $${paramIndex++}`
     params.push(endDate)
   }
 
-  query += ` ORDER BY t.transaction_date DESC`
+  queryText += ` ORDER BY t.transaction_date DESC`
 
-  const result = await pool.query(query, params)
+  const result = await query(queryText, params)
   return result.rows
 }
 
 // 계좌 목록 내보내기
-async function exportAccounts(pool: any) {
-  const result = await pool.query(`
+async function exportAccounts() {
+  const result = await query(`
     SELECT
       a.name as "계좌명",
       a.account_number as "계좌번호",
@@ -122,8 +121,8 @@ async function exportAccounts(pool: any) {
 }
 
 // 예산 목록 내보내기
-async function exportBudgets(pool: any) {
-  const result = await pool.query(`
+async function exportBudgets() {
+  const result = await query(`
     SELECT
       b.name as "예산명",
       b.type as "예산타입",
@@ -145,8 +144,8 @@ async function exportBudgets(pool: any) {
 }
 
 // 대출 계획 내보내기
-async function exportLoans(pool: any) {
-  const result = await pool.query(`
+async function exportLoans() {
+  const result = await query(`
     SELECT
       l.type as "대출타입",
       l.amount as "금액",

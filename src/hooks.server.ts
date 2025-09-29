@@ -1,8 +1,7 @@
-import { reportScheduler } from '$lib/finance/services/scheduler/report-scheduler'
 import type { Handle } from '@sveltejs/kit'
 
 // 스케줄러 시작 (서버 시작 시 한 번만 실행)
-let schedulerStarted = false
+const _schedulerStarted = false
 
 export const handle: Handle = async ({ event, resolve }) => {
   // 스케줄러 시작 (개발 환경에서만) - 임시 비활성화

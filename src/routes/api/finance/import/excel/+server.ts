@@ -1,11 +1,10 @@
+import { query } from '$lib/database/connection'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
-import { getDatabasePool } from '$lib/finance/services/database/connection'
 
 // 엑셀 데이터 가져오기
 export const POST: RequestHandler = async ({ request }) => {
   try {
-    const pool = getDatabasePool()
     const formData = await request.formData()
     const file = formData.get('file') as File
     const type = formData.get('type') as string
@@ -28,13 +27,13 @@ export const POST: RequestHandler = async ({ request }) => {
 
     switch (type) {
       case 'transactions':
-        result = await importTransactions(pool, data)
+        result = await importTransactions(data)
         break
       case 'accounts':
-        result = await importAccounts(pool, data)
+        result = await importAccounts(data)
         break
       case 'budgets':
-        result = await importBudgets(pool, data)
+        result = await importBudgets(data)
         break
       default:
         return json(
@@ -86,7 +85,7 @@ function parseCSV(content: string): any[] {
 }
 
 // 거래 내역 가져오기
-async function importTransactions(pool: any, data: any[]) {
+async function importTransactions(data: any[]) {
   let success = 0
   let failed = 0
   const errors: string[] = []
@@ -103,7 +102,7 @@ async function importTransactions(pool: any, data: any[]) {
       // 계좌 ID 조회
       let accountId = null
       if (row['계좌명']) {
-        const accountResult = await pool.query('SELECT id FROM finance_accounts WHERE name = $1', [
+        const accountResult = await query('SELECT id FROM finance_accounts WHERE name = $1', [
           row['계좌명'],
         ])
         if (accountResult.rows.length > 0) {
@@ -114,17 +113,16 @@ async function importTransactions(pool: any, data: any[]) {
       // 카테고리 ID 조회
       let categoryId = null
       if (row['카테고리']) {
-        const categoryResult = await pool.query(
-          'SELECT id FROM finance_categories WHERE name = $1',
-          [row['카테고리']],
-        )
+        const categoryResult = await query('SELECT id FROM finance_categories WHERE name = $1', [
+          row['카테고리'],
+        ])
         if (categoryResult.rows.length > 0) {
           categoryId = categoryResult.rows[0].id
         }
       }
 
       // 거래 생성
-      await pool.query(
+      await query(
         `
         INSERT INTO finance_transactions (
           account_id, category_id, amount, type, description,
@@ -156,7 +154,7 @@ async function importTransactions(pool: any, data: any[]) {
 }
 
 // 계좌 목록 가져오기
-async function importAccounts(pool: any, data: any[]) {
+async function importAccounts(data: any[]) {
   let success = 0
   let failed = 0
   const errors: string[] = []
@@ -173,7 +171,7 @@ async function importAccounts(pool: any, data: any[]) {
       // 은행 ID 조회
       let bankId = null
       if (row['은행명']) {
-        const bankResult = await pool.query('SELECT id FROM finance_banks WHERE name = $1', [
+        const bankResult = await query('SELECT id FROM finance_banks WHERE name = $1', [
           row['은행명'],
         ])
         if (bankResult.rows.length > 0) {
@@ -182,7 +180,7 @@ async function importAccounts(pool: any, data: any[]) {
       }
 
       // 계좌 생성
-      await pool.query(
+      await query(
         `
         INSERT INTO finance_accounts (
           name, account_number, bank_id, account_type,
@@ -214,7 +212,7 @@ async function importAccounts(pool: any, data: any[]) {
 }
 
 // 예산 목록 가져오기
-async function importBudgets(pool: any, data: any[]) {
+async function importBudgets(data: any[]) {
   let success = 0
   let failed = 0
   const errors: string[] = []
@@ -231,17 +229,16 @@ async function importBudgets(pool: any, data: any[]) {
       // 카테고리 ID 조회
       let categoryId = null
       if (row['카테고리']) {
-        const categoryResult = await pool.query(
-          'SELECT id FROM finance_categories WHERE name = $1',
-          [row['카테고리']],
-        )
+        const categoryResult = await query('SELECT id FROM finance_categories WHERE name = $1', [
+          row['카테고리'],
+        ])
         if (categoryResult.rows.length > 0) {
           categoryId = categoryResult.rows[0].id
         }
       }
 
       // 예산 생성
-      await pool.query(
+      await query(
         `
         INSERT INTO finance_budgets (
           name, type, period, year, month, quarter,

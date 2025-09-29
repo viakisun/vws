@@ -1,16 +1,14 @@
+import { query } from '$lib/database/connection'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
-import { getDatabasePool } from '$lib/finance/services/database/connection'
-import type { DailyFinanceReport } from '$lib/finance/types'
 
 // 자금일보 생성/조회
 export const GET: RequestHandler = async ({ url }) => {
   try {
-    const pool = getDatabasePool()
     const date = url.searchParams.get('date') || new Date().toISOString().split('T')[0]
 
     // 기존 자금일보 조회
-    const existingReport = await pool.query(
+    const existingReport = await query(
       'SELECT * FROM finance_daily_reports WHERE report_date = $1',
       [date],
     )
@@ -64,12 +62,11 @@ export const GET: RequestHandler = async ({ url }) => {
 // 자금일보 생성
 export const POST: RequestHandler = async ({ request }) => {
   try {
-    const pool = getDatabasePool()
     const body = await request.json()
     const date = body.date || new Date().toISOString().split('T')[0]
 
     // 기존 자금일보가 있는지 확인
-    const existingReport = await pool.query(
+    const existingReport = await query(
       'SELECT id FROM finance_daily_reports WHERE report_date = $1',
       [date],
     )
@@ -85,10 +82,10 @@ export const POST: RequestHandler = async ({ request }) => {
     }
 
     // 자금일보 데이터 생성
-    const reportData = await generateDailyReportData(pool, date)
+    const reportData = await generateDailyReportData(date)
 
     // 자금일보 저장
-    const query = `
+    const queryText = `
       INSERT INTO finance_daily_reports (
         report_date, status, opening_balance, closing_balance,
         total_inflow, total_outflow, net_flow, transaction_count,
@@ -115,7 +112,7 @@ export const POST: RequestHandler = async ({ request }) => {
       'system',
     ]
 
-    const result = await pool.query(query, params)
+    const result = await query(queryText, params)
     const report = result.rows[0]
 
     return json({
@@ -154,13 +151,13 @@ export const POST: RequestHandler = async ({ request }) => {
 }
 
 // 자금일보 데이터 생성 헬퍼 함수
-async function generateDailyReportData(pool: any, date: string) {
+async function generateDailyReportData(date: string) {
   // 전일 종료 잔액 (시작 잔액)
   const previousDay = new Date(date)
   previousDay.setDate(previousDay.getDate() - 1)
   const previousDate = previousDay.toISOString().split('T')[0]
 
-  const previousReport = await pool.query(
+  const previousReport = await query(
     'SELECT closing_balance FROM finance_daily_reports WHERE report_date = $1',
     [previousDate],
   )
@@ -169,7 +166,7 @@ async function generateDailyReportData(pool: any, date: string) {
     previousReport.rows.length > 0 ? parseFloat(previousReport.rows[0].closing_balance) : 0
 
   // 당일 거래 내역
-  const transactions = await pool.query(
+  const transactions = await query(
     `
     SELECT
       t.*,
@@ -214,7 +211,7 @@ async function generateDailyReportData(pool: any, date: string) {
   const closingBalance = openingBalance + netFlow
 
   // 계좌별 요약
-  const accounts = await pool.query(
+  const accounts = await query(
     "SELECT id, name, balance FROM finance_accounts WHERE status = 'active'",
   )
 

@@ -251,7 +251,7 @@
   }
 
   // 직원의 급여 계약 정보 로드 (특정 기간 내 유효한 계약)
-  async function loadEmployeeContract(employeeId: string, year?: number, month?: number) {
+  async function loadEmployeeContract(employeeId: string, _year?: number, _month?: number) {
     if (!employeeId) {
       employeeContract = null
       return
@@ -776,14 +776,14 @@
     return true
   }
 
-  function syncData() {
+  function _syncData() {
     void (async () => {
       await loadEmployeeList()
     })()
   }
 
   // selectedEmployeeId나 selectedYear가 변경될 때마다 급여명세서 데이터 로드
-  function updateData() {
+  function _updateData() {
     if (selectedEmployeeId) {
       // 기본적으로 현재 날짜 기준 계약 정보 로드
       loadEmployeeContract(selectedEmployeeId)

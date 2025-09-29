@@ -1,12 +1,10 @@
+import { query } from '$lib/database/connection'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
-import { getDatabasePool } from '$lib/finance/services/database/connection'
 
 // 대출 계획 조회
 export const GET: RequestHandler = async ({ url }) => {
   try {
-    const pool = getDatabasePool()
-
     // 쿼리 파라미터 파싱
     const type = url.searchParams.get('type') // 'execution' | 'repayment'
     const status = url.searchParams.get('status')
@@ -14,7 +12,7 @@ export const GET: RequestHandler = async ({ url }) => {
     const month = url.searchParams.get('month')
 
     // 동적 쿼리 구성
-    let query = `
+    let queryText = `
       SELECT
         l.*,
         a.name as account_name,
@@ -28,28 +26,28 @@ export const GET: RequestHandler = async ({ url }) => {
     let paramIndex = 1
 
     if (type) {
-      query += ` AND l.type = $${paramIndex++}`
+      queryText += ` AND l.type = $${paramIndex++}`
       params.push(type)
     }
 
     if (status) {
-      query += ` AND l.status = $${paramIndex++}`
+      queryText += ` AND l.status = $${paramIndex++}`
       params.push(status)
     }
 
     if (year) {
-      query += ` AND EXTRACT(YEAR FROM l.planned_date) = $${paramIndex++}`
+      queryText += ` AND EXTRACT(YEAR FROM l.planned_date) = $${paramIndex++}`
       params.push(parseInt(year))
     }
 
     if (month) {
-      query += ` AND EXTRACT(MONTH FROM l.planned_date) = $${paramIndex++}`
+      queryText += ` AND EXTRACT(MONTH FROM l.planned_date) = $${paramIndex++}`
       params.push(parseInt(month))
     }
 
-    query += ` ORDER BY l.planned_date ASC`
+    queryText += ` ORDER BY l.planned_date ASC`
 
-    const result = await pool.query(query, params)
+    const result = await query(queryText, params)
 
     const loans = result.rows.map((row) => ({
       id: row.id,
@@ -112,7 +110,6 @@ export const GET: RequestHandler = async ({ url }) => {
 // 새 대출 계획 생성
 export const POST: RequestHandler = async ({ request }) => {
   try {
-    const pool = getDatabasePool()
     const body = await request.json()
 
     // 필수 필드 검증
@@ -127,7 +124,7 @@ export const POST: RequestHandler = async ({ request }) => {
     }
 
     // 대출 계획 생성
-    const query = `
+    const queryText = `
       INSERT INTO finance_loans (
         type, amount, interest_rate, term, planned_date,
         description, account_id, notes
@@ -146,7 +143,7 @@ export const POST: RequestHandler = async ({ request }) => {
       body.notes || null,
     ]
 
-    const result = await pool.query(query, params)
+    const result = await query(queryText, params)
     const loan = result.rows[0]
 
     return json({

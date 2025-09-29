@@ -149,7 +149,7 @@
   let totalExecutionAmount = $state(0)
   let totalRepaymentAmount = $state(0)
 
-  function handleFilterChange() {
+  function _handleFilterChange() {
     filteredLoans = loans.filter((loan) => {
       if (selectedType && loan.type !== selectedType) {
         return false

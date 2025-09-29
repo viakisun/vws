@@ -63,7 +63,7 @@
   }
 
   // 컴포넌트 마운트 시 기존 데이터 로드
-  function updateData() {
+  function _updateData() {
     if (projectId) {
       loadExistingBudgets()
     }

@@ -92,7 +92,7 @@
     }
   }
 
-  function updateData() {
+  function _updateData() {
     if (isOpen) {
       initializeForm()
     } else {

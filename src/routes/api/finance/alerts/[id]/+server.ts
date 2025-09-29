@@ -1,11 +1,10 @@
+import { query } from '$lib/database/connection'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
-import { getDatabasePool } from '$lib/finance/services/database/connection'
 
 // 알림 읽음 처리
 export const PUT: RequestHandler = async ({ params, request }) => {
   try {
-    const pool = getDatabasePool()
     const alertId = params.id
     const body = await request.json()
 
@@ -19,11 +18,11 @@ export const PUT: RequestHandler = async ({ params, request }) => {
       )
     }
 
-    let query: string
+    let queryText: string
     let params_array: any[]
 
     if (body.action === 'read') {
-      query = `
+      queryText = `
         UPDATE finance_alerts
         SET is_read = true, updated_at = NOW()
         WHERE id = $1
@@ -31,7 +30,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
       `
       params_array = [alertId]
     } else {
-      query = `
+      queryText = `
         UPDATE finance_alerts
         SET is_resolved = true, updated_at = NOW()
         WHERE id = $1
@@ -40,7 +39,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
       params_array = [alertId]
     }
 
-    const result = await pool.query(query, params_array)
+    const result = await query(queryText, params_array)
 
     if (result.rows.length === 0) {
       return json(
@@ -87,10 +86,9 @@ export const PUT: RequestHandler = async ({ params, request }) => {
 // 알림 삭제
 export const DELETE: RequestHandler = async ({ params }) => {
   try {
-    const pool = getDatabasePool()
     const alertId = params.id
 
-    const result = await pool.query('DELETE FROM finance_alerts WHERE id = $1 RETURNING title', [
+    const result = await query('DELETE FROM finance_alerts WHERE id = $1 RETURNING title', [
       alertId,
     ])
 

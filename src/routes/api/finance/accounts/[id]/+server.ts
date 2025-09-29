@@ -1,14 +1,13 @@
+import { query } from '$lib/database/connection'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
-import { getDatabasePool } from '$lib/finance/services/database/connection'
 
 // 특정 계좌 조회
 export const GET: RequestHandler = async ({ params }) => {
   try {
-    const pool = getDatabasePool()
     const accountId = params.id
 
-    const query = `
+    const queryText = `
       SELECT
         a.*,
         b.name as bank_name,
@@ -19,7 +18,7 @@ export const GET: RequestHandler = async ({ params }) => {
       WHERE a.id = $1
     `
 
-    const result = await pool.query(query, [accountId])
+    const result = await query(queryText, [accountId])
 
     if (result.rows.length === 0) {
       return json(
@@ -75,7 +74,6 @@ export const GET: RequestHandler = async ({ params }) => {
 // 계좌 정보 수정
 export const PUT: RequestHandler = async ({ params, request }) => {
   try {
-    const pool = getDatabasePool()
     const accountId = params.id
     const body = await request.json()
 
@@ -137,14 +135,14 @@ export const PUT: RequestHandler = async ({ params, request }) => {
     updateFields.push(`updated_at = NOW()`)
     queryParams.push(accountId)
 
-    const query = `
+    const queryText = `
       UPDATE finance_accounts
       SET ${updateFields.join(', ')}
       WHERE id = $${paramIndex}
       RETURNING *
     `
 
-    const result = await pool.query(query, queryParams)
+    const result = await query(queryText, queryParams)
 
     if (result.rows.length === 0) {
       return json(
@@ -191,11 +189,10 @@ export const PUT: RequestHandler = async ({ params, request }) => {
 // 계좌 삭제
 export const DELETE: RequestHandler = async ({ params }) => {
   try {
-    const pool = getDatabasePool()
     const accountId = params.id
 
     // 계좌에 연결된 거래가 있는지 확인
-    const transactionCheck = await pool.query(
+    const transactionCheck = await query(
       'SELECT COUNT(*) as count FROM finance_transactions WHERE account_id = $1',
       [accountId],
     )
@@ -211,7 +208,7 @@ export const DELETE: RequestHandler = async ({ params }) => {
     }
 
     // 계좌 삭제
-    const result = await pool.query('DELETE FROM finance_accounts WHERE id = $1 RETURNING name', [
+    const result = await query('DELETE FROM finance_accounts WHERE id = $1 RETURNING name', [
       accountId,
     ])
 

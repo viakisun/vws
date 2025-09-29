@@ -12,7 +12,13 @@ export const POST: RequestHandler = async () => {
       const accountsResult = await query('SELECT id, name FROM finance_accounts')
       const accounts = accountsResult.rows
 
-      const results = []
+      const results: Array<{
+        accountId: string
+        accountName: string
+        oldBalance: number
+        newBalance: number
+        transactionCount: number
+      }> = []
 
       for (const account of accounts) {
         // 각 계좌의 모든 거래 조회

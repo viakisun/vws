@@ -42,7 +42,7 @@
   })
 
   // 날짜 변경 시 데이터 재로드
-  function updateData() {
+  function _updateData() {
     if (date) {
       loadDashboardData()
     }

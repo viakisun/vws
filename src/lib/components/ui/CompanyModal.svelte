@@ -42,7 +42,7 @@
   })
 
   // 회사 정보가 변경될 때 폼 데이터 업데이트
-  function updateData() {
+  function _updateData() {
     if (company) {
       formData = {
         name: company.name || '',

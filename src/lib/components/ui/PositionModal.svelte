@@ -32,7 +32,7 @@
   })
 
   // 직급 데이터가 변경될 때 폼 데이터 업데이트
-  function updateData() {
+  function _updateData() {
     if (position) {
       formData.name = position.name || ''
       formData.description = position.description || ''

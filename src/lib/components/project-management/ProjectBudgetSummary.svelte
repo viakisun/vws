@@ -59,7 +59,7 @@
   }
 
   // 프로젝트 ID 변경 시 또는 refreshTrigger 변경 시 데이터 로드
-  function updateData() {
+  function _updateData() {
     if (projectId) {
       loadBudgetSummary()
     }

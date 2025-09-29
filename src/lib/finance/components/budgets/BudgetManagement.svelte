@@ -6,8 +6,8 @@
     Account,
     CreateBudgetRequest,
   } from '$lib/finance/types'
-  import { formatCurrency, formatDate } from '$lib/finance/utils'
-  import { PlusIcon, EditIcon, TrashIcon, TrendingUpIcon, TrendingDownIcon } from '@lucide/svelte'
+  import { formatCurrency } from '$lib/finance/utils'
+  import { PlusIcon, TrashIcon } from '@lucide/svelte'
 
   // State
   let budgets = $state<Budget[]>([])

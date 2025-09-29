@@ -188,7 +188,7 @@
   }
 
   // Update position when dropdown becomes visible
-  function updateData() {
+  function _updateData() {
     if (isVisible) {
       updatePosition()
     }

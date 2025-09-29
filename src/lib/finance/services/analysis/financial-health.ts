@@ -138,7 +138,7 @@ export class FinancialHealthAnalyzer {
   }
 
   // 안정성 점수 계산 (계좌 다양성, 예산 관리, 대출 관리)
-  private calculateStabilityScore(accountCount: number, budgetData: any, loanData: any): number {
+  private calculateStabilityScore(accountCount: number, budgetData: any, _loanData: any): number {
     let score = 0
 
     // 계좌 다양성 (20점)

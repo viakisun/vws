@@ -28,7 +28,7 @@
   let budgetSummary = $derived(calculateBudgetSummary(budgetData))
 
   // 초기화
-  function updateData() {
+  function _updateData() {
     if (existingBudgets.length > 0) {
       budgetData = existingBudgets.map((budget) => ({
         year: budget.year,

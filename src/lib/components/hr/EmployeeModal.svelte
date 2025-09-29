@@ -111,7 +111,7 @@
   ]
 
   // 직원 데이터가 변경될 때 폼 데이터 초기화
-  function updateData() {
+  function _updateData() {
     if (employee) {
       formData = {
         ...employee,

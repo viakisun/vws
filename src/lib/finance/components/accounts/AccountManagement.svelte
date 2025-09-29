@@ -16,8 +16,8 @@
   let isLoading = $state(false)
   let error = $state<string | null>(null)
   let showAddModal = $state(false)
-  let selectedAccount = $state<Account | null>(null)
-  let showEditModal = $state(false)
+  let _selectedAccount = $state<Account | null>(null)
+  let _showEditModal = $state(false)
 
   // 폼 데이터
   let formData = $state<CreateAccountRequest>({
@@ -119,7 +119,7 @@
   }
 
   // 계좌 데이터 변경 시 통계 업데이트 (이벤트 기반)
-  function handleAccountChange() {
+  function _handleAccountChange() {
     updateAccountStats()
   }
 </script>
@@ -238,8 +238,8 @@
                   <div class="flex items-center space-x-2">
                     <button
                       onclick={() => {
-                        selectedAccount = account
-                        showEditModal = true
+                        _selectedAccount = account
+                        _showEditModal = true
                       }}
                       class="text-blue-600 hover:text-blue-900"
                       title="수정"

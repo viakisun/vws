@@ -1,13 +1,11 @@
+import { query } from '$lib/database/connection'
+import type { FinanceAlert } from '$lib/finance/types'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
-import { getDatabasePool } from '$lib/finance/services/database/connection'
-import type { FinanceAlert } from '$lib/finance/types'
 
 // 알림 목록 조회
 export const GET: RequestHandler = async ({ url }) => {
   try {
-    const pool = getDatabasePool()
-
     // 쿼리 파라미터 파싱
     const isRead = url.searchParams.get('isRead')
     const type = url.searchParams.get('type')
@@ -15,7 +13,7 @@ export const GET: RequestHandler = async ({ url }) => {
     const limit = parseInt(url.searchParams.get('limit') || '50')
 
     // 동적 쿼리 구성
-    let query = `
+    let queryText = `
       SELECT
         a.*,
         acc.name as account_name,
@@ -31,24 +29,24 @@ export const GET: RequestHandler = async ({ url }) => {
     let paramIndex = 1
 
     if (isRead !== null) {
-      query += ` AND a.is_read = $${paramIndex++}`
+      queryText += ` AND a.is_read = $${paramIndex++}`
       params.push(isRead === 'true')
     }
 
     if (type) {
-      query += ` AND a.type = $${paramIndex++}`
+      queryText += ` AND a.type = $${paramIndex++}`
       params.push(type)
     }
 
     if (severity) {
-      query += ` AND a.severity = $${paramIndex++}`
+      queryText += ` AND a.severity = $${paramIndex++}`
       params.push(severity)
     }
 
-    query += ` ORDER BY a.created_at DESC LIMIT $${paramIndex++}`
+    queryText += ` ORDER BY a.created_at DESC LIMIT $${paramIndex++}`
     params.push(limit)
 
-    const result = await pool.query(query, params)
+    const result = await query(queryText, params)
 
     const alerts: FinanceAlert[] = result.rows.map((row) => ({
       id: row.id,
@@ -141,7 +139,6 @@ export const GET: RequestHandler = async ({ url }) => {
 // 새 알림 생성
 export const POST: RequestHandler = async ({ request }) => {
   try {
-    const pool = getDatabasePool()
     const body = await request.json()
 
     // 필수 필드 검증
@@ -156,7 +153,7 @@ export const POST: RequestHandler = async ({ request }) => {
     }
 
     // 알림 생성
-    const query = `
+    const queryText = `
       INSERT INTO finance_alerts (
         type, severity, title, message,
         account_id, transaction_id, budget_id
@@ -174,7 +171,7 @@ export const POST: RequestHandler = async ({ request }) => {
       body.budgetId || null,
     ]
 
-    const result = await pool.query(query, params)
+    const result = await query(queryText, params)
     const alert = result.rows[0]
 
     return json({

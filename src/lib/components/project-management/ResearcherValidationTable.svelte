@@ -199,7 +199,7 @@
   })
 
   // 멤버 데이터 변경 시 재검증
-  function updateData() {
+  function _updateData() {
     if (projectId && members.length > 0 && !validationState.isValidating) {
       runValidation()
     }

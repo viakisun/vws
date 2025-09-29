@@ -4,7 +4,7 @@ export const GET = () => {
   const healthInfo = {
     status: 'ok',
     timestamp: new Date().toISOString(),
-		version: '0.2.1',
+    version: '0.2.1',
     environment: process.env.NODE_ENV || 'development',
   }
 

@@ -62,7 +62,15 @@ export const POST: RequestHandler = async () => {
     await query('DELETE FROM finance_transactions')
     await query('UPDATE finance_accounts SET balance = 0')
 
-    const transactions = []
+    const transactions: Array<{
+      accountId: string
+      categoryId: string
+      amount: number
+      type: string
+      description: string
+      transactionDate: string
+      status: string
+    }> = []
 
     // 2025년 1월~9월 데이터 생성
     for (let month = 1; month <= 9; month++) {

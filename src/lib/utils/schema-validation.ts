@@ -628,4 +628,4 @@ export class SchemaValidator {
   }
 }
 
-export { pool }
+// pool export removed - using centralized query function
