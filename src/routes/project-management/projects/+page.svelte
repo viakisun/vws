@@ -21,14 +21,14 @@
     try {
       loading = true
       logger.log('🔍 프로젝트 로딩 시작...')
-      
+
       const response = await fetch('/api/project-management/projects')
       logger.log('📡 API 응답 상태:', response.status)
-      
+
       if (response.ok) {
         const data = await response.json()
         logger.log('📊 API 응답 데이터:', data)
-        
+
         if (data.success) {
           allProjects = data.data || []
           logger.log(`✅ ${allProjects.length}개 프로젝트 로드 완료`, allProjects)
