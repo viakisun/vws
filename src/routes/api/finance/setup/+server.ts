@@ -1,4 +1,10 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
 import { query } from '$lib/database/connection'
+import { logger } from '$lib/utils/logger'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
 
@@ -171,7 +177,7 @@ async function updateAccountBalance(
         balanceChange = 0
         break
       default:
-        console.warn(`알 수 없는 거래 타입: ${type}`)
+        logger.warn(`알 수 없는 거래 타입: ${type}`)
         balanceChange = 0
     }
 
@@ -183,7 +189,7 @@ async function updateAccountBalance(
       )
     }
   } catch (error) {
-    console.error('계좌 잔액 업데이트 실패:', error)
+    logger.error('계좌 잔액 업데이트 실패:', error)
     throw error
   }
 }
@@ -248,7 +254,7 @@ export const POST: RequestHandler = async () => {
       message: '자금일보 시스템이 성공적으로 초기화되었습니다.',
     })
   } catch (error) {
-    console.error('데이터베이스 초기화 실패:', error)
+    logger.error('데이터베이스 초기화 실패:', error)
     return json(
       {
         success: false,
@@ -261,7 +267,12 @@ export const POST: RequestHandler = async () => {
 
 // 은행 ID 조회 헬퍼 함수
 async function getBankId(bankCode: string): Promise<string> {
-  const result = await query('SELECT id FROM finance_banks WHERE code = $1', [bankCode])
+  const result = await query<{ id: string }>('SELECT id FROM finance_banks WHERE code = $1', [
+    bankCode,
+  ])
+  if (!result.rows[0]) {
+    throw new Error(`은행을 찾을 수 없습니다: ${bankCode}`)
+  }
   return result.rows[0].id
 }
 
@@ -271,22 +282,28 @@ async function createSampleTransactions() {
   const yesterday = new Date(today)
   yesterday.setDate(yesterday.getDate() - 1)
 
-  const accounts = await query('SELECT id FROM finance_accounts LIMIT 3')
-  const categories = await query(
+  type AccountRow = { id: string }
+  type CategoryRow = { id: string; type: string; name: string }
+
+  const accounts = await query<AccountRow>('SELECT id FROM finance_accounts LIMIT 3')
+  const categories = await query<CategoryRow>(
     'SELECT id, type, name FROM finance_categories WHERE is_active = true',
   )
 
   // 카테고리 매핑
-  const incomeCategory = categories.rows.find((c: any) => c.type === 'income')
-  const salaryCategory = categories.rows.find((c: any) => c.type === 'expense' && c.name === '급여')
-  const rentCategory = categories.rows.find((c: any) => c.type === 'expense' && c.name === '임대료')
-  const utilityCategory = categories.rows.find(
-    (c: any) => c.type === 'expense' && c.name === '공과금',
-  )
+  const incomeCategory = categories.rows.find((c) => c.type === 'income')
+  const salaryCategory = categories.rows.find((c) => c.type === 'expense' && c.name === '급여')
+  const rentCategory = categories.rows.find((c) => c.type === 'expense' && c.name === '임대료')
+  const utilityCategory = categories.rows.find((c) => c.type === 'expense' && c.name === '공과금')
+
+  const accountId = accounts.rows[0]?.id
+  if (!accountId) {
+    throw new Error('계좌를 찾을 수 없습니다')
+  }
 
   const sampleTransactions = [
     {
-      accountId: accounts.rows[0].id,
+      accountId,
       categoryId: incomeCategory?.id,
       amount: 10000000, // 1천만원
       type: 'income',
@@ -294,7 +311,7 @@ async function createSampleTransactions() {
       transactionDate: today.toISOString(),
     },
     {
-      accountId: accounts.rows[0].id,
+      accountId,
       categoryId: salaryCategory?.id,
       amount: 5000000, // 5백만원
       type: 'expense',
@@ -302,7 +319,7 @@ async function createSampleTransactions() {
       transactionDate: today.toISOString(),
     },
     {
-      accountId: accounts.rows[0].id,
+      accountId,
       categoryId: rentCategory?.id,
       amount: 2000000, // 2백만원
       type: 'expense',
@@ -310,7 +327,7 @@ async function createSampleTransactions() {
       transactionDate: yesterday.toISOString(),
     },
     {
-      accountId: accounts.rows[0].id,
+      accountId,
       categoryId: utilityCategory?.id,
       amount: 500000, // 50만원
       type: 'expense',
