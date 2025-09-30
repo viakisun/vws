@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte'
 
-  let version = $state('0.2.1')
+  let version = $state('0.2.2')
   let buildDate = $state('')
   let environment = $state('')
 
