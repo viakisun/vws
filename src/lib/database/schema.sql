@@ -156,8 +156,8 @@ CREATE TABLE projects (
     description TEXT,
     sponsor VARCHAR(100),
     sponsor_type VARCHAR(50), -- 'government', 'private', 'internal'
-    start_date DATE,
-    end_date DATE,
+    start_date TIMESTAMP WITH TIME ZONE,
+    end_date TIMESTAMP WITH TIME ZONE,
     manager_id UUID REFERENCES employees(id),
     status VARCHAR(50) DEFAULT 'planning', -- 'planning', 'active', 'completed'
     budget_total DECIMAL(15,2),
