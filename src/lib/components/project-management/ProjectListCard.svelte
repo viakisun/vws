@@ -14,6 +14,7 @@
     selectedProjectId?: string
     loading?: boolean
     error?: string | null
+    budgetRefreshKey?: number
   }
 
   let {
@@ -22,6 +23,7 @@
     selectedProjectId = '',
     loading = false,
     error = null,
+    budgetRefreshKey = 0,
   }: Props = $props()
 
   // 간소화된 상태 한글 변환
@@ -40,8 +42,7 @@
 
   // 프로젝트 선택
   function selectProject(project: Project) {
-    selectedProject = project
-    selectedProjectId = project.id
+    dispatch('project-selected', { project })
   }
 
   // 프로젝트 생성 버튼 클릭
@@ -135,6 +136,7 @@
       <!-- 프로젝트 기본 정보 -->
       <ProjectDetailView
         {selectedProject}
+        externalRefreshTrigger={budgetRefreshKey}
         on:refresh={handleRefresh}
         on:project-deleted={handleProjectDeleted}
         on:show-budget-modal={handleShowBudgetModal}

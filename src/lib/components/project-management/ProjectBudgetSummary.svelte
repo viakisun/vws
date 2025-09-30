@@ -38,17 +38,9 @@
       if (result.success && result.data) {
         budgetSummary = result.data.summary || null
         budgetDetails = result.data.budgets || null
-
-        // 디버깅: 받은 데이터 확인
-        logger.log('ProjectBudgetSummary - 받은 데이터:', {
-          summary: budgetSummary,
-          budgets: budgetDetails,
-          첫번째예산: budgetDetails?.[0],
-        })
       } else {
         budgetSummary = null
         budgetDetails = null
-        logger.log('ProjectBudgetSummary - 데이터 로드 실패:', result)
       }
     } catch (err) {
       logger.error('예산 요약 로드 실패:', err)
@@ -82,6 +74,13 @@
   //   if (ratio >= 30) return 'text-orange-600'
   //   return 'text-red-600'
   // }
+
+  // refreshTrigger 변경 시 데이터 새로고침
+  $effect(() => {
+    if (refreshTrigger > 0) {
+      loadBudgetSummary()
+    }
+  })
 
   // 컴포넌트 마운트 시 초기화
   onMount(() => {

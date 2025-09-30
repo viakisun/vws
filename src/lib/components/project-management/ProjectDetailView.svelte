@@ -305,7 +305,10 @@
     return getProjectField(project, 'sponsorType', 'sponsor_type', 'internal')
   }
 
-  let { selectedProject }: { selectedProject: any } = $props()
+  let {
+    selectedProject,
+    externalRefreshTrigger = 0,
+  }: { selectedProject: any; externalRefreshTrigger?: number } = $props()
 
   // 프로젝트 변경 시 기간 업데이트
   function handleProjectChange() {
@@ -428,6 +431,7 @@
   // 데이터
   let projectMembers = $state<any[]>([])
   let projectBudgets = $state<any[]>([])
+  let budgetUpdateKey = $state(0) // 강제 재렌더링 트리거
   let _budgetCategories = $state<any[]>([])
   let availableEmployees = $state<any[]>([])
 
@@ -593,7 +597,8 @@
       )
       if (response.ok) {
         const data = await response.json()
-        projectBudgets = data.data || []
+        projectBudgets = [...(data.data || [])]
+        budgetUpdateKey++
       }
     } catch (error) {
       logger.error('프로젝트 사업비 로드 실패:', error)
@@ -1030,9 +1035,7 @@
 
       if (response.ok) {
         await loadProjectBudgets()
-        // 예산 삭제 후 프로젝트 기간 정보 업데이트
         updateProjectPeriodFromBudgets()
-        // 예산 요약 새로고침
         budgetRefreshTrigger++
         dispatch('refresh')
       }
@@ -1813,6 +1816,24 @@
     }
   }
 
+  // externalRefreshTrigger 변경 시 모든 프로젝트 종속 데이터 새로고침
+  let lastExternalTrigger = $state(0)
+
+  $effect(() => {
+    if (externalRefreshTrigger > 0 && externalRefreshTrigger !== lastExternalTrigger) {
+      lastExternalTrigger = externalRefreshTrigger
+
+      // 모든 프로젝트 종속 데이터 새로고침
+      if (selectedProject?.id) {
+        loadProjectMembers()
+        loadProjectBudgets()
+        loadEvidenceItems()
+        // budgetRefreshTrigger 동기화 (ProjectBudgetSummary 새로고침)
+        budgetRefreshTrigger = externalRefreshTrigger
+      }
+    }
+  })
+
   // 컴포넌트 마운트 시 초기화
   onMount(() => {
     handleProjectChange()
@@ -1876,7 +1897,7 @@
             <EditIcon size={16} class="mr-2" />
             정보 수정
           </ThemeButton>
-          <ThemeButton variant="primary" size="sm" onclick={() => dispatch('showBudgetModal')}>
+          <ThemeButton variant="primary" size="sm" onclick={() => dispatch('show-budget-modal')}>
             <DollarSignIcon size={16} class="mr-2" />
             예산 수정
           </ThemeButton>
@@ -1910,22 +1931,8 @@
 
     <!-- 연차별 사업비 관리 -->
     <ThemeCard class="p-6">
-      <div class="flex items-center justify-between mb-4">
+      <div class="mb-4">
         <h3 class="text-lg font-semibold text-gray-900">연구개발비</h3>
-        <div class="flex gap-2">
-          <ThemeButton
-            onclick={runComprehensiveValidation}
-            size="sm"
-            disabled={isRunningValidation}
-          >
-            <ShieldCheckIcon size={16} class="mr-2" />
-            {isRunningValidation ? '검증 중...' : '검증 실행'}
-          </ThemeButton>
-          <ThemeButton onclick={() => (showBudgetModal = true)} size="sm">
-            <PlusIcon size={16} class="mr-2" />
-            사업비 추가
-          </ThemeButton>
-        </div>
       </div>
 
       <!-- 단위 안내 -->
@@ -1984,130 +1991,140 @@
             </tr>
           </thead>
           <tbody class="bg-white divide-y divide-gray-200">
-            {#each projectBudgets as budget, i (i)}
-              {@const _totalBudget =
-                getPersonnelCostCash(budget) +
-                getPersonnelCostInKind(budget) +
-                getResearchMaterialCostCash(budget) +
-                getResearchMaterialCostInKind(budget) +
-                getResearchActivityCostCash(budget) +
-                getResearchActivityCostInKind(budget) +
-                getResearchStipendCash(budget) +
-                getResearchStipendInKind(budget) +
-                getIndirectCostCash(budget) +
-                getIndirectCostInKind(budget)}
-              {@const personnelCash = Number(getPersonnelCostCash(budget)) || 0}
-              {@const materialCash = Number(getResearchMaterialCostCash(budget)) || 0}
-              {@const activityCash = Number(getResearchActivityCostCash(budget)) || 0}
-              {@const stipendCash = Number(getResearchStipendCash(budget)) || 0}
-              {@const indirectCash = Number(getIndirectCostCash(budget)) || 0}
-              {@const cashTotal =
-                personnelCash + materialCash + activityCash + stipendCash + indirectCash}
-              {@const personnelInKind = Number(getPersonnelCostInKind(budget)) || 0}
-              {@const materialInKind = Number(getResearchMaterialCostInKind(budget)) || 0}
-              {@const activityInKind = Number(getResearchActivityCostInKind(budget)) || 0}
-              {@const stipendInKind = Number(getResearchStipendInKind(budget)) || 0}
-              {@const indirectInKind = Number(getIndirectCostInKind(budget)) || 0}
-              {@const inKindTotal =
-                personnelInKind + materialInKind + activityInKind + stipendInKind + indirectInKind}
-              <tr class="hover:bg-gray-50">
-                <!-- 연차 -->
-                <td class="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900 w-24">
-                  <div class="text-sm cursor-help" title={formatPeriodTooltip(budget)}>
-                    <div class="font-medium">{formatPeriodDisplay(budget)}</div>
-                    <div class="text-xs text-gray-500 mt-1">현금 | 현물</div>
-                  </div>
-                </td>
-                <!-- 인건비 (현금/현물) -->
-                <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
-                  <div class="space-y-2">
-                    <div class="text-sm text-blue-600 font-medium">
-                      {formatCurrency(personnelCash, false)}
+            {#key budgetUpdateKey}
+              {#each projectBudgets as budget, i (budget.id || i)}
+                {@const _totalBudget =
+                  getPersonnelCostCash(budget) +
+                  getPersonnelCostInKind(budget) +
+                  getResearchMaterialCostCash(budget) +
+                  getResearchMaterialCostInKind(budget) +
+                  getResearchActivityCostCash(budget) +
+                  getResearchActivityCostInKind(budget) +
+                  getResearchStipendCash(budget) +
+                  getResearchStipendInKind(budget) +
+                  getIndirectCostCash(budget) +
+                  getIndirectCostInKind(budget)}
+                {@const personnelCash = Number(getPersonnelCostCash(budget)) || 0}
+                {@const materialCash = Number(getResearchMaterialCostCash(budget)) || 0}
+                {@const activityCash = Number(getResearchActivityCostCash(budget)) || 0}
+                {@const stipendCash = Number(getResearchStipendCash(budget)) || 0}
+                {@const indirectCash = Number(getIndirectCostCash(budget)) || 0}
+                {@const cashTotal =
+                  personnelCash + materialCash + activityCash + stipendCash + indirectCash}
+                {@const personnelInKind = Number(getPersonnelCostInKind(budget)) || 0}
+                {@const materialInKind = Number(getResearchMaterialCostInKind(budget)) || 0}
+                {@const activityInKind = Number(getResearchActivityCostInKind(budget)) || 0}
+                {@const stipendInKind = Number(getResearchStipendInKind(budget)) || 0}
+                {@const indirectInKind = Number(getIndirectCostInKind(budget)) || 0}
+                {@const inKindTotal =
+                  personnelInKind +
+                  materialInKind +
+                  activityInKind +
+                  stipendInKind +
+                  indirectInKind}
+                <tr class="hover:bg-gray-50">
+                  <!-- 연차 -->
+                  <td class="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900 w-24">
+                    <div class="text-sm cursor-help" title={formatPeriodTooltip(budget)}>
+                      <div class="font-medium">{formatPeriodDisplay(budget)}</div>
+                      <div class="text-xs text-gray-500 mt-1">현금 | 현물</div>
                     </div>
-                    <div class="text-sm text-gray-600">
-                      {formatCurrency(personnelInKind, false)}
+                  </td>
+                  <!-- 인건비 (현금/현물) -->
+                  <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
+                    <div class="space-y-2">
+                      <div class="text-sm text-blue-600 font-medium">
+                        {formatCurrency(personnelCash, false)}
+                      </div>
+                      <div class="text-sm text-gray-600">
+                        {formatCurrency(personnelInKind, false)}
+                      </div>
                     </div>
-                  </div>
-                </td>
-                <!-- 연구재료비 (현금/현물) -->
-                <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
-                  <div class="space-y-2">
-                    <div class="text-sm text-blue-600 font-medium">
-                      {formatCurrency(materialCash, false)}
+                  </td>
+                  <!-- 연구재료비 (현금/현물) -->
+                  <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
+                    <div class="space-y-2">
+                      <div class="text-sm text-blue-600 font-medium">
+                        {formatCurrency(materialCash, false)}
+                      </div>
+                      <div class="text-sm text-gray-600">
+                        {formatCurrency(materialInKind, false)}
+                      </div>
                     </div>
-                    <div class="text-sm text-gray-600">
-                      {formatCurrency(materialInKind, false)}
+                  </td>
+                  <!-- 연구활동비 (현금/현물) -->
+                  <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
+                    <div class="space-y-2">
+                      <div class="text-sm text-blue-600 font-medium">
+                        {formatCurrency(activityCash, false)}
+                      </div>
+                      <div class="text-sm text-gray-600">
+                        {formatCurrency(activityInKind, false)}
+                      </div>
                     </div>
-                  </div>
-                </td>
-                <!-- 연구활동비 (현금/현물) -->
-                <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
-                  <div class="space-y-2">
-                    <div class="text-sm text-blue-600 font-medium">
-                      {formatCurrency(activityCash, false)}
+                  </td>
+                  <!-- 연구수당 (현금/현물) -->
+                  <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
+                    <div class="space-y-2">
+                      <div class="text-sm text-blue-600 font-medium">
+                        {formatCurrency(stipendCash, false)}
+                      </div>
+                      <div class="text-sm text-gray-600">
+                        {formatCurrency(stipendInKind, false)}
+                      </div>
                     </div>
-                    <div class="text-sm text-gray-600">
-                      {formatCurrency(activityInKind, false)}
+                  </td>
+                  <!-- 간접비 (현금/현물) -->
+                  <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
+                    <div class="space-y-2">
+                      <div class="text-sm text-blue-600 font-medium">
+                        {formatCurrency(indirectCash, false)}
+                      </div>
+                      <div class="text-sm text-gray-600">
+                        {formatCurrency(indirectInKind, false)}
+                      </div>
                     </div>
-                  </div>
-                </td>
-                <!-- 연구수당 (현금/현물) -->
-                <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
-                  <div class="space-y-2">
-                    <div class="text-sm text-blue-600 font-medium">
-                      {formatCurrency(stipendCash, false)}
+                  </td>
+                  <!-- 총 예산 (현금/현물) -->
+                  <td
+                    class="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900 text-right"
+                  >
+                    <div class="space-y-2">
+                      <div class="text-sm text-blue-600 font-semibold">
+                        {formatCurrency(cashTotal, false)}
+                      </div>
+                      <div class="text-sm text-gray-600 font-semibold">
+                        {formatCurrency(inKindTotal, false)}
+                      </div>
                     </div>
-                    <div class="text-sm text-gray-600">
-                      {formatCurrency(stipendInKind, false)}
+                  </td>
+                  <!-- 액션 -->
+                  <td class="px-4 py-4 whitespace-nowrap text-sm font-medium w-32">
+                    <div class="flex space-x-1 justify-center">
+                      <ThemeButton variant="ghost" size="sm" onclick={() => editBudget(budget)}>
+                        <EditIcon size={16} class="text-blue-600 mr-1" />
+                        수정
+                      </ThemeButton>
+                      <ThemeButton
+                        variant="ghost"
+                        size="sm"
+                        onclick={() => removeBudget(budget.id)}
+                      >
+                        <TrashIcon size={16} class="text-red-600 mr-1" />
+                        삭제
+                      </ThemeButton>
                     </div>
-                  </div>
-                </td>
-                <!-- 간접비 (현금/현물) -->
-                <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
-                  <div class="space-y-2">
-                    <div class="text-sm text-blue-600 font-medium">
-                      {formatCurrency(indirectCash, false)}
-                    </div>
-                    <div class="text-sm text-gray-600">
-                      {formatCurrency(indirectInKind, false)}
-                    </div>
-                  </div>
-                </td>
-                <!-- 총 예산 (현금/현물) -->
-                <td
-                  class="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900 text-right"
-                >
-                  <div class="space-y-2">
-                    <div class="text-sm text-blue-600 font-semibold">
-                      {formatCurrency(cashTotal, false)}
-                    </div>
-                    <div class="text-sm text-gray-600 font-semibold">
-                      {formatCurrency(inKindTotal, false)}
-                    </div>
-                  </div>
-                </td>
-                <!-- 액션 -->
-                <td class="px-4 py-4 whitespace-nowrap text-sm font-medium w-32">
-                  <div class="flex space-x-1 justify-center">
-                    <ThemeButton variant="ghost" size="sm" onclick={() => editBudget(budget)}>
-                      <EditIcon size={16} class="text-blue-600 mr-1" />
-                      수정
-                    </ThemeButton>
-                    <ThemeButton variant="ghost" size="sm" onclick={() => removeBudget(budget.id)}>
-                      <TrashIcon size={16} class="text-red-600 mr-1" />
-                      삭제
-                    </ThemeButton>
-                  </div>
-                </td>
-              </tr>
-            {:else}
-              <tr>
-                <td colspan="7" class="px-4 py-12 text-center text-gray-500">
-                  <DollarSignIcon size={48} class="mx-auto mb-2 text-gray-300" />
-                  <p>등록된 사업비가 없습니다.</p>
-                </td>
-              </tr>
-            {/each}
+                  </td>
+                </tr>
+              {:else}
+                <tr>
+                  <td colspan="7" class="px-4 py-12 text-center text-gray-500">
+                    <DollarSignIcon size={48} class="mx-auto mb-2 text-gray-300" />
+                    <p>등록된 사업비가 없습니다.</p>
+                  </td>
+                </tr>
+              {/each}
+            {/key}
 
             <!-- 합계 행 -->
             {#if projectBudgets && projectBudgets.length > 0}
@@ -2731,22 +2748,6 @@
     <div class="flex items-center justify-between mb-4">
       <h3 class="text-lg font-semibold text-gray-900">참여연구원</h3>
       <div class="flex items-center gap-2">
-        {#if projectMembers.length > 0}
-          <ThemeButton
-            onclick={validateMembers}
-            size="sm"
-            variant="primary"
-            disabled={isValidatingMembers}
-          >
-            {#if isValidatingMembers}
-              <RefreshCwIcon size={14} class="mr-2 animate-spin" />
-              검증 중...
-            {:else}
-              <ShieldCheckIcon size={14} class="mr-2" />
-              검증 실행
-            {/if}
-          </ThemeButton>
-        {/if}
         <ThemeButton
           onclick={startAddMember}
           size="sm"

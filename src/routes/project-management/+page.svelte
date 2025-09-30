@@ -152,6 +152,8 @@
   let selectedProjectId = $state('')
   let showCreateProjectModal = $state(false)
   let showBudgetModal = $state(false)
+  let projectBudgets = $state<any[]>([])
+  let budgetRefreshKey = $state(0) // ProjectDetailView refresh trigger
 
   // 탭 변경 핸들러
   function handleTabChange(tabId) {
@@ -368,6 +370,48 @@
     loadProjectData()
   }
 
+  // 프로젝트 예산 로드
+  async function loadProjectBudgets(projectId: string) {
+    try {
+      const response = await fetch(`/api/project-management/projects/${projectId}/annual-budgets`)
+      if (response.ok) {
+        const data = await response.json()
+        if (data.success && data.data) {
+          projectBudgets = data.data.budgets || []
+          logger.log(`프로젝트 예산 로드 완료: ${projectBudgets.length}개`)
+        } else {
+          projectBudgets = []
+        }
+      }
+    } catch (error) {
+      logger.error('프로젝트 예산 로드 실패:', error)
+      projectBudgets = []
+    }
+  }
+
+  // 프로젝트 선택 시 관련 데이터 모두 초기화
+  async function handleProjectSelection(project: any) {
+    // 1. 프로젝트 정보 업데이트
+    selectedProject = project
+    selectedProjectId = project.id
+
+    // 2. 열려있는 모달 닫기
+    showBudgetModal = false
+    showCreateProjectModal = false
+
+    // 3. 예산 데이터 로드 (annual-budgets API)
+    await loadProjectBudgets(project.id)
+
+    // 4. UI 새로고침 트리거
+    // budgetRefreshKey를 증가시키면:
+    // - ProjectDetailView의 externalRefreshTrigger가 변경됨
+    // - ProjectDetailView가 내부 budgetRefreshTrigger를 동기화
+    // - ProjectBudgetSummary가 refreshTrigger 변경 감지
+    // - ProjectDetailView가 loadProjectBudgets() 호출 (project-budgets API)
+    // - ProjectDetailView가 다른 종속 데이터들도 자동 로드 (onMount 또는 $effect)
+    budgetRefreshKey++
+  }
+
   // 초기화 - 첫 번째 탭만 로드
   function loadInitialTabContent() {
     if (!mounted && browser) {
@@ -396,12 +440,19 @@
         {projects}
         {selectedProject}
         {selectedProjectId}
+        {budgetRefreshKey}
         loading={tabLoadingStates.projects}
         error={tabErrors.projects}
         on:create-project={() => (showCreateProjectModal = true)}
         on:project-deleted={handleProjectDeleted}
         on:refresh={loadProjectData}
-        on:show-budget-modal={() => (showBudgetModal = true)}
+        on:project-selected={(e) => handleProjectSelection(e.detail.project)}
+        on:show-budget-modal={() => {
+          if (selectedProject?.id) {
+            loadProjectBudgets(selectedProject.id)
+          }
+          showBudgetModal = true
+        }}
       />
     {/if}
 
@@ -425,9 +476,19 @@
   <ThemeModal open={showBudgetModal} onclose={() => (showBudgetModal = false)}>
     <AnnualBudgetForm
       projectId={selectedProject.id}
-      on:budget-updated={() => {
+      existingBudgets={projectBudgets}
+      on:budget-updated={async () => {
         showBudgetModal = false
-        loadProjectData()
+
+        // 프로젝트 데이터와 예산 데이터 모두 새로고침
+        await loadProjectData()
+
+        if (selectedProject?.id) {
+          await loadProjectBudgets(selectedProject.id)
+        }
+
+        // ProjectDetailView에 refresh 신호 전달
+        budgetRefreshKey++
       }}
     />
   </ThemeModal>

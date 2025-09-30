@@ -19,31 +19,14 @@
     readonly?: boolean
   }>()
 
-  // 폼 데이터 상태
+  // 폼 데이터 상태 - existingBudgets가 있으면 초기화, 없으면 빈 배열
   let budgetData = $state<AnnualBudgetFormData[]>([])
   let isSubmitting = $state(false)
   let validationErrors = $state<string[]>([])
+  let initialized = $state(false)
 
   // 계산된 요약 정보
   let budgetSummary = $derived(calculateBudgetSummary(budgetData))
-
-  // 초기화
-  function _updateData() {
-    if (existingBudgets.length > 0) {
-      budgetData = existingBudgets.map((budget) => ({
-        year: budget.year,
-        startDate: budget.startDate,
-        endDate: budget.endDate,
-        governmentFunding: budget.governmentFunding,
-        companyCash: budget.companyCash,
-        companyInKind: budget.companyInKind,
-        notes: budget.notes,
-      }))
-    } else {
-      // 기본적으로 1차년도 추가
-      addYear()
-    }
-  }
 
   // 연차 추가
   function addYear() {
@@ -141,7 +124,9 @@
 
   // 저장
   async function saveBudgets() {
-    if (!validateForm()) return
+    if (!validateForm()) {
+      return
+    }
 
     isSubmitting = true
 
@@ -160,7 +145,8 @@
       const result = await response.json()
 
       if (result.success) {
-        dispatch('budgetSaved', result.data)
+        logger.log('예산 저장 성공')
+        dispatch('budget-updated', result.data)
       } else {
         validationErrors = [result.error || '예산 저장에 실패했습니다.']
       }
@@ -177,14 +163,41 @@
     return new Intl.NumberFormat('ko-KR').format(amount)
   }
 
-  // 컴포넌트 마운트 시 초기화
+  // Props 변경 시 데이터 동기화
+  let lastProjectId = $state('')
+
+  $effect(() => {
+    // projectId가 변경되면 초기화 플래그 리셋
+    if (projectId && projectId !== lastProjectId) {
+      lastProjectId = projectId
+      initialized = false
+
+      if (existingBudgets && existingBudgets.length > 0) {
+        budgetData = existingBudgets.map((budget) => ({
+          year: budget.year,
+          startDate: budget.startDate,
+          endDate: budget.endDate,
+          governmentFunding: budget.governmentFunding || 0,
+          companyCash: budget.companyCash || 0,
+          companyInKind: budget.companyInKind || 0,
+          notes: budget.notes || '',
+        }))
+      } else {
+        budgetData = []
+        addYear()
+      }
+      initialized = true
+    }
+  })
+
+  // 컴포넌트 마운트
   onMount(() => {
-    // 초기화 함수들 호출
+    // 초기화는 $effect에서 처리
   })
 </script>
 
-<div class="max-w-6xl mx-auto space-y-6">
-  <div class="bg-white rounded-lg shadow-lg p-6">
+<div class="space-y-6">
+  <div>
     <h2 class="text-2xl font-bold text-gray-900 mb-6">연차별 예산 계획</h2>
 
     <!-- 검증 오류 표시 -->
