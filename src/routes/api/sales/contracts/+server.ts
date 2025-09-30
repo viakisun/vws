@@ -27,7 +27,9 @@ export const GET: RequestHandler = async ({ url }) => {
     }
 
     if (search) {
-      whereConditions.push(`(title ILIKE $${paramIndex} OR contract_number ILIKE $${paramIndex} OR description ILIKE $${paramIndex})`)
+      whereConditions.push(
+        `(title ILIKE $${paramIndex} OR contract_number ILIKE $${paramIndex} OR description ILIKE $${paramIndex})`,
+      )
       params.push(`%${search}%`)
       paramIndex++
     }
@@ -45,7 +47,7 @@ export const GET: RequestHandler = async ({ url }) => {
       ${whereClause}
       ORDER BY c.created_at DESC
       `,
-      params
+      params,
     )
 
     const response: SalesApiResponse<Contract[]> = {
@@ -79,10 +81,9 @@ export const POST: RequestHandler = async ({ request }) => {
     }
 
     // 거래처 존재 확인
-    const customerCheck = await query(
-      'SELECT id FROM sales_customers WHERE id = $1',
-      [data.customer_id]
-    )
+    const customerCheck = await query('SELECT id FROM sales_customers WHERE id = $1', [
+      data.customer_id,
+    ])
 
     if (customerCheck.rows.length === 0) {
       const response: SalesApiResponse<null> = {
@@ -117,7 +118,7 @@ export const POST: RequestHandler = async ({ request }) => {
         data.payment_terms || 30,
         data.description || null,
         data.owner_id || null,
-      ]
+      ],
     )
 
     const response: SalesApiResponse<Contract> = {

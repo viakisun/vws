@@ -8,10 +8,7 @@ export const GET: RequestHandler = async ({ params }) => {
   try {
     const { id } = params
 
-    const result = await query(
-      'SELECT * FROM sales_customers WHERE id = $1',
-      [id]
-    )
+    const result = await query('SELECT * FROM sales_customers WHERE id = $1', [id])
 
     if (result.rows.length === 0) {
       const response: SalesApiResponse<null> = {
@@ -83,7 +80,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
         data.status || 'active',
         data.notes || null,
         id,
-      ]
+      ],
     )
 
     if (result.rows.length === 0) {
@@ -119,26 +116,24 @@ export const DELETE: RequestHandler = async ({ params }) => {
     // 관련 데이터 확인 (계약, 거래내역 등)
     const contractCheck = await query(
       'SELECT COUNT(*) as count FROM sales_contracts WHERE customer_id = $1',
-      [id]
+      [id],
     )
 
     const transactionCheck = await query(
       'SELECT COUNT(*) as count FROM sales_transactions WHERE customer_id = $1',
-      [id]
+      [id],
     )
 
     if (parseInt(contractCheck.rows[0].count) > 0 || parseInt(transactionCheck.rows[0].count) > 0) {
       const response: SalesApiResponse<null> = {
         success: false,
-        error: '관련 계약이나 거래내역이 있는 거래처는 삭제할 수 없습니다. 상태를 비활성으로 변경하세요.',
+        error:
+          '관련 계약이나 거래내역이 있는 거래처는 삭제할 수 없습니다. 상태를 비활성으로 변경하세요.',
       }
       return json(response, { status: 400 })
     }
 
-    const result = await query(
-      'DELETE FROM sales_customers WHERE id = $1 RETURNING *',
-      [id]
-    )
+    const result = await query('DELETE FROM sales_customers WHERE id = $1 RETURNING *', [id])
 
     if (result.rows.length === 0) {
       const response: SalesApiResponse<null> = {

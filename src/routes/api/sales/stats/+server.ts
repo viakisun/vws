@@ -25,7 +25,7 @@ export const GET: RequestHandler = async ({ url }) => {
         LEFT JOIN sales_transactions t ON c.id = t.customer_id
         GROUP BY c.id, c.name
         ORDER BY total_sales DESC
-        `
+        `,
       )
 
       const response: SalesApiResponse<CustomerStats[]> = {
@@ -48,7 +48,11 @@ export const GET: RequestHandler = async ({ url }) => {
         dateParams = [firstDayOfMonth.toISOString().split('T')[0]]
         break
       case 'quarter':
-        const quarterStart = new Date(currentDate.getFullYear(), Math.floor(currentDate.getMonth() / 3) * 3, 1)
+        const quarterStart = new Date(
+          currentDate.getFullYear(),
+          Math.floor(currentDate.getMonth() / 3) * 3,
+          1,
+        )
         dateFilter = 'AND transaction_date >= $1'
         dateParams = [quarterStart.toISOString().split('T')[0]]
         break
@@ -76,7 +80,7 @@ export const GET: RequestHandler = async ({ url }) => {
           END
          FROM sales_opportunities) as conversion_rate
       `,
-      dateParams
+      dateParams,
     )
 
     const stats = statsResult.rows[0]

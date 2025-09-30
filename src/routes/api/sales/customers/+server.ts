@@ -27,7 +27,9 @@ export const GET: RequestHandler = async ({ url }) => {
     }
 
     if (search) {
-      whereConditions.push(`(name ILIKE $${paramIndex} OR contact_person ILIKE $${paramIndex} OR industry ILIKE $${paramIndex})`)
+      whereConditions.push(
+        `(name ILIKE $${paramIndex} OR contact_person ILIKE $${paramIndex} OR industry ILIKE $${paramIndex})`,
+      )
       params.push(`%${search}%`)
       paramIndex++
     }
@@ -40,7 +42,7 @@ export const GET: RequestHandler = async ({ url }) => {
       ${whereClause}
       ORDER BY created_at DESC
       `,
-      params
+      params,
     )
 
     const response: SalesApiResponse<Customer[]> = {
@@ -94,7 +96,7 @@ export const POST: RequestHandler = async ({ request }) => {
         data.payment_terms || 30,
         data.status || 'active',
         data.notes || null,
-      ]
+      ],
     )
 
     const response: SalesApiResponse<Customer> = {

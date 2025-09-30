@@ -52,7 +52,7 @@ export const GET: RequestHandler = async ({ url }) => {
       ${whereClause}
       ORDER BY o.created_at DESC
       `,
-      params
+      params,
     )
 
     const response: SalesApiResponse<Opportunity[]> = {
@@ -86,10 +86,9 @@ export const POST: RequestHandler = async ({ request }) => {
     }
 
     // 거래처 존재 확인
-    const customerCheck = await query(
-      'SELECT id FROM sales_customers WHERE id = $1',
-      [data.customer_id]
-    )
+    const customerCheck = await query('SELECT id FROM sales_customers WHERE id = $1', [
+      data.customer_id,
+    ])
 
     if (customerCheck.rows.length === 0) {
       const response: SalesApiResponse<null> = {
@@ -119,7 +118,7 @@ export const POST: RequestHandler = async ({ request }) => {
         data.owner_id || null,
         data.description || null,
         data.status || 'active',
-      ]
+      ],
     )
 
     const response: SalesApiResponse<Opportunity> = {

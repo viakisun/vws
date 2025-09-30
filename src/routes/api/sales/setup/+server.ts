@@ -1,6 +1,6 @@
-import { query } from '$lib/database/connection';
-import { json } from '@sveltejs/kit';
-import type { RequestHandler } from './$types';
+import { query } from '$lib/database/connection'
+import { json } from '@sveltejs/kit'
+import type { RequestHandler } from './$types'
 
 // 영업관리 시스템 스키마 SQL (상용화 목표 - 단순화)
 const SALES_SCHEMA_SQL = `
@@ -147,7 +147,7 @@ CREATE TRIGGER update_sales_contracts_updated_at BEFORE UPDATE ON sales_contract
 CREATE TRIGGER update_sales_transactions_updated_at BEFORE UPDATE ON sales_transactions FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_sales_quotations_updated_at BEFORE UPDATE ON sales_quotations FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_sales_invoices_updated_at BEFORE UPDATE ON sales_invoices FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-`;
+`
 
 // 샘플 데이터 생성 함수
 async function createSampleData() {
@@ -203,7 +203,7 @@ async function createSampleData() {
           customer.industry,
           customer.payment_terms,
           customer.status,
-        ]
+        ],
       )
       customerIds.push(result.rows[0].id)
     }
@@ -250,7 +250,7 @@ async function createSampleData() {
           opportunity.expected_close_date,
           opportunity.owner_id,
           opportunity.status,
-        ]
+        ],
       )
     }
 
@@ -291,7 +291,7 @@ async function createSampleData() {
           contract.paid_amount,
           contract.payment_terms,
           contract.owner_id,
-        ]
+        ],
       )
       contractIds.push(result.rows[0].id)
     }
@@ -343,7 +343,7 @@ async function createSampleData() {
           transaction.payment_status,
           transaction.description,
           transaction.created_by,
-        ]
+        ],
       )
     }
 
@@ -374,7 +374,7 @@ export const POST: RequestHandler = async () => {
         success: false,
         error: `영업관리 시스템 초기화에 실패했습니다: ${error instanceof Error ? error.message : '알 수 없는 오류'}`,
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

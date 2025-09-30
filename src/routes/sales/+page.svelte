@@ -26,7 +26,7 @@
     TargetIcon,
     TrashIcon,
     TrendingUpIcon,
-    UsersIcon
+    UsersIcon,
   } from '@lucide/svelte'
   import { onMount } from 'svelte'
 
@@ -75,7 +75,7 @@
     contact_phone: '',
     contact_email: '',
     industry: '',
-    payment_terms: 30
+    payment_terms: 30,
   })
 
   let opportunityFormData = $state<{
@@ -93,7 +93,7 @@
     expected_amount: 0,
     probability: 0,
     stage: 'prospecting',
-    expected_close_date: ''
+    expected_close_date: '',
   })
 
   let contractFormData = $state<{
@@ -109,7 +109,7 @@
     type: 'sales',
     amount: 0,
     start_date: '',
-    end_date: ''
+    end_date: '',
   })
 
   let transactionFormData = $state<{
@@ -127,7 +127,7 @@
     amount: 0,
     transaction_date: '',
     due_date: '',
-    payment_status: 'pending'
+    payment_status: 'pending',
   })
 
   // 검색 및 필터
@@ -148,47 +148,51 @@
   // 통계 데이터 계산
   const stats = $derived(() => {
     const totalCustomers = salesData.customers.length
-    const activeOpportunities = salesData.opportunities.filter(opp => opp.status === 'active').length
+    const activeOpportunities = salesData.opportunities.filter(
+      (opp) => opp.status === 'active',
+    ).length
     const totalSalesValue = salesData.opportunities.reduce((sum, opp) => sum + opp.value, 0)
     const monthlyRevenue = salesData.transactions
-      .filter(t => t.payment_status === 'paid' && t.type === 'sales')
+      .filter((t) => t.payment_status === 'paid' && t.type === 'sales')
       .reduce((sum, t) => sum + t.amount, 0)
     const paymentOverdue = salesData.transactions
-      .filter(t => t.payment_status === 'overdue')
+      .filter((t) => t.payment_status === 'overdue')
       .reduce((sum, t) => sum + t.amount, 0)
-    const conversionRate = salesData.opportunities.filter(opp => opp.stage === 'closed-won').length / 
-      Math.max(salesData.opportunities.length, 1) * 100
+    const conversionRate =
+      (salesData.opportunities.filter((opp) => opp.stage === 'closed-won').length /
+        Math.max(salesData.opportunities.length, 1)) *
+      100
 
     return [
       {
         title: '총 거래처',
         value: totalCustomers,
         change: '+2',
-      changeType: 'positive' as const,
+        changeType: 'positive' as const,
         icon: BuildingIcon,
-    },
-    {
-      title: '진행중인 기회',
+      },
+      {
+        title: '진행중인 기회',
         value: activeOpportunities,
         change: '+1',
-      changeType: 'positive' as const,
-      icon: TargetIcon,
-    },
-    {
-      title: '예상 매출',
+        changeType: 'positive' as const,
+        icon: TargetIcon,
+      },
+      {
+        title: '예상 매출',
         value: formatCurrency(totalSalesValue),
         change: '+15%',
-      changeType: 'positive' as const,
-      icon: DollarSignIcon,
-    },
-    {
+        changeType: 'positive' as const,
+        icon: DollarSignIcon,
+      },
+      {
         title: '월 매출',
         value: formatCurrency(monthlyRevenue),
         change: '+8%',
-      changeType: 'positive' as const,
-      icon: TrendingUpIcon,
-    },
-  ]
+        changeType: 'positive' as const,
+        icon: TrendingUpIcon,
+      },
+    ]
   })
 
   // 액션 버튼들 (제거됨)
@@ -199,15 +203,16 @@
     let customers = salesData.customers
 
     if (searchTerm) {
-      customers = customers.filter(customer =>
-        customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        customer.contact_person?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        customer.industry?.toLowerCase().includes(searchTerm.toLowerCase())
+      customers = customers.filter(
+        (customer) =>
+          customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          customer.contact_person?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          customer.industry?.toLowerCase().includes(searchTerm.toLowerCase()),
       )
     }
 
     if (selectedType !== 'all') {
-      customers = customers.filter(customer => customer.type === selectedType)
+      customers = customers.filter((customer) => customer.type === selectedType)
     }
 
     return customers
@@ -288,7 +293,7 @@
       contact_phone: customer.contact_phone || '',
       contact_email: customer.contact_email || '',
       industry: customer.industry || '',
-      payment_terms: customer.payment_terms || 30
+      payment_terms: customer.payment_terms || 30,
     }
     showEditModal = true
   }
@@ -303,7 +308,7 @@
   function handleDeleteCustomer() {
     if (customerToDelete) {
       const customerId = customerToDelete.id
-      salesData.customers = salesData.customers.filter(customer => customer.id !== customerId)
+      salesData.customers = salesData.customers.filter((customer) => customer.id !== customerId)
       showDeleteConfirm = false
       customerToDelete = null
     }
@@ -328,12 +333,12 @@
       const response = await fetch(`/api/sales/customers/${editingCustomer.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(customerFormData)
+        body: JSON.stringify(customerFormData),
       })
-      
+
       const result = await response.json()
       console.log('서버 응답:', result)
-      
+
       if (response.ok) {
         if (result.success) {
           // 목록 새로고침
@@ -368,12 +373,12 @@
       const response = await fetch('/api/sales/customers', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(customerFormData)
+        body: JSON.stringify(customerFormData),
       })
-      
+
       const result = await response.json()
       console.log('서버 응답:', result)
-      
+
       if (response.ok) {
         if (result.success) {
           // 목록 새로고침
@@ -398,11 +403,11 @@
       const response = await fetch('/api/sales/opportunities', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(opportunityFormData)
+        body: JSON.stringify(opportunityFormData),
       })
-      
+
       const result = await response.json()
-      
+
       if (response.ok) {
         if (result.success) {
           await loadOpportunities()
@@ -426,11 +431,11 @@
       const response = await fetch('/api/sales/contracts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(contractFormData)
+        body: JSON.stringify(contractFormData),
       })
-      
+
       const result = await response.json()
-      
+
       if (response.ok) {
         if (result.success) {
           await loadContracts()
@@ -454,11 +459,11 @@
       const response = await fetch('/api/sales/transactions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(transactionFormData)
+        body: JSON.stringify(transactionFormData),
       })
-      
+
       const result = await response.json()
-      
+
       if (response.ok) {
         if (result.success) {
           await loadTransactions()
@@ -487,7 +492,7 @@
       contact_phone: '',
       contact_email: '',
       industry: '',
-      payment_terms: 30
+      payment_terms: 30,
     }
   }
 
@@ -499,7 +504,7 @@
       expected_amount: 0,
       probability: 0,
       stage: 'prospecting',
-      expected_close_date: ''
+      expected_close_date: '',
     }
   }
 
@@ -510,7 +515,7 @@
       type: 'sales',
       amount: 0,
       start_date: '',
-      end_date: ''
+      end_date: '',
     }
   }
 
@@ -522,7 +527,7 @@
       amount: 0,
       transaction_date: '',
       due_date: '',
-      payment_status: 'pending'
+      payment_status: 'pending',
     }
   }
 
@@ -596,12 +601,7 @@
   }
 
   async function loadAllData() {
-    await Promise.all([
-      loadCustomers(),
-      loadOpportunities(),
-      loadContracts(),
-      loadTransactions()
-    ])
+    await Promise.all([loadCustomers(), loadOpportunities(), loadContracts(), loadTransactions()])
   }
 
   onMount(() => {
@@ -613,7 +613,7 @@
 <PageLayout
   title="영업관리"
   subtitle="거래처 관리, 영업기회 추적, 매출 분석"
-  stats={stats}
+  {stats}
   {actions}
   searchPlaceholder="거래처명, 담당자, 업종으로 검색..."
 >
@@ -630,21 +630,34 @@
               <ThemeSectionHeader title="매출 현황" />
               <div class="space-y-4">
                 <div class="flex items-center justify-between">
-                  <span class="text-sm" style:color="var(--color-text-secondary)">이번 달 매출</span>
+                  <span class="text-sm" style:color="var(--color-text-secondary)">이번 달 매출</span
+                  >
                   <span class="font-semibold" style:color="var(--color-success)">
-                    {formatCurrency(salesData.transactions.filter(t => t.type === 'sales' && t.payment_status === 'paid').reduce((sum, t) => sum + t.amount, 0))}
+                    {formatCurrency(
+                      salesData.transactions
+                        .filter((t) => t.type === 'sales' && t.payment_status === 'paid')
+                        .reduce((sum, t) => sum + t.amount, 0),
+                    )}
                   </span>
                 </div>
                 <div class="flex items-center justify-between">
                   <span class="text-sm" style:color="var(--color-text-secondary)">미수금</span>
                   <span class="font-semibold" style:color="var(--color-warning)">
-                    {formatCurrency(salesData.transactions.filter(t => t.type === 'sales' && t.payment_status === 'pending').reduce((sum, t) => sum + t.amount, 0))}
+                    {formatCurrency(
+                      salesData.transactions
+                        .filter((t) => t.type === 'sales' && t.payment_status === 'pending')
+                        .reduce((sum, t) => sum + t.amount, 0),
+                    )}
                   </span>
                 </div>
                 <div class="flex items-center justify-between">
                   <span class="text-sm" style:color="var(--color-text-secondary)">연체금</span>
                   <span class="font-semibold" style:color="var(--color-error)">
-                    {formatCurrency(salesData.transactions.filter(t => t.type === 'sales' && t.payment_status === 'overdue').reduce((sum, t) => sum + t.amount, 0))}
+                    {formatCurrency(
+                      salesData.transactions
+                        .filter((t) => t.type === 'sales' && t.payment_status === 'overdue')
+                        .reduce((sum, t) => sum + t.amount, 0),
+                    )}
                   </span>
                 </div>
               </div>
@@ -654,12 +667,17 @@
             <ThemeCard class="p-6">
               <ThemeSectionHeader title="영업 기회 현황" />
               <div class="space-y-4">
-                {#each salesData.opportunities.filter(opp => opp.status === 'active') as opportunity, i (i)}
-                  <div class="flex items-center justify-between p-3 rounded-lg" style:background="var(--color-surface-elevated)">
+                {#each salesData.opportunities.filter((opp) => opp.status === 'active') as opportunity, i (i)}
+                  <div
+                    class="flex items-center justify-between p-3 rounded-lg"
+                    style:background="var(--color-surface-elevated)"
+                  >
                     <div class="flex-1">
-                      <h4 class="font-medium" style:color="var(--color-text)">{opportunity.title}</h4>
+                      <h4 class="font-medium" style:color="var(--color-text)">
+                        {opportunity.title}
+                      </h4>
                       <p class="text-sm" style:color="var(--color-text-secondary)">
-                        {salesData.customers.find(c => c.id === opportunity.customer_id)?.name}
+                        {salesData.customers.find((c) => c.id === opportunity.customer_id)?.name}
                       </p>
                       <div class="flex items-center gap-2 mt-1">
                         <span class="text-sm font-medium" style:color="var(--color-primary)">
@@ -680,41 +698,43 @@
           </ThemeGrid>
 
           <!-- 최근 거래 내역 -->
-            <ThemeCard class="p-6">
+          <ThemeCard class="p-6">
             <ThemeSectionHeader title="최근 거래 내역" />
             <div class="space-y-3">
               {#each salesData.transactions.slice(0, 5) as transaction, i (i)}
-                <div class="flex items-center justify-between p-3 rounded-lg" style:background="var(--color-surface-elevated)">
-                    <div class="flex-1">
+                <div
+                  class="flex items-center justify-between p-3 rounded-lg"
+                  style:background="var(--color-surface-elevated)"
+                >
+                  <div class="flex-1">
                     <div class="flex items-center gap-2">
                       <span class="font-medium" style:color="var(--color-text)">
                         {transaction.transaction_number}
-                        </span>
+                      </span>
                       <ThemeBadge variant={getStatusColor(transaction.payment_status) as any}>
                         {getStatusLabel(transaction.payment_status)}
                       </ThemeBadge>
-                      </div>
-                      <p class="text-sm" style:color="var(--color-text-secondary)">
-                      {salesData.customers.find(c => c.id === transaction.customer_id)?.name}
+                    </div>
+                    <p class="text-sm" style:color="var(--color-text-secondary)">
+                      {salesData.customers.find((c) => c.id === transaction.customer_id)?.name}
                     </p>
                     <p class="text-sm" style:color="var(--color-text-secondary)">
                       {transaction.description}
                     </p>
-                    </div>
-                    <div class="text-right">
+                  </div>
+                  <div class="text-right">
                     <span class="font-semibold" style:color="var(--color-primary)">
                       {formatCurrency(transaction.amount)}
                     </span>
-                      <p class="text-xs" style:color="var(--color-text-secondary)">
+                    <p class="text-xs" style:color="var(--color-text-secondary)">
                       {formatDate(transaction.transaction_date)}
-                      </p>
-                    </div>
+                    </p>
                   </div>
-                {/each}
+                </div>
+              {/each}
             </div>
-            </ThemeCard>
+          </ThemeCard>
         </ThemeSpacer>
-
       {:else if tab.id === 'customers'}
         <!-- 거래처 탭 -->
         <ThemeSpacer size={6}>
@@ -734,9 +754,9 @@
                   <option value="supplier">공급업체</option>
                   <option value="both">고객/공급업체</option>
                 </select>
-                <ThemeButton 
-                  variant="primary" 
-                  size="sm" 
+                <ThemeButton
+                  variant="primary"
+                  size="sm"
                   onclick={() => {
                     createModalType = 'customer'
                     showCreateModal = true
@@ -750,7 +770,11 @@
 
             <div class="space-y-4">
               {#each filteredCustomers as customer, i (keyOf(customer, i))}
-                <div class="flex items-center justify-between p-4 rounded-lg border" style:border-color="var(--color-border)" style:background="var(--color-surface-elevated)">
+                <div
+                  class="flex items-center justify-between p-4 rounded-lg border"
+                  style:border-color="var(--color-border)"
+                  style:background="var(--color-surface-elevated)"
+                >
                   <div class="flex-1">
                     <div class="flex items-center gap-3 mb-2">
                       <BuildingIcon size={20} style="color: var(--color-primary);" />
@@ -762,7 +786,10 @@
                         {getTypeLabel(customer.type)}
                       </ThemeBadge>
                     </div>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm" style:color="var(--color-text-secondary)">
+                    <div
+                      class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm"
+                      style:color="var(--color-text-secondary)"
+                    >
                       <div class="flex items-center gap-2">
                         <UsersIcon size={16} />
                         {customer.contact_person}
@@ -789,7 +816,11 @@
                     <ThemeButton variant="ghost" size="sm" onclick={() => editCustomer(customer)}>
                       <EditIcon size={16} />
                     </ThemeButton>
-                    <ThemeButton variant="ghost" size="sm" onclick={() => confirmDeleteCustomer(customer)}>
+                    <ThemeButton
+                      variant="ghost"
+                      size="sm"
+                      onclick={() => confirmDeleteCustomer(customer)}
+                    >
                       <TrashIcon size={16} />
                     </ThemeButton>
                   </div>
@@ -798,16 +829,15 @@
             </div>
           </ThemeCard>
         </ThemeSpacer>
-
       {:else if tab.id === 'opportunities'}
         <!-- 영업기회 탭 -->
         <ThemeSpacer size={6}>
           <ThemeCard class="p-6">
             <div class="flex items-center justify-between mb-6">
               <h3 class="text-lg font-semibold" style:color="var(--color-text)">영업 기회</h3>
-              <ThemeButton 
-                variant="success" 
-                size="sm" 
+              <ThemeButton
+                variant="success"
+                size="sm"
                 onclick={() => {
                   createModalType = 'opportunity'
                   showCreateModal = true
@@ -819,11 +849,15 @@
             </div>
             <div class="space-y-4">
               {#each salesData.opportunities as opportunity, i (i)}
-                <div class="flex items-center justify-between p-4 rounded-lg border" style:border-color="var(--color-border)" style:background="var(--color-surface-elevated)">
+                <div
+                  class="flex items-center justify-between p-4 rounded-lg border"
+                  style:border-color="var(--color-border)"
+                  style:background="var(--color-surface-elevated)"
+                >
                   <div class="flex-1">
                     <h4 class="font-medium" style:color="var(--color-text)">{opportunity.title}</h4>
                     <p class="text-sm" style:color="var(--color-text-secondary)">
-                      {salesData.customers.find(c => c.id === opportunity.customer_id)?.name}
+                      {salesData.customers.find((c) => c.id === opportunity.customer_id)?.name}
                     </p>
                     <div class="flex items-center gap-2 mt-1">
                       <ThemeBadge variant={getStatusColor(opportunity.stage) as any}>
@@ -836,10 +870,16 @@
                   </div>
                   <div class="text-right">
                     <p class="text-xs" style:color="var(--color-text-secondary)">
-                      예상 마감: {opportunity.expected_close_date ? formatDate(opportunity.expected_close_date) : '-'}
+                      예상 마감: {opportunity.expected_close_date
+                        ? formatDate(opportunity.expected_close_date)
+                        : '-'}
                     </p>
                     <div class="flex items-center gap-2 mt-2">
-                      <ThemeButton variant="ghost" size="sm" onclick={() => viewOpportunity(opportunity)}>
+                      <ThemeButton
+                        variant="ghost"
+                        size="sm"
+                        onclick={() => viewOpportunity(opportunity)}
+                      >
                         <EyeIcon size={16} />
                       </ThemeButton>
                       <ThemeButton variant="ghost" size="sm">
@@ -852,16 +892,15 @@
             </div>
           </ThemeCard>
         </ThemeSpacer>
-
       {:else if tab.id === 'contracts'}
         <!-- 계약 탭 -->
         <ThemeSpacer size={6}>
           <ThemeCard class="p-6">
             <div class="flex items-center justify-between mb-6">
               <h3 class="text-lg font-semibold" style:color="var(--color-text)">계약 목록</h3>
-              <ThemeButton 
-                variant="primary" 
-                size="sm" 
+              <ThemeButton
+                variant="primary"
+                size="sm"
                 onclick={() => {
                   createModalType = 'contract'
                   showCreateModal = true
@@ -873,7 +912,11 @@
             </div>
             <div class="space-y-4">
               {#each salesData.contracts as contract, i (i)}
-                <div class="flex items-center justify-between p-4 rounded-lg border" style:border-color="var(--color-border)" style:background="var(--color-surface-elevated)">
+                <div
+                  class="flex items-center justify-between p-4 rounded-lg border"
+                  style:border-color="var(--color-border)"
+                  style:background="var(--color-surface-elevated)"
+                >
                   <div class="flex-1">
                     <div class="flex items-center gap-3 mb-2">
                       <FileTextIcon size={20} style="color: var(--color-primary);" />
@@ -883,17 +926,24 @@
                       </ThemeBadge>
                     </div>
                     <p class="text-sm" style:color="var(--color-text-secondary)">
-                      {salesData.customers.find(c => c.id === contract.customer_id)?.name} • {contract.contract_number}
+                      {salesData.customers.find((c) => c.id === contract.customer_id)?.name} • {contract.contract_number}
                     </p>
-                    <div class="flex items-center gap-4 mt-1 text-sm" style:color="var(--color-text-secondary)">
+                    <div
+                      class="flex items-center gap-4 mt-1 text-sm"
+                      style:color="var(--color-text-secondary)"
+                    >
                       <span>총액: {formatCurrency(contract.total_amount)}</span>
                       <span>지급액: {formatCurrency(contract.paid_amount)}</span>
-                      <span>잔액: {formatCurrency(contract.total_amount - contract.paid_amount)}</span>
+                      <span
+                        >잔액: {formatCurrency(contract.total_amount - contract.paid_amount)}</span
+                      >
                     </div>
                   </div>
                   <div class="text-right">
                     <p class="text-xs" style:color="var(--color-text-secondary)">
-                      계약기간: {contract.start_date ? formatDate(contract.start_date) : '-'} ~ {contract.end_date ? formatDate(contract.end_date) : '-'}
+                      계약기간: {contract.start_date ? formatDate(contract.start_date) : '-'} ~ {contract.end_date
+                        ? formatDate(contract.end_date)
+                        : '-'}
                     </p>
                     <div class="flex items-center gap-2 mt-2">
                       <ThemeButton variant="ghost" size="sm" onclick={() => viewContract(contract)}>
@@ -909,16 +959,15 @@
             </div>
           </ThemeCard>
         </ThemeSpacer>
-
       {:else if tab.id === 'transactions'}
         <!-- 거래내역 탭 -->
         <ThemeSpacer size={6}>
           <ThemeCard class="p-6">
             <div class="flex items-center justify-between mb-6">
               <h3 class="text-lg font-semibold" style:color="var(--color-text)">거래 내역</h3>
-              <ThemeButton 
-                variant="primary" 
-                size="sm" 
+              <ThemeButton
+                variant="primary"
+                size="sm"
                 onclick={() => {
                   createModalType = 'transaction'
                   showCreateModal = true
@@ -927,14 +976,20 @@
                 <DollarSignIcon class="w-4 h-4" />
                 거래 추가
               </ThemeButton>
-                </div>
+            </div>
             <div class="space-y-4">
               {#each salesData.transactions as transaction, i (i)}
-                <div class="flex items-center justify-between p-4 rounded-lg border" style:border-color="var(--color-border)" style:background="var(--color-surface-elevated)">
+                <div
+                  class="flex items-center justify-between p-4 rounded-lg border"
+                  style:border-color="var(--color-border)"
+                  style:background="var(--color-surface-elevated)"
+                >
                   <div class="flex-1">
                     <div class="flex items-center gap-3 mb-2">
                       <DollarSignIcon size={20} style="color: var(--color-primary);" />
-                      <h4 class="font-medium" style:color="var(--color-text)">{transaction.transaction_number}</h4>
+                      <h4 class="font-medium" style:color="var(--color-text)">
+                        {transaction.transaction_number}
+                      </h4>
                       <ThemeBadge variant={getStatusColor(transaction.payment_status) as any}>
                         {getStatusLabel(transaction.payment_status)}
                       </ThemeBadge>
@@ -943,7 +998,7 @@
                       </ThemeBadge>
                     </div>
                     <p class="text-sm" style:color="var(--color-text-secondary)">
-                      {salesData.customers.find(c => c.id === transaction.customer_id)?.name}
+                      {salesData.customers.find((c) => c.id === transaction.customer_id)?.name}
                     </p>
                     <p class="text-sm" style:color="var(--color-text-secondary)">
                       {transaction.description}
@@ -974,7 +1029,7 @@
 
 <!-- 거래처 상세 모달 -->
 {#if showCustomerModal && selectedCustomer}
-  <ThemeModal 
+  <ThemeModal
     open={showCustomerModal}
     onclose={() => {
       showCustomerModal = false
@@ -990,29 +1045,43 @@
         </div>
         <div>
           <div class="block text-sm font-medium mb-1" style:color="var(--color-text)">타입</div>
-          <p class="text-sm" style:color="var(--color-text-secondary)">{getTypeLabel(selectedCustomer.type)}</p>
+          <p class="text-sm" style:color="var(--color-text-secondary)">
+            {getTypeLabel(selectedCustomer.type)}
+          </p>
         </div>
         <div>
           <div class="block text-sm font-medium mb-1" style:color="var(--color-text)">담당자</div>
-          <p class="text-sm" style:color="var(--color-text-secondary)">{selectedCustomer.contact_person}</p>
+          <p class="text-sm" style:color="var(--color-text-secondary)">
+            {selectedCustomer.contact_person}
+          </p>
         </div>
         <div>
           <div class="block text-sm font-medium mb-1" style:color="var(--color-text)">연락처</div>
-          <p class="text-sm" style:color="var(--color-text-secondary)">{selectedCustomer.contact_phone}</p>
+          <p class="text-sm" style:color="var(--color-text-secondary)">
+            {selectedCustomer.contact_phone}
+          </p>
         </div>
         <div>
           <div class="block text-sm font-medium mb-1" style:color="var(--color-text)">이메일</div>
-          <p class="text-sm" style:color="var(--color-text-secondary)">{selectedCustomer.contact_email}</p>
+          <p class="text-sm" style:color="var(--color-text-secondary)">
+            {selectedCustomer.contact_email}
+          </p>
         </div>
         <div>
           <div class="block text-sm font-medium mb-1" style:color="var(--color-text)">업종</div>
-          <p class="text-sm" style:color="var(--color-text-secondary)">{selectedCustomer.industry}</p>
+          <p class="text-sm" style:color="var(--color-text-secondary)">
+            {selectedCustomer.industry}
+          </p>
         </div>
         <div>
-          <div class="block text-sm font-medium mb-1" style:color="var(--color-text)">결제 조건</div>
-          <p class="text-sm" style:color="var(--color-text-secondary)">{selectedCustomer.payment_terms}일</p>
-      </div>
-      <div>
+          <div class="block text-sm font-medium mb-1" style:color="var(--color-text)">
+            결제 조건
+          </div>
+          <p class="text-sm" style:color="var(--color-text-secondary)">
+            {selectedCustomer.payment_terms}일
+          </p>
+        </div>
+        <div>
           <div class="block text-sm font-medium mb-1" style:color="var(--color-text)">상태</div>
           <ThemeBadge variant={getStatusColor(selectedCustomer.status) as any}>
             {getStatusLabel(selectedCustomer.status)}
@@ -1025,7 +1094,7 @@
 
 <!-- 생성 모달 -->
 {#if showCreateModal}
-  <ThemeModal 
+  <ThemeModal
     open={showCreateModal}
     onclose={() => {
       showCreateModal = false
@@ -1037,99 +1106,140 @@
   >
     <div class="space-y-4">
       <h3 class="text-lg font-semibold mb-4" style:color="var(--color-text)">
-        {#if createModalType === 'customer'}새 거래처 추가{:else if createModalType === 'opportunity'}새 영업기회 추가{:else if createModalType === 'contract'}새 계약 추가{:else}새 거래 내역 추가{/if}
+        {#if createModalType === 'customer'}새 거래처 추가{:else if createModalType === 'opportunity'}새
+          영업기회 추가{:else if createModalType === 'contract'}새 계약 추가{:else}새 거래 내역 추가{/if}
       </h3>
-      
+
       {#if createModalType === 'customer'}
-      <div>
-          <label class="block text-sm font-medium mb-1" style:color="var(--color-text)">회사명 *</label>
-          <input 
+        <div>
+          <label class="block text-sm font-medium mb-1" style:color="var(--color-text)"
+            >회사명 *</label
+          >
+          <input
             type="text"
-            placeholder="회사명을 입력하세요" 
-            class="w-full px-3 py-2 border rounded-md" 
-            style:background="var(--color-surface)" 
-            style:border-color="var(--color-border)" 
+            placeholder="회사명을 입력하세요"
+            class="w-full px-3 py-2 border rounded-md"
+            style:background="var(--color-surface)"
+            style:border-color="var(--color-border)"
             style:color="var(--color-text)"
             bind:value={customerFormData.name}
           />
-      </div>
+        </div>
         <div>
-          <label class="block text-sm font-medium mb-1" style:color="var(--color-text)">사업자번호 *</label>
-          <input 
+          <label class="block text-sm font-medium mb-1" style:color="var(--color-text)"
+            >사업자번호 *</label
+          >
+          <input
             type="text"
-            placeholder="사업자번호를 입력하세요 (예: 123-45-67890)" 
-            class="w-full px-3 py-2 border rounded-md" 
-            style:background="var(--color-surface)" 
-            style:border-color="var(--color-border)" 
+            placeholder="사업자번호를 입력하세요 (예: 123-45-67890)"
+            class="w-full px-3 py-2 border rounded-md"
+            style:background="var(--color-surface)"
+            style:border-color="var(--color-border)"
             style:color="var(--color-text)"
             bind:value={customerFormData.business_number}
           />
         </div>
         <div>
-          <label class="block text-sm font-medium mb-1" style:color="var(--color-text)">타입 (선택사항)</label>
-          <select class="w-full px-3 py-2 border rounded-md" style:background="var(--color-surface)" style:border-color="var(--color-border)" style:color="var(--color-text)" bind:value={customerFormData.type}>
+          <label class="block text-sm font-medium mb-1" style:color="var(--color-text)"
+            >타입 (선택사항)</label
+          >
+          <select
+            class="w-full px-3 py-2 border rounded-md"
+            style:background="var(--color-surface)"
+            style:border-color="var(--color-border)"
+            style:color="var(--color-text)"
+            bind:value={customerFormData.type}
+          >
             <option value="customer">고객</option>
             <option value="supplier">공급업체</option>
             <option value="both">고객/공급업체</option>
           </select>
         </div>
         <div>
-          <label class="block text-sm font-medium mb-1" style:color="var(--color-text)">담당자 (선택사항)</label>
-          <input 
+          <label class="block text-sm font-medium mb-1" style:color="var(--color-text)"
+            >담당자 (선택사항)</label
+          >
+          <input
             type="text"
-            placeholder="담당자명을 입력하세요" 
-            class="w-full px-3 py-2 border rounded-md" 
-            style:background="var(--color-surface)" 
-            style:border-color="var(--color-border)" 
+            placeholder="담당자명을 입력하세요"
+            class="w-full px-3 py-2 border rounded-md"
+            style:background="var(--color-surface)"
+            style:border-color="var(--color-border)"
             style:color="var(--color-text)"
             bind:value={customerFormData.contact_person}
           />
         </div>
         <div>
-          <label class="block text-sm font-medium mb-1" style:color="var(--color-text)">연락처 (선택사항)</label>
-          <input 
+          <label class="block text-sm font-medium mb-1" style:color="var(--color-text)"
+            >연락처 (선택사항)</label
+          >
+          <input
             type="text"
-            placeholder="연락처를 입력하세요" 
-            class="w-full px-3 py-2 border rounded-md" 
-            style:background="var(--color-surface)" 
-            style:border-color="var(--color-border)" 
+            placeholder="연락처를 입력하세요"
+            class="w-full px-3 py-2 border rounded-md"
+            style:background="var(--color-surface)"
+            style:border-color="var(--color-border)"
             style:color="var(--color-text)"
             bind:value={customerFormData.contact_phone}
           />
         </div>
         <div>
-          <label class="block text-sm font-medium mb-1" style:color="var(--color-text)">이메일 (선택사항)</label>
-          <input 
+          <label class="block text-sm font-medium mb-1" style:color="var(--color-text)"
+            >이메일 (선택사항)</label
+          >
+          <input
             type="email"
-            placeholder="이메일을 입력하세요" 
-            class="w-full px-3 py-2 border rounded-md" 
-            style:background="var(--color-surface)" 
-            style:border-color="var(--color-border)" 
+            placeholder="이메일을 입력하세요"
+            class="w-full px-3 py-2 border rounded-md"
+            style:background="var(--color-surface)"
+            style:border-color="var(--color-border)"
             style:color="var(--color-text)"
             bind:value={customerFormData.contact_email}
           />
         </div>
         <div>
-          <label class="block text-sm font-medium mb-1" style:color="var(--color-text)">업종 (선택사항)</label>
-          <input 
+          <label class="block text-sm font-medium mb-1" style:color="var(--color-text)"
+            >업종 (선택사항)</label
+          >
+          <input
             type="text"
-            placeholder="업종을 입력하세요" 
-            class="w-full px-3 py-2 border rounded-md" 
-            style:background="var(--color-surface)" 
-            style:border-color="var(--color-border)" 
+            placeholder="업종을 입력하세요"
+            class="w-full px-3 py-2 border rounded-md"
+            style:background="var(--color-surface)"
+            style:border-color="var(--color-border)"
             style:color="var(--color-text)"
             bind:value={customerFormData.industry}
           />
         </div>
         <div>
-          <div class="block text-sm font-medium mb-1" style:color="var(--color-text)">결제 조건 (선택사항)</div>
-          <input type="number" placeholder="결제 조건 (일)" class="w-full px-3 py-2 border rounded-md" style:background="var(--color-surface)" style:border-color="var(--color-border)" style:color="var(--color-text)" bind:value={customerFormData.payment_terms} />
+          <div class="block text-sm font-medium mb-1" style:color="var(--color-text)">
+            결제 조건 (선택사항)
+          </div>
+          <input
+            type="number"
+            placeholder="결제 조건 (일)"
+            class="w-full px-3 py-2 border rounded-md"
+            style:background="var(--color-surface)"
+            style:border-color="var(--color-border)"
+            style:color="var(--color-text)"
+            bind:value={customerFormData.payment_terms}
+          />
         </div>
       {:else if createModalType === 'opportunity'}
-        <ThemeInput label="제목" placeholder="영업기회 제목을 입력하세요" bind:value={opportunityFormData.title} />
+        <ThemeInput
+          label="제목"
+          placeholder="영업기회 제목을 입력하세요"
+          bind:value={opportunityFormData.title}
+        />
         <div>
           <div class="block text-sm font-medium mb-1" style:color="var(--color-text)">거래처</div>
-          <select class="w-full px-3 py-2 border rounded-md" style:background="var(--color-surface)" style:border-color="var(--color-border)" style:color="var(--color-text)" bind:value={opportunityFormData.customer_id}>
+          <select
+            class="w-full px-3 py-2 border rounded-md"
+            style:background="var(--color-surface)"
+            style:border-color="var(--color-border)"
+            style:color="var(--color-text)"
+            bind:value={opportunityFormData.customer_id}
+          >
             {#each salesData.customers as customer}
               <option value={customer.id}>{customer.name}</option>
             {/each}
@@ -1137,28 +1247,75 @@
         </div>
         <div>
           <div class="block text-sm font-medium mb-1" style:color="var(--color-text)">타입</div>
-          <select class="w-full px-3 py-2 border rounded-md" style:background="var(--color-surface)" style:border-color="var(--color-border)" style:color="var(--color-text)" bind:value={opportunityFormData.type}>
+          <select
+            class="w-full px-3 py-2 border rounded-md"
+            style:background="var(--color-surface)"
+            style:border-color="var(--color-border)"
+            style:color="var(--color-text)"
+            bind:value={opportunityFormData.type}
+          >
             <option value="sales">매출</option>
             <option value="purchase">매입</option>
           </select>
         </div>
         <div>
-          <div class="block text-sm font-medium mb-1" style:color="var(--color-text)">예상 금액</div>
-          <input type="number" placeholder="예상 금액을 입력하세요" class="w-full px-3 py-2 border rounded-md" style:background="var(--color-surface)" style:border-color="var(--color-border)" style:color="var(--color-text)" bind:value={opportunityFormData.expected_amount} />
+          <div class="block text-sm font-medium mb-1" style:color="var(--color-text)">
+            예상 금액
+          </div>
+          <input
+            type="number"
+            placeholder="예상 금액을 입력하세요"
+            class="w-full px-3 py-2 border rounded-md"
+            style:background="var(--color-surface)"
+            style:border-color="var(--color-border)"
+            style:color="var(--color-text)"
+            bind:value={opportunityFormData.expected_amount}
+          />
         </div>
         <div>
-          <div class="block text-sm font-medium mb-1" style:color="var(--color-text)">성공 확률 (%)</div>
-          <input type="number" min="0" max="100" placeholder="성공 확률을 입력하세요" class="w-full px-3 py-2 border rounded-md" style:background="var(--color-surface)" style:border-color="var(--color-border)" style:color="var(--color-text)" bind:value={opportunityFormData.probability} />
+          <div class="block text-sm font-medium mb-1" style:color="var(--color-text)">
+            성공 확률 (%)
+          </div>
+          <input
+            type="number"
+            min="0"
+            max="100"
+            placeholder="성공 확률을 입력하세요"
+            class="w-full px-3 py-2 border rounded-md"
+            style:background="var(--color-surface)"
+            style:border-color="var(--color-border)"
+            style:color="var(--color-text)"
+            bind:value={opportunityFormData.probability}
+          />
         </div>
         <div>
-          <div class="block text-sm font-medium mb-1" style:color="var(--color-text)">예상 마감일</div>
-          <input type="date" class="w-full px-3 py-2 border rounded-md" style:background="var(--color-surface)" style:border-color="var(--color-border)" style:color="var(--color-text)" bind:value={opportunityFormData.expected_close_date} />
+          <div class="block text-sm font-medium mb-1" style:color="var(--color-text)">
+            예상 마감일
+          </div>
+          <input
+            type="date"
+            class="w-full px-3 py-2 border rounded-md"
+            style:background="var(--color-surface)"
+            style:border-color="var(--color-border)"
+            style:color="var(--color-text)"
+            bind:value={opportunityFormData.expected_close_date}
+          />
         </div>
       {:else if createModalType === 'contract'}
-        <ThemeInput label="계약명" placeholder="계약명을 입력하세요" bind:value={contractFormData.title} />
+        <ThemeInput
+          label="계약명"
+          placeholder="계약명을 입력하세요"
+          bind:value={contractFormData.title}
+        />
         <div>
           <div class="block text-sm font-medium mb-1" style:color="var(--color-text)">거래처</div>
-          <select class="w-full px-3 py-2 border rounded-md" style:background="var(--color-surface)" style:border-color="var(--color-border)" style:color="var(--color-text)" bind:value={contractFormData.customer_id}>
+          <select
+            class="w-full px-3 py-2 border rounded-md"
+            style:background="var(--color-surface)"
+            style:border-color="var(--color-border)"
+            style:color="var(--color-text)"
+            bind:value={contractFormData.customer_id}
+          >
             {#each salesData.customers as customer}
               <option value={customer.id}>{customer.name}</option>
             {/each}
@@ -1166,55 +1323,141 @@
         </div>
         <div>
           <div class="block text-sm font-medium mb-1" style:color="var(--color-text)">타입</div>
-          <select class="w-full px-3 py-2 border rounded-md" style:background="var(--color-surface)" style:border-color="var(--color-border)" style:color="var(--color-text)" bind:value={contractFormData.type}>
+          <select
+            class="w-full px-3 py-2 border rounded-md"
+            style:background="var(--color-surface)"
+            style:border-color="var(--color-border)"
+            style:color="var(--color-text)"
+            bind:value={contractFormData.type}
+          >
             <option value="sales">매출</option>
             <option value="purchase">매입</option>
           </select>
         </div>
         <div>
-          <div class="block text-sm font-medium mb-1" style:color="var(--color-text)">계약 금액</div>
-          <input type="number" placeholder="계약 금액을 입력하세요" class="w-full px-3 py-2 border rounded-md" style:background="var(--color-surface)" style:border-color="var(--color-border)" style:color="var(--color-text)" bind:value={contractFormData.amount} />
+          <div class="block text-sm font-medium mb-1" style:color="var(--color-text)">
+            계약 금액
+          </div>
+          <input
+            type="number"
+            placeholder="계약 금액을 입력하세요"
+            class="w-full px-3 py-2 border rounded-md"
+            style:background="var(--color-surface)"
+            style:border-color="var(--color-border)"
+            style:color="var(--color-text)"
+            bind:value={contractFormData.amount}
+          />
         </div>
         <div>
-          <div class="block text-sm font-medium mb-1" style:color="var(--color-text)">계약 시작일</div>
-          <input type="date" class="w-full px-3 py-2 border rounded-md" style:background="var(--color-surface)" style:border-color="var(--color-border)" style:color="var(--color-text)" bind:value={contractFormData.start_date} />
+          <div class="block text-sm font-medium mb-1" style:color="var(--color-text)">
+            계약 시작일
+          </div>
+          <input
+            type="date"
+            class="w-full px-3 py-2 border rounded-md"
+            style:background="var(--color-surface)"
+            style:border-color="var(--color-border)"
+            style:color="var(--color-text)"
+            bind:value={contractFormData.start_date}
+          />
         </div>
         <div>
-          <div class="block text-sm font-medium mb-1" style:color="var(--color-text)">계약 종료일</div>
-          <input type="date" class="w-full px-3 py-2 border rounded-md" style:background="var(--color-surface)" style:border-color="var(--color-border)" style:color="var(--color-text)" bind:value={contractFormData.end_date} />
+          <div class="block text-sm font-medium mb-1" style:color="var(--color-text)">
+            계약 종료일
+          </div>
+          <input
+            type="date"
+            class="w-full px-3 py-2 border rounded-md"
+            style:background="var(--color-surface)"
+            style:border-color="var(--color-border)"
+            style:color="var(--color-text)"
+            bind:value={contractFormData.end_date}
+          />
         </div>
       {:else if createModalType === 'transaction'}
-        <ThemeInput label="거래 설명" placeholder="거래 설명을 입력하세요" bind:value={transactionFormData.description} />
+        <ThemeInput
+          label="거래 설명"
+          placeholder="거래 설명을 입력하세요"
+          bind:value={transactionFormData.description}
+        />
         <div>
           <div class="block text-sm font-medium mb-1" style:color="var(--color-text)">거래처</div>
-          <select class="w-full px-3 py-2 border rounded-md" style:background="var(--color-surface)" style:border-color="var(--color-border)" style:color="var(--color-text)" bind:value={transactionFormData.customer_id}>
+          <select
+            class="w-full px-3 py-2 border rounded-md"
+            style:background="var(--color-surface)"
+            style:border-color="var(--color-border)"
+            style:color="var(--color-text)"
+            bind:value={transactionFormData.customer_id}
+          >
             {#each salesData.customers as customer}
               <option value={customer.id}>{customer.name}</option>
             {/each}
           </select>
         </div>
         <div>
-          <div class="block text-sm font-medium mb-1" style:color="var(--color-text)">거래 타입</div>
-          <select class="w-full px-3 py-2 border rounded-md" style:background="var(--color-surface)" style:border-color="var(--color-border)" style:color="var(--color-text)" bind:value={transactionFormData.type}>
+          <div class="block text-sm font-medium mb-1" style:color="var(--color-text)">
+            거래 타입
+          </div>
+          <select
+            class="w-full px-3 py-2 border rounded-md"
+            style:background="var(--color-surface)"
+            style:border-color="var(--color-border)"
+            style:color="var(--color-text)"
+            bind:value={transactionFormData.type}
+          >
             <option value="sales">매출</option>
             <option value="purchase">매입</option>
           </select>
         </div>
         <div>
-          <div class="block text-sm font-medium mb-1" style:color="var(--color-text)">거래 금액</div>
-          <input type="number" placeholder="거래 금액을 입력하세요" class="w-full px-3 py-2 border rounded-md" style:background="var(--color-surface)" style:border-color="var(--color-border)" style:color="var(--color-text)" bind:value={transactionFormData.amount} />
+          <div class="block text-sm font-medium mb-1" style:color="var(--color-text)">
+            거래 금액
+          </div>
+          <input
+            type="number"
+            placeholder="거래 금액을 입력하세요"
+            class="w-full px-3 py-2 border rounded-md"
+            style:background="var(--color-surface)"
+            style:border-color="var(--color-border)"
+            style:color="var(--color-text)"
+            bind:value={transactionFormData.amount}
+          />
         </div>
         <div>
           <div class="block text-sm font-medium mb-1" style:color="var(--color-text)">거래일</div>
-          <input type="date" class="w-full px-3 py-2 border rounded-md" style:background="var(--color-surface)" style:border-color="var(--color-border)" style:color="var(--color-text)" bind:value={transactionFormData.transaction_date} />
+          <input
+            type="date"
+            class="w-full px-3 py-2 border rounded-md"
+            style:background="var(--color-surface)"
+            style:border-color="var(--color-border)"
+            style:color="var(--color-text)"
+            bind:value={transactionFormData.transaction_date}
+          />
         </div>
         <div>
-          <div class="block text-sm font-medium mb-1" style:color="var(--color-text)">만료일 (선택사항)</div>
-          <input type="date" class="w-full px-3 py-2 border rounded-md" style:background="var(--color-surface)" style:border-color="var(--color-border)" style:color="var(--color-text)" bind:value={transactionFormData.due_date} />
+          <div class="block text-sm font-medium mb-1" style:color="var(--color-text)">
+            만료일 (선택사항)
+          </div>
+          <input
+            type="date"
+            class="w-full px-3 py-2 border rounded-md"
+            style:background="var(--color-surface)"
+            style:border-color="var(--color-border)"
+            style:color="var(--color-text)"
+            bind:value={transactionFormData.due_date}
+          />
         </div>
         <div>
-          <div class="block text-sm font-medium mb-1" style:color="var(--color-text)">결제 상태</div>
-          <select class="w-full px-3 py-2 border rounded-md" style:background="var(--color-surface)" style:border-color="var(--color-border)" style:color="var(--color-text)" bind:value={transactionFormData.payment_status}>
+          <div class="block text-sm font-medium mb-1" style:color="var(--color-text)">
+            결제 상태
+          </div>
+          <select
+            class="w-full px-3 py-2 border rounded-md"
+            style:background="var(--color-surface)"
+            style:border-color="var(--color-border)"
+            style:color="var(--color-text)"
+            bind:value={transactionFormData.payment_status}
+          >
             <option value="pending">대기</option>
             <option value="paid">완료</option>
             <option value="overdue">연체</option>
@@ -1231,7 +1474,7 @@
 
 <!-- 거래처 수정 모달 -->
 {#if showEditModal && editingCustomer}
-  <ThemeModal 
+  <ThemeModal
     open={showEditModal}
     size="lg"
     onclose={() => {
@@ -1242,110 +1485,141 @@
   >
     <div class="space-y-4">
       <h3 class="text-lg font-semibold mb-4" style:color="var(--color-text)">거래처 수정</h3>
-      
+
       <div>
-        <label class="block text-sm font-medium mb-1" style:color="var(--color-text)">회사명 *</label>
-        <input 
+        <label class="block text-sm font-medium mb-1" style:color="var(--color-text)"
+          >회사명 *</label
+        >
+        <input
           type="text"
-          placeholder="회사명을 입력하세요" 
-          class="w-full px-3 py-2 border rounded-md" 
-          style:background="var(--color-surface)" 
-          style:border-color="var(--color-border)" 
+          placeholder="회사명을 입력하세요"
+          class="w-full px-3 py-2 border rounded-md"
+          style:background="var(--color-surface)"
+          style:border-color="var(--color-border)"
           style:color="var(--color-text)"
           bind:value={customerFormData.name}
         />
       </div>
       <div>
-        <label class="block text-sm font-medium mb-1" style:color="var(--color-text)">사업자번호 *</label>
-        <input 
+        <label class="block text-sm font-medium mb-1" style:color="var(--color-text)"
+          >사업자번호 *</label
+        >
+        <input
           type="text"
-          placeholder="사업자번호를 입력하세요 (예: 123-45-67890)" 
-          class="w-full px-3 py-2 border rounded-md" 
-          style:background="var(--color-surface)" 
-          style:border-color="var(--color-border)" 
+          placeholder="사업자번호를 입력하세요 (예: 123-45-67890)"
+          class="w-full px-3 py-2 border rounded-md"
+          style:background="var(--color-surface)"
+          style:border-color="var(--color-border)"
           style:color="var(--color-text)"
           bind:value={customerFormData.business_number}
         />
       </div>
       <div>
-        <label class="block text-sm font-medium mb-1" style:color="var(--color-text)">타입 (선택사항)</label>
-        <select class="w-full px-3 py-2 border rounded-md" style:background="var(--color-surface)" style:border-color="var(--color-border)" style:color="var(--color-text)" bind:value={customerFormData.type}>
+        <label class="block text-sm font-medium mb-1" style:color="var(--color-text)"
+          >타입 (선택사항)</label
+        >
+        <select
+          class="w-full px-3 py-2 border rounded-md"
+          style:background="var(--color-surface)"
+          style:border-color="var(--color-border)"
+          style:color="var(--color-text)"
+          bind:value={customerFormData.type}
+        >
           <option value="customer">고객</option>
           <option value="supplier">공급업체</option>
           <option value="both">고객/공급업체</option>
         </select>
       </div>
       <div>
-        <label class="block text-sm font-medium mb-1" style:color="var(--color-text)">담당자 (선택사항)</label>
-        <input 
+        <label class="block text-sm font-medium mb-1" style:color="var(--color-text)"
+          >담당자 (선택사항)</label
+        >
+        <input
           type="text"
-          placeholder="담당자명을 입력하세요" 
-          class="w-full px-3 py-2 border rounded-md" 
-          style:background="var(--color-surface)" 
-          style:border-color="var(--color-border)" 
+          placeholder="담당자명을 입력하세요"
+          class="w-full px-3 py-2 border rounded-md"
+          style:background="var(--color-surface)"
+          style:border-color="var(--color-border)"
           style:color="var(--color-text)"
           bind:value={customerFormData.contact_person}
         />
       </div>
       <div>
-        <label class="block text-sm font-medium mb-1" style:color="var(--color-text)">연락처 (선택사항)</label>
-        <input 
+        <label class="block text-sm font-medium mb-1" style:color="var(--color-text)"
+          >연락처 (선택사항)</label
+        >
+        <input
           type="text"
-          placeholder="연락처를 입력하세요" 
-          class="w-full px-3 py-2 border rounded-md" 
-          style:background="var(--color-surface)" 
-          style:border-color="var(--color-border)" 
+          placeholder="연락처를 입력하세요"
+          class="w-full px-3 py-2 border rounded-md"
+          style:background="var(--color-surface)"
+          style:border-color="var(--color-border)"
           style:color="var(--color-text)"
           bind:value={customerFormData.contact_phone}
         />
       </div>
       <div>
-        <label class="block text-sm font-medium mb-1" style:color="var(--color-text)">이메일 (선택사항)</label>
-        <input 
+        <label class="block text-sm font-medium mb-1" style:color="var(--color-text)"
+          >이메일 (선택사항)</label
+        >
+        <input
           type="email"
-          placeholder="이메일을 입력하세요" 
-          class="w-full px-3 py-2 border rounded-md" 
-          style:background="var(--color-surface)" 
-          style:border-color="var(--color-border)" 
+          placeholder="이메일을 입력하세요"
+          class="w-full px-3 py-2 border rounded-md"
+          style:background="var(--color-surface)"
+          style:border-color="var(--color-border)"
           style:color="var(--color-text)"
           bind:value={customerFormData.contact_email}
         />
       </div>
       <div>
-        <label class="block text-sm font-medium mb-1" style:color="var(--color-text)">업종 (선택사항)</label>
-        <input 
+        <label class="block text-sm font-medium mb-1" style:color="var(--color-text)"
+          >업종 (선택사항)</label
+        >
+        <input
           type="text"
-          placeholder="업종을 입력하세요" 
-          class="w-full px-3 py-2 border rounded-md" 
-          style:background="var(--color-surface)" 
-          style:border-color="var(--color-border)" 
+          placeholder="업종을 입력하세요"
+          class="w-full px-3 py-2 border rounded-md"
+          style:background="var(--color-surface)"
+          style:border-color="var(--color-border)"
           style:color="var(--color-text)"
           bind:value={customerFormData.industry}
         />
       </div>
       <div>
-        <label class="block text-sm font-medium mb-1" style:color="var(--color-text)">결제 조건 (선택사항)</label>
-        <input type="number" placeholder="결제 조건 (일)" class="w-full px-3 py-2 border rounded-md" style:background="var(--color-surface)" style:border-color="var(--color-border)" style:color="var(--color-text)" bind:value={customerFormData.payment_terms} />
+        <label class="block text-sm font-medium mb-1" style:color="var(--color-text)"
+          >결제 조건 (선택사항)</label
+        >
+        <input
+          type="number"
+          placeholder="결제 조건 (일)"
+          class="w-full px-3 py-2 border rounded-md"
+          style:background="var(--color-surface)"
+          style:border-color="var(--color-border)"
+          style:color="var(--color-text)"
+          bind:value={customerFormData.payment_terms}
+        />
       </div>
     </div>
     <div class="flex justify-end gap-2 mt-6">
-      <ThemeButton variant="secondary" onclick={() => {
-        showEditModal = false
-        editingCustomer = null
-        resetCustomerForm()
-      }}>
+      <ThemeButton
+        variant="secondary"
+        onclick={() => {
+          showEditModal = false
+          editingCustomer = null
+          resetCustomerForm()
+        }}
+      >
         취소
       </ThemeButton>
-      <ThemeButton variant="primary" onclick={updateCustomer}>
-        수정
-      </ThemeButton>
+      <ThemeButton variant="primary" onclick={updateCustomer}>수정</ThemeButton>
     </div>
   </ThemeModal>
 {/if}
 
 <!-- 삭제 확인 모달 -->
 {#if showDeleteConfirm && customerToDelete}
-  <ThemeModal 
+  <ThemeModal
     open={showDeleteConfirm}
     onclose={() => {
       showDeleteConfirm = false
@@ -1367,15 +1641,16 @@
       </div>
     </div>
     <div class="flex justify-end gap-2 mt-6">
-      <ThemeButton variant="secondary" onclick={() => {
-        showDeleteConfirm = false
-        customerToDelete = null
-      }}>
+      <ThemeButton
+        variant="secondary"
+        onclick={() => {
+          showDeleteConfirm = false
+          customerToDelete = null
+        }}
+      >
         취소
       </ThemeButton>
-      <ThemeButton variant="error" onclick={handleDeleteCustomer}>
-        삭제
-      </ThemeButton>
+      <ThemeButton variant="error" onclick={handleDeleteCustomer}>삭제</ThemeButton>
     </div>
   </ThemeModal>
 {/if}

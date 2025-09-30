@@ -55,7 +55,9 @@ export const GET: RequestHandler = async ({ url }) => {
     }
 
     if (search) {
-      whereConditions.push(`(transaction_number ILIKE $${paramIndex} OR description ILIKE $${paramIndex} OR notes ILIKE $${paramIndex})`)
+      whereConditions.push(
+        `(transaction_number ILIKE $${paramIndex} OR description ILIKE $${paramIndex} OR notes ILIKE $${paramIndex})`,
+      )
       params.push(`%${search}%`)
       paramIndex++
     }
@@ -76,7 +78,7 @@ export const GET: RequestHandler = async ({ url }) => {
       ${whereClause}
       ORDER BY t.transaction_date DESC, t.created_at DESC
       `,
-      params
+      params,
     )
 
     const response: SalesApiResponse<Transaction[]> = {
@@ -110,10 +112,9 @@ export const POST: RequestHandler = async ({ request }) => {
     }
 
     // 거래처 존재 확인
-    const customerCheck = await query(
-      'SELECT id FROM sales_customers WHERE id = $1',
-      [data.customer_id]
-    )
+    const customerCheck = await query('SELECT id FROM sales_customers WHERE id = $1', [
+      data.customer_id,
+    ])
 
     if (customerCheck.rows.length === 0) {
       const response: SalesApiResponse<null> = {
@@ -125,10 +126,9 @@ export const POST: RequestHandler = async ({ request }) => {
 
     // 계약 존재 확인 (선택적)
     if (data.contract_id) {
-      const contractCheck = await query(
-        'SELECT id FROM sales_contracts WHERE id = $1',
-        [data.contract_id]
-      )
+      const contractCheck = await query('SELECT id FROM sales_contracts WHERE id = $1', [
+        data.contract_id,
+      ])
 
       if (contractCheck.rows.length === 0) {
         const response: SalesApiResponse<null> = {
@@ -165,7 +165,7 @@ export const POST: RequestHandler = async ({ request }) => {
         data.description || null,
         data.notes || null,
         data.created_by || null,
-      ]
+      ],
     )
 
     const response: SalesApiResponse<Transaction> = {
