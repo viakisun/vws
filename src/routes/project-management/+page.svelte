@@ -5,6 +5,7 @@
   import { goto } from '$app/navigation'
   import { page } from '$app/state'
   import PageLayout from '$lib/components/layout/PageLayout.svelte'
+  import AnnualBudgetForm from '$lib/components/project-management/AnnualBudgetForm.svelte'
   import ParticipationCard from '$lib/components/project-management/ParticipationCard.svelte'
   import ProjectCreationForm from '$lib/components/project-management/ProjectCreationForm.svelte'
   import ProjectListCard from '$lib/components/project-management/ProjectListCard.svelte'
@@ -150,6 +151,7 @@
   let selectedProject: any = $state(null)
   let selectedProjectId = $state('')
   let showCreateProjectModal = $state(false)
+  let showBudgetModal = $state(false)
 
   // 탭 변경 핸들러
   function handleTabChange(tabId) {
@@ -399,6 +401,7 @@
         on:create-project={() => (showCreateProjectModal = true)}
         on:project-deleted={handleProjectDeleted}
         on:refresh={loadProjectData}
+        on:show-budget-modal={() => (showBudgetModal = true)}
       />
     {/if}
 
@@ -414,5 +417,18 @@
 {#if browser}
   <ThemeModal open={showCreateProjectModal} onclose={() => (showCreateProjectModal = false)}>
     <ProjectCreationForm on:projectCreated={handleProjectCreated} />
+  </ThemeModal>
+{/if}
+
+<!-- 예산 수정 모달 -->
+{#if browser && selectedProject}
+  <ThemeModal open={showBudgetModal} onclose={() => (showBudgetModal = false)}>
+    <AnnualBudgetForm
+      projectId={selectedProject.id}
+      on:budget-updated={() => {
+        showBudgetModal = false
+        loadProjectData()
+      }}
+    />
   </ThemeModal>
 {/if}
