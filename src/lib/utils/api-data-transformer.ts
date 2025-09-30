@@ -66,8 +66,8 @@ export function transformProjectData(project: Record<string, unknown>) {
   return {
     ...otherFields,
     // camelCase로 변환된 필드들만 포함
-    startDate: formatDateForAPI(String(start_date)),
-    endDate: formatDateForAPI(String(end_date)),
+    startDate: start_date && start_date !== 'null' ? formatDateForAPI(String(start_date)) : null,
+    endDate: end_date && end_date !== 'null' ? formatDateForAPI(String(end_date)) : null,
     managerId: manager_id,
     budgetTotal: budget_total,
     sponsorType: sponsor_type,

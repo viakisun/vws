@@ -240,22 +240,16 @@
         issues.push(`${projectName}: 코드가 누락되었습니다.`)
       }
 
-      // 기획 단계가 아닌 경우에만 필수인 필드들
-      if (!isPlanning) {
-        if (!project.startDate) {
-          issues.push(`${projectName}: 진행/완료 상태 프로젝트는 시작일이 필요합니다.`)
-        }
-        if (!project.endDate) {
-          issues.push(`${projectName}: 진행/완료 상태 프로젝트는 종료일이 필요합니다.`)
-        }
-      } else {
-        // 기획 단계에서는 경고만 표시
-        if (!project.startDate) {
-          warnings.push(`${projectName}: 시작일이 설정되지 않았습니다. (기획 단계이므로 선택사항)`)
-        }
-        if (!project.endDate) {
-          warnings.push(`${projectName}: 종료일이 설정되지 않았습니다. (기획 단계이므로 선택사항)`)
-        }
+      // 날짜 필드 검증 - 모든 상태에서 경고만 표시 (에러로 처리하지 않음)
+      if (!project.startDate) {
+        warnings.push(
+          `${projectName}: 시작일이 설정되지 않았습니다. ${isPlanning ? '(기획 단계)' : '(진행/완료 상태)'}`,
+        )
+      }
+      if (!project.endDate) {
+        warnings.push(
+          `${projectName}: 종료일이 설정되지 않았습니다. ${isPlanning ? '(기획 단계)' : '(진행/완료 상태)'}`,
+        )
       }
 
       // 날짜 유효성 검증 (날짜가 있는 경우에만)
