@@ -14,7 +14,7 @@ export const GET: RequestHandler = async () => {
       buildDate: new Date().toISOString().split('T')[0], // YYYY-MM-DD 형식
       environment: process.env.NODE_ENV || 'development',
       name: packageJson.name,
-      description: packageJson.description || 'VWS - Virtual Workspace System',
+      description: packageJson.description || 'VIA Workstream',
     }
 
     return json(versionInfo)
@@ -27,7 +27,7 @@ export const GET: RequestHandler = async () => {
         buildDate: new Date().toISOString().split('T')[0],
         environment: 'development',
         name: 'vws',
-        description: 'VWS - Virtual Workspace System',
+        description: 'VIA Workstream',
       },
       { status: 200 },
     )
