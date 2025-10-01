@@ -2561,10 +2561,10 @@
               {#each projectBudgets.filter((budget) => checkBudgetMismatch(budget)?.hasMismatch) as budget}
                 {@const mismatchInfo = checkBudgetMismatch(budget)}
                 <div class="text-xs text-red-600">
-                {formatPeriodDisplay(budget)}: 예산 {formatNumber(
-                  mismatchInfo?.annualBudgetTotal || 0,
-                  true,
-                )} vs 연구개발비 {formatNumber(mismatchInfo?.researchCostTotal || 0, true)}
+                  {formatPeriodDisplay(budget)}: 예산 {formatNumber(
+                    mismatchInfo?.annualBudgetTotal || 0,
+                    true,
+                  )} vs 연구개발비 {formatNumber(mismatchInfo?.researchCostTotal || 0, true)}
                 </div>
               {/each}
             </div>
