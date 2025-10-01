@@ -272,14 +272,14 @@
 
   // 영업기회 보기
   function viewOpportunity(opportunity: Opportunity) {
-    selectedOpportunity = opportunity
-    showOpportunityModal = true
+    _selectedOpportunity = opportunity
+    _showOpportunityModal = true
   }
 
   // 계약 보기
   function viewContract(contract: Contract) {
-    selectedContract = contract
-    showContractModal = true
+    _selectedContract = contract
+    _showContractModal = true
   }
 
   // 거래처 수정
