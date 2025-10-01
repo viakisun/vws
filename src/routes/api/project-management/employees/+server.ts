@@ -1,7 +1,7 @@
 import { query } from '$lib/database/connection'
+import { logger } from '$lib/utils/logger'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
-import { logger } from '$lib/utils/logger'
 
 // GET /api/project-management/employees - 직원 목록 조회 (프로젝트 멤버 추가용)
 export const GET: RequestHandler = async ({ url }) => {
@@ -10,7 +10,6 @@ export const GET: RequestHandler = async ({ url }) => {
     const department = url.searchParams.get('department')
     const position = url.searchParams.get('position')
     const search = url.searchParams.get('search')
-    const excludeProjectMembers = url.searchParams.get('excludeProjectMembers') === 'true'
 
     // 직원 목록 API 호출
 
@@ -63,17 +62,6 @@ export const GET: RequestHandler = async ({ url }) => {
 				OR e.employee_id ILIKE $${paramIndex}
 			)`
       params.push(`%${search}%`)
-      paramIndex++
-    }
-
-    // 특정 프로젝트의 멤버를 제외
-    if (excludeProjectMembers && projectId) {
-      sqlQuery += ` AND e.id NOT IN (
-				SELECT pm.employee_id 
-				FROM project_members pm 
-				WHERE pm.project_id = $${paramIndex} AND pm.status = 'active'
-			)`
-      params.push(projectId)
       paramIndex++
     }
 

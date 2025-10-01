@@ -63,8 +63,8 @@
 
   // 숫자 포맷팅 (천원 단위)
   function formatCurrency(amount: number): string {
-    const thousands = amount / 1000
-    return thousands.toLocaleString()
+    const thousands = Math.floor(amount / 1000)
+    return thousands.toLocaleString('ko-KR')
   }
 
   // 비율 색상

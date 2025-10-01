@@ -10,8 +10,8 @@ export const GET: RequestHandler = async ({ url }) => {
     const type = url.searchParams.get('type') || 'all'
     const search = url.searchParams.get('search') || ''
 
-    let whereConditions: string[] = []
-    let params: (string | number)[] = []
+    const whereConditions: string[] = []
+    const params: (string | number)[] = []
     let paramIndex = 1
 
     if (status !== 'all') {

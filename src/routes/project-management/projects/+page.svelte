@@ -1,10 +1,9 @@
 <script lang="ts">
-  import Card from '$lib/components/ui/Card.svelte'
   import Badge from '$lib/components/ui/Badge.svelte'
-  import Progress from '$lib/components/ui/Progress.svelte'
+  import Card from '$lib/components/ui/Card.svelte'
   import { formatKRW } from '$lib/utils/format'
-  import { getProjectStatusColor } from '$lib/utils/project-status'
   import { logger } from '$lib/utils/logger'
+  import { getProjectStatusColor } from '$lib/utils/project-status'
   import { onMount } from 'svelte'
 
   let query = $state('')

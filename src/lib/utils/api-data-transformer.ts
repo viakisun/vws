@@ -3,6 +3,7 @@
 
 import { formatDateForAPI } from './date-calculator'
 import { formatEmployeeName } from './format'
+import { logger } from './logger'
 
 /**
  * 한국 이름을 표준 형식으로 포맷팅 (성+이름, 띄어쓰기 없음)
@@ -100,12 +101,24 @@ export function transformProjectMemberData(member: Record<string, unknown>) {
     start_date,
     end_date,
     participation_rate,
-    contribution_type,
     monthly_amount,
+    cash_amount,
+    in_kind_amount,
     created_at,
     updated_at,
     ...otherFields
   } = member
+
+  // 안전한 날짜 변환 함수
+  function safeFormatDate(dateValue: unknown): string {
+    if (!dateValue) return ''
+    try {
+      return formatDateForAPI(String(dateValue))
+    } catch (error) {
+      logger.error('Date formatting error:', error, 'for value:', dateValue)
+      return String(dateValue)
+    }
+  }
 
   return {
     ...otherFields,
@@ -113,13 +126,14 @@ export function transformProjectMemberData(member: Record<string, unknown>) {
     employeeId: employee_id,
     employeeName: employee_name,
     projectId: project_id,
-    startDate: formatDateForAPI(String(start_date)),
-    endDate: formatDateForAPI(String(end_date)),
+    startDate: safeFormatDate(start_date),
+    endDate: safeFormatDate(end_date),
     participationRate: participation_rate,
-    contributionType: contribution_type,
     monthlyAmount: monthly_amount,
-    createdAt: created_at,
-    updatedAt: updated_at,
+    cashAmount: cash_amount,
+    inKindAmount: in_kind_amount,
+    createdAt: safeFormatDate(created_at),
+    updatedAt: safeFormatDate(updated_at),
   }
 }
 

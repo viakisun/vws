@@ -85,7 +85,20 @@ export const GET: RequestHandler = async ({ url }) => {
 
     sqlQuery += `
 			GROUP BY p.id, e.first_name, e.last_name
-			ORDER BY p.created_at DESC
+			ORDER BY 
+				CASE 
+					WHEN p.code ~ '^[0-9]{4}-[0-9]+-' THEN 
+						CAST(SUBSTRING(p.code FROM '^([0-9]{4})') AS INTEGER)
+					ELSE 
+						9999
+				END,
+				CASE 
+					WHEN p.code ~ '^[0-9]{4}-[0-9]+-' THEN 
+						CAST(SUBSTRING(p.code FROM '^[0-9]{4}-([0-9]+)-') AS INTEGER)
+					ELSE 
+						9999
+				END,
+				p.code ASC
 		`
 
     const result = await query<DatabaseProject>(sqlQuery, params)

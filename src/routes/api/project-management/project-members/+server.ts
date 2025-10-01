@@ -1,8 +1,6 @@
 import { query } from '$lib/database/connection'
-import { transformArrayData, transformProjectMemberData } from '$lib/utils/api-data-transformer'
-import { formatDateForAPI, formatDateForKorean } from '$lib/utils/date-calculator'
+import { formatDateForAPI } from '$lib/utils/date-calculator'
 import { logger } from '$lib/utils/logger'
-import { calculateMonthlySalary } from '$lib/utils/salary-calculator'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
 
@@ -66,15 +64,10 @@ export const GET: RequestHandler = async ({ url }) => {
 
     const result = await query(sqlQuery, params)
 
-    // 데이터 변환: snake_case를 camelCase로 변환
-    const transformedData = transformArrayData(
-      result.rows as Record<string, unknown>[],
-      transformProjectMemberData,
-    )
-
+    // 데이터 변환 없이 원본 데이터 그대로 반환 (임시)
     return json({
       success: true,
-      data: transformedData,
+      data: result.rows,
     })
   } catch (error) {
     logger.error('프로젝트 멤버 조회 실패:', error)
@@ -100,8 +93,8 @@ export const POST: RequestHandler = async ({ request }) => {
       startDate,
       endDate,
       participationRate = 100,
-      contributionType = 'cash',
-      contractAmount = 0,
+      cashAmount = 0,
+      inKindAmount = 0,
       status = 'active',
     } = data
 
@@ -127,17 +120,31 @@ export const POST: RequestHandler = async ({ request }) => {
       )
     }
 
-    // 중복 검사
-    const existingMember = await query(
-      'SELECT id FROM project_members WHERE project_id = $1 AND employee_id = $2',
-      [projectId, employeeId],
+    // 기간 겹침 검사 - 같은 직원이 같은 프로젝트에 참여하되, 기간이 겹치지 않아야 함
+    const overlappingMember = await query(
+      `
+        SELECT id, start_date, end_date 
+        FROM project_members 
+        WHERE project_id = $1 AND employee_id = $2
+          AND (
+            -- 새 멤버의 시작일이 기존 멤버의 기간 내에 있거나
+            ($3::date BETWEEN start_date AND end_date)
+            OR
+            -- 새 멤버의 종료일이 기존 멤버의 기간 내에 있거나
+            ($4::date BETWEEN start_date AND end_date)
+            OR
+            -- 새 멤버의 기간이 기존 멤버의 기간을 완전히 포함하거나
+            ($3::date <= start_date AND $4::date >= end_date)
+          )
+      `,
+      [projectId, employeeId, startDate, endDate],
     )
 
-    if (existingMember.rows.length > 0) {
+    if (overlappingMember.rows.length > 0) {
       return json(
         {
           success: false,
-          message: '해당 직원은 이미 이 프로젝트의 멤버입니다.',
+          message: '해당 직원의 참여기간이 기존 참여기간과 겹칩니다. 다른 기간을 선택해주세요.',
         },
         { status: 400 },
       )
@@ -165,7 +172,7 @@ export const POST: RequestHandler = async ({ request }) => {
     )
 
     // 계약서에서 연봉을 가져오거나, 제공된 계약금액 사용
-    let _finalContractAmount = Number(contractAmount || 0)
+    let _finalContractAmount = 0
     if (contractResult.rows.length > 0) {
       // 연봉을 월급으로 변환 (연봉 / 12)
       const contractRow = contractResult.rows[0] as Record<string, unknown>
@@ -213,13 +220,13 @@ export const POST: RequestHandler = async ({ request }) => {
             string,
             unknown
           > // 가장 가까운 미래 계약
-          const contractStartDate = formatDateForKorean(String(nextContract.start_date || ''))
+          const contractStartDate = formatDateForAPI(String(nextContract.start_date || ''))
           message += `다음 계약 시작일: ${contractStartDate}\n`
           message += `해당 날짜부터 프로젝트 참여가 가능합니다.`
         } else if (pastContracts.length > 0) {
           const lastContract = pastContracts[0] as Record<string, unknown>
           if (lastContract.end_date) {
-            const contractEndDate = formatDateForKorean(String(lastContract.end_date || ''))
+            const contractEndDate = formatDateForAPI(String(lastContract.end_date || ''))
             message += `마지막 계약 종료일: ${contractEndDate}\n`
             message += `해당 직원은 이미 퇴사한 상태입니다.`
           } else {
@@ -243,25 +250,14 @@ export const POST: RequestHandler = async ({ request }) => {
       }
     }
 
-    // 실제 근로계약서에서 월급 가져오기
-    let contractMonthlySalary = 0
-    if (contractResult.rows.length > 0) {
-      const contract = contractResult.rows[0] as Record<string, unknown>
-      contractMonthlySalary =
-        Number(contract.monthly_salary || 0) || Number(contract.annual_salary || 0) / 12
-    }
+    // 월간 금액 계산: 계약서에서 가져온 금액 사용
+    const monthlyAmount = _finalContractAmount
 
-    // 월간 금액 계산: 중앙화된 급여 계산 함수 사용
-    const monthlyAmount = calculateMonthlySalary(
-      contractMonthlySalary * 12, // 연봉으로 변환
-      Number(participationRate || 0),
-    )
-
-    // 프로젝트 멤버 추가 (contract_amount 제거)
+    // 프로젝트 멤버 추가 (현금/현물 금액 포함)
     const result = await query(
       `
-			INSERT INTO project_members (project_id, employee_id, role, start_date, end_date, participation_rate, contribution_type, monthly_amount, status)
-			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+			INSERT INTO project_members (project_id, employee_id, role, start_date, end_date, participation_rate, monthly_amount, cash_amount, in_kind_amount, status)
+			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
 			RETURNING *
 		`,
       [
@@ -271,8 +267,9 @@ export const POST: RequestHandler = async ({ request }) => {
         startDate,
         endDate,
         participationRate,
-        contributionType,
         monthlyAmount,
+        cashAmount,
+        inKindAmount,
         status,
       ],
     )

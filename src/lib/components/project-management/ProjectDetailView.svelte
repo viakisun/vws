@@ -6,17 +6,15 @@
   import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
   import ThemeCard from '$lib/components/ui/ThemeCard.svelte'
   import ThemeModal from '$lib/components/ui/ThemeModal.svelte'
-  import { formatCurrency, formatDate, formatDateForInput } from '$lib/utils/format'
+  import { formatCurrency, formatDate, formatDateForInput, formatNumber } from '$lib/utils/format'
   import { isKoreanName } from '$lib/utils/korean-name'
   import { calculateMonthlySalary } from '$lib/utils/salary-calculator'
   import {
     AlertTriangleIcon,
     CalendarIcon,
-    CheckCircleIcon,
     CheckIcon,
     ChevronDownIcon,
     ChevronRightIcon,
-    ChevronUpIcon,
     DollarSignIcon,
     EditIcon,
     FileTextIcon,
@@ -27,7 +25,6 @@
     TrashIcon,
     UserIcon,
     UsersIcon,
-    XCircleIcon,
     XIcon,
   } from '@lucide/svelte'
   import { createEventDispatcher } from 'svelte'
@@ -207,10 +204,6 @@
     return getMemberField(member, 'monthlyAmount', 'monthly_amount', 0)
   }
 
-  function getMemberContributionType(member: any): string {
-    return getMemberField(member, 'contributionType', 'contribution_type', 'cash')
-  }
-
   function getMemberEmployeeName(member: any): string {
     return getMemberField(member, 'employeeName', 'employee_name')
   }
@@ -365,9 +358,30 @@
     startDate: '',
     endDate: '',
     participationRate: 100, // 기본 참여율 100%
-    monthlyAmount: '0', // 월간 금액
-    contributionType: 'cash', // 'cash' or 'in_kind'
+    monthlyAmount: '0', // 월간 금액 (기존 호환성)
+    contractMonthlySalary: '0', // 계약월급여
+    participationMonths: 0, // 참여개월수
+    cashAmount: '0',
+    inKindAmount: '0',
   })
+
+  // 날짜를 API 형식(YYYY-MM-DD)으로 변환하는 유틸리티 함수
+  function convertDateToISO(dateStr: string): string {
+    if (!dateStr) return ''
+    // "2025. 01. 01." 형식을 "2025-01-01" 형식으로 변환
+    return dateStr.replace(/\s+/g, '').replace(/\./g, '-').replace(/-$/, '')
+  }
+
+  // 숫자 입력 필드 포맷팅 핸들러
+  function handleNumberInput(e: Event, callback: (value: string) => void) {
+    const input = e.currentTarget as HTMLInputElement
+    // 숫자만 추출
+    const rawValue = input.value.replace(/[^\d]/g, '')
+    // 콜백으로 원본 값 전달
+    callback(rawValue || '0')
+    // 포맷팅된 값으로 표시
+    input.value = formatNumber(rawValue, false)
+  }
 
   // 사용자가 수동으로 월간금액을 입력했는지 추적
   let isManualMonthlyAmount = $state(false)
@@ -623,7 +637,7 @@
     try {
       logger.log('직원 목록 로딩 시작, 프로젝트 ID:', selectedProject.id)
       const response = await fetch(
-        `/api/project-management/employees?excludeProjectMembers=true&projectId=${selectedProject.id}`,
+        `/api/project-management/employees?projectId=${selectedProject.id}`,
       )
       logger.log('직원 목록 API 응답 상태:', response.status)
 
@@ -728,6 +742,10 @@
     }
 
     try {
+      // 날짜를 API 형식(YYYY-MM-DD)으로 변환
+      const formattedStartDate = convertDateToISO(memberForm.startDate)
+      const formattedEndDate = convertDateToISO(memberForm.endDate)
+
       const response = await fetch('/api/project-management/project-members', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -735,10 +753,13 @@
           projectId: selectedProject.id,
           employeeId: memberForm.employeeId,
           role: memberForm.role,
-          startDate: memberForm.startDate,
-          endDate: memberForm.endDate,
+          startDate: formattedStartDate,
+          endDate: formattedEndDate,
           participationRate: memberForm.participationRate,
-          contributionType: memberForm.contributionType,
+          cashAmount: parseInt(memberForm.cashAmount || '0'),
+          inKindAmount: parseInt(memberForm.inKindAmount || '0'),
+          contractMonthlySalary: parseInt(memberForm.contractMonthlySalary || '0'),
+          participationMonths: memberForm.participationMonths || 0,
         }),
       })
 
@@ -790,7 +811,13 @@
       endDate: rawEndDate ? formatDateForInput(rawEndDate) : '',
       participationRate: getMemberParticipationRate(member) || 0,
       monthlyAmount: (getMemberMonthlyAmount(member) || 0).toString(),
-      contributionType: getMemberContributionType(member),
+      contractMonthlySalary: (calculateContractMonthlySalary(member) || 0).toString(),
+      participationMonths: calculatePeriodMonths(
+        getMemberStartDate(member),
+        getMemberEndDate(member),
+      ),
+      cashAmount: (member.cash_amount || member.cashAmount || '0').toString(),
+      inKindAmount: (member.in_kind_amount || member.inKindAmount || '0').toString(),
     }
 
     // 디버깅: memberForm 확인
@@ -810,7 +837,10 @@
       endDate: '',
       participationRate: 100,
       monthlyAmount: '0',
-      contributionType: 'cash',
+      contractMonthlySalary: '0',
+      participationMonths: 0,
+      cashAmount: '0',
+      inKindAmount: '0',
     }
     calculatedMonthlyAmount = 0
     isManualMonthlyAmount = false
@@ -849,13 +879,18 @@
     }
 
     try {
+      // 날짜를 API 형식(YYYY-MM-DD)으로 변환
+      const formattedStartDate = convertDateToISO(memberForm.startDate)
+      const formattedEndDate = convertDateToISO(memberForm.endDate)
+
       logger.log('참여연구원 수정 요청 데이터:', {
         id: editingMember.id,
         role: memberForm.role,
-        startDate: memberForm.startDate,
-        endDate: memberForm.endDate,
+        startDate: formattedStartDate,
+        endDate: formattedEndDate,
         participationRate: memberForm.participationRate,
-        contributionType: memberForm.contributionType,
+        cashAmount: memberForm.cashAmount,
+        inKindAmount: memberForm.inKindAmount,
       })
 
       const response = await fetch(`/api/project-management/project-members/${editingMember.id}`, {
@@ -863,10 +898,13 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           role: memberForm.role,
-          startDate: memberForm.startDate,
-          endDate: memberForm.endDate,
+          startDate: formattedStartDate,
+          endDate: formattedEndDate,
           participationRate: memberForm.participationRate,
-          contributionType: memberForm.contributionType,
+          cashAmount: parseInt(memberForm.cashAmount || '0'),
+          inKindAmount: parseInt(memberForm.inKindAmount || '0'),
+          contractMonthlySalary: parseInt(memberForm.contractMonthlySalary || '0'),
+          participationMonths: memberForm.participationMonths || 0,
         }),
       })
 
@@ -1610,6 +1648,62 @@
     return diffMonths
   }
 
+  // 계약월급여 계산 함수 (월급 기준)
+  function calculateContractMonthlySalary(member: any): number {
+    const monthlyAmount = getMemberMonthlyAmount(member)
+    return Math.round(monthlyAmount)
+  }
+
+  // 현금/현물 금액 계산 함수
+  function calculateContributionAmount(member: any, type: 'cash' | 'in_kind'): number {
+    const monthlySalary = calculateContractMonthlySalary(member)
+    const participationRate = member.participationRate || 0
+    const months =
+      memberForm.participationMonths ||
+      calculatePeriodMonths(getMemberStartDate(member), getMemberEndDate(member))
+
+    // 계약월급여 * 참여율(%) * 참여개월수
+    const amount = ((monthlySalary * participationRate) / 100) * months
+    return Math.round(amount)
+  }
+
+  // 멤버의 기여 유형 자동 판단 함수
+  function getMemberContributionType(member: any): 'cash' | 'in_kind' | 'none' {
+    const cashAmount = parseInt(member.cash_amount || member.cashAmount || '0')
+    const inKindAmount = parseInt(member.in_kind_amount || member.inKindAmount || '0')
+
+    if (cashAmount > 0) return 'cash'
+    if (inKindAmount > 0) return 'in_kind'
+    return 'none'
+  }
+
+  // 테이블 합계 계산 함수들
+  function calculateTableTotals() {
+    let totalContractSalary = 0
+    let totalParticipationRate = 0
+    let totalCashAmount = 0
+    let totalInKindAmount = 0
+    let totalParticipationMonths = 0
+
+    projectMembers.forEach((member) => {
+      totalContractSalary += calculateContractMonthlySalary(member)
+      totalParticipationRate += member.participation_rate || member.participationRate || 0
+      totalCashAmount += parseInt(member.cash_amount || member.cashAmount || '0')
+      totalInKindAmount += parseInt(member.in_kind_amount || member.inKindAmount || '0')
+      totalParticipationMonths += calculatePeriodMonths(member.start_date, member.end_date)
+    })
+
+    return {
+      totalContractSalary,
+      totalParticipationRate,
+      totalCashAmount,
+      totalInKindAmount,
+      totalParticipationMonths,
+      averageParticipationRate:
+        projectMembers.length > 0 ? totalParticipationRate / projectMembers.length : 0,
+    }
+  }
+
   // 천원 단위로 변환 (입력용)
   function toThousands(value: string | number): string {
     const num = typeof value === 'string' ? parseFloat(value) : value
@@ -1761,12 +1855,15 @@
 
         // 해당 월에 참여하는지 확인
         if (memberStartDate <= monthEnd && memberEndDate >= monthStart) {
-          const memberMonthlyCost = parseFloat(member.monthlyAmount || member.monthly_amount) || 0
+          const memberMonthlyCost = parseFloat(member.monthly_amount || member.monthlyAmount) || 0
+          const cashAmount = parseFloat(member.cash_amount || member.cashAmount || '0') || 0
+          const inKindAmount = parseFloat(member.in_kind_amount || member.inKindAmount || '0') || 0
 
-          if ((member.contributionType || member.contribution_type) === 'cash') {
-            monthlyCash += memberMonthlyCost
-          } else {
-            monthlyInKind += memberMonthlyCost
+          if (cashAmount > 0) {
+            monthlyCash += cashAmount
+          }
+          if (inKindAmount > 0) {
+            monthlyInKind += inKindAmount
           }
         }
       })
@@ -1874,7 +1971,7 @@
           </div>
 
           {#if selectedProject.description}
-            <p class="text-gray-700 mb-3">{selectedProject.description}</p>
+            <p class="text-gray-700 mb-3 whitespace-pre-line">{selectedProject.description}</p>
           {/if}
 
           <!-- 프로젝트 기간 (연차 정보 기반) -->
@@ -2338,8 +2435,9 @@
               >
               <input
                 id="pm-budget-personnel-cash"
-                type="number"
-                bind:value={budgetForm.personnelCostCash}
+                type="text"
+                value={formatNumber(budgetForm.personnelCostCash, false)}
+                oninput={(e) => handleNumberInput(e, (v) => (budgetForm.personnelCostCash = v))}
                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="0"
               />
@@ -2350,8 +2448,9 @@
               >
               <input
                 id="pm-budget-personnel-in-kind"
-                type="number"
-                bind:value={budgetForm.personnelCostInKind}
+                type="text"
+                value={formatNumber(budgetForm.personnelCostInKind, false)}
+                oninput={(e) => handleNumberInput(e, (v) => (budgetForm.personnelCostInKind = v))}
                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="0"
               />
@@ -2369,8 +2468,10 @@
               >
               <input
                 id="pm-budget-research-material-cash"
-                type="number"
-                bind:value={budgetForm.researchMaterialCostCash}
+                type="text"
+                value={formatNumber(budgetForm.researchMaterialCostCash, false)}
+                oninput={(e) =>
+                  handleNumberInput(e, (v) => (budgetForm.researchMaterialCostCash = v))}
                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="0"
               />
@@ -2382,8 +2483,10 @@
               >
               <input
                 id="pm-budget-research-material-in-kind"
-                type="number"
-                bind:value={budgetForm.researchMaterialCostInKind}
+                type="text"
+                value={formatNumber(budgetForm.researchMaterialCostInKind, false)}
+                oninput={(e) =>
+                  handleNumberInput(e, (v) => (budgetForm.researchMaterialCostInKind = v))}
                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="0"
               />
@@ -2401,8 +2504,10 @@
               >
               <input
                 id="pm-budget-research-activity-cash"
-                type="number"
-                bind:value={budgetForm.researchActivityCostCash}
+                type="text"
+                value={formatNumber(budgetForm.researchActivityCostCash, false)}
+                oninput={(e) =>
+                  handleNumberInput(e, (v) => (budgetForm.researchActivityCostCash = v))}
                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="0"
               />
@@ -2414,8 +2519,10 @@
               >
               <input
                 id="pm-budget-research-activity-in-kind"
-                type="number"
-                bind:value={budgetForm.researchActivityCostInKind}
+                type="text"
+                value={formatNumber(budgetForm.researchActivityCostInKind, false)}
+                oninput={(e) =>
+                  handleNumberInput(e, (v) => (budgetForm.researchActivityCostInKind = v))}
                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="0"
               />
@@ -2438,8 +2545,9 @@
               </label>
               <input
                 id="pm-budget-research-stipend-cash"
-                type="number"
-                bind:value={budgetForm.researchStipendCash}
+                type="text"
+                value={formatNumber(budgetForm.researchStipendCash, false)}
+                oninput={(e) => handleNumberInput(e, (v) => (budgetForm.researchStipendCash = v))}
                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="0"
               />
@@ -2453,8 +2561,9 @@
               </label>
               <input
                 id="pm-budget-research-stipend-in-kind"
-                type="number"
-                bind:value={budgetForm.researchStipendInKind}
+                type="text"
+                value={formatNumber(budgetForm.researchStipendInKind, false)}
+                oninput={(e) => handleNumberInput(e, (v) => (budgetForm.researchStipendInKind = v))}
                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="0"
               />
@@ -2474,8 +2583,9 @@
               >
               <input
                 id="pm-budget-indirect-cash"
-                type="number"
-                bind:value={budgetForm.indirectCostCash}
+                type="text"
+                value={formatNumber(budgetForm.indirectCostCash, false)}
+                oninput={(e) => handleNumberInput(e, (v) => (budgetForm.indirectCostCash = v))}
                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="0"
               />
@@ -2486,8 +2596,9 @@
               >
               <input
                 id="pm-budget-indirect-in-kind"
-                type="number"
-                bind:value={budgetForm.indirectCostInKind}
+                type="text"
+                value={formatNumber(budgetForm.indirectCostInKind, false)}
+                oninput={(e) => handleNumberInput(e, (v) => (budgetForm.indirectCostInKind = v))}
                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="0"
               />
@@ -2606,72 +2717,55 @@
             >
           </div>
         </div>
-
-        <!-- 기여 유형 -->
-        <div>
-          <label for="member-contribution-type" class="block text-sm font-medium text-gray-700 mb-2"
-            >기여 유형</label
-          >
-          <select
-            id="member-contribution-type"
-            bind:value={memberForm.contributionType}
-            class="w-full px-3 py-2 border border-green-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm font-medium bg-white shadow-sm"
-          >
-            <option value="cash">💰 현금</option>
-            <option value="in_kind">📦 현물</option>
-          </select>
-        </div>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-        <!-- 월간금액 -->
+        <!-- 현금 금액 -->
         <div>
-          <label for="member-monthly-amount" class="block text-sm font-medium text-gray-700 mb-2"
-            >월간금액</label
+          <label for="member-cash-amount" class="block text-sm font-medium text-gray-700 mb-2"
+            >현금 (원)</label
           >
-          <div class="flex items-center space-x-2">
-            <input
-              id="member-monthly-amount"
-              type="number"
-              bind:value={memberForm.monthlyAmount}
-              oninput={() => {
-                isManualMonthlyAmount = true
-                calculatedMonthlyAmount = parseFloat(memberForm.monthlyAmount) || 0
-              }}
-              class="flex-1 px-3 py-2 border border-green-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm font-medium bg-white shadow-sm"
-              placeholder="0"
-            />
-            <div class="text-sm min-w-0">
-              {#if isCalculatingMonthlyAmount}
-                <div class="flex items-center text-blue-600">
-                  <div
-                    class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"
-                  ></div>
-                  계산 중...
-                </div>
-              {:else if calculatedMonthlyAmount > 0 && !isManualMonthlyAmount}
-                <div class="flex items-center text-green-600">
-                  <div class="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-                  <span class="font-medium">자동: {formatCurrency(calculatedMonthlyAmount)}</span>
-                </div>
-              {:else if isManualMonthlyAmount}
-                <div class="flex items-center text-purple-600">
-                  <div class="w-2 h-2 bg-purple-500 rounded-full mr-2"></div>
-                  <span class="font-medium">수동 입력</span>
-                </div>
-              {:else if memberForm.employeeId && memberForm.participationRate && memberForm.startDate && memberForm.endDate}
-                <div class="flex items-center text-blue-600">
-                  <div class="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
-                  <span>계산 가능</span>
-                </div>
-              {:else}
-                <div class="flex items-center text-gray-400">
-                  <div class="w-2 h-2 bg-gray-400 rounded-full mr-2"></div>
-                  <span>자동 계산</span>
-                </div>
-              {/if}
-            </div>
-          </div>
+          <input
+            id="member-cash-amount"
+            type="text"
+            value={formatNumber(memberForm.cashAmount, false)}
+            oninput={(e) => {
+              const rawValue = e.currentTarget.value.replace(/[^\d]/g, '')
+              memberForm.cashAmount = rawValue || '0'
+              e.currentTarget.value = formatNumber(rawValue, false)
+
+              // 현금에 금액이 있으면 현물은 0으로 설정
+              if (parseInt(rawValue || '0') > 0) {
+                memberForm.inKindAmount = '0'
+              }
+            }}
+            class="w-full px-3 py-2 border border-green-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm font-medium bg-white shadow-sm"
+            placeholder="0"
+          />
+        </div>
+
+        <!-- 현물 금액 -->
+        <div>
+          <label for="member-in-kind-amount" class="block text-sm font-medium text-gray-700 mb-2"
+            >현물 (원)</label
+          >
+          <input
+            id="member-in-kind-amount"
+            type="text"
+            value={formatNumber(memberForm.inKindAmount, false)}
+            oninput={(e) => {
+              const rawValue = e.currentTarget.value.replace(/[^\d]/g, '')
+              memberForm.inKindAmount = rawValue || '0'
+              e.currentTarget.value = formatNumber(rawValue, false)
+
+              // 현물에 금액이 있으면 현금은 0으로 설정
+              if (parseInt(rawValue || '0') > 0) {
+                memberForm.cashAmount = '0'
+              }
+            }}
+            class="w-full px-3 py-2 border border-green-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm font-medium bg-white shadow-sm"
+            placeholder="0"
+          />
         </div>
 
         <!-- 참여기간 -->
@@ -2760,32 +2854,36 @@
     </div>
 
     <div class="overflow-x-auto">
-      <table class="min-w-full divide-y divide-gray-200" style:min-width="1000px">
+      <table class="min-w-full divide-y divide-gray-200">
         <thead class="bg-gray-50">
           <tr>
             <th
               class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-48"
-              >연구원</th
+              >이름</th
+            >
+            <th
+              class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-40"
+              >기간</th
+            >
+            <th
+              class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24"
+              >참여개월수</th
+            >
+            <th
+              class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32"
+              >계약월급여</th
             >
             <th
               class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24"
               >참여율</th
             >
             <th
-              class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-40"
-              >월간금액</th
-            >
-            <th
-              class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-56"
-              >참여기간</th
+              class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32"
+              >현금</th
             >
             <th
               class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32"
-              >기여 유형</th
-            >
-            <th
-              class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32"
-              >검증 상태</th
+              >현물</th
             >
             <th
               class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-40"
@@ -2800,85 +2898,47 @@
                 ? 'bg-gradient-to-r from-blue-50 to-indigo-50 border-l-4 border-blue-400 shadow-sm'
                 : ''}"
             >
+              <!-- 이름 -->
               <td class="px-4 py-4 whitespace-nowrap w-48">
                 <div class="flex items-center">
                   <UserIcon size={20} class="text-gray-400 mr-2" />
                   <div class="flex-1 min-w-0">
                     <div class="flex items-center gap-2 mb-1">
                       <div class="text-sm font-medium text-gray-900 truncate">
-                        {formatKoreanName(getMemberEmployeeName(member))}
+                        {member.employee_name || formatKoreanName(getMemberEmployeeName(member))}
                       </div>
                       <ThemeBadge variant="info" size="sm">{member.role}</ThemeBadge>
                     </div>
                     <div class="text-xs text-gray-500 truncate">
-                      {member.employee_department} / {member.employee_position}
+                      {member.employee_department || member.employeeDepartment} / {member.employee_position ||
+                        member.employeePosition}
                     </div>
                   </div>
                 </div>
               </td>
-              <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900 w-24">
-                {#if editingMember && editingMember.id === member.id}
-                  <div class="relative">
-                    <input
-                      type="number"
-                      bind:value={memberForm.participationRate}
-                      class="w-20 px-3 py-2 border border-blue-300 rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm"
-                      min="0"
-                      max="100"
-                      step="0.1"
-                      onchange={() => {
-                        isManualMonthlyAmount = false
-                        updateMonthlyAmount()
-                      }}
-                    />
-                    <span
-                      class="absolute right-2 top-1/2 transform -translate-y-1/2 text-xs text-gray-500 pointer-events-none"
-                      >%</span
-                    >
-                  </div>
-                {:else}
-                  {member.participationRate}%
-                {/if}
-              </td>
-              <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                {#if editingMember && editingMember.id === member.id}
-                  <div class="relative">
-                    <input
-                      type="number"
-                      bind:value={memberForm.monthlyAmount}
-                      oninput={() => {
-                        isManualMonthlyAmount = true
-                        calculatedMonthlyAmount = parseFloat(memberForm.monthlyAmount) || 0
-                      }}
-                      class="w-32 px-3 py-2 border border-blue-300 rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm"
-                      placeholder="0"
-                    />
-                  </div>
-                {:else}
-                  {formatCurrency(getMemberMonthlyAmount(member))}
-                {/if}
-              </td>
-              <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+
+              <!-- 기간 -->
+              <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900 w-40">
                 {#if editingMember && editingMember.id === member.id}
                   <div class="space-y-2">
-                    <div class="flex items-center gap-3">
-                      <span class="text-xs font-medium text-blue-700 w-10">시작:</span>
+                    <div class="flex items-center gap-2">
+                      <span class="text-xs font-medium text-blue-700 w-8">시작:</span>
                       <input
                         type="date"
                         bind:value={memberForm.startDate}
-                        class="flex-1 px-3 py-2 border border-blue-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm"
+                        class="flex-1 px-2 py-1 border border-blue-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white"
                         onchange={() => {
                           isManualMonthlyAmount = false
                           updateMonthlyAmount()
                         }}
                       />
                     </div>
-                    <div class="flex items-center gap-3">
-                      <span class="text-xs font-medium text-blue-700 w-10">종료:</span>
+                    <div class="flex items-center gap-2">
+                      <span class="text-xs font-medium text-blue-700 w-8">종료:</span>
                       <input
                         type="date"
                         bind:value={memberForm.endDate}
-                        class="flex-1 px-3 py-2 border border-blue-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm"
+                        class="flex-1 px-2 py-1 border border-blue-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white"
                         onchange={() => {
                           isManualMonthlyAmount = false
                           updateMonthlyAmount()
@@ -2888,166 +2948,151 @@
                   </div>
                 {:else}
                   <div class="space-y-1">
-                    <div class="text-xs text-gray-500">
-                      시작: {formatDate(getMemberStartDate(member))}
+                    <div class="text-xs text-gray-600">
+                      {formatDate(getMemberStartDate(member))}
                     </div>
-                    <div class="text-xs text-gray-500">
-                      종료: {formatDate(getMemberEndDate(member))}
+                    <div class="text-xs text-gray-600">
+                      {formatDate(getMemberEndDate(member))}
                     </div>
                   </div>
                 {/if}
               </td>
-              <td class="px-4 py-4 whitespace-nowrap">
+
+              <!-- 참여개월수 -->
+              <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900 w-24 text-center">
                 {#if editingMember && editingMember.id === member.id}
-                  <select
-                    bind:value={memberForm.contributionType}
-                    class="w-full px-3 py-2 border border-blue-300 rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm"
-                  >
-                    <option value="cash">💰 현금</option>
-                    <option value="in_kind">🏢 현물</option>
-                  </select>
+                  <input
+                    type="number"
+                    value={memberForm.participationMonths ||
+                      calculatePeriodMonths(getMemberStartDate(member), getMemberEndDate(member))}
+                    oninput={(e) => {
+                      const value = parseInt(e.currentTarget.value) || 0
+                      memberForm.participationMonths = value
+                    }}
+                    class="w-16 px-2 py-1 border border-blue-300 rounded text-xs font-medium focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white text-center"
+                    min="1"
+                    max="120"
+                  />
                 {:else}
-                  <ThemeBadge
-                    variant={(member.contributionType || member.contribution_type) === 'cash'
-                      ? 'success'
-                      : 'warning'}
-                    size="sm"
-                  >
-                    {(member.contributionType || member.contribution_type) === 'cash'
-                      ? '현금'
-                      : '현물'}
-                  </ThemeBadge>
+                  {memberForm.participationMonths ||
+                    calculatePeriodMonths(getMemberStartDate(member), getMemberEndDate(member))}개월
                 {/if}
               </td>
-              <!-- 검증 상태 -->
-              <td class="px-4 py-4 whitespace-nowrap">
-                <div class="flex items-center justify-center">
-                  {#if memberValidationStatuses[member.id]}
-                    {@const validationStatus = memberValidationStatuses[member.id]}
-                    {#if validationStatus.status === 'valid'}
-                      <div class="relative inline-block group">
-                        <CheckCircleIcon
-                          class="h-6 w-6 text-green-500 cursor-help hover:text-green-600 transition-colors"
-                        />
-                        <div
-                          class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-4 py-3 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-20 max-w-xs"
-                        >
-                          <div class="font-semibold text-green-400 mb-1">✅ 검증 완료</div>
-                          <div class="text-gray-300">모든 검증 항목이 정상입니다.</div>
-                          <div class="text-gray-400 mt-1">• 근로계약서 유효</div>
-                          <div class="text-gray-400">• 참여율 적정</div>
-                          <div class="text-gray-400">• 월간금액 정상</div>
-                        </div>
-                      </div>
-                    {:else if validationStatus.status === 'warning'}
-                      <div class="relative inline-block group">
-                        <AlertTriangleIcon
-                          class="h-6 w-6 text-yellow-500 cursor-help hover:text-yellow-600 transition-colors"
-                        />
-                        <div
-                          class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-4 py-3 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-20 max-w-sm"
-                        >
-                          <div class="font-semibold text-yellow-400 mb-2">⚠️ 경고 사항</div>
-                          <div class="text-gray-300 mb-1">
-                            {validationStatus.message}
-                          </div>
-                          {#if validationStatus.issues && validationStatus.issues.length > 0}
-                            {#each validationStatus.issues as issue, i (i)}
-                              <div class="mb-2 last:mb-0 p-2 bg-gray-800 rounded">
-                                <div class="text-gray-300 font-medium">
-                                  {issue.message}
-                                </div>
-                                {#if issue.suggestedFix}
-                                  <div class="text-gray-400 mt-1 text-xs">
-                                    💡 {issue.suggestedFix}
-                                  </div>
-                                {/if}
-                                {#if issue.data}
-                                  <div class="text-gray-500 mt-1 text-xs">
-                                    {#if issue.type === 'participation_rate_excess'}
-                                      현재 참여율: {issue.data.participationRate}%
-                                    {:else if issue.type === 'amount_excess'}
-                                      현재: {issue.data.monthlyAmount?.toLocaleString()}원<br />
-                                      예상: {issue.data.expectedMonthlyAmount?.toLocaleString()}원
-                                    {:else if issue.type === 'duplicate_participation'}
-                                      총 참여율: {issue.data.totalParticipationRate?.toFixed(1)}%
-                                      {#if issue.data.conflictingProjects && issue.data.conflictingProjects.length > 0}
-                                        <br />충돌 프로젝트: {issue.data.conflictingProjects
-                                          .length}개
-                                      {/if}
-                                    {:else if issue.type === 'contract_missing' || issue.type === 'contract_period_mismatch'}
-                                      참여 기간: {issue.data.participationPeriod}
-                                    {/if}
-                                  </div>
-                                {/if}
-                              </div>
-                            {/each}
-                          {/if}
-                        </div>
-                      </div>
-                    {:else if validationStatus.status === 'error'}
-                      <div class="relative inline-block group">
-                        <XCircleIcon
-                          class="h-6 w-6 text-red-500 cursor-help hover:text-red-600 transition-colors"
-                        />
-                        <div
-                          class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-4 py-3 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-20 max-w-sm"
-                        >
-                          <div class="font-semibold text-red-400 mb-2">❌ 검증 실패</div>
-                          <div class="text-gray-300 mb-1">
-                            {validationStatus.message}
-                          </div>
-                          {#if validationStatus.issues && validationStatus.issues.length > 0}
-                            {#each validationStatus.issues as issue, i (i)}
-                              <div class="mb-2 last:mb-0 p-2 bg-gray-800 rounded">
-                                <div class="text-gray-300 font-medium">
-                                  {issue.message}
-                                </div>
-                                {#if issue.suggestedFix}
-                                  <div class="text-gray-400 mt-1 text-xs">
-                                    🔧 {issue.suggestedFix}
-                                  </div>
-                                {/if}
-                                {#if issue.data}
-                                  <div class="text-gray-500 mt-1 text-xs">
-                                    {#if issue.type === 'participation_rate_excess'}
-                                      현재 참여율: {issue.data.participationRate}%
-                                    {:else if issue.type === 'amount_excess'}
-                                      현재: {issue.data.monthlyAmount?.toLocaleString()}원<br />
-                                      예상: {issue.data.expectedMonthlyAmount?.toLocaleString()}원
-                                    {:else if issue.type === 'duplicate_participation'}
-                                      총 참여율: {issue.data.totalParticipationRate?.toFixed(1)}%
-                                      {#if issue.data.conflictingProjects && issue.data.conflictingProjects.length > 0}
-                                        <br />충돌 프로젝트: {issue.data.conflictingProjects
-                                          .length}개
-                                      {/if}
-                                    {:else if issue.type === 'contract_missing' || issue.type === 'contract_period_mismatch'}
-                                      참여 기간: {issue.data.participationPeriod}
-                                    {/if}
-                                  </div>
-                                {/if}
-                              </div>
-                            {/each}
-                          {/if}
-                        </div>
-                      </div>
-                    {/if}
-                  {:else}
-                    <div class="relative inline-block group">
-                      <div
-                        class="animate-pulse bg-gray-300 rounded-full w-6 h-6 cursor-help hover:bg-gray-400 transition-colors"
-                      ></div>
-                      <div
-                        class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-10"
-                      >
-                        <div class="font-semibold text-gray-400">⏳ 검증 대기 중</div>
-                        <div class="text-gray-500">아직 검증되지 않았습니다.</div>
-                      </div>
-                    </div>
-                  {/if}
-                </div>
+
+              <!-- 계약월급여 -->
+              <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900 w-32 text-right">
+                {#if editingMember && editingMember.id === member.id}
+                  <input
+                    type="text"
+                    value={formatNumber(memberForm.contractMonthlySalary, false)}
+                    oninput={(e) => {
+                      const rawValue = e.currentTarget.value.replace(/[^\d]/g, '')
+                      memberForm.contractMonthlySalary = rawValue || '0'
+                      e.currentTarget.value = formatNumber(rawValue, false)
+
+                      // 계약월급여 변경 시 현금/현물 자동 계산
+                      const monthlySalary = parseInt(rawValue || '0')
+                      const participationRate = memberForm.participationRate || 0
+                      const participationMonths =
+                        memberForm.participationMonths ||
+                        calculatePeriodMonths(memberForm.startDate, memberForm.endDate)
+
+                      // 총 금액 계산: 계약월급여 * 참여율(%) * 참여개월수
+                      const totalAmount = Math.round(
+                        ((monthlySalary * participationRate) / 100) * participationMonths,
+                      )
+
+                      // 현금/현물 자동 계산
+                      if (parseInt(memberForm.cashAmount || '0') > 0) {
+                        memberForm.cashAmount = totalAmount.toString()
+                        memberForm.inKindAmount = '0'
+                      } else if (parseInt(memberForm.inKindAmount || '0') > 0) {
+                        memberForm.inKindAmount = totalAmount.toString()
+                        memberForm.cashAmount = '0'
+                      } else {
+                        // 둘 다 0이라면 기본적으로 현금으로 설정
+                        memberForm.cashAmount = totalAmount.toString()
+                        memberForm.inKindAmount = '0'
+                      }
+                    }}
+                    class="w-24 px-2 py-1 border border-blue-300 rounded text-xs font-medium focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white text-right"
+                    placeholder="0"
+                  />
+                {:else}
+                  {formatNumber(calculateContractMonthlySalary(member), true)}
+                {/if}
               </td>
-              <td class="px-4 py-4 whitespace-nowrap text-sm font-medium">
+
+              <!-- 참여율 -->
+              <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900 w-24">
+                {#if editingMember && editingMember.id === member.id}
+                  <div class="relative">
+                    <input
+                      type="number"
+                      bind:value={memberForm.participationRate}
+                      class="w-16 px-2 py-1 border border-blue-300 rounded text-xs font-medium focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                      min="0"
+                      max="100"
+                      step="0.1"
+                      onchange={() => {
+                        isManualMonthlyAmount = false
+                        updateMonthlyAmount()
+                      }}
+                    />
+                    <span
+                      class="absolute right-1 top-1/2 transform -translate-y-1/2 text-xs text-gray-500 pointer-events-none"
+                      >%</span
+                    >
+                  </div>
+                {:else}
+                  <div class="text-center">
+                    {member.participation_rate || member.participationRate || 0}%
+                  </div>
+                {/if}
+              </td>
+
+              <!-- 현금 -->
+              <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900 w-32 text-right">
+                {#if editingMember && editingMember.id === member.id}
+                  <input
+                    type="text"
+                    value={formatNumber(memberForm.cashAmount || '0', false)}
+                    oninput={(e) => {
+                      const rawValue = e.currentTarget.value.replace(/[^\d]/g, '')
+                      memberForm.cashAmount = rawValue || '0'
+                      e.currentTarget.value = formatNumber(rawValue, false)
+                    }}
+                    class="w-24 px-2 py-1 border border-blue-300 rounded text-xs font-medium focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white text-right"
+                    placeholder="0"
+                  />
+                {:else}
+                  {formatNumber(parseInt(member.cash_amount || member.cashAmount || '0'), true)}
+                {/if}
+              </td>
+
+              <!-- 현물 -->
+              <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900 w-32 text-right">
+                {#if editingMember && editingMember.id === member.id}
+                  <input
+                    type="text"
+                    value={formatNumber(memberForm.inKindAmount || '0', false)}
+                    oninput={(e) => {
+                      const rawValue = e.currentTarget.value.replace(/[^\d]/g, '')
+                      memberForm.inKindAmount = rawValue || '0'
+                      e.currentTarget.value = formatNumber(rawValue, false)
+                    }}
+                    class="w-24 px-2 py-1 border border-blue-300 rounded text-xs font-medium focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white text-right"
+                    placeholder="0"
+                  />
+                {:else}
+                  {formatNumber(
+                    parseInt(member.in_kind_amount || member.inKindAmount || '0'),
+                    true,
+                  )}
+                {/if}
+              </td>
+              <!-- 검증 상태 칼럼 제거 -->
+              <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
                 <div class="flex space-x-1 justify-center">
                   {#if editingMember && editingMember.id === member.id}
                     <div class="flex space-x-1">
@@ -3095,139 +3140,42 @@
 
           {#if projectMembers.length === 0 && !addingMember}
             <tr>
-              <td colspan="7" class="px-6 py-12 text-center text-gray-500">
+              <td colspan="8" class="px-6 py-12 text-center text-gray-500">
                 <UsersIcon size={48} class="mx-auto mb-2 text-gray-300" />
                 <p>참여 연구원이 없습니다.</p>
+              </td>
+            </tr>
+          {/if}
+
+          <!-- 합계 행 -->
+          {#if projectMembers.length > 0}
+            {@const totals = calculateTableTotals()}
+            <tr class="bg-gray-50 border-t-2 border-gray-300">
+              <td class="px-4 py-3 text-sm font-semibold text-gray-900" colspan="5">
+                <div class="flex items-center">
+                  <div class="text-sm font-bold text-gray-800">합계</div>
+                </div>
+              </td>
+
+              <!-- 현금 합계 -->
+              <td class="px-4 py-3 text-sm font-semibold text-gray-900 text-right">
+                {formatNumber(totals.totalCashAmount, true)}
+              </td>
+
+              <!-- 현물 합계 -->
+              <td class="px-4 py-3 text-sm font-semibold text-gray-900 text-right">
+                {formatNumber(totals.totalInKindAmount, true)}
+              </td>
+
+              <!-- 액션 (합계 행에는 없음) -->
+              <td class="px-4 py-3 text-sm text-gray-500">
+                <div class="text-center">-</div>
               </td>
             </tr>
           {/if}
         </tbody>
       </table>
     </div>
-
-    <!-- 인건비 요약 -->
-    {#if projectMembers.length > 0}
-      {@const personnelSummary = calculatePersonnelCostSummary()}
-      <div class="mt-4 p-3 bg-gray-50 rounded-lg">
-        <div class="flex items-center justify-between mb-2">
-          <h4 class="text-sm font-medium text-gray-700">
-            인건비 합계
-            {#if personnelSummary.periodInfo}
-              <span class="text-xs text-gray-500 ml-2">
-                (Y{personnelSummary.periodInfo.periodNumber})
-              </span>
-            {/if}
-          </h4>
-          <button
-            type="button"
-            onclick={() => (isPersonnelSummaryExpanded = !isPersonnelSummaryExpanded)}
-            class="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700"
-          >
-            {#if isPersonnelSummaryExpanded}
-              <ChevronUpIcon size={16} />
-              접기
-            {:else}
-              <ChevronDownIcon size={16} />
-              월별 상세
-            {/if}
-          </button>
-        </div>
-
-        <!-- 기본 요약 정보 -->
-        <div class="grid grid-cols-3 gap-4">
-          <div class="text-center">
-            <div class="text-sm font-semibold text-green-600">
-              {formatCurrency(personnelSummary.totalCash)}
-            </div>
-            <div class="text-xs text-gray-500">현금</div>
-          </div>
-          <div class="text-center">
-            <div class="text-sm font-semibold text-orange-600">
-              {formatCurrency(personnelSummary.totalInKind)}
-            </div>
-            <div class="text-xs text-gray-500">현물</div>
-          </div>
-          <div class="text-center">
-            <div class="text-sm font-semibold text-blue-600">
-              {formatCurrency(personnelSummary.totalCost)}
-            </div>
-            <div class="text-xs text-gray-500">합계</div>
-          </div>
-        </div>
-
-        <!-- 월별 상세 정보 -->
-        {#if isPersonnelSummaryExpanded}
-          <div class="mt-4 pt-4 border-t border-gray-200">
-            <h5 class="text-xs font-medium text-gray-600 mb-3">월별 인건비 상세</h5>
-            <div class="overflow-x-auto">
-              <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-100">
-                  <tr>
-                    <th
-                      class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                      >월</th
-                    >
-                    <th
-                      class="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
-                      >현금</th
-                    >
-                    <th
-                      class="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
-                      >현물</th
-                    >
-                    <th
-                      class="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
-                      >합계</th
-                    >
-                  </tr>
-                </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
-                  {#each personnelSummary.monthlyCosts as monthData, i (i)}
-                    <tr class="hover:bg-gray-50">
-                      <td class="px-3 py-2 whitespace-nowrap text-sm font-medium text-gray-900">
-                        {monthData.monthName}
-                      </td>
-                      <td class="px-3 py-2 whitespace-nowrap text-sm text-right text-green-600">
-                        {formatCurrency(monthData.cash)}
-                      </td>
-                      <td class="px-3 py-2 whitespace-nowrap text-sm text-right text-orange-600">
-                        {formatCurrency(monthData.inKind)}
-                      </td>
-                      <td
-                        class="px-3 py-2 whitespace-nowrap text-sm text-right font-medium text-gray-900"
-                      >
-                        {formatCurrency(monthData.total)}
-                      </td>
-                    </tr>
-                  {/each}
-                  <!-- 합계 행 -->
-                  <tr class="bg-gray-100 border-t-2 border-gray-300">
-                    <td class="px-3 py-2 whitespace-nowrap text-sm font-bold text-gray-900">
-                      연차 합계
-                    </td>
-                    <td
-                      class="px-3 py-2 whitespace-nowrap text-sm text-right font-bold text-green-600"
-                    >
-                      {formatCurrency(personnelSummary.totalCash)}
-                    </td>
-                    <td
-                      class="px-3 py-2 whitespace-nowrap text-sm text-right font-bold text-orange-600"
-                    >
-                      {formatCurrency(personnelSummary.totalInKind)}
-                    </td>
-                    <td
-                      class="px-3 py-2 whitespace-nowrap text-sm text-right font-bold text-blue-600"
-                    >
-                      {formatCurrency(personnelSummary.totalCost)}
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        {/if}
-      </div>
-    {/if}
   </ThemeCard>
 
   <!-- 증빙 관리 -->
@@ -3649,7 +3597,7 @@
                         </div>
                         {#if document.file_size}
                           <div class="text-xs text-gray-500">
-                            크기: {(document.file_size / 1024).toFixed(1)}KB
+                            크기: {Math.floor(document.file_size / 1024)}KB
                           </div>
                         {/if}
                       </div>

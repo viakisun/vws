@@ -72,6 +72,11 @@
     dispatch('refresh')
   }
 
+  // 프로젝트 업데이트 이벤트 처리
+  function handleProjectUpdated(event: CustomEvent<{ projectId: string; updatedProject: any }>) {
+    dispatch('project-updated', event.detail)
+  }
+
   // 예산 모달 표시 이벤트 처리
   function handleShowBudgetModal() {
     dispatch('show-budget-modal')
@@ -139,6 +144,7 @@
         externalRefreshTrigger={budgetRefreshKey}
         on:refresh={handleRefresh}
         on:project-deleted={handleProjectDeleted}
+        on:project-updated={handleProjectUpdated}
         on:show-budget-modal={handleShowBudgetModal}
       />
     </div>

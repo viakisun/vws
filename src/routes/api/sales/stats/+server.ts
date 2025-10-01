@@ -42,12 +42,13 @@ export const GET: RequestHandler = async ({ url }) => {
     let dateParams: any[] = []
 
     switch (period) {
-      case 'month':
+      case 'month': {
         const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1)
         dateFilter = 'AND transaction_date >= $1'
         dateParams = [firstDayOfMonth.toISOString().split('T')[0]]
         break
-      case 'quarter':
+      }
+      case 'quarter': {
         const quarterStart = new Date(
           currentDate.getFullYear(),
           Math.floor(currentDate.getMonth() / 3) * 3,
@@ -56,11 +57,13 @@ export const GET: RequestHandler = async ({ url }) => {
         dateFilter = 'AND transaction_date >= $1'
         dateParams = [quarterStart.toISOString().split('T')[0]]
         break
-      case 'year':
+      }
+      case 'year': {
         const firstDayOfYear = new Date(currentDate.getFullYear(), 0, 1)
         dateFilter = 'AND transaction_date >= $1'
         dateParams = [firstDayOfYear.toISOString().split('T')[0]]
         break
+      }
     }
 
     // 기본 통계 조회

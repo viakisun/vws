@@ -45,11 +45,11 @@
 
   // 모달 상태
   let selectedCustomer = $state<Customer | null>(null)
-  let selectedOpportunity = $state<Opportunity | null>(null)
-  let selectedContract = $state<Contract | null>(null)
+  let _selectedOpportunity = $state<Opportunity | null>(null)
+  let _selectedContract = $state<Contract | null>(null)
   let showCustomerModal = $state(false)
-  let showOpportunityModal = $state(false)
-  let showContractModal = $state(false)
+  let _showOpportunityModal = $state(false)
+  let _showContractModal = $state(false)
   let showCreateModal = $state(false)
   let showEditModal = $state(false)
   let showDeleteConfirm = $state(false)
@@ -155,10 +155,10 @@
     const monthlyRevenue = salesData.transactions
       .filter((t) => t.payment_status === 'paid' && t.type === 'sales')
       .reduce((sum, t) => sum + t.amount, 0)
-    const paymentOverdue = salesData.transactions
+    const _paymentOverdue = salesData.transactions
       .filter((t) => t.payment_status === 'overdue')
       .reduce((sum, t) => sum + t.amount, 0)
-    const conversionRate =
+    const _conversionRate =
       (salesData.opportunities.filter((opp) => opp.stage === 'closed-won').length /
         Math.max(salesData.opportunities.length, 1)) *
       100

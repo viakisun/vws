@@ -230,7 +230,7 @@
           <div class="text-lg font-semibold text-green-800">
             {formatCurrency(budgetSummary.totalGovernmentFunding)}원
             <span class="text-sm text-green-600"
-              >({budgetSummary.governmentFundingRatio.toFixed(1)}%)</span
+              >({Math.floor(budgetSummary.governmentFundingRatio)}%)</span
             >
           </div>
         </div>
@@ -252,16 +252,16 @@
           <div>
             <span class="text-blue-700 font-medium">현금 총액:</span>
             <span class="ml-2 font-semibold"
-              >{formatCurrency(budgetSummary.totalCash)}원 ({budgetSummary.cashRatio.toFixed(
-                1,
+              >{formatCurrency(budgetSummary.totalCash)}원 ({Math.floor(
+                budgetSummary.cashRatio,
               )}%)</span
             >
           </div>
           <div>
             <span class="text-blue-700 font-medium">현물 총액:</span>
             <span class="ml-2 font-semibold"
-              >{formatCurrency(budgetSummary.totalInKind)}원 ({budgetSummary.inKindRatio.toFixed(
-                1,
+              >{formatCurrency(budgetSummary.totalInKind)}원 ({Math.floor(
+                budgetSummary.inKindRatio,
               )}%)</span
             >
           </div>

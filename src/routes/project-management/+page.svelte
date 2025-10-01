@@ -370,6 +370,25 @@
     loadProjectData()
   }
 
+  // 프로젝트 수정 이벤트 처리
+  function handleProjectUpdated(event: any) {
+    const { projectId, updatedProject } = event.detail
+
+    // 프로젝트 목록에서 해당 프로젝트 업데이트
+    const projectIndex = projects.findIndex((p) => p.id === projectId)
+    if (projectIndex !== -1) {
+      projects[projectIndex] = { ...projects[projectIndex], ...updatedProject }
+    }
+
+    // 현재 선택된 프로젝트가 수정된 프로젝트라면 업데이트
+    if (selectedProject && selectedProject.id === projectId) {
+      selectedProject = { ...selectedProject, ...updatedProject }
+    }
+
+    // 프로젝트 데이터 새로고침 (드롭다운 업데이트)
+    loadProjectData()
+  }
+
   // 프로젝트 예산 로드
   async function loadProjectBudgets(projectId: string) {
     try {
@@ -445,6 +464,7 @@
         error={tabErrors.projects}
         on:create-project={() => (showCreateProjectModal = true)}
         on:project-deleted={handleProjectDeleted}
+        on:project-updated={handleProjectUpdated}
         on:refresh={loadProjectData}
         on:project-selected={(e) => handleProjectSelection(e.detail.project)}
         on:show-budget-modal={() => {

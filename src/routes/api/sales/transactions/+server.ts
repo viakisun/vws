@@ -14,8 +14,8 @@ export const GET: RequestHandler = async ({ url }) => {
     const date_to = url.searchParams.get('date_to') || ''
     const search = url.searchParams.get('search') || ''
 
-    let whereConditions: string[] = []
-    let params: (string | number)[] = []
+    const whereConditions: string[] = []
+    const params: (string | number)[] = []
     let paramIndex = 1
 
     if (type !== 'all') {

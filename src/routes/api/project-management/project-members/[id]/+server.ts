@@ -1,4 +1,4 @@
-import { query } from '$lib/database/connection'
+import { getConnection, query } from '$lib/database/connection'
 import type { ApiResponse, DatabaseProjectMember } from '$lib/types/database'
 import {
   calculateParticipationPeriod,
@@ -8,7 +8,6 @@ import {
 } from '$lib/utils/date-calculator'
 import { toUTC } from '$lib/utils/date-handler'
 import { logger } from '$lib/utils/logger'
-import { calculateMonthlySalary } from '$lib/utils/salary-calculator'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
 
@@ -85,8 +84,10 @@ export const PUT: RequestHandler = async ({ params, request }) => {
       startDate,
       endDate,
       participationRate,
-      contributionType,
-      contractAmount,
+      cashAmount,
+      inKindAmount,
+      contractMonthlySalary,
+      participationMonths,
       status,
     } = data
 
@@ -96,8 +97,10 @@ export const PUT: RequestHandler = async ({ params, request }) => {
       startDate === undefined &&
       endDate === undefined &&
       participationRate === undefined &&
-      contributionType === undefined &&
-      contractAmount === undefined &&
+      cashAmount === undefined &&
+      inKindAmount === undefined &&
+      contractMonthlySalary === undefined &&
+      participationMonths === undefined &&
       status === undefined
     ) {
       return json(
@@ -123,8 +126,16 @@ export const PUT: RequestHandler = async ({ params, request }) => {
       )
     }
 
-    // 멤버 존재 확인
-    const existingMember = await query('SELECT * FROM project_members WHERE id = $1', [params.id])
+    // 멤버 존재 확인 (날짜 변환 없이 원본 데이터 가져오기)
+    const client = await getConnection()
+    let existingMember
+    try {
+      existingMember = await client.query('SELECT * FROM project_members WHERE id = $1', [
+        params.id,
+      ])
+    } finally {
+      client.release()
+    }
 
     if (existingMember.rows.length === 0) {
       return json(
@@ -202,29 +213,38 @@ export const PUT: RequestHandler = async ({ params, request }) => {
 
       // 프로젝트 기간과의 겹침 검증
       const currentMember = existingMember.rows[0] as Record<string, unknown>
-      const projectResult = await query('SELECT start_date, end_date FROM projects WHERE id = $1', [
-        String(currentMember.project_id || ''),
-      ])
 
-      if (projectResult.rows.length > 0) {
-        const project = projectResult.rows[0] as Record<string, unknown>
-        const participationValidation = calculateParticipationPeriod(
-          String(startDate || ''),
-          String(endDate || ''),
-          String(project.start_date || ''),
-          String(project.end_date || ''),
+      // 날짜 처리를 위해 client.query를 직접 사용 (processQueryResultDates 우회)
+      const client = await getConnection()
+      try {
+        const projectResult = await client.query(
+          'SELECT start_date, end_date FROM projects WHERE id = $1',
+          [String(currentMember.project_id || '')],
         )
 
-        if (!participationValidation.isValid) {
-          return json(
-            {
-              success: false,
-              message:
-                participationValidation.errorMessage || '참여기간이 프로젝트 기간과 맞지 않습니다.',
-            },
-            { status: 400 },
+        if (projectResult.rows.length > 0) {
+          const project = projectResult.rows[0] as Record<string, unknown>
+          const participationValidation = calculateParticipationPeriod(
+            String(startDate || ''),
+            String(endDate || ''),
+            String(project.start_date || ''),
+            String(project.end_date || ''),
           )
+
+          if (!participationValidation.isValid) {
+            return json(
+              {
+                success: false,
+                message:
+                  participationValidation.errorMessage ||
+                  '참여기간이 프로젝트 기간과 맞지 않습니다.',
+              },
+              { status: 400 },
+            )
+          }
         }
+      } finally {
+        client.release()
       }
     }
 
@@ -234,60 +254,27 @@ export const PUT: RequestHandler = async ({ params, request }) => {
       paramIndex++
     }
 
-    if (contributionType !== undefined) {
-      updateFields.push(`contribution_type = $${paramIndex}`)
-      updateValues.push(String(contributionType || ''))
+    if (cashAmount !== undefined) {
+      updateFields.push(`cash_amount = $${paramIndex}`)
+      updateValues.push(Number(cashAmount || 0))
       paramIndex++
     }
 
-    // contract_amount 필드 제거 - 실제 근로계약서에서 조회
+    if (inKindAmount !== undefined) {
+      updateFields.push(`in_kind_amount = $${paramIndex}`)
+      updateValues.push(Number(inKindAmount || 0))
+      paramIndex++
+    }
+
+    if (contractMonthlySalary !== undefined) {
+      updateFields.push(`monthly_amount = $${paramIndex}`)
+      updateValues.push(Number(contractMonthlySalary || 0))
+      paramIndex++
+    }
 
     if (status !== undefined) {
       updateFields.push(`status = $${paramIndex}`)
       updateValues.push(String(status || ''))
-      paramIndex++
-    }
-
-    // 참여율이 변경된 경우 월간금액 재계산
-    if (participationRate !== undefined) {
-      const currentMember = existingMember.rows[0] as Record<string, unknown>
-      const finalParticipationRate = Number(participationRate || 0)
-
-      // 실제 근로계약서에서 최신 금액 조회
-      const contractResult = await query(
-        `
-				SELECT sc.annual_salary, sc.monthly_salary
-				FROM salary_contracts sc
-				WHERE sc.employee_id = $1
-					AND sc.status = 'active'
-					AND (
-						-- 계약서 시작일이 프로젝트 참여 기간 내에 있거나
-						(sc.start_date <= COALESCE($3, CURRENT_DATE) AND (sc.end_date IS NULL OR sc.end_date >= COALESCE($2, CURRENT_DATE)))
-						OR
-						-- 프로젝트 참여 기간이 계약서 기간 내에 있거나
-						(COALESCE($2, CURRENT_DATE) <= sc.start_date AND COALESCE($3, CURRENT_DATE) >= sc.start_date)
-					)
-				ORDER BY sc.start_date DESC
-				LIMIT 1
-			`,
-        [String(currentMember.employee_id || ''), currentMember.start_date, currentMember.end_date],
-      )
-
-      let contractMonthlySalary = 0
-      if (contractResult.rows.length > 0) {
-        const contract = contractResult.rows[0] as Record<string, unknown>
-        contractMonthlySalary =
-          Number(contract.monthly_salary || 0) || Number(contract.annual_salary || 0) / 12
-      }
-
-      // 월간 금액 계산: 중앙화된 급여 계산 함수 사용
-      const monthlyAmount = calculateMonthlySalary(
-        contractMonthlySalary * 12, // 연봉으로 변환
-        finalParticipationRate,
-      )
-
-      updateFields.push(`monthly_amount = $${paramIndex}`)
-      updateValues.push(monthlyAmount)
       paramIndex++
     }
 
