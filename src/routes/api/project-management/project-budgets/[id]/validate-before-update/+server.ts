@@ -9,9 +9,9 @@ export const POST: RequestHandler = async ({ params, request }) => {
     const { id } = params as Record<string, string>
     const data = (await request.json()) as Record<string, unknown>
     const {
-      periodNumber = 1,
-      startDate,
-      endDate,
+      periodNumber: _periodNumber = 1,
+      startDate: _startDate,
+      endDate: _endDate,
       // 현금 비목들
       personnelCostCash = 0,
       researchMaterialCostCash = 0,
@@ -104,10 +104,15 @@ export const POST: RequestHandler = async ({ params, request }) => {
     if (researchCostChanges.length > 0) {
       warnings.push(
         `연구개발비가 변경됩니다: ${researchCostChanges
-          .map((change) => `${change.name} (${change.old.toLocaleString()}원 → ${change.new.toLocaleString()}원)`)
+          .map(
+            (change) =>
+              `${change.name} (${change.old.toLocaleString()}원 → ${change.new.toLocaleString()}원)`,
+          )
           .join(', ')}`,
       )
-      recommendations.push('연구개발비 변경 시 기존 입력된 연구개발비 데이터가 영향을 받을 수 있습니다.')
+      recommendations.push(
+        '연구개발비 변경 시 기존 입력된 연구개발비 데이터가 영향을 받을 수 있습니다.',
+      )
     }
 
     if (indirectCostChanged) {
@@ -117,8 +122,18 @@ export const POST: RequestHandler = async ({ params, request }) => {
     }
 
     // 전체 예산 변경량 계산
-    const oldTotalBudget = oldPersonnelCost + oldResearchMaterialCost + oldResearchActivityCost + oldResearchStipend + oldIndirectCost
-    const newTotalBudget = newPersonnelCost + newResearchMaterialCost + newResearchActivityCost + newResearchStipend + newIndirectCost
+    const oldTotalBudget =
+      oldPersonnelCost +
+      oldResearchMaterialCost +
+      oldResearchActivityCost +
+      oldResearchStipend +
+      oldIndirectCost
+    const newTotalBudget =
+      newPersonnelCost +
+      newResearchMaterialCost +
+      newResearchActivityCost +
+      newResearchStipend +
+      newIndirectCost
     const totalBudgetChange = newTotalBudget - oldTotalBudget
 
     if (Math.abs(totalBudgetChange) > 0) {

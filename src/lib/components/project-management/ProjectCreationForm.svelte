@@ -81,7 +81,6 @@
     projectData.description = ''
     projectData.status = 'planning'
   }
-
 </script>
 
 <div class="p-6">

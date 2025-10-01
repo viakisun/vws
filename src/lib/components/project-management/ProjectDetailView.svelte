@@ -1876,16 +1876,19 @@
   function checkBudgetMismatch(budget?: any) {
     if (!projectBudgets || projectBudgets.length === 0) return null
 
-    const targetBudget = budget || projectBudgets.find((b) => getPeriodNumber(b) === selectedEvidencePeriod) || projectBudgets[0]
-    
+    const targetBudget =
+      budget ||
+      projectBudgets.find((b) => getPeriodNumber(b) === selectedEvidencePeriod) ||
+      projectBudgets[0]
+
     // 연차별 예산 총액 계산
-    const annualBudgetTotal = 
+    const annualBudgetTotal =
       (parseFloat(targetBudget.government_funding_amount) || 0) +
       (parseFloat(targetBudget.company_cash_amount) || 0) +
       (parseFloat(targetBudget.company_in_kind_amount) || 0)
 
     // 연구개발비 총액 계산
-    const researchCostTotal = 
+    const researchCostTotal =
       (parseFloat(targetBudget.personnel_cost) || 0) +
       (parseFloat(targetBudget.research_material_cost) || 0) +
       (parseFloat(targetBudget.research_activity_cost) || 0) +
@@ -1898,7 +1901,7 @@
         hasMismatch: true,
         annualBudgetTotal,
         researchCostTotal,
-        difference: Math.abs(annualBudgetTotal - researchCostTotal)
+        difference: Math.abs(annualBudgetTotal - researchCostTotal),
       }
     }
 
@@ -2309,14 +2312,20 @@
                   stipendInKind +
                   indirectInKind}
                 {@const mismatchInfo = checkBudgetMismatch(budget)}
-                <tr class="hover:bg-gray-50 {mismatchInfo?.hasMismatch ? 'bg-red-50 border-l-4 border-red-400' : ''}">
+                <tr
+                  class="hover:bg-gray-50 {mismatchInfo?.hasMismatch
+                    ? 'bg-red-50 border-l-4 border-red-400'
+                    : ''}"
+                >
                   <!-- 연차 -->
                   <td class="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900 w-24">
                     <div class="text-sm cursor-help" title={formatPeriodTooltip(budget)}>
                       <div class="flex items-center gap-2">
                         <span class="font-medium">{formatPeriodDisplay(budget)}</span>
                         {#if mismatchInfo?.hasMismatch}
-                          <span class="px-1.5 py-0.5 text-xs bg-red-500 text-white rounded font-medium">
+                          <span
+                            class="px-1.5 py-0.5 text-xs bg-red-500 text-white rounded font-medium"
+                          >
                             !
                           </span>
                         {/if}
@@ -2543,16 +2552,19 @@
       </div>
 
       <!-- 불일치 경고 섹션 -->
-      {#if projectBudgets.some(budget => checkBudgetMismatch(budget)?.hasMismatch)}
+      {#if projectBudgets.some((budget) => checkBudgetMismatch(budget)?.hasMismatch)}
         <div class="mt-4 p-3 bg-red-50 border-l-4 border-red-400 rounded">
           <div class="text-sm text-red-700">
-            <span class="font-medium">!</span> 
+            <span class="font-medium">!</span>
             다음 연차의 예산과 연구개발비가 일치하지 않습니다:
             <div class="mt-2 space-y-1">
-              {#each projectBudgets.filter(budget => checkBudgetMismatch(budget)?.hasMismatch) as budget}
+              {#each projectBudgets.filter((budget) => checkBudgetMismatch(budget)?.hasMismatch) as budget}
                 {@const mismatchInfo = checkBudgetMismatch(budget)}
                 <div class="text-xs text-red-600">
-                  {formatPeriodDisplay(budget)}: 예산 {formatNumber(mismatchInfo.annualBudgetTotal, true)} vs 연구개발비 {formatNumber(mismatchInfo.researchCostTotal, true)}
+                {formatPeriodDisplay(budget)}: 예산 {formatNumber(
+                  mismatchInfo?.annualBudgetTotal || 0,
+                  true,
+                )} vs 연구개발비 {formatNumber(mismatchInfo?.researchCostTotal || 0, true)}
                 </div>
               {/each}
             </div>
@@ -2934,8 +2946,8 @@
               >%</span
             >
           </div>
-          </div>
         </div>
+      </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
         <!-- 현금 금액 -->
@@ -2960,14 +2972,14 @@
             class="w-full px-3 py-2 border border-green-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm font-medium bg-white shadow-sm"
             placeholder="0"
           />
-      </div>
+        </div>
 
         <!-- 현물 금액 -->
         <div>
           <label for="member-in-kind-amount" class="block text-sm font-medium text-gray-700 mb-2"
             >현물 (원)</label
           >
-            <input
+          <input
             id="member-in-kind-amount"
             type="text"
             value={formatNumber(memberForm.inKindAmount, false)}
@@ -2982,8 +2994,8 @@
               }
             }}
             class="w-full px-3 py-2 border border-green-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm font-medium bg-white shadow-sm"
-              placeholder="0"
-            />
+            placeholder="0"
+          />
         </div>
 
         <!-- 참여기간 -->
@@ -3261,12 +3273,12 @@
                       class="absolute right-1 top-1/2 transform -translate-y-1/2 text-xs text-gray-500 pointer-events-none"
                       >%</span
                     >
-                          </div>
+                  </div>
                 {:else}
                   <div class="text-center">
                     {member.participation_rate || member.participationRate || 0}%
-                                  </div>
-                                {/if}
+                  </div>
+                {/if}
               </td>
 
               <!-- 현금 -->
@@ -3285,7 +3297,7 @@
                   />
                 {:else}
                   {formatNumber(parseInt(member.cash_amount || member.cashAmount || '0'), true)}
-                                {/if}
+                {/if}
               </td>
 
               <!-- 현물 -->
@@ -3302,12 +3314,12 @@
                     class="w-24 px-2 py-1 border border-blue-300 rounded text-xs font-medium focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white text-right"
                     placeholder="0"
                   />
-                  {:else}
+                {:else}
                   {formatNumber(
                     parseInt(member.in_kind_amount || member.inKindAmount || '0'),
                     true,
                   )}
-                  {/if}
+                {/if}
               </td>
               <!-- 검증 상태 칼럼 제거 -->
               <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
@@ -3366,13 +3378,13 @@
           {/if}
 
           <!-- 합계 행 -->
-    {#if projectMembers.length > 0}
+          {#if projectMembers.length > 0}
             {@const totals = calculateTableTotals()}
             <tr class="bg-gray-50 border-t-2 border-gray-300">
               <td class="px-4 py-3 text-sm font-semibold text-gray-900" colspan="5">
                 <div class="flex items-center">
                   <div class="text-sm font-bold text-gray-800">합계</div>
-        </div>
+                </div>
               </td>
 
               <!-- 현금 합계 -->
@@ -3383,17 +3395,17 @@
               <!-- 현물 합계 -->
               <td class="px-4 py-3 text-sm font-semibold text-gray-900 text-right">
                 {formatNumber(totals.totalInKindAmount, true)}
-                      </td>
+              </td>
 
               <!-- 액션 (합계 행에는 없음) -->
               <td class="px-4 py-3 text-sm text-gray-500">
                 <div class="text-center">-</div>
-                      </td>
-                    </tr>
+              </td>
+            </tr>
           {/if}
-                </tbody>
-              </table>
-            </div>
+        </tbody>
+      </table>
+    </div>
   </ThemeCard>
 
   <!-- 증빙 관리 -->
@@ -4473,13 +4485,23 @@
       <div class="mb-6">
         <div class="flex items-center mb-4">
           <div class="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center mr-3">
-            <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+            <svg
+              class="w-6 h-6 text-yellow-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+              ></path>
             </svg>
           </div>
           <h3 class="text-lg font-semibold text-gray-900">예산 수정 확인</h3>
         </div>
-        
+
         <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
           <h4 class="font-medium text-yellow-800 mb-2">⚠️ 주의사항</h4>
           <ul class="space-y-1 text-sm text-yellow-700">
@@ -4506,34 +4528,40 @@
           <div class="space-y-2 text-sm">
             <div class="flex justify-between">
               <span class="text-gray-600">기존 총 예산:</span>
-              <span class="font-medium">{budgetUpdateValidationData.oldTotalBudget?.toLocaleString()}원</span>
+              <span class="font-medium"
+                >{budgetUpdateValidationData.oldTotalBudget?.toLocaleString()}원</span
+              >
             </div>
             <div class="flex justify-between">
               <span class="text-gray-600">새 총 예산:</span>
-              <span class="font-medium">{budgetUpdateValidationData.newTotalBudget?.toLocaleString()}원</span>
+              <span class="font-medium"
+                >{budgetUpdateValidationData.newTotalBudget?.toLocaleString()}원</span
+              >
             </div>
             <div class="flex justify-between border-t pt-2">
               <span class="text-gray-600">변경 금액:</span>
-              <span class="font-medium {budgetUpdateValidationData.totalBudgetChange > 0 ? 'text-red-600' : 'text-green-600'}">
-                {budgetUpdateValidationData.totalBudgetChange > 0 ? '+' : ''}{budgetUpdateValidationData.totalBudgetChange?.toLocaleString()}원
+              <span
+                class="font-medium {budgetUpdateValidationData.totalBudgetChange > 0
+                  ? 'text-red-600'
+                  : 'text-green-600'}"
+              >
+                {budgetUpdateValidationData.totalBudgetChange > 0
+                  ? '+'
+                  : ''}{budgetUpdateValidationData.totalBudgetChange?.toLocaleString()}원
               </span>
             </div>
           </div>
         </div>
 
         <div class="text-sm text-gray-600 mb-4">
-          연구개발비 변경 시 기존에 입력된 연구개발비 데이터에 영향을 줄 수 있습니다. 
-          정말로 예산을 수정하시겠습니까?
+          연구개발비 변경 시 기존에 입력된 연구개발비 데이터에 영향을 줄 수 있습니다. 정말로 예산을
+          수정하시겠습니까?
         </div>
       </div>
 
       <div class="flex justify-end space-x-3">
-        <ThemeButton variant="ghost" onclick={cancelBudgetUpdate}>
-          취소
-        </ThemeButton>
-        <ThemeButton variant="primary" onclick={confirmBudgetUpdate}>
-          예산 수정 진행
-        </ThemeButton>
+        <ThemeButton variant="ghost" onclick={cancelBudgetUpdate}>취소</ThemeButton>
+        <ThemeButton variant="primary" onclick={confirmBudgetUpdate}>예산 수정 진행</ThemeButton>
       </div>
     </div>
   </ThemeModal>

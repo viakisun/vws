@@ -1,7 +1,7 @@
 import { json } from '@sveltejs/kit'
-import type { RequestHandler } from './$types'
 import { readFileSync } from 'fs'
 import { join } from 'path'
+import type { RequestHandler } from './$types'
 
 export const GET: RequestHandler = async () => {
   try {
@@ -23,7 +23,7 @@ export const GET: RequestHandler = async () => {
     // 폴백 값
     return json(
       {
-        version: '0.2.2',
+        version: '0.2.4',
         buildDate: new Date().toISOString().split('T')[0],
         environment: 'development',
         name: 'vws',

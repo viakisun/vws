@@ -36,7 +36,11 @@ export const POST: RequestHandler = async () => {
 			ORDER BY ordinal_position
 		`)
 
-    const columnData = columns.rows as Array<{ column_name: string; data_type: string; column_default: string | null }>
+    const columnData = columns.rows as Array<{
+      column_name: string
+      data_type: string
+      column_default: string | null
+    }>
 
     return json({
       success: true,

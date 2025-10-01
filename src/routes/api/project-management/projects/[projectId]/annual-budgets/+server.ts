@@ -143,7 +143,11 @@ export const POST: RequestHandler = async ({ params, request }) => {
 
     // 예산 검증 및 경고 메시지 수집 (POST용)
     const postWarnings: string[] = []
-    const postBudgetMismatches: Array<{ year: number; expectedTotal: number; researchCostTotal: number }> = []
+    const postBudgetMismatches: Array<{
+      year: number
+      expectedTotal: number
+      researchCostTotal: number
+    }> = []
 
     // 새 데이터 삽입 (연차별 예산용 칼럼 사용 + 기존 연구개발비 데이터 보존)
     for (const budget of budgets) {
@@ -153,25 +157,27 @@ export const POST: RequestHandler = async ({ params, request }) => {
       ) as Record<string, unknown> | undefined
 
       // 연차별 예산 총액 계산
-      const annualBudgetTotal = (budget.governmentFunding || 0) + (budget.companyCash || 0) + (budget.companyInKind || 0)
-      
+      const annualBudgetTotal =
+        (budget.governmentFunding || 0) + (budget.companyCash || 0) + (budget.companyInKind || 0)
+
       // 기존 연구개발비 총액 계산
-      const researchCostTotal = 
-        (Number(existingBudget?.personnel_cost || 0)) +
-        (Number(existingBudget?.research_material_cost || 0)) +
-        (Number(existingBudget?.research_activity_cost || 0)) +
-        (Number(existingBudget?.research_stipend || 0)) +
-        (Number(existingBudget?.indirect_cost || 0))
+      const researchCostTotal =
+        Number(existingBudget?.personnel_cost || 0) +
+        Number(existingBudget?.research_material_cost || 0) +
+        Number(existingBudget?.research_activity_cost || 0) +
+        Number(existingBudget?.research_stipend || 0) +
+        Number(existingBudget?.indirect_cost || 0)
 
       // 예산과 연구개발비 합계 불일치 검사
-      if (researchCostTotal > 0 && Math.abs(annualBudgetTotal - researchCostTotal) > 1000) { // 1천원 이상 차이
+      if (researchCostTotal > 0 && Math.abs(annualBudgetTotal - researchCostTotal) > 1000) {
+        // 1천원 이상 차이
         postBudgetMismatches.push({
           year: budget.year,
           expectedTotal: annualBudgetTotal,
-          researchCostTotal: researchCostTotal
+          researchCostTotal: researchCostTotal,
         })
         postWarnings.push(
-          `${budget.year}차년도: 연차별 예산(${annualBudgetTotal.toLocaleString()}원)과 연구개발비 합계(${researchCostTotal.toLocaleString()}원)가 일치하지 않습니다.`
+          `${budget.year}차년도: 연차별 예산(${annualBudgetTotal.toLocaleString()}원)과 연구개발비 합계(${researchCostTotal.toLocaleString()}원)가 일치하지 않습니다.`,
         )
       }
 
@@ -231,7 +237,7 @@ export const POST: RequestHandler = async ({ params, request }) => {
     )
 
     const createdBudgetData = result.rows as DatabaseProjectBudget[]
-    
+
     // 연구개발비 데이터 조회 (불일치 검증용)
     const researchCostsResult = await query(
       `
@@ -246,7 +252,11 @@ export const POST: RequestHandler = async ({ params, request }) => {
 
     // 불일치 검증
     const warnings: string[] = []
-    const budgetMismatches: Array<{ year: number; expectedTotal: number; researchCostTotal: number }> = []
+    const budgetMismatches: Array<{
+      year: number
+      expectedTotal: number
+      researchCostTotal: number
+    }> = []
 
     const createdBudgets: AnnualBudget[] = createdBudgetData.map((row) => {
       // 연차별 예산용 칼럼에서 직접 가져오기
@@ -260,24 +270,27 @@ export const POST: RequestHandler = async ({ params, request }) => {
       const yearlyTotal = totalCash + totalInKind
 
       // 해당 연차의 연구개발비 총액 계산
-      const researchCostRow = researchCostsResult.rows.find(r => r.period_number === row.period_number)
-      const researchCostTotal = researchCostRow 
-        ? (Number(researchCostRow.personnel_cost || 0)) +
-          (Number(researchCostRow.research_material_cost || 0)) +
-          (Number(researchCostRow.research_activity_cost || 0)) +
-          (Number(researchCostRow.research_stipend || 0)) +
-          (Number(researchCostRow.indirect_cost || 0))
+      const researchCostRow = researchCostsResult.rows.find(
+        (r) => r.period_number === row.period_number,
+      )
+      const researchCostTotal = researchCostRow
+        ? Number(researchCostRow.personnel_cost || 0) +
+          Number(researchCostRow.research_material_cost || 0) +
+          Number(researchCostRow.research_activity_cost || 0) +
+          Number(researchCostRow.research_stipend || 0) +
+          Number(researchCostRow.indirect_cost || 0)
         : 0
 
       // 예산과 연구개발비 합계 불일치 검사
-      if (researchCostTotal > 0 && Math.abs(yearlyTotal - researchCostTotal) > 1000) { // 1천원 이상 차이
+      if (researchCostTotal > 0 && Math.abs(yearlyTotal - researchCostTotal) > 1000) {
+        // 1천원 이상 차이
         budgetMismatches.push({
           year: row.period_number,
           expectedTotal: yearlyTotal,
-          researchCostTotal: researchCostTotal
+          researchCostTotal: researchCostTotal,
         })
         warnings.push(
-          `${row.period_number}차년도: 연차별 예산(${yearlyTotal.toLocaleString()}원)과 연구개발비 합계(${researchCostTotal.toLocaleString()}원)가 일치하지 않습니다.`
+          `${row.period_number}차년도: 연차별 예산(${yearlyTotal.toLocaleString()}원)과 연구개발비 합계(${researchCostTotal.toLocaleString()}원)가 일치하지 않습니다.`,
         )
       }
 
@@ -305,16 +318,21 @@ export const POST: RequestHandler = async ({ params, request }) => {
       }
     })
 
-    const response: ApiResponse<{ budgets: AnnualBudget[]; warnings?: string[]; budgetMismatches?: Array<{ year: number; expectedTotal: number; researchCostTotal: number }> }> = {
+    const response: ApiResponse<{
+      budgets: AnnualBudget[]
+      warnings?: string[]
+      budgetMismatches?: Array<{ year: number; expectedTotal: number; researchCostTotal: number }>
+    }> = {
       success: true,
       data: {
         budgets: createdBudgets,
         ...(postWarnings.length > 0 && { warnings: postWarnings }),
         ...(postBudgetMismatches.length > 0 && { budgetMismatches: postBudgetMismatches }),
       },
-      message: postWarnings.length > 0 
-        ? `연차별 예산이 생성되었지만 ${postWarnings.length}개의 불일치가 발견되었습니다.`
-        : '연차별 예산이 성공적으로 생성되었습니다.',
+      message:
+        postWarnings.length > 0
+          ? `연차별 예산이 생성되었지만 ${postWarnings.length}개의 불일치가 발견되었습니다.`
+          : '연차별 예산이 성공적으로 생성되었습니다.',
     }
 
     return json(response)
@@ -358,19 +376,23 @@ export const PUT: RequestHandler = async ({ params, request }) => {
     )
 
     // 예산 검증
-    const annualBudgetTotal = (budgetData.governmentFunding || 0) + (budgetData.companyCash || 0) + (budgetData.companyInKind || 0)
-    const researchCostTotal = existingBudget.rows.length > 0 
-      ? (Number(existingBudget.rows[0].personnel_cost || 0)) +
-        (Number(existingBudget.rows[0].research_material_cost || 0)) +
-        (Number(existingBudget.rows[0].research_activity_cost || 0)) +
-        (Number(existingBudget.rows[0].research_stipend || 0)) +
-        (Number(existingBudget.rows[0].indirect_cost || 0))
-      : 0
+    const annualBudgetTotal =
+      (budgetData.governmentFunding || 0) +
+      (budgetData.companyCash || 0) +
+      (budgetData.companyInKind || 0)
+    const researchCostTotal =
+      existingBudget.rows.length > 0
+        ? Number(existingBudget.rows[0].personnel_cost || 0) +
+          Number(existingBudget.rows[0].research_material_cost || 0) +
+          Number(existingBudget.rows[0].research_activity_cost || 0) +
+          Number(existingBudget.rows[0].research_stipend || 0) +
+          Number(existingBudget.rows[0].indirect_cost || 0)
+        : 0
 
     const warnings: string[] = []
     if (researchCostTotal > 0 && Math.abs(annualBudgetTotal - researchCostTotal) > 1000) {
       warnings.push(
-        `${year}차년도: 연차별 예산(${annualBudgetTotal.toLocaleString()}원)과 연구개발비 합계(${researchCostTotal.toLocaleString()}원)가 일치하지 않습니다.`
+        `${year}차년도: 연차별 예산(${annualBudgetTotal.toLocaleString()}원)과 연구개발비 합계(${researchCostTotal.toLocaleString()}원)가 일치하지 않습니다.`,
       )
     }
 
@@ -448,9 +470,10 @@ export const PUT: RequestHandler = async ({ params, request }) => {
         budget,
         ...(warnings.length > 0 && { warnings }),
       },
-      message: warnings.length > 0 
-        ? `연차별 예산이 수정되었지만 불일치가 발견되었습니다: ${warnings[0]}`
-        : '연차별 예산이 성공적으로 수정되었습니다.',
+      message:
+        warnings.length > 0
+          ? `연차별 예산이 수정되었지만 불일치가 발견되었습니다: ${warnings[0]}`
+          : '연차별 예산이 성공적으로 수정되었습니다.',
     }
 
     return json(response)

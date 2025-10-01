@@ -37,7 +37,7 @@ export const POST: RequestHandler = async ({ params, request }) => {
       )
     }
 
-    const existing = existingBudget.rows[0] as Record<string, unknown>
+    const _existing = existingBudget.rows[0] as Record<string, unknown>
 
     // 연구개발비 복구 (현금 + 현물)
     const personnelCost = Number(personnelCostCash || 0) + Number(personnelCostInKind || 0)
@@ -49,7 +49,8 @@ export const POST: RequestHandler = async ({ params, request }) => {
     const indirectCost = Number(indirectCostCash || 0) + Number(indirectCostInKind || 0)
 
     // 총 예산 재계산
-    const totalBudget = personnelCost + researchMaterialCost + researchActivityCost + researchStipend + indirectCost
+    const totalBudget =
+      personnelCost + researchMaterialCost + researchActivityCost + researchStipend + indirectCost
 
     // 연구개발비 복구 실행
     const result = await query(
@@ -121,7 +122,9 @@ export const POST: RequestHandler = async ({ params, request }) => {
 
     const updatedBudget = result.rows[0] as Record<string, unknown>
 
-    logger.log(`✅ 연구개발비 복구 완료 - Budget ID: ${id}, 총 예산: ${totalBudget.toLocaleString()}원`)
+    logger.log(
+      `✅ 연구개발비 복구 완료 - Budget ID: ${id}, 총 예산: ${totalBudget.toLocaleString()}원`,
+    )
 
     return json({
       success: true,
