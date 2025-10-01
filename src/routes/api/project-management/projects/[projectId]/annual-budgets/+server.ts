@@ -121,17 +121,72 @@ export const POST: RequestHandler = async ({ params, request }) => {
       )
     }
 
+    // 기존 데이터 백업 (연구개발비 데이터 보존을 위해)
+    const existingBudgets = await query(
+      `
+			SELECT 
+				period_number,
+				personnel_cost, research_material_cost, research_activity_cost, research_stipend, indirect_cost,
+				personnel_cost_cash, personnel_cost_in_kind,
+				research_material_cost_cash, research_material_cost_in_kind,
+				research_activity_cost_cash, research_activity_cost_in_kind,
+				research_stipend_cash, research_stipend_in_kind,
+				indirect_cost_cash, indirect_cost_in_kind
+			FROM project_budgets 
+			WHERE project_id = $1
+		`,
+      [projectId],
+    )
+
     // 기존 데이터 삭제
     await query('DELETE FROM project_budgets WHERE project_id = $1', [projectId])
 
-    // 새 데이터 삽입 (연차별 예산용 칼럼 사용)
+    // 예산 검증 및 경고 메시지 수집
+    const warnings: string[] = []
+    const budgetMismatches: Array<{ year: number; expectedTotal: number; researchCostTotal: number }> = []
+
+    // 새 데이터 삽입 (연차별 예산용 칼럼 사용 + 기존 연구개발비 데이터 보존)
     for (const budget of budgets) {
+      // 해당 연차의 기존 연구개발비 데이터 찾기
+      const existingBudget = existingBudgets.rows.find(
+        (row) => row.period_number === budget.year,
+      ) as Record<string, unknown> | undefined
+
+      // 연차별 예산 총액 계산
+      const annualBudgetTotal = (budget.governmentFunding || 0) + (budget.companyCash || 0) + (budget.companyInKind || 0)
+      
+      // 기존 연구개발비 총액 계산
+      const researchCostTotal = 
+        (Number(existingBudget?.personnel_cost || 0)) +
+        (Number(existingBudget?.research_material_cost || 0)) +
+        (Number(existingBudget?.research_activity_cost || 0)) +
+        (Number(existingBudget?.research_stipend || 0)) +
+        (Number(existingBudget?.indirect_cost || 0))
+
+      // 예산과 연구개발비 합계 불일치 검사
+      if (researchCostTotal > 0 && Math.abs(annualBudgetTotal - researchCostTotal) > 1000) { // 1천원 이상 차이
+        budgetMismatches.push({
+          year: budget.year,
+          expectedTotal: annualBudgetTotal,
+          researchCostTotal: researchCostTotal
+        })
+        warnings.push(
+          `${budget.year}차년도: 연차별 예산(${annualBudgetTotal.toLocaleString()}원)과 연구개발비 합계(${researchCostTotal.toLocaleString()}원)가 일치하지 않습니다.`
+        )
+      }
+
       await query(
         `
 				INSERT INTO project_budgets (
 					project_id, period_number, start_date, end_date,
-					government_funding_amount, company_cash_amount, company_in_kind_amount
-				) VALUES ($1, $2, $3, $4, $5, $6, $7)
+					government_funding_amount, company_cash_amount, company_in_kind_amount,
+					personnel_cost, research_material_cost, research_activity_cost, research_stipend, indirect_cost,
+					personnel_cost_cash, personnel_cost_in_kind,
+					research_material_cost_cash, research_material_cost_in_kind,
+					research_activity_cost_cash, research_activity_cost_in_kind,
+					research_stipend_cash, research_stipend_in_kind,
+					indirect_cost_cash, indirect_cost_in_kind
+				) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22)
 				`,
         [
           projectId,
@@ -141,6 +196,22 @@ export const POST: RequestHandler = async ({ params, request }) => {
           budget.governmentFunding || 0,
           budget.companyCash || 0,
           budget.companyInKind || 0,
+          // 기존 연구개발비 데이터 보존 (없으면 0)
+          existingBudget?.personnel_cost || 0,
+          existingBudget?.research_material_cost || 0,
+          existingBudget?.research_activity_cost || 0,
+          existingBudget?.research_stipend || 0,
+          existingBudget?.indirect_cost || 0,
+          existingBudget?.personnel_cost_cash || 0,
+          existingBudget?.personnel_cost_in_kind || 0,
+          existingBudget?.research_material_cost_cash || 0,
+          existingBudget?.research_material_cost_in_kind || 0,
+          existingBudget?.research_activity_cost_cash || 0,
+          existingBudget?.research_activity_cost_in_kind || 0,
+          existingBudget?.research_stipend_cash || 0,
+          existingBudget?.research_stipend_in_kind || 0,
+          existingBudget?.indirect_cost_cash || 0,
+          existingBudget?.indirect_cost_in_kind || 0,
         ],
       )
     }
@@ -192,12 +263,16 @@ export const POST: RequestHandler = async ({ params, request }) => {
       }
     })
 
-    const response: ApiResponse<{ budgets: AnnualBudget[] }> = {
+    const response: ApiResponse<{ budgets: AnnualBudget[]; warnings?: string[]; budgetMismatches?: Array<{ year: number; expectedTotal: number; researchCostTotal: number }> }> = {
       success: true,
       data: {
         budgets: createdBudgets,
+        ...(warnings.length > 0 && { warnings }),
+        ...(budgetMismatches.length > 0 && { budgetMismatches }),
       },
-      message: '연차별 예산이 성공적으로 생성되었습니다.',
+      message: warnings.length > 0 
+        ? `연차별 예산이 생성되었지만 ${warnings.length}개의 불일치가 발견되었습니다.`
+        : '연차별 예산이 성공적으로 생성되었습니다.',
     }
 
     return json(response)
@@ -226,6 +301,34 @@ export const PUT: RequestHandler = async ({ params, request }) => {
           error: '연차와 예산 데이터가 필요합니다.',
         },
         { status: 400 },
+      )
+    }
+
+    // 기존 연구개발비 데이터 조회 (검증을 위해)
+    const existingBudget = await query(
+      `
+			SELECT 
+				personnel_cost, research_material_cost, research_activity_cost, research_stipend, indirect_cost
+			FROM project_budgets 
+			WHERE project_id = $1 AND period_number = $2
+		`,
+      [projectId, year],
+    )
+
+    // 예산 검증
+    const annualBudgetTotal = (budgetData.governmentFunding || 0) + (budgetData.companyCash || 0) + (budgetData.companyInKind || 0)
+    const researchCostTotal = existingBudget.rows.length > 0 
+      ? (Number(existingBudget.rows[0].personnel_cost || 0)) +
+        (Number(existingBudget.rows[0].research_material_cost || 0)) +
+        (Number(existingBudget.rows[0].research_activity_cost || 0)) +
+        (Number(existingBudget.rows[0].research_stipend || 0)) +
+        (Number(existingBudget.rows[0].indirect_cost || 0))
+      : 0
+
+    const warnings: string[] = []
+    if (researchCostTotal > 0 && Math.abs(annualBudgetTotal - researchCostTotal) > 1000) {
+      warnings.push(
+        `${year}차년도: 연차별 예산(${annualBudgetTotal.toLocaleString()}원)과 연구개발비 합계(${researchCostTotal.toLocaleString()}원)가 일치하지 않습니다.`
       )
     }
 
@@ -297,12 +400,15 @@ export const PUT: RequestHandler = async ({ params, request }) => {
       updatedAt: String(updatedBudget.updated_at || ''),
     }
 
-    const response: ApiResponse<{ budget: AnnualBudget }> = {
+    const response: ApiResponse<{ budget: AnnualBudget; warnings?: string[] }> = {
       success: true,
       data: {
         budget,
+        ...(warnings.length > 0 && { warnings }),
       },
-      message: '연차별 예산이 성공적으로 수정되었습니다.',
+      message: warnings.length > 0 
+        ? `연차별 예산이 수정되었지만 불일치가 발견되었습니다: ${warnings[0]}`
+        : '연차별 예산이 성공적으로 수정되었습니다.',
     }
 
     return json(response)

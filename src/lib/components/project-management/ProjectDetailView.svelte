@@ -400,6 +400,23 @@
   // 예산 수정 확인 모달 상태
   let showBudgetUpdateConfirmModal = $state(false)
   let budgetUpdateValidationData = $state<any>(null)
+
+  // 연구개발비 복구 모달 상태
+  let showRestoreModal = $state(false)
+  let selectedBudgetForRestore = $state<any>(null)
+  let restoreForm = $state({
+    personnelCostCash: '',
+    personnelCostInKind: '',
+    researchMaterialCostCash: '',
+    researchMaterialCostInKind: '',
+    researchActivityCostCash: '',
+    researchActivityCostInKind: '',
+    researchStipendCash: '',
+    researchStipendInKind: '',
+    indirectCostCash: '',
+    indirectCostInKind: '',
+    restoreReason: '사용자 요청에 의한 연구개발비 복구',
+  })
   let selectedEvidenceItem = $state<any>(null)
   let _evidenceTypes = $state<any[]>([])
   let expandedEvidenceSections = $state({
@@ -1130,6 +1147,75 @@
   function cancelBudgetUpdate() {
     showBudgetUpdateConfirmModal = false
     budgetUpdateValidationData = null
+  }
+
+  // 연구개발비 복구 모달 열기
+  function openRestoreModal(budget: any) {
+    selectedBudgetForRestore = budget
+    restoreForm = {
+      personnelCostCash: '',
+      personnelCostInKind: '',
+      researchMaterialCostCash: '',
+      researchMaterialCostInKind: '',
+      researchActivityCostCash: '',
+      researchActivityCostInKind: '',
+      researchStipendCash: '',
+      researchStipendInKind: '',
+      indirectCostCash: '',
+      indirectCostInKind: '',
+      restoreReason: '사용자 요청에 의한 연구개발비 복구',
+    }
+    showRestoreModal = true
+  }
+
+  // 연구개발비 복구 실행
+  async function restoreResearchCosts() {
+    if (!selectedBudgetForRestore) return
+
+    try {
+      const response = await fetch(
+        `/api/project-management/project-budgets/${selectedBudgetForRestore.id}/restore-research-costs`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            personnelCostCash: fromThousands(restoreForm.personnelCostCash),
+            personnelCostInKind: fromThousands(restoreForm.personnelCostInKind),
+            researchMaterialCostCash: fromThousands(restoreForm.researchMaterialCostCash),
+            researchMaterialCostInKind: fromThousands(restoreForm.researchMaterialCostInKind),
+            researchActivityCostCash: fromThousands(restoreForm.researchActivityCostCash),
+            researchActivityCostInKind: fromThousands(restoreForm.researchActivityCostInKind),
+            researchStipendCash: fromThousands(restoreForm.researchStipendCash),
+            researchStipendInKind: fromThousands(restoreForm.researchStipendInKind),
+            indirectCostCash: fromThousands(restoreForm.indirectCostCash),
+            indirectCostInKind: fromThousands(restoreForm.indirectCostInKind),
+            restoreReason: restoreForm.restoreReason,
+          }),
+        },
+      )
+
+      if (response.ok) {
+        const result = await response.json()
+        showRestoreModal = false
+        selectedBudgetForRestore = null
+        await loadProjectBudgets()
+        budgetRefreshTrigger++
+        dispatch('refresh')
+        alert(result.message || '연구개발비가 성공적으로 복구되었습니다.')
+      } else {
+        const errorData = await response.json()
+        alert(`연구개발비 복구 실패: ${errorData.message || '알 수 없는 오류가 발생했습니다.'}`)
+      }
+    } catch (error) {
+      logger.error('연구개발비 복구 실패:', error)
+      alert('연구개발비 복구 중 오류가 발생했습니다.')
+    }
+  }
+
+  // 연구개발비 복구 모달 닫기
+  function closeRestoreModal() {
+    showRestoreModal = false
+    selectedBudgetForRestore = null
   }
 
   // 사업비 삭제
