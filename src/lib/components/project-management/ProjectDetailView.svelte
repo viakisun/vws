@@ -395,7 +395,11 @@
   let selectedBudgetForEvidence = $state<any>(null)
   let _evidenceList = $state<any[]>([])
   let selectedEvidencePeriod = $state(1)
-  let showEvidenceDetailModal = $state(false)
+  let evidenceRefreshKey = $state(0)
+
+  // 예산 수정 확인 모달 상태
+  let showBudgetUpdateConfirmModal = $state(false)
+  let budgetUpdateValidationData = $state<any>(null)
   let selectedEvidenceItem = $state<any>(null)
   let _evidenceTypes = $state<any[]>([])
   let expandedEvidenceSections = $state({
@@ -1000,6 +1004,59 @@
     }
 
     try {
+      // 1단계: 예산 수정 전 검증
+      const validationResponse = await fetch(
+        `/api/project-management/project-budgets/${editingBudget.id}/validate-before-update`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            periodNumber: budgetForm.periodNumber,
+            startDate: budgetForm.startDate,
+            endDate: budgetForm.endDate,
+            // 현금 비목들 (천원 단위를 원 단위로 변환)
+            personnelCostCash: fromThousands(budgetForm.personnelCostCash),
+            researchMaterialCostCash: fromThousands(budgetForm.researchMaterialCostCash),
+            researchActivityCostCash: fromThousands(budgetForm.researchActivityCostCash),
+            researchStipendCash: fromThousands(budgetForm.researchStipendCash),
+            indirectCostCash: fromThousands(budgetForm.indirectCostCash),
+            // 현물 비목들 (천원 단위를 원 단위로 변환)
+            personnelCostInKind: fromThousands(budgetForm.personnelCostInKind),
+            researchMaterialCostInKind: fromThousands(budgetForm.researchMaterialCostInKind),
+            researchActivityCostInKind: fromThousands(budgetForm.researchActivityCostInKind),
+            researchStipendInKind: fromThousands(budgetForm.researchStipendInKind),
+            indirectCostInKind: fromThousands(budgetForm.indirectCostInKind),
+          }),
+        },
+      )
+
+      if (!validationResponse.ok) {
+        alert('예산 수정 전 검증에 실패했습니다.')
+        return
+      }
+
+      const validationResult = await validationResponse.json()
+
+      if (validationResult.success && validationResult.data.hasWarnings) {
+        // 검증 데이터 저장하고 확인 모달 표시
+        budgetUpdateValidationData = validationResult.data
+        showBudgetUpdateConfirmModal = true
+        return
+      }
+
+      // 경고가 없으면 바로 수정 진행
+      await proceedWithBudgetUpdate()
+    } catch (error) {
+      logger.error('사업비 업데이트 실패:', error)
+      alert('사업비 수정 중 오류가 발생했습니다.')
+    }
+  }
+
+  // 실제 예산 수정 실행 함수
+  async function proceedWithBudgetUpdate() {
+    if (!editingBudget) return
+
+    try {
       const response = await fetch(`/api/project-management/project-budgets/${editingBudget.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -1025,7 +1082,9 @@
       if (response.ok) {
         const result = await response.json()
         showBudgetModal = false
+        showBudgetUpdateConfirmModal = false
         editingBudget = null
+        budgetUpdateValidationData = null
         budgetForm = {
           periodNumber: 1,
           startDate: '',
@@ -1057,9 +1116,20 @@
         alert(errorData.message || '사업비 수정에 실패했습니다.')
       }
     } catch (error) {
-      logger.error('사업비 업데이트 실패:', error)
+      logger.error('사업비 수정 실행 실패:', error)
       alert('사업비 수정 중 오류가 발생했습니다.')
     }
+  }
+
+  // 예산 수정 확인 모달에서 수정 진행
+  function confirmBudgetUpdate() {
+    proceedWithBudgetUpdate()
+  }
+
+  // 예산 수정 확인 모달에서 취소
+  function cancelBudgetUpdate() {
+    showBudgetUpdateConfirmModal = false
+    budgetUpdateValidationData = null
   }
 
   // 사업비 삭제
@@ -1328,7 +1398,7 @@
 
   async function openEvidenceDetail(item) {
     selectedEvidenceItem = item
-    showEvidenceDetailModal = true
+    showEvidenceModal = true
 
     // 증빙 항목 상세 정보 로드
     if (item.id) {
@@ -3493,8 +3563,8 @@
   </ThemeCard>
 
   <!-- 증빙 상세 모달 -->
-  {#if showEvidenceDetailModal}
-    <ThemeModal open={showEvidenceDetailModal} onclose={() => (showEvidenceDetailModal = false)}>
+  {#if showEvidenceModal}
+    <ThemeModal open={showEvidenceModal} onclose={() => (showEvidenceModal = false)}>
       <div class="p-6 max-w-4xl">
         <div class="mb-4">
           <h3 class="text-lg font-medium text-gray-900">
@@ -3730,7 +3800,7 @@
 
             <!-- 액션 버튼 -->
             <div class="flex justify-end space-x-3 pt-4 border-t border-gray-200">
-              <ThemeButton variant="ghost" onclick={() => (showEvidenceDetailModal = false)}>
+              <ThemeButton variant="ghost" onclick={() => (showEvidenceModal = false)}>
                 닫기
               </ThemeButton>
               <ThemeButton>저장</ThemeButton>
@@ -4244,6 +4314,79 @@
           {/if}
         </div>
       {/if}
+    </div>
+  </ThemeModal>
+{/if}
+
+<!-- 예산 수정 확인 모달 -->
+{#if showBudgetUpdateConfirmModal && budgetUpdateValidationData}
+  <ThemeModal open={showBudgetUpdateConfirmModal} onclose={cancelBudgetUpdate}>
+    <div class="max-w-2xl">
+      <div class="mb-6">
+        <div class="flex items-center mb-4">
+          <div class="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center mr-3">
+            <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+            </svg>
+          </div>
+          <h3 class="text-lg font-semibold text-gray-900">예산 수정 확인</h3>
+        </div>
+        
+        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+          <h4 class="font-medium text-yellow-800 mb-2">⚠️ 주의사항</h4>
+          <ul class="space-y-1 text-sm text-yellow-700">
+            {#each budgetUpdateValidationData.warnings as warning, i (i)}
+              <li>• {warning}</li>
+            {/each}
+          </ul>
+        </div>
+
+        {#if budgetUpdateValidationData.recommendations?.length > 0}
+          <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+            <h4 class="font-medium text-blue-800 mb-2">💡 권장사항</h4>
+            <ul class="space-y-1 text-sm text-blue-700">
+              {#each budgetUpdateValidationData.recommendations as recommendation, i (i)}
+                <li>• {recommendation}</li>
+              {/each}
+            </ul>
+          </div>
+        {/if}
+
+        <!-- 예산 변경 상세 정보 -->
+        <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4">
+          <h4 class="font-medium text-gray-800 mb-3">예산 변경 상세</h4>
+          <div class="space-y-2 text-sm">
+            <div class="flex justify-between">
+              <span class="text-gray-600">기존 총 예산:</span>
+              <span class="font-medium">{budgetUpdateValidationData.oldTotalBudget?.toLocaleString()}원</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-600">새 총 예산:</span>
+              <span class="font-medium">{budgetUpdateValidationData.newTotalBudget?.toLocaleString()}원</span>
+            </div>
+            <div class="flex justify-between border-t pt-2">
+              <span class="text-gray-600">변경 금액:</span>
+              <span class="font-medium {budgetUpdateValidationData.totalBudgetChange > 0 ? 'text-red-600' : 'text-green-600'}">
+                {budgetUpdateValidationData.totalBudgetChange > 0 ? '+' : ''}{budgetUpdateValidationData.totalBudgetChange?.toLocaleString()}원
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="text-sm text-gray-600 mb-4">
+          연구개발비 변경 시 기존에 입력된 연구개발비 데이터에 영향을 줄 수 있습니다. 
+          정말로 예산을 수정하시겠습니까?
+        </div>
+      </div>
+
+      <div class="flex justify-end space-x-3">
+        <ThemeButton variant="ghost" onclick={cancelBudgetUpdate}>
+          취소
+        </ThemeButton>
+        <ThemeButton variant="primary" onclick={confirmBudgetUpdate}>
+          예산 수정 진행
+        </ThemeButton>
+      </div>
     </div>
   </ThemeModal>
 {/if}
