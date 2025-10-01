@@ -205,6 +205,17 @@
           </table>
         </div>
 
+        <!-- 불일치 경고 섹션 -->
+        {#if budgetDetails && budgetDetails.some(b => b.hasMismatch)}
+          <div class="mt-3 p-3 bg-red-50 border-l-4 border-red-400 rounded">
+            <div class="text-sm text-red-700">
+              <span class="font-medium">!</span> 
+              {budgetDetails.filter(b => b.hasMismatch).map(b => `${b.year}차년도`).join(', ')} 
+              예산과 연구개발비가 일치하지 않습니다. 연구개발비를 수정해주세요.
+            </div>
+          </div>
+        {/if}
+
         <!-- 비율 요약 -->
         <div class="grid grid-cols-2 gap-3 text-xs text-center mt-3">
           <div class="p-2 bg-green-50 rounded">

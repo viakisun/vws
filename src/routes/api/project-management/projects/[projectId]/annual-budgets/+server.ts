@@ -141,9 +141,9 @@ export const POST: RequestHandler = async ({ params, request }) => {
     // 기존 데이터 삭제
     await query('DELETE FROM project_budgets WHERE project_id = $1', [projectId])
 
-    // 예산 검증 및 경고 메시지 수집
-    const warnings: string[] = []
-    const budgetMismatches: Array<{ year: number; expectedTotal: number; researchCostTotal: number }> = []
+    // 예산 검증 및 경고 메시지 수집 (POST용)
+    const postWarnings: string[] = []
+    const postBudgetMismatches: Array<{ year: number; expectedTotal: number; researchCostTotal: number }> = []
 
     // 새 데이터 삽입 (연차별 예산용 칼럼 사용 + 기존 연구개발비 데이터 보존)
     for (const budget of budgets) {
@@ -165,12 +165,12 @@ export const POST: RequestHandler = async ({ params, request }) => {
 
       // 예산과 연구개발비 합계 불일치 검사
       if (researchCostTotal > 0 && Math.abs(annualBudgetTotal - researchCostTotal) > 1000) { // 1천원 이상 차이
-        budgetMismatches.push({
+        postBudgetMismatches.push({
           year: budget.year,
           expectedTotal: annualBudgetTotal,
           researchCostTotal: researchCostTotal
         })
-        warnings.push(
+        postWarnings.push(
           `${budget.year}차년도: 연차별 예산(${annualBudgetTotal.toLocaleString()}원)과 연구개발비 합계(${researchCostTotal.toLocaleString()}원)가 일치하지 않습니다.`
         )
       }
@@ -231,6 +231,23 @@ export const POST: RequestHandler = async ({ params, request }) => {
     )
 
     const createdBudgetData = result.rows as DatabaseProjectBudget[]
+    
+    // 연구개발비 데이터 조회 (불일치 검증용)
+    const researchCostsResult = await query(
+      `
+			SELECT 
+				period_number,
+				personnel_cost, research_material_cost, research_activity_cost, research_stipend, indirect_cost
+			FROM project_budgets 
+			WHERE project_id = $1
+		`,
+      [projectId],
+    )
+
+    // 불일치 검증
+    const warnings: string[] = []
+    const budgetMismatches: Array<{ year: number; expectedTotal: number; researchCostTotal: number }> = []
+
     const createdBudgets: AnnualBudget[] = createdBudgetData.map((row) => {
       // 연차별 예산용 칼럼에서 직접 가져오기
       const governmentFunding = parseFloat(String(row.government_funding_amount || 0)) || 0
@@ -241,6 +258,28 @@ export const POST: RequestHandler = async ({ params, request }) => {
       const totalCash = governmentFunding + companyCash
       const totalInKind = companyInKind
       const yearlyTotal = totalCash + totalInKind
+
+      // 해당 연차의 연구개발비 총액 계산
+      const researchCostRow = researchCostsResult.rows.find(r => r.period_number === row.period_number)
+      const researchCostTotal = researchCostRow 
+        ? (Number(researchCostRow.personnel_cost || 0)) +
+          (Number(researchCostRow.research_material_cost || 0)) +
+          (Number(researchCostRow.research_activity_cost || 0)) +
+          (Number(researchCostRow.research_stipend || 0)) +
+          (Number(researchCostRow.indirect_cost || 0))
+        : 0
+
+      // 예산과 연구개발비 합계 불일치 검사
+      if (researchCostTotal > 0 && Math.abs(yearlyTotal - researchCostTotal) > 1000) { // 1천원 이상 차이
+        budgetMismatches.push({
+          year: row.period_number,
+          expectedTotal: yearlyTotal,
+          researchCostTotal: researchCostTotal
+        })
+        warnings.push(
+          `${row.period_number}차년도: 연차별 예산(${yearlyTotal.toLocaleString()}원)과 연구개발비 합계(${researchCostTotal.toLocaleString()}원)가 일치하지 않습니다.`
+        )
+      }
 
       return {
         id: row.id,
@@ -260,6 +299,9 @@ export const POST: RequestHandler = async ({ params, request }) => {
         notes: '',
         createdAt: row.created_at,
         updatedAt: row.updated_at,
+        // 불일치 정보 추가
+        hasMismatch: researchCostTotal > 0 && Math.abs(yearlyTotal - researchCostTotal) > 1000,
+        researchCostTotal: researchCostTotal,
       }
     })
 
@@ -267,11 +309,11 @@ export const POST: RequestHandler = async ({ params, request }) => {
       success: true,
       data: {
         budgets: createdBudgets,
-        ...(warnings.length > 0 && { warnings }),
-        ...(budgetMismatches.length > 0 && { budgetMismatches }),
+        ...(postWarnings.length > 0 && { warnings: postWarnings }),
+        ...(postBudgetMismatches.length > 0 && { budgetMismatches: postBudgetMismatches }),
       },
-      message: warnings.length > 0 
-        ? `연차별 예산이 생성되었지만 ${warnings.length}개의 불일치가 발견되었습니다.`
+      message: postWarnings.length > 0 
+        ? `연차별 예산이 생성되었지만 ${postWarnings.length}개의 불일치가 발견되었습니다.`
         : '연차별 예산이 성공적으로 생성되었습니다.',
     }
 

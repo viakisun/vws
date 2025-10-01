@@ -31,6 +31,10 @@ export interface AnnualBudget {
   notes?: string
   createdAt: string
   updatedAt: string
+
+  // 불일치 검증 정보
+  hasMismatch?: boolean // 예산과 연구개발비 불일치 여부
+  researchCostTotal?: number // 연구개발비 총액
 }
 
 // 예산 입력/수정을 위한 폼 데이터 타입
