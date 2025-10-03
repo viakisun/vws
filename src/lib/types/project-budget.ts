@@ -35,6 +35,10 @@ export interface AnnualBudget {
   // 불일치 검증 정보
   hasMismatch?: boolean // 예산과 연구개발비 불일치 여부
   researchCostTotal?: number // 연구개발비 총액
+  annualBudgetCash?: number // 연차별 예산 현금
+  researchCostCash?: number // 연구개발비 현금
+  annualBudgetInKind?: number // 연차별 예산 현물
+  researchCostInKind?: number // 연구개발비 현물
 }
 
 // 예산 입력/수정을 위한 폼 데이터 타입

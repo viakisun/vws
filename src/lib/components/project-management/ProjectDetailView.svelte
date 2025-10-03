@@ -1887,21 +1887,40 @@
       (parseFloat(targetBudget.company_cash_amount) || 0) +
       (parseFloat(targetBudget.company_in_kind_amount) || 0)
 
-    // 연구개발비 총액 계산
-    const researchCostTotal =
-      (parseFloat(targetBudget.personnel_cost) || 0) +
-      (parseFloat(targetBudget.research_material_cost) || 0) +
-      (parseFloat(targetBudget.research_activity_cost) || 0) +
-      (parseFloat(targetBudget.research_stipend) || 0) +
-      (parseFloat(targetBudget.indirect_cost) || 0)
+    // 연차별 예산의 현금/현물 구성
+    const annualBudgetCash =
+      (parseFloat(targetBudget.government_funding_amount) || 0) +
+      (parseFloat(targetBudget.company_cash_amount) || 0)
+    const annualBudgetInKind = parseFloat(targetBudget.company_in_kind_amount) || 0
 
-    // 1천원 이상 차이 시 불일치로 판단
+    // 연구개발비의 현금/현물 각각 계산
+    const researchCostCash =
+      (parseFloat(targetBudget.personnel_cost_cash) || 0) +
+      (parseFloat(targetBudget.research_material_cost_cash) || 0) +
+      (parseFloat(targetBudget.research_activity_cost_cash) || 0) +
+      (parseFloat(targetBudget.research_stipend_cash) || 0) +
+      (parseFloat(targetBudget.indirect_cost_cash) || 0)
+
+    const researchCostInKind =
+      (parseFloat(targetBudget.personnel_cost_in_kind) || 0) +
+      (parseFloat(targetBudget.research_material_cost_in_kind) || 0) +
+      (parseFloat(targetBudget.research_activity_cost_in_kind) || 0) +
+      (parseFloat(targetBudget.research_stipend_in_kind) || 0) +
+      (parseFloat(targetBudget.indirect_cost_in_kind) || 0)
+
+    const researchCostTotal = researchCostCash + researchCostInKind
+
+    // 1천원 이상 차이 시 불일치로 판단 (현금+현물 = 연차 예산 총액)
     if (researchCostTotal > 0 && Math.abs(annualBudgetTotal - researchCostTotal) > 1000) {
       return {
         hasMismatch: true,
         annualBudgetTotal,
         researchCostTotal,
         difference: Math.abs(annualBudgetTotal - researchCostTotal),
+        annualBudgetCash,
+        researchCostCash,
+        annualBudgetInKind,
+        researchCostInKind,
       }
     }
 
@@ -2565,6 +2584,18 @@
                     mismatchInfo?.annualBudgetTotal || 0,
                     true,
                   )} vs 연구개발비 {formatNumber(mismatchInfo?.researchCostTotal || 0, true)}
+                  <div class="ml-2 mt-1 text-gray-500">
+                    현금: {formatNumber(mismatchInfo?.annualBudgetCash || 0, true)} vs {formatNumber(
+                      mismatchInfo?.researchCostCash || 0,
+                      true,
+                    )}
+                  </div>
+                  <div class="ml-2 text-gray-500">
+                    현물: {formatNumber(mismatchInfo?.annualBudgetInKind || 0, true)} vs {formatNumber(
+                      mismatchInfo?.researchCostInKind || 0,
+                      true,
+                    )}
+                  </div>
                 </div>
               {/each}
             </div>

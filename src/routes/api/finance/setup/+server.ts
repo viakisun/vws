@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 import { query } from '$lib/database/connection'
@@ -70,7 +69,7 @@ CREATE TABLE IF NOT EXISTS finance_transactions (
     reference_number VARCHAR(100),
     notes TEXT,
     tags TEXT[],
-                transaction_date TIMESTAMP WITH TIME ZONE NOT NULL,
+    transaction_date TIMESTAMP WITH TIME ZONE NOT NULL,
     status VARCHAR(20) DEFAULT 'completed' CHECK (status IN ('pending', 'completed', 'cancelled', 'failed')),
     is_recurring BOOLEAN DEFAULT false,
     recurring_pattern TEXT,
@@ -100,26 +99,26 @@ CREATE TABLE IF NOT EXISTS finance_budgets (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
-            -- 기존 테이블에 status 컬럼 추가 (이미 존재하는 경우 무시)
-            ALTER TABLE finance_transactions ADD COLUMN IF NOT EXISTS status VARCHAR(20) DEFAULT 'completed';
-            
-            -- transaction_date 컬럼을 TIMESTAMP WITH TIME ZONE으로 변경
-            -- 기존 DATE 타입의 데이터를 TIMESTAMP WITH TIME ZONE으로 변환
-            DO $$
-            BEGIN
-                -- 컬럼이 DATE 타입인지 확인하고 변경
-                IF EXISTS (
-                    SELECT 1 FROM information_schema.columns 
-                    WHERE table_name = 'finance_transactions' 
-                    AND column_name = 'transaction_date' 
-                    AND data_type = 'date'
-                ) THEN
-                    -- 기존 데이터를 보존하면서 컬럼 타입 변경
-                    ALTER TABLE finance_transactions 
-                    ALTER COLUMN transaction_date TYPE TIMESTAMP WITH TIME ZONE 
-                    USING transaction_date::timestamp with time zone;
-                END IF;
-            END $$;
+-- 기존 테이블에 status 컬럼 추가 (이미 존재하는 경우 무시)
+ALTER TABLE finance_transactions ADD COLUMN IF NOT EXISTS status VARCHAR(20) DEFAULT 'completed';
+
+-- transaction_date 컬럼을 TIMESTAMP WITH TIME ZONE으로 변경
+-- 기존 DATE 타입의 데이터를 TIMESTAMP WITH TIME ZONE으로 변환
+DO $$
+BEGIN
+    -- 컬럼이 DATE 타입인지 확인하고 변경
+    IF EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_name = 'finance_transactions' 
+        AND column_name = 'transaction_date' 
+        AND data_type = 'date'
+    ) THEN
+        -- 기존 데이터를 보존하면서 컬럼 타입 변경
+        ALTER TABLE finance_transactions 
+        ALTER COLUMN transaction_date TYPE TIMESTAMP WITH TIME ZONE 
+        USING transaction_date::timestamp with time zone;
+    END IF;
+END $$;
 
 -- 기본 은행 데이터
 INSERT INTO finance_banks (name, code, color) VALUES
@@ -149,11 +148,24 @@ INSERT INTO finance_categories (name, type, color, is_system) VALUES
 ON CONFLICT DO NOTHING;
 `
 
+// 거래 타입 정의
+type TransactionType = 'income' | 'expense' | 'transfer' | 'adjustment'
+
+// 계좌 정보 타입
+interface AccountInfo {
+  name: string
+  accountNumber: string
+  bankId: string
+  accountType: string
+  initialBalance: number
+  isPrimary: boolean
+}
+
 // 거래 타입별 계좌 잔액 업데이트 함수
 async function updateAccountBalance(
   accountId: string,
   amount: number,
-  type: string,
+  type: TransactionType,
 ): Promise<void> {
   try {
     let balanceChange = 0
@@ -201,7 +213,7 @@ export const POST: RequestHandler = async () => {
     await query(FINANCE_SCHEMA_SQL)
 
     // 기본 계좌 생성 (예시 데이터)
-    const sampleAccounts = [
+    const sampleAccounts: AccountInfo[] = [
       {
         name: '하나은행 주거래계좌',
         accountNumber: '123-456-789',
@@ -276,14 +288,31 @@ async function getBankId(bankCode: string): Promise<string> {
   return result.rows[0].id
 }
 
+// 데이터베이스 행 타입 정의
+interface AccountRow extends Record<string, unknown> {
+  id: string
+}
+
+interface CategoryRow extends Record<string, unknown> {
+  id: string
+  type: string
+  name: string
+}
+
+interface SampleTransaction {
+  accountId: string
+  categoryId: string | undefined
+  amount: number
+  type: TransactionType
+  description: string
+  transactionDate: string
+}
+
 // 샘플 거래 내역 생성
-async function createSampleTransactions() {
+async function createSampleTransactions(): Promise<void> {
   const today = new Date()
   const yesterday = new Date(today)
   yesterday.setDate(yesterday.getDate() - 1)
-
-  type AccountRow = { id: string }
-  type CategoryRow = { id: string; type: string; name: string }
 
   const accounts = await query<AccountRow>('SELECT id FROM finance_accounts LIMIT 3')
   const categories = await query<CategoryRow>(
@@ -301,7 +330,7 @@ async function createSampleTransactions() {
     throw new Error('계좌를 찾을 수 없습니다')
   }
 
-  const sampleTransactions = [
+  const sampleTransactions: SampleTransaction[] = [
     {
       accountId,
       categoryId: incomeCategory?.id,
@@ -337,7 +366,9 @@ async function createSampleTransactions() {
   ]
 
   // null이 아닌 카테고리만 처리
-  const validTransactions = sampleTransactions.filter((t) => t.categoryId)
+  const validTransactions = sampleTransactions.filter(
+    (t): t is SampleTransaction & { categoryId: string } => t.categoryId !== undefined,
+  )
 
   for (const transaction of validTransactions) {
     await query(
