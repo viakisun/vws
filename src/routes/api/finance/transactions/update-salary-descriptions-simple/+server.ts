@@ -23,7 +23,7 @@ export const POST: RequestHandler = async () => {
     ]
 
     let updatedCount = 0
-    const updatedTransactions = []
+    const updatedTransactions: any[] = []
 
     for (const employee of employees) {
       // 해당 직원의 거래 찾기

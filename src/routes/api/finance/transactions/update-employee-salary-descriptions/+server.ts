@@ -26,7 +26,7 @@ export const POST: RequestHandler = async () => {
     })
 
     let updatedCount = 0
-    const updatedTransactions = []
+    const updatedTransactions: any[] = []
 
     for (const transaction of transactions) {
       const { id, description, counterparty, transaction_date } = transaction

@@ -16,10 +16,10 @@ const mockHanaResult = {
       transactionDate: '2024-01-01T00:00:00Z',
       counterparty: 'Test Counterparty',
       categoryId: null,
-      accountId: 'account-1'
-    }
+      accountId: 'account-1',
+    },
   ],
-  errors: []
+  errors: [],
 }
 
 const mockNonghyupResult = {
@@ -36,10 +36,10 @@ const mockNonghyupResult = {
       transactionDate: '2024-01-02T00:00:00Z',
       counterparty: 'Test Nonghyup Counterparty',
       categoryId: null,
-      accountId: 'account-2'
-    }
+      accountId: 'account-2',
+    },
   ],
-  errors: []
+  errors: [],
 }
 
 const mockJeonbukResult = {
@@ -56,22 +56,22 @@ const mockJeonbukResult = {
       transactionDate: '2024-01-03T00:00:00Z',
       counterparty: 'Test Jeonbuk Counterparty',
       categoryId: null,
-      accountId: 'account-3'
-    }
+      accountId: 'account-3',
+    },
   ],
-  errors: []
+  errors: [],
 }
 
 vi.mock('$lib/utils/bank-parsers/hana-bank-parser', () => ({
-  parseHanaBankStatement: vi.fn().mockResolvedValue(mockHanaResult)
+  parseHanaBankStatement: vi.fn().mockResolvedValue(mockHanaResult),
 }))
 
 vi.mock('$lib/utils/bank-parsers/nonghyup-bank-parser', () => ({
-  parseNonghyupBankStatement: vi.fn().mockResolvedValue(mockNonghyupResult)
+  parseNonghyupBankStatement: vi.fn().mockResolvedValue(mockNonghyupResult),
 }))
 
 vi.mock('$lib/utils/bank-parsers/jeonbuk-bank-parser', () => ({
-  parseJeonbukBankStatement: vi.fn().mockResolvedValue(mockJeonbukResult)
+  parseJeonbukBankStatement: vi.fn().mockResolvedValue(mockJeonbukResult),
 }))
 
 describe('Bank Parser Factory', () => {
@@ -128,7 +128,9 @@ describe('Bank Parser Factory', () => {
     expect(result.bankName).toBe('알 수 없음')
     expect(result.accountNumber).toBe('unknown')
     expect(result.transactions).toHaveLength(0)
-    expect(result.errors).toContain('지원하지 않는 은행 파일 형식입니다. 파일명에 "하나", "농협", "전북"이 포함되어야 합니다.')
+    expect(result.errors).toContain(
+      '지원하지 않는 은행 파일 형식입니다. 파일명에 "하나", "농협", "전북"이 포함되어야 합니다.',
+    )
   })
 
   it('should handle files with bank names in different cases', async () => {

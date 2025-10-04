@@ -180,7 +180,9 @@ function parseAmount(value: any): number {
 /**
  * 전북은행 거래내역 파싱 (엑셀 파일)
  */
-export async function parseJeonbukBankStatement(content: string): Promise<BankStatementParseResult> {
+export async function parseJeonbukBankStatement(
+  content: string,
+): Promise<BankStatementParseResult> {
   console.log('🔥🔥🔥 === parseJeonbukBankStatement 시작 === 🔥🔥🔥')
   console.log('🔥 content 길이:', content.length)
 

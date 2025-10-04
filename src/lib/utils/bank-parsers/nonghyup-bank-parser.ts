@@ -178,7 +178,9 @@ function parseAmount(value: any): number {
 /**
  * 농협은행 거래내역 파싱 (엑셀 파일)
  */
-export async function parseNonghyupBankStatement(content: string): Promise<BankStatementParseResult> {
+export async function parseNonghyupBankStatement(
+  content: string,
+): Promise<BankStatementParseResult> {
   console.log('🔥🔥🔥 === parseNonghyupBankStatement 시작 === 🔥🔥🔥')
   console.log('🔥 content 길이:', content.length)
 

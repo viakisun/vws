@@ -32,7 +32,7 @@ export const POST: RequestHandler = async () => {
 
     // 각 거래의 description을 "몇월급여-직원이름" 형식으로 업데이트
     let updatedCount = 0
-    const updateResults = []
+    const updateResults: any[] = []
 
     for (const row of selectResult.rows) {
       const transactionDate = new Date(row.transaction_date)

@@ -158,7 +158,7 @@ export const POST: RequestHandler = async () => {
     ]
 
     let totalUpdated = 0
-    const updateResults = []
+    const updateResults: Array<{ keyword: string; category: string; count: any }> = []
 
     // 각 카테고리별로 매핑 실행
     for (const mapping of categoryMappings) {

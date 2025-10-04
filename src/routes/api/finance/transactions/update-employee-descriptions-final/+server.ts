@@ -11,7 +11,7 @@ export const POST: RequestHandler = async () => {
     const employeeNames = ['최제윤', '오현아', '김성호', '장영아', '최현미']
 
     let updatedCount = 0
-    const updatedTransactions = []
+    const updatedTransactions: any[] = []
 
     for (const employeeName of employeeNames) {
       // 해당 직원의 거래 찾기

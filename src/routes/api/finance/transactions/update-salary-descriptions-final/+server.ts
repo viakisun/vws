@@ -20,7 +20,7 @@ export const POST: RequestHandler = async () => {
     const transactions = result.rows
 
     let updatedCount = 0
-    const updatedTransactions = []
+    const updatedTransactions: any[] = []
 
     // 직원 이름 목록 (순서대로 할당)
     const employeeNames = [

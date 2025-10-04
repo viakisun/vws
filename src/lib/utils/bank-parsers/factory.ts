@@ -9,7 +9,10 @@ import type { BankStatementParseResult } from './types'
  * 은행 파일 파싱 팩토리
  * 파일명을 기반으로 적절한 파서를 선택하여 파싱 수행
  */
-export async function parseBankStatement(content: string, fileName: string): Promise<BankStatementParseResult> {
+export async function parseBankStatement(
+  content: string,
+  fileName: string,
+): Promise<BankStatementParseResult> {
   const detection = detectBankFromFileName(fileName)
 
   if (!detection.bankCode) {

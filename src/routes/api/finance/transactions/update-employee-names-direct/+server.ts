@@ -17,7 +17,7 @@ export const POST: RequestHandler = async () => {
     ]
 
     let updatedCount = 0
-    const updatedTransactions = []
+    const updatedTransactions: any[] = []
 
     for (const update of employeeUpdates) {
       try {

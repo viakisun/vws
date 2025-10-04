@@ -301,7 +301,7 @@ export const POST: RequestHandler = async () => {
     await query('UPDATE finance_categories SET is_active = false WHERE is_system = false')
 
     let createdCount = 0
-    const createdCategories = []
+    const createdCategories: any[] = []
 
     // 전문 카테고리 생성
     for (const category of professionalCategories) {

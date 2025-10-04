@@ -28,7 +28,13 @@ export const POST: RequestHandler = async () => {
     }
 
     let cleanedCount = 0
-    const cleanedCategories = []
+    const cleanedCategories: Array<{
+      removed: any
+      kept: any
+      name: any
+      type: any
+      transactionCount: number
+    }> = []
 
     // 2. 각 중복 카테고리 그룹에 대해 처리
     for (const duplicate of duplicates.rows) {

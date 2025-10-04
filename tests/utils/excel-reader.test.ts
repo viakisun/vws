@@ -6,7 +6,7 @@ vi.mock('$lib/utils/excel-reader', async () => {
   const actual = await vi.importActual('$lib/utils/excel-reader')
   return {
     ...actual,
-    readExcelFile: vi.fn()
+    readExcelFile: vi.fn(),
   }
 })
 
@@ -15,7 +15,7 @@ describe('Excel Reader', () => {
     const mockData = [
       ['Header1', 'Header2', 'Header3'],
       ['Data1', 'Data2', 'Data3'],
-      ['Data4', 'Data5', 'Data6']
+      ['Data4', 'Data5', 'Data6'],
     ]
 
     const { readExcelFile } = await import('$lib/utils/excel-reader')
@@ -30,7 +30,7 @@ describe('Excel Reader', () => {
   it('should handle empty cells correctly', async () => {
     const mockData = [
       ['Header1', '', 'Header3'],
-      ['Data1', '', 'Data3']
+      ['Data1', '', 'Data3'],
     ]
 
     const { readExcelFile } = await import('$lib/utils/excel-reader')
@@ -43,9 +43,7 @@ describe('Excel Reader', () => {
   })
 
   it('should handle rich text cells', async () => {
-    const mockData = [
-      ['Normal Text', 'Rich Text Content', 'Another Normal']
-    ]
+    const mockData = [['Normal Text', 'Rich Text Content', 'Another Normal']]
 
     const { readExcelFile } = await import('$lib/utils/excel-reader')
     vi.mocked(readExcelFile).mockResolvedValue(mockData)
@@ -61,16 +59,20 @@ describe('Excel Reader', () => {
     vi.mocked(readExcelFile).mockRejectedValue(new Error('워크시트를 찾을 수 없습니다.'))
 
     const fileContent = 'mock excel content'
-    
+
     await expect(readExcelFile(fileContent)).rejects.toThrow('워크시트를 찾을 수 없습니다.')
   })
 
   it('should handle ExcelJS load error', async () => {
     const { readExcelFile } = await import('$lib/utils/excel-reader')
-    vi.mocked(readExcelFile).mockRejectedValue(new Error('Excel 파일 읽기 실패: Error: Invalid Excel file'))
+    vi.mocked(readExcelFile).mockRejectedValue(
+      new Error('Excel 파일 읽기 실패: Error: Invalid Excel file'),
+    )
 
     const fileContent = 'invalid excel content'
-    
-    await expect(readExcelFile(fileContent)).rejects.toThrow('Excel 파일 읽기 실패: Error: Invalid Excel file')
+
+    await expect(readExcelFile(fileContent)).rejects.toThrow(
+      'Excel 파일 읽기 실패: Error: Invalid Excel file',
+    )
   })
 })

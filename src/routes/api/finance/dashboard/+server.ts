@@ -187,7 +187,14 @@ export const GET: RequestHandler = async ({ url }) => {
     ])
 
     // 6개월 데이터 생성 (빈 월도 포함)
-    const monthlyStats = []
+    const monthlyStats: Array<{
+      month: string
+      monthDisplay: string
+      totalIncome: number
+      totalExpense: number
+      netFlow: number
+      transactionCount: number
+    }> = []
     for (let i = 0; i < 6; i++) {
       const month = new Date()
       month.setMonth(month.getMonth() - (5 - i))

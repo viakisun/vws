@@ -7,7 +7,7 @@ export const POST: RequestHandler = async ({ request }) => {
   try {
     logger.info('거래내역표 컬럼 추가 시작')
 
-    const results = []
+    const results: Array<{ column: string; success: boolean; error?: string }> = []
 
     // 1. 의뢰인/수취인 컬럼 추가
     try {

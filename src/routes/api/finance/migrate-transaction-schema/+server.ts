@@ -19,7 +19,7 @@ export const POST: RequestHandler = async ({ request }) => {
       .map((stmt) => stmt.trim())
       .filter((stmt) => stmt.length > 0 && !stmt.startsWith('--'))
 
-    const results = []
+    const results: Array<{ statement: string; success: boolean; result?: any; error?: string }> = []
 
     for (const statement of statements) {
       try {

@@ -11,10 +11,10 @@ describe('Bank Detector', () => {
         '하나은행_거래내역.xlsx',
         '하나은행_2024_01.xlsx',
         'hana_statement_2024.xlsx',
-        '하나은행_계좌내역.xlsx'
+        '하나은행_계좌내역.xlsx',
       ]
 
-      testCases.forEach(fileName => {
+      testCases.forEach((fileName) => {
         const result = detectBankFromFileName(fileName)
         expect(result.bankCode).toBe(BankCode.HANA)
         expect(result.bankName).toBe('하나은행')
@@ -28,10 +28,10 @@ describe('Bank Detector', () => {
         '농협은행_거래내역.xlsx',
         '농협은행_2024_01.xlsx',
         'nonghyup_statement_2024.xlsx',
-        '농협_계좌내역.xlsx'
+        '농협_계좌내역.xlsx',
       ]
 
-      testCases.forEach(fileName => {
+      testCases.forEach((fileName) => {
         const result = detectBankFromFileName(fileName)
         expect(result.bankCode).toBe(BankCode.NONGHYUP)
         expect(result.bankName).toBe('농협은행')
@@ -45,10 +45,10 @@ describe('Bank Detector', () => {
         '전북은행_거래내역.xlsx',
         '전북은행_2024_01.xlsx',
         'jeonbuk_statement_2024.xlsx',
-        '전북_계좌내역.xlsx'
+        '전북_계좌내역.xlsx',
       ]
 
-      testCases.forEach(fileName => {
+      testCases.forEach((fileName) => {
         const result = detectBankFromFileName(fileName)
         expect(result.bankCode).toBe(BankCode.JEONBUK)
         expect(result.bankName).toBe('전북은행')
@@ -61,10 +61,10 @@ describe('Bank Detector', () => {
         '신한은행_거래내역.xlsx',
         '우리은행_2024_01.xlsx',
         'unknown_bank.xlsx',
-        'generic_statement.xlsx'
+        'generic_statement.xlsx',
       ]
 
-      testCases.forEach(fileName => {
+      testCases.forEach((fileName) => {
         const result = detectBankFromFileName(fileName)
         expect(result.bankCode).toBeNull()
         expect(result.bankName).toBe('알 수 없음')
@@ -72,15 +72,9 @@ describe('Bank Detector', () => {
     })
 
     it('should handle empty or invalid filenames', () => {
-      const testCases = [
-        '',
-        '   ',
-        'file_without_extension',
-        '.xlsx',
-        'just_extension.xlsx'
-      ]
+      const testCases = ['', '   ', 'file_without_extension', '.xlsx', 'just_extension.xlsx']
 
-      testCases.forEach(fileName => {
+      testCases.forEach((fileName) => {
         const result = detectBankFromFileName(fileName)
         expect(result.bankCode).toBeNull()
         expect(result.bankName).toBe('알 수 없음')
@@ -99,15 +93,10 @@ describe('Bank Detector', () => {
         'Hana-Bank_Statement_2024.xlsx',
         '농협은행_거래내역(2024년).xlsx',
         '전북은행_계좌내역_01월.xlsx',
-        'hana_bank_statement_2024_01_15.xlsx'
+        'hana_bank_statement_2024_01_15.xlsx',
       ]
 
-      const expectedBanks = [
-        BankCode.HANA,
-        BankCode.NONGHYUP,
-        BankCode.JEONBUK,
-        BankCode.HANA
-      ]
+      const expectedBanks = [BankCode.HANA, BankCode.NONGHYUP, BankCode.JEONBUK, BankCode.HANA]
 
       testCases.forEach((fileName, index) => {
         const result = detectBankFromFileName(fileName)
