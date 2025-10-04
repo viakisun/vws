@@ -19,7 +19,7 @@ export const GET: RequestHandler = async ({ params }) => {
       LEFT JOIN LATERAL (
         SELECT balance 
         FROM finance_transactions 
-        WHERE account_id = a.id 
+        WHERE account_id = a.id AND balance > 0
         ORDER BY transaction_date DESC, created_at DESC 
         LIMIT 1
       ) latest_tx ON true

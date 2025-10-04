@@ -144,7 +144,7 @@ interface ParsedTransaction {
 enum BankCode {
   HANA = '1001',
   NONGHYUP = '1002',
-  JEONBUK = '1003'
+  JEONBUK = '1003',
 }
 ```
 

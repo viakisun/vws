@@ -36,9 +36,9 @@ export const DELETE: RequestHandler = async ({ params }) => {
       `계좌 ${account.account_number}의 모든 거래내역이 삭제되었습니다. (${transactionCount}건)`,
     )
 
-    // 계좌 잔액을 0으로 초기화
-    await query('UPDATE finance_accounts SET balance = 0 WHERE id = $1', [accountId])
-    logger.info(`계좌 ${account.account_number}의 잔액이 0으로 초기화되었습니다.`)
+    // finance_accounts 테이블의 balance 컬럼은 제거되었으므로 별도 초기화 불필요
+    // 잔액은 거래 내역의 최신 balance에서 자동으로 계산됩니다
+    logger.info(`계좌 ${account.account_number}의 거래 내역이 삭제되었습니다.`)
 
     return json({
       success: true,

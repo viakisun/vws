@@ -140,8 +140,8 @@ export const POST: RequestHandler = async ({ request }) => {
         const bankId = bankResult.rows[0].id
         const cleanAccountNumber = accountNumber.replace(/-/g, '')
         const newAccount = await query(
-          'INSERT INTO finance_accounts (name, account_number, bank_id, account_type, balance, is_primary) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id',
-          [`${bankName} ${cleanAccountNumber}`, cleanAccountNumber, bankId, 'checking', 0, false],
+          'INSERT INTO finance_accounts (name, account_number, bank_id, account_type, is_primary) VALUES ($1, $2, $3, $4, $5) RETURNING id',
+          [`${bankName} ${cleanAccountNumber}`, cleanAccountNumber, bankId, 'checking', false],
         )
         targetAccountId = newAccount.rows[0].id
         logger.info(`새 계좌 생성: ${bankName} - ${accountNumber} (ID: ${targetAccountId})`)
@@ -250,12 +250,24 @@ export const POST: RequestHandler = async ({ request }) => {
       }
     }
 
+    // 계좌 정보 조회
+    const accountInfo = await query(
+      'SELECT a.name as account_name, a.account_number, b.name as bank_name FROM finance_accounts a LEFT JOIN finance_banks b ON a.bank_id = b.id WHERE a.id = $1',
+      [targetAccountId],
+    )
+
+    const accountData = accountInfo.rows[0]
+    const finalAccountName = accountData?.account_name || `${bankName} ${accountNumber}`
+    const finalBankName = accountData?.bank_name || bankName
+    const finalAccountNumber = accountData?.account_number || accountNumber
+
     return json({
       success: true,
       message: '거래내역 업로드 및 처리 완료',
       accountId: targetAccountId,
-      bankName,
-      accountNumber,
+      bankName: finalBankName,
+      accountName: finalAccountName,
+      accountNumber: finalAccountNumber,
       totalTransactions: transactions.length,
       insertedCount,
       skippedCount,

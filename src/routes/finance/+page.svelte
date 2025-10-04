@@ -1,11 +1,11 @@
 <script lang="ts">
-  import { onMount } from 'svelte'
   import PageLayout from '$lib/components/layout/PageLayout.svelte'
-  import FinanceDashboard from '$lib/finance/components/dashboard/FinanceDashboard.svelte'
   import AccountManagement from '$lib/finance/components/accounts/AccountManagement.svelte'
-  import TransactionManagement from '$lib/finance/components/transactions/TransactionManagement.svelte'
   import BudgetManagement from '$lib/finance/components/budgets/BudgetManagement.svelte'
+  import FinanceDashboard from '$lib/finance/components/dashboard/FinanceDashboard.svelte'
   import RecipientManagement from '$lib/finance/components/email/RecipientManagement.svelte'
+  import TransactionManagement from '$lib/finance/components/transactions/TransactionManagement.svelte'
+  import { onMount } from 'svelte'
 
   // 상태 관리
   let activeTab = $state('dashboard')
@@ -14,7 +14,7 @@
 
   // 탭 구성
   const tabs = [
-    { id: 'dashboard', label: '자금일보' },
+    { id: 'dashboard', label: '대시보드' },
     { id: 'accounts', label: '계좌관리' },
     { id: 'transactions', label: '거래내역' },
     { id: 'budgets', label: '예산관리' },
@@ -60,7 +60,7 @@
   })
 </script>
 
-<PageLayout title="자금일보" subtitle="매일매일의 자금 현황을 한눈에 파악">
+<PageLayout title="자금 관리" subtitle="기업 자금 흐름 및 재무 현황 통합 관리 시스템">
   {#if isLoading}
     <div class="flex items-center justify-center py-12">
       <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-400"></div>
@@ -97,8 +97,10 @@
             />
           </svg>
         </div>
-        <h3 class="text-lg font-medium text-gray-900 mb-2">자금일보 시스템 초기화</h3>
-        <p class="text-gray-500 mb-4">데이터베이스를 초기화하고 샘플 데이터를 생성합니다.</p>
+        <h3 class="text-lg font-medium text-gray-900 mb-2">자금 관리 시스템 초기화</h3>
+        <p class="text-gray-500 mb-4">
+          기업 자금 관리 시스템의 데이터베이스를 초기화하고 샘플 데이터를 생성합니다.
+        </p>
         <button
           type="button"
           onclick={initializeDatabase}

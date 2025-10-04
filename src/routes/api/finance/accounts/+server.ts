@@ -26,7 +26,7 @@ export const GET: RequestHandler = async ({ url }) => {
       LEFT JOIN LATERAL (
         SELECT balance 
         FROM finance_transactions 
-        WHERE account_id = a.id 
+        WHERE account_id = a.id AND balance > 0
         ORDER BY transaction_date DESC, created_at DESC 
         LIMIT 1
       ) latest_tx ON true
@@ -144,6 +144,10 @@ export const POST: RequestHandler = async ({ request }) => {
     const result = await query(queryText, params)
     const account = result.rows[0]
 
+    // 은행 정보 조회
+    const bankResult = await query('SELECT * FROM finance_banks WHERE id = $1', [account.bank_id])
+    const bank = bankResult.rows[0]
+
     return json({
       success: true,
       data: {
@@ -151,8 +155,19 @@ export const POST: RequestHandler = async ({ request }) => {
         name: account.name,
         accountNumber: account.account_number,
         bankId: account.bank_id,
+        bank: bank
+          ? {
+              id: bank.id,
+              name: bank.name,
+              code: bank.code || '',
+              color: bank.color || '#3B82F6',
+              isActive: true,
+              createdAt: bank.created_at,
+              updatedAt: bank.updated_at,
+            }
+          : undefined,
         accountType: account.account_type,
-        balance: parseFloat(account.balance),
+        balance: 0, // 새 계좌는 잔액이 0
         status: account.status,
         description: account.description,
         isPrimary: account.is_primary,

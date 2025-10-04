@@ -1,6 +1,7 @@
 import { BankCode } from '$lib/types/bank-codes'
 import { detectBankFromFileName } from './bank-detector'
 import { parseHanaBankStatement } from './hana-bank-parser'
+import { parseJeonbukBankStatement } from './jeonbuk-bank-parser'
 import { parseNonghyupBankStatement } from './nonghyup-bank-parser'
 import type { BankStatementParseResult } from './types'
 
@@ -31,14 +32,7 @@ export function parseBankStatement(content: string, fileName: string): BankState
       return parseNonghyupBankStatement(content)
 
     case BankCode.JEONBUK:
-      // TODO: 전북은행 파서 구현
-      return {
-        bankCode: BankCode.JEONBUK,
-        bankName: detection.bankName,
-        accountNumber: 'unknown',
-        transactions: [],
-        errors: ['전북은행 파서가 아직 구현되지 않았습니다.'],
-      }
+      return parseJeonbukBankStatement(content)
 
     default:
       return {

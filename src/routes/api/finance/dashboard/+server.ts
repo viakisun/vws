@@ -23,7 +23,7 @@ export const GET: RequestHandler = async ({ url }) => {
       LEFT JOIN LATERAL (
         SELECT balance 
         FROM finance_transactions 
-        WHERE account_id = a.id 
+        WHERE account_id = a.id AND balance > 0
         ORDER BY transaction_date DESC, created_at DESC 
         LIMIT 1
       ) latest_tx ON true
@@ -162,6 +162,88 @@ export const GET: RequestHandler = async ({ url }) => {
       updatedAt: row.updated_at,
     }))
 
+    // 최근 6개월 월별 통계 조회
+    const sixMonthsAgo = new Date()
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6)
+    const sixMonthsAgoStr = sixMonthsAgo.toISOString().substring(0, 7) // YYYY-MM
+
+    const monthlyStatsQuery = `
+      SELECT
+        TO_CHAR(DATE_TRUNC('month', transaction_date), 'YYYY-MM') as month,
+        SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END) as total_income,
+        SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END) as total_expense,
+        COUNT(*) as transaction_count
+      FROM finance_transactions
+      WHERE transaction_date >= $1
+        AND transaction_date < $2
+        AND status = 'completed'
+      GROUP BY DATE_TRUNC('month', transaction_date)
+      ORDER BY month
+    `
+
+    const monthlyStatsResult = await query(monthlyStatsQuery, [
+      `${sixMonthsAgoStr}-01`,
+      `${nextMonthStr}-01`,
+    ])
+
+    // 6개월 데이터 생성 (빈 월도 포함)
+    const monthlyStats = []
+    for (let i = 0; i < 6; i++) {
+      const month = new Date()
+      month.setMonth(month.getMonth() - (5 - i))
+      const monthStr = month.toISOString().substring(0, 7)
+      const monthDisplay = `${month.getFullYear()}년 ${month.getMonth() + 1}월`
+
+      const monthData = monthlyStatsResult.rows.find((row) => row.month === monthStr)
+
+      monthlyStats.push({
+        month: monthStr,
+        monthDisplay,
+        totalIncome: monthData ? parseFloat(monthData.total_income) : 0,
+        totalExpense: monthData ? parseFloat(monthData.total_expense) : 0,
+        netFlow: monthData
+          ? parseFloat(monthData.total_income) - parseFloat(monthData.total_expense)
+          : 0,
+        transactionCount: monthData ? parseInt(monthData.transaction_count) : 0,
+      })
+    }
+
+    // 카테고리별 지출 통계 (최근 6개월)
+    const categoryStatsQuery = `
+      SELECT
+        c.name as category_name,
+        c.color as category_color,
+        SUM(t.amount) as total_amount,
+        COUNT(*) as transaction_count
+      FROM finance_transactions t
+      JOIN finance_categories c ON t.category_id = c.id
+      WHERE t.transaction_date >= $1
+        AND t.transaction_date < $2
+        AND t.type = 'expense'
+        AND t.status = 'completed'
+      GROUP BY c.id, c.name, c.color
+      ORDER BY total_amount DESC
+      LIMIT 10
+    `
+
+    const categoryStatsResult = await query(categoryStatsQuery, [
+      `${sixMonthsAgoStr}-01`,
+      `${nextMonthStr}-01`,
+    ])
+    const categoryStats = categoryStatsResult.rows.map((row) => ({
+      name: row.category_name,
+      color: row.category_color,
+      amount: parseFloat(row.total_amount),
+      transactionCount: parseInt(row.transaction_count),
+      percentage: 0, // 계산 후 업데이트
+    }))
+
+    // 카테고리별 지출 비율 계산
+    const totalExpense = categoryStats.reduce((sum, cat) => sum + cat.amount, 0)
+    categoryStats.forEach((cat) => {
+      cat.percentage = totalExpense > 0 ? (cat.amount / totalExpense) * 100 : 0
+    })
+
     // 예정된 지급 (향후 구현)
     const upcomingPayments: UpcomingPayment[] = []
 
@@ -198,7 +280,11 @@ export const GET: RequestHandler = async ({ url }) => {
 
     return json({
       success: true,
-      data: dashboard,
+      data: {
+        ...dashboard,
+        monthlyStats,
+        categoryStats,
+      },
       message: '자금일보 대시보드 데이터를 조회했습니다.',
     })
   } catch (error) {

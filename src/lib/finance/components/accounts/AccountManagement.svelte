@@ -7,7 +7,7 @@
     formatAccountType,
     formatCurrency,
   } from '$lib/finance/utils'
-  import { EditIcon, PlusIcon, TrashIcon } from '@lucide/svelte'
+  import { EditIcon, EyeIcon, PlusIcon, TrashIcon } from '@lucide/svelte'
   import { onMount } from 'svelte'
 
   // State
@@ -18,6 +18,7 @@
   let showAddModal = $state(false)
   let _selectedAccount = $state<Account | null>(null)
   let _showEditModal = $state(false)
+  let hideZeroBalance = $state(false) // 잔액 0원 계좌 숨기기 (기본값: 전체 계좌 표시)
 
   // 폼 데이터
   let formData = $state<CreateAccountRequest>({
@@ -55,6 +56,11 @@
       isLoading = false
     }
   }
+
+  // 필터링된 계좌 목록
+  let filteredAccounts = $derived(
+    hideZeroBalance ? accounts.filter((account) => account.balance > 0) : accounts,
+  )
 
   // 계좌 생성
   async function createAccount() {
@@ -113,6 +119,12 @@
     }
   }
 
+  // 거래 내역 보기
+  function viewTransactions(account: Account) {
+    // 계좌 ID와 함께 거래 관리 페이지로 이동
+    window.location.href = `/finance?tab=transactions&account=${account.id}`
+  }
+
   // 컴포넌트 마운트 시 데이터 로드
   onMount(() => {
     loadData()
@@ -145,13 +157,24 @@
         )}
       </p>
     </div>
-    <button
-      onclick={() => (showAddModal = true)}
-      class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
-    >
-      <PlusIcon size={16} class="mr-2" />
-      새 계좌
-    </button>
+    <div class="flex items-center gap-4">
+      <!-- 필터 옵션 -->
+      <label class="flex items-center">
+        <input
+          type="checkbox"
+          bind:checked={hideZeroBalance}
+          class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+        />
+        <span class="ml-2 text-sm text-gray-700">잔액 0원 계좌 숨기기</span>
+      </label>
+      <button
+        onclick={() => (showAddModal = true)}
+        class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+      >
+        <PlusIcon size={16} class="mr-2" />
+        새 계좌
+      </button>
+    </div>
   </div>
 
   <!-- 에러 표시 -->
@@ -200,7 +223,7 @@
             </tr>
           </thead>
           <tbody class="bg-white divide-y divide-gray-200">
-            {#each [...accounts].sort((a, b) => {
+            {#each [...filteredAccounts].sort((a, b) => {
               // 은행별로 정렬, 같은 은행 내에서는 계좌명으로 정렬
               if (a.bank?.name !== b.bank?.name) {
                 return (a.bank?.name || '').localeCompare(b.bank?.name || '')
@@ -247,6 +270,13 @@
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                   <div class="flex items-center space-x-2">
+                    <button
+                      onclick={() => viewTransactions(account)}
+                      class="text-green-600 hover:text-green-900"
+                      title="거래 내역 보기"
+                    >
+                      <EyeIcon size={16} />
+                    </button>
                     <button
                       onclick={() => {
                         _selectedAccount = account

@@ -60,7 +60,7 @@ export const POST: RequestHandler = async () => {
     // 기존 거래 내역 삭제 (새로운 데이터로 교체)
     console.log('🗑️ 기존 거래 내역 삭제 중...')
     await query('DELETE FROM finance_transactions')
-    await query('UPDATE finance_accounts SET balance = 0')
+    // finance_accounts 테이블의 balance 컬럼은 제거되었으므로 거래 내역 삭제만 수행
 
     const transactions: Array<{
       accountId: string
@@ -280,10 +280,8 @@ export const POST: RequestHandler = async () => {
       const totalExpense = parseFloat(balanceResult.rows[0].total_expense || 0)
       const balance = totalIncome - totalExpense
 
-      await query('UPDATE finance_accounts SET balance = $1, updated_at = NOW() WHERE id = $2', [
-        balance,
-        account.id,
-      ])
+      // finance_accounts 테이블의 balance 컬럼은 제거되었으므로 별도 업데이트 불필요
+      // 잔액은 거래 내역의 최신 balance에서 자동으로 계산됩니다
 
       console.log(`📊 ${account.name}: ${balance.toLocaleString()}원`)
     }

@@ -4,6 +4,8 @@
   import { formatAmount, formatCurrency, formatDate } from '$lib/finance/utils'
   import { AlertTriangleIcon, TrendingDownIcon, TrendingUpIcon } from '@lucide/svelte'
   import { onMount } from 'svelte'
+  import CategorySpendingChart from '../charts/CategorySpendingChart.svelte'
+  import MonthlyTrendChart from '../charts/MonthlyTrendChart.svelte'
 
   // Props
   interface Props {
@@ -13,7 +15,9 @@
   let { date = new Date().toISOString().split('T')[0] }: Props = $props()
 
   // State
-  let dashboardData = $state<FinanceDashboard | null>(null)
+  let dashboardData = $state<
+    (FinanceDashboard & { monthlyStats?: any[]; categoryStats?: any[] }) | null
+  >(null)
   let isLoading = $state(false)
   let error = $state<string | null>(null)
 
@@ -160,7 +164,7 @@
 
       {#if dashboardData.accountBalances.length > 0}
         <div class="space-y-3">
-          {#each dashboardData.accountBalances as accountBalance}
+          {#each dashboardData.accountBalances.filter((ab) => ab.currentBalance > 0) as accountBalance}
             <div
               class="flex items-center justify-between p-3 border border-gray-100 rounded-lg {accountBalance.isLowBalance
                 ? 'bg-red-50 border-red-200'
@@ -269,6 +273,19 @@
         <div class="text-center py-8 text-gray-400">
           <p>최근 거래 내역이 없습니다</p>
         </div>
+      {/if}
+    </div>
+
+    <!-- 통계 차트 섹션 -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <!-- 최근 6개월 자금 현황 차트 -->
+      {#if dashboardData.monthlyStats && dashboardData.monthlyStats.length > 0}
+        <MonthlyTrendChart monthlyStats={dashboardData.monthlyStats} />
+      {/if}
+
+      <!-- 카테고리별 지출 분석 차트 -->
+      {#if dashboardData.categoryStats && dashboardData.categoryStats.length > 0}
+        <CategorySpendingChart categoryStats={dashboardData.categoryStats} />
       {/if}
     </div>
 

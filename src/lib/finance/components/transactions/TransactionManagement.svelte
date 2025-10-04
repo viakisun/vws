@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { page } from '$app/stores'
   import { accountService, transactionService } from '$lib/finance/services'
   import type {
     Account,
@@ -356,10 +357,6 @@
   // 필터
   let searchTerm = $state('')
   let selectedAccount = $state('')
-  let selectedBank = $state('')
-  let selectedAccountNumber = $state('')
-  let selectedCategory = $state('')
-  let selectedType = $state('')
   let dateFrom = $state('')
   let dateTo = $state('')
 
@@ -497,9 +494,6 @@
       type: transaction.type,
       description: transaction.description,
       transactionDate: transaction.transactionDate || getCurrentUTC(),
-      referenceNumber: transaction.referenceNumber || '',
-      notes: transaction.notes || '',
-      tags: transaction.tags || [],
     }
     amountInput = formatAmountInput(transaction.amount)
     dateTimeInput = convertToDateTimeLocal(transaction.transactionDate || getCurrentUTC())
@@ -557,10 +551,28 @@
   }
 
   // 컴포넌트 마운트 시 데이터 로드
-  onMount(() => {
+  onMount(async () => {
+    // URL 파라미터에서 계좌 ID 확인
+    const urlParams = new URLSearchParams($page.url.search)
+    const accountParam = urlParams.get('account')
+
     // 기본 날짜 범위 설정 (1주일)
     setDateRange('1W')
-    loadData()
+
+    // 데이터 로드
+    await loadData()
+
+    // URL 파라미터가 있으면 해당 계좌로 필터링, 없으면 전체 계좌로 설정
+    if (accountParam) {
+      selectedAccount = accountParam
+      console.log('URL에서 계좌 ID 설정:', accountParam)
+    } else {
+      selectedAccount = '' // 전체 계좌 (기본값)
+      console.log('기본값으로 전체 계좌 설정')
+    }
+
+    // 필터링 적용
+    updateFilteredData()
   })
 
   // 필터링된 거래 목록 및 통계
@@ -579,29 +591,14 @@
       ? accounts.filter((account) => account.id === selectedAccount)
       : accounts
 
+    // 거래 필터링 (단순화)
     filteredTransactions = transactions.filter((transaction) => {
+      // 검색어 필터
       if (searchTerm && !transaction.description.toLowerCase().includes(searchTerm.toLowerCase())) {
         return false
       }
+      // 계좌 필터
       if (selectedAccount && transaction.accountId !== selectedAccount) {
-        return false
-      }
-      if (selectedBank && transaction.account?.bank?.name !== selectedBank) {
-        return false
-      }
-      if (selectedAccountNumber && transaction.account?.accountNumber !== selectedAccountNumber) {
-        return false
-      }
-      if (selectedCategory && transaction.categoryId !== selectedCategory) {
-        return false
-      }
-      if (selectedType && transaction.type !== selectedType) {
-        return false
-      }
-      if (dateFrom && transaction.transactionDate.split('T')[0] < dateFrom) {
-        return false
-      }
-      if (dateTo && transaction.transactionDate.split('T')[0] > dateTo) {
         return false
       }
       return true
@@ -618,35 +615,8 @@
     netAmount = totalIncome - totalExpense
   }
 
-  // 필터 변경 시 데이터 업데이트 (이벤트 기반)
+  // 필터 변경 시 데이터 업데이트 (단순화)
   function handleFilterChange() {
-    // 은행 필터가 변경되면 계좌 필터 초기화
-    if (selectedBank && selectedAccount) {
-      const selectedAccountData = accounts.find((acc) => acc.id === selectedAccount)
-      if (selectedAccountData?.bank?.name !== selectedBank) {
-        selectedAccount = ''
-        selectedAccountNumber = ''
-      }
-    }
-
-    // 계좌 필터가 변경되면 계좌번호 필터 자동 설정
-    if (selectedAccount && !selectedAccountNumber) {
-      const selectedAccountData = accounts.find((acc) => acc.id === selectedAccount)
-      if (selectedAccountData) {
-        selectedAccountNumber = selectedAccountData.accountNumber
-      }
-    }
-
-    // 계좌번호 필터가 변경되면 계좌 필터 자동 설정
-    if (selectedAccountNumber && !selectedAccount) {
-      const selectedAccountData = accounts.find(
-        (acc) => acc.accountNumber === selectedAccountNumber,
-      )
-      if (selectedAccountData) {
-        selectedAccount = selectedAccountData.id
-      }
-    }
-
     updateFilteredData()
   }
 </script>
@@ -805,114 +775,21 @@
           />
         </div>
 
-        <!-- 추가 필터 -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <!-- 은행 필터 -->
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">은행</label>
-            <select
-              bind:value={selectedBank}
-              onchange={handleFilterChange}
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="">모든 은행</option>
-              {#each [...new Set(accounts
-                    .map((acc) => acc.bank?.name)
-                    .filter(Boolean))] as bankName}
-                <option value={bankName}>{bankName}</option>
-              {/each}
-            </select>
-          </div>
-
-          <!-- 계좌 필터 -->
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">계좌</label>
-            <select
-              bind:value={selectedAccount}
-              onchange={handleFilterChange}
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="">모든 계좌</option>
-              {#each accounts.filter((acc) => !selectedBank || acc.bank?.name === selectedBank) as account}
-                <option value={account.id}>
-                  {account.name} ({account.accountNumber})
-                </option>
-              {/each}
-            </select>
-          </div>
-
-          <!-- 계좌번호 필터 -->
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">계좌번호</label>
-            <select
-              bind:value={selectedAccountNumber}
-              onchange={handleFilterChange}
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="">모든 계좌번호</option>
-              {#each accounts.filter((acc) => !selectedBank || acc.bank?.name === selectedBank) as account}
-                <option value={account.accountNumber}>
-                  {account.accountNumber} - {account.name}
-                </option>
-              {/each}
-            </select>
-          </div>
-
-          <!-- 카테고리 필터 -->
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">카테고리</label>
-            <select
-              bind:value={selectedCategory}
-              onchange={handleFilterChange}
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="">모든 카테고리</option>
-              {#each categories as category}
-                <option value={category.id}>
-                  {category.name}
-                  {#if category.accountingCode}
-                    ({category.accountingCode})
-                  {/if}
-                </option>
-              {/each}
-            </select>
-          </div>
-        </div>
-
-        <!-- 거래 타입 필터 (별도 행) -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">거래 타입</label>
-            <select
-              bind:value={selectedType}
-              onchange={handleFilterChange}
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="">모든 타입</option>
-              <option value="income">수입</option>
-              <option value="expense">지출</option>
-              <option value="transfer">이체</option>
-              <option value="adjustment">조정</option>
-            </select>
-          </div>
-
-          <!-- 필터 초기화 버튼 -->
-          <div class="flex items-end">
-            <button
-              onclick={() => {
-                selectedAccount = ''
-                selectedBank = ''
-                selectedAccountNumber = ''
-                selectedCategory = ''
-                selectedType = ''
-                searchTerm = ''
-                handleFilterChange()
-              }}
-              class="w-full px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-            >
-              필터 초기화
-            </button>
-          </div>
+        <!-- 계좌 필터 (단순화) -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">계좌</label>
+          <select
+            bind:value={selectedAccount}
+            onchange={handleFilterChange}
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          >
+            <option value="">전체 계좌</option>
+            {#each accounts as account}
+              <option value={account.id}>
+                {account.bank?.name || '알 수 없음'} - {account.name} ({account.accountNumber})
+              </option>
+            {/each}
+          </select>
         </div>
       </div>
     </div>
@@ -1012,7 +889,7 @@
             <div class="text-green-800">
               <p class="font-medium">✅ 업로드 완료!</p>
               <p class="text-sm mt-1">은행: {uploadResult.bankName}</p>
-              <p class="text-sm">계좌: {uploadResult.accountNumber}</p>
+              <p class="text-sm">계좌: {uploadResult.accountName || uploadResult.accountNumber}</p>
               <p class="text-sm">총 거래: {uploadResult.totalTransactions}건</p>
               <p class="text-sm">
                 삽입: {uploadResult.insertedCount}건, 건너뜀: {uploadResult.skippedCount}건
@@ -1262,11 +1139,6 @@
                       <!-- 적요 -->
                       <td class="px-6 py-4">
                         <div class="text-sm text-gray-900">{transaction.description}</div>
-                        {#if transaction.referenceNumber}
-                          <div class="text-xs text-gray-500">
-                            참조: {transaction.referenceNumber}
-                          </div>
-                        {/if}
                       </td>
 
                       <!-- 의뢰인/수취인 -->
@@ -1278,7 +1150,7 @@
 
                       <!-- 입금 -->
                       <td class="px-6 py-4 whitespace-nowrap">
-                        {#if transaction.deposits > 0}
+                        {#if transaction.deposits && transaction.deposits > 0}
                           <span class="text-sm font-medium text-green-600">
                             {formatCurrency(transaction.deposits)}
                           </span>
@@ -1289,7 +1161,7 @@
 
                       <!-- 출금 -->
                       <td class="px-6 py-4 whitespace-nowrap">
-                        {#if transaction.withdrawals > 0}
+                        {#if transaction.withdrawals && transaction.withdrawals > 0}
                           <span class="text-sm font-medium text-red-600">
                             {formatCurrency(transaction.withdrawals)}
                           </span>

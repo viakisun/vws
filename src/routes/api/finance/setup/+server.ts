@@ -193,13 +193,8 @@ async function updateAccountBalance(
         balanceChange = 0
     }
 
-    // 잔액 업데이트 (transfer와 adjustment는 잔액 변화 없음)
-    if (balanceChange !== 0) {
-      await query(
-        'UPDATE finance_accounts SET balance = balance + $1, updated_at = NOW() WHERE id = $2',
-        [balanceChange, accountId],
-      )
-    }
+    // 잔액 업데이트는 거래 내역의 balance 필드에서 자동으로 계산됩니다
+    // finance_accounts 테이블의 balance 컬럼은 제거되었으므로 별도 업데이트 불필요
   } catch (error) {
     logger.error('계좌 잔액 업데이트 실패:', error)
     throw error
@@ -243,8 +238,8 @@ export const POST: RequestHandler = async () => {
     for (const account of sampleAccounts) {
       await query(
         `
-        INSERT INTO finance_accounts (name, account_number, bank_id, account_type, balance, is_primary)
-        VALUES ($1, $2, $3, $4, $5, $6)
+        INSERT INTO finance_accounts (name, account_number, bank_id, account_type, is_primary)
+        VALUES ($1, $2, $3, $4, $5)
         ON CONFLICT (bank_id, account_number) DO NOTHING
       `,
         [
@@ -252,7 +247,6 @@ export const POST: RequestHandler = async () => {
           account.accountNumber,
           account.bankId,
           account.accountType,
-          account.initialBalance,
           account.isPrimary,
         ],
       )
