@@ -84,9 +84,11 @@
     }
   }
 
-  // 계좌 삭제
+  // 계좌 완전 삭제 (거래 내역 포함)
   async function deleteAccount(account: Account) {
-    if (!confirm(`계좌 "${account.name}"을(를) 삭제하시겠습니까?`)) {
+    const confirmMessage = `⚠️ 계좌 "${account.name}"을(를) 완전히 삭제하시겠습니까?\n\n이 작업은 다음을 포함합니다:\n• 계좌 정보 삭제\n• 관련된 모든 거래 내역 삭제\n\n이 작업은 되돌릴 수 없습니다.`
+    
+    if (!confirm(confirmMessage)) {
       return
     }
 
@@ -94,8 +96,17 @@
       isLoading = true
       error = null
 
-      await accountService.deleteAccount(account.id)
+      const result = await accountService.deleteAccount(account.id)
+      
+      // 성공 메시지 표시
+      alert(result.message)
+      
+      // 계좌 목록에서 제거
       accounts = accounts.filter((a) => a.id !== account.id)
+      
+      // 통계 업데이트
+      updateAccountStats()
+      
     } catch (err) {
       error = err instanceof Error ? err.message : '계좌 삭제에 실패했습니다.'
     } finally {
@@ -165,11 +176,11 @@
             <tr>
               <th
                 class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >계좌 정보</th
+                >계좌</th
               >
               <th
                 class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >은행</th
+                >용도</th
               >
               <th
                 class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
@@ -190,24 +201,23 @@
             </tr>
           </thead>
           <tbody class="bg-white divide-y divide-gray-200">
-            {#each accounts as account}
+            {#each [...accounts].sort((a, b) => {
+              // 은행별로 정렬, 같은 은행 내에서는 계좌명으로 정렬
+              if (a.bank?.name !== b.bank?.name) {
+                return (a.bank?.name || '').localeCompare(b.bank?.name || '')
+              }
+              return a.name.localeCompare(b.name)
+            }) as account}
               <tr class="hover:bg-gray-50">
                 <td class="px-6 py-4 whitespace-nowrap">
                   <div>
-                    <div class="text-sm font-medium text-gray-900">{account.name}</div>
-                    <div class="text-sm text-gray-500">
-                      {formatAccountNumber(account.accountNumber)}
+                    <div class="text-sm font-medium text-gray-900">
+                      {account.bank?.name || '알 수 없음'}-{formatAccountNumber(account.accountNumber)}
                     </div>
                   </div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="flex items-center">
-                    <div
-                      class="w-3 h-3 rounded-full mr-2"
-                      style="background-color: {account.bank?.color || '#6B7280'}"
-                    ></div>
-                    <div class="text-sm text-gray-900">{account.bank?.name || '알 수 없음'}</div>
-                  </div>
+                  <div class="text-sm text-gray-900">{account.name}</div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
                   <span

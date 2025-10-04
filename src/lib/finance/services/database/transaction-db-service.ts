@@ -8,9 +8,10 @@ export class TransactionDbService {
       const result = await query(
         `UPDATE finance_transactions
          SET account_id = $1, category_id = $2, amount = $3, type = $4,
-             description = $5, transaction_date = $6, reference_number = $7,
-             notes = $8, tags = $9, updated_at = NOW()
-         WHERE id = $10
+             description = $5, transaction_date = $6, counterparty = $7,
+             deposits = $8, withdrawals = $9, balance = $10,
+             reference_number = $11, notes = $12, tags = $13, updated_at = NOW()
+         WHERE id = $14
          RETURNING *`,
         [
           data.accountId,
@@ -19,6 +20,10 @@ export class TransactionDbService {
           data.type,
           data.description,
           data.transactionDate,
+          data.counterparty || null,
+          data.deposits || null,
+          data.withdrawals || null,
+          data.balance || null,
           data.referenceNumber || null,
           data.notes || null,
           data.tags ? `{${data.tags.map((tag) => `"${tag}"`).join(',')}}` : null,
@@ -77,6 +82,10 @@ export class TransactionDbService {
         status: transaction.status || 'completed',
         description: transaction.description,
         transactionDate: transaction.transaction_date,
+        counterparty: transaction.counterparty,
+        deposits: transaction.deposits ? parseFloat(transaction.deposits) : undefined,
+        withdrawals: transaction.withdrawals ? parseFloat(transaction.withdrawals) : undefined,
+        balance: transaction.balance ? parseFloat(transaction.balance) : undefined,
         referenceNumber: transaction.reference_number,
         notes: transaction.notes,
         tags: transaction.tags || [],

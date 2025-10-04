@@ -57,7 +57,9 @@ function isValidDateString(dateStr: string): boolean {
   const patterns = [
     /^\d{4}\.\s*\d{1,2}\.\s*\d{1,2}\.?$/, // 2025. 08. 31.
     /^\d{4}-\d{1,2}-\d{1,2}$/, // 2025-08-31
+    /^\d{4}-\d{1,2}-\d{1,2}\s+\d{1,2}:\d{1,2}:\d{1,2}$/, // 2025-04-07 11:37:29
     /^\d{1,2}\/\d{1,2}\/\d{4}$/, // 08/31/2025
+    /^\d{4}\/\d{1,2}\/\d{1,2}\s+\d{1,2}:\d{1,2}:\d{1,2}$/, // 2025/04/07 11:37:29
     /^\d{4}\.\d{1,2}\.\d{1,2}$/, // 2025.08.31
   ]
 
@@ -139,32 +141,44 @@ export function toUTC(date: DateInputFormat): StandardDate {
           throw new Error(`Invalid date format: ${dateStr}`)
         }
       } else if (dateStr.includes('-')) {
-        // YYYY-MM-DD 형식 - 서울 시간대 자정으로 해석
-        const parts = dateStr
-          .split('-')
-          .map((part) => part.trim())
-          .filter((part) => part !== '')
-        if (parts.length >= 3) {
-          const [year, month, day] = parts
-          dateObj = new Date(
-            `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}T00:00:00${SEOUL_OFFSET}`,
-          )
+        // YYYY-MM-DD 또는 YYYY-MM-DD HH:MM:SS 형식 처리
+        if (dateStr.includes(' ')) {
+          // YYYY-MM-DD HH:MM:SS 형식 - 서울 시간대로 해석
+          dateObj = new Date(`${dateStr.replace(' ', 'T')}${SEOUL_OFFSET}`)
         } else {
-          throw new Error(`Invalid date format: ${dateStr}`)
+          // YYYY-MM-DD 형식 - 서울 시간대 자정으로 해석
+          const parts = dateStr
+            .split('-')
+            .map((part) => part.trim())
+            .filter((part) => part !== '')
+          if (parts.length >= 3) {
+            const [year, month, day] = parts
+            dateObj = new Date(
+              `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}T00:00:00${SEOUL_OFFSET}`,
+            )
+          } else {
+            throw new Error(`Invalid date format: ${dateStr}`)
+          }
         }
       } else if (dateStr.includes('/')) {
-        // MM/DD/YYYY 형식 - 서울 시간대 자정으로 해석
-        const parts = dateStr
-          .split('/')
-          .map((part) => part.trim())
-          .filter((part) => part !== '')
-        if (parts.length === 3) {
-          const [month, day, year] = parts
-          dateObj = new Date(
-            `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}T00:00:00${SEOUL_OFFSET}`,
-          )
+        // MM/DD/YYYY 또는 YYYY/MM/DD HH:MM:SS 형식 처리
+        if (dateStr.includes(' ')) {
+          // YYYY/MM/DD HH:MM:SS 형식 - 서울 시간대로 해석
+          dateObj = new Date(`${dateStr.replace(' ', 'T').replace(/\//g, '-')}${SEOUL_OFFSET}`)
         } else {
-          throw new Error(`Invalid date format: ${dateStr}`)
+          // MM/DD/YYYY 형식 - 서울 시간대 자정으로 해석
+          const parts = dateStr
+            .split('/')
+            .map((part) => part.trim())
+            .filter((part) => part !== '')
+          if (parts.length === 3) {
+            const [month, day, year] = parts
+            dateObj = new Date(
+              `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}T00:00:00${SEOUL_OFFSET}`,
+            )
+          } else {
+            throw new Error(`Invalid date format: ${dateStr}`)
+          }
         }
       } else {
         // 기본 Date 생성자 사용 후 서울 시간대로 재해석

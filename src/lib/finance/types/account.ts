@@ -21,7 +21,7 @@ export interface Account extends BaseEntity {
   bankId: string
   bank?: Bank
   accountType: AccountType
-  balance: number
+  balance: number // 거래 내역의 최신 balance에서 실시간 계산
   status: AccountStatus
   description?: string
   isPrimary: boolean // 주요 계좌 여부

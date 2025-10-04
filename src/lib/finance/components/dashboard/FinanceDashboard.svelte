@@ -206,8 +206,8 @@
       {#if dashboardData.recentTransactions.length > 0}
         <div class="space-y-3">
           {#each dashboardData.recentTransactions as transaction}
-            <div class="flex items-center justify-between p-3 border border-gray-100 rounded-lg">
-              <div class="flex items-center">
+            <div class="flex items-center justify-between p-3 border border-gray-100 rounded-lg hover:bg-gray-50 transition-colors">
+              <div class="flex items-center flex-1">
                 <div
                   class="w-2 h-2 rounded-full mr-3 {transaction.type === 'income'
                     ? 'bg-green-500'
@@ -215,14 +215,20 @@
                       ? 'bg-red-500'
                       : 'bg-blue-500'}"
                 ></div>
-                <div>
+                <div class="flex-1">
                   <div class="font-medium text-gray-900">{transaction.description}</div>
-                  <div class="text-sm text-gray-500">
-                    {transaction.account?.name} • {formatDate(transaction.transactionDate)}
+                  <div class="text-sm text-gray-500 flex items-center gap-2">
+                    <span>{transaction.account?.name}</span>
+                    {#if transaction.counterparty}
+                      <span class="text-gray-400">•</span>
+                      <span class="text-blue-600 font-medium">{transaction.counterparty}</span>
+                    {/if}
+                    <span class="text-gray-400">•</span>
+                    <span>{formatDate(transaction.transactionDate)}</span>
                   </div>
                 </div>
               </div>
-              <div class="text-right">
+              <div class="text-right ml-4">
                 <div
                   class="font-semibold {transaction.type === 'income'
                     ? 'text-green-600'
@@ -230,13 +236,25 @@
                       ? 'text-red-600'
                       : 'text-blue-600'}"
                 >
-                  {transaction.type === 'income'
-                    ? '+'
-                    : transaction.type === 'expense'
-                      ? '-'
-                      : ''}{formatCurrency(transaction.amount)}
+                  {#if transaction.deposits && transaction.deposits > 0}
+                    +{formatCurrency(transaction.deposits)}
+                  {:else if transaction.withdrawals && transaction.withdrawals > 0}
+                    -{formatCurrency(transaction.withdrawals)}
+                  {:else}
+                    {transaction.type === 'income'
+                      ? '+'
+                      : transaction.type === 'expense'
+                        ? '-'
+                        : ''}{formatCurrency(transaction.amount)}
+                  {/if}
                 </div>
-                <div class="text-xs text-gray-500">{transaction.category?.name}</div>
+                <div class="text-xs text-gray-500 flex items-center gap-2">
+                  <span class="px-2 py-1 bg-gray-100 rounded text-gray-600">{transaction.category?.name}</span>
+                  {#if transaction.balance}
+                    <span class="text-gray-400">•</span>
+                    <span class="text-gray-600 font-medium">잔액: {formatCurrency(transaction.balance)}</span>
+                  {/if}
+                </div>
               </div>
             </div>
           {/each}

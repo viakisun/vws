@@ -107,24 +107,16 @@ export function formatNumber(value: number): string {
 }
 
 /**
- * 계좌 번호 포맷팅 (하이픈 추가)
+ * 계좌 번호 포맷팅 (하이픈 제거하여 일관성 있게 표시)
  */
 export function formatAccountNumber(accountNumber: string): string {
   if (!accountNumber) return ''
 
-  // 숫자만 추출
+  // 숫자만 추출하고 하이픈 제거
   const numbers = accountNumber.replace(/\D/g, '')
 
-  // 3-3-4 형식으로 포맷팅
-  if (numbers.length >= 10) {
-    return `${numbers.slice(0, 3)}-${numbers.slice(3, 6)}-${numbers.slice(6, 10)}`
-  } else if (numbers.length >= 6) {
-    return `${numbers.slice(0, 3)}-${numbers.slice(3, 6)}-${numbers.slice(6)}`
-  } else if (numbers.length >= 3) {
-    return `${numbers.slice(0, 3)}-${numbers.slice(3)}`
-  } else {
-    return numbers
-  }
+  // 하이픈 없이 숫자만 반환
+  return numbers
 }
 
 /**

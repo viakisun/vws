@@ -12,9 +12,17 @@ export const GET: RequestHandler = async ({ params }) => {
         a.*,
         b.name as bank_name,
         b.code as bank_code,
-        b.color as bank_color
+        b.color as bank_color,
+        COALESCE(latest_tx.balance, 0) as current_balance
       FROM finance_accounts a
       LEFT JOIN finance_banks b ON a.bank_id = b.id
+      LEFT JOIN LATERAL (
+        SELECT balance 
+        FROM finance_transactions 
+        WHERE account_id = a.id 
+        ORDER BY transaction_date DESC, created_at DESC 
+        LIMIT 1
+      ) latest_tx ON true
       WHERE a.id = $1
     `
 
@@ -46,7 +54,7 @@ export const GET: RequestHandler = async ({ params }) => {
         updatedAt: '',
       },
       accountType: row.account_type,
-      balance: parseFloat(row.balance),
+      balance: parseFloat(row.current_balance),
       status: row.status,
       description: row.description,
       isPrimary: row.is_primary,
@@ -164,7 +172,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
         accountNumber: account.account_number,
         bankId: account.bank_id,
         accountType: account.account_type,
-        balance: parseFloat(account.balance),
+        balance: parseFloat(account.current_balance),
         status: account.status,
         description: account.description,
         isPrimary: account.is_primary,
@@ -186,10 +194,12 @@ export const PUT: RequestHandler = async ({ params, request }) => {
   }
 }
 
-// 계좌 삭제
+// 계좌 완전 삭제 (거래 내역 포함)
 export const DELETE: RequestHandler = async ({ params }) => {
   try {
     const accountId = params.id
+
+    console.log(`🔥 계좌 완전 삭제 시작: ${accountId}`)
 
     // 계좌에 연결된 거래가 있는지 확인
     const transactionCheck = await query(
@@ -197,37 +207,62 @@ export const DELETE: RequestHandler = async ({ params }) => {
       [accountId],
     )
 
-    if (parseInt(transactionCheck.rows[0].count) > 0) {
-      return json(
-        {
-          success: false,
-          error: '거래 내역이 있는 계좌는 삭제할 수 없습니다.',
-        },
-        { status: 400 },
-      )
+    const transactionCount = parseInt(transactionCheck.rows[0].count)
+    console.log(`🔥 삭제할 거래 내역 수: ${transactionCount}건`)
+
+    // 트랜잭션으로 안전하게 삭제
+    await query('BEGIN')
+
+    try {
+      // 1. 관련 거래 내역 완전 삭제
+      if (transactionCount > 0) {
+        console.log(`🔥 거래 내역 삭제 시작...`)
+        const deleteTransactions = await query(
+          'DELETE FROM finance_transactions WHERE account_id = $1',
+          [accountId],
+        )
+        console.log(`🔥 거래 내역 삭제 완료: ${transactionCount}건`)
+      }
+
+      // 2. 계좌 완전 삭제
+      console.log(`🔥 계좌 삭제 시작...`)
+      const result = await query('DELETE FROM finance_accounts WHERE id = $1 RETURNING name', [
+        accountId,
+      ])
+
+      if (result.rows.length === 0) {
+        await query('ROLLBACK')
+        console.log(`🔥 계좌를 찾을 수 없음: ${accountId}`)
+        return json(
+          {
+            success: false,
+            error: '계좌를 찾을 수 없습니다.',
+          },
+          { status: 404 },
+        )
+      }
+
+      await query('COMMIT')
+      console.log(`🔥 계좌 완전 삭제 성공: ${result.rows[0].name}`)
+
+      const deletedAccountName = result.rows[0].name
+      const message = transactionCount > 0 
+        ? `✅ 계좌 "${deletedAccountName}"과 거래 내역 ${transactionCount}건이 완전히 삭제되었습니다.`
+        : `✅ 계좌 "${deletedAccountName}"이 완전히 삭제되었습니다.`
+
+      return json({
+        success: true,
+        message,
+        deletedTransactionCount: transactionCount,
+        deletedAccountName,
+      })
+    } catch (deleteError) {
+      await query('ROLLBACK')
+      console.error('🔥 계좌 삭제 중 오류:', deleteError)
+      throw deleteError
     }
-
-    // 계좌 삭제
-    const result = await query('DELETE FROM finance_accounts WHERE id = $1 RETURNING name', [
-      accountId,
-    ])
-
-    if (result.rows.length === 0) {
-      return json(
-        {
-          success: false,
-          error: '계좌를 찾을 수 없습니다.',
-        },
-        { status: 404 },
-      )
-    }
-
-    return json({
-      success: true,
-      message: `계좌 "${result.rows[0].name}"이 성공적으로 삭제되었습니다.`,
-    })
   } catch (error) {
-    console.error('계좌 삭제 실패:', error)
+    console.error('🔥 계좌 삭제 실패:', error)
     return json(
       {
         success: false,

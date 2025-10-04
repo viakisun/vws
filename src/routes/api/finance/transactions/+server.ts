@@ -4,67 +4,6 @@ import type { CreateTransactionRequest, Transaction } from '$lib/finance/types'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
 
-// 거래 타입별 계좌 잔액 업데이트 함수
-async function updateAccountBalance(
-  accountId: string,
-  amount: number,
-  type: string,
-): Promise<void> {
-  try {
-    let balanceChange = 0
-
-    switch (type) {
-      case 'income':
-        // 수입: 잔액 증가 (+)
-        balanceChange = amount
-        break
-      case 'expense':
-        // 지출: 잔액 감소 (-)
-        balanceChange = -amount
-        break
-      case 'transfer':
-        // 이체: 별도 처리 필요 (출금 계좌와 입금 계좌 모두 필요)
-        // 이 함수에서는 단일 계좌만 처리하므로 잔액 변화 없음
-        balanceChange = 0
-        break
-      case 'adjustment':
-        // 조정: 잔액 변화 없음 (0)
-        balanceChange = 0
-        break
-      default:
-        console.warn(`알 수 없는 거래 타입: ${type}`)
-        balanceChange = 0
-    }
-
-    // 잔액 업데이트 (transfer와 adjustment는 잔액 변화 없음)
-    if (balanceChange !== 0) {
-      // 잔액이 음수가 되는지 확인
-      const currentBalanceResult = await query(
-        'SELECT balance FROM finance_accounts WHERE id = $1',
-        [accountId],
-      )
-
-      if (currentBalanceResult.rows.length === 0) {
-        throw new Error('계좌를 찾을 수 없습니다.')
-      }
-
-      const currentBalance = parseFloat(currentBalanceResult.rows[0].balance)
-      const newBalance = currentBalance + balanceChange
-
-      if (newBalance < 0) {
-        throw new Error('계좌 잔액이 부족합니다. 잔액은 0원보다 작을 수 없습니다.')
-      }
-
-      await query(
-        'UPDATE finance_accounts SET balance = balance + $1, updated_at = NOW() WHERE id = $2',
-        [balanceChange, accountId],
-      )
-    }
-  } catch (error) {
-    console.error('계좌 잔액 업데이트 실패:', error)
-    throw error
-  }
-}
 
 // 거래 내역 조회
 export const GET: RequestHandler = async ({ url }) => {
@@ -83,10 +22,15 @@ export const GET: RequestHandler = async ({ url }) => {
     const limit = parseInt(url.searchParams.get('limit') || '50')
     const offset = (page - 1) * limit
 
-    // 동적 쿼리 구성
+    // 동적 쿼리 구성 (새로운 컬럼들 포함)
     let queryText = `
       SELECT
         t.*,
+        t.transaction_date,
+        t.counterparty,
+        t.deposits,
+        t.withdrawals,
+        t.balance,
         a.name as account_name,
         a.account_number,
         a.bank_id,
@@ -151,7 +95,7 @@ export const GET: RequestHandler = async ({ url }) => {
     // 총 개수 조회
     const countQuery = queryText.replace(/SELECT.*FROM/, 'SELECT COUNT(*) FROM')
     const countResult = await query(countQuery, params)
-    const total = parseInt(countResult.rows[0].count)
+    const total = countResult.rows && countResult.rows[0] ? parseInt(countResult.rows[0].count) : 0
 
     // 페이징 적용
     queryText += ` ORDER BY t.transaction_date DESC, t.created_at DESC`
@@ -202,6 +146,10 @@ export const GET: RequestHandler = async ({ url }) => {
       status: row.status,
       description: row.description,
       transactionDate: row.transaction_date,
+      counterparty: row.counterparty,
+      deposits: row.deposits ? parseFloat(row.deposits) : undefined,
+      withdrawals: row.withdrawals ? parseFloat(row.withdrawals) : undefined,
+      balance: row.balance ? parseFloat(row.balance) : undefined,
       referenceNumber: row.reference_number,
       notes: row.notes,
       tags: row.tags || [],
@@ -258,13 +206,13 @@ export const POST: RequestHandler = async ({ request }) => {
       )
     }
 
-    // 거래 생성
+    // 거래 생성 (새로운 스키마: deposits/withdrawals/balance 지원)
     const queryText = `
       INSERT INTO finance_transactions (
         account_id, category_id, amount, type, description,
-        transaction_date, reference_number, notes, tags,
-        is_recurring, recurring_pattern
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+        transaction_date, counterparty, deposits, withdrawals, balance,
+        reference_number, notes, tags, is_recurring, recurring_pattern
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
       RETURNING *
     `
 
@@ -275,6 +223,10 @@ export const POST: RequestHandler = async ({ request }) => {
       body.type,
       body.description,
       body.transactionDate,
+      body.counterparty || null,
+      body.deposits || null,
+      body.withdrawals || null,
+      body.balance || null,
       body.referenceNumber || null,
       body.notes || null,
       body.tags || [],
@@ -284,9 +236,6 @@ export const POST: RequestHandler = async ({ request }) => {
 
     const result = await query(queryText, params)
     const transaction = result.rows[0]
-
-    // 거래 타입별 계좌 잔액 업데이트
-    await updateAccountBalance(body.accountId, body.amount, body.type)
 
     // 알림 생성 (비동기로 실행)
     alertGenerator
@@ -306,6 +255,10 @@ export const POST: RequestHandler = async ({ request }) => {
         status: transaction.status,
         description: transaction.description,
         transactionDate: transaction.transaction_date,
+        counterparty: transaction.counterparty,
+        deposits: transaction.deposits ? parseFloat(transaction.deposits) : undefined,
+        withdrawals: transaction.withdrawals ? parseFloat(transaction.withdrawals) : undefined,
+        balance: transaction.balance ? parseFloat(transaction.balance) : undefined,
         referenceNumber: transaction.reference_number,
         notes: transaction.notes,
         tags: transaction.tags || [],

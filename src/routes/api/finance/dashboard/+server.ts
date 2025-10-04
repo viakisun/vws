@@ -8,23 +8,31 @@ export const GET: RequestHandler = async ({ url }) => {
   try {
     const date = url.searchParams.get('date') || new Date().toISOString().split('T')[0]
 
-    // 현재 잔액 조회
+    // 현재 잔액 조회 (거래 내역의 최신 balance 사용)
     const balanceQuery = `
       SELECT
         a.id,
         a.name,
         a.account_number,
-        a.balance,
+        a.is_primary,
         b.name as bank_name,
-        b.color as bank_color
+        b.color as bank_color,
+        COALESCE(latest_tx.balance, 0) as current_balance
       FROM finance_accounts a
       LEFT JOIN finance_banks b ON a.bank_id = b.id
+      LEFT JOIN LATERAL (
+        SELECT balance 
+        FROM finance_transactions 
+        WHERE account_id = a.id 
+        ORDER BY transaction_date DESC, created_at DESC 
+        LIMIT 1
+      ) latest_tx ON true
       WHERE a.status = 'active'
-      ORDER BY a.is_primary DESC, a.balance DESC
+      ORDER BY a.is_primary DESC, current_balance DESC
     `
 
     const balanceResult = await query(balanceQuery)
-    const currentBalance = balanceResult.rows.reduce((sum, row) => sum + parseFloat(row.balance), 0)
+    const currentBalance = balanceResult.rows.reduce((sum, row) => sum + parseFloat(row.current_balance), 0)
 
     // 이번달 거래 내역 조회
     const currentMonth = new Date().toISOString().substring(0, 7) // YYYY-MM
@@ -75,19 +83,19 @@ export const GET: RequestHandler = async ({ url }) => {
         accountNumber: row.account_number,
         bankId: '',
         accountType: 'checking',
-        balance: parseFloat(row.balance),
+        balance: parseFloat(row.current_balance), // 거래 내역의 최신 balance 사용
         status: 'active',
-        isPrimary: false,
+        isPrimary: row.is_primary,
         createdAt: '',
         updatedAt: '',
       },
-      currentBalance: parseFloat(row.balance),
+      currentBalance: parseFloat(row.current_balance),
       changeToday: 0, // 향후 구현
       changePercentage: 0, // 향후 구현
-      isLowBalance: parseFloat(row.balance) < 1000000, // 100만원 미만
+      isLowBalance: parseFloat(row.current_balance) < 1000000, // 100만원 미만
     }))
 
-    // 최근 거래 내역 (최근 10건)
+    // 최근 거래 내역 (최근 10건) - 새로운 스키마 지원
     const recentTransactionsQuery = `
       SELECT
         t.*,
@@ -137,6 +145,10 @@ export const GET: RequestHandler = async ({ url }) => {
       status: row.status as 'pending' | 'completed' | 'cancelled' | 'failed',
       description: row.description,
       transactionDate: row.transaction_date,
+      counterparty: row.counterparty,
+      deposits: row.deposits ? parseFloat(row.deposits) : undefined,
+      withdrawals: row.withdrawals ? parseFloat(row.withdrawals) : undefined,
+      balance: row.balance ? parseFloat(row.balance) : undefined,
       referenceNumber: row.reference_number,
       notes: row.notes,
       tags: row.tags || [],

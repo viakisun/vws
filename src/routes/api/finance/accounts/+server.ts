@@ -13,15 +13,23 @@ export const GET: RequestHandler = async ({ url }) => {
     const isPrimary = url.searchParams.get('isPrimary')
     const search = url.searchParams.get('search')
 
-    // 동적 쿼리 구성
+    // 동적 쿼리 구성 (거래 내역의 최신 balance 사용)
     let queryText = `
       SELECT
         a.*,
         b.name as bank_name,
         b.code as bank_code,
-        b.color as bank_color
+        b.color as bank_color,
+        COALESCE(latest_tx.balance, 0) as current_balance
       FROM finance_accounts a
       LEFT JOIN finance_banks b ON a.bank_id = b.id
+      LEFT JOIN LATERAL (
+        SELECT balance 
+        FROM finance_transactions 
+        WHERE account_id = a.id 
+        ORDER BY transaction_date DESC, created_at DESC 
+        LIMIT 1
+      ) latest_tx ON true
       WHERE 1=1
     `
     const params: any[] = []
@@ -71,7 +79,7 @@ export const GET: RequestHandler = async ({ url }) => {
         updatedAt: '',
       },
       accountType: row.account_type,
-      balance: parseFloat(row.balance),
+      balance: parseFloat(row.current_balance),
       status: row.status,
       description: row.description,
       isPrimary: row.is_primary,
@@ -114,21 +122,20 @@ export const POST: RequestHandler = async ({ request }) => {
       )
     }
 
-    // 계좌 생성
+    // 계좌 생성 (balance 필드 제거됨)
     const queryText = `
       INSERT INTO finance_accounts (
         name, account_number, bank_id, account_type,
-        balance, description, is_primary, alert_threshold
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        description, is_primary, alert_threshold
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7)
       RETURNING *
     `
 
     const params = [
       body.name,
-      body.accountNumber,
+      body.accountNumber.replace(/-/g, ''), // 하이픈 제거
       body.bankId,
       body.accountType,
-      0, // 모든 계좌는 0원에서 시작
       body.description || null,
       body.isPrimary || false,
       body.alertThreshold || null,

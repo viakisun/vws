@@ -26,17 +26,15 @@ export interface Transaction extends BaseEntity {
   account?: import('./account').Account
   categoryId: string
   category?: TransactionCategory
-  amount: number
-  type: TransactionType
+  amount: number // 입금이면 양수, 출금이면 음수
+  type: TransactionType // 'income' | 'expense'
   status: TransactionStatus
-  description: string
+  description: string // 적요
   transactionDate: string
-  referenceNumber?: string // 참조번호
-  notes?: string // 메모
-  tags?: string[] // 태그
-  isRecurring: boolean // 정기 거래 여부
-  recurringPattern?: RecurringPattern // 정기 거래 패턴
-  attachments?: TransactionAttachment[] // 첨부파일
+  counterparty?: string // 의뢰인/수취인
+  deposits?: number // 입금 (양수)
+  withdrawals?: number // 출금 (양수)
+  balance?: number // 거래후잔액
 }
 
 // 정기 거래 패턴

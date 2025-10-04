@@ -1,10 +1,10 @@
 import type {
-  Account,
-  CreateAccountRequest,
-  UpdateAccountRequest,
-  AccountFilter,
-  AccountSummary,
-  BankSummary,
+    Account,
+    AccountFilter,
+    AccountSummary,
+    BankSummary,
+    CreateAccountRequest,
+    UpdateAccountRequest,
 } from '$lib/finance/types'
 
 export class AccountService {
@@ -100,8 +100,8 @@ export class AccountService {
     }
   }
 
-  // 계좌 삭제
-  async deleteAccount(id: string): Promise<void> {
+  // 계좌 완전 삭제 (거래 내역 포함)
+  async deleteAccount(id: string): Promise<{ message: string; deletedTransactionCount?: number }> {
     try {
       const response = await fetch(`${this.baseUrl}/accounts/${id}`, {
         method: 'DELETE',
@@ -111,6 +111,11 @@ export class AccountService {
 
       if (!result.success) {
         throw new Error(result.error || '계좌 삭제에 실패했습니다.')
+      }
+
+      return {
+        message: result.message,
+        deletedTransactionCount: result.deletedTransactionCount,
       }
     } catch (error) {
       console.error('계좌 삭제 실패:', error)

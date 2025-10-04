@@ -4,79 +4,6 @@ import type { UpdateTransactionRequest } from '$lib/finance/types'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
 
-// 거래 타입별 계좌 잔액 업데이트 함수
-async function updateAccountBalance(
-  accountId: string,
-  amount: number,
-  type: string,
-): Promise<void> {
-  try {
-    let balanceChange = 0
-
-    switch (type) {
-      case 'income':
-        balanceChange = amount
-        break
-      case 'expense':
-        balanceChange = -amount
-        break
-      case 'transfer':
-      case 'adjustment':
-        balanceChange = 0
-        break
-      default:
-        console.warn(`알 수 없는 거래 타입: ${type}`)
-        balanceChange = 0
-    }
-
-    if (balanceChange !== 0) {
-      await query(
-        'UPDATE finance_accounts SET balance = balance + $1, updated_at = NOW() WHERE id = $2',
-        [balanceChange, accountId],
-      )
-    }
-  } catch (error) {
-    console.error('계좌 잔액 업데이트 실패:', error)
-    throw error
-  }
-}
-
-// 거래 타입별 계좌 잔액 되돌리기 함수 (수정/삭제 시 사용)
-async function reverseAccountBalance(
-  accountId: string,
-  amount: number,
-  type: string,
-): Promise<void> {
-  try {
-    let balanceChange = 0
-
-    switch (type) {
-      case 'income':
-        balanceChange = -amount // 수입을 되돌리면 잔액 감소
-        break
-      case 'expense':
-        balanceChange = amount // 지출을 되돌리면 잔액 증가
-        break
-      case 'transfer':
-      case 'adjustment':
-        balanceChange = 0
-        break
-      default:
-        console.warn(`알 수 없는 거래 타입: ${type}`)
-        balanceChange = 0
-    }
-
-    if (balanceChange !== 0) {
-      await query(
-        'UPDATE finance_accounts SET balance = balance + $1, updated_at = NOW() WHERE id = $2',
-        [balanceChange, accountId],
-      )
-    }
-  } catch (error) {
-    console.error('계좌 잔액 되돌리기 실패:', error)
-    throw error
-  }
-}
 
 export const PUT: RequestHandler = async ({ params, request }) => {
   try {
@@ -148,12 +75,6 @@ export const PUT: RequestHandler = async ({ params, request }) => {
 
       // 거래 수정
       const updatedTransaction = await transactionDbService.updateTransaction(id, data)
-
-      // 기존 거래의 잔액 영향 되돌리기
-      await reverseAccountBalance(existing.account_id, existing.amount, existing.type)
-
-      // 새로운 거래의 잔액 영향 적용
-      await updateAccountBalance(data.accountId, data.amount, data.type)
 
       // 트랜잭션 커밋
       await query('COMMIT')
@@ -244,8 +165,6 @@ export const DELETE: RequestHandler = async ({ params }) => {
         )
       }
 
-      // 거래의 잔액 영향 되돌리기
-      await reverseAccountBalance(existing.account_id, existing.amount, existing.type)
 
       // 트랜잭션 커밋
       await query('COMMIT')
