@@ -48,29 +48,37 @@ export const POST: RequestHandler = async ({ request }) => {
 
     // 🔒 보안 검증: 파일 크기 확인
     if (file.size > EXCEL_SECURITY_CONFIG.MAX_FILE_SIZE) {
-      logger.error(`파일 크기가 너무 큽니다: ${file.size} bytes > ${EXCEL_SECURITY_CONFIG.MAX_FILE_SIZE} bytes`)
-      return json({ 
-        success: false, 
-        message: `파일 크기가 너무 큽니다. 최대 ${Math.round(EXCEL_SECURITY_CONFIG.MAX_FILE_SIZE / 1024 / 1024)}MB까지 허용됩니다.` 
-      }, { status: 400 })
+      logger.error(
+        `파일 크기가 너무 큽니다: ${file.size} bytes > ${EXCEL_SECURITY_CONFIG.MAX_FILE_SIZE} bytes`,
+      )
+      return json(
+        {
+          success: false,
+          message: `파일 크기가 너무 큽니다. 최대 ${Math.round(EXCEL_SECURITY_CONFIG.MAX_FILE_SIZE / 1024 / 1024)}MB까지 허용됩니다.`,
+        },
+        { status: 400 },
+      )
     }
 
     const fileName = file.name
     const fileExtension = fileName.split('.').pop()?.toLowerCase()
-    
+
     // 🔒 보안 검증: 파일 형식 확인
     const arrayBuffer = await file.arrayBuffer()
     const buffer = Buffer.from(arrayBuffer)
     const securityCheck = validateExcelSecurity(buffer)
-    
+
     if (!securityCheck.isValid) {
       logger.error('보안 검증 실패:', securityCheck.errors)
-      return json({ 
-        success: false, 
-        message: `보안 검증 실패: ${securityCheck.errors.join(', ')}` 
-      }, { status: 400 })
+      return json(
+        {
+          success: false,
+          message: `보안 검증 실패: ${securityCheck.errors.join(', ')}`,
+        },
+        { status: 400 },
+      )
     }
-    
+
     if (securityCheck.warnings.length > 0) {
       logger.warn('보안 경고:', securityCheck.warnings)
     }
@@ -192,18 +200,20 @@ export const POST: RequestHandler = async ({ request }) => {
         const duplicateCheck = await query(
           'SELECT id FROM finance_transactions WHERE account_id = $1 AND transaction_date = $2 AND description = $3 AND (deposits = $4 OR withdrawals = $5) AND counterparty = $6',
           [
-            targetAccountId, 
-            transaction.transactionDate, 
+            targetAccountId,
+            transaction.transactionDate,
             transaction.description,
             transaction.deposits || 0,
             transaction.withdrawals || 0,
-            transaction.counterparty || ''
+            transaction.counterparty || '',
           ],
         )
 
         if (duplicateCheck.rows.length > 0) {
           skippedCount++
-          logger.info(`중복 거래 건너뜀: ${transaction.transactionDate} ${transaction.description} (${transaction.deposits || transaction.withdrawals || 0}원)`)
+          logger.info(
+            `중복 거래 건너뜀: ${transaction.transactionDate} ${transaction.description} (${transaction.deposits || transaction.withdrawals || 0}원)`,
+          )
           continue
         }
 

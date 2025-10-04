@@ -89,7 +89,7 @@ function parseTransactions(rawData: any[][]): Transaction[] {
             description: transaction.description,
             deposit: transaction.deposit,
             withdrawal: transaction.withdrawal,
-            balance: transaction.balance
+            balance: transaction.balance,
           })
         }
       } else {
@@ -106,7 +106,9 @@ function parseTransactions(rawData: any[][]): Transaction[] {
     }
   }
 
-  console.log(`🔥🔥🔥 하나은행 파싱 완료: 성공 ${parsedCount}건, 건너뛴 행 ${skippedCount}건 🔥🔥🔥`)
+  console.log(
+    `🔥🔥🔥 하나은행 파싱 완료: 성공 ${parsedCount}건, 건너뛴 행 ${skippedCount}건 🔥🔥🔥`,
+  )
   return transactions
 }
 
@@ -124,7 +126,12 @@ function parseRow(row: any[], rowIndex: number = 0): Transaction | null {
 
   // 2. 헤더 행이나 메타데이터 행 건너뛰기
   const firstCell = String(row[0] || '').trim()
-  if (firstCell.includes('거래일시') || firstCell.includes('No') || firstCell.includes('계좌번호') || firstCell === '') {
+  if (
+    firstCell.includes('거래일시') ||
+    firstCell.includes('No') ||
+    firstCell.includes('계좌번호') ||
+    firstCell === ''
+  ) {
     return null
   }
 
@@ -142,7 +149,7 @@ function parseRow(row: any[], rowIndex: number = 0): Transaction | null {
   // 4. 금액 필드 검증 (입금 또는 출금 중 하나는 있어야 함)
   const deposit = parseAmount(row[3])
   const withdrawal = parseAmount(row[4])
-  
+
   if (deposit === 0 && withdrawal === 0) {
     return null // 입금도 출금도 없으면 유효하지 않은 거래
   }

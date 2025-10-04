@@ -78,7 +78,7 @@ function parseTransactions(rawData: any[][]): NonghyupTransaction[] {
             description: transaction.description,
             depositAmount: transaction.depositAmount,
             withdrawalAmount: transaction.withdrawalAmount,
-            balance: transaction.balance
+            balance: transaction.balance,
           })
         }
       } else {
@@ -95,7 +95,9 @@ function parseTransactions(rawData: any[][]): NonghyupTransaction[] {
     }
   }
 
-  console.log(`🔥🔥🔥 농협은행 파싱 완료: 성공 ${parsedCount}건, 건너뛴 행 ${skippedCount}건 🔥🔥🔥`)
+  console.log(
+    `🔥🔥🔥 농협은행 파싱 완료: 성공 ${parsedCount}건, 건너뛴 행 ${skippedCount}건 🔥🔥🔥`,
+  )
   return transactions
 }
 
@@ -113,7 +115,12 @@ function parseRow(row: any[], rowIndex: number = 0): NonghyupTransaction | null 
 
   // 2. 헤더 행이나 메타데이터 행 건너뛰기
   const firstField = String(row[0] || '').trim()
-  if (firstField.includes('번호') || firstField.includes('거래일시') || firstField.includes('계좌번호') || firstField === '') {
+  if (
+    firstField.includes('번호') ||
+    firstField.includes('거래일시') ||
+    firstField.includes('계좌번호') ||
+    firstField === ''
+  ) {
     return null
   }
 
@@ -131,7 +138,7 @@ function parseRow(row: any[], rowIndex: number = 0): NonghyupTransaction | null 
   // 4. 금액 필드 검증 (입금 또는 출금 중 하나는 있어야 함)
   const depositAmount = parseAmount(row[3])
   const withdrawalAmount = parseAmount(row[2])
-  
+
   if (depositAmount === 0 && withdrawalAmount === 0) {
     return null // 입금도 출금도 없으면 유효하지 않은 거래
   }
