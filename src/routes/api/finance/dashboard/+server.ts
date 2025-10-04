@@ -32,7 +32,10 @@ export const GET: RequestHandler = async ({ url }) => {
     `
 
     const balanceResult = await query(balanceQuery)
-    const currentBalance = balanceResult.rows.reduce((sum, row) => sum + parseFloat(row.current_balance), 0)
+    const currentBalance = balanceResult.rows.reduce(
+      (sum, row) => sum + parseFloat(row.current_balance),
+      0,
+    )
 
     // 이번달 거래 내역 조회
     const currentMonth = new Date().toISOString().substring(0, 7) // YYYY-MM

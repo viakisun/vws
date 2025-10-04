@@ -1,10 +1,10 @@
 import type {
-    Account,
-    AccountFilter,
-    AccountSummary,
-    BankSummary,
-    CreateAccountRequest,
-    UpdateAccountRequest,
+  Account,
+  AccountFilter,
+  AccountSummary,
+  BankSummary,
+  CreateAccountRequest,
+  UpdateAccountRequest,
 } from '$lib/finance/types'
 
 export class AccountService {

@@ -35,16 +35,18 @@ export const POST: RequestHandler = async ({ request }) => {
         transactions: deleteTransactions.rowCount,
         accounts: deleteAccounts.rowCount,
         categories: deleteCategories.rowCount,
-        banks: deleteBanks.rowCount
-      }
+        banks: deleteBanks.rowCount,
+      },
     })
-
   } catch (error: any) {
     logger.error('재무 데이터 초기화 오류:', error)
-    return json({
-      success: false,
-      message: '재무 데이터 초기화 실패',
-      error: error.message
-    }, { status: 500 })
+    return json(
+      {
+        success: false,
+        message: '재무 데이터 초기화 실패',
+        error: error.message,
+      },
+      { status: 500 },
+    )
   }
 }

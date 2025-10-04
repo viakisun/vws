@@ -10,24 +10,26 @@ import type { BankStatementParseResult } from './types'
  */
 export function parseBankStatement(content: string, fileName: string): BankStatementParseResult {
   const detection = detectBankFromFileName(fileName)
-  
+
   if (!detection.bankCode) {
     return {
       bankCode: BankCode.HANA, // 기본값
       bankName: '알 수 없음',
       accountNumber: 'unknown',
       transactions: [],
-      errors: ['지원하지 않는 은행 파일 형식입니다. 파일명에 "하나", "농협", "전북"이 포함되어야 합니다.'],
+      errors: [
+        '지원하지 않는 은행 파일 형식입니다. 파일명에 "하나", "농협", "전북"이 포함되어야 합니다.',
+      ],
     }
   }
 
   switch (detection.bankCode) {
     case BankCode.HANA:
       return parseHanaBankStatement(content)
-    
+
     case BankCode.NONGHYUP:
       return parseNonghyupBankStatement(content)
-    
+
     case BankCode.JEONBUK:
       // TODO: 전북은행 파서 구현
       return {
@@ -37,7 +39,7 @@ export function parseBankStatement(content: string, fileName: string): BankState
         transactions: [],
         errors: ['전북은행 파서가 아직 구현되지 않았습니다.'],
       }
-    
+
     default:
       return {
         bankCode: BankCode.HANA, // 기본값

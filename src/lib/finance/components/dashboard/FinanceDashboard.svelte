@@ -206,7 +206,9 @@
       {#if dashboardData.recentTransactions.length > 0}
         <div class="space-y-3">
           {#each dashboardData.recentTransactions as transaction}
-            <div class="flex items-center justify-between p-3 border border-gray-100 rounded-lg hover:bg-gray-50 transition-colors">
+            <div
+              class="flex items-center justify-between p-3 border border-gray-100 rounded-lg hover:bg-gray-50 transition-colors"
+            >
               <div class="flex items-center flex-1">
                 <div
                   class="w-2 h-2 rounded-full mr-3 {transaction.type === 'income'
@@ -249,10 +251,14 @@
                   {/if}
                 </div>
                 <div class="text-xs text-gray-500 flex items-center gap-2">
-                  <span class="px-2 py-1 bg-gray-100 rounded text-gray-600">{transaction.category?.name}</span>
+                  <span class="px-2 py-1 bg-gray-100 rounded text-gray-600"
+                    >{transaction.category?.name}</span
+                  >
                   {#if transaction.balance}
                     <span class="text-gray-400">•</span>
-                    <span class="text-gray-600 font-medium">잔액: {formatCurrency(transaction.balance)}</span>
+                    <span class="text-gray-600 font-medium"
+                      >잔액: {formatCurrency(transaction.balance)}</span
+                    >
                   {/if}
                 </div>
               </div>

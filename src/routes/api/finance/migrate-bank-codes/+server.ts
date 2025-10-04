@@ -17,8 +17,12 @@ export const GET: RequestHandler = async () => {
     await query(sqlContent)
 
     // 결과 확인
-    const banksResult = await query('SELECT id, name, bank_code FROM finance_banks ORDER BY bank_code')
-    const accountsResult = await query('SELECT id, account_number, bank_code FROM finance_accounts WHERE bank_code IS NOT NULL')
+    const banksResult = await query(
+      'SELECT id, name, bank_code FROM finance_banks ORDER BY bank_code',
+    )
+    const accountsResult = await query(
+      'SELECT id, account_number, bank_code FROM finance_accounts WHERE bank_code IS NOT NULL',
+    )
 
     logger.info('은행 코드 enum 마이그레이션 완료')
 
@@ -30,10 +34,13 @@ export const GET: RequestHandler = async () => {
     })
   } catch (error: any) {
     logger.error('은행 코드 enum 마이그레이션 중 오류 발생:', error)
-    return json({ 
-      success: false, 
-      message: '은행 코드 enum 마이그레이션 실패', 
-      error: error.message 
-    }, { status: 500 })
+    return json(
+      {
+        success: false,
+        message: '은행 코드 enum 마이그레이션 실패',
+        error: error.message,
+      },
+      { status: 500 },
+    )
   }
 }

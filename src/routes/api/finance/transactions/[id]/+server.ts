@@ -4,7 +4,6 @@ import type { UpdateTransactionRequest } from '$lib/finance/types'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
 
-
 export const PUT: RequestHandler = async ({ params, request }) => {
   try {
     const { id } = params
@@ -164,7 +163,6 @@ export const DELETE: RequestHandler = async ({ params }) => {
           { status: 404 },
         )
       }
-
 
       // 트랜잭션 커밋
       await query('COMMIT')

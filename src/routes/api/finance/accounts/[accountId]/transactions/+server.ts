@@ -13,7 +13,10 @@ export const DELETE: RequestHandler = async ({ params }) => {
     }
 
     // 계좌 존재 확인
-    const accountResult = await query('SELECT account_number, name FROM finance_accounts WHERE id = $1', [accountId])
+    const accountResult = await query(
+      'SELECT account_number, name FROM finance_accounts WHERE id = $1',
+      [accountId],
+    )
     if (accountResult.rows.length === 0) {
       return json({ success: false, message: '계좌를 찾을 수 없습니다.' }, { status: 404 })
     }
@@ -21,12 +24,17 @@ export const DELETE: RequestHandler = async ({ params }) => {
     const account = accountResult.rows[0]
 
     // 거래내역 개수 확인
-    const countResult = await query('SELECT COUNT(*) as count FROM finance_transactions WHERE account_id = $1', [accountId])
+    const countResult = await query(
+      'SELECT COUNT(*) as count FROM finance_transactions WHERE account_id = $1',
+      [accountId],
+    )
     const transactionCount = parseInt(countResult.rows[0].count)
 
     // 거래내역 삭제
     await query('DELETE FROM finance_transactions WHERE account_id = $1', [accountId])
-    logger.info(`계좌 ${account.account_number}의 모든 거래내역이 삭제되었습니다. (${transactionCount}건)`)
+    logger.info(
+      `계좌 ${account.account_number}의 모든 거래내역이 삭제되었습니다. (${transactionCount}건)`,
+    )
 
     // 계좌 잔액을 0으로 초기화
     await query('UPDATE finance_accounts SET balance = 0 WHERE id = $1', [accountId])
@@ -41,7 +49,10 @@ export const DELETE: RequestHandler = async ({ params }) => {
     })
   } catch (error: any) {
     logger.error('계좌 거래내역 삭제 및 초기화 오류:', error)
-    return json({ success: false, message: '서버 오류 발생', error: error.message }, { status: 500 })
+    return json(
+      { success: false, message: '서버 오류 발생', error: error.message },
+      { status: 500 },
+    )
   }
 }
 
@@ -101,6 +112,9 @@ export const GET: RequestHandler = async ({ params }) => {
     })
   } catch (error: any) {
     logger.error('계좌 거래내역 통계 조회 오류:', error)
-    return json({ success: false, message: '서버 오류 발생', error: error.message }, { status: 500 })
+    return json(
+      { success: false, message: '서버 오류 발생', error: error.message },
+      { status: 500 },
+    )
   }
 }

@@ -112,7 +112,7 @@
 
       const data = await response.json()
       uploadResult = data
-      
+
       // 성공 시 데이터 새로고침
       if (data.success) {
         await loadData()
@@ -126,7 +126,9 @@
   }
 
   async function deleteAccountTransactions(accountId: string, accountName: string) {
-    if (!confirm(`${accountName}의 모든 거래내역을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.`)) {
+    if (
+      !confirm(`${accountName}의 모든 거래내역을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.`)
+    ) {
       return
     }
 
@@ -142,7 +144,7 @@
 
       const data = await response.json()
       alert(data.message)
-      
+
       // 데이터 새로고침
       await loadData()
     } catch (error: any) {
@@ -172,25 +174,30 @@
     console.log('원본 파일명:', fileName)
     console.log('파일명 타입:', typeof fileName)
     console.log('파일명 길이:', fileName.length)
-    
+
     const fileNameLower = fileName.toLowerCase()
     console.log('소문자 변환:', fileNameLower)
-    
+
     // 공백 제거하여 검색
     const cleanFileName = fileNameLower.replace(/\s+/g, '')
     console.log('공백 제거:', cleanFileName)
-    
+
     const hasHana1 = fileNameLower.includes('하나')
     const hasHana2 = fileNameLower.includes('hana')
     const hasHana3 = cleanFileName.includes('하나')
     const hasHana4 = cleanFileName.includes('hana')
-    
+
     console.log('하나 포함 체크:', { hasHana1, hasHana2, hasHana3, hasHana4 })
-    
+
     if (hasHana1 || hasHana2 || hasHana3 || hasHana4) {
       console.log('결과: 하나은행')
       return '하나은행'
-    } else if (fileNameLower.includes('농협') || fileNameLower.includes('nonghyup') || cleanFileName.includes('농협') || cleanFileName.includes('nonghyup')) {
+    } else if (
+      fileNameLower.includes('농협') ||
+      fileNameLower.includes('nonghyup') ||
+      cleanFileName.includes('농협') ||
+      cleanFileName.includes('nonghyup')
+    ) {
       console.log('결과: 농협은행')
       return '농협은행'
     }
@@ -211,7 +218,7 @@
       try {
         const detectedBank = detectBankFromFileName(file.name)
         console.log(`파일: ${file.name}, 감지된 은행: ${detectedBank}`)
-        
+
         // 파일명에서 계좌번호 추출 (하이픈 포함/미포함 모두 처리)
         const accountNumberMatch = file.name.match(/(\d{3}-?\d{3,6}-?\d{3,6}|\d{11,14})/)
         const fileAccountNumber = accountNumberMatch ? accountNumberMatch[0] : null
@@ -222,8 +229,8 @@
           // 하이픈 제거하여 매칭
           const cleanFileAccountNumber = fileAccountNumber.replace(/-/g, '')
           console.log(`정리된 계좌번호: ${cleanFileAccountNumber}`)
-          
-          const account = accounts.find(acc => {
+
+          const account = accounts.find((acc) => {
             const accNum = acc.accountNumber.replace(/-/g, '')
             console.log(`비교: ${cleanFileAccountNumber} vs ${accNum}`)
             return accNum === cleanFileAccountNumber
@@ -239,11 +246,11 @@
             fileName: file.name,
             success: false,
             message: `파일에서 계좌번호를 찾을 수 없거나, 일치하는 계좌가 없습니다: ${fileAccountNumber || '없음'}`,
-            detectedBank
+            detectedBank,
           })
           continue
         }
-        
+
         const formData = new FormData()
         formData.append('file', file)
         formData.append('replaceExisting', String(replaceExisting))
@@ -262,7 +269,7 @@
             fileName: file.name,
             success: false,
             message: errorData.message || '업로드 실패',
-            detectedBank
+            detectedBank,
           })
           continue
         }
@@ -272,22 +279,22 @@
           fileName: file.name,
           success: true,
           data: data,
-          detectedBank
+          detectedBank,
         })
       } catch (error: any) {
         multiUploadResults.push({
           fileName: file.name,
           success: false,
           message: error.message,
-          detectedBank: detectBankFromFileName(file.name)
+          detectedBank: detectBankFromFileName(file.name),
         })
       }
     }
 
     isMultiUploading = false
-    
+
     // 성공한 업로드가 있으면 데이터 새로고침
-    const hasSuccess = multiUploadResults.some(result => result.success)
+    const hasSuccess = multiUploadResults.some((result) => result.success)
     if (hasSuccess) {
       await loadData()
     }
@@ -313,7 +320,7 @@
   let replaceExisting = $state(false)
   let isUploading = $state(false)
   let uploadResult = $state<any>(undefined)
-  
+
   // 다중 파일 업로드 관련 상태
   let selectedFiles = $state<File[]>([])
   let isMultiUploading = $state(false)
@@ -615,29 +622,31 @@
   function handleFilterChange() {
     // 은행 필터가 변경되면 계좌 필터 초기화
     if (selectedBank && selectedAccount) {
-      const selectedAccountData = accounts.find(acc => acc.id === selectedAccount)
+      const selectedAccountData = accounts.find((acc) => acc.id === selectedAccount)
       if (selectedAccountData?.bank?.name !== selectedBank) {
         selectedAccount = ''
         selectedAccountNumber = ''
       }
     }
-    
+
     // 계좌 필터가 변경되면 계좌번호 필터 자동 설정
     if (selectedAccount && !selectedAccountNumber) {
-      const selectedAccountData = accounts.find(acc => acc.id === selectedAccount)
+      const selectedAccountData = accounts.find((acc) => acc.id === selectedAccount)
       if (selectedAccountData) {
         selectedAccountNumber = selectedAccountData.accountNumber
       }
     }
-    
+
     // 계좌번호 필터가 변경되면 계좌 필터 자동 설정
     if (selectedAccountNumber && !selectedAccount) {
-      const selectedAccountData = accounts.find(acc => acc.accountNumber === selectedAccountNumber)
+      const selectedAccountData = accounts.find(
+        (acc) => acc.accountNumber === selectedAccountNumber,
+      )
       if (selectedAccountData) {
         selectedAccount = selectedAccountData.id
       }
     }
-    
+
     updateFilteredData()
   }
 </script>
@@ -668,7 +677,9 @@
             showUploadSection = true
           }
         }}
-        class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 {showUploadSection ? 'bg-blue-50 border-blue-300' : ''}"
+        class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 {showUploadSection
+          ? 'bg-blue-50 border-blue-300'
+          : ''}"
       >
         📤 파일 업로드
       </button>
@@ -686,7 +697,9 @@
             showMultiUploadSection = true
           }
         }}
-        class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 {showMultiUploadSection ? 'bg-blue-50 border-blue-300' : ''}"
+        class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 {showMultiUploadSection
+          ? 'bg-blue-50 border-blue-300'
+          : ''}"
       >
         📁 다중 업로드
       </button>
@@ -803,7 +816,9 @@
               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="">모든 은행</option>
-              {#each [...new Set(accounts.map(acc => acc.bank?.name).filter(Boolean))] as bankName}
+              {#each [...new Set(accounts
+                    .map((acc) => acc.bank?.name)
+                    .filter(Boolean))] as bankName}
                 <option value={bankName}>{bankName}</option>
               {/each}
             </select>
@@ -818,7 +833,7 @@
               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="">모든 계좌</option>
-              {#each accounts.filter(acc => !selectedBank || acc.bank?.name === selectedBank) as account}
+              {#each accounts.filter((acc) => !selectedBank || acc.bank?.name === selectedBank) as account}
                 <option value={account.id}>
                   {account.name} ({account.accountNumber})
                 </option>
@@ -835,7 +850,7 @@
               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="">모든 계좌번호</option>
-              {#each accounts.filter(acc => !selectedBank || acc.bank?.name === selectedBank) as account}
+              {#each accounts.filter((acc) => !selectedBank || acc.bank?.name === selectedBank) as account}
                 <option value={account.accountNumber}>
                   {account.accountNumber} - {account.name}
                 </option>
@@ -880,7 +895,7 @@
               <option value="adjustment">조정</option>
             </select>
           </div>
-          
+
           <!-- 필터 초기화 버튼 -->
           <div class="flex items-end">
             <button
@@ -914,7 +929,7 @@
   {#if showUploadSection}
     <div class="bg-gray-50 rounded-lg p-6 mb-6">
       <h4 class="text-lg font-medium text-gray-900 mb-4">📤 계좌별 거래내역 업로드</h4>
-      
+
       <!-- 계좌별 업로드 카드들 -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
         {#each [...accounts].sort((a, b) => {
@@ -927,21 +942,23 @@
           <div class="bg-white rounded-lg border p-4">
             <div class="flex items-center justify-between mb-3">
               <div>
-                <h5 class="font-medium text-gray-900">{account.bank?.name || '알 수 없음'}-{account.accountNumber}</h5>
+                <h5 class="font-medium text-gray-900">
+                  {account.bank?.name || '알 수 없음'}-{account.accountNumber}
+                </h5>
                 <p class="text-sm text-gray-500">{account.name}</p>
                 <p class="text-xs text-gray-400">잔액: {formatCurrency(account.balance)}</p>
               </div>
               <button
                 onclick={() => {
-                  selectedAccountForUpload = account.id;
-                  document.getElementById(`fileInput-${account.id}`)?.click();
+                  selectedAccountForUpload = account.id
+                  document.getElementById(`fileInput-${account.id}`)?.click()
                 }}
                 class="px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors"
               >
                 📤 업로드
               </button>
             </div>
-            
+
             <!-- 파일 선택 (숨김) -->
             <input
               type="file"
@@ -950,7 +967,7 @@
               class="hidden"
               onchange={(e) => handleAccountFileSelect(e, account.id)}
             />
-            
+
             <!-- 선택된 파일 표시 -->
             {#if selectedAccountForUpload === account.id && selectedFile}
               <div class="mt-2 p-2 bg-blue-50 rounded border">
@@ -986,14 +1003,20 @@
 
       <!-- 업로드 결과 -->
       {#if uploadResult !== undefined}
-        <div class="mt-4 p-4 rounded-lg {uploadResult.success ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}">
+        <div
+          class="mt-4 p-4 rounded-lg {uploadResult.success
+            ? 'bg-green-50 border border-green-200'
+            : 'bg-red-50 border border-red-200'}"
+        >
           {#if uploadResult.success}
             <div class="text-green-800">
               <p class="font-medium">✅ 업로드 완료!</p>
               <p class="text-sm mt-1">은행: {uploadResult.bankName}</p>
               <p class="text-sm">계좌: {uploadResult.accountNumber}</p>
               <p class="text-sm">총 거래: {uploadResult.totalTransactions}건</p>
-              <p class="text-sm">삽입: {uploadResult.insertedCount}건, 건너뜀: {uploadResult.skippedCount}건</p>
+              <p class="text-sm">
+                삽입: {uploadResult.insertedCount}건, 건너뜀: {uploadResult.skippedCount}건
+              </p>
             </div>
           {:else}
             <div class="text-red-800">
@@ -1017,7 +1040,9 @@
           }) as account}
             <div class="flex items-center justify-between p-3 bg-white rounded-lg border">
               <div>
-                <p class="font-medium text-gray-900">{account.bank?.name || '알 수 없음'}-{account.accountNumber}</p>
+                <p class="font-medium text-gray-900">
+                  {account.bank?.name || '알 수 없음'}-{account.accountNumber}
+                </p>
                 <p class="text-sm text-gray-500">{account.name}</p>
                 <p class="text-xs text-gray-400">잔액: {formatCurrency(account.balance)}</p>
               </div>
@@ -1039,9 +1064,10 @@
     <div class="bg-blue-50 rounded-lg p-6 mb-6">
       <h4 class="text-lg font-medium text-gray-900 mb-4">📁 다중 파일 업로드 (자동 계좌 감지)</h4>
       <p class="text-sm text-gray-600 mb-4">
-        여러 은행의 거래내역 파일을 한 번에 업로드합니다. 파일명에서 은행을 자동으로 감지하여 해당 계좌에 업로드됩니다.
+        여러 은행의 거래내역 파일을 한 번에 업로드합니다. 파일명에서 은행을 자동으로 감지하여 해당
+        계좌에 업로드됩니다.
       </p>
-      
+
       <!-- 다중 파일 업로드 영역 -->
       <div
         class="border-2 border-dashed border-blue-300 rounded-lg p-6 text-center cursor-pointer hover:border-blue-500 transition-colors mb-4"
@@ -1068,9 +1094,13 @@
         {:else}
           <div class="text-blue-400">
             <div class="text-4xl mb-2">📁</div>
-            <p class="text-blue-600">여러 파일을 여기에 끌어다 놓거나 <span class="font-medium">클릭하여 선택</span></p>
+            <p class="text-blue-600">
+              여러 파일을 여기에 끌어다 놓거나 <span class="font-medium">클릭하여 선택</span>
+            </p>
             <p class="text-sm text-blue-500 mt-1">CSV 또는 TXT 파일만 지원합니다</p>
-            <p class="text-xs text-blue-400 mt-1">파일명에 "하나" 또는 "농협"이 포함되어야 자동 감지됩니다</p>
+            <p class="text-xs text-blue-400 mt-1">
+              파일명에 "하나" 또는 "농협"이 포함되어야 자동 감지됩니다
+            </p>
           </div>
         {/if}
         <input
@@ -1114,13 +1144,19 @@
         <div class="mt-4 space-y-2">
           <h5 class="font-medium text-gray-900">업로드 결과:</h5>
           {#each multiUploadResults as result}
-            <div class="p-3 rounded-lg {result.success ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}">
+            <div
+              class="p-3 rounded-lg {result.success
+                ? 'bg-green-50 border border-green-200'
+                : 'bg-red-50 border border-red-200'}"
+            >
               {#if result.success}
                 <div class="text-green-800">
                   <p class="font-medium">✅ {result.fileName}</p>
                   <p class="text-sm">감지된 은행: {result.detectedBank}</p>
                   <p class="text-sm">계좌: {result.data.accountNumber}</p>
-                  <p class="text-sm">처리: {result.data.insertedCount}건 삽입, {result.data.skippedCount}건 건너뜀</p>
+                  <p class="text-sm">
+                    처리: {result.data.insertedCount}건 삽입, {result.data.skippedCount}건 건너뜀
+                  </p>
                 </div>
               {:else}
                 <div class="text-red-800">
@@ -1222,7 +1258,7 @@
                           {formatTime(transaction.transactionDate)}
                         </div>
                       </td>
-                      
+
                       <!-- 적요 -->
                       <td class="px-6 py-4">
                         <div class="text-sm text-gray-900">{transaction.description}</div>
@@ -1232,12 +1268,14 @@
                           </div>
                         {/if}
                       </td>
-                      
+
                       <!-- 의뢰인/수취인 -->
                       <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="text-sm text-gray-900">{transaction.counterparty || transaction.description}</div>
+                        <div class="text-sm text-gray-900">
+                          {transaction.counterparty || transaction.description}
+                        </div>
                       </td>
-                      
+
                       <!-- 입금 -->
                       <td class="px-6 py-4 whitespace-nowrap">
                         {#if transaction.deposits > 0}
@@ -1248,7 +1286,7 @@
                           <span class="text-sm text-gray-400">-</span>
                         {/if}
                       </td>
-                      
+
                       <!-- 출금 -->
                       <td class="px-6 py-4 whitespace-nowrap">
                         {#if transaction.withdrawals > 0}
@@ -1259,14 +1297,14 @@
                           <span class="text-sm text-gray-400">-</span>
                         {/if}
                       </td>
-                      
+
                       <!-- 거래잔액 -->
                       <td class="px-6 py-4 whitespace-nowrap">
                         <span class="text-sm font-medium text-gray-900">
                           {formatCurrency(transaction.balance || 0)}
                         </span>
                       </td>
-                      
+
                       <!-- 액션 -->
                       <td class="px-6 py-4 whitespace-nowrap">
                         <div class="flex items-center space-x-2">
@@ -1274,16 +1312,36 @@
                             class="text-indigo-600 hover:text-indigo-900"
                             onclick={() => editTransaction(transaction)}
                           >
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                            <svg
+                              class="w-4 h-4"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                              ></path>
                             </svg>
                           </button>
                           <button
                             class="text-red-600 hover:text-red-900"
                             onclick={() => deleteTransaction(transaction)}
                           >
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                            <svg
+                              class="w-4 h-4"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                              ></path>
                             </svg>
                           </button>
                         </div>

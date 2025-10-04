@@ -87,7 +87,7 @@
   // 계좌 완전 삭제 (거래 내역 포함)
   async function deleteAccount(account: Account) {
     const confirmMessage = `⚠️ 계좌 "${account.name}"을(를) 완전히 삭제하시겠습니까?\n\n이 작업은 다음을 포함합니다:\n• 계좌 정보 삭제\n• 관련된 모든 거래 내역 삭제\n\n이 작업은 되돌릴 수 없습니다.`
-    
+
     if (!confirm(confirmMessage)) {
       return
     }
@@ -97,16 +97,15 @@
       error = null
 
       const result = await accountService.deleteAccount(account.id)
-      
+
       // 성공 메시지 표시
       alert(result.message)
-      
+
       // 계좌 목록에서 제거
       accounts = accounts.filter((a) => a.id !== account.id)
-      
+
       // 통계 업데이트
       updateAccountStats()
-      
     } catch (err) {
       error = err instanceof Error ? err.message : '계좌 삭제에 실패했습니다.'
     } finally {
@@ -212,7 +211,9 @@
                 <td class="px-6 py-4 whitespace-nowrap">
                   <div>
                     <div class="text-sm font-medium text-gray-900">
-                      {account.bank?.name || '알 수 없음'}-{formatAccountNumber(account.accountNumber)}
+                      {account.bank?.name || '알 수 없음'}-{formatAccountNumber(
+                        account.accountNumber,
+                      )}
                     </div>
                   </div>
                 </td>

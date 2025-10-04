@@ -2,7 +2,7 @@
 export enum BankCode {
   HANA = '1001',
   NONGHYUP = '1002',
-  JEONBUK = '1003'
+  JEONBUK = '1003',
 }
 
 // 은행 정보 인터페이스
@@ -21,7 +21,7 @@ export class BankCodeUtils {
     const names: Record<BankCode, string> = {
       [BankCode.HANA]: '하나은행',
       [BankCode.NONGHYUP]: '농협은행',
-      [BankCode.JEONBUK]: '전북은행'
+      [BankCode.JEONBUK]: '전북은행',
     }
     return names[bankCode] || '알 수 없음'
   }
@@ -29,9 +29,9 @@ export class BankCodeUtils {
   // 은행명으로 은행 코드 조회
   static getBankCode(bankName: string): BankCode | null {
     const codes: Record<string, BankCode> = {
-      '하나은행': BankCode.HANA,
-      '농협은행': BankCode.NONGHYUP,
-      '전북은행': BankCode.JEONBUK
+      하나은행: BankCode.HANA,
+      농협은행: BankCode.NONGHYUP,
+      전북은행: BankCode.JEONBUK,
     }
     return codes[bankName] || null
   }
@@ -39,19 +39,19 @@ export class BankCodeUtils {
   // 계좌번호로 은행 코드 추정
   static estimateBankCodeFromAccountNumber(accountNumber: string): BankCode | null {
     const cleanAccountNumber = accountNumber.replace(/-/g, '')
-    
+
     if (cleanAccountNumber.startsWith('711')) {
       return BankCode.HANA
     }
-    
+
     if (cleanAccountNumber.startsWith('301')) {
       return BankCode.NONGHYUP
     }
-    
+
     if (cleanAccountNumber.startsWith('037')) {
       return BankCode.JEONBUK
     }
-    
+
     return null
   }
 
@@ -59,7 +59,7 @@ export class BankCodeUtils {
   static estimateBankCodeFromFileName(fileName: string): BankCode | null {
     const fileNameLower = fileName.toLowerCase()
     const cleanFileName = fileName.replace(/\s+/g, '').toLowerCase()
-    
+
     // 파일명 정규화 (Unicode decomposition 처리)
     let normalizedFileName = fileName
     try {

@@ -6,12 +6,12 @@ import type { BankDetectionResult } from './types'
  */
 export function detectBankFromFileName(fileName: string): BankDetectionResult {
   const bankCode = BankCodeUtils.estimateBankCodeFromFileName(fileName)
-  
+
   if (bankCode) {
     return {
       bankCode,
       bankName: BankCodeUtils.getBankName(bankCode),
-      confidence: 'high'
+      confidence: 'high',
     }
   }
 
@@ -19,7 +19,7 @@ export function detectBankFromFileName(fileName: string): BankDetectionResult {
   return {
     bankCode: null,
     bankName: '알 수 없음',
-    confidence: 'low'
+    confidence: 'low',
   }
 }
 
@@ -28,18 +28,18 @@ export function detectBankFromFileName(fileName: string): BankDetectionResult {
  */
 export function detectBankFromAccountNumber(accountNumber: string): BankDetectionResult {
   const bankCode = BankCodeUtils.estimateBankCodeFromAccountNumber(accountNumber)
-  
+
   if (bankCode) {
     return {
       bankCode,
       bankName: BankCodeUtils.getBankName(bankCode),
-      confidence: 'high'
+      confidence: 'high',
     }
   }
-  
+
   return {
     bankCode: null,
     bankName: '알 수 없음',
-    confidence: 'low'
+    confidence: 'low',
   }
 }

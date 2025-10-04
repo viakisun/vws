@@ -4,7 +4,6 @@ import type { CreateTransactionRequest, Transaction } from '$lib/finance/types'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
 
-
 // 거래 내역 조회
 export const GET: RequestHandler = async ({ url }) => {
   try {

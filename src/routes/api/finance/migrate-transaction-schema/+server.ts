@@ -16,8 +16,8 @@ export const POST: RequestHandler = async ({ request }) => {
     // SQL 문을 세미콜론으로 분리하여 실행
     const statements = migrationSQL
       .split(';')
-      .map(stmt => stmt.trim())
-      .filter(stmt => stmt.length > 0 && !stmt.startsWith('--'))
+      .map((stmt) => stmt.trim())
+      .filter((stmt) => stmt.length > 0 && !stmt.startsWith('--'))
 
     const results = []
 
@@ -28,14 +28,14 @@ export const POST: RequestHandler = async ({ request }) => {
         results.push({
           statement: statement.substring(0, 100) + '...',
           success: true,
-          result: result.rows || result.rowCount || 'OK'
+          result: result.rows || result.rowCount || 'OK',
         })
       } catch (error: any) {
         logger.error(`SQL 실행 오류: ${error.message}`)
         results.push({
           statement: statement.substring(0, 100) + '...',
           success: false,
-          error: error.message
+          error: error.message,
         })
       }
     }
@@ -55,15 +55,17 @@ export const POST: RequestHandler = async ({ request }) => {
       success: true,
       message: '거래내역표 스키마 마이그레이션 완료',
       migrationResults: results,
-      newColumns: checkResult.rows
+      newColumns: checkResult.rows,
     })
-
   } catch (error: any) {
     logger.error('마이그레이션 오류:', error)
-    return json({
-      success: false,
-      message: '마이그레이션 실패',
-      error: error.message
-    }, { status: 500 })
+    return json(
+      {
+        success: false,
+        message: '마이그레이션 실패',
+        error: error.message,
+      },
+      { status: 500 },
+    )
   }
 }

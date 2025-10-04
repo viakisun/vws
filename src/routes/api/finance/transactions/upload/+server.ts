@@ -10,10 +10,10 @@ export const POST: RequestHandler = async ({ request }) => {
     logger.info('=== 업로드 요청 시작 ===')
     logger.info('Content-Type:', request.headers.get('content-type'))
     logger.info('Content-Length:', request.headers.get('content-length'))
-    
+
     // UTF-8 인코딩을 명시적으로 설정
     const formData = await request.formData()
-    
+
     // 파일명 UTF-8 디코딩 확인
     const file = formData.get('file') as File
     if (file) {
@@ -21,7 +21,7 @@ export const POST: RequestHandler = async ({ request }) => {
       logger.info('파일명 바이트 길이:', new TextEncoder().encode(file.name).length)
       logger.info('파일명 UTF-8 디코딩:', decodeURIComponent(encodeURIComponent(file.name)))
     }
-    
+
     // FormData 내용 로깅
     logger.info('FormData keys:', Array.from(formData.keys()))
     logger.info('FormData entries:')
@@ -32,7 +32,7 @@ export const POST: RequestHandler = async ({ request }) => {
         logger.info(`  ${key}: ${value}`)
       }
     }
-    
+
     const replaceExisting = formData.get('replaceExisting') === 'true'
     const accountId = formData.get('accountId') as string
 
@@ -66,43 +66,63 @@ export const POST: RequestHandler = async ({ request }) => {
     }
 
     // 파일 파싱
-    const { bankName, accountNumber, transactions, errors: parseErrors } = parseBankStatement(
-      fileContent,
-      fileName,
-    )
+    const {
+      bankName,
+      accountNumber,
+      transactions,
+      errors: parseErrors,
+    } = parseBankStatement(fileContent, fileName)
 
-    logger.info(`파싱 결과: 은행=${bankName}, 계좌=${accountNumber}, 거래수=${transactions.length}, 오류수=${parseErrors.length}`)
+    logger.info(
+      `파싱 결과: 은행=${bankName}, 계좌=${accountNumber}, 거래수=${transactions.length}, 오류수=${parseErrors.length}`,
+    )
     logger.info(`파싱된 거래 목록 (처음 5건):`, transactions.slice(0, 5))
-    
+
     if (parseErrors.length > 0) {
       logger.error(`파싱 오류 상세:`, parseErrors)
-      return json({ success: false, message: '파일 파싱 오류', errors: parseErrors }, { status: 400 })
+      return json(
+        { success: false, message: '파일 파싱 오류', errors: parseErrors },
+        { status: 400 },
+      )
     }
-    
+
     if (transactions.length === 0) {
       logger.warn('파싱된 거래가 없습니다. 파일 내용을 확인해주세요.')
-      return json({ success: false, message: '파싱된 거래가 없습니다', errors: ['파일에서 유효한 거래 데이터를 찾을 수 없습니다.'] }, { status: 400 })
+      return json(
+        {
+          success: false,
+          message: '파싱된 거래가 없습니다',
+          errors: ['파일에서 유효한 거래 데이터를 찾을 수 없습니다.'],
+        },
+        { status: 400 },
+      )
     }
 
     // 거래 유효성 검사는 파싱 단계에서 이미 수행됨
 
     // 계좌 찾기 또는 생성
     let targetAccountId: string
-    
+
     if (accountId) {
       // 특정 계좌 ID가 제공된 경우
-      const targetAccount = await query('SELECT id, account_number FROM finance_accounts WHERE id = $1', [accountId])
+      const targetAccount = await query(
+        'SELECT id, account_number FROM finance_accounts WHERE id = $1',
+        [accountId],
+      )
       if (targetAccount.rows.length === 0) {
         return json({ success: false, message: '지정된 계좌를 찾을 수 없습니다.' }, { status: 404 })
       }
       targetAccountId = targetAccount.rows[0].id
-      logger.info(`지정된 계좌 사용: ${targetAccount.rows[0].account_number} (ID: ${targetAccountId})`)
-             } else {
-               // 자동 계좌 감지 (하이픈 제거된 계좌번호로 검색)
-               const cleanAccountNumber = accountNumber.replace(/-/g, '')
-               const existingAccount = await query('SELECT id FROM finance_accounts WHERE account_number = $1', [
-                 cleanAccountNumber,
-               ])
+      logger.info(
+        `지정된 계좌 사용: ${targetAccount.rows[0].account_number} (ID: ${targetAccountId})`,
+      )
+    } else {
+      // 자동 계좌 감지 (하이픈 제거된 계좌번호로 검색)
+      const cleanAccountNumber = accountNumber.replace(/-/g, '')
+      const existingAccount = await query(
+        'SELECT id FROM finance_accounts WHERE account_number = $1',
+        [cleanAccountNumber],
+      )
 
       if (existingAccount.rows.length > 0) {
         targetAccountId = existingAccount.rows[0].id
@@ -111,15 +131,18 @@ export const POST: RequestHandler = async ({ request }) => {
         // 새 계좌 생성
         const bankResult = await query('SELECT id FROM finance_banks WHERE name = $1', [bankName])
         if (bankResult.rows.length === 0) {
-          return json({ success: false, message: `은행 정보를 찾을 수 없습니다: ${bankName}` }, { status: 400 })
+          return json(
+            { success: false, message: `은행 정보를 찾을 수 없습니다: ${bankName}` },
+            { status: 400 },
+          )
         }
 
         const bankId = bankResult.rows[0].id
-               const cleanAccountNumber = accountNumber.replace(/-/g, '')
-               const newAccount = await query(
-                 'INSERT INTO finance_accounts (name, account_number, bank_id, account_type, balance, is_primary) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id',
-                 [`${bankName} ${cleanAccountNumber}`, cleanAccountNumber, bankId, 'checking', 0, false],
-               )
+        const cleanAccountNumber = accountNumber.replace(/-/g, '')
+        const newAccount = await query(
+          'INSERT INTO finance_accounts (name, account_number, bank_id, account_type, balance, is_primary) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id',
+          [`${bankName} ${cleanAccountNumber}`, cleanAccountNumber, bankId, 'checking', 0, false],
+        )
         targetAccountId = newAccount.rows[0].id
         logger.info(`새 계좌 생성: ${bankName} - ${accountNumber} (ID: ${targetAccountId})`)
       }
@@ -141,11 +164,7 @@ export const POST: RequestHandler = async ({ request }) => {
         // 중복 거래 확인
         const duplicateCheck = await query(
           'SELECT id FROM finance_transactions WHERE account_id = $1 AND transaction_date = $2 AND description = $3',
-          [
-            targetAccountId,
-            transaction.transactionDate,
-            transaction.description,
-          ],
+          [targetAccountId, transaction.transactionDate, transaction.description],
         )
 
         if (duplicateCheck.rows.length > 0) {
@@ -155,13 +174,12 @@ export const POST: RequestHandler = async ({ request }) => {
 
         // 카테고리 ID 결정 (categoryCode 기반)
         let categoryId: string | null = null
-        
+
         if (transaction.categoryCode) {
           // 파싱된 카테고리 코드로 카테고리 찾기
-          const categoryResult = await query(
-            'SELECT id FROM finance_categories WHERE name = $1',
-            [transaction.categoryCode],
-          )
+          const categoryResult = await query('SELECT id FROM finance_categories WHERE name = $1', [
+            transaction.categoryCode,
+          ])
           categoryId = categoryResult.rows[0]?.id || null
         }
 
@@ -207,9 +225,11 @@ export const POST: RequestHandler = async ({ request }) => {
             targetAccountId,
             categoryId,
             // amount는 입금이 있으면 양수, 출금만 있으면 음수
-            transaction.deposits && transaction.deposits > 0 
-              ? transaction.deposits 
-              : (transaction.withdrawals && transaction.withdrawals > 0 ? -transaction.withdrawals : 0),
+            transaction.deposits && transaction.deposits > 0
+              ? transaction.deposits
+              : transaction.withdrawals && transaction.withdrawals > 0
+                ? -transaction.withdrawals
+                : 0,
             // type은 입금이 있으면 income, 아니면 expense
             transaction.deposits && transaction.deposits > 0 ? 'income' : 'expense',
             transaction.description,
@@ -230,7 +250,6 @@ export const POST: RequestHandler = async ({ request }) => {
       }
     }
 
-
     return json({
       success: true,
       message: '거래내역 업로드 및 처리 완료',
@@ -244,7 +263,10 @@ export const POST: RequestHandler = async ({ request }) => {
     })
   } catch (error: any) {
     logger.error('파일 업로드 API 오류:', error)
-    return json({ success: false, message: '서버 오류 발생', error: error.message }, { status: 500 })
+    return json(
+      { success: false, message: '서버 오류 발생', error: error.message },
+      { status: 500 },
+    )
   }
 }
 
@@ -266,6 +288,9 @@ export const GET: RequestHandler = async () => {
     return json({ success: true, supportedBanks })
   } catch (error: any) {
     logger.error('지원 은행 목록 조회 오류:', error)
-    return json({ success: false, message: '서버 오류 발생', error: error.message }, { status: 500 })
+    return json(
+      { success: false, message: '서버 오류 발생', error: error.message },
+      { status: 500 },
+    )
   }
 }

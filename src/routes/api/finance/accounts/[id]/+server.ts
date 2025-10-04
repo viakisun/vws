@@ -246,9 +246,10 @@ export const DELETE: RequestHandler = async ({ params }) => {
       console.log(`🔥 계좌 완전 삭제 성공: ${result.rows[0].name}`)
 
       const deletedAccountName = result.rows[0].name
-      const message = transactionCount > 0 
-        ? `✅ 계좌 "${deletedAccountName}"과 거래 내역 ${transactionCount}건이 완전히 삭제되었습니다.`
-        : `✅ 계좌 "${deletedAccountName}"이 완전히 삭제되었습니다.`
+      const message =
+        transactionCount > 0
+          ? `✅ 계좌 "${deletedAccountName}"과 거래 내역 ${transactionCount}건이 완전히 삭제되었습니다.`
+          : `✅ 계좌 "${deletedAccountName}"이 완전히 삭제되었습니다.`
 
       return json({
         success: true,
