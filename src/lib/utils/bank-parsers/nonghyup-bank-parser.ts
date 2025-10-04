@@ -1,6 +1,6 @@
 import { BankCode, BankCodeUtils } from '$lib/types/bank-codes'
 import { toUTC } from '$lib/utils/date-handler'
-import * as XLSX from 'xlsx'
+import { readExcelFile } from '$lib/utils/excel-reader'
 import type { BankStatementParseResult, ParsedTransaction } from './types'
 
 // 거래 내역 인터페이스 (농협은행 전용)
@@ -22,30 +22,12 @@ interface NonghyupTransaction {
  * @param fileContent 엑셀 파일 바이너리 데이터
  * @returns NonghyupTransaction 배열
  */
-function parseNonghyupBankExcel(fileContent: string): NonghyupTransaction[] {
+async function parseNonghyupBankExcel(fileContent: string): Promise<NonghyupTransaction[]> {
   try {
     console.log('🔥 농협 엑셀 파일 크기:', fileContent.length, 'bytes')
 
-    const workbook = XLSX.read(fileContent, {
-      type: 'binary',
-      cellDates: false, // 날짜를 문자열로 읽기
-      cellNF: false,
-      cellStyles: false,
-      raw: true, // 원본 값 그대로 읽기
-    })
-
-    console.log('🔥 농협 워크북 시트 이름들:', workbook.SheetNames)
-
-    // 첫 번째 시트 가져오기
-    const sheetName = workbook.SheetNames[0]
-    const worksheet = workbook.Sheets[sheetName]
-
-    // 시트를 2D 배열로 변환 (원본 값 그대로)
-    const rawData: any[][] = XLSX.utils.sheet_to_json(worksheet, {
-      header: 1,
-      raw: true, // 원본 값 그대로 읽기
-      defval: '', // 빈 셀에 대한 기본값
-    })
+    // 공통 Excel 파일 읽기 함수 사용
+    const rawData = await readExcelFile(fileContent)
 
     console.log('🔥🔥🔥 === 농협 날짜 필드 디버깅 === 🔥🔥🔥')
     console.log('🔥 총 행 수:', rawData.length)
@@ -196,7 +178,7 @@ function parseAmount(value: any): number {
 /**
  * 농협은행 거래내역 파싱 (엑셀 파일)
  */
-export function parseNonghyupBankStatement(content: string): BankStatementParseResult {
+export async function parseNonghyupBankStatement(content: string): Promise<BankStatementParseResult> {
   console.log('🔥🔥🔥 === parseNonghyupBankStatement 시작 === 🔥🔥🔥')
   console.log('🔥 content 길이:', content.length)
 
@@ -206,7 +188,7 @@ export function parseNonghyupBankStatement(content: string): BankStatementParseR
   try {
     console.log('🔥 농협 엑셀 파싱 시작...')
     // 엑셀 파싱
-    const excelTransactions = parseNonghyupBankExcel(content)
+    const excelTransactions = await parseNonghyupBankExcel(content)
     console.log('🔥🔥🔥 농협 엑셀 파싱 완료, 거래 수:', excelTransactions.length, '🔥🔥🔥')
 
     for (const tx of excelTransactions) {

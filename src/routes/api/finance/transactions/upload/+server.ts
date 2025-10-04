@@ -71,7 +71,7 @@ export const POST: RequestHandler = async ({ request }) => {
       accountNumber,
       transactions,
       errors: parseErrors,
-    } = parseBankStatement(fileContent, fileName)
+    } = await parseBankStatement(fileContent, fileName)
 
     logger.info(
       `파싱 결과: 은행=${bankName}, 계좌=${accountNumber}, 거래수=${transactions.length}, 오류수=${parseErrors.length}`,

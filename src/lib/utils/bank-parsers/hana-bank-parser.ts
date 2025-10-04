@@ -1,6 +1,6 @@
 import { BankCode, BankCodeUtils } from '$lib/types/bank-codes'
 import { toUTC } from '$lib/utils/date-handler'
-import * as XLSX from 'xlsx'
+import { readExcelFile } from '$lib/utils/excel-reader'
 import type { BankStatementParseResult, ParsedTransaction } from './types'
 
 // 거래 내역 인터페이스 (하나은행 전용)
@@ -22,36 +22,20 @@ interface Transaction {
  * @param fileContent 엑셀 파일 바이너리 데이터
  * @returns Transaction 배열
  */
-function parseHanaBankExcel(fileContent: string): Transaction[] {
+async function parseHanaBankExcel(fileContent: string): Promise<Transaction[]> {
   try {
-    console.log('🔥 엑셀 파일 크기:', fileContent.length, 'bytes')
+    console.log('🔥 하나은행 엑셀 파일 크기:', fileContent.length, 'bytes')
 
-    const workbook = XLSX.read(fileContent, {
-      type: 'binary',
-      cellDates: false, // 날짜를 문자열로 읽기
-      cellNF: false,
-      cellStyles: false,
-      raw: true, // 원본 값 그대로 읽기
-    })
+    // 공통 Excel 파일 읽기 함수 사용
+    const rawData = await readExcelFile(fileContent)
 
-    console.log('🔥 워크북 시트 이름들:', workbook.SheetNames)
-
-    // 첫 번째 시트 가져오기
-    const sheetName = workbook.SheetNames[0]
-    const worksheet = workbook.Sheets[sheetName]
-
-    // 시트를 2D 배열로 변환 (원본 값 그대로)
-    const rawData: any[][] = XLSX.utils.sheet_to_json(worksheet, {
-      header: 1,
-      raw: true, // 원본 값 그대로 읽기
-      defval: '', // 빈 셀에 대한 기본값
-    })
-
-    console.log('🔥🔥🔥 === 날짜 필드 디버깅 === 🔥🔥🔥')
+    console.log('🔥🔥🔥 === 하나은행 날짜 필드 디버깅 === 🔥🔥🔥')
     console.log('🔥 총 행 수:', rawData.length)
 
     // 헤더 행 확인
-    console.log('🔥 헤더 행:', rawData[0])
+    if (rawData.length > 0) {
+      console.log('🔥 헤더 행:', rawData[0])
+    }
 
     // 처음 3개 데이터 행의 모든 필드 확인
     for (let i = 1; i < Math.min(4, rawData.length); i++) {
@@ -188,7 +172,7 @@ function parseAmount(value: any): number {
 /**
  * 하나은행 거래내역 파싱 (엑셀 파일)
  */
-export function parseHanaBankStatement(content: string): BankStatementParseResult {
+export async function parseHanaBankStatement(content: string): Promise<BankStatementParseResult> {
   console.log('🔥🔥🔥 === parseHanaBankStatement 시작 === 🔥🔥🔥')
   console.log('🔥 content 길이:', content.length)
 
@@ -198,7 +182,7 @@ export function parseHanaBankStatement(content: string): BankStatementParseResul
   try {
     console.log('🔥 엑셀 파싱 시작...')
     // 엑셀 파싱
-    const excelTransactions = parseHanaBankExcel(content)
+    const excelTransactions = await parseHanaBankExcel(content)
     console.log('🔥🔥🔥 엑셀 파싱 완료, 거래 수:', excelTransactions.length, '🔥🔥🔥')
 
     for (const tx of excelTransactions) {

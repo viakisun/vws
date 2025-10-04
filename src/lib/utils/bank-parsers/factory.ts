@@ -9,7 +9,7 @@ import type { BankStatementParseResult } from './types'
  * 은행 파일 파싱 팩토리
  * 파일명을 기반으로 적절한 파서를 선택하여 파싱 수행
  */
-export function parseBankStatement(content: string, fileName: string): BankStatementParseResult {
+export async function parseBankStatement(content: string, fileName: string): Promise<BankStatementParseResult> {
   const detection = detectBankFromFileName(fileName)
 
   if (!detection.bankCode) {
@@ -26,13 +26,13 @@ export function parseBankStatement(content: string, fileName: string): BankState
 
   switch (detection.bankCode) {
     case BankCode.HANA:
-      return parseHanaBankStatement(content)
+      return await parseHanaBankStatement(content)
 
     case BankCode.NONGHYUP:
-      return parseNonghyupBankStatement(content)
+      return await parseNonghyupBankStatement(content)
 
     case BankCode.JEONBUK:
-      return parseJeonbukBankStatement(content)
+      return await parseJeonbukBankStatement(content)
 
     default:
       return {
