@@ -62,42 +62,18 @@ async function parseHanaBankExcel(fileContent: string): Promise<Transaction[]> {
  */
 function parseTransactions(rawData: any[][]): Transaction[] {
   const transactions: Transaction[] = []
+  let parsedCount = 0
+  let skippedCount = 0
 
-  // 헤더 행 찾기 (더 유연하게)
-  let headerRowIndex = -1
-  console.log('🔥 헤더 행 찾기 시작...')
+  console.log('🔥🔥🔥 === 하나은행 파싱 시작 === 🔥🔥🔥')
+  console.log('🔥 총 행 수:', rawData.length)
 
-  for (let i = 0; i < Math.min(10, rawData.length); i++) {
-    const row = rawData[i]
-    if (row) {
-      const rowStr = row.join('|')
-      console.log(`🔥 행 ${i}: ${rowStr}`)
-
-      // 거래일시가 포함된 행을 헤더로 인식
-      if (row.some((cell) => String(cell).includes('거래일시'))) {
-        headerRowIndex = i
-        console.log(`🔥🔥🔥 헤더 행 발견: ${i} 🔥🔥🔥`)
-        break
-      }
-    }
-  }
-
-  if (headerRowIndex === -1) {
-    console.log('🔥 헤더를 찾을 수 없어서 행 0부터 시작')
-    headerRowIndex = -1 // 첫 번째 행부터 시작
-  }
-
-  // 헤더 다음 행부터 데이터 파싱
-  for (let i = headerRowIndex + 1; i < rawData.length; i++) {
+  // 모든 행을 순회하면서 유효한 거래 데이터 찾기
+  for (let i = 0; i < rawData.length; i++) {
     const row = rawData[i]
 
-    // 빈 행 또는 합계 행 건너뛰기
-    if (!row || row.length === 0 || String(row[0]).includes('합')) {
-      continue
-    }
-
-    // No 필드가 없으면 건너뛰기
-    if (!row[0] || row[0] === '') {
+    // 빈 행 건너뛰기
+    if (!row || row.length === 0) {
       continue
     }
 
@@ -105,12 +81,32 @@ function parseTransactions(rawData: any[][]): Transaction[] {
       const transaction = parseRow(row, i)
       if (transaction) {
         transactions.push(transaction)
+        parsedCount++
+        if (parsedCount <= 5) {
+          console.log(`🔥 하나은행 파싱 성공 (행 ${i}):`, {
+            no: transaction.no,
+            dateTime: transaction.dateTime,
+            description: transaction.description,
+            deposit: transaction.deposit,
+            withdrawal: transaction.withdrawal,
+            balance: transaction.balance
+          })
+        }
+      } else {
+        skippedCount++
+        if (skippedCount <= 10) {
+          console.log(`🔥 하나은행 행 ${i} 건너뛰기: 형식 불일치 - ${row.slice(0, 3).join('|')}`)
+        }
       }
     } catch (error) {
-      console.warn(`행 ${i} 파싱 실패:`, error)
+      skippedCount++
+      if (skippedCount <= 10) {
+        console.warn(`🔥 하나은행 행 ${i} 파싱 실패:`, error)
+      }
     }
   }
 
+  console.log(`🔥🔥🔥 하나은행 파싱 완료: 성공 ${parsedCount}건, 건너뛴 행 ${skippedCount}건 🔥🔥🔥`)
   return transactions
 }
 
@@ -118,34 +114,51 @@ function parseTransactions(rawData: any[][]): Transaction[] {
  * 한 행을 Transaction 객체로 변환
  */
 function parseRow(row: any[], rowIndex: number = 0): Transaction | null {
-  // 최소 필드 수 확인
-  if (row.length < 7) {
-    console.log(`🔥 행 ${rowIndex}: 필드 수 부족 (${row.length}개)`)
+  // 하나은행 거래 데이터 형식 검증
+  // 유효한 거래 데이터인지 확인하는 여러 조건들을 체크
+
+  // 1. 최소 필드 수 확인 (하나은행은 최소 6개 필드 필요)
+  if (row.length < 6) {
     return null
   }
 
-  // 날짜 필드 처리 (row[0]이 거래일시)
-  let dateTime = ''
-  if (row[0] && String(row[0]).trim() !== '' && String(row[0]).trim() !== 'undefined') {
-    dateTime = String(row[0]).trim()
-    console.log(`🔥 행 ${rowIndex}: 날짜 발견 - "${dateTime}" (타입: ${typeof row[0]})`)
-  } else {
-    console.log(`🔥 행 ${rowIndex}: 날짜 없음 - row[0]="${row[0]}" (타입: ${typeof row[0]})`)
-    // 날짜가 없으면 이 행은 건너뛰기
+  // 2. 헤더 행이나 메타데이터 행 건너뛰기
+  const firstCell = String(row[0] || '').trim()
+  if (firstCell.includes('거래일시') || firstCell.includes('No') || firstCell.includes('계좌번호') || firstCell === '') {
     return null
   }
 
+  // 3. 날짜 형식 검증 (YYYY/MM/DD 또는 YYYY-MM-DD 형식)
+  let dateTime = firstCell
+  if (!dateTime || dateTime === 'undefined' || dateTime === 'null') {
+    return null
+  }
+
+  // 날짜 형식이 올바른지 간단히 확인 (숫자와 / 또는 - 포함)
+  if (!/^\d{4}[\/\-]\d{1,2}[\/\-]\d{1,2}/.test(dateTime)) {
+    return null
+  }
+
+  // 4. 금액 필드 검증 (입금 또는 출금 중 하나는 있어야 함)
+  const deposit = parseAmount(row[3])
+  const withdrawal = parseAmount(row[4])
+  
+  if (deposit === 0 && withdrawal === 0) {
+    return null // 입금도 출금도 없으면 유효하지 않은 거래
+  }
+
+  // 5. 유효한 거래 데이터로 판단되면 파싱
   return {
-    no: '', // No 컬럼이 없으므로 빈 문자열
+    no: String(rowIndex + 1), // 행 번호를 No로 사용
     dateTime,
-    description: String(row[1] || ''), // 적요
-    requester: String(row[2] || ''), // 의뢰인/수취인
-    deposit: parseAmount(row[3]), // 입금
-    withdrawal: parseAmount(row[4]), // 출금
+    description: String(row[1] || '').trim(), // 적요
+    requester: String(row[2] || '').trim(), // 의뢰인/수취인
+    deposit,
+    withdrawal,
     balance: parseAmount(row[5]), // 거래후잔액
-    type: String(row[6] || ''), // 구분
-    branch: String(row[7] || ''), // 거래점
-    note: String(row[8] || ''), // 비고 (없으면 빈 문자열)
+    type: String(row[6] || '').trim(), // 구분
+    branch: String(row[7] || '').trim(), // 거래점
+    note: String(row[8] || '').trim(), // 비고
   }
 }
 

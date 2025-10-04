@@ -5,6 +5,7 @@ import type { BankStatementParseResult, ParsedTransaction } from './types'
 
 // 거래 내역 인터페이스 (전북은행 전용)
 interface JeonbukTransaction {
+  id: string // 거래 ID
   transactionDate: string // 거래일자
   transactionTime: string // 거래시간
   withdrawalAmount: number // 출금금액
@@ -58,53 +59,18 @@ async function parseJeonbukBankExcel(fileContent: string): Promise<JeonbukTransa
 function parseTransactions(rawData: any[][]): JeonbukTransaction[] {
   const transactions: JeonbukTransaction[] = []
 
-  // 헤더 행 찾기
-  let headerRowIndex = -1
-  console.log('🔥 전북은행 헤더 행 찾기 시작...')
+  let parsedCount = 0
+  let skippedCount = 0
 
-  for (let i = 0; i < Math.min(15, rawData.length); i++) {
-    const row = rawData[i]
-    if (row) {
-      const rowStr = row.join('|')
-      console.log(`🔥 행 ${i}: ${rowStr}`)
+  console.log('🔥🔥🔥 === 전북은행 파싱 시작 === 🔥🔥🔥')
+  console.log('🔥 총 행 수:', rawData.length)
 
-      // 전북은행 헤더 특징: "거래일자"와 "출금금액"이 포함된 행
-      if (
-        row.some((cell) => String(cell).includes('거래일자')) &&
-        row.some((cell) => String(cell).includes('출금금액'))
-      ) {
-        headerRowIndex = i
-        console.log(`🔥🔥🔥 전북은행 헤더 행 발견: ${i} 🔥🔥🔥`)
-        break
-      }
-    }
-  }
-
-  if (headerRowIndex === -1) {
-    console.log('🔥 전북은행 헤더를 찾을 수 없어서 행 8부터 시작 (임시)')
-    headerRowIndex = 8 // 임시로 8번째 행부터 시작
-  }
-
-  // 헤더 다음 행부터 데이터 파싱
-  for (let i = headerRowIndex + 1; i < rawData.length; i++) {
+  // 모든 행을 순회하면서 유효한 거래 데이터 찾기
+  for (let i = 0; i < rawData.length; i++) {
     const row = rawData[i]
 
-    // 빈 행 또는 합계 행 건너뛰기
-    if (
-      !row ||
-      row.length === 0 ||
-      String(row[0]).includes('합') ||
-      String(row[0]).includes('소계') ||
-      String(row[0]).includes('출금건수') ||
-      String(row[0]).includes('입금건수') ||
-      String(row[0]).includes('출금합계') ||
-      String(row[0]).includes('입금합계')
-    ) {
-      continue
-    }
-
-    // 거래일자 필드가 없으면 건너뛰기
-    if (!row[1] || row[1] === '') {
+    // 빈 행 건너뛰기
+    if (!row || row.length === 0) {
       continue
     }
 
@@ -112,11 +78,32 @@ function parseTransactions(rawData: any[][]): JeonbukTransaction[] {
       const transaction = parseRow(row, i)
       if (transaction) {
         transactions.push(transaction)
+        parsedCount++
+        if (parsedCount <= 5) {
+          console.log(`🔥 전북은행 파싱 성공 (행 ${i}):`, {
+            id: transaction.id,
+            transactionDate: transaction.transactionDate,
+            description: transaction.description,
+            depositAmount: transaction.depositAmount,
+            withdrawalAmount: transaction.withdrawalAmount,
+            balance: transaction.balance
+          })
+        }
+      } else {
+        skippedCount++
+        if (skippedCount <= 10) {
+          console.log(`🔥 전북은행 행 ${i} 건너뛰기: 형식 불일치 - ${row.slice(0, 3).join('|')}`)
+        }
       }
     } catch (error) {
-      console.warn(`전북은행 행 ${i} 파싱 실패:`, error)
+      skippedCount++
+      if (skippedCount <= 10) {
+        console.warn(`🔥 전북은행 행 ${i} 파싱 실패:`, error)
+      }
     }
   }
+
+  console.log(`🔥🔥🔥 전북은행 파싱 완료: 성공 ${parsedCount}건, 건너뛴 행 ${skippedCount}건 🔥🔥🔥`)
 
   return transactions
 }
@@ -126,34 +113,49 @@ function parseTransactions(rawData: any[][]): JeonbukTransaction[] {
  * 컬럼 순서: 거래일자, 거래시간, 출금금액, 입금금액, 거래후잔액, 적요, 취급은행(지점)
  */
 function parseRow(row: any[], rowIndex: number = 0): JeonbukTransaction | null {
-  // 최소 필드 수 확인
+  // 전북은행 거래 데이터 형식 검증
+  // 컬럼 순서: 거래일자, 거래시간, 출금금액, 입금금액, 거래후잔액, 적요, 취급은행(지점)
+
+  // 1. 최소 필드 수 확인 (전북은행은 최소 6개 필드 필요)
   if (row.length < 6) {
-    console.log(`🔥 전북은행 행 ${rowIndex}: 필드 수 부족 (${row.length}개)`)
     return null
   }
 
-  // 거래일자 필드 처리 (row[1])
-  let transactionDate = ''
-  if (row[1] && String(row[1]).trim() !== '' && String(row[1]).trim() !== 'undefined') {
-    transactionDate = String(row[1]).trim()
-    console.log(
-      `🔥 전북은행 행 ${rowIndex}: 날짜 발견 - "${transactionDate}" (타입: ${typeof row[1]})`,
-    )
-  } else {
-    console.log(
-      `🔥 전북은행 행 ${rowIndex}: 날짜 없음 - row[1]="${row[1]}" (타입: ${typeof row[1]})`,
-    )
+  // 2. 헤더 행이나 메타데이터 행 건너뛰기
+  const firstCell = String(row[0] || '').trim()
+  if (firstCell.includes('거래일자') || firstCell.includes('No') || firstCell.includes('계좌번호') || firstCell === '') {
     return null
   }
 
+  // 3. 거래일자 필드 검증 (row[1])
+  let transactionDate = String(row[1] || '').trim()
+  if (!transactionDate || transactionDate === 'undefined' || transactionDate === 'null') {
+    return null
+  }
+
+  // 날짜 형식이 올바른지 간단히 확인 (숫자와 / 또는 - 포함)
+  if (!/^\d{4}[\/\-]\d{1,2}[\/\-]\d{1,2}/.test(transactionDate)) {
+    return null
+  }
+
+  // 4. 금액 필드 검증 (입금 또는 출금 중 하나는 있어야 함)
+  const depositAmount = parseAmount(row[4])
+  const withdrawalAmount = parseAmount(row[3])
+  
+  if (depositAmount === 0 && withdrawalAmount === 0) {
+    return null // 입금도 출금도 없으면 유효하지 않은 거래
+  }
+
+  // 5. 유효한 거래 데이터로 판단되면 파싱
   return {
+    id: String(rowIndex + 1), // 행 번호를 ID로 사용
     transactionDate, // 거래일자 (row[1])
-    transactionTime: String(row[2] || ''), // 거래시간 (row[2])
-    withdrawalAmount: parseAmount(row[3]), // 출금금액 (row[3])
-    depositAmount: parseAmount(row[4]), // 입금금액 (row[4])
+    transactionTime: String(row[2] || '').trim(), // 거래시간 (row[2])
+    withdrawalAmount, // 출금금액 (row[3])
+    depositAmount, // 입금금액 (row[4])
     balance: parseAmount(row[5]), // 거래후잔액 (row[5])
-    description: String(row[6] || ''), // 적요 (row[6])
-    handlingBank: String(row[7] || ''), // 취급은행(지점) (row[7])
+    description: String(row[6] || '').trim(), // 적요 (row[6])
+    handlingBank: String(row[7] || '').trim(), // 취급은행(지점) (row[7])
   }
 }
 

@@ -5,11 +5,11 @@ import type { BankStatementParseResult, ParsedTransaction } from './types'
 
 // 거래 내역 인터페이스 (농협은행 전용)
 interface NonghyupTransaction {
-  id: string // 구분
-  transactionDate: string // 거래일자
-  withdrawalAmount: number // 출금금액(원)
-  depositAmount: number // 입금금액(원)
-  balance: number // 거래 후 잔액(원)
+  id: string // 번호
+  transactionDate: string // 거래일시
+  withdrawalAmount: number // 출금금액
+  depositAmount: number // 입금금액
+  balance: number // 거래후잔액
   description: string // 거래내용
   counterparty: string // 거래기록사항
   branch: string // 거래점
@@ -18,92 +18,51 @@ interface NonghyupTransaction {
 }
 
 /**
- * 엑셀 파일에서 농협은행 거래 내역 파싱
- * @param fileContent 엑셀 파일 바이너리 데이터
+ * Excel 파일에서 농협은행 거래 내역 파싱
+ * @param fileContent Excel 파일 바이너리 데이터
  * @returns NonghyupTransaction 배열
  */
 async function parseNonghyupBankExcel(fileContent: string): Promise<NonghyupTransaction[]> {
   try {
-    console.log('🔥 농협 엑셀 파일 크기:', fileContent.length, 'bytes')
+    console.log('🔥 농협 Excel 파일 크기:', fileContent.length, 'bytes')
 
-    // 공통 Excel 파일 읽기 함수 사용
+    // Excel 파일 읽기
     const rawData = await readExcelFile(fileContent)
-
-    console.log('🔥🔥🔥 === 농협 날짜 필드 디버깅 === 🔥🔥🔥')
     console.log('🔥 총 행 수:', rawData.length)
 
-    // 헤더 행 확인
-    console.log('🔥 헤더 행:', rawData[0])
-
-    // 처음 3개 데이터 행의 모든 필드 확인
-    for (let i = 1; i < Math.min(4, rawData.length); i++) {
+    // 처음 3개 행 확인
+    for (let i = 0; i < Math.min(3, rawData.length); i++) {
       const row = rawData[i]
       if (row) {
-        console.log(`행 ${i} 전체 필드:`)
-        for (let j = 0; j < Math.min(12, row.length); j++) {
-          console.log(`  [${j}]: "${row[j]}" (${typeof row[j]})`)
-        }
-        console.log('---')
+        console.log(`🔥 행 ${i}: ${row.slice(0, 5).join('|')}`)
       }
     }
 
     // 거래 내역 파싱
     return parseTransactions(rawData)
   } catch (error) {
-    console.error('농협 엑셀 파싱 오류:', error)
+    console.error('농협 Excel 파싱 오류:', error)
     return []
   }
 }
 
 /**
- * 2D 배열 데이터에서 거래 내역 추출
+ * Excel 행 데이터에서 거래 내역 추출
  */
 function parseTransactions(rawData: any[][]): NonghyupTransaction[] {
   const transactions: NonghyupTransaction[] = []
+  let parsedCount = 0
+  let skippedCount = 0
 
-  // 헤더 행 찾기
-  let headerRowIndex = -1
-  console.log('🔥 농협 헤더 행 찾기 시작...')
+  console.log('🔥🔥🔥 === 농협은행 파싱 시작 === 🔥🔥🔥')
+  console.log('🔥 총 행 수:', rawData.length)
 
-  for (let i = 0; i < Math.min(15, rawData.length); i++) {
-    const row = rawData[i]
-    if (row) {
-      const rowStr = row.join('|')
-      console.log(`🔥 행 ${i}: ${rowStr}`)
-
-      // 농협은행 헤더 특징: "거래일자"와 "출금금액"이 포함된 행
-      if (
-        row.some((cell) => String(cell).includes('거래일자')) &&
-        row.some((cell) => String(cell).includes('출금금액'))
-      ) {
-        headerRowIndex = i
-        console.log(`🔥🔥🔥 농협 헤더 행 발견: ${i} 🔥🔥🔥`)
-        break
-      }
-    }
-  }
-
-  if (headerRowIndex === -1) {
-    console.log('🔥 농협 헤더를 찾을 수 없어서 행 10부터 시작 (임시)')
-    headerRowIndex = 10 // 임시로 10번째 행부터 시작
-  }
-
-  // 헤더 다음 행부터 데이터 파싱
-  for (let i = headerRowIndex + 1; i < rawData.length; i++) {
+  // 모든 행을 순회하면서 유효한 거래 데이터 찾기
+  for (let i = 0; i < rawData.length; i++) {
     const row = rawData[i]
 
-    // 빈 행 또는 합계 행 건너뛰기
-    if (
-      !row ||
-      row.length === 0 ||
-      String(row[0]).includes('합') ||
-      String(row[0]).includes('소계')
-    ) {
-      continue
-    }
-
-    // 구분 필드가 없으면 건너뛰기
-    if (!row[0] || row[0] === '') {
+    // 빈 행 건너뛰기
+    if (!row || row.length === 0) {
       continue
     }
 
@@ -111,47 +70,84 @@ function parseTransactions(rawData: any[][]): NonghyupTransaction[] {
       const transaction = parseRow(row, i)
       if (transaction) {
         transactions.push(transaction)
+        parsedCount++
+        if (parsedCount <= 5) {
+          console.log(`🔥 농협은행 파싱 성공 (행 ${i}):`, {
+            id: transaction.id,
+            transactionDate: transaction.transactionDate,
+            description: transaction.description,
+            depositAmount: transaction.depositAmount,
+            withdrawalAmount: transaction.withdrawalAmount,
+            balance: transaction.balance
+          })
+        }
+      } else {
+        skippedCount++
+        if (skippedCount <= 10) {
+          console.log(`🔥 농협은행 행 ${i} 건너뛰기: 형식 불일치 - ${row.slice(0, 3).join('|')}`)
+        }
       }
     } catch (error) {
-      console.warn(`농협 행 ${i} 파싱 실패:`, error)
+      skippedCount++
+      if (skippedCount <= 10) {
+        console.warn(`🔥 농협은행 행 ${i} 파싱 실패:`, error)
+      }
     }
   }
 
+  console.log(`🔥🔥🔥 농협은행 파싱 완료: 성공 ${parsedCount}건, 건너뛴 행 ${skippedCount}건 🔥🔥🔥`)
   return transactions
 }
 
 /**
  * 한 행을 NonghyupTransaction 객체로 변환
- * 컬럼 순서: 구분, 거래일자, 출금금액, 입금금액, 거래후잔액, 거래내용, 거래기록사항, 거래점, 거래시간, 이체메모
+ * Excel 형식: 번호,거래일시,출금금액,입금금액,거래후잔액,거래내용,거래기록사항,거래점,거래시간,이체메모
  */
 function parseRow(row: any[], rowIndex: number = 0): NonghyupTransaction | null {
-  // 최소 필드 수 확인
+  // 농협은행 거래 데이터 형식 검증
+
+  // 1. 최소 필드 수 확인 (농협은 최소 6개 필드 필요)
   if (row.length < 6) {
-    console.log(`🔥 농협 행 ${rowIndex}: 필드 수 부족 (${row.length}개)`)
     return null
   }
 
-  // 거래일자 필드 처리 (row[1])
-  let transactionDate = ''
-  if (row[1] && String(row[1]).trim() !== '' && String(row[1]).trim() !== 'undefined') {
-    transactionDate = String(row[1]).trim()
-    console.log(`🔥 농협 행 ${rowIndex}: 날짜 발견 - "${transactionDate}" (타입: ${typeof row[1]})`)
-  } else {
-    console.log(`🔥 농협 행 ${rowIndex}: 날짜 없음 - row[1]="${row[1]}" (타입: ${typeof row[1]})`)
+  // 2. 헤더 행이나 메타데이터 행 건너뛰기
+  const firstField = String(row[0] || '').trim()
+  if (firstField.includes('번호') || firstField.includes('거래일시') || firstField.includes('계좌번호') || firstField === '') {
     return null
   }
 
+  // 3. 거래일시 필드 검증 (row[1])
+  let transactionDate = String(row[1] || '').trim()
+  if (!transactionDate || transactionDate === 'undefined' || transactionDate === 'null') {
+    return null
+  }
+
+  // 날짜 형식이 올바른지 간단히 확인 (숫자와 / 또는 - 포함)
+  if (!/^\d{4}[\/\-]\d{1,2}[\/\-]\d{1,2}/.test(transactionDate)) {
+    return null
+  }
+
+  // 4. 금액 필드 검증 (입금 또는 출금 중 하나는 있어야 함)
+  const depositAmount = parseAmount(row[3])
+  const withdrawalAmount = parseAmount(row[2])
+  
+  if (depositAmount === 0 && withdrawalAmount === 0) {
+    return null // 입금도 출금도 없으면 유효하지 않은 거래
+  }
+
+  // 5. 유효한 거래 데이터로 판단되면 파싱
   return {
-    id: String(row[0] || ''), // 구분
-    transactionDate, // 거래일자
-    withdrawalAmount: parseAmount(row[2]), // 출금금액(원)
-    depositAmount: parseAmount(row[3]), // 입금금액(원)
-    balance: parseAmount(row[4]), // 거래 후 잔액(원)
-    description: String(row[5] || ''), // 거래내용
-    counterparty: String(row[6] || ''), // 거래기록사항
-    branch: String(row[7] || ''), // 거래점
-    transactionTime: String(row[8] || ''), // 거래시간
-    transferMemo: String(row[9] || ''), // 이체메모
+    id: String(row[0] || ''), // 번호
+    transactionDate, // 거래일시
+    withdrawalAmount, // 출금금액
+    depositAmount, // 입금금액
+    balance: parseAmount(row[4]), // 거래후잔액
+    description: String(row[5] || '').trim(), // 거래내용
+    counterparty: String(row[6] || '').trim(), // 거래기록사항
+    branch: String(row[7] || '').trim(), // 거래점
+    transactionTime: String(row[8] || '').trim(), // 거래시간
+    transferMemo: String(row[9] || '').trim(), // 이체메모
   }
 }
 
@@ -176,7 +172,7 @@ function parseAmount(value: any): number {
 }
 
 /**
- * 농협은행 거래내역 파싱 (엑셀 파일)
+ * 농협은행 거래내역 파싱 (CSV 파일)
  */
 export async function parseNonghyupBankStatement(
   content: string,
@@ -188,12 +184,12 @@ export async function parseNonghyupBankStatement(
   const errors: string[] = []
 
   try {
-    console.log('🔥 농협 엑셀 파싱 시작...')
-    // 엑셀 파싱
-    const excelTransactions = await parseNonghyupBankExcel(content)
-    console.log('🔥🔥🔥 농협 엑셀 파싱 완료, 거래 수:', excelTransactions.length, '🔥🔥🔥')
+    console.log('🔥 농협 Excel 파싱 시작...')
+    // Excel 파싱
+    const csvTransactions = await parseNonghyupBankExcel(content)
+    console.log('🔥🔥🔥 농협 Excel 파싱 완료, 거래 수:', csvTransactions.length, '🔥🔥🔥')
 
-    for (const tx of excelTransactions) {
+    for (const tx of csvTransactions) {
       try {
         // 날짜 검증 및 변환
         if (
@@ -207,26 +203,12 @@ export async function parseNonghyupBankStatement(
 
         let transactionDate: string
         try {
-          // 농협은 날짜와 시간을 조합해야 함
-          // 날짜: "YYYY/MM/DD", 시간: "HH:MM:SS"
-          let dateTimeStr = tx.transactionDate
-
-          // 시간이 있으면 조합
-          if (tx.transactionTime && tx.transactionTime.trim() !== '') {
-            dateTimeStr = `${tx.transactionDate} ${tx.transactionTime}`
-            console.log(
-              `🔥 농협 날짜+시간 조합: "${tx.transactionDate}" + "${tx.transactionTime}" = "${dateTimeStr}"`,
-            )
-          } else {
-            // 시간이 없으면 자정으로 설정
-            dateTimeStr = `${tx.transactionDate} 00:00:00`
-            console.log(`🔥 농협 날짜만: "${tx.transactionDate}" -> "${dateTimeStr}"`)
-          }
-
-          // YYYY/MM/DD HH:MM:SS 형식을 YYYY-MM-DD HH:MM:SS로 변환
-          const normalizedDateTime = dateTimeStr.replace(/\//g, '-')
-          transactionDate = toUTC(normalizedDateTime)
-          console.log(`🔥 농협 날짜 변환 성공: "${normalizedDateTime}" -> "${transactionDate}"`)
+          // 농협은 거래일자와 거래시간이 분리되어 있음 - 결합 필요
+          const normalizedDate = tx.transactionDate.replace(/\//g, '-')
+          const timePart = tx.transactionTime || '00:00:00'
+          const combinedDateTime = `${normalizedDate} ${timePart}`
+          transactionDate = toUTC(combinedDateTime)
+          console.log(`🔥 농협 날짜+시간 변환 성공: "${combinedDateTime}" -> "${transactionDate}"`)
         } catch (error) {
           console.warn(
             `🔥 농협 거래 건너뛰기: 날짜 변환 실패 (원본: "${tx.transactionDate}", 오류: ${error})`,
