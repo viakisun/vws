@@ -248,7 +248,7 @@
                 >타입</th
               >
               <th
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
                 >잔액</th
               >
               <th
@@ -289,7 +289,7 @@
                     {formatAccountType(account.accountType)}
                   </span>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap">
+                <td class="px-6 py-4 whitespace-nowrap text-right">
                   <div class="text-sm font-medium text-gray-900">
                     {formatCurrency(account.balance)}
                   </div>

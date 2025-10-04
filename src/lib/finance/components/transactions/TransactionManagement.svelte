@@ -59,92 +59,11 @@
     }
   }
 
-  function handleAccountFileSelect(event: Event, accountId: string) {
-    const input = event.target as HTMLInputElement
-    if (input.files && input.files.length > 0) {
-      selectedFile = input.files[0]
-      selectedAccountForUpload = accountId
-      uploadResult = undefined
-    }
-  }
-
   function handleDrop(event: DragEvent) {
     event.preventDefault()
     if (event.dataTransfer?.files && event.dataTransfer.files.length > 0) {
       selectedFile = event.dataTransfer.files[0]
       uploadResult = undefined
-    }
-  }
-
-  async function uploadTransactions() {
-    if (!selectedFile) {
-      alert('파일을 선택해주세요.')
-      return
-    }
-
-    if (!selectedAccountForUpload) {
-      alert('계좌를 선택해주세요.')
-      return
-    }
-
-    isUploading = true
-    uploadResult = undefined
-
-    const formData = new FormData()
-    formData.append('file', selectedFile)
-    formData.append('replaceExisting', String(replaceExisting))
-    formData.append('accountId', selectedAccountForUpload)
-
-    try {
-      const response = await fetch('/api/finance/transactions/upload', {
-        method: 'POST',
-        body: formData,
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.message || '파일 업로드 실패')
-      }
-
-      const data = await response.json()
-      uploadResult = data
-
-      // 성공 시 데이터 새로고침
-      if (data.success) {
-        await loadData()
-      }
-    } catch (error: any) {
-      uploadResult = { success: false, message: error.message }
-    } finally {
-      isUploading = false
-      showUploadModal = false
-    }
-  }
-
-  async function deleteAccountTransactions(accountId: string, accountName: string) {
-    if (
-      !confirm(`${accountName}의 모든 거래내역을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.`)
-    ) {
-      return
-    }
-
-    try {
-      const response = await fetch(`/api/finance/accounts/${accountId}/transactions`, {
-        method: 'DELETE',
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.message || '거래내역 삭제 실패')
-      }
-
-      const data = await response.json()
-      alert(data.message)
-
-      // 데이터 새로고침
-      await loadData()
-    } catch (error: any) {
-      alert(`거래내역 삭제 중 오류 발생: ${error.message}`)
     }
   }
 
@@ -302,6 +221,31 @@
   let categories = $state<TransactionCategory[]>([])
   let isLoading = $state(false)
   let error = $state<string | null>(null)
+
+  // 계좌별 업로드 상태 관리
+  let accountUploadStates = $state<
+    Record<
+      string,
+      {
+        isUploading: boolean
+        progress: number
+        selectedFile: File | null
+        uploadResult: any
+      }
+    >
+  >({})
+
+  // 계좌별 삭제 상태 관리
+  let accountDeleteStates = $state<
+    Record<
+      string,
+      {
+        isDeleting: boolean
+        confirmAccountNumber: string
+        showDeleteConfirm: boolean
+      }
+    >
+  >({})
   let showAddModal = $state(false)
 
   // 업로드/삭제 관련 상태
@@ -416,14 +360,40 @@
   // 날짜/시간 입력을 위한 별도 상태 (datetime-local 형식)
   let dateTimeInput = $state(convertToDateTimeLocal(getCurrentUTCTimestamp()))
 
-  // 데이터 로드
+  // 데이터 로드 (서버 사이드 필터링 적용)
   async function loadData() {
     try {
       isLoading = true
       error = null
 
+      // 서버 사이드 필터링을 위한 파라미터 구성
+      const params: any = {}
+
+      if (selectedAccount) {
+        params.accountId = selectedAccount
+      }
+
+      if (dateFrom) {
+        params.dateFrom = dateFrom + 'T00:00:00Z'
+      }
+
+      if (dateTo) {
+        params.dateTo = dateTo + 'T23:59:59Z'
+      }
+
+      if (searchTerm) {
+        params.search = searchTerm
+      }
+
+      // 전체 계좌인 경우 리미트 해제, 특정 계좌인 경우 기본 리미트 적용
+      if (!selectedAccount) {
+        params.limit = 1000 // 전체는 더 많은 데이터 허용
+      } else {
+        params.limit = 100 // 특정 계좌는 기본 리미트
+      }
+
       const [transactionsData, accountsData, categoriesData] = await Promise.all([
-        transactionService.getTransactions({ limit: 100 }),
+        transactionService.getTransactions(params),
         accountService.getAccounts(),
         fetch('/api/finance/categories')
           .then((res) => res.json())
@@ -435,7 +405,7 @@
       categories = categoriesData
       _groupedCategories = groupCategoriesByType(categories)
 
-      // 필터링된 데이터 업데이트
+      // 필터링된 데이터 업데이트 (클라이언트 사이드 추가 필터링)
       updateFilteredData()
     } catch (err) {
       error = err instanceof Error ? err.message : '데이터를 불러올 수 없습니다.'
@@ -702,9 +672,140 @@
     netAmount = totalIncome - totalExpense
   }
 
-  // 필터 변경 시 데이터 업데이트 (단순화)
-  function handleFilterChange() {
-    updateFilteredData()
+  // 필터 변경 시 데이터 업데이트 (서버에서 새로 로드)
+  async function handleFilterChange() {
+    await loadData()
+  }
+
+  // 계좌별 파일 선택
+  function handleAccountFileSelect(event: Event, accountId: string) {
+    const input = event.target as HTMLInputElement
+    if (input.files && input.files.length > 0) {
+      const file = input.files[0]
+      if (!accountUploadStates[accountId]) {
+        accountUploadStates[accountId] = {
+          isUploading: false,
+          progress: 0,
+          selectedFile: null,
+          uploadResult: null,
+        }
+      }
+      accountUploadStates[accountId].selectedFile = file
+      accountUploadStates[accountId].uploadResult = null
+    }
+  }
+
+  // 계좌별 업로드 (진행률 표시)
+  async function uploadAccountTransactions(accountId: string) {
+    const uploadState = accountUploadStates[accountId]
+    if (!uploadState || !uploadState.selectedFile) {
+      alert('파일을 선택해주세요.')
+      return
+    }
+
+    uploadState.isUploading = true
+    uploadState.progress = 0
+
+    const formData = new FormData()
+    formData.append('file', uploadState.selectedFile)
+    formData.append('replaceExisting', 'false')
+    formData.append('accountId', accountId)
+
+    try {
+      const xhr = new XMLHttpRequest()
+
+      // 진행률 업데이트
+      xhr.upload.addEventListener('progress', (event) => {
+        if (event.lengthComputable) {
+          uploadState.progress = Math.round((event.loaded / event.total) * 100)
+        }
+      })
+
+      // 응답 처리
+      xhr.addEventListener('load', () => {
+        if (xhr.status === 200) {
+          const result = JSON.parse(xhr.responseText)
+          uploadState.uploadResult = result
+          if (result.success) {
+            // 성공 시 데이터 새로고침
+            loadData()
+          }
+        } else {
+          uploadState.uploadResult = { success: false, message: '업로드 실패' }
+        }
+        uploadState.isUploading = false
+      })
+
+      xhr.addEventListener('error', () => {
+        uploadState.uploadResult = { success: false, message: '업로드 중 오류 발생' }
+        uploadState.isUploading = false
+      })
+
+      xhr.open('POST', '/api/finance/transactions/upload')
+      xhr.send(formData)
+    } catch (error: any) {
+      uploadState.uploadResult = { success: false, message: error.message }
+      uploadState.isUploading = false
+    }
+  }
+
+  // 계좌별 삭제 확인
+  function confirmAccountDeletion(accountId: string) {
+    if (!accountDeleteStates[accountId]) {
+      accountDeleteStates[accountId] = {
+        isDeleting: false,
+        confirmAccountNumber: '',
+        showDeleteConfirm: false,
+      }
+    }
+    accountDeleteStates[accountId].showDeleteConfirm = true
+    accountDeleteStates[accountId].confirmAccountNumber = ''
+  }
+
+  // 계좌 삭제 실행
+  async function deleteAccountTransactions(accountId: string) {
+    const deleteState = accountDeleteStates[accountId]
+    const account = accounts.find((a) => a.id === accountId)
+
+    if (!deleteState || !account) return
+
+    // 계좌번호 확인
+    if (deleteState.confirmAccountNumber !== account.accountNumber) {
+      alert('계좌번호가 일치하지 않습니다.')
+      return
+    }
+
+    deleteState.isDeleting = true
+
+    try {
+      const response = await fetch(`/api/finance/accounts/${accountId}`, {
+        method: 'DELETE',
+      })
+
+      const result = await response.json()
+
+      if (result.success) {
+        alert('계좌와 모든 거래 내역이 삭제되었습니다.')
+        // 데이터 새로고침
+        await loadData()
+      } else {
+        alert(`삭제 실패: ${result.error}`)
+      }
+    } catch (error: any) {
+      alert(`삭제 중 오류 발생: ${error.message}`)
+    } finally {
+      deleteState.isDeleting = false
+      deleteState.showDeleteConfirm = false
+      deleteState.confirmAccountNumber = ''
+    }
+  }
+
+  // 삭제 취소
+  function cancelAccountDeletion(accountId: string) {
+    if (accountDeleteStates[accountId]) {
+      accountDeleteStates[accountId].showDeleteConfirm = false
+      accountDeleteStates[accountId].confirmAccountNumber = ''
+    }
   }
 </script>
 
@@ -867,6 +968,36 @@
           전체
         </button>
       </div>
+
+      <!-- 수동 날짜 입력 -->
+      <div class="mt-4 pt-4 border-t border-gray-200">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label for="date-from" class="block text-sm font-medium text-gray-700 mb-1"
+              >시작 날짜</label
+            >
+            <input
+              id="date-from"
+              type="date"
+              bind:value={dateFrom}
+              onchange={handleFilterChange}
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+          <div>
+            <label for="date-to" class="block text-sm font-medium text-gray-700 mb-1"
+              >종료 날짜</label
+            >
+            <input
+              id="date-to"
+              type="date"
+              bind:value={dateTo}
+              onchange={handleFilterChange}
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- 검색 및 필터 -->
@@ -950,45 +1081,6 @@
                 📤 업로드
               </button>
             </div>
-
-            <!-- 파일 선택 (숨김) -->
-            <input
-              type="file"
-              id="fileInput-{account.id}"
-              accept=".csv,.txt,.xlsx,.xls"
-              class="hidden"
-              onchange={(e) => handleAccountFileSelect(e, account.id)}
-            />
-
-            <!-- 선택된 파일 표시 -->
-            {#if selectedAccountForUpload === account.id && selectedFile}
-              <div class="mt-2 p-2 bg-blue-50 rounded border">
-                <p class="text-sm text-blue-800">선택된 파일: {selectedFile.name}</p>
-                <p class="text-xs text-blue-600">{(selectedFile.size / 1024).toFixed(1)} KB</p>
-                <div class="mt-2 flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    id="replace-{account.id}"
-                    bind:checked={replaceExisting}
-                    class="h-3 w-3 text-blue-600"
-                  />
-                  <label for="replace-{account.id}" class="text-xs text-gray-700">
-                    기존 데이터 대체
-                  </label>
-                </div>
-                <button
-                  onclick={() => uploadTransactions()}
-                  disabled={isUploading}
-                  class="mt-2 w-full py-1 px-2 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-400 transition-colors"
-                >
-                  {#if isUploading}
-                    ⏳ 업로드 중...
-                  {:else}
-                    ✅ 업로드 실행
-                  {/if}
-                </button>
-              </div>
-            {/if}
           </div>
         {/each}
       </div>
@@ -1039,7 +1131,7 @@
                 <p class="text-xs text-gray-400">잔액: {formatCurrency(account.balance)}</p>
               </div>
               <button
-                onclick={() => deleteAccountTransactions(account.id, account.name)}
+                onclick={() => confirmAccountDeletion(account.id)}
                 class="px-3 py-1 text-sm bg-red-100 text-red-700 rounded hover:bg-red-200 transition-colors"
               >
                 삭제
@@ -1200,6 +1292,98 @@
                 </div>
               </div>
             </div>
+
+            <!-- 업로드/삭제 컨트롤 -->
+            <div class="mt-4 pt-4 border-t border-gray-200">
+              <div class="flex items-center gap-4">
+                <!-- 파일 업로드 -->
+                <div class="flex items-center gap-2">
+                  <input
+                    type="file"
+                    id="file-{account.id}"
+                    accept=".xlsx,.xls,.csv"
+                    onchange={(e) => handleAccountFileSelect(e, account.id)}
+                    class="hidden"
+                  />
+                  <label
+                    for="file-{account.id}"
+                    class="px-3 py-2 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 cursor-pointer transition-colors"
+                  >
+                    📁 파일 선택
+                  </label>
+
+                  {#if accountUploadStates[account.id]?.selectedFile}
+                    <span class="text-sm text-gray-600">
+                      {accountUploadStates[account.id]?.selectedFile?.name}
+                    </span>
+                    <button
+                      onclick={() => uploadAccountTransactions(account.id)}
+                      disabled={accountUploadStates[account.id]?.isUploading}
+                      class="px-3 py-2 text-sm font-medium text-white bg-green-600 border border-green-600 rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      {accountUploadStates[account.id]?.isUploading ? '업로드 중...' : '⬆️ 업로드'}
+                    </button>
+                  {/if}
+
+                  {#if accountUploadStates[account.id]?.isUploading}
+                    <div class="w-32 bg-gray-200 rounded-full h-2">
+                      <div
+                        class="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                        style="width: {accountUploadStates[account.id].progress}%"
+                      ></div>
+                    </div>
+                    <span class="text-sm text-gray-600"
+                      >{accountUploadStates[account.id].progress}%</span
+                    >
+                  {/if}
+
+                  {#if accountUploadStates[account.id]?.uploadResult}
+                    <div
+                      class="text-sm {accountUploadStates[account.id].uploadResult.success
+                        ? 'text-green-600'
+                        : 'text-red-600'}"
+                    >
+                      {accountUploadStates[account.id].uploadResult.success ? '✅ 성공' : '❌ 실패'}
+                      {accountUploadStates[account.id].uploadResult.message}
+                    </div>
+                  {/if}
+                </div>
+
+                <!-- 계좌 삭제 -->
+                <div class="flex items-center gap-2">
+                  {#if !accountDeleteStates[account.id]?.showDeleteConfirm}
+                    <button
+                      onclick={() => confirmAccountDeletion(account.id)}
+                      class="px-3 py-2 text-sm font-medium text-red-600 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 transition-colors"
+                    >
+                      🗑️ 계좌 삭제
+                    </button>
+                  {:else}
+                    <div class="flex items-center gap-2">
+                      <input
+                        type="text"
+                        placeholder="계좌번호 입력"
+                        bind:value={accountDeleteStates[account.id].confirmAccountNumber}
+                        class="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                      />
+                      <button
+                        onclick={() => deleteAccountTransactions(account.id)}
+                        disabled={accountDeleteStates[account.id]?.isDeleting}
+                        class="px-3 py-2 text-sm font-medium text-white bg-red-600 border border-red-600 rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      >
+                        {accountDeleteStates[account.id]?.isDeleting ? '삭제 중...' : '확인'}
+                      </button>
+                      <button
+                        onclick={() => cancelAccountDeletion(account.id)}
+                        class="px-3 py-2 text-sm font-medium text-gray-600 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors"
+                      >
+                        취소
+                      </button>
+                    </div>
+                  {/if}
+                </div>
+              </div>
+            </div>
           </div>
 
           <!-- 거래 목록 -->
@@ -1225,15 +1409,15 @@
                       >의뢰인/수취인</th
                     >
                     <th
-                      class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
                       >입금</th
                     >
                     <th
-                      class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
                       >출금</th
                     >
                     <th
-                      class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
                       >거래잔액</th
                     >
                     <th
@@ -1304,7 +1488,7 @@
                       </td>
 
                       <!-- 입금 -->
-                      <td class="px-6 py-4 whitespace-nowrap">
+                      <td class="px-6 py-4 whitespace-nowrap text-right">
                         {#if transaction.deposits && transaction.deposits > 0}
                           <span class="text-sm font-medium text-green-600">
                             {formatCurrency(transaction.deposits)}
@@ -1315,7 +1499,7 @@
                       </td>
 
                       <!-- 출금 -->
-                      <td class="px-6 py-4 whitespace-nowrap">
+                      <td class="px-6 py-4 whitespace-nowrap text-right">
                         {#if transaction.withdrawals && transaction.withdrawals > 0}
                           <span class="text-sm font-medium text-red-600">
                             {formatCurrency(transaction.withdrawals)}
@@ -1326,7 +1510,7 @@
                       </td>
 
                       <!-- 거래잔액 -->
-                      <td class="px-6 py-4 whitespace-nowrap">
+                      <td class="px-6 py-4 whitespace-nowrap text-right">
                         <span class="text-sm font-medium text-gray-900">
                           {formatCurrency(transaction.balance || 0)}
                         </span>
