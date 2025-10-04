@@ -92,9 +92,71 @@ export const GET: RequestHandler = async ({ url }) => {
     }
 
     // 총 개수 조회
-    const countQuery = queryText.replace(/SELECT.*FROM/, 'SELECT COUNT(*) FROM')
-    const countResult = await query(countQuery, params)
-    const total = countResult.rows && countResult.rows[0] ? parseInt(countResult.rows[0].count) : 0
+    let countQuery = `
+      SELECT COUNT(*) as total
+      FROM finance_transactions t
+      LEFT JOIN finance_accounts a ON t.account_id = a.id
+      LEFT JOIN finance_banks b ON a.bank_id = b.id
+      LEFT JOIN finance_categories c ON t.category_id = c.id
+      WHERE 1=1
+    `
+
+    // 동일한 WHERE 조건을 COUNT 쿼리에 적용
+    let countParams: any[] = []
+    let countParamIndex = 1
+
+    if (accountId) {
+      countQuery += ` AND t.account_id = $${countParamIndex++}`
+      countParams.push(accountId)
+    }
+
+    if (categoryId) {
+      countQuery += ` AND t.category_id = $${countParamIndex++}`
+      countParams.push(categoryId)
+    }
+
+    if (type) {
+      countQuery += ` AND t.type = $${countParamIndex++}`
+      countParams.push(type)
+    }
+
+    if (status) {
+      countQuery += ` AND t.status = $${countParamIndex++}`
+      countParams.push(status)
+    }
+
+    if (dateFrom) {
+      countQuery += ` AND t.transaction_date >= $${countParamIndex++}`
+      countParams.push(dateFrom)
+    }
+
+    if (dateTo) {
+      countQuery += ` AND t.transaction_date <= $${countParamIndex++}`
+      countParams.push(dateTo)
+    }
+
+    if (amountMin) {
+      countQuery += ` AND t.amount >= $${countParamIndex++}`
+      countParams.push(parseFloat(amountMin))
+    }
+
+    if (amountMax) {
+      countQuery += ` AND t.amount <= $${countParamIndex++}`
+      countParams.push(parseFloat(amountMax))
+    }
+
+    if (search) {
+      countQuery += ` AND (t.description ILIKE $${countParamIndex++} OR t.reference_number ILIKE $${countParamIndex++})`
+      countParams.push(`%${search}%`, `%${search}%`)
+    }
+
+    console.log('🔍 COUNT 쿼리 실행:', countQuery)
+    console.log('📊 COUNT 파라미터:', countParams)
+
+    const countResult = await query(countQuery, countParams)
+    const total = parseInt(countResult.rows[0]?.total || '0')
+
+    console.log('📈 총 거래 수:', total)
 
     // 페이징 적용
     queryText += ` ORDER BY t.transaction_date DESC, t.created_at DESC`

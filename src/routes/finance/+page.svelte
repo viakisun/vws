@@ -2,6 +2,7 @@
   import PageLayout from '$lib/components/layout/PageLayout.svelte'
   import AccountManagement from '$lib/finance/components/accounts/AccountManagement.svelte'
   import BudgetManagement from '$lib/finance/components/budgets/BudgetManagement.svelte'
+  import CategoryManagement from '$lib/finance/components/categories/CategoryManagement.svelte'
   import FinanceDashboard from '$lib/finance/components/dashboard/FinanceDashboard.svelte'
   import RecipientManagement from '$lib/finance/components/email/RecipientManagement.svelte'
   import TransactionManagement from '$lib/finance/components/transactions/TransactionManagement.svelte'
@@ -17,6 +18,7 @@
     { id: 'dashboard', label: '대시보드' },
     { id: 'accounts', label: '계좌관리' },
     { id: 'transactions', label: '거래내역' },
+    { id: 'categories', label: '카테고리 관리' },
     { id: 'budgets', label: '예산관리' },
     { id: 'email', label: '이메일 관리' },
     { id: 'reports', label: '리포트' },
@@ -116,6 +118,8 @@
       <AccountManagement />
     {:else if activeTab === 'transactions'}
       <TransactionManagement />
+    {:else if activeTab === 'categories'}
+      <CategoryManagement />
     {:else if activeTab === 'budgets'}
       <BudgetManagement />
     {:else if activeTab === 'email'}

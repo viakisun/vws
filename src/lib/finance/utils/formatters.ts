@@ -35,7 +35,7 @@ export function formatAmount(amount: number): string {
  */
 export function formatDate(
   date: string | Date,
-  format: 'short' | 'long' | 'time' = 'short',
+  format: 'short' | 'long' | 'time' | 'datetime' = 'short',
 ): string {
   if (!date) return ''
 
@@ -48,12 +48,15 @@ export function formatDate(
   const day = String(d.getDate()).padStart(2, '0')
   const hours = String(d.getHours()).padStart(2, '0')
   const minutes = String(d.getMinutes()).padStart(2, '0')
+  const seconds = String(d.getSeconds()).padStart(2, '0')
 
   switch (format) {
     case 'long':
       return `${year}년 ${month}월 ${day}일`
     case 'time':
       return `${year}-${month}-${day} ${hours}:${minutes}`
+    case 'datetime':
+      return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
     default:
       return `${year}-${month}-${day}`
   }

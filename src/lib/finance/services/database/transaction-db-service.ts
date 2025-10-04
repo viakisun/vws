@@ -5,31 +5,98 @@ export class TransactionDbService {
   // 거래 수정
   async updateTransaction(id: string, data: UpdateTransactionRequest): Promise<Transaction> {
     try {
-      const result = await query(
-        `UPDATE finance_transactions
-         SET account_id = $1, category_id = $2, amount = $3, type = $4,
-             description = $5, transaction_date = $6, counterparty = $7,
-             deposits = $8, withdrawals = $9, balance = $10,
-             reference_number = $11, notes = $12, tags = $13, updated_at = NOW()
-         WHERE id = $14
-         RETURNING *`,
-        [
-          data.accountId,
-          data.categoryId,
-          data.amount,
-          data.type,
-          data.description,
-          data.transactionDate,
-          data.counterparty || null,
-          data.deposits || null,
-          data.withdrawals || null,
-          data.balance || null,
-          data.referenceNumber || null,
-          data.notes || null,
-          data.tags ? `{${data.tags.map((tag) => `"${tag}"`).join(',')}}` : null,
-          id,
-        ],
-      )
+      // 업데이트할 필드들을 동적으로 구성
+      const updateFields: string[] = []
+      const updateValues: any[] = []
+      let paramIndex = 1
+
+      // 각 필드가 존재하는 경우에만 업데이트에 포함
+      if (data.accountId !== undefined) {
+        updateFields.push(`account_id = $${paramIndex}`)
+        updateValues.push(data.accountId)
+        paramIndex++
+      }
+      if (data.categoryId !== undefined) {
+        updateFields.push(`category_id = $${paramIndex}`)
+        updateValues.push(data.categoryId)
+        paramIndex++
+      }
+      if (data.amount !== undefined) {
+        updateFields.push(`amount = $${paramIndex}`)
+        updateValues.push(data.amount)
+        paramIndex++
+      }
+      if (data.type !== undefined) {
+        updateFields.push(`type = $${paramIndex}`)
+        updateValues.push(data.type)
+        paramIndex++
+      }
+      if (data.description !== undefined) {
+        updateFields.push(`description = $${paramIndex}`)
+        updateValues.push(data.description)
+        paramIndex++
+      }
+      if (data.transactionDate !== undefined) {
+        updateFields.push(`transaction_date = $${paramIndex}`)
+        updateValues.push(data.transactionDate)
+        paramIndex++
+      }
+      if (data.counterparty !== undefined) {
+        updateFields.push(`counterparty = $${paramIndex}`)
+        updateValues.push(data.counterparty)
+        paramIndex++
+      }
+      if (data.deposits !== undefined) {
+        updateFields.push(`deposits = $${paramIndex}`)
+        updateValues.push(data.deposits)
+        paramIndex++
+      }
+      if (data.withdrawals !== undefined) {
+        updateFields.push(`withdrawals = $${paramIndex}`)
+        updateValues.push(data.withdrawals)
+        paramIndex++
+      }
+      if (data.balance !== undefined) {
+        updateFields.push(`balance = $${paramIndex}`)
+        updateValues.push(data.balance)
+        paramIndex++
+      }
+      if (data.referenceNumber !== undefined) {
+        updateFields.push(`reference_number = $${paramIndex}`)
+        updateValues.push(data.referenceNumber)
+        paramIndex++
+      }
+      if (data.notes !== undefined) {
+        updateFields.push(`notes = $${paramIndex}`)
+        updateValues.push(data.notes)
+        paramIndex++
+      }
+      if (data.tags !== undefined) {
+        updateFields.push(`tags = $${paramIndex}`)
+        updateValues.push(data.tags ? `{${data.tags.map((tag) => `"${tag}"`).join(',')}}` : null)
+        paramIndex++
+      }
+
+      // updated_at은 항상 포함
+      updateFields.push(`updated_at = NOW()`)
+
+      // 업데이트할 필드가 없는 경우
+      if (updateFields.length === 1) {
+        // updated_at만 있는 경우
+        throw new Error('업데이트할 필드가 없습니다.')
+      }
+
+      // ID를 마지막 파라미터로 추가
+      updateValues.push(id)
+
+      const queryText = `
+        UPDATE finance_transactions
+        SET ${updateFields.join(', ')}
+        WHERE id = $${paramIndex}
+        RETURNING *
+      `
+
+      const result = await query(queryText, updateValues)
 
       if (!result.rows[0]) {
         throw new Error('거래를 찾을 수 없습니다.')
@@ -86,9 +153,7 @@ export class TransactionDbService {
         deposits: transaction.deposits ? parseFloat(transaction.deposits) : undefined,
         withdrawals: transaction.withdrawals ? parseFloat(transaction.withdrawals) : undefined,
         balance: transaction.balance ? parseFloat(transaction.balance) : undefined,
-        referenceNumber: transaction.reference_number,
         notes: transaction.notes,
-        tags: transaction.tags || [],
         isRecurring: transaction.is_recurring || false,
         recurringPattern: transaction.recurring_pattern
           ? JSON.parse(transaction.recurring_pattern)

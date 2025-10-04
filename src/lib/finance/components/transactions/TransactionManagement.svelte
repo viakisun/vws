@@ -8,12 +8,7 @@
     TransactionCategory,
   } from '$lib/finance/types'
   import { formatCurrency, formatDate } from '$lib/finance/utils'
-  import {
-    formatDateForDisplay,
-    formatDateTimeForInput,
-    getCurrentUTC,
-    toUTC,
-  } from '$lib/utils/date-handler'
+  import { formatDateTimeForInput, getCurrentUTC, toUTC } from '$lib/utils/date-handler'
   import { PlusIcon, SearchIcon } from '@lucide/svelte'
   import { onMount } from 'svelte'
 
@@ -301,10 +296,6 @@
     }
   }
 
-  function formatTime(date: string): string {
-    return formatDateForDisplay(date, 'SHORT')
-  }
-
   // State
   let transactions = $state<Transaction[]>([])
   let accounts = $state<Account[]>([])
@@ -320,6 +311,13 @@
   let selectedAccountForUpload = $state<string>('')
   let replaceExisting = $state(false)
   let isUploading = $state(false)
+
+  // 인라인 편집 관련 상태
+  let editingTransactionId = $state<string | null>(null)
+  let inlineEditingData = $state<{ description: string; categoryId: string }>({
+    description: '',
+    categoryId: '',
+  })
   let uploadResult = $state<any>(undefined)
 
   // 다중 파일 업로드 관련 상태
@@ -447,6 +445,83 @@
     }
   }
 
+  // 인라인 편집 함수들
+  function startInlineEdit(transaction: Transaction) {
+    editingTransactionId = transaction.id
+    inlineEditingData = {
+      description: transaction.description || '',
+      categoryId: transaction.categoryId || '',
+    }
+  }
+
+  function cancelInlineEdit() {
+    editingTransactionId = null
+    inlineEditingData = { description: '', categoryId: '' }
+  }
+
+  async function saveInlineEdit() {
+    if (!editingTransactionId) return
+
+    try {
+      // 적요와 카테고리만 업데이트
+      const updateData = {
+        id: editingTransactionId,
+        description: inlineEditingData.description,
+        categoryId: inlineEditingData.categoryId,
+      }
+
+      console.log('인라인 편집 업데이트:', updateData)
+
+      const updatedTransaction = await transactionService.updateTransaction(
+        editingTransactionId,
+        updateData,
+      )
+
+      console.log('업데이트 완료:', updatedTransaction)
+
+      // 로컬 상태 업데이트 - 새 배열로 교체하여 반응성 보장
+      const index = transactions.findIndex((t) => t.id === editingTransactionId)
+      if (index !== -1) {
+        // 업데이트된 카테고리 정보 찾기
+        const updatedCategory = categories.find((c) => c.id === inlineEditingData.categoryId)
+
+        // 새 배열 생성하여 반응성 보장
+        transactions = transactions.map((t, i) =>
+          i === index
+            ? {
+                ...t,
+                description: inlineEditingData.description,
+                categoryId: inlineEditingData.categoryId,
+                category: updatedCategory, // 카테고리 객체도 업데이트
+              }
+            : t,
+        )
+
+        console.log('로컬 상태 업데이트 완료:', transactions[index])
+
+        // 필터링된 데이터 업데이트
+        updateFilteredData()
+      }
+
+      editingTransactionId = null
+      inlineEditingData = { description: '', categoryId: '' }
+    } catch (err) {
+      console.error('거래 업데이트 실패:', err)
+      error = '거래 업데이트에 실패했습니다.'
+    }
+  }
+
+  // 키보드 단축키 처리
+  function handleKeydown(event: KeyboardEvent) {
+    if (editingTransactionId) {
+      if (event.key === 'Escape') {
+        cancelInlineEdit()
+      } else if (event.key === 'Enter' && event.ctrlKey) {
+        saveInlineEdit()
+      }
+    }
+  }
+
   // 거래 생성
   async function createTransaction() {
     try {
@@ -551,28 +626,40 @@
   }
 
   // 컴포넌트 마운트 시 데이터 로드
-  onMount(async () => {
-    // URL 파라미터에서 계좌 ID 확인
-    const urlParams = new URLSearchParams($page.url.search)
-    const accountParam = urlParams.get('account')
+  onMount(() => {
+    async function initialize() {
+      // URL 파라미터에서 계좌 ID 확인
+      const urlParams = new URLSearchParams($page.url.search)
+      const accountParam = urlParams.get('account')
 
-    // 기본 날짜 범위 설정 (1주일)
-    setDateRange('1W')
+      // 기본 날짜 범위 설정 (1주일)
+      setDateRange('1W')
 
-    // 데이터 로드
-    await loadData()
+      // 데이터 로드
+      await loadData()
 
-    // URL 파라미터가 있으면 해당 계좌로 필터링, 없으면 전체 계좌로 설정
-    if (accountParam) {
-      selectedAccount = accountParam
-      console.log('URL에서 계좌 ID 설정:', accountParam)
-    } else {
-      selectedAccount = '' // 전체 계좌 (기본값)
-      console.log('기본값으로 전체 계좌 설정')
+      // URL 파라미터가 있으면 해당 계좌로 필터링, 없으면 전체 계좌로 설정
+      if (accountParam) {
+        selectedAccount = accountParam
+        console.log('URL에서 계좌 ID 설정:', accountParam)
+      } else {
+        selectedAccount = '' // 전체 계좌 (기본값)
+        console.log('기본값으로 전체 계좌 설정')
+      }
+
+      // 필터링 적용
+      updateFilteredData()
     }
 
-    // 필터링 적용
-    updateFilteredData()
+    initialize()
+
+    // 키보드 이벤트 리스너 추가
+    document.addEventListener('keydown', handleKeydown)
+
+    // cleanup 함수 반환
+    return () => {
+      document.removeEventListener('keydown', handleKeydown)
+    }
   })
 
   // 필터링된 거래 목록 및 통계
@@ -631,6 +718,31 @@
           totalExpense,
         )} • 순이익 {formatCurrency(netAmount)}
       </p>
+
+      <!-- 인라인 편집 안내 -->
+      <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-4">
+        <div class="flex items-start">
+          <div class="flex-shrink-0">
+            <svg class="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+              <path
+                fill-rule="evenodd"
+                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                clip-rule="evenodd"
+              ></path>
+            </svg>
+          </div>
+          <div class="ml-3">
+            <h4 class="text-sm font-medium text-blue-800">인라인 편집</h4>
+            <p class="text-sm text-blue-700 mt-1">
+              ✏️ 버튼을 클릭하여 적요와 카테고리를 직접 편집할 수 있습니다. 편집 중에는 <kbd
+                class="px-1 py-0.5 bg-blue-100 text-blue-800 text-xs rounded">Esc</kbd
+              >로 취소,
+              <kbd class="px-1 py-0.5 bg-blue-100 text-blue-800 text-xs rounded">Ctrl+Enter</kbd>로
+              저장하세요.
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
     <div class="flex items-center space-x-2">
       <button
@@ -777,8 +889,11 @@
 
         <!-- 계좌 필터 (단순화) -->
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">계좌</label>
+          <label for="account-filter" class="block text-sm font-medium text-gray-700 mb-1"
+            >계좌</label
+          >
           <select
+            id="account-filter"
             bind:value={selectedAccount}
             onchange={handleFilterChange}
             class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -1099,6 +1214,10 @@
                     >
                     <th
                       class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >카테고리</th
+                    >
+                    <th
+                      class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                       >적요</th
                     >
                     <th
@@ -1129,16 +1248,52 @@
                       <!-- 거래일시 -->
                       <td class="px-6 py-4 whitespace-nowrap">
                         <div class="text-sm text-gray-900">
-                          {formatDate(transaction.transactionDate)}
+                          {formatDate(transaction.transactionDate, 'datetime')}
                         </div>
-                        <div class="text-xs text-gray-500">
-                          {formatTime(transaction.transactionDate)}
-                        </div>
+                      </td>
+
+                      <!-- 카테고리 -->
+                      <td class="px-6 py-4 whitespace-nowrap">
+                        {#if editingTransactionId === transaction.id}
+                          <select
+                            bind:value={inlineEditingData.categoryId}
+                            class="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          >
+                            <option value="">카테고리 선택</option>
+                            {#each categories as category}
+                              <option value={category.id}>
+                                {category.name}
+                                {#if category.accountingCode}
+                                  ({category.accountingCode})
+                                {/if}
+                              </option>
+                            {/each}
+                          </select>
+                        {:else if transaction.category}
+                          <span
+                            class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                            style="background-color: {transaction.category.color ||
+                              '#6B7280'}; color: white;"
+                          >
+                            {transaction.category.name}
+                          </span>
+                        {:else}
+                          <span class="text-sm text-gray-500">미분류</span>
+                        {/if}
                       </td>
 
                       <!-- 적요 -->
                       <td class="px-6 py-4">
-                        <div class="text-sm text-gray-900">{transaction.description}</div>
+                        {#if editingTransactionId === transaction.id}
+                          <input
+                            type="text"
+                            bind:value={inlineEditingData.description}
+                            class="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            placeholder="적요를 입력하세요"
+                          />
+                        {:else}
+                          <div class="text-sm text-gray-900">{transaction.description}</div>
+                        {/if}
                       </td>
 
                       <!-- 의뢰인/수취인 -->
@@ -1180,42 +1335,43 @@
                       <!-- 액션 -->
                       <td class="px-6 py-4 whitespace-nowrap">
                         <div class="flex items-center space-x-2">
-                          <button
-                            class="text-indigo-600 hover:text-indigo-900"
-                            onclick={() => editTransaction(transaction)}
-                          >
-                            <svg
-                              class="w-4 h-4"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
+                          {#if editingTransactionId === transaction.id}
+                            <!-- 편집 모드 -->
+                            <button
+                              class="text-green-600 hover:text-green-900"
+                              onclick={saveInlineEdit}
+                              title="저장 (Ctrl+Enter)"
+                              aria-label="저장"
                             >
-                              <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="2"
-                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                              ></path>
-                            </svg>
-                          </button>
-                          <button
-                            class="text-red-600 hover:text-red-900"
-                            onclick={() => deleteTransaction(transaction)}
-                          >
-                            <svg
-                              class="w-4 h-4"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
+                              ✅
+                            </button>
+                            <button
+                              class="text-red-600 hover:text-red-900"
+                              onclick={cancelInlineEdit}
+                              title="취소 (Esc)"
+                              aria-label="취소"
                             >
-                              <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="2"
-                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                              ></path>
-                            </svg>
-                          </button>
+                              ❌
+                            </button>
+                          {:else}
+                            <!-- 일반 모드 -->
+                            <button
+                              class="text-indigo-600 hover:text-indigo-900"
+                              onclick={() => startInlineEdit(transaction)}
+                              title="편집"
+                              aria-label="편집"
+                            >
+                              ✏️
+                            </button>
+                            <button
+                              class="text-red-600 hover:text-red-900"
+                              onclick={() => deleteTransaction(transaction)}
+                              title="삭제"
+                              aria-label="삭제"
+                            >
+                              🗑️
+                            </button>
+                          {/if}
                         </div>
                       </td>
                     </tr>

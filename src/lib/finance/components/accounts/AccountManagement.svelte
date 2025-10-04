@@ -125,6 +125,45 @@
     window.location.href = `/finance?tab=transactions&account=${account.id}`
   }
 
+  // 계좌 수정
+  async function updateAccount(account: Account) {
+    try {
+      isLoading = true
+      error = null
+
+      const updatedAccount = await accountService.updateAccount(account.id, {
+        id: account.id,
+        name: account.name,
+        accountNumber: account.accountNumber,
+        bankId: account.bankId,
+        accountType: account.accountType,
+        description: account.description,
+        isPrimary: account.isPrimary,
+        alertThreshold: account.alertThreshold,
+      })
+
+      // 성공 메시지 표시
+      alert('계좌 정보가 성공적으로 수정되었습니다.')
+
+      // 계좌 목록에서 업데이트 (API에서 반환된 완전한 정보 사용)
+      const index = accounts.findIndex((a) => a.id === account.id)
+      if (index !== -1) {
+        accounts[index] = updatedAccount
+      }
+
+      // 모달 닫기
+      _showEditModal = false
+      _selectedAccount = null
+
+      // 통계 업데이트
+      updateAccountStats()
+    } catch (err) {
+      error = err instanceof Error ? err.message : '계좌 수정에 실패했습니다.'
+    } finally {
+      isLoading = false
+    }
+  }
+
   // 컴포넌트 마운트 시 데이터 로드
   onMount(() => {
     loadData()
@@ -452,6 +491,141 @@
           </button>
         </div>
       </form>
+    </div>
+  </div>
+{/if}
+
+<!-- 계좌 편집 모달 -->
+{#if _showEditModal && _selectedAccount}
+  <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto">
+      <div class="p-6">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">계좌 정보 수정</h3>
+
+        <form
+          onsubmit={async (e) => {
+            e.preventDefault()
+            await updateAccount(_selectedAccount!)
+          }}
+          class="space-y-4"
+        >
+          <!-- 계좌명 -->
+          <div>
+            <label for="edit-account-name" class="block text-sm font-medium text-gray-700 mb-1"
+              >계좌명</label
+            >
+            <input
+              type="text"
+              id="edit-account-name"
+              bind:value={_selectedAccount.name}
+              required
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="계좌명을 입력하세요"
+            />
+          </div>
+
+          <!-- 계좌번호 -->
+          <div>
+            <label for="edit-account-number" class="block text-sm font-medium text-gray-700 mb-1"
+              >계좌번호</label
+            >
+            <input
+              type="text"
+              id="edit-account-number"
+              bind:value={_selectedAccount.accountNumber}
+              required
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="계좌번호를 입력하세요"
+            />
+          </div>
+
+          <!-- 은행 선택 -->
+          <div>
+            <label for="edit-account-bank" class="block text-sm font-medium text-gray-700 mb-1"
+              >은행</label
+            >
+            <select
+              id="edit-account-bank"
+              bind:value={_selectedAccount.bankId}
+              required
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            >
+              <option value="">은행을 선택하세요</option>
+              {#each banks as bank}
+                <option value={bank.id}>{bank.name}</option>
+              {/each}
+            </select>
+          </div>
+
+          <!-- 계좌 타입 -->
+          <div>
+            <label for="edit-account-type" class="block text-sm font-medium text-gray-700 mb-1"
+              >계좌 타입</label
+            >
+            <select
+              id="edit-account-type"
+              bind:value={_selectedAccount.accountType}
+              required
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            >
+              <option value="checking">입출금</option>
+              <option value="savings">예금</option>
+              <option value="business">사업자</option>
+              <option value="investment">투자</option>
+              <option value="loan">대출</option>
+            </select>
+          </div>
+
+          <!-- 설명 -->
+          <div>
+            <label
+              for="edit-account-description"
+              class="block text-sm font-medium text-gray-700 mb-1">설명 (선택사항)</label
+            >
+            <textarea
+              id="edit-account-description"
+              bind:value={_selectedAccount.description}
+              rows="2"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="계좌에 대한 추가 설명"
+            ></textarea>
+          </div>
+
+          <!-- 주요 계좌 여부 -->
+          <div class="flex items-center">
+            <input
+              id="edit-account-primary"
+              type="checkbox"
+              bind:checked={_selectedAccount.isPrimary}
+              class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+            />
+            <label for="edit-account-primary" class="ml-2 block text-sm text-gray-700"
+              >주요 계좌로 설정</label
+            >
+          </div>
+
+          <!-- 버튼 -->
+          <div class="flex justify-end space-x-3 mt-6">
+            <button
+              type="button"
+              onclick={() => {
+                _showEditModal = false
+                _selectedAccount = null
+              }}
+              class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+            >
+              취소
+            </button>
+            <button
+              type="submit"
+              disabled={isLoading}
+              class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+            >
+              {isLoading ? '수정 중...' : '수정 완료'}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   </div>
 {/if}

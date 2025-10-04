@@ -35,6 +35,9 @@ export interface Transaction extends BaseEntity {
   deposits?: number // 입금 (양수)
   withdrawals?: number // 출금 (양수)
   balance?: number // 거래후잔액
+  notes?: string // 메모
+  isRecurring?: boolean // 정기 거래 여부
+  recurringPattern?: RecurringPattern // 정기 거래 패턴
 }
 
 // 정기 거래 패턴
@@ -63,6 +66,10 @@ export interface CreateTransactionRequest {
   type: TransactionType
   description: string
   transactionDate: string
+  counterparty?: string
+  deposits?: number
+  withdrawals?: number
+  balance?: number
   referenceNumber?: string
   notes?: string
   tags?: string[]

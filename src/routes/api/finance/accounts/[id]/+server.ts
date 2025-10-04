@@ -147,7 +147,17 @@ export const PUT: RequestHandler = async ({ params, request }) => {
       UPDATE finance_accounts
       SET ${updateFields.join(', ')}
       WHERE id = $${paramIndex}
-      RETURNING *
+      RETURNING *,
+        (SELECT name FROM finance_banks WHERE id = finance_accounts.bank_id) as bank_name,
+        (SELECT code FROM finance_banks WHERE id = finance_accounts.bank_id) as bank_code,
+        (SELECT color FROM finance_banks WHERE id = finance_accounts.bank_id) as bank_color,
+        COALESCE((
+          SELECT balance 
+          FROM finance_transactions 
+          WHERE account_id = finance_accounts.id AND balance > 0
+          ORDER BY transaction_date DESC, created_at DESC 
+          LIMIT 1
+        ), 0) as current_balance
     `
 
     const result = await query(queryText, queryParams)
@@ -171,6 +181,15 @@ export const PUT: RequestHandler = async ({ params, request }) => {
         name: account.name,
         accountNumber: account.account_number,
         bankId: account.bank_id,
+        bank: {
+          id: account.bank_id,
+          name: account.bank_name,
+          code: account.bank_code,
+          color: account.bank_color,
+          isActive: true,
+          createdAt: '',
+          updatedAt: '',
+        },
         accountType: account.account_type,
         balance: parseFloat(account.current_balance),
         status: account.status,

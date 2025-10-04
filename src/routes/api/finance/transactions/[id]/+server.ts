@@ -9,41 +9,12 @@ export const PUT: RequestHandler = async ({ params, request }) => {
     const { id } = params
     const data: UpdateTransactionRequest = await request.json()
 
-    // 필수 필드 검증
-    if (
-      !data.accountId ||
-      !data.categoryId ||
-      !data.amount ||
-      !data.type ||
-      !data.description ||
-      !data.transactionDate
-    ) {
+    // 부분 업데이트를 위한 검증 - 최소한 하나의 필드는 업데이트되어야 함
+    if (!data.description && !data.categoryId) {
       return json(
         {
           success: false,
-          error: '필수 필드가 누락되었습니다.',
-        },
-        { status: 400 },
-      )
-    }
-
-    // 금액 검증
-    if (data.amount <= 0) {
-      return json(
-        {
-          success: false,
-          error: '금액은 0보다 커야 합니다.',
-        },
-        { status: 400 },
-      )
-    }
-
-    // 거래 타입 검증
-    if (!['income', 'expense', 'transfer', 'adjustment'].includes(data.type)) {
-      return json(
-        {
-          success: false,
-          error: '유효하지 않은 거래 타입입니다.',
+          error: '업데이트할 필드가 없습니다.',
         },
         { status: 400 },
       )
