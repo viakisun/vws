@@ -3,7 +3,7 @@ import { toUTC } from '$lib/utils/date-handler'
 import { formatEmployeeName } from '$lib/utils/format'
 import { logger } from '$lib/utils/logger'
 import { json } from '@sveltejs/kit'
-import ExcelJS from 'exceljs'
+import * as XLSX from 'xlsx'
 import type { RequestHandler } from './$types'
 
 interface EmployeeData {
@@ -44,10 +44,6 @@ export const GET: RequestHandler = async ({ url }) => {
 
     const employees = result.rows
 
-    // 엑셀 워크북 생성
-    const workbook = new ExcelJS.Workbook()
-    const worksheet = workbook.addWorksheet('급여명세서')
-
     // 헤더 설정
     const headers = [
       '사번',
@@ -74,28 +70,9 @@ export const GET: RequestHandler = async ({ url }) => {
       '실지급액',
     ]
 
-    // 헤더 행 추가
-    worksheet.addRow(headers)
+    // 데이터 행 생성
+    const dataRows: any[][] = [headers]
 
-    // 헤더 스타일링
-    const headerRow = worksheet.getRow(1)
-    headerRow.font = { bold: true, color: { argb: 'FFFFFF' } }
-    headerRow.fill = {
-      type: 'pattern',
-      pattern: 'solid',
-      fgColor: { argb: '366092' },
-    }
-    headerRow.alignment = { horizontal: 'center', vertical: 'middle' }
-
-    // 열 너비 설정
-    const columnWidths = [
-      10, 12, 15, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12,
-    ]
-    columnWidths.forEach((width, index) => {
-      worksheet.getColumn(index + 1).width = width
-    })
-
-    // 데이터 행 추가
     employees.forEach((employee) => {
       const baseSalary = employee.annual_salary
         ? Math.round(parseFloat(employee.annual_salary) / 12)
@@ -122,73 +99,91 @@ export const GET: RequestHandler = async ({ url }) => {
         0, // 갑근세
         0, // 주민세
         0, // 기타
-
-        `=SUM(F${worksheet.rowCount}:L${worksheet.rowCount})`, // 지급총액
-
-        `=SUM(M${worksheet.rowCount}:S${worksheet.rowCount})`, // 공제총액
-
-        `=T${worksheet.rowCount}-U${worksheet.rowCount}`, // 실지급액
+        '=SUM(F2:L2)', // 지급총액 (각 행마다 해당하는 행 번호로 계산)
+        '=SUM(M2:S2)', // 공제총액
+        '=T2-U2', // 실지급액
       ]
 
-      worksheet.addRow(row)
+      dataRows.push(row)
     })
 
-    // 숫자 형식 설정
-    const numberColumns = [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22] // F~V열
-    numberColumns.forEach((colIndex) => {
-      worksheet.getColumn(colIndex).numFmt = '#,##0'
-    })
+    // 워크북 생성
+    const workbook = XLSX.utils.book_new()
 
-    // 테두리 설정
-    worksheet.eachRow((row, _rowNumber) => {
-      row.eachCell((cell, _colNumber) => {
-        cell.border = {
-          top: { style: 'thin' },
-          left: { style: 'thin' },
-          bottom: { style: 'thin' },
-          right: { style: 'thin' },
-        }
-      })
-    })
+    // 메인 시트 생성
+    const worksheet = XLSX.utils.aoa_to_sheet(dataRows)
 
-    // 설명 시트 추가
-    const instructionSheet = workbook.addWorksheet('작성 가이드')
-    instructionSheet.addRow(['급여명세서 엑셀 업로드 가이드'])
-    instructionSheet.addRow([''])
-    instructionSheet.addRow(['1. 기본 정보'])
-    instructionSheet.addRow(['- 사번, 성명, 부서, 직위, 입사일은 수정하지 마세요'])
-    instructionSheet.addRow(['- 기본급은 연봉/12로 자동 계산됩니다'])
-    instructionSheet.addRow([''])
-    instructionSheet.addRow(['2. 지급사항 (F~L열)'])
-    instructionSheet.addRow(['- 기본급: 기본 급여 (자동 계산)'])
-    instructionSheet.addRow(['- 직책수당: 직책에 따른 수당'])
-    instructionSheet.addRow(['- 상여금: 성과급, 보너스 등'])
-    instructionSheet.addRow(['- 식대: 식비 지원 (비과세)'])
-    instructionSheet.addRow(['- 차량유지: 차량 관련 비용 (비과세)'])
-    instructionSheet.addRow(['- 연차수당: 연차 사용 시 지급'])
-    instructionSheet.addRow(['- 연말정산: 연말정산 관련 지급'])
-    instructionSheet.addRow([''])
-    instructionSheet.addRow(['3. 공제사항 (M~S열)'])
-    instructionSheet.addRow(['- 건강보험: 건강보험료 (3.4%)'])
-    instructionSheet.addRow(['- 장기요양보험: 장기요양보험료 (0.34%)'])
-    instructionSheet.addRow(['- 국민연금: 국민연금 (4.5%)'])
-    instructionSheet.addRow(['- 고용보험: 고용보험료 (0.8%)'])
-    instructionSheet.addRow(['- 갑근세: 소득세 (13%)'])
-    instructionSheet.addRow(['- 주민세: 지방소득세 (1.3%)'])
-    instructionSheet.addRow(['- 기타: 기타 공제사항'])
-    instructionSheet.addRow([''])
-    instructionSheet.addRow(['4. 자동 계산'])
-    instructionSheet.addRow(['- 지급총액: 지급사항 합계 (자동 계산)'])
-    instructionSheet.addRow(['- 공제총액: 공제사항 합계 (자동 계산)'])
-    instructionSheet.addRow(['- 실지급액: 지급총액 - 공제총액 (자동 계산)'])
-    instructionSheet.addRow([''])
-    instructionSheet.addRow(['5. 주의사항'])
-    instructionSheet.addRow(['- 숫자만 입력하세요 (콤마, 원화 표시 제외)'])
-    instructionSheet.addRow(['- 빈 셀은 0으로 처리됩니다'])
-    instructionSheet.addRow(['- 파일을 저장한 후 업로드하세요'])
+    // 열 너비 설정
+    const columnWidths = [
+      { wch: 10 },
+      { wch: 12 },
+      { wch: 15 },
+      { wch: 12 },
+      { wch: 12 },
+      { wch: 12 },
+      { wch: 12 },
+      { wch: 12 },
+      { wch: 12 },
+      { wch: 12 },
+      { wch: 12 },
+      { wch: 12 },
+      { wch: 12 },
+      { wch: 12 },
+      { wch: 12 },
+      { wch: 12 },
+      { wch: 12 },
+      { wch: 12 },
+      { wch: 12 },
+      { wch: 12 },
+      { wch: 12 },
+      { wch: 12 },
+    ]
+    worksheet['!cols'] = columnWidths
+
+    XLSX.utils.book_append_sheet(workbook, worksheet, '급여명세서')
+
+    // 설명 시트 생성
+    const instructionData = [
+      ['급여명세서 엑셀 업로드 가이드'],
+      [''],
+      ['1. 기본 정보'],
+      ['- 사번, 성명, 부서, 직위, 입사일은 수정하지 마세요'],
+      ['- 기본급은 연봉/12로 자동 계산됩니다'],
+      [''],
+      ['2. 지급사항 (F~L열)'],
+      ['- 기본급: 기본 급여 (자동 계산)'],
+      ['- 직책수당: 직책에 따른 수당'],
+      ['- 상여금: 성과급, 보너스 등'],
+      ['- 식대: 식비 지원 (비과세)'],
+      ['- 차량유지: 차량 관련 비용 (비과세)'],
+      ['- 연차수당: 연차 사용 시 지급'],
+      ['- 연말정산: 연말정산 관련 지급'],
+      [''],
+      ['3. 공제사항 (M~S열)'],
+      ['- 건강보험: 건강보험료 (3.4%)'],
+      ['- 장기요양보험: 장기요양보험료 (0.34%)'],
+      ['- 국민연금: 국민연금 (4.5%)'],
+      ['- 고용보험: 고용보험료 (0.8%)'],
+      ['- 갑근세: 소득세 (13%)'],
+      ['- 주민세: 지방소득세 (1.3%)'],
+      ['- 기타: 기타 공제사항'],
+      [''],
+      ['4. 자동 계산'],
+      ['- 지급총액: 지급사항 합계 (자동 계산)'],
+      ['- 공제총액: 공제사항 합계 (자동 계산)'],
+      ['- 실지급액: 지급총액 - 공제총액 (자동 계산)'],
+      [''],
+      ['5. 주의사항'],
+      ['- 숫자만 입력하세요 (콤마, 원화 표시 제외)'],
+      ['- 빈 셀은 0으로 처리됩니다'],
+      ['- 파일을 저장한 후 업로드하세요'],
+    ]
+
+    const instructionSheet = XLSX.utils.aoa_to_sheet(instructionData)
+    XLSX.utils.book_append_sheet(workbook, instructionSheet, '작성 가이드')
 
     // 엑셀 파일 생성
-    const buffer = await workbook.xlsx.writeBuffer()
+    const buffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' })
 
     // 한글 파일명을 URL 인코딩
 
