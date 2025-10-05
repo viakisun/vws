@@ -1,15 +1,24 @@
+import { UserService } from '$lib/auth/user-service'
 import type { Handle } from '@sveltejs/kit'
 
-// 스케줄러 시작 (서버 시작 시 한 번만 실행)
-const _schedulerStarted = false
-
 export const handle: Handle = async ({ event, resolve }) => {
-  // 스케줄러 시작 (개발 환경에서만) - 임시 비활성화
-  // if (!schedulerStarted && process.env.NODE_ENV === 'development') {
-  //   reportScheduler.start()
-  //   schedulerStarted = true
-  //   console.log('📧 이메일 리포트 스케줄러가 시작되었습니다.')
-  // }
+  // Authentication middleware
+  try {
+    const token = event.cookies.get('auth_token')
+    
+    if (token) {
+      const userService = UserService.getInstance()
+      const payload = userService.verifyToken(token)
+      const user = await userService.getUserById(payload.userId)
+      
+      if (user && user.is_active) {
+        event.locals.user = user
+      }
+    }
+  } catch (error) {
+    // Invalid token, clear cookie
+    event.cookies.delete('auth_token', { path: '/' })
+  }
 
   return resolve(event)
 }

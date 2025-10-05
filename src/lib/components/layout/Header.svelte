@@ -1,7 +1,7 @@
 <script lang="ts">
+  import type { User } from '$lib/auth/user-service'
   import ThemeAvatar from '$lib/components/ui/ThemeAvatar.svelte'
   import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
-  import ThemeDropdown from '$lib/components/ui/ThemeDropdown.svelte'
   import { isDark, themeManager } from '$lib/stores/theme'
   import { logger } from '$lib/utils/logger'
   import {
@@ -15,11 +15,14 @@
   } from '@lucide/svelte'
   import { onMount } from 'svelte'
 
+  let { user = null, onLogout }: { user: User | null; onLogout: () => void } = $props()
+
   // Notification state
   let showNotifications = $state(false)
   let showUserMenu = $state(false)
   let notificationsContainer: HTMLElement | undefined
   let userMenuContainer: HTMLElement | undefined
+  let userMenuButton: HTMLElement | undefined
   let unreadCount = $state(3)
 
   // Company information
@@ -34,8 +37,10 @@
 
   // Toggle user menu
   function toggleUserMenu() {
+    console.log('User menu toggle clicked, current state:', showUserMenu)
     showUserMenu = !showUserMenu
     showNotifications = false
+    console.log('User menu state after toggle:', showUserMenu)
   }
 
   // Close dropdowns when clicking outside
@@ -242,12 +247,13 @@
         class="flex items-center space-x-3 p-3 rounded-xl hover:shadow-lg transition-all duration-300 text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100 hover:scale-105 group {showUserMenu
           ? 'bg-blue-50 dark:bg-blue-900/20'
           : ''}"
+        bind:this={userMenuButton}
       >
         <div class="relative">
           <ThemeAvatar
-            src=""
+            src={user?.picture || ''}
             size="md"
-            fallback="김"
+            fallback={user?.name?.charAt(0) || 'U'}
             class="ring-2 ring-transparent group-hover:ring-blue-200 dark:group-hover:ring-blue-800 transition-all duration-300"
           />
           <div
@@ -258,32 +264,27 @@
           <p
             class="text-sm font-semibold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors"
           >
-            김개발
+            {user?.name || '사용자'}
           </p>
           <p
             class="text-xs text-gray-500 dark:text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors"
           >
-            개발팀 • 온라인
+            {user?.role || 'EMPLOYEE'} • 온라인
           </p>
         </div>
       </ThemeButton>
 
       {#if showUserMenu}
-        <ThemeDropdown
-          class="absolute top-full right-0 mt-3 w-72 z-50 shadow-2xl border-0"
-          position="top-right"
-          open={showUserMenu}
-          onchange={(open) => (showUserMenu = open)}
-        >
+        <div class="absolute top-full right-0 mt-3 w-72 z-50 bg-white dark:bg-gray-800 rounded-lg shadow-2xl border border-gray-200 dark:border-gray-700">
           <div
-            class="px-6 py-5 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-700"
+            class="px-6 py-5 border-b border-gray-100 dark:border-gray-700 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-700"
           >
             <div class="flex items-center space-x-4">
               <div class="relative">
                 <ThemeAvatar
-                  src=""
+                  src={user?.picture || ''}
                   size="lg"
-                  fallback="김"
+                  fallback={user?.name?.charAt(0) || 'U'}
                   class="ring-4 ring-white dark:ring-gray-700 shadow-lg"
                 />
                 <div
@@ -291,8 +292,8 @@
                 ></div>
               </div>
               <div class="flex-1 min-w-0">
-                <p class="text-lg font-semibold text-gray-900 dark:text-white">김개발</p>
-                <p class="text-sm text-gray-500 dark:text-gray-400">개발팀 • 선임연구원</p>
+                <p class="text-lg font-semibold text-gray-900 dark:text-white">{user?.name || '사용자'}</p>
+                <p class="text-sm text-gray-500 dark:text-gray-400">{user?.role || 'EMPLOYEE'} • {user?.email || ''}</p>
                 <p class="text-xs text-green-600 dark:text-green-400 font-medium mt-1">● 온라인</p>
               </div>
             </div>
@@ -327,9 +328,9 @@
               </div>
             </a>
             <div class="border-t border-gray-100 dark:border-gray-700 my-2"></div>
-            <a
-              href="/logout"
-              class="flex items-center px-6 py-3 text-sm text-red-600 dark:text-red-400 hover:bg-gradient-to-r hover:from-red-50 hover:to-pink-50 dark:hover:from-red-900/20 dark:hover:to-pink-900/20 transition-all duration-200 group"
+            <button
+              onclick={onLogout}
+              class="flex items-center w-full px-6 py-3 text-sm text-red-600 dark:text-red-400 hover:bg-gradient-to-r hover:from-red-50 hover:to-pink-50 dark:hover:from-red-900/20 dark:hover:to-pink-900/20 transition-all duration-200 group"
             >
               <div
                 class="flex items-center justify-center w-8 h-8 rounded-lg bg-red-100 dark:bg-red-900/30 mr-3 group-hover:bg-red-200 dark:group-hover:bg-red-900/50 transition-colors"
@@ -340,9 +341,9 @@
                 <p class="font-medium">로그아웃</p>
                 <p class="text-xs text-red-500 dark:text-red-400">계정에서 로그아웃</p>
               </div>
-            </a>
+            </button>
           </div>
-        </ThemeDropdown>
+        </div>
       {/if}
     </div>
   </div>

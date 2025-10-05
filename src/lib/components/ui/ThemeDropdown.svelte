@@ -38,7 +38,12 @@
   // State
   let dropdownElement = $state<HTMLElement | undefined>(undefined)
   let triggerElement = $state<HTMLElement>(externalTrigger || ({} as HTMLElement))
-  let isVisible = $state(false)
+  let isVisible = $state(_open)
+
+  // Update isVisible when _open prop changes
+  $effect(() => {
+    isVisible = _open
+  })
 
   // Get dropdown classes
   function getDropdownClasses(): string {

@@ -1,29 +1,43 @@
 <script lang="ts">
-  import '../app.css'
+  import { goto } from '$app/navigation'
   import Header from '$lib/components/layout/Header.svelte'
   import Sidebar from '$lib/components/layout/Sidebar.svelte'
   import VersionInfo from '$lib/components/ui/VersionInfo.svelte'
-  import { toasts } from '$lib/stores/toasts'
   import { themeManager } from '$lib/stores/theme'
+  import { toasts } from '$lib/stores/toasts'
   import { onMount } from 'svelte'
+  import '../app.css'
+  import type { LayoutServerData } from './$types'
 
-  let { children } = $props()
+  let { children, data }: { children: any; data: LayoutServerData } = $props()
   let sidebarCollapsed = $state(true)
+  let user = $state(data.user)
 
   // Initialize theme on mount
   onMount(() => {
     themeManager.applyTheme()
   })
+
+  // Handle logout
+  async function handleLogout() {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' })
+      user = null
+      goto('/login')
+    } catch (error) {
+      console.error('Logout error:', error)
+    }
+  }
 </script>
 
 <div class="h-screen flex flex-col overflow-hidden" style:background="var(--color-background)">
   <!-- Header -->
-  <Header />
+  <Header {user} onLogout={handleLogout} />
 
   <!-- Main content area with sidebar -->
   <div class="flex-1 flex overflow-hidden">
     <!-- Sidebar -->
-    <Sidebar bind:isCollapsed={sidebarCollapsed} />
+    <Sidebar bind:isCollapsed={sidebarCollapsed} {user} />
 
     <!-- Main content -->
     <main class="flex-1 p-6 overflow-auto" style:background="var(--color-background)">

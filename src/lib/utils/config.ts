@@ -21,4 +21,13 @@ export const config = {
     secret: fromEnv('JWT_SECRET', 'your-secret-key'),
     expiresIn: fromEnv('JWT_EXPIRES_IN', '24h'),
   },
+  google: {
+    clientId: fromEnv('GOOGLE_CLIENT_ID', ''),
+    clientSecret: fromEnv('GOOGLE_CLIENT_SECRET', ''),
+    redirectUri: fromEnv('GOOGLE_REDIRECT_URI', 'http://localhost:5173/api/auth/callback/google'),
+  },
+  auth: {
+    allowedDomains: fromEnv('ALLOWED_DOMAINS', 'viasofts.com').split(','),
+    adminEmails: fromEnv('ADMIN_EMAILS', 'kisun@viasofts.com').split(','),
+  },
 }

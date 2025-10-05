@@ -1,24 +1,28 @@
 <script lang="ts">
   import { page } from '$app/stores'
+  import type { User } from '$lib/auth/user-service'
+  import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
   import {
-    HomeIcon,
-    BarChart3Icon,
-    UsersIcon,
-    BriefcaseIcon,
-    FileTextIcon,
-    SettingsIcon,
     BanknoteIcon,
-    FlaskConicalIcon,
+    BarChart3Icon,
+    BriefcaseIcon,
     BuildingIcon,
     CalendarIcon,
-    MessageSquareIcon,
     ChevronLeftIcon,
     ChevronRightIcon,
     DollarSignIcon,
+    FileTextIcon,
+    FlaskConicalIcon,
+    HomeIcon,
+    MessageSquareIcon,
+    SettingsIcon,
+    UsersIcon,
   } from '@lucide/svelte'
-  import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
 
-  let { isCollapsed = $bindable(true) } = $props<{ isCollapsed?: boolean }>()
+  let { isCollapsed = $bindable(true), user = null } = $props<{ 
+    isCollapsed?: boolean
+    user?: User | null 
+  }>()
 
   const navigationItems = [
     { name: '대시보드', href: '/', icon: HomeIcon },

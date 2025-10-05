@@ -1,225 +1,129 @@
 <script lang="ts">
-  import Card from '$lib/components/ui/Card.svelte'
-  import Badge from '$lib/components/ui/Badge.svelte'
-  import Progress from '$lib/components/ui/Progress.svelte'
-  import Modal from '$lib/components/ui/Modal.svelte'
-  import { TrendingUpIcon, BriefcaseIcon, CoinsIcon, AlertTriangleIcon } from '@lucide/svelte'
-  import { projectsStore, budgetAlerts, overallBudget } from '$lib/stores/rnd'
-  import { personnelStore, estimateMonthlyCostKRW } from '$lib/stores/personnel'
-  import { formatKRW } from '$lib/utils/format'
-  import { getProjectStatusColor, getProjectStatusFilterOptions } from '$lib/utils/project-status'
+  import type { User } from '$lib/auth/user-service'
+  import type { PageData } from './$types'
 
-  type Kpi = {
-    label: string
-    value: number | string
-    icon: any
-    numeric?: number
-  }
+  let { data }: { data: PageData } = $props()
+  let user: User | null = $state(data.user)
 
-  let statusFilter = $state('') as
-    | ''
-    | 'active'
-    | 'planning'
-    | 'completed'
-    | 'cancelled'
-    | 'suspended'
-  let query = $state('')
-  let selectedId = $state<string | null>(null)
-
-  const ob = $derived($overallBudget)
-  const kpis = $derived([
-    { label: '총 프로젝트', value: $projectsStore.length, icon: BriefcaseIcon },
+  // Quick actions based on user role
+  const quickActions = [
     {
-      label: '예산 집행률',
-      value: `${(ob.utilization * 100).toFixed(1)}%`,
-      numeric: ob.utilization * 100,
-      icon: CoinsIcon,
+      title: '재무관리',
+      description: '거래내역 및 재무 데이터 관리',
+      href: '/finance',
+      icon: '💰',
+      roles: ['ADMIN', 'MANAGER']
     },
     {
-      label: '평균 진행률',
-      value: `${Math.round($projectsStore.reduce((s, p) => s + (p.progressPct || 0), 0) / Math.max($projectsStore.length, 1))}%`,
-      numeric:
-        $projectsStore.reduce((s, p) => s + (p.progressPct || 0), 0) /
-        Math.max($projectsStore.length, 1),
-      icon: TrendingUpIcon,
+      title: '인사관리',
+      description: '직원 정보 및 인사 데이터 관리',
+      href: '/hr',
+      icon: '👥',
+      roles: ['ADMIN', 'MANAGER']
     },
     {
-      label: '리스크 경고',
-      value: $projectsStore.filter((p) => p.status === 'suspended' || p.status === 'cancelled')
-        .length,
-      icon: AlertTriangleIcon,
+      title: '연구개발',
+      description: '프로젝트 및 연구개발 관리',
+      href: '/project-management',
+      icon: '🔬',
+      roles: ['ADMIN', 'MANAGER', 'EMPLOYEE']
     },
-  ] as Kpi[])
+    {
+      title: '급여관리',
+      description: '급여 및 급여명세서 관리',
+      href: '/salary',
+      icon: '💳',
+      roles: ['ADMIN', 'MANAGER']
+    }
+  ]
 
-  const allProjects = $derived($projectsStore)
-  const filtered = $derived(
-    allProjects.filter(
-      (p) =>
-        (statusFilter ? p.status === statusFilter : true) &&
-        (query ? (p.name || '').toLowerCase().includes(query.toLowerCase()) : true),
-    ),
+  // Filter actions based on user role
+  const availableActions = quickActions.filter(action => 
+    action.roles.includes(user?.role || '')
   )
-  const selected = $derived(allProjects.find((p) => p.id === selectedId))
-  const selectedMembers = $derived(
-    selected
-      ? $personnelStore.filter((pr) => pr.participations.some((pp) => pp.projectId === selected.id))
-      : [],
-  )
-  const selectedCostMonthly = $derived(
-    selectedMembers.reduce((sum, pr) => {
-      const part = pr.participations.find((pp) => pp.projectId === selected?.id)
-      return (
-        sum +
-        (pr.annualSalaryKRW && part
-          ? estimateMonthlyCostKRW(pr.annualSalaryKRW, part.allocationPct)
-          : 0)
-      )
-    }, 0),
-  )
-  function openDetail(id: string) {
-    selectedId = id
-  }
-  function closeDetail() {
-    selectedId = null
-  }
 </script>
 
+<svelte:head>
+  <title>대시보드 - VWS</title>
+</svelte:head>
+
 <div class="space-y-6">
-  <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-    {#each kpis as k, i (i)}
-      <Card>
-        <div class="kpi">
-          <div>
-            <p class="text-caption">{k.label}</p>
-            <div class="text-2xl font-bold">{k.value}</div>
-          </div>
-          {#if k.icon}
-            {@const IconComponent = k.icon}
-            <IconComponent class="text-primary" />
-          {/if}
+  <!-- Welcome Section -->
+  <div class="bg-white rounded-lg shadow p-6">
+    <h1 class="text-3xl font-bold text-gray-900 mb-2">
+      안녕하세요, {user?.name || '사용자'}님! 👋
+    </h1>
+    <p class="text-gray-600">
+      VWS(VIA Work System)에 오신 것을 환영합니다. 오늘도 좋은 하루 되세요!
+    </p>
+  </div>
+
+  <!-- User Info Card -->
+  <div class="bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg shadow text-white p-6">
+    <div class="flex items-center space-x-4">
+      {#if user?.picture}
+        <img 
+          src={user.picture} 
+          alt={user.name}
+          class="w-16 h-16 rounded-full border-4 border-white/20"
+        />
+      {:else}
+        <div class="w-16 h-16 rounded-full border-4 border-white/20 bg-white/20 flex items-center justify-center text-2xl font-bold">
+          {user?.name?.charAt(0) || 'U'}
         </div>
-        {#if k.numeric}
-          <div class="mt-3">
-            <Progress value={k.numeric} />
-          </div>
-        {/if}
-      </Card>
+      {/if}
+      <div>
+        <h2 class="text-xl font-semibold">{user?.name || '사용자'}</h2>
+        <p class="text-blue-100">{user?.role || 'EMPLOYEE'} • {user?.email || ''}</p>
+        <p class="text-sm text-blue-100">마지막 로그인: {user?.last_login ? new Date(user.last_login).toLocaleString('ko-KR') : '방금 전'}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Actions -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    {#each availableActions as action (action.title)}
+      <a 
+        href={action.href}
+        class="block bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow duration-200 border border-gray-200 hover:border-blue-300"
+      >
+        <div class="text-4xl mb-4">{action.icon}</div>
+        <h3 class="text-lg font-semibold text-gray-900 mb-2">{action.title}</h3>
+        <p class="text-gray-600 text-sm">{action.description}</p>
+      </a>
     {/each}
   </div>
 
-  <Card header="프로젝트 현황">
-    <div class="mb-3 flex flex-col sm:flex-row gap-2 sm:items-center">
-      <input
-        class="w-full sm:w-64 rounded-md border border-gray-200 bg-white px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-        placeholder="프로젝트 검색"
-        bind:value={query}
-      />
-      <select
-        class="w-full sm:w-48 rounded-md border border-gray-200 bg-white px-2 py-1.5 text-sm"
-        bind:value={statusFilter}
-      >
-        {#each getProjectStatusFilterOptions() as option}
-          <option value={option.value}>{option.label}</option>
-        {/each}
-      </select>
-    </div>
-    <div class="divide-y">
-      {#each filtered as p, i (i)}
-        <button
-          type="button"
-          class="w-full text-left flex items-center justify-between gap-4 py-3 hover:bg-gray-50 rounded-md px-2"
-          onclick={() => openDetail(p.id)}
-        >
-          <div>
-            <div class="text-sm font-semibold">{p.name}</div>
-            <div class="text-caption">{p.id}</div>
-          </div>
-          <div class="w-48">
-            <Progress value={p.progressPct} />
-          </div>
-          <div class="hidden sm:block text-sm text-right">
-            <div>예산 {formatKRW(p.budgetKRW || 0)}</div>
-            <div class="text-caption">집행 {formatKRW(p.spentKRW || 0)}</div>
-          </div>
-          <Badge color={getProjectStatusColor(p.status)}>{p.status}</Badge>
-        </button>
-      {/each}
-    </div>
-  </Card>
-
-  {#if $budgetAlerts.length}
-    <Card header="예산 경보">
-      <ul class="space-y-2 text-sm">
-        {#each $budgetAlerts as a, i (i)}
-          <li class="flex items-center justify-between">
-            <span>{a.name}</span>
-            <Badge
-              color={a.level === 'over' ? 'red' : a.level === 'critical' ? 'yellow' : 'yellow'}
-            >
-              {(a.utilization * 100).toFixed(1)}%
-            </Badge>
-          </li>
-        {/each}
-      </ul>
-    </Card>
-  {/if}
-
-  <Modal open={!!selected} title={selected?.name ?? ''} maxWidth="max-w-2xl" onClose={closeDetail}>
-    {#if selected}
-      <div class="space-y-4">
-        <div class="flex items-center justify-between">
-          <Badge color={getProjectStatusColor(selected.status)}>{selected.status}</Badge>
-          <div class="w-52"><Progress value={selected.progressPct} /></div>
-        </div>
-        <div class="grid grid-cols-2 gap-4 text-sm">
-          <div>
-            <div class="text-caption">예산</div>
-            <div class="font-semibold">{formatKRW(selected.budgetKRW || 0)}</div>
-          </div>
-          <div>
-            <div class="text-caption">집행</div>
-            <div class="font-semibold">{formatKRW(selected.spentKRW || 0)}</div>
-          </div>
-          <div>
-            <div class="text-caption">기간</div>
-            <div class="font-semibold">
-              {selected.startDate} ~ {selected.dueDate}
-            </div>
-          </div>
-          <div>
-            <div class="text-caption">부서</div>
-            <div class="font-semibold">{selected.organization}</div>
-          </div>
-        </div>
+  <!-- Stats Cards -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="bg-white rounded-lg shadow p-6">
+      <div class="flex items-center justify-between">
         <div>
-          <div class="text-caption mb-1">리스크</div>
-          {#if (selected.risks || []).length === 0}
-            <div class="text-sm text-gray-500">등록된 리스크 없음</div>
-          {:else}
-            <ul class="list-disc pl-5 text-sm space-y-1">
-              {#each selected.risks || [] as r, i (i)}
-                <li>
-                  <span class="font-medium">[{r.severity}]</span>
-                  {r.description}
-                  <span class="text-caption">({r.impact}/{r.status})</span>
-                </li>
-              {/each}
-            </ul>
-          {/if}
+          <p class="text-sm font-medium text-gray-600">총 프로젝트</p>
+          <p class="text-2xl font-bold text-gray-900">12</p>
         </div>
-
-        <div>
-          <div class="text-caption mb-1">인건비 요약</div>
-          <div class="text-sm">
-            참여 인원 {selectedMembers.length}명 · 월 추정 {formatKRW(selectedCostMonthly)}
-          </div>
-          <div class="mt-2">
-            <a class="text-primary hover:underline" href={`/personnel?projectId=${selected.id}`}
-              >상세 보기 (인건비 관리로 이동)</a
-            >
-          </div>
-        </div>
+        <div class="text-3xl">📊</div>
       </div>
-    {/if}
-  </Modal>
+    </div>
+    
+    <div class="bg-white rounded-lg shadow p-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm font-medium text-gray-600">진행중인 작업</p>
+          <p class="text-2xl font-bold text-gray-900">5</p>
+        </div>
+        <div class="text-3xl">⚡</div>
+      </div>
+    </div>
+    
+    <div class="bg-white rounded-lg shadow p-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm font-medium text-gray-600">이번 달 완료</p>
+          <p class="text-2xl font-bold text-gray-900">8</p>
+        </div>
+        <div class="text-3xl">✅</div>
+      </div>
+    </div>
+  </div>
 </div>

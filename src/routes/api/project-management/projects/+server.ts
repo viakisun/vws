@@ -1,6 +1,7 @@
 // Project Management API - Projects
 // 프로젝트 관리 시스템의 프로젝트 관련 API
 
+import { requireAuth } from '$lib/auth/middleware'
 import { query } from '$lib/database/connection'
 import type { ApiResponse, DatabaseProject } from '$lib/types/database'
 import { transformArrayData, transformProjectData } from '$lib/utils/api-data-transformer'
@@ -9,8 +10,12 @@ import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
 
 // 프로젝트 목록 조회
-export const GET: RequestHandler = async ({ url }) => {
+export const GET: RequestHandler = async (event) => {
   try {
+    // JWT 인증 확인
+    await requireAuth(event)
+    
+    const { url } = event
     const searchParams = url.searchParams
     const status = searchParams.get('status')
     const sponsorType = searchParams.get('sponsorType')
