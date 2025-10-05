@@ -44,14 +44,14 @@ export class UserService {
         // 기존 사용자 업데이트
         const result = await DatabaseService.query(
           'UPDATE users SET name = $1, role = $2, picture = $3, updated_at = NOW() WHERE email = $4 RETURNING *',
-          [userData.name, userData.role, userData.picture, userData.email]
+          [userData.name, userData.role, userData.picture, userData.email],
         )
         return result.rows[0]
       } else {
         // 새 사용자 생성
         const result = await DatabaseService.query(
           'INSERT INTO users (email, name, role, picture, is_active) VALUES ($1, $2, $3, $4, true) RETURNING *',
-          [userData.email, userData.name, userData.role, userData.picture]
+          [userData.email, userData.name, userData.role, userData.picture],
         )
         return result.rows[0]
       }
@@ -66,10 +66,7 @@ export class UserService {
    */
   public async getUserByEmail(email: string): Promise<User | null> {
     try {
-      const result = await DatabaseService.query(
-        'SELECT * FROM users WHERE email = $1',
-        [email]
-      )
+      const result = await DatabaseService.query('SELECT * FROM users WHERE email = $1', [email])
       return result.rows[0] || null
     } catch (error) {
       logger.error('Error getting user by email:', error)
@@ -82,10 +79,7 @@ export class UserService {
    */
   public async getUserById(id: string): Promise<User | null> {
     try {
-      const result = await DatabaseService.query(
-        'SELECT * FROM users WHERE id = $1',
-        [id]
-      )
+      const result = await DatabaseService.query('SELECT * FROM users WHERE id = $1', [id])
       return result.rows[0] || null
     } catch (error) {
       logger.error('Error getting user by id:', error)
@@ -98,10 +92,7 @@ export class UserService {
    */
   public async updateLastLogin(userId: string): Promise<void> {
     try {
-      await DatabaseService.query(
-        'UPDATE users SET last_login = NOW() WHERE id = $1',
-        [userId]
-      )
+      await DatabaseService.query('UPDATE users SET last_login = NOW() WHERE id = $1', [userId])
     } catch (error) {
       logger.error('Error updating last login:', error)
     }
@@ -115,11 +106,11 @@ export class UserService {
       userId: user.id,
       email: user.email,
       role: user.role,
-      iat: Math.floor(Date.now() / 1000)
+      iat: Math.floor(Date.now() / 1000),
     }
 
     return jwt.sign(payload, config.jwt.secret, {
-      expiresIn: config.jwt.expiresIn
+      expiresIn: config.jwt.expiresIn,
     })
   }
 

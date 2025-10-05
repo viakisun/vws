@@ -275,7 +275,9 @@
       </ThemeButton>
 
       {#if showUserMenu}
-        <div class="absolute top-full right-0 mt-3 w-72 z-50 bg-white dark:bg-gray-800 rounded-lg shadow-2xl border border-gray-200 dark:border-gray-700">
+        <div
+          class="absolute top-full right-0 mt-3 w-72 z-50 bg-white dark:bg-gray-800 rounded-lg shadow-2xl border border-gray-200 dark:border-gray-700"
+        >
           <div
             class="px-6 py-5 border-b border-gray-100 dark:border-gray-700 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-700"
           >
@@ -292,8 +294,12 @@
                 ></div>
               </div>
               <div class="flex-1 min-w-0">
-                <p class="text-lg font-semibold text-gray-900 dark:text-white">{user?.name || '사용자'}</p>
-                <p class="text-sm text-gray-500 dark:text-gray-400">{user?.role || 'EMPLOYEE'} • {user?.email || ''}</p>
+                <p class="text-lg font-semibold text-gray-900 dark:text-white">
+                  {user?.name || '사용자'}
+                </p>
+                <p class="text-sm text-gray-500 dark:text-gray-400">
+                  {user?.role || 'EMPLOYEE'} • {user?.email || ''}
+                </p>
                 <p class="text-xs text-green-600 dark:text-green-400 font-medium mt-1">● 온라인</p>
               </div>
             </div>

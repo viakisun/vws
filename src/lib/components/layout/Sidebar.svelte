@@ -19,9 +19,9 @@
     UsersIcon,
   } from '@lucide/svelte'
 
-  let { isCollapsed = $bindable(true), user = null } = $props<{ 
+  let { isCollapsed = $bindable(true), user = null } = $props<{
     isCollapsed?: boolean
-    user?: User | null 
+    user?: User | null
   }>()
 
   const navigationItems = [

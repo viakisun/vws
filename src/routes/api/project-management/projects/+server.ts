@@ -14,7 +14,7 @@ export const GET: RequestHandler = async (event) => {
   try {
     // JWT 인증 확인
     await requireAuth(event)
-    
+
     const { url } = event
     const searchParams = url.searchParams
     const status = searchParams.get('status')

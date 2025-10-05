@@ -7,7 +7,7 @@ export const GET: RequestHandler = async () => {
   try {
     const googleOAuth = GoogleOAuthService.getInstance()
     const authUrl = googleOAuth.getAuthUrl()
-    
+
     logger.info('Redirecting to Google OAuth:', authUrl)
     throw redirect(302, authUrl)
   } catch (error) {
@@ -16,7 +16,7 @@ export const GET: RequestHandler = async () => {
       // This is a normal redirect, not an error
       throw error
     }
-    
+
     // This is an actual error
     logger.error('Google OAuth initiation error:', error)
     throw redirect(302, '/login?error=oauth_init_failed')

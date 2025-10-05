@@ -49,7 +49,7 @@ export class GoogleOAuthService {
       scope: 'openid email profile',
       response_type: 'code',
       access_type: 'offline',
-      prompt: 'select_account'
+      prompt: 'select_account',
     })
 
     return `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`
