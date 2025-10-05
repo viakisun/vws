@@ -2,6 +2,7 @@
   import { goto } from '$app/navigation'
   import { page } from '$app/state'
   import PageLayout from '$lib/components/layout/PageLayout.svelte'
+  import PayrollUploader from '$lib/components/salary/PayrollUploader.svelte'
   import PayslipGenerator from '$lib/components/salary/PayslipGenerator.svelte'
   import PayslipUploader from '$lib/components/salary/PayslipUploader.svelte'
   import SalaryContracts from '$lib/components/salary/SalaryContracts.svelte'
@@ -182,14 +183,39 @@
           <div class="space-y-6">
             <!-- 업로드 섹션 -->
             <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <div class="flex items-center justify-between mb-4">
-                <div>
-                  <h3 class="text-lg font-semibold text-gray-900">엑셀 일괄 업로드</h3>
-                  <p class="text-sm text-gray-600">
-                    모든 직원의 급여명세서를 엑셀 파일로 일괄 업로드할 수 있습니다.
-                  </p>
+              <div class="mb-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-2">엑셀 일괄 업로드</h3>
+                <p class="text-sm text-gray-600">
+                  급여대장 엑셀 파일을 업로드하여 모든 직원의 급여명세서를 일괄 생성할 수 있습니다.
+                </p>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- 급여대장 업로드 -->
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <h4 class="font-medium text-blue-900">급여대장 업로드</h4>
+                      <p class="text-sm text-blue-700 mt-1">
+                        급여대장 엑셀 파일을 업로드하여 급여명세서를 생성합니다.
+                      </p>
+                    </div>
+                    <PayrollUploader />
+                  </div>
                 </div>
-                <PayslipUploader />
+
+                <!-- 기존 급여명세서 업로드 -->
+                <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <h4 class="font-medium text-green-900">급여명세서 업로드</h4>
+                      <p class="text-sm text-green-700 mt-1">
+                        기존 급여명세서 템플릿을 사용하여 업로드합니다.
+                      </p>
+                    </div>
+                    <PayslipUploader />
+                  </div>
+                </div>
               </div>
             </div>
 

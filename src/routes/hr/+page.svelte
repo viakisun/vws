@@ -431,8 +431,10 @@
   const fetchJobTitles = () => hrDashboardStore.fetchJobTitles()
 
   // 컴포넌트 마운트 시 데이터 로드
-  function initializeData() {
-    hrDashboardStore.initialize()
+  async function initializeData() {
+    console.log('🔍 initializeData 시작')
+    await hrDashboardStore.initialize()
+    console.log('✅ hrDashboardStore.initialize 완료')
     loadContracts() // 급여 계약 데이터 로드
   }
 
@@ -444,6 +446,7 @@
       case 'employees':
         logger.log('Loading employees data...')
         hrDashboardStore.fetchEmployees()
+        hrDashboardStore.fetchPositions() // 직원 수정 모달에서 필요
         break
       case 'departments':
         logger.log('Loading departments data...')
@@ -712,9 +715,16 @@
     currentPage = 1
   }
 
+  // positions 상태 변경 감지
+  $effect(() => {
+    console.log('🔍 HR 페이지에서 positions 상태 변경 감지')
+    console.log('📊 현재 positions:', positions)
+    console.log('📊 positions 개수:', positions.length)
+  })
+
   // 컴포넌트 마운트 시 초기화
-  onMount(() => {
-    initializeData()
+  onMount(async () => {
+    await initializeData()
     syncTabFromURL()
     setupHRTabListener()
     loadTabData(activeTab)
@@ -728,8 +738,21 @@
 
   // 직원 수정 모달 열기
   function openEditEmployeeModal(employee: Employee) {
+    console.log('🔍 2단계: 직원 수정 모달 열기 시작')
+    console.log('👤 선택된 직원:', employee)
+    console.log('📊 현재 positions 데이터:', positions)
+    console.log('📊 positions 개수:', positions.length)
+
+    // positions가 비어있으면 다시 로드 시도
+    if (positions.length === 0) {
+      console.log('⚠️ positions가 비어있음. 다시 로드 시도...')
+      hrDashboardStore.fetchPositions()
+    }
+
     selectedEmployee = employee
     showEmployeeModal = true
+
+    console.log('✅ 직원 수정 모달 열림 완료')
   }
 
   // 직원 삭제 모달 열기

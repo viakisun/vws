@@ -193,7 +193,7 @@
   async function loadEmployeeList() {
     try {
       console.log('HR API 호출 시작...')
-      const response = await fetch('/api/hr/employees')
+      const response = await fetch('/api/hr/employees?limit=100')
       console.log('응답 상태:', response.status, response.statusText)
 
       if (!response.ok) {

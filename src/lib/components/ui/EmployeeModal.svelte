@@ -101,6 +101,9 @@
 
   // 직원 데이터가 변경될 때 폼 데이터 업데이트
   function _updateFormDataFromEmployee() {
+    console.log('🔍 3단계: EmployeeModal에서 폼 데이터 업데이트 시작')
+    console.log('👤 받은 직원 데이터:', employee)
+
     if (employee) {
       logger.log('Employee data loaded:', employee)
       logger.log('Available positions:', positions)
@@ -127,6 +130,8 @@
       // 수정 모드에서는 전체 이름을 조합해서 표시
       fullName = formatEmployeeName(employee)
 
+      console.log('📝 설정된 폼 데이터:', formData)
+      console.log('📝 전체 이름:', fullName)
       logger.log('Form data set:', formData)
       logger.log('Filtered positions:', filteredPositions)
     } else {
@@ -145,8 +150,23 @@
       formData.employment_type = 'full-time'
       formData.job_title_id = ''
       fullName = ''
+
+      console.log('📝 새 직원용 기본 폼 데이터:', formData)
     }
+    console.log('✅ 폼 데이터 업데이트 완료')
   }
+
+  // employee prop이 변경될 때마다 폼 데이터 업데이트
+  $effect(() => {
+    _updateFormDataFromEmployee()
+  })
+
+  // positions prop이 변경될 때마다 로그 출력
+  $effect(() => {
+    console.log('🔍 4단계: EmployeeModal에서 positions 데이터 확인')
+    console.log('📊 받은 positions:', positions)
+    console.log('📊 positions 개수:', positions.length)
+  })
 
   // 부서별 직급 매핑
   const _departmentPositionMapping = {
@@ -157,11 +177,17 @@
     경영기획팀: '연구개발',
   }
 
-  // 모든 직급 표시 (임시로 필터링 제거)
-  let filteredPositions = $derived(() => {
+  // positions 변경 감지 및 로깅
+  $effect(() => {
+    console.log('🔍 EmployeeModal positions 변경 감지')
+    console.log('📊 받은 positions:', positions)
+    console.log('📊 positions 타입:', typeof positions)
+    console.log('📊 positions 길이:', positions?.length)
     logger.log('All positions:', positions)
-    return positions
   })
+
+  // 모든 직급 표시 (임시로 필터링 제거)
+  let filteredPositions = $derived(positions || [])
 
   // 상태 옵션
   const statusOptions = [
@@ -398,7 +424,9 @@
             <option value="">직급을 선택하세요</option>
             {#each filteredPositions as pos, idx (idx)}
               <!-- TODO: replace index key with a stable id when model provides one -->
-              <option value={pos.name}>{pos.name} ({pos.department})</option>
+              <option value={pos.name || pos.title}
+                >{pos.name || pos.title} ({pos.department})</option
+              >
             {/each}
           </select>
           <!-- 디버깅 정보 -->

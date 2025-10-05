@@ -2,8 +2,8 @@
   import Badge from '$lib/components/ui/Badge.svelte'
   import Card from '$lib/components/ui/Card.svelte'
   import Modal from '$lib/components/ui/Modal.svelte'
-  import { formatDate } from '$lib/utils/format'
   import { getCurrentUTC } from '$lib/utils/date-handler'
+  import { formatDate } from '$lib/utils/format'
   import { onMount } from 'svelte'
 
   import {
@@ -35,7 +35,7 @@
   let sortOrder = $state<'asc' | 'desc'>('asc')
 
   // 필터링된 직원 목록
-  let filteredEmployees = $derived((): Employee[] => {
+  let filteredEmployees = $derived(() => {
     let filtered = $employees
 
     // 검색 필터
@@ -168,12 +168,39 @@
   }
 
   function openEditModal(employee: Employee) {
+    console.log('🔍 2단계: 수정 모달 열기 시작')
+    console.log('👤 선택된 직원:', employee)
+
     selectedEmployee = employee
     formData = {
-      ...employee,
+      employeeId: employee.employeeId || '',
+      name: employee.name || '',
+      email: employee.email || '',
+      phone: employee.phone || '',
+      address: employee.address || '',
+      department: employee.department || '',
+      position: employee.position || '',
+      level: employee.level || 'mid',
+      employmentType: employee.employmentType || 'full-time',
+      hireDate: employee.hireDate || '',
+      status: employee.status || 'active',
       managerId: employee.managerId || '',
+      emergencyContact: employee.emergencyContact || {
+        name: '',
+        relationship: '',
+        phone: '',
+      },
+      personalInfo: employee.personalInfo || {
+        birthDate: '',
+        gender: 'male',
+        nationality: '한국',
+        maritalStatus: 'single',
+      },
     }
+
+    console.log('📝 설정된 폼 데이터:', formData)
     isEditModalOpen = true
+    console.log('✅ 수정 모달 열림 완료')
   }
 
   function openViewModal(employee: Employee) {
@@ -277,8 +304,60 @@
     }
   }
 
-  onMount(() => {
+  onMount(async () => {
     // 초기 데이터 로드
+    console.log('🔍 1단계: 직원 데이터 로딩 시작')
+    try {
+      const response = await fetch('/api/employees')
+      const result = await response.json()
+
+      console.log('📡 API 응답:', result)
+
+      if (result.success && result.data) {
+        console.log('📊 원본 데이터:', result.data)
+
+        // DatabaseEmployee를 Employee 타입으로 변환
+        const convertedEmployees = result.data.map((dbEmp: any) => ({
+          id: dbEmp.id,
+          employeeId: dbEmp.employee_id,
+          name: `${dbEmp.first_name} ${dbEmp.last_name}`,
+          email: dbEmp.email,
+          phone: dbEmp.phone || '',
+          address: '',
+          department: dbEmp.department || '',
+          position: dbEmp.position || '',
+          level: 'mid' as Employee['level'],
+          employmentType: (dbEmp.employment_type || 'full-time') as Employee['employmentType'],
+          hireDate: dbEmp.hire_date || '',
+          birthDate: dbEmp.birth_date || '',
+          status: (dbEmp.status || 'active') as Employee['status'],
+          managerId: '',
+          profileImage: '',
+          emergencyContact: {
+            name: '',
+            relationship: '',
+            phone: '',
+          },
+          personalInfo: {
+            birthDate: dbEmp.birth_date || '',
+            gender: 'male' as Employee['personalInfo']['gender'],
+            nationality: '한국',
+            maritalStatus: 'single' as Employee['personalInfo']['maritalStatus'],
+          },
+          createdAt: dbEmp.created_at,
+          updatedAt: dbEmp.updated_at,
+          terminationDate: dbEmp.termination_date || '',
+        }))
+
+        console.log('🔄 변환된 데이터:', convertedEmployees)
+        employees.set(convertedEmployees)
+        console.log('✅ 직원 데이터 설정 완료, 총', convertedEmployees.length, '명')
+      } else {
+        console.error('❌ API 응답 실패:', result.error)
+      }
+    } catch (error) {
+      console.error('❌ 직원 데이터 로드 실패:', error)
+    }
   })
 </script>
 
@@ -438,7 +517,7 @@
             </tr>
           </thead>
           <tbody class="bg-white divide-y divide-gray-200">
-            {#each filteredEmployees as employee, i (i)}
+            {#each filteredEmployees() as employee, i (i)}
               <tr class="hover:bg-gray-50">
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                   {employee.employeeId}

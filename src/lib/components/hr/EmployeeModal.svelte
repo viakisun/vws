@@ -112,6 +112,9 @@
 
   // 직원 데이터가 변경될 때 폼 데이터 초기화
   function _updateData() {
+    console.log('🔍 3단계: EmployeeModal에서 폼 데이터 업데이트 시작')
+    console.log('👤 받은 직원 데이터:', employee)
+
     if (employee) {
       formData = {
         ...employee,
@@ -127,6 +130,7 @@
           maritalStatus: 'single',
         },
       }
+      console.log('📝 설정된 폼 데이터:', formData)
     } else {
       // 새 직원 추가 시 기본값 설정
       formData = {
@@ -153,8 +157,15 @@
           maritalStatus: 'single',
         },
       }
+      console.log('📝 새 직원용 기본 폼 데이터:', formData)
     }
+    console.log('✅ 폼 데이터 업데이트 완료')
   }
+
+  // employee prop이 변경될 때마다 폼 데이터 업데이트
+  $effect(() => {
+    _updateData()
+  })
 
   // 폼 유효성 검사
   function validateForm(): boolean {

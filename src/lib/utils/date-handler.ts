@@ -32,56 +32,281 @@ export const DATE_FORMATS = {
   KOREAN: 'YYYY년 MM월 DD일', // 2025년 01월 15일
 } as const
 
+export type DateFormatType = keyof typeof DATE_FORMATS
+
 /**
  * 시간대 상수
  */
-const SEOUL_TIMEZONE = 'Asia/Seoul'
-const SEOUL_OFFSET = '+09:00'
+const TIMEZONE_CONFIG = {
+  SEOUL: 'Asia/Seoul',
+  SEOUL_OFFSET: '+09:00',
+  EXCEL_EPOCH: 25569, // Excel date threshold
+} as const
+
+/**
+ * 날짜 패턴 정규식
+ */
+const DATE_PATTERNS = {
+  KOREAN_DOT: /^\d{4}\.\s*\d{1,2}\.\s*\d{1,2}\.?$/, // 2025. 08. 31.
+  ISO_DATE: /^\d{4}-\d{1,2}-\d{1,2}$/, // 2025-08-31
+  ISO_DATETIME: /^\d{4}-\d{1,2}-\d{1,2}\s+\d{1,2}:\d{1,2}:\d{1,2}$/, // 2025-04-07 11:37:29
+  US_DATE: /^\d{1,2}\/\d{1,2}\/\d{4}$/, // 08/31/2025
+  SLASH_DATETIME: /^\d{4}\/\d{1,2}\/\d{1,2}\s+\d{1,2}:\d{1,2}:\d{1,2}$/, // 2025/04/07 11:37:29
+  SIMPLE_DOT: /^\d{4}\.\d{1,2}\.\d{1,2}$/, // 2025.08.31
+} as const
 
 // =============================================
-// 핵심 함수들 (5개만 유지)
+// Private Helper Functions
 // =============================================
 
 /**
- * 날짜 문자열이 유효한 형식인지 검증
+ * Check if a date string matches any valid pattern
  */
 function isValidDateString(dateStr: string): boolean {
   const trimmed = dateStr.trim()
   if (!trimmed) return false
 
-  // 기본 Date 생성자로 시도
+  // Try basic Date constructor
   const testDate = new Date(trimmed)
   if (!isNaN(testDate.getTime())) return true
 
-  // 한국식 형식들 시도
-  const patterns = [
-    /^\d{4}\.\s*\d{1,2}\.\s*\d{1,2}\.?$/, // 2025. 08. 31.
-    /^\d{4}-\d{1,2}-\d{1,2}$/, // 2025-08-31
-    /^\d{4}-\d{1,2}-\d{1,2}\s+\d{1,2}:\d{1,2}:\d{1,2}$/, // 2025-04-07 11:37:29
-    /^\d{1,2}\/\d{1,2}\/\d{4}$/, // 08/31/2025
-    /^\d{4}\/\d{1,2}\/\d{1,2}\s+\d{1,2}:\d{1,2}:\d{1,2}$/, // 2025/04/07 11:37:29
-    /^\d{4}\.\d{1,2}\.\d{1,2}$/, // 2025.08.31
-  ]
-
-  return patterns.some((pattern) => pattern.test(trimmed))
+  // Test against known patterns
+  return Object.values(DATE_PATTERNS).some((pattern) => pattern.test(trimmed))
 }
 
 /**
- * 날짜 변환 테스트 함수 (개발용)
+ * Convert Excel serial date to JavaScript Date
+ */
+function excelSerialToDate(serial: number): Date {
+  const excelEpoch = new Date(1900, 0, 1)
+  return new Date(excelEpoch.getTime() + (serial - 2) * 24 * 60 * 60 * 1000)
+}
+
+/**
+ * Convert Unix timestamp to JavaScript Date
+ */
+function unixTimestampToDate(timestamp: number): Date {
+  return new Date(timestamp * 1000)
+}
+
+/**
+ * Parse numeric date (Excel or Unix timestamp)
+ */
+function parseNumericDate(num: number): Date {
+  return num > TIMEZONE_CONFIG.EXCEL_EPOCH ? excelSerialToDate(num) : unixTimestampToDate(num)
+}
+
+/**
+ * Create Seoul timezone date string
+ */
+function createSeoulDateString(
+  year: string,
+  month: string,
+  day: string,
+  time = '00:00:00',
+): string {
+  const paddedMonth = month.padStart(2, '0')
+  const paddedDay = day.padStart(2, '0')
+  return `${year}-${paddedMonth}-${paddedDay}T${time}${TIMEZONE_CONFIG.SEOUL_OFFSET}`
+}
+
+/**
+ * Parse Korean dot format (YYYY.MM.DD)
+ */
+function parseKoreanDotFormat(dateStr: string): Date {
+  const parts = dateStr
+    .split('.')
+    .map((part) => part.trim())
+    .filter((part) => part !== '')
+
+  if (parts.length < 3) {
+    throw new Error(`Invalid Korean dot format: ${dateStr}`)
+  }
+
+  const [year, month, day] = parts
+  return new Date(createSeoulDateString(year, month, day))
+}
+
+/**
+ * Parse ISO format with optional time (YYYY-MM-DD or YYYY-MM-DD HH:MM:SS)
+ */
+function parseISOFormat(dateStr: string): Date {
+  if (dateStr.includes(' ')) {
+    // Has time component
+    return new Date(`${dateStr.replace(' ', 'T')}${TIMEZONE_CONFIG.SEOUL_OFFSET}`)
+  }
+
+  // Date only
+  const parts = dateStr.split('-').map((part) => part.trim())
+  if (parts.length < 3) {
+    throw new Error(`Invalid ISO format: ${dateStr}`)
+  }
+
+  const [year, month, day] = parts
+  return new Date(createSeoulDateString(year, month, day))
+}
+
+/**
+ * Parse slash format (MM/DD/YYYY or YYYY/MM/DD HH:MM:SS)
+ */
+function parseSlashFormat(dateStr: string): Date {
+  if (dateStr.includes(' ')) {
+    // YYYY/MM/DD HH:MM:SS format
+    const isoFormat = `${dateStr.replace(' ', 'T').replace(/\//g, '-')}${TIMEZONE_CONFIG.SEOUL_OFFSET}`
+    return new Date(isoFormat)
+  }
+
+  // MM/DD/YYYY format
+  const parts = dateStr.split('/').map((part) => part.trim())
+  if (parts.length !== 3) {
+    throw new Error(`Invalid slash format: ${dateStr}`)
+  }
+
+  const [month, day, year] = parts
+  return new Date(createSeoulDateString(year, month, day))
+}
+
+/**
+ * Parse ISO 8601 with timezone
+ */
+function parseISO8601(dateStr: string): Date {
+  if (dateStr.includes('+') || dateStr.includes('Z') || dateStr.includes('-', 10)) {
+    return new Date(dateStr)
+  }
+  // No timezone info - interpret as Seoul time
+  return new Date(`${dateStr}${TIMEZONE_CONFIG.SEOUL_OFFSET}`)
+}
+
+/**
+ * Fallback parser for unrecognized formats
+ */
+function parseFallbackFormat(dateStr: string): Date {
+  const tempDate = new Date(dateStr)
+  if (isNaN(tempDate.getTime())) {
+    return tempDate
+  }
+
+  // Re-interpret as Seoul time
+  const year = tempDate.getFullYear()
+  const month = String(tempDate.getMonth() + 1)
+  const day = String(tempDate.getDate())
+  return new Date(createSeoulDateString(String(year), month, day))
+}
+
+/**
+ * Parse string date into Date object (interpreted as Seoul time)
+ */
+function parseStringDate(dateStr: string): Date {
+  const trimmed = dateStr.trim()
+  if (!trimmed) {
+    throw new Error('Empty date string')
+  }
+
+  if (!isValidDateString(trimmed)) {
+    throw new Error(`Invalid date format: ${trimmed}`)
+  }
+
+  // ISO 8601 with T separator
+  if (trimmed.includes('T')) {
+    return parseISO8601(trimmed)
+  }
+
+  // Korean dot format
+  if (trimmed.includes('.')) {
+    return parseKoreanDotFormat(trimmed)
+  }
+
+  // ISO format with dash
+  if (trimmed.includes('-')) {
+    return parseISOFormat(trimmed)
+  }
+
+  // Slash format
+  if (trimmed.includes('/')) {
+    return parseSlashFormat(trimmed)
+  }
+
+  // Fallback to default parsing
+  return parseFallbackFormat(trimmed)
+}
+
+/**
+ * Convert date input to Date object
+ */
+function convertToDateObject(date: DateInputFormat): Date {
+  if (date instanceof Date) {
+    return date
+  }
+
+  if (typeof date === 'number') {
+    return parseNumericDate(date)
+  }
+
+  return parseStringDate(String(date))
+}
+
+/**
+ * Convert Date to Seoul timezone
+ */
+function convertToSeoulTime(date: Date): Date {
+  const seoulString = date.toLocaleString('en-US', { timeZone: TIMEZONE_CONFIG.SEOUL })
+  return new Date(seoulString)
+}
+
+/**
+ * Extract date components from Date object
+ */
+function extractDateComponents(date: Date): { year: string; month: string; day: string } {
+  return {
+    year: String(date.getFullYear()),
+    month: String(date.getMonth() + 1).padStart(2, '0'),
+    day: String(date.getDate()).padStart(2, '0'),
+  }
+}
+
+/**
+ * Format date components according to specified format
+ */
+function formatDateComponents(
+  year: string,
+  month: string,
+  day: string,
+  format: DateFormatType,
+): string {
+  switch (format) {
+    case 'FULL':
+      return `${year}. ${month}. ${day}.`
+    case 'SHORT':
+      return `${month}/${day}`
+    case 'ISO':
+      return `${year}-${month}-${day}`
+    case 'KOREAN':
+      return `${year}년 ${month}월 ${day}일`
+    default:
+      return `${year}. ${month}. ${day}.`
+  }
+}
+
+// =============================================
+// Public API Functions
+// =============================================
+
+/**
+ * Test date conversion (Development only)
  */
 export function testDateConversion(testDates: string[]): void {
-  console.log('🧪 날짜 변환 테스트 시작...')
+  logger.log('🧪 날짜 변환 테스트 시작...')
   testDates.forEach((dateStr) => {
     try {
       const result = toUTC(dateStr)
-      console.log(`✅ ${dateStr} → ${result}`)
+      logger.log(`✅ ${dateStr} → ${result}`)
     } catch (error) {
-      console.log(
+      logger.log(
         `❌ ${dateStr} → Error: ${error instanceof Error ? error.message : 'Unknown error'}`,
       )
     }
   })
-  console.log('🧪 날짜 변환 테스트 완료')
+  logger.log('🧪 날짜 변환 테스트 완료')
 }
 
 /**
@@ -94,111 +319,12 @@ export function toUTC(date: DateInputFormat): StandardDate {
   if (!date) return '' as StandardDate
 
   try {
-    let dateObj: Date
-
-    if (date instanceof Date) {
-      dateObj = date
-    } else if (typeof date === 'number') {
-      // Excel 날짜 또는 Unix timestamp 처리
-      if (date > 25569) {
-        // Excel 날짜 (1900-01-01 기준)
-        const excelEpoch = new Date(1900, 0, 1)
-        dateObj = new Date(excelEpoch.getTime() + (date - 2) * 24 * 60 * 60 * 1000)
-      } else {
-        // Unix timestamp
-        dateObj = new Date(date * 1000)
-      }
-    } else {
-      // 문자열 처리 - 서울 시간대로 해석하여 UTC로 변환
-      const dateStr = String(date).trim()
-      if (!dateStr) return '' as StandardDate
-
-      // 날짜 형식 검증
-      if (!isValidDateString(dateStr)) {
-        throw new Error(`Invalid date format: ${dateStr}`)
-      }
-
-      if (dateStr.includes('T')) {
-        // ISO 8601 형식
-        if (dateStr.includes('+') || dateStr.includes('Z') || dateStr.includes('-', 10)) {
-          dateObj = new Date(dateStr)
-        } else {
-          // 시간대 정보가 없으면 서울 시간대로 해석
-          dateObj = new Date(`${dateStr}${SEOUL_OFFSET}`)
-        }
-      } else if (dateStr.includes('.')) {
-        // YYYY.MM.DD 형식 - 서울 시간대 자정으로 해석
-        const parts = dateStr
-          .split('.')
-          .map((part) => part.trim())
-          .filter((part) => part !== '')
-        if (parts.length >= 3) {
-          const [year, month, day] = parts
-          dateObj = new Date(
-            `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}T00:00:00${SEOUL_OFFSET}`,
-          )
-        } else {
-          throw new Error(`Invalid date format: ${dateStr}`)
-        }
-      } else if (dateStr.includes('-')) {
-        // YYYY-MM-DD 또는 YYYY-MM-DD HH:MM:SS 형식 처리
-        if (dateStr.includes(' ')) {
-          // YYYY-MM-DD HH:MM:SS 형식 - 서울 시간대로 해석
-          dateObj = new Date(`${dateStr.replace(' ', 'T')}${SEOUL_OFFSET}`)
-        } else {
-          // YYYY-MM-DD 형식 - 서울 시간대 자정으로 해석
-          const parts = dateStr
-            .split('-')
-            .map((part) => part.trim())
-            .filter((part) => part !== '')
-          if (parts.length >= 3) {
-            const [year, month, day] = parts
-            dateObj = new Date(
-              `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}T00:00:00${SEOUL_OFFSET}`,
-            )
-          } else {
-            throw new Error(`Invalid date format: ${dateStr}`)
-          }
-        }
-      } else if (dateStr.includes('/')) {
-        // MM/DD/YYYY 또는 YYYY/MM/DD HH:MM:SS 형식 처리
-        if (dateStr.includes(' ')) {
-          // YYYY/MM/DD HH:MM:SS 형식 - 서울 시간대로 해석
-          dateObj = new Date(`${dateStr.replace(' ', 'T').replace(/\//g, '-')}${SEOUL_OFFSET}`)
-        } else {
-          // MM/DD/YYYY 형식 - 서울 시간대 자정으로 해석
-          const parts = dateStr
-            .split('/')
-            .map((part) => part.trim())
-            .filter((part) => part !== '')
-          if (parts.length === 3) {
-            const [month, day, year] = parts
-            dateObj = new Date(
-              `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}T00:00:00${SEOUL_OFFSET}`,
-            )
-          } else {
-            throw new Error(`Invalid date format: ${dateStr}`)
-          }
-        }
-      } else {
-        // 기본 Date 생성자 사용 후 서울 시간대로 재해석
-        const tempDate = new Date(dateStr)
-        if (!isNaN(tempDate.getTime())) {
-          const year = tempDate.getFullYear()
-          const month = String(tempDate.getMonth() + 1).padStart(2, '0')
-          const day = String(tempDate.getDate()).padStart(2, '0')
-          dateObj = new Date(`${year}-${month}-${day}T00:00:00${SEOUL_OFFSET}`)
-        } else {
-          dateObj = tempDate
-        }
-      }
-    }
+    const dateObj = convertToDateObject(date)
 
     if (isNaN(dateObj.getTime())) {
       throw new Error(`Invalid date: ${date}`)
     }
 
-    // UTC로 변환하여 ISO 문자열 반환
     return dateObj.toISOString() as StandardDate
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
@@ -215,73 +341,43 @@ export function toUTC(date: DateInputFormat): StandardDate {
  */
 export function formatDateForDisplay(
   utcDate: StandardDate | string,
-  format: keyof typeof DATE_FORMATS = 'FULL',
+  format: DateFormatType = 'FULL',
 ): string {
   if (!utcDate) return ''
 
   try {
-    // 날짜 형식 정규화
-    let normalizedDate = utcDate.toString().trim()
-
-    // YYYY. MM. DD. 형식을 YYYY-MM-DD로 변환 (공백 제거 포함)
-    if (normalizedDate.includes('.')) {
-      normalizedDate = normalizedDate
-        .replace(/\s+/g, '') // 모든 공백 제거
-        .replace(/\./g, '-') // 점을 하이픈으로 변환
-        .replace(/-$/, '') // 끝의 하이픈 제거
-    }
-
-    // 이미 ISO 형식인지 확인
+    const normalizedDate = normalizeDisplayDate(utcDate.toString())
     const date = new Date(normalizedDate)
+
     if (isNaN(date.getTime())) {
-      // 다른 형식 시도
-      const altDate = new Date(utcDate.toString())
-      if (isNaN(altDate.getTime())) {
-        logger.warn('Invalid UTC date for display:', utcDate)
-        return ''
-      }
-      // altDate 사용
-      const year = altDate.getFullYear()
-      const month = String(altDate.getMonth() + 1).padStart(2, '0')
-      const day = String(altDate.getDate()).padStart(2, '0')
-
-      switch (format) {
-        case 'FULL':
-          return `${year}. ${month}. ${day}.`
-        case 'SHORT':
-          return `${month}/${day}`
-        case 'ISO':
-          return `${year}-${month}-${day}`
-        case 'KOREAN':
-          return `${year}년 ${month}월 ${day}일`
-        default:
-          return `${year}. ${month}. ${day}.`
-      }
+      logger.warn('Invalid UTC date for display:', utcDate)
+      return ''
     }
 
-    // 서울 시간대로 변환
-    const localDate = new Date(date.toLocaleString('en-US', { timeZone: SEOUL_TIMEZONE }))
+    const seoulDate = convertToSeoulTime(date)
+    const { year, month, day } = extractDateComponents(seoulDate)
 
-    const year = localDate.getFullYear()
-    const month = String(localDate.getMonth() + 1).padStart(2, '0')
-    const day = String(localDate.getDate()).padStart(2, '0')
-
-    switch (format) {
-      case 'FULL':
-        return `${year}. ${month}. ${day}.`
-      case 'SHORT':
-        return `${month}/${day}`
-      case 'ISO':
-        return `${year}-${month}-${day}`
-      case 'KOREAN':
-        return `${year}년 ${month}월 ${day}일`
-      default:
-        return `${year}. ${month}. ${day}.`
-    }
+    return formatDateComponents(year, month, day, format)
   } catch (error) {
     logger.error('Date display formatting error:', error, 'for date:', utcDate)
     return ''
   }
+}
+
+/**
+ * Normalize display date format (handles YYYY. MM. DD. format)
+ */
+function normalizeDisplayDate(dateStr: string): string {
+  let normalized = dateStr.trim()
+
+  if (normalized.includes('.')) {
+    normalized = normalized
+      .replace(/\s+/g, '') // Remove all whitespace
+      .replace(/\./g, '-') // Convert dots to dashes
+      .replace(/-$/, '') // Remove trailing dash
+  }
+
+  return normalized
 }
 
 /**
@@ -299,12 +395,8 @@ export function formatDateForInput(utcDate: StandardDate | string): string {
       return ''
     }
 
-    // 서울 시간대로 변환하여 YYYY-MM-DD 형식으로 반환
-    const localDate = new Date(date.toLocaleString('en-US', { timeZone: SEOUL_TIMEZONE }))
-
-    const year = localDate.getFullYear()
-    const month = String(localDate.getMonth() + 1).padStart(2, '0')
-    const day = String(localDate.getDate()).padStart(2, '0')
+    const seoulDate = convertToSeoulTime(date)
+    const { year, month, day } = extractDateComponents(seoulDate)
 
     return `${year}-${month}-${day}`
   } catch (error) {
@@ -328,14 +420,10 @@ export function formatDateTimeForInput(utcDate: StandardDate | string): string {
       return ''
     }
 
-    // 서울 시간대로 변환하여 YYYY-MM-DDTHH:MM 형식으로 반환
-    const localDate = new Date(date.toLocaleString('en-US', { timeZone: SEOUL_TIMEZONE }))
-
-    const year = localDate.getFullYear()
-    const month = String(localDate.getMonth() + 1).padStart(2, '0')
-    const day = String(localDate.getDate()).padStart(2, '0')
-    const hours = String(localDate.getHours()).padStart(2, '0')
-    const minutes = String(localDate.getMinutes()).padStart(2, '0')
+    const seoulDate = convertToSeoulTime(date)
+    const { year, month, day } = extractDateComponents(seoulDate)
+    const hours = String(seoulDate.getHours()).padStart(2, '0')
+    const minutes = String(seoulDate.getMinutes()).padStart(2, '0')
 
     return `${year}-${month}-${day}T${hours}:${minutes}`
   } catch (error) {

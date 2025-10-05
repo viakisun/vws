@@ -29,6 +29,12 @@
     { name: '재무관리', href: '/finance', icon: BanknoteIcon },
     { name: '급여관리', href: '/salary', icon: DollarSignIcon },
     { name: '인사관리', href: '/hr', icon: UsersIcon },
+    {
+      name: '연차관리',
+      href: '/hr/leave-management',
+      icon: CalendarIcon,
+      roles: ['ADMIN', 'MANAGER'],
+    },
     { name: '연구개발', href: '/project-management', icon: FlaskConicalIcon },
     { name: '영업관리', href: '/sales', icon: BriefcaseIcon },
     { name: '고객관리', href: '/crm', icon: BuildingIcon },
@@ -38,6 +44,11 @@
     { name: '메시지', href: '/messages', icon: MessageSquareIcon },
     { name: '설정', href: '/settings', icon: SettingsIcon },
   ]
+
+  // 사용자 역할에 따른 메뉴 필터링
+  let filteredNavigationItems = $derived(
+    navigationItems.filter((item) => !item.roles || item.roles.includes(user?.role || '')),
+  )
 
   function toggleCollapse() {
     isCollapsed = !isCollapsed
@@ -73,7 +84,7 @@
 
     <!-- Navigation -->
     <nav class="flex-1 px-3 py-4 space-y-1">
-      {#each navigationItems as item (item.name)}
+      {#each filteredNavigationItems as item (item.name)}
         {@const currentPath = $page?.url?.pathname || ''}
         {@const isCurrent =
           (item.href === '/' && currentPath === '/') ||

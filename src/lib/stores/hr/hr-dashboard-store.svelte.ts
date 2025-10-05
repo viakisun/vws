@@ -359,12 +359,25 @@ export class HRDashboardStore {
 
   async fetchPositions() {
     try {
+      console.log('🔍 fetchPositions 시작')
       const response = await fetch('/api/positions')
+      console.log('📡 API 응답 상태:', response.status)
+
       if (response.ok) {
         const result = (await response.json()) as Record<string, unknown>
-        this.positions = (result.data as Position[]) || (result.positions as Position[]) || []
+        console.log('📊 API 응답 데이터:', result)
+
+        const positionsData = (result.data as Position[]) || (result.positions as Position[]) || []
+        console.log('📊 파싱된 positions:', positionsData)
+        console.log('📊 positions 개수:', positionsData.length)
+
+        this.positions = positionsData
+        console.log('✅ positions 설정 완료:', this.positions.length)
+      } else {
+        console.error('❌ API 응답 실패:', response.status)
       }
     } catch (err) {
+      console.error('❌ fetchPositions 에러:', err)
       logger.error('Error fetching positions:', err)
     }
   }
