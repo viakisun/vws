@@ -29,6 +29,14 @@
   } from '@lucide/svelte'
   import { createEventDispatcher } from 'svelte'
 
+  // Import utility functions (will replace local duplicates incrementally)
+  import * as budgetUtilsImported from './utils/budgetUtils'
+  import * as memberUtilsImported from './utils/memberUtils'
+  import * as projectUtilsImported from './utils/projectUtils'
+  import * as evidenceUtilsImported from './utils/evidenceUtils'
+  import * as validationUtilsImported from './utils/validationUtils'
+  import type { ValidationIssue, MemberValidationStatus } from './utils/validationUtils'
+
   const dispatch = createEventDispatcher()
 
   // 예산 데이터 필드 접근 유틸리티 함수들
