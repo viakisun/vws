@@ -132,10 +132,21 @@
     addingMember: false, // addingMember
   })
 
-  let editingBudget = $state<any>(null)
-  let editingMember = $state<any>(null)
-  let deleteConfirmationCode = $state('')
   let budgetRefreshTrigger = $state(0)
+
+  // ============================================================
+  // Phase B-4: Selected Items Group
+  // ============================================================
+  let selectedItems = $state({
+    budget: null as any, // selectedItems.budget
+    member: null as any, // selectedItems.member
+    budgetForEvidence: null as any, // selectedBudgetForEvidence
+    budgetForRestore: null as any, // selectedBudgetForRestore
+    evidenceItem: null as any, // selectedEvidenceItem
+    evidencePeriod: 1, // selectedItems.evidencePeriod
+    deleteCode: '', // selectedItems.deleteCode
+    budgetUpdateData: null as any, // selectedItems.budgetUpdateData
+  })
 
   // ============================================================
   // Phase B-3: Form Data Group
@@ -227,17 +238,10 @@
   let isPersonnelSummaryExpanded = $state(false)
 
   // ============================================================
-  // Selected Items & Data States
+  // Data Lists & References
   // ============================================================
-  let selectedBudgetForEvidence = $state<any>(null)
   let _evidenceList = $state<any[]>([])
-  let selectedEvidencePeriod = $state(1)
   let evidenceRefreshKey = $state(0)
-
-  let budgetUpdateValidationData = $state<any>(null)
-
-  let selectedBudgetForRestore = $state<any>(null)
-  let selectedEvidenceItem = $state<any>(null)
   let _evidenceTypes = $state<any[]>([])
   let expandedEvidenceSections = $state({
     personnel: true,
@@ -301,7 +305,7 @@
     if (
       !forms.newEvidence.assigneeId ||
       !forms.newEvidence.dueDate ||
-      !selectedBudgetForEvidence?.id
+      !selectedItems.budgetForEvidence?.id
     ) {
       evidenceValidation = null
       return
@@ -324,7 +328,7 @@
         body: JSON.stringify({
           assigneeId: forms.newEvidence.assigneeId,
           dueDate: forms.newEvidence.dueDate,
-          projectBudgetId: selectedBudgetForEvidence.id,
+          projectBudgetId: selectedItems.budgetForEvidence.id,
         }),
       })
 
@@ -615,7 +619,7 @@
   // 멤버 추가 시작
   function startAddMember() {
     loadingStates.addingMember = true
-    editingMember = null
+    selectedItems.member = null
     resetMemberForm()
   }
 
@@ -627,7 +631,7 @@
 
   // 멤버 수정 시작
   function editMember(member: any) {
-    editingMember = member
+    selectedItems.member = member
 
     // 디버깅: 멤버 데이터 확인
     logger.log('editMember - member data:', member)
@@ -684,13 +688,13 @@
 
   // 멤버 수정 취소
   function cancelEditMember() {
-    editingMember = null
+    selectedItems.member = null
     resetMemberForm()
   }
 
   // 멤버 수정 완료
   async function updateMember() {
-    if (!editingMember) return
+    if (!selectedItems.member) return
 
     // 참여율 검증
     if (forms.member.participationRate < 0 || forms.member.participationRate > 100) {
@@ -725,7 +729,7 @@
       const formattedEndDate = convertDateToISO(forms.member.endDate)
 
       logger.log('참여연구원 수정 요청 데이터:', {
-        id: editingMember.id,
+        id: selectedItems.member.id,
         role: forms.member.role,
         startDate: formattedStartDate,
         endDate: formattedEndDate,
@@ -734,20 +738,23 @@
         inKindAmount: forms.member.inKindAmount,
       })
 
-      const response = await fetch(`/api/project-management/project-members/${editingMember.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          role: forms.member.role,
-          startDate: formattedStartDate,
-          endDate: formattedEndDate,
-          participationRate: forms.member.participationRate,
-          cashAmount: parseInt(forms.member.cashAmount || '0'),
-          inKindAmount: parseInt(forms.member.inKindAmount || '0'),
-          contractMonthlySalary: parseInt(forms.member.contractMonthlySalary || '0'),
-          participationMonths: forms.member.participationMonths || 0,
-        }),
-      })
+      const response = await fetch(
+        `/api/project-management/project-members/${selectedItems.member.id}`,
+        {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            role: forms.member.role,
+            startDate: formattedStartDate,
+            endDate: formattedEndDate,
+            participationRate: forms.member.participationRate,
+            cashAmount: parseInt(forms.member.cashAmount || '0'),
+            inKindAmount: parseInt(forms.member.inKindAmount || '0'),
+            contractMonthlySalary: parseInt(forms.member.contractMonthlySalary || '0'),
+            participationMonths: forms.member.participationMonths || 0,
+          }),
+        },
+      )
 
       logger.log('참여연구원 수정 응답 상태:', response.status)
 
@@ -755,7 +762,7 @@
         const result = await response.json()
         logger.log('참여연구원 수정 성공 응답:', result)
 
-        editingMember = null
+        selectedItems.member = null
         loadingStates.addingMember = false
         resetMemberForm()
 
@@ -800,7 +807,7 @@
 
   // 사업비 편집
   function editBudget(budget: any) {
-    editingBudget = budget
+    selectedItems.budget = budget
 
     // 중복된 formatDateForInput 함수 제거됨 - 상단의 유틸리티 함수 사용
 
@@ -834,7 +841,7 @@
 
   // 사업비 업데이트
   async function updateBudget() {
-    if (!editingBudget) return
+    if (!selectedItems.budget) return
 
     // 필수 필드 검증
     if (!forms.budget.startDate || !forms.budget.endDate) {
@@ -851,7 +858,7 @@
     try {
       // 1단계: 예산 수정 전 검증
       const validationResponse = await fetch(
-        `/api/project-management/project-budgets/${editingBudget.id}/validate-before-update`,
+        `/api/project-management/project-budgets/${selectedItems.budget.id}/validate-before-update`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -884,7 +891,7 @@
 
       if (validationResult.success && validationResult.data.hasWarnings) {
         // 검증 데이터 저장하고 확인 모달 표시
-        budgetUpdateValidationData = validationResult.data
+        selectedItems.budgetUpdateData = validationResult.data
         modalStates.budgetUpdateConfirm = true
         return
       }
@@ -899,37 +906,40 @@
 
   // 실제 예산 수정 실행 함수
   async function proceedWithBudgetUpdate() {
-    if (!editingBudget) return
+    if (!selectedItems.budget) return
 
     try {
-      const response = await fetch(`/api/project-management/project-budgets/${editingBudget.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          periodNumber: forms.budget.periodNumber,
-          startDate: forms.budget.startDate,
-          endDate: forms.budget.endDate,
-          // 현금 비목들 (천원 단위를 원 단위로 변환, 인건비는 100만원 단위로 조정)
-          personnelCostCash: fromThousands(forms.budget.personnelCostCash),
-          researchMaterialCostCash: fromThousands(forms.budget.researchMaterialCostCash),
-          researchActivityCostCash: fromThousands(forms.budget.researchActivityCostCash),
-          researchStipendCash: fromThousands(forms.budget.researchStipendCash),
-          indirectCostCash: fromThousands(forms.budget.indirectCostCash),
-          // 현물 비목들 (천원 단위를 원 단위로 변환)
-          personnelCostInKind: fromThousands(forms.budget.personnelCostInKind),
-          researchMaterialCostInKind: fromThousands(forms.budget.researchMaterialCostInKind),
-          researchActivityCostInKind: fromThousands(forms.budget.researchActivityCostInKind),
-          researchStipendInKind: fromThousands(forms.budget.researchStipendInKind),
-          indirectCostInKind: fromThousands(forms.budget.indirectCostInKind),
-        }),
-      })
+      const response = await fetch(
+        `/api/project-management/project-budgets/${selectedItems.budget.id}`,
+        {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            periodNumber: forms.budget.periodNumber,
+            startDate: forms.budget.startDate,
+            endDate: forms.budget.endDate,
+            // 현금 비목들 (천원 단위를 원 단위로 변환, 인건비는 100만원 단위로 조정)
+            personnelCostCash: fromThousands(forms.budget.personnelCostCash),
+            researchMaterialCostCash: fromThousands(forms.budget.researchMaterialCostCash),
+            researchActivityCostCash: fromThousands(forms.budget.researchActivityCostCash),
+            researchStipendCash: fromThousands(forms.budget.researchStipendCash),
+            indirectCostCash: fromThousands(forms.budget.indirectCostCash),
+            // 현물 비목들 (천원 단위를 원 단위로 변환)
+            personnelCostInKind: fromThousands(forms.budget.personnelCostInKind),
+            researchMaterialCostInKind: fromThousands(forms.budget.researchMaterialCostInKind),
+            researchActivityCostInKind: fromThousands(forms.budget.researchActivityCostInKind),
+            researchStipendInKind: fromThousands(forms.budget.researchStipendInKind),
+            indirectCostInKind: fromThousands(forms.budget.indirectCostInKind),
+          }),
+        },
+      )
 
       if (response.ok) {
         const result = await response.json()
         modalStates.budget = false
         modalStates.budgetUpdateConfirm = false
-        editingBudget = null
-        budgetUpdateValidationData = null
+        selectedItems.budget = null
+        selectedItems.budgetUpdateData = null
         forms.budget = {
           periodNumber: 1,
           startDate: '',
@@ -974,12 +984,12 @@
   // 예산 수정 확인 모달에서 취소
   function cancelBudgetUpdate() {
     modalStates.budgetUpdateConfirm = false
-    budgetUpdateValidationData = null
+    selectedItems.budgetUpdateData = null
   }
 
   // 연구개발비 복구 모달 열기
   function openRestoreModal(budget: any) {
-    selectedBudgetForRestore = budget
+    selectedItems.budgetForRestore = budget
     forms.restore = {
       personnelCostCash: '',
       personnelCostInKind: '',
@@ -998,11 +1008,11 @@
 
   // 연구개발비 복구 실행
   async function restoreResearchCosts() {
-    if (!selectedBudgetForRestore) return
+    if (!selectedItems.budgetForRestore) return
 
     try {
       const response = await fetch(
-        `/api/project-management/project-budgets/${selectedBudgetForRestore.id}/restore-research-costs`,
+        `/api/project-management/project-budgets/${selectedItems.budgetForRestore.id}/restore-research-costs`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -1025,7 +1035,7 @@
       if (response.ok) {
         const result = await response.json()
         modalStates.restore = false
-        selectedBudgetForRestore = null
+        selectedItems.budgetForRestore = null
         await loadProjectBudgets()
         budgetRefreshTrigger++
         dispatch('refresh')
@@ -1043,7 +1053,7 @@
   // 연구개발비 복구 모달 닫기
   function closeRestoreModal() {
     modalStates.restore = false
-    selectedBudgetForRestore = null
+    selectedItems.budgetForRestore = null
   }
 
   // 사업비 삭제
@@ -1125,7 +1135,7 @@
     if (!selectedProject) return
 
     // 삭제 확인 코드 검증 - 컴포넌트에서 이미 검증됨
-    if (deleteConfirmationCode !== selectedProject?.code) {
+    if (selectedItems.deleteCode !== selectedProject?.code) {
       alert('프로젝트 코드가 일치하지 않습니다. 정확한 코드를 입력해주세요.')
       return
     }
@@ -1140,7 +1150,7 @@
 
       if (response.ok && result.success) {
         modalStates.deleteConfirm = false
-        deleteConfirmationCode = '' // 삭제 후 코드 초기화
+        selectedItems.deleteCode = '' // 삭제 후 코드 초기화
         dispatch('project-deleted', { projectId: selectedProject.id })
         dispatch('refresh')
       } else {
@@ -1300,13 +1310,13 @@
 
   // 증빙 내역 모달 표시
   function _openEvidenceModal(budget) {
-    selectedBudgetForEvidence = budget
+    selectedItems.budgetForEvidence = budget
     modalStates.evidence = true
     loadEvidenceList(budget.id)
   }
 
   async function openEvidenceDetail(item) {
-    selectedEvidenceItem = item
+    selectedItems.evidenceItem = item
     modalStates.evidenceDetail = true
 
     // 증빙 항목 상세 정보 로드
@@ -1316,7 +1326,7 @@
         const result = await response.json()
 
         if (result.success) {
-          selectedEvidenceItem = result.data
+          selectedItems.evidenceItem = result.data
         }
       } catch (error) {
         logger.error('증빙 항목 상세 정보 로드 실패:', error)
@@ -1371,7 +1381,7 @@
     try {
       const currentBudget =
         projectBudgets.find(
-          (b) => budgetUtilsImported.getPeriodNumber(b) === selectedEvidencePeriod,
+          (b) => budgetUtilsImported.getPeriodNumber(b) === selectedItems.evidencePeriod,
         ) || projectBudgets[0]
 
       const response = await fetch('/api/project-management/evidence', {
@@ -1874,7 +1884,7 @@
                 {@const mismatchInfo = calculationUtilsImported.checkBudgetMismatch(
                   budget,
                   projectBudgets,
-                  selectedEvidencePeriod,
+                  selectedItems.evidencePeriod,
                 )}
                 <tr
                   class="hover:bg-gray-50 {mismatchInfo?.hasMismatch
@@ -2121,17 +2131,17 @@
       </div>
 
       <!-- 불일치 경고 섹션 -->
-      {#if projectBudgets.some((budget) => calculationUtilsImported.checkBudgetMismatch(budget, projectBudgets, selectedEvidencePeriod)?.hasMismatch)}
+      {#if projectBudgets.some((budget) => calculationUtilsImported.checkBudgetMismatch(budget, projectBudgets, selectedItems.evidencePeriod)?.hasMismatch)}
         <div class="mt-4 p-3 bg-red-50 border-l-4 border-red-400 rounded">
           <div class="text-sm text-red-700">
             <span class="font-medium">!</span>
             다음 연차의 예산과 연구개발비가 일치하지 않습니다:
             <div class="mt-2 space-y-1">
-              {#each projectBudgets.filter((budget) => calculationUtilsImported.checkBudgetMismatch(budget, projectBudgets, selectedEvidencePeriod)?.hasMismatch) as budget}
+              {#each projectBudgets.filter((budget) => calculationUtilsImported.checkBudgetMismatch(budget, projectBudgets, selectedItems.evidencePeriod)?.hasMismatch) as budget}
                 {@const mismatchInfo = calculationUtilsImported.checkBudgetMismatch(
                   budget,
                   projectBudgets,
-                  selectedEvidencePeriod,
+                  selectedItems.evidencePeriod,
                 )}
                 <div class="text-xs text-red-600">
                   {budgetUtilsImported.formatPeriodDisplay(budget)}: 예산 {formatNumber(
@@ -2165,11 +2175,11 @@
   <!-- 사업비 추가/편집 모달 -->
   <ProjectBudgetModal
     bind:open={modalStates.budget}
-    bind:editingBudget
+    editingBudget={selectedItems.budget}
     budgetForm={forms.budget}
     onclose={() => {
       modalStates.budget = false
-      editingBudget = null
+      selectedItems.budget = null
       forms.budget = {
         periodNumber: 1,
         startDate: '',
@@ -2186,10 +2196,10 @@
         indirectCostInKind: '',
       }
     }}
-    onsubmit={editingBudget ? updateBudget : addBudget}
+    onsubmit={selectedItems.budget ? updateBudget : addBudget}
     oncancel={() => {
       modalStates.budget = false
-      editingBudget = null
+      selectedItems.budget = null
       forms.budget = {
         periodNumber: 1,
         startDate: '',
@@ -2230,7 +2240,7 @@
         <ThemeButton
           onclick={startAddMember}
           size="sm"
-          disabled={loadingStates.addingMember || editingMember !== null}
+          disabled={loadingStates.addingMember || selectedItems.member !== null}
         >
           <PlusIcon size={16} class="mr-2" />
           연구원 추가
@@ -2279,7 +2289,7 @@
         <tbody class="bg-white divide-y divide-gray-200">
           {#each projectMembers as member, i (i)}
             <tr
-              class="hover:bg-gray-50 {editingMember && editingMember.id === member.id
+              class="hover:bg-gray-50 {selectedItems.member && selectedItems.member.id === member.id
                 ? 'bg-gradient-to-r from-blue-50 to-indigo-50 border-l-4 border-blue-400 shadow-sm'
                 : ''}"
             >
@@ -2307,7 +2317,7 @@
 
               <!-- 기간 -->
               <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900 w-40">
-                {#if editingMember && editingMember.id === member.id}
+                {#if selectedItems.member && selectedItems.member.id === member.id}
                   <div class="space-y-2">
                     <div class="flex items-center gap-2">
                       <span class="text-xs font-medium text-blue-700 w-8">시작:</span>
@@ -2348,7 +2358,7 @@
 
               <!-- 참여개월수 -->
               <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900 w-24 text-center">
-                {#if editingMember && editingMember.id === member.id}
+                {#if selectedItems.member && selectedItems.member.id === member.id}
                   <input
                     type="number"
                     value={forms.member.participationMonths ||
@@ -2375,7 +2385,7 @@
 
               <!-- 계약월급여 -->
               <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900 w-32 text-right">
-                {#if editingMember && editingMember.id === member.id}
+                {#if selectedItems.member && selectedItems.member.id === member.id}
                   <input
                     type="text"
                     value={formatNumber(forms.member.contractMonthlySalary, false)}
@@ -2425,7 +2435,7 @@
 
               <!-- 참여율 -->
               <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900 w-24">
-                {#if editingMember && editingMember.id === member.id}
+                {#if selectedItems.member && selectedItems.member.id === member.id}
                   <div class="relative">
                     <input
                       type="number"
@@ -2453,7 +2463,7 @@
 
               <!-- 현금 -->
               <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900 w-32 text-right">
-                {#if editingMember && editingMember.id === member.id}
+                {#if selectedItems.member && selectedItems.member.id === member.id}
                   <input
                     type="text"
                     value={formatNumber(forms.member.cashAmount || '0', false)}
@@ -2472,7 +2482,7 @@
 
               <!-- 현물 -->
               <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900 w-32 text-right">
-                {#if editingMember && editingMember.id === member.id}
+                {#if selectedItems.member && selectedItems.member.id === member.id}
                   <input
                     type="text"
                     value={formatNumber(forms.member.inKindAmount || '0', false)}
@@ -2494,7 +2504,7 @@
               <!-- 검증 상태 칼럼 제거 -->
               <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
                 <div class="flex space-x-1 justify-center">
-                  {#if editingMember && editingMember.id === member.id}
+                  {#if selectedItems.member && selectedItems.member.id === member.id}
                     <div class="flex space-x-1">
                       <button
                         type="button"
@@ -2518,7 +2528,7 @@
                       variant="ghost"
                       size="sm"
                       onclick={() => editMember(member)}
-                      disabled={editingMember !== null}
+                      disabled={selectedItems.member !== null}
                     >
                       <EditIcon size={16} class="text-blue-600 mr-1" />
                       수정
@@ -2527,7 +2537,7 @@
                       variant="ghost"
                       size="sm"
                       onclick={() => removeMember(member.id)}
-                      disabled={editingMember !== null}
+                      disabled={selectedItems.member !== null}
                     >
                       <TrashIcon size={16} class="text-red-600 mr-1" />
                       삭제
@@ -2585,7 +2595,7 @@
         <h3 class="text-lg font-semibold text-gray-900">증빙 관리</h3>
         {#if projectBudgets.length > 0}
           <select
-            bind:value={selectedEvidencePeriod}
+            bind:value={selectedItems.evidencePeriod}
             class="px-3 py-1 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             {#each projectBudgets as budget, i (i)}
@@ -2605,7 +2615,7 @@
     {#if projectBudgets.length > 0}
       {@const currentBudget =
         projectBudgets.find(
-          (b) => budgetUtilsImported.getPeriodNumber(b) === selectedEvidencePeriod,
+          (b) => budgetUtilsImported.getPeriodNumber(b) === selectedItems.evidencePeriod,
         ) || projectBudgets[0]}
       {@const budgetCategories = [
         {
@@ -2896,7 +2906,7 @@
   <!-- 증빙 상세 모달 -->
   <EvidenceDetailModal
     bind:visible={modalStates.evidenceDetail}
-    selectedItem={selectedEvidenceItem}
+    selectedItem={selectedItems.evidenceItem}
     {formatCurrency}
     {formatDate}
     onclose={() => (modalStates.evidenceDetail = false)}
@@ -2930,11 +2940,11 @@
     bind:open={modalStates.deleteConfirm}
     onclose={() => {
       modalStates.deleteConfirm = false
-      deleteConfirmationCode = ''
+      selectedItems.deleteCode = ''
     }}
     project={selectedProject}
     projectCode={selectedProject?.code || ''}
-    bind:deleteConfirmationCode
+    deleteConfirmationCode={selectedItems.deleteCode}
     membersCount={projectMembers.length}
     budgetsCount={projectBudgets.length}
     isDeleting={loadingStates.deleting}
@@ -2952,7 +2962,7 @@
   <BudgetUpdateConfirmModal
     bind:open={modalStates.budgetUpdateConfirm}
     onclose={cancelBudgetUpdate}
-    validationData={budgetUpdateValidationData}
+    validationData={selectedItems.budgetUpdateData}
     onConfirm={confirmBudgetUpdate}
     onCancel={cancelBudgetUpdate}
   />
