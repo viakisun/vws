@@ -112,6 +112,7 @@ const categories = dataTransformers.transformBudgetToCategories(project.budget)
 **주요 서비스:**
 
 #### **project.service.ts** (5 APIs)
+
 ```typescript
 - getAllProjects(): Promise<ApiResponse>
 - getProject(id): Promise<ApiResponse>
@@ -121,6 +122,7 @@ const categories = dataTransformers.transformBudgetToCategories(project.budget)
 ```
 
 #### **member.service.ts** (4 APIs)
+
 ```typescript
 - getMembers(projectId): Promise<ApiResponse>
 - getMember(id): Promise<ApiResponse>
@@ -129,6 +131,7 @@ const categories = dataTransformers.transformBudgetToCategories(project.budget)
 ```
 
 #### **budget.service.ts** (4 APIs)
+
 ```typescript
 - getBudgets(projectId, year): Promise<ApiResponse>
 - getBudget(id): Promise<ApiResponse>
@@ -137,6 +140,7 @@ const categories = dataTransformers.transformBudgetToCategories(project.budget)
 ```
 
 #### **evidence.service.ts** (5 APIs)
+
 ```typescript
 - getEvidence(projectId): Promise<ApiResponse>
 - getEvidenceItem(id): Promise<ApiResponse>
@@ -146,6 +150,7 @@ const categories = dataTransformers.transformBudgetToCategories(project.budget)
 ```
 
 #### **validation.service.ts** (3 APIs)
+
 ```typescript
 - validateProject(projectId): Promise<ApiResponse>
 - validateMember(memberId): Promise<ApiResponse>
@@ -153,6 +158,7 @@ const categories = dataTransformers.transformBudgetToCategories(project.budget)
 ```
 
 **사용 예시:**
+
 ```typescript
 import * as projectService from '$lib/services/project-management/project.service'
 
@@ -162,7 +168,7 @@ const response = await projectService.getProject(projectId)
 // Update project
 const updateResponse = await projectService.updateProject(projectId, {
   name: 'Updated Name',
-  status: 'active'
+  status: 'active',
 })
 ```
 
@@ -173,6 +179,7 @@ const updateResponse = await projectService.updateProject(projectId, {
 **calculationUtils.ts:**
 
 #### `calculatePeriodMonths(startDate, endDate): number`
+
 ```typescript
 // 프로젝트 기간(개월수) 계산
 // 예: 2024-01-01 ~ 2024-12-31 → 12개월
@@ -182,25 +189,30 @@ const months = calculatePeriodMonths('2024-01-01', '2024-12-31')
 ```
 
 #### `calculateMemberBudget(member, periodMonths): number`
+
 ```typescript
 // 멤버의 총 예산 계산
 // 공식: (월급여 × 참여율 / 100) × 참여개월수
 
-const budget = calculateMemberBudget({
-  monthly_salary: 5000000,
-  participation_rate: 30,
-  participation_months: 12
-}, 12)
+const budget = calculateMemberBudget(
+  {
+    monthly_salary: 5000000,
+    participation_rate: 30,
+    participation_months: 12,
+  },
+  12,
+)
 // budget = 18,000,000
 ```
 
 #### `calculateTotalBudget(categories): { cash, inKind, total }`
+
 ```typescript
 // 카테고리 배열에서 총 예산 계산
 
 const total = calculateTotalBudget([
   { cash: 50000000, inKind: 10000000 },
-  { cash: 20000000, inKind: 5000000 }
+  { cash: 20000000, inKind: 5000000 },
 ])
 // total = { cash: 70000000, inKind: 15000000, total: 85000000 }
 ```
@@ -320,7 +332,7 @@ const memberStatuses = groupIssuesByMember(validationIssues, projectMembers)
 const response = await fetch(`/api/project-management/projects/${projectId}`, {
   method: 'PUT',
   headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify(projectData)
+  body: JSON.stringify(projectData),
 })
 const result = await response.json()
 
@@ -336,16 +348,14 @@ const response = await projectService.updateProject(projectId, projectData)
 // ❌ Before (Phase C-2)
 const startDate = new Date(project.start_date)
 const endDate = new Date(project.end_date)
-const months = (endDate.getFullYear() - startDate.getFullYear()) * 12 +
-               (endDate.getMonth() - startDate.getMonth())
+const months =
+  (endDate.getFullYear() - startDate.getFullYear()) * 12 +
+  (endDate.getMonth() - startDate.getMonth())
 
 // ✅ After (Phase C-2)
 import * as calculationUtils from '$lib/components/project-management/utils/calculationUtils'
 
-const months = calculationUtils.calculatePeriodMonths(
-  project.start_date,
-  project.end_date
-)
+const months = calculationUtils.calculatePeriodMonths(project.start_date, project.end_date)
 ```
 
 ### Pattern 3: 타입 변환
@@ -361,12 +371,9 @@ import * as dataTransformers from '$lib/components/project-management/utils/data
 
 const cashAmount = dataTransformers.safeStringToNumber(
   dataTransformers.extractCashAmount(member),
-  0
+  0,
 )
-const monthlyAmount = dataTransformers.safeStringToNumber(
-  formData.monthlyAmount,
-  0
-)
+const monthlyAmount = dataTransformers.safeStringToNumber(formData.monthlyAmount, 0)
 const displayAmount = dataTransformers.safeNumberToString(calculatedAmount)
 ```
 
@@ -376,7 +383,7 @@ const displayAmount = dataTransformers.safeNumberToString(calculatedAmount)
 // ❌ Before (Phase C-4): 35 lines of inline calculation
 const monthlySalary = parseInt(rawValue || '0')
 const participationRate = forms.member.participationRate || 0
-const participationMonths = forms.member.participationMonths || 
+const participationMonths = forms.member.participationMonths ||
   calculatePeriodMonths(...)
 
 const totalAmount = Math.round(
@@ -418,14 +425,14 @@ forms.member.inKindAmount = distributed.inKindAmount
 
 ### 코드 메트릭스
 
-| 단계 | 컴포넌트 라인수 | 유틸리티 추가 | 주요 성과 |
-|------|----------------|--------------|----------|
-| **시작** | 2,973 | 0 | 모놀리식 컴포넌트 |
-| **Phase C-1** | 2,778 (-195) | +540 | 21 API를 서비스로 |
-| **Phase C-2** | 2,729 (-49) | +93 | 3개 계산 함수 추출 |
-| **Phase C-3** | 2,697 (-32) | +228 | 11개 transformer 추가 |
-| **Phase C-4** | 2,709 (+12) | +53 | 코드 단순화 (품질 향상) |
-| **총계** | **-264** | **+914** | **컴포넌트 9% 감소, 재사용 코드 914줄 생성** |
+| 단계          | 컴포넌트 라인수 | 유틸리티 추가 | 주요 성과                                    |
+| ------------- | --------------- | ------------- | -------------------------------------------- |
+| **시작**      | 2,973           | 0             | 모놀리식 컴포넌트                            |
+| **Phase C-1** | 2,778 (-195)    | +540          | 21 API를 서비스로                            |
+| **Phase C-2** | 2,729 (-49)     | +93           | 3개 계산 함수 추출                           |
+| **Phase C-3** | 2,697 (-32)     | +228          | 11개 transformer 추가                        |
+| **Phase C-4** | 2,709 (+12)     | +53           | 코드 단순화 (품질 향상)                      |
+| **총계**      | **-264**        | **+914**      | **컴포넌트 9% 감소, 재사용 코드 914줄 생성** |
 
 ### 품질 향상
 
@@ -467,12 +474,12 @@ describe('Data Transformers', () => {
     it('should calculate contribution correctly', () => {
       expect(calculateMemberContribution(5000000, 30, 12)).toBe(18000000)
     })
-    
+
     it('should handle invalid inputs', () => {
       expect(calculateMemberContribution('invalid', 30, 12)).toBe(0)
     })
   })
-  
+
   // ... 50+ more tests
 })
 ```
@@ -525,18 +532,21 @@ const value = parseInt(input || '0')
 ## 📈 향후 개선 사항
 
 ### Phase D (Planned)
+
 - [ ] Component 추가 분할 (2,709 → 2,200 lines)
 - [ ] Custom hooks 추출
 - [ ] Context API 적용
 - [ ] Performance optimization
 
 ### Phase E (Planned)
+
 - [ ] E2E 테스트 추가
 - [ ] Integration 테스트 확대
 - [ ] Test coverage 95%+ 달성
 - [ ] Storybook 통합
 
 ### Documentation
+
 - [ ] API 문서 자동 생성 (JSDoc → Markdown)
 - [ ] Architecture diagram (Mermaid)
 - [ ] Usage examples 확대

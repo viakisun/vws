@@ -110,6 +110,7 @@ npm run security:audit # 보안 취약점 분석
 대규모 컴포넌트를 계층화된 서비스, 비즈니스 로직, 데이터 변환 계층으로 분리했습니다.
 
 **구조:**
+
 ```
 Component (2,709 lines)
     ↓
@@ -123,6 +124,7 @@ Database
 ```
 
 **주요 구성요소:**
+
 - **Service Layer**: 21개 API 호출을 5개 서비스로 캡슐화
 - **Business Logic**: 도메인 계산 로직 (기간 계산, 예산 계산 등)
 - **Data Transformers**: API ↔ UI 데이터 변환, 타입 안전성 보장
@@ -157,6 +159,7 @@ import * as dataTransformers from '$lib/components/project-management/utils/data
 ```
 
 **테스트:**
+
 - Unit Tests: 53/53 passing (100%)
 - Coverage: dataTransformers.ts (90%+)
 
