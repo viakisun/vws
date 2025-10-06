@@ -21,25 +21,35 @@ export interface ProjectPeriodUpdateResponse {
 }
 
 /**
+ * 프로젝트 업데이트
+ */
+export async function updateProject(
+  projectId: string,
+  data: Partial<Project>,
+): Promise<ProjectPeriodUpdateResponse> {
+  const response = await fetch(`/api/project-management/projects/${projectId}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  })
+
+  if (!response.ok) {
+    throw new Error(`Failed to update project: ${response.status} ${response.statusText}`)
+  }
+
+  return (await response.json()) as ProjectPeriodUpdateResponse
+}
+
+/**
  * 프로젝트 기간 업데이트
  */
 export async function updateProjectPeriod(
   payload: ProjectPeriodUpdatePayload,
 ): Promise<ProjectPeriodUpdateResponse> {
-  const response = await fetch(`/api/project-management/projects/${payload.projectId}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      startDate: payload.startDate,
-      endDate: payload.endDate,
-    }),
+  return updateProject(payload.projectId, {
+    startDate: payload.startDate,
+    endDate: payload.endDate,
   })
-
-  if (!response.ok) {
-    throw new Error(`Failed to update project period: ${response.status} ${response.statusText}`)
-  }
-
-  return await response.json()
 }
 
 /**

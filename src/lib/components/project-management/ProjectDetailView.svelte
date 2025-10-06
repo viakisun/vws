@@ -51,6 +51,7 @@
   import * as budgetService from '$lib/services/project-management/budget.service'
   import * as memberService from '$lib/services/project-management/member.service'
   import * as validationService from '$lib/services/project-management/validation.service'
+  import * as evidenceService from '$lib/services/project-management/evidence.service'
 
   const dispatch = createEventDispatcher()
 
@@ -1004,17 +1005,9 @@
 
     loadingStates.updating = true
     try {
-      const response = await fetch(`/api/project-management/projects/${selectedProject.id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(forms.project),
-      })
+      const result = await projectService.updateProject(selectedProject.id, forms.project)
 
-      const result = await response.json()
-
-      if (response.ok && result.success) {
+      if (result.success) {
         // 프로젝트 정보 업데이트
         selectedProject = { ...selectedProject, ...result.data }
         modalStates.editProject = false
@@ -1049,20 +1042,13 @@
 
     loadingStates.deleting = true
     try {
-      const response = await fetch(`/api/project-management/projects/${selectedProject.id}`, {
-        method: 'DELETE',
-      })
+      await projectService.deleteProject(selectedProject.id)
 
-      const result = await response.json()
-
-      if (response.ok && result.success) {
-        modalStates.deleteConfirm = false
-        selectedItems.deleteCode = '' // 삭제 후 코드 초기화
-        dispatch('project-deleted', { projectId: selectedProject.id })
-        dispatch('refresh')
-      } else {
-        alert(result.message || '프로젝트 삭제에 실패했습니다.')
-      }
+      modalStates.deleteConfirm = false
+      selectedItems.deleteCode = '' // 삭제 후 코드 초기화
+      dispatch('project-deleted', { projectId: selectedProject.id })
+      dispatch('refresh')
+      alert('프로젝트가 성공적으로 삭제되었습니다.')
     } catch (error) {
       logger.error('프로젝트 삭제 실패:', error)
       alert('프로젝트 삭제 중 오류가 발생했습니다.')
@@ -1227,12 +1213,8 @@
     // 증빙 항목 상세 정보 로드
     if (item.id) {
       try {
-        const response = await fetch(`/api/project-management/evidence/${item.id}`)
-        const result = await response.json()
-
-        if (result.success) {
-          selectedItems.evidenceItem = result.data
-        }
+        const data = await evidenceService.getEvidence(item.id)
+        selectedItems.evidenceItem = data
       } catch (error) {
         logger.error('증빙 항목 상세 정보 로드 실패:', error)
       }
@@ -1242,12 +1224,7 @@
   // 증빙 카테고리 로드
   async function loadEvidenceCategories() {
     try {
-      const response = await fetch('/api/project-management/evidence-categories')
-      const result = await response.json()
-
-      if (result.success) {
-        validationData.categories = result.data
-      }
+      validationData.categories = await evidenceService.getEvidenceCategories()
     } catch (error) {
       logger.error('증빙 카테고리 로드 실패:', error)
     }
@@ -1289,26 +1266,14 @@
           (b) => budgetUtilsImported.getPeriodNumber(b) === selectedItems.evidencePeriod,
         ) || projectBudgets[0]
 
-      const response = await fetch('/api/project-management/evidence', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          projectBudgetId: currentBudget.id,
-          categoryId: categoryId,
-          ...itemData,
-        }),
+      const data = await evidenceService.createEvidence({
+        projectBudgetId: currentBudget.id,
+        categoryId: categoryId,
+        ...itemData,
       })
 
-      const result = await response.json()
-
-      if (result.success) {
-        await loadEvidenceItems()
-        return result.data
-      } else {
-        throw new Error(result.message)
-      }
+      await loadEvidenceItems()
+      return data
     } catch (error) {
       logger.error('증빙 항목 추가 실패:', error)
       throw error
@@ -1318,22 +1283,9 @@
   // 증빙 항목 수정
   async function _updateEvidenceItem(itemId, updateData) {
     try {
-      const response = await fetch(`/api/project-management/evidence/${itemId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(updateData),
-      })
-
-      const result = await response.json()
-
-      if (result.success) {
-        await loadEvidenceItems()
-        return result.data
-      } else {
-        throw new Error(result.message)
-      }
+      const data = await evidenceService.updateEvidence(itemId, updateData)
+      await loadEvidenceItems()
+      return data
     } catch (error) {
       logger.error('증빙 항목 수정 실패:', error)
       throw error
@@ -1343,17 +1295,8 @@
   // 증빙 항목 삭제
   async function _deleteEvidenceItem(itemId) {
     try {
-      const response = await fetch(`/api/project-management/evidence/${itemId}`, {
-        method: 'DELETE',
-      })
-
-      const result = await response.json()
-
-      if (result.success) {
-        await loadEvidenceItems()
-      } else {
-        throw new Error(result.message)
-      }
+      await evidenceService.deleteEvidence(itemId)
+      await loadEvidenceItems()
     } catch (error) {
       logger.error('증빙 항목 삭제 실패:', error)
       throw error
@@ -1425,11 +1368,7 @@
   // 증빙 유형 목록 로드
   async function loadEvidenceTypes() {
     try {
-      const response = await fetch('/api/project-management/evidence-types')
-      if (response.ok) {
-        const data = await response.json()
-        _evidenceTypes = data.data || []
-      }
+      _evidenceTypes = await evidenceService.getEvidenceTypes()
     } catch (error) {
       logger.error('증빙 유형 로드 실패:', error)
     }
