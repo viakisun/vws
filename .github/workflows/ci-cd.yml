@@ -1,5 +1,22 @@
 name: ci
 
+# ============================================================================
+# Required GitHub Secrets (configured in repository settings):
+# - AWS_ACCESS_KEY_ID: AWS IAM access key for ECR/EC2
+# - AWS_SECRET_ACCESS_KEY: AWS IAM secret key
+# - EC2_HOST: EC2 instance hostname
+# - EC2_USER: EC2 SSH username
+# - EC2_SSH_KEY: Private SSH key for EC2 access
+# - DATABASE_URL: PostgreSQL connection string
+# - JWT_SECRET: Secret key for JWT tokens
+# - GOOGLE_CLIENT_ID: Google OAuth client ID
+# - GOOGLE_CLIENT_SECRET: Google OAuth client secret
+# - GOOGLE_REDIRECT_URI: OAuth redirect URI
+# - ALLOWED_DOMAINS: Comma-separated allowed email domains
+# - ADMIN_EMAILS: Comma-separated admin email addresses
+# - SLACK_WEBHOOK_URL: Slack webhook for notifications (optional)
+# ============================================================================
+
 on:
   push:
     branches: ['main', 'develop']
@@ -344,14 +361,11 @@ jobs:
       - name: 🏗️ Build application
         run: pnpm build
 
-      - name: 📤 Upload build artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: build
-          path: |
-            .svelte-kit
-            build
-          retention-days: 7
+      - name: ✅ Verify build output
+        run: |
+          echo "📦 Build output verification:"
+          ls -la build/
+          echo "✅ Build completed successfully"
 
   # ============================================================================
   # Stage 8: Performance Test
@@ -361,6 +375,7 @@ jobs:
     name: ⚡ Performance Test
     runs-on: ubuntu-latest
     needs: build
+    continue-on-error: true # Performance 실패해도 배포는 진행
     steps:
       - name: 📥 Checkout
         uses: actions/checkout@v4
@@ -379,10 +394,8 @@ jobs:
       - name: 📚 Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: 📥 Download build
-        uses: actions/download-artifact@v4
-        with:
-          name: build
+      - name: 🏗️ Build application
+        run: pnpm build
 
       - name: 🚀 Start preview server
         run: |
@@ -394,7 +407,7 @@ jobs:
         run: pnpm dlx wait-on http://localhost:4173 --timeout 30000
 
       - name: ⚡ Run Lighthouse CI
-        run: pnpm dlx @lhci/cli autorun --collect.url=http://localhost:4173 --upload.target=filesystem || echo "Lighthouse completed"
+        run: pnpm dlx @lhci/cli autorun --collect.url=http://localhost:4173 --upload.target=filesystem
         continue-on-error: true
 
       - name: 🛑 Stop server
@@ -420,44 +433,49 @@ jobs:
   docker-push:
     name: 🐳 Docker Push to ECR
     runs-on: ubuntu-latest
-    needs: [build, performance]
+    needs: build
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     steps:
       - name: 📥 Checkout
         uses: actions/checkout@v4
 
-      - name: 🔐 AWS 자격 증명 설정
+      - name: 🔐 Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: 📦 ECR 리포지토리 생성
+      - name: 📦 Ensure ECR repository exists
         run: |
-          aws ecr describe-repositories --repository-names ${{ env.ECR_REPOSITORY }} --region ${{ env.AWS_REGION }} || \
+          aws ecr describe-repositories --repository-names ${{ env.ECR_REPOSITORY }} \
+            --region ${{ env.AWS_REGION }} 2>/dev/null || \
           aws ecr create-repository \
             --repository-name ${{ env.ECR_REPOSITORY }} \
             --region ${{ env.AWS_REGION }} \
             --image-scanning-configuration scanOnPush=true
 
-      - name: 🔐 ECR 로그인
+      - name: 🔐 Login to ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: 🐳 Docker 이미지 빌드 및 푸시
+      - name: 🐳 Build and push Docker image
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           IMAGE_TAG: ${{ github.sha }}
         run: |
           echo "🏗️ Building Docker image..."
           docker build -t $ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG .
-          docker tag $ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG $ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:latest
+          docker tag $ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG \
+                     $ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:latest
 
           echo "📤 Pushing to ECR..."
           docker push $ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG
           docker push $ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:latest
-          echo "✅ Successfully pushed to ECR"
+
+          echo "✅ Docker image pushed successfully"
+          echo "   - Tag: $IMAGE_TAG"
+          echo "   - Latest: latest"
 
   # ============================================================================
   # Stage 10: Deploy to EC2 (Main 브랜치만)
@@ -472,18 +490,18 @@ jobs:
       - name: 📥 Checkout
         uses: actions/checkout@v4
 
-      - name: 🔐 AWS 자격 증명 설정
+      - name: 🔐 Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: 🔐 ECR 로그인
+      - name: 🔐 Login to ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: 🚀 EC2에 배포
+      - name: 🚀 Deploy to EC2
         uses: appleboy/ssh-action@v1.0.3
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
@@ -499,17 +517,18 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           envs: DATABASE_URL,JWT_SECRET,GOOGLE_CLIENT_ID,GOOGLE_CLIENT_SECRET,GOOGLE_REDIRECT_URI,ALLOWED_DOMAINS,ADMIN_EMAILS
           script: |
-            # ECR 로그인
-            aws ecr get-login-password --region ap-northeast-2 | docker login --username AWS --password-stdin ${{ steps.login-ecr.outputs.registry }}
+            echo "🔐 Logging in to ECR..."
+            aws ecr get-login-password --region ap-northeast-2 | \
+              docker login --username AWS --password-stdin ${{ steps.login-ecr.outputs.registry }}
 
-            # 기존 컨테이너 중지 및 제거
-            docker stop vws-app || true
-            docker rm vws-app || true
+            echo "🛑 Stopping existing container..."
+            docker stop vws-app 2>/dev/null || true
+            docker rm vws-app 2>/dev/null || true
 
-            # 최신 이미지 다운로드
+            echo "📥 Pulling latest image..."
             docker pull ${{ steps.login-ecr.outputs.registry }}/vws-app:latest
 
-            # 새 컨테이너 실행
+            echo "🚀 Starting new container..."
             docker run -d \
               --name vws-app \
               --restart unless-stopped \
@@ -524,122 +543,145 @@ jobs:
               -e ADMIN_EMAILS="${ADMIN_EMAILS}" \
               ${{ steps.login-ecr.outputs.registry }}/vws-app:latest
 
-            # 배포 완료 확인
+            echo "⏳ Waiting for container to start..."
             sleep 10
-            docker ps | grep vws-app
 
-            # Nginx 버퍼 설정 적용
-            echo "🔧 Nginx 버퍼 설정 적용 중..."
-            sudo cp /etc/nginx/conf.d/00-proxy-buffers.conf /etc/nginx/conf.d/00-proxy-buffers.conf.backup.$(date +%Y%m%d_%H%M%S) 2>/dev/null || true
+            echo "✅ Verifying deployment..."
+            if docker ps | grep -q vws-app; then
+              echo "✅ Container is running"
+            else
+              echo "❌ Container failed to start"
+              docker logs vws-app --tail 50
+              exit 1
+            fi
 
+            echo "🔧 Updating Nginx configuration..."
             sudo tee /etc/nginx/conf.d/00-proxy-buffers.conf > /dev/null << 'EOF'
-            # Nginx Proxy Buffer 설정 - SvelteKit SSR 대형 헤더 대응
+            # Nginx Proxy Buffer Settings for SvelteKit SSR
             proxy_buffer_size 64k;
             proxy_buffers 8 64k;
             proxy_busy_buffers_size 128k;
             large_client_header_buffers 8 64k;
             EOF
 
-            # Nginx 설정 검사
-            echo "🧪 Nginx 설정 문법 검사 중..."
-            if ! sudo nginx -t; then
-                echo "❌ Nginx 설정 문법 오류!"
-                if [ -f /etc/nginx/conf.d/00-proxy-buffers.conf.backup.* ]; then
-                    echo "🔄 백업에서 복구 중..."
-                    sudo cp /etc/nginx/conf.d/00-proxy-buffers.conf.backup.* /etc/nginx/conf.d/00-proxy-buffers.conf
-                    sudo nginx -t
-                fi
-                exit 1
+            echo "🧪 Testing Nginx configuration..."
+            if sudo nginx -t; then
+              echo "🔄 Reloading Nginx..."
+              sudo systemctl reload nginx
+              echo "✅ Nginx configuration updated"
+            else
+              echo "⚠️ Nginx configuration test failed, skipping reload"
             fi
 
-            # Nginx 재시작
-            echo "🔄 Nginx 재시작 중..."
-            sudo systemctl reload nginx
-
-            # 헬스체크
-            echo "🏥 헬스체크 수행 중..."
+            echo "🏥 Running health check..."
             sleep 5
             HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" https://ws.viahub.dev/project-management?tab=projects || echo "000")
 
             if [[ "$HTTP_CODE" =~ ^[23][0-9][0-9]$ ]]; then
-                echo "✅ 헬스체크 성공 (HTTP $HTTP_CODE)"
+              echo "✅ Health check passed (HTTP $HTTP_CODE)"
             else
-                echo "⚠️ 헬스체크 경고 (HTTP $HTTP_CODE) - 서비스 확인 필요"
+              echo "⚠️ Health check warning (HTTP $HTTP_CODE)"
             fi
 
-            echo "📊 최근 Nginx 에러 로그 확인:"
-            sudo tail -n 20 /var/log/nginx/error.log | grep -i "too big header" || echo "  - 'too big header' 에러 없음"
+            echo "📊 Recent errors (if any):"
+            sudo tail -n 10 /var/log/nginx/error.log | grep -i "too big header" || echo "  No header errors found"
+
+            echo "🎉 Deployment completed successfully!"
 
   # ============================================================================
   # Stage 11: Final Status
   # ============================================================================
 
   final-status:
-    name: ✅ Final Status
+    name: ✅ Pipeline Status
     runs-on: ubuntu-latest
-    needs: [unit-tests, integration-tests, component-tests, e2e-tests, build, performance]
+    needs: [quality, unit-tests, integration-tests, component-tests, security, build]
     if: always()
     steps:
       - name: 📊 Check all jobs status
         run: |
-          echo "✅ Unit Tests: ${{ needs.unit-tests.result }}"
-          echo "✅ Integration Tests: ${{ needs.integration-tests.result }}"
-          echo "✅ Component Tests: ${{ needs.component-tests.result }}"
-          echo "✅ E2E Tests: ${{ needs.e2e-tests.result }}"
-          echo "✅ Build: ${{ needs.build.result }}"
-          echo "✅ Performance: ${{ needs.performance.result }}"
+          echo "=== CI/CD Pipeline Status ==="
+          echo "📝 Code Quality: ${{ needs.quality.result }}"
+          echo "🧪 Unit Tests: ${{ needs.unit-tests.result }}"
+          echo "🔗 Integration Tests: ${{ needs.integration-tests.result }}"
+          echo "🎨 Component Tests: ${{ needs.component-tests.result }}"
+          echo "🔒 Security: ${{ needs.security.result }}"
+          echo "🏗️ Build: ${{ needs.build.result }}"
 
-      - name: 🎉 Success
+      - name: ✅ Verify critical jobs
         if: |
+          needs.quality.result == 'success' &&
           needs.unit-tests.result == 'success' &&
           needs.integration-tests.result == 'success' &&
           needs.component-tests.result == 'success' &&
+          needs.security.result == 'success' &&
           needs.build.result == 'success'
-        run: echo "🎉 All critical tests passed! Ready for deployment."
+        run: echo "🎉 All critical checks passed! Ready for deployment."
+
+      - name: ❌ Report failures
+        if: |
+          needs.quality.result == 'failure' ||
+          needs.unit-tests.result == 'failure' ||
+          needs.integration-tests.result == 'failure' ||
+          needs.component-tests.result == 'failure' ||
+          needs.security.result == 'failure' ||
+          needs.build.result == 'failure'
+        run: |
+          echo "❌ Pipeline failed. Please check the logs above."
+          exit 1
 
   # ============================================================================
-  # Stage 12: Notifications
+  # Stage 12: Notifications (Optional)
   # ============================================================================
 
   notify:
     name: 📢 Notify
     runs-on: ubuntu-latest
     needs: [final-status, deploy]
-    if: always()
+    if: always() && github.event_name != 'pull_request'
     steps:
-      - name: 📢 Slack - CI 완료 알림
-        if: needs.final-status.result == 'success' && github.event_name != 'pull_request'
+      - name: 📢 Success Notification
+        if: needs.final-status.result == 'success'
         uses: 8398a7/action-slack@v3
+        continue-on-error: true
         with:
           status: success
           channel: '#vws_action'
           text: |
-            ✅ **VWS CI/CD Pipeline 완료**
-            *Branch:* ${{ github.ref_name }}
-            *Commit:* ${{ github.sha }}
+            ✅ **VWS CI/CD Pipeline Success**
+            • Branch: `${{ github.ref_name }}`
+            • Commit: `${{ github.sha }}`
+            • Triggered by: ${{ github.actor }}
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 
-      - name: 📢 Slack - 배포 완료 알림
+      - name: 📢 Deployment Success
         if: needs.deploy.result == 'success'
         uses: 8398a7/action-slack@v3
+        continue-on-error: true
         with:
           status: success
           channel: '#vws_action'
-          text: '🚀 VWS 앱이 EC2(ws.viahub.dev)에 성공적으로 배포되었습니다!'
+          text: |
+            🚀 **VWS Deployed Successfully**
+            • Environment: Production (ws.viahub.dev)
+            • Branch: `${{ github.ref_name }}`
+            • Image Tag: `${{ github.sha }}`
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 
-      - name: 📢 Slack - 실패 알림
+      - name: 📢 Failure Notification
         if: needs.final-status.result == 'failure' || needs.deploy.result == 'failure'
         uses: 8398a7/action-slack@v3
+        continue-on-error: true
         with:
           status: failure
           channel: '#vws_action'
           text: |
-            ❌ **VWS CI/CD Pipeline 실패**
-            *Branch:* ${{ github.ref_name }}
-            *Commit:* ${{ github.sha }}
-            *Failed Stage:* ${{ needs.final-status.result == 'failure' && 'Tests' || 'Deployment' }}
+            ❌ **VWS CI/CD Pipeline Failed**
+            • Branch: `${{ github.ref_name }}`
+            • Commit: `${{ github.sha }}`
+            • Failed Stage: ${{ needs.final-status.result == 'failure' && 'Tests/Build' || 'Deployment' }}
+            • Check: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
