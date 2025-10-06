@@ -46,12 +46,6 @@
   import * as calculationUtilsImported from './utils/calculationUtils'
   import type { ValidationIssue, MemberValidationStatus } from './utils/validationUtils'
 
-  // Import service layer for API calls (Phase C-1)
-  import * as projectService from '$lib/services/project-management/project.service'
-  import * as budgetService from '$lib/services/project-management/budget.service'
-  import * as memberService from '$lib/services/project-management/member.service'
-  import * as validationService from '$lib/services/project-management/validation.service'
-
   const dispatch = createEventDispatcher()
 
   // 예산 데이터 필드 접근 유틸리티 함수들
@@ -138,24 +132,7 @@
     addingMember: false, // addingMember
   })
 
-  // ============================================================
-  // Phase B-6: UI States Group
-  // ============================================================
-  let uiStates = $state({
-    budgetRefreshTrigger: 0, // budgetRefreshTrigger - 예산 새로고침 트리거
-    budgetUpdateKey: 0, // budgetUpdateKey - 예산 강제 재렌더링 트리거
-    evidenceRefreshKey: 0, // evidenceRefreshKey - 증빙 새로고침 키
-    isManualMonthlyAmount: false, // isManualMonthlyAmount - 수동 월간금액 입력 여부
-    calculatedMonthlyAmount: 0, // calculatedMonthlyAmount - 계산된 월간금액
-    isPersonnelSummaryExpanded: false, // isPersonnelSummaryExpanded - 인건비 요약 확장 여부
-    expandedEvidenceSections: {
-      // expandedEvidenceSections - 증빙 섹션 확장 상태
-      personnel: true,
-      material: true,
-      activity: true,
-      indirect: true,
-    },
-  })
+  let budgetRefreshTrigger = $state(0)
 
   // ============================================================
   // Phase B-4: Selected Items Group
@@ -254,22 +231,35 @@
     input.value = formatNumber(rawValue, false)
   }
 
+  // 사용자가 수동으로 월간금액을 입력했는지 추적
+  let isManualMonthlyAmount = $state(false)
+
+  let calculatedMonthlyAmount = $state(0)
+  let isPersonnelSummaryExpanded = $state(false)
+
   // ============================================================
   // Data Lists & References
   // ============================================================
   let _evidenceList = $state<any[]>([])
+  let evidenceRefreshKey = $state(0)
   let _evidenceTypes = $state<any[]>([])
+  let expandedEvidenceSections = $state({
+    personnel: true,
+    material: true,
+    activity: true,
+    indirect: true,
+  })
 
   // ============================================================
   // Validation & Evidence Data States (Phase B-5)
   // ============================================================
   let validationData = $state({
-    results: null as any, // validationResults - 검증 결과
-    history: [] as any[], // validationHistory - 검증 이력
-    autoEnabled: true, // _autoValidationEnabled - 자동 검증 활성화
-    evidence: null as any, // evidenceValidation - 증빙 등록 검증 상태
-    categories: [] as any[], // evidenceCategories - 증빙 카테고리 목록
-    items: [] as any[], // evidenceItems - 증빙 항목 목록
+    results: null as any,           // validationResults - 검증 결과
+    history: [] as any[],           // validationHistory - 검증 이력
+    autoEnabled: true,              // _autoValidationEnabled - 자동 검증 활성화
+    evidence: null as any,          // evidenceValidation - 증빙 등록 검증 상태
+    categories: [] as any[],        // evidenceCategories - 증빙 카테고리 목록
+    items: [] as any[],             // evidenceItems - 증빙 항목 목록
   })
 
   let _editProjectForm = $state({
@@ -288,6 +278,7 @@
   // 데이터
   let projectMembers = $state<any[]>([])
   let projectBudgets = $state<any[]>([])
+  let budgetUpdateKey = $state(0) // 강제 재렌더링 트리거
   let _budgetCategories = $state<any[]>([])
   let availableEmployees = $state<any[]>([])
 
@@ -316,31 +307,41 @@
       !forms.newEvidence.dueDate ||
       !selectedItems.budgetForEvidence?.id
     ) {
-      validationData.evidence = null
+      evidenceValidation = null
       return
     }
 
     // 인건비 카테고리인 경우에만 검증
-    const selectedCategory = validationData.categories.find(
+    const selectedCategory = evidenceCategories.find(
       (cat) => cat.id === forms.newEvidence.categoryId,
     )
     if (selectedCategory?.name !== '인건비') {
-      validationData.evidence = null
+      evidenceValidation = null
       return
     }
 
     loadingStates.validatingEvidence = true
     try {
-      // Use service layer instead of direct fetch
-      const data = await validationService.validateEvidenceRegistration({
-        assigneeId: forms.newEvidence.assigneeId,
-        dueDate: forms.newEvidence.dueDate,
-        projectBudgetId: selectedItems.budgetForEvidence.id,
+      const response = await fetch('/api/project-management/evidence-items/validate-employment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          assigneeId: forms.newEvidence.assigneeId,
+          dueDate: forms.newEvidence.dueDate,
+          projectBudgetId: selectedItems.budgetForEvidence.id,
+        }),
       })
-      validationData.evidence = data
+
+      if (response.ok) {
+        const data = await response.json()
+        evidenceValidation = data
+      } else {
+        logger.error('증빙 등록 검증 실패:', response.statusText)
+        evidenceValidation = null
+      }
     } catch (error) {
       logger.error('증빙 등록 검증 중 오류:', error)
-      validationData.evidence = null
+      evidenceValidation = null
     } finally {
       loadingStates.validatingEvidence = false
     }
@@ -352,14 +353,20 @@
 
     loadingStates.validatingMembers = true
     try {
-      // Use service layer instead of direct fetch
-      const data = await validationService.validateMembers(selectedProject.id)
-      _memberValidation = data
-      _memberValidationLastChecked = new Date()
+      const response = await fetch(
+        `/api/project-management/researcher-validation?projectId=${selectedProject.id}`,
+      )
+      if (response.ok) {
+        const data = await response.json()
+        _memberValidation = data
+        _memberValidationLastChecked = new Date()
 
-      // 개별 멤버 검증 상태 업데이트
-      if (data.success && data.data?.validation?.issues) {
-        updateMemberValidationStatuses(data.data.validation.issues)
+        // 개별 멤버 검증 상태 업데이트
+        if (data.success && data.data?.validation?.issues) {
+          updateMemberValidationStatuses(data.data.validation.issues)
+        }
+      } else {
+        logger.error('참여연구원 검증 실패:', response.statusText)
       }
     } catch (error) {
       logger.error('참여연구원 검증 중 오류:', error)
@@ -416,12 +423,19 @@
   async function loadProjectMembers() {
     try {
       logger.log('참여연구원 목록 로드 시작, 프로젝트 ID:', selectedProject.id)
-      // Use service layer instead of direct fetch
-      projectMembers = await memberService.getProjectMembers(selectedProject.id)
-      logger.log('참여연구원 목록 로드 성공:', projectMembers.length, '명')
-      logger.log('참여연구원 상태 업데이트 완료:', projectMembers.length, '명')
+      const response = await fetch(
+        `/api/project-management/project-members?projectId=${selectedProject.id}`,
+      )
+      if (response.ok) {
+        const data = await response.json()
+        logger.log('참여연구원 목록 로드 성공:', data.data?.length, '명')
+        projectMembers = data.data || []
+        logger.log('참여연구원 상태 업데이트 완료:', projectMembers.length, '명')
 
-      // 자동 검증 제거 - 수작업으로만 검증 실행
+        // 자동 검증 제거 - 수작업으로만 검증 실행
+      } else {
+        logger.error('참여연구원 목록 로드 실패, 응답 상태:', response.status)
+      }
     } catch (error) {
       logger.error('프로젝트 멤버 로드 실패:', error)
     }
@@ -430,9 +444,14 @@
   // 프로젝트 사업비 로드
   async function loadProjectBudgets() {
     try {
-      // Use service layer instead of direct fetch
-      projectBudgets = await budgetService.getProjectBudgets(selectedProject.id)
-      uiStates.budgetUpdateKey++
+      const response = await fetch(
+        `/api/project-management/project-budgets?projectId=${selectedProject.id}`,
+      )
+      if (response.ok) {
+        const data = await response.json()
+        projectBudgets = [...(data.data || [])]
+        budgetUpdateKey++
+      }
     } catch (error) {
       logger.error('프로젝트 사업비 로드 실패:', error)
     }
@@ -441,8 +460,11 @@
   // 사업비 항목 로드
   async function loadBudgetCategories() {
     try {
-      // Use service layer instead of direct fetch
-      _budgetCategories = await budgetService.getBudgetCategories()
+      const response = await fetch('/api/project-management/budget-categories')
+      if (response.ok) {
+        const data = await response.json()
+        _budgetCategories = data.data || []
+      }
     } catch (error) {
       logger.error('사업비 항목 로드 실패:', error)
     }
@@ -452,9 +474,21 @@
   async function loadAvailableEmployees() {
     try {
       logger.log('직원 목록 로딩 시작, 프로젝트 ID:', selectedProject.id)
-      // Use service layer instead of direct fetch
-      availableEmployees = await memberService.getAvailableEmployees(selectedProject.id)
-      logger.log('로드된 직원 수:', availableEmployees.length)
+      const response = await fetch(
+        `/api/project-management/employees?projectId=${selectedProject.id}`,
+      )
+      logger.log('직원 목록 API 응답 상태:', response.status)
+
+      if (response.ok) {
+        const data = await response.json()
+        logger.log('직원 목록 API 응답 데이터:', data)
+        availableEmployees = data.data || []
+        logger.log('로드된 직원 수:', availableEmployees.length)
+      } else {
+        logger.error('직원 목록 API 오류:', response.status, response.statusText)
+        const errorData = await response.text()
+        logger.error('오류 상세:', errorData)
+      }
     } catch (error) {
       logger.error('직원 목록 로드 실패:', error)
     }
@@ -475,51 +509,62 @@
     }
 
     try {
-      // Use service layer instead of direct fetch
-      const result = await budgetService.createBudget({
-        projectId: selectedProject.id,
-        periodNumber: forms.budget.periodNumber,
-        startDate: forms.budget.startDate,
-        endDate: forms.budget.endDate,
-        // 현금 비목들 (천원 단위를 원 단위로 변환, 인건비는 100만원 단위로 조정)
-        personnelCostCash: fromThousands(forms.budget.personnelCostCash),
-        researchMaterialCostCash: fromThousands(forms.budget.researchMaterialCostCash),
-        researchActivityCostCash: fromThousands(forms.budget.researchActivityCostCash),
-        researchStipendCash: fromThousands(forms.budget.researchStipendCash),
-        indirectCostCash: fromThousands(forms.budget.indirectCostCash),
-        // 현물 비목들 (천원 단위를 원 단위로 변환)
-        personnelCostInKind: fromThousands(forms.budget.personnelCostInKind),
-        researchMaterialCostInKind: fromThousands(forms.budget.researchMaterialCostInKind),
-        researchActivityCostInKind: fromThousands(forms.budget.researchActivityCostInKind),
-        researchStipendInKind: fromThousands(forms.budget.researchStipendInKind),
-        indirectCostInKind: fromThousands(forms.budget.indirectCostInKind),
+      const response = await fetch('/api/project-management/project-budgets', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          projectId: selectedProject.id,
+          periodNumber: forms.budget.periodNumber,
+          startDate: forms.budget.startDate,
+          endDate: forms.budget.endDate,
+          // 현금 비목들 (천원 단위를 원 단위로 변환, 인건비는 100만원 단위로 조정)
+          personnelCostCash: fromThousands(forms.budget.personnelCostCash),
+          researchMaterialCostCash: fromThousands(forms.budget.researchMaterialCostCash),
+          researchActivityCostCash: fromThousands(forms.budget.researchActivityCostCash),
+          researchStipendCash: fromThousands(forms.budget.researchStipendCash),
+          indirectCostCash: fromThousands(forms.budget.indirectCostCash),
+          // 현물 비목들 (천원 단위를 원 단위로 변환)
+          personnelCostInKind: fromThousands(forms.budget.personnelCostInKind),
+          researchMaterialCostInKind: fromThousands(forms.budget.researchMaterialCostInKind),
+          researchActivityCostInKind: fromThousands(forms.budget.researchActivityCostInKind),
+          researchStipendInKind: fromThousands(forms.budget.researchStipendInKind),
+          indirectCostInKind: fromThousands(forms.budget.indirectCostInKind),
+        }),
       })
 
-      modalStates.budget = false
-      forms.budget = {
-        periodNumber: 1,
-        startDate: '',
-        endDate: '',
-        personnelCostCash: '',
-        researchMaterialCostCash: '',
-        researchActivityCostCash: '',
-        researchStipendCash: '',
-        indirectCostCash: '',
-        personnelCostInKind: '',
-        researchMaterialCostInKind: '',
-        researchActivityCostInKind: '',
-        researchStipendInKind: '',
-        indirectCostInKind: '',
-      }
-      await loadProjectBudgets()
-      // 예산 추가 후 프로젝트 기간 정보 업데이트
-      updateProjectPeriodFromBudgets()
-      // 예산 요약 새로고침
-      uiStates.budgetRefreshTrigger++
-      dispatch('refresh')
+      if (response.ok) {
+        const result = await response.json()
+        modalStates.budget = false
+        forms.budget = {
+          periodNumber: 1,
+          startDate: '',
+          endDate: '',
+          personnelCostCash: '',
+          researchMaterialCostCash: '',
+          researchActivityCostCash: '',
+          researchStipendCash: '',
+          indirectCostCash: '',
+          personnelCostInKind: '',
+          researchMaterialCostInKind: '',
+          researchActivityCostInKind: '',
+          researchStipendInKind: '',
+          indirectCostInKind: '',
+        }
+        await loadProjectBudgets()
+        // 예산 추가 후 프로젝트 기간 정보 업데이트
+        updateProjectPeriodFromBudgets()
+        // 예산 요약 새로고침
+        budgetRefreshTrigger++
+        dispatch('refresh')
 
-      // 성공 메시지 표시 (result is the budget object from service)
-      alert('사업비가 성공적으로 추가되었습니다.')
+        // 성공 메시지 표시
+        if (result.message) {
+          alert(result.message)
+        }
+      } else {
+        const errorData = await response.json()
+        alert(errorData.message || '사업비 추가에 실패했습니다.')
+      }
     } catch (error) {
       logger.error('사업비 추가 실패:', error)
       alert('사업비 추가 중 오류가 발생했습니다.')
@@ -539,24 +584,32 @@
       const formattedStartDate = convertDateToISO(forms.member.startDate)
       const formattedEndDate = convertDateToISO(forms.member.endDate)
 
-      // Use service layer instead of direct fetch
-      await memberService.addMember({
-        projectId: selectedProject.id,
-        personnelId: forms.member.employeeId,
-        role: forms.member.role,
-        monthlyRate: 0, // Will be calculated by backend
-        startDate: formattedStartDate,
-        endDate: formattedEndDate,
-        participationRate: forms.member.participationRate,
-        isSalaryBased: true,
-        contractualSalary: parseInt(forms.member.contractMonthlySalary || '0'),
-        weeklyHours: null,
+      const response = await fetch('/api/project-management/project-members', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          projectId: selectedProject.id,
+          employeeId: forms.member.employeeId,
+          role: forms.member.role,
+          startDate: formattedStartDate,
+          endDate: formattedEndDate,
+          participationRate: forms.member.participationRate,
+          cashAmount: parseInt(forms.member.cashAmount || '0'),
+          inKindAmount: parseInt(forms.member.inKindAmount || '0'),
+          contractMonthlySalary: parseInt(forms.member.contractMonthlySalary || '0'),
+          participationMonths: forms.member.participationMonths || 0,
+        }),
       })
 
-      loadingStates.addingMember = false
-      resetMemberForm()
-      await loadProjectMembers()
-      dispatch('refresh')
+      if (response.ok) {
+        loadingStates.addingMember = false
+        resetMemberForm()
+        await loadProjectMembers()
+        dispatch('refresh')
+      } else {
+        const errorData = await response.json()
+        alert(errorData.message || '멤버 추가에 실패했습니다.')
+      }
     } catch (error) {
       logger.error('멤버 추가 실패:', error)
       alert('멤버 추가 중 오류가 발생했습니다.')
@@ -611,7 +664,7 @@
     logger.log('editMember - forms.member after setting:', forms.member)
 
     // 수정 시 월간금액 자동 계산 (수동 입력 플래그 초기화)
-    uiStates.isManualMonthlyAmount = false
+    isManualMonthlyAmount = false
     updateMonthlyAmount()
   }
 
@@ -629,8 +682,8 @@
       cashAmount: '0',
       inKindAmount: '0',
     }
-    uiStates.calculatedMonthlyAmount = 0
-    uiStates.isManualMonthlyAmount = false
+    calculatedMonthlyAmount = 0
+    isManualMonthlyAmount = false
   }
 
   // 멤버 수정 취소
@@ -681,31 +734,53 @@
         startDate: formattedStartDate,
         endDate: formattedEndDate,
         participationRate: forms.member.participationRate,
+        cashAmount: forms.member.cashAmount,
+        inKindAmount: forms.member.inKindAmount,
       })
 
-      // Use service layer instead of direct fetch
-      await memberService.updateMember({
-        id: selectedItems.member.id,
-        role: forms.member.role,
-        startDate: formattedStartDate,
-        endDate: formattedEndDate,
-        participationRate: forms.member.participationRate,
-      })
+      const response = await fetch(
+        `/api/project-management/project-members/${selectedItems.member.id}`,
+        {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            role: forms.member.role,
+            startDate: formattedStartDate,
+            endDate: formattedEndDate,
+            participationRate: forms.member.participationRate,
+            cashAmount: parseInt(forms.member.cashAmount || '0'),
+            inKindAmount: parseInt(forms.member.inKindAmount || '0'),
+            contractMonthlySalary: parseInt(forms.member.contractMonthlySalary || '0'),
+            participationMonths: forms.member.participationMonths || 0,
+          }),
+        },
+      )
 
-      logger.log('참여연구원 수정 성공')
+      logger.log('참여연구원 수정 응답 상태:', response.status)
 
-      selectedItems.member = null
-      loadingStates.addingMember = false
-      resetMemberForm()
+      if (response.ok) {
+        const result = await response.json()
+        logger.log('참여연구원 수정 성공 응답:', result)
 
-      // 데이터 새로고침
-      await loadProjectMembers()
-      logger.log('참여연구원 목록 새로고침 완료')
+        selectedItems.member = null
+        loadingStates.addingMember = false
+        resetMemberForm()
 
-      dispatch('refresh')
+        // 데이터 새로고침
+        await loadProjectMembers()
+        logger.log('참여연구원 목록 새로고침 완료')
 
-      // 성공 메시지 표시
-      alert('연구원 정보가 수정되었습니다.')
+        dispatch('refresh')
+
+        // 성공 메시지 표시
+        if (result.message) {
+          alert(result.message)
+        }
+      } else {
+        const errorData = await response.json()
+        logger.error('참여연구원 수정 API 에러 응답:', errorData)
+        alert(errorData.message || '연구원 정보 수정에 실패했습니다.')
+      }
     } catch (error) {
       logger.error('멤버 수정 실패:', error)
       alert('연구원 정보 수정 중 오류가 발생했습니다.')
@@ -717,13 +792,16 @@
     if (!confirm('정말로 이 멤버를 제거하시겠습니까?')) return
 
     try {
-      // Use service layer instead of direct fetch
-      await memberService.deleteMember(memberId)
-      await loadProjectMembers()
-      dispatch('refresh')
+      const response = await fetch(`/api/project-management/project-members/${memberId}`, {
+        method: 'DELETE',
+      })
+
+      if (response.ok) {
+        await loadProjectMembers()
+        dispatch('refresh')
+      }
     } catch (error) {
       logger.error('멤버 삭제 실패:', error)
-      alert('멤버 삭제 중 오류가 발생했습니다.')
     }
   }
 
@@ -831,57 +909,69 @@
     if (!selectedItems.budget) return
 
     try {
-      // Use service layer instead of direct fetch
-      await budgetService.updateBudget({
-        id: selectedItems.budget.id,
-        projectId: selectedProject.id,
-        periodNumber: forms.budget.periodNumber,
-        startDate: forms.budget.startDate,
-        endDate: forms.budget.endDate,
-        // 현금 비목들 (천원 단위를 원 단위로 변환, 인건비는 100만원 단위로 조정)
-        personnelCostCash: fromThousands(forms.budget.personnelCostCash),
-        researchMaterialCostCash: fromThousands(forms.budget.researchMaterialCostCash),
-        researchActivityCostCash: fromThousands(forms.budget.researchActivityCostCash),
-        researchStipendCash: fromThousands(forms.budget.researchStipendCash),
-        indirectCostCash: fromThousands(forms.budget.indirectCostCash),
-        // 현물 비목들 (천원 단위를 원 단위로 변환)
-        personnelCostInKind: fromThousands(forms.budget.personnelCostInKind),
-        researchMaterialCostInKind: fromThousands(forms.budget.researchMaterialCostInKind),
-        researchActivityCostInKind: fromThousands(forms.budget.researchActivityCostInKind),
-        researchStipendInKind: fromThousands(forms.budget.researchStipendInKind),
-        indirectCostInKind: fromThousands(forms.budget.indirectCostInKind),
-      })
+      const response = await fetch(
+        `/api/project-management/project-budgets/${selectedItems.budget.id}`,
+        {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            periodNumber: forms.budget.periodNumber,
+            startDate: forms.budget.startDate,
+            endDate: forms.budget.endDate,
+            // 현금 비목들 (천원 단위를 원 단위로 변환, 인건비는 100만원 단위로 조정)
+            personnelCostCash: fromThousands(forms.budget.personnelCostCash),
+            researchMaterialCostCash: fromThousands(forms.budget.researchMaterialCostCash),
+            researchActivityCostCash: fromThousands(forms.budget.researchActivityCostCash),
+            researchStipendCash: fromThousands(forms.budget.researchStipendCash),
+            indirectCostCash: fromThousands(forms.budget.indirectCostCash),
+            // 현물 비목들 (천원 단위를 원 단위로 변환)
+            personnelCostInKind: fromThousands(forms.budget.personnelCostInKind),
+            researchMaterialCostInKind: fromThousands(forms.budget.researchMaterialCostInKind),
+            researchActivityCostInKind: fromThousands(forms.budget.researchActivityCostInKind),
+            researchStipendInKind: fromThousands(forms.budget.researchStipendInKind),
+            indirectCostInKind: fromThousands(forms.budget.indirectCostInKind),
+          }),
+        },
+      )
 
-      modalStates.budget = false
-      modalStates.budgetUpdateConfirm = false
-      selectedItems.budget = null
-      selectedItems.budgetUpdateData = null
-      forms.budget = {
-        periodNumber: 1,
-        startDate: '',
-        endDate: '',
-        personnelCostCash: '',
-        researchMaterialCostCash: '',
-        researchActivityCostCash: '',
-        researchStipendCash: '',
-        indirectCostCash: '',
-        personnelCostInKind: '',
-        researchMaterialCostInKind: '',
-        researchActivityCostInKind: '',
-        researchStipendInKind: '',
-        indirectCostInKind: '',
+      if (response.ok) {
+        const result = await response.json()
+        modalStates.budget = false
+        modalStates.budgetUpdateConfirm = false
+        selectedItems.budget = null
+        selectedItems.budgetUpdateData = null
+        forms.budget = {
+          periodNumber: 1,
+          startDate: '',
+          endDate: '',
+          personnelCostCash: '',
+          researchMaterialCostCash: '',
+          researchActivityCostCash: '',
+          researchStipendCash: '',
+          indirectCostCash: '',
+          personnelCostInKind: '',
+          researchMaterialCostInKind: '',
+          researchActivityCostInKind: '',
+          researchStipendInKind: '',
+          indirectCostInKind: '',
+        }
+        await loadProjectBudgets()
+        // 예산 수정 후 프로젝트 기간 정보 업데이트
+        updateProjectPeriodFromBudgets()
+        // 예산 요약 새로고침
+        budgetRefreshTrigger++
+        dispatch('refresh')
+
+        // 성공 메시지 표시
+        if (result.message) {
+          alert(result.message)
+        }
+      } else {
+        const errorData = await response.json()
+        alert(errorData.message || '사업비 수정에 실패했습니다.')
       }
-      await loadProjectBudgets()
-      // 예산 수정 후 프로젝트 기간 정보 업데이트
-      updateProjectPeriodFromBudgets()
-      // 예산 요약 새로고침
-      uiStates.budgetRefreshTrigger++
-      dispatch('refresh')
-
-      // 성공 메시지 표시
-      alert('사업비가 성공적으로 수정되었습니다.')
     } catch (error) {
-      logger.error('사업비 수정 실패:', error)
+      logger.error('사업비 수정 실행 실패:', error)
       alert('사업비 수정 중 오류가 발생했습니다.')
     }
   }
@@ -947,7 +1037,7 @@
         modalStates.restore = false
         selectedItems.budgetForRestore = null
         await loadProjectBudgets()
-        uiStates.budgetRefreshTrigger++
+        budgetRefreshTrigger++
         dispatch('refresh')
         alert(result.message || '연구개발비가 성공적으로 복구되었습니다.')
       } else {
@@ -971,15 +1061,18 @@
     if (!confirm('정말로 이 사업비 항목을 삭제하시겠습니까?')) return
 
     try {
-      // Use service layer instead of direct fetch
-      await budgetService.deleteBudget(budgetId)
-      await loadProjectBudgets()
-      updateProjectPeriodFromBudgets()
-      uiStates.budgetRefreshTrigger++
-      dispatch('refresh')
+      const response = await fetch(`/api/project-management/project-budgets/${budgetId}`, {
+        method: 'DELETE',
+      })
+
+      if (response.ok) {
+        await loadProjectBudgets()
+        updateProjectPeriodFromBudgets()
+        budgetRefreshTrigger++
+        dispatch('refresh')
+      }
     } catch (error) {
       logger.error('사업비 삭제 실패:', error)
-      alert('사업비 삭제 중 오류가 발생했습니다.')
     }
   }
 
@@ -1154,13 +1247,13 @@
       !forms.member.startDate ||
       !forms.member.endDate
     ) {
-      uiStates.calculatedMonthlyAmount = 0
+      calculatedMonthlyAmount = 0
       return
     }
 
     // 사용자가 수동으로 월간금액을 입력한 경우 자동 계산하지 않음
-    if (uiStates.isManualMonthlyAmount) {
-      uiStates.calculatedMonthlyAmount = parseFloat(forms.member.monthlyAmount) || 0
+    if (isManualMonthlyAmount) {
+      calculatedMonthlyAmount = parseFloat(forms.member.monthlyAmount) || 0
       return
     }
 
@@ -1172,10 +1265,10 @@
         forms.member.startDate,
         forms.member.endDate,
       )
-      uiStates.calculatedMonthlyAmount = amount
+      calculatedMonthlyAmount = amount
     } catch (error) {
       logger.error('월간금액 계산 실패:', error)
-      uiStates.calculatedMonthlyAmount = 0
+      calculatedMonthlyAmount = 0
     } finally {
       loadingStates.calculatingMonthly = false
     }
@@ -1187,21 +1280,23 @@
 
     loadingStates.validating = true
     try {
-      // Use service layer instead of direct fetch
-      const result = await validationService.comprehensiveValidation(selectedProject.id, 'all')
+      const response = await fetch(
+        `/api/project-management/comprehensive-validation?projectId=${selectedProject.id}&scope=all`,
+      )
+      const result = await response.json()
 
       validationData.results = result
 
       // 검증 히스토리에 추가
-      validationData.history.unshift({
+      validationHistory.unshift({
         timestamp: new Date().toISOString(),
         projectId: selectedProject.id,
         results: result,
       })
 
       // 최대 10개까지만 유지
-      if (validationData.history.length > 10) {
-        validationData.history = validationData.history.slice(0, 10)
+      if (validationHistory.length > 10) {
+        validationHistory = validationHistory.slice(0, 10)
       }
 
       modalStates.validation = true
@@ -1246,7 +1341,7 @@
       const result = await response.json()
 
       if (result.success) {
-        validationData.categories = result.data
+        evidenceCategories = result.data
       }
     } catch (error) {
       logger.error('증빙 카테고리 로드 실패:', error)
@@ -1273,7 +1368,7 @@
         }
       }
 
-      validationData.items = allEvidenceItems
+      evidenceItems = allEvidenceItems
     } catch (error) {
       logger.error('증빙 항목 로드 실패:', error)
     } finally {
@@ -1584,7 +1679,7 @@
         loadProjectBudgets()
         loadEvidenceItems()
         // budgetRefreshTrigger 동기화 (ProjectBudgetSummary 새로고침)
-        uiStates.budgetRefreshTrigger = externalRefreshTrigger
+        budgetRefreshTrigger = externalRefreshTrigger
       }
     }
   })
@@ -1674,7 +1769,7 @@
           <ProjectBudgetSummary
             projectId={selectedProject.id}
             compact={true}
-            refreshTrigger={uiStates.budgetRefreshTrigger}
+            refreshTrigger={budgetRefreshTrigger}
           />
         {:catch _error}
           <div class="text-center py-4 text-gray-500">
@@ -1746,7 +1841,7 @@
             </tr>
           </thead>
           <tbody class="bg-white divide-y divide-gray-200">
-            {#key uiStates.budgetUpdateKey}
+            {#key budgetUpdateKey}
               {#each projectBudgets as budget, i (budget.id || i)}
                 {@const _totalBudget =
                   budgetUtilsImported.getPersonnelCostCash(budget) +
@@ -2129,7 +2224,7 @@
   <ProjectMemberForm
     bind:visible={loadingStates.addingMember}
     memberForm={forms.member}
-    bind:isManualMonthlyAmount={uiStates.isManualMonthlyAmount}
+    bind:isManualMonthlyAmount
     {availableEmployees}
     {formatNumber}
     oncancel={cancelAddMember}
@@ -2231,7 +2326,7 @@
                         bind:value={forms.member.startDate}
                         class="flex-1 px-2 py-1 border border-blue-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white"
                         onchange={() => {
-                          uiStates.isManualMonthlyAmount = false
+                          isManualMonthlyAmount = false
                           updateMonthlyAmount()
                         }}
                       />
@@ -2243,7 +2338,7 @@
                         bind:value={forms.member.endDate}
                         class="flex-1 px-2 py-1 border border-blue-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white"
                         onchange={() => {
-                          uiStates.isManualMonthlyAmount = false
+                          isManualMonthlyAmount = false
                           updateMonthlyAmount()
                         }}
                       />
@@ -2350,7 +2445,7 @@
                       max="100"
                       step="0.1"
                       onchange={() => {
-                        uiStates.isManualMonthlyAmount = false
+                        isManualMonthlyAmount = false
                         updateMonthlyAmount()
                       }}
                     />
@@ -2570,7 +2665,7 @@
       {:else}
         <div class="space-y-4">
           {#each budgetCategories as budgetCategory, i (i)}
-            {@const categoryItems = validationData.items.filter(
+            {@const categoryItems = evidenceItems.filter(
               (item) => item.category_name === budgetCategory.name,
             )}
             {@const totalAmount = budgetCategory.cash + budgetCategory.inKind}
@@ -2590,15 +2685,15 @@
                 type="button"
                 class="flex items-center justify-between p-4 bg-gray-50 cursor-pointer hover:bg-gray-100 w-full text-left"
                 onclick={() =>
-                  (uiStates.expandedEvidenceSections[budgetCategory.type] =
-                    !uiStates.expandedEvidenceSections[budgetCategory.type])}
+                  (expandedEvidenceSections[budgetCategory.type] =
+                    !expandedEvidenceSections[budgetCategory.type])}
                 onkeydown={(e) =>
                   e.key === 'Enter' &&
-                  (uiStates.expandedEvidenceSections[budgetCategory.type] =
-                    !uiStates.expandedEvidenceSections[budgetCategory.type])}
+                  (expandedEvidenceSections[budgetCategory.type] =
+                    !expandedEvidenceSections[budgetCategory.type])}
               >
                 <div class="flex items-center space-x-3">
-                  {#if uiStates.expandedEvidenceSections[budgetCategory.type]}
+                  {#if expandedEvidenceSections[budgetCategory.type]}
                     <ChevronDownIcon size={16} class="text-gray-500" />
                   {:else}
                     <ChevronRightIcon size={16} class="text-gray-500" />
@@ -2641,7 +2736,7 @@
               </button>
 
               <!-- 카테고리 내용 -->
-              {#if uiStates.expandedEvidenceSections[budgetCategory.type]}
+              {#if expandedEvidenceSections[budgetCategory.type]}
                 <div class="p-4 border-t border-gray-200">
                   {#if categoryItems.length > 0}
                     <div class="overflow-x-auto">
@@ -2821,10 +2916,10 @@
   <EvidenceAddModal
     bind:visible={modalStates.evidence}
     evidenceForm={forms.newEvidence}
-    evidenceCategories={validationData.categories}
+    {evidenceCategories}
     {availableEmployees}
     isValidatingEvidence={loadingStates.validatingEvidence}
-    evidenceValidation={validationData.evidence}
+    {evidenceValidation}
     isUpdating={loadingStates.updating}
     onclose={() => (modalStates.evidence = false)}
     onvalidate={validateEvidenceRegistration}
@@ -2860,7 +2955,7 @@
   <ValidationResultModal
     bind:open={modalStates.validation}
     onclose={() => (modalStates.validation = false)}
-    validationResults={validationData.results}
+    {validationResults}
   />
 
   <!-- 예산 수정 확인 모달 -->
