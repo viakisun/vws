@@ -103,6 +103,63 @@ npm run security:audit # 보안 취약점 분석
 - 🎯 **목표**: 모든 문제를 0개로 줄이기
 - 🚀 **다음 단계**: 타입 정의 통합 및 Svelte 5 마이그레이션 완료
 
+## 🏗️ Architecture
+
+### Project Management Module
+
+대규모 컴포넌트를 계층화된 서비스, 비즈니스 로직, 데이터 변환 계층으로 분리했습니다.
+
+**구조:**
+```
+Component (2,709 lines)
+    ↓
+Services (540 lines, 21 APIs)
+    ↓
+Business Logic (93 lines, 3 functions)
+    ↓
+Data Transformers (281 lines, 13 functions)
+    ↓
+Database
+```
+
+**주요 구성요소:**
+- **Service Layer**: 21개 API 호출을 5개 서비스로 캡슐화
+- **Business Logic**: 도메인 계산 로직 (기간 계산, 예산 계산 등)
+- **Data Transformers**: API ↔ UI 데이터 변환, 타입 안전성 보장
+
+**자세한 내용**: [프로젝트 관리 아키텍처 문서](./docs/project-management-architecture.md)
+
+### Utilities
+
+```typescript
+// Service Layer (21 APIs)
+import * as projectService from '$lib/services/project-management/project.service'
+import * as memberService from '$lib/services/project-management/member.service'
+import * as budgetService from '$lib/services/project-management/budget.service'
+import * as evidenceService from '$lib/services/project-management/evidence.service'
+import * as validationService from '$lib/services/project-management/validation.service'
+
+// Business Logic (3 functions)
+import * as calculationUtils from '$lib/components/project-management/utils/calculationUtils'
+// - calculatePeriodMonths(startDate, endDate): 기간(개월) 계산
+// - calculateMemberBudget(member, months): 멤버 예산 계산
+// - calculateTotalBudget(categories): 총 예산 계산
+
+// Data Transformers (13 functions)
+import * as dataTransformers from '$lib/components/project-management/utils/dataTransformers'
+// - safeStringToNumber(), safeNumberToString(): 안전한 타입 변환
+// - extractCashAmount(), extractInKindAmount(): 필드 추출
+// - calculateMemberContribution(): 멤버 기여금 계산
+// - distributeMemberAmount(): 현금/현물 자동 분배
+// - transformBudgetToCategories(): 예산 → 카테고리 변환
+// - extractApiData(), extractApiArrayData(): API 응답 추출
+// - groupIssuesByMember(): Validation issue 그룹화
+```
+
+**테스트:**
+- Unit Tests: 53/53 passing (100%)
+- Coverage: dataTransformers.ts (90%+)
+
 ## Tech
 
 - SvelteKit 2, Svelte 5, TypeScript

@@ -29,7 +29,18 @@ export interface MemberFormData {
 
 /**
  * Member 객체에서 현금 금액을 안전하게 추출
- * snake_case와 camelCase 모두 지원
+ *
+ * API 응답과 폼 데이터 간 필드명 차이를 처리합니다.
+ * - API: snake_case (cash_amount)
+ * - UI Form: camelCase (cashAmount)
+ *
+ * @param member - 멤버 객체 (API 또는 폼 데이터)
+ * @returns 현금 금액을 문자열로 반환 (기본값: "0")
+ *
+ * @example
+ * extractCashAmount({ cash_amount: 1000000 }) // "1000000"
+ * extractCashAmount({ cashAmount: 500000 }) // "500000"
+ * extractCashAmount({}) // "0"
  */
 export function extractCashAmount(member: any): string {
   const value = member.cash_amount || member.cashAmount || 0
@@ -38,7 +49,18 @@ export function extractCashAmount(member: any): string {
 
 /**
  * Member 객체에서 현물 금액을 안전하게 추출
- * snake_case와 camelCase 모두 지원
+ *
+ * API 응답과 폼 데이터 간 필드명 차이를 처리합니다.
+ * - API: snake_case (in_kind_amount)
+ * - UI Form: camelCase (inKindAmount)
+ *
+ * @param member - 멤버 객체 (API 또는 폼 데이터)
+ * @returns 현물 금액을 문자열로 반환 (기본값: "0")
+ *
+ * @example
+ * extractInKindAmount({ in_kind_amount: 500000 }) // "500000"
+ * extractInKindAmount({ inKindAmount: 300000 }) // "300000"
+ * extractInKindAmount({}) // "0"
  */
 export function extractInKindAmount(member: any): string {
   const value = member.in_kind_amount || member.inKindAmount || 0
@@ -47,7 +69,20 @@ export function extractInKindAmount(member: any): string {
 
 /**
  * 숫자 값을 문자열로 안전하게 변환
- * undefined, null, NaN 등을 기본값으로 처리
+ *
+ * undefined, null, NaN 등의 edge case를 안전하게 처리합니다.
+ * 폼 필드에 표시할 값을 준비할 때 사용합니다.
+ *
+ * @param value - 변환할 숫자 또는 문자열 값
+ * @param defaultValue - 변환 실패 시 반환할 기본값 (기본값: '0')
+ * @returns 변환된 문자열 또는 기본값
+ *
+ * @example
+ * safeNumberToString(1000000) // "1000000"
+ * safeNumberToString("500000") // "500000"
+ * safeNumberToString(undefined) // "0"
+ * safeNumberToString(null, "N/A") // "N/A"
+ * safeNumberToString(NaN, "0") // "0"
  */
 export function safeNumberToString(
   value: number | string | undefined | null,
@@ -60,7 +95,20 @@ export function safeNumberToString(
 
 /**
  * 문자열을 숫자로 안전하게 변환
- * 파싱 실패 시 기본값 반환
+ *
+ * 사용자 입력이나 API 응답을 숫자로 변환할 때 사용합니다.
+ * 파싱 실패 시 기본값을 반환하여 NaN 에러를 방지합니다.
+ *
+ * @param value - 변환할 문자열 또는 숫자 값
+ * @param defaultValue - 변환 실패 시 반환할 기본값 (기본값: 0)
+ * @returns 변환된 숫자 또는 기본값
+ *
+ * @example
+ * safeStringToNumber("1000000") // 1000000
+ * safeStringToNumber(500000) // 500000
+ * safeStringToNumber("invalid") // 0
+ * safeStringToNumber(undefined, 100) // 100
+ * safeStringToNumber(null, -1) // -1
  */
 export function safeStringToNumber(
   value: string | number | undefined | null,
@@ -135,7 +183,25 @@ export function filterNonZeroCategories(categories: BudgetCategory[]): BudgetCat
 
 /**
  * Member contribution 자동 계산
- * 계약월급여, 참여율, 참여개월수를 기반으로 현금/현물 금액 계산
+ *
+ * 계약월급여, 참여율, 참여개월수를 기반으로 멤버의 총 기여금액을 계산합니다.
+ * 계산 공식: (월급여 × 참여율 / 100) × 참여개월수
+ *
+ * @param monthlySalary - 계약 월급여 (숫자 또는 문자열)
+ * @param participationRate - 참여율 0-100 (숫자 또는 문자열)
+ * @param participationMonths - 참여 개월수 (숫자 또는 문자열)
+ * @returns 계산된 총 기여금액 (정수로 반올림)
+ *
+ * @example
+ * // 월급여 5,000,000원, 참여율 30%, 12개월
+ * calculateMemberContribution(5000000, 30, 12) // 18000000
+ *
+ * // 문자열 입력도 지원
+ * calculateMemberContribution("5000000", "30", "12") // 18000000
+ *
+ * // 잘못된 입력은 0 반환
+ * calculateMemberContribution(0, 30, 12) // 0
+ * calculateMemberContribution("invalid", 30, 12) // 0
  */
 export function calculateMemberContribution(
   monthlySalary: number | string,
@@ -153,7 +219,30 @@ export function calculateMemberContribution(
 
 /**
  * 현금/현물 금액 자동 분배
- * 기존 금액 타입에 따라 새 금액을 적절히 분배
+ *
+ * 총 금액을 기존 금액 타입(현금 또는 현물)에 따라 자동으로 분배합니다.
+ * 분배 로직:
+ * 1. 현재 현금 금액이 있으면 → 전액 현금으로
+ * 2. 현재 현물 금액이 있으면 → 전액 현물로
+ * 3. 둘 다 없으면 → 기본값으로 전액 현금으로
+ *
+ * @param totalAmount - 분배할 총 금액
+ * @param currentCashAmount - 현재 현금 금액 (숫자 또는 문자열)
+ * @param currentInKindAmount - 현재 현물 금액 (숫자 또는 문자열)
+ * @returns 분배된 현금/현물 금액 객체 { cashAmount, inKindAmount }
+ *
+ * @example
+ * // 현금이 있는 경우 → 전액 현금
+ * distributeMemberAmount(10000000, 5000000, 0)
+ * // { cashAmount: "10000000", inKindAmount: "0" }
+ *
+ * // 현물이 있는 경우 → 전액 현물
+ * distributeMemberAmount(10000000, 0, 5000000)
+ * // { cashAmount: "0", inKindAmount: "10000000" }
+ *
+ * // 둘 다 없는 경우 → 기본적으로 현금
+ * distributeMemberAmount(10000000, 0, 0)
+ * // { cashAmount: "10000000", inKindAmount: "0" }
  */
 export function distributeMemberAmount(
   totalAmount: number,
