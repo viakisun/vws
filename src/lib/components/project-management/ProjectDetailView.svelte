@@ -40,107 +40,6 @@
   const dispatch = createEventDispatcher()
 
   // 예산 데이터 필드 접근 유틸리티 함수들
-  function getBudgetField(
-    budget: any,
-    camelCase: string,
-    snakeCase: string,
-    defaultValue: any = null,
-  ) {
-    return budget[camelCase] || budget[snakeCase] || defaultValue
-  }
-
-  function getPeriodNumber(budget: any): number {
-    return getBudgetField(budget, 'periodNumber', 'period_number', 1)
-  }
-
-  function getStartDate(budget: any): string {
-    return getBudgetField(budget, 'startDate', 'start_date')
-  }
-
-  function getEndDate(budget: any): string {
-    return getBudgetField(budget, 'endDate', 'end_date')
-  }
-
-  function getFiscalYear(budget: any): string {
-    return getBudgetField(budget, 'fiscalYear', 'period_number')
-  }
-
-  function _getPersonnelCost(budget: any): number {
-    return getBudgetField(budget, 'personnelCost', 'personnel_cost', 0)
-  }
-
-  function getPersonnelCostCash(budget: any): number {
-    return getBudgetField(budget, 'personnelCostCash', 'personnel_cost_cash', 0)
-  }
-
-  function _getResearchMaterialCost(budget: any): number {
-    return getBudgetField(budget, 'researchMaterialCost', 'research_material_cost', 0)
-  }
-
-  function getResearchMaterialCostCash(budget: any): number {
-    return getBudgetField(budget, 'researchMaterialCostCash', 'research_material_cost_cash', 0)
-  }
-
-  function _getResearchActivityCost(budget: any): number {
-    return getBudgetField(budget, 'researchActivityCost', 'research_activity_cost', 0)
-  }
-
-  function getResearchActivityCostCash(budget: any): number {
-    return getBudgetField(budget, 'researchActivityCostCash', 'research_activity_cost_cash', 0)
-  }
-
-  function _getResearchStipend(budget: any): number {
-    return getBudgetField(budget, 'researchStipend', 'research_stipend', 0)
-  }
-  function getResearchStipendCash(budget: any): number {
-    return getBudgetField(budget, 'researchStipendCash', 'research_stipend_cash', 0)
-  }
-  function getResearchStipendInKind(budget: any): number {
-    return getBudgetField(budget, 'researchStipendInKind', 'research_stipend_in_kind', 0)
-  }
-
-  function getIndirectCost(budget: any): number {
-    return getBudgetField(budget, 'indirectCost', 'indirect_cost', 0)
-  }
-  function getIndirectCostCash(budget: any): number {
-    return getBudgetField(budget, 'indirectCostCash', 'indirect_cost_cash', 0)
-  }
-
-  function getPersonnelCostInKind(budget: any): number {
-    return getBudgetField(budget, 'personnelCostInKind', 'personnel_cost_in_kind', 0)
-  }
-
-  function getResearchMaterialCostInKind(budget: any): number {
-    return getBudgetField(budget, 'researchMaterialCostInKind', 'research_material_cost_in_kind', 0)
-  }
-
-  function getResearchActivityCostInKind(budget: any): number {
-    return getBudgetField(budget, 'researchActivityCostInKind', 'research_activity_cost_in_kind', 0)
-  }
-
-  function getIndirectCostInKind(budget: any): number {
-    return getBudgetField(budget, 'indirectCostInKind', 'indirect_cost_in_kind', 0)
-  }
-
-  function formatPeriodDisplay(budget: any): string {
-    return `Y${getPeriodNumber(budget)}`
-  }
-
-  function formatPeriodTooltip(budget: any): string {
-    const startDate = getStartDate(budget)
-    const endDate = getEndDate(budget)
-    const fiscalYear = getFiscalYear(budget)
-
-    const startDisplay = startDate ? formatDate(startDate) : `${fiscalYear}년`
-    const endDisplay = endDate ? formatDate(endDate) : `${fiscalYear}년`
-    const monthsDisplay =
-      startDate && endDate ? `${calculatePeriodMonths(startDate, endDate)}개월` : '1년'
-
-    return `기간: ${startDisplay} ~ ${endDisplay} (${monthsDisplay})`
-  }
-
-  // 날짜 처리 유틸리티 함수들 (표준화된 함수 사용)
-
   // 연차 정보 기반 프로젝트 기간 계산
   async function updateProjectPeriodFromBudgets() {
     if (!selectedProject?.id) return
@@ -183,129 +82,6 @@
   }
 
   // 멤버 데이터 필드 접근 유틸리티 함수들
-  function getMemberField(
-    member: any,
-    camelCase: string,
-    snakeCase: string,
-    defaultValue: any = null,
-  ) {
-    return member[camelCase] || member[snakeCase] || defaultValue
-  }
-
-  function getMemberStartDate(member: any): string {
-    return getMemberField(member, 'startDate', 'start_date', '')
-  }
-
-  function getMemberEndDate(member: any): string {
-    return getMemberField(member, 'endDate', 'end_date', '')
-  }
-
-  function getMemberEmployeeId(member: any): string {
-    return getMemberField(member, 'employeeId', 'employee_id')
-  }
-
-  function getMemberParticipationRate(member: any): number {
-    return getMemberField(member, 'participationRate', 'participation_rate', 0)
-  }
-
-  function getMemberMonthlyAmount(member: any): number {
-    return getMemberField(member, 'monthlyAmount', 'monthly_amount', 0)
-  }
-
-  function getMemberEmployeeName(member: any): string {
-    return getMemberField(member, 'employeeName', 'employee_name')
-  }
-
-  // 한국식 이름 처리 유틸리티 함수 (통합된 유틸리티 사용)
-  function formatKoreanName(name: string): string {
-    if (!name) return ''
-
-    const trimmed = name.trim()
-
-    // 이미 표준 형식인 경우 (띄어쓰기 없음)
-    if (!trimmed.includes(' ')) {
-      return trimmed
-    }
-
-    // 한국 이름인 경우 표준 형식으로 변환
-    if (isKoreanName(trimmed)) {
-      const parts = trimmed.split(/\s+/)
-      if (parts.length === 2) {
-        const [first, second] = parts
-
-        // 일반적으로 성은 1글자, 이름은 2글자 이상
-        if (first.length >= 2 && second.length === 1) {
-          // "지은 차" -> "차지은" (이름 성 -> 성 이름)
-          return `${second}${first}`
-        } else if (first.length === 1 && second.length >= 2) {
-          // "차 지은" -> "차지은" (이미 올바른 순서)
-          return `${first}${second}`
-        }
-      }
-    }
-
-    // 한국 이름이 아닌 경우 원본 반환
-    return trimmed
-  }
-
-  // 담당자 이름 처리 통일된 유틸리티 함수들
-  function formatAssigneeName(
-    assigneeName: string | null | undefined,
-    fallback: string = '미할당',
-  ): string {
-    if (!assigneeName) return fallback
-    // 데이터베이스에서 "지은 차" 형식으로 저장된 것을 "차지은" 형식으로 변환
-    return formatKoreanName(assigneeName)
-  }
-
-  function formatAssigneeNameFromFields(item: any, fallback: string = '미할당'): string {
-    const name = item.assignee_full_name || item.assignee_name
-    return formatAssigneeName(name, fallback)
-  }
-
-  function createAssigneeNameFromEmployee(employee: any): string {
-    if (!employee) return ''
-    return formatKoreanName(`${employee.last_name}${employee.first_name}`)
-  }
-
-  function formatEmployeeForSelect(employee: any): string {
-    return createAssigneeNameFromEmployee(employee)
-  }
-
-  // 프로젝트 데이터 필드 접근 유틸리티 함수들
-  function getProjectField(
-    project: any,
-    camelCase: string,
-    snakeCase: string,
-    defaultValue: any = null,
-  ) {
-    return project[camelCase] || project[snakeCase] || defaultValue
-  }
-
-  function _getProjectStartDate(project: any): string {
-    return getProjectField(project, 'startDate', 'start_date')
-  }
-
-  function _getProjectEndDate(project: any): string {
-    return getProjectField(project, 'endDate', 'end_date')
-  }
-
-  function getProjectCode(project: any): string {
-    return getProjectField(project, 'code', 'code')
-  }
-
-  function getProjectDescription(project: any): string {
-    return getProjectField(project, 'description', 'description')
-  }
-
-  function getProjectStatus(project: any): string {
-    return getProjectField(project, 'status', 'status', 'active')
-  }
-
-  function getProjectSponsorType(project: any): string {
-    return getProjectField(project, 'sponsorType', 'sponsor_type', 'internal')
-  }
-
   let {
     selectedProject,
     externalRefreshTrigger = 0,
@@ -826,24 +602,24 @@
 
     // 디버깅: 멤버 데이터 확인
     logger.log('editMember - member data:', member)
-    logger.log('editMember - startDate raw:', getMemberStartDate(member))
-    logger.log('editMember - endDate raw:', getMemberEndDate(member))
+    logger.log('editMember - startDate raw:', memberUtilsImported.getMemberStartDate(member))
+    logger.log('editMember - endDate raw:', memberUtilsImported.getMemberEndDate(member))
 
     // 날짜 데이터 확인 및 안전한 처리
-    const rawStartDate = getMemberStartDate(member)
-    const rawEndDate = getMemberEndDate(member)
+    const rawStartDate = memberUtilsImported.getMemberStartDate(member)
+    const rawEndDate = memberUtilsImported.getMemberEndDate(member)
 
     memberForm = {
-      employeeId: getMemberEmployeeId(member),
+      employeeId: memberUtilsImported.getMemberEmployeeId(member),
       role: member.role,
       startDate: rawStartDate ? formatDateForInput(rawStartDate) : '',
       endDate: rawEndDate ? formatDateForInput(rawEndDate) : '',
-      participationRate: getMemberParticipationRate(member) || 0,
-      monthlyAmount: (getMemberMonthlyAmount(member) || 0).toString(),
+      participationRate: memberUtilsImported.getMemberParticipationRate(member) || 0,
+      monthlyAmount: (memberUtilsImported.getMemberMonthlyAmount(member) || 0).toString(),
       contractMonthlySalary: (calculateContractMonthlySalary(member) || 0).toString(),
       participationMonths: calculatePeriodMonths(
-        getMemberStartDate(member),
-        getMemberEndDate(member),
+        memberUtilsImported.getMemberStartDate(member),
+        memberUtilsImported.getMemberEndDate(member),
       ),
       cashAmount: (member.cash_amount || member.cashAmount || '0').toString(),
       inKindAmount: (member.in_kind_amount || member.inKindAmount || '0').toString(),
@@ -993,21 +769,29 @@
     // 중복된 formatDateForInput 함수 제거됨 - 상단의 유틸리티 함수 사용
 
     budgetForm = {
-      periodNumber: getPeriodNumber(budget),
-      startDate: formatDateForInput(getStartDate(budget)),
-      endDate: formatDateForInput(getEndDate(budget)),
+      periodNumber: budgetUtilsImported.getPeriodNumber(budget),
+      startDate: formatDateForInput(budgetUtilsImported.getStartDate(budget)),
+      endDate: formatDateForInput(budgetUtilsImported.getEndDate(budget)),
       // 현금 비목들 (천원 단위로 변환, 인건비는 조정된 값 표시)
-      personnelCostCash: toThousands(getPersonnelCostCash(budget)),
-      researchMaterialCostCash: toThousands(getResearchMaterialCostCash(budget)),
-      researchActivityCostCash: toThousands(getResearchActivityCostCash(budget)),
-      researchStipendCash: toThousands(getResearchStipendCash(budget)),
-      indirectCostCash: toThousands(getIndirectCost(budget)),
+      personnelCostCash: toThousands(budgetUtilsImported.getPersonnelCostCash(budget)),
+      researchMaterialCostCash: toThousands(
+        budgetUtilsImported.getResearchMaterialCostCash(budget),
+      ),
+      researchActivityCostCash: toThousands(
+        budgetUtilsImported.getResearchActivityCostCash(budget),
+      ),
+      researchStipendCash: toThousands(budgetUtilsImported.getResearchStipendCash(budget)),
+      indirectCostCash: toThousands(budgetUtilsImported.getIndirectCost(budget)),
       // 현물 비목들 (천원 단위로 변환)
-      personnelCostInKind: toThousands(getPersonnelCostInKind(budget)),
-      researchMaterialCostInKind: toThousands(getResearchMaterialCostInKind(budget)),
-      researchActivityCostInKind: toThousands(getResearchActivityCostInKind(budget)),
-      researchStipendInKind: toThousands(getResearchStipendInKind(budget)),
-      indirectCostInKind: toThousands(getIndirectCostInKind(budget)),
+      personnelCostInKind: toThousands(budgetUtilsImported.getPersonnelCostInKind(budget)),
+      researchMaterialCostInKind: toThousands(
+        budgetUtilsImported.getResearchMaterialCostInKind(budget),
+      ),
+      researchActivityCostInKind: toThousands(
+        budgetUtilsImported.getResearchActivityCostInKind(budget),
+      ),
+      researchStipendInKind: toThousands(budgetUtilsImported.getResearchStipendInKind(budget)),
+      indirectCostInKind: toThousands(budgetUtilsImported.getIndirectCostInKind(budget)),
     }
     showBudgetModal = true
   }
@@ -1251,10 +1035,10 @@
     if (selectedProject) {
       projectForm = {
         title: selectedProject.title || '',
-        code: getProjectCode(selectedProject),
-        description: getProjectDescription(selectedProject),
-        status: getProjectStatus(selectedProject),
-        sponsorType: getProjectSponsorType(selectedProject),
+        code: projectUtilsImported.getProjectCode(selectedProject),
+        description: projectUtilsImported.getProjectDescription(selectedProject),
+        status: projectUtilsImported.getProjectStatus(selectedProject),
+        sponsorType: projectUtilsImported.getProjectSponsorType(selectedProject),
         priority: selectedProject.priority || 'medium',
         researchType: selectedProject.research_type || selectedProject.researchType || 'applied',
       }
@@ -1555,8 +1339,9 @@
   async function addEvidenceItem(categoryId, itemData) {
     try {
       const currentBudget =
-        projectBudgets.find((b) => getPeriodNumber(b) === selectedEvidencePeriod) ||
-        projectBudgets[0]
+        projectBudgets.find(
+          (b) => budgetUtilsImported.getPeriodNumber(b) === selectedEvidencePeriod,
+        ) || projectBudgets[0]
 
       const response = await fetch('/api/project-management/evidence', {
         method: 'POST',
@@ -1642,7 +1427,7 @@
       const selectedEmployee = availableEmployees.find(
         (emp) => emp.id === newEvidenceForm.assigneeId,
       )
-      const assigneeName = createAssigneeNameFromEmployee(selectedEmployee)
+      const assigneeName = memberUtilsImported.createAssigneeNameFromEmployee(selectedEmployee)
 
       await addEvidenceItem(newEvidenceForm.categoryId, {
         name: newEvidenceForm.name,
@@ -1814,7 +1599,7 @@
 
   // 계약월급여 계산 함수 (월급 기준)
   function calculateContractMonthlySalary(member: any): number {
-    const monthlyAmount = getMemberMonthlyAmount(member)
+    const monthlyAmount = memberUtilsImported.getMemberMonthlyAmount(member)
     return Math.round(monthlyAmount)
   }
 
@@ -1824,7 +1609,10 @@
     const participationRate = member.participationRate || 0
     const months =
       memberForm.participationMonths ||
-      calculatePeriodMonths(getMemberStartDate(member), getMemberEndDate(member))
+      calculatePeriodMonths(
+        memberUtilsImported.getMemberStartDate(member),
+        memberUtilsImported.getMemberEndDate(member),
+      )
 
     // 계약월급여 * 참여율(%) * 참여개월수
     const amount = ((monthlySalary * participationRate) / 100) * months
@@ -1886,7 +1674,9 @@
 
     const targetBudget =
       budget ||
-      projectBudgets.find((b) => getPeriodNumber(b) === selectedEvidencePeriod) ||
+      projectBudgets.find(
+        (b) => budgetUtilsImported.getPeriodNumber(b) === selectedEvidencePeriod,
+      ) ||
       projectBudgets[0]
 
     // 연차별 예산 총액 계산
@@ -2113,9 +1903,9 @@
       totalCost,
       monthlyCosts,
       periodInfo: {
-        startDate: getStartDate(currentBudget),
-        endDate: getEndDate(currentBudget),
-        periodNumber: getPeriodNumber(currentBudget),
+        startDate: budgetUtilsImported.getStartDate(currentBudget),
+        endDate: budgetUtilsImported.getEndDate(currentBudget),
+        periodNumber: budgetUtilsImported.getPeriodNumber(currentBudget),
       },
     }
   }
@@ -2310,28 +2100,37 @@
             {#key budgetUpdateKey}
               {#each projectBudgets as budget, i (budget.id || i)}
                 {@const _totalBudget =
-                  getPersonnelCostCash(budget) +
-                  getPersonnelCostInKind(budget) +
-                  getResearchMaterialCostCash(budget) +
-                  getResearchMaterialCostInKind(budget) +
-                  getResearchActivityCostCash(budget) +
-                  getResearchActivityCostInKind(budget) +
-                  getResearchStipendCash(budget) +
-                  getResearchStipendInKind(budget) +
-                  getIndirectCostCash(budget) +
-                  getIndirectCostInKind(budget)}
-                {@const personnelCash = Number(getPersonnelCostCash(budget)) || 0}
-                {@const materialCash = Number(getResearchMaterialCostCash(budget)) || 0}
-                {@const activityCash = Number(getResearchActivityCostCash(budget)) || 0}
-                {@const stipendCash = Number(getResearchStipendCash(budget)) || 0}
-                {@const indirectCash = Number(getIndirectCostCash(budget)) || 0}
+                  budgetUtilsImported.getPersonnelCostCash(budget) +
+                  budgetUtilsImported.getPersonnelCostInKind(budget) +
+                  budgetUtilsImported.getResearchMaterialCostCash(budget) +
+                  budgetUtilsImported.getResearchMaterialCostInKind(budget) +
+                  budgetUtilsImported.getResearchActivityCostCash(budget) +
+                  budgetUtilsImported.getResearchActivityCostInKind(budget) +
+                  budgetUtilsImported.getResearchStipendCash(budget) +
+                  budgetUtilsImported.getResearchStipendInKind(budget) +
+                  budgetUtilsImported.getIndirectCostCash(budget) +
+                  budgetUtilsImported.getIndirectCostInKind(budget)}
+                {@const personnelCash =
+                  Number(budgetUtilsImported.getPersonnelCostCash(budget)) || 0}
+                {@const materialCash =
+                  Number(budgetUtilsImported.getResearchMaterialCostCash(budget)) || 0}
+                {@const activityCash =
+                  Number(budgetUtilsImported.getResearchActivityCostCash(budget)) || 0}
+                {@const stipendCash =
+                  Number(budgetUtilsImported.getResearchStipendCash(budget)) || 0}
+                {@const indirectCash = Number(budgetUtilsImported.getIndirectCostCash(budget)) || 0}
                 {@const cashTotal =
                   personnelCash + materialCash + activityCash + stipendCash + indirectCash}
-                {@const personnelInKind = Number(getPersonnelCostInKind(budget)) || 0}
-                {@const materialInKind = Number(getResearchMaterialCostInKind(budget)) || 0}
-                {@const activityInKind = Number(getResearchActivityCostInKind(budget)) || 0}
-                {@const stipendInKind = Number(getResearchStipendInKind(budget)) || 0}
-                {@const indirectInKind = Number(getIndirectCostInKind(budget)) || 0}
+                {@const personnelInKind =
+                  Number(budgetUtilsImported.getPersonnelCostInKind(budget)) || 0}
+                {@const materialInKind =
+                  Number(budgetUtilsImported.getResearchMaterialCostInKind(budget)) || 0}
+                {@const activityInKind =
+                  Number(budgetUtilsImported.getResearchActivityCostInKind(budget)) || 0}
+                {@const stipendInKind =
+                  Number(budgetUtilsImported.getResearchStipendInKind(budget)) || 0}
+                {@const indirectInKind =
+                  Number(budgetUtilsImported.getIndirectCostInKind(budget)) || 0}
                 {@const inKindTotal =
                   personnelInKind +
                   materialInKind +
@@ -2346,9 +2145,14 @@
                 >
                   <!-- 연차 -->
                   <td class="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900 w-24">
-                    <div class="text-sm cursor-help" title={formatPeriodTooltip(budget)}>
+                    <div
+                      class="text-sm cursor-help"
+                      title={budgetUtilsImported.formatPeriodTooltip(budget)}
+                    >
                       <div class="flex items-center gap-2">
-                        <span class="font-medium">{formatPeriodDisplay(budget)}</span>
+                        <span class="font-medium"
+                          >{budgetUtilsImported.formatPeriodDisplay(budget)}</span
+                        >
                         {#if mismatchInfo?.hasMismatch}
                           <span
                             class="px-1.5 py-0.5 text-xs bg-red-500 text-white rounded font-medium"
@@ -2588,7 +2392,7 @@
               {#each projectBudgets.filter((budget) => checkBudgetMismatch(budget)?.hasMismatch) as budget}
                 {@const mismatchInfo = checkBudgetMismatch(budget)}
                 <div class="text-xs text-red-600">
-                  {formatPeriodDisplay(budget)}: 예산 {formatNumber(
+                  {budgetUtilsImported.formatPeriodDisplay(budget)}: 예산 {formatNumber(
                     mismatchInfo?.annualBudgetTotal || 0,
                     true,
                   )} vs 연구개발비 {formatNumber(mismatchInfo?.researchCostTotal || 0, true)}
@@ -2934,7 +2738,7 @@
             <option value="">👥 연구원 선택 ({availableEmployees.length}명)</option>
             {#each availableEmployees as employee, i (i)}
               <option value={employee.id}
-                >{formatKoreanName(employee.name)} ({employee.department})</option
+                >{memberUtilsImported.formatKoreanName(employee.name)} ({employee.department})</option
               >
             {/each}
           </select>
@@ -3174,7 +2978,10 @@
                   <div class="flex-1 min-w-0">
                     <div class="flex items-center gap-2 mb-1">
                       <div class="text-sm font-medium text-gray-900 truncate">
-                        {member.employee_name || formatKoreanName(getMemberEmployeeName(member))}
+                        {member.employee_name ||
+                          memberUtilsImported.formatKoreanName(
+                            memberUtilsImported.getMemberEmployeeName(member),
+                          )}
                       </div>
                       <ThemeBadge variant="info" size="sm">{member.role}</ThemeBadge>
                     </div>
@@ -3218,10 +3025,10 @@
                 {:else}
                   <div class="space-y-1">
                     <div class="text-xs text-gray-600">
-                      {formatDate(getMemberStartDate(member))}
+                      {formatDate(memberUtilsImported.getMemberStartDate(member))}
                     </div>
                     <div class="text-xs text-gray-600">
-                      {formatDate(getMemberEndDate(member))}
+                      {formatDate(memberUtilsImported.getMemberEndDate(member))}
                     </div>
                   </div>
                 {/if}
@@ -3233,7 +3040,10 @@
                   <input
                     type="number"
                     value={memberForm.participationMonths ||
-                      calculatePeriodMonths(getMemberStartDate(member), getMemberEndDate(member))}
+                      calculatePeriodMonths(
+                        memberUtilsImported.getMemberStartDate(member),
+                        memberUtilsImported.getMemberEndDate(member),
+                      )}
                     oninput={(e) => {
                       const value = parseInt(e.currentTarget.value) || 0
                       memberForm.participationMonths = value
@@ -3244,7 +3054,10 @@
                   />
                 {:else}
                   {memberForm.participationMonths ||
-                    calculatePeriodMonths(getMemberStartDate(member), getMemberEndDate(member))}개월
+                    calculatePeriodMonths(
+                      memberUtilsImported.getMemberStartDate(member),
+                      memberUtilsImported.getMemberEndDate(member),
+                    )}개월
                 {/if}
               </td>
 
@@ -3458,8 +3271,8 @@
             class="px-3 py-1 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             {#each projectBudgets as budget, i (i)}
-              <option value={getPeriodNumber(budget)}>
-                {formatPeriodDisplay(budget)}
+              <option value={budgetUtilsImported.getPeriodNumber(budget)}>
+                {budgetUtilsImported.formatPeriodDisplay(budget)}
               </option>
             {/each}
           </select>
@@ -3473,8 +3286,9 @@
 
     {#if projectBudgets.length > 0}
       {@const currentBudget =
-        projectBudgets.find((b) => getPeriodNumber(b) === selectedEvidencePeriod) ||
-        projectBudgets[0]}
+        projectBudgets.find(
+          (b) => budgetUtilsImported.getPeriodNumber(b) === selectedEvidencePeriod,
+        ) || projectBudgets[0]}
       {@const budgetCategories = [
         {
           id: 'personnel',
@@ -3656,7 +3470,7 @@
                                 class="px-3 py-3 whitespace-nowrap text-sm text-gray-900 text-center"
                               >
                                 <span class="text-gray-600"
-                                  >{formatAssigneeNameFromFields(item)}</span
+                                  >{memberUtilsImported.formatAssigneeNameFromFields(item)}</span
                                 >
                               </td>
 
@@ -3786,7 +3600,10 @@
                 <div>
                   <span class="text-gray-600">담당자:</span>
                   <span class="ml-2"
-                    >{formatAssigneeNameFromFields(selectedEvidenceItem, '미지정')}</span
+                    >{memberUtilsImported.formatAssigneeNameFromFields(
+                      selectedEvidenceItem,
+                      '미지정',
+                    )}</span
                   >
                 </div>
                 <div>
@@ -3941,7 +3758,10 @@
                           <div class="text-xs text-gray-400">
                             마감일: {formatDate(schedule.due_date)}
                             {#if schedule.assignee_name}
-                              | 담당자: {formatAssigneeName(schedule.assignee_name)}
+                              | 담당자: {memberUtilsImported.formatAssigneeName(
+                                schedule.assignee_name,
+                                '미할당',
+                              )}
                             {/if}
                           </div>
                         </div>
@@ -4098,7 +3918,7 @@
               <option value="">담당자를 선택하세요</option>
               {#each availableEmployees as employee, i (i)}
                 <option value={employee.id}>
-                  {formatEmployeeForSelect(employee)}
+                  {memberUtilsImported.formatEmployeeForSelect(employee)}
                 </option>
               {/each}
             </select>
