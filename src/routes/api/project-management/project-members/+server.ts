@@ -12,24 +12,33 @@ export const GET: RequestHandler = async ({ url }) => {
     const status = url.searchParams.get('status')
     const role = url.searchParams.get('role')
 
+    // 최적화: 필요한 필드만 선택
+    // 직원 이름, 부서, 직급만 JOIN (화면 표시용), 나머지 불필요한 정보 제거
     let sqlQuery = `
 			SELECT
-				pm.*,
+				pm.id,
+				pm.project_id,
+				pm.employee_id,
+				pm.role,
+				pm.start_date,
+				pm.end_date,
+				pm.participation_rate,
+				pm.monthly_salary,
+				pm.monthly_amount,
+				pm.cash_amount,
+				pm.in_kind_amount,
+				pm.status,
+				pm.created_at,
+				pm.updated_at,
 				CASE
 					WHEN e.first_name ~ '^[가-힣]+$' AND e.last_name ~ '^[가-힣]+$'
 					THEN CONCAT(e.last_name, e.first_name)
 					ELSE CONCAT(e.first_name, ' ', e.last_name)
 				END as employee_name,
-				e.first_name,
-				e.last_name,
-				e.email as employee_email,
 				e.department as employee_department,
-				e.position as employee_position,
-				p.title as project_title,
-				p.code as project_code
+				e.position as employee_position
 			FROM project_members pm
 			JOIN employees e ON pm.employee_id = e.id
-			JOIN projects p ON pm.project_id = p.id
 			WHERE 1=1
 		`
 
@@ -64,7 +73,6 @@ export const GET: RequestHandler = async ({ url }) => {
 
     const result = await query(sqlQuery, params)
 
-    // 데이터 변환 없이 원본 데이터 그대로 반환 (임시)
     return json({
       success: true,
       data: result.rows,
@@ -299,17 +307,12 @@ export const POST: RequestHandler = async ({ request }) => {
       [String((result.rows[0] as Record<string, unknown>).id || '')],
     )
 
-    // TIMESTAMP 데이터를 YYYY-MM-DD 형식으로 변환 (중앙화된 함수 사용)
+    // 원본 데이터 그대로 반환 (클라이언트에서 포맷팅)
     const memberData = memberWithDetails.rows[0] as Record<string, unknown>
-    const formattedMemberData = {
-      ...memberData,
-      start_date: formatDateForAPI(String(memberData.start_date || '')),
-      end_date: formatDateForAPI(String(memberData.end_date || '')),
-    }
 
     return json({
       success: true,
-      data: formattedMemberData,
+      data: memberData,
       message: '프로젝트 멤버가 성공적으로 추가되었습니다.',
     })
   } catch (error) {
