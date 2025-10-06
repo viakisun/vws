@@ -17,7 +17,6 @@ export interface ModalStates {
   evidence: boolean
   evidenceDetail: boolean
   budgetUpdateConfirm: boolean
-  restore: boolean
   validation: boolean
 }
 
@@ -51,7 +50,6 @@ export interface SelectedItems {
   budget: any | null
   member: any | null
   budgetForEvidence: any | null
-  budgetForRestore: any | null
   evidenceItem: any | null
   evidencePeriod: number
   deleteCode: string
@@ -97,20 +95,6 @@ export interface MemberForm {
   inKindAmount: string
 }
 
-export interface RestoreForm {
-  personnelCostCash: string
-  personnelCostInKind: string
-  researchMaterialCostCash: string
-  researchMaterialCostInKind: string
-  researchActivityCostCash: string
-  researchActivityCostInKind: string
-  researchStipendCash: string
-  researchStipendInKind: string
-  indirectCostCash: string
-  indirectCostInKind: string
-  restoreReason: string
-}
-
 export interface EvidenceForm {
   categoryId: string
   name: string
@@ -124,7 +108,6 @@ export interface Forms {
   budget: BudgetForm
   project: ProjectForm
   member: MemberForm
-  restore: RestoreForm
   newEvidence: EvidenceForm
 }
 
@@ -164,7 +147,6 @@ export class ProjectDetailStore {
     evidence: false,
     evidenceDetail: false,
     budgetUpdateConfirm: false,
-    restore: false,
     validation: false,
   })
 
@@ -201,7 +183,6 @@ export class ProjectDetailStore {
     budget: null,
     member: null,
     budgetForEvidence: null,
-    budgetForRestore: null,
     evidenceItem: null,
     evidencePeriod: 1,
     deleteCode: '',
@@ -245,19 +226,6 @@ export class ProjectDetailStore {
       participationMonths: 0,
       cashAmount: '0',
       inKindAmount: '0',
-    },
-    restore: {
-      personnelCostCash: '',
-      personnelCostInKind: '',
-      researchMaterialCostCash: '',
-      researchMaterialCostInKind: '',
-      researchActivityCostCash: '',
-      researchActivityCostInKind: '',
-      researchStipendCash: '',
-      researchStipendInKind: '',
-      indirectCostCash: '',
-      indirectCostInKind: '',
-      restoreReason: '사용자 요청에 의한 연구개발비 복구',
     },
     newEvidence: {
       categoryId: '',

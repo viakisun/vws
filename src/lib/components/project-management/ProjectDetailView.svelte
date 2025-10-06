@@ -198,59 +198,6 @@
     store.openModal('budget')
   }
 
-  function openRestoreModal(budget: any) {
-    store.selected.budgetForRestore = budget
-    store.resetForm('restore')
-    store.openModal('restore')
-  }
-
-  async function restoreResearchCosts() {
-    if (!store.selected.budgetForRestore) return
-
-    try {
-      const response = await fetch(
-        `/api/project-management/project-budgets/${store.selected.budgetForRestore.id}/restore-research-costs`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            personnelCostCash: Number(store.forms.restore.personnelCostCash || 0) * 1000,
-            personnelCostInKind: Number(store.forms.restore.personnelCostInKind || 0) * 1000,
-            researchMaterialCostCash:
-              Number(store.forms.restore.researchMaterialCostCash || 0) * 1000,
-            researchMaterialCostInKind:
-              Number(store.forms.restore.researchMaterialCostInKind || 0) * 1000,
-            researchActivityCostCash:
-              Number(store.forms.restore.researchActivityCostCash || 0) * 1000,
-            researchActivityCostInKind:
-              Number(store.forms.restore.researchActivityCostInKind || 0) * 1000,
-            researchStipendCash: Number(store.forms.restore.researchStipendCash || 0) * 1000,
-            researchStipendInKind: Number(store.forms.restore.researchStipendInKind || 0) * 1000,
-            indirectCostCash: Number(store.forms.restore.indirectCostCash || 0) * 1000,
-            indirectCostInKind: Number(store.forms.restore.indirectCostInKind || 0) * 1000,
-            restoreReason: store.forms.restore.restoreReason,
-          }),
-        },
-      )
-
-      if (response.ok) {
-        const result = await response.json()
-        store.closeModal('restore')
-        store.selected.budgetForRestore = null
-        await funding.loadBudgets()
-        store.incrementBudgetRefresh()
-        refresh()
-        alert(result.message || '연구개발비가 성공적으로 복구되었습니다.')
-      } else {
-        const errorData = await response.json()
-        alert(`연구개발비 복구 실패: ${errorData.message || '알 수 없는 오류가 발생했습니다.'}`)
-      }
-    } catch (error) {
-      logger.error('연구개발비 복구 실패:', error)
-      alert('연구개발비 복구 중 오류가 발생했습니다.')
-    }
-  }
-
   // ============================================================================
   // Member Functions (Planning - 2단계)
   // ============================================================================
