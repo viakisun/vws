@@ -155,17 +155,29 @@ export function validateContractOverlap(
  * @returns YYYY-MM-DD 형식의 날짜 문자열
  */
 export function formatDateForAPI(date: string | Date): string {
-  // 문자열인 경우 UTC+9 타임존으로 해석
+  if (!date) return ''
+
+  // 문자열인 경우
   if (typeof date === 'string') {
-    // YYYY-MM-DD 형식인 경우 입력된 날짜를 그대로 반환 (UTC+9 기준으로 해석)
+    // YYYY-MM-DD 형식인 경우 그대로 반환
     if (/^\d{4}-\d{2}-\d{2}$/.test(date)) {
-      return date // 입력된 날짜를 그대로 반환
+      return date
+    }
+
+    // YYYY. MM. DD. 형식인 경우 (processQueryResultDates가 변환한 형식)
+    const koreanDotMatch = date.match(/^(\d{4})\.\s*(\d{2})\.\s*(\d{2})\.?$/)
+    if (koreanDotMatch) {
+      return `${koreanDotMatch[1]}-${koreanDotMatch[2]}-${koreanDotMatch[3]}`
+    }
+
+    // ISO 8601 형식 (UTC)인 경우
+    if (date.includes('T') || date.includes('Z')) {
+      return formatDateForInput(date)
     }
   }
 
   // Date 객체인 경우 UTC+9 타임존으로 해석하여 날짜 부분만 추출
   if (date instanceof Date) {
-    // UTC+9 타임존으로 해석
     const utcPlus9 = new Date(date.getTime() + 9 * 60 * 60 * 1000)
     const year = utcPlus9.getUTCFullYear()
     const month = String(utcPlus9.getUTCMonth() + 1).padStart(2, '0')

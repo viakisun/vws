@@ -350,7 +350,8 @@ export function formatDateForDisplay(
     const date = new Date(normalizedDate)
 
     if (isNaN(date.getTime())) {
-      logger.warn('Invalid UTC date for display:', utcDate)
+      // 디버그 레벨로 변경 - 너무 많은 로그 방지
+      logger.debug('Invalid date for display:', utcDate)
       return ''
     }
 
@@ -365,11 +366,21 @@ export function formatDateForDisplay(
 }
 
 /**
- * Normalize display date format (handles YYYY. MM. DD. format)
+ * Normalize display date format (handles YYYY. MM. DD. format and timestamps)
  */
 function normalizeDisplayDate(dateStr: string): string {
   let normalized = dateStr.trim()
 
+  // ISO 8601 timestamp는 그대로 반환 (이미 표준 형식)
+  if (
+    normalized.includes('T') ||
+    normalized.includes('Z') ||
+    /^\d{4}-\d{2}-\d{2}$/.test(normalized)
+  ) {
+    return normalized
+  }
+
+  // YYYY. MM. DD. 형식 처리
   if (normalized.includes('.')) {
     normalized = normalized
       .replace(/\s+/g, '') // Remove all whitespace
