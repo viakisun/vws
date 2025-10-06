@@ -99,15 +99,9 @@
   const projectMembers = $derived(store.data.projectMembers)
   const projectBudgets = $derived(store.data.projectBudgets)
   const availableEmployees = $derived(store.data.availableEmployees)
-  const _budgetCategories = $derived(store.data.budgetCategories)
-  const _evidenceList = $derived(store.data.evidenceList)
-  const _evidenceTypes = $derived(store.data.evidenceTypes)
 
   // Validation
   const validationData = $derived(store.validation)
-  const memberValidationStatuses = $derived(store.data.memberValidationStatuses)
-  const _memberValidation = $derived(store.data.memberValidation)
-  const _memberValidationLastChecked = $derived(store.data.memberValidationLastChecked)
 
   // ============================================================================
   // Project Management Functions
@@ -180,23 +174,7 @@
   // ============================================================================
   // Budget Functions (Funding - 1단계)
   // ============================================================================
-
-  function openBudgetModal() {
-    store.selected.budget = null
-    store.resetForm('budget')
-
-    // 다음 연차 번호 계산
-    if (projectBudgets.length > 0) {
-      const maxPeriod = Math.max(
-        ...projectBudgets.map((b: any) => budgetUtilsImported.getPeriodNumber(b)),
-      )
-      store.forms.budget.periodNumber = maxPeriod + 1
-    } else {
-      store.forms.budget.periodNumber = 1
-    }
-
-    store.openModal('budget')
-  }
+  // Direct delegation to funding hook
 
   // ============================================================================
   // Member Functions (Planning - 2단계)
@@ -484,7 +462,7 @@
             compact={true}
             refreshTrigger={uiStates.budgetRefreshTrigger}
           />
-        {:catch _error}
+        {:catch}
           <div class="text-center py-4 text-gray-500">
             <p class="text-sm">예산 정보를 불러올 수 없습니다.</p>
           </div>
@@ -556,17 +534,6 @@
           <tbody class="bg-white divide-y divide-gray-200">
             {#key uiStates.budgetUpdateKey}
               {#each projectBudgets as budget, i (budget.id || i)}
-                {@const _totalBudget =
-                  budgetUtilsImported.getPersonnelCostCash(budget) +
-                  budgetUtilsImported.getPersonnelCostInKind(budget) +
-                  budgetUtilsImported.getResearchMaterialCostCash(budget) +
-                  budgetUtilsImported.getResearchMaterialCostInKind(budget) +
-                  budgetUtilsImported.getResearchActivityCostCash(budget) +
-                  budgetUtilsImported.getResearchActivityCostInKind(budget) +
-                  budgetUtilsImported.getResearchStipendCash(budget) +
-                  budgetUtilsImported.getResearchStipendInKind(budget) +
-                  budgetUtilsImported.getIndirectCostCash(budget) +
-                  budgetUtilsImported.getIndirectCostInKind(budget)}
                 {@const personnelCash =
                   Number(budgetUtilsImported.getPersonnelCostCash(budget)) || 0}
                 {@const materialCash =
