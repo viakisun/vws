@@ -336,6 +336,7 @@
             </a>
             <div class="border-t border-gray-100 dark:border-gray-700 my-2"></div>
             <button
+              type="button"
               onclick={onLogout}
               class="flex items-center w-full px-6 py-3 text-sm text-red-600 dark:text-red-400 hover:bg-gradient-to-r hover:from-red-50 hover:to-pink-50 dark:hover:from-red-900/20 dark:hover:to-pink-900/20 transition-all duration-200 group"
             >

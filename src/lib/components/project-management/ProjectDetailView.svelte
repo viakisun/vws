@@ -531,7 +531,7 @@
   }
 
   // 참여연구원 검증 함수 (테이블용)
-  async function validateMembers() {
+  async function _validateMembers() {
     if (!selectedProject?.id) return
 
     isValidatingMembers = true
@@ -4527,7 +4527,7 @@
                 stroke-linejoin="round"
                 stroke-width="2"
                 d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
-              ></path>
+              />
             </svg>
           </div>
           <h3 class="text-lg font-semibold text-gray-900">예산 수정 확인</h3>

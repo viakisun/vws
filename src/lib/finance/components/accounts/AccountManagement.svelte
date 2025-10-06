@@ -207,6 +207,7 @@
         <span class="ml-2 text-sm text-gray-700">잔액 0원 계좌 숨기기</span>
       </label>
       <button
+        type="button"
         onclick={() => (showAddModal = true)}
         class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
       >
@@ -307,9 +308,10 @@
                     {formatAccountStatus(account.status)}
                   </span>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                   <div class="flex items-center space-x-2">
                     <button
+                      type="button"
                       onclick={() => viewTransactions(account)}
                       class="text-green-600 hover:text-green-900"
                       title="거래 내역 보기"
@@ -317,16 +319,7 @@
                       <EyeIcon size={16} />
                     </button>
                     <button
-                      onclick={() => {
-                        _selectedAccount = account
-                        _showEditModal = true
-                      }}
-                      class="text-blue-600 hover:text-blue-900"
-                      title="수정"
-                    >
-                      <EditIcon size={16} />
-                    </button>
-                    <button
+                      type="button"
                       onclick={() => deleteAccount(account)}
                       class="text-red-600 hover:text-red-900"
                       title="삭제"
@@ -356,6 +349,7 @@
       <h3 class="text-lg font-medium text-gray-900 mb-2">계좌가 없습니다</h3>
       <p class="text-gray-500 mb-4">새 계좌를 추가하여 자금 관리를 시작하세요.</p>
       <button
+        type="button"
         onclick={() => (showAddModal = true)}
         class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
       >
