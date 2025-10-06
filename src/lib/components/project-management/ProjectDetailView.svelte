@@ -237,24 +237,6 @@
     },
   })
 
-  // 날짜를 API 형식(YYYY-MM-DD)으로 변환하는 유틸리티 함수
-  function convertDateToISO(dateStr: string): string {
-    if (!dateStr) return ''
-    // "2025. 01. 01." 형식을 "2025-01-01" 형식으로 변환
-    return dateStr.replace(/\s+/g, '').replace(/\./g, '-').replace(/-$/, '')
-  }
-
-  // 숫자 입력 필드 포맷팅 핸들러
-  function handleNumberInput(e: Event, callback: (value: string) => void) {
-    const input = e.currentTarget as HTMLInputElement
-    // 숫자만 추출
-    const rawValue = input.value.replace(/[^\d]/g, '')
-    // 콜백으로 원본 값 전달
-    callback(rawValue || '0')
-    // 포맷팅된 값으로 표시
-    input.value = formatNumber(rawValue, false)
-  }
-
   // ============================================================
   // Data Lists & References
   // ============================================================
@@ -536,9 +518,9 @@
     }
 
     try {
-      // 날짜를 API 형식(YYYY-MM-DD)으로 변환
-      const formattedStartDate = convertDateToISO(forms.member.startDate)
-      const formattedEndDate = convertDateToISO(forms.member.endDate)
+      // 날짜를 API 형식(YYYY-MM-DD)으로 변환 (utils 사용)
+      const formattedStartDate = calculationUtilsImported.convertDateToISO(forms.member.startDate)
+      const formattedEndDate = calculationUtilsImported.convertDateToISO(forms.member.endDate)
 
       // Use service layer instead of direct fetch
       await memberService.addMember({
@@ -672,9 +654,9 @@
     }
 
     try {
-      // 날짜를 API 형식(YYYY-MM-DD)으로 변환
-      const formattedStartDate = convertDateToISO(forms.member.startDate)
-      const formattedEndDate = convertDateToISO(forms.member.endDate)
+      // 날짜를 API 형식(YYYY-MM-DD)으로 변환 (utils 사용)
+      const formattedStartDate = calculationUtilsImported.convertDateToISO(forms.member.startDate)
+      const formattedEndDate = calculationUtilsImported.convertDateToISO(forms.member.endDate)
 
       logger.log('참여연구원 수정 요청 데이터:', {
         id: selectedItems.member.id,
@@ -1005,7 +987,18 @@
 
     loadingStates.updating = true
     try {
-      const result = await projectService.updateProject(selectedProject.id, forms.project)
+      const result = await projectService.updateProject(selectedProject.id, {
+        ...forms.project,
+        sponsorType: forms.project.sponsorType as 'government' | 'private' | 'internal',
+        status: forms.project.status as
+          | 'active'
+          | 'planning'
+          | 'completed'
+          | 'cancelled'
+          | 'suspended',
+        priority: forms.project.priority as 'low' | 'medium' | 'high' | 'critical',
+        researchType: forms.project.researchType as 'basic' | 'applied' | 'development',
+      })
 
       if (result.success) {
         // 프로젝트 정보 업데이트
@@ -1057,82 +1050,7 @@
     }
   }
 
-  // 월간금액 자동 계산 (참여기간 내 계약 정보 기반)
-  async function calculateMonthlyAmount(
-    employeeId: string,
-    participationRate: number | string,
-    startDate?: string,
-    endDate?: string,
-  ): Promise<number> {
-    logger.log('calculateMonthlyAmount 호출:', {
-      employeeId,
-      participationRate,
-      startDate,
-      endDate,
-      type: typeof participationRate,
-    })
-
-    // participationRate를 숫자로 변환
-    const rate =
-      typeof participationRate === 'string' ? parseFloat(participationRate) : participationRate
-
-    if (!employeeId || !rate || isNaN(rate)) {
-      logger.log('employeeId 또는 participationRate가 없거나 유효하지 않음:', {
-        employeeId,
-        rate,
-      })
-      return 0
-    }
-
-    // 참여기간이 없으면 기본값 사용
-    if (!startDate || !endDate) {
-      logger.log('참여기간이 설정되지 않음')
-      return 0
-    }
-
-    try {
-      // 참여기간 내의 계약 정보 조회
-      const response = await fetch(
-        `/api/project-management/employees/${employeeId}/contract?startDate=${startDate}&endDate=${endDate}`,
-      )
-      if (!response.ok) {
-        logger.log('계약 정보 조회 실패:', response.status)
-        return 0
-      }
-
-      const contractData = await response.json()
-      logger.log('계약 정보:', contractData)
-
-      if (!contractData.success || !contractData.data) {
-        logger.log('계약 정보가 없음:', contractData.message)
-        if (contractData.debug) {
-          logger.log('디버그 정보:', contractData.debug)
-        }
-        return 0
-      }
-
-      const contract = contractData.data
-      const annualSalary = parseFloat(contract.annual_salary) || 0
-      logger.log('계약 연봉 (원본):', contract.annual_salary)
-      logger.log('계약 연봉 (변환):', annualSalary)
-
-      if (annualSalary === 0) {
-        logger.log('연봉이 0원임')
-        return 0
-      }
-
-      // 중앙화된 급여 계산 함수 사용
-      const monthlyAmount = calculateMonthlySalary(annualSalary, rate)
-      logger.log('계산된 월간금액:', monthlyAmount)
-
-      return monthlyAmount
-    } catch (error) {
-      logger.error('월간금액 계산 중 오류:', error)
-      return 0
-    }
-  }
-
-  // 월간금액 계산 및 업데이트
+  // 월간금액 계산 및 업데이트 (utils 함수 사용)
   async function updateMonthlyAmount() {
     if (
       !forms.member.employeeId ||
@@ -1150,20 +1068,24 @@
       return
     }
 
-    loadingStates.calculatingMonthly = true
     try {
-      const amount = await calculateMonthlyAmount(
+      const formattedStartDate = calculationUtilsImported.convertDateToISO(forms.member.startDate)
+      const formattedEndDate = calculationUtilsImported.convertDateToISO(forms.member.endDate)
+
+      // Utils 함수 사용으로 로직 중복 제거
+      const calculatedAmount = await calculationUtilsImported.calculateMonthlyAmountFromContract(
         forms.member.employeeId,
         forms.member.participationRate,
-        forms.member.startDate,
-        forms.member.endDate,
+        formattedStartDate,
+        formattedEndDate,
       )
-      uiStates.calculatedMonthlyAmount = amount
+
+      logger.log('계산된 월간금액:', calculatedAmount)
+      uiStates.calculatedMonthlyAmount = calculatedAmount
+      forms.member.monthlyAmount = calculatedAmount.toString()
     } catch (error) {
-      logger.error('월간금액 계산 실패:', error)
+      logger.error('월간금액 계산 중 오류:', error)
       uiStates.calculatedMonthlyAmount = 0
-    } finally {
-      loadingStates.calculatingMonthly = false
     }
   }
 
@@ -1174,7 +1096,7 @@
     loadingStates.validating = true
     try {
       // Use service layer instead of direct fetch
-      const result = await validationService.comprehensiveValidation(selectedProject.id, 'all')
+      const result = await validationService.comprehensiveValidation(selectedProject.id)
 
       validationData.results = result
 
@@ -2061,7 +1983,8 @@
       }
     }}
     {formatNumber}
-    {handleNumberInput}
+    handleNumberInput={(e, callback) =>
+      calculationUtilsImported.handleNumberInput(e, callback, formatNumber)}
   />
 
   <!-- 연구원 추가 폼 카드 -->

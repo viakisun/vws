@@ -4,14 +4,18 @@
  */
 
 export interface ValidationPayload {
-  projectId: string
-  employmentIds: string[]
+  projectId?: string
+  employmentIds?: string[]
+  assigneeId?: string
+  dueDate?: string
+  projectBudgetId?: string
 }
 
 export interface ValidationResult {
   valid: boolean
   errors: string[]
   warnings: string[]
+  success?: boolean
   data?: any
 }
 
@@ -31,7 +35,7 @@ export async function validateEvidenceRegistration(
     throw new Error(`Failed to validate evidence: ${response.status} ${response.statusText}`)
   }
 
-  return await response.json()
+  return (await response.json()) as ValidationResult
 }
 
 /**
@@ -46,22 +50,24 @@ export async function validateMembers(projectId: string): Promise<ValidationResu
     throw new Error(`Failed to validate members: ${response.status} ${response.statusText}`)
   }
 
-  return await response.json()
+  return (await response.json()) as ValidationResult
 }
 
 /**
  * 종합 검증
  */
 export async function comprehensiveValidation(projectId: string): Promise<ValidationResult> {
-  const response = await fetch(
-    `/api/project-management/comprehensive-validation?projectId=${projectId}`,
-  )
+  const response = await fetch(`/api/project-management/comprehensive-validation`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ projectId }),
+  })
 
   if (!response.ok) {
     throw new Error(
-      `Failed to perform comprehensive validation: ${response.status} ${response.statusText}`,
+      `Failed to run comprehensive validation: ${response.status} ${response.statusText}`,
     )
   }
 
-  return await response.json()
+  return (await response.json()) as ValidationResult
 }

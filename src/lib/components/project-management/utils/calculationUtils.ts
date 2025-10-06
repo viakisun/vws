@@ -253,6 +253,99 @@ export function calculateBudgetTotals(projectBudgets: any[]) {
 }
 
 /**
+ * 월간금액 자동 계산 (참여기간 내 계약 정보 기반)
+ * @param employeeId 직원 ID
+ * @param participationRate 참여율 (number 또는 string)
+ * @param startDate 참여 시작일
+ * @param endDate 참여 종료일
+ * @returns 계산된 월간금액
+ */
+export async function calculateMonthlyAmountFromContract(
+  employeeId: string,
+  participationRate: number | string,
+  startDate?: string,
+  endDate?: string,
+): Promise<number> {
+  // participationRate를 숫자로 변환
+  const rate =
+    typeof participationRate === 'string' ? parseFloat(participationRate) : participationRate
+
+  if (!employeeId || !rate || isNaN(rate)) {
+    return 0
+  }
+
+  // 참여기간이 없으면 0 반환
+  if (!startDate || !endDate) {
+    return 0
+  }
+
+  try {
+    // 참여기간 내의 계약 정보 조회
+    const response = await fetch(
+      `/api/project-management/employees/${employeeId}/contract?startDate=${startDate}&endDate=${endDate}`,
+    )
+    if (!response.ok) {
+      return 0
+    }
+
+    const contractData = (await response.json()) as {
+      success: boolean
+      data?: { annual_salary: string | number }
+    }
+
+    if (!contractData.success || !contractData.data) {
+      return 0
+    }
+
+    const contract = contractData.data
+    const annualSalary = parseFloat(String(contract.annual_salary)) || 0
+
+    if (annualSalary === 0) {
+      return 0
+    }
+
+    // 월급 계산: 연봉 / 12 * 참여율
+    const monthlyAmount = Math.round((annualSalary / 12) * (rate / 100))
+
+    return monthlyAmount
+  } catch (_error) {
+    // 로깅은 상위 컴포넌트에서 처리
+    return 0
+  }
+}
+
+/**
+ * 날짜를 ISO 형식(YYYY-MM-DD)으로 변환
+ * @param dateStr "2025. 01. 01." 형식의 날짜 문자열
+ * @returns "2025-01-01" 형식의 날짜 문자열
+ */
+export function convertDateToISO(dateStr: string): string {
+  if (!dateStr) return ''
+  // "2025. 01. 01." 형식을 "2025-01-01" 형식으로 변환
+  return dateStr.replace(/\s+/g, '').replace(/\./g, '-').replace(/-$/, '')
+}
+
+/**
+ * 숫자 입력 필드 포맷팅 핸들러
+ * @param e 입력 이벤트
+ * @param callback 값 변경 콜백
+ * @param formatNumber 포맷팅 함수
+ */
+export function handleNumberInput(
+  e: Event,
+  callback: (value: string) => void,
+  formatNumber: (value: string | number, includeUnit?: boolean) => string,
+): void {
+  const input = e.currentTarget as HTMLInputElement
+  // 숫자만 추출
+  const rawValue = input.value.replace(/[^\d]/g, '')
+  // 콜백으로 원본 값 전달
+  callback(rawValue || '0')
+  // 포맷팅된 값으로 표시
+  input.value = formatNumber(rawValue, false)
+}
+
+/**
  * 인건비 요약 계산 (해당 연차의 인건비 합계 및 월별 상세)
  */
 export function calculatePersonnelCostSummary(projectMembers: any[], projectBudgets: any[]) {
