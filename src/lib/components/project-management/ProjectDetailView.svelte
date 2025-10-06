@@ -251,16 +251,16 @@
   })
 
   // ============================================================
-  // Validation States
+  // Validation & Evidence Data States (Phase B-5)
   // ============================================================
-  let validationResults = $state<any>(null)
-  let validationHistory = $state<any[]>([])
-  let _autoValidationEnabled = $state(true)
-  let evidenceCategories = $state<any[]>([])
-  let evidenceItems = $state<any[]>([])
-
-  // 증빙 등록 검증 상태
-  let evidenceValidation = $state<any>(null)
+  let validationData = $state({
+    results: null as any, // validationResults - 검증 결과
+    history: [] as any[], // validationHistory - 검증 이력
+    autoEnabled: true, // _autoValidationEnabled - 자동 검증 활성화
+    evidence: null as any, // evidenceValidation - 증빙 등록 검증 상태
+    categories: [] as any[], // evidenceCategories - 증빙 카테고리 목록
+    items: [] as any[], // evidenceItems - 증빙 항목 목록
+  })
 
   let _editProjectForm = $state({
     title: '',
@@ -307,16 +307,16 @@
       !forms.newEvidence.dueDate ||
       !selectedItems.budgetForEvidence?.id
     ) {
-      evidenceValidation = null
+      validationData.evidence = null
       return
     }
 
     // 인건비 카테고리인 경우에만 검증
-    const selectedCategory = evidenceCategories.find(
+    const selectedCategory = validationData.categories.find(
       (cat) => cat.id === forms.newEvidence.categoryId,
     )
     if (selectedCategory?.name !== '인건비') {
-      evidenceValidation = null
+      validationData.evidence = null
       return
     }
 
@@ -334,14 +334,14 @@
 
       if (response.ok) {
         const data = await response.json()
-        evidenceValidation = data
+        validationData.evidence = data
       } else {
         logger.error('증빙 등록 검증 실패:', response.statusText)
-        evidenceValidation = null
+        validationData.evidence = null
       }
     } catch (error) {
       logger.error('증빙 등록 검증 중 오류:', error)
-      evidenceValidation = null
+      validationData.evidence = null
     } finally {
       loadingStates.validatingEvidence = false
     }
@@ -1285,18 +1285,18 @@
       )
       const result = await response.json()
 
-      validationResults = result
+      validationData.results = result
 
       // 검증 히스토리에 추가
-      validationHistory.unshift({
+      validationData.history.unshift({
         timestamp: new Date().toISOString(),
         projectId: selectedProject.id,
         results: result,
       })
 
       // 최대 10개까지만 유지
-      if (validationHistory.length > 10) {
-        validationHistory = validationHistory.slice(0, 10)
+      if (validationData.history.length > 10) {
+        validationData.history = validationData.history.slice(0, 10)
       }
 
       modalStates.validation = true
@@ -1341,7 +1341,7 @@
       const result = await response.json()
 
       if (result.success) {
-        evidenceCategories = result.data
+        validationData.categories = result.data
       }
     } catch (error) {
       logger.error('증빙 카테고리 로드 실패:', error)
@@ -1368,7 +1368,7 @@
         }
       }
 
-      evidenceItems = allEvidenceItems
+      validationData.items = allEvidenceItems
     } catch (error) {
       logger.error('증빙 항목 로드 실패:', error)
     } finally {
@@ -2665,7 +2665,7 @@
       {:else}
         <div class="space-y-4">
           {#each budgetCategories as budgetCategory, i (i)}
-            {@const categoryItems = evidenceItems.filter(
+            {@const categoryItems = validationData.items.filter(
               (item) => item.category_name === budgetCategory.name,
             )}
             {@const totalAmount = budgetCategory.cash + budgetCategory.inKind}
@@ -2916,10 +2916,10 @@
   <EvidenceAddModal
     bind:visible={modalStates.evidence}
     evidenceForm={forms.newEvidence}
-    {evidenceCategories}
+    evidenceCategories={validationData.categories}
     {availableEmployees}
     isValidatingEvidence={loadingStates.validatingEvidence}
-    {evidenceValidation}
+    evidenceValidation={validationData.evidence}
     isUpdating={loadingStates.updating}
     onclose={() => (modalStates.evidence = false)}
     onvalidate={validateEvidenceRegistration}
@@ -2955,7 +2955,7 @@
   <ValidationResultModal
     bind:open={modalStates.validation}
     onclose={() => (modalStates.validation = false)}
-    {validationResults}
+    validationResults={validationData.results}
   />
 
   <!-- 예산 수정 확인 모달 -->
