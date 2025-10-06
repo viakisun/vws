@@ -310,7 +310,7 @@
       return
     }
 
-    loadingStates.validatingEvidence = true
+    isValidatingEvidence = true
     try {
       const response = await fetch('/api/project-management/evidence-items/validate-employment', {
         method: 'POST',
@@ -333,7 +333,7 @@
       logger.error('증빙 등록 검증 중 오류:', error)
       evidenceValidation = null
     } finally {
-      loadingStates.validatingEvidence = false
+      isValidatingEvidence = false
     }
   }
 
@@ -341,7 +341,7 @@
   async function _validateMembers() {
     if (!selectedProject?.id) return
 
-    loadingStates.validatingMembers = true
+    isValidatingMembers = true
     try {
       const response = await fetch(
         `/api/project-management/researcher-validation?projectId=${selectedProject.id}`,
@@ -361,7 +361,7 @@
     } catch (error) {
       logger.error('참여연구원 검증 중 오류:', error)
     } finally {
-      loadingStates.validatingMembers = false
+      isValidatingMembers = false
     }
   }
 
@@ -592,7 +592,7 @@
       })
 
       if (response.ok) {
-        loadingStates.addingMember = false
+        addingMember = false
         resetMemberForm()
         await loadProjectMembers()
         dispatch('refresh')
@@ -608,14 +608,14 @@
 
   // 멤버 추가 시작
   function startAddMember() {
-    loadingStates.addingMember = true
+    addingMember = true
     editingMember = null
     resetMemberForm()
   }
 
   // 멤버 추가 취소
   function cancelAddMember() {
-    loadingStates.addingMember = false
+    addingMember = false
     resetMemberForm()
   }
 
@@ -745,7 +745,7 @@
         logger.log('참여연구원 수정 성공 응답:', result)
 
         editingMember = null
-        loadingStates.addingMember = false
+        addingMember = false
         resetMemberForm()
 
         // 데이터 새로고침
@@ -1074,7 +1074,7 @@
   async function updateProject() {
     if (!selectedProject) return
 
-    loadingStates.updating = true
+    isUpdating = true
     try {
       const response = await fetch(`/api/project-management/projects/${selectedProject.id}`, {
         method: 'PUT',
@@ -1105,7 +1105,7 @@
       logger.error('프로젝트 수정 실패:', error)
       alert('프로젝트 수정 중 오류가 발생했습니다.')
     } finally {
-      loadingStates.updating = false
+      isUpdating = false
     }
   }
 
@@ -1119,7 +1119,7 @@
       return
     }
 
-    loadingStates.deleting = true
+    isDeleting = true
     try {
       const response = await fetch(`/api/project-management/projects/${selectedProject.id}`, {
         method: 'DELETE',
@@ -1139,7 +1139,7 @@
       logger.error('프로젝트 삭제 실패:', error)
       alert('프로젝트 삭제 중 오류가 발생했습니다.')
     } finally {
-      loadingStates.deleting = false
+      isDeleting = false
     }
   }
 
@@ -1236,7 +1236,7 @@
       return
     }
 
-    loadingStates.calculatingMonthly = true
+    isCalculatingMonthlyAmount = true
     try {
       const amount = await calculateMonthlyAmount(
         memberForm.employeeId,
@@ -1249,7 +1249,7 @@
       logger.error('월간금액 계산 실패:', error)
       calculatedMonthlyAmount = 0
     } finally {
-      loadingStates.calculatingMonthly = false
+      isCalculatingMonthlyAmount = false
     }
   }
 
@@ -1257,7 +1257,7 @@
   async function runComprehensiveValidation() {
     if (!selectedProject) return
 
-    loadingStates.validating = true
+    isRunningValidation = true
     try {
       const response = await fetch(
         `/api/project-management/comprehensive-validation?projectId=${selectedProject.id}&scope=all`,
@@ -1283,7 +1283,7 @@
       logger.error('검증 실행 실패:', error)
       alert('검증 실행 중 오류가 발생했습니다.')
     } finally {
-      loadingStates.validating = false
+      isRunningValidation = false
     }
   }
 
@@ -1332,7 +1332,7 @@
     if (!selectedProject || projectBudgets.length === 0) return
 
     try {
-      loadingStates.loadingEvidence = true
+      isLoadingEvidence = true
       let allEvidenceItems: any[] = []
 
       // 모든 연차의 증빙 데이터를 로드
@@ -1351,7 +1351,7 @@
     } catch (error) {
       logger.error('증빙 항목 로드 실패:', error)
     } finally {
-      loadingStates.loadingEvidence = false
+      isLoadingEvidence = false
     }
   }
 
@@ -1442,7 +1442,7 @@
     }
 
     try {
-      loadingStates.updating = true
+      isUpdating = true
 
       const selectedEmployee = availableEmployees.find(
         (emp) => emp.id === newEvidenceForm.assigneeId,
@@ -1473,7 +1473,7 @@
       logger.error('증빙 항목 추가 실패:', error)
       alert('증빙 항목 추가에 실패했습니다.')
     } finally {
-      loadingStates.updating = false
+      isUpdating = false
     }
   }
 
@@ -2197,7 +2197,7 @@
 
   <!-- 연구원 추가 폼 카드 -->
   <ProjectMemberForm
-    bind:visible={loadingStates.addingMember}
+    bind:visible={addingMember}
     bind:memberForm
     bind:isManualMonthlyAmount
     {availableEmployees}
@@ -2215,7 +2215,7 @@
         <ThemeButton
           onclick={startAddMember}
           size="sm"
-          disabled={loadingStates.addingMember || editingMember !== null}
+          disabled={addingMember || editingMember !== null}
         >
           <PlusIcon size={16} class="mr-2" />
           연구원 추가
@@ -2523,7 +2523,7 @@
             </tr>
           {/each}
 
-          {#if projectMembers.length === 0 && !loadingStates.addingMember}
+          {#if projectMembers.length === 0 && !addingMember}
             <tr>
               <td colspan="8" class="px-6 py-12 text-center text-gray-500">
                 <UsersIcon size={48} class="mx-auto mb-2 text-gray-300" />
@@ -2630,7 +2630,7 @@
         },
       ].filter((category) => category.cash + category.inKind > 0)}
 
-      {#if loadingStates.loadingEvidence}
+      {#if isLoadingEvidence}
         <div class="text-center py-8">
           <div
             class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"
@@ -2893,9 +2893,9 @@
     bind:evidenceForm={newEvidenceForm}
     {evidenceCategories}
     {availableEmployees}
-    isValidatingEvidence={loadingStates.validatingEvidence}
+    {isValidatingEvidence}
     {evidenceValidation}
-    isUpdating={loadingStates.updating}
+    {isUpdating}
     onclose={() => (modalStates.evidence = false)}
     onvalidate={validateEvidenceRegistration}
     onsubmit={handleAddEvidenceItem}
@@ -2905,7 +2905,7 @@
   <ProjectEditModal
     bind:visible={modalStates.editProject}
     bind:projectForm
-    isUpdating={loadingStates.updating}
+    {isUpdating}
     onclose={() => (modalStates.editProject = false)}
     onupdate={updateProject}
   />
@@ -2922,7 +2922,7 @@
     bind:deleteConfirmationCode
     membersCount={projectMembers.length}
     budgetsCount={projectBudgets.length}
-    isDeleting={loadingStates.deleting}
+    {isDeleting}
     onConfirm={deleteProject}
   />
 

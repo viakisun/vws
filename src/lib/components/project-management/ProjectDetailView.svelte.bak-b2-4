@@ -2215,7 +2215,7 @@
         <ThemeButton
           onclick={startAddMember}
           size="sm"
-          disabled={loadingStates.addingMember || editingMember !== null}
+          disabled={addingMember || editingMember !== null}
         >
           <PlusIcon size={16} class="mr-2" />
           연구원 추가
@@ -2523,7 +2523,7 @@
             </tr>
           {/each}
 
-          {#if projectMembers.length === 0 && !loadingStates.addingMember}
+          {#if projectMembers.length === 0 && !addingMember}
             <tr>
               <td colspan="8" class="px-6 py-12 text-center text-gray-500">
                 <UsersIcon size={48} class="mx-auto mb-2 text-gray-300" />
@@ -2630,7 +2630,7 @@
         },
       ].filter((category) => category.cash + category.inKind > 0)}
 
-      {#if loadingStates.loadingEvidence}
+      {#if isLoadingEvidence}
         <div class="text-center py-8">
           <div
             class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"
@@ -2893,9 +2893,9 @@
     bind:evidenceForm={newEvidenceForm}
     {evidenceCategories}
     {availableEmployees}
-    isValidatingEvidence={loadingStates.validatingEvidence}
+    {loadingStates.validatingEvidence}
     {evidenceValidation}
-    isUpdating={loadingStates.updating}
+    {loadingStates.updating}
     onclose={() => (modalStates.evidence = false)}
     onvalidate={validateEvidenceRegistration}
     onsubmit={handleAddEvidenceItem}
@@ -2905,7 +2905,7 @@
   <ProjectEditModal
     bind:visible={modalStates.editProject}
     bind:projectForm
-    isUpdating={loadingStates.updating}
+    {loadingStates.updating}
     onclose={() => (modalStates.editProject = false)}
     onupdate={updateProject}
   />
@@ -2922,7 +2922,7 @@
     bind:deleteConfirmationCode
     membersCount={projectMembers.length}
     budgetsCount={projectBudgets.length}
-    isDeleting={loadingStates.deleting}
+    {loadingStates.deleting}
     onConfirm={deleteProject}
   />
 
