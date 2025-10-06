@@ -146,54 +146,42 @@
   let activeTab = $state('overview')
 
   // 통계 데이터 계산
-  const stats = $derived(() => {
-    const totalCustomers = salesData.customers.length
-    const activeOpportunities = salesData.opportunities.filter(
-      (opp) => opp.status === 'active',
-    ).length
-    const totalSalesValue = salesData.opportunities.reduce((sum, opp) => sum + opp.value, 0)
-    const monthlyRevenue = salesData.transactions
-      .filter((t) => t.payment_status === 'paid' && t.type === 'sales')
-      .reduce((sum, t) => sum + t.amount, 0)
-    const _paymentOverdue = salesData.transactions
-      .filter((t) => t.payment_status === 'overdue')
-      .reduce((sum, t) => sum + t.amount, 0)
-    const _conversionRate =
-      (salesData.opportunities.filter((opp) => opp.stage === 'closed-won').length /
-        Math.max(salesData.opportunities.length, 1)) *
-      100
-
-    return [
-      {
-        title: '총 거래처',
-        value: totalCustomers,
-        change: '+2',
-        changeType: 'positive' as const,
-        icon: BuildingIcon,
-      },
-      {
-        title: '진행중인 기회',
-        value: activeOpportunities,
-        change: '+1',
-        changeType: 'positive' as const,
-        icon: TargetIcon,
-      },
-      {
-        title: '예상 매출',
-        value: formatCurrency(totalSalesValue),
-        change: '+15%',
-        changeType: 'positive' as const,
-        icon: DollarSignIcon,
-      },
-      {
-        title: '월 매출',
-        value: formatCurrency(monthlyRevenue),
-        change: '+8%',
-        changeType: 'positive' as const,
-        icon: TrendingUpIcon,
-      },
-    ]
-  })
+  const stats = $derived([
+    {
+      title: '총 거래처',
+      value: salesData.customers.length,
+      change: '+2',
+      changeType: 'positive' as const,
+      icon: BuildingIcon,
+    },
+    {
+      title: '진행중인 기회',
+      value: salesData.opportunities.filter((opp) => opp.status === 'active').length,
+      change: '+1',
+      changeType: 'positive' as const,
+      icon: TargetIcon,
+    },
+    {
+      title: '예상 매출',
+      value: formatCurrency(
+        salesData.opportunities.reduce((sum, opp) => sum + opp.value, 0),
+      ),
+      change: '+15%',
+      changeType: 'positive' as const,
+      icon: DollarSignIcon,
+    },
+    {
+      title: '월 매출',
+      value: formatCurrency(
+        salesData.transactions
+          .filter((t) => t.payment_status === 'paid' && t.type === 'sales')
+          .reduce((sum, t) => sum + t.amount, 0),
+      ),
+      change: '+8%',
+      changeType: 'positive' as const,
+      icon: TrendingUpIcon,
+    },
+  ])
 
   // 액션 버튼들 (제거됨)
   const actions: any[] = []

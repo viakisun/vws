@@ -1,11 +1,12 @@
 <script lang="ts">
   import { onMount } from 'svelte'
   import type { PageData } from './$types'
+  import type { LeaveData } from '$lib/types/dashboard'
 
   let { data }: { data: PageData } = $props()
 
   // 상태 관리
-  let leaveData = $state(null)
+  let leaveData = $state<LeaveData | null>(null)
   let loading = $state(false)
   let showRequestModal = $state(false)
 
@@ -168,21 +169,25 @@
           <div class="flex justify-between items-center p-4 bg-blue-50 rounded-lg">
             <div>
               <div class="text-sm text-blue-600">총 연차</div>
-              <div class="text-2xl font-bold text-blue-900">{leaveData.balance.annual.total}일</div>
+              <div class="text-2xl font-bold text-blue-900">
+                {leaveData.balance?.annual.total}일
+              </div>
             </div>
             <div class="text-4xl">📅</div>
           </div>
           <div class="flex justify-between items-center p-4 bg-green-50 rounded-lg">
             <div>
               <div class="text-sm text-green-600">사용 연차</div>
-              <div class="text-2xl font-bold text-green-900">{leaveData.balance.annual.used}일</div>
+              <div class="text-2xl font-bold text-green-900">
+                {leaveData.balance?.annual.used}일
+              </div>
             </div>
           </div>
           <div class="flex justify-between items-center p-4 bg-orange-50 rounded-lg">
             <div>
               <div class="text-sm text-orange-600">잔여 연차</div>
               <div class="text-2xl font-bold text-orange-900">
-                {leaveData.balance.annual.remaining}일
+                {leaveData.balance?.annual.remaining}일
               </div>
             </div>
           </div>
@@ -195,21 +200,21 @@
           <div class="flex justify-between items-center p-4 bg-red-50 rounded-lg">
             <div>
               <div class="text-sm text-red-600">총 병가</div>
-              <div class="text-2xl font-bold text-red-900">{leaveData.balance.sick.total}일</div>
+              <div class="text-2xl font-bold text-red-900">{leaveData.balance?.sick.total}일</div>
             </div>
             <div class="text-4xl">🏥</div>
           </div>
           <div class="flex justify-between items-center p-4 bg-green-50 rounded-lg">
             <div>
               <div class="text-sm text-green-600">사용 병가</div>
-              <div class="text-2xl font-bold text-green-900">{leaveData.balance.sick.used}일</div>
+              <div class="text-2xl font-bold text-green-900">{leaveData.balance?.sick.used}일</div>
             </div>
           </div>
           <div class="flex justify-between items-center p-4 bg-orange-50 rounded-lg">
             <div>
               <div class="text-sm text-orange-600">잔여 병가</div>
               <div class="text-2xl font-bold text-orange-900">
-                {leaveData.balance.sick.remaining}일
+                {leaveData.balance?.sick.remaining}일
               </div>
             </div>
           </div>
@@ -224,25 +229,25 @@
         <div class="bg-blue-50 p-4 rounded-lg">
           <div class="text-sm text-blue-600">총 신청</div>
           <div class="text-2xl font-bold text-blue-900">
-            {leaveData.monthlyStats.totalRequests}건
+            {leaveData.monthlyStats?.totalRequests}건
           </div>
         </div>
         <div class="bg-yellow-50 p-4 rounded-lg">
           <div class="text-sm text-yellow-600">대기중</div>
           <div class="text-2xl font-bold text-yellow-900">
-            {leaveData.monthlyStats.pendingRequests}건
+            {leaveData.monthlyStats?.pendingRequests}건
           </div>
         </div>
         <div class="bg-green-50 p-4 rounded-lg">
           <div class="text-sm text-green-600">승인</div>
           <div class="text-2xl font-bold text-green-900">
-            {leaveData.monthlyStats.approvedRequests}건
+            {leaveData.monthlyStats?.approvedRequests}건
           </div>
         </div>
         <div class="bg-orange-50 p-4 rounded-lg">
           <div class="text-sm text-orange-600">승인 일수</div>
           <div class="text-2xl font-bold text-orange-900">
-            {leaveData.monthlyStats.approvedDays}일
+            {leaveData.monthlyStats?.approvedDays}일
           </div>
         </div>
       </div>
@@ -282,7 +287,7 @@
             </tr>
           </thead>
           <tbody class="bg-white divide-y divide-gray-200">
-            {#each leaveData.requests as request}
+            {#each leaveData.requests ?? [] as request: LeaveRequest}
               <tr class="hover:bg-gray-50">
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                   {getLeaveTypeLabel(request.leave_type)}

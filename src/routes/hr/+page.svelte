@@ -3,6 +3,7 @@
   import { goto } from '$app/navigation'
   import { page } from '$app/state'
   import type { Department, Employee, Executive, JobTitle, Position } from '$lib/types'
+  import type { JobPosting } from '$lib/types/dashboard'
   import { logger } from '$lib/utils/logger'
   import { onMount } from 'svelte'
 
@@ -417,11 +418,11 @@
   // 활동 데이터와 부서 데이터는 각각의 컴포넌트에서 처리
 
   // 최근 채용 공고 데이터
-  let recentJobPostings = $derived(() => {
-    return $jobPostings
+  let recentJobPostings = $derived<JobPosting[]>(
+    $jobPostings
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-      .slice(0, 5)
-  })
+      .slice(0, 5),
+  )
 
   // 데이터 새로고침 함수들 - 스토어 메서드를 직접 사용
   const fetchEmployees = () => hrDashboardStore.fetchEmployees()

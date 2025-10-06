@@ -4,8 +4,40 @@
 
   let { data }: { data: PageData } = $props()
 
+  // Types
+  interface CertificateRequest {
+    id: string
+    certificate_type: string
+    purpose: string
+    status: string
+    request_date: string
+    created_at: string // alias for request_date
+    approval_date?: string
+    approver_name?: string
+    issue_date?: string
+    issued_at?: string // alias for issue_date
+  }
+
+  interface CertificateData {
+    userInfo: {
+      name: string
+      employeeId: string
+      department: string
+      position: string
+      hireDate: string
+      email: string
+    }
+    stats: {
+      totalRequests: number
+      pendingRequests: number
+      approvedRequests: number
+      issuedRequests: number
+    }
+    requests: CertificateRequest[]
+  }
+
   // 상태 관리
-  let certificateData = $state(null)
+  let certificateData = $state<CertificateData | null>(null)
   let loading = $state(false)
   let showRequestModal = $state(false)
 

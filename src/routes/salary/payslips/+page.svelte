@@ -1,60 +1,72 @@
 <script lang="ts">
   import PayslipGenerator from '$lib/components/salary/PayslipGenerator.svelte'
   import { loadPayslips, payslips } from '$lib/stores/salary/salary-store'
+  import type { Payslip } from '$lib/types/salary'
   import { formatCurrency, formatDate } from '$lib/utils/format'
   import { CalendarIcon, DownloadIcon, FileTextIcon, SearchIcon, UserIcon } from '@lucide/svelte'
   import { onMount } from 'svelte'
+
+  interface EmployeeOption {
+    id: string
+    name: string
+  }
 
   let searchQuery = $state('')
   let selectedPeriod = $state('')
   let selectedEmployee = $state('')
 
   // 필터링된 급여명세서 목록
-  const filteredPayslips = $derived(() => {
-    let filtered = [...$payslips]
+  const filteredPayslips = $derived<Payslip[]>(
+    (() => {
+      let filtered = [...$payslips]
 
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase()
-      filtered = filtered.filter(
-        (payroll) =>
-          payroll.employeeName.toLowerCase().includes(query) ||
-          payroll.employeeIdNumber.toLowerCase().includes(query) ||
-          payroll.department.toLowerCase().includes(query),
-      )
-    }
+      if (searchQuery) {
+        const query = searchQuery.toLowerCase()
+        filtered = filtered.filter(
+          (payroll) =>
+            payroll.employeeName.toLowerCase().includes(query) ||
+            payroll.employeeIdNumber.toLowerCase().includes(query) ||
+            payroll.department.toLowerCase().includes(query),
+        )
+      }
 
-    if (selectedPeriod) {
-      filtered = filtered.filter((payroll) => payroll.payDate.startsWith(selectedPeriod))
-    }
+      if (selectedPeriod) {
+        filtered = filtered.filter((payroll) => payroll.payDate.startsWith(selectedPeriod))
+      }
 
-    if (selectedEmployee) {
-      filtered = filtered.filter((payroll) => payroll.employeeId === selectedEmployee)
-    }
+      if (selectedEmployee) {
+        filtered = filtered.filter((payroll) => payroll.employeeId === selectedEmployee)
+      }
 
-    return filtered.sort((a, b) => b.payDate.localeCompare(a.payDate))
-  })
+      return filtered.sort((a, b) => b.payDate.localeCompare(a.payDate))
+    })(),
+  )
 
   // 기간 옵션
-  const periodOptions = $derived(() => {
-    const periods = new Set()
-    $payslips.forEach((payslip) => {
-      const period = payslip.period
-      periods.add(period)
-    })
-    return Array.from(periods).sort().reverse()
-  })
+  const periodOptions = $derived<string[]>(
+    (() => {
+      const periods = new Set<string>()
+      $payslips.forEach((payslip) => {
+        const period = payslip.period
+        periods.add(period)
+      })
+      return Array.from(periods).sort().reverse()
+    })(),
+  )
 
   // 직원 옵션
-  const employeeOptions = $derived(() => {
-    const employees = new Map()
-    $payslips.forEach((payslip) => {
-      employees.set(payslip.employeeId, {
-        id: payslip.employeeId,
-        name: payslip.employeeName,
+  const employeeOptions = $derived<EmployeeOption[]>(
+    (() => {
+      const employees = new Map<string, EmployeeOption>()
+      $payslips.forEach((payslip) => {
+        employees.set(payslip.employeeId, {
+          id: payslip.employeeId,
+          name: payslip.employeeName,
+        })
       })
-    })
-    return Array.from(employees.values()).sort((a, b) => a.name.localeCompare(b.name))
-  })
+      return Array.from(employees.values()).sort((a, b) => a.name.localeCompare(b.name))
+    })(),
+  )
 
   onMount(() => {
     void (async () => {

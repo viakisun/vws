@@ -1,5 +1,6 @@
 <script lang="ts">
   import { logger } from '$lib/utils/logger'
+  import type { Customer, CRMData } from '$lib/types/crm'
 
   import PageLayout from '$lib/components/layout/PageLayout.svelte'
   import ThemeBadge from '$lib/components/ui/ThemeBadge.svelte'
@@ -35,7 +36,7 @@
   import { onMount } from 'svelte'
 
   // Mock CRM data
-  let crmData = $state({
+  let crmData = $state<CRMData>({
     customers: [
       {
         id: 'customer-1',
@@ -93,11 +94,15 @@
         id: 'opp-1',
         title: 'ABC 테크놀로지 스마트팩토리',
         customerId: 'customer-1',
+        customer_id: 'customer-1',
         customerName: 'ABC 테크놀로지',
+        customer_name: 'ABC 테크놀로지',
         value: 50000000,
         stage: 'proposal',
         probability: 70,
         expectedClose: '2024-02-15',
+        expected_close_date: '2024-02-15',
+        status: 'open' as const,
         owner: '김영희',
         createdAt: '2024-01-15',
       },
@@ -105,11 +110,15 @@
         id: 'opp-2',
         title: 'XYZ 제조 스마트팩토리',
         customerId: 'customer-2',
+        customer_id: 'customer-2',
         customerName: 'XYZ 제조',
+        customer_name: 'XYZ 제조',
         value: 30000000,
         stage: 'negotiation',
         probability: 50,
         expectedClose: '2024-02-28',
+        expected_close_date: '2024-02-28',
+        status: 'open' as const,
         owner: '박민수',
         createdAt: '2024-01-10',
       },
@@ -182,24 +191,26 @@
   ]
 
   // 필터링된 고객 데이터
-  let filteredCustomers = $derived(() => {
-    let customers = crmData.customers
+  let filteredCustomers = $derived<Customer[]>(
+    (() => {
+      let customers = crmData.customers
 
-    if (searchTerm) {
-      customers = customers.filter(
-        (customer) =>
-          customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          customer.contact.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          customer.industry.toLowerCase().includes(searchTerm.toLowerCase()),
-      )
-    }
+      if (searchTerm) {
+        customers = customers.filter(
+          (customer) =>
+            customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            customer.contact.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            customer.industry.toLowerCase().includes(searchTerm.toLowerCase()),
+        )
+      }
 
-    if (selectedStatus !== 'all') {
-      customers = customers.filter((customer) => customer.status === selectedStatus)
-    }
+      if (selectedStatus !== 'all') {
+        customers = customers.filter((customer) => customer.status === selectedStatus)
+      }
 
-    return customers
-  })
+      return customers
+    })(),
+  )
 
   // 상태별 색상
   const getStatusColor = (status: string) => {
@@ -379,7 +390,7 @@
                     </div>
                     <div class="text-right">
                       <p class="text-xs" style:color="var(--color-text-secondary)">
-                        예상 마감: {formatDate(opportunity.expectedClose)}
+                        예상 마감: {formatDate(opportunity.expectedClose || opportunity.expected_close_date)}
                       </p>
                       <p class="text-xs" style:color="var(--color-text-secondary)">
                         담당: {opportunity.owner}
@@ -540,7 +551,7 @@
                   </div>
                   <div class="text-right">
                     <p class="text-xs" style:color="var(--color-text-secondary)">
-                      예상 마감: {formatDate(opportunity.expectedClose)}
+                      예상 마감: {formatDate(opportunity.expectedClose || opportunity.expected_close_date)}
                     </p>
                   </div>
                 </div>

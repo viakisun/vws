@@ -2,6 +2,7 @@
   import type { User } from '$lib/auth/user-service'
   import ThemeAvatar from '$lib/components/ui/ThemeAvatar.svelte'
   import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
+  import ThemeDropdown from '$lib/components/ui/ThemeDropdown.svelte'
   import { isDark, themeManager } from '$lib/stores/theme'
   import { logger } from '$lib/utils/logger'
   import {
@@ -22,7 +23,7 @@
   let showUserMenu = $state(false)
   let notificationsContainer: HTMLElement | undefined
   let userMenuContainer: HTMLElement | undefined
-  let userMenuButton: HTMLElement | undefined
+  let userMenuButton: any
   let unreadCount = $state(3)
 
   // Company information

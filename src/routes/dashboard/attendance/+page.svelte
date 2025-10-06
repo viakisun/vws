@@ -1,11 +1,12 @@
 <script lang="ts">
   import { onMount } from 'svelte'
   import type { PageData } from './$types'
+  import type { AttendanceData } from '$lib/types/dashboard'
 
   let { data }: { data: PageData } = $props()
 
   // 상태 관리
-  let attendanceData = $state(null)
+  let attendanceData = $state<AttendanceData | null>(null)
   let loading = $state(false)
   let today = $state(new Date().toISOString().split('T')[0])
   let selectedDate = $state(today)
@@ -53,9 +54,9 @@
 
     const today = attendanceData.today
     canCheckIn = !today.check_in_time
-    canCheckOut = today.check_in_time && !today.check_out_time
-    canBreakStart = today.check_in_time && !today.check_out_time && !today.break_start_time
-    canBreakEnd = today.break_start_time && !today.break_end_time
+    canCheckOut = Boolean(today.check_in_time && !today.check_out_time)
+    canBreakStart = Boolean(today.check_in_time && !today.check_out_time && !today.break_start_time)
+    canBreakEnd = Boolean(today.break_start_time && !today.break_end_time)
 
     // 시간 표시 업데이트
     if (today.check_in_time) {

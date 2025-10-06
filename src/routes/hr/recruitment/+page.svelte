@@ -82,12 +82,14 @@
   })
 
   // 필터링된 채용 공고
-  let filteredJobPostings = $derived(() => {
-    let filtered = $jobPostings
-    if (statusFilter) filtered = filtered.filter((job) => job.status === statusFilter)
-    if (departmentFilter) filtered = filtered.filter((job) => job.department === departmentFilter)
-    return filtered
-  })
+  let filteredJobPostings = $derived<JobPosting[]>(
+    (() => {
+      let filtered = $jobPostings
+      if (statusFilter) filtered = filtered.filter((job) => job.status === statusFilter)
+      if (departmentFilter) filtered = filtered.filter((job) => job.department === departmentFilter)
+      return filtered
+    })(),
+  )
 
   // 함수들
   function openJobPostingModal(jobPosting?: JobPosting) {

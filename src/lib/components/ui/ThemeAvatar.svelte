@@ -1,5 +1,17 @@
 <script lang="ts">
-  let { src, alt = '', size = 'md', fallback = '?', class: className = '' } = $props()
+  let {
+    src,
+    alt = '',
+    size = 'md',
+    fallback = '?',
+    class: className = '',
+  }: {
+    src?: string
+    alt?: string
+    size?: 'sm' | 'md' | 'lg' | 'xl'
+    fallback?: string
+    class?: string
+  } = $props()
 
   // Size classes
   const sizeClasses = {

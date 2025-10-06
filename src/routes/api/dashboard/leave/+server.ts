@@ -151,13 +151,13 @@ export const GET: RequestHandler = async (event) => {
         balance: {
           annual: {
             total: balance.total_annual_leave,
-            used: parseFloat(balance.used_annual_leave),
-            remaining: parseFloat(balance.remaining_annual_leave),
+            used: balance.used_annual_leave,
+            remaining: balance.remaining_annual_leave,
           },
           sick: {
             total: balance.total_sick_leave,
-            used: parseFloat(balance.used_sick_leave),
-            remaining: parseFloat(balance.remaining_sick_leave),
+            used: balance.used_sick_leave,
+            remaining: balance.remaining_sick_leave,
           },
         },
         requests: requestsResult.rows,

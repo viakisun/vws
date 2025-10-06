@@ -15,7 +15,7 @@ export const GET: RequestHandler = async (event) => {
 
     // 부서별 연차 사용 현황
     let departmentFilter = ''
-    let params = [year]
+    let params: (number | string)[] = [year]
 
     if (department) {
       departmentFilter = 'AND e.department = $2'

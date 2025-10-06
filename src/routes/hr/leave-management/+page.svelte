@@ -1,15 +1,19 @@
 <script lang="ts">
   import { onMount } from 'svelte'
   import type { PageData } from './$types'
+  import type { LeaveRequest, LeaveStats } from '$lib/types/dashboard'
 
   let { data }: { data: PageData } = $props()
 
   // 상태 관리
   let currentTab = $state('approval')
-  let requests = $state([])
-  let stats = $state({})
+  let requests = $state<LeaveRequest[]>([])
+  let stats = $state<LeaveStats>({
+    departmentStats: [],
+    monthlyStats: [],
+  })
   let loading = $state(false)
-  let selectedRequest = $state(null)
+  let selectedRequest = $state<LeaveRequest | null>(null)
   let showApprovalModal = $state(false)
   let approvalAction = $state('')
   let rejectionReason = $state('')

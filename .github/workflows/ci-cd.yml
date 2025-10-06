@@ -1,14 +1,17 @@
-name: VWS Comprehensive CI/CD Pipeline
+name: ci
 
 on:
   push:
     branches: ['main', 'develop']
   pull_request:
     branches: ['main', 'develop']
+  workflow_dispatch:
 
 env:
   NODE_VERSION: '20'
   PNPM_VERSION: '10.17.1'
+  ECR_REPOSITORY: vws-app
+  AWS_REGION: ap-northeast-2
 
 permissions:
   contents: read
@@ -101,8 +104,7 @@ jobs:
   integration-tests:
     name: 🔗 Integration Tests
     runs-on: ubuntu-latest
-    needs: unit-tests
-
+    needs: quality
     services:
       postgres:
         image: postgres:15
@@ -138,7 +140,7 @@ jobs:
 
       - name: 🗄️ Setup test database
         run: |
-          PGPASSWORD=testpass psql -h localhost -U testuser -d vws_test -f aws-schema.sql || echo "Schema setup completed with warnings"
+          PGPASSWORD=testpass psql -h localhost -U testuser -d vws_test -c "SELECT version();"
         env:
           PGPASSWORD: testpass
 
@@ -147,7 +149,6 @@ jobs:
         env:
           DATABASE_URL: postgresql://testuser:testpass@localhost:5432/vws_test
           JWT_SECRET: test_jwt_secret_key
-          NODE_ENV: test
 
       - name: 📊 Upload integration test coverage
         uses: actions/upload-artifact@v4
@@ -164,7 +165,7 @@ jobs:
   component-tests:
     name: 🎨 Component Tests
     runs-on: ubuntu-latest
-    needs: unit-tests
+    needs: quality
     steps:
       - name: 📥 Checkout
         uses: actions/checkout@v4
@@ -195,14 +196,13 @@ jobs:
           retention-days: 30
 
   # ============================================================================
-  # Stage 5: E2E Tests
+  # Stage 5: E2E Tests (Browser Tests)
   # ============================================================================
 
   e2e-tests:
     name: 🎭 E2E Tests
     runs-on: ubuntu-latest
-    needs: [integration-tests, component-tests]
-
+    needs: [unit-tests, integration-tests, component-tests]
     services:
       postgres:
         image: postgres:15
@@ -236,14 +236,8 @@ jobs:
       - name: 📚 Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: 🎭 Install Playwright browsers
+      - name: 🎭 Install Playwright
         run: pnpm exec playwright install --with-deps chromium
-
-      - name: 🗄️ Setup test database
-        run: |
-          PGPASSWORD=testpass psql -h localhost -U testuser -d vws_test -f aws-schema.sql || echo "Schema setup completed"
-        env:
-          PGPASSWORD: testpass
 
       - name: 🏗️ Build application
         run: pnpm build
@@ -322,7 +316,7 @@ jobs:
         run: pnpm security:audit || echo "Security audit completed with warnings"
 
   # ============================================================================
-  # Stage 7: Build & Performance
+  # Stage 7: Build
   # ============================================================================
 
   build:
@@ -358,6 +352,10 @@ jobs:
             .svelte-kit
             build
           retention-days: 7
+
+  # ============================================================================
+  # Stage 8: Performance Test
+  # ============================================================================
 
   performance:
     name: ⚡ Performance Test
@@ -416,7 +414,164 @@ jobs:
           retention-days: 7
 
   # ============================================================================
-  # Stage 8: Final Status
+  # Stage 9: Docker Build & Push to ECR (Main 브랜치만)
+  # ============================================================================
+
+  docker-push:
+    name: 🐳 Docker Push to ECR
+    runs-on: ubuntu-latest
+    needs: [build, performance]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: 🔐 AWS 자격 증명 설정
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: 📦 ECR 리포지토리 생성
+        run: |
+          aws ecr describe-repositories --repository-names ${{ env.ECR_REPOSITORY }} --region ${{ env.AWS_REGION }} || \
+          aws ecr create-repository \
+            --repository-name ${{ env.ECR_REPOSITORY }} \
+            --region ${{ env.AWS_REGION }} \
+            --image-scanning-configuration scanOnPush=true
+
+      - name: 🔐 ECR 로그인
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: 🐳 Docker 이미지 빌드 및 푸시
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          echo "🏗️ Building Docker image..."
+          docker build -t $ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG .
+          docker tag $ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG $ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:latest
+
+          echo "📤 Pushing to ECR..."
+          docker push $ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG
+          docker push $ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:latest
+          echo "✅ Successfully pushed to ECR"
+
+  # ============================================================================
+  # Stage 10: Deploy to EC2 (Main 브랜치만)
+  # ============================================================================
+
+  deploy:
+    name: 🚀 Deploy to EC2
+    runs-on: ubuntu-latest
+    needs: docker-push
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: 🔐 AWS 자격 증명 설정
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: 🔐 ECR 로그인
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: 🚀 EC2에 배포
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          GOOGLE_REDIRECT_URI: ${{ secrets.GOOGLE_REDIRECT_URI }}
+          ALLOWED_DOMAINS: ${{ secrets.ALLOWED_DOMAINS }}
+          ADMIN_EMAILS: ${{ secrets.ADMIN_EMAILS }}
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          envs: DATABASE_URL,JWT_SECRET,GOOGLE_CLIENT_ID,GOOGLE_CLIENT_SECRET,GOOGLE_REDIRECT_URI,ALLOWED_DOMAINS,ADMIN_EMAILS
+          script: |
+            # ECR 로그인
+            aws ecr get-login-password --region ap-northeast-2 | docker login --username AWS --password-stdin ${{ steps.login-ecr.outputs.registry }}
+
+            # 기존 컨테이너 중지 및 제거
+            docker stop vws-app || true
+            docker rm vws-app || true
+
+            # 최신 이미지 다운로드
+            docker pull ${{ steps.login-ecr.outputs.registry }}/vws-app:latest
+
+            # 새 컨테이너 실행
+            docker run -d \
+              --name vws-app \
+              --restart unless-stopped \
+              -p 3000:3000 \
+              -e NODE_ENV=production \
+              -e DATABASE_URL="${DATABASE_URL}" \
+              -e JWT_SECRET="${JWT_SECRET}" \
+              -e GOOGLE_CLIENT_ID="${GOOGLE_CLIENT_ID}" \
+              -e GOOGLE_CLIENT_SECRET="${GOOGLE_CLIENT_SECRET}" \
+              -e GOOGLE_REDIRECT_URI="${GOOGLE_REDIRECT_URI}" \
+              -e ALLOWED_DOMAINS="${ALLOWED_DOMAINS}" \
+              -e ADMIN_EMAILS="${ADMIN_EMAILS}" \
+              ${{ steps.login-ecr.outputs.registry }}/vws-app:latest
+
+            # 배포 완료 확인
+            sleep 10
+            docker ps | grep vws-app
+
+            # Nginx 버퍼 설정 적용
+            echo "🔧 Nginx 버퍼 설정 적용 중..."
+            sudo cp /etc/nginx/conf.d/00-proxy-buffers.conf /etc/nginx/conf.d/00-proxy-buffers.conf.backup.$(date +%Y%m%d_%H%M%S) 2>/dev/null || true
+
+            sudo tee /etc/nginx/conf.d/00-proxy-buffers.conf > /dev/null << 'EOF'
+            # Nginx Proxy Buffer 설정 - SvelteKit SSR 대형 헤더 대응
+            proxy_buffer_size 64k;
+            proxy_buffers 8 64k;
+            proxy_busy_buffers_size 128k;
+            large_client_header_buffers 8 64k;
+            EOF
+
+            # Nginx 설정 검사
+            echo "🧪 Nginx 설정 문법 검사 중..."
+            if ! sudo nginx -t; then
+                echo "❌ Nginx 설정 문법 오류!"
+                if [ -f /etc/nginx/conf.d/00-proxy-buffers.conf.backup.* ]; then
+                    echo "🔄 백업에서 복구 중..."
+                    sudo cp /etc/nginx/conf.d/00-proxy-buffers.conf.backup.* /etc/nginx/conf.d/00-proxy-buffers.conf
+                    sudo nginx -t
+                fi
+                exit 1
+            fi
+
+            # Nginx 재시작
+            echo "🔄 Nginx 재시작 중..."
+            sudo systemctl reload nginx
+
+            # 헬스체크
+            echo "🏥 헬스체크 수행 중..."
+            sleep 5
+            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" https://ws.viahub.dev/project-management?tab=projects || echo "000")
+
+            if [[ "$HTTP_CODE" =~ ^[23][0-9][0-9]$ ]]; then
+                echo "✅ 헬스체크 성공 (HTTP $HTTP_CODE)"
+            else
+                echo "⚠️ 헬스체크 경고 (HTTP $HTTP_CODE) - 서비스 확인 필요"
+            fi
+
+            echo "📊 최근 Nginx 에러 로그 확인:"
+            sudo tail -n 20 /var/log/nginx/error.log | grep -i "too big header" || echo "  - 'too big header' 에러 없음"
+
+  # ============================================================================
+  # Stage 11: Final Status
   # ============================================================================
 
   final-status:
@@ -442,22 +597,49 @@ jobs:
           needs.build.result == 'success'
         run: echo "🎉 All critical tests passed! Ready for deployment."
 
+  # ============================================================================
+  # Stage 12: Notifications
+  # ============================================================================
+
   notify:
     name: 📢 Notify
     runs-on: ubuntu-latest
-    needs: final-status
+    needs: [final-status, deploy]
     if: always()
     steps:
-      - name: 📢 Slack notification
+      - name: 📢 Slack - CI 완료 알림
+        if: needs.final-status.result == 'success' && github.event_name != 'pull_request'
         uses: 8398a7/action-slack@v3
-        if: env.SLACK_WEBHOOK_URL != ''
         with:
-          status: ${{ job.status }}
-          channel: '#vws-dev'
+          status: success
+          channel: '#vws_action'
           text: |
-            🚀 **VWS CI/CD Pipeline Complete**
+            ✅ **VWS CI/CD Pipeline 완료**
             *Branch:* ${{ github.ref_name }}
             *Commit:* ${{ github.sha }}
-            *Status:* ${{ job.status }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+      - name: 📢 Slack - 배포 완료 알림
+        if: needs.deploy.result == 'success'
+        uses: 8398a7/action-slack@v3
+        with:
+          status: success
+          channel: '#vws_action'
+          text: '🚀 VWS 앱이 EC2(ws.viahub.dev)에 성공적으로 배포되었습니다!'
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+      - name: 📢 Slack - 실패 알림
+        if: needs.final-status.result == 'failure' || needs.deploy.result == 'failure'
+        uses: 8398a7/action-slack@v3
+        with:
+          status: failure
+          channel: '#vws_action'
+          text: |
+            ❌ **VWS CI/CD Pipeline 실패**
+            *Branch:* ${{ github.ref_name }}
+            *Commit:* ${{ github.sha }}
+            *Failed Stage:* ${{ needs.final-status.result == 'failure' && 'Tests' || 'Deployment' }}
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}

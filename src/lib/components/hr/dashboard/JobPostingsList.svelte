@@ -1,4 +1,5 @@
 <script lang="ts">
+  import type { JobPosting } from '$lib/types/dashboard'
   import ThemeCard from '$lib/components/ui/ThemeCard.svelte'
   import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
   import ThemeBadge from '$lib/components/ui/ThemeBadge.svelte'
@@ -6,11 +7,11 @@
   import { formatDate } from '$lib/utils/format'
 
   // 최근 채용 공고
-  let recentJobPostings = $derived(() => {
-    return $jobPostings
+  let recentJobPostings = $derived(
+    $jobPostings
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-      .slice(0, 5)
-  })
+      .slice(0, 5),
+  )
 
   // 채용관리 탭으로 이동하는 함수
   function goToRecruitment() {
@@ -37,7 +38,7 @@
   </div>
 
   <div class="space-y-4">
-    {#each recentJobPostings as job (job.id ?? `${job.createdAt}:${job.title}`)}
+    {#each recentJobPostings as job: JobPosting (job.id ?? `${job.createdAt}:${job.title}`)}
       <div
         class="flex items-center justify-between p-4 rounded-lg border"
         style:border-color="var(--color-border)"
