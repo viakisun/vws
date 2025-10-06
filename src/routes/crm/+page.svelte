@@ -390,7 +390,9 @@
                     </div>
                     <div class="text-right">
                       <p class="text-xs" style:color="var(--color-text-secondary)">
-                        예상 마감: {formatDate(opportunity.expectedClose || opportunity.expected_close_date)}
+                        예상 마감: {formatDate(
+                          opportunity.expectedClose || opportunity.expected_close_date,
+                        )}
                       </p>
                       <p class="text-xs" style:color="var(--color-text-secondary)">
                         담당: {opportunity.owner}
@@ -551,7 +553,9 @@
                   </div>
                   <div class="text-right">
                     <p class="text-xs" style:color="var(--color-text-secondary)">
-                      예상 마감: {formatDate(opportunity.expectedClose || opportunity.expected_close_date)}
+                      예상 마감: {formatDate(
+                        opportunity.expectedClose || opportunity.expected_close_date,
+                      )}
                     </p>
                   </div>
                 </div>

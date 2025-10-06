@@ -163,9 +163,7 @@
     },
     {
       title: '예상 매출',
-      value: formatCurrency(
-        salesData.opportunities.reduce((sum, opp) => sum + opp.value, 0),
-      ),
+      value: formatCurrency(salesData.opportunities.reduce((sum, opp) => sum + opp.value, 0)),
       change: '+15%',
       changeType: 'positive' as const,
       icon: DollarSignIcon,
