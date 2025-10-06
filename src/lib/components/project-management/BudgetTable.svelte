@@ -1,5 +1,4 @@
 <script lang="ts">
-  import ThemeBadge from '$lib/components/ui/ThemeBadge.svelte'
   import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
   import ThemeCard from '$lib/components/ui/ThemeCard.svelte'
   import { formatCurrency, formatNumber } from '$lib/utils/format'

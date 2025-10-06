@@ -291,7 +291,7 @@
       budgetUpdateKey={uiStates.budgetUpdateKey}
       evidencePeriod={selectedItems.evidencePeriod}
       onEditBudget={(budget) => funding.editBudget(budget)}
-      onRemoveBudget={(budgetId) => funding.removeBudget(budgetId)}
+      onRemoveBudget={(budgetId) => funding.removeBudget(String(budgetId))}
     />
   </div>
 
@@ -368,7 +368,7 @@
     onEditMember={(member) => planning.editMember(member)}
     onCancelEditMember={planning.cancelEditMember}
     onUpdateMember={planning.updateMember}
-    onRemoveMember={(memberId) => planning.removeMember(memberId)}
+    onRemoveMember={(memberId) => planning.removeMember(String(memberId))}
     onUpdateMonthlyAmount={updateMonthlyAmount}
   />
 

@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { createEventDispatcher } from 'svelte'
   import ThemeBadge from '$lib/components/ui/ThemeBadge.svelte'
   import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
   import ThemeCard from '$lib/components/ui/ThemeCard.svelte'
@@ -18,8 +17,6 @@
     onShowBudgetModal: () => void
     onDeleteProject: () => void
   } = $props()
-
-  const dispatch = createEventDispatcher()
 
   function getStatusColor(
     status: string,
