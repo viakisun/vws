@@ -9,55 +9,136 @@
   import { formatCurrency } from '$lib/finance/utils'
   import { PlusIcon, TrashIcon } from '@lucide/svelte'
 
+  // ============================================================================
+  // Constants
+  // ============================================================================
+
+  const CURRENT_YEAR = new Date().getFullYear()
+  const CURRENT_MONTH = new Date().getMonth() + 1
+  const YEAR_RANGE = 5 // 현재 연도 기준 ±2년
+  const MONTHS_IN_YEAR = 12
+
+  const UTILIZATION_THRESHOLDS = {
+    DANGER: 100,
+    WARNING: 80,
+  } as const
+
+  // ============================================================================
+  // Utility Functions
+  // ============================================================================
+
+  /** 예산 사용률에 따른 텍스트 색상 반환 */
+  function getUtilizationColor(rate: number): string {
+    if (rate >= UTILIZATION_THRESHOLDS.DANGER) return 'text-red-600'
+    if (rate >= UTILIZATION_THRESHOLDS.WARNING) return 'text-yellow-600'
+    return 'text-green-600'
+  }
+
+  /** 예산 사용률에 따른 배경 색상 반환 */
+  function getUtilizationBgColor(rate: number): string {
+    if (rate >= UTILIZATION_THRESHOLDS.DANGER) return 'bg-red-50'
+    if (rate >= UTILIZATION_THRESHOLDS.WARNING) return 'bg-yellow-50'
+    return 'bg-green-50'
+  }
+
+  /** 예산 사용률에 따른 진행바 색상 반환 */
+  function getProgressBarColor(rate: number): string {
+    if (rate >= UTILIZATION_THRESHOLDS.DANGER) return 'bg-red-500'
+    if (rate >= UTILIZATION_THRESHOLDS.WARNING) return 'bg-yellow-500'
+    return 'bg-green-500'
+  }
+
+  /** 예산 사용률 계산 */
+  function calculateUtilizationRate(actual: number, planned: number): number {
+    return planned > 0 ? (actual / planned) * 100 : 0
+  }
+
+  /** 초기 폼 데이터 생성 */
+  function createInitialFormData(): CreateBudgetRequest {
+    return {
+      name: '',
+      type: 'expense',
+      period: 'monthly',
+      year: CURRENT_YEAR,
+      month: CURRENT_MONTH,
+      plannedAmount: 0,
+      categoryId: '',
+      accountId: '',
+      description: '',
+      tags: [],
+      isRecurring: false,
+    }
+  }
+
+  /** 연도 목록 생성 */
+  function generateYearOptions(): number[] {
+    return Array.from({ length: YEAR_RANGE }, (_, i) => CURRENT_YEAR - 2 + i)
+  }
+
+  /** 월 목록 생성 */
+  function generateMonthOptions(): number[] {
+    return Array.from({ length: MONTHS_IN_YEAR }, (_, i) => i + 1)
+  }
+
+  // ============================================================================
+  // ============================================================================
   // State
+  // ============================================================================
+
+  // Data state
   let budgets = $state<Budget[]>([])
   let categories = $state<TransactionCategory[]>([])
   let accounts = $state<Account[]>([])
+
+  // UI state
   let isLoading = $state(false)
   let error = $state<string | null>(null)
   let showAddModal = $state(false)
-  let selectedPeriod = $state('monthly')
-  let selectedYear = $state(new Date().getFullYear())
-  let selectedMonth = $state(new Date().getMonth() + 1)
 
-  // 폼 데이터
-  let formData = $state<CreateBudgetRequest>({
-    name: '',
-    type: 'expense',
-    period: 'monthly',
-    year: new Date().getFullYear(),
-    month: new Date().getMonth() + 1,
-    plannedAmount: 0,
-    categoryId: '',
-    accountId: '',
-    description: '',
-    tags: [],
-    isRecurring: false,
-  })
+  // Filter state
+  let selectedPeriod = $state<'monthly' | 'quarterly' | 'yearly'>('monthly')
+  let selectedYear = $state(CURRENT_YEAR)
+  let selectedMonth = $state(CURRENT_MONTH)
 
-  // 데이터 로드
+  // Computed state
+  let filteredBudgets = $state<Budget[]>([])
+  let totalPlanned = $state(0)
+  let totalActual = $state(0)
+  let utilizationRate = $state(0)
+
+  // Form state
+  let formData = $state<CreateBudgetRequest>(createInitialFormData())
+
+  // ============================================================================
+  // Data Loading
+  // ============================================================================
+
+  /** API에서 데이터 fetch */
+  async function fetchData<T>(endpoint: string): Promise<T> {
+    const response = await fetch(endpoint)
+    const result = await response.json()
+    if (!result.success) {
+      throw new Error(result.error || `${endpoint} 데이터를 불러올 수 없습니다.`)
+    }
+    return result.data
+  }
+
+  /** 모든 필요한 데이터 로드 */
   async function loadData() {
     try {
       isLoading = true
       error = null
 
       const [budgetsData, categoriesData, accountsData] = await Promise.all([
-        fetch('/api/finance/budgets')
-          .then((res) => res.json())
-          .then((res) => res.data),
-        fetch('/api/finance/categories')
-          .then((res) => res.json())
-          .then((res) => res.data),
-        fetch('/api/finance/accounts')
-          .then((res) => res.json())
-          .then((res) => res.data),
+        fetchData<Budget[]>('/api/finance/budgets'),
+        fetchData<TransactionCategory[]>('/api/finance/categories'),
+        fetchData<Account[]>('/api/finance/accounts'),
       ])
 
       budgets = budgetsData
       categories = categoriesData
       accounts = accountsData
 
-      // 필터링된 데이터 업데이트
       updateFilteredData()
     } catch (err) {
       error = err instanceof Error ? err.message : '데이터를 불러올 수 없습니다.'
@@ -67,7 +148,11 @@
     }
   }
 
-  // 예산 생성
+  // ============================================================================
+  // Budget Operations
+  // ============================================================================
+
+  /** 새 예산 생성 */
   async function createBudget() {
     try {
       isLoading = true
@@ -75,36 +160,19 @@
 
       const response = await fetch('/api/finance/budgets', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       })
 
       const result = await response.json()
-
       if (!result.success) {
         throw new Error(result.error || '예산 생성에 실패했습니다.')
       }
 
       budgets = [result.data, ...budgets]
-
-      // 폼 초기화
-      formData = {
-        name: '',
-        type: 'expense',
-        period: 'monthly',
-        year: new Date().getFullYear(),
-        month: new Date().getMonth() + 1,
-        plannedAmount: 0,
-        categoryId: '',
-        accountId: '',
-        description: '',
-        tags: [],
-        isRecurring: false,
-      }
-
+      formData = createInitialFormData()
       showAddModal = false
+      updateFilteredData()
     } catch (err) {
       error = err instanceof Error ? err.message : '예산 생성에 실패했습니다.'
     } finally {
@@ -112,7 +180,7 @@
     }
   }
 
-  // 예산 삭제
+  /** 예산 삭제 */
   async function deleteBudget(budget: Budget) {
     if (!confirm(`예산 "${budget.name}"을(를) 삭제하시겠습니까?`)) {
       return
@@ -127,12 +195,12 @@
       })
 
       const result = await response.json()
-
       if (!result.success) {
         throw new Error(result.error || '예산 삭제에 실패했습니다.')
       }
 
       budgets = budgets.filter((b) => b.id !== budget.id)
+      updateFilteredData()
     } catch (err) {
       error = err instanceof Error ? err.message : '예산 삭제에 실패했습니다.'
     } finally {
@@ -140,48 +208,68 @@
     }
   }
 
-  // 컴포넌트 마운트 시 데이터 로드
-  onMount(() => {
-    loadData()
-  })
+  // ============================================================================
+  // Filtering & Statistics
+  // ============================================================================
+  // ============================================================================
+  // Filtering & Statistics
+  // ============================================================================
 
-  // 필터링된 예산 목록 및 통계
-  let filteredBudgets = $state<Budget[]>([])
-  let totalPlanned = $state(0)
-  let totalActual = $state(0)
-  let utilizationRate = $state(0)
+  /** 필터에 맞는 예산만 필터링 */
+  function filterBudgets(): Budget[] {
+    return budgets.filter((budget) => {
+      if (budget.year !== selectedYear) return false
 
-  // 필터링 및 통계 계산 함수
-  function updateFilteredData() {
-    filteredBudgets = budgets.filter((budget) => {
       if (selectedPeriod === 'monthly' && budget.period === 'monthly') {
-        return budget.year === selectedYear && budget.month === selectedMonth
+        return budget.month === selectedMonth
       }
-      return budget.year === selectedYear
-    })
 
-    totalPlanned = filteredBudgets.reduce((sum, budget) => sum + budget.plannedAmount, 0)
-    totalActual = filteredBudgets.reduce((sum, budget) => sum + budget.actualAmount, 0)
-    utilizationRate = totalPlanned > 0 ? (totalActual / totalPlanned) * 100 : 0
+      if (selectedPeriod === 'quarterly' && budget.period === 'quarterly') {
+        return true // 같은 연도의 분기별 예산
+      }
+
+      if (selectedPeriod === 'yearly' && budget.period === 'yearly') {
+        return true // 같은 연도의 연별 예산
+      }
+
+      return false
+    })
   }
 
-  // 필터 변경 시 데이터 업데이트 (이벤트 기반)
+  /** 통계 계산 */
+  function calculateStatistics(budgets: Budget[]): {
+    totalPlanned: number
+    totalActual: number
+    utilizationRate: number
+  } {
+    const totalPlanned = budgets.reduce((sum, budget) => sum + budget.plannedAmount, 0)
+    const totalActual = budgets.reduce((sum, budget) => sum + budget.actualAmount, 0)
+    const utilizationRate = calculateUtilizationRate(totalActual, totalPlanned)
+
+    return { totalPlanned, totalActual, utilizationRate }
+  }
+
+  /** 필터링 및 통계 업데이트 */
+  function updateFilteredData() {
+    filteredBudgets = filterBudgets()
+    const stats = calculateStatistics(filteredBudgets)
+    totalPlanned = stats.totalPlanned
+    totalActual = stats.totalActual
+    utilizationRate = stats.utilizationRate
+  }
+
+  /** 필터 변경 핸들러 */
   function handleFilterChange() {
     updateFilteredData()
   }
 
-  // 예산 사용률에 따른 색상
-  function getUtilizationColor(rate: number): string {
-    if (rate >= 100) return 'text-red-600'
-    if (rate >= 80) return 'text-yellow-600'
-    return 'text-green-600'
-  }
+  // ============================================================================
+  // Lifecycle
+  // ============================================================================
 
-  function getUtilizationBgColor(rate: number): string {
-    if (rate >= 100) return 'bg-red-50'
-    if (rate >= 80) return 'bg-yellow-50'
-    return 'bg-green-50'
-  }
+  onMount(() => {
+    loadData()
+  })
 </script>
 
 <div class="space-y-6">
@@ -230,7 +318,7 @@
           onchange={handleFilterChange}
           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
         >
-          {#each Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - 2 + i) as year}
+          {#each generateYearOptions() as year}
             <option value={year}>{year}년</option>
           {/each}
         </select>
@@ -245,7 +333,7 @@
             onchange={handleFilterChange}
             class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
-            {#each Array.from({ length: 12 }, (_, i) => i + 1) as month}
+            {#each generateMonthOptions() as month}
               <option value={month}>{month}월</option>
             {/each}
           </select>
@@ -270,6 +358,10 @@
   {:else if filteredBudgets.length > 0}
     <div class="space-y-4">
       {#each filteredBudgets as budget}
+        {@const budgetUtilization = calculateUtilizationRate(
+          budget.actualAmount,
+          budget.plannedAmount,
+        )}
         <div class="bg-white rounded-lg border border-gray-200 p-6">
           <div class="flex items-center justify-between mb-4">
             <div>
@@ -312,24 +404,16 @@
             </div>
             <div class="flex justify-between items-center">
               <span class="text-sm text-gray-600">사용률</span>
-              <span
-                class="font-medium {getUtilizationColor(
-                  (budget.actualAmount / budget.plannedAmount) * 100,
-                )}"
-              >
-                {((budget.actualAmount / budget.plannedAmount) * 100).toFixed(1)}%
+              <span class="font-medium {getUtilizationColor(budgetUtilization)}">
+                {budgetUtilization.toFixed(1)}%
               </span>
             </div>
 
             <!-- 진행률 바 -->
             <div class="w-full bg-gray-200 rounded-full h-2">
               <div
-                class="h-2 rounded-full {getUtilizationBgColor(
-                  (budget.actualAmount / budget.plannedAmount) * 100,
-                )
-                  .replace('bg-', 'bg-')
-                  .replace('-50', '-500')}"
-                style="width: {Math.min((budget.actualAmount / budget.plannedAmount) * 100, 100)}%"
+                class="h-2 rounded-full {getProgressBarColor(budgetUtilization)}"
+                style="width: {Math.min(budgetUtilization, 100)}%"
               ></div>
             </div>
           </div>
@@ -425,7 +509,7 @@
               bind:value={formData.year}
               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
-              {#each Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - 2 + i) as year}
+              {#each generateYearOptions() as year}
                 <option value={year}>{year}년</option>
               {/each}
             </select>
@@ -439,7 +523,7 @@
                 bind:value={formData.month}
                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
-                {#each Array.from({ length: 12 }, (_, i) => i + 1) as month}
+                {#each generateMonthOptions() as month}
                   <option value={month}>{month}월</option>
                 {/each}
               </select>

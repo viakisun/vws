@@ -29,12 +29,23 @@ export function processDatabaseDate(dateValue: unknown): string {
     }
 
     if (typeof dateValue === 'string') {
+      // 이미 표시 형식으로 변환된 경우 (YYYY. MM. DD. 형식)
+      if (dateValue.match(/^\d{4}\.\s*\d{2}\.\s*\d{2}\.?$/)) {
+        return dateValue
+      }
+
       // ISO 문자열인 경우 그대로 사용
       if (dateValue.includes('T') || dateValue.includes('Z')) {
         return formatDateForDisplay(dateValue)
       }
-      // DATE 형식인 경우 시간대 정보 추가
-      return formatDateForDisplay(`${dateValue}T00:00:00Z`)
+
+      // YYYY-MM-DD 형식인 경우 시간대 정보 추가
+      if (dateValue.match(/^\d{4}-\d{2}-\d{2}$/)) {
+        return formatDateForDisplay(`${dateValue}T00:00:00Z`)
+      }
+
+      // 기타 형식은 그대로 반환
+      return formatDateForDisplay(dateValue)
     }
 
     return String(dateValue)

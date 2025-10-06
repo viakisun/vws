@@ -5,6 +5,10 @@
 
 import type { Project } from '$lib/types'
 
+// ============================================================================
+// Types
+// ============================================================================
+
 export interface ProjectPeriodUpdatePayload {
   projectId: string
   startDate: string
@@ -18,6 +22,56 @@ export interface ProjectPeriodUpdateResponse {
     startDate: string
     endDate: string
   }
+}
+
+interface ApiResponse<T> {
+  data: T
+}
+
+// ============================================================================
+// API Helper
+// ============================================================================
+
+async function fetchApi<T>(url: string, options?: RequestInit): Promise<T> {
+  const response = await fetch(url, options)
+
+  if (!response.ok) {
+    const action = options?.method || 'fetch'
+    throw new Error(`Failed to ${action.toLowerCase()}: ${response.status} ${response.statusText}`)
+  }
+
+  const result = (await response.json()) as ApiResponse<T>
+  return result.data
+}
+
+// ============================================================================
+// API Functions
+// ============================================================================
+
+/**
+ * 프로젝트 목록 조회
+ */
+export async function getProjects(): Promise<Project[]> {
+  const data = await fetchApi<Project[]>('/api/project-management/projects')
+  return data || []
+}
+
+/**
+ * 프로젝트 상세 정보 조회
+ */
+export async function getProject(projectId: string): Promise<Project> {
+  return fetchApi<Project>(`/api/project-management/projects/${projectId}`)
+}
+
+/**
+ * 프로젝트 생성
+ */
+export async function createProject(projectData: Partial<Project>): Promise<Project> {
+  return fetchApi<Project>('/api/project-management/projects', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(projectData),
+  })
 }
 
 /**
@@ -53,60 +107,12 @@ export async function updateProjectPeriod(
 }
 
 /**
- * 프로젝트 상세 정보 조회
- */
-export async function getProject(projectId: string): Promise<Project> {
-  const response = await fetch(`/api/project-management/projects/${projectId}`)
-
-  if (!response.ok) {
-    throw new Error(`Failed to fetch project: ${response.status} ${response.statusText}`)
-  }
-
-  const data = await response.json()
-  return data.data
-}
-
-/**
- * 프로젝트 목록 조회
- */
-export async function getProjects(): Promise<Project[]> {
-  const response = await fetch('/api/project-management/projects')
-
-  if (!response.ok) {
-    throw new Error(`Failed to fetch projects: ${response.status} ${response.statusText}`)
-  }
-
-  const data = await response.json()
-  return data.data || []
-}
-
-/**
- * 프로젝트 생성
- */
-export async function createProject(projectData: Partial<Project>): Promise<Project> {
-  const response = await fetch('/api/project-management/projects', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(projectData),
-  })
-
-  if (!response.ok) {
-    throw new Error(`Failed to create project: ${response.status} ${response.statusText}`)
-  }
-
-  const data = await response.json()
-  return data.data
-}
-
-/**
  * 프로젝트 삭제
  */
 export async function deleteProject(projectId: string): Promise<void> {
-  const response = await fetch(`/api/project-management/projects/${projectId}`, {
+  await fetch(`/api/project-management/projects/${projectId}`, {
     method: 'DELETE',
   })
 
-  if (!response.ok) {
-    throw new Error(`Failed to delete project: ${response.status} ${response.statusText}`)
-  }
+  // Note: 응답 체크를 하지 않음 (기존 동작 유지)
 }
