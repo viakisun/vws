@@ -11,6 +11,7 @@
   import EvidenceDetailModal from './EvidenceDetailModal.svelte'
   import EvidenceAddModal from './EvidenceAddModal.svelte'
   import ProjectEditModal from './ProjectEditModal.svelte'
+  import ProjectDeleteConfirmModal from './ProjectDeleteConfirmModal.svelte'
   import { formatCurrency, formatDate, formatDateForInput, formatNumber } from '$lib/utils/format'
   import { isKoreanName } from '$lib/utils/korean-name'
   import { calculateMonthlySalary } from '$lib/utils/salary-calculator'
@@ -1093,17 +1094,12 @@
     }
   }
 
-  // 삭제 확인 코드 검증
-  function isDeleteCodeValid(): boolean {
-    return deleteConfirmationCode === selectedProject?.code
-  }
-
   // 프로젝트 삭제
   async function deleteProject() {
     if (!selectedProject) return
 
-    // 삭제 확인 코드 검증
-    if (!isDeleteCodeValid()) {
+    // 삭제 확인 코드 검증 - 컴포넌트에서 이미 검증됨
+    if (deleteConfirmationCode !== selectedProject?.code) {
       alert('프로젝트 코드가 일치하지 않습니다. 정확한 코드를 입력해주세요.')
       return
     }
@@ -2900,93 +2896,20 @@
   />
 
   <!-- 프로젝트 삭제 확인 모달 -->
-  {#if showDeleteConfirmModal}
-    <ThemeModal
-      open={showDeleteConfirmModal}
-      onclose={() => {
-        showDeleteConfirmModal = false
-        deleteConfirmationCode = '' // 모달 닫을 때 코드 초기화
-      }}
-    >
-      <div class="p-6">
-        <div class="flex items-center mb-4">
-          <AlertTriangleIcon class="h-6 w-6 text-red-500 mr-3" />
-          <h3 class="text-lg font-medium text-gray-900">프로젝트 삭제 확인</h3>
-        </div>
-
-        <div class="mb-6">
-          <p class="text-sm text-gray-600 mb-4">다음 프로젝트를 완전히 삭제하시겠습니까?</p>
-          <div class="bg-gray-50 p-4 rounded-lg">
-            <p class="font-medium text-gray-900">{selectedProject?.title}</p>
-            <p class="text-sm text-gray-600">코드: {selectedProject?.code}</p>
-          </div>
-          <div class="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p class="text-sm text-red-800 font-medium mb-2">⚠️ 삭제될 데이터:</p>
-            <ul class="text-sm text-red-700 space-y-1">
-              <li>• 참여연구원 정보 ({projectMembers.length}명)</li>
-              <li>• 프로젝트 사업비 정보 ({projectBudgets.length}개 연차)</li>
-              <li>• 참여율 이력 데이터</li>
-              <li>• 프로젝트 마일스톤</li>
-              <li>• 프로젝트 위험 요소</li>
-            </ul>
-            <p class="text-sm text-red-800 font-medium mt-3">이 작업은 되돌릴 수 없습니다.</p>
-          </div>
-
-          <!-- 프로젝트 코드 입력 확인 -->
-          <div class="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-            <p class="text-sm text-yellow-800 font-medium mb-3">
-              🔒 삭제를 확인하려면 프로젝트 코드를 입력하세요
-            </p>
-            <div>
-              <label
-                for="delete-confirmation-code"
-                class="block text-sm font-medium text-gray-700 mb-2"
-              >
-                프로젝트 코드 입력
-              </label>
-              <input
-                id="delete-confirmation-code"
-                type="text"
-                bind:value={deleteConfirmationCode}
-                placeholder="프로젝트 코드를 정확히 입력하세요"
-                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
-                autocomplete="off"
-              />
-              {#if deleteConfirmationCode && !isDeleteCodeValid()}
-                <p class="text-sm text-red-600 mt-1">❌ 코드가 일치하지 않습니다</p>
-              {:else if isDeleteCodeValid()}
-                <p class="text-sm text-green-600 mt-1">✅ 코드가 일치합니다</p>
-              {/if}
-            </div>
-          </div>
-        </div>
-
-        <div class="flex justify-end space-x-3">
-          <ThemeButton
-            variant="ghost"
-            onclick={() => {
-              showDeleteConfirmModal = false
-              deleteConfirmationCode = '' // 모달 닫을 때 코드 초기화
-            }}
-            disabled={isDeleting}
-          >
-            취소
-          </ThemeButton>
-          <ThemeButton
-            variant="error"
-            onclick={deleteProject}
-            disabled={isDeleting || !isDeleteCodeValid()}
-          >
-            {#if isDeleting}
-              삭제 중...
-            {:else}
-              삭제
-            {/if}
-          </ThemeButton>
-        </div>
-      </div>
-    </ThemeModal>
-  {/if}
+  <ProjectDeleteConfirmModal
+    bind:open={showDeleteConfirmModal}
+    onclose={() => {
+      showDeleteConfirmModal = false
+      deleteConfirmationCode = ''
+    }}
+    project={selectedProject}
+    projectCode={selectedProject?.code || ''}
+    bind:deleteConfirmationCode
+    membersCount={projectMembers.length}
+    budgetsCount={projectBudgets.length}
+    {isDeleting}
+    onConfirm={deleteProject}
+  />
 
   <!-- 검증 결과 모달 -->
   <ThemeModal open={showValidationModal} onclose={() => (showValidationModal = false)}>
