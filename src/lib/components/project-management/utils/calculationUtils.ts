@@ -145,7 +145,7 @@ export function calculatePeriodMonths(startDate: string, endDate: string): numbe
 
   const start = new Date(startDate)
   const end = new Date(endDate)
-  
+
   // 날짜 유효성 검사
   if (isNaN(start.getTime()) || isNaN(end.getTime())) return 0
 
@@ -192,7 +192,7 @@ export function calculateContributionAmount(
 ): number {
   const monthlySalary = calculateContractMonthlySalary(member)
   const participationRate = getMemberParticipationRate(member)
-  
+
   const months =
     participationMonths ||
     calculatePeriodMonths(
@@ -264,11 +264,11 @@ export function calculateTableTotals(projectMembers: ProjectMember[]): TableTota
       acc.totalParticipationRate += getMemberParticipationRate(member)
       acc.totalCashAmount += getMemberCashAmount(member)
       acc.totalInKindAmount += getMemberInKindAmount(member)
-      
+
       const startDate = member.start_date || member.startDate || ''
       const endDate = member.end_date || member.endDate || ''
       acc.totalParticipationMonths += calculatePeriodMonths(startDate, endDate)
-      
+
       return acc
     },
     {
@@ -520,7 +520,7 @@ export async function calculateMonthlyAmountFromContract(
     const response = await fetch(
       `/api/project-management/employees/${employeeId}/contract?startDate=${startDate}&endDate=${endDate}`,
     )
-    
+
     if (!response.ok) {
       return 0
     }
@@ -655,15 +655,15 @@ export function calculatePersonnelCostSummary(
     projectMembers.forEach((member) => {
       const memberStartStr = member.startDate || member.start_date || ''
       const memberEndStr = member.endDate || member.end_date || ''
-      
+
       if (!memberStartStr || !memberEndStr) return
 
       const memberStartDate = new Date(memberStartStr)
       const memberEndDate = new Date(memberEndStr)
-      
+
       // 날짜 유효성 검사
       if (isNaN(memberStartDate.getTime()) || isNaN(memberEndDate.getTime())) return
-      
+
       const monthStart = new Date(year, month - 1, 1)
       const monthEnd = new Date(year, month, 0) // 해당 월의 마지막 날
 
