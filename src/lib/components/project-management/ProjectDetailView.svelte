@@ -44,6 +44,7 @@
   import * as evidenceUtilsImported from './utils/evidenceUtils'
   import * as validationUtilsImported from './utils/validationUtils'
   import * as calculationUtilsImported from './utils/calculationUtils'
+  import * as dataTransformers from './utils/dataTransformers'
   import type { ValidationIssue, MemberValidationStatus } from './utils/validationUtils'
 
   // Import service layer for API calls (Phase C-1)
@@ -356,36 +357,32 @@
     // 초기화
     memberValidationStatuses = {}
 
-    // 각 멤버별로 검증 상태 설정
-    projectMembers.forEach((member) => {
-      const memberIssues = issues.filter((issue) => issue.memberId === member.id)
+    // dataTransformers를 사용하여 멤버별 상태 그룹화
+    const statuses = dataTransformers.groupIssuesByMember(issues, projectMembers)
 
-      if (memberIssues.length === 0) {
-        memberValidationStatuses[member.id] = {
+    // 기존 형식으로 변환
+    statuses.forEach((status) => {
+      if (status.issues.length === 0) {
+        memberValidationStatuses[status.memberId] = {
           status: 'valid',
           message: '검증 완료',
           issues: [],
         }
       } else {
-        const hasErrors = memberIssues.some((issue) => issue.severity === 'error')
-        const hasWarnings = memberIssues.some((issue) => issue.severity === 'warning')
-        const errorCount = memberIssues.filter((i) => i.severity === 'error').length
-        const warningCount = memberIssues.filter((i) => i.severity === 'warning').length
-
         // 더 자세한 메시지 생성
         let detailedMessage = ''
-        if (hasErrors && hasWarnings) {
-          detailedMessage = `${errorCount}개 오류, ${warningCount}개 경고`
-        } else if (hasErrors) {
-          detailedMessage = `${errorCount}개 오류`
+        if (status.errorCount > 0 && status.warningCount > 0) {
+          detailedMessage = `${status.errorCount}개 오류, ${status.warningCount}개 경고`
+        } else if (status.errorCount > 0) {
+          detailedMessage = `${status.errorCount}개 오류`
         } else {
-          detailedMessage = `${warningCount}개 경고`
+          detailedMessage = `${status.warningCount}개 경고`
         }
 
-        memberValidationStatuses[member.id] = {
-          status: hasErrors ? 'error' : 'warning',
+        memberValidationStatuses[status.memberId] = {
+          status: status.status,
           message: detailedMessage,
-          issues: memberIssues.map((issue) => ({
+          issues: status.issues.map((issue) => ({
             ...issue,
             // API에서 제공하는 실제 메시지 사용
             priority: issue.severity === 'error' ? 'high' : 'medium',
@@ -586,8 +583,8 @@
         memberUtilsImported.getMemberStartDate(member),
         memberUtilsImported.getMemberEndDate(member),
       ),
-      cashAmount: (member.cash_amount || member.cashAmount || '0').toString(),
-      inKindAmount: (member.in_kind_amount || member.inKindAmount || '0').toString(),
+      cashAmount: dataTransformers.extractCashAmount(member),
+      inKindAmount: dataTransformers.extractInKindAmount(member),
     }
 
     // 디버깅: memberForm 확인
@@ -2384,43 +2381,7 @@
         projectBudgets.find(
           (b) => budgetUtilsImported.getPeriodNumber(b) === selectedItems.evidencePeriod,
         ) || projectBudgets[0]}
-      {@const budgetCategories = [
-        {
-          id: 'personnel',
-          type: 'personnel',
-          name: '인건비',
-          cash: parseFloat(currentBudget.personnel_cost) || 0,
-          inKind: parseFloat(currentBudget.personnel_cost_in_kind) || 0,
-        },
-        {
-          id: 'material',
-          type: 'material',
-          name: '연구재료비',
-          cash: parseFloat(currentBudget.research_material_cost) || 0,
-          inKind: parseFloat(currentBudget.research_material_cost_in_kind) || 0,
-        },
-        {
-          id: 'activity',
-          type: 'activity',
-          name: '연구활동비',
-          cash: parseFloat(currentBudget.research_activity_cost) || 0,
-          inKind: parseFloat(currentBudget.research_activity_cost_in_kind) || 0,
-        },
-        {
-          id: 'stipend',
-          type: 'stipend',
-          name: '연구수당',
-          cash: parseFloat(currentBudget.research_stipend) || 0,
-          inKind: parseFloat(currentBudget.research_stipend_in_kind) || 0,
-        },
-        {
-          id: 'indirect',
-          type: 'indirect',
-          name: '간접비',
-          cash: parseFloat(currentBudget.indirect_cost) || 0,
-          inKind: parseFloat(currentBudget.indirect_cost_in_kind) || 0,
-        },
-      ].filter((category) => category.cash + category.inKind > 0)}
+      {@const budgetCategories = dataTransformers.transformBudgetToCategories(currentBudget)}
 
       {#if loadingStates.loadingEvidence}
         <div class="text-center py-8">
