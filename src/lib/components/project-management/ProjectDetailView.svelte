@@ -1588,11 +1588,6 @@
     }
   }
 
-  // 테이블 합계 계산 함수들
-  function calculateTableTotals() {
-    return calculationUtilsImported.calculateTableTotals(projectMembers)
-  }
-
   // 천원 단위로 변환 (입력용)
   function toThousands(value: string | number): string {
     return calculationUtilsImported.toThousands(value)
@@ -1601,25 +1596,6 @@
   // 천원 단위에서 원 단위로 변환 (저장용)
   function fromThousands(value: string): number {
     return calculationUtilsImported.fromThousands(value)
-  }
-
-  // 연차별 예산과 연구개발비 불일치 확인
-  function checkBudgetMismatch(budget?: any) {
-    return calculationUtilsImported.checkBudgetMismatch(
-      budget,
-      projectBudgets,
-      selectedEvidencePeriod,
-    )
-  }
-
-  // 사업비 합계 계산
-  function calculateBudgetTotals() {
-    return calculationUtilsImported.calculateBudgetTotals(projectBudgets)
-  }
-
-  // 인건비 요약 계산 (해당 연차의 인건비 합계 및 월별 상세)
-  function calculatePersonnelCostSummary() {
-    return calculationUtilsImported.calculatePersonnelCostSummary(projectMembers, projectBudgets)
   }
 
   // 연구 유형 한글 변환
@@ -1863,7 +1839,11 @@
                   activityInKind +
                   stipendInKind +
                   indirectInKind}
-                {@const mismatchInfo = checkBudgetMismatch(budget)}
+                {@const mismatchInfo = calculationUtilsImported.checkBudgetMismatch(
+                  budget,
+                  projectBudgets,
+                  selectedEvidencePeriod,
+                )}
                 <tr
                   class="hover:bg-gray-50 {mismatchInfo?.hasMismatch
                     ? 'bg-red-50 border-l-4 border-red-400'
@@ -1988,7 +1968,7 @@
 
             <!-- 합계 행 -->
             {#if projectBudgets && projectBudgets.length > 0}
-              {@const totals = calculateBudgetTotals()}
+              {@const totals = calculationUtilsImported.calculateBudgetTotals(projectBudgets)}
               <tr class="bg-gray-100 border-t-2 border-gray-300">
                 <!-- 연차 -->
                 <td class="px-6 py-6 whitespace-nowrap text-sm text-gray-900 w-24">
@@ -2109,14 +2089,18 @@
       </div>
 
       <!-- 불일치 경고 섹션 -->
-      {#if projectBudgets.some((budget) => checkBudgetMismatch(budget)?.hasMismatch)}
+      {#if projectBudgets.some((budget) => calculationUtilsImported.checkBudgetMismatch(budget, projectBudgets, selectedEvidencePeriod)?.hasMismatch)}
         <div class="mt-4 p-3 bg-red-50 border-l-4 border-red-400 rounded">
           <div class="text-sm text-red-700">
             <span class="font-medium">!</span>
             다음 연차의 예산과 연구개발비가 일치하지 않습니다:
             <div class="mt-2 space-y-1">
-              {#each projectBudgets.filter((budget) => checkBudgetMismatch(budget)?.hasMismatch) as budget}
-                {@const mismatchInfo = checkBudgetMismatch(budget)}
+              {#each projectBudgets.filter((budget) => calculationUtilsImported.checkBudgetMismatch(budget, projectBudgets, selectedEvidencePeriod)?.hasMismatch) as budget}
+                {@const mismatchInfo = calculationUtilsImported.checkBudgetMismatch(
+                  budget,
+                  projectBudgets,
+                  selectedEvidencePeriod,
+                )}
                 <div class="text-xs text-red-600">
                   {budgetUtilsImported.formatPeriodDisplay(budget)}: 예산 {formatNumber(
                     mismatchInfo?.annualBudgetTotal || 0,
@@ -2963,7 +2947,7 @@
 
           <!-- 합계 행 -->
           {#if projectMembers.length > 0}
-            {@const totals = calculateTableTotals()}
+            {@const totals = calculationUtilsImported.calculateTableTotals(projectMembers)}
             <tr class="bg-gray-50 border-t-2 border-gray-300">
               <td class="px-4 py-3 text-sm font-semibold text-gray-900" colspan="5">
                 <div class="flex items-center">
