@@ -219,10 +219,9 @@
     }
   }
 
-  // 개선된 프로젝트 데이터 검증 함수 (기획 단계 완화)
+  // 개선된 프로젝트 데이터 검증 함수
   function validateProjectData(projectData: any) {
     const issues: string[] = []
-    const warnings: string[] = []
 
     if (!Array.isArray(projectData)) {
       issues.push('프로젝트 데이터가 배열이 아닙니다.')
@@ -231,7 +230,6 @@
 
     projectData.forEach((project, index) => {
       const projectName = project.title || project.code || `프로젝트 ${index + 1}`
-      const isPlanning = project.status === 'planning'
 
       // 모든 프로젝트에 공통으로 필요한 필수 필드
       if (!project.id) {
@@ -244,33 +242,10 @@
         issues.push(`${projectName}: 코드가 누락되었습니다.`)
       }
 
-      // 날짜 필드 검증 - 모든 상태에서 경고만 표시 (에러로 처리하지 않음)
-      if (!project.startDate) {
-        warnings.push(
-          `${projectName}: 시작일이 설정되지 않았습니다. ${isPlanning ? '(기획 단계)' : '(진행/완료 상태)'}`,
-        )
-      }
-      if (!project.endDate) {
-        warnings.push(
-          `${projectName}: 종료일이 설정되지 않았습니다. ${isPlanning ? '(기획 단계)' : '(진행/완료 상태)'}`,
-        )
-      }
-
-      // 날짜 유효성 검증 (날짜가 있는 경우에만)
-      if (project.startDate && project.endDate) {
-        const startDate = new Date(project.startDate)
-        const endDate = new Date(project.endDate)
-
-        if (isNaN(startDate.getTime())) {
-          issues.push(`${projectName}: 시작일 형식이 올바르지 않습니다.`)
-        }
-        if (isNaN(endDate.getTime())) {
-          issues.push(`${projectName}: 종료일 형식이 올바르지 않습니다.`)
-        }
-        if (!isNaN(startDate.getTime()) && !isNaN(endDate.getTime()) && startDate > endDate) {
-          issues.push(`${projectName}: 시작일이 종료일보다 늦습니다.`)
-        }
-      }
+      // 날짜 검증 제거:
+      // - 프로젝트의 시작/종료일은 연차별 기간(annual_periods)에서 자동으로 계산됨
+      // - DB에 start_date, end_date 컬럼이 없으므로 직접 검증할 필요 없음
+      // - 연차별 기간 데이터가 있으면 자동으로 계산되고, 없으면 빈 값으로 표시됨
 
       // 상태 값 검증
       const validStatuses = ['planning', 'active', 'completed']
@@ -286,11 +261,6 @@
         }
       }
     })
-
-    // 경고가 있으면 콘솔에 출력
-    if (warnings.length > 0) {
-      logger.warn('⚠️ 프로젝트 데이터 경고:', warnings)
-    }
 
     return {
       isValid: issues.length === 0,
