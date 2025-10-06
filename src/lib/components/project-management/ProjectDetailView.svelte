@@ -397,9 +397,35 @@
     try {
       logger.log('참여연구원 목록 로드 시작, 프로젝트 ID:', selectedProject.id)
       // Use service layer instead of direct fetch
-      projectMembers = await memberService.getProjectMembers(selectedProject.id)
+      const members = await memberService.getProjectMembers(selectedProject.id)
+
+      // 🔍 디버깅: 원본 데이터 확인
+      logger.log('🔍 API에서 받은 원본 멤버 데이터:', members)
+      if (members.length > 0) {
+        logger.log('🔍 첫 번째 멤버 상세:', members[0])
+        logger.log('🔍 첫 번째 멤버의 start_date:', members[0].start_date)
+        logger.log('🔍 첫 번째 멤버의 end_date:', members[0].end_date)
+      }
+
+      // 각 멤버의 참여개월수 계산
+      projectMembers = members.map((member: any) => {
+        const participationMonths = calculationUtilsImported.calculatePeriodMonths(
+          member.start_date,
+          member.end_date,
+        )
+        logger.log(`🔍 멤버 ${member.employee_name} 참여개월수 계산:`, {
+          start_date: member.start_date,
+          end_date: member.end_date,
+          calculated: participationMonths,
+        })
+        return {
+          ...member,
+          participationMonths,
+        }
+      })
+
       logger.log('참여연구원 목록 로드 성공:', projectMembers.length, '명')
-      logger.log('참여연구원 상태 업데이트 완료:', projectMembers.length, '명')
+      logger.log('🔍 최종 projectMembers:', projectMembers)
 
       // 자동 검증 제거 - 수작업으로만 검증 실행
     } catch (error) {
@@ -1062,6 +1088,13 @@
       uiStates.calculatedMonthlyAmount = 0
       return
     }
+
+    // 날짜가 변경되면 참여개월수도 자동으로 재계산
+    const calculatedMonths = calculationUtilsImported.calculatePeriodMonths(
+      forms.member.startDate,
+      forms.member.endDate,
+    )
+    forms.member.participationMonths = calculatedMonths
 
     // 사용자가 수동으로 월간금액을 입력한 경우 자동 계산하지 않음
     if (uiStates.isManualMonthlyAmount) {
@@ -2146,7 +2179,7 @@
                     max="120"
                   />
                 {:else}
-                  {forms.member.participationMonths ||
+                  {member.participationMonths ||
                     calculationUtilsImported.calculatePeriodMonths(
                       memberUtilsImported.getMemberStartDate(member),
                       memberUtilsImported.getMemberEndDate(member),
