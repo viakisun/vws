@@ -200,10 +200,7 @@ export function useProjectEvidence(options: UseProjectEvidenceOptions) {
       await addEvidenceItem(store.forms.newEvidence.categoryId, {
         name: store.forms.newEvidence.name,
         description: store.forms.newEvidence.description,
-        budgetAmount: dataTransformers.safeStringToNumber(
-          store.forms.newEvidence.budgetAmount,
-          0,
-        ),
+        budgetAmount: dataTransformers.safeStringToNumber(store.forms.newEvidence.budgetAmount, 0),
         assigneeId: store.forms.newEvidence.assigneeId,
         assigneeName: assigneeName,
         dueDate: store.forms.newEvidence.dueDate,
