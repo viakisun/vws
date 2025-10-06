@@ -107,15 +107,15 @@
   // Phase B-1: Grouped State Management - Modal States
   // ============================================================
   let modalStates = $state({
-    budget: false, // showBudgetModal
-    member: false, // _showMemberModal
-    editProject: false, // showEditProjectModal
-    deleteConfirm: false, // showDeleteConfirmModal
-    evidence: false, // showEvidenceModal (moved here for grouping)
-    evidenceDetail: false, // showEvidenceDetailModal
+    budget: false,              // showBudgetModal
+    member: false,              // _showMemberModal
+    editProject: false,         // showEditProjectModal
+    deleteConfirm: false,       // showDeleteConfirmModal
+    evidence: false,            // showEvidenceModal (moved here for grouping)
+    evidenceDetail: false,      // showEvidenceDetailModal
     budgetUpdateConfirm: false, // showBudgetUpdateConfirmModal
-    restore: false, // showRestoreModal
-    validation: false, // showValidationModal
+    restore: false,             // showRestoreModal
+    validation: false,          // showValidationModal
   })
 
   // ============================================================

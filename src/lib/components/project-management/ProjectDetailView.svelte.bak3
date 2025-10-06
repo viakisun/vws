@@ -107,15 +107,15 @@
   // Phase B-1: Grouped State Management - Modal States
   // ============================================================
   let modalStates = $state({
-    budget: false, // showBudgetModal
-    member: false, // _showMemberModal
-    editProject: false, // showEditProjectModal
-    deleteConfirm: false, // showDeleteConfirmModal
-    evidence: false, // showEvidenceModal (moved here for grouping)
-    evidenceDetail: false, // showEvidenceDetailModal
+    budget: false,              // showBudgetModal
+    member: false,              // _showMemberModal
+    editProject: false,         // showEditProjectModal
+    deleteConfirm: false,       // showDeleteConfirmModal
+    evidence: false,            // showEvidenceModal (moved here for grouping)
+    evidenceDetail: false,      // showEvidenceDetailModal
     budgetUpdateConfirm: false, // showBudgetUpdateConfirmModal
-    restore: false, // showRestoreModal
-    validation: false, // showValidationModal
+    restore: false,             // showRestoreModal
+    validation: false,          // showValidationModal
   })
 
   // ============================================================
@@ -2146,7 +2146,7 @@
 
   <!-- 사업비 추가/편집 모달 -->
   <ProjectBudgetModal
-    bind:open={modalStates.budget}
+    bind:open={showBudgetModal}
     bind:editingBudget
     bind:budgetForm
     onclose={() => {
@@ -2877,7 +2877,7 @@
 
   <!-- 증빙 상세 모달 -->
   <EvidenceDetailModal
-    bind:visible={modalStates.evidenceDetail}
+    bind:visible={showEvidenceDetailModal}
     selectedItem={selectedEvidenceItem}
     {formatCurrency}
     {formatDate}
@@ -2886,7 +2886,7 @@
 
   <!-- 증빙 추가 모달 -->
   <EvidenceAddModal
-    bind:visible={modalStates.evidence}
+    bind:visible={showEvidenceModal}
     bind:evidenceForm={newEvidenceForm}
     {evidenceCategories}
     {availableEmployees}
@@ -2900,7 +2900,7 @@
 
   <!-- 프로젝트 수정 모달 -->
   <ProjectEditModal
-    bind:visible={modalStates.editProject}
+    bind:visible={showEditProjectModal}
     bind:projectForm
     {isUpdating}
     onclose={() => (modalStates.editProject = false)}
@@ -2909,7 +2909,7 @@
 
   <!-- 프로젝트 삭제 확인 모달 -->
   <ProjectDeleteConfirmModal
-    bind:open={modalStates.deleteConfirm}
+    bind:open={showDeleteConfirmModal}
     onclose={() => {
       modalStates.deleteConfirm = false
       deleteConfirmationCode = ''
@@ -2925,14 +2925,14 @@
 
   <!-- 검증 결과 모달 -->
   <ValidationResultModal
-    bind:open={modalStates.validation}
+    bind:open={showValidationModal}
     onclose={() => (modalStates.validation = false)}
     {validationResults}
   />
 
   <!-- 예산 수정 확인 모달 -->
   <BudgetUpdateConfirmModal
-    bind:open={modalStates.budgetUpdateConfirm}
+    bind:open={showBudgetUpdateConfirmModal}
     onclose={cancelBudgetUpdate}
     validationData={budgetUpdateValidationData}
     onConfirm={confirmBudgetUpdate}

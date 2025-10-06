@@ -107,15 +107,15 @@
   // Phase B-1: Grouped State Management - Modal States
   // ============================================================
   let modalStates = $state({
-    budget: false, // showBudgetModal
-    member: false, // _showMemberModal
-    editProject: false, // showEditProjectModal
-    deleteConfirm: false, // showDeleteConfirmModal
-    evidence: false, // showEvidenceModal (moved here for grouping)
-    evidenceDetail: false, // showEvidenceDetailModal
+    budget: false,              // showBudgetModal
+    member: false,              // _showMemberModal
+    editProject: false,         // showEditProjectModal
+    deleteConfirm: false,       // showDeleteConfirmModal
+    evidence: false,            // showEvidenceModal (moved here for grouping)
+    evidenceDetail: false,      // showEvidenceDetailModal
     budgetUpdateConfirm: false, // showBudgetUpdateConfirmModal
-    restore: false, // showRestoreModal
-    validation: false, // showValidationModal
+    restore: false,             // showRestoreModal
+    validation: false,          // showValidationModal
   })
 
   // ============================================================
@@ -815,7 +815,7 @@
       researchStipendInKind: toThousands(budgetUtilsImported.getResearchStipendInKind(budget)),
       indirectCostInKind: toThousands(budgetUtilsImported.getIndirectCostInKind(budget)),
     }
-    modalStates.budget = true
+    showBudgetModal = true
   }
 
   // 사업비 업데이트
@@ -871,7 +871,7 @@
       if (validationResult.success && validationResult.data.hasWarnings) {
         // 검증 데이터 저장하고 확인 모달 표시
         budgetUpdateValidationData = validationResult.data
-        modalStates.budgetUpdateConfirm = true
+        showBudgetUpdateConfirmModal = true
         return
       }
 
@@ -912,8 +912,8 @@
 
       if (response.ok) {
         const result = await response.json()
-        modalStates.budget = false
-        modalStates.budgetUpdateConfirm = false
+        showBudgetModal = false
+        showBudgetUpdateConfirmModal = false
         editingBudget = null
         budgetUpdateValidationData = null
         budgetForm = {
@@ -959,7 +959,7 @@
 
   // 예산 수정 확인 모달에서 취소
   function cancelBudgetUpdate() {
-    modalStates.budgetUpdateConfirm = false
+    showBudgetUpdateConfirmModal = false
     budgetUpdateValidationData = null
   }
 
@@ -979,7 +979,7 @@
       indirectCostInKind: '',
       restoreReason: '사용자 요청에 의한 연구개발비 복구',
     }
-    modalStates.restore = true
+    showRestoreModal = true
   }
 
   // 연구개발비 복구 실행
@@ -1010,7 +1010,7 @@
 
       if (response.ok) {
         const result = await response.json()
-        modalStates.restore = false
+        showRestoreModal = false
         selectedBudgetForRestore = null
         await loadProjectBudgets()
         budgetRefreshTrigger++
@@ -1028,7 +1028,7 @@
 
   // 연구개발비 복구 모달 닫기
   function closeRestoreModal() {
-    modalStates.restore = false
+    showRestoreModal = false
     selectedBudgetForRestore = null
   }
 
@@ -1086,7 +1086,7 @@
       if (response.ok && result.success) {
         // 프로젝트 정보 업데이트
         selectedProject = { ...selectedProject, ...result.data }
-        modalStates.editProject = false
+        showEditProjectModal = false
 
         // 부모 컴포넌트에 프로젝트 업데이트 이벤트 전송
         dispatch('project-updated', {
@@ -1125,7 +1125,7 @@
       const result = await response.json()
 
       if (response.ok && result.success) {
-        modalStates.deleteConfirm = false
+        showDeleteConfirmModal = false
         deleteConfirmationCode = '' // 삭제 후 코드 초기화
         dispatch('project-deleted', { projectId: selectedProject.id })
         dispatch('refresh')
@@ -1275,7 +1275,7 @@
         validationHistory = validationHistory.slice(0, 10)
       }
 
-      modalStates.validation = true
+      showValidationModal = true
     } catch (error) {
       logger.error('검증 실행 실패:', error)
       alert('검증 실행 중 오류가 발생했습니다.')
@@ -1287,13 +1287,13 @@
   // 증빙 내역 모달 표시
   function _openEvidenceModal(budget) {
     selectedBudgetForEvidence = budget
-    modalStates.evidence = true
+    showEvidenceModal = true
     loadEvidenceList(budget.id)
   }
 
   async function openEvidenceDetail(item) {
     selectedEvidenceItem = item
-    modalStates.evidenceDetail = true
+    showEvidenceDetailModal = true
 
     // 증빙 항목 상세 정보 로드
     if (item.id) {
@@ -1465,7 +1465,7 @@
         dueDate: '',
       }
 
-      modalStates.evidence = false
+      showEvidenceModal = false
     } catch (error) {
       logger.error('증빙 항목 추가 실패:', error)
       alert('증빙 항목 추가에 실패했습니다.')
@@ -1713,7 +1713,7 @@
             size="sm"
             onclick={() => {
               initProjectForm()
-              modalStates.editProject = true
+              showEditProjectModal = true
             }}
           >
             <EditIcon size={16} class="mr-2" />
@@ -1723,7 +1723,7 @@
             <DollarSignIcon size={16} class="mr-2" />
             예산 수정
           </ThemeButton>
-          <ThemeButton variant="error" size="sm" onclick={() => (modalStates.deleteConfirm = true)}>
+          <ThemeButton variant="error" size="sm" onclick={() => (showDeleteConfirmModal = true)}>
             <TrashIcon size={16} class="mr-2" />
             삭제
           </ThemeButton>
@@ -2146,11 +2146,11 @@
 
   <!-- 사업비 추가/편집 모달 -->
   <ProjectBudgetModal
-    bind:open={modalStates.budget}
+    bind:open={showBudgetModal}
     bind:editingBudget
     bind:budgetForm
     onclose={() => {
-      modalStates.budget = false
+      showBudgetModal = false
       editingBudget = null
       budgetForm = {
         periodNumber: 1,
@@ -2170,7 +2170,7 @@
     }}
     onsubmit={editingBudget ? updateBudget : addBudget}
     oncancel={() => {
-      modalStates.budget = false
+      showBudgetModal = false
       editingBudget = null
       budgetForm = {
         periodNumber: 1,
@@ -2578,7 +2578,7 @@
           </select>
         {/if}
       </div>
-      <ThemeButton onclick={() => (modalStates.evidence = true)} size="sm">
+      <ThemeButton onclick={() => (showEvidenceModal = true)} size="sm">
         <PlusIcon size={16} class="mr-2" />
         증빙 추가
       </ThemeButton>
@@ -2877,41 +2877,41 @@
 
   <!-- 증빙 상세 모달 -->
   <EvidenceDetailModal
-    bind:visible={modalStates.evidenceDetail}
+    bind:visible={showEvidenceDetailModal}
     selectedItem={selectedEvidenceItem}
     {formatCurrency}
     {formatDate}
-    onclose={() => (modalStates.evidenceDetail = false)}
+    onclose={() => (showEvidenceDetailModal = false)}
   />
 
   <!-- 증빙 추가 모달 -->
   <EvidenceAddModal
-    bind:visible={modalStates.evidence}
+    bind:visible={showEvidenceModal}
     bind:evidenceForm={newEvidenceForm}
     {evidenceCategories}
     {availableEmployees}
     {isValidatingEvidence}
     {evidenceValidation}
     {isUpdating}
-    onclose={() => (modalStates.evidence = false)}
+    onclose={() => (showEvidenceModal = false)}
     onvalidate={validateEvidenceRegistration}
     onsubmit={handleAddEvidenceItem}
   />
 
   <!-- 프로젝트 수정 모달 -->
   <ProjectEditModal
-    bind:visible={modalStates.editProject}
+    bind:visible={showEditProjectModal}
     bind:projectForm
     {isUpdating}
-    onclose={() => (modalStates.editProject = false)}
+    onclose={() => (showEditProjectModal = false)}
     onupdate={updateProject}
   />
 
   <!-- 프로젝트 삭제 확인 모달 -->
   <ProjectDeleteConfirmModal
-    bind:open={modalStates.deleteConfirm}
+    bind:open={showDeleteConfirmModal}
     onclose={() => {
-      modalStates.deleteConfirm = false
+      showDeleteConfirmModal = false
       deleteConfirmationCode = ''
     }}
     project={selectedProject}
@@ -2925,14 +2925,14 @@
 
   <!-- 검증 결과 모달 -->
   <ValidationResultModal
-    bind:open={modalStates.validation}
-    onclose={() => (modalStates.validation = false)}
+    bind:open={showValidationModal}
+    onclose={() => (showValidationModal = false)}
     {validationResults}
   />
 
   <!-- 예산 수정 확인 모달 -->
   <BudgetUpdateConfirmModal
-    bind:open={modalStates.budgetUpdateConfirm}
+    bind:open={showBudgetUpdateConfirmModal}
     onclose={cancelBudgetUpdate}
     validationData={budgetUpdateValidationData}
     onConfirm={confirmBudgetUpdate}
