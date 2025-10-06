@@ -298,19 +298,13 @@
 
   // 증빙 등록 시 재직 기간 검증 함수
   async function validateEvidenceRegistration() {
-    if (
-      !forms.newEvidence.assigneeId ||
-      !forms.newEvidence.dueDate ||
-      !selectedBudgetForEvidence?.id
-    ) {
+    if (!newEvidenceForm.assigneeId || !newEvidenceForm.dueDate || !selectedBudgetForEvidence?.id) {
       evidenceValidation = null
       return
     }
 
     // 인건비 카테고리인 경우에만 검증
-    const selectedCategory = evidenceCategories.find(
-      (cat) => cat.id === forms.newEvidence.categoryId,
-    )
+    const selectedCategory = evidenceCategories.find((cat) => cat.id === newEvidenceForm.categoryId)
     if (selectedCategory?.name !== '인건비') {
       evidenceValidation = null
       return
@@ -322,8 +316,8 @@
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          assigneeId: forms.newEvidence.assigneeId,
-          dueDate: forms.newEvidence.dueDate,
+          assigneeId: newEvidenceForm.assigneeId,
+          dueDate: newEvidenceForm.dueDate,
           projectBudgetId: selectedBudgetForEvidence.id,
         }),
       })
@@ -657,7 +651,7 @@
     }
 
     // 디버깅: memberForm 확인
-    logger.log('editMember - forms.member after setting:', forms.member)
+    logger.log('editMember - memberForm after setting:', memberForm)
 
     // 수정 시 월간금액 자동 계산 (수동 입력 플래그 초기화)
     isManualMonthlyAmount = false
@@ -699,19 +693,14 @@
     }
 
     // 디버깅: 필드 값 확인
-    logger.log('updateMember - forms.member:', forms.member)
+    logger.log('updateMember - memberForm:', memberForm)
     logger.log(
       'updateMember - startDate:',
       forms.member.startDate,
       'type:',
       typeof forms.member.startDate,
     )
-    logger.log(
-      'updateMember - endDate:',
-      forms.member.endDate,
-      'type:',
-      typeof forms.member.endDate,
-    )
+    logger.log('updateMember - endDate:', forms.member.endDate, 'type:', typeof forms.member.endDate)
 
     // 필수 필드 검증
     if (!forms.member.startDate || !forms.member.endDate) {
@@ -1092,7 +1081,7 @@
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(forms.project),
+        body: JSON.stringify(projectForm),
       })
 
       const result = await response.json()
@@ -1447,11 +1436,7 @@
 
   // 증빙 항목 추가 핸들러
   async function handleAddEvidenceItem() {
-    if (
-      !forms.newEvidence.categoryId ||
-      !forms.newEvidence.name ||
-      !forms.newEvidence.budgetAmount
-    ) {
+    if (!newEvidenceForm.categoryId || !newEvidenceForm.name || !newEvidenceForm.budgetAmount) {
       alert('필수 필드를 모두 입력해주세요.')
       return
     }
@@ -1460,21 +1445,21 @@
       loadingStates.updating = true
 
       const selectedEmployee = availableEmployees.find(
-        (emp) => emp.id === forms.newEvidence.assigneeId,
+        (emp) => emp.id === newEvidenceForm.assigneeId,
       )
       const assigneeName = memberUtilsImported.createAssigneeNameFromEmployee(selectedEmployee)
 
-      await addEvidenceItem(forms.newEvidence.categoryId, {
-        name: forms.newEvidence.name,
-        description: forms.newEvidence.description,
-        budgetAmount: parseFloat(forms.newEvidence.budgetAmount),
-        assigneeId: forms.newEvidence.assigneeId,
+      await addEvidenceItem(newEvidenceForm.categoryId, {
+        name: newEvidenceForm.name,
+        description: newEvidenceForm.description,
+        budgetAmount: parseFloat(newEvidenceForm.budgetAmount),
+        assigneeId: newEvidenceForm.assigneeId,
         assigneeName: assigneeName,
-        dueDate: forms.newEvidence.dueDate,
+        dueDate: newEvidenceForm.dueDate,
       })
 
       // 폼 초기화
-      forms.newEvidence = {
+      newEvidenceForm = {
         categoryId: '',
         name: '',
         description: '',
@@ -2166,7 +2151,7 @@
   <ProjectBudgetModal
     bind:open={modalStates.budget}
     bind:editingBudget
-    budgetForm={forms.budget}
+    bind:budgetForm
     onclose={() => {
       modalStates.budget = false
       editingBudget = null
@@ -2213,7 +2198,7 @@
   <!-- 연구원 추가 폼 카드 -->
   <ProjectMemberForm
     bind:visible={loadingStates.addingMember}
-    memberForm={forms.member}
+    bind:memberForm
     bind:isManualMonthlyAmount
     {availableEmployees}
     {formatNumber}
@@ -2905,7 +2890,7 @@
   <!-- 증빙 추가 모달 -->
   <EvidenceAddModal
     bind:visible={modalStates.evidence}
-    evidenceForm={forms.newEvidence}
+    bind:evidenceForm={newEvidenceForm}
     {evidenceCategories}
     {availableEmployees}
     isValidatingEvidence={loadingStates.validatingEvidence}
@@ -2919,7 +2904,7 @@
   <!-- 프로젝트 수정 모달 -->
   <ProjectEditModal
     bind:visible={modalStates.editProject}
-    projectForm={forms.project}
+    bind:projectForm
     isUpdating={loadingStates.updating}
     onclose={() => (modalStates.editProject = false)}
     onupdate={updateProject}

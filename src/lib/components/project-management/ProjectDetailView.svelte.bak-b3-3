@@ -298,19 +298,13 @@
 
   // 증빙 등록 시 재직 기간 검증 함수
   async function validateEvidenceRegistration() {
-    if (
-      !forms.newEvidence.assigneeId ||
-      !forms.newEvidence.dueDate ||
-      !selectedBudgetForEvidence?.id
-    ) {
+    if (!newEvidenceForm.assigneeId || !newEvidenceForm.dueDate || !selectedBudgetForEvidence?.id) {
       evidenceValidation = null
       return
     }
 
     // 인건비 카테고리인 경우에만 검증
-    const selectedCategory = evidenceCategories.find(
-      (cat) => cat.id === forms.newEvidence.categoryId,
-    )
+    const selectedCategory = evidenceCategories.find((cat) => cat.id === newEvidenceForm.categoryId)
     if (selectedCategory?.name !== '인건비') {
       evidenceValidation = null
       return
@@ -322,8 +316,8 @@
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          assigneeId: forms.newEvidence.assigneeId,
-          dueDate: forms.newEvidence.dueDate,
+          assigneeId: newEvidenceForm.assigneeId,
+          dueDate: newEvidenceForm.dueDate,
           projectBudgetId: selectedBudgetForEvidence.id,
         }),
       })
@@ -570,30 +564,30 @@
   // 멤버 추가
   async function addMember() {
     // 참여율 검증
-    if (forms.member.participationRate < 0 || forms.member.participationRate > 100) {
+    if (memberForm.participationRate < 0 || memberForm.participationRate > 100) {
       alert('참여율은 0-100 사이의 값이어야 합니다.')
       return
     }
 
     try {
       // 날짜를 API 형식(YYYY-MM-DD)으로 변환
-      const formattedStartDate = convertDateToISO(forms.member.startDate)
-      const formattedEndDate = convertDateToISO(forms.member.endDate)
+      const formattedStartDate = convertDateToISO(memberForm.startDate)
+      const formattedEndDate = convertDateToISO(memberForm.endDate)
 
       const response = await fetch('/api/project-management/project-members', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           projectId: selectedProject.id,
-          employeeId: forms.member.employeeId,
-          role: forms.member.role,
+          employeeId: memberForm.employeeId,
+          role: memberForm.role,
           startDate: formattedStartDate,
           endDate: formattedEndDate,
-          participationRate: forms.member.participationRate,
-          cashAmount: parseInt(forms.member.cashAmount || '0'),
-          inKindAmount: parseInt(forms.member.inKindAmount || '0'),
-          contractMonthlySalary: parseInt(forms.member.contractMonthlySalary || '0'),
-          participationMonths: forms.member.participationMonths || 0,
+          participationRate: memberForm.participationRate,
+          cashAmount: parseInt(memberForm.cashAmount || '0'),
+          inKindAmount: parseInt(memberForm.inKindAmount || '0'),
+          contractMonthlySalary: parseInt(memberForm.contractMonthlySalary || '0'),
+          participationMonths: memberForm.participationMonths || 0,
         }),
       })
 
@@ -638,7 +632,7 @@
     const rawStartDate = memberUtilsImported.getMemberStartDate(member)
     const rawEndDate = memberUtilsImported.getMemberEndDate(member)
 
-    forms.member = {
+    memberForm = {
       employeeId: memberUtilsImported.getMemberEmployeeId(member),
       role: member.role,
       startDate: rawStartDate ? formatDateForInput(rawStartDate) : '',
@@ -657,7 +651,7 @@
     }
 
     // 디버깅: memberForm 확인
-    logger.log('editMember - forms.member after setting:', forms.member)
+    logger.log('editMember - memberForm after setting:', memberForm)
 
     // 수정 시 월간금액 자동 계산 (수동 입력 플래그 초기화)
     isManualMonthlyAmount = false
@@ -666,7 +660,7 @@
 
   // 멤버 폼 초기화
   function resetMemberForm() {
-    forms.member = {
+    memberForm = {
       employeeId: '',
       role: 'researcher',
       startDate: '',
@@ -693,59 +687,54 @@
     if (!editingMember) return
 
     // 참여율 검증
-    if (forms.member.participationRate < 0 || forms.member.participationRate > 100) {
+    if (memberForm.participationRate < 0 || memberForm.participationRate > 100) {
       alert('참여율은 0-100 사이의 값이어야 합니다.')
       return
     }
 
     // 디버깅: 필드 값 확인
-    logger.log('updateMember - forms.member:', forms.member)
+    logger.log('updateMember - memberForm:', memberForm)
     logger.log(
       'updateMember - startDate:',
-      forms.member.startDate,
+      memberForm.startDate,
       'type:',
-      typeof forms.member.startDate,
+      typeof memberForm.startDate,
     )
-    logger.log(
-      'updateMember - endDate:',
-      forms.member.endDate,
-      'type:',
-      typeof forms.member.endDate,
-    )
+    logger.log('updateMember - endDate:', memberForm.endDate, 'type:', typeof memberForm.endDate)
 
     // 필수 필드 검증
-    if (!forms.member.startDate || !forms.member.endDate) {
+    if (!memberForm.startDate || !memberForm.endDate) {
       alert('참여기간(시작일, 종료일)을 모두 입력해주세요.')
       return
     }
 
     try {
       // 날짜를 API 형식(YYYY-MM-DD)으로 변환
-      const formattedStartDate = convertDateToISO(forms.member.startDate)
-      const formattedEndDate = convertDateToISO(forms.member.endDate)
+      const formattedStartDate = convertDateToISO(memberForm.startDate)
+      const formattedEndDate = convertDateToISO(memberForm.endDate)
 
       logger.log('참여연구원 수정 요청 데이터:', {
         id: editingMember.id,
-        role: forms.member.role,
+        role: memberForm.role,
         startDate: formattedStartDate,
         endDate: formattedEndDate,
-        participationRate: forms.member.participationRate,
-        cashAmount: forms.member.cashAmount,
-        inKindAmount: forms.member.inKindAmount,
+        participationRate: memberForm.participationRate,
+        cashAmount: memberForm.cashAmount,
+        inKindAmount: memberForm.inKindAmount,
       })
 
       const response = await fetch(`/api/project-management/project-members/${editingMember.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          role: forms.member.role,
+          role: memberForm.role,
           startDate: formattedStartDate,
           endDate: formattedEndDate,
-          participationRate: forms.member.participationRate,
-          cashAmount: parseInt(forms.member.cashAmount || '0'),
-          inKindAmount: parseInt(forms.member.inKindAmount || '0'),
-          contractMonthlySalary: parseInt(forms.member.contractMonthlySalary || '0'),
-          participationMonths: forms.member.participationMonths || 0,
+          participationRate: memberForm.participationRate,
+          cashAmount: parseInt(memberForm.cashAmount || '0'),
+          inKindAmount: parseInt(memberForm.inKindAmount || '0'),
+          contractMonthlySalary: parseInt(memberForm.contractMonthlySalary || '0'),
+          participationMonths: memberForm.participationMonths || 0,
         }),
       })
 
@@ -980,7 +969,7 @@
   // 연구개발비 복구 모달 열기
   function openRestoreModal(budget: any) {
     selectedBudgetForRestore = budget
-    forms.restore = {
+    restoreForm = {
       personnelCostCash: '',
       personnelCostInKind: '',
       researchMaterialCostCash: '',
@@ -1007,17 +996,17 @@
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            personnelCostCash: fromThousands(forms.restore.personnelCostCash),
-            personnelCostInKind: fromThousands(forms.restore.personnelCostInKind),
-            researchMaterialCostCash: fromThousands(forms.restore.researchMaterialCostCash),
-            researchMaterialCostInKind: fromThousands(forms.restore.researchMaterialCostInKind),
-            researchActivityCostCash: fromThousands(forms.restore.researchActivityCostCash),
-            researchActivityCostInKind: fromThousands(forms.restore.researchActivityCostInKind),
-            researchStipendCash: fromThousands(forms.restore.researchStipendCash),
-            researchStipendInKind: fromThousands(forms.restore.researchStipendInKind),
-            indirectCostCash: fromThousands(forms.restore.indirectCostCash),
-            indirectCostInKind: fromThousands(forms.restore.indirectCostInKind),
-            restoreReason: forms.restore.restoreReason,
+            personnelCostCash: fromThousands(restoreForm.personnelCostCash),
+            personnelCostInKind: fromThousands(restoreForm.personnelCostInKind),
+            researchMaterialCostCash: fromThousands(restoreForm.researchMaterialCostCash),
+            researchMaterialCostInKind: fromThousands(restoreForm.researchMaterialCostInKind),
+            researchActivityCostCash: fromThousands(restoreForm.researchActivityCostCash),
+            researchActivityCostInKind: fromThousands(restoreForm.researchActivityCostInKind),
+            researchStipendCash: fromThousands(restoreForm.researchStipendCash),
+            researchStipendInKind: fromThousands(restoreForm.researchStipendInKind),
+            indirectCostCash: fromThousands(restoreForm.indirectCostCash),
+            indirectCostInKind: fromThousands(restoreForm.indirectCostInKind),
+            restoreReason: restoreForm.restoreReason,
           }),
         },
       )
@@ -1092,7 +1081,7 @@
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(forms.project),
+        body: JSON.stringify(projectForm),
       })
 
       const result = await response.json()
@@ -1232,10 +1221,10 @@
   // 월간금액 계산 및 업데이트
   async function updateMonthlyAmount() {
     if (
-      !forms.member.employeeId ||
-      !forms.member.participationRate ||
-      !forms.member.startDate ||
-      !forms.member.endDate
+      !memberForm.employeeId ||
+      !memberForm.participationRate ||
+      !memberForm.startDate ||
+      !memberForm.endDate
     ) {
       calculatedMonthlyAmount = 0
       return
@@ -1243,17 +1232,17 @@
 
     // 사용자가 수동으로 월간금액을 입력한 경우 자동 계산하지 않음
     if (isManualMonthlyAmount) {
-      calculatedMonthlyAmount = parseFloat(forms.member.monthlyAmount) || 0
+      calculatedMonthlyAmount = parseFloat(memberForm.monthlyAmount) || 0
       return
     }
 
     loadingStates.calculatingMonthly = true
     try {
       const amount = await calculateMonthlyAmount(
-        forms.member.employeeId,
-        forms.member.participationRate,
-        forms.member.startDate,
-        forms.member.endDate,
+        memberForm.employeeId,
+        memberForm.participationRate,
+        memberForm.startDate,
+        memberForm.endDate,
       )
       calculatedMonthlyAmount = amount
     } catch (error) {
@@ -1447,11 +1436,7 @@
 
   // 증빙 항목 추가 핸들러
   async function handleAddEvidenceItem() {
-    if (
-      !forms.newEvidence.categoryId ||
-      !forms.newEvidence.name ||
-      !forms.newEvidence.budgetAmount
-    ) {
+    if (!newEvidenceForm.categoryId || !newEvidenceForm.name || !newEvidenceForm.budgetAmount) {
       alert('필수 필드를 모두 입력해주세요.')
       return
     }
@@ -1460,21 +1445,21 @@
       loadingStates.updating = true
 
       const selectedEmployee = availableEmployees.find(
-        (emp) => emp.id === forms.newEvidence.assigneeId,
+        (emp) => emp.id === newEvidenceForm.assigneeId,
       )
       const assigneeName = memberUtilsImported.createAssigneeNameFromEmployee(selectedEmployee)
 
-      await addEvidenceItem(forms.newEvidence.categoryId, {
-        name: forms.newEvidence.name,
-        description: forms.newEvidence.description,
-        budgetAmount: parseFloat(forms.newEvidence.budgetAmount),
-        assigneeId: forms.newEvidence.assigneeId,
+      await addEvidenceItem(newEvidenceForm.categoryId, {
+        name: newEvidenceForm.name,
+        description: newEvidenceForm.description,
+        budgetAmount: parseFloat(newEvidenceForm.budgetAmount),
+        assigneeId: newEvidenceForm.assigneeId,
         assigneeName: assigneeName,
-        dueDate: forms.newEvidence.dueDate,
+        dueDate: newEvidenceForm.dueDate,
       })
 
       // 폼 초기화
-      forms.newEvidence = {
+      newEvidenceForm = {
         categoryId: '',
         name: '',
         description: '',
@@ -2166,7 +2151,7 @@
   <ProjectBudgetModal
     bind:open={modalStates.budget}
     bind:editingBudget
-    budgetForm={forms.budget}
+    bind:budgetForm
     onclose={() => {
       modalStates.budget = false
       editingBudget = null
@@ -2213,7 +2198,7 @@
   <!-- 연구원 추가 폼 카드 -->
   <ProjectMemberForm
     bind:visible={loadingStates.addingMember}
-    memberForm={forms.member}
+    bind:memberForm
     bind:isManualMonthlyAmount
     {availableEmployees}
     {formatNumber}
@@ -2313,7 +2298,7 @@
                       <span class="text-xs font-medium text-blue-700 w-8">시작:</span>
                       <input
                         type="date"
-                        bind:value={forms.member.startDate}
+                        bind:value={memberForm.startDate}
                         class="flex-1 px-2 py-1 border border-blue-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white"
                         onchange={() => {
                           isManualMonthlyAmount = false
@@ -2325,7 +2310,7 @@
                       <span class="text-xs font-medium text-blue-700 w-8">종료:</span>
                       <input
                         type="date"
-                        bind:value={forms.member.endDate}
+                        bind:value={memberForm.endDate}
                         class="flex-1 px-2 py-1 border border-blue-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white"
                         onchange={() => {
                           isManualMonthlyAmount = false
@@ -2351,21 +2336,21 @@
                 {#if editingMember && editingMember.id === member.id}
                   <input
                     type="number"
-                    value={forms.member.participationMonths ||
+                    value={memberForm.participationMonths ||
                       calculationUtilsImported.calculatePeriodMonths(
                         memberUtilsImported.getMemberStartDate(member),
                         memberUtilsImported.getMemberEndDate(member),
                       )}
                     oninput={(e) => {
                       const value = parseInt(e.currentTarget.value) || 0
-                      forms.member.participationMonths = value
+                      memberForm.participationMonths = value
                     }}
                     class="w-16 px-2 py-1 border border-blue-300 rounded text-xs font-medium focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white text-center"
                     min="1"
                     max="120"
                   />
                 {:else}
-                  {forms.member.participationMonths ||
+                  {memberForm.participationMonths ||
                     calculationUtilsImported.calculatePeriodMonths(
                       memberUtilsImported.getMemberStartDate(member),
                       memberUtilsImported.getMemberEndDate(member),
@@ -2378,20 +2363,20 @@
                 {#if editingMember && editingMember.id === member.id}
                   <input
                     type="text"
-                    value={formatNumber(forms.member.contractMonthlySalary, false)}
+                    value={formatNumber(memberForm.contractMonthlySalary, false)}
                     oninput={(e) => {
                       const rawValue = e.currentTarget.value.replace(/[^\d]/g, '')
-                      forms.member.contractMonthlySalary = rawValue || '0'
+                      memberForm.contractMonthlySalary = rawValue || '0'
                       e.currentTarget.value = formatNumber(rawValue, false)
 
                       // 계약월급여 변경 시 현금/현물 자동 계산
                       const monthlySalary = parseInt(rawValue || '0')
-                      const participationRate = forms.member.participationRate || 0
+                      const participationRate = memberForm.participationRate || 0
                       const participationMonths =
-                        forms.member.participationMonths ||
+                        memberForm.participationMonths ||
                         calculationUtilsImported.calculatePeriodMonths(
-                          forms.member.startDate,
-                          forms.member.endDate,
+                          memberForm.startDate,
+                          memberForm.endDate,
                         )
 
                       // 총 금액 계산: 계약월급여 * 참여율(%) * 참여개월수
@@ -2400,16 +2385,16 @@
                       )
 
                       // 현금/현물 자동 계산
-                      if (parseInt(forms.member.cashAmount || '0') > 0) {
-                        forms.member.cashAmount = totalAmount.toString()
-                        forms.member.inKindAmount = '0'
-                      } else if (parseInt(forms.member.inKindAmount || '0') > 0) {
-                        forms.member.inKindAmount = totalAmount.toString()
-                        forms.member.cashAmount = '0'
+                      if (parseInt(memberForm.cashAmount || '0') > 0) {
+                        memberForm.cashAmount = totalAmount.toString()
+                        memberForm.inKindAmount = '0'
+                      } else if (parseInt(memberForm.inKindAmount || '0') > 0) {
+                        memberForm.inKindAmount = totalAmount.toString()
+                        memberForm.cashAmount = '0'
                       } else {
                         // 둘 다 0이라면 기본적으로 현금으로 설정
-                        forms.member.cashAmount = totalAmount.toString()
-                        forms.member.inKindAmount = '0'
+                        memberForm.cashAmount = totalAmount.toString()
+                        memberForm.inKindAmount = '0'
                       }
                     }}
                     class="w-24 px-2 py-1 border border-blue-300 rounded text-xs font-medium focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white text-right"
@@ -2429,7 +2414,7 @@
                   <div class="relative">
                     <input
                       type="number"
-                      bind:value={forms.member.participationRate}
+                      bind:value={memberForm.participationRate}
                       class="w-16 px-2 py-1 border border-blue-300 rounded text-xs font-medium focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white"
                       min="0"
                       max="100"
@@ -2456,10 +2441,10 @@
                 {#if editingMember && editingMember.id === member.id}
                   <input
                     type="text"
-                    value={formatNumber(forms.member.cashAmount || '0', false)}
+                    value={formatNumber(memberForm.cashAmount || '0', false)}
                     oninput={(e) => {
                       const rawValue = e.currentTarget.value.replace(/[^\d]/g, '')
-                      forms.member.cashAmount = rawValue || '0'
+                      memberForm.cashAmount = rawValue || '0'
                       e.currentTarget.value = formatNumber(rawValue, false)
                     }}
                     class="w-24 px-2 py-1 border border-blue-300 rounded text-xs font-medium focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white text-right"
@@ -2475,10 +2460,10 @@
                 {#if editingMember && editingMember.id === member.id}
                   <input
                     type="text"
-                    value={formatNumber(forms.member.inKindAmount || '0', false)}
+                    value={formatNumber(memberForm.inKindAmount || '0', false)}
                     oninput={(e) => {
                       const rawValue = e.currentTarget.value.replace(/[^\d]/g, '')
-                      forms.member.inKindAmount = rawValue || '0'
+                      memberForm.inKindAmount = rawValue || '0'
                       e.currentTarget.value = formatNumber(rawValue, false)
                     }}
                     class="w-24 px-2 py-1 border border-blue-300 rounded text-xs font-medium focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white text-right"
@@ -2905,7 +2890,7 @@
   <!-- 증빙 추가 모달 -->
   <EvidenceAddModal
     bind:visible={modalStates.evidence}
-    evidenceForm={forms.newEvidence}
+    bind:evidenceForm={newEvidenceForm}
     {evidenceCategories}
     {availableEmployees}
     isValidatingEvidence={loadingStates.validatingEvidence}
@@ -2919,7 +2904,7 @@
   <!-- 프로젝트 수정 모달 -->
   <ProjectEditModal
     bind:visible={modalStates.editProject}
-    projectForm={forms.project}
+    bind:projectForm
     isUpdating={loadingStates.updating}
     onclose={() => (modalStates.editProject = false)}
     onupdate={updateProject}
