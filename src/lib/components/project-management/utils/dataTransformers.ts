@@ -134,6 +134,59 @@ export function filterNonZeroCategories(categories: BudgetCategory[]): BudgetCat
 }
 
 /**
+ * Member contribution 자동 계산
+ * 계약월급여, 참여율, 참여개월수를 기반으로 현금/현물 금액 계산
+ */
+export function calculateMemberContribution(
+  monthlySalary: number | string,
+  participationRate: number | string,
+  participationMonths: number | string,
+): number {
+  const salary = safeStringToNumber(monthlySalary, 0)
+  const rate = safeStringToNumber(participationRate, 0)
+  const months = safeStringToNumber(participationMonths, 0)
+
+  if (salary === 0 || rate === 0 || months === 0) return 0
+
+  return Math.round(((salary * rate) / 100) * months)
+}
+
+/**
+ * 현금/현물 금액 자동 분배
+ * 기존 금액 타입에 따라 새 금액을 적절히 분배
+ */
+export function distributeMemberAmount(
+  totalAmount: number,
+  currentCashAmount: string | number,
+  currentInKindAmount: string | number,
+): { cashAmount: string; inKindAmount: string } {
+  const cash = safeStringToNumber(currentCashAmount, 0)
+  const inKind = safeStringToNumber(currentInKindAmount, 0)
+
+  // 현금이 있으면 현금에 할당
+  if (cash > 0) {
+    return {
+      cashAmount: totalAmount.toString(),
+      inKindAmount: '0',
+    }
+  }
+
+  // 현물이 있으면 현물에 할당
+  if (inKind > 0) {
+    return {
+      cashAmount: '0',
+      inKindAmount: totalAmount.toString(),
+    }
+  }
+
+  // 둘 다 0이면 기본적으로 현금에 할당
+  return {
+    cashAmount: totalAmount.toString(),
+    inKindAmount: '0',
+  }
+}
+
+/**
  * API 응답 데이터 정규화
  * 성공/실패 구조를 표준화하고 데이터 추출을 간소화
  */

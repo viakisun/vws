@@ -529,7 +529,10 @@
         endDate: formattedEndDate,
         participationRate: forms.member.participationRate,
         isSalaryBased: true,
-        contractualSalary: parseInt(forms.member.contractMonthlySalary || '0'),
+        contractualSalary: dataTransformers.safeStringToNumber(
+          forms.member.contractMonthlySalary,
+          0,
+        ),
         weeklyHours: null,
       })
 
@@ -575,10 +578,12 @@
       startDate: rawStartDate ? formatDateForInput(rawStartDate) : '',
       endDate: rawEndDate ? formatDateForInput(rawEndDate) : '',
       participationRate: memberUtilsImported.getMemberParticipationRate(member) || 0,
-      monthlyAmount: (memberUtilsImported.getMemberMonthlyAmount(member) || 0).toString(),
-      contractMonthlySalary: (
-        calculationUtilsImported.calculateContractMonthlySalary(member) || 0
-      ).toString(),
+      monthlyAmount: dataTransformers.safeNumberToString(
+        memberUtilsImported.getMemberMonthlyAmount(member),
+      ),
+      contractMonthlySalary: dataTransformers.safeNumberToString(
+        calculationUtilsImported.calculateContractMonthlySalary(member),
+      ),
       participationMonths: calculationUtilsImported.calculatePeriodMonths(
         memberUtilsImported.getMemberStartDate(member),
         memberUtilsImported.getMemberEndDate(member),
@@ -587,8 +592,7 @@
       inKindAmount: dataTransformers.extractInKindAmount(member),
     }
 
-    // 디버깅: memberForm 확인
-    logger.log('editMember - forms.member after setting:', forms.member)
+    logger.log('editMember - forms.member:', forms.member)
 
     // 수정 시 월간금액 자동 계산 (수동 입력 플래그 초기화)
     uiStates.isManualMonthlyAmount = false
@@ -1061,7 +1065,10 @@
 
     // 사용자가 수동으로 월간금액을 입력한 경우 자동 계산하지 않음
     if (uiStates.isManualMonthlyAmount) {
-      uiStates.calculatedMonthlyAmount = parseFloat(forms.member.monthlyAmount) || 0
+      uiStates.calculatedMonthlyAmount = dataTransformers.safeStringToNumber(
+        forms.member.monthlyAmount,
+        0,
+      )
       return
     }
 
@@ -1079,7 +1086,7 @@
 
       logger.log('계산된 월간금액:', calculatedAmount)
       uiStates.calculatedMonthlyAmount = calculatedAmount
-      forms.member.monthlyAmount = calculatedAmount.toString()
+      forms.member.monthlyAmount = dataTransformers.safeNumberToString(calculatedAmount)
     } catch (error) {
       logger.error('월간금액 계산 중 오류:', error)
       uiStates.calculatedMonthlyAmount = 0
@@ -1244,7 +1251,7 @@
       await addEvidenceItem(forms.newEvidence.categoryId, {
         name: forms.newEvidence.name,
         description: forms.newEvidence.description,
-        budgetAmount: parseFloat(forms.newEvidence.budgetAmount),
+        budgetAmount: dataTransformers.safeStringToNumber(forms.newEvidence.budgetAmount, 0),
         assigneeId: forms.newEvidence.assigneeId,
         assigneeName: assigneeName,
         dueDate: forms.newEvidence.dueDate,
@@ -2159,8 +2166,6 @@
                       e.currentTarget.value = formatNumber(rawValue, false)
 
                       // 계약월급여 변경 시 현금/현물 자동 계산
-                      const monthlySalary = parseInt(rawValue || '0')
-                      const participationRate = forms.member.participationRate || 0
                       const participationMonths =
                         forms.member.participationMonths ||
                         calculationUtilsImported.calculatePeriodMonths(
@@ -2168,23 +2173,21 @@
                           forms.member.endDate,
                         )
 
-                      // 총 금액 계산: 계약월급여 * 참여율(%) * 참여개월수
-                      const totalAmount = Math.round(
-                        ((monthlySalary * participationRate) / 100) * participationMonths,
+                      // 총 금액 계산 (Utils 사용)
+                      const totalAmount = dataTransformers.calculateMemberContribution(
+                        rawValue,
+                        forms.member.participationRate,
+                        participationMonths,
                       )
 
-                      // 현금/현물 자동 계산
-                      if (parseInt(forms.member.cashAmount || '0') > 0) {
-                        forms.member.cashAmount = totalAmount.toString()
-                        forms.member.inKindAmount = '0'
-                      } else if (parseInt(forms.member.inKindAmount || '0') > 0) {
-                        forms.member.inKindAmount = totalAmount.toString()
-                        forms.member.cashAmount = '0'
-                      } else {
-                        // 둘 다 0이라면 기본적으로 현금으로 설정
-                        forms.member.cashAmount = totalAmount.toString()
-                        forms.member.inKindAmount = '0'
-                      }
+                      // 현금/현물 자동 분배 (Utils 사용)
+                      const distributed = dataTransformers.distributeMemberAmount(
+                        totalAmount,
+                        forms.member.cashAmount,
+                        forms.member.inKindAmount,
+                      )
+                      forms.member.cashAmount = distributed.cashAmount
+                      forms.member.inKindAmount = distributed.inKindAmount
                     }}
                     class="w-24 px-2 py-1 border border-blue-300 rounded text-xs font-medium focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white text-right"
                     placeholder="0"
@@ -2240,7 +2243,13 @@
                     placeholder="0"
                   />
                 {:else}
-                  {formatNumber(parseInt(member.cash_amount || member.cashAmount || '0'), true)}
+                  {formatNumber(
+                    dataTransformers.safeStringToNumber(
+                      dataTransformers.extractCashAmount(member),
+                      0,
+                    ),
+                    true,
+                  )}
                 {/if}
               </td>
 
@@ -2260,7 +2269,10 @@
                   />
                 {:else}
                   {formatNumber(
-                    parseInt(member.in_kind_amount || member.inKindAmount || '0'),
+                    dataTransformers.safeStringToNumber(
+                      dataTransformers.extractInKindAmount(member),
+                      0,
+                    ),
                     true,
                   )}
                 {/if}
