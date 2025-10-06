@@ -3,12 +3,7 @@
   import ThemeBadge from '$lib/components/ui/ThemeBadge.svelte'
   import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
   import ThemeCard from '$lib/components/ui/ThemeCard.svelte'
-  import {
-    CalendarIcon,
-    DollarSignIcon,
-    EditIcon,
-    TrashIcon,
-  } from '@lucide/svelte'
+  import { CalendarIcon, DollarSignIcon, EditIcon, TrashIcon } from '@lucide/svelte'
 
   let {
     selectedProject,

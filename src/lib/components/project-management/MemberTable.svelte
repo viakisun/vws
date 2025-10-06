@@ -6,7 +6,15 @@
   import * as memberUtilsImported from './utils/memberUtils'
   import * as calculationUtilsImported from './utils/calculationUtils'
   import * as dataTransformers from './utils/dataTransformers'
-  import { CheckIcon, PlusIcon, TrashIcon, UserIcon, UsersIcon, XIcon, EditIcon } from '@lucide/svelte'
+  import {
+    CheckIcon,
+    PlusIcon,
+    TrashIcon,
+    UserIcon,
+    UsersIcon,
+    XIcon,
+    EditIcon,
+  } from '@lucide/svelte'
 
   let {
     projectMembers = [],

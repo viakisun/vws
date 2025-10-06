@@ -66,7 +66,9 @@
 
     {#if loadingEvidence}
       <div class="text-center py-8">
-        <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <div
+          class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"
+        ></div>
         <p class="mt-2 text-sm text-gray-500">증빙 데이터를 로드하는 중...</p>
       </div>
     {:else}
@@ -77,7 +79,9 @@
           )}
           {@const totalAmount = budgetCategory.cash + budgetCategory.inKind}
           {@const totalItems = categoryItems.length}
-          {@const completedItems = categoryItems.filter((item) => item.status === 'completed').length}
+          {@const completedItems = categoryItems.filter(
+            (item) => item.status === 'completed',
+          ).length}
           {@const inProgressItems = categoryItems.filter(
             (item) => item.status === 'in_progress',
           ).length}
@@ -179,17 +183,23 @@
                             new Date(item.due_date) < new Date() && item.status !== 'completed'}
                           <tr class="hover:bg-gray-50">
                             <!-- 증빙 항목 -->
-                            <td class="px-3 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
+                            <td
+                              class="px-3 py-3 whitespace-nowrap text-sm font-medium text-gray-900"
+                            >
                               {item.name}
                             </td>
 
                             <!-- 금액 -->
-                            <td class="px-3 py-3 whitespace-nowrap text-sm text-gray-900 text-center">
+                            <td
+                              class="px-3 py-3 whitespace-nowrap text-sm text-gray-900 text-center"
+                            >
                               <span class="font-medium">{formatCurrency(item.budget_amount)}</span>
                             </td>
 
                             <!-- 담당자 -->
-                            <td class="px-3 py-3 whitespace-nowrap text-sm text-gray-900 text-center">
+                            <td
+                              class="px-3 py-3 whitespace-nowrap text-sm text-gray-900 text-center"
+                            >
                               <span class="text-gray-600"
                                 >{memberUtilsImported.formatAssigneeNameFromFields(item)}</span
                               >

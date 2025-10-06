@@ -102,8 +102,7 @@
               Number(budgetUtilsImported.getResearchActivityCostInKind(budget)) || 0}
             {@const stipendInKind =
               Number(budgetUtilsImported.getResearchStipendInKind(budget)) || 0}
-            {@const indirectInKind =
-              Number(budgetUtilsImported.getIndirectCostInKind(budget)) || 0}
+            {@const indirectInKind = Number(budgetUtilsImported.getIndirectCostInKind(budget)) || 0}
             {@const inKindTotal =
               personnelInKind + materialInKind + activityInKind + stipendInKind + indirectInKind}
             {@const mismatchInfo = calculationUtilsImported.checkBudgetMismatch(
@@ -118,15 +117,16 @@
             >
               <!-- 연차 -->
               <td class="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900 w-24">
-                <div class="text-sm cursor-help" title={budgetUtilsImported.formatPeriodTooltip(budget)}>
+                <div
+                  class="text-sm cursor-help"
+                  title={budgetUtilsImported.formatPeriodTooltip(budget)}
+                >
                   <div class="flex items-center gap-2">
                     <span class="font-medium"
                       >{budgetUtilsImported.formatPeriodDisplay(budget)}</span
                     >
                     {#if mismatchInfo?.hasMismatch}
-                      <span
-                        class="px-1.5 py-0.5 text-xs bg-red-500 text-white rounded font-medium"
-                      >
+                      <span class="px-1.5 py-0.5 text-xs bg-red-500 text-white rounded font-medium">
                         !
                       </span>
                     {/if}
