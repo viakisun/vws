@@ -280,89 +280,6 @@ export function useProjectBudgets(options: UseProjectBudgetsOptions) {
   }
 
   // ============================================================================
-  // Open Restore Modal
-  // ============================================================================
-
-  function openRestoreModal(budget: any): void {
-    store.selected.budgetForRestore = budget
-    store.forms.restore = {
-      personnelCostCash: '',
-      personnelCostInKind: '',
-      researchMaterialCostCash: '',
-      researchMaterialCostInKind: '',
-      researchActivityCostCash: '',
-      researchActivityCostInKind: '',
-      researchStipendCash: '',
-      researchStipendInKind: '',
-      indirectCostCash: '',
-      indirectCostInKind: '',
-      restoreReason: '사용자 요청에 의한 연구개발비 복구',
-    }
-    store.openModal('restore')
-  }
-
-  // ============================================================================
-  // Restore Research Costs
-  // ============================================================================
-
-  async function restoreResearchCosts(): Promise<void> {
-    if (!store.selected.budgetForRestore) return
-
-    try {
-      const response = await fetch(
-        `/api/project-management/project-budgets/${store.selected.budgetForRestore.id}/restore-research-costs`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            personnelCostCash: fromThousands(store.forms.restore.personnelCostCash),
-            personnelCostInKind: fromThousands(store.forms.restore.personnelCostInKind),
-            researchMaterialCostCash: fromThousands(store.forms.restore.researchMaterialCostCash),
-            researchMaterialCostInKind: fromThousands(
-              store.forms.restore.researchMaterialCostInKind,
-            ),
-            researchActivityCostCash: fromThousands(store.forms.restore.researchActivityCostCash),
-            researchActivityCostInKind: fromThousands(
-              store.forms.restore.researchActivityCostInKind,
-            ),
-            researchStipendCash: fromThousands(store.forms.restore.researchStipendCash),
-            researchStipendInKind: fromThousands(store.forms.restore.researchStipendInKind),
-            indirectCostCash: fromThousands(store.forms.restore.indirectCostCash),
-            indirectCostInKind: fromThousands(store.forms.restore.indirectCostInKind),
-            restoreReason: store.forms.restore.restoreReason,
-          }),
-        },
-      )
-
-      if (response.ok) {
-        const result = await response.json()
-        store.closeModal('restore')
-        store.selected.budgetForRestore = null
-        await loadBudgets()
-        store.incrementBudgetRefresh()
-        onRefresh()
-        alert(result.message || '연구개발비가 성공적으로 복구되었습니다.')
-      } else {
-        const errorData = await response.json()
-        alert(`연구개발비 복구 실패: ${errorData.message || '알 수 없는 오류가 발생했습니다.'}`)
-      }
-    } catch (error) {
-      logger.error('연구개발비 복구 실패:', error)
-      alert('연구개발비 복구 중 오류가 발생했습니다.')
-      throw error
-    }
-  }
-
-  // ============================================================================
-  // Close Restore Modal
-  // ============================================================================
-
-  function closeRestoreModal(): void {
-    store.closeModal('restore')
-    store.selected.budgetForRestore = null
-  }
-
-  // ============================================================================
   // Remove Budget
   // ============================================================================
 
@@ -400,9 +317,6 @@ export function useProjectBudgets(options: UseProjectBudgetsOptions) {
     get budgetForm() {
       return store.forms.budget
     },
-    get restoreForm() {
-      return store.forms.restore
-    },
     get budgetUpdateData() {
       return store.selected.budgetUpdateData
     },
@@ -415,9 +329,6 @@ export function useProjectBudgets(options: UseProjectBudgetsOptions) {
     updateBudget,
     confirmBudgetUpdate,
     cancelBudgetUpdate,
-    openRestoreModal,
-    restoreResearchCosts,
-    closeRestoreModal,
     removeBudget,
   }
 }
