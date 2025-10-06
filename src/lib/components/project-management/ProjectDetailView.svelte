@@ -1,7 +1,17 @@
 <script lang="ts">
-  import { logger } from '$lib/utils/logger'
-  import { onMount } from 'svelte'
+  /**
+   * ProjectDetailView - Refactored with 3-Stage Budget Flow
+   *
+   * 1단계: Budget Funding (예산 조달) - funding.*
+   * 2단계: Budget Planning (예산 계획) - planning.*
+   * 3단계: Budget Execution (예산 집행) - execution.*
+   */
 
+  import { logger } from '$lib/utils/logger'
+  import { createEventDispatcher } from 'svelte'
+  import { useProjectDetail } from './hooks/useProjectDetail.svelte'
+
+  // UI Components
   import ThemeBadge from '$lib/components/ui/ThemeBadge.svelte'
   import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
   import ThemeCard from '$lib/components/ui/ThemeCard.svelte'
@@ -12,11 +22,21 @@
   import EvidenceAddModal from './EvidenceAddModal.svelte'
   import ProjectEditModal from './ProjectEditModal.svelte'
   import ProjectDeleteConfirmModal from './ProjectDeleteConfirmModal.svelte'
-  import ValidationResultModal from './ValidationResultModal.svelte'
   import BudgetUpdateConfirmModal from './BudgetUpdateConfirmModal.svelte'
+  import ValidationResultModal from './ValidationResultModal.svelte'
+
+  // Utility functions
   import { formatCurrency, formatDate, formatDateForInput, formatNumber } from '$lib/utils/format'
   import { isKoreanName } from '$lib/utils/korean-name'
   import { calculateMonthlySalary } from '$lib/utils/salary-calculator'
+  import * as budgetUtilsImported from './utils/budgetUtils'
+  import * as memberUtilsImported from './utils/memberUtils'
+  import * as projectUtilsImported from './utils/projectUtils'
+  import * as evidenceUtilsImported from './utils/evidenceUtils'
+  import * as calculationUtilsImported from './utils/calculationUtils'
+  import * as dataTransformers from './utils/dataTransformers'
+
+  // Icons
   import {
     AlertTriangleIcon,
     CalendarIcon,
@@ -35,930 +55,191 @@
     UsersIcon,
     XIcon,
   } from '@lucide/svelte'
-  import { createEventDispatcher } from 'svelte'
 
-  // Import utility functions (will replace local duplicates incrementally)
-  import * as budgetUtilsImported from './utils/budgetUtils'
-  import * as memberUtilsImported from './utils/memberUtils'
-  import * as projectUtilsImported from './utils/projectUtils'
-  import * as evidenceUtilsImported from './utils/evidenceUtils'
-  import * as validationUtilsImported from './utils/validationUtils'
-  import * as calculationUtilsImported from './utils/calculationUtils'
-  import * as dataTransformers from './utils/dataTransformers'
-  import type { ValidationIssue, MemberValidationStatus } from './utils/validationUtils'
+  // ============================================================================
+  // Props & Dispatcher
+  // ============================================================================
 
-  // Import service layer for API calls (Phase C-1)
-  import * as projectService from '$lib/services/project-management/project.service'
-  import * as budgetService from '$lib/services/project-management/budget.service'
-  import * as memberService from '$lib/services/project-management/member.service'
-  import * as validationService from '$lib/services/project-management/validation.service'
-  import * as evidenceService from '$lib/services/project-management/evidence.service'
-
-  const dispatch = createEventDispatcher()
-
-  // 예산 데이터 필드 접근 유틸리티 함수들
-  // 연차 정보 기반 프로젝트 기간 계산
-  async function updateProjectPeriodFromBudgets() {
-    if (!selectedProject?.id) return
-
-    try {
-      const response = await fetch(
-        `/api/project-management/projects/${selectedProject.id}/annual-budgets`,
-      )
-      const result = await response.json()
-
-      if (result.success && result.data?.budgets && result.data.budgets.length > 0) {
-        const budgets = result.data.budgets
-        const firstBudget = budgets[0]
-        const lastBudget = budgets[budgets.length - 1]
-
-        if (firstBudget.startDate && lastBudget.endDate) {
-          const periodElement = document.getElementById('project-period')
-          if (periodElement) {
-            periodElement.textContent = `${formatDate(firstBudget.startDate)} ~ ${formatDate(lastBudget.endDate)}`
-          }
-        } else {
-          const periodElement = document.getElementById('project-period')
-          if (periodElement) {
-            periodElement.textContent = '연차별 기간 정보 없음'
-          }
-        }
-      } else {
-        const periodElement = document.getElementById('project-period')
-        if (periodElement) {
-          periodElement.textContent = '연차별 예산 정보 없음'
-        }
-      }
-    } catch (error) {
-      logger.error('프로젝트 기간 업데이트 실패:', error)
-      const periodElement = document.getElementById('project-period')
-      if (periodElement) {
-        periodElement.textContent = '기간 정보 로드 실패'
-      }
-    }
-  }
-
-  // 멤버 데이터 필드 접근 유틸리티 함수들
   let {
     selectedProject,
     externalRefreshTrigger = 0,
   }: { selectedProject: any; externalRefreshTrigger?: number } = $props()
 
-  // 프로젝트 변경 시 기간 업데이트
-  function handleProjectChange() {
-    if (selectedProject?.id) {
-      updateProjectPeriodFromBudgets()
-    }
-  }
+  const dispatch = createEventDispatcher()
 
-  // ============================================================
-  // Phase B-1: Grouped State Management - Modal States
-  // ============================================================
-  let modalStates = $state({
-    budget: false, // showBudgetModal
-    member: false, // _showMemberModal
-    editProject: false, // showEditProjectModal
-    deleteConfirm: false, // showDeleteConfirmModal
-    evidence: false, // showEvidenceModal (moved here for grouping)
-    evidenceDetail: false, // showEvidenceDetailModal
-    budgetUpdateConfirm: false, // showBudgetUpdateConfirmModal
-    restore: false, // showRestoreModal
-    validation: false, // showValidationModal
-  })
+  // ============================================================================
+  // Initialize Project Detail Hook (3-Stage Architecture)
+  // ============================================================================
 
-  // ============================================================
-  // Phase B-2: Loading & Operation States
-  // ============================================================
-  let loadingStates = $state({
-    updating: false, // isUpdating
-    deleting: false, // isDeleting
-    validating: false, // isRunningValidation
-    calculatingMonthly: false, // isCalculatingMonthlyAmount
-    validatingEvidence: false, // isValidatingEvidence
-    loadingEvidence: false, // isLoadingEvidence
-    validatingMembers: false, // isValidatingMembers
-    addingMember: false, // addingMember
-  })
+  const pd = useProjectDetail({ selectedProject, externalRefreshTrigger })
 
-  // ============================================================
-  // Phase B-6: UI States Group
-  // ============================================================
-  let uiStates = $state({
-    budgetRefreshTrigger: 0, // budgetRefreshTrigger - 예산 새로고침 트리거
-    budgetUpdateKey: 0, // budgetUpdateKey - 예산 강제 재렌더링 트리거
-    evidenceRefreshKey: 0, // evidenceRefreshKey - 증빙 새로고침 키
-    isManualMonthlyAmount: false, // isManualMonthlyAmount - 수동 월간금액 입력 여부
-    calculatedMonthlyAmount: 0, // calculatedMonthlyAmount - 계산된 월간금액
-    isPersonnelSummaryExpanded: false, // isPersonnelSummaryExpanded - 인건비 요약 확장 여부
-    expandedEvidenceSections: {
-      // expandedEvidenceSections - 증빙 섹션 확장 상태
-      personnel: true,
-      material: true,
-      activity: true,
-      indirect: true,
-    },
-  })
+  // Destructure for convenience
+  const { store, funding, planning, execution, updateProjectPeriod, refresh } = pd
 
-  // ============================================================
-  // Phase B-4: Selected Items Group
-  // ============================================================
-  let selectedItems = $state({
-    budget: null as any, // selectedItems.budget
-    member: null as any, // selectedItems.member
-    budgetForEvidence: null as any, // selectedBudgetForEvidence
-    budgetForRestore: null as any, // selectedBudgetForRestore
-    evidenceItem: null as any, // selectedEvidenceItem
-    evidencePeriod: 1, // selectedItems.evidencePeriod
-    deleteCode: '', // selectedItems.deleteCode
-    budgetUpdateData: null as any, // selectedItems.budgetUpdateData
-  })
+  // ============================================================================
+  // Reactive Aliases for Template Compatibility
+  // ============================================================================
 
-  // ============================================================
-  // Phase B-3: Form Data Group
-  // ============================================================
-  let forms = $state({
-    budget: {
-      periodNumber: 1, // 연차 번호 (1연차, 2연차, ...)
-      startDate: '', // 연차 시작일
-      endDate: '', // 연차 종료일
-      // 현금 비목들
-      personnelCostCash: '',
-      researchMaterialCostCash: '',
-      researchActivityCostCash: '',
-      researchStipendCash: '',
-      indirectCostCash: '',
-      // 현물 비목들
-      personnelCostInKind: '',
-      researchMaterialCostInKind: '',
-      researchActivityCostInKind: '',
-      researchStipendInKind: '',
-      indirectCostInKind: '',
-    },
-    project: {
-      title: '',
-      code: '',
-      description: '',
-      status: 'active',
-      sponsorType: 'internal',
-      priority: 'medium',
-      researchType: 'applied',
-    },
-    member: {
-      employeeId: '',
-      role: 'researcher',
-      startDate: '',
-      endDate: '',
-      participationRate: 100, // 기본 참여율 100%
-      monthlyAmount: '0', // 월간 금액 (기존 호환성)
-      contractMonthlySalary: '0', // 계약월급여
-      participationMonths: 0, // 참여개월수
-      cashAmount: '0',
-      inKindAmount: '0',
-    },
-    restore: {
-      personnelCostCash: '',
-      personnelCostInKind: '',
-      researchMaterialCostCash: '',
-      researchMaterialCostInKind: '',
-      researchActivityCostCash: '',
-      researchActivityCostInKind: '',
-      researchStipendCash: '',
-      researchStipendInKind: '',
-      indirectCostCash: '',
-      indirectCostInKind: '',
-      restoreReason: '사용자 요청에 의한 연구개발비 복구',
-    },
-    newEvidence: {
-      categoryId: '',
-      name: '',
-      description: '',
-      budgetAmount: '',
-      assigneeId: '',
-      dueDate: '',
-    },
-  })
+  // Modal states
+  const modalStates = $derived(store.modals)
 
-  // ============================================================
-  // Data Lists & References
-  // ============================================================
-  let _evidenceList = $state<any[]>([])
-  let _evidenceTypes = $state<any[]>([])
+  // Loading states
+  const loadingStates = $derived(store.loading)
 
-  // ============================================================
-  // Validation & Evidence Data States (Phase B-5)
-  // ============================================================
-  let validationData = $state({
-    results: null as any, // validationResults - 검증 결과
-    history: [] as any[], // validationHistory - 검증 이력
-    autoEnabled: true, // _autoValidationEnabled - 자동 검증 활성화
-    evidence: null as any, // evidenceValidation - 증빙 등록 검증 상태
-    categories: [] as any[], // evidenceCategories - 증빙 카테고리 목록
-    items: [] as any[], // evidenceItems - 증빙 항목 목록
-  })
+  // UI states
+  const uiStates = $derived(store.ui)
 
-  let _editProjectForm = $state({
-    title: '',
-    description: '',
-    sponsorType: '',
-    sponsorName: '',
-    startDate: '',
-    endDate: '',
-    budgetTotal: '',
-    researchType: '',
-    priority: '',
-    status: '',
-  })
+  // Selected items
+  const selectedItems = $derived(store.selected)
 
-  // 데이터
-  let projectMembers = $state<any[]>([])
-  let projectBudgets = $state<any[]>([])
-  let _budgetCategories = $state<any[]>([])
-  let availableEmployees = $state<any[]>([])
+  // Forms
+  const forms = $derived(store.forms)
 
-  // 참여연구원 검증 상태 (테이블용)
-  let _memberValidation = $state<any>(null)
-  let _memberValidationLastChecked = $state<Date | null>(null)
+  // Data
+  const projectMembers = $derived(store.data.projectMembers)
+  const projectBudgets = $derived(store.data.projectBudgets)
+  const availableEmployees = $derived(store.data.availableEmployees)
+  const _budgetCategories = $derived(store.data.budgetCategories)
+  const _evidenceList = $derived(store.data.evidenceList)
+  const _evidenceTypes = $derived(store.data.evidenceTypes)
 
-  // 개별 멤버 검증 상태
-  let memberValidationStatuses = $state<Record<string, any>>({})
+  // Validation
+  const validationData = $derived(store.validation)
+  const memberValidationStatuses = $derived(store.data.memberValidationStatuses)
+  const _memberValidation = $derived(store.data.memberValidation)
+  const _memberValidationLastChecked = $derived(store.data.memberValidationLastChecked)
 
-  // 컴포넌트 마운트 시 초기화
-  onMount(() => {
-    void (async () => {
-      if (selectedProject?.id) {
-        await loadProjectBudgets()
-        await loadProjectMembers()
-        await loadEvidenceCategories()
-      }
-    })()
-  })
+  // ============================================================================
+  // Project Management Functions
+  // ============================================================================
 
-  // 증빙 등록 시 재직 기간 검증 함수
-  async function validateEvidenceRegistration() {
-    if (
-      !forms.newEvidence.assigneeId ||
-      !forms.newEvidence.dueDate ||
-      !selectedItems.budgetForEvidence?.id
-    ) {
-      validationData.evidence = null
-      return
-    }
-
-    // 인건비 카테고리인 경우에만 검증
-    const selectedCategory = validationData.categories.find(
-      (cat) => cat.id === forms.newEvidence.categoryId,
-    )
-    if (selectedCategory?.name !== '인건비') {
-      validationData.evidence = null
-      return
-    }
-
-    loadingStates.validatingEvidence = true
-    try {
-      // Use service layer instead of direct fetch
-      const data = await validationService.validateEvidenceRegistration({
-        assigneeId: forms.newEvidence.assigneeId,
-        dueDate: forms.newEvidence.dueDate,
-        projectBudgetId: selectedItems.budgetForEvidence.id,
-      })
-      validationData.evidence = data
-    } catch (error) {
-      logger.error('증빙 등록 검증 중 오류:', error)
-      validationData.evidence = null
-    } finally {
-      loadingStates.validatingEvidence = false
-    }
-  }
-
-  // 참여연구원 검증 함수 (테이블용)
-  async function _validateMembers() {
+  async function updateProject() {
     if (!selectedProject?.id) return
 
-    loadingStates.validatingMembers = true
     try {
-      // Use service layer instead of direct fetch
-      const data = await validationService.validateMembers(selectedProject.id)
-      _memberValidation = data
-      _memberValidationLastChecked = new Date()
+      store.setLoading('updating', true)
 
-      // 개별 멤버 검증 상태 업데이트
-      if (data.success && data.data?.validation?.issues) {
-        updateMemberValidationStatuses(data.data.validation.issues)
-      }
-    } catch (error) {
-      logger.error('참여연구원 검증 중 오류:', error)
-    } finally {
-      loadingStates.validatingMembers = false
-    }
-  }
+      const response = await fetch(`/api/project-management/projects/${selectedProject.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: store.forms.project.title,
+          code: store.forms.project.code,
+          description: store.forms.project.description,
+          status: store.forms.project.status,
+          sponsorType: store.forms.project.sponsorType,
+          priority: store.forms.project.priority,
+          researchType: store.forms.project.researchType,
+        }),
+      })
 
-  // 개별 멤버 검증 상태 업데이트
-  function updateMemberValidationStatuses(issues: any[]) {
-    // 초기화
-    memberValidationStatuses = {}
-
-    // dataTransformers를 사용하여 멤버별 상태 그룹화
-    const statuses = dataTransformers.groupIssuesByMember(issues, projectMembers)
-
-    // 기존 형식으로 변환
-    statuses.forEach((status) => {
-      if (status.issues.length === 0) {
-        memberValidationStatuses[status.memberId] = {
-          status: 'valid',
-          message: '검증 완료',
-          issues: [],
-        }
+      if (response.ok) {
+        store.closeModal('editProject')
+        refresh()
+        alert('프로젝트가 수정되었습니다.')
       } else {
-        // 더 자세한 메시지 생성
-        let detailedMessage = ''
-        if (status.errorCount > 0 && status.warningCount > 0) {
-          detailedMessage = `${status.errorCount}개 오류, ${status.warningCount}개 경고`
-        } else if (status.errorCount > 0) {
-          detailedMessage = `${status.errorCount}개 오류`
-        } else {
-          detailedMessage = `${status.warningCount}개 경고`
-        }
-
-        memberValidationStatuses[status.memberId] = {
-          status: status.status,
-          message: detailedMessage,
-          issues: status.issues.map((issue) => ({
-            ...issue,
-            // API에서 제공하는 실제 메시지 사용
-            priority: issue.severity === 'error' ? 'high' : 'medium',
-          })),
-        }
+        alert('프로젝트 수정에 실패했습니다.')
       }
-    })
+    } catch (error) {
+      logger.error('프로젝트 수정 실패:', error)
+      alert('프로젝트 수정 중 오류가 발생했습니다.')
+    } finally {
+      store.setLoading('updating', false)
+    }
   }
 
-  // 프로젝트 멤버 로드
-  async function loadProjectMembers() {
-    try {
-      logger.log('참여연구원 목록 로드 시작, 프로젝트 ID:', selectedProject.id)
-      // Use service layer instead of direct fetch
-      const members = await memberService.getProjectMembers(selectedProject.id)
+  async function deleteProject() {
+    if (!selectedProject?.id) return
+    if (store.selected.deleteCode !== selectedProject.code) {
+      alert('프로젝트 코드가 일치하지 않습니다.')
+      return
+    }
 
-      // 🔍 디버깅: 원본 데이터 확인
-      logger.log('🔍 API에서 받은 원본 멤버 데이터:', members)
-      if (members.length > 0) {
-        logger.log('🔍 첫 번째 멤버 상세:', members[0])
-        logger.log('🔍 첫 번째 멤버의 start_date:', members[0].start_date)
-        logger.log('🔍 첫 번째 멤버의 end_date:', members[0].end_date)
+    try {
+      store.setLoading('deleting', true)
+
+      const response = await fetch(`/api/project-management/projects/${selectedProject.id}`, {
+        method: 'DELETE',
+      })
+
+      if (response.ok) {
+        store.closeModal('deleteConfirm')
+        refresh()
+        alert('프로젝트가 삭제되었습니다.')
+      } else {
+        alert('프로젝트 삭제에 실패했습니다.')
       }
-
-      // 각 멤버의 참여개월수 계산
-      projectMembers = members.map((member: any) => {
-        const participationMonths = calculationUtilsImported.calculatePeriodMonths(
-          member.start_date,
-          member.end_date,
-        )
-        logger.log(`🔍 멤버 ${member.employee_name} 참여개월수 계산:`, {
-          start_date: member.start_date,
-          end_date: member.end_date,
-          calculated: participationMonths,
-        })
-        return {
-          ...member,
-          participationMonths,
-        }
-      })
-
-      logger.log('참여연구원 목록 로드 성공:', projectMembers.length, '명')
-      logger.log('🔍 최종 projectMembers:', projectMembers)
-
-      // 자동 검증 제거 - 수작업으로만 검증 실행
     } catch (error) {
-      logger.error('프로젝트 멤버 로드 실패:', error)
+      logger.error('프로젝트 삭제 실패:', error)
+      alert('프로젝트 삭제 중 오류가 발생했습니다.')
+    } finally {
+      store.setLoading('deleting', false)
     }
   }
 
-  // 프로젝트 사업비 로드
-  async function loadProjectBudgets() {
-    try {
-      // Use service layer instead of direct fetch
-      projectBudgets = await budgetService.getProjectBudgets(selectedProject.id)
-      uiStates.budgetUpdateKey++
-    } catch (error) {
-      logger.error('프로젝트 사업비 로드 실패:', error)
-    }
-  }
+  // ============================================================================
+  // Budget Functions (Funding - 1단계)
+  // ============================================================================
 
-  // 사업비 항목 로드
-  async function loadBudgetCategories() {
-    try {
-      // Use service layer instead of direct fetch
-      _budgetCategories = await budgetService.getBudgetCategories()
-    } catch (error) {
-      logger.error('사업비 항목 로드 실패:', error)
-    }
-  }
+  function openBudgetModal() {
+    store.selected.budget = null
+    store.resetForm('budget')
 
-  // 사용 가능한 직원 로드
-  async function loadAvailableEmployees() {
-    try {
-      logger.log('직원 목록 로딩 시작, 프로젝트 ID:', selectedProject.id)
-      // Use service layer instead of direct fetch
-      availableEmployees = await memberService.getAvailableEmployees(selectedProject.id)
-      logger.log('로드된 직원 수:', availableEmployees.length)
-    } catch (error) {
-      logger.error('직원 목록 로드 실패:', error)
-    }
-  }
-
-  // 사업비 추가
-  async function addBudget() {
-    // 필수 필드 검증
-    if (!forms.budget.startDate || !forms.budget.endDate) {
-      alert('연차 기간(시작일, 종료일)을 모두 입력해주세요.')
-      return
-    }
-
-    // 시작일이 종료일보다 늦은지 검증
-    if (new Date(forms.budget.startDate) >= new Date(forms.budget.endDate)) {
-      alert('시작일은 종료일보다 빨라야 합니다.')
-      return
-    }
-
-    try {
-      // Use service layer instead of direct fetch
-      const result = await budgetService.createBudget({
-        projectId: selectedProject.id,
-        periodNumber: forms.budget.periodNumber,
-        startDate: forms.budget.startDate,
-        endDate: forms.budget.endDate,
-        // 현금 비목들 (천원 단위를 원 단위로 변환, 인건비는 100만원 단위로 조정)
-        personnelCostCash: fromThousands(forms.budget.personnelCostCash),
-        researchMaterialCostCash: fromThousands(forms.budget.researchMaterialCostCash),
-        researchActivityCostCash: fromThousands(forms.budget.researchActivityCostCash),
-        researchStipendCash: fromThousands(forms.budget.researchStipendCash),
-        indirectCostCash: fromThousands(forms.budget.indirectCostCash),
-        // 현물 비목들 (천원 단위를 원 단위로 변환)
-        personnelCostInKind: fromThousands(forms.budget.personnelCostInKind),
-        researchMaterialCostInKind: fromThousands(forms.budget.researchMaterialCostInKind),
-        researchActivityCostInKind: fromThousands(forms.budget.researchActivityCostInKind),
-        researchStipendInKind: fromThousands(forms.budget.researchStipendInKind),
-        indirectCostInKind: fromThousands(forms.budget.indirectCostInKind),
-      })
-
-      modalStates.budget = false
-      forms.budget = {
-        periodNumber: 1,
-        startDate: '',
-        endDate: '',
-        personnelCostCash: '',
-        researchMaterialCostCash: '',
-        researchActivityCostCash: '',
-        researchStipendCash: '',
-        indirectCostCash: '',
-        personnelCostInKind: '',
-        researchMaterialCostInKind: '',
-        researchActivityCostInKind: '',
-        researchStipendInKind: '',
-        indirectCostInKind: '',
-      }
-      await loadProjectBudgets()
-      // 예산 추가 후 프로젝트 기간 정보 업데이트
-      updateProjectPeriodFromBudgets()
-      // 예산 요약 새로고침
-      uiStates.budgetRefreshTrigger++
-      dispatch('refresh')
-
-      // 성공 메시지 표시 (result is the budget object from service)
-      alert('사업비가 성공적으로 추가되었습니다.')
-    } catch (error) {
-      logger.error('사업비 추가 실패:', error)
-      alert('사업비 추가 중 오류가 발생했습니다.')
-    }
-  }
-
-  // 멤버 추가
-  async function addMember() {
-    // 참여율 검증
-    if (forms.member.participationRate < 0 || forms.member.participationRate > 100) {
-      alert('참여율은 0-100 사이의 값이어야 합니다.')
-      return
-    }
-
-    try {
-      // 날짜를 API 형식(YYYY-MM-DD)으로 변환 (utils 사용)
-      const formattedStartDate = calculationUtilsImported.convertDateToISO(forms.member.startDate)
-      const formattedEndDate = calculationUtilsImported.convertDateToISO(forms.member.endDate)
-
-      // Use service layer instead of direct fetch
-      await memberService.addMember({
-        projectId: selectedProject.id,
-        personnelId: forms.member.employeeId,
-        role: forms.member.role,
-        monthlyRate: 0, // Will be calculated by backend
-        startDate: formattedStartDate,
-        endDate: formattedEndDate,
-        participationRate: forms.member.participationRate,
-        isSalaryBased: true,
-        contractualSalary: dataTransformers.safeStringToNumber(
-          forms.member.contractMonthlySalary,
-          0,
-        ),
-        weeklyHours: null,
-      })
-
-      loadingStates.addingMember = false
-      resetMemberForm()
-      await loadProjectMembers()
-      dispatch('refresh')
-    } catch (error) {
-      logger.error('멤버 추가 실패:', error)
-      alert('멤버 추가 중 오류가 발생했습니다.')
-    }
-  }
-
-  // 멤버 추가 시작
-  function startAddMember() {
-    loadingStates.addingMember = true
-    selectedItems.member = null
-    resetMemberForm()
-  }
-
-  // 멤버 추가 취소
-  function cancelAddMember() {
-    loadingStates.addingMember = false
-    resetMemberForm()
-  }
-
-  // 멤버 수정 시작
-  function editMember(member: any) {
-    selectedItems.member = member
-
-    // 디버깅: 멤버 데이터 확인
-    logger.log('editMember - member data:', member)
-    logger.log('editMember - startDate raw:', memberUtilsImported.getMemberStartDate(member))
-    logger.log('editMember - endDate raw:', memberUtilsImported.getMemberEndDate(member))
-
-    // 날짜 데이터 확인 및 안전한 처리
-    const rawStartDate = memberUtilsImported.getMemberStartDate(member)
-    const rawEndDate = memberUtilsImported.getMemberEndDate(member)
-
-    forms.member = {
-      employeeId: memberUtilsImported.getMemberEmployeeId(member),
-      role: member.role,
-      startDate: rawStartDate ? formatDateForInput(rawStartDate) : '',
-      endDate: rawEndDate ? formatDateForInput(rawEndDate) : '',
-      participationRate: memberUtilsImported.getMemberParticipationRate(member) || 0,
-      monthlyAmount: dataTransformers.safeNumberToString(
-        memberUtilsImported.getMemberMonthlyAmount(member),
-      ),
-      contractMonthlySalary: dataTransformers.safeNumberToString(
-        calculationUtilsImported.calculateContractMonthlySalary(member),
-      ),
-      participationMonths: calculationUtilsImported.calculatePeriodMonths(
-        memberUtilsImported.getMemberStartDate(member),
-        memberUtilsImported.getMemberEndDate(member),
-      ),
-      cashAmount: dataTransformers.extractCashAmount(member),
-      inKindAmount: dataTransformers.extractInKindAmount(member),
-    }
-
-    logger.log('editMember - forms.member:', forms.member)
-
-    // 수정 시 월간금액 자동 계산 (수동 입력 플래그 초기화)
-    uiStates.isManualMonthlyAmount = false
-    updateMonthlyAmount()
-  }
-
-  // 멤버 폼 초기화
-  function resetMemberForm() {
-    forms.member = {
-      employeeId: '',
-      role: 'researcher',
-      startDate: '',
-      endDate: '',
-      participationRate: 100,
-      monthlyAmount: '0',
-      contractMonthlySalary: '0',
-      participationMonths: 0,
-      cashAmount: '0',
-      inKindAmount: '0',
-    }
-    uiStates.calculatedMonthlyAmount = 0
-    uiStates.isManualMonthlyAmount = false
-  }
-
-  // 멤버 수정 취소
-  function cancelEditMember() {
-    selectedItems.member = null
-    resetMemberForm()
-  }
-
-  // 멤버 수정 완료
-  async function updateMember() {
-    if (!selectedItems.member) return
-
-    // 참여율 검증
-    if (forms.member.participationRate < 0 || forms.member.participationRate > 100) {
-      alert('참여율은 0-100 사이의 값이어야 합니다.')
-      return
-    }
-
-    // 디버깅: 필드 값 확인
-    logger.log('updateMember - forms.member:', forms.member)
-    logger.log(
-      'updateMember - startDate:',
-      forms.member.startDate,
-      'type:',
-      typeof forms.member.startDate,
-    )
-    logger.log(
-      'updateMember - endDate:',
-      forms.member.endDate,
-      'type:',
-      typeof forms.member.endDate,
-    )
-
-    // 필수 필드 검증
-    if (!forms.member.startDate || !forms.member.endDate) {
-      alert('참여기간(시작일, 종료일)을 모두 입력해주세요.')
-      return
-    }
-
-    try {
-      // 날짜를 API 형식(YYYY-MM-DD)으로 변환 (utils 사용)
-      const formattedStartDate = calculationUtilsImported.convertDateToISO(forms.member.startDate)
-      const formattedEndDate = calculationUtilsImported.convertDateToISO(forms.member.endDate)
-
-      logger.log('참여연구원 수정 요청 데이터:', {
-        id: selectedItems.member.id,
-        role: forms.member.role,
-        startDate: formattedStartDate,
-        endDate: formattedEndDate,
-        participationRate: forms.member.participationRate,
-      })
-
-      // Use service layer instead of direct fetch
-      await memberService.updateMember({
-        id: selectedItems.member.id,
-        role: forms.member.role,
-        startDate: formattedStartDate,
-        endDate: formattedEndDate,
-        participationRate: forms.member.participationRate,
-      })
-
-      logger.log('참여연구원 수정 성공')
-
-      selectedItems.member = null
-      loadingStates.addingMember = false
-      resetMemberForm()
-
-      // 데이터 새로고침
-      await loadProjectMembers()
-      logger.log('참여연구원 목록 새로고침 완료')
-
-      dispatch('refresh')
-
-      // 성공 메시지 표시
-      alert('연구원 정보가 수정되었습니다.')
-    } catch (error) {
-      logger.error('멤버 수정 실패:', error)
-      alert('연구원 정보 수정 중 오류가 발생했습니다.')
-    }
-  }
-
-  // 멤버 삭제
-  async function removeMember(memberId: string) {
-    if (!confirm('정말로 이 멤버를 제거하시겠습니까?')) return
-
-    try {
-      // Use service layer instead of direct fetch
-      await memberService.deleteMember(memberId)
-      await loadProjectMembers()
-      dispatch('refresh')
-    } catch (error) {
-      logger.error('멤버 삭제 실패:', error)
-      alert('멤버 삭제 중 오류가 발생했습니다.')
-    }
-  }
-
-  // 사업비 편집
-  function editBudget(budget: any) {
-    selectedItems.budget = budget
-
-    // 중복된 formatDateForInput 함수 제거됨 - 상단의 유틸리티 함수 사용
-
-    forms.budget = {
-      periodNumber: budgetUtilsImported.getPeriodNumber(budget),
-      startDate: formatDateForInput(budgetUtilsImported.getStartDate(budget)),
-      endDate: formatDateForInput(budgetUtilsImported.getEndDate(budget)),
-      // 현금 비목들 (천원 단위로 변환, 인건비는 조정된 값 표시)
-      personnelCostCash: toThousands(budgetUtilsImported.getPersonnelCostCash(budget)),
-      researchMaterialCostCash: toThousands(
-        budgetUtilsImported.getResearchMaterialCostCash(budget),
-      ),
-      researchActivityCostCash: toThousands(
-        budgetUtilsImported.getResearchActivityCostCash(budget),
-      ),
-      researchStipendCash: toThousands(budgetUtilsImported.getResearchStipendCash(budget)),
-      indirectCostCash: toThousands(budgetUtilsImported.getIndirectCost(budget)),
-      // 현물 비목들 (천원 단위로 변환)
-      personnelCostInKind: toThousands(budgetUtilsImported.getPersonnelCostInKind(budget)),
-      researchMaterialCostInKind: toThousands(
-        budgetUtilsImported.getResearchMaterialCostInKind(budget),
-      ),
-      researchActivityCostInKind: toThousands(
-        budgetUtilsImported.getResearchActivityCostInKind(budget),
-      ),
-      researchStipendInKind: toThousands(budgetUtilsImported.getResearchStipendInKind(budget)),
-      indirectCostInKind: toThousands(budgetUtilsImported.getIndirectCostInKind(budget)),
-    }
-    modalStates.budget = true
-  }
-
-  // 사업비 업데이트
-  async function updateBudget() {
-    if (!selectedItems.budget) return
-
-    // 필수 필드 검증
-    if (!forms.budget.startDate || !forms.budget.endDate) {
-      alert('연차 기간(시작일, 종료일)을 모두 입력해주세요.')
-      return
-    }
-
-    // 시작일이 종료일보다 늦은지 검증
-    if (new Date(forms.budget.startDate) >= new Date(forms.budget.endDate)) {
-      alert('시작일은 종료일보다 빨라야 합니다.')
-      return
-    }
-
-    try {
-      // 1단계: 예산 수정 전 검증
-      const validationResponse = await fetch(
-        `/api/project-management/project-budgets/${selectedItems.budget.id}/validate-before-update`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            periodNumber: forms.budget.periodNumber,
-            startDate: forms.budget.startDate,
-            endDate: forms.budget.endDate,
-            // 현금 비목들 (천원 단위를 원 단위로 변환)
-            personnelCostCash: fromThousands(forms.budget.personnelCostCash),
-            researchMaterialCostCash: fromThousands(forms.budget.researchMaterialCostCash),
-            researchActivityCostCash: fromThousands(forms.budget.researchActivityCostCash),
-            researchStipendCash: fromThousands(forms.budget.researchStipendCash),
-            indirectCostCash: fromThousands(forms.budget.indirectCostCash),
-            // 현물 비목들 (천원 단위를 원 단위로 변환)
-            personnelCostInKind: fromThousands(forms.budget.personnelCostInKind),
-            researchMaterialCostInKind: fromThousands(forms.budget.researchMaterialCostInKind),
-            researchActivityCostInKind: fromThousands(forms.budget.researchActivityCostInKind),
-            researchStipendInKind: fromThousands(forms.budget.researchStipendInKind),
-            indirectCostInKind: fromThousands(forms.budget.indirectCostInKind),
-          }),
-        },
+    // 다음 연차 번호 계산
+    if (projectBudgets.length > 0) {
+      const maxPeriod = Math.max(
+        ...projectBudgets.map((b: any) => budgetUtilsImported.getPeriodNumber(b)),
       )
-
-      if (!validationResponse.ok) {
-        alert('예산 수정 전 검증에 실패했습니다.')
-        return
-      }
-
-      const validationResult = await validationResponse.json()
-
-      if (validationResult.success && validationResult.data.hasWarnings) {
-        // 검증 데이터 저장하고 확인 모달 표시
-        selectedItems.budgetUpdateData = validationResult.data
-        modalStates.budgetUpdateConfirm = true
-        return
-      }
-
-      // 경고가 없으면 바로 수정 진행
-      await proceedWithBudgetUpdate()
-    } catch (error) {
-      logger.error('사업비 업데이트 실패:', error)
-      alert('사업비 수정 중 오류가 발생했습니다.')
+      store.forms.budget.periodNumber = maxPeriod + 1
+    } else {
+      store.forms.budget.periodNumber = 1
     }
+
+    store.openModal('budget')
   }
 
-  // 실제 예산 수정 실행 함수
-  async function proceedWithBudgetUpdate() {
-    if (!selectedItems.budget) return
-
-    try {
-      // Use service layer instead of direct fetch
-      await budgetService.updateBudget({
-        id: selectedItems.budget.id,
-        projectId: selectedProject.id,
-        periodNumber: forms.budget.periodNumber,
-        startDate: forms.budget.startDate,
-        endDate: forms.budget.endDate,
-        // 현금 비목들 (천원 단위를 원 단위로 변환, 인건비는 100만원 단위로 조정)
-        personnelCostCash: fromThousands(forms.budget.personnelCostCash),
-        researchMaterialCostCash: fromThousands(forms.budget.researchMaterialCostCash),
-        researchActivityCostCash: fromThousands(forms.budget.researchActivityCostCash),
-        researchStipendCash: fromThousands(forms.budget.researchStipendCash),
-        indirectCostCash: fromThousands(forms.budget.indirectCostCash),
-        // 현물 비목들 (천원 단위를 원 단위로 변환)
-        personnelCostInKind: fromThousands(forms.budget.personnelCostInKind),
-        researchMaterialCostInKind: fromThousands(forms.budget.researchMaterialCostInKind),
-        researchActivityCostInKind: fromThousands(forms.budget.researchActivityCostInKind),
-        researchStipendInKind: fromThousands(forms.budget.researchStipendInKind),
-        indirectCostInKind: fromThousands(forms.budget.indirectCostInKind),
-      })
-
-      modalStates.budget = false
-      modalStates.budgetUpdateConfirm = false
-      selectedItems.budget = null
-      selectedItems.budgetUpdateData = null
-      forms.budget = {
-        periodNumber: 1,
-        startDate: '',
-        endDate: '',
-        personnelCostCash: '',
-        researchMaterialCostCash: '',
-        researchActivityCostCash: '',
-        researchStipendCash: '',
-        indirectCostCash: '',
-        personnelCostInKind: '',
-        researchMaterialCostInKind: '',
-        researchActivityCostInKind: '',
-        researchStipendInKind: '',
-        indirectCostInKind: '',
-      }
-      await loadProjectBudgets()
-      // 예산 수정 후 프로젝트 기간 정보 업데이트
-      updateProjectPeriodFromBudgets()
-      // 예산 요약 새로고침
-      uiStates.budgetRefreshTrigger++
-      dispatch('refresh')
-
-      // 성공 메시지 표시
-      alert('사업비가 성공적으로 수정되었습니다.')
-    } catch (error) {
-      logger.error('사업비 수정 실패:', error)
-      alert('사업비 수정 중 오류가 발생했습니다.')
-    }
-  }
-
-  // 예산 수정 확인 모달에서 수정 진행
-  function confirmBudgetUpdate() {
-    proceedWithBudgetUpdate()
-  }
-
-  // 예산 수정 확인 모달에서 취소
-  function cancelBudgetUpdate() {
-    modalStates.budgetUpdateConfirm = false
-    selectedItems.budgetUpdateData = null
-  }
-
-  // 연구개발비 복구 모달 열기
   function openRestoreModal(budget: any) {
-    selectedItems.budgetForRestore = budget
-    forms.restore = {
-      personnelCostCash: '',
-      personnelCostInKind: '',
-      researchMaterialCostCash: '',
-      researchMaterialCostInKind: '',
-      researchActivityCostCash: '',
-      researchActivityCostInKind: '',
-      researchStipendCash: '',
-      researchStipendInKind: '',
-      indirectCostCash: '',
-      indirectCostInKind: '',
-      restoreReason: '사용자 요청에 의한 연구개발비 복구',
-    }
-    modalStates.restore = true
+    store.selected.budgetForRestore = budget
+    store.resetForm('restore')
+    store.openModal('restore')
   }
 
-  // 연구개발비 복구 실행
   async function restoreResearchCosts() {
-    if (!selectedItems.budgetForRestore) return
+    if (!store.selected.budgetForRestore) return
 
     try {
       const response = await fetch(
-        `/api/project-management/project-budgets/${selectedItems.budgetForRestore.id}/restore-research-costs`,
+        `/api/project-management/project-budgets/${store.selected.budgetForRestore.id}/restore-research-costs`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            personnelCostCash: fromThousands(forms.restore.personnelCostCash),
-            personnelCostInKind: fromThousands(forms.restore.personnelCostInKind),
-            researchMaterialCostCash: fromThousands(forms.restore.researchMaterialCostCash),
-            researchMaterialCostInKind: fromThousands(forms.restore.researchMaterialCostInKind),
-            researchActivityCostCash: fromThousands(forms.restore.researchActivityCostCash),
-            researchActivityCostInKind: fromThousands(forms.restore.researchActivityCostInKind),
-            researchStipendCash: fromThousands(forms.restore.researchStipendCash),
-            researchStipendInKind: fromThousands(forms.restore.researchStipendInKind),
-            indirectCostCash: fromThousands(forms.restore.indirectCostCash),
-            indirectCostInKind: fromThousands(forms.restore.indirectCostInKind),
-            restoreReason: forms.restore.restoreReason,
+            personnelCostCash: Number(store.forms.restore.personnelCostCash || 0) * 1000,
+            personnelCostInKind: Number(store.forms.restore.personnelCostInKind || 0) * 1000,
+            researchMaterialCostCash:
+              Number(store.forms.restore.researchMaterialCostCash || 0) * 1000,
+            researchMaterialCostInKind:
+              Number(store.forms.restore.researchMaterialCostInKind || 0) * 1000,
+            researchActivityCostCash:
+              Number(store.forms.restore.researchActivityCostCash || 0) * 1000,
+            researchActivityCostInKind:
+              Number(store.forms.restore.researchActivityCostInKind || 0) * 1000,
+            researchStipendCash: Number(store.forms.restore.researchStipendCash || 0) * 1000,
+            researchStipendInKind: Number(store.forms.restore.researchStipendInKind || 0) * 1000,
+            indirectCostCash: Number(store.forms.restore.indirectCostCash || 0) * 1000,
+            indirectCostInKind: Number(store.forms.restore.indirectCostInKind || 0) * 1000,
+            restoreReason: store.forms.restore.restoreReason,
           }),
         },
       )
 
       if (response.ok) {
         const result = await response.json()
-        modalStates.restore = false
-        selectedItems.budgetForRestore = null
-        await loadProjectBudgets()
-        uiStates.budgetRefreshTrigger++
-        dispatch('refresh')
+        store.closeModal('restore')
+        store.selected.budgetForRestore = null
+        await funding.loadBudgets()
+        store.incrementBudgetRefresh()
+        refresh()
         alert(result.message || '연구개발비가 성공적으로 복구되었습니다.')
       } else {
         const errorData = await response.json()
@@ -970,33 +251,107 @@
     }
   }
 
-  // 연구개발비 복구 모달 닫기
-  function closeRestoreModal() {
-    modalStates.restore = false
-    selectedItems.budgetForRestore = null
-  }
+  // ============================================================================
+  // Member Functions (Planning - 2단계)
+  // ============================================================================
+  // Direct delegation to planning hook
 
-  // 사업비 삭제
-  async function removeBudget(budgetId: string) {
-    if (!confirm('정말로 이 사업비 항목을 삭제하시겠습니까?')) return
+  // ============================================================================
+  // Evidence Functions (Execution - 3단계)
+  // ============================================================================
+  // Direct delegation to execution hook
 
-    try {
-      // Use service layer instead of direct fetch
-      await budgetService.deleteBudget(budgetId)
-      await loadProjectBudgets()
-      updateProjectPeriodFromBudgets()
-      uiStates.budgetRefreshTrigger++
-      dispatch('refresh')
-    } catch (error) {
-      logger.error('사업비 삭제 실패:', error)
-      alert('사업비 삭제 중 오류가 발생했습니다.')
+  // ============================================================================
+  // Utility Functions for Template
+  // ============================================================================
+
+  function getStatusColor(
+    status: string,
+  ): 'primary' | 'success' | 'warning' | 'error' | 'info' | 'ghost' | 'default' {
+    const statusMap: Record<
+      string,
+      'primary' | 'success' | 'warning' | 'error' | 'info' | 'ghost' | 'default'
+    > = {
+      active: 'success',
+      planning: 'info',
+      completed: 'default',
+      cancelled: 'error',
+      suspended: 'warning',
     }
+    return statusMap[status] || 'default'
   }
 
-  // 프로젝트 수정 폼 초기화
+  function getStatusText(status: string): string {
+    const statusMap: Record<string, string> = {
+      active: '진행중',
+      planning: '기획중',
+      completed: '완료',
+      cancelled: '취소',
+      suspended: '중단',
+    }
+    return statusMap[status] || status
+  }
+
+  function getPriorityColor(
+    priority: string,
+  ): 'primary' | 'success' | 'warning' | 'error' | 'info' | 'ghost' | 'default' {
+    const priorityMap: Record<
+      string,
+      'primary' | 'success' | 'warning' | 'error' | 'info' | 'ghost' | 'default'
+    > = {
+      low: 'default',
+      medium: 'info',
+      high: 'warning',
+      critical: 'error',
+    }
+    return priorityMap[priority] || 'default'
+  }
+
+  function getPriorityText(priority: string): string {
+    const priorityMap: Record<string, string> = {
+      low: '낮음',
+      medium: '보통',
+      high: '높음',
+      critical: '긴급',
+    }
+    return priorityMap[priority] || priority
+  }
+
+  function getSponsorTypeText(type: string): string {
+    const sponsorMap: Record<string, string> = {
+      government: '정부',
+      private: '민간',
+      internal: '자체',
+    }
+    return sponsorMap[type] || type
+  }
+
+  function getResearchTypeText(type: string): string {
+    const researchMap: Record<string, string> = {
+      basic: '기초연구',
+      applied: '응용연구',
+      development: '개발연구',
+    }
+    return researchMap[type] || type
+  }
+
+  // ============================================================================
+  // Watch external project change
+  // ============================================================================
+
+  $effect(() => {
+    if (selectedProject?.id) {
+      updateProjectPeriod()
+    }
+  })
+
+  // ============================================================================
+  // Additional Helper Functions
+  // ============================================================================
+
   function initProjectForm() {
     if (selectedProject) {
-      forms.project = {
+      store.forms.project = {
         title: selectedProject.title || '',
         code: projectUtilsImported.getProjectCode(selectedProject),
         description: projectUtilsImported.getProjectDescription(selectedProject),
@@ -1008,491 +363,99 @@
     }
   }
 
-  // 프로젝트 수정
-  async function updateProject() {
-    if (!selectedProject) return
-
-    loadingStates.updating = true
-    try {
-      const result = await projectService.updateProject(selectedProject.id, {
-        ...forms.project,
-        sponsorType: forms.project.sponsorType as 'government' | 'private' | 'internal',
-        status: forms.project.status as
-          | 'active'
-          | 'planning'
-          | 'completed'
-          | 'cancelled'
-          | 'suspended',
-        priority: forms.project.priority as 'low' | 'medium' | 'high' | 'critical',
-        researchType: forms.project.researchType as 'basic' | 'applied' | 'development',
-      })
-
-      if (result.success) {
-        // 프로젝트 정보 업데이트
-        selectedProject = { ...selectedProject, ...result.data }
-        modalStates.editProject = false
-
-        // 부모 컴포넌트에 프로젝트 업데이트 이벤트 전송
-        dispatch('project-updated', {
-          projectId: selectedProject.id,
-          updatedProject: result.data,
-        })
-
-        alert('프로젝트가 성공적으로 수정되었습니다.')
-      } else {
-        alert(result.message || '프로젝트 수정에 실패했습니다.')
-      }
-    } catch (error) {
-      logger.error('프로젝트 수정 실패:', error)
-      alert('프로젝트 수정 중 오류가 발생했습니다.')
-    } finally {
-      loadingStates.updating = false
-    }
-  }
-
-  // 프로젝트 삭제
-  async function deleteProject() {
-    if (!selectedProject) return
-
-    // 삭제 확인 코드 검증 - 컴포넌트에서 이미 검증됨
-    if (selectedItems.deleteCode !== selectedProject?.code) {
-      alert('프로젝트 코드가 일치하지 않습니다. 정확한 코드를 입력해주세요.')
-      return
-    }
-
-    loadingStates.deleting = true
-    try {
-      await projectService.deleteProject(selectedProject.id)
-
-      modalStates.deleteConfirm = false
-      selectedItems.deleteCode = '' // 삭제 후 코드 초기화
-      dispatch('project-deleted', { projectId: selectedProject.id })
-      dispatch('refresh')
-      alert('프로젝트가 성공적으로 삭제되었습니다.')
-    } catch (error) {
-      logger.error('프로젝트 삭제 실패:', error)
-      alert('프로젝트 삭제 중 오류가 발생했습니다.')
-    } finally {
-      loadingStates.deleting = false
-    }
-  }
-
-  // 월간금액 계산 및 업데이트 (utils 함수 사용)
   async function updateMonthlyAmount() {
     if (
-      !forms.member.employeeId ||
-      !forms.member.participationRate ||
-      !forms.member.startDate ||
-      !forms.member.endDate
+      !store.forms.member.employeeId ||
+      !store.forms.member.participationRate ||
+      !store.forms.member.startDate ||
+      !store.forms.member.endDate
     ) {
-      uiStates.calculatedMonthlyAmount = 0
+      store.ui.calculatedMonthlyAmount = 0
       return
     }
 
     // 날짜가 변경되면 참여개월수도 자동으로 재계산
     const calculatedMonths = calculationUtilsImported.calculatePeriodMonths(
-      forms.member.startDate,
-      forms.member.endDate,
+      store.forms.member.startDate,
+      store.forms.member.endDate,
     )
-    forms.member.participationMonths = calculatedMonths
+    store.forms.member.participationMonths = calculatedMonths
 
     // 사용자가 수동으로 월간금액을 입력한 경우 자동 계산하지 않음
-    if (uiStates.isManualMonthlyAmount) {
-      uiStates.calculatedMonthlyAmount = dataTransformers.safeStringToNumber(
-        forms.member.monthlyAmount,
+    if (store.ui.isManualMonthlyAmount) {
+      store.ui.calculatedMonthlyAmount = dataTransformers.safeStringToNumber(
+        store.forms.member.monthlyAmount,
         0,
       )
       return
     }
 
     try {
-      const formattedStartDate = calculationUtilsImported.convertDateToISO(forms.member.startDate)
-      const formattedEndDate = calculationUtilsImported.convertDateToISO(forms.member.endDate)
+      const formattedStartDate = calculationUtilsImported.convertDateToISO(
+        store.forms.member.startDate,
+      )
+      const formattedEndDate = calculationUtilsImported.convertDateToISO(store.forms.member.endDate)
 
-      // Utils 함수 사용으로 로직 중복 제거
       const calculatedAmount = await calculationUtilsImported.calculateMonthlyAmountFromContract(
-        forms.member.employeeId,
-        forms.member.participationRate,
+        store.forms.member.employeeId,
+        store.forms.member.participationRate,
         formattedStartDate,
         formattedEndDate,
       )
 
       logger.log('계산된 월간금액:', calculatedAmount)
-      uiStates.calculatedMonthlyAmount = calculatedAmount
-      forms.member.monthlyAmount = dataTransformers.safeNumberToString(calculatedAmount)
+      store.ui.calculatedMonthlyAmount = calculatedAmount
+      store.forms.member.monthlyAmount = dataTransformers.safeNumberToString(calculatedAmount)
     } catch (error) {
       logger.error('월간금액 계산 중 오류:', error)
-      uiStates.calculatedMonthlyAmount = 0
+      store.ui.calculatedMonthlyAmount = 0
     }
   }
 
-  // 종합 검증 실행
-  async function runComprehensiveValidation() {
-    if (!selectedProject) return
-
-    loadingStates.validating = true
-    try {
-      // Use service layer instead of direct fetch
-      const result = await validationService.comprehensiveValidation(selectedProject.id)
-
-      validationData.results = result
-
-      // 검증 히스토리에 추가
-      validationData.history.unshift({
-        timestamp: new Date().toISOString(),
-        projectId: selectedProject.id,
-        results: result,
-      })
-
-      // 최대 10개까지만 유지
-      if (validationData.history.length > 10) {
-        validationData.history = validationData.history.slice(0, 10)
-      }
-
-      modalStates.validation = true
-    } catch (error) {
-      logger.error('검증 실행 실패:', error)
-      alert('검증 실행 중 오류가 발생했습니다.')
-    } finally {
-      loadingStates.validating = false
-    }
-  }
-
-  // 증빙 내역 모달 표시
-  function _openEvidenceModal(budget) {
-    selectedItems.budgetForEvidence = budget
-    modalStates.evidence = true
-    loadEvidenceList(budget.id)
-  }
-
-  async function openEvidenceDetail(item) {
-    selectedItems.evidenceItem = item
-    modalStates.evidenceDetail = true
-
-    // 증빙 항목 상세 정보 로드
-    if (item.id) {
-      try {
-        const data = await evidenceService.getEvidence(item.id)
-        selectedItems.evidenceItem = data
-      } catch (error) {
-        logger.error('증빙 항목 상세 정보 로드 실패:', error)
-      }
-    }
-  }
-
-  // 증빙 카테고리 로드
-  async function loadEvidenceCategories() {
-    try {
-      validationData.categories = await evidenceService.getEvidenceCategories()
-    } catch (error) {
-      logger.error('증빙 카테고리 로드 실패:', error)
-    }
-  }
-
-  // 증빙 항목 로드 (모든 연차)
-  async function loadEvidenceItems() {
-    if (!selectedProject || projectBudgets.length === 0) return
-
-    try {
-      loadingStates.loadingEvidence = true
-      let allEvidenceItems: any[] = []
-
-      // 모든 연차의 증빙 데이터를 로드
-      for (const budget of projectBudgets) {
-        const response = await fetch(
-          `/api/project-management/evidence?projectBudgetId=${budget.id}`,
-        )
-        const result = await response.json()
-
-        if (result.success) {
-          allEvidenceItems = [...allEvidenceItems, ...result.data]
-        }
-      }
-
-      validationData.items = allEvidenceItems
-    } catch (error) {
-      logger.error('증빙 항목 로드 실패:', error)
-    } finally {
-      loadingStates.loadingEvidence = false
-    }
-  }
-
-  // 증빙 항목 추가
-  async function addEvidenceItem(categoryId, itemData) {
-    try {
-      const currentBudget =
-        projectBudgets.find(
-          (b) => budgetUtilsImported.getPeriodNumber(b) === selectedItems.evidencePeriod,
-        ) || projectBudgets[0]
-
-      const data = await evidenceService.createEvidence({
-        projectBudgetId: currentBudget.id,
-        categoryId: categoryId,
-        ...itemData,
-      })
-
-      await loadEvidenceItems()
-      return data
-    } catch (error) {
-      logger.error('증빙 항목 추가 실패:', error)
-      throw error
-    }
-  }
-
-  // 증빙 항목 수정
-  async function _updateEvidenceItem(itemId, updateData) {
-    try {
-      const data = await evidenceService.updateEvidence(itemId, updateData)
-      await loadEvidenceItems()
-      return data
-    } catch (error) {
-      logger.error('증빙 항목 수정 실패:', error)
-      throw error
-    }
-  }
-
-  // 증빙 항목 삭제
-  async function _deleteEvidenceItem(itemId) {
-    try {
-      await evidenceService.deleteEvidence(itemId)
-      await loadEvidenceItems()
-    } catch (error) {
-      logger.error('증빙 항목 삭제 실패:', error)
-      throw error
-    }
-  }
-
-  // 증빙 항목 추가 핸들러
-  async function handleAddEvidenceItem() {
+  async function validateEvidenceRegistration() {
     if (
-      !forms.newEvidence.categoryId ||
-      !forms.newEvidence.name ||
-      !forms.newEvidence.budgetAmount
+      !store.forms.newEvidence.assigneeId ||
+      !store.forms.newEvidence.dueDate ||
+      !store.selected.budgetForEvidence?.id
     ) {
-      alert('필수 필드를 모두 입력해주세요.')
+      store.validation.evidence = null
+      return
+    }
+
+    const selectedCategory = store.validation.categories.find(
+      (cat) => cat.id === store.forms.newEvidence.categoryId,
+    )
+    if (selectedCategory?.name !== '인건비') {
+      store.validation.evidence = null
       return
     }
 
     try {
-      loadingStates.updating = true
+      store.setLoading('validatingEvidence', true)
 
-      const selectedEmployee = availableEmployees.find(
-        (emp) => emp.id === forms.newEvidence.assigneeId,
-      )
-      const assigneeName = memberUtilsImported.createAssigneeNameFromEmployee(selectedEmployee)
-
-      await addEvidenceItem(forms.newEvidence.categoryId, {
-        name: forms.newEvidence.name,
-        description: forms.newEvidence.description,
-        budgetAmount: dataTransformers.safeStringToNumber(forms.newEvidence.budgetAmount, 0),
-        assigneeId: forms.newEvidence.assigneeId,
-        assigneeName: assigneeName,
-        dueDate: forms.newEvidence.dueDate,
-      })
-
-      // 폼 초기화
-      forms.newEvidence = {
-        categoryId: '',
-        name: '',
-        description: '',
-        budgetAmount: '',
-        assigneeId: '',
-        dueDate: '',
-      }
-
-      modalStates.evidence = false
-    } catch (error) {
-      logger.error('증빙 항목 추가 실패:', error)
-      alert('증빙 항목 추가에 실패했습니다.')
-    } finally {
-      loadingStates.updating = false
-    }
-  }
-
-  // 증빙 내역 목록 로드
-  async function loadEvidenceList(budgetId) {
-    try {
       const response = await fetch(
-        `/api/project-management/budget-evidence?projectBudgetId=${budgetId}`,
+        `/api/project-management/evidence-items/validate-employment?budgetId=${store.selected.budgetForEvidence.id}&assigneeId=${store.forms.newEvidence.assigneeId}&dueDate=${store.forms.newEvidence.dueDate}`,
       )
+
       if (response.ok) {
-        const data = await response.json()
-        _evidenceList = data.data || []
+        const result = await response.json()
+        store.validation.evidence = result.data
       }
     } catch (error) {
-      logger.error('증빙 내역 로드 실패:', error)
+      logger.error('증빙 등록 검증 실패:', error)
+    } finally {
+      store.setLoading('validatingEvidence', false)
     }
   }
 
-  // 증빙 유형 목록 로드
-  async function loadEvidenceTypes() {
-    try {
-      _evidenceTypes = await evidenceService.getEvidenceTypes()
-    } catch (error) {
-      logger.error('증빙 유형 로드 실패:', error)
-    }
+  function cancelBudgetUpdate() {
+    store.closeModal('budgetUpdateConfirm')
+    store.selected.budgetUpdateData = null
   }
 
-  // 상태별 색상 반환
-  function getStatusColor(
-    status: string,
-  ): 'success' | 'warning' | 'info' | 'error' | 'default' | 'primary' | 'ghost' {
-    switch (status) {
-      case 'active':
-        return 'success'
-      case 'planning':
-        return 'warning'
-      case 'completed':
-        return 'info'
-      case 'cancelled':
-        return 'error'
-      case 'suspended':
-        return 'default'
-      default:
-        return 'default'
-    }
+  function confirmBudgetUpdate() {
+    funding.updateBudget()
   }
-
-  // 상태별 텍스트 반환
-  function getStatusText(status: string) {
-    switch (status) {
-      case 'active':
-        return '진행중'
-      case 'planning':
-        return '계획중'
-      case 'completed':
-        return '완료'
-      case 'cancelled':
-        return '취소'
-      case 'suspended':
-        return '중단'
-      default:
-        return status
-    }
-  }
-
-  // 우선순위별 색상 반환
-  function getPriorityColor(
-    priority: string,
-  ): 'success' | 'warning' | 'info' | 'error' | 'default' | 'primary' | 'ghost' {
-    switch (priority) {
-      case 'critical':
-        return 'error'
-      case 'high':
-        return 'warning'
-      case 'medium':
-        return 'info'
-      case 'low':
-        return 'default'
-      default:
-        return 'default'
-    }
-  }
-
-  // 우선순위별 텍스트 반환
-  function getPriorityText(priority: string) {
-    switch (priority) {
-      case 'critical':
-        return '긴급'
-      case 'high':
-        return '높음'
-      case 'medium':
-        return '보통'
-      case 'low':
-        return '낮음'
-      default:
-        return priority
-    }
-  }
-
-  // 스폰서 유형별 텍스트 반환
-  function getSponsorTypeText(sponsorType: string) {
-    switch (sponsorType) {
-      case 'government':
-        return '정부'
-      case 'private':
-        return '민간'
-      case 'internal':
-        return '내부'
-      default:
-        return sponsorType
-    }
-  }
-
-  // 연구 유형별 텍스트 반환
-  function getResearchTypeText(researchType: string) {
-    switch (researchType) {
-      case 'basic':
-        return '기초연구'
-      case 'applied':
-        return '응용연구'
-      case 'development':
-        return '개발연구'
-      default:
-        return researchType
-    }
-  }
-
-  // 천원 단위로 변환 (입력용)
-  function toThousands(value: string | number): string {
-    return calculationUtilsImported.toThousands(value)
-  }
-
-  // 천원 단위에서 원 단위로 변환 (저장용)
-  function fromThousands(value: string): number {
-    return calculationUtilsImported.fromThousands(value)
-  }
-
-  // 연구 유형 한글 변환
-  function getResearchTypeLabel(researchType: string): string {
-    switch (researchType) {
-      case 'basic':
-        return '기초연구'
-      case 'applied':
-        return '응용연구'
-      case 'development':
-        return '개발연구'
-      default:
-        return researchType
-    }
-  }
-
-  // 초기화
-  function initializeProjectData() {
-    if (selectedProject && selectedProject.id) {
-      loadProjectMembers()
-      loadProjectBudgets()
-      loadBudgetCategories()
-      loadAvailableEmployees()
-      loadEvidenceTypes()
-      loadEvidenceCategories()
-    }
-  }
-
-  // externalRefreshTrigger 변경 시 모든 프로젝트 종속 데이터 새로고침
-  let lastExternalTrigger = $state(0)
-
-  $effect(() => {
-    if (externalRefreshTrigger > 0 && externalRefreshTrigger !== lastExternalTrigger) {
-      lastExternalTrigger = externalRefreshTrigger
-
-      // 모든 프로젝트 종속 데이터 새로고침
-      if (selectedProject?.id) {
-        loadProjectMembers()
-        loadProjectBudgets()
-        loadEvidenceItems()
-        // budgetRefreshTrigger 동기화 (ProjectBudgetSummary 새로고침)
-        uiStates.budgetRefreshTrigger = externalRefreshTrigger
-      }
-    }
-  })
-
-  // 컴포넌트 마운트 시 초기화
-  onMount(() => {
-    handleProjectChange()
-    initializeProjectData()
-    loadEvidenceItems()
-  })
 </script>
 
 {#if selectedProject}
@@ -1786,14 +749,18 @@
                   <!-- 액션 -->
                   <td class="px-4 py-4 whitespace-nowrap text-sm font-medium w-32">
                     <div class="flex space-x-1 justify-center">
-                      <ThemeButton variant="ghost" size="sm" onclick={() => editBudget(budget)}>
+                      <ThemeButton
+                        variant="ghost"
+                        size="sm"
+                        onclick={() => funding.editBudget(budget)}
+                      >
                         <EditIcon size={16} class="text-blue-600 mr-1" />
                         수정
                       </ThemeButton>
                       <ThemeButton
                         variant="ghost"
                         size="sm"
-                        onclick={() => removeBudget(budget.id)}
+                        onclick={() => funding.removeBudget(budget.id)}
                       >
                         <TrashIcon size={16} class="text-red-600 mr-1" />
                         삭제
@@ -1999,7 +966,8 @@
         indirectCostInKind: '',
       }
     }}
-    onsubmit={selectedItems.budget ? updateBudget : addBudget}
+    onsubmit={async () =>
+      selectedItems.budget ? await funding.updateBudget() : await funding.addBudget()}
     oncancel={() => {
       modalStates.budget = false
       selectedItems.budget = null
@@ -2031,8 +999,8 @@
     bind:isManualMonthlyAmount={uiStates.isManualMonthlyAmount}
     {availableEmployees}
     {formatNumber}
-    oncancel={cancelAddMember}
-    onsubmit={addMember}
+    oncancel={planning.cancelAddMember}
+    onsubmit={planning.addMember}
     onupdateMonthlyAmount={updateMonthlyAmount}
   />
 
@@ -2042,7 +1010,7 @@
       <h3 class="text-lg font-semibold text-gray-900">참여연구원</h3>
       <div class="flex items-center gap-2">
         <ThemeButton
-          onclick={startAddMember}
+          onclick={planning.startAddMember}
           size="sm"
           disabled={loadingStates.addingMember || selectedItems.member !== null}
         >
@@ -2317,7 +1285,7 @@
                     <div class="flex space-x-1">
                       <button
                         type="button"
-                        onclick={updateMember}
+                        onclick={planning.updateMember}
                         class="p-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors duration-200 shadow-sm"
                         title="저장"
                       >
@@ -2325,7 +1293,7 @@
                       </button>
                       <button
                         type="button"
-                        onclick={cancelEditMember}
+                        onclick={planning.cancelEditMember}
                         class="p-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors duration-200 shadow-sm"
                         title="취소"
                       >
@@ -2336,7 +1304,7 @@
                     <ThemeButton
                       variant="ghost"
                       size="sm"
-                      onclick={() => editMember(member)}
+                      onclick={() => planning.editMember(member)}
                       disabled={selectedItems.member !== null}
                     >
                       <EditIcon size={16} class="text-blue-600 mr-1" />
@@ -2345,7 +1313,7 @@
                     <ThemeButton
                       variant="ghost"
                       size="sm"
-                      onclick={() => removeMember(member.id)}
+                      onclick={() => planning.removeMember(member.id)}
                       disabled={selectedItems.member !== null}
                     >
                       <TrashIcon size={16} class="text-red-600 mr-1" />
@@ -2500,7 +1468,7 @@
                   <ThemeButton
                     variant="ghost"
                     size="sm"
-                    onclick={() => openEvidenceDetail(budgetCategory)}
+                    onclick={() => execution.openEvidenceDetail(budgetCategory)}
                   >
                     <PlusIcon size={14} class="mr-1" />
                     추가
@@ -2635,7 +1603,7 @@
                                   <ThemeButton
                                     variant="ghost"
                                     size="sm"
-                                    onclick={() => openEvidenceDetail(item)}
+                                    onclick={() => execution.openEvidenceDetail(item)}
                                   >
                                     <EditIcon size={12} class="mr-1" />
                                     상세
@@ -2655,7 +1623,7 @@
                         variant="ghost"
                         size="sm"
                         class="mt-2"
-                        onclick={() => openEvidenceDetail(budgetCategory)}
+                        onclick={() => execution.openEvidenceDetail(budgetCategory)}
                       >
                         <PlusIcon size={14} class="mr-1" />
                         첫 번째 증빙 추가
@@ -2696,7 +1664,7 @@
     isUpdating={loadingStates.updating}
     onclose={() => (modalStates.evidence = false)}
     onvalidate={validateEvidenceRegistration}
-    onsubmit={handleAddEvidenceItem}
+    onsubmit={execution.handleAddEvidenceItem}
   />
 
   <!-- 프로젝트 수정 모달 -->
