@@ -132,7 +132,24 @@
     addingMember: false, // addingMember
   })
 
-  let budgetRefreshTrigger = $state(0)
+  // ============================================================
+  // Phase B-6: UI States Group
+  // ============================================================
+  let uiStates = $state({
+    budgetRefreshTrigger: 0, // budgetRefreshTrigger - 예산 새로고침 트리거
+    budgetUpdateKey: 0, // budgetUpdateKey - 예산 강제 재렌더링 트리거
+    evidenceRefreshKey: 0, // evidenceRefreshKey - 증빙 새로고침 키
+    isManualMonthlyAmount: false, // isManualMonthlyAmount - 수동 월간금액 입력 여부
+    calculatedMonthlyAmount: 0, // calculatedMonthlyAmount - 계산된 월간금액
+    isPersonnelSummaryExpanded: false, // isPersonnelSummaryExpanded - 인건비 요약 확장 여부
+    expandedEvidenceSections: {
+      // expandedEvidenceSections - 증빙 섹션 확장 상태
+      personnel: true,
+      material: true,
+      activity: true,
+      indirect: true,
+    },
+  })
 
   // ============================================================
   // Phase B-4: Selected Items Group
@@ -231,24 +248,11 @@
     input.value = formatNumber(rawValue, false)
   }
 
-  // 사용자가 수동으로 월간금액을 입력했는지 추적
-  let isManualMonthlyAmount = $state(false)
-
-  let calculatedMonthlyAmount = $state(0)
-  let isPersonnelSummaryExpanded = $state(false)
-
   // ============================================================
   // Data Lists & References
   // ============================================================
   let _evidenceList = $state<any[]>([])
-  let evidenceRefreshKey = $state(0)
   let _evidenceTypes = $state<any[]>([])
-  let expandedEvidenceSections = $state({
-    personnel: true,
-    material: true,
-    activity: true,
-    indirect: true,
-  })
 
   // ============================================================
   // Validation & Evidence Data States (Phase B-5)
@@ -278,7 +282,6 @@
   // 데이터
   let projectMembers = $state<any[]>([])
   let projectBudgets = $state<any[]>([])
-  let budgetUpdateKey = $state(0) // 강제 재렌더링 트리거
   let _budgetCategories = $state<any[]>([])
   let availableEmployees = $state<any[]>([])
 
@@ -450,7 +453,7 @@
       if (response.ok) {
         const data = await response.json()
         projectBudgets = [...(data.data || [])]
-        budgetUpdateKey++
+        uiStates.budgetUpdateKey++
       }
     } catch (error) {
       logger.error('프로젝트 사업비 로드 실패:', error)
@@ -554,7 +557,7 @@
         // 예산 추가 후 프로젝트 기간 정보 업데이트
         updateProjectPeriodFromBudgets()
         // 예산 요약 새로고침
-        budgetRefreshTrigger++
+        uiStates.budgetRefreshTrigger++
         dispatch('refresh')
 
         // 성공 메시지 표시
@@ -664,7 +667,7 @@
     logger.log('editMember - forms.member after setting:', forms.member)
 
     // 수정 시 월간금액 자동 계산 (수동 입력 플래그 초기화)
-    isManualMonthlyAmount = false
+    uiStates.isManualMonthlyAmount = false
     updateMonthlyAmount()
   }
 
@@ -682,8 +685,8 @@
       cashAmount: '0',
       inKindAmount: '0',
     }
-    calculatedMonthlyAmount = 0
-    isManualMonthlyAmount = false
+    uiStates.calculatedMonthlyAmount = 0
+    uiStates.isManualMonthlyAmount = false
   }
 
   // 멤버 수정 취소
@@ -959,7 +962,7 @@
         // 예산 수정 후 프로젝트 기간 정보 업데이트
         updateProjectPeriodFromBudgets()
         // 예산 요약 새로고침
-        budgetRefreshTrigger++
+        uiStates.budgetRefreshTrigger++
         dispatch('refresh')
 
         // 성공 메시지 표시
@@ -1037,7 +1040,7 @@
         modalStates.restore = false
         selectedItems.budgetForRestore = null
         await loadProjectBudgets()
-        budgetRefreshTrigger++
+        uiStates.budgetRefreshTrigger++
         dispatch('refresh')
         alert(result.message || '연구개발비가 성공적으로 복구되었습니다.')
       } else {
@@ -1068,7 +1071,7 @@
       if (response.ok) {
         await loadProjectBudgets()
         updateProjectPeriodFromBudgets()
-        budgetRefreshTrigger++
+        uiStates.budgetRefreshTrigger++
         dispatch('refresh')
       }
     } catch (error) {
@@ -1247,13 +1250,13 @@
       !forms.member.startDate ||
       !forms.member.endDate
     ) {
-      calculatedMonthlyAmount = 0
+      uiStates.calculatedMonthlyAmount = 0
       return
     }
 
     // 사용자가 수동으로 월간금액을 입력한 경우 자동 계산하지 않음
-    if (isManualMonthlyAmount) {
-      calculatedMonthlyAmount = parseFloat(forms.member.monthlyAmount) || 0
+    if (uiStates.isManualMonthlyAmount) {
+      uiStates.calculatedMonthlyAmount = parseFloat(forms.member.monthlyAmount) || 0
       return
     }
 
@@ -1265,10 +1268,10 @@
         forms.member.startDate,
         forms.member.endDate,
       )
-      calculatedMonthlyAmount = amount
+      uiStates.calculatedMonthlyAmount = amount
     } catch (error) {
       logger.error('월간금액 계산 실패:', error)
-      calculatedMonthlyAmount = 0
+      uiStates.calculatedMonthlyAmount = 0
     } finally {
       loadingStates.calculatingMonthly = false
     }
@@ -1679,7 +1682,7 @@
         loadProjectBudgets()
         loadEvidenceItems()
         // budgetRefreshTrigger 동기화 (ProjectBudgetSummary 새로고침)
-        budgetRefreshTrigger = externalRefreshTrigger
+        uiStates.budgetRefreshTrigger = externalRefreshTrigger
       }
     }
   })
@@ -1769,7 +1772,7 @@
           <ProjectBudgetSummary
             projectId={selectedProject.id}
             compact={true}
-            refreshTrigger={budgetRefreshTrigger}
+            refreshTrigger={uiStates.budgetRefreshTrigger}
           />
         {:catch _error}
           <div class="text-center py-4 text-gray-500">
@@ -1841,7 +1844,7 @@
             </tr>
           </thead>
           <tbody class="bg-white divide-y divide-gray-200">
-            {#key budgetUpdateKey}
+            {#key uiStates.budgetUpdateKey}
               {#each projectBudgets as budget, i (budget.id || i)}
                 {@const _totalBudget =
                   budgetUtilsImported.getPersonnelCostCash(budget) +
@@ -2224,7 +2227,7 @@
   <ProjectMemberForm
     bind:visible={loadingStates.addingMember}
     memberForm={forms.member}
-    bind:isManualMonthlyAmount
+    bind:isManualMonthlyAmount={uiStates.isManualMonthlyAmount}
     {availableEmployees}
     {formatNumber}
     oncancel={cancelAddMember}
@@ -2326,7 +2329,7 @@
                         bind:value={forms.member.startDate}
                         class="flex-1 px-2 py-1 border border-blue-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white"
                         onchange={() => {
-                          isManualMonthlyAmount = false
+                          uiStates.isManualMonthlyAmount = false
                           updateMonthlyAmount()
                         }}
                       />
@@ -2338,7 +2341,7 @@
                         bind:value={forms.member.endDate}
                         class="flex-1 px-2 py-1 border border-blue-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white"
                         onchange={() => {
-                          isManualMonthlyAmount = false
+                          uiStates.isManualMonthlyAmount = false
                           updateMonthlyAmount()
                         }}
                       />
@@ -2445,7 +2448,7 @@
                       max="100"
                       step="0.1"
                       onchange={() => {
-                        isManualMonthlyAmount = false
+                        uiStates.isManualMonthlyAmount = false
                         updateMonthlyAmount()
                       }}
                     />
@@ -2685,15 +2688,15 @@
                 type="button"
                 class="flex items-center justify-between p-4 bg-gray-50 cursor-pointer hover:bg-gray-100 w-full text-left"
                 onclick={() =>
-                  (expandedEvidenceSections[budgetCategory.type] =
-                    !expandedEvidenceSections[budgetCategory.type])}
+                  (uiStates.expandedEvidenceSections[budgetCategory.type] =
+                    !uiStates.expandedEvidenceSections[budgetCategory.type])}
                 onkeydown={(e) =>
                   e.key === 'Enter' &&
-                  (expandedEvidenceSections[budgetCategory.type] =
-                    !expandedEvidenceSections[budgetCategory.type])}
+                  (uiStates.expandedEvidenceSections[budgetCategory.type] =
+                    !uiStates.expandedEvidenceSections[budgetCategory.type])}
               >
                 <div class="flex items-center space-x-3">
-                  {#if expandedEvidenceSections[budgetCategory.type]}
+                  {#if uiStates.expandedEvidenceSections[budgetCategory.type]}
                     <ChevronDownIcon size={16} class="text-gray-500" />
                   {:else}
                     <ChevronRightIcon size={16} class="text-gray-500" />
@@ -2736,7 +2739,7 @@
               </button>
 
               <!-- 카테고리 내용 -->
-              {#if expandedEvidenceSections[budgetCategory.type]}
+              {#if uiStates.expandedEvidenceSections[budgetCategory.type]}
                 <div class="p-4 border-t border-gray-200">
                   {#if categoryItems.length > 0}
                     <div class="overflow-x-auto">
