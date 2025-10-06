@@ -2,6 +2,10 @@
 
 echo "🔧 Running pre-commit checks..."
 
+# 자동으로 포맷팅 적용 (CI 실패 방지)
+echo "🎨 Auto-formatting code with Prettier..."
+pnpm format
+
 # CI와 동일한 체크 실행 (경고는 허용)
 echo "📝 Checking code formatting..."
 pnpm format:check || echo "Format check completed with warnings"

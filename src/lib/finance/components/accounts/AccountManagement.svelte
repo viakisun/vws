@@ -308,7 +308,7 @@
                     {formatAccountStatus(account.status)}
                   </span>
                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                   <div class="flex items-center space-x-2">
                     <button
                       type="button"
