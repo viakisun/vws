@@ -763,8 +763,6 @@
     </div>
   {/if}
 
-
-
   <!-- 계좌별 거래 목록 -->
   {#if isLoading}
     <div class="flex items-center justify-center py-12">
