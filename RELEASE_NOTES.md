@@ -5,6 +5,7 @@
 ### 🔧 코드 품질 개선
 
 #### ESLint 설정 대규모 리팩토링
+
 - **설정 파일 간소화**: 547줄 → 354줄 (35% 감소)
   - 명확한 섹션 구분 및 재사용 가능한 상수 정의
   - TypeScript, Svelte, API 라우트별 규칙 체계화
@@ -21,6 +22,7 @@
   - 더 안정적인 Svelte 파일 처리
 
 #### API 리팩토링
+
 - **Banks API 개선** (302줄 → 354줄)
   - 타입 안정성 강화: `BankRow`, `CreateBankInput`, `UpdateBankInput` 등
   - 유틸 함수 분리: `mapRowToBank()`, `errorResponse()`, `isDuplicateCode()`
@@ -38,6 +40,7 @@
 ### 🧹 불필요한 코드 제거
 
 #### 미사용 기능 완전 삭제
+
 - **예산관리(Budget) 시스템**
   - `BudgetManagement.svelte` 컴포넌트 삭제
   - `budget-service.ts` 서비스 삭제
@@ -54,17 +57,20 @@
   - `finance-reset-and-init.sql` 삭제
 
 #### 데이터베이스 스키마 정리
+
 - `bank_code` enum 타입 제거
 - `alert_threshold` 컬럼 제거
 - 불필요한 인덱스 정리
 
 ### 📊 통계
+
 - **35개 파일 수정**
 - **3,723줄 삭제, 926줄 추가**
 - **순 감소: 2,797줄** (약 75% 코드 제거)
 - **모든 검사 통과**: ESLint, Prettier, TypeScript
 
 ### 🎯 핵심 개선 효과
+
 1. **개발 생산성 향상**: 느슨한 ESLint 규칙으로 개발 속도 증가
 2. **유지보수성 향상**: 명확한 함수 분리 및 타입 정의
 3. **코드베이스 간소화**: 불필요한 기능 제거로 복잡도 감소
