@@ -6,6 +6,19 @@ import type {
   TransactionStats,
   DailyTransactionSummary,
 } from '$lib/finance/types'
+import { logger } from '$lib/utils/logger'
+
+interface ApiResponse<T> {
+  success: boolean
+  data?: T
+  error?: string
+  pagination?: {
+    page: number
+    limit: number
+    total: number
+    totalPages: number
+  }
+}
 
 export class TransactionService {
   private baseUrl = '/api/finance'
@@ -37,9 +50,9 @@ export class TransactionService {
       if (filter?.limit) params.append('limit', filter.limit.toString())
 
       const response = await fetch(`${this.baseUrl}/transactions?${params}`)
-      const result = await response.json()
+      const result = (await response.json()) as ApiResponse<Transaction[]>
 
-      if (!result.success) {
+      if (!result.success || !result.data || !result.pagination) {
         throw new Error(result.error || '거래 내역을 조회할 수 없습니다.')
       }
 
@@ -48,7 +61,7 @@ export class TransactionService {
         pagination: result.pagination,
       }
     } catch (error) {
-      console.error('거래 내역 조회 실패:', error)
+      logger.error('거래 내역 조회 실패:', error)
       throw error
     }
   }
@@ -57,15 +70,15 @@ export class TransactionService {
   async getTransaction(id: string): Promise<Transaction> {
     try {
       const response = await fetch(`${this.baseUrl}/transactions/${id}`)
-      const result = await response.json()
+      const result = (await response.json()) as ApiResponse<Transaction>
 
-      if (!result.success) {
+      if (!result.success || !result.data) {
         throw new Error(result.error || '거래를 조회할 수 없습니다.')
       }
 
       return result.data
     } catch (error) {
-      console.error('거래 조회 실패:', error)
+      logger.error('거래 조회 실패:', error)
       throw error
     }
   }
@@ -81,15 +94,15 @@ export class TransactionService {
         body: JSON.stringify(data),
       })
 
-      const result = await response.json()
+      const result = (await response.json()) as ApiResponse<Transaction>
 
-      if (!result.success) {
+      if (!result.success || !result.data) {
         throw new Error(result.error || '거래 생성에 실패했습니다.')
       }
 
       return result.data
     } catch (error) {
-      console.error('거래 생성 실패:', error)
+      logger.error('거래 생성 실패:', error)
       throw error
     }
   }
@@ -105,15 +118,15 @@ export class TransactionService {
         body: JSON.stringify(data),
       })
 
-      const result = await response.json()
+      const result = (await response.json()) as ApiResponse<Transaction>
 
-      if (!result.success) {
+      if (!result.success || !result.data) {
         throw new Error(result.error || '거래 수정에 실패했습니다.')
       }
 
       return result.data
     } catch (error) {
-      console.error('거래 수정 실패:', error)
+      logger.error('거래 수정 실패:', error)
       throw error
     }
   }
@@ -125,13 +138,13 @@ export class TransactionService {
         method: 'DELETE',
       })
 
-      const result = await response.json()
+      const result = (await response.json()) as ApiResponse<void>
 
       if (!result.success) {
         throw new Error(result.error || '거래 삭제에 실패했습니다.')
       }
     } catch (error) {
-      console.error('거래 삭제 실패:', error)
+      logger.error('거래 삭제 실패:', error)
       throw error
     }
   }
@@ -148,15 +161,15 @@ export class TransactionService {
       if (filter?.dateTo) params.append('dateTo', filter.dateTo)
 
       const response = await fetch(`${this.baseUrl}/transactions/stats?${params}`)
-      const result = await response.json()
+      const result = (await response.json()) as ApiResponse<TransactionStats>
 
-      if (!result.success) {
+      if (!result.success || !result.data) {
         throw new Error(result.error || '거래 통계를 조회할 수 없습니다.')
       }
 
       return result.data
     } catch (error) {
-      console.error('거래 통계 조회 실패:', error)
+      logger.error('거래 통계 조회 실패:', error)
       throw error
     }
   }
@@ -165,34 +178,37 @@ export class TransactionService {
   async getDailyTransactionSummary(date: string): Promise<DailyTransactionSummary> {
     try {
       const response = await fetch(`${this.baseUrl}/transactions/daily-summary?date=${date}`)
-      const result = await response.json()
+      const result = (await response.json()) as ApiResponse<DailyTransactionSummary>
 
-      if (!result.success) {
+      if (!result.success || !result.data) {
         throw new Error(result.error || '일별 거래 요약을 조회할 수 없습니다.')
       }
 
       return result.data
     } catch (error) {
-      console.error('일별 거래 요약 조회 실패:', error)
+      logger.error('일별 거래 요약 조회 실패:', error)
       throw error
     }
   }
 
   // 월별 거래 요약
-  async getMonthlyTransactionSummary(year: number, month: number): Promise<any> {
+  async getMonthlyTransactionSummary(
+    year: number,
+    month: number,
+  ): Promise<DailyTransactionSummary> {
     try {
       const response = await fetch(
         `${this.baseUrl}/transactions/monthly-summary?year=${year}&month=${month}`,
       )
-      const result = await response.json()
+      const result = (await response.json()) as ApiResponse<DailyTransactionSummary>
 
-      if (!result.success) {
+      if (!result.success || !result.data) {
         throw new Error(result.error || '월별 거래 요약을 조회할 수 없습니다.')
       }
 
       return result.data
     } catch (error) {
-      console.error('월별 거래 요약 조회 실패:', error)
+      logger.error('월별 거래 요약 조회 실패:', error)
       throw error
     }
   }
@@ -210,15 +226,19 @@ export class TransactionService {
         body: formData,
       })
 
-      const result = await response.json()
+      const result = (await response.json()) as ApiResponse<{
+        success: number
+        failed: number
+        errors: string[]
+      }>
 
-      if (!result.success) {
+      if (!result.success || !result.data) {
         throw new Error(result.error || '거래 내역 업로드에 실패했습니다.')
       }
 
       return result.data
     } catch (error) {
-      console.error('거래 내역 업로드 실패:', error)
+      logger.error('거래 내역 업로드 실패:', error)
       throw error
     }
   }
