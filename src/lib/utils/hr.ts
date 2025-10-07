@@ -9,7 +9,7 @@ import { toUTC, formatDateForInput } from '$lib/utils/date-handler'
  * 직원 이름을 한국식으로 포맷팅 (성+이름)
  */
 export function formatEmployeeName(employee: Employee): string {
-  return employee.name
+  return employee.name || `${employee.first_name} ${employee.last_name}`
 }
 
 /**
@@ -129,19 +129,19 @@ export function isTeamLeader(employee: Employee): boolean {
  * 계약직 여부 확인
  */
 export function isContractEmployee(employee: Employee): boolean {
-  return employee.employmentType === 'contract'
+  return employee.employment_type === 'contract'
 }
 
 /**
  * 퇴사 예정자 여부 확인
  */
 export function isTerminationPending(employee: Employee): boolean {
-  if (!employee.terminationDate || employee.status === 'terminated') {
+  if (!employee.termination_date || employee.status === 'terminated') {
     return false
   }
 
   const now = new Date()
-  const terminationDate = new Date(employee.terminationDate)
+  const terminationDate = new Date(employee.termination_date)
   const oneMonthFromNow = new Date()
   oneMonthFromNow.setMonth(oneMonthFromNow.getMonth() + 1)
 
@@ -152,12 +152,12 @@ export function isTerminationPending(employee: Employee): boolean {
  * 퇴사까지 남은 일수 계산
  */
 export function getDaysUntilTermination(employee: Employee): number | null {
-  if (!employee.terminationDate || employee.status === 'terminated') {
+  if (!employee.termination_date || employee.status === 'terminated') {
     return null
   }
 
   const now = new Date()
-  const terminationDate = new Date(employee.terminationDate)
+  const terminationDate = new Date(employee.termination_date)
   const diffTime = terminationDate.getTime() - now.getTime()
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
 
@@ -168,7 +168,7 @@ export function getDaysUntilTermination(employee: Employee): number | null {
  * 근속년수 계산
  */
 export function getTenureYears(employee: Employee): number {
-  const hireDate = new Date(employee.hireDate)
+  const hireDate = new Date(employee.hire_date)
   const now = new Date()
   const diffTime = now.getTime() - hireDate.getTime()
   const diffYears = diffTime / (1000 * 60 * 60 * 24 * 365.25)
@@ -251,9 +251,9 @@ export function searchEmployees(employees: Employee[], query: string): Employee[
   const lowercaseQuery = query.toLowerCase()
   return employees.filter(
     (emp) =>
-      emp.name.toLowerCase().includes(lowercaseQuery) ||
+      (emp.name && emp.name.toLowerCase().includes(lowercaseQuery)) ||
       emp.email.toLowerCase().includes(lowercaseQuery) ||
-      emp.employeeId.toLowerCase().includes(lowercaseQuery),
+      emp.employee_id.toLowerCase().includes(lowercaseQuery),
   )
 }
 
@@ -274,7 +274,7 @@ export function filterEmployees(
     if (filters.department && emp.department !== filters.department) return false
     if (filters.position && emp.position !== filters.position) return false
     if (filters.status && emp.status !== filters.status) return false
-    if (filters.employmentType && emp.employmentType !== filters.employmentType) return false
+    if (filters.employmentType && emp.employment_type !== filters.employmentType) return false
     if (filters.level && emp.level !== filters.level) return false
     return true
   })
@@ -307,12 +307,12 @@ export function sortEmployees(
 
     switch (sortBy) {
       case 'name':
-        aValue = a.name
-        bValue = b.name
+        aValue = a.name || ''
+        bValue = b.name || ''
         break
       case 'employeeId':
-        aValue = a.employeeId
-        bValue = b.employeeId
+        aValue = a.employee_id
+        bValue = b.employee_id
         break
       case 'department':
         aValue = a.department
@@ -323,8 +323,8 @@ export function sortEmployees(
         bValue = b.position
         break
       case 'hireDate':
-        aValue = new Date(a.hireDate).getTime()
-        bValue = new Date(b.hireDate).getTime()
+        aValue = new Date(a.hire_date).getTime()
+        bValue = new Date(b.hire_date).getTime()
         break
       case 'status':
         aValue = a.status
@@ -383,7 +383,9 @@ export function getEmploymentTypeStats(employees: Employee[]): Record<Employment
     intern: 0,
   }
   employees.forEach((emp) => {
-    stats[emp.employmentType]++
+    if (emp.employment_type) {
+      stats[emp.employment_type]++
+    }
   })
   return stats
 }

@@ -322,7 +322,7 @@ class SalesStore {
     this.data.transactions = transactions
   }
 
-  deleteCustomer(customerId: number) {
+  deleteCustomer(customerId: string) {
     this.data.customers = this.data.customers.filter((c) => c.id !== customerId)
   }
 }

@@ -21,10 +21,8 @@ export function useSalaryStats() {
     if (result.success && result.data) {
       store.setSalaryStructures(result.data)
     } else {
-      pushToast({
-        message: result.error || '급여 구조 목록을 불러오는데 실패했습니다.',
-        type: 'error',
-      })
+      const errorMsg = result.error || '급여 구조 목록을 불러오는데 실패했습니다.'
+      pushToast(errorMsg, 'error')
     }
 
     store.setLoading(false)
@@ -40,11 +38,12 @@ export function useSalaryStats() {
     const result = await salaryStatsService.createSalaryStructure(structure)
 
     if (result.success && result.data) {
-      pushToast({ message: '급여 구조가 추가되었습니다.', type: 'success' })
+      pushToast('급여 구조가 추가되었습니다.', 'success')
       await loadSalaryStructures() // 목록 새로고침
       return true
     } else {
-      pushToast({ message: result.error || '급여 구조 추가에 실패했습니다.', type: 'error' })
+      const errorMsg = result.error || '급여 구조 추가에 실패했습니다.'
+      pushToast(errorMsg, 'error')
       store.setLoading(false)
       return false
     }
@@ -58,11 +57,12 @@ export function useSalaryStats() {
     const result = await salaryStatsService.updateSalaryStructure(id, updates)
 
     if (result.success) {
-      pushToast({ message: '급여 구조가 수정되었습니다.', type: 'success' })
+      pushToast('급여 구조가 수정되었습니다.', 'success')
       await loadSalaryStructures() // 목록 새로고침
       return true
     } else {
-      pushToast({ message: result.error || '급여 구조 수정에 실패했습니다.', type: 'error' })
+      const errorMsg = result.error || '급여 구조 수정에 실패했습니다.'
+      pushToast(errorMsg, 'error')
       store.setLoading(false)
       return false
     }
@@ -76,11 +76,12 @@ export function useSalaryStats() {
     const result = await salaryStatsService.deleteSalaryStructure(id)
 
     if (result.success) {
-      pushToast({ message: '급여 구조가 삭제되었습니다.', type: 'success' })
+      pushToast('급여 구조가 삭제되었습니다.', 'success')
       await loadSalaryStructures() // 목록 새로고침
       return true
     } else {
-      pushToast({ message: result.error || '급여 구조 삭제에 실패했습니다.', type: 'error' })
+      const errorMsg = result.error || '급여 구조 삭제에 실패했습니다.'
+      pushToast(errorMsg, 'error')
       store.setLoading(false)
       return false
     }

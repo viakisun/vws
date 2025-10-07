@@ -23,11 +23,9 @@ export function usePayslips() {
     if (result.success && result.data) {
       store.setPayslips(result.data)
     } else {
-      store.setError(result.error || '급여명세서 목록을 불러오는데 실패했습니다.')
-      pushToast({
-        message: result.error || '급여명세서 목록을 불러오는데 실패했습니다.',
-        type: 'error',
-      })
+      const errorMsg = result.error || '급여명세서 목록을 불러오는데 실패했습니다.'
+      store.setError(errorMsg)
+      pushToast(errorMsg, 'error')
     }
 
     store.setLoading(false)
@@ -42,12 +40,10 @@ export function usePayslips() {
 
     if (result.success && result.data) {
       store.setPayslips(result.data)
-      pushToast({ message: '직원 급여명세서를 불러왔습니다.', type: 'error' })
+      pushToast('직원 급여명세서를 불러왔습니다.', 'success')
     } else {
-      pushToast({
-        message: result.error || '직원 급여명세서를 불러오는데 실패했습니다.',
-        type: 'error',
-      })
+      const errorMsg = result.error || '직원 급여명세서를 불러오는데 실패했습니다.'
+      pushToast(errorMsg, 'error')
     }
 
     store.setLoading(false)
@@ -61,12 +57,13 @@ export function usePayslips() {
     const result = await payslipService.createPayslip(employeeId, period)
 
     if (result.success && result.data) {
-      pushToast({ message: '급여명세서가 생성되었습니다.', type: 'error' })
+      pushToast('급여명세서가 생성되었습니다.', 'success')
       await loadPayslips() // 목록 새로고침
       store.closePayslipModal()
       return true
     } else {
-      pushToast({ message: result.error || '급여명세서 생성에 실패했습니다.', type: 'error' })
+      const errorMsg = result.error || '급여명세서 생성에 실패했습니다.'
+      pushToast(errorMsg, 'error')
       store.setLoading(false)
       return false
     }
@@ -80,12 +77,13 @@ export function usePayslips() {
     const result = await payslipService.updatePayslip(payslipId, updates)
 
     if (result.success) {
-      pushToast({ message: '급여명세서가 수정되었습니다.', type: 'error' })
+      pushToast('급여명세서가 수정되었습니다.', 'success')
       await loadPayslips() // 목록 새로고침
       store.closePayslipModal()
       return true
     } else {
-      pushToast({ message: result.error || '급여명세서 수정에 실패했습니다.', type: 'error' })
+      const errorMsg = result.error || '급여명세서 수정에 실패했습니다.'
+      pushToast(errorMsg, 'error')
       store.setLoading(false)
       return false
     }
@@ -99,11 +97,12 @@ export function usePayslips() {
     const result = await payslipService.deletePayslip(payslipId)
 
     if (result.success) {
-      pushToast({ message: '급여명세서가 삭제되었습니다.', type: 'error' })
+      pushToast('급여명세서가 삭제되었습니다.', 'success')
       await loadPayslips() // 목록 새로고침
       return true
     } else {
-      pushToast({ message: result.error || '급여명세서 삭제에 실패했습니다.', type: 'error' })
+      const errorMsg = result.error || '급여명세서 삭제에 실패했습니다.'
+      pushToast(errorMsg, 'error')
       store.setLoading(false)
       return false
     }
@@ -117,9 +116,10 @@ export function usePayslips() {
     const result = await payslipService.downloadPayslip(payslipId)
 
     if (result.success) {
-      pushToast({ message: '급여명세서가 다운로드되었습니다.', type: 'error' })
+      pushToast('급여명세서가 다운로드되었습니다.', 'success')
     } else {
-      pushToast({ message: result.error || '급여명세서 다운로드에 실패했습니다.', type: 'error' })
+      const errorMsg = result.error || '급여명세서 다운로드에 실패했습니다.'
+      pushToast(errorMsg, 'error')
     }
 
     store.setLoading(false)
@@ -136,7 +136,8 @@ export function usePayslips() {
     if (result.success && result.data) {
       store.setSalaryHistory(result.data)
     } else {
-      pushToast({ message: result.error || '급여 이력을 불러오는데 실패했습니다.', type: 'error' })
+      const errorMsg = result.error || '급여 이력을 불러오는데 실패했습니다.'
+      pushToast(errorMsg, 'error')
     }
 
     store.setLoading(false)
@@ -150,11 +151,12 @@ export function usePayslips() {
     const result = await payslipService.uploadPayslipTemplate(formData)
 
     if (result.success) {
-      pushToast({ message: '급여명세서가 업로드되었습니다.', type: 'error' })
+      pushToast('급여명세서가 업로드되었습니다.', 'success')
       await loadPayslips() // 목록 새로고침
       return true
     } else {
-      pushToast({ message: result.error || '급여명세서 업로드에 실패했습니다.', type: 'error' })
+      const errorMsg = result.error || '급여명세서 업로드에 실패했습니다.'
+      pushToast(errorMsg, 'error')
       store.setLoading(false)
       return false
     }

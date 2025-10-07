@@ -25,9 +25,9 @@ export const filteredEmployees = derived([employees, searchFilter], ([$employees
     const query = $filter.query.toLowerCase()
     filtered = filtered.filter(
       (emp) =>
-        emp.name.toLowerCase().includes(query) ||
+        (emp.name && emp.name.toLowerCase().includes(query)) ||
         emp.email.toLowerCase().includes(query) ||
-        emp.employeeId.toLowerCase().includes(query),
+        emp.employee_id.toLowerCase().includes(query),
     )
   }
 
@@ -48,7 +48,7 @@ export const filteredEmployees = derived([employees, searchFilter], ([$employees
 
   // 고용 형태 필터
   if ($filter.employmentType) {
-    filtered = filtered.filter((emp) => emp.employmentType === $filter.employmentType)
+    filtered = filtered.filter((emp) => emp.employment_type === $filter.employmentType)
   }
 
   // 레벨 필터
@@ -58,11 +58,11 @@ export const filteredEmployees = derived([employees, searchFilter], ([$employees
 
   // 입사일 필터
   if ($filter.hireDateFrom) {
-    filtered = filtered.filter((emp) => emp.hireDate >= $filter.hireDateFrom!)
+    filtered = filtered.filter((emp) => emp.hire_date >= $filter.hireDateFrom!)
   }
 
   if ($filter.hireDateTo) {
-    filtered = filtered.filter((emp) => emp.hireDate <= $filter.hireDateTo!)
+    filtered = filtered.filter((emp) => emp.hire_date <= $filter.hireDateTo!)
   }
 
   return filtered
@@ -109,25 +109,29 @@ export const employeeStatistics = derived(employees, ($employees) => {
   $employees.forEach((emp) => {
     stats.byDepartment[emp.department] = (stats.byDepartment[emp.department] || 0) + 1
     stats.byPosition[emp.position] = (stats.byPosition[emp.position] || 0) + 1
-    stats.byEmploymentType[emp.employmentType]++
-    stats.byLevel[emp.level]++
+    if (emp.employment_type) {
+      stats.byEmploymentType[emp.employment_type]++
+    }
+    if (emp.level) {
+      stats.byLevel[emp.level]++
+    }
   })
 
   // 최근 입사/퇴사 통계
   const thirtyDaysAgo = new Date()
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
 
-  stats.recentHires = $employees.filter((emp) => new Date(emp.hireDate) >= thirtyDaysAgo).length
+  stats.recentHires = $employees.filter((emp) => new Date(emp.hire_date) >= thirtyDaysAgo).length
 
   stats.recentTerminations = $employees.filter(
-    (emp) => emp.terminationDate && new Date(emp.terminationDate) >= thirtyDaysAgo,
+    (emp) => emp.termination_date && new Date(emp.termination_date) >= thirtyDaysAgo,
   ).length
 
   // 평균 근속년수
   const activeEmployees = $employees.filter((emp) => emp.status === 'active')
   if (activeEmployees.length > 0) {
     const totalTenure = activeEmployees.reduce((sum, emp) => {
-      const hireDate = new Date(emp.hireDate)
+      const hireDate = new Date(emp.hire_date)
       const now = new Date()
       const tenureYears = (now.getTime() - hireDate.getTime()) / (1000 * 60 * 60 * 24 * 365)
       return sum + tenureYears
@@ -167,7 +171,7 @@ export const teamLeaders = derived(employees, ($employees) => {
 
 // ===== 계약직 직원 목록 =====
 export const contractEmployees = derived(employees, ($employees) => {
-  return $employees.filter((emp) => emp.employmentType === 'contract')
+  return $employees.filter((emp) => emp.employment_type === 'contract')
 })
 
 // ===== 퇴사 예정자 목록 =====
@@ -178,9 +182,9 @@ export const terminationPending = derived(employees, ($employees) => {
 
   return $employees.filter(
     (emp) =>
-      emp.terminationDate &&
-      new Date(emp.terminationDate) >= now &&
-      new Date(emp.terminationDate) <= oneMonthFromNow,
+      emp.termination_date &&
+      new Date(emp.termination_date) >= now &&
+      new Date(emp.termination_date) <= oneMonthFromNow,
   )
 })
 
@@ -189,8 +193,8 @@ export const terminatedEmployees = derived(employees, ($employees) => {
   return $employees
     .filter((emp) => emp.status === 'terminated')
     .sort((a, b) => {
-      if (!a.terminationDate || !b.terminationDate) return 0
-      return new Date(b.terminationDate).getTime() - new Date(a.terminationDate).getTime()
+      if (!a.termination_date || !b.termination_date) return 0
+      return new Date(b.termination_date).getTime() - new Date(a.termination_date).getTime()
     })
 })
 

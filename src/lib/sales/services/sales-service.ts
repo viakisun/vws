@@ -57,7 +57,7 @@ export async function createCustomer(data: CustomerFormData): Promise<ApiRespons
 }
 
 export async function updateCustomer(
-  id: number,
+  id: string,
   data: CustomerFormData,
 ): Promise<ApiResponse<any>> {
   try {
@@ -75,7 +75,7 @@ export async function updateCustomer(
   }
 }
 
-export async function deleteCustomer(id: number): Promise<ApiResponse<void>> {
+export async function deleteCustomer(id: string): Promise<ApiResponse<void>> {
   try {
     const response = await fetch(`/api/sales/customers/${id}`, {
       method: 'DELETE',

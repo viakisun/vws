@@ -329,7 +329,9 @@ export const POST: RequestHandler = async ({ request }) => {
 
     const newEmployee: Employee = {
       id: result.rows[0].id,
-      employeeId: result.rows[0].employee_id,
+      employee_id: result.rows[0].employee_id,
+      first_name: result.rows[0].first_name || '',
+      last_name: result.rows[0].last_name || '',
       name: result.rows[0].name,
       email: result.rows[0].email,
       phone: result.rows[0].phone,
@@ -337,20 +339,20 @@ export const POST: RequestHandler = async ({ request }) => {
       department: result.rows[0].department,
       position: result.rows[0].position,
       level: result.rows[0].level as EmployeeLevel,
-      employmentType: result.rows[0].employment_type as EmploymentType,
-      hireDate: result.rows[0].hire_date,
-      birthDate: result.rows[0].birth_date,
+      employment_type: result.rows[0].employment_type as EmploymentType,
+      hire_date: result.rows[0].hire_date,
+      birth_date: result.rows[0].birth_date,
       status: result.rows[0].status as EmployeeStatus,
-      managerId: result.rows[0].manager_id,
-      profileImage: result.rows[0].profile_image,
-      emergencyContact: (result.rows[0].emergency_contact
+      manager_id: result.rows[0].manager_id,
+      profile_image: result.rows[0].profile_image,
+      emergency_contact: (result.rows[0].emergency_contact
         ? JSON.parse(result.rows[0].emergency_contact)
         : {
             name: '',
             relationship: '',
             phone: '',
           }) as EmergencyContact,
-      personalInfo: (result.rows[0].personal_info
+      personal_info: (result.rows[0].personal_info
         ? JSON.parse(result.rows[0].personal_info)
         : {
             birthDate: '',
@@ -358,9 +360,9 @@ export const POST: RequestHandler = async ({ request }) => {
             nationality: '',
             maritalStatus: 'single' as const,
           }) as PersonalInfo,
-      terminationDate: result.rows[0].termination_date,
-      createdAt: result.rows[0].created_at,
-      updatedAt: result.rows[0].updated_at,
+      termination_date: result.rows[0].termination_date,
+      created_at: result.rows[0].created_at,
+      updated_at: result.rows[0].updated_at,
     }
 
     const response: ApiResponse<Employee> = {
