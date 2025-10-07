@@ -3,6 +3,36 @@ import { alertGenerator } from '$lib/finance/services/alerts/alert-generator'
 import type { CreateTransactionRequest, Transaction } from '$lib/finance/types'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger'
+
+interface TransactionRow {
+  id: string
+  account_id: string
+  category_id: string
+  amount: string | number
+  type: string
+  description?: string
+  transaction_date: string
+  counterparty?: string
+  deposits?: string | number
+  withdrawals?: string | number
+  balance?: string | number
+  status: string
+  created_at: string
+  updated_at: string
+  account_name: string
+  account_number: string
+  bank_id: string
+  bank_name: string
+  category_name: string
+  category_type: string
+  category_color?: string
+  [key: string]: unknown
+}
+
+interface CountRow {
+  count: string | number
+}
 
 // 거래 내역 조회
 export const GET: RequestHandler = async ({ url }) => {
@@ -43,7 +73,7 @@ export const GET: RequestHandler = async ({ url }) => {
       LEFT JOIN finance_categories c ON t.category_id = c.id
       WHERE 1=1
     `
-    const params: any[] = []
+    const params: unknown[] = []
     let paramIndex = 1
 
     if (accountId) {
@@ -150,20 +180,20 @@ export const GET: RequestHandler = async ({ url }) => {
       countParams.push(`%${search}%`, `%${search}%`)
     }
 
-    console.log('🔍 COUNT 쿼리 실행:', countQuery)
-    console.log('📊 COUNT 파라미터:', countParams)
+    logger.info('🔍 COUNT 쿼리 실행:', countQuery)
+    logger.info('📊 COUNT 파라미터:', countParams)
 
-    const countResult = await query(countQuery, countParams)
+    const countResult = await query<CountRow>(countQuery, countParams)
     const total = parseInt(countResult.rows[0]?.total || '0')
 
-    console.log('📈 총 거래 수:', total)
+    logger.info('📈 총 거래 수:', total)
 
     // 페이징 적용
     queryText += ` ORDER BY t.transaction_date DESC, t.created_at DESC`
     queryText += ` LIMIT $${paramIndex++} OFFSET $${paramIndex++}`
     params.push(limit, offset)
 
-    const result = await query(queryText, params)
+    const result = await query<TransactionRow>(queryText, params)
 
     const transactions: Transaction[] = result.rows.map((row) => ({
       id: row.id,
@@ -233,7 +263,7 @@ export const GET: RequestHandler = async ({ url }) => {
       message: `${transactions.length}개의 거래를 조회했습니다.`,
     })
   } catch (error) {
-    console.error('거래 내역 조회 실패:', error)
+    logger.error('거래 내역 조회 실패:', error)
     return json(
       {
         success: false,
@@ -295,14 +325,14 @@ export const POST: RequestHandler = async ({ request }) => {
       body.recurringPattern ? JSON.stringify(body.recurringPattern) : null,
     ]
 
-    const result = await query(queryText, params)
+    const result = await query<TransactionRow>(queryText, params)
     const transaction = result.rows[0]
 
     // 알림 생성 (비동기로 실행)
     alertGenerator
       .checkAlertsAfterTransaction(transaction.id, body.accountId, body.amount, body.categoryId)
       .catch((error) => {
-        console.error('알림 생성 실패:', error)
+        logger.error('알림 생성 실패:', error)
       })
 
     return json({
@@ -331,7 +361,7 @@ export const POST: RequestHandler = async ({ request }) => {
       message: '거래가 성공적으로 생성되었습니다.',
     })
   } catch (error) {
-    console.error('거래 생성 실패:', error)
+    logger.error('거래 생성 실패:', error)
     return json(
       {
         success: false,
