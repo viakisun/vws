@@ -1,5 +1,254 @@
 # VWS Release Notes
 
+## Version 0.3.0 (2025-10-07)
+
+### 🎯 주요 기능
+
+#### 계좌 태그 시스템 구축
+
+- **포괄적 계좌 태그 관리 시스템**
+  - 6가지 태그 유형 지원: `dashboard`, `revenue`, `operation`, `fund`, `rnd`, `custom`
+  - 계좌별 다중 태그 할당 기능
+  - 태그 기반 필터링 및 시각화
+  - 태그별 색상 코딩으로 시각적 구분
+
+- **RND 태그 기반 잔액 제외 시스템**
+  - 연구개발 전용 계좌를 회사 총 잔액에서 자동 제외
+  - 대시보드 통계 계산 시 RND 태그 계좌 필터링
+  - 정확한 자금 현황 파악 지원
+
+#### 자금 관리 아키텍처 리팩토링
+
+- **Clean Architecture 패턴 도입**
+  - Hooks 기반 비즈니스 로직 분리: `useAccounts`, `useTransactions`, `useBudgets`, `useFinanceManagement`
+  - 단일 통합 Store: `financeStore.svelte.ts` (Svelte 5 Runes 기반)
+  - Services 계층 분리로 API 통신 로직 독립화
+  - 레거시 finance-store 제거 및 신규 아키텍처로 전환
+
+- **Svelte 5 Runes 전면 도입**
+  - `$state`, `$derived`, `$derived.by` 사용으로 완벽한 반응성 확보
+  - 기존 getter 방식에서 `$derived.by()` 전환으로 통계 반응성 문제 해결
+  - 컴포넌트 간 데이터 흐름 개선
+
+#### 계좌 관리 UI/UX 대폭 개선
+
+- **통합 계좌 편집 모달**
+  - 계좌명, 상태, 태그, 설명, 주계좌 여부 등 모든 속성 편집
+  - 은행과 계좌번호는 읽기 전용으로 데이터 무결성 보장
+  - 태그 다중 선택 체크박스 UI
+  - 상태 선택 드롭다운: `active`, `inactive`, `suspended`, `closed`
+
+- **계좌 태그 표시 개선**
+  - 계좌 테이블에서 용도/별칭 칼럼에 태그 표시
+  - 태그 색상 코딩으로 시각적 가독성 향상
+  - 최대 3개 태그 미리보기 지원
+
+#### 거래 내역 관리 개선
+
+- **활성 계좌 필터링**
+  - 거래 내역 관리 화면에서 비활성/정지/폐쇄 계좌 자동 필터링
+  - 활성 계좌만 드롭다운에 표시하여 사용자 혼란 방지
+  - 계좌 선택 UI 간소화
+
+- **상단 액션 버튼 제거**
+  - "거래 추가", "엑셀 업로드", "대량 삭제" 버튼 제거
+  - 계좌별 거래 관리 플로우로 전환
+  - 깔끔한 UI 제공
+
+#### 대시보드 개선
+
+- **주요 계좌 패널 개선**
+  - `dashboard` 태그가 있는 계좌만 표시
+  - 은행별 색상 코딩 적용
+  - 계좌번호 마스킹 (마지막 4자리만 표시)
+  - 계좌 상태 시각적 표시 (활성/비활성/정지/폐쇄)
+  - 태그 정보 카드에 표시
+
+- **통계 카드 반응성 개선**
+  - 총 잔액, 활성 계좌 수, 월별 수입/지출, 순현금흐름 실시간 업데이트
+  - 서버 계산 통계와 프론트엔드 통계 동기화
+  - `$derived.by()` 사용으로 완벽한 반응성 확보
+
+### 🐛 버그 수정
+
+#### 계좌 잔액 계산 오류 수정
+
+- **크리티컬 버그**: API에서 `balance > 0` 조건으로 인해 잔액이 0원인 거래 건너뛰는 문제
+  - **영향**: KOSFARM-2-적과적심로봇 계좌가 실제 ₩0인데 ₩27,000,000으로 표시
+  - **원인**: `/api/finance/accounts/+server.ts`의 LATERAL JOIN 쿼리에서 `AND balance > 0` 조건
+  - **해결**: 조건 제거로 항상 최신 거래의 잔액 반환하도록 수정
+
+#### 대시보드 통계 반응성 문제 해결
+
+- **문제**: 총 잔액이 ₩0으로 표시되는 문제
+  - **원인**: `financeStore`의 `statistics`가 getter 방식으로 정의되어 Svelte 5에서 반응성 없음
+  - **해결**: `statistics = $derived.by()` 방식으로 전환
+  - **추가 수정**: `+page.svelte`에서 props 전달 방식 개선 (중첩 객체 → 직접 속성 전달)
+
+#### 계좌 편집 UI 문제 해결
+
+- **문제**: 편집 버튼이 보이지 않고 태그 버튼만 표시
+  - **해결**: 태그 아이콘 버튼을 편집 아이콘 버튼으로 교체
+  - 액션 칼럼 구성: 보기, 편집, 삭제 버튼
+
+### 🔧 기술적 개선
+
+#### 새로운 API 엔드포인트
+
+- **계좌 태그 관리**
+  - `GET/POST /api/finance/account-tags` - 태그 목록 조회 및 생성
+  - `GET/PUT/DELETE /api/finance/account-tags/[id]` - 개별 태그 관리
+  - `GET/PUT /api/finance/accounts/[id]/tags` - 계좌별 태그 할당 관리
+
+- **계좌 관리 개선**
+  - `GET /api/finance/accounts/bank-summaries` - 은행별 계좌 요약 조회
+  - `PUT /api/finance/accounts/[id]` - 계좌 상태 및 태그 업데이트 지원
+
+- **대시보드 개선**
+  - `GET /api/finance/dashboard` - RND 태그 계좌 제외한 통계 계산
+  - 거래 내역 기반 실시간 잔액 조회 개선
+
+#### 데이터베이스 스키마 업데이트
+
+- **계좌 태그 테이블**
+
+  ```sql
+  CREATE TABLE finance_account_tags (
+    id UUID PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    tag_type VARCHAR(20) NOT NULL,
+    color VARCHAR(7) NOT NULL,
+    description TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+  );
+
+  CREATE TABLE finance_account_tag_relations (
+    account_id UUID REFERENCES finance_accounts(id) ON DELETE CASCADE,
+    tag_id UUID REFERENCES finance_account_tags(id) ON DELETE CASCADE,
+    PRIMARY KEY (account_id, tag_id)
+  );
+  ```
+
+- **계좌 상태 필드**
+  - `finance_accounts.status` 컬럼 활용 강화
+  - 상태별 필터링 및 UI 표시 개선
+
+#### TypeScript 타입 개선
+
+- **새로운 타입 정의**
+
+  ```typescript
+  interface AccountTag {
+    id: string
+    name: string
+    tagType: 'dashboard' | 'revenue' | 'operation' | 'fund' | 'rnd' | 'custom'
+    color: string
+    description?: string
+    createdAt: string
+  }
+
+  interface Account {
+    // ... 기존 필드
+    tags?: AccountTag[]
+    status: 'active' | 'inactive' | 'suspended' | 'closed'
+  }
+
+  interface UpdateAccountRequest {
+    // ... 기존 필드
+    status?: AccountStatus
+    tagIds?: string[]
+  }
+  ```
+
+#### 컴포넌트 구조 개선
+
+- **신규 컴포넌트**
+  - `AccountTagSelector.svelte` - 태그 선택 UI
+  - `TagManagement.svelte` - 태그 관리 페이지
+  - `FinanceOverviewTab.svelte` - 대시보드 개요 탭
+  - `FinanceOverviewCards.svelte` - 통계 카드 컴포넌트
+  - `RecentAccountsPanel.svelte` - 주요 계좌 패널 (완전 재작성)
+  - `ActionItemsPanel.svelte` - 액션 아이템 패널
+
+- **제거된 컴포넌트**
+  - `FinanceDashboard.svelte` (레거시)
+  - `finance-store.ts`, `dashboard-store.ts` (레거시 stores)
+
+### 📊 데이터 정리 및 마이그레이션
+
+- **테스트 데이터 정리**
+  - 더미 거래 데이터 4건 삭제
+  - 계좌 잔액 정확성 검증
+
+- **태그 시스템 초기 데이터**
+  - 기본 태그 생성: 대시보드, 매출, 운영, 자금, 연구개발
+  - 기존 계좌에 적절한 태그 할당
+
+### 🔄 아키텍처 변경사항
+
+#### Before (레거시)
+
+```
+Components → Stores (finance-store, dashboard-store) → API
+```
+
+#### After (신규)
+
+```
+Components → Hooks (useFinanceManagement, useAccounts, etc.)
+          ↓
+    financeStore (Svelte 5 Runes)
+          ↓
+    Services (accountService, transactionService)
+          ↓
+    API Endpoints
+```
+
+### 📝 개발자 노트
+
+#### 주요 Hooks
+
+- **useFinanceManagement**: 마스터 Hook, 모든 자금 관리 기능 통합
+- **useAccounts**: 계좌 CRUD 및 필터링
+- **useTransactions**: 거래 내역 CRUD 및 통계
+- **useBudgets**: 예산 관리
+
+#### Svelte 5 Runes 사용 패턴
+
+```typescript
+// Store
+class FinanceStore {
+  data = $state<FinanceData>(initialData)
+  ui = $state<FinanceUI>(initialUI)
+
+  statistics = $derived.by((): FinanceStatistics => {
+    return {
+      totalBalance: this.dashboardStats?.totalBalance ?? 0,
+      // ...
+    }
+  })
+}
+
+// Component
+const finance = useFinanceManagement()
+const { store } = finance
+
+let activeAccounts = $derived(store.data.accounts.filter((acc) => acc.status === 'active'))
+```
+
+### 🚀 다음 버전 계획
+
+- 태그 기반 고급 필터링 및 검색
+- 계좌별 거래 추가 UI 개선
+- 태그 통계 및 분석 대시보드
+- 예산 태그 연동 시스템
+- 모바일 반응형 UI 개선
+
+---
+
+**전체 변경사항**: 42개 파일 수정, 14개 새 파일 추가, 3개 파일 삭제
+**주요 커밋**: `feat: implement account tagging system and improve finance dashboard`
+
 ## Version 0.2.6 (2025-10-04)
 
 ### 🎯 주요 기능

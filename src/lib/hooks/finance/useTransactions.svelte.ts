@@ -37,7 +37,7 @@ export function useTransactions() {
       const message =
         error instanceof Error ? error.message : '거래 내역을 불러오는데 실패했습니다.'
       store.setError(message)
-      pushToast({ message, type: 'error' })
+      pushToast(message, 'error')
     } finally {
       store.setLoading(false)
     }
@@ -54,7 +54,7 @@ export function useTransactions() {
       return transaction
     } catch (error) {
       const message = error instanceof Error ? error.message : '거래를 조회할 수 없습니다.'
-      pushToast({ message, type: 'error' })
+      pushToast(message, 'error')
       return null
     } finally {
       store.setLoading(false)
@@ -69,13 +69,13 @@ export function useTransactions() {
 
     try {
       await transactionService.createTransaction(data)
-      pushToast({ message: '거래가 등록되었습니다.', type: 'success' })
+      pushToast('거래가 등록되었습니다.', 'success')
       await loadTransactions() // 목록 새로고침
       store.closeTransactionModal()
       return true
     } catch (error) {
       const message = error instanceof Error ? error.message : '거래 등록에 실패했습니다.'
-      pushToast({ message, type: 'error' })
+      pushToast(message, 'error')
       store.setLoading(false)
       return false
     }
@@ -89,13 +89,13 @@ export function useTransactions() {
 
     try {
       await transactionService.updateTransaction(id, data)
-      pushToast({ message: '거래가 수정되었습니다.', type: 'success' })
+      pushToast('거래가 수정되었습니다.', 'success')
       await loadTransactions() // 목록 새로고침
       store.closeTransactionModal()
       return true
     } catch (error) {
       const message = error instanceof Error ? error.message : '거래 수정에 실패했습니다.'
-      pushToast({ message, type: 'error' })
+      pushToast(message, 'error')
       store.setLoading(false)
       return false
     }
@@ -109,12 +109,12 @@ export function useTransactions() {
 
     try {
       await transactionService.deleteTransaction(id)
-      pushToast({ message: '거래가 삭제되었습니다.', type: 'success' })
+      pushToast('거래가 삭제되었습니다.', 'success')
       await loadTransactions() // 목록 새로고침
       return true
     } catch (error) {
       const message = error instanceof Error ? error.message : '거래 삭제에 실패했습니다.'
-      pushToast({ message, type: 'error' })
+      pushToast(message, 'error')
       store.setLoading(false)
       return false
     }
@@ -131,7 +131,7 @@ export function useTransactions() {
       store.setTransactionStats(stats)
     } catch (error) {
       const message = error instanceof Error ? error.message : '거래 통계를 조회할 수 없습니다.'
-      pushToast({ message, type: 'error' })
+      pushToast(message, 'error')
     } finally {
       store.setLoading(false)
     }
@@ -149,7 +149,7 @@ export function useTransactions() {
     } catch (error) {
       const message =
         error instanceof Error ? error.message : '일별 거래 요약을 조회할 수 없습니다.'
-      pushToast({ message, type: 'error' })
+      pushToast(message, 'error')
       return null
     } finally {
       store.setLoading(false)
@@ -168,7 +168,7 @@ export function useTransactions() {
     } catch (error) {
       const message =
         error instanceof Error ? error.message : '월별 거래 요약을 조회할 수 없습니다.'
-      pushToast({ message, type: 'error' })
+      pushToast(message, 'error')
       return null
     } finally {
       store.setLoading(false)
@@ -183,15 +183,14 @@ export function useTransactions() {
 
     try {
       const result = await transactionService.uploadTransactions(file)
-      pushToast({
-        message: `거래 내역 업로드 완료 (성공: ${result.success}건, 실패: ${result.failed}건)`,
-        type: result.failed > 0 ? 'error' : 'success',
-      })
+      const message = `거래 내역 업로드 완료 (성공: ${result.success}건, 실패: ${result.failed}건)`
+      const toastType = result.failed > 0 ? 'error' : 'success'
+      pushToast(message, toastType)
       await loadTransactions() // 목록 새로고침
       return result
     } catch (error) {
       const message = error instanceof Error ? error.message : '거래 내역 업로드에 실패했습니다.'
-      pushToast({ message, type: 'error' })
+      pushToast(message, 'error')
       store.setLoading(false)
       return null
     }

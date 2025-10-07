@@ -19,7 +19,7 @@ export function useFinanceManagement() {
     await Promise.all([
       accounts.loadAccounts(),
       accounts.loadBankSummaries(),
-      transactions.loadTransactions({ limit: 100 }),
+      transactions.loadTransactions(undefined, 1, 100),
       transactions.loadTransactionStats(),
       budgets.loadBudgets(),
       loadDashboardStats(), // 대시보드 통계 로드 (단일 소스)
@@ -67,12 +67,12 @@ export function useFinanceManagement() {
         (t) => t.transactionDate === new Date().toISOString().split('T')[0],
       ).length,
       lowBalanceAccounts: accounts.store.data.accounts.filter(
-        (acc) => acc.status === 'active' && acc.balance < 1000000,
+        (acc) => acc.status === 'active' && (acc.balance ?? 0) < 1000000,
       ).length,
       total:
         accounts.store.data.transactions.filter((t) => t.status === 'pending').length +
         accounts.store.data.accounts.filter(
-          (acc) => acc.status === 'active' && acc.balance < 1000000,
+          (acc) => acc.status === 'active' && (acc.balance ?? 0) < 1000000,
         ).length,
     },
   }))

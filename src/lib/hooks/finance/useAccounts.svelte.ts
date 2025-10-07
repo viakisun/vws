@@ -29,7 +29,7 @@ export function useAccounts() {
       const message =
         error instanceof Error ? error.message : '계좌 목록을 불러오는데 실패했습니다.'
       store.setError(message)
-      pushToast({ message, type: 'error' })
+      pushToast(message, 'error')
     } finally {
       store.setLoading(false)
     }
@@ -46,7 +46,7 @@ export function useAccounts() {
       return account
     } catch (error) {
       const message = error instanceof Error ? error.message : '계좌를 조회할 수 없습니다.'
-      pushToast({ message, type: 'error' })
+      pushToast(message, 'error')
       return null
     } finally {
       store.setLoading(false)
@@ -61,13 +61,13 @@ export function useAccounts() {
 
     try {
       const newAccount = await accountService.createAccount(data)
-      pushToast({ message: '계좌가 생성되었습니다.', type: 'success' })
+      pushToast('계좌가 생성되었습니다.', 'success')
       await loadAccounts() // 목록 새로고침
       store.closeAccountModal()
       return true
     } catch (error) {
       const message = error instanceof Error ? error.message : '계좌 생성에 실패했습니다.'
-      pushToast({ message, type: 'error' })
+      pushToast(message, 'error')
       store.setLoading(false)
       return false
     }
@@ -81,13 +81,13 @@ export function useAccounts() {
 
     try {
       await accountService.updateAccount(id, data)
-      pushToast({ message: '계좌가 수정되었습니다.', type: 'success' })
+      pushToast('계좌가 수정되었습니다.', 'success')
       await loadAccounts() // 목록 새로고침
       store.closeAccountModal()
       return true
     } catch (error) {
       const message = error instanceof Error ? error.message : '계좌 수정에 실패했습니다.'
-      pushToast({ message, type: 'error' })
+      pushToast(message, 'error')
       store.setLoading(false)
       return false
     }
@@ -101,15 +101,13 @@ export function useAccounts() {
 
     try {
       const result = await accountService.deleteAccount(id)
-      pushToast({
-        message: `계좌가 삭제되었습니다${result.deletedTransactionCount ? ` (거래 내역 ${result.deletedTransactionCount}건 함께 삭제)` : ''}.`,
-        type: 'success',
-      })
+      const message = `계좌가 삭제되었습니다${result.deletedTransactionCount ? ` (거래 내역 ${result.deletedTransactionCount}건 함께 삭제)` : ''}.`
+      pushToast(message, 'success')
       await loadAccounts() // 목록 새로고침
       return true
     } catch (error) {
       const message = error instanceof Error ? error.message : '계좌 삭제에 실패했습니다.'
-      pushToast({ message, type: 'error' })
+      pushToast(message, 'error')
       store.setLoading(false)
       return false
     }
@@ -127,7 +125,7 @@ export function useAccounts() {
     } catch (error) {
       const message =
         error instanceof Error ? error.message : '계좌 요약 정보를 조회할 수 없습니다.'
-      pushToast({ message, type: 'error' })
+      pushToast(message, 'error')
       return null
     } finally {
       store.setLoading(false)
@@ -154,7 +152,7 @@ export function useAccounts() {
     } catch (error) {
       const message =
         error instanceof Error ? error.message : '은행별 요약 정보를 조회할 수 없습니다.'
-      pushToast({ message, type: 'error' })
+      pushToast(message, 'error')
     } finally {
       store.setLoading(false)
     }

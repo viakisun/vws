@@ -31,11 +31,9 @@ export function useContracts() {
     if (result.success && result.data) {
       store.setContracts(result.data.data, result.data.total)
     } else {
-      store.setError(result.error || '급여 계약 목록을 불러오는데 실패했습니다.')
-      pushToast({
-        message: result.error || '급여 계약 목록을 불러오는데 실패했습니다.',
-        type: 'error',
-      })
+      const errorMsg = result.error || '급여 계약 목록을 불러오는데 실패했습니다.'
+      store.setError(errorMsg)
+      pushToast(errorMsg, 'error')
     }
 
     store.setLoading(false)
@@ -50,10 +48,8 @@ export function useContracts() {
     if (result.success && result.data) {
       store.setContractStats(result.data)
     } else {
-      pushToast({
-        message: result.error || '급여 계약 통계를 불러오는데 실패했습니다.',
-        type: 'error',
-      })
+      const errorMsg = result.error || '급여 계약 통계를 불러오는데 실패했습니다.'
+      pushToast(errorMsg, 'error')
     }
   }
 
@@ -66,12 +62,10 @@ export function useContracts() {
 
     if (result.success && result.data) {
       // currentSalaryInfo는 필요시 store에 추가
-      pushToast({ message: '직원 급여 정보를 불러왔습니다.', type: 'success' })
+      pushToast('직원 급여 정보를 불러왔습니다.', 'success')
     } else {
-      pushToast({
-        message: result.error || '직원 급여 정보를 불러오는데 실패했습니다.',
-        type: 'error',
-      })
+      const errorMsg = result.error || '직원 급여 정보를 불러오는데 실패했습니다.'
+      pushToast(errorMsg, 'error')
     }
 
     store.setLoading(false)
@@ -85,12 +79,13 @@ export function useContracts() {
     const result = await contractService.createContract(contractData)
 
     if (result.success && result.data) {
-      pushToast({ message: '급여 계약이 생성되었습니다.', type: 'success' })
+      pushToast('급여 계약이 생성되었습니다.', 'success')
       await loadContracts() // 목록 새로고침
       store.closeContractModal()
       return true
     } else {
-      pushToast({ message: result.error || '급여 계약 생성에 실패했습니다.', type: 'error' })
+      const errorMsg = result.error || '급여 계약 생성에 실패했습니다.'
+      pushToast(errorMsg, 'error')
       store.setLoading(false)
       return false
     }
@@ -104,12 +99,13 @@ export function useContracts() {
     const result = await contractService.updateContract(contractId, updateData)
 
     if (result.success) {
-      pushToast({ message: '급여 계약이 수정되었습니다.', type: 'success' })
+      pushToast('급여 계약이 수정되었습니다.', 'success')
       await loadContracts() // 목록 새로고침
       store.closeContractModal()
       return true
     } else {
-      pushToast({ message: result.error || '급여 계약 수정에 실패했습니다.', type: 'error' })
+      const errorMsg = result.error || '급여 계약 수정에 실패했습니다.'
+      pushToast(errorMsg, 'error')
       store.setLoading(false)
       return false
     }
@@ -123,11 +119,12 @@ export function useContracts() {
     const result = await contractService.deleteContract(contractId)
 
     if (result.success) {
-      pushToast({ message: '급여 계약이 삭제되었습니다.', type: 'success' })
+      pushToast('급여 계약이 삭제되었습니다.', 'success')
       await loadContracts() // 목록 새로고침
       return true
     } else {
-      pushToast({ message: result.error || '급여 계약 삭제에 실패했습니다.', type: 'error' })
+      const errorMsg = result.error || '급여 계약 삭제에 실패했습니다.'
+      pushToast(errorMsg, 'error')
       store.setLoading(false)
       return false
     }

@@ -145,7 +145,7 @@ class FinanceStore {
       const search = filter.search.toLowerCase()
       filtered = filtered.filter(
         (acc) =>
-          acc.accountName.toLowerCase().includes(search) ||
+          acc.name.toLowerCase().includes(search) ||
           acc.accountNumber.toLowerCase().includes(search),
       )
     }
