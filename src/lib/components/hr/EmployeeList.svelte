@@ -5,24 +5,14 @@
   import ThemeInput from '$lib/components/ui/ThemeInput.svelte'
   import ThemeSpacer from '$lib/components/ui/ThemeSpacer.svelte'
   import type { Employee, Department, Position, JobTitle } from '$lib/types/hr'
-  import { formatDate, formatEmployeeName } from '$lib/utils/format'
+  import { formatDate } from '$lib/utils/format'
   import {
     getEmploymentTypeBadgeColor,
     getEmploymentTypeLabel,
-    getLevelLabel,
     getStatusBadgeColor,
     getStatusLabel,
   } from '$lib/utils/hr'
-  import {
-    EditIcon,
-    EyeIcon,
-    MailIcon,
-    PhoneIcon,
-    PlusIcon,
-    SearchIcon,
-    TrashIcon,
-    UserPlusIcon,
-  } from '@lucide/svelte'
+  import { EditIcon, SearchIcon, TrashIcon, UserPlusIcon } from '@lucide/svelte'
 
   let {
     employees = [],
@@ -114,7 +104,7 @@
           type="search"
           placeholder="이름, 사번, 이메일, 전화번호로 검색..."
           value={searchTerm}
-          onchange={(e) => onSearchChange?.(e.currentTarget.value)}
+          onchange={(e) => onSearchChange?.((e.currentTarget as HTMLInputElement)?.value || '')}
           class="pl-10"
         />
       </div>

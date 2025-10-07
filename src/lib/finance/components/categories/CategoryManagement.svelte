@@ -251,7 +251,7 @@
                   class="w-6 h-6 rounded border-2 {newCategory.color === color
                     ? 'border-gray-800'
                     : 'border-gray-300'}"
-                  style="background-color: {color}"
+                  style:background-color={color}
                 ></button>
               {/each}
             </div>
@@ -340,7 +340,7 @@
                     <div class="flex items-center">
                       <span
                         class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium text-white"
-                        style="background-color: {category.color}"
+                        style:background-color={category.color}
                       >
                         {category.name}
                       </span>

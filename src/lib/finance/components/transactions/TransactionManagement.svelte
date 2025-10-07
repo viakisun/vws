@@ -10,7 +10,7 @@
   } from '$lib/finance/types'
   import { formatCurrency, formatDate } from '$lib/finance/utils'
   import { formatDateTimeForInput, getCurrentUTC, toUTC } from '$lib/utils/date-handler'
-  import { PlusIcon, SearchIcon } from '@lucide/svelte'
+  import { SearchIcon } from '@lucide/svelte'
   import { onMount } from 'svelte'
 
   // 유틸리티 함수들 - 표준 날짜 처리 함수 사용
@@ -848,7 +848,7 @@
                 fill-rule="evenodd"
                 d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
                 clip-rule="evenodd"
-              ></path>
+              />
             </svg>
           </div>
           <div class="ml-3">
@@ -878,6 +878,7 @@
       </div>
       <div class="flex flex-wrap gap-2">
         <button
+          type="button"
           onclick={() => {
             setDateRange('1D')
             handleFilterChange()
@@ -890,6 +891,7 @@
           최근 1일
         </button>
         <button
+          type="button"
           onclick={() => {
             setDateRange('1W')
             handleFilterChange()
@@ -902,6 +904,7 @@
           최근 1주
         </button>
         <button
+          type="button"
           onclick={() => {
             setDateRange('1M')
             handleFilterChange()
@@ -914,6 +917,7 @@
           최근 1개월
         </button>
         <button
+          type="button"
           onclick={() => {
             setDateRange('3M')
             handleFilterChange()
@@ -926,6 +930,7 @@
           최근 3개월
         </button>
         <button
+          type="button"
           onclick={() => {
             setDateRange('ALL')
             handleFilterChange()
@@ -1039,9 +1044,10 @@
                   {account.bank?.name || '알 수 없음'}-{account.accountNumber}
                 </h5>
                 <p class="text-sm text-gray-500">{account.name}</p>
-                <p class="text-xs text-gray-400">잔액: {formatCurrency(account.balance)}</p>
+                <p class="text-xs text-gray-400">잔액: {formatCurrency(account.balance ?? 0)}</p>
               </div>
               <button
+                type="button"
                 onclick={() => {
                   selectedAccountForUpload = account.id
                   document.getElementById(`fileInput-${account.id}`)?.click()
@@ -1098,9 +1104,10 @@
                   {account.bank?.name || '알 수 없음'}-{account.accountNumber}
                 </p>
                 <p class="text-sm text-gray-500">{account.name}</p>
-                <p class="text-xs text-gray-400">잔액: {formatCurrency(account.balance)}</p>
+                <p class="text-xs text-gray-400">잔액: {formatCurrency(account.balance ?? 0)}</p>
               </div>
               <button
+                type="button"
                 onclick={() => confirmAccountDeletion(account.id)}
                 class="px-3 py-1 text-sm bg-red-100 text-red-700 rounded hover:bg-red-200 transition-colors"
               >
@@ -1182,6 +1189,7 @@
 
       <!-- 다중 업로드 버튼 -->
       <button
+        type="button"
         onclick={uploadMultipleFiles}
         disabled={selectedFiles.length === 0 || isMultiUploading}
         class="w-full py-3 px-4 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
@@ -1246,7 +1254,7 @@
                 <h4 class="text-lg font-medium text-gray-900">{account.name}</h4>
                 <p class="text-sm text-gray-500">
                   {account.bank?.name || '알 수 없음'} • {account.accountNumber} • 잔액: {formatCurrency(
-                    account.balance,
+                    account.balance ?? 0,
                   )}
                 </p>
               </div>
@@ -1287,6 +1295,7 @@
                       {accountUploadStates[account.id]?.selectedFile?.name}
                     </span>
                     <button
+                      type="button"
                       onclick={() => uploadAccountTransactions(account.id)}
                       disabled={accountUploadStates[account.id]?.isUploading}
                       class="px-3 py-2 text-sm font-medium text-white bg-green-600 border border-green-600 rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
@@ -1299,7 +1308,7 @@
                     <div class="w-32 bg-gray-200 rounded-full h-2">
                       <div
                         class="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                        style="width: {accountUploadStates[account.id].progress}%"
+                        style:width="{accountUploadStates[account.id].progress}%"
                       ></div>
                     </div>
                     <span class="text-sm text-gray-600"
@@ -1323,6 +1332,7 @@
                 <div class="flex items-center gap-2">
                   {#if !accountDeleteStates[account.id]?.showDeleteConfirm}
                     <button
+                      type="button"
                       onclick={() => confirmAccountDeletion(account.id)}
                       class="px-3 py-2 text-sm font-medium text-red-600 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 transition-colors"
                     >
@@ -1337,6 +1347,7 @@
                         class="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
                       />
                       <button
+                        type="button"
                         onclick={() => deleteAccountTransactions(account.id)}
                         disabled={accountDeleteStates[account.id]?.isDeleting}
                         class="px-3 py-2 text-sm font-medium text-white bg-red-600 border border-red-600 rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
@@ -1344,6 +1355,7 @@
                         {accountDeleteStates[account.id]?.isDeleting ? '삭제 중...' : '확인'}
                       </button>
                       <button
+                        type="button"
                         onclick={() => cancelAccountDeletion(account.id)}
                         class="px-3 py-2 text-sm font-medium text-gray-600 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors"
                       >
@@ -1426,8 +1438,8 @@
                         {:else if transaction.category}
                           <span
                             class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
-                            style="background-color: {transaction.category.color ||
-                              '#6B7280'}; color: white;"
+                            style:background-color={transaction.category.color || '#6B7280'}
+                            style:color="white"
                           >
                             {transaction.category.name}
                           </span>
@@ -1492,6 +1504,7 @@
                           {#if editingTransactionId === transaction.id}
                             <!-- 편집 모드 -->
                             <button
+                              type="button"
                               class="text-green-600 hover:text-green-900"
                               onclick={saveInlineEdit}
                               title="저장 (Ctrl+Enter)"
@@ -1500,6 +1513,7 @@
                               ✅
                             </button>
                             <button
+                              type="button"
                               class="text-red-600 hover:text-red-900"
                               onclick={cancelInlineEdit}
                               title="취소 (Esc)"
@@ -1510,6 +1524,7 @@
                           {:else}
                             <!-- 일반 모드 -->
                             <button
+                              type="button"
                               class="text-indigo-600 hover:text-indigo-900"
                               onclick={() => startInlineEdit(transaction)}
                               title="편집"
@@ -1518,6 +1533,7 @@
                               ✏️
                             </button>
                             <button
+                              type="button"
                               class="text-red-600 hover:text-red-900"
                               onclick={() => deleteTransaction(transaction)}
                               title="삭제"

@@ -201,6 +201,7 @@
       </p>
     </div>
     <button
+      type="button"
       onclick={() => (showAddModal = true)}
       class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
     >
@@ -307,6 +308,7 @@
                 {loan.type === 'execution' ? '대출 실행' : '대출 상환'}
               </span>
               <button
+                type="button"
                 onclick={() => deleteLoanPlan(loan)}
                 class="text-red-600 hover:text-red-900"
                 title="삭제"
@@ -359,6 +361,7 @@
       <h3 class="text-lg font-medium text-gray-900 mb-2">대출 계획이 없습니다</h3>
       <p class="text-gray-500 mb-4">새 대출 계획을 설정하여 자금 계획을 관리하세요.</p>
       <button
+        type="button"
         onclick={() => (showAddModal = true)}
         class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
       >

@@ -413,7 +413,7 @@
             <div class="w-full bg-gray-200 rounded-full h-2">
               <div
                 class="h-2 rounded-full {getProgressBarColor(budgetUtilization)}"
-                style="width: {Math.min(budgetUtilization, 100)}%"
+                style:width="{Math.min(budgetUtilization, 100)}%"
               ></div>
             </div>
           </div>
@@ -441,6 +441,7 @@
       <h3 class="text-lg font-medium text-gray-900 mb-2">예산이 없습니다</h3>
       <p class="text-gray-500 mb-4">새 예산을 설정하여 지출을 관리하세요.</p>
       <button
+        type="button"
         onclick={() => (showAddModal = true)}
         class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
       >

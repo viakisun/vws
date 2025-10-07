@@ -4,8 +4,8 @@
   import ThemeCard from '$lib/components/ui/ThemeCard.svelte'
   import ThemeSpacer from '$lib/components/ui/ThemeSpacer.svelte'
   import type { Position, Employee } from '$lib/types/hr'
-  import { formatCurrency, formatDate } from '$lib/utils/format'
-  import { AwardIcon, EditIcon, PlusIcon, TrashIcon, UsersIcon } from '@lucide/svelte'
+  import { formatCurrency } from '$lib/utils/format'
+  import { AwardIcon, EditIcon, PlusIcon, TrashIcon } from '@lucide/svelte'
 
   let {
     positions = [],
@@ -157,7 +157,7 @@
                 {/if}
               </td>
               <td class="px-4 py-3">
-                <ThemeBadge variant={position.status === 'active' ? 'success' : 'secondary'}>
+                <ThemeBadge variant={position.status === 'active' ? 'success' : 'default'}>
                   {position.status === 'active' ? '활성' : '비활성'}
                 </ThemeBadge>
               </td>

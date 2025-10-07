@@ -251,7 +251,7 @@ export function searchEmployees(employees: Employee[], query: string): Employee[
   const lowercaseQuery = query.toLowerCase()
   return employees.filter(
     (emp) =>
-      (emp.name && emp.name.toLowerCase().includes(lowercaseQuery)) ||
+      emp.name?.toLowerCase().includes(lowercaseQuery) ||
       emp.email.toLowerCase().includes(lowercaseQuery) ||
       emp.employee_id.toLowerCase().includes(lowercaseQuery),
   )

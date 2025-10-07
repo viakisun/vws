@@ -8,7 +8,6 @@ import { pushToast } from '$lib/stores/toasts'
 
 import { salesStore } from '../stores/sales-store.svelte'
 import * as salesService from '../services/sales-service'
-import type { Customer } from '../types'
 
 export function useSalesManagement() {
   const store = salesStore

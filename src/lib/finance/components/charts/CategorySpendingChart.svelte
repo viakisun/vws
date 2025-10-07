@@ -183,7 +183,7 @@
   </div>
 
   {#if categoryStats && categoryStats.length > 0}
-    <div class="relative" style="height: {height}">
+    <div class="relative" style:height>
       <canvas id={chartId}></canvas>
     </div>
 
@@ -216,7 +216,7 @@
           categoryColors[category.name] || colorPalette[index % colorPalette.length]}
         <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
           <div class="flex items-center">
-            <div class="w-4 h-4 rounded-full mr-3" style="background-color: {categoryColor}"></div>
+            <div class="w-4 h-4 rounded-full mr-3" style:background-color={categoryColor}></div>
             <span class="font-medium text-gray-900">{category.name}</span>
           </div>
           <div class="text-right">

@@ -3,9 +3,7 @@
  * 예산 관리 비즈니스 로직
  */
 
-import { budgetService } from '$lib/finance/services/budget-service'
 import { financeStore } from '$lib/stores/finance'
-import { pushToast } from '$lib/stores/toasts'
 import type {
   BudgetFilter,
   CreateBudgetRequest,

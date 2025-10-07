@@ -4,8 +4,7 @@
   import ThemeCard from '$lib/components/ui/ThemeCard.svelte'
   import ThemeSpacer from '$lib/components/ui/ThemeSpacer.svelte'
   import type { Department, Employee } from '$lib/types/hr'
-  import { formatDate } from '$lib/utils/format'
-  import { BuildingIcon, EditIcon, PlusIcon, TrashIcon, UsersIcon } from '@lucide/svelte'
+  import { BuildingIcon, EditIcon, PlusIcon, TrashIcon } from '@lucide/svelte'
 
   let {
     departments = [],
@@ -32,7 +31,7 @@
   function getManagerInfo(managerId?: string): string {
     if (!managerId) return '-'
     const manager = employees.find((e) => e.id === managerId)
-    return manager ? manager.name : '-'
+    return manager ? manager.name || '-' : '-'
   }
 </script>
 
@@ -110,9 +109,9 @@
                   </span>
                 </div>
               </td>
-              <td class="px-4 py-3 text-sm" style:color="var(--color-text-secondary)">
+              <!-- <td class="px-4 py-3 text-sm" style:color="var(--color-text-secondary)">
                 {department.code || '-'}
-              </td>
+              </td> -->
               <td class="px-4 py-3 text-sm" style:color="var(--color-text-secondary)">
                 {department.description || '-'}
               </td>
@@ -123,7 +122,7 @@
                 {getManagerInfo(department.manager_id)}
               </td>
               <td class="px-4 py-3">
-                <ThemeBadge variant={department.status === 'active' ? 'success' : 'secondary'}>
+                <ThemeBadge variant={department.status === 'active' ? 'success' : 'default'}>
                   {department.status === 'active' ? '활성' : '비활성'}
                 </ThemeBadge>
               </td>

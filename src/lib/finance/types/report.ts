@@ -1,7 +1,6 @@
 import type { BaseEntity } from './index'
 import type { Account } from './account'
 import type { Transaction } from './transaction'
-import type { Budget } from './budget'
 
 // 리포트 타입
 export type ReportType = 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly' | 'custom'

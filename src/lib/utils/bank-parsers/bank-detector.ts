@@ -1,4 +1,4 @@
-import { BankCode, BankCodeUtils } from '$lib/types/bank-codes'
+import { BankCodeUtils } from '$lib/types/bank-codes'
 import type { BankDetectionResult } from './types'
 
 /**

@@ -262,7 +262,7 @@ export class FinancialHealthAnalyzer {
 
       return {
         score: recentScore,
-        direction: direction as 'improving' | 'stable' | 'declining',
+        direction: direction,
         period: '최근 3개월',
       }
     } catch (error) {

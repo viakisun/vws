@@ -20,8 +20,7 @@
     projectMembers = [],
     selectedMember = null,
     memberForm,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    isManualMonthlyAmount = false,
+    isManualMonthlyAmount: _isManualMonthlyAmount = false,
     loadingAddingMember = false,
     onStartAddMember,
     onEditMember,

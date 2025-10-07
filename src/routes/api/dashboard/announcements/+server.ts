@@ -19,8 +19,8 @@ export const GET: RequestHandler = async (event) => {
     const offset = (page - 1) * limit
 
     // WHERE 조건 구성
-    let whereConditions = ['a.is_published = true']
-    let params = [user.id, limit, offset]
+    const whereConditions = ['a.is_published = true']
+    const params = [user.id, limit, offset]
     let paramIndex = 4
 
     if (category) {

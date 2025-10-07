@@ -25,7 +25,7 @@ export const filteredEmployees = derived([employees, searchFilter], ([$employees
     const query = $filter.query.toLowerCase()
     filtered = filtered.filter(
       (emp) =>
-        (emp.name && emp.name.toLowerCase().includes(query)) ||
+        emp.name?.toLowerCase().includes(query) ||
         emp.email.toLowerCase().includes(query) ||
         emp.employee_id.toLowerCase().includes(query),
     )

@@ -8,7 +8,7 @@
     formatAccountType,
     formatCurrency,
   } from '$lib/finance/utils'
-  import { EditIcon, EyeIcon, PlusIcon, TagIcon, TrashIcon } from '@lucide/svelte'
+  import { EditIcon, EyeIcon, PlusIcon, TrashIcon } from '@lucide/svelte'
   import { onMount } from 'svelte'
 
   // State
@@ -74,7 +74,7 @@
 
     // 잔액 필터
     if (hideZeroBalance) {
-      result = result.filter((account) => account.balance > 0)
+      result = result.filter((account) => (account.balance ?? 0) > 0)
     }
 
     // 태그 필터
@@ -221,7 +221,7 @@
 
   // 통계 계산 함수
   function updateAccountStats() {
-    totalBalance = accounts.reduce((sum, account) => sum + account.balance, 0)
+    totalBalance = accounts.reduce((sum, account) => sum + (account.balance ?? 0), 0)
     activeAccountsCount = accounts.filter((account) => account.status === 'active').length
   }
 
@@ -336,11 +336,10 @@
             type="button"
             onclick={() => toggleFilterTag(tag.id)}
             class="px-3 py-1 text-xs font-medium rounded-full transition-colors"
-            style="background-color: {selectedFilterTags.includes(tag.id)
+            style:background-color={selectedFilterTags.includes(tag.id)
               ? tag.color
-              : `${tag.color}20`}; color: {selectedFilterTags.includes(tag.id)
-              ? 'white'
-              : tag.color}"
+              : `${tag.color}20`}
+            style:color={selectedFilterTags.includes(tag.id) ? 'white' : tag.color}
           >
             {tag.name}
             {#if selectedFilterTags.includes(tag.id)}
@@ -411,8 +410,8 @@
                     {#if account.bank}
                       <span
                         class="inline-flex items-center px-2 py-1 text-xs font-medium rounded"
-                        style="background-color: {account.bank.color}20; color: {account.bank
-                          .color}"
+                        style:background-color="{account.bank.color}20"
+                        style:color={account.bank.color}
                       >
                         {account.bank.name}
                       </span>
@@ -430,7 +429,8 @@
                         {#each account.tags.slice(0, 3) as tag}
                           <span
                             class="inline-flex items-center px-1.5 py-0.5 text-xs font-medium rounded"
-                            style="background-color: {tag.color}20; color: {tag.color}"
+                            style:background-color="{tag.color}20"
+                            style:color={tag.color}
                           >
                             {tag.name}
                           </span>
@@ -451,7 +451,7 @@
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-right">
                   <div class="text-sm font-medium text-gray-900">
-                    {formatCurrency(account.balance)}
+                    {formatCurrency(account.balance ?? 0)}
                   </div>
                   {#if account.isPrimary}
                     <div class="text-xs text-blue-600">주요 계좌</div>
@@ -809,6 +809,7 @@
                     type="checkbox"
                     checked={_selectedAccount.tags?.some((t) => t.id === tag.id) || false}
                     onchange={(e) => {
+                      if (!_selectedAccount) return
                       const isChecked = e.currentTarget.checked
                       if (isChecked) {
                         _selectedAccount.tags = [...(_selectedAccount.tags || []), tag]
@@ -820,7 +821,7 @@
                     class="h-4 w-4 text-blue-600 rounded focus:ring-blue-500"
                   />
                   <div class="flex items-center gap-2 flex-1">
-                    <div class="w-3 h-3 rounded" style="background-color: {tag.color}"></div>
+                    <div class="w-3 h-3 rounded" style:background-color={tag.color}></div>
                     <span class="text-sm text-gray-900">{tag.name}</span>
                     {#if tag.isSystem}
                       <span
@@ -878,8 +879,17 @@
 {#if showTagModal && selectedAccount}
   <div
     class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+    role="dialog"
+    aria-modal="true"
+    tabindex="-1"
     onclick={(e) => {
       if (e.target === e.currentTarget) {
+        showTagModal = false
+        selectedAccount = null
+      }
+    }}
+    onkeydown={(e) => {
+      if (e.key === 'Escape') {
         showTagModal = false
         selectedAccount = null
       }
@@ -904,7 +914,7 @@
               class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
             />
             <div class="flex items-center gap-2 flex-1">
-              <div class="w-3 h-3 rounded" style="background-color: {tag.color}"></div>
+              <div class="w-3 h-3 rounded" style:background-color={tag.color}></div>
               <span class="text-sm text-gray-900 dark:text-gray-100">{tag.name}</span>
               {#if tag.isSystem}
                 <span

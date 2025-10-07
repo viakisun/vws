@@ -4,7 +4,7 @@
   import type { PageData } from './$types'
   import type { LeaveData } from '$lib/types/dashboard'
 
-  let { data }: { data: PageData } = $props()
+  let { data: _data }: { data: PageData } = $props()
 
   // 상태 관리
   let leaveData = $state<LeaveData | null>(null)
@@ -149,6 +149,7 @@
         <p class="text-gray-600">연차 잔여일수와 휴가 신청 내역을 확인할 수 있습니다.</p>
       </div>
       <button
+        type="button"
         onclick={() => (showRequestModal = true)}
         class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
       >
@@ -411,6 +412,7 @@
 
         <div class="flex justify-end space-x-3 mt-6">
           <button
+            type="button"
             onclick={() => {
               showRequestModal = false
               resetForm()
@@ -420,6 +422,7 @@
             취소
           </button>
           <button
+            type="button"
             onclick={submitLeaveRequest}
             class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
           >

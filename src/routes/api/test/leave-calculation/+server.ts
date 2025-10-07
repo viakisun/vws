@@ -38,7 +38,7 @@ export const GET: RequestHandler = async (event) => {
         nextGrantDate: nextGrantDate?.toISOString().split('T')[0] || null,
       },
     })
-  } catch (error) {
+  } catch (_error) {
     return json({ success: false, message: '연차 계산 중 오류가 발생했습니다.' }, { status: 500 })
   }
 }

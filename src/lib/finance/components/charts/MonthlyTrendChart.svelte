@@ -161,7 +161,7 @@
   </div>
 
   {#if monthlyStats && monthlyStats.length > 0}
-    <div class="relative" style="height: {height}">
+    <div class="relative" style:height>
       <canvas id={chartId}></canvas>
     </div>
   {:else}

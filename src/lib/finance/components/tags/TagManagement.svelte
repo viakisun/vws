@@ -26,10 +26,10 @@
       if (result.success) {
         tags = result.data
       } else {
-        pushToast({ message: result.error || '태그 조회 실패', type: 'error' })
+        pushToast(result.error || '태그 조회 실패', 'error')
       }
     } catch (error) {
-      pushToast({ message: '태그 조회 실패', type: 'error' })
+      pushToast('태그 조회 실패', 'error')
     } finally {
       loading = false
     }
@@ -53,18 +53,15 @@
       const result = await response.json()
 
       if (result.success) {
-        pushToast({
-          message: editingTag ? '태그가 수정되었습니다' : '태그가 생성되었습니다',
-          type: 'success',
-        })
+        pushToast(editingTag ? '태그가 수정되었습니다' : '태그가 생성되었습니다', 'success')
         showModal = false
         resetForm()
         await loadTags()
       } else {
-        pushToast({ message: result.error || '작업 실패', type: 'error' })
+        pushToast(result.error || '작업 실패', 'error')
       }
     } catch (error) {
-      pushToast({ message: '작업 실패', type: 'error' })
+      pushToast('작업 실패', 'error')
     } finally {
       loading = false
     }
@@ -83,13 +80,13 @@
       const result = await response.json()
 
       if (result.success) {
-        pushToast({ message: result.message || '태그가 삭제되었습니다', type: 'success' })
+        pushToast(result.message || '태그가 삭제되었습니다', 'success')
         await loadTags()
       } else {
-        pushToast({ message: result.error || '삭제 실패', type: 'error' })
+        pushToast(result.error || '삭제 실패', 'error')
       }
     } catch (error) {
-      pushToast({ message: '삭제 실패', type: 'error' })
+      pushToast('삭제 실패', 'error')
     } finally {
       loading = false
     }
@@ -158,7 +155,7 @@
         >
           <div class="flex items-start justify-between mb-2">
             <div class="flex items-center gap-2">
-              <div class="w-4 h-4 rounded" style="background-color: {tag.color}"></div>
+              <div class="w-4 h-4 rounded" style:background-color={tag.color}></div>
               <div>
                 <div class="flex items-center gap-2">
                   <h3 class="font-medium text-gray-900 dark:text-gray-100">{tag.name}</h3>
@@ -178,6 +175,7 @@
                   type="button"
                   onclick={() => openModal(tag)}
                   class="p-1 text-gray-500 hover:text-blue-600 transition-colors"
+                  aria-label="태그 수정"
                 >
                   <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path
@@ -192,6 +190,7 @@
                   type="button"
                   onclick={() => handleDelete(tag.id)}
                   class="p-1 text-gray-500 hover:text-red-600 transition-colors"
+                  aria-label="태그 삭제"
                 >
                   <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path
@@ -218,8 +217,17 @@
 {#if showModal}
   <div
     class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+    role="dialog"
+    aria-modal="true"
+    tabindex="-1"
     onclick={(e) => {
       if (e.target === e.currentTarget) {
+        showModal = false
+        resetForm()
+      }
+    }}
+    onkeydown={(e) => {
+      if (e.key === 'Escape') {
         showModal = false
         resetForm()
       }

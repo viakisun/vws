@@ -136,7 +136,7 @@ function parseRow(row: any[], rowIndex: number = 0): Transaction | null {
   }
 
   // 3. 날짜 형식 검증 (YYYY/MM/DD 또는 YYYY-MM-DD 형식)
-  let dateTime = firstCell
+  const dateTime = firstCell
   if (!dateTime || dateTime === 'undefined' || dateTime === 'null') {
     return null
   }

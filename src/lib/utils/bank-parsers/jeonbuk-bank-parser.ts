@@ -146,7 +146,7 @@ function parseRow(row: any[], rowIndex: number = 0): JeonbukTransaction | null {
   }
 
   // 3. 거래일자 필드 검증 (row[1] - B열)
-  let transactionDate = String(row[1] || '').trim()
+  const transactionDate = String(row[1] || '').trim()
   if (!transactionDate || transactionDate === 'undefined' || transactionDate === 'null') {
     return null
   }
@@ -157,7 +157,7 @@ function parseRow(row: any[], rowIndex: number = 0): JeonbukTransaction | null {
   }
 
   // 4. 거래시간 필드 검증 (row[2] - C열)
-  let transactionTime = String(row[2] || '').trim()
+  const transactionTime = String(row[2] || '').trim()
   if (!transactionTime || transactionTime === 'undefined' || transactionTime === 'null') {
     return null
   }

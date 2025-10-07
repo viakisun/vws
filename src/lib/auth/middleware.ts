@@ -28,7 +28,7 @@ export async function authenticate(
     const payload = userService.verifyToken(token) as JWTPayload
     const user = await userService.getUserById(payload.userId)
 
-    if (!user || !user.is_active) {
+    if (!user?.is_active) {
       return null
     }
 

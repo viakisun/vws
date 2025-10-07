@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { pushToast } from '$lib/stores/toasts'
   import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
   import ThemeModal from '$lib/components/ui/ThemeModal.svelte'
   import type { Employee, EmployeeLevel, EmployeeStatus, EmploymentType } from '$lib/types/hr'
@@ -20,22 +19,39 @@
     save: Employee
   }>()
 
-  // 폼 데이터
-  let formData = $state<
-    Partial<Employee> & {
-      emergencyContact: {
-        name: string
-        relationship: string
-        phone: string
-      }
-      personalInfo: {
-        birthDate: string
-        gender: string
-        nationality: string
-        maritalStatus: string
-      }
+  // 폼 데이터 타입 (UI용 camelCase)
+  type EmployeeFormData = {
+    id?: string
+    employeeId?: string
+    name?: string
+    email?: string
+    phone?: string
+    address?: string
+    department?: string
+    position?: string
+    level?: EmployeeLevel
+    employmentType?: EmploymentType
+    hireDate?: string
+    birthDate?: string
+    status?: EmployeeStatus
+    terminationDate?: string
+    emergencyContact: {
+      name: string
+      relationship: string
+      phone: string
     }
-  >({
+    personalInfo: {
+      birthDate: string
+      gender: 'male' | 'female' | 'other'
+      nationality: string
+      maritalStatus: 'single' | 'married' | 'divorced' | 'widowed'
+    }
+    createdAt?: string
+    updatedAt?: string
+  }
+
+  // 폼 데이터
+  let formData = $state<EmployeeFormData>({
     employeeId: '',
     name: '',
     email: '',
@@ -117,19 +133,35 @@
     console.log('👤 받은 직원 데이터:', employee)
 
     if (employee) {
+      // Employee (snake_case) → EmployeeFormData (camelCase) 변환
       formData = {
-        ...employee,
-        emergencyContact: employee.emergencyContact || {
+        id: employee.id,
+        employeeId: employee.employee_id,
+        name: employee.name,
+        email: employee.email,
+        phone: employee.phone,
+        address: employee.address,
+        department: employee.department,
+        position: employee.position,
+        level: employee.level,
+        employmentType: employee.employment_type,
+        hireDate: employee.hire_date,
+        birthDate: employee.birth_date,
+        status: employee.status,
+        terminationDate: employee.termination_date,
+        emergencyContact: employee.emergency_contact || {
           name: '',
           relationship: '',
           phone: '',
         },
-        personalInfo: employee.personalInfo || {
+        personalInfo: employee.personal_info || {
           birthDate: '',
           gender: 'other',
           nationality: '',
           maritalStatus: 'single',
         },
+        createdAt: employee.created_at,
+        updatedAt: employee.updated_at,
       }
       console.log('📝 설정된 폼 데이터:', formData)
     } else {
@@ -222,12 +254,29 @@
   function handleSave() {
     if (!validateForm()) return
 
+    // EmployeeFormData (camelCase) → Employee (snake_case) 변환
     const employeeData: Employee = {
-      ...formData,
       id: employee?.id || `emp_${Date.now()}`,
-      createdAt: employee?.createdAt || new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    } as Employee
+      employee_id: formData.employeeId || '',
+      first_name: '', // 필요시 분리
+      last_name: '', // 필요시 분리
+      name: formData.name,
+      email: formData.email || '',
+      phone: formData.phone || '',
+      address: formData.address,
+      department: formData.department || '',
+      position: formData.position || '',
+      level: formData.level,
+      employment_type: formData.employmentType || 'full-time',
+      hire_date: formData.hireDate || '',
+      birth_date: formData.birthDate,
+      status: formData.status || 'active',
+      termination_date: formData.terminationDate,
+      emergency_contact: formData.emergencyContact,
+      personal_info: formData.personalInfo,
+      created_at: formData.createdAt || new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    }
 
     dispatch('save', employeeData)
   }

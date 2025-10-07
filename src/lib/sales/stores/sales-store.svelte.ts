@@ -119,7 +119,7 @@ class SalesStore {
     customer: {
       name: '',
       business_number: '',
-      type: 'customer' as const,
+      type: 'customer' as 'customer' | 'supplier' | 'both',
       contact_person: '',
       contact_phone: '',
       contact_email: '',

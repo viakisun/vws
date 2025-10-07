@@ -3,7 +3,7 @@
   import { onMount } from 'svelte'
   import type { PageData } from './$types'
 
-  let { data }: { data: PageData } = $props()
+  let { data: _data }: { data: PageData } = $props()
 
   // Types
   interface CertificateRequest {
@@ -161,6 +161,7 @@
         <p class="text-gray-600">재직증명서 발급 요청 및 내역을 확인할 수 있습니다.</p>
       </div>
       <button
+        type="button"
         onclick={() => (showRequestModal = true)}
         class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
       >
@@ -345,6 +346,7 @@
 
         <div class="flex justify-end space-x-3 mt-6">
           <button
+            type="button"
             onclick={() => {
               showRequestModal = false
               resetForm()
@@ -354,6 +356,7 @@
             취소
           </button>
           <button
+            type="button"
             onclick={submitCertificateRequest}
             class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
           >

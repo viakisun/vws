@@ -81,7 +81,7 @@
             <!-- 은행 아이콘 -->
             <div
               class="p-2 rounded-lg flex-shrink-0"
-              style="background-color: {account.bank?.color}20"
+              style:background-color="{account.bank?.color}20"
             >
               <BuildingIcon class="w-5 h-5" style="color: {account.bank?.color || '#3B82F6'}" />
             </div>
@@ -106,7 +106,8 @@
                 {#if account.bank}
                   <span
                     class="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded flex-shrink-0"
-                    style="background-color: {account.bank.color}20; color: {account.bank.color}"
+                    style:background-color="{account.bank.color}20"
+                    style:color={account.bank.color}
                   >
                     {account.bank.name}
                   </span>
@@ -122,7 +123,8 @@
                   {#each account.tags.slice(0, 3) as tag}
                     <span
                       class="inline-flex items-center px-1.5 py-0.5 text-xs font-medium rounded"
-                      style="background-color: {tag.color}20; color: {tag.color}"
+                      style:background-color="{tag.color}20"
+                      style:color={tag.color}
                     >
                       {tag.name}
                     </span>

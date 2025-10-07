@@ -42,13 +42,13 @@ export const handle: Handle = async ({ event, resolve }) => {
           } else {
             event.locals.user = user
           }
-        } catch (employeeError) {
+        } catch (_employeeError) {
           // 직원 정보 조회 실패 시 기본 user만 설정
           event.locals.user = user
         }
       }
     }
-  } catch (error) {
+  } catch (_error) {
     // Invalid token, clear cookie
     event.cookies.delete('auth_token', { path: '/' })
   }

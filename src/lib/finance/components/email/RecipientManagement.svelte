@@ -185,6 +185,7 @@
       </p>
     </div>
     <button
+      type="button"
       onclick={() => (showAddModal = true)}
       class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
     >
@@ -220,6 +221,7 @@
             </div>
             <div class="flex items-center space-x-2">
               <button
+                type="button"
                 onclick={() => openEditModal(recipient)}
                 class="text-blue-600 hover:text-blue-900"
                 title="편집"
@@ -227,6 +229,7 @@
                 <EditIcon size={16} />
               </button>
               <button
+                type="button"
                 onclick={() => deleteRecipient(recipient)}
                 class="text-red-600 hover:text-red-900"
                 title="삭제"
@@ -314,6 +317,7 @@
       <h3 class="text-lg font-medium text-gray-900 mb-2">수신자가 없습니다</h3>
       <p class="text-gray-500 mb-4">새 수신자를 추가하여 이메일 알림을 설정하세요.</p>
       <button
+        type="button"
         onclick={() => (showAddModal = true)}
         class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
       >

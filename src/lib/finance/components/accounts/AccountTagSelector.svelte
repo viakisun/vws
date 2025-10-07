@@ -78,7 +78,8 @@
     {#each currentTags as tag}
       <span
         class="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded"
-        style="background-color: {tag.color}20; color: {tag.color}"
+        style:background-color="{tag.color}20"
+        style:color={tag.color}
       >
         {tag.name}
       </span>
@@ -96,8 +97,17 @@
   {#if showSelector}
     <div
       class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+      role="dialog"
+      aria-modal="true"
+      tabindex="-1"
       onclick={(e) => {
         if (e.target === e.currentTarget) {
+          showSelector = false
+          currentTags = [...selectedTags]
+        }
+      }}
+      onkeydown={(e) => {
+        if (e.key === 'Escape') {
           showSelector = false
           currentTags = [...selectedTags]
         }
@@ -118,7 +128,7 @@
                 class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
               />
               <div class="flex items-center gap-2 flex-1">
-                <div class="w-3 h-3 rounded" style="background-color: {tag.color}"></div>
+                <div class="w-3 h-3 rounded" style:background-color={tag.color}></div>
                 <span class="text-sm text-gray-900 dark:text-gray-100">{tag.name}</span>
                 {#if tag.isSystem}
                   <span

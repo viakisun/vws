@@ -37,10 +37,9 @@
   {#each toastStore.toasts as toast (toast.id)}
     {@const Icon = getIcon(toast.type)}
     <div
-      class="pointer-events-auto flex items-start gap-3 p-4 rounded-lg border shadow-lg min-w-[320px] max-w-md animate-in slide-in-from-right-full"
-      class:animate-out={false}
-      class:slide-out-to-right-full={false}
-      class={getColorClasses(toast.type)}
+      class="pointer-events-auto flex items-start gap-3 p-4 rounded-lg border shadow-lg min-w-[320px] max-w-md animate-in slide-in-from-right-full {getColorClasses(
+        toast.type,
+      )}"
     >
       <Icon class="w-5 h-5 flex-shrink-0 mt-0.5" />
       <p class="flex-1 text-sm font-medium">{toast.message}</p>

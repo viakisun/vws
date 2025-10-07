@@ -125,7 +125,7 @@ function parseRow(row: any[], rowIndex: number = 0): NonghyupTransaction | null 
   }
 
   // 3. 거래일시 필드 검증 (row[1])
-  let transactionDate = String(row[1] || '').trim()
+  const transactionDate = String(row[1] || '').trim()
   if (!transactionDate || transactionDate === 'undefined' || transactionDate === 'null') {
     return null
   }

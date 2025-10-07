@@ -7,7 +7,6 @@
 
 import { hrStore, type HRStore } from '$lib/stores/hr/hrStore.svelte'
 import * as hrService from '$lib/services/hr/hr-service'
-import type { Employee, Department, Position } from '$lib/types/hr'
 import { logger } from '$lib/utils/logger'
 import { pushToast } from '$lib/stores/toasts'
 

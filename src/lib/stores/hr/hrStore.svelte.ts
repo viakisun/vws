@@ -15,7 +15,6 @@ import type {
   PerformanceReview,
   TrainingProgram,
 } from '$lib/types/hr'
-import { logger } from '$lib/utils/logger'
 
 // ============================================================================
 // Types

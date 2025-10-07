@@ -572,7 +572,8 @@
                     </div>
                     <div
                       class="text-sm font-mono px-3 py-2 rounded"
-                      style="background: var(--color-surface); color: var(--color-text);"
+                      style:background="var(--color-surface)"
+                      style:color="var(--color-text)"
                     >
                       v0.2.1
                     </div>
@@ -593,7 +594,8 @@
                     </div>
                     <div
                       class="text-sm font-mono px-3 py-2 rounded"
-                      style="background: var(--color-surface); color: var(--color-text);"
+                      style:background="var(--color-surface)"
+                      style:color="var(--color-text)"
                     >
                       {new Date().toISOString().split('T')[0]}
                     </div>
@@ -625,7 +627,8 @@
                       </div>
                       <div
                         class="text-sm px-3 py-2 rounded mt-1"
-                        style="background: var(--color-surface); color: var(--color-text);"
+                        style:background="var(--color-surface)"
+                        style:color="var(--color-text)"
                       >
                         SvelteKit 5 + TypeScript
                       </div>
@@ -637,7 +640,8 @@
                       </div>
                       <div
                         class="text-sm px-3 py-2 rounded mt-1"
-                        style="background: var(--color-surface); color: var(--color-text);"
+                        style:background="var(--color-surface)"
+                        style:color="var(--color-text)"
                       >
                         TailwindCSS
                       </div>
@@ -651,7 +655,8 @@
                       </div>
                       <div
                         class="text-sm px-3 py-2 rounded mt-1"
-                        style="background: var(--color-surface); color: var(--color-text);"
+                        style:background="var(--color-surface)"
+                        style:color="var(--color-text)"
                       >
                         Node.js + PostgreSQL
                       </div>
@@ -663,7 +668,8 @@
                       </div>
                       <div
                         class="text-sm px-3 py-2 rounded mt-1"
-                        style="background: var(--color-surface); color: var(--color-text);"
+                        style:background="var(--color-surface)"
+                        style:color="var(--color-text)"
                       >
                         Vite
                       </div>

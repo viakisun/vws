@@ -4,7 +4,7 @@
   import type { PageData } from './$types'
   import type { AttendanceData } from '$lib/types/dashboard'
 
-  let { data }: { data: PageData } = $props()
+  let { data: _data }: { data: PageData } = $props()
 
   // 상태 관리
   let attendanceData = $state<AttendanceData | null>(null)
@@ -230,6 +230,7 @@
       <h2 class="text-lg font-semibold text-gray-900">날짜 선택</h2>
       <div class="flex items-center space-x-2">
         <button
+          type="button"
           onclick={() => changeDate(-1)}
           class="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-md"
         >
@@ -244,6 +245,7 @@
           })}
         </span>
         <button
+          type="button"
           onclick={() => changeDate(1)}
           class="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-md"
         >
@@ -271,6 +273,7 @@
               <div class="text-xl font-semibold text-gray-900">{checkInTime || '미기록'}</div>
             </div>
             <button
+              type="button"
               onclick={handleCheckIn}
               disabled={!canCheckIn}
               class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
@@ -285,6 +288,7 @@
               <div class="text-xl font-semibold text-gray-900">{checkOutTime || '미기록'}</div>
             </div>
             <button
+              type="button"
               onclick={handleCheckOut}
               disabled={!canCheckOut}
               class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
@@ -302,6 +306,7 @@
               <div class="text-xl font-semibold text-gray-900">{breakStartTime || '미기록'}</div>
             </div>
             <button
+              type="button"
               onclick={handleBreakStart}
               disabled={!canBreakStart}
               class="px-4 py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
@@ -316,6 +321,7 @@
               <div class="text-xl font-semibold text-gray-900">{breakEndTime || '미기록'}</div>
             </div>
             <button
+              type="button"
               onclick={handleBreakEnd}
               disabled={!canBreakEnd}
               class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed"

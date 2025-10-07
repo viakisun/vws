@@ -12,10 +12,7 @@ import type {
   Executive,
   JobTitle,
   LeaveRequest,
-  PerformanceReview,
-  TrainingProgram,
   ApiResponse,
-  PaginatedResponse,
 } from '$lib/types/hr'
 import { logger } from '$lib/utils/logger'
 

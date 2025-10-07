@@ -66,7 +66,7 @@ export const GET: RequestHandler = async ({ url }) => {
 
     // 각 계좌의 태그 조회
     const accountIds = result.rows.map((row) => row.id)
-    let tagsMap = new Map()
+    const tagsMap = new Map()
 
     if (accountIds.length > 0) {
       const tagsQuery = `

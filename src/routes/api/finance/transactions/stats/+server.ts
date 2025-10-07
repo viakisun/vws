@@ -11,7 +11,7 @@ export const GET: RequestHandler = async ({ url }) => {
     const dateFrom = url.searchParams.get('dateFrom')
     const dateTo = url.searchParams.get('dateTo')
 
-    let whereConditions: string[] = []
+    const whereConditions: string[] = []
     const params: any[] = []
     let paramIndex = 1
 

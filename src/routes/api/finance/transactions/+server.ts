@@ -102,7 +102,7 @@ export const GET: RequestHandler = async ({ url }) => {
     `
 
     // 동일한 WHERE 조건을 COUNT 쿼리에 적용
-    let countParams: any[] = []
+    const countParams: any[] = []
     let countParamIndex = 1
 
     if (accountId) {

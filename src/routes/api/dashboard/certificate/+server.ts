@@ -13,7 +13,7 @@ export const GET: RequestHandler = async (event) => {
     const status = url.searchParams.get('status')
 
     let whereClause = 'WHERE cr.employee_id = $1'
-    let params = [user.id]
+    const params = [user.id]
 
     if (status) {
       whereClause += ' AND cr.status = $2'

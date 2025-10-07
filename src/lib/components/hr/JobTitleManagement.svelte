@@ -4,8 +4,7 @@
   import ThemeCard from '$lib/components/ui/ThemeCard.svelte'
   import ThemeSpacer from '$lib/components/ui/ThemeSpacer.svelte'
   import type { JobTitle, Employee } from '$lib/types/hr'
-  import { formatCurrency, formatDate } from '$lib/utils/format'
-  import { TagIcon, EditIcon, PlusIcon, TrashIcon, UsersIcon } from '@lucide/svelte'
+  import { TagIcon, EditIcon, PlusIcon, TrashIcon } from '@lucide/svelte'
 
   let {
     jobTitles = [],
@@ -112,12 +111,12 @@
               <td class="px-4 py-3 text-sm" style:color="var(--color-text)">
                 {getEmployeeCount(jobTitle.id)}명
               </td>
-              <td class="px-4 py-3 text-sm font-medium" style:color="var(--color-success)">
+              <!-- <td class="px-4 py-3 text-sm font-medium" style:color="var(--color-success)">
                 {jobTitle.allowance ? formatCurrency(jobTitle.allowance) : '-'}
-              </td>
+              </td> -->
               <td class="px-4 py-3">
-                <ThemeBadge variant={jobTitle.status === 'active' ? 'success' : 'secondary'}>
-                  {jobTitle.status === 'active' ? '활성' : '비활성'}
+                <ThemeBadge variant={jobTitle.isActive ? 'success' : 'default'}>
+                  {jobTitle.isActive ? '활성' : '비활성'}
                 </ThemeBadge>
               </td>
               <td class="px-4 py-3">
