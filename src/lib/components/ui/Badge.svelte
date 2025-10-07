@@ -1,5 +1,5 @@
 <script lang="ts">
-  let {
+  const {
     color = 'gray',
     variant = 'secondary',
     class: className = '',
@@ -27,7 +27,7 @@
     danger: 'bg-red-100 text-red-700 border-red-200',
   }
 
-  let finalClasses = $derived(variantClasses[variant] || colorClasses[color])
+  const finalClasses = $derived(variantClasses[variant] || colorClasses[color])
 </script>
 
 <span

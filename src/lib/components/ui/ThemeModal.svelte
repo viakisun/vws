@@ -12,7 +12,7 @@
     children?: any
   }
 
-  let {
+  const {
     open = false,
     size = 'md',
     closable = true,

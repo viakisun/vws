@@ -16,7 +16,7 @@
     EditIcon,
   } from '@lucide/svelte'
 
-  let {
+  const {
     projectMembers = [],
     selectedMember = null,
     memberForm,

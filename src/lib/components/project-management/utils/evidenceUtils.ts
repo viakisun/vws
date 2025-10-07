@@ -19,7 +19,6 @@ export function getEvidenceField<T>(
   snakeCase: string,
   defaultValue: T | null = null,
 ): T {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return evidence[camelCase] || evidence[snakeCase] || defaultValue
 }
 

@@ -88,7 +88,6 @@ async function fetchDepartmentStats(year: number, department?: string): Promise<
   const departmentFilter = department ? 'AND e.department = $2' : ''
   const params: (number | string)[] = department ? [year, department] : [year]
 
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const result = await query(
     `
       SELECT 
@@ -109,7 +108,6 @@ async function fetchDepartmentStats(year: number, department?: string): Promise<
     params,
   )
 
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
   return result.rows as DepartmentStats[]
 }
 
@@ -120,7 +118,6 @@ async function fetchMonthlyStats(year: number, department?: string): Promise<Mon
   const departmentFilter = department ? 'AND e.department = $2' : ''
   const params: (number | string)[] = department ? [year, department] : [year]
 
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const result = await query(
     `
       SELECT 
@@ -138,7 +135,6 @@ async function fetchMonthlyStats(year: number, department?: string): Promise<Mon
     params,
   )
 
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
   return result.rows as MonthlyStats[]
 }
 
@@ -149,7 +145,6 @@ async function fetchTypeStats(year: number, department?: string): Promise<TypeSt
   const departmentFilter = department ? 'AND e.department = $2' : ''
   const params: (number | string)[] = department ? [year, department] : [year]
 
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const result = await query(
     `
       SELECT 
@@ -167,7 +162,6 @@ async function fetchTypeStats(year: number, department?: string): Promise<TypeSt
     params,
   )
 
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
   return result.rows as TypeStats[]
 }
 
@@ -178,7 +172,6 @@ async function fetchApprovalRate(year: number, department?: string): Promise<App
   const departmentFilter = department ? 'AND e.department = $2' : ''
   const params: (number | string)[] = department ? [year, department] : [year]
 
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const result = await query(
     `
       SELECT 
@@ -198,7 +191,6 @@ async function fetchApprovalRate(year: number, department?: string): Promise<App
     params,
   )
 
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
   return result.rows[0] as ApprovalRate
 }
 
@@ -209,7 +201,6 @@ async function fetchBalanceStats(year: number, department?: string): Promise<Bal
   const departmentFilter = department ? 'AND e.department = $2' : ''
   const params: (number | string)[] = department ? [year, department] : [year]
 
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const result = await query(
     `
       SELECT 
@@ -230,7 +221,6 @@ async function fetchBalanceStats(year: number, department?: string): Promise<Bal
     params,
   )
 
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
   return result.rows as BalanceStats[]
 }
 
@@ -241,7 +231,6 @@ async function fetchRecentRequests(department?: string): Promise<RecentRequest[]
   const departmentFilter = department ? 'AND e.department = $1' : ''
   const params: string[] = department ? [department] : []
 
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const result = await query(
     `
       SELECT 
@@ -259,7 +248,6 @@ async function fetchRecentRequests(department?: string): Promise<RecentRequest[]
     params,
   )
 
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
   return result.rows as RecentRequest[]
 }
 

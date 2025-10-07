@@ -14,7 +14,7 @@
     }
   }
 
-  let { dashboardStats }: Props = $props()
+  const { dashboardStats }: Props = $props()
 
   const averageSalary = $derived(
     dashboardStats.currentMonth.totalEmployees > 0

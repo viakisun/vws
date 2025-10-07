@@ -27,7 +27,7 @@
     onsave?: (event: CustomEvent) => void
   }
 
-  let { open, company = null, loading = false, onclose, onsave }: Props = $props()
+  const { open, company = null, loading = false, onclose, onsave }: Props = $props()
 
   let formData = $state<Company>({
     name: '',

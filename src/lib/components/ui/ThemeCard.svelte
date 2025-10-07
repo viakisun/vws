@@ -9,7 +9,7 @@
     children?: any
   }
 
-  let {
+  const {
     variant = 'default',
     size = 'md',
     hover = false,

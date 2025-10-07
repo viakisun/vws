@@ -6,7 +6,7 @@
   import * as calculationUtilsImported from './utils/calculationUtils'
   import { DollarSignIcon, EditIcon, TrashIcon } from '@lucide/svelte'
 
-  let {
+  const {
     projectBudgets = [],
     budgetUpdateKey = 0,
     evidencePeriod = 1,

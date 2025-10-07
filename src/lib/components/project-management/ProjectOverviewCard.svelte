@@ -17,7 +17,7 @@
     alerts?: unknown[]
   }
 
-  let { projectSummary = null, alerts = [] }: Props = $props()
+  const { projectSummary = null, alerts = [] }: Props = $props()
 
   // 간소화된 상태 배지 색상
   function getStatusBadgeColor(status) {

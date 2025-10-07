@@ -1,5 +1,5 @@
 <script lang="ts">
-  let { value = 0, class: className = '' } = $props<{
+  const { value = 0, class: className = '' } = $props<{
     value?: number
     class?: string
   }>()

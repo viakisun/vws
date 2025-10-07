@@ -9,7 +9,7 @@
     employees: Employee[]
   }
 
-  let { departments = [], employees = [] }: Props = $props()
+  const { departments = [], employees = [] }: Props = $props()
 
   // 부서별 T.O vs 현재 인원 계산
   const headcountData = $derived.by(() => {

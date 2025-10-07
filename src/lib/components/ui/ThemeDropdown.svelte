@@ -22,7 +22,7 @@
     triggerElement?: HTMLElement
   }
 
-  let {
+  const {
     open: _open = false,
     trigger = 'click',
     position = 'bottom-left',

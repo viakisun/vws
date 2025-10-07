@@ -9,7 +9,7 @@
     onUpdate?: (tagIds: string[]) => void
   }
 
-  let { accountId, selectedTags = [], onUpdate }: Props = $props()
+  const { accountId, selectedTags = [], onUpdate }: Props = $props()
 
   let availableTags = $state<AccountTag[]>([])
   let showSelector = $state(false)

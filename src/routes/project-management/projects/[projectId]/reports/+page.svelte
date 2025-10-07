@@ -15,7 +15,7 @@
   }
 
   const projectId = page.params.projectId as string
-  let items: Report[] = [
+  const items: Report[] = [
     {
       id: `${projectId}-R1`,
       title: '9월 월간 진도보고',

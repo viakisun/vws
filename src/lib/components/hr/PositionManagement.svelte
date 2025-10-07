@@ -7,7 +7,7 @@
   import { formatCurrency } from '$lib/utils/format'
   import { AwardIcon, EditIcon, PlusIcon, TrashIcon } from '@lucide/svelte'
 
-  let {
+  const {
     positions = [],
     employees = [],
     onAdd,

@@ -1,5 +1,5 @@
 <script lang="ts">
-  let { error, status } = $props<{
+  const { error, status } = $props<{
     error: Error & { message?: string }
     status: number
   }>()

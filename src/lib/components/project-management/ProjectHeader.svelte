@@ -4,7 +4,7 @@
   import ThemeCard from '$lib/components/ui/ThemeCard.svelte'
   import { CalendarIcon, DollarSignIcon, EditIcon, TrashIcon } from '@lucide/svelte'
 
-  let {
+  const {
     selectedProject,
     budgetRefreshTrigger = 0,
     onEditProject,

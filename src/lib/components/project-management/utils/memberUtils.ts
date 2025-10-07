@@ -14,7 +14,6 @@ export function getMemberField<T>(
   snakeCase: string,
   defaultValue: T,
 ): T {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return member?.[camelCase] || member?.[snakeCase] || defaultValue
 }
 

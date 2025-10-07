@@ -12,7 +12,6 @@ export function getProjectField<T>(
   snakeCase: string,
   defaultValue: T,
 ): T {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return project?.[camelCase] || project?.[snakeCase] || defaultValue
 }
 

@@ -16,7 +16,7 @@
     showArchive?: boolean
   }
 
-  let {
+  const {
     open,
     title,
     message,
@@ -33,7 +33,7 @@
   }>()
 
   let inputValue = $state('')
-  let isConfirmValid = $derived(confirmText ? inputValue === confirmText : true)
+  const isConfirmValid = $derived(confirmText ? inputValue === confirmText : true)
 
   function handleConfirm(action: 'delete' | 'archive') {
     if (!isConfirmValid) return

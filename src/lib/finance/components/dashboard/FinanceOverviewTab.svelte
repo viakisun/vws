@@ -26,7 +26,7 @@
     onNavigate: (tab: string) => void
   }
 
-  let { stats, actionItems, accounts, onNavigate }: Props = $props()
+  const { stats, actionItems, accounts, onNavigate }: Props = $props()
 </script>
 
 <div class="space-y-6">

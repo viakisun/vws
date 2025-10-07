@@ -5,7 +5,7 @@
   import type { LeaveData } from '$lib/types/dashboard'
   import { logger } from '$lib/utils/logger'
 
-  let { data: _data }: { data: PageData } = $props()
+  const { data: _data }: { data: PageData } = $props()
 
   // 상태 관리
   let leaveData = $state<LeaveData | null>(null)

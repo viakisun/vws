@@ -2,7 +2,7 @@
   import type { User } from '$lib/auth/user-service'
   import type { PageData } from './$types'
 
-  let { data }: { data: PageData } = $props()
+  const { data }: { data: PageData } = $props()
 
   // Extended user type with optional employee info
   interface EmployeeInfo {
@@ -16,7 +16,7 @@
     employee?: EmployeeInfo
   }
 
-  let user: ExtendedUser | null = $state(data.user as ExtendedUser | null)
+  const user: ExtendedUser | null = $state(data.user as ExtendedUser | null)
 
   // =============================================
   // Types
@@ -172,7 +172,7 @@
   /**
    * Filter admin cards based on user role
    */
-  let filteredAdminCards = $derived.by(() => {
+  const filteredAdminCards = $derived.by(() => {
     const userRole = user?.role || ''
     return ADMIN_CARDS.filter((card) => card.roles?.includes(userRole) || false)
   })
@@ -180,22 +180,22 @@
   /**
    * Check if user has employee info
    */
-  let hasEmployeeInfo = $derived(!!user?.employee)
+  const hasEmployeeInfo = $derived(!!user?.employee)
 
   /**
    * Get user's display name
    */
-  let displayName = $derived(user?.name || '사용자')
+  const displayName = $derived(user?.name || '사용자')
 
   /**
    * Get user's first initial for avatar
    */
-  let userInitial = $derived(user?.name?.charAt(0) || 'U')
+  const userInitial = $derived(user?.name?.charAt(0) || 'U')
 
   /**
    * Format last login date
    */
-  let lastLoginDisplay = $derived(() => {
+  const lastLoginDisplay = $derived(() => {
     if (!user?.last_login) return '방금 전'
     return new Date(user.last_login).toLocaleString('ko-KR')
   })
@@ -203,7 +203,7 @@
   /**
    * Format hire date
    */
-  let hireDateDisplay = $derived(() => {
+  const hireDateDisplay = $derived(() => {
     if (!user?.employee?.hire_date) return ''
     return new Date(user.employee.hire_date).toLocaleDateString('ko-KR')
   })

@@ -12,7 +12,7 @@
     class?: string
   }
 
-  let {
+  const {
     title,
     value,
     badge = '',

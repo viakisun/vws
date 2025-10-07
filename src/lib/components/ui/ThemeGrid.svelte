@@ -8,7 +8,7 @@
     children?: any
   }
 
-  let {
+  const {
     cols = 1,
     mdCols = 2,
     lgCols = 3,

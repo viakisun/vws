@@ -143,7 +143,7 @@ function parseRow(row: any[], rowIndex: number = 0): Transaction | null {
   }
 
   // 날짜 형식이 올바른지 간단히 확인 (숫자와 / 또는 - 포함)
-  if (!/^\d{4}[\/\-]\d{1,2}[\/\-]\d{1,2}/.test(dateTime)) {
+  if (!/^\d{4}[/-]\d{1,2}[/-]\d{1,2}/.test(dateTime)) {
     return null
   }
 

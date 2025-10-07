@@ -46,7 +46,7 @@
   ]
 
   // 사용자 역할에 따른 메뉴 필터링
-  let filteredNavigationItems = $derived(
+  const filteredNavigationItems = $derived(
     navigationItems.filter((item) => !item.roles || item.roles.includes(user?.role || '')),
   )
 

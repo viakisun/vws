@@ -38,7 +38,7 @@
   // Props & Dispatcher
   // ============================================================================
 
-  let {
+  const {
     selectedProject,
     externalRefreshTrigger = 0,
   }: { selectedProject: any; externalRefreshTrigger?: number } = $props()

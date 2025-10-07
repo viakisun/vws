@@ -4,7 +4,7 @@
   import type { PageData } from './$types'
   import { logger } from '$lib/utils/logger'
 
-  let { data: _data }: { data: PageData } = $props()
+  const { data: _data }: { data: PageData } = $props()
 
   // Types
   interface CertificateRequest {

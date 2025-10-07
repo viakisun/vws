@@ -70,7 +70,7 @@
   }
 
   // 필터링된 계좌 목록
-  let filteredAccounts = $derived.by(() => {
+  const filteredAccounts = $derived.by(() => {
     let result = accounts
 
     // 잔액 필터

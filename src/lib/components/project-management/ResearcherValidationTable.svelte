@@ -16,7 +16,7 @@
   import { onMount } from 'svelte'
 
   // Props
-  let {
+  const {
     projectId,
     members = [],
     onMemberUpdate = () => {},
@@ -27,7 +27,7 @@
   } = $props()
 
   // State
-  let validationState = $state({
+  const validationState = $state({
     isValidating: false,
     isValid: false,
     lastValidated: null as string | null,

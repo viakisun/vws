@@ -13,7 +13,7 @@
     onNavigate: (tab: string) => void
   }
 
-  let { actionItems, onNavigate }: Props = $props()
+  const { actionItems, onNavigate }: Props = $props()
 </script>
 
 <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">

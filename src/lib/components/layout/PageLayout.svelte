@@ -20,7 +20,7 @@
     searchPlaceholder?: string
   }
 
-  let {
+  const {
     title,
     subtitle = '',
     children,

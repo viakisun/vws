@@ -5,7 +5,7 @@
     height?: number
   }
 
-  let { data = [], type = 'bar', height = 200 }: Props = $props()
+  const { data = [], type = 'bar', height = 200 }: Props = $props()
 
   const maxValue = $derived(Math.max(...data.map((d) => d.value)))
   const totalValue = $derived(data.reduce((sum, d) => sum + d.value, 0))

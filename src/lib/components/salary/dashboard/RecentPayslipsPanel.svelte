@@ -7,7 +7,7 @@
     payslips: Payslip[]
   }
 
-  let { payslips = [] }: Props = $props()
+  const { payslips = [] }: Props = $props()
 
   // 최근 3개월 급여명세서 (기간별로 그룹화)
   const recentPeriods = $derived.by(() => {

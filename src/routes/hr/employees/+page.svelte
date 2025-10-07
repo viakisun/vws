@@ -35,7 +35,7 @@
   let sortOrder = $state<'asc' | 'desc'>('asc')
 
   // 필터링된 직원 목록
-  let filteredEmployees = $derived(() => {
+  const filteredEmployees = $derived(() => {
     let filtered = $employees
 
     // 검색 필터
@@ -108,7 +108,7 @@
   })
 
   // 고유 부서 목록
-  let departments = $derived([...new Set($employees.map((emp) => emp.department))])
+  const departments = $derived([...new Set($employees.map((emp) => emp.department))])
 
   // 폼 데이터
   let formData = $state({

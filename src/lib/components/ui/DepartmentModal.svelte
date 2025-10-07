@@ -18,11 +18,11 @@
     loading?: boolean
   }
 
-  let { open = false, department = null, loading = false }: Props = $props()
+  const { open = false, department = null, loading = false }: Props = $props()
 
   const dispatch = createEventDispatcher()
 
-  let formData = $state({
+  const formData = $state({
     name: '',
     description: '',
     status: 'active' as 'active' | 'inactive',

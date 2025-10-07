@@ -35,8 +35,8 @@
   // 모달 상태
   let isReviewModalOpen = $state(false)
   let isFeedbackModalOpen = $state(false)
-  let _isCompetencyModalOpen = $state(false)
-  let _isTrainingModalOpen = $state(false)
+  const _isCompetencyModalOpen = $state(false)
+  const _isTrainingModalOpen = $state(false)
   let selectedReview = $state<PerformanceReview | null>(null)
 
   // 폼 데이터
@@ -109,18 +109,18 @@
   })
 
   // 현재 선택된 직원의 데이터
-  let selectedEmployee = $derived($employees.find((emp) => emp.id === selectedEmployeeId))
-  let employeeReviews = $derived(
+  const selectedEmployee = $derived($employees.find((emp) => emp.id === selectedEmployeeId))
+  const employeeReviews = $derived(
     getPerformanceReviewsByEmployee(selectedEmployeeId, $performanceReviews),
   )
-  let employeeFeedback = $derived(getFeedback360ByReviewee(selectedEmployeeId, $feedback360))
-  let employeeCompetencies = $derived(
+  const employeeFeedback = $derived(getFeedback360ByReviewee(selectedEmployeeId, $feedback360))
+  const employeeCompetencies = $derived(
     getCompetencyMatrixByEmployee(selectedEmployeeId, $competencyMatrix),
   )
-  let employeeTraining = $derived(
+  const employeeTraining = $derived(
     getTrainingRecordsByEmployee(selectedEmployeeId, $trainingRecords),
   )
-  let averageFeedback = $derived(calculateAverageFeedback360(selectedEmployeeId, $feedback360))
+  const averageFeedback = $derived(calculateAverageFeedback360(selectedEmployeeId, $feedback360))
 
   // 함수들
   function quarterFrom(dateStr: string): number {

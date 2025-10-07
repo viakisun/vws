@@ -9,7 +9,7 @@
   const dispatch = createEventDispatcher()
 
   // Props
-  let {
+  const {
     projectId = '',
     existingBudgets = [],
     readonly = false,
@@ -26,7 +26,7 @@
   let initialized = $state(false)
 
   // 계산된 요약 정보
-  let budgetSummary = $derived(calculateBudgetSummary(budgetData))
+  const budgetSummary = $derived(calculateBudgetSummary(budgetData))
 
   // 연차 추가
   function addYear() {

@@ -225,10 +225,10 @@
   let error = $state<string | null>(null)
 
   // 활성 계좌만 필터링 (비활성/폐쇄 계좌 제외)
-  let activeAccounts = $derived(accounts.filter((account) => account.status === 'active'))
+  const activeAccounts = $derived(accounts.filter((account) => account.status === 'active'))
 
   // 계좌별 업로드 상태 관리
-  let accountUploadStates = $state<
+  const accountUploadStates = $state<
     Record<
       string,
       {
@@ -241,7 +241,7 @@
   >({})
 
   // 계좌별 삭제 상태 관리
-  let accountDeleteStates = $state<
+  const accountDeleteStates = $state<
     Record<
       string,
       {
@@ -254,12 +254,12 @@
   let showAddModal = $state(false)
 
   // 업로드/삭제 관련 상태
-  let showUploadSection = $state(false)
-  let showUploadModal = $state(false)
+  const showUploadSection = $state(false)
+  const showUploadModal = $state(false)
   let selectedFile = $state<File | null>(null)
   let selectedAccountForUpload = $state<string>('')
   let replaceExisting = $state(false)
-  let isUploading = $state(false)
+  const isUploading = $state(false)
 
   // 인라인 편집 관련 상태
   let editingTransactionId = $state<string | null>(null)
@@ -273,7 +273,7 @@
   let selectedFiles = $state<File[]>([])
   let isMultiUploading = $state(false)
   let multiUploadResults = $state<any[]>([])
-  let showMultiUploadSection = $state(false)
+  const showMultiUploadSection = $state(false)
 
   // 카테고리를 타입별로 그룹화
   let _groupedCategories = $state<Record<string, TransactionCategory[]>>({})

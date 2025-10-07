@@ -71,7 +71,7 @@
     totalPayments?: number
   }
 
-  let { payroll = undefined }: { payroll?: PayslipData } = $props()
+  const { payroll = undefined }: { payroll?: PayslipData } = $props()
 
   let employeeList = $state<Employee[]>([])
   let allEmployees = $state<Employee[]>([]) // 전체 직원 목록
@@ -705,7 +705,7 @@
     const missingPeriods: any[] = []
 
     // 입사일부터 현재까지의 월별 확인
-    let current = new Date(hireDate.getFullYear(), hireDate.getMonth(), 1)
+    const current = new Date(hireDate.getFullYear(), hireDate.getMonth(), 1)
     const end = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1)
 
     while (current <= end) {

@@ -6,7 +6,7 @@
   import { ArrowLeftIcon, FileTextIcon } from '@lucide/svelte'
   import type { PageData } from './$types'
 
-  let { data }: { data: PageData } = $props()
+  const { data }: { data: PageData } = $props()
 
   // =============================================
   // Types
@@ -42,7 +42,7 @@
   // State
   // =============================================
 
-  let user: ExtendedUser | null = $state(data.user as ExtendedUser | null)
+  const user: ExtendedUser | null = $state(data.user as ExtendedUser | null)
   let showPayslipViewer = $state(false)
 
   // =============================================
@@ -104,12 +104,12 @@
   /**
    * Check if user has employee info
    */
-  let hasEmployeeInfo = $derived(!!user?.employee)
+  const hasEmployeeInfo = $derived(!!user?.employee)
 
   /**
    * Get user's full name
    */
-  let fullName = $derived(() => {
+  const fullName = $derived(() => {
     if (!user?.employee) return ''
     return `${user.employee.first_name} ${user.employee.last_name}`
   })
@@ -117,7 +117,7 @@
   /**
    * Get page description based on employee status
    */
-  let pageDescription = $derived(() => {
+  const pageDescription = $derived(() => {
     if (!user?.employee) {
       return '직원 정보가 등록되지 않아 급여명세서를 조회할 수 없습니다.'
     }
@@ -127,7 +127,7 @@
   /**
    * Employee information fields for display
    */
-  let employeeFields = $derived.by((): EmployeeField[] => {
+  const employeeFields = $derived.by((): EmployeeField[] => {
     if (!user?.employee) return []
 
     return [

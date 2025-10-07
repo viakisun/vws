@@ -20,7 +20,7 @@
     const qn = Math.floor(d.getMonth() / 3) + 1
     return `${y}-Q${qn}`
   }
-  let quarter = $state(currentQuarterLabel())
+  const quarter = $state(currentQuarterLabel())
   const budgetMap = $derived(
     ($quarterlyPersonnelBudgets[projectId as string] ?? {}) as Record<string, number>,
   )

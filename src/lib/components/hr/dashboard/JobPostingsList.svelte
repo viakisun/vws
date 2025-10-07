@@ -8,7 +8,7 @@
   import { formatDate } from '$lib/utils/format'
 
   // 최근 채용 공고
-  let recentJobPostings = $derived(
+  const recentJobPostings = $derived(
     $jobPostings
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
       .slice(0, 5),

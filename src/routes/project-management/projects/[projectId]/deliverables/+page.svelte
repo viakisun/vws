@@ -16,7 +16,7 @@
 
   const projectId = page.params.projectId as string
   // mock per-project deliverables
-  let items: Deliverable[] = [
+  const items: Deliverable[] = [
     {
       id: `${projectId}-D1`,
       title: '중간보고서',

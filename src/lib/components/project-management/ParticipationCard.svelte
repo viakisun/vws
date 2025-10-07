@@ -8,7 +8,7 @@
     employeeParticipationSummary?: EmployeeParticipationSummary[]
   }
 
-  let { employeeParticipationSummary = [] }: Props = $props()
+  const { employeeParticipationSummary = [] }: Props = $props()
 </script>
 
 <div class="space-y-6">

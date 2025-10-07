@@ -7,7 +7,7 @@
   import type { Customer, Opportunity, Transaction } from '$lib/sales/types'
   import { formatCurrency, formatDate } from '$lib/utils/format'
 
-  let {
+  const {
     customers = [],
     opportunities = [],
     transactions = [],

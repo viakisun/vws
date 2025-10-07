@@ -11,7 +11,7 @@
     onNavigate?: (tab: string) => void
   }
 
-  let { employees = [], leaveRequests = [], onNavigate }: Props = $props()
+  const { employees = [], leaveRequests = [], onNavigate }: Props = $props()
 
   // 처리 필요 항목 계산
   const actionItems = $derived.by(() => {

@@ -10,7 +10,7 @@
     height?: string
   }
 
-  let { monthlyStats = [], height = '400px' }: Props = $props()
+  const { monthlyStats = [], height = '400px' }: Props = $props()
 
   let chart: Chart | null = null
   const chartId = `monthly-trend-${Math.random().toString(36).substr(2, 9)}`

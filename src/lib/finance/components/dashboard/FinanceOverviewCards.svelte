@@ -14,7 +14,7 @@
     stats: DashboardStats
   }
 
-  let { stats }: Props = $props()
+  const { stats }: Props = $props()
 
   // 디버깅
   $effect(() => {

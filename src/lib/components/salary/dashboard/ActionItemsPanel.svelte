@@ -12,7 +12,7 @@
     onNavigate?: (tab: string) => void
   }
 
-  let { actionItems, onNavigate = () => {} }: Props = $props()
+  const { actionItems, onNavigate = () => {} }: Props = $props()
 </script>
 
 <ThemeCard class="p-6">

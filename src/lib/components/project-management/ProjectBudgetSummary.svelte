@@ -6,7 +6,7 @@
   import { formatDate } from '$lib/utils/format'
   import { DollarSignIcon } from '@lucide/svelte'
 
-  let {
+  const {
     projectId,
     compact = false,
     refreshTrigger = 0,

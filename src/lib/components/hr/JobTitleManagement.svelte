@@ -6,7 +6,7 @@
   import type { JobTitle, Employee } from '$lib/types/hr'
   import { TagIcon, EditIcon, PlusIcon, TrashIcon } from '@lucide/svelte'
 
-  let {
+  const {
     jobTitles = [],
     employees = [],
     onAdd,

@@ -45,11 +45,11 @@
     onClose: () => void
   }
 
-  let { open, employeeId, onClose }: Props = $props()
+  const { open, employeeId, onClose }: Props = $props()
 
   // State
   let payslips = $state<PayslipData[]>([])
-  let selectedPayslip = $state<PayslipData | null>(null)
+  const selectedPayslip = $state<PayslipData | null>(null)
   let loading = $state(false)
   let error = $state<string | null>(null)
 
@@ -68,7 +68,7 @@
   /**
    * Generate list of available months (last month to 12 months ago)
    */
-  let availableMonths = $derived.by(() => {
+  const availableMonths = $derived.by(() => {
     const months: MonthOption[] = []
     const now = new Date()
     let year = now.getFullYear()
@@ -113,7 +113,7 @@
   /**
    * Find payslip for selected month
    */
-  let currentPayslip = $derived.by(() => {
+  const currentPayslip = $derived.by(() => {
     if (!selectedMonth || payslips.length === 0) return null
 
     const [yearStr, monthStr] = selectedMonth.split('-')
@@ -126,7 +126,7 @@
   /**
    * Parse selected month for display
    */
-  let selectedMonthDisplay = $derived.by(() => {
+  const selectedMonthDisplay = $derived.by(() => {
     if (!selectedMonth) return '선택된 월'
     const [year, month] = selectedMonth.split('-')
     return `${year}년 ${month}월`

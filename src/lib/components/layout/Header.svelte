@@ -16,7 +16,7 @@
   } from '@lucide/svelte'
   import { onMount } from 'svelte'
 
-  let { user = null, onLogout }: { user: User | null; onLogout: () => void } = $props()
+  const { user = null, onLogout }: { user: User | null; onLogout: () => void } = $props()
 
   // Notification state
   let showNotifications = $state(false)
@@ -24,7 +24,7 @@
   let notificationsContainer: HTMLElement | undefined
   let userMenuContainer: HTMLElement | undefined
   let userMenuButton: any
-  let unreadCount = $state(3)
+  const unreadCount = $state(3)
 
   // Company information
   let companyName = $state('(주)비아')

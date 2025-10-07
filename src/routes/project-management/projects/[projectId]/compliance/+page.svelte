@@ -15,7 +15,7 @@
   }
 
   const projectId = page.params.projectId as string
-  let rules: Rule[] = [
+  const rules: Rule[] = [
     {
       id: `${projectId}-C1`,
       category: '인건비',

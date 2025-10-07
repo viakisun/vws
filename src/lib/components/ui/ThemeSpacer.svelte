@@ -5,7 +5,7 @@
     children?: any
   }
 
-  let { size = 8, class: className = '', children, ...restProps }: Props = $props()
+  const { size = 8, class: className = '', children, ...restProps }: Props = $props()
 
   const spacerClass = `space-y-${size}`
 </script>

@@ -10,7 +10,7 @@
 
   const dispatch = createEventDispatcher()
 
-  let { projectId } = $props<{
+  const { projectId } = $props<{
     projectId: string
   }>()
 

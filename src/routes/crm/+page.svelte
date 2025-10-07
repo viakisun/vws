@@ -36,7 +36,7 @@
   import { onMount } from 'svelte'
 
   // Mock CRM data
-  let crmData = $state<CRMData>({
+  const crmData = $state<CRMData>({
     customers: [
       {
         id: 'customer-1',
@@ -128,7 +128,7 @@
   let selectedCustomer = $state<any>(null)
   let showCustomerModal = $state(false)
   let showCreateModal = $state(false)
-  let searchTerm = $state('')
+  const searchTerm = $state('')
   let selectedStatus = $state('all')
 
   // 탭 정의
@@ -191,7 +191,7 @@
   ]
 
   // 필터링된 고객 데이터
-  let filteredCustomers = $derived<Customer[]>(
+  const filteredCustomers = $derived<Customer[]>(
     (() => {
       let customers = crmData.customers
 

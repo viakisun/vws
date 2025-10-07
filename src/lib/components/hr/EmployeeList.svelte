@@ -14,7 +14,7 @@
   } from '$lib/utils/hr'
   import { EditIcon, SearchIcon, TrashIcon, UserPlusIcon } from '@lucide/svelte'
 
-  let {
+  const {
     employees = [],
     departments = [],
     positions = [],

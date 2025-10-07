@@ -7,7 +7,7 @@
   const dispatch = createEventDispatcher()
 
   // 간소화된 폼 데이터 상태
-  let projectData = $state({
+  const projectData = $state({
     title: '',
     code: '',
     description: '',

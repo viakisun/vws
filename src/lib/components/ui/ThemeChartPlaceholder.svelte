@@ -6,7 +6,7 @@
     class?: string
   }
 
-  let { title, value = '', icon, class: className = '', ...restProps }: Props = $props()
+  const { title, value = '', icon, class: className = '', ...restProps }: Props = $props()
 </script>
 
 <div class="space-y-4 {className}" {...restProps}>

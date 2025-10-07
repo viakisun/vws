@@ -8,7 +8,7 @@
     onNavigate?: (tab: string) => void
   }
 
-  let { onNavigate = () => {} }: Props = $props()
+  const { onNavigate = () => {} }: Props = $props()
 </script>
 
 <div class="space-y-6">

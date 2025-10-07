@@ -8,7 +8,7 @@
     class?: string
   }
 
-  let { title, description, href, class: className = '', ...restProps }: Props = $props()
+  const { title, description, href, class: className = '', ...restProps }: Props = $props()
 </script>
 
 <div class="flex items-center justify-between mb-6 {className}" {...restProps}>

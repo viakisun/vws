@@ -10,7 +10,7 @@
   import type { LayoutServerData } from './$types'
   import { logger } from '$lib/utils/logger'
 
-  let { children, data }: { children: any; data: LayoutServerData } = $props()
+  const { children, data }: { children: any; data: LayoutServerData } = $props()
   let sidebarCollapsed = $state(true)
   let user = $state(data.user)
 

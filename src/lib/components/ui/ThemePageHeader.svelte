@@ -8,7 +8,7 @@
     children?: Snippet
   }
 
-  let { title = '', subtitle = '', class: className = '', children }: Props = $props()
+  const { title = '', subtitle = '', class: className = '', children }: Props = $props()
 </script>
 
 <div class="mb-6 {className}">

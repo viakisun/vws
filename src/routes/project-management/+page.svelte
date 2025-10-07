@@ -88,17 +88,17 @@
   let alerts = $state([])
 
   // 탭별 로딩 상태 및 오류 체크
-  let tabLoadingStates = $state({
+  const tabLoadingStates = $state({
     overview: false,
     projects: false,
     participation: false,
   })
-  let tabErrors = $state({
+  const tabErrors = $state({
     overview: null,
     projects: null,
     participation: null,
   })
-  let tabLastLoaded = $state({
+  const tabLastLoaded = $state({
     overview: null,
     projects: null,
     participation: null,

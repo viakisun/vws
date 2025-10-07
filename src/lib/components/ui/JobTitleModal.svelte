@@ -19,11 +19,11 @@
     loading?: boolean
   }
 
-  let { open = false, jobTitle = null, loading = false }: Props = $props()
+  const { open = false, jobTitle = null, loading = false }: Props = $props()
 
   const dispatch = createEventDispatcher()
 
-  let formData = $state({
+  const formData = $state({
     name: '',
     description: '',
     level: 1,

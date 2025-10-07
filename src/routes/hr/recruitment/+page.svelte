@@ -21,10 +21,10 @@
 
   // 모달 상태
   let isJobPostingModalOpen = $state(false)
-  let _isCandidateModalOpen = $state(false)
-  let _isInterviewModalOpen = $state(false)
+  const _isCandidateModalOpen = $state(false)
+  const _isInterviewModalOpen = $state(false)
   let selectedJobPosting = $state<JobPosting | null>(null)
-  let _selectedCandidate = $state<Candidate | null>(null)
+  const _selectedCandidate = $state<Candidate | null>(null)
 
   // 필터
   let statusFilter = $state('')
@@ -46,7 +46,7 @@
     applicationDeadline: '',
   })
 
-  let _candidateForm = $state({
+  const _candidateForm = $state({
     jobPostingId: '',
     personalInfo: {
       name: '',
@@ -83,7 +83,7 @@
   })
 
   // 필터링된 채용 공고
-  let filteredJobPostings = $derived<JobPosting[]>(
+  const filteredJobPostings = $derived<JobPosting[]>(
     (() => {
       let filtered = $jobPostings
       if (statusFilter) filtered = filtered.filter((job) => job.status === statusFilter)

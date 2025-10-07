@@ -13,7 +13,13 @@
     positions?: string[]
   }
 
-  let { open, employee = null, loading = false, departments = [], positions = [] }: Props = $props()
+  const {
+    open,
+    employee = null,
+    loading = false,
+    departments = [],
+    positions = [],
+  }: Props = $props()
 
   const dispatch = createEventDispatcher<{
     close: void

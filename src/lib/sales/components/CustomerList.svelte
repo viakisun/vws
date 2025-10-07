@@ -15,7 +15,7 @@
     UsersIcon,
   } from '@lucide/svelte'
 
-  let {
+  const {
     customers = [],
     selectedType = 'all',
     getStatusColor,

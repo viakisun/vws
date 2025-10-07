@@ -113,7 +113,7 @@
     children?: any
   }
 
-  let {
+  const {
     variant = 'primary',
     size = 'md',
     disabled = false,

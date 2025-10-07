@@ -7,7 +7,7 @@
     onNavigate: (tab: string) => void
   }
 
-  let { accounts, onNavigate }: Props = $props()
+  const { accounts, onNavigate }: Props = $props()
 
   // 금액 포맷팅 함수
   function formatCurrency(amount: number): string {

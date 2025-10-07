@@ -49,7 +49,7 @@
   let selectedProject = $state('all')
   let selectedEmployee = $state('all')
   let selectedStatus = $state('all')
-  let _selectedTimeframe = $state('current')
+  const _selectedTimeframe = $state('current')
   let showAdvancedFilters = $state(false)
   let showParticipationModal = $state(false)
   let showAnalyticsModal = $state(false)
@@ -64,13 +64,13 @@
   let minSalary = $state(0)
   let maxSalary = $state(10000000)
   let selectedDepartment = $state('all')
-  let selectedRole = $state('all')
+  const selectedRole = $state('all')
 
   // 통계 데이터
-  let totalEmployees = $derived($employees.length)
-  let totalProjects = $derived($projects.length)
-  let _totalParticipations = $derived($participations.length)
-  let averageParticipationRate = $derived(
+  const totalEmployees = $derived($employees.length)
+  const totalProjects = $derived($projects.length)
+  const _totalParticipations = $derived($participations.length)
+  const averageParticipationRate = $derived(
     $participations.length > 0
       ? $participations.reduce((sum: number, p: any) => sum + p.participationRate, 0) /
           $participations.length
@@ -78,7 +78,7 @@
   )
 
   // 필터링된 참여 데이터
-  let filteredParticipations = $derived(
+  const filteredParticipations = $derived(
     $participations.filter((participation: any) => {
       const employee = $employees.find((e: any) => e.id === participation.employeeId)
       const project = $projects.find((p: any) => p.id === participation.projectId)
@@ -115,7 +115,7 @@
   )
 
   // 정렬된 참여 데이터
-  let sortedParticipations = $derived(
+  const sortedParticipations = $derived(
     [...filteredParticipations].sort((a: any, b: any) => {
       const employeeA = $employees.find((e: any) => e.id === a.employeeId)
       const employeeB = $employees.find((e: any) => e.id === b.employeeId)
@@ -159,7 +159,7 @@
   )
 
   // 참여율 분석 데이터
-  let participationAnalytics = $derived({
+  const participationAnalytics = $derived({
     overloaded: filteredParticipations.filter((p: any) => p.participationRate > 100).length,
     optimal: filteredParticipations.filter(
       (p: any) => p.participationRate >= 80 && p.participationRate <= 100,
@@ -172,7 +172,7 @@
   })
 
   // 프로젝트별 참여 현황
-  let projectParticipation = $derived(
+  const projectParticipation = $derived(
     $projects.map((project: any) => {
       const projectParticipations = filteredParticipations.filter(
         (p: any) => p.projectId === project.id,
@@ -198,7 +198,7 @@
   )
 
   // 직원별 참여 현황
-  let employeeParticipation = $derived(
+  const employeeParticipation = $derived(
     $employees.map((employee: any) => {
       const employeeParticipations = filteredParticipations.filter(
         (p: any) => p.employeeId === employee.id,
@@ -226,7 +226,7 @@
   )
 
   // AI 추천사항
-  let filteredRecommendations = $derived(
+  const filteredRecommendations = $derived(
     $aiRecommendations.filter((rec: any) => rec.type === 'participation_optimization'),
   )
 

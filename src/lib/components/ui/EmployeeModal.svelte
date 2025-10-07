@@ -53,7 +53,7 @@
     }>
   }
 
-  let {
+  const {
     open,
     employee = null,
     loading = false,
@@ -68,7 +68,7 @@
   }>()
 
   // 폼 데이터
-  let formData = $state<Employee>({
+  const formData = $state<Employee>({
     first_name: '',
     last_name: '',
     email: '',
@@ -188,7 +188,7 @@
   })
 
   // 모든 직급 표시 (임시로 필터링 제거)
-  let filteredPositions = $derived(positions || [])
+  const filteredPositions = $derived(positions || [])
 
   // 상태 옵션
   const statusOptions = [
@@ -255,8 +255,8 @@
     dispatch('close')
   }
 
-  let isEdit = $derived(!!employee?.id)
-  let title = $derived(isEdit ? '직원 정보 수정' : '새 직원 추가')
+  const isEdit = $derived(!!employee?.id)
+  const title = $derived(isEdit ? '직원 정보 수정' : '새 직원 추가')
 
   // 탭 상태
   let activeTab = $state<'basic' | 'employment' | 'additional'>('basic')

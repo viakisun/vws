@@ -5,12 +5,12 @@
   import type { AttendanceData } from '$lib/types/dashboard'
   import { logger } from '$lib/utils/logger'
 
-  let { data: _data }: { data: PageData } = $props()
+  const { data: _data }: { data: PageData } = $props()
 
   // 상태 관리
   let attendanceData = $state<AttendanceData | null>(null)
   let loading = $state(false)
-  let today = $state(new Date().toISOString().split('T')[0])
+  const today = $state(new Date().toISOString().split('T')[0])
   let selectedDate = $state(today)
 
   // 출퇴근 기록

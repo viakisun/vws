@@ -10,7 +10,7 @@
     height?: string
   }
 
-  let { categoryStats = [], height = '400px' }: Props = $props()
+  const { categoryStats = [], height = '400px' }: Props = $props()
 
   let chart: Chart | null = null
   const chartId = `category-spending-${Math.random().toString(36).substr(2, 9)}`

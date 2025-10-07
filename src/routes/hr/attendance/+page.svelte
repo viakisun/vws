@@ -32,9 +32,9 @@
 
   // 현재 선택된 직원
   let selectedEmployeeId = $state('')
-  let currentDate = new Date().toISOString().split('T')[0]
-  let selectedMonth = new Date().getMonth() + 1
-  let selectedYear = new Date().getFullYear()
+  const currentDate = new Date().toISOString().split('T')[0]
+  const selectedMonth = new Date().getMonth() + 1
+  const selectedYear = new Date().getFullYear()
 
   // 모달 상태
   let isLeaveRequestModalOpen = $state(false)
@@ -59,18 +59,22 @@
   })
 
   // 현재 선택된 직원의 데이터
-  let selectedEmployee = $derived($employees.find((emp) => emp.id === selectedEmployeeId))
-  let employeeAttendance = $derived(getAttendanceByEmployee(selectedEmployeeId, $attendanceRecords))
-  let employeeLeaveRequests = $derived(
+  const selectedEmployee = $derived($employees.find((emp) => emp.id === selectedEmployeeId))
+  const employeeAttendance = $derived(
+    getAttendanceByEmployee(selectedEmployeeId, $attendanceRecords),
+  )
+  const employeeLeaveRequests = $derived(
     getLeaveRequestsByEmployee(selectedEmployeeId, $leaveRequests),
   )
-  let employeeLeaveBalance = $derived(getLeaveBalanceByEmployee(selectedEmployeeId, $leaveBalances))
-  let monthlyStats = $derived(
+  const employeeLeaveBalance = $derived(
+    getLeaveBalanceByEmployee(selectedEmployeeId, $leaveBalances),
+  )
+  const monthlyStats = $derived(
     calculateMonthlyAttendance(selectedEmployeeId, selectedYear, selectedMonth, $attendanceRecords),
   )
 
   // 오늘의 근태 기록
-  let todayAttendance = $derived(employeeAttendance.find((record) => record.date === currentDate))
+  const todayAttendance = $derived(employeeAttendance.find((record) => record.date === currentDate))
 
   // 함수들
   function openLeaveRequestModal() {

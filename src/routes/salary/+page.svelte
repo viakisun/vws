@@ -68,7 +68,7 @@
   }
 
   // 탭별 컴포넌트 렌더링
-  let activeComponent = $derived.by(() => {
+  const activeComponent = $derived.by(() => {
     switch (activeTab) {
       case 'overview':
         return 'overview'

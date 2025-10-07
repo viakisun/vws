@@ -7,7 +7,7 @@
     employees: Employee[]
   }
 
-  let { employees = [] }: Props = $props()
+  const { employees = [] }: Props = $props()
 
   // 통계 계산
   const stats = $derived.by(() => {
