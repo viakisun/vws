@@ -24,7 +24,7 @@
     confirmText = '',
     confirmLabel = '확인을 위해 입력하세요',
     loading = false,
-    showArchive = true
+    showArchive = true,
   }: Props = $props()
 
   const dispatch = createEventDispatcher<{

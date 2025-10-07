@@ -236,9 +236,8 @@
     const dataToSave = {
       ...formData,
       salary: Number(formData.salary) || 0,
-      job_title_id: formData.job_title_id && formData.job_title_id.trim() !== ''
-        ? formData.job_title_id
-        : null,
+      job_title_id:
+        formData.job_title_id && formData.job_title_id.trim() !== '' ? formData.job_title_id : null,
     }
 
     // 수정 모드일 때는 id를 포함
@@ -294,7 +293,9 @@
         class="px-4 py-2 text-sm font-medium transition-colors"
         class:border-b-2={activeTab === 'employment'}
         style:border-color={activeTab === 'employment' ? 'var(--color-primary)' : 'transparent'}
-        style:color={activeTab === 'employment' ? 'var(--color-primary)' : 'var(--color-text-secondary)'}
+        style:color={activeTab === 'employment'
+          ? 'var(--color-primary)'
+          : 'var(--color-text-secondary)'}
       >
         고용 정보
       </button>
@@ -304,7 +305,9 @@
         class="px-4 py-2 text-sm font-medium transition-colors"
         class:border-b-2={activeTab === 'additional'}
         style:border-color={activeTab === 'additional' ? 'var(--color-primary)' : 'transparent'}
-        style:color={activeTab === 'additional' ? 'var(--color-primary)' : 'var(--color-text-secondary)'}
+        style:color={activeTab === 'additional'
+          ? 'var(--color-primary)'
+          : 'var(--color-text-secondary)'}
       >
         추가 정보
       </button>
@@ -319,343 +322,351 @@
     >
       <!-- 기본 정보 탭 -->
       {#if activeTab === 'basic'}
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <!-- 전체 이름 (새 직원 추가 시에만 표시) -->
-        {#if !employee?.id}
-          <div class="md:col-span-2">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- 전체 이름 (새 직원 추가 시에만 표시) -->
+          {#if !employee?.id}
+            <div class="md:col-span-2">
+              <label
+                for="full-name"
+                class="block text-sm font-medium mb-2"
+                style:color="var(--color-text)">전체 이름 *</label
+              >
+              <input
+                id="full-name"
+                type="text"
+                bind:value={fullName}
+                placeholder="예: 김철수, John Smith"
+                required
+                class="w-full px-3 py-2 border rounded-md text-sm"
+                style:background="var(--color-surface)"
+                style:border-color="var(--color-border)"
+                style:color="var(--color-text)"
+              />
+              <p class="text-xs mt-1" style:color="var(--color-text-secondary)">
+                한글 이름은 첫 글자가 성으로 자동 분리됩니다.
+              </p>
+            </div>
+          {/if}
+
+          <!-- 성 -->
+          <div>
             <label
-              for="full-name"
+              for="last-name"
               class="block text-sm font-medium mb-2"
-              style:color="var(--color-text)">전체 이름 *</label
+              style:color="var(--color-text)">성 *</label
             >
             <input
-              id="full-name"
+              id="last-name"
               type="text"
-              bind:value={fullName}
-              placeholder="예: 김철수, John Smith"
+              bind:value={formData.last_name}
+              placeholder="성을 입력하세요"
               required
               class="w-full px-3 py-2 border rounded-md text-sm"
               style:background="var(--color-surface)"
               style:border-color="var(--color-border)"
               style:color="var(--color-text)"
             />
-            <p class="text-xs mt-1" style:color="var(--color-text-secondary)">
-              한글 이름은 첫 글자가 성으로 자동 분리됩니다.
-            </p>
           </div>
-        {/if}
 
-        <!-- 성 -->
-        <div>
-          <label
-            for="last-name"
-            class="block text-sm font-medium mb-2"
-            style:color="var(--color-text)">성 *</label
-          >
-          <input
-            id="last-name"
-            type="text"
-            bind:value={formData.last_name}
-            placeholder="성을 입력하세요"
-            required
-            class="w-full px-3 py-2 border rounded-md text-sm"
-            style:background="var(--color-surface)"
-            style:border-color="var(--color-border)"
-            style:color="var(--color-text)"
-          />
-        </div>
+          <!-- 이름 -->
+          <div>
+            <label
+              for="first-name"
+              class="block text-sm font-medium mb-2"
+              style:color="var(--color-text)">이름 *</label
+            >
+            <input
+              id="first-name"
+              type="text"
+              bind:value={formData.first_name}
+              placeholder="이름을 입력하세요"
+              required
+              class="w-full px-3 py-2 border rounded-md text-sm"
+              style:background="var(--color-surface)"
+              style:border-color="var(--color-border)"
+              style:color="var(--color-text)"
+            />
+          </div>
 
-        <!-- 이름 -->
-        <div>
-          <label
-            for="first-name"
-            class="block text-sm font-medium mb-2"
-            style:color="var(--color-text)">이름 *</label
-          >
-          <input
-            id="first-name"
-            type="text"
-            bind:value={formData.first_name}
-            placeholder="이름을 입력하세요"
-            required
-            class="w-full px-3 py-2 border rounded-md text-sm"
-            style:background="var(--color-surface)"
-            style:border-color="var(--color-border)"
-            style:color="var(--color-text)"
-          />
-        </div>
+          <!-- 이메일 -->
+          <div class="md:col-span-2">
+            <label
+              for="email"
+              class="block text-sm font-medium mb-2"
+              style:color="var(--color-text)">이메일 *</label
+            >
+            <input
+              id="email"
+              type="email"
+              bind:value={formData.email}
+              placeholder="이메일을 입력하세요"
+              required
+              class="w-full px-3 py-2 border rounded-md text-sm"
+              style:background="var(--color-surface)"
+              style:border-color="var(--color-border)"
+              style:color="var(--color-text)"
+            />
+          </div>
 
-        <!-- 이메일 -->
-        <div class="md:col-span-2">
-          <label for="email" class="block text-sm font-medium mb-2" style:color="var(--color-text)"
-            >이메일 *</label
-          >
-          <input
-            id="email"
-            type="email"
-            bind:value={formData.email}
-            placeholder="이메일을 입력하세요"
-            required
-            class="w-full px-3 py-2 border rounded-md text-sm"
-            style:background="var(--color-surface)"
-            style:border-color="var(--color-border)"
-            style:color="var(--color-text)"
-          />
+          <!-- 전화번호 -->
+          <div class="md:col-span-2">
+            <label
+              for="phone"
+              class="block text-sm font-medium mb-2"
+              style:color="var(--color-text)">전화번호</label
+            >
+            <input
+              id="phone"
+              type="tel"
+              bind:value={formData.phone}
+              placeholder="전화번호를 입력하세요"
+              class="w-full px-3 py-2 border rounded-md text-sm"
+              style:background="var(--color-surface)"
+              style:border-color="var(--color-border)"
+              style:color="var(--color-text)"
+            />
+          </div>
         </div>
-
-        <!-- 전화번호 -->
-        <div class="md:col-span-2">
-          <label for="phone" class="block text-sm font-medium mb-2" style:color="var(--color-text)"
-            >전화번호</label
-          >
-          <input
-            id="phone"
-            type="tel"
-            bind:value={formData.phone}
-            placeholder="전화번호를 입력하세요"
-            class="w-full px-3 py-2 border rounded-md text-sm"
-            style:background="var(--color-surface)"
-            style:border-color="var(--color-border)"
-            style:color="var(--color-text)"
-          />
-        </div>
-      </div>
       {/if}
 
       <!-- 고용 정보 탭 -->
       {#if activeTab === 'employment'}
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <!-- 부서 -->
-        <div>
-          <label
-            for="department"
-            class="block text-sm font-medium mb-2"
-            style:color="var(--color-text)">부서 *</label
-          >
-          <select
-            id="department"
-            bind:value={formData.department}
-            required
-            class="w-full px-3 py-2 border rounded-md text-sm"
-            style:background="var(--color-surface)"
-            style:border-color="var(--color-border)"
-            style:color="var(--color-text)"
-          >
-            <option value="">부서를 선택하세요</option>
-            <option value="대표">대표</option>
-            <option value="전략기획실">전략기획실</option>
-            <option value="연구소">연구소</option>
-            {#each departments.filter((d) => !['대표', '전략기획실', '연구소', '부서없음'].includes(d.name)) as dept, idx (idx)}
-              <!-- TODO: replace index key with a stable id when model provides one -->
-              <option value={dept.name}>{dept.name}</option>
-            {/each}
-            <option value="부서없음">부서없음</option>
-          </select>
-        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- 부서 -->
+          <div>
+            <label
+              for="department"
+              class="block text-sm font-medium mb-2"
+              style:color="var(--color-text)">부서 *</label
+            >
+            <select
+              id="department"
+              bind:value={formData.department}
+              required
+              class="w-full px-3 py-2 border rounded-md text-sm"
+              style:background="var(--color-surface)"
+              style:border-color="var(--color-border)"
+              style:color="var(--color-text)"
+            >
+              <option value="">부서를 선택하세요</option>
+              <option value="대표">대표</option>
+              <option value="전략기획실">전략기획실</option>
+              <option value="연구소">연구소</option>
+              {#each departments.filter((d) => !['대표', '전략기획실', '연구소', '부서없음'].includes(d.name)) as dept, idx (idx)}
+                <!-- TODO: replace index key with a stable id when model provides one -->
+                <option value={dept.name}>{dept.name}</option>
+              {/each}
+              <option value="부서없음">부서없음</option>
+            </select>
+          </div>
 
-        <!-- 직급 -->
-        <div>
-          <label
-            for="position"
-            class="block text-sm font-medium mb-2"
-            style:color="var(--color-text)">직급 *</label
-          >
-          <select
-            id="position"
-            bind:value={formData.position}
-            required
-            class="w-full px-3 py-2 border rounded-md text-sm"
-            style:background="var(--color-surface)"
-            style:border-color="var(--color-border)"
-            style:color="var(--color-text)"
-          >
-            <option value="">직급을 선택하세요</option>
-            {#each filteredPositions as pos, idx (idx)}
-              <!-- TODO: replace index key with a stable id when model provides one -->
-              <option value={pos.name || pos.title}
-                >{pos.name || pos.title} ({pos.department})</option
-              >
-            {/each}
-          </select>
-          <!-- 디버깅 정보 -->
-          {#if filteredPositions.length === 0}
-            <p class="text-xs text-red-500 mt-1">
-              직급 데이터가 없습니다. positions: {positions.length}개
+          <!-- 직급 -->
+          <div>
+            <label
+              for="position"
+              class="block text-sm font-medium mb-2"
+              style:color="var(--color-text)">직급 *</label
+            >
+            <select
+              id="position"
+              bind:value={formData.position}
+              required
+              class="w-full px-3 py-2 border rounded-md text-sm"
+              style:background="var(--color-surface)"
+              style:border-color="var(--color-border)"
+              style:color="var(--color-text)"
+            >
+              <option value="">직급을 선택하세요</option>
+              {#each filteredPositions as pos, idx (idx)}
+                <!-- TODO: replace index key with a stable id when model provides one -->
+                <option value={pos.name || pos.title}
+                  >{pos.name || pos.title} ({pos.department})</option
+                >
+              {/each}
+            </select>
+            <!-- 디버깅 정보 -->
+            {#if filteredPositions.length === 0}
+              <p class="text-xs text-red-500 mt-1">
+                직급 데이터가 없습니다. positions: {positions.length}개
+              </p>
+            {:else}
+              <p class="text-xs text-green-500 mt-1">
+                직급 {filteredPositions.length}개 로드됨
+              </p>
+            {/if}
+          </div>
+
+          <!-- 직책 (선택사항) -->
+          <div>
+            <label
+              for="job-title"
+              class="block text-sm font-medium mb-2"
+              style:color="var(--color-text)">직책</label
+            >
+            <select
+              id="job-title"
+              bind:value={formData.job_title_id}
+              class="w-full px-3 py-2 border rounded-md text-sm"
+              style:background="var(--color-surface)"
+              style:border-color="var(--color-border)"
+              style:color="var(--color-text)"
+            >
+              <option value="">직책 없음</option>
+              {#each jobTitles as jobTitle, i (i)}
+                <option value={jobTitle.id}>{jobTitle.name}</option>
+              {/each}
+            </select>
+            <p class="text-xs mt-1" style:color="var(--color-text-secondary)">
+              직책이 있으면 직원 목록에 표시됩니다.
             </p>
-          {:else}
-            <p class="text-xs text-green-500 mt-1">
-              직급 {filteredPositions.length}개 로드됨
-            </p>
-          {/if}
-        </div>
+          </div>
 
-        <!-- 직책 (선택사항) -->
-        <div>
-          <label
-            for="job-title"
-            class="block text-sm font-medium mb-2"
-            style:color="var(--color-text)">직책</label
-          >
-          <select
-            id="job-title"
-            bind:value={formData.job_title_id}
-            class="w-full px-3 py-2 border rounded-md text-sm"
-            style:background="var(--color-surface)"
-            style:border-color="var(--color-border)"
-            style:color="var(--color-text)"
-          >
-            <option value="">직책 없음</option>
-            {#each jobTitles as jobTitle, i (i)}
-              <option value={jobTitle.id}>{jobTitle.name}</option>
-            {/each}
-          </select>
-          <p class="text-xs mt-1" style:color="var(--color-text-secondary)">
-            직책이 있으면 직원 목록에 표시됩니다.
-          </p>
-        </div>
+          <!-- 상태 -->
+          <div>
+            <label
+              for="status"
+              class="block text-sm font-medium mb-2"
+              style:color="var(--color-text)">상태 *</label
+            >
+            <select
+              id="status"
+              bind:value={formData.status}
+              required
+              class="w-full px-3 py-2 border rounded-md text-sm"
+              style:background="var(--color-surface)"
+              style:border-color="var(--color-border)"
+              style:color="var(--color-text)"
+            >
+              {#each statusOptions as option, i (i)}
+                <option value={option.value}>{option.label}</option>
+              {/each}
+            </select>
+          </div>
 
-        <!-- 상태 -->
-        <div>
-          <label for="status" class="block text-sm font-medium mb-2" style:color="var(--color-text)"
-            >상태 *</label
-          >
-          <select
-            id="status"
-            bind:value={formData.status}
-            required
-            class="w-full px-3 py-2 border rounded-md text-sm"
-            style:background="var(--color-surface)"
-            style:border-color="var(--color-border)"
-            style:color="var(--color-text)"
-          >
-            {#each statusOptions as option, i (i)}
-              <option value={option.value}>{option.label}</option>
-            {/each}
-          </select>
-        </div>
+          <!-- 고용 형태 -->
+          <div>
+            <label
+              for="employment-type"
+              class="block text-sm font-medium mb-2"
+              style:color="var(--color-text)">고용 형태 *</label
+            >
+            <select
+              id="employment-type"
+              bind:value={formData.employment_type}
+              required
+              class="w-full px-3 py-2 border rounded-md text-sm"
+              style:background="var(--color-surface)"
+              style:border-color="var(--color-border)"
+              style:color="var(--color-text)"
+            >
+              {#each employmentTypeOptions as option, i (i)}
+                <option value={option.value}>{option.label}</option>
+              {/each}
+            </select>
+          </div>
 
-        <!-- 고용 형태 -->
-        <div>
-          <label
-            for="employment-type"
-            class="block text-sm font-medium mb-2"
-            style:color="var(--color-text)">고용 형태 *</label
-          >
-          <select
-            id="employment-type"
-            bind:value={formData.employment_type}
-            required
-            class="w-full px-3 py-2 border rounded-md text-sm"
-            style:background="var(--color-surface)"
-            style:border-color="var(--color-border)"
-            style:color="var(--color-text)"
-          >
-            {#each employmentTypeOptions as option, i (i)}
-              <option value={option.value}>{option.label}</option>
-            {/each}
-          </select>
+          <!-- 입사일 -->
+          <div>
+            <label
+              for="hire-date"
+              class="block text-sm font-medium mb-2"
+              style:color="var(--color-text)">입사일 *</label
+            >
+            <input
+              id="hire-date"
+              type="date"
+              bind:value={formData.hire_date}
+              required
+              class="w-full px-3 py-2 border rounded-md text-sm"
+              style:background="var(--color-surface)"
+              style:border-color="var(--color-border)"
+              style:color="var(--color-text)"
+            />
+          </div>
         </div>
-
-        <!-- 입사일 -->
-        <div>
-          <label
-            for="hire-date"
-            class="block text-sm font-medium mb-2"
-            style:color="var(--color-text)">입사일 *</label
-          >
-          <input
-            id="hire-date"
-            type="date"
-            bind:value={formData.hire_date}
-            required
-            class="w-full px-3 py-2 border rounded-md text-sm"
-            style:background="var(--color-surface)"
-            style:border-color="var(--color-border)"
-            style:color="var(--color-text)"
-          />
-        </div>
-      </div>
       {/if}
 
       <!-- 추가 정보 탭 -->
       {#if activeTab === 'additional'}
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <!-- 생일 -->
-        <div>
-          <label
-            for="birth-date"
-            class="block text-sm font-medium mb-2"
-            style:color="var(--color-text)">생일</label
-          >
-          <input
-            id="birth-date"
-            type="date"
-            bind:value={formData.birth_date}
-            class="w-full px-3 py-2 border rounded-md text-sm"
-            style:background="var(--color-surface)"
-            style:border-color="var(--color-border)"
-            style:color="var(--color-text)"
-          />
-        </div>
-
-        <!-- 퇴사일 -->
-        <div>
-          <label
-            for="termination-date"
-            class="block text-sm font-medium mb-2"
-            style:color="var(--color-text)">퇴사일</label
-          >
-          <input
-            id="termination-date"
-            type="date"
-            bind:value={formData.termination_date}
-            class="w-full px-3 py-2 border rounded-md text-sm"
-            style:background="var(--color-surface)"
-            style:border-color="var(--color-border)"
-            style:color="var(--color-text)"
-          />
-        </div>
-
-        <!-- 급여 정보 -->
-        <div class="md:col-span-2">
-          <label for="salary" class="block text-sm font-medium mb-2" style:color="var(--color-text)"
-            >급여 정보</label
-          >
-          <div class="flex items-center gap-2">
-            <div class="relative flex-1">
-              <input
-                id="salary"
-                type="number"
-                bind:value={formData.salary}
-                placeholder="급여를 입력하세요"
-                readonly
-                disabled
-                class="w-full px-3 py-2 border rounded-md text-sm cursor-not-allowed opacity-60"
-                style:border-color="var(--color-border)"
-                style:color="var(--color-text-secondary)"
-                style:background="var(--color-surface)"
-                title="급여는 근로계약서를 통해 관리됩니다"
-              />
-              <div
-                class="absolute inset-0 bg-gray-100 bg-opacity-50 pointer-events-none rounded-md"
-              ></div>
-            </div>
-            <button
-              type="button"
-              onclick={() => {
-                window.location.href = '/salary'
-              }}
-              class="px-3 py-2 text-xs bg-blue-100 text-blue-600 rounded-md hover:bg-blue-200 transition-colors whitespace-nowrap shadow-sm"
-              title="급여 수정은 근로계약서를 통해 관리됩니다"
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- 생일 -->
+          <div>
+            <label
+              for="birth-date"
+              class="block text-sm font-medium mb-2"
+              style:color="var(--color-text)">생일</label
             >
-              급여 관리
-            </button>
+            <input
+              id="birth-date"
+              type="date"
+              bind:value={formData.birth_date}
+              class="w-full px-3 py-2 border rounded-md text-sm"
+              style:background="var(--color-surface)"
+              style:border-color="var(--color-border)"
+              style:color="var(--color-text)"
+            />
           </div>
-          <p class="text-xs mt-1 text-gray-500 italic">
-            * 급여 수정은 근로계약서를 통해 관리됩니다
-          </p>
+
+          <!-- 퇴사일 -->
+          <div>
+            <label
+              for="termination-date"
+              class="block text-sm font-medium mb-2"
+              style:color="var(--color-text)">퇴사일</label
+            >
+            <input
+              id="termination-date"
+              type="date"
+              bind:value={formData.termination_date}
+              class="w-full px-3 py-2 border rounded-md text-sm"
+              style:background="var(--color-surface)"
+              style:border-color="var(--color-border)"
+              style:color="var(--color-text)"
+            />
+          </div>
+
+          <!-- 급여 정보 -->
+          <div class="md:col-span-2">
+            <label
+              for="salary"
+              class="block text-sm font-medium mb-2"
+              style:color="var(--color-text)">급여 정보</label
+            >
+            <div class="flex items-center gap-2">
+              <div class="relative flex-1">
+                <input
+                  id="salary"
+                  type="number"
+                  bind:value={formData.salary}
+                  placeholder="급여를 입력하세요"
+                  readonly
+                  disabled
+                  class="w-full px-3 py-2 border rounded-md text-sm cursor-not-allowed opacity-60"
+                  style:border-color="var(--color-border)"
+                  style:color="var(--color-text-secondary)"
+                  style:background="var(--color-surface)"
+                  title="급여는 근로계약서를 통해 관리됩니다"
+                />
+                <div
+                  class="absolute inset-0 bg-gray-100 bg-opacity-50 pointer-events-none rounded-md"
+                ></div>
+              </div>
+              <button
+                type="button"
+                onclick={() => {
+                  window.location.href = '/salary'
+                }}
+                class="px-3 py-2 text-xs bg-blue-100 text-blue-600 rounded-md hover:bg-blue-200 transition-colors whitespace-nowrap shadow-sm"
+                title="급여 수정은 근로계약서를 통해 관리됩니다"
+              >
+                급여 관리
+              </button>
+            </div>
+            <p class="text-xs mt-1 text-gray-500 italic">
+              * 급여 수정은 근로계약서를 통해 관리됩니다
+            </p>
+          </div>
         </div>
-      </div>
       {/if}
 
       <div

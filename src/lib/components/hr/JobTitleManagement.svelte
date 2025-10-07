@@ -36,7 +36,9 @@
           <TagIcon />
         </div>
         <div>
-          <h3 class="text-lg font-semibold" style:color="var(--color-text)">직책 관리 (직책수당)</h3>
+          <h3 class="text-lg font-semibold" style:color="var(--color-text)">
+            직책 관리 (직책수당)
+          </h3>
           <p class="text-sm" style:color="var(--color-text-secondary)">
             총 {jobTitles.length}개 직책
           </p>
@@ -57,18 +59,35 @@
       <table class="w-full">
         <thead>
           <tr class="border-b" style:border-color="var(--color-border)">
-            <th class="px-4 py-3 text-left text-sm font-semibold" style:color="var(--color-text)">직책명</th>
-            <th class="px-4 py-3 text-left text-sm font-semibold" style:color="var(--color-text)">설명</th>
-            <th class="px-4 py-3 text-left text-sm font-semibold" style:color="var(--color-text)">레벨</th>
-            <th class="px-4 py-3 text-left text-sm font-semibold" style:color="var(--color-text)">인원</th>
-            <th class="px-4 py-3 text-left text-sm font-semibold" style:color="var(--color-text)">직책수당</th>
-            <th class="px-4 py-3 text-left text-sm font-semibold" style:color="var(--color-text)">상태</th>
-            <th class="px-4 py-3 text-center text-sm font-semibold" style:color="var(--color-text)">작업</th>
+            <th class="px-4 py-3 text-left text-sm font-semibold" style:color="var(--color-text)"
+              >직책명</th
+            >
+            <th class="px-4 py-3 text-left text-sm font-semibold" style:color="var(--color-text)"
+              >설명</th
+            >
+            <th class="px-4 py-3 text-left text-sm font-semibold" style:color="var(--color-text)"
+              >레벨</th
+            >
+            <th class="px-4 py-3 text-left text-sm font-semibold" style:color="var(--color-text)"
+              >인원</th
+            >
+            <th class="px-4 py-3 text-left text-sm font-semibold" style:color="var(--color-text)"
+              >직책수당</th
+            >
+            <th class="px-4 py-3 text-left text-sm font-semibold" style:color="var(--color-text)"
+              >상태</th
+            >
+            <th class="px-4 py-3 text-center text-sm font-semibold" style:color="var(--color-text)"
+              >작업</th
+            >
           </tr>
         </thead>
         <tbody>
           {#each jobTitles as jobTitle (jobTitle.id)}
-            <tr class="border-b hover:bg-opacity-50 transition-colors" style:border-color="var(--color-border)">
+            <tr
+              class="border-b hover:bg-opacity-50 transition-colors"
+              style:border-color="var(--color-border)"
+            >
               <td class="px-4 py-3">
                 <div class="flex items-center gap-2">
                   <div
@@ -120,7 +139,11 @@
             </tr>
           {:else}
             <tr>
-              <td colspan="7" class="px-4 py-12 text-center" style:color="var(--color-text-secondary)">
+              <td
+                colspan="7"
+                class="px-4 py-12 text-center"
+                style:color="var(--color-text-secondary)"
+              >
                 등록된 직책이 없습니다.
               </td>
             </tr>

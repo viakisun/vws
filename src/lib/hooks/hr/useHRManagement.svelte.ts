@@ -58,7 +58,10 @@ export function useHRManagement() {
   async function updateEmployee() {
     if (!store.selected.editingEmployee) return
 
-    const result = await hrService.updateEmployee(store.selected.editingEmployee.id, store.forms.employee)
+    const result = await hrService.updateEmployee(
+      store.selected.editingEmployee.id,
+      store.forms.employee,
+    )
 
     if (result.success) {
       await reloadEmployees()
@@ -159,7 +162,10 @@ export function useHRManagement() {
   async function updatePosition() {
     if (!store.selected.editingPosition) return
 
-    const result = await hrService.updatePosition(store.selected.editingPosition.id, store.forms.position)
+    const result = await hrService.updatePosition(
+      store.selected.editingPosition.id,
+      store.forms.position,
+    )
 
     if (result.success) {
       await reloadPositions()
@@ -208,7 +214,10 @@ export function useHRManagement() {
   async function updateJobTitle() {
     if (!store.selected.editingJobTitle) return
 
-    const result = await hrService.updateJobTitle(store.selected.editingJobTitle.id, store.forms.jobTitle)
+    const result = await hrService.updateJobTitle(
+      store.selected.editingJobTitle.id,
+      store.forms.jobTitle,
+    )
 
     if (result.success) {
       await reloadJobTitles()
@@ -287,7 +296,7 @@ export function useHRManagement() {
       store.forms.employee = {
         ...item,
         status: 'terminated',
-        termination_date: today
+        termination_date: today,
       }
       await updateEmployee()
       return

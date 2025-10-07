@@ -23,7 +23,7 @@
 
   // 부서별 직원 수 계산
   function getEmployeeCount(departmentId: string): number {
-    const dept = departments.find(d => d.id === departmentId)
+    const dept = departments.find((d) => d.id === departmentId)
     if (!dept) return 0
     return employees.filter((e) => e.department === dept.name && e.status === 'active').length
   }
@@ -66,18 +66,35 @@
       <table class="w-full">
         <thead>
           <tr class="border-b" style:border-color="var(--color-border)">
-            <th class="px-4 py-3 text-left text-sm font-semibold" style:color="var(--color-text)">부서명</th>
-            <th class="px-4 py-3 text-left text-sm font-semibold" style:color="var(--color-text)">부서코드</th>
-            <th class="px-4 py-3 text-left text-sm font-semibold" style:color="var(--color-text)">설명</th>
-            <th class="px-4 py-3 text-left text-sm font-semibold" style:color="var(--color-text)">인원</th>
-            <th class="px-4 py-3 text-left text-sm font-semibold" style:color="var(--color-text)">부서장</th>
-            <th class="px-4 py-3 text-left text-sm font-semibold" style:color="var(--color-text)">상태</th>
-            <th class="px-4 py-3 text-center text-sm font-semibold" style:color="var(--color-text)">작업</th>
+            <th class="px-4 py-3 text-left text-sm font-semibold" style:color="var(--color-text)"
+              >부서명</th
+            >
+            <th class="px-4 py-3 text-left text-sm font-semibold" style:color="var(--color-text)"
+              >부서코드</th
+            >
+            <th class="px-4 py-3 text-left text-sm font-semibold" style:color="var(--color-text)"
+              >설명</th
+            >
+            <th class="px-4 py-3 text-left text-sm font-semibold" style:color="var(--color-text)"
+              >인원</th
+            >
+            <th class="px-4 py-3 text-left text-sm font-semibold" style:color="var(--color-text)"
+              >부서장</th
+            >
+            <th class="px-4 py-3 text-left text-sm font-semibold" style:color="var(--color-text)"
+              >상태</th
+            >
+            <th class="px-4 py-3 text-center text-sm font-semibold" style:color="var(--color-text)"
+              >작업</th
+            >
           </tr>
         </thead>
         <tbody>
           {#each departments as department (department.id)}
-            <tr class="border-b hover:bg-opacity-50 transition-colors" style:border-color="var(--color-border)">
+            <tr
+              class="border-b hover:bg-opacity-50 transition-colors"
+              style:border-color="var(--color-border)"
+            >
               <td class="px-4 py-3">
                 <div class="flex items-center gap-2">
                   <div
@@ -129,7 +146,11 @@
             </tr>
           {:else}
             <tr>
-              <td colspan="7" class="px-4 py-12 text-center" style:color="var(--color-text-secondary)">
+              <td
+                colspan="7"
+                class="px-4 py-12 text-center"
+                style:color="var(--color-text-secondary)"
+              >
                 등록된 부서가 없습니다.
               </td>
             </tr>

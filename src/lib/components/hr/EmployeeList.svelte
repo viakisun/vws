@@ -205,17 +205,33 @@
       <table class="w-full">
         <thead>
           <tr class="border-b" style:border-color="var(--color-border)">
-            <th class="px-4 py-3 text-left text-sm font-semibold" style:color="var(--color-text)">직원정보</th>
-            <th class="px-4 py-3 text-left text-sm font-semibold" style:color="var(--color-text)">부서</th>
-            <th class="px-4 py-3 text-left text-sm font-semibold" style:color="var(--color-text)">직급/직책</th>
-            <th class="px-4 py-3 text-left text-sm font-semibold" style:color="var(--color-text)">상태</th>
-            <th class="px-4 py-3 text-left text-sm font-semibold" style:color="var(--color-text)">연락처</th>
-            <th class="px-4 py-3 text-center text-sm font-semibold" style:color="var(--color-text)">작업</th>
+            <th class="px-4 py-3 text-left text-sm font-semibold" style:color="var(--color-text)"
+              >직원정보</th
+            >
+            <th class="px-4 py-3 text-left text-sm font-semibold" style:color="var(--color-text)"
+              >부서</th
+            >
+            <th class="px-4 py-3 text-left text-sm font-semibold" style:color="var(--color-text)"
+              >직급/직책</th
+            >
+            <th class="px-4 py-3 text-left text-sm font-semibold" style:color="var(--color-text)"
+              >상태</th
+            >
+            <th class="px-4 py-3 text-left text-sm font-semibold" style:color="var(--color-text)"
+              >연락처</th
+            >
+            <th class="px-4 py-3 text-center text-sm font-semibold" style:color="var(--color-text)"
+              >작업</th
+            >
           </tr>
         </thead>
         <tbody>
           {#each employees as employee (employee.id)}
-            <tr class="border-b hover:bg-opacity-50 transition-colors" style:border-color="var(--color-border)" style:background="transparent">
+            <tr
+              class="border-b hover:bg-opacity-50 transition-colors"
+              style:border-color="var(--color-border)"
+              style:background="transparent"
+            >
               <!-- 직원정보 (2줄) -->
               <td class="px-4 py-3">
                 <div class="flex flex-col gap-1">
@@ -261,7 +277,9 @@
                   <ThemeBadge variant={getStatusBadgeColor(employee.status) as any}>
                     {getStatusLabel(employee.status)}
                   </ThemeBadge>
-                  <ThemeBadge variant={getEmploymentTypeBadgeColor(employee.employment_type) as any}>
+                  <ThemeBadge
+                    variant={getEmploymentTypeBadgeColor(employee.employment_type) as any}
+                  >
                     {getEmploymentTypeLabel(employee.employment_type)}
                   </ThemeBadge>
                 </div>
@@ -318,7 +336,11 @@
             </tr>
           {:else}
             <tr>
-              <td colspan="6" class="px-4 py-12 text-center" style:color="var(--color-text-secondary)">
+              <td
+                colspan="6"
+                class="px-4 py-12 text-center"
+                style:color="var(--color-text-secondary)"
+              >
                 직원이 없습니다.
               </td>
             </tr>

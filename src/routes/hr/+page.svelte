@@ -222,10 +222,12 @@
     title="삭제 확인"
     message={`정말로 ${displayName}을(를) 삭제하시겠습니까?`}
     itemName={displayName}
-    {...(isEmployee ? {
-      confirmText: item.employee_id,
-      confirmLabel: '직원 번호를 입력하여 삭제를 확인하세요'
-    } : {})}
+    {...isEmployee
+      ? {
+          confirmText: item.employee_id,
+          confirmLabel: '직원 번호를 입력하여 삭제를 확인하세요',
+        }
+      : {}}
     showArchive={isEmployee}
     on:confirm={(e) => {
       // @ts-ignore - handleDelete accepts action parameter

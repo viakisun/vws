@@ -23,7 +23,7 @@
 
   // 직급별 직원 수 계산
   function getEmployeeCount(positionId: string): number {
-    const pos = positions.find(p => p.id === positionId)
+    const pos = positions.find((p) => p.id === positionId)
     if (!pos) return 0
     return employees.filter((e) => e.position === pos.name && e.status === 'active').length
   }
@@ -77,19 +77,38 @@
       <table class="w-full">
         <thead>
           <tr class="border-b" style:border-color="var(--color-border)">
-            <th class="px-4 py-3 text-left text-sm font-semibold" style:color="var(--color-text)">직급명</th>
-            <th class="px-4 py-3 text-left text-sm font-semibold" style:color="var(--color-text)">직급코드</th>
-            <th class="px-4 py-3 text-left text-sm font-semibold" style:color="var(--color-text)">설명</th>
-            <th class="px-4 py-3 text-left text-sm font-semibold" style:color="var(--color-text)">레벨</th>
-            <th class="px-4 py-3 text-left text-sm font-semibold" style:color="var(--color-text)">인원</th>
-            <th class="px-4 py-3 text-left text-sm font-semibold" style:color="var(--color-text)">급여범위</th>
-            <th class="px-4 py-3 text-left text-sm font-semibold" style:color="var(--color-text)">상태</th>
-            <th class="px-4 py-3 text-center text-sm font-semibold" style:color="var(--color-text)">작업</th>
+            <th class="px-4 py-3 text-left text-sm font-semibold" style:color="var(--color-text)"
+              >직급명</th
+            >
+            <th class="px-4 py-3 text-left text-sm font-semibold" style:color="var(--color-text)"
+              >직급코드</th
+            >
+            <th class="px-4 py-3 text-left text-sm font-semibold" style:color="var(--color-text)"
+              >설명</th
+            >
+            <th class="px-4 py-3 text-left text-sm font-semibold" style:color="var(--color-text)"
+              >레벨</th
+            >
+            <th class="px-4 py-3 text-left text-sm font-semibold" style:color="var(--color-text)"
+              >인원</th
+            >
+            <th class="px-4 py-3 text-left text-sm font-semibold" style:color="var(--color-text)"
+              >급여범위</th
+            >
+            <th class="px-4 py-3 text-left text-sm font-semibold" style:color="var(--color-text)"
+              >상태</th
+            >
+            <th class="px-4 py-3 text-center text-sm font-semibold" style:color="var(--color-text)"
+              >작업</th
+            >
           </tr>
         </thead>
         <tbody>
           {#each [...positions].sort((a, b) => (b.level || 0) - (a.level || 0)) as position (position.id)}
-            <tr class="border-b hover:bg-opacity-50 transition-colors" style:border-color="var(--color-border)">
+            <tr
+              class="border-b hover:bg-opacity-50 transition-colors"
+              style:border-color="var(--color-border)"
+            >
               <td class="px-4 py-3">
                 <div class="flex items-center gap-2">
                   <div
@@ -161,7 +180,11 @@
             </tr>
           {:else}
             <tr>
-              <td colspan="8" class="px-4 py-12 text-center" style:color="var(--color-text-secondary)">
+              <td
+                colspan="8"
+                class="px-4 py-12 text-center"
+                style:color="var(--color-text-secondary)"
+              >
                 등록된 직급이 없습니다.
               </td>
             </tr>
