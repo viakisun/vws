@@ -24,10 +24,10 @@ export const GET: RequestHandler = async ({ url }) => {
       FROM finance_accounts a
       LEFT JOIN finance_banks b ON a.bank_id = b.id
       LEFT JOIN LATERAL (
-        SELECT balance 
-        FROM finance_transactions 
-        WHERE account_id = a.id AND balance > 0
-        ORDER BY transaction_date DESC, created_at DESC 
+        SELECT balance
+        FROM finance_transactions
+        WHERE account_id = a.id
+        ORDER BY transaction_date DESC, created_at DESC
         LIMIT 1
       ) latest_tx ON true
       WHERE 1=1
@@ -64,6 +64,49 @@ export const GET: RequestHandler = async ({ url }) => {
 
     const result = await query(queryText, params)
 
+    // 각 계좌의 태그 조회
+    const accountIds = result.rows.map((row) => row.id)
+    let tagsMap = new Map()
+
+    if (accountIds.length > 0) {
+      const tagsQuery = `
+        SELECT
+          r.account_id,
+          t.id,
+          t.name,
+          t.color,
+          t.description,
+          t.tag_type as "tagType",
+          t.is_system as "isSystem",
+          t.is_active as "isActive",
+          t.created_at as "createdAt",
+          t.updated_at as "updatedAt"
+        FROM finance_account_tag_relations r
+        INNER JOIN finance_account_tags t ON r.tag_id = t.id
+        WHERE r.account_id = ANY($1)
+        ORDER BY t.is_system DESC, t.name ASC
+      `
+      const tagsResult = await query(tagsQuery, [accountIds])
+
+      // 계좌별로 태그 그룹화
+      for (const row of tagsResult.rows) {
+        if (!tagsMap.has(row.account_id)) {
+          tagsMap.set(row.account_id, [])
+        }
+        tagsMap.get(row.account_id).push({
+          id: row.id,
+          name: row.name,
+          color: row.color,
+          description: row.description,
+          tagType: row.tagType,
+          isSystem: row.isSystem,
+          isActive: row.isActive,
+          createdAt: row.createdAt,
+          updatedAt: row.updatedAt,
+        })
+      }
+    }
+
     const accounts: Account[] = result.rows.map((row) => ({
       id: row.id,
       name: row.name,
@@ -84,6 +127,7 @@ export const GET: RequestHandler = async ({ url }) => {
       description: row.description,
       isPrimary: row.is_primary,
       alertThreshold: row.alert_threshold ? parseFloat(row.alert_threshold) : undefined,
+      tags: tagsMap.get(row.id) || [],
       createdAt: row.created_at,
       updatedAt: row.updated_at,
     }))

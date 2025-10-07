@@ -362,7 +362,10 @@ class SalaryStore {
     }
 
     // Department stats
-    const deptStats: Record<string, { employeeCount: number; totalGrossSalary: number; averageGrossSalary: number }> = {}
+    const deptStats: Record<
+      string,
+      { employeeCount: number; totalGrossSalary: number; averageGrossSalary: number }
+    > = {}
     currentPayslips.forEach((p) => {
       const dept = p.department || '부서없음'
       if (!deptStats[dept]) {
@@ -374,7 +377,8 @@ class SalaryStore {
 
     Object.keys(deptStats).forEach((dept) => {
       const stat = deptStats[dept]
-      stat.averageGrossSalary = stat.employeeCount > 0 ? stat.totalGrossSalary / stat.employeeCount : 0
+      stat.averageGrossSalary =
+        stat.employeeCount > 0 ? stat.totalGrossSalary / stat.employeeCount : 0
     })
 
     this.statistics.departmentStats = deptStats

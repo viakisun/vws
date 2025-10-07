@@ -40,14 +40,27 @@ CREATE TABLE IF NOT EXISTS finance_categories (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- 계좌 태그 테이블
+CREATE TABLE IF NOT EXISTS finance_account_tags (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name VARCHAR(100) NOT NULL UNIQUE,
+    color VARCHAR(7) DEFAULT '#3B82F6',
+    description TEXT,
+    tag_type VARCHAR(20) DEFAULT 'custom' CHECK (tag_type IN ('dashboard', 'revenue', 'operation', 'fund', 'rnd', 'custom')),
+    is_system BOOLEAN DEFAULT false,
+    is_active BOOLEAN DEFAULT true,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 -- 계좌 테이블
+-- 잔액(balance)은 저장하지 않음 - transactions 테이블의 최신 balance로 계산
 CREATE TABLE IF NOT EXISTS finance_accounts (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name VARCHAR(200) NOT NULL,
     account_number VARCHAR(50) NOT NULL,
     bank_id UUID NOT NULL REFERENCES finance_banks(id),
     account_type VARCHAR(20) NOT NULL CHECK (account_type IN ('checking', 'savings', 'business', 'investment', 'loan')),
-    balance DECIMAL(15,2) DEFAULT 0.00,
     status VARCHAR(20) DEFAULT 'active' CHECK (status IN ('active', 'inactive', 'suspended', 'closed')),
     description TEXT,
     is_primary BOOLEAN DEFAULT false,
@@ -55,6 +68,14 @@ CREATE TABLE IF NOT EXISTS finance_accounts (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     UNIQUE(bank_id, account_number)
+);
+
+-- 계좌-태그 연결 테이블 (다대다 관계)
+CREATE TABLE IF NOT EXISTS finance_account_tag_relations (
+    account_id UUID NOT NULL REFERENCES finance_accounts(id) ON DELETE CASCADE,
+    tag_id UUID NOT NULL REFERENCES finance_account_tags(id) ON DELETE CASCADE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    PRIMARY KEY (account_id, tag_id)
 );
 
 -- 거래 테이블
@@ -122,15 +143,35 @@ END $$;
 
 -- 기본 은행 데이터
 INSERT INTO finance_banks (name, code, color) VALUES
-('하나은행', 'HANA', '#FF6B6B'),
-('전북은행', 'JEONBUK', '#4ECDC4'),
-('농협은행', 'NH', '#45B7D1'),
+('KB국민은행', 'KB', '#FFEAA7'),
 ('신한은행', 'SHINHAN', '#96CEB4'),
-('국민은행', 'KB', '#FFEAA7'),
 ('우리은행', 'WOORI', '#DDA0DD'),
-('기업은행', 'IBK', '#98D8C8'),
+('KEB하나은행', 'HANA', '#FF6B6B'),
+('NH농협은행', 'NH', '#45B7D1'),
+('IBK기업은행', 'IBK', '#98D8C8'),
+('SC제일은행', 'SC', '#00A9CE'),
+('한국씨티은행', 'CITI', '#003DA5'),
+('BNK부산은행', 'BNK_BUSAN', '#FF6B9D'),
+('BNK경남은행', 'BNK_KYONGNAM', '#FF4B77'),
+('DGB대구은행', 'DGB', '#0066B2'),
+('전북은행', 'JEONBUK', '#4ECDC4'),
+('광주은행', 'KWANGJU', '#00A9E0'),
+('제주은행', 'JEJU', '#FF6B35'),
+('Sh수협은행', 'SUHYUP', '#0094D9'),
+('케이뱅크', 'KBANK', '#FFD400'),
+('카카오뱅크', 'KAKAOBANK', '#FFEB00'),
+('토스뱅크', 'TOSSBANK', '#0064FF'),
 ('새마을금고', 'SAEMAEUL', '#F7DC6F')
 ON CONFLICT (code) DO NOTHING;
+
+-- 시스템 태그 데이터
+INSERT INTO finance_account_tags (name, color, description, tag_type, is_system) VALUES
+('대시보드', '#3B82F6', '대시보드에 표시되는 주요 계좌', 'dashboard', true),
+('매출통장', '#10B981', '매출 분석 대상 계좌', 'revenue', true),
+('운영비', '#EF4444', '운영비 분석 대상 계좌', 'operation', true),
+('자금관리', '#F59E0B', '자금관리 분석 대상 계좌', 'fund', true),
+('R&D', '#8B5CF6', '연구개발 계좌 (회사 자금 집계 제외)', 'rnd', true)
+ON CONFLICT (name) DO NOTHING;
 
 -- 기본 카테고리 데이터
 INSERT INTO finance_categories (name, type, color, is_system) VALUES
@@ -207,53 +248,7 @@ export const POST: RequestHandler = async () => {
     // 스키마 실행
     await query(FINANCE_SCHEMA_SQL)
 
-    // 기본 계좌 생성 (예시 데이터)
-    const sampleAccounts: AccountInfo[] = [
-      {
-        name: '하나은행 주거래계좌',
-        accountNumber: '123-456-789',
-        bankId: await getBankId('HANA'),
-        accountType: 'checking',
-        initialBalance: 0, // 모든 계좌는 0원에서 시작
-        isPrimary: true,
-      },
-      {
-        name: '전북은행 예금계좌',
-        accountNumber: '987-654-321',
-        bankId: await getBankId('JEONBUK'),
-        accountType: 'savings',
-        initialBalance: 0, // 모든 계좌는 0원에서 시작
-        isPrimary: false,
-      },
-      {
-        name: '농협은행 사업자계좌',
-        accountNumber: '456-789-123',
-        bankId: await getBankId('NH'),
-        accountType: 'business',
-        initialBalance: 0, // 모든 계좌는 0원에서 시작
-        isPrimary: false,
-      },
-    ]
-
-    for (const account of sampleAccounts) {
-      await query(
-        `
-        INSERT INTO finance_accounts (name, account_number, bank_id, account_type, is_primary)
-        VALUES ($1, $2, $3, $4, $5)
-        ON CONFLICT (bank_id, account_number) DO NOTHING
-      `,
-        [
-          account.name,
-          account.accountNumber,
-          account.bankId,
-          account.accountType,
-          account.isPrimary,
-        ],
-      )
-    }
-
-    // 샘플 거래 내역 생성
-    await createSampleTransactions()
+    // 샘플 데이터는 생성하지 않음 - 사용자가 직접 계좌를 추가해야 함
 
     return json({
       success: true,
@@ -302,8 +297,10 @@ interface SampleTransaction {
   transactionDate: string
 }
 
-// 샘플 거래 내역 생성
+// 샘플 거래 내역 생성 (사용 안 함)
 async function createSampleTransactions(): Promise<void> {
+  // 더 이상 샘플 데이터를 생성하지 않음
+  return
   const today = new Date()
   const yesterday = new Date(today)
   yesterday.setDate(yesterday.getDate() - 1)

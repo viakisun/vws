@@ -40,42 +40,23 @@ INSERT INTO finance_accounts (
   created_at
 )
 SELECT * FROM (VALUES
-  -- 은행 코드로 은행 ID를 가져오는 서브쿼리 사용 예시:
+  -- 샘플 데이터 없음 - 사용자가 직접 계좌를 추가해야 함
+  -- 아래는 예시 형식입니다:
   -- (계좌명, 계좌번호, (은행코드로 ID 조회), 계좌타입, 잔액, 상태, 설명, 주계좌여부, 생성일시)
-  (
-    '하나은행 주거래계좌',
-    '123-456-789012',
-    (SELECT id FROM banks WHERE code = 'HANA'),
-    'checking',
-    0.00,
-    'active',
-    '월급 수령 및 주 거래용 계좌',
-    true,
-    '2024-01-01 00:00:00+09'::timestamptz
-  ),
-  (
-    '전북은행 예금계좌',
-    '987-654-321098',
-    (SELECT id FROM banks WHERE code = 'JEONBUK'),
-    'savings',
-    0.00,
-    'active',
-    '예비 자금 보관용',
-    false,
-    '2024-01-01 00:00:00+09'::timestamptz
-  ),
-  (
-    '농협은행 사업자계좌',
-    '456-789-123456',
-    (SELECT id FROM banks WHERE code = 'NH'),
-    'business',
-    0.00,
-    'active',
-    '사업 운영 자금용',
-    false,
-    '2024-01-01 00:00:00+09'::timestamptz
-  )
+  -- (
+  --   '하나은행 주거래계좌',
+  --   '123-456-789012',
+  --   (SELECT id FROM banks WHERE code = 'HANA'),
+  --   'checking',
+  --   0.00,
+  --   'active',
+  --   '월급 수령 및 주 거래용 계좌',
+  --   true,
+  --   '2024-01-01 00:00:00+09'::timestamptz
+  -- )
+  NULL::text, NULL::text, NULL::uuid, NULL::text, NULL::numeric, NULL::text, NULL::text, NULL::boolean, NULL::timestamptz
 ) AS t(name, account_number, bank_id, account_type, balance, status, description, is_primary, created_at)
+WHERE name IS NOT NULL
 ON CONFLICT (bank_id, account_number) DO UPDATE
 SET
   name = EXCLUDED.name,
@@ -124,105 +105,10 @@ INSERT INTO finance_transactions (
   created_at
 )
 SELECT * FROM (VALUES
-  -- 2024년 1월 거래 예시
-  (
-    (SELECT id FROM accounts WHERE account_number = '123-456-789012'),  -- 하나은행 계좌
-    (SELECT id FROM categories WHERE name = '매출' AND type = 'income'), -- 매출 카테고리
-    15000000.00,                              -- 1,500만원
-    'income',                                  -- 수입
-    '1월 프로젝트 매출',                       -- 설명
-    'PRJ-2024-001',                           -- 참조번호
-    'INV-2024-0101',                          -- 인보이스 번호
-    '○○ 프로젝트 1차 대금',                   -- 메모
-    ARRAY['매출', '프로젝트', '정기'],        -- 태그
-    '2024-01-05 14:30:00+09'::timestamptz,   -- 거래일시
-    'completed',                               -- 완료됨
-    false,                                     -- 반복 거래 아님
-    'admin',                                   -- 생성자
-    '2024-01-05 14:30:00+09'::timestamptz    -- 생성일시
-  ),
-  (
-    (SELECT id FROM accounts WHERE account_number = '123-456-789012'),
-    (SELECT id FROM categories WHERE name = '급여' AND type = 'expense'),
-    3500000.00,                                -- 350만원
-    'expense',                                 -- 지출
-    '1월 직원 급여',
-    'PAY-2024-001',
-    NULL,
-    '정규직 3명 급여',
-    ARRAY['급여', '정기'],
-    '2024-01-10 09:00:00+09'::timestamptz,
-    'completed',
-    true,                                      -- 월별 반복 거래
-    'admin',
-    '2024-01-10 09:00:00+09'::timestamptz
-  ),
-  (
-    (SELECT id FROM accounts WHERE account_number = '123-456-789012'),
-    (SELECT id FROM categories WHERE name = '임대료' AND type = 'expense'),
-    2000000.00,                                -- 200만원
-    'expense',
-    '1월 사무실 임대료',
-    'RENT-2024-001',
-    NULL,
-    '월 임대료',
-    ARRAY['임대료', '정기', '고정비'],
-    '2024-01-15 10:00:00+09'::timestamptz,
-    'completed',
-    true,
-    'admin',
-    '2024-01-15 10:00:00+09'::timestamptz
-  ),
-  (
-    (SELECT id FROM accounts WHERE account_number = '123-456-789012'),
-    (SELECT id FROM categories WHERE name = '공과금' AND type = 'expense'),
-    350000.00,                                 -- 35만원
-    'expense',
-    '전기세 및 관리비',
-    'UTIL-2024-001',
-    NULL,
-    '1월분 전기세 + 관리비',
-    ARRAY['공과금', '고정비'],
-    '2024-01-20 16:00:00+09'::timestamptz,
-    'completed',
-    false,
-    'admin',
-    '2024-01-20 16:00:00+09'::timestamptz
-  ),
-  -- 2월 거래 예시
-  (
-    (SELECT id FROM accounts WHERE account_number = '456-789-123456'),  -- 농협 계좌
-    (SELECT id FROM categories WHERE name = '매출' AND type = 'income'),
-    20000000.00,                               -- 2,000만원
-    'income',
-    '2월 프로젝트 매출',
-    'PRJ-2024-002',
-    'INV-2024-0201',
-    '□□ 프로젝트 완료 대금',
-    ARRAY['매출', '프로젝트'],
-    '2024-02-05 15:20:00+09'::timestamptz,
-    'completed',
-    false,
-    'admin',
-    '2024-02-05 15:20:00+09'::timestamptz
-  ),
-  (
-    (SELECT id FROM accounts WHERE account_number = '456-789-123456'),
-    (SELECT id FROM categories WHERE name = '마케팅' AND type = 'expense'),
-    1500000.00,                                -- 150만원
-    'expense',
-    '온라인 광고비',
-    'MKT-2024-001',
-    NULL,
-    'Google Ads + Facebook Ads',
-    ARRAY['마케팅', '광고'],
-    '2024-02-12 11:30:00+09'::timestamptz,
-    'completed',
-    false,
-    'admin',
-    '2024-02-12 11:30:00+09'::timestamptz
-  )
-) AS t(account_id, category_id, amount, type, description, reference, reference_number, notes, tags, transaction_date, status, is_recurring, created_by, created_at);
+  -- 샘플 거래 데이터 없음 - 필요시 직접 추가
+  NULL::uuid, NULL::uuid, NULL::numeric, NULL::text, NULL::text, NULL::text, NULL::text, NULL::text, NULL::text[], NULL::timestamptz, NULL::text, NULL::boolean, NULL::text, NULL::timestamptz
+) AS t(account_id, category_id, amount, type, description, reference, reference_number, notes, tags, transaction_date, status, is_recurring, created_by, created_at)
+WHERE account_id IS NOT NULL;
 
 
 -- ============================================

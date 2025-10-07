@@ -3,6 +3,7 @@ export * from './account'
 export * from './transaction'
 export * from './budget'
 export * from './report'
+export * from './tag'
 
 // 공통 타입들
 export interface BaseEntity {

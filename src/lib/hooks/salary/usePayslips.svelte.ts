@@ -24,7 +24,10 @@ export function usePayslips() {
       store.setPayslips(result.data)
     } else {
       store.setError(result.error || '급여명세서 목록을 불러오는데 실패했습니다.')
-      pushToast({ message: result.error || '급여명세서 목록을 불러오는데 실패했습니다.', type: 'error' })
+      pushToast({
+        message: result.error || '급여명세서 목록을 불러오는데 실패했습니다.',
+        type: 'error',
+      })
     }
 
     store.setLoading(false)
@@ -41,7 +44,10 @@ export function usePayslips() {
       store.setPayslips(result.data)
       pushToast({ message: '직원 급여명세서를 불러왔습니다.', type: 'error' })
     } else {
-      pushToast({ message: result.error || '직원 급여명세서를 불러오는데 실패했습니다.', type: 'error' })
+      pushToast({
+        message: result.error || '직원 급여명세서를 불러오는데 실패했습니다.',
+        type: 'error',
+      })
     }
 
     store.setLoading(false)

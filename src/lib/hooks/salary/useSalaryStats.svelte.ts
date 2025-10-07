@@ -21,7 +21,10 @@ export function useSalaryStats() {
     if (result.success && result.data) {
       store.setSalaryStructures(result.data)
     } else {
-      pushToast({ message: result.error || '급여 구조 목록을 불러오는데 실패했습니다.', type: 'error' })
+      pushToast({
+        message: result.error || '급여 구조 목록을 불러오는데 실패했습니다.',
+        type: 'error',
+      })
     }
 
     store.setLoading(false)

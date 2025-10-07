@@ -135,9 +135,7 @@ export async function updateContract(
 /**
  * 급여 계약 삭제
  */
-export async function deleteContract(
-  contractId: string,
-): Promise<ApiResponse<{ id: string }>> {
+export async function deleteContract(contractId: string): Promise<ApiResponse<{ id: string }>> {
   try {
     const response = await fetch(`/api/salary/contracts/${contractId}`, {
       method: 'DELETE',

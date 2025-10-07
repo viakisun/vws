@@ -30,10 +30,7 @@ export async function fetchEmployeePayslips(employeeId: string): Promise<ApiResp
   } catch (error) {
     return {
       success: false,
-      error:
-        error instanceof Error
-          ? error.message
-          : '직원 급여명세서를 불러오는데 실패했습니다.',
+      error: error instanceof Error ? error.message : '직원 급여명세서를 불러오는데 실패했습니다.',
     }
   }
 }
@@ -102,7 +99,9 @@ export async function deletePayslip(payslipId: string): Promise<ApiResponse<{ id
 /**
  * 급여명세서 다운로드
  */
-export async function downloadPayslip(payslipId: string): Promise<{ success: boolean; error?: string }> {
+export async function downloadPayslip(
+  payslipId: string,
+): Promise<{ success: boolean; error?: string }> {
   try {
     const response = await fetch(`/api/salary/payslips/${payslipId}/download`)
 
@@ -131,7 +130,9 @@ export async function downloadPayslip(payslipId: string): Promise<{ success: boo
 /**
  * 급여 이력 조회
  */
-export async function fetchSalaryHistory(employeeId?: string): Promise<ApiResponse<SalaryHistory[]>> {
+export async function fetchSalaryHistory(
+  employeeId?: string,
+): Promise<ApiResponse<SalaryHistory[]>> {
   try {
     const url = employeeId ? `/api/salary/history/${employeeId}` : '/api/salary/history'
     const response = await fetch(url)

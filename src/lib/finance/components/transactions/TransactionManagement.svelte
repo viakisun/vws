@@ -223,6 +223,9 @@
   let isLoading = $state(false)
   let error = $state<string | null>(null)
 
+  // 활성 계좌만 필터링 (비활성/폐쇄 계좌 제외)
+  let activeAccounts = $derived(accounts.filter((account) => account.status === 'active'))
+
   // 계좌별 업로드 상태 관리
   let accountUploadStates = $state<
     Record<
@@ -405,6 +408,13 @@
       accounts = accountsData
       categories = categoriesData
       _groupedCategories = groupCategoriesByType(categories)
+
+      // 디버깅: 계좌 상태 확인
+      console.log(
+        '로드된 계좌들:',
+        accounts.map((a) => ({ name: a.name, status: a.status })),
+      )
+      console.log('활성 계좌 수:', accounts.filter((a) => a.status === 'active').length)
 
       // 필터링된 데이터 업데이트 (클라이언트 사이드 추가 필터링)
       updateFilteredData()
@@ -609,10 +619,18 @@
       // 데이터 로드
       await loadData()
 
-      // URL 파라미터가 있으면 해당 계좌로 필터링, 없으면 전체 계좌로 설정
+      // URL 파라미터가 있으면 해당 계좌로 필터링 (활성 계좌인 경우만)
       if (accountParam) {
-        selectedAccount = accountParam
-        console.log('URL에서 계좌 ID 설정:', accountParam)
+        const isActiveAccount = accounts.some(
+          (acc) => acc.id === accountParam && acc.status === 'active',
+        )
+        if (isActiveAccount) {
+          selectedAccount = accountParam
+          console.log('URL에서 활성 계좌 ID 설정:', accountParam)
+        } else {
+          selectedAccount = '' // 비활성 계좌면 전체 계좌로 설정
+          console.log('URL의 계좌가 비활성이므로 전체 계좌로 설정')
+        }
       } else {
         selectedAccount = '' // 전체 계좌 (기본값)
         console.log('기본값으로 전체 계좌 설정')
@@ -646,8 +664,8 @@
   function updateFilteredData() {
     // 계좌 필터링: 선택된 계좌가 있으면 해당 계좌만 표시
     filteredAccounts = selectedAccount
-      ? accounts.filter((account) => account.id === selectedAccount)
-      : accounts
+      ? activeAccounts.filter((account) => account.id === selectedAccount)
+      : activeAccounts
 
     // 거래 필터링 (단순화)
     filteredTransactions = transactions.filter((transaction) => {
@@ -846,55 +864,6 @@
         </div>
       </div>
     </div>
-    <div class="flex items-center space-x-2">
-      <button
-        onclick={() => {
-          if (showUploadSection) {
-            showUploadSection = false
-            selectedFile = null
-            selectedAccountForUpload = ''
-            uploadResult = undefined
-          } else {
-            showMultiUploadSection = false
-            selectedFiles = []
-            multiUploadResults = []
-            showUploadSection = true
-          }
-        }}
-        class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 {showUploadSection
-          ? 'bg-blue-50 border-blue-300'
-          : ''}"
-      >
-        📤 파일 업로드
-      </button>
-      <button
-        onclick={() => {
-          if (showMultiUploadSection) {
-            showMultiUploadSection = false
-            selectedFiles = []
-            multiUploadResults = []
-          } else {
-            showUploadSection = false
-            selectedFile = null
-            selectedAccountForUpload = ''
-            uploadResult = undefined
-            showMultiUploadSection = true
-          }
-        }}
-        class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 {showMultiUploadSection
-          ? 'bg-blue-50 border-blue-300'
-          : ''}"
-      >
-        📁 다중 업로드
-      </button>
-      <button
-        onclick={() => (showAddModal = true)}
-        class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
-      >
-        <PlusIcon size={16} class="mr-2" />
-        새 거래
-      </button>
-    </div>
   </div>
 
   <!-- 개선된 필터 섹션 -->
@@ -1031,7 +1000,7 @@
             class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
             <option value="">전체 계좌</option>
-            {#each accounts as account}
+            {#each activeAccounts as account}
               <option value={account.id}>
                 {account.bank?.name || '알 수 없음'} - {account.name} ({account.accountNumber})
               </option>
@@ -1652,8 +1621,10 @@
               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="">계좌를 선택하세요</option>
-              {#each accounts as account}
-                <option value={account.id}>{account.name}</option>
+              {#each activeAccounts as account}
+                <option value={account.id}>
+                  {account.bank?.name || '알 수 없음'} - {account.name} ({account.accountNumber})
+                </option>
               {/each}
             </select>
           </div>
@@ -1796,8 +1767,10 @@
               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="">계좌를 선택하세요</option>
-              {#each accounts as account}
-                <option value={account.id}>{account.name}</option>
+              {#each activeAccounts as account}
+                <option value={account.id}>
+                  {account.bank?.name || '알 수 없음'} - {account.name} ({account.accountNumber})
+                </option>
               {/each}
             </select>
           </div>

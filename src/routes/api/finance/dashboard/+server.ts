@@ -9,6 +9,7 @@ export const GET: RequestHandler = async ({ url }) => {
     const date = url.searchParams.get('date') || new Date().toISOString().split('T')[0]
 
     // 현재 잔액 조회 (거래 내역의 최신 balance 사용)
+    // RND 태그가 있는 계좌는 회사 자금에서 제외
     const balanceQuery = `
       SELECT
         a.id,
@@ -17,27 +18,38 @@ export const GET: RequestHandler = async ({ url }) => {
         a.is_primary,
         b.name as bank_name,
         b.color as bank_color,
-        COALESCE(latest_tx.balance, 0) as current_balance
+        COALESCE(latest_tx.balance, 0) as current_balance,
+        EXISTS(
+          SELECT 1 FROM finance_account_tag_relations r
+          INNER JOIN finance_account_tags t ON r.tag_id = t.id
+          WHERE r.account_id = a.id AND t.tag_type = 'dashboard'
+        ) as has_dashboard_tag,
+        EXISTS(
+          SELECT 1 FROM finance_account_tag_relations r
+          INNER JOIN finance_account_tags t ON r.tag_id = t.id
+          WHERE r.account_id = a.id AND t.tag_type = 'rnd'
+        ) as has_rnd_tag
       FROM finance_accounts a
       LEFT JOIN finance_banks b ON a.bank_id = b.id
       LEFT JOIN LATERAL (
-        SELECT balance 
-        FROM finance_transactions 
-        WHERE account_id = a.id AND balance > 0
-        ORDER BY transaction_date DESC, created_at DESC 
+        SELECT balance
+        FROM finance_transactions
+        WHERE account_id = a.id
+        ORDER BY transaction_date DESC, created_at DESC
         LIMIT 1
       ) latest_tx ON true
       WHERE a.status = 'active'
-      ORDER BY a.is_primary DESC, current_balance DESC
+      ORDER BY has_dashboard_tag DESC, a.is_primary DESC, current_balance DESC
     `
 
     const balanceResult = await query(balanceQuery)
-    const currentBalance = balanceResult.rows.reduce(
-      (sum, row) => sum + parseFloat(row.current_balance),
-      0,
-    )
 
-    // 이번달 거래 내역 조회
+    // RND 태그가 없는 계좌만 회사 자금에 포함
+    const currentBalance = balanceResult.rows
+      .filter((row) => !row.has_rnd_tag)
+      .reduce((sum, row) => sum + parseFloat(row.current_balance), 0)
+
+    // 이번달 거래 내역 조회 (RND 계좌 제외)
     const currentMonth = new Date().toISOString().substring(0, 7) // YYYY-MM
     const nextMonth = new Date()
     nextMonth.setMonth(nextMonth.getMonth() + 1)
@@ -45,11 +57,18 @@ export const GET: RequestHandler = async ({ url }) => {
 
     const monthlyQuery = `
       SELECT
-        SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END) as total_income,
-        SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END) as total_expense,
+        SUM(CASE WHEN t.type = 'income' THEN t.amount ELSE 0 END) as total_income,
+        SUM(CASE WHEN t.type = 'expense' THEN t.amount ELSE 0 END) as total_expense,
         COUNT(*) as transaction_count
-      FROM finance_transactions
-      WHERE transaction_date >= $1 AND transaction_date < $2 AND status = 'completed'
+      FROM finance_transactions t
+      WHERE t.transaction_date >= $1
+        AND t.transaction_date < $2
+        AND t.status = 'completed'
+        AND NOT EXISTS (
+          SELECT 1 FROM finance_account_tag_relations r
+          INNER JOIN finance_account_tags tag ON r.tag_id = tag.id
+          WHERE r.account_id = t.account_id AND tag.tag_type = 'rnd'
+        )
     `
 
     const monthlyResult = await query(monthlyQuery, [

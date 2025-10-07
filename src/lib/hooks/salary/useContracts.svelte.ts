@@ -32,7 +32,10 @@ export function useContracts() {
       store.setContracts(result.data.data, result.data.total)
     } else {
       store.setError(result.error || '급여 계약 목록을 불러오는데 실패했습니다.')
-      pushToast({ message: result.error || '급여 계약 목록을 불러오는데 실패했습니다.', type: 'error' })
+      pushToast({
+        message: result.error || '급여 계약 목록을 불러오는데 실패했습니다.',
+        type: 'error',
+      })
     }
 
     store.setLoading(false)
@@ -47,7 +50,10 @@ export function useContracts() {
     if (result.success && result.data) {
       store.setContractStats(result.data)
     } else {
-      pushToast({ message: result.error || '급여 계약 통계를 불러오는데 실패했습니다.', type: 'error' })
+      pushToast({
+        message: result.error || '급여 계약 통계를 불러오는데 실패했습니다.',
+        type: 'error',
+      })
     }
   }
 
@@ -62,7 +68,10 @@ export function useContracts() {
       // currentSalaryInfo는 필요시 store에 추가
       pushToast({ message: '직원 급여 정보를 불러왔습니다.', type: 'success' })
     } else {
-      pushToast({ message: result.error || '직원 급여 정보를 불러오는데 실패했습니다.', type: 'error' })
+      pushToast({
+        message: result.error || '직원 급여 정보를 불러오는데 실패했습니다.',
+        type: 'error',
+      })
     }
 
     store.setLoading(false)
