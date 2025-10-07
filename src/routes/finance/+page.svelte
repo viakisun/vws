@@ -10,7 +10,7 @@
   import TransactionManagement from '$lib/finance/components/transactions/TransactionManagement.svelte'
   import TagManagement from '$lib/finance/components/tags/TagManagement.svelte'
   import { useFinanceManagement } from '$lib/hooks/finance'
-import { logger } from '$lib/utils/logger'
+  import { logger } from '$lib/utils/logger'
 
   // Hook 사용
   const finance = useFinanceManagement()

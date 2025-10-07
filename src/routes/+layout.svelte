@@ -8,7 +8,7 @@
   import { onMount } from 'svelte'
   import '../app.css'
   import type { LayoutServerData } from './$types'
-import { logger } from '$lib/utils/logger'
+  import { logger } from '$lib/utils/logger'
 
   let { children, data }: { children: any; data: LayoutServerData } = $props()
   let sidebarCollapsed = $state(true)

@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { AccountTag } from '$lib/finance/types'
   import { onMount } from 'svelte'
-import { logger } from '$lib/utils/logger'
+  import { logger } from '$lib/utils/logger'
 
   interface Props {
     accountId: string

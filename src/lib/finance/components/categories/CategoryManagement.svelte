@@ -1,7 +1,7 @@
 <script lang="ts">
   import { EditIcon, PlusIcon, TrashIcon } from '@lucide/svelte'
   import { onMount } from 'svelte'
-import { logger } from '$lib/utils/logger'
+  import { logger } from '$lib/utils/logger'
 
   // 상태 관리
   let categories = $state<any[]>([])

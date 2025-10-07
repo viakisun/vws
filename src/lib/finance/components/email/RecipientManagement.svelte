@@ -2,7 +2,7 @@
   import type { EmailRecipient } from '$lib/finance/services/email/email-service'
   import { BellIcon, EditIcon, MailIcon, PlusIcon, TrashIcon } from '@lucide/svelte'
   import { onMount } from 'svelte'
-import { logger } from '$lib/utils/logger'
+  import { logger } from '$lib/utils/logger'
 
   // State
   let recipients = $state<EmailRecipient[]>([])

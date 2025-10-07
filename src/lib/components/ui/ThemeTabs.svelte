@@ -1,7 +1,7 @@
 <script lang="ts">
   import { ChevronLeftIcon, ChevronRightIcon } from '@lucide/svelte'
   import { onMount } from 'svelte'
-import { logger } from '$lib/utils/logger'
+  import { logger } from '$lib/utils/logger'
 
   interface Tab {
     id: string

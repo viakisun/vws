@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte'
-import { logger } from '$lib/utils/logger'
+  import { logger } from '$lib/utils/logger'
 
   let version = $state('0.2.2')
   let buildDate = $state('')

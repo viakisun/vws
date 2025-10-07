@@ -1,6 +1,6 @@
 <script lang="ts">
   import { WalletIcon, TrendingUpIcon, TrendingDownIcon, DollarSignIcon } from '@lucide/svelte'
-import { logger } from '$lib/utils/logger'
+  import { logger } from '$lib/utils/logger'
 
   interface DashboardStats {
     totalBalance: number

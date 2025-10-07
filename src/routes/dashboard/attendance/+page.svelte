@@ -3,7 +3,7 @@
   import { onMount } from 'svelte'
   import type { PageData } from './$types'
   import type { AttendanceData } from '$lib/types/dashboard'
-import { logger } from '$lib/utils/logger'
+  import { logger } from '$lib/utils/logger'
 
   let { data: _data }: { data: PageData } = $props()
 

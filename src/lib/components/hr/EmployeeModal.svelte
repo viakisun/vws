@@ -3,7 +3,7 @@
   import ThemeModal from '$lib/components/ui/ThemeModal.svelte'
   import type { Employee, EmployeeLevel, EmployeeStatus, EmploymentType } from '$lib/types/hr'
   import { createEventDispatcher, onMount } from 'svelte'
-import { logger } from '$lib/utils/logger'
+  import { logger } from '$lib/utils/logger'
 
   interface Props {
     open: boolean
