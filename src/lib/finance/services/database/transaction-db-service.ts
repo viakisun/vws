@@ -1,5 +1,53 @@
 import { query } from '$lib/database/connection'
 import type { Transaction, UpdateTransactionRequest } from '$lib/finance/types'
+import { logger } from '$lib/utils/logger'
+
+interface TransactionRow {
+  id: string
+  account_id: string
+  category_id: string
+  amount: string | number
+  type: string
+  status?: string
+  description?: string
+  transaction_date: string
+  counterparty?: string
+  deposits?: string | number
+  withdrawals?: string | number
+  balance?: string | number
+  notes?: string
+  is_recurring?: boolean
+  recurring_pattern?: string
+  created_at: string
+  updated_at: string
+  [key: string]: unknown
+}
+
+interface AccountRow {
+  id: string
+  name: string
+  account_number: string
+  bank_id: string
+  bank_name: string
+  bank_code?: string
+  bank_color?: string
+  account_type: string
+  balance: string | number
+  status: string
+  description?: string
+  is_primary: boolean
+  alert_threshold?: string | number
+  created_at: string
+  updated_at: string
+  [key: string]: unknown
+}
+
+interface CategoryRow {
+  id: string
+  name: string
+  type: string
+  [key: string]: unknown
+}
 
 export class TransactionDbService {
   // 거래 수정
@@ -7,7 +55,7 @@ export class TransactionDbService {
     try {
       // 업데이트할 필드들을 동적으로 구성
       const updateFields: string[] = []
-      const updateValues: any[] = []
+      const updateValues: unknown[] = []
       let paramIndex = 1
 
       // 각 필드가 존재하는 경우에만 업데이트에 포함
@@ -96,7 +144,7 @@ export class TransactionDbService {
         RETURNING *
       `
 
-      const result = await query(queryText, updateValues)
+      const result = await query<TransactionRow>(queryText, updateValues)
 
       if (!result.rows[0]) {
         throw new Error('거래를 찾을 수 없습니다.')
@@ -104,7 +152,7 @@ export class TransactionDbService {
 
       return await this.enrichTransaction(result.rows[0])
     } catch (error) {
-      console.error('거래 수정 실패:', error)
+      logger.error('거래 수정 실패:', error)
       throw error
     }
   }
@@ -118,16 +166,16 @@ export class TransactionDbService {
         throw new Error('거래를 찾을 수 없습니다.')
       }
     } catch (error) {
-      console.error('거래 삭제 실패:', error)
+      logger.error('거래 삭제 실패:', error)
       throw error
     }
   }
 
   // 거래 정보를 계좌와 카테고리 정보로 풍부하게 만들기
-  private async enrichTransaction(transaction: any): Promise<Transaction> {
+  private async enrichTransaction(transaction: TransactionRow): Promise<Transaction> {
     try {
       // 계좌 정보 조회
-      const accountResult = await query(
+      const accountResult = await query<AccountRow>(
         `SELECT a.*, b.name as bank_name
          FROM finance_accounts a
          JOIN finance_banks b ON a.bank_id = b.id
@@ -136,9 +184,10 @@ export class TransactionDbService {
       )
 
       // 카테고리 정보 조회
-      const categoryResult = await query('SELECT * FROM finance_categories WHERE id = $1', [
-        transaction.category_id,
-      ])
+      const categoryResult = await query<CategoryRow>(
+        'SELECT * FROM finance_categories WHERE id = $1',
+        [transaction.category_id],
+      )
 
       return {
         id: transaction.id,
