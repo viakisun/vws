@@ -211,7 +211,7 @@ function parseExcelFile(buffer: Buffer): Promise<ExcelSheetData> {
  * ```typescript
  * const binaryData = await file.text()
  * const data = await readExcelFile(binaryData)
- * console.log(data[0]) // 첫 번째 행 출력
+ * logger.info(data[0]) // 첫 번째 행 출력
  * ```
  */
 export async function readExcelFile(fileContent: string): Promise<ExcelSheetData> {
@@ -245,7 +245,7 @@ export async function readExcelFile(fileContent: string): Promise<ExcelSheetData
  * @example
  * ```typescript
  * const result = await readExcelFileWithMetadata(binaryData)
- * console.log(`시트: ${result.sheetName}, 행: ${result.rowCount}`)
+ * logger.info(`시트: ${result.sheetName}, 행: ${result.rowCount}`)
  * ```
  */
 export async function readExcelFileWithMetadata(fileContent: string): Promise<ExcelReadResult> {

@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte'
+  import { logger } from '$lib/utils/logger'
   import type {
     Budget,
     TransactionCategory,
@@ -142,7 +143,7 @@
       updateFilteredData()
     } catch (err) {
       error = err instanceof Error ? err.message : '데이터를 불러올 수 없습니다.'
-      console.error('데이터 로드 실패:', err)
+      logger.error('데이터 로드 실패:', err)
     } finally {
       isLoading = false
     }

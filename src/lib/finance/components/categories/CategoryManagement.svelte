@@ -1,6 +1,7 @@
 <script lang="ts">
   import { EditIcon, PlusIcon, TrashIcon } from '@lucide/svelte'
   import { onMount } from 'svelte'
+import { logger } from '$lib/utils/logger'
 
   // 상태 관리
   let categories = $state<any[]>([])
@@ -57,7 +58,7 @@
       }
     } catch (err) {
       error = err instanceof Error ? err.message : '카테고리를 불러올 수 없습니다.'
-      console.error('카테고리 로드 실패:', err)
+      logger.error('카테고리 로드 실패:', err)
     } finally {
       isLoading = false
     }
@@ -85,7 +86,7 @@
       }
     } catch (err) {
       error = err instanceof Error ? err.message : '카테고리 생성에 실패했습니다.'
-      console.error('카테고리 생성 실패:', err)
+      logger.error('카테고리 생성 실패:', err)
     }
   }
 
@@ -110,7 +111,7 @@
       }
     } catch (err) {
       error = err instanceof Error ? err.message : '카테고리 수정에 실패했습니다.'
-      console.error('카테고리 수정 실패:', err)
+      logger.error('카테고리 수정 실패:', err)
     }
   }
 
@@ -138,7 +139,7 @@
       }
     } catch (err) {
       error = err instanceof Error ? err.message : '카테고리 삭제에 실패했습니다.'
-      console.error('카테고리 삭제 실패:', err)
+      logger.error('카테고리 삭제 실패:', err)
     }
   }
 

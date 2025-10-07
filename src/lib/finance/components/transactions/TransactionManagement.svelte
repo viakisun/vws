@@ -2,6 +2,7 @@
   import { pushToast } from '$lib/stores/toasts'
   import { page } from '$app/stores'
   import { accountService, transactionService } from '$lib/finance/services'
+  import { logger } from '$lib/utils/logger'
   import type {
     Account,
     CreateTransactionRequest,
@@ -86,27 +87,27 @@
   }
 
   function detectBankFromFileName(fileName: string): string {
-    console.log('=== 은행 감지 디버깅 ===')
-    console.log('원본 파일명:', fileName)
-    console.log('파일명 타입:', typeof fileName)
-    console.log('파일명 길이:', fileName.length)
+    logger.info('=== 은행 감지 디버깅 ===')
+    logger.info('원본 파일명:', fileName)
+    logger.info('파일명 타입:', typeof fileName)
+    logger.info('파일명 길이:', fileName.length)
 
     const fileNameLower = fileName.toLowerCase()
-    console.log('소문자 변환:', fileNameLower)
+    logger.info('소문자 변환:', fileNameLower)
 
     // 공백 제거하여 검색
     const cleanFileName = fileNameLower.replace(/\s+/g, '')
-    console.log('공백 제거:', cleanFileName)
+    logger.info('공백 제거:', cleanFileName)
 
     const hasHana1 = fileNameLower.includes('하나')
     const hasHana2 = fileNameLower.includes('hana')
     const hasHana3 = cleanFileName.includes('하나')
     const hasHana4 = cleanFileName.includes('hana')
 
-    console.log('하나 포함 체크:', { hasHana1, hasHana2, hasHana3, hasHana4 })
+    logger.info('하나 포함 체크:', { hasHana1, hasHana2, hasHana3, hasHana4 })
 
     if (hasHana1 || hasHana2 || hasHana3 || hasHana4) {
-      console.log('결과: 하나은행')
+      logger.info('결과: 하나은행')
       return '하나은행'
     } else if (
       fileNameLower.includes('농협') ||
@@ -114,10 +115,10 @@
       cleanFileName.includes('농협') ||
       cleanFileName.includes('nonghyup')
     ) {
-      console.log('결과: 농협은행')
+      logger.info('결과: 농협은행')
       return '농협은행'
     }
-    console.log('결과: 알 수 없음')
+    logger.info('결과: 알 수 없음')
     return '알 수 없음'
   }
 
@@ -133,27 +134,27 @@
     for (const file of selectedFiles) {
       try {
         const detectedBank = detectBankFromFileName(file.name)
-        console.log(`파일: ${file.name}, 감지된 은행: ${detectedBank}`)
+        logger.info(`파일: ${file.name}, 감지된 은행: ${detectedBank}`)
 
         // 파일명에서 계좌번호 추출 (하이픈 포함/미포함 모두 처리)
         const accountNumberMatch = file.name.match(/(\d{3}-?\d{3,6}-?\d{3,6}|\d{11,14})/)
         const fileAccountNumber = accountNumberMatch ? accountNumberMatch[0] : null
-        console.log(`추출된 계좌번호: ${fileAccountNumber}`)
+        logger.info(`추출된 계좌번호: ${fileAccountNumber}`)
 
         let targetAccountId: string | null = null
         if (fileAccountNumber) {
           // 하이픈 제거하여 매칭
           const cleanFileAccountNumber = fileAccountNumber.replace(/-/g, '')
-          console.log(`정리된 계좌번호: ${cleanFileAccountNumber}`)
+          logger.info(`정리된 계좌번호: ${cleanFileAccountNumber}`)
 
           const account = accounts.find((acc) => {
             const accNum = acc.accountNumber.replace(/-/g, '')
-            console.log(`비교: ${cleanFileAccountNumber} vs ${accNum}`)
+            logger.info(`비교: ${cleanFileAccountNumber} vs ${accNum}`)
             return accNum === cleanFileAccountNumber
           })
           if (account) {
             targetAccountId = account.id
-            console.log(`매칭된 계좌: ${account.name} (ID: ${targetAccountId})`)
+            logger.info(`매칭된 계좌: ${account.name} (ID: ${targetAccountId})`)
           }
         }
 
@@ -410,17 +411,17 @@
       _groupedCategories = groupCategoriesByType(categories)
 
       // 디버깅: 계좌 상태 확인
-      console.log(
+      logger.info(
         '로드된 계좌들:',
         accounts.map((a) => ({ name: a.name, status: a.status })),
       )
-      console.log('활성 계좌 수:', accounts.filter((a) => a.status === 'active').length)
+      logger.info('활성 계좌 수:', accounts.filter((a) => a.status === 'active').length)
 
       // 필터링된 데이터 업데이트 (클라이언트 사이드 추가 필터링)
       updateFilteredData()
     } catch (err) {
       error = err instanceof Error ? err.message : '데이터를 불러올 수 없습니다.'
-      console.error('데이터 로드 실패:', err)
+      logger.error('데이터 로드 실패:', err)
     } finally {
       isLoading = false
     }
@@ -451,14 +452,14 @@
         categoryId: inlineEditingData.categoryId,
       }
 
-      console.log('인라인 편집 업데이트:', updateData)
+      logger.info('인라인 편집 업데이트:', updateData)
 
       const updatedTransaction = await transactionService.updateTransaction(
         editingTransactionId,
         updateData,
       )
 
-      console.log('업데이트 완료:', updatedTransaction)
+      logger.info('업데이트 완료:', updatedTransaction)
 
       // 로컬 상태 업데이트 - 새 배열로 교체하여 반응성 보장
       const index = transactions.findIndex((t) => t.id === editingTransactionId)
@@ -478,7 +479,7 @@
             : t,
         )
 
-        console.log('로컬 상태 업데이트 완료:', transactions[index])
+        logger.info('로컬 상태 업데이트 완료:', transactions[index])
 
         // 필터링된 데이터 업데이트
         updateFilteredData()
@@ -487,7 +488,7 @@
       editingTransactionId = null
       inlineEditingData = { description: '', categoryId: '' }
     } catch (err) {
-      console.error('거래 업데이트 실패:', err)
+      logger.error('거래 업데이트 실패:', err)
       error = '거래 업데이트에 실패했습니다.'
     }
   }
@@ -626,14 +627,14 @@
         )
         if (isActiveAccount) {
           selectedAccount = accountParam
-          console.log('URL에서 활성 계좌 ID 설정:', accountParam)
+          logger.info('URL에서 활성 계좌 ID 설정:', accountParam)
         } else {
           selectedAccount = '' // 비활성 계좌면 전체 계좌로 설정
-          console.log('URL의 계좌가 비활성이므로 전체 계좌로 설정')
+          logger.info('URL의 계좌가 비활성이므로 전체 계좌로 설정')
         }
       } else {
         selectedAccount = '' // 전체 계좌 (기본값)
-        console.log('기본값으로 전체 계좌 설정')
+        logger.info('기본값으로 전체 계좌 설정')
       }
 
       // 필터링 적용

@@ -336,48 +336,48 @@ export class HRDashboardStore {
 
   async fetchDepartments() {
     try {
-      console.log('fetchDepartments: Starting API call to /api/departments')
+      logger.info('fetchDepartments: Starting API call to /api/departments')
       const response = await fetch('/api/departments')
-      console.log('fetchDepartments: Response status:', response.status)
+      logger.info('fetchDepartments: Response status:', response.status)
 
       if (response.ok) {
         const result = (await response.json()) as Record<string, unknown>
-        console.log('fetchDepartments: API result:', result)
+        logger.info('fetchDepartments: API result:', result)
 
         this.departments =
           (result.data as Department[]) || (result.departments as Department[]) || []
 
-        console.log('fetchDepartments: Loaded departments:', this.departments)
+        logger.info('fetchDepartments: Loaded departments:', this.departments)
       } else {
-        console.error('fetchDepartments: API call failed with status:', response.status)
+        logger.error('fetchDepartments: API call failed with status:', response.status)
       }
     } catch (err) {
-      console.error('fetchDepartments: Error:', err)
+      logger.error('fetchDepartments: Error:', err)
       logger.error('Error fetching departments:', err)
     }
   }
 
   async fetchPositions() {
     try {
-      console.log('🔍 fetchPositions 시작')
+      logger.info('🔍 fetchPositions 시작')
       const response = await fetch('/api/positions')
-      console.log('📡 API 응답 상태:', response.status)
+      logger.info('📡 API 응답 상태:', response.status)
 
       if (response.ok) {
         const result = (await response.json()) as Record<string, unknown>
-        console.log('📊 API 응답 데이터:', result)
+        logger.info('📊 API 응답 데이터:', result)
 
         const positionsData = (result.data as Position[]) || (result.positions as Position[]) || []
-        console.log('📊 파싱된 positions:', positionsData)
-        console.log('📊 positions 개수:', positionsData.length)
+        logger.info('📊 파싱된 positions:', positionsData)
+        logger.info('📊 positions 개수:', positionsData.length)
 
         this.positions = positionsData
-        console.log('✅ positions 설정 완료:', this.positions.length)
+        logger.info('✅ positions 설정 완료:', this.positions.length)
       } else {
-        console.error('❌ API 응답 실패:', response.status)
+        logger.error('❌ API 응답 실패:', response.status)
       }
     } catch (err) {
-      console.error('❌ fetchPositions 에러:', err)
+      logger.error('❌ fetchPositions 에러:', err)
       logger.error('Error fetching positions:', err)
     }
   }

@@ -2,6 +2,7 @@ import { BankCode, BankCodeUtils } from '$lib/types/bank-codes'
 import { toUTC } from '$lib/utils/date-handler'
 import { readExcelFile } from '$lib/utils/excel-reader'
 import type { BankStatementParseResult, ParsedTransaction } from './types'
+import { logger } from '$lib/utils/logger'
 
 // 거래 내역 인터페이스 (하나은행 전용)
 interface Transaction {
@@ -24,35 +25,35 @@ interface Transaction {
  */
 async function parseHanaBankExcel(fileContent: string): Promise<Transaction[]> {
   try {
-    console.log('🔥 하나은행 엑셀 파일 크기:', fileContent.length, 'bytes')
+    logger.info('🔥 하나은행 엑셀 파일 크기:', fileContent.length, 'bytes')
 
     // 공통 Excel 파일 읽기 함수 사용
     const rawData = await readExcelFile(fileContent)
 
-    console.log('🔥🔥🔥 === 하나은행 날짜 필드 디버깅 === 🔥🔥🔥')
-    console.log('🔥 총 행 수:', rawData.length)
+    logger.info('🔥🔥🔥 === 하나은행 날짜 필드 디버깅 === 🔥🔥🔥')
+    logger.info('🔥 총 행 수:', rawData.length)
 
     // 헤더 행 확인
     if (rawData.length > 0) {
-      console.log('🔥 헤더 행:', rawData[0])
+      logger.info('🔥 헤더 행:', rawData[0])
     }
 
     // 처음 3개 데이터 행의 모든 필드 확인
     for (let i = 1; i < Math.min(4, rawData.length); i++) {
       const row = rawData[i]
       if (row) {
-        console.log(`행 ${i} 전체 필드:`)
+        logger.info(`행 ${i} 전체 필드:`)
         for (let j = 0; j < Math.min(10, row.length); j++) {
-          console.log(`  [${j}]: "${row[j]}" (${typeof row[j]})`)
+          logger.info(`  [${j}]: "${row[j]}" (${typeof row[j]})`)
         }
-        console.log('---')
+        logger.info('---')
       }
     }
 
     // 거래 내역 파싱
     return parseTransactions(rawData)
   } catch (error) {
-    console.error('엑셀 파싱 오류:', error)
+    logger.error('엑셀 파싱 오류:', error)
     return []
   }
 }
@@ -65,8 +66,8 @@ function parseTransactions(rawData: any[][]): Transaction[] {
   let parsedCount = 0
   let skippedCount = 0
 
-  console.log('🔥🔥🔥 === 하나은행 파싱 시작 === 🔥🔥🔥')
-  console.log('🔥 총 행 수:', rawData.length)
+  logger.info('🔥🔥🔥 === 하나은행 파싱 시작 === 🔥🔥🔥')
+  logger.info('🔥 총 행 수:', rawData.length)
 
   // 모든 행을 순회하면서 유효한 거래 데이터 찾기
   for (let i = 0; i < rawData.length; i++) {
@@ -83,7 +84,7 @@ function parseTransactions(rawData: any[][]): Transaction[] {
         transactions.push(transaction)
         parsedCount++
         if (parsedCount <= 5) {
-          console.log(`🔥 하나은행 파싱 성공 (행 ${i}):`, {
+          logger.info(`🔥 하나은행 파싱 성공 (행 ${i}):`, {
             no: transaction.no,
             dateTime: transaction.dateTime,
             description: transaction.description,
@@ -95,18 +96,18 @@ function parseTransactions(rawData: any[][]): Transaction[] {
       } else {
         skippedCount++
         if (skippedCount <= 10) {
-          console.log(`🔥 하나은행 행 ${i} 건너뛰기: 형식 불일치 - ${row.slice(0, 3).join('|')}`)
+          logger.info(`🔥 하나은행 행 ${i} 건너뛰기: 형식 불일치 - ${row.slice(0, 3).join('|')}`)
         }
       }
     } catch (error) {
       skippedCount++
       if (skippedCount <= 10) {
-        console.warn(`🔥 하나은행 행 ${i} 파싱 실패:`, error)
+        logger.warn(`🔥 하나은행 행 ${i} 파싱 실패:`, error)
       }
     }
   }
 
-  console.log(
+  logger.info(
     `🔥🔥🔥 하나은행 파싱 완료: 성공 ${parsedCount}건, 건너뛴 행 ${skippedCount}건 🔥🔥🔥`,
   )
   return transactions
@@ -193,32 +194,32 @@ function parseAmount(value: any): number {
  * 하나은행 거래내역 파싱 (엑셀 파일)
  */
 export async function parseHanaBankStatement(content: string): Promise<BankStatementParseResult> {
-  console.log('🔥🔥🔥 === parseHanaBankStatement 시작 === 🔥🔥🔥')
-  console.log('🔥 content 길이:', content.length)
+  logger.info('🔥🔥🔥 === parseHanaBankStatement 시작 === 🔥🔥🔥')
+  logger.info('🔥 content 길이:', content.length)
 
   const transactions: ParsedTransaction[] = []
   const errors: string[] = []
 
   try {
-    console.log('🔥 엑셀 파싱 시작...')
+    logger.info('🔥 엑셀 파싱 시작...')
     // 엑셀 파싱
     const excelTransactions = await parseHanaBankExcel(content)
-    console.log('🔥🔥🔥 엑셀 파싱 완료, 거래 수:', excelTransactions.length, '🔥🔥🔥')
+    logger.info('🔥🔥🔥 엑셀 파싱 완료, 거래 수:', excelTransactions.length, '🔥🔥🔥')
 
     for (const tx of excelTransactions) {
       try {
         // 날짜 검증 및 변환
         if (!tx.dateTime || tx.dateTime.trim() === '' || tx.dateTime === 'undefined') {
-          console.warn(`🔥 거래 건너뛰기: 날짜가 비어있음 (원본: "${tx.dateTime}")`)
+          logger.warn(`🔥 거래 건너뛰기: 날짜가 비어있음 (원본: "${tx.dateTime}")`)
           continue // 날짜가 없으면 이 거래는 건너뛰기
         }
 
         let transactionDate: string
         try {
           transactionDate = toUTC(tx.dateTime)
-          console.log(`🔥 날짜 변환 성공: "${tx.dateTime}" -> "${transactionDate}"`)
+          logger.info(`🔥 날짜 변환 성공: "${tx.dateTime}" -> "${transactionDate}"`)
         } catch (error) {
-          console.warn(`🔥 거래 건너뛰기: 날짜 변환 실패 (원본: "${tx.dateTime}", 오류: ${error})`)
+          logger.warn(`🔥 거래 건너뛰기: 날짜 변환 실패 (원본: "${tx.dateTime}", 오류: ${error})`)
           continue // 날짜 변환 실패시 이 거래는 건너뛰기
         }
 

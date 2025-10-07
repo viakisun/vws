@@ -1,6 +1,7 @@
 import { query } from '$lib/database/connection'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger'
 
 // 영업관리 시스템 스키마 SQL (상용화 목표 - 단순화)
 const SALES_SCHEMA_SQL = `
@@ -347,9 +348,9 @@ async function createSampleData() {
       )
     }
 
-    console.log('영업관리 시스템 샘플 데이터 생성 완료')
+    logger.info('영업관리 시스템 샘플 데이터 생성 완료')
   } catch (error) {
-    console.error('샘플 데이터 생성 실패:', error)
+    logger.error('샘플 데이터 생성 실패:', error)
     throw error
   }
 }
@@ -368,7 +369,7 @@ export const POST: RequestHandler = async () => {
       message: '영업관리 시스템이 성공적으로 초기화되었습니다.',
     })
   } catch (error) {
-    console.error('영업관리 시스템 초기화 실패:', error)
+    logger.error('영업관리 시스템 초기화 실패:', error)
     return json(
       {
         success: false,

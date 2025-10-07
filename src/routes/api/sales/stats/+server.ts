@@ -2,6 +2,7 @@ import { query } from '$lib/database/connection'
 import type { CustomerStats, SalesApiResponse, SalesStats } from '$lib/sales/types'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger'
 
 // 영업관리 대시보드 통계
 export const GET: RequestHandler = async ({ url }) => {
@@ -104,7 +105,7 @@ export const GET: RequestHandler = async ({ url }) => {
 
     return json(response)
   } catch (error) {
-    console.error('영업관리 통계 조회 실패:', error)
+    logger.error('영업관리 통계 조회 실패:', error)
     const response: SalesApiResponse<null> = {
       success: false,
       error: error instanceof Error ? error.message : '영업관리 통계를 조회할 수 없습니다.',

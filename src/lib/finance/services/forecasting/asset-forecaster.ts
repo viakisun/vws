@@ -1,4 +1,5 @@
 import { query } from '$lib/database/connection'
+import { logger } from '$lib/utils/logger'
 // 타입 정의
 interface FinancialForecast {
   month: string
@@ -34,7 +35,7 @@ export class AssetForecaster {
 
       return forecasts
     } catch (error) {
-      console.error('자산 예측 실패:', error)
+      logger.error('자산 예측 실패:', error)
       return []
     }
   }
@@ -71,7 +72,7 @@ export class AssetForecaster {
 
       return forecasts
     } catch (error) {
-      console.error('계좌 잔액 예측 실패:', error)
+      logger.error('계좌 잔액 예측 실패:', error)
       return []
     }
   }
@@ -93,7 +94,7 @@ export class AssetForecaster {
         recommendations,
       }
     } catch (error) {
-      console.error('현금흐름 예측 실패:', error)
+      logger.error('현금흐름 예측 실패:', error)
       return {
         monthlyForecasts: [],
         riskFactors: [],

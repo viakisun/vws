@@ -1,6 +1,7 @@
 <script lang="ts">
   import { ChevronLeftIcon, ChevronRightIcon } from '@lucide/svelte'
   import { onMount } from 'svelte'
+import { logger } from '$lib/utils/logger'
 
   interface Tab {
     id: string
@@ -53,16 +54,16 @@
 
   // 탭 변경 핸들러
   function handleTabChange(tabId: string) {
-    console.log('ThemeTabs - handleTabChange called with:', tabId)
-    console.log('ThemeTabs - current activeTab:', activeTab)
-    console.log('ThemeTabs - current currentTab:', currentTab)
+    logger.info('ThemeTabs - handleTabChange called with:', tabId)
+    logger.info('ThemeTabs - current activeTab:', activeTab)
+    logger.info('ThemeTabs - current currentTab:', currentTab)
 
     if (tabs.find((tab) => tab.id === tabId)?.disabled) return
 
     currentTab = tabId
     activeTab = tabId // bindable activeTab 업데이트
-    console.log('ThemeTabs - after update - activeTab:', activeTab)
-    console.log('ThemeTabs - after update - currentTab:', currentTab)
+    logger.info('ThemeTabs - after update - activeTab:', activeTab)
+    logger.info('ThemeTabs - after update - currentTab:', currentTab)
     onTabChange?.(tabId)
   }
 

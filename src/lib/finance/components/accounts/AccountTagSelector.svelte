@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { AccountTag } from '$lib/finance/types'
   import { onMount } from 'svelte'
+import { logger } from '$lib/utils/logger'
 
   interface Props {
     accountId: string
@@ -24,7 +25,7 @@
         availableTags = result.data
       }
     } catch (error) {
-      console.error('태그 로드 실패:', error)
+      logger.error('태그 로드 실패:', error)
     }
   }
 
@@ -57,7 +58,7 @@
         }
       }
     } catch (error) {
-      console.error('태그 저장 실패:', error)
+      logger.error('태그 저장 실패:', error)
     } finally {
       loading = false
     }

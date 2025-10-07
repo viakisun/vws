@@ -1,5 +1,6 @@
 <script lang="ts">
   import { WalletIcon, TrendingUpIcon, TrendingDownIcon, DollarSignIcon } from '@lucide/svelte'
+import { logger } from '$lib/utils/logger'
 
   interface DashboardStats {
     totalBalance: number
@@ -17,7 +18,7 @@
 
   // 디버깅
   $effect(() => {
-    console.log('📊 [FinanceOverviewCards] stats 업데이트:', stats)
+    logger.info('📊 [FinanceOverviewCards] stats 업데이트:', stats)
   })
 
   // 금액 포맷팅 함수

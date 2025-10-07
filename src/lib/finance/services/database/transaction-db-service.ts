@@ -195,12 +195,18 @@ export class TransactionDbService {
         categoryId: transaction.category_id,
         amount: parseFloat(transaction.amount.toString()),
         type: transaction.type as 'income' | 'expense' | 'transfer' | 'adjustment',
-        status: (transaction.status || 'completed') as 'pending' | 'completed' | 'cancelled' | 'failed',
+        status: (transaction.status || 'completed') as
+          | 'pending'
+          | 'completed'
+          | 'cancelled'
+          | 'failed',
         description: transaction.description || '',
         transactionDate: transaction.transaction_date,
         counterparty: transaction.counterparty,
         deposits: transaction.deposits ? parseFloat(transaction.deposits.toString()) : undefined,
-        withdrawals: transaction.withdrawals ? parseFloat(transaction.withdrawals.toString()) : undefined,
+        withdrawals: transaction.withdrawals
+          ? parseFloat(transaction.withdrawals.toString())
+          : undefined,
         balance: transaction.balance ? parseFloat(transaction.balance.toString()) : undefined,
         notes: transaction.notes,
         isRecurring: transaction.is_recurring || false,
@@ -253,7 +259,7 @@ export class TransactionDbService {
           : undefined,
       }
     } catch (error) {
-      console.error('거래 정보 풍부화 실패:', error)
+      logger.error('거래 정보 풍부화 실패:', error)
       throw error
     }
   }

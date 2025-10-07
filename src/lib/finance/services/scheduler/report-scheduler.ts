@@ -2,6 +2,7 @@ import { query } from '$lib/database/connection'
 import { financialHealthAnalyzer } from '../analysis/financial-health'
 import { emailService } from '../email/email-service'
 import { assetForecaster } from '../forecasting/asset-forecaster'
+import { logger } from '$lib/utils/logger'
 
 export interface ScheduledReport {
   id: string
@@ -25,7 +26,7 @@ export class ReportScheduler {
 
   // 스케줄러 시작
   start(): void {
-    console.log('📅 리포트 스케줄러를 시작합니다...')
+    logger.info('📅 리포트 스케줄러를 시작합니다...')
 
     // 매분마다 스케줄 확인
     this.intervalId = setInterval(() => {
@@ -41,7 +42,7 @@ export class ReportScheduler {
     if (this.intervalId) {
       clearInterval(this.intervalId)
       this.intervalId = undefined
-      console.log('📅 리포트 스케줄러를 중지했습니다.')
+      logger.info('📅 리포트 스케줄러를 중지했습니다.')
     }
   }
 
@@ -54,7 +55,7 @@ export class ReportScheduler {
 
       const shouldRun = this.shouldRunSchedule(schedule, now)
       if (shouldRun) {
-        console.log(`📊 스케줄된 리포트 실행: ${schedule.name}`)
+        logger.info(`📊 스케줄된 리포트 실행: ${schedule.name}`)
         await this.executeSchedule(schedule)
 
         // 마지막 실행 시간 업데이트
@@ -98,7 +99,7 @@ export class ReportScheduler {
           break
       }
     } catch (error) {
-      console.error(`스케줄 실행 실패 (${schedule.name}):`, error)
+      logger.error(`스케줄 실행 실패 (${schedule.name}):`, error)
     }
   }
 
@@ -196,7 +197,7 @@ export class ReportScheduler {
         alerts,
       }
     } catch (error) {
-      console.error('일일 리포트 데이터 생성 실패:', error)
+      logger.error('일일 리포트 데이터 생성 실패:', error)
       // 데이터베이스가 없거나 연결 실패 시 기본값 반환
       return {
         currentBalance: 0,
@@ -259,7 +260,7 @@ export class ReportScheduler {
         alerts,
       }
     } catch (error) {
-      console.error('주간 리포트 데이터 생성 실패:', error)
+      logger.error('주간 리포트 데이터 생성 실패:', error)
       return {
         currentBalance: 0,
         totalIncome: 0,
@@ -342,7 +343,7 @@ export class ReportScheduler {
         healthScore: healthScore.overallScore,
       }
     } catch (error) {
-      console.error('월간 리포트 데이터 생성 실패:', error)
+      logger.error('월간 리포트 데이터 생성 실패:', error)
       return {
         totalIncome: 0,
         totalExpense: 0,
@@ -439,14 +440,14 @@ export class ReportScheduler {
     try {
       const schedule = Array.from(this.schedules.values()).find((s) => s.type === reportType)
       if (!schedule) {
-        console.error(`리포트 타입을 찾을 수 없습니다: ${reportType}`)
+        logger.error(`리포트 타입을 찾을 수 없습니다: ${reportType}`)
         return false
       }
 
       await this.executeSchedule(schedule)
       return true
     } catch (error) {
-      console.error(`수동 리포트 실행 실패 (${reportType}):`, error)
+      logger.error(`수동 리포트 실행 실패 (${reportType}):`, error)
       return false
     }
   }

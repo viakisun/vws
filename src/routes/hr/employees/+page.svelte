@@ -5,7 +5,7 @@
   import { getCurrentUTC } from '$lib/utils/date-handler'
   import { formatDate } from '$lib/utils/format'
   import { onMount } from 'svelte'
-
+  import { logger } from '$lib/utils/logger'
   import {
     addEmployee,
     deleteEmployee,
@@ -168,8 +168,8 @@
   }
 
   function openEditModal(employee: Employee) {
-    console.log('🔍 2단계: 수정 모달 열기 시작')
-    console.log('👤 선택된 직원:', employee)
+    logger.info('🔍 2단계: 수정 모달 열기 시작')
+    logger.info('👤 선택된 직원:', employee)
 
     selectedEmployee = employee
     formData = {
@@ -198,9 +198,9 @@
       },
     }
 
-    console.log('📝 설정된 폼 데이터:', formData)
+    logger.info('📝 설정된 폼 데이터:', formData)
     isEditModalOpen = true
-    console.log('✅ 수정 모달 열림 완료')
+    logger.info('✅ 수정 모달 열림 완료')
   }
 
   function openViewModal(employee: Employee) {
@@ -306,15 +306,15 @@
 
   onMount(async () => {
     // 초기 데이터 로드
-    console.log('🔍 1단계: 직원 데이터 로딩 시작')
+    logger.info('🔍 1단계: 직원 데이터 로딩 시작')
     try {
       const response = await fetch('/api/employees')
       const result = await response.json()
 
-      console.log('📡 API 응답:', result)
+      logger.info('📡 API 응답:', result)
 
       if (result.success && result.data) {
-        console.log('📊 원본 데이터:', result.data)
+        logger.info('📊 원본 데이터:', result.data)
 
         // DatabaseEmployee를 Employee 타입으로 변환
         const convertedEmployees = result.data.map((dbEmp: any) => ({
@@ -349,14 +349,14 @@
           terminationDate: dbEmp.termination_date || '',
         }))
 
-        console.log('🔄 변환된 데이터:', convertedEmployees)
+        logger.info('🔄 변환된 데이터:', convertedEmployees)
         employees.set(convertedEmployees)
-        console.log('✅ 직원 데이터 설정 완료, 총', convertedEmployees.length, '명')
+        logger.info('✅ 직원 데이터 설정 완료, 총', convertedEmployees.length, '명')
       } else {
-        console.error('❌ API 응답 실패:', result.error)
+        logger.error('❌ API 응답 실패:', result.error)
       }
     } catch (error) {
-      console.error('❌ 직원 데이터 로드 실패:', error)
+      logger.error('❌ 직원 데이터 로드 실패:', error)
     }
   })
 </script>

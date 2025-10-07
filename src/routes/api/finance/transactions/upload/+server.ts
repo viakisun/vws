@@ -322,10 +322,7 @@ export const POST: RequestHandler = async ({ request }) => {
   } catch (error) {
     logger.error('파일 업로드 API 오류:', error)
     const errorMessage = error instanceof Error ? error.message : String(error)
-    return json(
-      { success: false, message: '서버 오류 발생', error: errorMessage },
-      { status: 500 },
-    )
+    return json({ success: false, message: '서버 오류 발생', error: errorMessage }, { status: 500 })
   }
 }
 
@@ -348,9 +345,6 @@ export const GET: RequestHandler = async () => {
   } catch (error) {
     logger.error('지원 은행 목록 조회 오류:', error)
     const errorMessage = error instanceof Error ? error.message : String(error)
-    return json(
-      { success: false, message: '서버 오류 발생', error: errorMessage },
-      { status: 500 },
-    )
+    return json({ success: false, message: '서버 오류 발생', error: errorMessage }, { status: 500 })
   }
 }

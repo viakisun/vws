@@ -3,6 +3,7 @@
   import ThemeModal from '$lib/components/ui/ThemeModal.svelte'
   import type { Employee, EmployeeLevel, EmployeeStatus, EmploymentType } from '$lib/types/hr'
   import { createEventDispatcher, onMount } from 'svelte'
+import { logger } from '$lib/utils/logger'
 
   interface Props {
     open: boolean
@@ -129,8 +130,8 @@
 
   // 직원 데이터가 변경될 때 폼 데이터 초기화
   function _updateData() {
-    console.log('🔍 3단계: EmployeeModal에서 폼 데이터 업데이트 시작')
-    console.log('👤 받은 직원 데이터:', employee)
+    logger.info('🔍 3단계: EmployeeModal에서 폼 데이터 업데이트 시작')
+    logger.info('👤 받은 직원 데이터:', employee)
 
     if (employee) {
       // Employee (snake_case) → EmployeeFormData (camelCase) 변환
@@ -163,7 +164,7 @@
         createdAt: employee.created_at,
         updatedAt: employee.updated_at,
       }
-      console.log('📝 설정된 폼 데이터:', formData)
+      logger.info('📝 설정된 폼 데이터:', formData)
     } else {
       // 새 직원 추가 시 기본값 설정
       formData = {
@@ -190,9 +191,9 @@
           maritalStatus: 'single',
         },
       }
-      console.log('📝 새 직원용 기본 폼 데이터:', formData)
+      logger.info('📝 새 직원용 기본 폼 데이터:', formData)
     }
-    console.log('✅ 폼 데이터 업데이트 완료')
+    logger.info('✅ 폼 데이터 업데이트 완료')
   }
 
   // employee prop이 변경될 때마다 폼 데이터 업데이트

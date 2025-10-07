@@ -1,6 +1,7 @@
 <script lang="ts">
   import { pushToast } from '$lib/stores/toasts'
   import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
+  import { logger } from '$lib/utils/logger'
   import { formatCurrency, formatNumber } from '$lib/utils/format'
   import { formatKoreanNameStandard, sortKoreanNames } from '$lib/utils/korean-name'
   import {
@@ -182,7 +183,7 @@
         }) as any
       }
     } catch (error) {
-      console.error('급여명세서 데이터 로드 실패:', error)
+      logger.error('급여명세서 데이터 로드 실패:', error)
       payslipData = [] as any
       pushToast('급여명세서 데이터를 불러올 수 없습니다. 데이터베이스 연결을 확인하세요.', 'error')
     } finally {
@@ -193,19 +194,19 @@
   // 직원 목록 로드
   async function loadEmployeeList() {
     try {
-      console.log('HR API 호출 시작...')
+      logger.info('HR API 호출 시작...')
       const response = await fetch('/api/hr/employees?limit=100')
-      console.log('응답 상태:', response.status, response.statusText)
+      logger.info('응답 상태:', response.status, response.statusText)
 
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`)
       }
 
       const result = await response.json()
-      console.log('HR API 응답:', result)
+      logger.info('HR API 응답:', result)
 
       if (result.success && result.data && result.data.data && Array.isArray(result.data.data)) {
-        console.log('HR API 응답:', result)
+        logger.info('HR API 응답:', result)
 
         // 전체 직원 목록 저장 (한국 이름 순으로 정렬)
         allEmployees = result.data.data
@@ -222,15 +223,15 @@
 
         // 필터링된 직원 목록 업데이트
         updateEmployeeList()
-        console.log('전체 직원 목록 로드됨:', allEmployees.length, '명')
-        console.log('표시할 직원 목록:', employeeList.length, '명')
+        logger.info('전체 직원 목록 로드됨:', allEmployees.length, '명')
+        logger.info('표시할 직원 목록:', employeeList.length, '명')
       } else {
-        console.error('HR API 실패 또는 데이터 형식 오류:', result)
+        logger.error('HR API 실패 또는 데이터 형식 오류:', result)
         allEmployees = []
         employeeList = []
       }
     } catch (error) {
-      console.error('직원 목록 로드 실패:', error)
+      logger.error('직원 목록 로드 실패:', error)
       employeeList = []
       pushToast('직원 목록을 불러올 수 없습니다. 데이터베이스 연결을 확인하세요.', 'error')
     }
@@ -266,8 +267,8 @@
       const response = await fetch(url)
       const result = await response.json()
 
-      console.log('API 응답 전체:', result)
-      console.log('API URL:', url)
+      logger.info('API 응답 전체:', result)
+      logger.info('API URL:', url)
 
       if (
         result.success &&
@@ -275,7 +276,7 @@
         Array.isArray(result.data.data) &&
         result.data.data.length > 0
       ) {
-        console.log('계약 데이터 배열:', result.data.data)
+        logger.info('계약 데이터 배열:', result.data.data)
 
         // 현재 활성 계약 찾기 (endDate가 비어있거나 미래인 것)
         const currentContract = result.data.data.find(
@@ -286,24 +287,24 @@
 
         if (currentContract) {
           employeeContract = currentContract
-          console.log(`계약 정보 로드 성공:`, employeeContract)
-          console.log('계약 시작일:', employeeContract.startDate)
-          console.log('계약 종료일:', employeeContract.endDate)
-          console.log('계약 상태:', employeeContract.status)
-          console.log('계약 월급:', employeeContract.monthlySalary)
-          console.log('계약 연봉:', employeeContract.annualSalary)
+          logger.info(`계약 정보 로드 성공:`, employeeContract)
+          logger.info('계약 시작일:', employeeContract.startDate)
+          logger.info('계약 종료일:', employeeContract.endDate)
+          logger.info('계약 상태:', employeeContract.status)
+          logger.info('계약 월급:', employeeContract.monthlySalary)
+          logger.info('계약 연봉:', employeeContract.annualSalary)
         } else {
           employeeContract = null
-          console.log('활성 계약 정보를 찾을 수 없습니다.')
-          console.log('전체 계약 데이터:', result.data.data)
+          logger.info('활성 계약 정보를 찾을 수 없습니다.')
+          logger.info('전체 계약 데이터:', result.data.data)
         }
       } else {
         employeeContract = null
-        console.log('해당 직원의 계약 정보를 찾을 수 없습니다.')
-        console.log('API 응답:', result)
+        logger.info('해당 직원의 계약 정보를 찾을 수 없습니다.')
+        logger.info('API 응답:', result)
       }
     } catch (error) {
-      console.error('계약 정보 로드 실패:', error)
+      logger.error('계약 정보 로드 실패:', error)
       employeeContract = null
       pushToast('급여 계약 정보를 불러올 수 없습니다. 데이터베이스 연결을 확인하세요.', 'error')
     } finally {
@@ -546,7 +547,7 @@
   function recalculateTotals() {
     if (!editingPayslip) return
 
-    console.log('재계산 전 allowances:', editingPayslip.allowances)
+    logger.info('재계산 전 allowances:', editingPayslip.allowances)
 
     editingPayslip.totalPayments = (editingPayslip.allowances || []).reduce(
       (sum: number, item) => sum + Number(item.amount || 0),
@@ -558,7 +559,7 @@
     )
     editingPayslip.netSalary = editingPayslip.totalPayments - editingPayslip.totalDeductions
 
-    console.log('재계산 후 totalPayments:', editingPayslip.totalPayments)
+    logger.info('재계산 후 totalPayments:', editingPayslip.totalPayments)
   }
 
   // 급여 총액 검증 (기본급 + 차량유지 + 식대 = 계약 급여)
@@ -569,9 +570,9 @@
     difference: number
   } | null {
     if (!editingPayslip || !employeeContract) {
-      console.log('검증 불가: editingPayslip 또는 employeeContract가 없음')
-      console.log('editingPayslip:', editingPayslip)
-      console.log('employeeContract:', employeeContract)
+      logger.info('검증 불가: editingPayslip 또는 employeeContract가 없음')
+      logger.info('editingPayslip:', editingPayslip)
+      logger.info('employeeContract:', employeeContract)
       return null
     }
 
@@ -588,7 +589,7 @@
     const coreSalaryTotal = basicSalary + vehicleMaintenance + mealAllowance
     const contractSalary = employeeContract.monthlySalary || 0
 
-    console.log('급여 검증:', {
+    logger.info('급여 검증:', {
       basicSalary,
       vehicleMaintenance,
       mealAllowance,
@@ -730,7 +731,7 @@
   // 특정 월이 계약 기간 내에 있는지 확인
   function isWithinContractPeriod(year: number, month: number) {
     if (!employeeContract) {
-      console.log('계약 정보가 없어서 계약 기간 확인 불가:', { year, month })
+      logger.info('계약 정보가 없어서 계약 기간 확인 불가:', { year, month })
       return true // 계약 정보가 없으면 허용
     }
 
@@ -741,7 +742,7 @@
     const monthStartDate = new Date(year, month - 1, 1) // 해당 월의 첫째 날
     const monthEndDate = new Date(year, month, 0) // 해당 월의 마지막 날
 
-    console.log('계약 기간 확인:', {
+    logger.info('계약 기간 확인:', {
       year,
       month,
       monthStartDate: monthStartDate.toISOString(),
@@ -753,7 +754,7 @@
 
     // 해당 월이 계약 시작일 이전이면 false (월의 마지막 날이 계약 시작일보다 이전)
     if (monthEndDate < contractStartDate) {
-      console.log(
+      logger.info(
         '계약 시작일 이전:',
         monthEndDate.toISOString(),
         '<',
@@ -764,7 +765,7 @@
 
     // 계약 종료일이 있고 해당 월이 그 이후면 false (월의 첫째 날이 계약 종료일보다 이후)
     if (contractEndDate && monthStartDate > contractEndDate) {
-      console.log(
+      logger.info(
         '계약 종료일 이후:',
         monthStartDate.toISOString(),
         '>',
@@ -773,7 +774,7 @@
       return false
     }
 
-    console.log('계약 기간 내:', `${year}년 ${month}월`)
+    logger.info('계약 기간 내:', `${year}년 ${month}월`)
     return true
   }
 
@@ -1040,7 +1041,7 @@
                                       if (editingPayslip?.allowances?.[index]) {
                                         const value = e.currentTarget.value.replace(/[^0-9]/g, '')
                                         const amount = value === '' ? 0 : Number(value) || 0
-                                        console.log(
+                                        logger.info(
                                           `입력: ${allowance.name}, 값: ${value}, 변환: ${amount}`,
                                         )
                                         editingPayslip.allowances[index].amount = amount

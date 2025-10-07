@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte'
+import { logger } from '$lib/utils/logger'
 
   let version = $state('0.2.2')
   let buildDate = $state('')
@@ -16,7 +17,7 @@
         environment = data.environment
       }
     } catch (error) {
-      console.warn('버전 정보를 가져올 수 없습니다:', error)
+      logger.warn('버전 정보를 가져올 수 없습니다:', error)
     }
   })
 

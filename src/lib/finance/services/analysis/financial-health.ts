@@ -1,4 +1,5 @@
 import { query } from '$lib/database/connection'
+import { logger } from '$lib/utils/logger'
 
 export interface FinancialHealthScore {
   overallScore: number // 전체 점수 (0-100)
@@ -91,7 +92,7 @@ export class FinancialHealthAnalyzer {
         },
       }
     } catch (error) {
-      console.error('재무 건강도 분석 실패:', error)
+      logger.error('재무 건강도 분석 실패:', error)
       return {
         overallScore: 0,
         categories: {

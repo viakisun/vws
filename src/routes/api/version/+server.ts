@@ -2,6 +2,7 @@ import { json } from '@sveltejs/kit'
 import { readFileSync } from 'fs'
 import { join } from 'path'
 import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger'
 
 export const GET: RequestHandler = async () => {
   try {
@@ -19,7 +20,7 @@ export const GET: RequestHandler = async () => {
 
     return json(versionInfo)
   } catch (error) {
-    console.error('버전 정보 조회 실패:', error)
+    logger.error('버전 정보 조회 실패:', error)
     // 폴백 값
     return json(
       {

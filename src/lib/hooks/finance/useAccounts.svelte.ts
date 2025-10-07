@@ -7,6 +7,7 @@ import { accountService } from '$lib/finance/services/account-service'
 import { financeStore } from '$lib/stores/finance'
 import { pushToast } from '$lib/stores/toasts'
 import type { AccountFilter, CreateAccountRequest, UpdateAccountRequest } from '$lib/finance/types'
+import { logger } from '$lib/utils/logger'
 
 export function useAccounts() {
   const store = financeStore
@@ -20,7 +21,7 @@ export function useAccounts() {
 
     try {
       const accounts = await accountService.getAccounts(filter)
-      console.log('📋 [useAccounts] loadAccounts 완료:', {
+      logger.info('📋 [useAccounts] loadAccounts 완료:', {
         count: accounts.length,
         accounts: accounts.map((a) => ({ name: a.name, status: a.status })),
       })
@@ -140,7 +141,7 @@ export function useAccounts() {
 
     try {
       const summaries = await accountService.getBankSummaries()
-      console.log('🏦 [useAccounts] loadBankSummaries 완료:', {
+      logger.info('🏦 [useAccounts] loadBankSummaries 완료:', {
         count: summaries.length,
         summaries: summaries.map((s) => ({
           bank: s.bank?.name,

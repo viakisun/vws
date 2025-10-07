@@ -1,6 +1,7 @@
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
 import { query } from '$lib/database/connection'
+import { logger } from '$lib/utils/logger'
 
 // 부서 목록 조회
 export const GET: RequestHandler = async ({ url }) => {
@@ -30,7 +31,7 @@ export const GET: RequestHandler = async ({ url }) => {
       data: result.rows,
     })
   } catch (error: any) {
-    console.error('Error fetching departments:', error)
+    logger.error('Error fetching departments:', error)
     return json(
       {
         success: false,
@@ -94,7 +95,7 @@ export const POST: RequestHandler = async ({ request }) => {
       message: '부서가 성공적으로 생성되었습니다.',
     })
   } catch (error: any) {
-    console.error('Error creating department:', error)
+    logger.error('Error creating department:', error)
     return json(
       {
         success: false,

@@ -38,10 +38,10 @@
 
   // Toggle user menu
   function toggleUserMenu() {
-    console.log('User menu toggle clicked, current state:', showUserMenu)
+    logger.info('User menu toggle clicked, current state:', showUserMenu)
     showUserMenu = !showUserMenu
     showNotifications = false
-    console.log('User menu state after toggle:', showUserMenu)
+    logger.info('User menu state after toggle:', showUserMenu)
   }
 
   // Close dropdowns when clicking outside

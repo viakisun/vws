@@ -10,6 +10,7 @@
   import TransactionManagement from '$lib/finance/components/transactions/TransactionManagement.svelte'
   import TagManagement from '$lib/finance/components/tags/TagManagement.svelte'
   import { useFinanceManagement } from '$lib/hooks/finance'
+import { logger } from '$lib/utils/logger'
 
   // Hook 사용
   const finance = useFinanceManagement()
@@ -44,14 +45,14 @@
       const result = await response.json()
 
       if (result.success) {
-        console.log('데이터베이스 초기화 완료:', result.message)
+        logger.info('데이터베이스 초기화 완료:', result.message)
         isInitialized = true
         await finance.loadAllData()
       } else {
-        console.error('데이터베이스 초기화 실패:', result.error)
+        logger.error('데이터베이스 초기화 실패:', result.error)
       }
     } catch (err) {
-      console.error('데이터베이스 초기화 실패:', err)
+      logger.error('데이터베이스 초기화 실패:', err)
     } finally {
       store.setLoading(false)
     }
@@ -73,7 +74,7 @@
         await initializeDatabase()
       }
     } catch (err) {
-      console.error('초기화 확인 실패:', err)
+      logger.error('초기화 확인 실패:', err)
       await initializeDatabase()
     }
   })

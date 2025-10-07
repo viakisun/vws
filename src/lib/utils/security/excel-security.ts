@@ -3,6 +3,8 @@
  * xlsx 라이브러리 사용 시 보안 취약점 대응
  */
 
+import { logger } from '$lib/utils/logger'
+
 // 보안 설정 상수
 export const EXCEL_SECURITY_CONFIG = {
   MAX_FILE_SIZE: parseInt(process.env.EXCEL_MAX_FILE_SIZE || '10485760'), // 10MB
@@ -67,14 +69,14 @@ export function sanitizeExcelData(data: any[][]): any[][] {
       if (typeof cell === 'string') {
         // =로 시작하는 수식 제거하고 값만 반환
         if (cell.startsWith('=')) {
-          console.log(`🔥 수식 무력화: "${cell}" -> ""`)
+          logger.info(`🔥 수식 무력화: "${cell}" -> ""`)
           return ''
         }
 
         // 위험한 함수명이 포함된 경우 제거
         const dangerousFunctions = ['EXEC', 'SHELL', 'CMD', 'EVAL', 'FUNCTION']
         if (dangerousFunctions.some((func) => cell.toUpperCase().includes(func))) {
-          console.log(`🔥 위험한 함수 감지 및 제거: "${cell}"`)
+          logger.info(`🔥 위험한 함수 감지 및 제거: "${cell}"`)
           return ''
         }
       }
@@ -124,7 +126,7 @@ export function detectMacros(data: any[][]): boolean {
             }
           })
         ) {
-          console.log(`🔥 매크로 패턴 감지: "${cell}"`)
+          logger.info(`🔥 매크로 패턴 감지: "${cell}"`)
           return true
         }
       }
@@ -149,7 +151,7 @@ export function validateZipStructure(buffer: Buffer): boolean {
           entryCount++
           if (entryCount > 1000) {
             // 최대 1000개 엔트리 허용
-            console.log(`🔥 압축 폭탄 감지: ${entryCount}개 엔트리`)
+            logger.info(`🔥 압축 폭탄 감지: ${entryCount}개 엔트리`)
             return false
           }
         }
@@ -159,7 +161,7 @@ export function validateZipStructure(buffer: Buffer): boolean {
 
     return true
   } catch (error) {
-    console.log('🔥 ZIP 구조 검증 실패:', error)
+    logger.info('🔥 ZIP 구조 검증 실패:', error)
     return false
   }
 }

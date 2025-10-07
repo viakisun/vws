@@ -8,6 +8,7 @@
   import { onMount } from 'svelte'
   import '../app.css'
   import type { LayoutServerData } from './$types'
+import { logger } from '$lib/utils/logger'
 
   let { children, data }: { children: any; data: LayoutServerData } = $props()
   let sidebarCollapsed = $state(true)
@@ -25,7 +26,7 @@
       user = null
       goto('/login')
     } catch (error) {
-      console.error('Logout error:', error)
+      logger.error('Logout error:', error)
     }
   }
 </script>

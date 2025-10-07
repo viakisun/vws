@@ -1,6 +1,7 @@
 import { query } from '$lib/database/connection'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger'
 
 // 특정 부서 조회
 export const GET: RequestHandler = async ({ params }) => {
@@ -29,7 +30,7 @@ export const GET: RequestHandler = async ({ params }) => {
       data: result.rows[0],
     })
   } catch (error: any) {
-    console.error('Error fetching department:', error)
+    logger.error('Error fetching department:', error)
     return json(
       {
         success: false,
@@ -109,7 +110,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
       message: '부서 정보가 성공적으로 수정되었습니다.',
     })
   } catch (error: any) {
-    console.error('Error updating department:', error)
+    logger.error('Error updating department:', error)
     return json(
       {
         success: false,
@@ -191,7 +192,7 @@ export const DELETE: RequestHandler = async ({ params, url }) => {
       })
     }
   } catch (error: any) {
-    console.error('Error deleting department:', error)
+    logger.error('Error deleting department:', error)
     return json(
       {
         success: false,

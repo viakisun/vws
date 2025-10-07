@@ -1,4 +1,5 @@
 import { query } from '$lib/database/connection'
+import { logger } from '$lib/utils/logger'
 
 export class AlertGenerator {
   // 예산 초과 알림 생성
@@ -28,7 +29,7 @@ export class AlertGenerator {
 
       await this.createAlert(alert)
     } catch (error) {
-      console.error('예산 초과 알림 생성 실패:', error)
+      logger.error('예산 초과 알림 생성 실패:', error)
     }
   }
 
@@ -57,7 +58,7 @@ export class AlertGenerator {
         await this.createAlert(alert)
       }
     } catch (error) {
-      console.error('잔액 부족 알림 생성 실패:', error)
+      logger.error('잔액 부족 알림 생성 실패:', error)
     }
   }
 
@@ -95,7 +96,7 @@ export class AlertGenerator {
         await this.createAlert(alert)
       }
     } catch (error) {
-      console.error('대용량 거래 알림 생성 실패:', error)
+      logger.error('대용량 거래 알림 생성 실패:', error)
     }
   }
 
@@ -126,7 +127,7 @@ export class AlertGenerator {
         ],
       )
     } catch (error) {
-      console.error('알림 생성 실패:', error)
+      logger.error('알림 생성 실패:', error)
     }
   }
 
@@ -175,7 +176,7 @@ export class AlertGenerator {
         await this.generateLowBalanceAlert(accountId, currentBalance)
       }
     } catch (error) {
-      console.error('거래 후 알림 체크 실패:', error)
+      logger.error('거래 후 알림 체크 실패:', error)
     }
   }
 }

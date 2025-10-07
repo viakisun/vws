@@ -3,6 +3,7 @@
   import { onMount } from 'svelte'
   import type { PageData } from './$types'
   import type { AttendanceData } from '$lib/types/dashboard'
+import { logger } from '$lib/utils/logger'
 
   let { data: _data }: { data: PageData } = $props()
 
@@ -37,7 +38,7 @@
         updateAttendanceStatus()
       }
     } catch (error) {
-      console.error('Error loading attendance data:', error)
+      logger.error('Error loading attendance data:', error)
     } finally {
       loading = false
     }
@@ -112,7 +113,7 @@
         pushToast(result.message, 'info')
       }
     } catch (error) {
-      console.error('Error checking in:', error)
+      logger.error('Error checking in:', error)
       pushToast('출근 기록에 실패했습니다.', 'error')
     }
   }
@@ -140,7 +141,7 @@
         pushToast(result.message, 'info')
       }
     } catch (error) {
-      console.error('Error checking out:', error)
+      logger.error('Error checking out:', error)
       pushToast('퇴근 기록에 실패했습니다.', 'error')
     }
   }
@@ -167,7 +168,7 @@
         pushToast(result.message, 'info')
       }
     } catch (error) {
-      console.error('Error starting break:', error)
+      logger.error('Error starting break:', error)
       pushToast('휴게 시작에 실패했습니다.', 'error')
     }
   }
@@ -194,7 +195,7 @@
         pushToast(result.message, 'info')
       }
     } catch (error) {
-      console.error('Error ending break:', error)
+      logger.error('Error ending break:', error)
       pushToast('휴게 종료에 실패했습니다.', 'error')
     }
   }

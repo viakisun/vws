@@ -1,4 +1,6 @@
 // 이메일 서비스 (개발 환경에서는 콘솔 로그로 대체)
+import { logger } from '$lib/utils/logger'
+
 export interface EmailTemplate {
   id: string
   name: string
@@ -50,18 +52,18 @@ export class EmailService {
   async sendEmail(emailData: EmailData): Promise<boolean> {
     try {
       // 개발 환경에서는 콘솔에 로그 출력
-      console.log('📧 이메일 발송 시뮬레이션:')
-      console.log('받는 사람:', emailData.to.join(', '))
-      if (emailData.cc) console.log('참조:', emailData.cc.join(', '))
-      if (emailData.bcc) console.log('숨은 참조:', emailData.bcc.join(', '))
-      console.log('제목:', emailData.subject)
-      console.log('내용 미리보기:', emailData.textContent.substring(0, 200) + '...')
+      logger.info('📧 이메일 발송 시뮬레이션:')
+      logger.info('받는 사람:', emailData.to.join(', '))
+      if (emailData.cc) logger.info('참조:', emailData.cc.join(', '))
+      if (emailData.bcc) logger.info('숨은 참조:', emailData.bcc.join(', '))
+      logger.info('제목:', emailData.subject)
+      logger.info('내용 미리보기:', emailData.textContent.substring(0, 200) + '...')
 
       if (emailData.attachments) {
-        console.log('첨부파일:', emailData.attachments.map((a) => a.filename).join(', '))
+        logger.info('첨부파일:', emailData.attachments.map((a) => a.filename).join(', '))
       }
 
-      console.log('---')
+      logger.info('---')
 
       // 실제 환경에서는 여기서 이메일 발송 API 호출
       // await this.sendViaSMTP(emailData)
@@ -70,7 +72,7 @@ export class EmailService {
 
       return true
     } catch (error) {
-      console.error('이메일 발송 실패:', error)
+      logger.error('이메일 발송 실패:', error)
       return false
     }
   }
@@ -84,7 +86,7 @@ export class EmailService {
   ): Promise<boolean> {
     const template = this.templates.get(templateId)
     if (!template) {
-      console.error(`템플릿을 찾을 수 없습니다: ${templateId}`)
+      logger.error(`템플릿을 찾을 수 없습니다: ${templateId}`)
       return false
     }
 
@@ -108,7 +110,7 @@ export class EmailService {
   async sendDailyReport(date: string, reportData: any): Promise<boolean> {
     const recipients = this.getActiveRecipients('dailyReport')
     if (recipients.length === 0) {
-      console.log('일일 리포트 수신자가 없습니다.')
+      logger.info('일일 리포트 수신자가 없습니다.')
       return true
     }
 
@@ -130,7 +132,7 @@ export class EmailService {
   async sendBudgetAlert(budgetData: any): Promise<boolean> {
     const recipients = this.getActiveRecipients('budgetAlerts')
     if (recipients.length === 0) {
-      console.log('예산 알림 수신자가 없습니다.')
+      logger.info('예산 알림 수신자가 없습니다.')
       return true
     }
 
@@ -150,7 +152,7 @@ export class EmailService {
   async sendUrgentAlert(alertData: any): Promise<boolean> {
     const recipients = this.getActiveRecipients('urgentAlerts')
     if (recipients.length === 0) {
-      console.log('긴급 알림 수신자가 없습니다.')
+      logger.info('긴급 알림 수신자가 없습니다.')
       return true
     }
 
@@ -169,7 +171,7 @@ export class EmailService {
   async sendMonthlyReport(month: string, reportData: any): Promise<boolean> {
     const recipients = this.getActiveRecipients('monthlyReport')
     if (recipients.length === 0) {
-      console.log('월간 리포트 수신자가 없습니다.')
+      logger.info('월간 리포트 수신자가 없습니다.')
       return true
     }
 

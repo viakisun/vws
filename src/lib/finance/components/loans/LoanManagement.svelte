@@ -3,6 +3,7 @@
   import { formatCurrency, formatDate } from '$lib/finance/utils'
   import { CalendarIcon, DollarSignIcon, PlusIcon, TrashIcon } from '@lucide/svelte'
   import { onMount } from 'svelte'
+import { logger } from '$lib/utils/logger'
 
   // 대출 계획 타입
   interface LoanPlan {
@@ -63,7 +64,7 @@
       accounts = accountsData
     } catch (err) {
       error = err instanceof Error ? err.message : '데이터를 불러올 수 없습니다.'
-      console.error('데이터 로드 실패:', err)
+      logger.error('데이터 로드 실패:', err)
     } finally {
       isLoading = false
     }

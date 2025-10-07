@@ -6,6 +6,7 @@
 import { transactionService } from '$lib/finance/services/transaction-service'
 import { financeStore } from '$lib/stores/finance'
 import { pushToast } from '$lib/stores/toasts'
+import { logger } from '$lib/utils/logger'
 import type {
   CreateTransactionRequest,
   TransactionFilter,
@@ -24,7 +25,7 @@ export function useTransactions() {
 
     try {
       const result = await transactionService.getTransactions({ ...filter, page, limit })
-      console.log('💳 [useTransactions] loadTransactions 완료:', {
+      logger.info('💳 [useTransactions] loadTransactions 완료:', {
         count: result.transactions.length,
         total: result.pagination.total,
         withBalance: result.transactions.filter(

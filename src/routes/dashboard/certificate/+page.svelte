@@ -2,6 +2,7 @@
   import { pushToast } from '$lib/stores/toasts'
   import { onMount } from 'svelte'
   import type { PageData } from './$types'
+import { logger } from '$lib/utils/logger'
 
   let { data: _data }: { data: PageData } = $props()
 
@@ -57,7 +58,7 @@
         certificateData = result.data
       }
     } catch (error) {
-      console.error('Error loading certificate data:', error)
+      logger.error('Error loading certificate data:', error)
     } finally {
       loading = false
     }
@@ -93,7 +94,7 @@
         pushToast(result.message, 'info')
       }
     } catch (error) {
-      console.error('Error submitting certificate request:', error)
+      logger.error('Error submitting certificate request:', error)
       pushToast('재직증명서 발급 요청에 실패했습니다.', 'success')
     }
   }

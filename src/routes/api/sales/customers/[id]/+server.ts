@@ -2,6 +2,7 @@ import { query } from '$lib/database/connection'
 import type { Customer, SalesApiResponse } from '$lib/sales/types'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger'
 
 // 개별 거래처 조회, 수정, 삭제
 export const GET: RequestHandler = async ({ params }) => {
@@ -25,7 +26,7 @@ export const GET: RequestHandler = async ({ params }) => {
 
     return json(response)
   } catch (error) {
-    console.error('거래처 조회 실패:', error)
+    logger.error('거래처 조회 실패:', error)
     const response: SalesApiResponse<null> = {
       success: false,
       error: error instanceof Error ? error.message : '거래처를 조회할 수 없습니다.',
@@ -99,7 +100,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
 
     return json(response)
   } catch (error) {
-    console.error('거래처 수정 실패:', error)
+    logger.error('거래처 수정 실패:', error)
     const response: SalesApiResponse<null> = {
       success: false,
       error: error instanceof Error ? error.message : '거래처 수정에 실패했습니다.',
@@ -150,7 +151,7 @@ export const DELETE: RequestHandler = async ({ params }) => {
 
     return json(response)
   } catch (error) {
-    console.error('거래처 삭제 실패:', error)
+    logger.error('거래처 삭제 실패:', error)
     const response: SalesApiResponse<null> = {
       success: false,
       error: error instanceof Error ? error.message : '거래처 삭제에 실패했습니다.',

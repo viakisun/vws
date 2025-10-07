@@ -3,6 +3,7 @@
   import { onMount } from 'svelte'
   import type { PageData } from './$types'
   import type { LeaveRequest, LeaveStats } from '$lib/types/dashboard'
+import { logger } from '$lib/utils/logger'
 
   let { data: _data }: { data: PageData } = $props()
 
@@ -62,7 +63,7 @@
         stats = result.data.stats
       }
     } catch (error) {
-      console.error('Error loading approval requests:', error)
+      logger.error('Error loading approval requests:', error)
     } finally {
       loading = false
     }
@@ -79,7 +80,7 @@
         stats = result.data
       }
     } catch (error) {
-      console.error('Error loading statistics:', error)
+      logger.error('Error loading statistics:', error)
     } finally {
       loading = false
     }
@@ -114,7 +115,7 @@
         pushToast(result.message, 'info')
       }
     } catch (error) {
-      console.error('Error processing approval:', error)
+      logger.error('Error processing approval:', error)
       pushToast('처리 중 오류가 발생했습니다.', 'error')
     }
   }

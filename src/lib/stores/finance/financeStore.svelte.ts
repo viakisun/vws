@@ -3,6 +3,7 @@
  * 자금 관리 통합 스토어
  */
 
+import { logger } from '$lib/utils/logger'
 import type {
   Account,
   Transaction,
@@ -266,7 +267,7 @@ class FinanceStore {
     netCashFlow: number
   }) {
     this.dashboardStats = stats
-    console.log('📊 [financeStore] 대시보드 통계 업데이트 (서버):', stats)
+    logger.info('📊 [financeStore] 대시보드 통계 업데이트 (서버):', stats)
   }
 
   // ===== UI State Setters =====

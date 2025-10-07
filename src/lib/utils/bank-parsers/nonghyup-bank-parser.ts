@@ -2,6 +2,7 @@ import { BankCode, BankCodeUtils } from '$lib/types/bank-codes'
 import { toUTC } from '$lib/utils/date-handler'
 import { readExcelFile } from '$lib/utils/excel-reader'
 import type { BankStatementParseResult, ParsedTransaction } from './types'
+import { logger } from '$lib/utils/logger'
 
 // 거래 내역 인터페이스 (농협은행 전용)
 interface NonghyupTransaction {
@@ -24,24 +25,24 @@ interface NonghyupTransaction {
  */
 async function parseNonghyupBankExcel(fileContent: string): Promise<NonghyupTransaction[]> {
   try {
-    console.log('🔥 농협 Excel 파일 크기:', fileContent.length, 'bytes')
+    logger.info('🔥 농협 Excel 파일 크기:', fileContent.length, 'bytes')
 
     // Excel 파일 읽기
     const rawData = await readExcelFile(fileContent)
-    console.log('🔥 총 행 수:', rawData.length)
+    logger.info('🔥 총 행 수:', rawData.length)
 
     // 처음 3개 행 확인
     for (let i = 0; i < Math.min(3, rawData.length); i++) {
       const row = rawData[i]
       if (row) {
-        console.log(`🔥 행 ${i}: ${row.slice(0, 5).join('|')}`)
+        logger.info(`🔥 행 ${i}: ${row.slice(0, 5).join('|')}`)
       }
     }
 
     // 거래 내역 파싱
     return parseTransactions(rawData)
   } catch (error) {
-    console.error('농협 Excel 파싱 오류:', error)
+    logger.error('농협 Excel 파싱 오류:', error)
     return []
   }
 }
@@ -54,8 +55,8 @@ function parseTransactions(rawData: any[][]): NonghyupTransaction[] {
   let parsedCount = 0
   let skippedCount = 0
 
-  console.log('🔥🔥🔥 === 농협은행 파싱 시작 === 🔥🔥🔥')
-  console.log('🔥 총 행 수:', rawData.length)
+  logger.info('🔥🔥🔥 === 농협은행 파싱 시작 === 🔥🔥🔥')
+  logger.info('🔥 총 행 수:', rawData.length)
 
   // 모든 행을 순회하면서 유효한 거래 데이터 찾기
   for (let i = 0; i < rawData.length; i++) {
@@ -72,7 +73,7 @@ function parseTransactions(rawData: any[][]): NonghyupTransaction[] {
         transactions.push(transaction)
         parsedCount++
         if (parsedCount <= 5) {
-          console.log(`🔥 농협은행 파싱 성공 (행 ${i}):`, {
+          logger.info(`🔥 농협은행 파싱 성공 (행 ${i}):`, {
             id: transaction.id,
             transactionDate: transaction.transactionDate,
             description: transaction.description,
@@ -84,18 +85,18 @@ function parseTransactions(rawData: any[][]): NonghyupTransaction[] {
       } else {
         skippedCount++
         if (skippedCount <= 10) {
-          console.log(`🔥 농협은행 행 ${i} 건너뛰기: 형식 불일치 - ${row.slice(0, 3).join('|')}`)
+          logger.info(`🔥 농협은행 행 ${i} 건너뛰기: 형식 불일치 - ${row.slice(0, 3).join('|')}`)
         }
       }
     } catch (error) {
       skippedCount++
       if (skippedCount <= 10) {
-        console.warn(`🔥 농협은행 행 ${i} 파싱 실패:`, error)
+        logger.warn(`🔥 농협은행 행 ${i} 파싱 실패:`, error)
       }
     }
   }
 
-  console.log(
+  logger.info(
     `🔥🔥🔥 농협은행 파싱 완료: 성공 ${parsedCount}건, 건너뛴 행 ${skippedCount}건 🔥🔥🔥`,
   )
   return transactions
@@ -184,17 +185,17 @@ function parseAmount(value: any): number {
 export async function parseNonghyupBankStatement(
   content: string,
 ): Promise<BankStatementParseResult> {
-  console.log('🔥🔥🔥 === parseNonghyupBankStatement 시작 === 🔥🔥🔥')
-  console.log('🔥 content 길이:', content.length)
+  logger.info('🔥🔥🔥 === parseNonghyupBankStatement 시작 === 🔥🔥🔥')
+  logger.info('🔥 content 길이:', content.length)
 
   const transactions: ParsedTransaction[] = []
   const errors: string[] = []
 
   try {
-    console.log('🔥 농협 Excel 파싱 시작...')
+    logger.info('🔥 농협 Excel 파싱 시작...')
     // Excel 파싱
     const csvTransactions = await parseNonghyupBankExcel(content)
-    console.log('🔥🔥🔥 농협 Excel 파싱 완료, 거래 수:', csvTransactions.length, '🔥🔥🔥')
+    logger.info('🔥🔥🔥 농협 Excel 파싱 완료, 거래 수:', csvTransactions.length, '🔥🔥🔥')
 
     for (const tx of csvTransactions) {
       try {
@@ -204,7 +205,7 @@ export async function parseNonghyupBankStatement(
           tx.transactionDate.trim() === '' ||
           tx.transactionDate === 'undefined'
         ) {
-          console.warn(`🔥 농협 거래 건너뛰기: 날짜가 비어있음 (원본: "${tx.transactionDate}")`)
+          logger.warn(`🔥 농협 거래 건너뛰기: 날짜가 비어있음 (원본: "${tx.transactionDate}")`)
           continue // 날짜가 없으면 이 거래는 건너뛰기
         }
 
@@ -215,9 +216,9 @@ export async function parseNonghyupBankStatement(
           const timePart = tx.transactionTime || '00:00:00'
           const combinedDateTime = `${normalizedDate} ${timePart}`
           transactionDate = toUTC(combinedDateTime)
-          console.log(`🔥 농협 날짜+시간 변환 성공: "${combinedDateTime}" -> "${transactionDate}"`)
+          logger.info(`🔥 농협 날짜+시간 변환 성공: "${combinedDateTime}" -> "${transactionDate}"`)
         } catch (error) {
-          console.warn(
+          logger.warn(
             `🔥 농협 거래 건너뛰기: 날짜 변환 실패 (원본: "${tx.transactionDate}", 오류: ${error})`,
           )
           continue // 날짜 변환 실패시 이 거래는 건너뛰기

@@ -6,6 +6,7 @@
 import { useAccounts } from './useAccounts.svelte'
 import { useTransactions } from './useTransactions.svelte'
 import { useBudgets } from './useBudgets.svelte'
+import { logger } from '$lib/utils/logger'
 
 export function useFinanceManagement() {
   const accounts = useAccounts()
@@ -45,7 +46,7 @@ export function useFinanceManagement() {
         })
       }
     } catch (error) {
-      console.error('대시보드 통계 로드 실패:', error)
+      logger.error('대시보드 통계 로드 실패:', error)
     }
   }
 

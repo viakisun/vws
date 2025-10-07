@@ -102,8 +102,8 @@
 
   // 직원 데이터가 변경될 때 폼 데이터 업데이트
   function _updateFormDataFromEmployee() {
-    console.log('🔍 3단계: EmployeeModal에서 폼 데이터 업데이트 시작')
-    console.log('👤 받은 직원 데이터:', employee)
+    logger.info('🔍 3단계: EmployeeModal에서 폼 데이터 업데이트 시작')
+    logger.info('👤 받은 직원 데이터:', employee)
 
     if (employee) {
       logger.log('Employee data loaded:', employee)
@@ -131,8 +131,8 @@
       // 수정 모드에서는 전체 이름을 조합해서 표시
       fullName = formatEmployeeName(employee)
 
-      console.log('📝 설정된 폼 데이터:', formData)
-      console.log('📝 전체 이름:', fullName)
+      logger.info('📝 설정된 폼 데이터:', formData)
+      logger.info('📝 전체 이름:', fullName)
       logger.log('Form data set:', formData)
       logger.log('Filtered positions:', filteredPositions)
     } else {
@@ -152,9 +152,9 @@
       formData.job_title_id = ''
       fullName = ''
 
-      console.log('📝 새 직원용 기본 폼 데이터:', formData)
+      logger.info('📝 새 직원용 기본 폼 데이터:', formData)
     }
-    console.log('✅ 폼 데이터 업데이트 완료')
+    logger.info('✅ 폼 데이터 업데이트 완료')
   }
 
   // employee prop이 변경될 때마다 폼 데이터 업데이트
@@ -164,9 +164,9 @@
 
   // positions prop이 변경될 때마다 로그 출력
   $effect(() => {
-    console.log('🔍 4단계: EmployeeModal에서 positions 데이터 확인')
-    console.log('📊 받은 positions:', positions)
-    console.log('📊 positions 개수:', positions.length)
+    logger.info('🔍 4단계: EmployeeModal에서 positions 데이터 확인')
+    logger.info('📊 받은 positions:', positions)
+    logger.info('📊 positions 개수:', positions.length)
   })
 
   // 부서별 직급 매핑
@@ -180,10 +180,10 @@
 
   // positions 변경 감지 및 로깅
   $effect(() => {
-    console.log('🔍 EmployeeModal positions 변경 감지')
-    console.log('📊 받은 positions:', positions)
-    console.log('📊 positions 타입:', typeof positions)
-    console.log('📊 positions 길이:', positions?.length)
+    logger.info('🔍 EmployeeModal positions 변경 감지')
+    logger.info('📊 받은 positions:', positions)
+    logger.info('📊 positions 타입:', typeof positions)
+    logger.info('📊 positions 길이:', positions?.length)
     logger.log('All positions:', positions)
   })
 

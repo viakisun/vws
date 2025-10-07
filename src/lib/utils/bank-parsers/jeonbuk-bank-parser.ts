@@ -2,6 +2,7 @@ import { BankCode, BankCodeUtils } from '$lib/types/bank-codes'
 import { toUTC } from '$lib/utils/date-handler'
 import { readExcelFile } from '$lib/utils/excel-reader'
 import type { BankStatementParseResult, ParsedTransaction } from './types'
+import { logger } from '$lib/utils/logger'
 
 // 거래 내역 인터페이스 (전북은행 전용)
 interface JeonbukTransaction {
@@ -22,33 +23,33 @@ interface JeonbukTransaction {
  */
 async function parseJeonbukBankExcel(fileContent: string): Promise<JeonbukTransaction[]> {
   try {
-    console.log('🔥 전북은행 엑셀 파일 크기:', fileContent.length, 'bytes')
+    logger.info('🔥 전북은행 엑셀 파일 크기:', fileContent.length, 'bytes')
 
     // 공통 Excel 파일 읽기 함수 사용
     const rawData = await readExcelFile(fileContent)
 
-    console.log('🔥🔥🔥 === 전북은행 날짜 필드 디버깅 === 🔥🔥🔥')
-    console.log('🔥 총 행 수:', rawData.length)
+    logger.info('🔥🔥🔥 === 전북은행 날짜 필드 디버깅 === 🔥🔥🔥')
+    logger.info('🔥 총 행 수:', rawData.length)
 
     // 헤더 행 확인
-    console.log('🔥 헤더 행:', rawData[0])
+    logger.info('🔥 헤더 행:', rawData[0])
 
     // 모든 행의 필드 확인 (디버깅용)
     for (let i = 0; i < rawData.length; i++) {
       const row = rawData[i]
       if (row && row.some((cell) => cell && String(cell).trim() !== '')) {
-        console.log(`🔥🔥🔥 행 ${i} 전체 필드:`)
+        logger.info(`🔥🔥🔥 행 ${i} 전체 필드:`)
         for (let j = 0; j < Math.min(15, row.length); j++) {
-          console.log(`  [${j}]: "${row[j]}" (${typeof row[j]})`)
+          logger.info(`  [${j}]: "${row[j]}" (${typeof row[j]})`)
         }
-        console.log('---')
+        logger.info('---')
       }
     }
 
     // 거래 내역 파싱
     return parseTransactions(rawData)
   } catch (error) {
-    console.error('전북은행 엑셀 파싱 오류:', error)
+    logger.error('전북은행 엑셀 파싱 오류:', error)
     return []
   }
 }
@@ -62,8 +63,8 @@ function parseTransactions(rawData: any[][]): JeonbukTransaction[] {
   let parsedCount = 0
   let skippedCount = 0
 
-  console.log('🔥🔥🔥 === 전북은행 파싱 시작 === 🔥🔥🔥')
-  console.log('🔥 총 행 수:', rawData.length)
+  logger.info('🔥🔥🔥 === 전북은행 파싱 시작 === 🔥🔥🔥')
+  logger.info('🔥 총 행 수:', rawData.length)
 
   // 모든 행을 순회하면서 유효한 거래 데이터 찾기
   for (let i = 0; i < rawData.length; i++) {
@@ -80,7 +81,7 @@ function parseTransactions(rawData: any[][]): JeonbukTransaction[] {
         transactions.push(transaction)
         parsedCount++
         if (parsedCount <= 5) {
-          console.log(`🔥 전북은행 파싱 성공 (행 ${i}):`, {
+          logger.info(`🔥 전북은행 파싱 성공 (행 ${i}):`, {
             id: transaction.id,
             transactionDate: transaction.transactionDate,
             description: transaction.description,
@@ -92,18 +93,18 @@ function parseTransactions(rawData: any[][]): JeonbukTransaction[] {
       } else {
         skippedCount++
         if (skippedCount <= 10) {
-          console.log(`🔥 전북은행 행 ${i} 건너뛰기: 형식 불일치 - ${row.slice(0, 3).join('|')}`)
+          logger.info(`🔥 전북은행 행 ${i} 건너뛰기: 형식 불일치 - ${row.slice(0, 3).join('|')}`)
         }
       }
     } catch (error) {
       skippedCount++
       if (skippedCount <= 10) {
-        console.warn(`🔥 전북은행 행 ${i} 파싱 실패:`, error)
+        logger.warn(`🔥 전북은행 행 ${i} 파싱 실패:`, error)
       }
     }
   }
 
-  console.log(
+  logger.info(
     `🔥🔥🔥 전북은행 파싱 완료: 성공 ${parsedCount}건, 건너뛴 행 ${skippedCount}건 🔥🔥🔥`,
   )
 
@@ -219,17 +220,17 @@ function parseAmount(value: any): number {
 export async function parseJeonbukBankStatement(
   content: string,
 ): Promise<BankStatementParseResult> {
-  console.log('🔥🔥🔥 === parseJeonbukBankStatement 시작 === 🔥🔥🔥')
-  console.log('🔥 content 길이:', content.length)
+  logger.info('🔥🔥🔥 === parseJeonbukBankStatement 시작 === 🔥🔥🔥')
+  logger.info('🔥 content 길이:', content.length)
 
   const transactions: ParsedTransaction[] = []
   const errors: string[] = []
 
   try {
-    console.log('🔥 전북은행 엑셀 파싱 시작...')
+    logger.info('🔥 전북은행 엑셀 파싱 시작...')
     // 엑셀 파싱
     const excelTransactions = await parseJeonbukBankExcel(content)
-    console.log('🔥🔥🔥 전북은행 엑셀 파싱 완료, 거래 수:', excelTransactions.length, '🔥🔥🔥')
+    logger.info('🔥🔥🔥 전북은행 엑셀 파싱 완료, 거래 수:', excelTransactions.length, '🔥🔥🔥')
 
     for (const tx of excelTransactions) {
       try {
@@ -239,7 +240,7 @@ export async function parseJeonbukBankStatement(
           tx.transactionDate.trim() === '' ||
           tx.transactionDate === 'undefined'
         ) {
-          console.warn(`🔥 전북은행 거래 건너뛰기: 날짜가 비어있음 (원본: "${tx.transactionDate}")`)
+          logger.warn(`🔥 전북은행 거래 건너뛰기: 날짜가 비어있음 (원본: "${tx.transactionDate}")`)
           continue // 날짜가 없으면 이 거래는 건너뛰기
         }
 
@@ -252,21 +253,21 @@ export async function parseJeonbukBankStatement(
           // 시간이 있으면 조합
           if (tx.transactionTime && tx.transactionTime.trim() !== '') {
             dateTimeStr = `${tx.transactionDate} ${tx.transactionTime}`
-            console.log(
+            logger.info(
               `🔥 전북은행 날짜+시간 조합: "${tx.transactionDate}" + "${tx.transactionTime}" = "${dateTimeStr}"`,
             )
           } else {
             // 시간이 없으면 자정으로 설정
             dateTimeStr = `${tx.transactionDate} 00:00:00`
-            console.log(`🔥 전북은행 날짜만: "${tx.transactionDate}" -> "${dateTimeStr}"`)
+            logger.info(`🔥 전북은행 날짜만: "${tx.transactionDate}" -> "${dateTimeStr}"`)
           }
 
           // YYYY.MM.DD HH:MM:SS 형식을 YYYY-MM-DD HH:MM:SS로 변환
           const normalizedDateTime = dateTimeStr.replace(/\./g, '-')
           transactionDate = toUTC(normalizedDateTime)
-          console.log(`🔥 전북은행 날짜 변환 성공: "${normalizedDateTime}" -> "${transactionDate}"`)
+          logger.info(`🔥 전북은행 날짜 변환 성공: "${normalizedDateTime}" -> "${transactionDate}"`)
         } catch (error) {
-          console.warn(
+          logger.warn(
             `🔥 전북은행 거래 건너뛰기: 날짜 변환 실패 (원본: "${tx.transactionDate}", 오류: ${error})`,
           )
           continue // 날짜 변환 실패시 이 거래는 건너뛰기

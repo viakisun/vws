@@ -3,6 +3,7 @@
   import { onMount } from 'svelte'
   import type { PageData } from './$types'
   import type { LeaveData } from '$lib/types/dashboard'
+import { logger } from '$lib/utils/logger'
 
   let { data: _data }: { data: PageData } = $props()
 
@@ -31,7 +32,7 @@
         leaveData = result.data
       }
     } catch (error) {
-      console.error('Error loading leave data:', error)
+      logger.error('Error loading leave data:', error)
     } finally {
       loading = false
     }
@@ -72,7 +73,7 @@
         pushToast(result.message, 'info')
       }
     } catch (error) {
-      console.error('Error submitting leave request:', error)
+      logger.error('Error submitting leave request:', error)
       pushToast('휴가 신청에 실패했습니다.', 'error')
     }
   }

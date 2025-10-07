@@ -2,6 +2,7 @@
   import type { EmailRecipient } from '$lib/finance/services/email/email-service'
   import { BellIcon, EditIcon, MailIcon, PlusIcon, TrashIcon } from '@lucide/svelte'
   import { onMount } from 'svelte'
+import { logger } from '$lib/utils/logger'
 
   // State
   let recipients = $state<EmailRecipient[]>([])
@@ -42,7 +43,7 @@
       recipients = result.data
     } catch (err) {
       error = err instanceof Error ? err.message : '데이터를 불러올 수 없습니다.'
-      console.error('데이터 로드 실패:', err)
+      logger.error('데이터 로드 실패:', err)
     } finally {
       isLoading = false
     }
