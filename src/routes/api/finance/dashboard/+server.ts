@@ -2,6 +2,36 @@ import { query } from '$lib/database/connection'
 import type { AccountBalance, FinanceDashboard, UpcomingPayment } from '$lib/finance/types'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger'
+
+interface BalanceRow {
+  id: string
+  name: string
+  account_number: string
+  is_primary: boolean
+  bank_name: string
+  bank_color: string
+  current_balance: string | number
+  has_dashboard_tag: boolean
+  has_rnd_tag: boolean
+}
+
+interface TransactionRow {
+  total_income: string | number
+  total_expense: string | number
+}
+
+interface LoanRow {
+  total_loans: string | number
+}
+
+interface UpcomingPaymentRow {
+  id: string
+  description: string
+  amount: string | number
+  due_date: string
+  category_name: string
+}
 
 // 자금일보 대시보드 데이터 조회
 export const GET: RequestHandler = async ({ url }) => {
@@ -42,7 +72,7 @@ export const GET: RequestHandler = async ({ url }) => {
       ORDER BY has_dashboard_tag DESC, a.is_primary DESC, current_balance DESC
     `
 
-    const balanceResult = await query(balanceQuery)
+    const balanceResult = await query<BalanceRow>(balanceQuery)
 
     // RND 태그가 없는 계좌만 회사 자금에 포함
     const currentBalance = balanceResult.rows
@@ -71,7 +101,7 @@ export const GET: RequestHandler = async ({ url }) => {
         )
     `
 
-    const monthlyResult = await query(monthlyQuery, [
+    const monthlyResult = await query<TransactionRow>(monthlyQuery, [
       `${currentMonth}-01`,
       `${nextMonthStr}-01`, // 다음 달 1일
     ])
@@ -92,7 +122,7 @@ export const GET: RequestHandler = async ({ url }) => {
       ORDER BY total_amount DESC
     `
 
-    const categoryResult = await query(categoryQuery, [
+    const categoryResult = await query<TransactionRow>(categoryQuery, [
       `${currentMonth}-01`,
       `${nextMonthStr}-01`, // 다음 달 1일
     ])
@@ -135,7 +165,7 @@ export const GET: RequestHandler = async ({ url }) => {
       LIMIT 10
     `
 
-    const recentTransactionsResult = await query(recentTransactionsQuery)
+    const recentTransactionsResult = await query<TransactionRow>(recentTransactionsQuery)
     const recentTransactions = recentTransactionsResult.rows.map((row) => ({
       id: row.id,
       accountId: row.account_id,
@@ -200,7 +230,7 @@ export const GET: RequestHandler = async ({ url }) => {
       ORDER BY month
     `
 
-    const monthlyStatsResult = await query(monthlyStatsQuery, [
+    const monthlyStatsResult = await query<TransactionRow>(monthlyStatsQuery, [
       `${sixMonthsAgoStr}-01`,
       `${nextMonthStr}-01`,
     ])
@@ -252,7 +282,7 @@ export const GET: RequestHandler = async ({ url }) => {
       LIMIT 10
     `
 
-    const categoryStatsResult = await query(categoryStatsQuery, [
+    const categoryStatsResult = await query<TransactionRow>(categoryStatsQuery, [
       `${sixMonthsAgoStr}-01`,
       `${nextMonthStr}-01`,
     ])
@@ -314,7 +344,7 @@ export const GET: RequestHandler = async ({ url }) => {
       message: '자금일보 대시보드 데이터를 조회했습니다.',
     })
   } catch (error) {
-    console.error('대시보드 데이터 조회 실패:', error)
+    logger.error('대시보드 데이터 조회 실패:', error)
     return json(
       {
         success: false,
