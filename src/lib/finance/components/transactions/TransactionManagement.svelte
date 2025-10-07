@@ -14,30 +14,26 @@
   import { SearchIcon } from '@lucide/svelte'
   import { onMount } from 'svelte'
 
-  // 유틸리티 함수들 - 표준 날짜 처리 함수 사용
-  function getCurrentUTCTimestamp(): string {
-    return getCurrentUTC()
-  }
+  // 새 유틸리티 함수
+  import {
+    formatAmountInput,
+    parseAmountInput,
+    convertToUTCTimestamp,
+    convertToDateTimeLocal,
+    getCurrentUTCTimestamp,
+  } from '$lib/finance/utils/transaction-formatters'
+  import {
+    detectBankFromFileName,
+    extractAccountNumber,
+    normalizeAccountNumber,
+  } from '$lib/finance/utils/bank-detection'
+  import { getDateRangePreset, type DateRangePreset } from '$lib/finance/utils/date-range'
 
-  function formatAmountInput(value: number): string {
-    return value.toLocaleString('ko-KR')
-  }
-
-  function _parseAmountInput(value: string): number {
-    return parseInt(value.replace(/,/g, '')) || 0
-  }
-
-  function convertToUTCTimestamp(datetimeLocal: string): string {
-    if (!datetimeLocal) return getCurrentUTCTimestamp()
-    return toUTC(datetimeLocal)
-  }
-
-  function convertToDateTimeLocal(timestamp: string): string {
-    if (!timestamp || timestamp === 'null' || timestamp === '') {
-      return formatDateTimeForInput(getCurrentUTC())
-    }
-    return formatDateTimeForInput(timestamp)
-  }
+  // 새 컴포넌트
+  import TransactionStatistics from './TransactionStatistics.svelte'
+  import TransactionFilters from './TransactionFilters.svelte'
+  import AccountCard from './AccountCard.svelte'
+  import TransactionForm from './TransactionForm.svelte'
 
   function handleAmountInput(event: Event) {
     const target = event.target as HTMLInputElement
@@ -84,42 +80,6 @@
       selectedFiles = Array.from(event.dataTransfer.files)
       multiUploadResults = []
     }
-  }
-
-  function detectBankFromFileName(fileName: string): string {
-    logger.info('=== 은행 감지 디버깅 ===')
-    logger.info('원본 파일명:', fileName)
-    logger.info('파일명 타입:', typeof fileName)
-    logger.info('파일명 길이:', fileName.length)
-
-    const fileNameLower = fileName.toLowerCase()
-    logger.info('소문자 변환:', fileNameLower)
-
-    // 공백 제거하여 검색
-    const cleanFileName = fileNameLower.replace(/\s+/g, '')
-    logger.info('공백 제거:', cleanFileName)
-
-    const hasHana1 = fileNameLower.includes('하나')
-    const hasHana2 = fileNameLower.includes('hana')
-    const hasHana3 = cleanFileName.includes('하나')
-    const hasHana4 = cleanFileName.includes('hana')
-
-    logger.info('하나 포함 체크:', { hasHana1, hasHana2, hasHana3, hasHana4 })
-
-    if (hasHana1 || hasHana2 || hasHana3 || hasHana4) {
-      logger.info('결과: 하나은행')
-      return '하나은행'
-    } else if (
-      fileNameLower.includes('농협') ||
-      fileNameLower.includes('nonghyup') ||
-      cleanFileName.includes('농협') ||
-      cleanFileName.includes('nonghyup')
-    ) {
-      logger.info('결과: 농협은행')
-      return '농협은행'
-    }
-    logger.info('결과: 알 수 없음')
-    return '알 수 없음'
   }
 
   async function uploadMultipleFiles() {
@@ -308,10 +268,10 @@
   let dateTo = $state('')
 
   // 날짜 범위 프리셋
-  let selectedDateRange = $state('1W') // 기본값: 1주일
+  let selectedDateRange = $state<DateRangePreset>('1W') // 기본값: 1주일
 
   // 날짜 범위 설정 함수
-  function setDateRange(range: string) {
+  function setDateRange(range: DateRangePreset) {
     selectedDateRange = range
     const now = new Date()
     const today = now.toISOString().split('T')[0]
@@ -698,21 +658,17 @@
   }
 
   // 계좌별 파일 선택
-  function handleAccountFileSelect(event: Event, accountId: string) {
-    const input = event.target as HTMLInputElement
-    if (input.files && input.files.length > 0) {
-      const file = input.files[0]
-      if (!accountUploadStates[accountId]) {
-        accountUploadStates[accountId] = {
-          isUploading: false,
-          progress: 0,
-          selectedFile: null,
-          uploadResult: null,
-        }
+  function handleAccountFileSelect(accountId: string, file: File) {
+    if (!accountUploadStates[accountId]) {
+      accountUploadStates[accountId] = {
+        isUploading: false,
+        progress: 0,
+        selectedFile: null,
+        uploadResult: null,
       }
-      accountUploadStates[accountId].selectedFile = file
-      accountUploadStates[accountId].uploadResult = null
     }
+    accountUploadStates[accountId].selectedFile = file
+    accountUploadStates[accountId].uploadResult = null
   }
 
   // 계좌별 업로드 (진행률 표시)
@@ -827,6 +783,39 @@
       accountDeleteStates[accountId].confirmAccountNumber = ''
     }
   }
+
+  // AccountCard 컴포넌트를 위한 기본 상태
+  const defaultUploadState = {
+    selectedFile: null,
+    isUploading: false,
+    progress: 0,
+    uploadResult: undefined,
+  }
+
+  const defaultDeleteState = {
+    showDeleteConfirm: false,
+    confirmAccountNumber: '',
+    isDeleting: false,
+  }
+
+  // 인라인 편집 데이터 변경 핸들러
+  function handleInlineEditDataChange(field: string, value: string) {
+    if (field === 'description') {
+      inlineEditingData.description = value
+    } else if (field === 'categoryId') {
+      inlineEditingData.categoryId = value
+    }
+  }
+
+  // 삭제 상태 변경 핸들러
+  function handleDeleteStateChange(accountId: string, field: string, value: string) {
+    if (!accountDeleteStates[accountId]) {
+      accountDeleteStates[accountId] = { ...defaultDeleteState }
+    }
+    if (field === 'confirmAccountNumber') {
+      accountDeleteStates[accountId].confirmAccountNumber = value
+    }
+  }
 </script>
 
 <div class="space-y-6">
@@ -834,11 +823,6 @@
   <div class="flex items-center justify-between">
     <div>
       <h3 class="text-lg font-medium text-gray-900">거래 내역 관리</h3>
-      <p class="text-sm text-gray-500">
-        총 {filteredTransactions.length}건 • 수입 {formatCurrency(totalIncome)} • 지출 {formatCurrency(
-          totalExpense,
-        )} • 순이익 {formatCurrency(netAmount)}
-      </p>
 
       <!-- 인라인 편집 안내 -->
       <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-4">
@@ -867,155 +851,29 @@
     </div>
   </div>
 
-  <!-- 개선된 필터 섹션 -->
-  <div class="space-y-4">
-    <!-- 날짜 범위 필터 -->
-    <div class="bg-white rounded-lg border border-gray-200 p-4">
-      <div class="flex items-center justify-between mb-3">
-        <h4 class="text-sm font-medium text-gray-700">날짜 범위</h4>
-        <span class="text-xs text-gray-500">
-          {dateFrom && dateTo ? `${dateFrom} ~ ${dateTo}` : '전체 기간'}
-        </span>
-      </div>
-      <div class="flex flex-wrap gap-2">
-        <button
-          type="button"
-          onclick={() => {
-            setDateRange('1D')
-            handleFilterChange()
-          }}
-          class="px-3 py-2 text-sm font-medium rounded-lg transition-colors {selectedDateRange ===
-          '1D'
-            ? 'bg-blue-600 text-white'
-            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}"
-        >
-          최근 1일
-        </button>
-        <button
-          type="button"
-          onclick={() => {
-            setDateRange('1W')
-            handleFilterChange()
-          }}
-          class="px-3 py-2 text-sm font-medium rounded-lg transition-colors {selectedDateRange ===
-          '1W'
-            ? 'bg-blue-600 text-white'
-            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}"
-        >
-          최근 1주
-        </button>
-        <button
-          type="button"
-          onclick={() => {
-            setDateRange('1M')
-            handleFilterChange()
-          }}
-          class="px-3 py-2 text-sm font-medium rounded-lg transition-colors {selectedDateRange ===
-          '1M'
-            ? 'bg-blue-600 text-white'
-            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}"
-        >
-          최근 1개월
-        </button>
-        <button
-          type="button"
-          onclick={() => {
-            setDateRange('3M')
-            handleFilterChange()
-          }}
-          class="px-3 py-2 text-sm font-medium rounded-lg transition-colors {selectedDateRange ===
-          '3M'
-            ? 'bg-blue-600 text-white'
-            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}"
-        >
-          최근 3개월
-        </button>
-        <button
-          type="button"
-          onclick={() => {
-            setDateRange('ALL')
-            handleFilterChange()
-          }}
-          class="px-3 py-2 text-sm font-medium rounded-lg transition-colors {selectedDateRange ===
-          'ALL'
-            ? 'bg-blue-600 text-white'
-            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}"
-        >
-          전체
-        </button>
-      </div>
+  <!-- 통계 -->
+  <TransactionStatistics
+    totalIncome={totalIncome}
+    totalExpense={totalExpense}
+    netAmount={netAmount}
+    count={filteredTransactions.length}
+  />
 
-      <!-- 수동 날짜 입력 -->
-      <div class="mt-4 pt-4 border-t border-gray-200">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label for="date-from" class="block text-sm font-medium text-gray-700 mb-1"
-              >시작 날짜</label
-            >
-            <input
-              id="date-from"
-              type="date"
-              bind:value={dateFrom}
-              onchange={handleFilterChange}
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            />
-          </div>
-          <div>
-            <label for="date-to" class="block text-sm font-medium text-gray-700 mb-1"
-              >종료 날짜</label
-            >
-            <input
-              id="date-to"
-              type="date"
-              bind:value={dateTo}
-              onchange={handleFilterChange}
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            />
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 검색 및 필터 -->
-    <div class="bg-white rounded-lg border border-gray-200 p-4">
-      <div class="space-y-4">
-        <!-- 검색창 -->
-        <div class="relative">
-          <SearchIcon
-            size={20}
-            class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-          />
-          <input
-            type="text"
-            bind:value={searchTerm}
-            oninput={handleFilterChange}
-            placeholder="거래 설명으로 검색하세요..."
-            class="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
-          />
-        </div>
-
-        <!-- 계좌 필터 (단순화) -->
-        <div>
-          <label for="account-filter" class="block text-sm font-medium text-gray-700 mb-1"
-            >계좌</label
-          >
-          <select
-            id="account-filter"
-            bind:value={selectedAccount}
-            onchange={handleFilterChange}
-            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-          >
-            <option value="">전체 계좌</option>
-            {#each activeAccounts as account}
-              <option value={account.id}>
-                {account.bank?.name || '알 수 없음'} - {account.name} ({account.accountNumber})
-              </option>
-            {/each}
-          </select>
-        </div>
-      </div>
-    </div>
-  </div>
+  <!-- 필터 -->
+  <TransactionFilters
+    dateFrom={dateFrom}
+    dateTo={dateTo}
+    selectedDateRange={selectedDateRange}
+    searchTerm={searchTerm}
+    selectedAccount={selectedAccount}
+    accounts={accounts}
+    onDateRangeChange={setDateRange}
+    onDateFromChange={(value) => (dateFrom = value)}
+    onDateToChange={(value) => (dateTo = value)}
+    onSearchTermChange={(value) => (searchTerm = value)}
+    onSelectedAccountChange={(value) => (selectedAccount = value)}
+    onFilterChange={handleFilterChange}
+  />
 
   <!-- 에러 표시 -->
   {#if error}
@@ -1247,316 +1105,26 @@
         {@const accountTransactions = filteredTransactions.filter(
           (t) => t.accountId === account.id || t.account?.id === account.id,
         )}
-        <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
-          <!-- 계좌 헤더 -->
-          <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
-            <div class="flex items-center justify-between">
-              <div>
-                <h4 class="text-lg font-medium text-gray-900">{account.name}</h4>
-                <p class="text-sm text-gray-500">
-                  {account.bank?.name || '알 수 없음'} • {account.accountNumber} • 잔액: {formatCurrency(
-                    account.balance ?? 0,
-                  )}
-                </p>
-              </div>
-              <div class="text-right">
-                <div class="text-sm text-gray-500">거래 건수: {accountTransactions.length}건</div>
-                <div class="text-sm font-medium text-gray-900">
-                  순이익: {formatCurrency(
-                    accountTransactions.reduce(
-                      (sum, t) => sum + (t.type === 'income' ? t.amount : -t.amount),
-                      0,
-                    ),
-                  )}
-                </div>
-              </div>
-            </div>
-
-            <!-- 업로드/삭제 컨트롤 -->
-            <div class="mt-4 pt-4 border-t border-gray-200">
-              <div class="flex items-center gap-4">
-                <!-- 파일 업로드 -->
-                <div class="flex items-center gap-2">
-                  <input
-                    type="file"
-                    id="file-{account.id}"
-                    accept=".xlsx,.xls,.csv"
-                    onchange={(e) => handleAccountFileSelect(e, account.id)}
-                    class="hidden"
-                  />
-                  <label
-                    for="file-{account.id}"
-                    class="px-3 py-2 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 cursor-pointer transition-colors"
-                  >
-                    📁 파일 선택
-                  </label>
-
-                  {#if accountUploadStates[account.id]?.selectedFile}
-                    <span class="text-sm text-gray-600">
-                      {accountUploadStates[account.id]?.selectedFile?.name}
-                    </span>
-                    <button
-                      type="button"
-                      onclick={() => uploadAccountTransactions(account.id)}
-                      disabled={accountUploadStates[account.id]?.isUploading}
-                      class="px-3 py-2 text-sm font-medium text-white bg-green-600 border border-green-600 rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                    >
-                      {accountUploadStates[account.id]?.isUploading ? '업로드 중...' : '⬆️ 업로드'}
-                    </button>
-                  {/if}
-
-                  {#if accountUploadStates[account.id]?.isUploading}
-                    <div class="w-32 bg-gray-200 rounded-full h-2">
-                      <div
-                        class="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                        style:width="{accountUploadStates[account.id].progress}%"
-                      ></div>
-                    </div>
-                    <span class="text-sm text-gray-600"
-                      >{accountUploadStates[account.id].progress}%</span
-                    >
-                  {/if}
-
-                  {#if accountUploadStates[account.id]?.uploadResult}
-                    <div
-                      class="text-sm {accountUploadStates[account.id].uploadResult.success
-                        ? 'text-green-600'
-                        : 'text-red-600'}"
-                    >
-                      {accountUploadStates[account.id].uploadResult.success ? '✅ 성공' : '❌ 실패'}
-                      {accountUploadStates[account.id].uploadResult.message}
-                    </div>
-                  {/if}
-                </div>
-
-                <!-- 계좌 삭제 -->
-                <div class="flex items-center gap-2">
-                  {#if !accountDeleteStates[account.id]?.showDeleteConfirm}
-                    <button
-                      type="button"
-                      onclick={() => confirmAccountDeletion(account.id)}
-                      class="px-3 py-2 text-sm font-medium text-red-600 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 transition-colors"
-                    >
-                      🗑️ 계좌 삭제
-                    </button>
-                  {:else}
-                    <div class="flex items-center gap-2">
-                      <input
-                        type="text"
-                        placeholder="계좌번호 입력"
-                        bind:value={accountDeleteStates[account.id].confirmAccountNumber}
-                        class="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
-                      />
-                      <button
-                        type="button"
-                        onclick={() => deleteAccountTransactions(account.id)}
-                        disabled={accountDeleteStates[account.id]?.isDeleting}
-                        class="px-3 py-2 text-sm font-medium text-white bg-red-600 border border-red-600 rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                      >
-                        {accountDeleteStates[account.id]?.isDeleting ? '삭제 중...' : '확인'}
-                      </button>
-                      <button
-                        type="button"
-                        onclick={() => cancelAccountDeletion(account.id)}
-                        class="px-3 py-2 text-sm font-medium text-gray-600 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors"
-                      >
-                        취소
-                      </button>
-                    </div>
-                  {/if}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- 거래 목록 -->
-          {#if accountTransactions.length > 0}
-            <div class="overflow-x-auto">
-              <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50">
-                  <tr>
-                    <th
-                      class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                      >거래일시</th
-                    >
-                    <th
-                      class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                      >카테고리</th
-                    >
-                    <th
-                      class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                      >적요</th
-                    >
-                    <th
-                      class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                      >의뢰인/수취인</th
-                    >
-                    <th
-                      class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
-                      >입금</th
-                    >
-                    <th
-                      class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
-                      >출금</th
-                    >
-                    <th
-                      class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
-                      >거래잔액</th
-                    >
-                    <th
-                      class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                      >액션</th
-                    >
-                  </tr>
-                </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
-                  {#each accountTransactions.sort((a, b) => new Date(b.transactionDate).getTime() - new Date(a.transactionDate).getTime()) as transaction, index}
-                    <tr class="hover:bg-gray-50">
-                      <!-- 거래일시 -->
-                      <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="text-sm text-gray-900">
-                          {formatDate(transaction.transactionDate, 'datetime')}
-                        </div>
-                      </td>
-
-                      <!-- 카테고리 -->
-                      <td class="px-6 py-4 whitespace-nowrap">
-                        {#if editingTransactionId === transaction.id}
-                          <select
-                            bind:value={inlineEditingData.categoryId}
-                            class="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                          >
-                            <option value="">카테고리 선택</option>
-                            {#each categories as category}
-                              <option value={category.id}>
-                                {category.name}
-                                {#if category.accountingCode}
-                                  ({category.accountingCode})
-                                {/if}
-                              </option>
-                            {/each}
-                          </select>
-                        {:else if transaction.category}
-                          <span
-                            class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
-                            style:background-color={transaction.category.color || '#6B7280'}
-                            style:color="white"
-                          >
-                            {transaction.category.name}
-                          </span>
-                        {:else}
-                          <span class="text-sm text-gray-500">미분류</span>
-                        {/if}
-                      </td>
-
-                      <!-- 적요 -->
-                      <td class="px-6 py-4">
-                        {#if editingTransactionId === transaction.id}
-                          <input
-                            type="text"
-                            bind:value={inlineEditingData.description}
-                            class="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                            placeholder="적요를 입력하세요"
-                          />
-                        {:else}
-                          <div class="text-sm text-gray-900">{transaction.description}</div>
-                        {/if}
-                      </td>
-
-                      <!-- 의뢰인/수취인 -->
-                      <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="text-sm text-gray-900">
-                          {transaction.counterparty || transaction.description}
-                        </div>
-                      </td>
-
-                      <!-- 입금 -->
-                      <td class="px-6 py-4 whitespace-nowrap text-right">
-                        {#if transaction.deposits && transaction.deposits > 0}
-                          <span class="text-sm font-medium text-green-600">
-                            {formatCurrency(transaction.deposits)}
-                          </span>
-                        {:else}
-                          <span class="text-sm text-gray-400">-</span>
-                        {/if}
-                      </td>
-
-                      <!-- 출금 -->
-                      <td class="px-6 py-4 whitespace-nowrap text-right">
-                        {#if transaction.withdrawals && transaction.withdrawals > 0}
-                          <span class="text-sm font-medium text-red-600">
-                            {formatCurrency(transaction.withdrawals)}
-                          </span>
-                        {:else}
-                          <span class="text-sm text-gray-400">-</span>
-                        {/if}
-                      </td>
-
-                      <!-- 거래잔액 -->
-                      <td class="px-6 py-4 whitespace-nowrap text-right">
-                        <span class="text-sm font-medium text-gray-900">
-                          {formatCurrency(transaction.balance || 0)}
-                        </span>
-                      </td>
-
-                      <!-- 액션 -->
-                      <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="flex items-center space-x-2">
-                          {#if editingTransactionId === transaction.id}
-                            <!-- 편집 모드 -->
-                            <button
-                              type="button"
-                              class="text-green-600 hover:text-green-900"
-                              onclick={saveInlineEdit}
-                              title="저장 (Ctrl+Enter)"
-                              aria-label="저장"
-                            >
-                              ✅
-                            </button>
-                            <button
-                              type="button"
-                              class="text-red-600 hover:text-red-900"
-                              onclick={cancelInlineEdit}
-                              title="취소 (Esc)"
-                              aria-label="취소"
-                            >
-                              ❌
-                            </button>
-                          {:else}
-                            <!-- 일반 모드 -->
-                            <button
-                              type="button"
-                              class="text-indigo-600 hover:text-indigo-900"
-                              onclick={() => startInlineEdit(transaction)}
-                              title="편집"
-                              aria-label="편집"
-                            >
-                              ✏️
-                            </button>
-                            <button
-                              type="button"
-                              class="text-red-600 hover:text-red-900"
-                              onclick={() => deleteTransaction(transaction)}
-                              title="삭제"
-                              aria-label="삭제"
-                            >
-                              🗑️
-                            </button>
-                          {/if}
-                        </div>
-                      </td>
-                    </tr>
-                  {/each}
-                </tbody>
-              </table>
-            </div>
-          {:else}
-            <div class="text-center py-8">
-              <div class="text-gray-400 text-lg mb-2">📊</div>
-              <p class="text-gray-500">이 계좌에 거래 내역이 없습니다.</p>
-            </div>
-          {/if}
-        </div>
+        <AccountCard
+          {account}
+          transactions={accountTransactions}
+          {categories}
+          uploadState={accountUploadStates[account.id] || defaultUploadState}
+          deleteState={accountDeleteStates[account.id] || defaultDeleteState}
+          editingTransactionId={editingTransactionId}
+          editData={inlineEditingData}
+          onFileSelect={handleAccountFileSelect}
+          onUpload={uploadAccountTransactions}
+          onConfirmDelete={confirmAccountDeletion}
+          onDelete={deleteAccountTransactions}
+          onCancelDelete={cancelAccountDeletion}
+          onStartEditTransaction={startInlineEdit}
+          onSaveEditTransaction={saveInlineEdit}
+          onCancelEditTransaction={cancelInlineEdit}
+          onDeleteTransaction={deleteTransaction}
+          onEditDataChange={handleInlineEditDataChange}
+          onDeleteStateChange={handleDeleteStateChange}
+        />
       {/each}
     </div>
   {:else}
@@ -1582,143 +1150,21 @@
   <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
     <div class="bg-white rounded-lg max-w-md w-full p-6">
       <h3 class="text-lg font-medium text-gray-900 mb-4">새 거래 추가</h3>
-
-      <form
-        onsubmit={(e) => {
-          e.preventDefault()
-          createTransaction()
+      <TransactionForm
+        bind:formData
+        accounts={accounts}
+        {categories}
+        isLoading={isLoading}
+        isEdit={false}
+        onSubmit={createTransaction}
+        onCancel={() => (showAddModal = false)}
+        dateTimeInput={dateTimeInput}
+        onDateTimeChange={(value) => {
+          dateTimeInput = value
+          formData.transactionDate = convertToUTCTimestamp(value)
         }}
-      >
-        <div class="space-y-4">
-          <!-- 거래 설명 -->
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">거래 설명</label>
-            <input
-              type="text"
-              bind:value={formData.description}
-              required
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="예: 월급, 사무실 임대료"
-            />
-          </div>
-
-          <!-- 금액 -->
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">금액</label>
-            <input
-              type="text"
-              bind:value={amountInput}
-              oninput={handleAmountInput}
-              required
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="0"
-            />
-          </div>
-
-          <!-- 거래 타입 -->
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">거래 타입</label>
-            <select
-              bind:value={formData.type}
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="income">수입</option>
-              <option value="expense">지출</option>
-              <option value="transfer">이체</option>
-              <option value="adjustment">조정</option>
-            </select>
-          </div>
-
-          <!-- 계좌 -->
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">계좌</label>
-            <select
-              bind:value={formData.accountId}
-              required
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="">계좌를 선택하세요</option>
-              {#each activeAccounts as account}
-                <option value={account.id}>
-                  {account.bank?.name || '알 수 없음'} - {account.name} ({account.accountNumber})
-                </option>
-              {/each}
-            </select>
-          </div>
-
-          <!-- 카테고리 -->
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">카테고리</label>
-            <select
-              bind:value={formData.categoryId}
-              required
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="">카테고리를 선택하세요</option>
-              {#each categories as category}
-                <option value={category.id}>
-                  {category.name}
-                  {#if category.accountingCode}
-                    ({category.accountingCode})
-                  {/if}
-                </option>
-              {/each}
-            </select>
-          </div>
-
-          <!-- 거래 날짜 -->
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">거래 날짜/시간</label>
-            <input
-              type="datetime-local"
-              bind:value={dateTimeInput}
-              oninput={handleDateTimeInput}
-              required
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            />
-          </div>
-
-          <!-- 참조번호 -->
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">참조번호 (선택사항)</label>
-            <input
-              type="text"
-              bind:value={formData.referenceNumber}
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="예: T20241201001"
-            />
-          </div>
-
-          <!-- 메모 -->
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">메모 (선택사항)</label>
-            <textarea
-              bind:value={formData.notes}
-              rows="2"
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="거래에 대한 추가 메모"
-            ></textarea>
-          </div>
-        </div>
-
-        <!-- 버튼 -->
-        <div class="flex justify-end space-x-3 mt-6">
-          <button
-            type="button"
-            onclick={() => (showAddModal = false)}
-            class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-          >
-            취소
-          </button>
-          <button
-            type="submit"
-            disabled={isLoading}
-            class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
-          >
-            {isLoading ? '추가 중...' : '거래 추가'}
-          </button>
-        </div>
-      </form>
+        onAmountChange={(value) => (formData.amount = value)}
+      />
     </div>
   </div>
 {/if}
@@ -1728,143 +1174,21 @@
   <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
     <div class="bg-white rounded-lg max-w-md w-full p-6">
       <h3 class="text-lg font-medium text-gray-900 mb-4">거래 수정</h3>
-
-      <form
-        onsubmit={(e) => {
-          e.preventDefault()
-          updateTransaction()
+      <TransactionForm
+        bind:formData
+        accounts={accounts}
+        {categories}
+        isLoading={isLoading}
+        isEdit={true}
+        onSubmit={updateTransaction}
+        onCancel={() => (showEditModal = false)}
+        dateTimeInput={dateTimeInput}
+        onDateTimeChange={(value) => {
+          dateTimeInput = value
+          formData.transactionDate = convertToUTCTimestamp(value)
         }}
-      >
-        <div class="space-y-4">
-          <!-- 거래 설명 -->
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">거래 설명</label>
-            <input
-              type="text"
-              bind:value={formData.description}
-              required
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="예: 월급, 사무실 임대료"
-            />
-          </div>
-
-          <!-- 금액 -->
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">금액</label>
-            <input
-              type="text"
-              bind:value={amountInput}
-              oninput={handleAmountInput}
-              required
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="0"
-            />
-          </div>
-
-          <!-- 거래 타입 -->
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">거래 타입</label>
-            <select
-              bind:value={formData.type}
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="income">수입</option>
-              <option value="expense">지출</option>
-              <option value="transfer">이체</option>
-              <option value="adjustment">조정</option>
-            </select>
-          </div>
-
-          <!-- 계좌 -->
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">계좌</label>
-            <select
-              bind:value={formData.accountId}
-              required
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="">계좌를 선택하세요</option>
-              {#each activeAccounts as account}
-                <option value={account.id}>
-                  {account.bank?.name || '알 수 없음'} - {account.name} ({account.accountNumber})
-                </option>
-              {/each}
-            </select>
-          </div>
-
-          <!-- 카테고리 -->
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">카테고리</label>
-            <select
-              bind:value={formData.categoryId}
-              required
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="">카테고리를 선택하세요</option>
-              {#each categories as category}
-                <option value={category.id}>
-                  {category.name}
-                  {#if category.accountingCode}
-                    ({category.accountingCode})
-                  {/if}
-                </option>
-              {/each}
-            </select>
-          </div>
-
-          <!-- 거래 날짜 -->
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">거래 날짜/시간</label>
-            <input
-              type="datetime-local"
-              bind:value={dateTimeInput}
-              oninput={handleDateTimeInput}
-              required
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            />
-          </div>
-
-          <!-- 참조번호 -->
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">참조번호 (선택사항)</label>
-            <input
-              type="text"
-              bind:value={formData.referenceNumber}
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="예: T20241201001"
-            />
-          </div>
-
-          <!-- 메모 -->
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">메모 (선택사항)</label>
-            <textarea
-              bind:value={formData.notes}
-              rows="2"
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="거래에 대한 추가 메모"
-            ></textarea>
-          </div>
-        </div>
-
-        <!-- 버튼 -->
-        <div class="flex justify-end space-x-3 mt-6">
-          <button
-            type="button"
-            onclick={() => (showEditModal = false)}
-            class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-          >
-            취소
-          </button>
-          <button
-            type="submit"
-            disabled={isLoading}
-            class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
-          >
-            {isLoading ? '수정 중...' : '거래 수정'}
-          </button>
-        </div>
-      </form>
+        onAmountChange={(value) => (formData.amount = value)}
+      />
     </div>
   </div>
 {/if}

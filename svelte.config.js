@@ -10,6 +10,19 @@ const config = {
   kit: {
     adapter: adapter({ out: 'build' }),
   },
+  vitePlugin: {
+    inspector: {
+      toggleKeyCombo: 'meta-shift',
+      showToggleButton: 'always',
+      toggleButtonPos: 'bottom-right',
+    },
+    dynamicCompileOptions({ filename }) {
+      // External libraries that use $$props should not use runes mode
+      if (filename.includes('node_modules/lucide-svelte')) {
+        return { runes: false }
+      }
+    },
+  },
 }
 
 export default config
