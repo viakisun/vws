@@ -74,7 +74,14 @@ export function prepareDateForDatabase(dateValue: unknown): string {
 /**
  * 데이터베이스 쿼리 결과의 모든 날짜 필드를 처리
  */
-export function processQueryResultDates(result: QueryResult): QueryResult {
+/**
+ * Type guard to check if an object is a valid database row
+ */
+function isDatabaseRow(obj: unknown): obj is Record<string, unknown> {
+  return typeof obj === 'object' && obj !== null
+}
+
+export function processQueryResultDates<T = unknown>(result: QueryResult<T>): QueryResult<T> {
   if (!result.rows || result.rows.length === 0) {
     return result
   }
@@ -97,10 +104,14 @@ export function processQueryResultDates(result: QueryResult): QueryResult {
     'decided_at',
     'signed_at',
     'generated_at',
-  ]
+  ] as const
 
-  const processedRows = result.rows.map((row) => {
-    const processedRow: Record<string, unknown> = { ...(row as Record<string, unknown>) }
+  const processedRows = result.rows.map((row: T) => {
+    if (!isDatabaseRow(row)) {
+      return row
+    }
+
+    const processedRow: Record<string, unknown> = { ...row }
 
     dateFields.forEach((field) => {
       if (field in processedRow && processedRow[field]) {
@@ -108,7 +119,7 @@ export function processQueryResultDates(result: QueryResult): QueryResult {
       }
     })
 
-    return processedRow
+    return processedRow as T
   })
 
   return {
@@ -149,7 +160,7 @@ export function initializeDatabase(): Pool {
     pool = new Pool(dbConfig)
 
     // Handle pool errors
-    pool.on('error', (err) => {
+    pool.on('error', (err: Error) => {
       logger.error('Unexpected error on idle client', err)
       process.exit(-1)
     })
@@ -175,7 +186,7 @@ export async function getConnection(): Promise<PoolClient> {
 }
 
 // Execute a query with parameters
-export async function query<T extends Record<string, unknown> = Record<string, unknown>>(
+export async function query<T = unknown>(
   text: string,
   params?: unknown[],
 ): Promise<QueryResult<T>> {
@@ -214,21 +225,36 @@ export async function closeDatabase(): Promise<void> {
   }
 }
 
+interface HealthCheckResult {
+  health: number
+}
+
+interface PostgresError extends Error {
+  code?: string
+  detail?: string
+}
+
+function isPostgresError(error: unknown): error is PostgresError {
+  return error instanceof Error && ('code' in error || 'detail' in error)
+}
+
 // Database health check
 export async function healthCheck(): Promise<boolean> {
   try {
     // Starting database health check
-    const result = await query('SELECT 1 as health')
-    const isHealthy = (result.rows[0] as Record<string, unknown>)?.health === 1
+    const result = await query<HealthCheckResult>('SELECT 1 as health')
+    const isHealthy = result.rows[0]?.health === 1
 
     return isHealthy
   } catch (error) {
     logger.error('Database health check failed:', error)
-    logger.error('Error details:', {
-      message: error instanceof Error ? error.message : 'Unknown error',
-      code: (error as Record<string, unknown>)?.code,
-      detail: (error as Record<string, unknown>)?.detail,
-    })
+    if (isPostgresError(error)) {
+      logger.error('Error details:', {
+        message: error.message,
+        code: error.code,
+        detail: error.detail,
+      })
+    }
     return false
   }
 }
@@ -299,14 +325,16 @@ export class DatabaseService {
   }
 
   // User operations
-  static async createUser(userData: Partial<DatabaseUser>): Promise<DatabaseUser> {
+  static async createUser(
+    userData: Partial<DatabaseUser> & { password_hash?: string },
+  ): Promise<DatabaseUser> {
     const result = await query<DatabaseUser>(
       `INSERT INTO users (email, password_hash, name, department, position, role)
 			 VALUES ($1, $2, $3, $4, $5, $6)
 			 RETURNING *`,
       [
         userData.email,
-        (userData as Record<string, unknown>).password_hash,
+        userData.password_hash,
         userData.name,
         userData.department,
         userData.position,
@@ -315,9 +343,6 @@ export class DatabaseService {
     )
     if (!result.rows[0]) {
       throw new Error('사용자 생성에 실패했습니다.')
-    }
-    if (!result.rows[0]) {
-      throw new Error('데이터 생성에 실패했습니다.')
     }
     return result.rows[0]
   }
