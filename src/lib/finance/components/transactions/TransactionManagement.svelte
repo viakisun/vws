@@ -9,175 +9,27 @@
     Transaction,
     TransactionCategory,
   } from '$lib/finance/types'
-  import { formatCurrency, formatDate } from '$lib/finance/utils'
-  import { formatDateTimeForInput, getCurrentUTC, toUTC } from '$lib/utils/date-handler'
-  import { SearchIcon } from '@lucide/svelte'
+  import { getCurrentUTC } from '$lib/utils/date-handler'
   import { onMount } from 'svelte'
 
   // 새 유틸리티 함수
   import {
-    formatAmountInput,
-    parseAmountInput,
     convertToUTCTimestamp,
     convertToDateTimeLocal,
     getCurrentUTCTimestamp,
   } from '$lib/finance/utils/transaction-formatters'
-  import {
-    detectBankFromFileName,
-    extractAccountNumber,
-    normalizeAccountNumber,
-  } from '$lib/finance/utils/bank-detection'
   import { getDateRangePreset, type DateRangePreset } from '$lib/finance/utils/date-range'
 
-  // 새 컴포넌트
+  // 컴포넌트
   import TransactionStatistics from './TransactionStatistics.svelte'
   import TransactionFilters from './TransactionFilters.svelte'
   import AccountCard from './AccountCard.svelte'
   import TransactionForm from './TransactionForm.svelte'
 
-  function handleAmountInput(event: Event) {
-    const target = event.target as HTMLInputElement
-    const value = target.value.replace(/,/g, '')
-    const numValue = parseInt(value) || 0
-    formData.amount = numValue
-    amountInput = formatAmountInput(numValue)
-  }
+  // ============================================================================
+  // State: 데이터
+  // ============================================================================
 
-  function handleDateTimeInput(event: Event) {
-    const target = event.target as HTMLInputElement
-    formData.transactionDate = convertToUTCTimestamp(target.value)
-  }
-
-  // 업로드/삭제 관련 함수들
-  function handleFileSelect(event: Event) {
-    const input = event.target as HTMLInputElement
-    if (input.files && input.files.length > 0) {
-      selectedFile = input.files[0]
-      uploadResult = undefined
-    }
-  }
-
-  function handleDrop(event: DragEvent) {
-    event.preventDefault()
-    if (event.dataTransfer?.files && event.dataTransfer.files.length > 0) {
-      selectedFile = event.dataTransfer.files[0]
-      uploadResult = undefined
-    }
-  }
-
-  // 다중 파일 업로드 관련 함수들
-  function handleMultiFileSelect(event: Event) {
-    const input = event.target as HTMLInputElement
-    if (input.files && input.files.length > 0) {
-      selectedFiles = Array.from(input.files)
-      multiUploadResults = []
-    }
-  }
-
-  function handleMultiDrop(event: DragEvent) {
-    event.preventDefault()
-    if (event.dataTransfer?.files && event.dataTransfer.files.length > 0) {
-      selectedFiles = Array.from(event.dataTransfer.files)
-      multiUploadResults = []
-    }
-  }
-
-  async function uploadMultipleFiles() {
-    if (selectedFiles.length === 0) {
-      pushToast('업로드할 파일을 선택해주세요.', 'info')
-      return
-    }
-
-    isMultiUploading = true
-    multiUploadResults = []
-
-    for (const file of selectedFiles) {
-      try {
-        const detectedBank = detectBankFromFileName(file.name)
-        logger.info(`파일: ${file.name}, 감지된 은행: ${detectedBank}`)
-
-        // 파일명에서 계좌번호 추출 (하이픈 포함/미포함 모두 처리)
-        const accountNumberMatch = file.name.match(/(\d{3}-?\d{3,6}-?\d{3,6}|\d{11,14})/)
-        const fileAccountNumber = accountNumberMatch ? accountNumberMatch[0] : null
-        logger.info(`추출된 계좌번호: ${fileAccountNumber}`)
-
-        let targetAccountId: string | null = null
-        if (fileAccountNumber) {
-          // 하이픈 제거하여 매칭
-          const cleanFileAccountNumber = fileAccountNumber.replace(/-/g, '')
-          logger.info(`정리된 계좌번호: ${cleanFileAccountNumber}`)
-
-          const account = accounts.find((acc) => {
-            const accNum = acc.accountNumber.replace(/-/g, '')
-            logger.info(`비교: ${cleanFileAccountNumber} vs ${accNum}`)
-            return accNum === cleanFileAccountNumber
-          })
-          if (account) {
-            targetAccountId = account.id
-            logger.info(`매칭된 계좌: ${account.name} (ID: ${targetAccountId})`)
-          }
-        }
-
-        if (!targetAccountId) {
-          multiUploadResults.push({
-            fileName: file.name,
-            success: false,
-            message: `파일에서 계좌번호를 찾을 수 없거나, 일치하는 계좌가 없습니다: ${fileAccountNumber || '없음'}`,
-            detectedBank,
-          })
-          continue
-        }
-
-        const formData = new FormData()
-        formData.append('file', file)
-        formData.append('replaceExisting', String(replaceExisting))
-        if (targetAccountId) {
-          formData.append('accountId', targetAccountId)
-        }
-
-        const response = await fetch('/api/finance/transactions/upload', {
-          method: 'POST',
-          body: formData,
-        })
-
-        if (!response.ok) {
-          const errorData = await response.json()
-          multiUploadResults.push({
-            fileName: file.name,
-            success: false,
-            message: errorData.message || '업로드 실패',
-            detectedBank,
-          })
-          continue
-        }
-
-        const data = await response.json()
-        multiUploadResults.push({
-          fileName: file.name,
-          success: true,
-          data: data,
-          detectedBank,
-        })
-      } catch (error: any) {
-        multiUploadResults.push({
-          fileName: file.name,
-          success: false,
-          message: error.message,
-          detectedBank: detectBankFromFileName(file.name),
-        })
-      }
-    }
-
-    isMultiUploading = false
-
-    // 성공한 업로드가 있으면 데이터 새로고침
-    const hasSuccess = multiUploadResults.some((result) => result.success)
-    if (hasSuccess) {
-      await loadData()
-    }
-  }
-
-  // State
   let transactions = $state<Transaction[]>([])
   let accounts = $state<Account[]>([])
   let categories = $state<TransactionCategory[]>([])
@@ -186,6 +38,61 @@
 
   // 활성 계좌만 필터링 (비활성/폐쇄 계좌 제외)
   const activeAccounts = $derived(accounts.filter((account) => account.status === 'active'))
+
+  // ============================================================================
+  // State: 필터링
+  // ============================================================================
+
+  let searchTerm = $state('')
+  let selectedAccount = $state('')
+  let dateFrom = $state('')
+  let dateTo = $state('')
+  let selectedDateRange = $state<DateRangePreset>('1W')
+
+  // 필터링된 데이터
+  let filteredTransactions = $state<Transaction[]>([])
+  let filteredAccounts = $state<Account[]>([])
+  let totalIncome = $state(0)
+  let totalExpense = $state(0)
+  let netAmount = $state(0)
+
+  // ============================================================================
+  // State: 폼 및 모달
+  // ============================================================================
+
+  let showAddModal = $state(false)
+  let showEditModal = $state(false)
+  let editingTransaction = $state<Transaction | null>(null)
+
+  // 폼 데이터
+  let formData = $state<CreateTransactionRequest>({
+    accountId: '',
+    categoryId: '',
+    amount: 0,
+    type: 'expense',
+    description: '',
+    transactionDate: getCurrentUTCTimestamp(),
+    referenceNumber: '',
+    notes: '',
+    tags: [],
+  })
+
+  // 날짜/시간 입력을 위한 별도 상태 (datetime-local 형식)
+  let dateTimeInput = $state(convertToDateTimeLocal(getCurrentUTCTimestamp()))
+
+  // ============================================================================
+  // State: 인라인 편집
+  // ============================================================================
+
+  let editingTransactionId = $state<string | null>(null)
+  let inlineEditingData = $state<{ description: string; categoryId: string }>({
+    description: '',
+    categoryId: '',
+  })
+
+  // ============================================================================
+  // State: 계좌별 업로드/삭제
+  // ============================================================================
 
   // 계좌별 업로드 상태 관리
   const accountUploadStates = $state<
@@ -211,121 +118,49 @@
       }
     >
   >({})
-  let showAddModal = $state(false)
 
-  // 업로드/삭제 관련 상태
-  const showUploadSection = $state(false)
-  const showUploadModal = $state(false)
-  let selectedFile = $state<File | null>(null)
-  let selectedAccountForUpload = $state<string>('')
-  let replaceExisting = $state(false)
-  const isUploading = $state(false)
-
-  // 인라인 편집 관련 상태
-  let editingTransactionId = $state<string | null>(null)
-  let inlineEditingData = $state<{ description: string; categoryId: string }>({
-    description: '',
-    categoryId: '',
-  })
-  let uploadResult = $state<any>(undefined)
-
-  // 다중 파일 업로드 관련 상태
-  let selectedFiles = $state<File[]>([])
-  let isMultiUploading = $state(false)
-  let multiUploadResults = $state<any[]>([])
-  const showMultiUploadSection = $state(false)
-
-  // 카테고리를 타입별로 그룹화
-  let _groupedCategories = $state<Record<string, TransactionCategory[]>>({})
-
-  // 카테고리 그룹화 함수
-  function groupCategoriesByType(categories: TransactionCategory[]) {
-    const grouped: Record<string, TransactionCategory[]> = {
-      income: [],
-      expense: [],
-      transfer: [],
-      adjustment: [],
-    }
-
-    categories.forEach((category) => {
-      if (grouped[category.type]) {
-        grouped[category.type].push(category)
-      }
-    })
-
-    // 각 타입별로 이름순 정렬
-    Object.keys(grouped).forEach((type) => {
-      grouped[type].sort((a, b) => a.name.localeCompare(b.name))
-    })
-
-    return grouped
+  // AccountCard 컴포넌트를 위한 기본 상태
+  const defaultUploadState = {
+    selectedFile: null,
+    isUploading: false,
+    progress: 0,
+    uploadResult: undefined,
   }
 
-  // 필터
-  let searchTerm = $state('')
-  let selectedAccount = $state('')
-  let dateFrom = $state('')
-  let dateTo = $state('')
+  const defaultDeleteState = {
+    showDeleteConfirm: false,
+    confirmAccountNumber: '',
+    isDeleting: false,
+  }
 
-  // 날짜 범위 프리셋
-  let selectedDateRange = $state<DateRangePreset>('1W') // 기본값: 1주일
+  // ============================================================================
+  // Functions: 날짜 범위
+  // ============================================================================
 
-  // 날짜 범위 설정 함수
+  /**
+   * 날짜 범위 프리셋 설정
+   * date-range 유틸리티를 사용하여 from/to 날짜 계산
+   */
   function setDateRange(range: DateRangePreset) {
     selectedDateRange = range
-    const now = new Date()
-    const today = now.toISOString().split('T')[0]
 
-    switch (range) {
-      case '1D':
-        dateFrom = today
-        dateTo = today
-        break
-      case '1W': {
-        const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
-        dateFrom = weekAgo.toISOString().split('T')[0]
-        dateTo = today
-        break
-      }
-      case '1M': {
-        const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
-        dateFrom = monthAgo.toISOString().split('T')[0]
-        dateTo = today
-        break
-      }
-      case '3M': {
-        const threeMonthsAgo = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000)
-        dateFrom = threeMonthsAgo.toISOString().split('T')[0]
-        dateTo = today
-        break
-      }
-      case 'ALL':
-        dateFrom = ''
-        dateTo = ''
-        break
+    if (range === 'ALL') {
+      dateFrom = ''
+      dateTo = ''
+    } else {
+      const { from, to } = getDateRangePreset(range)
+      dateFrom = from.split('T')[0]
+      dateTo = to.split('T')[0]
     }
   }
 
-  // 폼 데이터
-  let formData = $state<CreateTransactionRequest>({
-    accountId: '',
-    categoryId: '',
-    amount: 0,
-    type: 'expense',
-    description: '',
-    transactionDate: getCurrentUTCTimestamp(),
-    referenceNumber: '',
-    notes: '',
-    tags: [],
-  })
+  // ============================================================================
+  // Functions: 데이터 로드
+  // ============================================================================
 
-  // 금액 입력을 위한 별도 상태 (포맷팅된 문자열)
-  let amountInput = $state('0')
-
-  // 날짜/시간 입력을 위한 별도 상태 (datetime-local 형식)
-  let dateTimeInput = $state(convertToDateTimeLocal(getCurrentUTCTimestamp()))
-
-  // 데이터 로드 (서버 사이드 필터링 적용)
+  /**
+   * 데이터 로드 (서버 사이드 필터링 적용)
+   */
   async function loadData() {
     try {
       isLoading = true
@@ -368,7 +203,6 @@
       transactions = transactionsData.transactions
       accounts = accountsData
       categories = categoriesData
-      _groupedCategories = groupCategoriesByType(categories)
 
       // 디버깅: 계좌 상태 확인
       logger.info(
@@ -387,7 +221,13 @@
     }
   }
 
-  // 인라인 편집 함수들
+  // ============================================================================
+  // Functions: 인라인 편집
+  // ============================================================================
+
+  /**
+   * 인라인 편집 시작
+   */
   function startInlineEdit(transaction: Transaction) {
     editingTransactionId = transaction.id
     inlineEditingData = {
@@ -396,11 +236,17 @@
     }
   }
 
+  /**
+   * 인라인 편집 취소
+   */
   function cancelInlineEdit() {
     editingTransactionId = null
     inlineEditingData = { description: '', categoryId: '' }
   }
 
+  /**
+   * 인라인 편집 저장 (적요 및 카테고리만 수정)
+   */
   async function saveInlineEdit() {
     if (!editingTransactionId) return
 
@@ -453,7 +299,9 @@
     }
   }
 
-  // 키보드 단축키 처리
+  /**
+   * 키보드 단축키 처리 (Esc: 취소, Ctrl+Enter: 저장)
+   */
   function handleKeydown(event: KeyboardEvent) {
     if (editingTransactionId) {
       if (event.key === 'Escape') {
@@ -464,7 +312,13 @@
     }
   }
 
-  // 거래 생성
+  // ============================================================================
+  // Functions: 거래 생성
+  // ============================================================================
+
+  /**
+   * 새 거래 생성
+   */
   async function createTransaction() {
     try {
       isLoading = true
@@ -487,7 +341,6 @@
         notes: '',
         tags: [],
       }
-      amountInput = '0'
       dateTimeInput = convertToDateTimeLocal(getCurrentUTCTimestamp())
 
       showAddModal = false
@@ -498,10 +351,13 @@
     }
   }
 
-  // 거래 수정
-  let showEditModal = $state(false)
-  let editingTransaction = $state<Transaction | null>(null)
+  // ============================================================================
+  // Functions: 거래 수정
+  // ============================================================================
 
+  /**
+   * 거래 수정 모달 열기
+   */
   function editTransaction(transaction: Transaction) {
     editingTransaction = transaction
     formData = {
@@ -512,11 +368,13 @@
       description: transaction.description,
       transactionDate: transaction.transactionDate || getCurrentUTC(),
     }
-    amountInput = formatAmountInput(transaction.amount)
     dateTimeInput = convertToDateTimeLocal(transaction.transactionDate || getCurrentUTC())
     showEditModal = true
   }
 
+  /**
+   * 거래 수정 저장
+   */
   async function updateTransaction() {
     if (!editingTransaction) return
 
@@ -541,7 +399,13 @@
     }
   }
 
-  // 거래 삭제
+  // ============================================================================
+  // Functions: 거래 삭제
+  // ============================================================================
+
+  /**
+   * 거래 삭제 (확인 후 삭제)
+   */
   async function deleteTransaction(transaction: Transaction) {
     if (!confirm(`거래 "${transaction.description}"을(를) 삭제하시겠습니까?`)) {
       return
@@ -567,7 +431,13 @@
     }
   }
 
-  // 컴포넌트 마운트 시 데이터 로드
+  // ============================================================================
+  // Lifecycle: 초기화
+  // ============================================================================
+
+  /**
+   * 컴포넌트 마운트 시 초기화 및 데이터 로드
+   */
   onMount(() => {
     async function initialize() {
       // URL 파라미터에서 계좌 ID 확인
@@ -612,16 +482,13 @@
     }
   })
 
-  // 필터링된 거래 목록 및 통계
-  let filteredTransactions = $state<Transaction[]>([])
-  let totalIncome = $state(0)
-  let totalExpense = $state(0)
-  let netAmount = $state(0)
+  // ============================================================================
+  // Functions: 필터링
+  // ============================================================================
 
-  // 필터링된 계좌 목록
-  let filteredAccounts = $state<Account[]>([])
-
-  // 필터링 및 통계 계산 함수
+  /**
+   * 필터링 및 통계 계산
+   */
   function updateFilteredData() {
     // 계좌 필터링: 선택된 계좌가 있으면 해당 계좌만 표시
     filteredAccounts = selectedAccount
@@ -652,12 +519,20 @@
     netAmount = totalIncome - totalExpense
   }
 
-  // 필터 변경 시 데이터 업데이트 (서버에서 새로 로드)
+  /**
+   * 필터 변경 시 데이터 새로고침
+   */
   async function handleFilterChange() {
     await loadData()
   }
 
-  // 계좌별 파일 선택
+  // ============================================================================
+  // Functions: 계좌별 업로드
+  // ============================================================================
+
+  /**
+   * 계좌별 파일 선택
+   */
   function handleAccountFileSelect(accountId: string, file: File) {
     if (!accountUploadStates[accountId]) {
       accountUploadStates[accountId] = {
@@ -671,7 +546,9 @@
     accountUploadStates[accountId].uploadResult = null
   }
 
-  // 계좌별 업로드 (진행률 표시)
+  /**
+   * 계좌별 업로드 실행 (진행률 표시)
+   */
   async function uploadAccountTransactions(accountId: string) {
     const uploadState = accountUploadStates[accountId]
     if (!uploadState || !uploadState.selectedFile) {
@@ -725,7 +602,13 @@
     }
   }
 
-  // 계좌별 삭제 확인
+  // ============================================================================
+  // Functions: 계좌별 삭제
+  // ============================================================================
+
+  /**
+   * 계좌 삭제 확인 모달 열기
+   */
   function confirmAccountDeletion(accountId: string) {
     if (!accountDeleteStates[accountId]) {
       accountDeleteStates[accountId] = {
@@ -738,7 +621,9 @@
     accountDeleteStates[accountId].confirmAccountNumber = ''
   }
 
-  // 계좌 삭제 실행
+  /**
+   * 계좌 및 모든 거래 내역 삭제 실행
+   */
   async function deleteAccountTransactions(accountId: string) {
     const deleteState = accountDeleteStates[accountId]
     const account = accounts.find((a) => a.id === accountId)
@@ -776,7 +661,9 @@
     }
   }
 
-  // 삭제 취소
+  /**
+   * 계좌 삭제 취소
+   */
   function cancelAccountDeletion(accountId: string) {
     if (accountDeleteStates[accountId]) {
       accountDeleteStates[accountId].showDeleteConfirm = false
@@ -784,21 +671,13 @@
     }
   }
 
-  // AccountCard 컴포넌트를 위한 기본 상태
-  const defaultUploadState = {
-    selectedFile: null,
-    isUploading: false,
-    progress: 0,
-    uploadResult: undefined,
-  }
+  // ============================================================================
+  // Functions: 상태 변경 핸들러
+  // ============================================================================
 
-  const defaultDeleteState = {
-    showDeleteConfirm: false,
-    confirmAccountNumber: '',
-    isDeleting: false,
-  }
-
-  // 인라인 편집 데이터 변경 핸들러
+  /**
+   * 인라인 편집 데이터 변경 핸들러
+   */
   function handleInlineEditDataChange(field: string, value: string) {
     if (field === 'description') {
       inlineEditingData.description = value
@@ -807,7 +686,9 @@
     }
   }
 
-  // 삭제 상태 변경 핸들러
+  /**
+   * 삭제 상태 변경 핸들러
+   */
   function handleDeleteStateChange(accountId: string, field: string, value: string) {
     if (!accountDeleteStates[accountId]) {
       accountDeleteStates[accountId] = { ...defaultDeleteState }
@@ -853,20 +734,20 @@
 
   <!-- 통계 -->
   <TransactionStatistics
-    totalIncome={totalIncome}
-    totalExpense={totalExpense}
-    netAmount={netAmount}
+    {totalIncome}
+    {totalExpense}
+    {netAmount}
     count={filteredTransactions.length}
   />
 
   <!-- 필터 -->
   <TransactionFilters
-    dateFrom={dateFrom}
-    dateTo={dateTo}
-    selectedDateRange={selectedDateRange}
-    searchTerm={searchTerm}
-    selectedAccount={selectedAccount}
-    accounts={accounts}
+    {dateFrom}
+    {dateTo}
+    {selectedDateRange}
+    {searchTerm}
+    {selectedAccount}
+    {accounts}
     onDateRangeChange={setDateRange}
     onDateFromChange={(value) => (dateFrom = value)}
     onDateToChange={(value) => (dateTo = value)}
@@ -882,216 +763,7 @@
     </div>
   {/if}
 
-  <!-- 계좌별 업로드 섹션 -->
-  {#if showUploadSection}
-    <div class="bg-gray-50 rounded-lg p-6 mb-6">
-      <h4 class="text-lg font-medium text-gray-900 mb-4">📤 계좌별 거래내역 업로드</h4>
 
-      <!-- 계좌별 업로드 카드들 -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-        {#each [...accounts].sort((a, b) => {
-          // 은행별로 정렬, 같은 은행 내에서는 계좌명으로 정렬
-          if (a.bank?.name !== b.bank?.name) {
-            return (a.bank?.name || '').localeCompare(b.bank?.name || '')
-          }
-          return a.name.localeCompare(b.name)
-        }) as account}
-          <div class="bg-white rounded-lg border p-4">
-            <div class="flex items-center justify-between mb-3">
-              <div>
-                <h5 class="font-medium text-gray-900">
-                  {account.bank?.name || '알 수 없음'}-{account.accountNumber}
-                </h5>
-                <p class="text-sm text-gray-500">{account.name}</p>
-                <p class="text-xs text-gray-400">잔액: {formatCurrency(account.balance ?? 0)}</p>
-              </div>
-              <button
-                type="button"
-                onclick={() => {
-                  selectedAccountForUpload = account.id
-                  document.getElementById(`fileInput-${account.id}`)?.click()
-                }}
-                class="px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors"
-              >
-                📤 업로드
-              </button>
-            </div>
-          </div>
-        {/each}
-      </div>
-
-      <!-- 업로드 결과 -->
-      {#if uploadResult !== undefined}
-        <div
-          class="mt-4 p-4 rounded-lg {uploadResult.success
-            ? 'bg-green-50 border border-green-200'
-            : 'bg-red-50 border border-red-200'}"
-        >
-          {#if uploadResult.success}
-            <div class="text-green-800">
-              <p class="font-medium">✅ 업로드 완료!</p>
-              <p class="text-sm mt-1">은행: {uploadResult.bankName}</p>
-              <p class="text-sm">계좌: {uploadResult.accountName || uploadResult.accountNumber}</p>
-              <p class="text-sm">총 거래: {uploadResult.totalTransactions}건</p>
-              <p class="text-sm">
-                삽입: {uploadResult.insertedCount}건, 건너뜀: {uploadResult.skippedCount}건
-              </p>
-            </div>
-          {:else}
-            <div class="text-red-800">
-              <p class="font-medium">❌ 업로드 실패</p>
-              <p class="text-sm mt-1">{uploadResult.message}</p>
-            </div>
-          {/if}
-        </div>
-      {/if}
-
-      <!-- 계좌별 삭제 버튼들 -->
-      <div class="mt-6">
-        <h5 class="text-md font-medium text-gray-900 mb-3">🗑️ 계좌별 거래내역 삭제</h5>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-          {#each [...accounts].sort((a, b) => {
-            // 은행별로 정렬, 같은 은행 내에서는 계좌명으로 정렬
-            if (a.bank?.name !== b.bank?.name) {
-              return (a.bank?.name || '').localeCompare(b.bank?.name || '')
-            }
-            return a.name.localeCompare(b.name)
-          }) as account}
-            <div class="flex items-center justify-between p-3 bg-white rounded-lg border">
-              <div>
-                <p class="font-medium text-gray-900">
-                  {account.bank?.name || '알 수 없음'}-{account.accountNumber}
-                </p>
-                <p class="text-sm text-gray-500">{account.name}</p>
-                <p class="text-xs text-gray-400">잔액: {formatCurrency(account.balance ?? 0)}</p>
-              </div>
-              <button
-                type="button"
-                onclick={() => confirmAccountDeletion(account.id)}
-                class="px-3 py-1 text-sm bg-red-100 text-red-700 rounded hover:bg-red-200 transition-colors"
-              >
-                삭제
-              </button>
-            </div>
-          {/each}
-        </div>
-      </div>
-    </div>
-  {/if}
-
-  <!-- 다중 파일 업로드 섹션 -->
-  {#if showMultiUploadSection}
-    <div class="bg-blue-50 rounded-lg p-6 mb-6">
-      <h4 class="text-lg font-medium text-gray-900 mb-4">📁 다중 파일 업로드 (자동 계좌 감지)</h4>
-      <p class="text-sm text-gray-600 mb-4">
-        여러 은행의 거래내역 파일을 한 번에 업로드합니다. 파일명에서 은행을 자동으로 감지하여 해당
-        계좌에 업로드됩니다.
-      </p>
-
-      <!-- 다중 파일 업로드 영역 -->
-      <div
-        class="border-2 border-dashed border-blue-300 rounded-lg p-6 text-center cursor-pointer hover:border-blue-500 transition-colors mb-4"
-        role="button"
-        tabindex="0"
-        ondrop={handleMultiDrop}
-        ondragover={(e) => e.preventDefault()}
-        onclick={() => document.getElementById('multiFileInput')?.click()}
-        onkeydown={(e) => e.key === 'Enter' && document.getElementById('multiFileInput')?.click()}
-      >
-        {#if selectedFiles.length > 0}
-          <div class="text-blue-600">
-            <div class="text-2xl mb-2">📁</div>
-            <p class="font-medium">선택된 파일 {selectedFiles.length}개</p>
-            <div class="mt-2 text-sm text-blue-700">
-              {#each selectedFiles as file}
-                <div class="flex items-center justify-between py-1">
-                  <span>{file.name}</span>
-                  <span class="text-xs text-blue-500">({detectBankFromFileName(file.name)})</span>
-                </div>
-              {/each}
-            </div>
-          </div>
-        {:else}
-          <div class="text-blue-400">
-            <div class="text-4xl mb-2">📁</div>
-            <p class="text-blue-600">
-              여러 파일을 여기에 끌어다 놓거나 <span class="font-medium">클릭하여 선택</span>
-            </p>
-            <p class="text-sm text-blue-500 mt-1">CSV 또는 TXT 파일만 지원합니다</p>
-            <p class="text-xs text-blue-400 mt-1">
-              파일명에 "하나" 또는 "농협"이 포함되어야 자동 감지됩니다
-            </p>
-          </div>
-        {/if}
-        <input
-          type="file"
-          id="multiFileInput"
-          accept=".csv,.txt"
-          multiple
-          class="hidden"
-          onchange={handleMultiFileSelect}
-        />
-      </div>
-
-      <!-- 업로드 옵션 -->
-      <div class="flex items-center mb-4">
-        <input
-          type="checkbox"
-          id="multiReplaceExisting"
-          bind:checked={replaceExisting}
-          class="h-4 w-4 text-blue-600 border-gray-300 rounded"
-        />
-        <label for="multiReplaceExisting" class="ml-2 text-sm text-gray-900">
-          기존 거래내역을 업로드 파일로 대체
-        </label>
-      </div>
-
-      <!-- 다중 업로드 버튼 -->
-      <button
-        type="button"
-        onclick={uploadMultipleFiles}
-        disabled={selectedFiles.length === 0 || isMultiUploading}
-        class="w-full py-3 px-4 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
-      >
-        {#if isMultiUploading}
-          ⏳ 다중 업로드 중... ({selectedFiles.length}개 파일)
-        {:else}
-          📁 다중 파일 업로드 ({selectedFiles.length}개)
-        {/if}
-      </button>
-
-      <!-- 다중 업로드 결과 -->
-      {#if multiUploadResults.length > 0}
-        <div class="mt-4 space-y-2">
-          <h5 class="font-medium text-gray-900">업로드 결과:</h5>
-          {#each multiUploadResults as result}
-            <div
-              class="p-3 rounded-lg {result.success
-                ? 'bg-green-50 border border-green-200'
-                : 'bg-red-50 border border-red-200'}"
-            >
-              {#if result.success}
-                <div class="text-green-800">
-                  <p class="font-medium">✅ {result.fileName}</p>
-                  <p class="text-sm">감지된 은행: {result.detectedBank}</p>
-                  <p class="text-sm">계좌: {result.data.accountNumber}</p>
-                  <p class="text-sm">
-                    처리: {result.data.insertedCount}건 삽입, {result.data.skippedCount}건 건너뜀
-                  </p>
-                </div>
-              {:else}
-                <div class="text-red-800">
-                  <p class="font-medium">❌ {result.fileName}</p>
-                  <p class="text-sm">감지된 은행: {result.detectedBank}</p>
-                  <p class="text-sm">오류: {result.message}</p>
-                </div>
-              {/if}
-            </div>
-          {/each}
-        </div>
-      {/if}
-    </div>
-  {/if}
 
   <!-- 계좌별 거래 목록 -->
   {#if isLoading}
@@ -1111,7 +783,7 @@
           {categories}
           uploadState={accountUploadStates[account.id] || defaultUploadState}
           deleteState={accountDeleteStates[account.id] || defaultDeleteState}
-          editingTransactionId={editingTransactionId}
+          {editingTransactionId}
           editData={inlineEditingData}
           onFileSelect={handleAccountFileSelect}
           onUpload={uploadAccountTransactions}
@@ -1152,13 +824,13 @@
       <h3 class="text-lg font-medium text-gray-900 mb-4">새 거래 추가</h3>
       <TransactionForm
         bind:formData
-        accounts={accounts}
+        {accounts}
         {categories}
-        isLoading={isLoading}
+        {isLoading}
         isEdit={false}
         onSubmit={createTransaction}
         onCancel={() => (showAddModal = false)}
-        dateTimeInput={dateTimeInput}
+        {dateTimeInput}
         onDateTimeChange={(value) => {
           dateTimeInput = value
           formData.transactionDate = convertToUTCTimestamp(value)
@@ -1176,13 +848,13 @@
       <h3 class="text-lg font-medium text-gray-900 mb-4">거래 수정</h3>
       <TransactionForm
         bind:formData
-        accounts={accounts}
+        {accounts}
         {categories}
-        isLoading={isLoading}
+        {isLoading}
         isEdit={true}
         onSubmit={updateTransaction}
         onCancel={() => (showEditModal = false)}
-        dateTimeInput={dateTimeInput}
+        {dateTimeInput}
         onDateTimeChange={(value) => {
           dateTimeInput = value
           formData.transactionDate = convertToUTCTimestamp(value)
