@@ -64,7 +64,6 @@ export const PUT: RequestHandler = async ({ params, request }) => {
         message: alert.message,
         accountId: alert.account_id,
         transactionId: alert.transaction_id,
-        budgetId: alert.budget_id,
         isRead: alert.is_read,
         isResolved: alert.is_resolved,
         createdAt: alert.created_at,

@@ -1,7 +1,6 @@
 // 자금일보 시스템 - 메인 타입 정의
 export * from './account'
 export * from './transaction'
-export * from './budget'
 export * from './report'
 export * from './tag'
 
@@ -43,5 +42,4 @@ export interface FinanceConfig {
     lowBalance: number // 잔액 부족 알림 임계값
     highExpense: number // 고액 지출 알림 임계값
   }
-  budgetPeriod: 'monthly' | 'quarterly' | 'yearly' // 예산 설정 주기
 }

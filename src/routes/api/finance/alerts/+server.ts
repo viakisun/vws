@@ -18,12 +18,10 @@ export const GET: RequestHandler = async ({ url }) => {
       SELECT
         a.*,
         acc.name as account_name,
-        t.description as transaction_description,
-        b.name as budget_name
+        t.description as transaction_description
       FROM finance_alerts a
       LEFT JOIN finance_accounts acc ON a.account_id = acc.id
       LEFT JOIN finance_transactions t ON a.transaction_id = t.id
-      LEFT JOIN finance_budgets b ON a.budget_id = b.id
       WHERE 1=1
     `
     const params: any[] = []
@@ -91,28 +89,6 @@ export const GET: RequestHandler = async ({ url }) => {
             updatedAt: '',
           }
         : undefined,
-      budgetId: row.budget_id,
-      budget: row.budget_id
-        ? {
-            id: row.budget_id,
-            name: row.budget_name,
-            type: 'expense' as const,
-            period: 'monthly' as const,
-            year: 0,
-            month: 0,
-            quarter: 0,
-            categoryId: '',
-            accountId: '',
-            plannedAmount: 0,
-            actualAmount: 0,
-            status: 'active' as const,
-            description: '',
-            tags: [],
-            isRecurring: false,
-            createdAt: '',
-            updatedAt: '',
-          }
-        : undefined,
       isRead: row.is_read,
       isResolved: row.is_resolved,
       createdAt: row.created_at,
@@ -157,8 +133,8 @@ export const POST: RequestHandler = async ({ request }) => {
     const queryText = `
       INSERT INTO finance_alerts (
         type, severity, title, message,
-        account_id, transaction_id, budget_id
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7)
+        account_id, transaction_id
+      ) VALUES ($1, $2, $3, $4, $5, $6)
       RETURNING *
     `
 
@@ -169,7 +145,6 @@ export const POST: RequestHandler = async ({ request }) => {
       body.message,
       body.accountId || null,
       body.transactionId || null,
-      body.budgetId || null,
     ]
 
     const result = await query(queryText, params)
@@ -185,7 +160,6 @@ export const POST: RequestHandler = async ({ request }) => {
         message: alert.message,
         accountId: alert.account_id,
         transactionId: alert.transaction_id,
-        budgetId: alert.budget_id,
         isRead: alert.is_read,
         isResolved: alert.is_resolved,
         createdAt: alert.created_at,

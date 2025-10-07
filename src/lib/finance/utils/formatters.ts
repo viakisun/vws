@@ -175,7 +175,6 @@ export function formatAccountType(type: string): string {
     savings: '예금',
     business: '사업자',
     investment: '투자',
-    loan: '대출',
   }
 
   return typeMap[type] || type

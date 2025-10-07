@@ -171,7 +171,7 @@ function parseRow(row: any[], rowIndex: number = 0): Transaction | null {
 }
 
 /**
- * 금액 문자열을 숫자로 변환
+ * 금액 문자열을 정수로 변환 (소수점 제거)
  */
 function parseAmount(value: any): number {
   if (value === null || value === undefined || value === '') {
@@ -180,14 +180,14 @@ function parseAmount(value: any): number {
 
   // 이미 숫자인 경우
   if (typeof value === 'number') {
-    return value
+    return Math.round(value)
   }
 
   // 문자열인 경우 쉼표 제거하고 파싱
   const cleaned = String(value).replace(/,/g, '').trim()
   const num = parseFloat(cleaned)
 
-  return isNaN(num) ? 0 : num
+  return isNaN(num) ? 0 : Math.round(num)
 }
 
 /**

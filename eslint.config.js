@@ -2,372 +2,251 @@ import js from '@eslint/js'
 import tsPlugin from '@typescript-eslint/eslint-plugin'
 import tsParser from '@typescript-eslint/parser'
 import sveltePlugin from 'eslint-plugin-svelte'
-import unusedImports from 'eslint-plugin-unused-imports'
 import svelteParser from 'svelte-eslint-parser'
-import prettierConfig from 'eslint-config-prettier'
+import unusedImports from 'eslint-plugin-unused-imports'
 import prettierPlugin from 'eslint-plugin-prettier'
+import prettierConfig from 'eslint-config-prettier'
+
+// ============================================================================
+// 공통 설정
+// ============================================================================
+
+// 브라우저 & Node.js 전역 변수
+const COMMON_GLOBALS = {
+  // Browser
+  window: 'readonly',
+  document: 'readonly',
+  console: 'readonly',
+  alert: 'readonly',
+  confirm: 'readonly',
+  fetch: 'readonly',
+  setTimeout: 'readonly',
+  clearTimeout: 'readonly',
+  setInterval: 'readonly',
+  clearInterval: 'readonly',
+  requestAnimationFrame: 'readonly',
+
+  // Node.js
+  process: 'readonly',
+  Buffer: 'readonly',
+  __dirname: 'readonly',
+  __filename: 'readonly',
+  global: 'readonly',
+
+  // SvelteKit
+  Response: 'readonly',
+  Request: 'readonly',
+  Headers: 'readonly',
+  URL: 'readonly',
+  URLSearchParams: 'readonly',
+  FormData: 'readonly',
+  File: 'readonly',
+  Blob: 'readonly',
+  locals: 'readonly',
+
+  // DOM Elements
+  MouseEvent: 'readonly',
+  KeyboardEvent: 'readonly',
+  HTMLButtonElement: 'readonly',
+  HTMLInputElement: 'readonly',
+  HTMLSelectElement: 'readonly',
+  HTMLTextAreaElement: 'readonly',
+  HTMLElement: 'readonly',
+  Element: 'readonly',
+  Event: 'readonly',
+  EventTarget: 'readonly',
+
+  // SVG
+  SVGSVGElement: 'readonly',
+  SVGGElement: 'readonly',
+  SVGPathElement: 'readonly',
+  SVGElement: 'readonly',
+}
+
+// TypeScript 파서 옵션
+const TS_PARSER_OPTIONS = {
+  ecmaVersion: 2022,
+  sourceType: 'module',
+  project: './tsconfig.json',
+  tsconfigRootDir: import.meta.dirname,
+}
+
+// ============================================================================
+// 규칙 세트
+// ============================================================================
+
+// 기본 JavaScript 규칙
+const BASE_RULES = {
+  'no-undef': 'off', // TypeScript가 처리
+  'no-unused-vars': 'off', // TypeScript가 처리
+  'no-console': 'off', // console 사용 허용
+  'no-debugger': 'warn', // debugger는 경고만
+  'no-var': 'error', // var 사용 금지
+  'prefer-const': 'warn', // const 사용 권장
+}
+
+// Prettier 관련 규칙
+const PRETTIER_RULES = {
+  'prettier/prettier': 'warn', // 포맷팅 규칙 (경고)
+  indent: 'off',
+  quotes: 'off',
+  semi: 'off',
+  'comma-dangle': 'off',
+  'max-len': 'off',
+}
+
+// TypeScript 기본 규칙 (완화된 설정)
+const TYPESCRIPT_RULES = {
+  // 타입 체킹 (모두 비활성화)
+  '@typescript-eslint/no-explicit-any': 'off',
+  '@typescript-eslint/no-unsafe-assignment': 'off',
+  '@typescript-eslint/no-unsafe-call': 'off',
+  '@typescript-eslint/no-unsafe-member-access': 'off',
+  '@typescript-eslint/no-unsafe-return': 'off',
+  '@typescript-eslint/no-unsafe-argument': 'off',
+  '@typescript-eslint/restrict-template-expressions': 'off',
+  '@typescript-eslint/restrict-plus-operands': 'off',
+
+  // Promise 관련 (모두 비활성화)
+  '@typescript-eslint/no-floating-promises': 'off',
+  '@typescript-eslint/await-thenable': 'off',
+  '@typescript-eslint/no-misused-promises': 'off',
+  '@typescript-eslint/require-await': 'off',
+
+  // 기타 최적화 규칙 (비활성화)
+  '@typescript-eslint/no-unnecessary-type-assertion': 'off',
+  '@typescript-eslint/prefer-nullish-coalescing': 'off',
+  '@typescript-eslint/prefer-optional-chain': 'off',
+
+  // 사용하지 않는 변수 (경고)
+  '@typescript-eslint/no-unused-vars': [
+    'warn',
+    {
+      argsIgnorePattern: '^_',
+      varsIgnorePattern: '^_',
+      caughtErrorsIgnorePattern: '^_',
+      ignoreRestSiblings: true,
+    },
+  ],
+}
+
+// Svelte 규칙
+const SVELTE_RULES = {
+  // Svelte 5 호환성
+  'svelte/valid-compile': 'off',
+  'svelte/no-reactive-functions': 'off',
+  'svelte/no-reactive-literals': 'off',
+  'svelte/require-stores-init': 'off',
+  'svelte/require-store-callbacks-use-set-param': 'off',
+  'svelte/prefer-destructured-store-props': 'off',
+
+  // 에러 방지
+  'svelte/no-at-debug-tags': 'warn',
+  'svelte/no-at-html-tags': 'off',
+  'svelte/no-not-function-handler': 'error',
+  'svelte/no-object-in-text-mustaches': 'error',
+  'svelte/no-unknown-style-directive-property': 'error',
+  'svelte/require-each-key': 'off',
+
+  // 스타일 규칙 (Prettier에 위임)
+  'svelte/indent': 'off',
+  'svelte/max-attributes-per-line': 'off',
+  'svelte/first-attribute-linebreak': 'off',
+  'svelte/html-closing-bracket-spacing': 'off',
+  'svelte/html-quotes': 'off',
+  'svelte/mustache-spacing': 'off',
+
+  // 기타
+  'svelte/button-has-type': 'warn',
+  'svelte/no-unused-class-name': 'off',
+  'svelte/no-target-blank': 'warn',
+}
+
+// ============================================================================
+// ESLint 설정
+// ============================================================================
 
 /** @type {import('eslint').Linter.Config[]} */
 export default [
-  // Base configuration
+  // ========================================
+  // 1. 기본 설정
+  // ========================================
   js.configs.recommended,
+  prettierConfig, // Prettier 충돌 방지
 
-  // Prettier 플러그인 설정
+  // Prettier 플러그인 등록
   {
     plugins: {
       prettier: prettierPlugin,
     },
   },
 
-  // Prettier 충돌 방지 설정 (마지막에 추가해야 함)
-  prettierConfig,
-
-  // Global overrides for no-undef handling
+  // ========================================
+  // 2. 전역 규칙 (모든 파일)
+  // ========================================
   {
-    files: ['**/*.ts', '**/*.tsx', '**/*.svelte'],
+    files: ['**/*.ts', '**/*.tsx', '**/*.svelte', '**/*.js', '**/*.cjs', '**/*.mjs'],
     rules: {
-      // TypeScript handles undefined names; avoid false positives in TS/Svelte
-      'no-undef': 'off',
-
-      // Prettier 충돌 방지 - Prettier가 처리하는 포맷팅 규칙들 비활성화
-      'prettier/prettier': 'error',
-      indent: 'off',
-      quotes: 'off',
-      semi: 'off',
-      'comma-dangle': 'off',
-      'max-len': 'off',
-    },
-  },
-  {
-    files: ['**/*.js', '**/*.cjs', '**/*.mjs'],
-    rules: {
-      // Keep strict undefined checks for plain JavaScript
-      'no-undef': 'error',
+      ...BASE_RULES,
+      ...PRETTIER_RULES,
     },
   },
 
-  // TypeScript files
+  // ========================================
+  // 3. TypeScript 파일
+  // ========================================
   {
     files: ['**/*.ts', '**/*.tsx'],
     languageOptions: {
       parser: tsParser,
-      parserOptions: {
-        ecmaVersion: 2022,
-        sourceType: 'module',
-        project: './tsconfig.json',
-        tsconfigRootDir: import.meta.dirname,
-      },
-      globals: {
-        // Browser globals
-        window: 'readonly',
-        document: 'readonly',
-        console: 'readonly',
-        alert: 'readonly',
-        confirm: 'readonly',
-        fetch: 'readonly',
-        setTimeout: 'readonly',
-        clearTimeout: 'readonly',
-        setInterval: 'readonly',
-        clearInterval: 'readonly',
-        // Node.js globals
-        process: 'readonly',
-        Buffer: 'readonly',
-        __dirname: 'readonly',
-        __filename: 'readonly',
-        global: 'readonly',
-        // SvelteKit globals
-        Response: 'readonly',
-        Request: 'readonly',
-        Headers: 'readonly',
-        URL: 'readonly',
-        URLSearchParams: 'readonly',
-        FormData: 'readonly',
-        File: 'readonly',
-        Blob: 'readonly',
-        // SvelteKit specific
-        locals: 'readonly',
-        // Other common globals
-        MouseEvent: 'readonly',
-        KeyboardEvent: 'readonly',
-        HTMLButtonElement: 'readonly',
-        HTMLInputElement: 'readonly',
-        HTMLSelectElement: 'readonly',
-        HTMLTextAreaElement: 'readonly',
-        HTMLElement: 'readonly',
-        Element: 'readonly',
-        Event: 'readonly',
-        EventTarget: 'readonly',
-        // SVG globals
-        SVGSVGElement: 'readonly',
-        SVGGElement: 'readonly',
-        SVGPathElement: 'readonly',
-        SVGElement: 'readonly',
-        // Animation globals
-        requestAnimationFrame: 'readonly',
-      },
+      parserOptions: TS_PARSER_OPTIONS,
+      globals: COMMON_GLOBALS,
     },
     plugins: {
       '@typescript-eslint': tsPlugin,
       'unused-imports': unusedImports,
     },
     rules: {
-      // === TypeScript Rules ===
-      '@typescript-eslint/no-explicit-any': 'off',
-      '@typescript-eslint/no-unused-vars': [
-        'error',
-        {
-          argsIgnorePattern: '^_',
-          varsIgnorePattern: '^_',
-          caughtErrorsIgnorePattern: '^_',
-        },
-      ],
-      'unused-imports/no-unused-imports': 'error',
-
-      // === TypeScript Type Checking Rules (IDE-friendly) ===
-      '@typescript-eslint/no-unsafe-assignment': 'warn',
-      '@typescript-eslint/no-unsafe-call': 'warn',
-      '@typescript-eslint/no-unsafe-member-access': 'warn',
-      '@typescript-eslint/no-unsafe-return': 'warn',
-      '@typescript-eslint/no-unsafe-argument': 'warn',
-      '@typescript-eslint/restrict-template-expressions': 'off', // 너무 엄격함
-      '@typescript-eslint/restrict-plus-operands': 'off', // 너무 엄격함
-      '@typescript-eslint/no-floating-promises': 'warn',
-      '@typescript-eslint/await-thenable': 'warn',
-      '@typescript-eslint/no-misused-promises': 'warn',
-      '@typescript-eslint/require-await': 'warn',
-      '@typescript-eslint/no-unnecessary-type-assertion': 'warn',
-      '@typescript-eslint/prefer-nullish-coalescing': 'off', // strictNullChecks 필요
-      '@typescript-eslint/prefer-optional-chain': 'warn',
-
-      // === General Rules ===
-      'no-console': 'warn',
-      'no-debugger': 'error',
-      'no-var': 'error',
-      'prefer-const': 'error',
-      'no-unused-vars': 'off', // Handled by TypeScript
-
-      // === 필드명 규칙 강제 (프론트엔드: camelCase) ===
-      // 일시적으로 비활성화 - 점진적 수정 전략 수립 중
-      // 'no-restricted-syntax': [
-      //   'error',
-      //   {
-      //     selector: 'MemberExpression[property.name=/^[a-z]+_[a-z_]+$/]',
-      //     message:
-      //       '프론트엔드에서는 camelCase 필드명을 사용하세요 (예: monthlySalary, annualSalary)',
-      //   },
-      // ],
+      ...TYPESCRIPT_RULES,
+      'unused-imports/no-unused-imports': 'warn',
     },
   },
 
-  // Server-side files (API routes, server utilities)
+  // ========================================
+  // 4. API 라우트 & 서버 파일
+  // ========================================
   {
     files: ['**/*.server.ts', '**/api/**/*.ts', '**/server/**/*.ts'],
     languageOptions: {
       parser: tsParser,
-      parserOptions: {
-        ecmaVersion: 2022,
-        sourceType: 'module',
-        project: './tsconfig.json',
-        tsconfigRootDir: import.meta.dirname,
-      },
-      globals: {
-        // Browser globals
-        window: 'readonly',
-        document: 'readonly',
-        console: 'readonly',
-        alert: 'readonly',
-        confirm: 'readonly',
-        fetch: 'readonly',
-        setTimeout: 'readonly',
-        clearTimeout: 'readonly',
-        setInterval: 'readonly',
-        clearInterval: 'readonly',
-        // Node.js globals
-        process: 'readonly',
-        Buffer: 'readonly',
-        __dirname: 'readonly',
-        __filename: 'readonly',
-        global: 'readonly',
-        // SvelteKit globals
-        Response: 'readonly',
-        Request: 'readonly',
-        Headers: 'readonly',
-        URL: 'readonly',
-        URLSearchParams: 'readonly',
-        FormData: 'readonly',
-        File: 'readonly',
-        Blob: 'readonly',
-        // SvelteKit specific
-        locals: 'readonly',
-        // Other common globals
-        MouseEvent: 'readonly',
-        KeyboardEvent: 'readonly',
-        HTMLButtonElement: 'readonly',
-        HTMLInputElement: 'readonly',
-        HTMLSelectElement: 'readonly',
-        HTMLTextAreaElement: 'readonly',
-        HTMLElement: 'readonly',
-        Element: 'readonly',
-        Event: 'readonly',
-        EventTarget: 'readonly',
-        // SVG globals
-        SVGSVGElement: 'readonly',
-        SVGGElement: 'readonly',
-        SVGPathElement: 'readonly',
-        SVGElement: 'readonly',
-        // Animation globals
-        requestAnimationFrame: 'readonly',
-      },
+      parserOptions: TS_PARSER_OPTIONS,
+      globals: COMMON_GLOBALS,
     },
     plugins: {
       '@typescript-eslint': tsPlugin,
       'unused-imports': unusedImports,
     },
     rules: {
-      // === TypeScript Rules ===
-      '@typescript-eslint/no-explicit-any': 'off',
-      '@typescript-eslint/no-unused-vars': [
-        'error',
-        {
-          argsIgnorePattern: '^_',
-          varsIgnorePattern: '^_',
-          caughtErrorsIgnorePattern: '^_',
-        },
-      ],
-      'unused-imports/no-unused-imports': 'error',
-
-      // === TypeScript Type Checking Rules (IDE-friendly) ===
-      '@typescript-eslint/no-unsafe-assignment': 'warn',
-      '@typescript-eslint/no-unsafe-call': 'warn',
-      '@typescript-eslint/no-unsafe-member-access': 'warn',
-      '@typescript-eslint/no-unsafe-return': 'warn',
-      '@typescript-eslint/no-unsafe-argument': 'warn',
-      '@typescript-eslint/restrict-template-expressions': 'off', // 너무 엄격함
-      '@typescript-eslint/restrict-plus-operands': 'off', // 너무 엄격함
-      '@typescript-eslint/no-floating-promises': 'warn',
-      '@typescript-eslint/await-thenable': 'warn',
-      '@typescript-eslint/no-misused-promises': 'warn',
-      '@typescript-eslint/require-await': 'warn',
-      '@typescript-eslint/no-unnecessary-type-assertion': 'warn',
-      '@typescript-eslint/prefer-nullish-coalescing': 'off', // strictNullChecks 필요
-      '@typescript-eslint/prefer-optional-chain': 'warn',
-
-      // === General Rules ===
-      'no-console': 'warn',
-      'no-debugger': 'error',
-      'no-var': 'error',
-      'prefer-const': 'error',
-      'no-unused-vars': 'off', // Handled by TypeScript
-
-      // === 필드명 규칙 강제 (서버사이드: snake_case) ===
-      // 일시적으로 비활성화 - 점진적 수정 전략 수립 중
-      // 'no-restricted-syntax': [
-      //   'error',
-      //   // 1) camelCase 필드명 사용 금지
-      //   {
-      //     selector: 'MemberExpression[property.name=/^[a-z]+[A-Z][a-zA-Z]*$/]',
-      //     message:
-      //       '서버사이드에서는 snake_case 필드명을 사용하세요 (예: monthly_salary, annual_salary)',
-      //   },
-      //   // 2) + 연산으로 성/이름을 단순 결합하는 경우만
-      //   {
-      //     selector:
-      //       "BinaryExpression[operator='+'] > MemberExpression[property.name=/^(last_name|first_name)$/]",
-      //     message:
-      //       '이름 조합 시 formatEmployeeName 또는 formatKoreanNameStandard 함수를 사용하세요',
-      //   },
-      //   // 3) 템플릿 리터럴에서 실제 이름 필드가 복수 포함된 경우만 (매우 제한적)
-      //   {
-      //     selector:
-      //       'TemplateLiteral[expressions.length>=2] > MemberExpression[property.name=/^(last_name|first_name)$/]',
-      //     message:
-      //       '이름 조합 시 formatEmployeeName 또는 formatKoreanNameStandard 함수를 사용하세요',
-      //   },
-      //   // === 날짜 처리 강제 규칙 ===
-      //   {
-      //     selector:
-      //       'CallExpression[callee.object.name="Date"][callee.property.name="toLocaleDateString"]',
-      //     message: '날짜 표시 시 formatDateForDisplay 함수를 사용하세요.',
-      //   },
-      //   {
-      //     selector:
-      //       'CallExpression[callee.object.name="Date"][callee.property.name="toLocaleString"]',
-      //     message: '날짜/시간 표시 시 formatDateForDisplay 함수를 사용하세요.',
-      //   },
-      //   {
-      //     selector: 'CallExpression[callee.name="Date"]',
-      //     message: '날짜 생성 시 toUTC 함수를 사용하여 표준화하세요.',
-      //   },
-      //   {
-      //     selector: 'CallExpression[callee.property.name="toISOString"]',
-      //     message: 'UTC 변환 시 toUTC 함수를 사용하세요.',
-      //   },
-      // ],
+      ...TYPESCRIPT_RULES,
+      'unused-imports/no-unused-imports': 'warn',
+      // 서버 전용 규칙이 필요하면 여기에 추가
     },
   },
 
-  // Svelte files
+  // ========================================
+  // 5. Svelte 파일
+  // ========================================
   {
     files: ['**/*.svelte'],
     languageOptions: {
       parser: svelteParser,
       parserOptions: {
-        parser: tsParser,
-        // Svelte 5 호환성
+        parser: '@typescript-eslint/parser',
         svelteFeatures: {
-          runes: true,
+          runes: true, // Svelte 5 지원
         },
-        // Note: TypeScript project config removed to avoid parsing errors
-        // Svelte files are not included in tsconfig.json
       },
-      globals: {
-        // Browser globals
-        window: 'readonly',
-        document: 'readonly',
-        console: 'readonly',
-        alert: 'readonly',
-        confirm: 'readonly',
-        fetch: 'readonly',
-        setTimeout: 'readonly',
-        clearTimeout: 'readonly',
-        setInterval: 'readonly',
-        clearInterval: 'readonly',
-        // Node.js globals
-        process: 'readonly',
-        Buffer: 'readonly',
-        __dirname: 'readonly',
-        __filename: 'readonly',
-        global: 'readonly',
-        // SvelteKit globals
-        Response: 'readonly',
-        Request: 'readonly',
-        Headers: 'readonly',
-        URL: 'readonly',
-        URLSearchParams: 'readonly',
-        FormData: 'readonly',
-        File: 'readonly',
-        Blob: 'readonly',
-        // SvelteKit specific
-        locals: 'readonly',
-        // Other common globals
-        MouseEvent: 'readonly',
-        KeyboardEvent: 'readonly',
-        HTMLButtonElement: 'readonly',
-        HTMLInputElement: 'readonly',
-        HTMLSelectElement: 'readonly',
-        HTMLTextAreaElement: 'readonly',
-        HTMLElement: 'readonly',
-        Element: 'readonly',
-        Event: 'readonly',
-        EventTarget: 'readonly',
-        // SVG globals
-        SVGSVGElement: 'readonly',
-        SVGGElement: 'readonly',
-        SVGPathElement: 'readonly',
-        SVGElement: 'readonly',
-        // Animation globals
-        requestAnimationFrame: 'readonly',
-      },
+      globals: COMMON_GLOBALS,
     },
     plugins: {
       svelte: sveltePlugin,
@@ -375,98 +254,30 @@ export default [
       'unused-imports': unusedImports,
     },
     rules: {
-      // === Svelte Rules ===
-      'svelte/valid-compile': 'off', // Svelte 5 호환성 문제로 비활성화
-      'unused-imports/no-unused-imports': 'error',
-
-      // === TypeScript-aware unused vars rules ===
-      'no-unused-vars': 'off',
+      ...SVELTE_RULES,
+      'unused-imports/no-unused-imports': 'warn',
       '@typescript-eslint/no-unused-vars': [
-        'error',
+        'warn',
         {
           argsIgnorePattern: '^_',
           varsIgnorePattern: '^_',
           caughtErrorsIgnorePattern: '^_',
         },
       ],
-
-      // === TypeScript Type Checking Rules (Svelte files don't support type checking) ===
+      // Svelte에서는 타입 체킹 비활성화
       '@typescript-eslint/no-unsafe-assignment': 'off',
       '@typescript-eslint/no-unsafe-call': 'off',
       '@typescript-eslint/no-unsafe-member-access': 'off',
       '@typescript-eslint/no-unsafe-return': 'off',
       '@typescript-eslint/no-unsafe-argument': 'off',
-      '@typescript-eslint/restrict-template-expressions': 'off',
-      '@typescript-eslint/restrict-plus-operands': 'off',
-      '@typescript-eslint/no-floating-promises': 'off',
-      '@typescript-eslint/await-thenable': 'off',
-      '@typescript-eslint/no-misused-promises': 'off',
-      '@typescript-eslint/require-await': 'off',
-      '@typescript-eslint/no-unnecessary-type-assertion': 'off',
-      '@typescript-eslint/prefer-nullish-coalescing': 'off',
-      '@typescript-eslint/prefer-optional-chain': 'off',
-      'svelte/no-at-debug-tags': 'warn',
-      'svelte/no-at-html-tags': 'off',
-      'svelte/no-dupe-else-if-blocks': 'warn',
-      'svelte/no-dupe-style-properties': 'warn',
-      'svelte/no-dynamic-slot-name': 'warn',
-      'svelte/no-not-function-handler': 'error',
-      'svelte/no-object-in-text-mustaches': 'error',
-      'svelte/no-reactive-functions': 'error',
-      'svelte/no-reactive-literals': 'error',
-      'svelte/no-shorthand-style-property-overrides': 'error',
-      'svelte/no-unknown-style-directive-property': 'error',
-      'svelte/no-useless-mustaches': 'error',
-      'svelte/require-each-key': 'off',
-      'svelte/require-stores-init': 'error',
-      'svelte/require-store-callbacks-use-set-param': 'error',
-      'svelte/block-lang': 'off', // Svelte 5에서는 TypeScript를 기본 지원
-      'svelte/button-has-type': 'warn',
-      'svelte/html-closing-bracket-spacing': 'warn',
-      'svelte/html-quotes': 'warn',
-      'svelte/html-self-closing': 'warn',
-      'svelte/indent': ['warn', { indent: 2 }],
-      'svelte/max-attributes-per-line': ['warn', { singleline: 3, multiline: 1 }],
-      'svelte/mustache-spacing': 'warn',
-      'svelte/no-spaces-around-equal-signs-in-attribute': 'warn',
-      'svelte/no-trailing-spaces': 'warn',
-      'svelte/prefer-class-directive': 'warn',
-      'svelte/prefer-style-directive': 'warn',
-      'svelte/shorthand-attribute': 'warn',
-      'svelte/shorthand-directive': 'warn',
-      'svelte/spaced-html-comment': 'warn',
-      'svelte/derived-has-same-inputs-outputs': 'warn',
-      'svelte/first-attribute-linebreak': 'warn',
-      'svelte/no-export-load-in-svelte-module-in-kit-pages': 'warn',
-      'svelte/no-target-blank': 'warn',
-      'svelte/no-unused-class-name': 'off',
-      'svelte/no-unused-svelte-ignore': 'warn',
-      'svelte/prefer-destructured-store-props': 'warn',
-      'svelte/require-event-dispatcher-types': 'warn',
-      'svelte/require-optimized-style-attribute': 'off',
-      'svelte/valid-each-key': 'warn',
-
-      // === Svelte 5 호환성 규칙 ===
-      'svelte/no-reactive-functions': 'off', // Svelte 5에서는 $derived 사용
-      'svelte/no-reactive-literals': 'off', // Svelte 5에서는 $state 사용
-      'svelte/require-stores-init': 'off', // Svelte 5에서는 $state 사용
-      'svelte/require-store-callbacks-use-set-param': 'off', // Svelte 5에서는 $state 사용
-      'svelte/prefer-destructured-store-props': 'off', // Svelte 5에서는 $props 사용
-
-      // === 필드명 규칙 강제 (Svelte: camelCase) ===
-      // 일시적으로 비활성화 - 점진적 수정 전략 수립 중
-      // 'no-restricted-syntax': [
-      //   'error',
-      //   {
-      //     selector: 'MemberExpression[property.name=/^[a-z]+_[a-z_]+$/]',
-      //     message:
-      //       'Svelte 컴포넌트에서는 camelCase 필드명을 사용하세요 (예: monthlySalary, annualSalary)',
-      //   },
-      // ],
     },
   },
 
-  // Allow console in scripts/migrations/tests; app code uses logger
+  // ========================================
+  // 6. 특정 디렉토리 예외 규칙
+  // ========================================
+
+  // 스크립트, 마이그레이션, 테스트는 console 허용
   {
     files: ['scripts/**', 'migrations/**', 'tests/**'],
     rules: {
@@ -474,7 +285,7 @@ export default [
     },
   },
 
-  // Logger utility exception - allow console statements in logger.ts
+  // Logger 유틸리티는 console 허용
   {
     files: ['src/lib/utils/logger.ts'],
     rules: {
@@ -482,7 +293,7 @@ export default [
     },
   },
 
-  // Node/CommonJS scripts and utility JS files
+  // Node.js 스크립트
   {
     files: ['scripts/**/*.js', 'scripts/**/*.cjs', 'utils/**/*.js'],
     languageOptions: {
@@ -509,38 +320,35 @@ export default [
     },
   },
 
-  // Global ignores
+  // ========================================
+  // 7. 제외할 파일/디렉토리
+  // ========================================
   {
     ignores: [
+      // 빌드 결과물
       'build/**',
       '.svelte-kit/**',
       'dist/**',
       'node_modules/**',
-      '*.config.js',
-      '*.config.cjs',
-      // Reports & logs
-      '.reports/**',
-      'eslint.*.json',
-      // Generated files
       'coverage/**',
       'test-results/**',
       '.nyc_output/**',
-      // Lock files
+
+      // 설정 파일
+      '*.config.js',
+      '*.config.cjs',
+
+      // 리포트 & 로그
+      '.reports/**',
+      'eslint.*.json',
+
+      // Lock 파일
       'package-lock.json',
       'pnpm-lock.yaml',
       'yarn.lock',
-      // CI/CD workflows
+
+      // CI/CD
       '.github/workflows/**',
     ],
-  },
-
-  // --- Delegate Svelte formatting to Prettier ---
-  {
-    files: ['**/*.svelte'],
-    rules: {
-      'svelte/indent': 'off',
-      'svelte/max-attributes-per-line': 'off',
-      'svelte/first-attribute-linebreak': 'off',
-    },
   },
 ]

@@ -10,16 +10,13 @@ import type {
   TransactionStats,
   AccountFilter,
   TransactionFilter,
-  BudgetFilter,
   BankSummary,
 } from '$lib/finance/types'
-import type { Budget } from '$lib/finance/types/budget'
 
 // 데이터 인터페이스
 interface FinanceData {
   accounts: Account[]
   transactions: Transaction[]
-  budgets: Budget[]
   bankSummaries: BankSummary[]
   transactionStats: TransactionStats | null
 }
@@ -31,15 +28,12 @@ interface FinanceUI {
   modals: {
     showAccountModal: boolean
     showTransactionModal: boolean
-    showBudgetModal: boolean
     selectedAccountId: string | null
     selectedTransactionId: string | null
-    selectedBudgetId: string | null
   }
   filters: {
     accountFilter: Partial<AccountFilter>
     transactionFilter: Partial<TransactionFilter>
-    budgetFilter: Partial<BudgetFilter>
   }
   pagination: {
     transactionPage: number
@@ -62,7 +56,6 @@ interface FinanceStatistics {
 const initialData: FinanceData = {
   accounts: [],
   transactions: [],
-  budgets: [],
   bankSummaries: [],
   transactionStats: null,
 }
@@ -74,15 +67,12 @@ const initialUI: FinanceUI = {
   modals: {
     showAccountModal: false,
     showTransactionModal: false,
-    showBudgetModal: false,
     selectedAccountId: null,
     selectedTransactionId: null,
-    selectedBudgetId: null,
   },
   filters: {
     accountFilter: {},
     transactionFilter: {},
-    budgetFilter: {},
   },
   pagination: {
     transactionPage: 1,
@@ -235,10 +225,6 @@ class FinanceStore {
     this.data.transactions = transactions
   }
 
-  setBudgets(budgets: Budget[]) {
-    this.data.budgets = budgets
-  }
-
   setBankSummaries(summaries: BankSummary[]) {
     this.data.bankSummaries = summaries
   }
@@ -306,16 +292,6 @@ class FinanceStore {
     this.ui.modals.selectedTransactionId = null
   }
 
-  openBudgetModal(budgetId?: string) {
-    this.ui.modals.showBudgetModal = true
-    this.ui.modals.selectedBudgetId = budgetId || null
-  }
-
-  closeBudgetModal() {
-    this.ui.modals.showBudgetModal = false
-    this.ui.modals.selectedBudgetId = null
-  }
-
   // ===== Filter Management =====
 
   setAccountFilter(filter: Partial<AccountFilter>) {
@@ -332,14 +308,6 @@ class FinanceStore {
 
   resetTransactionFilter() {
     this.ui.filters.transactionFilter = {}
-  }
-
-  setBudgetFilter(filter: Partial<BudgetFilter>) {
-    this.ui.filters.budgetFilter = { ...this.ui.filters.budgetFilter, ...filter }
-  }
-
-  resetBudgetFilter() {
-    this.ui.filters.budgetFilter = {}
   }
 
   setTransactionPage(page: number) {

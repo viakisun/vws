@@ -69,7 +69,6 @@ export type DeductionType =
   | 'long_term_care' // 장기요양보험
   | 'meal_deduction' // 식대 공제
   | 'transport_deduction' // 교통비 공제
-  | 'loan' // 대출
   | 'advance' // 선급금
   | 'penalty' // 벌금
   | 'other' // 기타
@@ -158,7 +157,7 @@ export interface DeductionItem {
   id: string
   name: string
   rate?: number
-  type: 'insurance' | 'pension' | 'tax' | 'loan' | 'other'
+  type: 'insurance' | 'pension' | 'tax' | 'other'
   amount: number
   isMandatory: boolean
 }

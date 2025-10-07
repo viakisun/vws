@@ -330,7 +330,7 @@ export const POST: RequestHandler = async ({ request }) => {
 
     // 알림 생성 (비동기로 실행)
     alertGenerator
-      .checkAlertsAfterTransaction(transaction.id, body.accountId, body.amount, body.categoryId)
+      .checkAlertsAfterTransaction(transaction.id, body.accountId, body.amount)
       .catch((error) => {
         logger.error('알림 생성 실패:', error)
       })

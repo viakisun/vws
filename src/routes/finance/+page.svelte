@@ -3,7 +3,6 @@
   import { page } from '$app/stores'
   import PageLayout from '$lib/components/layout/PageLayout.svelte'
   import AccountManagement from '$lib/finance/components/accounts/AccountManagement.svelte'
-  import BudgetManagement from '$lib/finance/components/budgets/BudgetManagement.svelte'
   import CategoryManagement from '$lib/finance/components/categories/CategoryManagement.svelte'
   import FinanceOverviewTab from '$lib/finance/components/dashboard/FinanceOverviewTab.svelte'
   import RecipientManagement from '$lib/finance/components/email/RecipientManagement.svelte'
@@ -27,7 +26,6 @@
     { id: 'transactions', label: '거래내역' },
     { id: 'tags', label: '태그 관리' },
     { id: 'categories', label: '카테고리 관리' },
-    { id: 'budgets', label: '예산관리' },
     { id: 'email', label: '이메일 관리' },
     { id: 'reports', label: '리포트' },
   ]
@@ -156,8 +154,6 @@
       <TagManagement />
     {:else if activeTab === 'categories'}
       <CategoryManagement />
-    {:else if activeTab === 'budgets'}
-      <BudgetManagement />
     {:else if activeTab === 'email'}
       <RecipientManagement />
     {:else if activeTab === 'reports'}

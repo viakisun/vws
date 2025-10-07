@@ -203,11 +203,9 @@ export class TransactionDbService {
         description: transaction.description || '',
         transactionDate: transaction.transaction_date,
         counterparty: transaction.counterparty,
-        deposits: transaction.deposits ? parseFloat(transaction.deposits.toString()) : undefined,
-        withdrawals: transaction.withdrawals
-          ? parseFloat(transaction.withdrawals.toString())
-          : undefined,
-        balance: transaction.balance ? parseFloat(transaction.balance.toString()) : undefined,
+        deposits: transaction.deposits ? Number(transaction.deposits) : undefined,
+        withdrawals: transaction.withdrawals ? Number(transaction.withdrawals) : undefined,
+        balance: transaction.balance ? Number(transaction.balance) : undefined,
         notes: transaction.notes,
         isRecurring: transaction.is_recurring || false,
         recurringPattern: transaction.recurring_pattern
@@ -235,9 +233,6 @@ export class TransactionDbService {
               status: accountResult.rows[0].status,
               description: accountResult.rows[0].description,
               isPrimary: accountResult.rows[0].is_primary,
-              alertThreshold: accountResult.rows[0].alert_threshold
-                ? parseFloat(accountResult.rows[0].alert_threshold)
-                : undefined,
               createdAt: accountResult.rows[0].created_at,
               updatedAt: accountResult.rows[0].updated_at,
             }

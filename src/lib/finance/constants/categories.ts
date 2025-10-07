@@ -16,7 +16,6 @@ export const DEFAULT_CATEGORIES = {
     { name: '임대료', type: 'expense', color: '#F59E0B', isSystem: true },
     { name: '공과금', type: 'expense', color: '#D97706', isSystem: true },
     { name: '보험료', type: 'expense', color: '#B45309', isSystem: true },
-    { name: '대출상환', type: 'expense', color: '#92400E', isSystem: true },
 
     // 운영비
     { name: '사무용품', type: 'expense', color: '#8B5CF6', isSystem: true },
@@ -58,7 +57,6 @@ export const FIXED_COST_CATEGORIES = [
   '임대료',
   '공과금',
   '보험료',
-  '대출상환',
   '통신비',
   '인터넷비',
   '관리비',
@@ -124,7 +122,6 @@ export const CATEGORY_PRIORITY = {
   임대료: 95,
   공과금: 90,
   보험료: 85,
-  대출상환: 80,
   통신비: 75,
   사무용품: 70,
   교통비: 65,
@@ -139,7 +136,6 @@ export const CATEGORY_BUDGET_RATIOS = {
   임대료: 0.1, // 10%
   공과금: 0.05, // 5%
   보험료: 0.03, // 3%
-  대출상환: 0.1, // 10%
   사무용품: 0.02, // 2%
   교통비: 0.02, // 2%
   식비: 0.03, // 3%

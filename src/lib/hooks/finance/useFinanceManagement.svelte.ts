@@ -5,13 +5,11 @@
 
 import { useAccounts } from './useAccounts.svelte'
 import { useTransactions } from './useTransactions.svelte'
-import { useBudgets } from './useBudgets.svelte'
 import { logger } from '$lib/utils/logger'
 
 export function useFinanceManagement() {
   const accounts = useAccounts()
   const transactions = useTransactions()
-  const budgets = useBudgets()
 
   /**
    * 모든 자금 관련 데이터 로드
@@ -22,7 +20,6 @@ export function useFinanceManagement() {
       accounts.loadBankSummaries(),
       transactions.loadTransactions(undefined, 1, 100),
       transactions.loadTransactionStats(),
-      budgets.loadBudgets(),
       loadDashboardStats(), // 대시보드 통계 로드 (단일 소스)
     ])
   }
@@ -84,7 +81,6 @@ export function useFinanceManagement() {
   const filtered = $derived({
     accounts: accounts.store.filteredAccounts,
     transactions: transactions.store.filteredTransactions,
-    budgets: [], // TODO: 예산 필터링 구현
   })
 
   return {
@@ -117,16 +113,6 @@ export function useFinanceManagement() {
       setFilter: transactions.setFilter,
       resetFilter: transactions.resetFilter,
       setPage: transactions.setPage,
-    },
-
-    budgets: {
-      load: budgets.loadBudgets,
-      create: budgets.createBudget,
-      update: budgets.updateBudget,
-      delete: budgets.deleteBudget,
-      loadAnalysis: budgets.loadBudgetAnalysis,
-      setFilter: budgets.setFilter,
-      resetFilter: budgets.resetFilter,
     },
 
     // 통합 기능

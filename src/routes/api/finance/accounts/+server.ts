@@ -167,12 +167,12 @@ export const POST: RequestHandler = async ({ request }) => {
       )
     }
 
-    // 계좌 생성 (balance 필드 제거됨)
+    // 계좌 생성
     const queryText = `
       INSERT INTO finance_accounts (
         name, account_number, bank_id, account_type,
-        description, is_primary, alert_threshold
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7)
+        description, is_primary
+      ) VALUES ($1, $2, $3, $4, $5, $6)
       RETURNING *
     `
 
@@ -183,7 +183,6 @@ export const POST: RequestHandler = async ({ request }) => {
       body.accountType,
       body.description || null,
       body.isPrimary || false,
-      body.alertThreshold || null,
     ]
 
     const result = await query(queryText, params)

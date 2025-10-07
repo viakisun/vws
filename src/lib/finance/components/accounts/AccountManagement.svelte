@@ -637,7 +637,6 @@
               <option value="savings">예금</option>
               <option value="business">사업자</option>
               <option value="investment">투자</option>
-              <option value="loan">대출</option>
             </select>
           </div>
 
@@ -763,7 +762,6 @@
               <option value="savings">예금</option>
               <option value="business">사업자</option>
               <option value="investment">투자</option>
-              <option value="loan">대출</option>
             </select>
           </div>
 

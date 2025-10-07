@@ -217,23 +217,6 @@ INSERT INTO finance_banks (name, code, color) VALUES
 ('농협은행', 'NH', '#00A651')
 ON CONFLICT (code) DO NOTHING;
 
--- 대출 테이블
-CREATE TABLE IF NOT EXISTS finance_loans (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    type VARCHAR(50) NOT NULL, -- 'execution' or 'repayment'
-    amount NUMERIC(15, 2) NOT NULL,
-    interest_rate NUMERIC(5, 2) NOT NULL, -- Annual interest rate percentage
-    term_months INTEGER NOT NULL, -- Loan term in months
-    planned_date DATE NOT NULL,
-    actual_date DATE,
-    description TEXT NOT NULL,
-    account_id UUID REFERENCES finance_accounts(id) ON DELETE SET NULL,
-    status VARCHAR(50) NOT NULL DEFAULT 'planned', -- 'planned', 'executed', 'cancelled'
-    notes TEXT,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
-
 -- 이메일 수신자 테이블
 CREATE TABLE IF NOT EXISTS finance_email_recipients (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -263,7 +246,6 @@ INSERT INTO finance_categories (name, type, color, is_system) VALUES
 ('임대료', 'expense', '#F59E0B', true),
 ('공과금', 'expense', '#D97706', true),
 ('보험료', 'expense', '#B45309', true),
-('대출상환', 'expense', '#92400E', true),
 ('사무용품', 'expense', '#8B5CF6', true),
 ('통신비', 'expense', '#7C3AED', true),
 ('교통비', 'expense', '#6D28D9', true),

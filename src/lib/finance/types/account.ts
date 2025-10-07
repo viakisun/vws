@@ -10,7 +10,7 @@ export interface Bank extends BaseEntity {
 }
 
 // 계좌 타입
-export type AccountType = 'checking' | 'savings' | 'business' | 'investment' | 'loan'
+export type AccountType = 'checking' | 'savings' | 'business' | 'investment'
 
 // 계좌 상태
 export type AccountStatus = 'active' | 'inactive' | 'suspended' | 'closed'
@@ -26,7 +26,6 @@ export interface Account extends BaseEntity {
   status: AccountStatus
   description?: string
   isPrimary: boolean // 주요 계좌 여부
-  alertThreshold?: number // 잔액 알림 임계값
   tags?: AccountTag[] // 계좌 태그 목록 (런타임 전용, JOIN으로 조회)
 }
 
@@ -38,7 +37,6 @@ export interface CreateAccountRequest {
   accountType: AccountType
   description?: string
   isPrimary?: boolean
-  alertThreshold?: number
 }
 
 // 계좌 업데이트 요청

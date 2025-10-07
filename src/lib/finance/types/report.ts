@@ -151,7 +151,7 @@ export interface UpcomingPayment {
   description: string
   amount: number
   dueDate: string
-  type: 'salary' | 'loan' | 'rent' | 'other'
+  type: 'salary' | 'rent' | 'other'
   accountId: string
   isRecurring: boolean
   priority: 'low' | 'medium' | 'high'
