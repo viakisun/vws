@@ -242,9 +242,15 @@ User Action → Hook Method → Service → API
 ```svelte
 <script lang="ts">
   // 모든 로직이 여기에...
-  async function loadBudgets() { ... }
-  async function addMember() { ... }
-  async function addEvidence() { ... }
+  async function loadBudgets() {
+    // 예산 로딩 로직
+  }
+  async function addMember() {
+    // 멤버 추가 로직
+  }
+  async function addEvidence() {
+    // 증빙 추가 로직
+  }
   // ... 수백 줄의 코드
 </script>
 ```

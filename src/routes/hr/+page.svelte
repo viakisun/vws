@@ -25,13 +25,12 @@
   import ThemeTabs from '$lib/components/ui/ThemeTabs.svelte'
   import { useHRManagement } from '$lib/hooks/hr/useHRManagement.svelte'
   import {
-    AwardIcon,
     ChartBarIcon,
-    BriefcaseIcon,
     BuildingIcon,
     NetworkIcon,
     TagIcon,
     UsersIcon,
+    AwardIcon,
   } from '@lucide/svelte'
 
   // Hook 사용
@@ -41,29 +40,11 @@
   // Stats for PageLayout
   const stats = $derived([
     {
-      title: '총 직원수',
-      value: hr.statistics.total,
-      change: `재직중 ${hr.statistics.active}명`,
+      title: '재직자',
+      value: hr.statistics.active,
+      change: `총 ${hr.statistics.total}명`,
       trend: 'up' as const,
       icon: UsersIcon,
-    },
-    {
-      title: '부서',
-      value: hr.statistics.departmentCount,
-      change: `평균 ${Math.round(hr.statistics.active / Math.max(hr.statistics.departmentCount, 1))}명`,
-      icon: BuildingIcon,
-    },
-    {
-      title: '직급',
-      value: hr.statistics.positionCount,
-      change: `평균 재직 ${hr.statistics.avgTenure}년`,
-      icon: AwardIcon,
-    },
-    {
-      title: '휴직/휴가',
-      value: hr.statistics.onLeave,
-      change: store.data.leaveRequests.filter((r) => r.status === 'pending').length + '건 대기중',
-      icon: BriefcaseIcon,
     },
   ])
 
