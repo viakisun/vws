@@ -15,22 +15,27 @@
 ## 명명 규칙
 
 ### 데이터베이스 (PostgreSQL)
+
 - **snake_case** 사용
-- 모든 컬럼명은 소문자와 언더스코어(_)로 구성
+- 모든 컬럼명은 소문자와 언더스코어(\_)로 구성
+
 ```sql
 start_date, end_date, created_at, updated_at
 manager_id, budget_total
 ```
 
 ### JavaScript/TypeScript
+
 - **camelCase** 사용
 - 첫 번째 단어는 소문자, 이후 단어의 첫 글자는 대문자
+
 ```typescript
-startDate, endDate, createdAt, updatedAt
-managerId, budgetTotal
+;(startDate, endDate, createdAt, updatedAt)
+;(managerId, budgetTotal)
 ```
 
 ### 변환 규칙
+
 - DB → JS: `snake_case` → `camelCase`
 - JS → DB: `camelCase` → `snake_case`
 - 변환은 `src/lib/utils/api-data-transformer.ts` 사용
@@ -42,15 +47,18 @@ managerId, budgetTotal
 ### 🚨 중요: 중앙화된 유틸리티 함수 사용 필수
 
 #### 1. 날짜 처리
+
 **위치**: `src/lib/utils/date-calculator.ts`
 
 허용되는 함수:
+
 - `formatDateForAPI(date)` - API용 YYYY-MM-DD
 - `formatDateForKorean(date)` - 한국어 YYYY년 MM월 DD일
 - `calculateAnnualPeriod()` - 연차별 기간 계산
 - `isValidDate()`, `isValidDateRange()` - 유효성 검증
 
 ❌ 금지:
+
 ```typescript
 // 금지
 new Date().toISOString().split('T')[0]
@@ -61,15 +69,18 @@ formatDateForAPI(new Date())
 ```
 
 #### 2. 급여 계산
+
 **위치**: `src/lib/utils/salary-calculator.ts`
 
 허용되는 함수:
+
 - `calculateMonthlySalary()` - 월간 급여 계산
 - `calculateMonthlyFromAnnual()` - 연봉 → 월급
 - `calculateBudgetAllocation()` - 예산 배분
 - `normalizeSalaryAmount()` - 금액 정규화
 
 ❌ 금지:
+
 ```typescript
 // 금지 - 임의의 급여 계산
 const monthly = annual / 12
@@ -79,6 +90,7 @@ const monthly = calculateMonthlyFromAnnual(annual)
 ```
 
 #### 3. 데이터 변환
+
 **위치**: `src/lib/utils/api-data-transformer.ts`
 
 - `transformForAPI()` - camelCase → snake_case
@@ -91,6 +103,7 @@ const monthly = calculateMonthlyFromAnnual(annual)
 ### 표준 형식
 
 #### 1. 데이터베이스
+
 - **타입**: `DATE` (not TIMESTAMP)
 - **형식**: `YYYY-MM-DD`
 - **컬럼명**: `*_date` suffix
@@ -104,6 +117,7 @@ CREATE TABLE projects (
 ```
 
 #### 2. API 전송
+
 - **형식**: `YYYY-MM-DD` (ISO 8601 날짜 부분만)
 - **타임존**: UTC 기준 (한국 시간 변환 주의)
 
@@ -116,16 +130,18 @@ CREATE TABLE projects (
 ```
 
 #### 3. 화면 표시
+
 - **한국어**: `YYYY년 MM월 DD일`
 - **함수**: `formatDateForKorean()`
 
 ```typescript
-formatDateForKorean('2025-01-01')  // "2025년 01월 01일"
+formatDateForKorean('2025-01-01') // "2025년 01월 01일"
 ```
 
 ### 날짜 계산 규칙
 
 #### 기간 계산
+
 ```typescript
 // ✅ 올바른 방법
 const period = calculateAnnualPeriod(startDate, endDate, year)
@@ -135,6 +151,7 @@ const days = Math.floor((endDate - startDate) / (1000 * 60 * 60 * 24))
 ```
 
 #### 유효성 검증
+
 ```typescript
 // 날짜 유효성
 if (!isValidDate(dateStr)) {
@@ -154,6 +171,7 @@ if (!isValidDateRange(startDate, endDate)) {
 ### 한국 이름 규칙
 
 #### 1. 입력 검증
+
 **위치**: `src/lib/utils/korean-name.ts`
 
 ```typescript
@@ -166,11 +184,13 @@ if (!validateKoreanName(name)) {
 ```
 
 #### 2. 저장 형식
+
 - **DB**: `name` 컬럼 (VARCHAR)
 - **형식**: 한글만, 공백 없음, 2-4자
 - **예시**: `홍길동`, `김철수`
 
 #### 3. 표시 형식
+
 ```typescript
 // 이름 표시
 <span>{employee.name}</span>  // "홍길동"
@@ -186,6 +206,7 @@ if (!validateKoreanName(name)) {
 ### 반응성 가이드
 
 #### 1. 상태 관리
+
 ```typescript
 // ✅ $state 사용
 let count = $state(0)
@@ -197,6 +218,7 @@ let count = 0
 ```
 
 #### 2. 파생 상태
+
 ```typescript
 // ✅ $derived 사용
 let doubled = $derived(count * 2)
@@ -204,11 +226,12 @@ let total = $derived(items.reduce((sum, item) => sum + item.price, 0))
 
 // ✅ 복잡한 계산은 $derived.by
 let filteredItems = $derived.by(() => {
-  return items.filter(item => item.active)
+  return items.filter((item) => item.active)
 })
 ```
 
 #### 3. 효과 (Side Effects)
+
 ```typescript
 // ✅ $effect 사용
 $effect(() => {
@@ -224,22 +247,24 @@ $effect(() => {
 ```
 
 #### 4. Props
+
 ```svelte
 <script lang="ts">
-// ✅ Props 선언
-interface Props {
-  title: string
-  items: Item[]
-  onUpdate?: (item: Item) => void
-}
+  // ✅ Props 선언
+  interface Props {
+    title: string
+    items: Item[]
+    onUpdate?: (item: Item) => void
+  }
 
-let { title, items, onUpdate }: Props = $props()
+  let { title, items, onUpdate }: Props = $props()
 </script>
 ```
 
 ### Store 패턴
 
 #### Svelte 5 Store (Runes 기반)
+
 ```typescript
 // ✅ 권장: Runes 기반 Store
 export function createStore() {
@@ -247,13 +272,19 @@ export function createStore() {
   let loading = $state(false)
 
   let filteredData = $derived.by(() => {
-    return data.filter(item => item.active)
+    return data.filter((item) => item.active)
   })
 
   return {
-    get data() { return data },
-    get loading() { return loading },
-    get filtered() { return filteredData },
+    get data() {
+      return data
+    },
+    get loading() {
+      return loading
+    },
+    get filtered() {
+      return filteredData
+    },
 
     setData(newData) {
       data = newData
@@ -261,7 +292,7 @@ export function createStore() {
 
     setLoading(value) {
       loading = value
-    }
+    },
   }
 }
 ```
@@ -271,6 +302,7 @@ export function createStore() {
 ## TypeScript 규칙
 
 ### 타입 정의
+
 ```typescript
 // ✅ Interface 사용 (확장 가능)
 interface Employee {
@@ -285,12 +317,13 @@ type Result<T> = { success: true; data: T } | { success: false; error: string }
 ```
 
 ### any 사용 최소화
+
 ```typescript
 // ❌ 피할 것
-function process(data: any) { }
+function process(data: any) {}
 
 // ✅ 제네릭 사용
-function process<T>(data: T): T { }
+function process<T>(data: T): T {}
 
 // ✅ unknown 사용 (타입 가드 필요)
 function process(data: unknown) {
@@ -332,6 +365,7 @@ src/
 ```
 
 ### Type
+
 - `feat`: 새로운 기능
 - `fix`: 버그 수정
 - `refactor`: 리팩토링
@@ -341,6 +375,7 @@ src/
 - `chore`: 빌드, 설정 등
 
 ### 예시
+
 ```
 feat(finance): 자금일보 API 추가
 

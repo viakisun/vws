@@ -67,9 +67,10 @@ export default defineConfig({
   ],
 
   /* Run your local dev server before starting the tests */
-  // webServer: {
-  //   command: 'pnpm build && pnpm preview --port 4173',
-  //   url: 'http://localhost:4173',
-  //   reuseExistingServer: !process.env.CI,
-  // },
+  webServer: {
+    command: 'pnpm build && pnpm preview --port 4173',
+    url: 'http://localhost:4173',
+    reuseExistingServer: !process.env.CI,
+    timeout: 120 * 1000, // 2분
+  },
 })
