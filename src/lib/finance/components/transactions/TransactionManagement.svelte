@@ -2,7 +2,6 @@
   import { pushToast } from '$lib/stores/toasts'
   import { page } from '$app/stores'
   import { accountService, transactionService } from '$lib/finance/services'
-  import { logger } from '$lib/utils/logger'
   import type {
     Account,
     CreateTransactionRequest,
@@ -24,7 +23,27 @@
   import TransactionStatistics from './TransactionStatistics.svelte'
   import TransactionFilters from './TransactionFilters.svelte'
   import AccountCard from './AccountCard.svelte'
-  import TransactionForm from './TransactionForm.svelte'
+  import TransactionModal from './TransactionModal.svelte'
+  import InlineEditInfo from './InlineEditInfo.svelte'
+
+  // 타입
+  import type {
+    AccountUploadState,
+    AccountDeleteState,
+    InlineEditData,
+    AccountUploadStates,
+    AccountDeleteStates,
+  } from '$lib/finance/types/transaction-state'
+
+  // 유틸리티
+  import {
+    buildQueryParams,
+    filterTransactions,
+    filterAccounts,
+    calculateStatistics,
+    getInitialFormData,
+    getInitialDateTimeInput,
+  } from '$lib/finance/utils/transaction-helpers'
 
   // ============================================================================
   // State: 데이터
@@ -65,27 +84,17 @@
   let editingTransaction = $state<Transaction | null>(null)
 
   // 폼 데이터
-  let formData = $state<CreateTransactionRequest>({
-    accountId: '',
-    categoryId: '',
-    amount: 0,
-    type: 'expense',
-    description: '',
-    transactionDate: getCurrentUTCTimestamp(),
-    referenceNumber: '',
-    notes: '',
-    tags: [],
-  })
+  let formData = $state<CreateTransactionRequest>(getInitialFormData())
 
   // 날짜/시간 입력을 위한 별도 상태 (datetime-local 형식)
-  let dateTimeInput = $state(convertToDateTimeLocal(getCurrentUTCTimestamp()))
+  let dateTimeInput = $state(getInitialDateTimeInput())
 
   // ============================================================================
   // State: 인라인 편집
   // ============================================================================
 
   let editingTransactionId = $state<string | null>(null)
-  let inlineEditingData = $state<{ description: string; categoryId: string }>({
+  let inlineEditingData = $state<InlineEditData>({
     description: '',
     categoryId: '',
   })
@@ -95,39 +104,20 @@
   // ============================================================================
 
   // 계좌별 업로드 상태 관리
-  const accountUploadStates = $state<
-    Record<
-      string,
-      {
-        isUploading: boolean
-        progress: number
-        selectedFile: File | null
-        uploadResult: any
-      }
-    >
-  >({})
+  const accountUploadStates = $state<AccountUploadStates>({})
 
   // 계좌별 삭제 상태 관리
-  const accountDeleteStates = $state<
-    Record<
-      string,
-      {
-        isDeleting: boolean
-        confirmAccountNumber: string
-        showDeleteConfirm: boolean
-      }
-    >
-  >({})
+  const accountDeleteStates = $state<AccountDeleteStates>({})
 
   // AccountCard 컴포넌트를 위한 기본 상태
-  const defaultUploadState = {
+  const defaultUploadState: AccountUploadState = {
     selectedFile: null,
     isUploading: false,
     progress: 0,
     uploadResult: undefined,
   }
 
-  const defaultDeleteState = {
+  const defaultDeleteState: AccountDeleteState = {
     showDeleteConfirm: false,
     confirmAccountNumber: '',
     isDeleting: false,
@@ -166,31 +156,12 @@
       isLoading = true
       error = null
 
-      // 서버 사이드 필터링을 위한 파라미터 구성
-      const params: any = {}
-
-      if (selectedAccount) {
-        params.accountId = selectedAccount
-      }
-
-      if (dateFrom) {
-        params.dateFrom = dateFrom + 'T00:00:00Z'
-      }
-
-      if (dateTo) {
-        params.dateTo = dateTo + 'T23:59:59Z'
-      }
-
-      if (searchTerm) {
-        params.search = searchTerm
-      }
-
-      // 전체 계좌인 경우 리미트 해제, 특정 계좌인 경우 기본 리미트 적용
-      if (!selectedAccount) {
-        params.limit = 1000 // 전체는 더 많은 데이터 허용
-      } else {
-        params.limit = 100 // 특정 계좌는 기본 리미트
-      }
+      const params = buildQueryParams({
+        selectedAccount,
+        dateFrom,
+        dateTo,
+        searchTerm,
+      })
 
       const [transactionsData, accountsData, categoriesData] = await Promise.all([
         transactionService.getTransactions(params),
@@ -204,18 +175,9 @@
       accounts = accountsData
       categories = categoriesData
 
-      // 디버깅: 계좌 상태 확인
-      logger.info(
-        '로드된 계좌들:',
-        accounts.map((a) => ({ name: a.name, status: a.status })),
-      )
-      logger.info('활성 계좌 수:', accounts.filter((a) => a.status === 'active').length)
-
-      // 필터링된 데이터 업데이트 (클라이언트 사이드 추가 필터링)
       updateFilteredData()
     } catch (err) {
       error = err instanceof Error ? err.message : '데이터를 불러올 수 없습니다.'
-      logger.error('데이터 로드 실패:', err)
     } finally {
       isLoading = false
     }
@@ -251,50 +213,36 @@
     if (!editingTransactionId) return
 
     try {
-      // 적요와 카테고리만 업데이트
       const updateData = {
         id: editingTransactionId,
         description: inlineEditingData.description,
         categoryId: inlineEditingData.categoryId,
       }
 
-      logger.info('인라인 편집 업데이트:', updateData)
-
-      const updatedTransaction = await transactionService.updateTransaction(
-        editingTransactionId,
-        updateData,
-      )
-
-      logger.info('업데이트 완료:', updatedTransaction)
+      await transactionService.updateTransaction(editingTransactionId, updateData)
 
       // 로컬 상태 업데이트 - 새 배열로 교체하여 반응성 보장
       const index = transactions.findIndex((t) => t.id === editingTransactionId)
       if (index !== -1) {
-        // 업데이트된 카테고리 정보 찾기
         const updatedCategory = categories.find((c) => c.id === inlineEditingData.categoryId)
 
-        // 새 배열 생성하여 반응성 보장
         transactions = transactions.map((t, i) =>
           i === index
             ? {
                 ...t,
                 description: inlineEditingData.description,
                 categoryId: inlineEditingData.categoryId,
-                category: updatedCategory, // 카테고리 객체도 업데이트
+                category: updatedCategory,
               }
             : t,
         )
 
-        logger.info('로컬 상태 업데이트 완료:', transactions[index])
-
-        // 필터링된 데이터 업데이트
         updateFilteredData()
       }
 
       editingTransactionId = null
       inlineEditingData = { description: '', categoryId: '' }
     } catch (err) {
-      logger.error('거래 업데이트 실패:', err)
       error = '거래 업데이트에 실패했습니다.'
     }
   }
@@ -330,18 +278,8 @@
       await loadData()
 
       // 폼 초기화
-      formData = {
-        accountId: '',
-        categoryId: '',
-        amount: 0,
-        type: 'expense',
-        description: '',
-        transactionDate: getCurrentUTCTimestamp(),
-        referenceNumber: '',
-        notes: '',
-        tags: [],
-      }
-      dateTimeInput = convertToDateTimeLocal(getCurrentUTCTimestamp())
+      formData = getInitialFormData()
+      dateTimeInput = getInitialDateTimeInput()
 
       showAddModal = false
     } catch (err) {
@@ -455,16 +393,9 @@
         const isActiveAccount = accounts.some(
           (acc) => acc.id === accountParam && acc.status === 'active',
         )
-        if (isActiveAccount) {
-          selectedAccount = accountParam
-          logger.info('URL에서 활성 계좌 ID 설정:', accountParam)
-        } else {
-          selectedAccount = '' // 비활성 계좌면 전체 계좌로 설정
-          logger.info('URL의 계좌가 비활성이므로 전체 계좌로 설정')
-        }
+        selectedAccount = isActiveAccount ? accountParam : ''
       } else {
-        selectedAccount = '' // 전체 계좌 (기본값)
-        logger.info('기본값으로 전체 계좌 설정')
+        selectedAccount = ''
       }
 
       // 필터링 적용
@@ -490,33 +421,13 @@
    * 필터링 및 통계 계산
    */
   function updateFilteredData() {
-    // 계좌 필터링: 선택된 계좌가 있으면 해당 계좌만 표시
-    filteredAccounts = selectedAccount
-      ? activeAccounts.filter((account) => account.id === selectedAccount)
-      : activeAccounts
+    filteredAccounts = filterAccounts(activeAccounts, selectedAccount)
+    filteredTransactions = filterTransactions(transactions, { searchTerm, selectedAccount })
 
-    // 거래 필터링 (단순화)
-    filteredTransactions = transactions.filter((transaction) => {
-      // 검색어 필터
-      if (searchTerm && !transaction.description.toLowerCase().includes(searchTerm.toLowerCase())) {
-        return false
-      }
-      // 계좌 필터
-      if (selectedAccount && transaction.accountId !== selectedAccount) {
-        return false
-      }
-      return true
-    })
-
-    totalIncome = filteredTransactions
-      .filter((t) => t.type === 'income')
-      .reduce((sum, t) => sum + t.amount, 0)
-
-    totalExpense = filteredTransactions
-      .filter((t) => t.type === 'expense')
-      .reduce((sum, t) => sum + t.amount, 0)
-
-    netAmount = totalIncome - totalExpense
+    const stats = calculateStatistics(filteredTransactions)
+    totalIncome = stats.totalIncome
+    totalExpense = stats.totalExpense
+    netAmount = stats.netAmount
   }
 
   /**
@@ -704,31 +615,7 @@
   <div class="flex items-center justify-between">
     <div>
       <h3 class="text-lg font-medium text-gray-900">거래 내역 관리</h3>
-
-      <!-- 인라인 편집 안내 -->
-      <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-4">
-        <div class="flex items-start">
-          <div class="flex-shrink-0">
-            <svg class="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
-              <path
-                fill-rule="evenodd"
-                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-                clip-rule="evenodd"
-              />
-            </svg>
-          </div>
-          <div class="ml-3">
-            <h4 class="text-sm font-medium text-blue-800">인라인 편집</h4>
-            <p class="text-sm text-blue-700 mt-1">
-              ✏️ 버튼을 클릭하여 적요와 카테고리를 직접 편집할 수 있습니다. 편집 중에는 <kbd
-                class="px-1 py-0.5 bg-blue-100 text-blue-800 text-xs rounded">Esc</kbd
-              >로 취소,
-              <kbd class="px-1 py-0.5 bg-blue-100 text-blue-800 text-xs rounded">Ctrl+Enter</kbd>로
-              저장하세요.
-            </p>
-          </div>
-        </div>
-      </div>
+      <InlineEditInfo />
     </div>
   </div>
 
@@ -815,50 +702,33 @@
   {/if}
 </div>
 
-<!-- 거래 추가 모달 -->
-{#if showAddModal}
-  <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-    <div class="bg-white rounded-lg max-w-md w-full p-6">
-      <h3 class="text-lg font-medium text-gray-900 mb-4">새 거래 추가</h3>
-      <TransactionForm
-        bind:formData
-        {accounts}
-        {categories}
-        {isLoading}
-        isEdit={false}
-        onSubmit={createTransaction}
-        onCancel={() => (showAddModal = false)}
-        {dateTimeInput}
-        onDateTimeChange={(value) => {
-          dateTimeInput = value
-          formData.transactionDate = convertToUTCTimestamp(value)
-        }}
-        onAmountChange={(value) => (formData.amount = value)}
-      />
-    </div>
-  </div>
-{/if}
+<!-- 거래 추가/수정 모달 -->
+<TransactionModal
+  isOpen={showAddModal}
+  isEdit={false}
+  bind:formData
+  bind:dateTimeInput
+  {accounts}
+  {categories}
+  {isLoading}
+  onSubmit={createTransaction}
+  onCancel={() => (showAddModal = false)}
+  onDateTimeChange={(value) => {}}
+  onAmountChange={(value) => {}}
+  onFormDataChange={(data) => (formData = data)}
+/>
 
-<!-- 거래 수정 모달 -->
-{#if showEditModal}
-  <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-    <div class="bg-white rounded-lg max-w-md w-full p-6">
-      <h3 class="text-lg font-medium text-gray-900 mb-4">거래 수정</h3>
-      <TransactionForm
-        bind:formData
-        {accounts}
-        {categories}
-        {isLoading}
-        isEdit={true}
-        onSubmit={updateTransaction}
-        onCancel={() => (showEditModal = false)}
-        {dateTimeInput}
-        onDateTimeChange={(value) => {
-          dateTimeInput = value
-          formData.transactionDate = convertToUTCTimestamp(value)
-        }}
-        onAmountChange={(value) => (formData.amount = value)}
-      />
-    </div>
-  </div>
-{/if}
+<TransactionModal
+  isOpen={showEditModal}
+  isEdit={true}
+  bind:formData
+  bind:dateTimeInput
+  {accounts}
+  {categories}
+  {isLoading}
+  onSubmit={updateTransaction}
+  onCancel={() => (showEditModal = false)}
+  onDateTimeChange={(value) => {}}
+  onAmountChange={(value) => {}}
+  onFormDataChange={(data) => (formData = data)}
+/>
