@@ -6,6 +6,15 @@ import type {
   CreateAccountRequest,
   UpdateAccountRequest,
 } from '$lib/finance/types'
+import { logger } from '$lib/utils/logger'
+
+interface ApiResponse<T> {
+  success: boolean
+  data?: T
+  error?: string
+  message?: string
+  deletedTransactionCount?: number
+}
 
 export class AccountService {
   private baseUrl = '/api/finance'
@@ -22,15 +31,15 @@ export class AccountService {
       if (filter?.search) params.append('search', filter.search)
 
       const response = await fetch(`${this.baseUrl}/accounts?${params}`)
-      const result = await response.json()
+      const result = (await response.json()) as ApiResponse<Account[]>
 
-      if (!result.success) {
+      if (!result.success || !result.data) {
         throw new Error(result.error || '계좌 목록을 조회할 수 없습니다.')
       }
 
       return result.data
     } catch (error) {
-      console.error('계좌 목록 조회 실패:', error)
+      logger.error('계좌 목록 조회 실패:', error)
       throw error
     }
   }
@@ -39,15 +48,15 @@ export class AccountService {
   async getAccount(id: string): Promise<Account> {
     try {
       const response = await fetch(`${this.baseUrl}/accounts/${id}`)
-      const result = await response.json()
+      const result = (await response.json()) as ApiResponse<Account>
 
-      if (!result.success) {
+      if (!result.success || !result.data) {
         throw new Error(result.error || '계좌를 조회할 수 없습니다.')
       }
 
       return result.data
     } catch (error) {
-      console.error('계좌 조회 실패:', error)
+      logger.error('계좌 조회 실패:', error)
       throw error
     }
   }
@@ -63,15 +72,15 @@ export class AccountService {
         body: JSON.stringify(data),
       })
 
-      const result = await response.json()
+      const result = (await response.json()) as ApiResponse<Account>
 
-      if (!result.success) {
+      if (!result.success || !result.data) {
         throw new Error(result.error || '계좌 생성에 실패했습니다.')
       }
 
       return result.data
     } catch (error) {
-      console.error('계좌 생성 실패:', error)
+      logger.error('계좌 생성 실패:', error)
       throw error
     }
   }
@@ -87,15 +96,15 @@ export class AccountService {
         body: JSON.stringify(data),
       })
 
-      const result = await response.json()
+      const result = (await response.json()) as ApiResponse<Account>
 
-      if (!result.success) {
+      if (!result.success || !result.data) {
         throw new Error(result.error || '계좌 수정에 실패했습니다.')
       }
 
       return result.data
     } catch (error) {
-      console.error('계좌 수정 실패:', error)
+      logger.error('계좌 수정 실패:', error)
       throw error
     }
   }
@@ -107,18 +116,18 @@ export class AccountService {
         method: 'DELETE',
       })
 
-      const result = await response.json()
+      const result = (await response.json()) as ApiResponse<void>
 
       if (!result.success) {
         throw new Error(result.error || '계좌 삭제에 실패했습니다.')
       }
 
       return {
-        message: result.message,
+        message: result.message ?? '계좌가 삭제되었습니다.',
         deletedTransactionCount: result.deletedTransactionCount,
       }
     } catch (error) {
-      console.error('계좌 삭제 실패:', error)
+      logger.error('계좌 삭제 실패:', error)
       throw error
     }
   }
@@ -135,15 +144,15 @@ export class AccountService {
       if (endDate) params.append('endDate', endDate)
 
       const response = await fetch(`${this.baseUrl}/accounts/${accountId}/summary?${params}`)
-      const result = await response.json()
+      const result = (await response.json()) as ApiResponse<AccountSummary>
 
-      if (!result.success) {
+      if (!result.success || !result.data) {
         throw new Error(result.error || '계좌 요약 정보를 조회할 수 없습니다.')
       }
 
       return result.data
     } catch (error) {
-      console.error('계좌 요약 정보 조회 실패:', error)
+      logger.error('계좌 요약 정보 조회 실패:', error)
       throw error
     }
   }
@@ -152,15 +161,15 @@ export class AccountService {
   async getBankSummaries(): Promise<BankSummary[]> {
     try {
       const response = await fetch(`${this.baseUrl}/accounts/bank-summaries`)
-      const result = await response.json()
+      const result = (await response.json()) as ApiResponse<BankSummary[]>
 
-      if (!result.success) {
+      if (!result.success || !result.data) {
         throw new Error(result.error || '은행별 요약 정보를 조회할 수 없습니다.')
       }
 
       return result.data
     } catch (error) {
-      console.error('은행별 요약 정보 조회 실패:', error)
+      logger.error('은행별 요약 정보 조회 실패:', error)
       throw error
     }
   }
