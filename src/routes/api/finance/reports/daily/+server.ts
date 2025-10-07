@@ -1,6 +1,54 @@
 import { query } from '$lib/database/connection'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger'
+
+interface DailyReportRow {
+  id: string
+  report_date: string
+  status: string
+  opening_balance: string | number
+  closing_balance: string | number
+  total_inflow: string | number
+  total_outflow: string | number
+  net_flow: string | number
+  transaction_count: number
+  account_summaries: unknown
+  category_summaries: unknown
+  alerts: unknown
+  notes: string
+  generated_at: string
+  generated_by: string
+  created_at: string
+  updated_at: string
+  [key: string]: unknown
+}
+
+interface TransactionRow {
+  id: string
+  account_id: string
+  category_id: string
+  amount: string | number
+  type: string
+  status: string
+  transaction_date: string
+  category_name: string
+  category_type: string
+  account_name: string
+  [key: string]: unknown
+}
+
+interface AccountRow {
+  id: string
+  name: string
+  balance: string | number
+  [key: string]: unknown
+}
+
+interface PreviousReportRow {
+  closing_balance: string | number
+  [key: string]: unknown
+}
 
 // 자금일보 생성/조회
 export const GET: RequestHandler = async ({ url }) => {
@@ -8,7 +56,7 @@ export const GET: RequestHandler = async ({ url }) => {
     const date = url.searchParams.get('date') || new Date().toISOString().split('T')[0]
 
     // 기존 자금일보 조회
-    const existingReport = await query(
+    const existingReport = await query<DailyReportRow>(
       'SELECT * FROM finance_daily_reports WHERE report_date = $1',
       [date],
     )
@@ -48,7 +96,7 @@ export const GET: RequestHandler = async ({ url }) => {
       { status: 404 },
     )
   } catch (error) {
-    console.error('자금일보 조회 실패:', error)
+    logger.error('자금일보 조회 실패:', error)
     return json(
       {
         success: false,
@@ -66,7 +114,7 @@ export const POST: RequestHandler = async ({ request }) => {
     const date = body.date || new Date().toISOString().split('T')[0]
 
     // 기존 자금일보가 있는지 확인
-    const existingReport = await query(
+    const existingReport = await query<{ id: string }>(
       'SELECT id FROM finance_daily_reports WHERE report_date = $1',
       [date],
     )
@@ -112,7 +160,7 @@ export const POST: RequestHandler = async ({ request }) => {
       'system',
     ]
 
-    const result = await query(queryText, params)
+    const result = await query<DailyReportRow>(queryText, params)
     const report = result.rows[0]
 
     return json({
@@ -139,7 +187,7 @@ export const POST: RequestHandler = async ({ request }) => {
       message: '자금일보가 성공적으로 생성되었습니다.',
     })
   } catch (error) {
-    console.error('자금일보 생성 실패:', error)
+    logger.error('자금일보 생성 실패:', error)
     return json(
       {
         success: false,
@@ -157,7 +205,7 @@ async function generateDailyReportData(date: string) {
   previousDay.setDate(previousDay.getDate() - 1)
   const previousDate = previousDay.toISOString().split('T')[0]
 
-  const previousReport = await query(
+  const previousReport = await query<PreviousReportRow>(
     'SELECT closing_balance FROM finance_daily_reports WHERE report_date = $1',
     [previousDate],
   )
@@ -166,7 +214,7 @@ async function generateDailyReportData(date: string) {
     previousReport.rows.length > 0 ? parseFloat(previousReport.rows[0].closing_balance) : 0
 
   // 당일 거래 내역
-  const transactions = await query(
+  const transactions = await query<TransactionRow>(
     `
     SELECT
       t.*,
@@ -211,14 +259,14 @@ async function generateDailyReportData(date: string) {
   const closingBalance = openingBalance + netFlow
 
   // 계좌별 요약
-  const accounts = await query(
+  const accounts = await query<AccountRow>(
     "SELECT id, name, balance FROM finance_accounts WHERE status = 'active'",
   )
 
-  const accountSummaries = accounts.rows.map((account: any) => ({
+  const accountSummaries = accounts.rows.map((account) => ({
     accountId: account.id,
     accountName: account.name,
-    balance: parseFloat(account.balance),
+    balance: parseFloat(account.balance.toString()),
   }))
 
   // 알림 생성

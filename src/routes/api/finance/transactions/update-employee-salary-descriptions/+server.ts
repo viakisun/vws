@@ -1,6 +1,7 @@
 import { query } from '$lib/database/connection'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger'
 
 export const POST: RequestHandler = async () => {
   try {
@@ -20,9 +21,9 @@ export const POST: RequestHandler = async () => {
     const result = await query(selectQuery, [operatingAccountId])
     const transactions = result.rows
 
-    console.log(`Found ${transactions.length} potential employee transactions`)
+    logger.info(`Found ${transactions.length} potential employee transactions`)
     transactions.forEach((tx) => {
-      console.log(`- ${tx.description} (${tx.counterparty}) - ${tx.transaction_date}`)
+      logger.info(`- ${tx.description} (${tx.counterparty}) - ${tx.transaction_date}`)
     })
 
     let updatedCount = 0
@@ -55,7 +56,7 @@ export const POST: RequestHandler = async () => {
         transactionDate: transaction_date,
       })
 
-      console.log(`Updated: ${description} -> ${newDescription}`)
+      logger.info(`Updated: ${description} -> ${newDescription}`)
     }
 
     return json({
@@ -65,7 +66,7 @@ export const POST: RequestHandler = async () => {
       updatedTransactions,
     })
   } catch (error) {
-    console.error('직원 급여 거래 적요 업데이트 실패:', error)
+    logger.error('직원 급여 거래 적요 업데이트 실패:', error)
     return json(
       {
         success: false,

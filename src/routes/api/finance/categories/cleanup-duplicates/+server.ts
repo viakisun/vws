@@ -1,10 +1,11 @@
 import { query } from '$lib/database/connection'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger'
 
 export const POST: RequestHandler = async () => {
   try {
-    console.log('🧹 중복 카테고리 정리 시작...')
+    logger.info('🧹 중복 카테고리 정리 시작...')
 
     // 1. 중복 카테고리 확인
     const duplicateQuery = `
@@ -17,7 +18,7 @@ export const POST: RequestHandler = async () => {
     `
 
     const duplicates = await query(duplicateQuery)
-    console.log('📊 중복 카테고리:', duplicates.rows)
+    logger.info('📊 중복 카테고리:', duplicates.rows)
 
     if (duplicates.rows.length === 0) {
       return json({
@@ -49,14 +50,14 @@ export const POST: RequestHandler = async () => {
       `
 
       const categoryIds = await query(categoryIdsQuery, [name, type])
-      console.log(`🔍 ${name}(${type}) 카테고리 ${categoryIds.rows.length}개 발견`)
+      logger.info(`🔍 ${name}(${type}) 카테고리 ${categoryIds.rows.length}개 발견`)
 
       if (categoryIds.rows.length > 1) {
         // 가장 오래된 카테고리(첫 번째)는 유지하고, 나머지는 비활성화
         const keepCategory = categoryIds.rows[0]
         const removeCategories = categoryIds.rows.slice(1)
 
-        console.log(`✅ 유지할 카테고리: ${keepCategory.id} (${keepCategory.created_at})`)
+        logger.info(`✅ 유지할 카테고리: ${keepCategory.id} (${keepCategory.created_at})`)
 
         for (const removeCategory of removeCategories) {
           // 해당 카테고리를 사용하는 거래가 있는지 확인
@@ -73,7 +74,7 @@ export const POST: RequestHandler = async () => {
               keepCategory.id,
               removeCategory.id,
             ])
-            console.log(`🔄 ${transactionCount}개 거래를 카테고리 ${keepCategory.id}로 변경`)
+            logger.info(`🔄 ${transactionCount}개 거래를 카테고리 ${keepCategory.id}로 변경`)
           }
 
           // 중복 카테고리 비활성화
@@ -91,7 +92,7 @@ export const POST: RequestHandler = async () => {
           })
 
           cleanedCount++
-          console.log(`🗑️ 카테고리 ${removeCategory.id} 제거 (${removeCategory.created_at})`)
+          logger.info(`🗑️ 카테고리 ${removeCategory.id} 제거 (${removeCategory.created_at})`)
         }
       }
     }
@@ -107,7 +108,7 @@ export const POST: RequestHandler = async () => {
       remainingDuplicates: finalCheck.rows.length,
     })
   } catch (error) {
-    console.error('❌ 중복 카테고리 정리 실패:', error)
+    logger.error('❌ 중복 카테고리 정리 실패:', error)
     return json(
       {
         success: false,

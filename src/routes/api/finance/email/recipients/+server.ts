@@ -2,6 +2,7 @@ import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
 import { emailService } from '$lib/finance/services/email/email-service'
 import type { EmailRecipient } from '$lib/finance/services/email/email-service'
+import { logger } from '$lib/utils/logger'
 
 // 수신자 목록 조회
 export const GET: RequestHandler = async ({ url }) => {
@@ -26,7 +27,7 @@ export const GET: RequestHandler = async ({ url }) => {
       message: `${recipients.length}명의 수신자를 조회했습니다.`,
     })
   } catch (error) {
-    console.error('수신자 목록 조회 실패:', error)
+    logger.error('수신자 목록 조회 실패:', error)
     return json(
       {
         success: false,
@@ -90,7 +91,7 @@ export const POST: RequestHandler = async ({ request }) => {
       message: '수신자가 성공적으로 추가되었습니다.',
     })
   } catch (error) {
-    console.error('수신자 추가 실패:', error)
+    logger.error('수신자 추가 실패:', error)
     return json(
       {
         success: false,

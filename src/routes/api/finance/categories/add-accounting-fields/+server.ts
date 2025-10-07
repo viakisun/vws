@@ -1,10 +1,11 @@
 import { query } from '$lib/database/connection'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger'
 
 export const POST: RequestHandler = async () => {
   try {
-    console.log('📊 전문회계코드 필드 추가 시작...')
+    logger.info('📊 전문회계코드 필드 추가 시작...')
 
     // code 필드 추가 (전문회계코드)
     try {
@@ -12,9 +13,9 @@ export const POST: RequestHandler = async () => {
         ALTER TABLE finance_categories 
         ADD COLUMN IF NOT EXISTS code VARCHAR(10)
       `)
-      console.log('✅ code 필드 추가 완료')
+      logger.info('✅ code 필드 추가 완료')
     } catch (error) {
-      console.log('ℹ️ code 필드가 이미 존재합니다.')
+      logger.info('ℹ️ code 필드가 이미 존재합니다.')
     }
 
     // account_code 필드 추가 (계정과목코드)
@@ -23,9 +24,9 @@ export const POST: RequestHandler = async () => {
         ALTER TABLE finance_categories 
         ADD COLUMN IF NOT EXISTS account_code VARCHAR(20)
       `)
-      console.log('✅ account_code 필드 추가 완료')
+      logger.info('✅ account_code 필드 추가 완료')
     } catch (error) {
-      console.log('ℹ️ account_code 필드가 이미 존재합니다.')
+      logger.info('ℹ️ account_code 필드가 이미 존재합니다.')
     }
 
     // 인덱스 추가 (성능 최적화)
@@ -34,9 +35,9 @@ export const POST: RequestHandler = async () => {
         CREATE INDEX IF NOT EXISTS idx_finance_categories_code 
         ON finance_categories(code)
       `)
-      console.log('✅ code 인덱스 추가 완료')
+      logger.info('✅ code 인덱스 추가 완료')
     } catch (error) {
-      console.log('ℹ️ code 인덱스가 이미 존재합니다.')
+      logger.info('ℹ️ code 인덱스가 이미 존재합니다.')
     }
 
     try {
@@ -44,9 +45,9 @@ export const POST: RequestHandler = async () => {
         CREATE INDEX IF NOT EXISTS idx_finance_categories_account_code 
         ON finance_categories(account_code)
       `)
-      console.log('✅ account_code 인덱스 추가 완료')
+      logger.info('✅ account_code 인덱스 추가 완료')
     } catch (error) {
-      console.log('ℹ️ account_code 인덱스가 이미 존재합니다.')
+      logger.info('ℹ️ account_code 인덱스가 이미 존재합니다.')
     }
 
     return json({
@@ -55,7 +56,7 @@ export const POST: RequestHandler = async () => {
       addedFields: ['code', 'account_code'],
     })
   } catch (error) {
-    console.error('❌ 전문회계코드 필드 추가 실패:', error)
+    logger.error('❌ 전문회계코드 필드 추가 실패:', error)
     return json(
       {
         success: false,

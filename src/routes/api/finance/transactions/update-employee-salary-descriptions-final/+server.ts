@@ -1,6 +1,7 @@
 import { query } from '$lib/database/connection'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger'
 
 export const POST: RequestHandler = async () => {
   try {
@@ -18,9 +19,9 @@ export const POST: RequestHandler = async () => {
 			ORDER BY transaction_date DESC
 		`
 
-    console.log('🔍 업데이트할 거래 조회 중...')
+    logger.info('🔍 업데이트할 거래 조회 중...')
     const selectResult = await query(selectQuery, [operatingAccountId])
-    console.log(`📊 조회된 거래 수: ${selectResult.rows.length}`)
+    logger.info(`📊 조회된 거래 수: ${selectResult.rows.length}`)
 
     if (selectResult.rows.length === 0) {
       return json({
@@ -55,9 +56,9 @@ export const POST: RequestHandler = async () => {
           newDescription: newDescription,
           transactionDate: row.transaction_date,
         })
-        console.log(`✅ 업데이트: ${row.description} → ${newDescription}`)
+        logger.info(`✅ 업데이트: ${row.description} → ${newDescription}`)
       } catch (error) {
-        console.error(`❌ 업데이트 실패 (${row.id}):`, error)
+        logger.error(`❌ 업데이트 실패 (${row.id}):`, error)
       }
     }
 
@@ -68,7 +69,7 @@ export const POST: RequestHandler = async () => {
       results: updateResults,
     })
   } catch (error) {
-    console.error('❌ 직원 급여 description 업데이트 실패:', error)
+    logger.error('❌ 직원 급여 description 업데이트 실패:', error)
     return json(
       {
         success: false,

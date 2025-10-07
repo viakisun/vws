@@ -1,6 +1,7 @@
 import { query } from '$lib/database/connection'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger'
 
 // 대출 계획 조회
 export const GET: RequestHandler = async ({ url }) => {
@@ -95,7 +96,7 @@ export const GET: RequestHandler = async ({ url }) => {
       message: `${loans.length}개의 대출 계획을 조회했습니다.`,
     })
   } catch (error) {
-    console.error('대출 계획 조회 실패:', error)
+    logger.error('대출 계획 조회 실패:', error)
     return json(
       {
         success: false,
@@ -166,7 +167,7 @@ export const POST: RequestHandler = async ({ request }) => {
       message: '대출 계획이 성공적으로 생성되었습니다.',
     })
   } catch (error) {
-    console.error('대출 계획 생성 실패:', error)
+    logger.error('대출 계획 생성 실패:', error)
     return json(
       {
         success: false,

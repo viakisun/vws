@@ -1,6 +1,7 @@
 import { query } from '$lib/database/connection'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger'
 
 // 카테고리 수정
 export const PUT: RequestHandler = async ({ params, request }) => {
@@ -87,7 +88,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
       message: '카테고리가 성공적으로 수정되었습니다.',
     })
   } catch (error) {
-    console.error('카테고리 수정 실패:', error)
+    logger.error('카테고리 수정 실패:', error)
     return json(
       {
         success: false,
@@ -161,7 +162,7 @@ export const DELETE: RequestHandler = async ({ params }) => {
       message: `'${category.name}' 카테고리가 성공적으로 삭제되었습니다.`,
     })
   } catch (error) {
-    console.error('카테고리 삭제 실패:', error)
+    logger.error('카테고리 삭제 실패:', error)
     return json(
       {
         success: false,

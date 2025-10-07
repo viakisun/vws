@@ -2,6 +2,7 @@ import { query } from '$lib/database/connection'
 import type { Budget, CreateBudgetRequest } from '$lib/finance/types'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger'
 
 // 예산 목록 조회
 export const GET: RequestHandler = async ({ url }) => {
@@ -128,7 +129,7 @@ export const GET: RequestHandler = async ({ url }) => {
       message: `${budgets.length}개의 예산을 조회했습니다.`,
     })
   } catch (error) {
-    console.error('예산 목록 조회 실패:', error)
+    logger.error('예산 목록 조회 실패:', error)
     return json(
       {
         success: false,
@@ -208,7 +209,7 @@ export const POST: RequestHandler = async ({ request }) => {
       message: '예산이 성공적으로 생성되었습니다.',
     })
   } catch (error) {
-    console.error('예산 생성 실패:', error)
+    logger.error('예산 생성 실패:', error)
     return json(
       {
         success: false,

@@ -1,6 +1,7 @@
 import { query } from '$lib/database/connection'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger'
 
 // 특정 계좌 조회
 export const GET: RequestHandler = async ({ params }) => {
@@ -68,7 +69,7 @@ export const GET: RequestHandler = async ({ params }) => {
       data: account,
     })
   } catch (error) {
-    console.error('계좌 조회 실패:', error)
+    logger.error('계좌 조회 실패:', error)
     return json(
       {
         success: false,
@@ -202,7 +203,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
       message: '계좌 정보가 성공적으로 수정되었습니다.',
     })
   } catch (error) {
-    console.error('계좌 수정 실패:', error)
+    logger.error('계좌 수정 실패:', error)
     return json(
       {
         success: false,
@@ -218,7 +219,7 @@ export const DELETE: RequestHandler = async ({ params }) => {
   try {
     const accountId = params.id
 
-    console.log(`🔥 계좌 완전 삭제 시작: ${accountId}`)
+    logger.info(`🔥 계좌 완전 삭제 시작: ${accountId}`)
 
     // 계좌에 연결된 거래가 있는지 확인
     const transactionCheck = await query(
@@ -227,7 +228,7 @@ export const DELETE: RequestHandler = async ({ params }) => {
     )
 
     const transactionCount = parseInt(transactionCheck.rows[0].count)
-    console.log(`🔥 삭제할 거래 내역 수: ${transactionCount}건`)
+    logger.info(`🔥 삭제할 거래 내역 수: ${transactionCount}건`)
 
     // 트랜잭션으로 안전하게 삭제
     await query('BEGIN')
@@ -235,23 +236,23 @@ export const DELETE: RequestHandler = async ({ params }) => {
     try {
       // 1. 관련 거래 내역 완전 삭제
       if (transactionCount > 0) {
-        console.log(`🔥 거래 내역 삭제 시작...`)
+        logger.info(`🔥 거래 내역 삭제 시작...`)
         const deleteTransactions = await query(
           'DELETE FROM finance_transactions WHERE account_id = $1',
           [accountId],
         )
-        console.log(`🔥 거래 내역 삭제 완료: ${transactionCount}건`)
+        logger.info(`🔥 거래 내역 삭제 완료: ${transactionCount}건`)
       }
 
       // 2. 계좌 완전 삭제
-      console.log(`🔥 계좌 삭제 시작...`)
+      logger.info(`🔥 계좌 삭제 시작...`)
       const result = await query('DELETE FROM finance_accounts WHERE id = $1 RETURNING name', [
         accountId,
       ])
 
       if (result.rows.length === 0) {
         await query('ROLLBACK')
-        console.log(`🔥 계좌를 찾을 수 없음: ${accountId}`)
+        logger.info(`🔥 계좌를 찾을 수 없음: ${accountId}`)
         return json(
           {
             success: false,
@@ -262,7 +263,7 @@ export const DELETE: RequestHandler = async ({ params }) => {
       }
 
       await query('COMMIT')
-      console.log(`🔥 계좌 완전 삭제 성공: ${result.rows[0].name}`)
+      logger.info(`🔥 계좌 완전 삭제 성공: ${result.rows[0].name}`)
 
       const deletedAccountName = result.rows[0].name
       const message =
@@ -278,11 +279,11 @@ export const DELETE: RequestHandler = async ({ params }) => {
       })
     } catch (deleteError) {
       await query('ROLLBACK')
-      console.error('🔥 계좌 삭제 중 오류:', deleteError)
+      logger.error('🔥 계좌 삭제 중 오류:', deleteError)
       throw deleteError
     }
   } catch (error) {
-    console.error('🔥 계좌 삭제 실패:', error)
+    logger.error('🔥 계좌 삭제 실패:', error)
     return json(
       {
         success: false,

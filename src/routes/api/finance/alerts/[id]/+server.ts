@@ -1,6 +1,7 @@
 import { query } from '$lib/database/connection'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger'
 
 // 알림 읽음 처리
 export const PUT: RequestHandler = async ({ params, request }) => {
@@ -72,7 +73,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
       message: `알림이 ${body.action === 'read' ? '읽음' : '해결'} 처리되었습니다.`,
     })
   } catch (error) {
-    console.error('알림 처리 실패:', error)
+    logger.error('알림 처리 실패:', error)
     return json(
       {
         success: false,
@@ -107,7 +108,7 @@ export const DELETE: RequestHandler = async ({ params }) => {
       message: `알림 "${result.rows[0].title}"이 성공적으로 삭제되었습니다.`,
     })
   } catch (error) {
-    console.error('알림 삭제 실패:', error)
+    logger.error('알림 삭제 실패:', error)
     return json(
       {
         success: false,

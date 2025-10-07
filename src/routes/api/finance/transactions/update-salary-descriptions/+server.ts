@@ -1,6 +1,7 @@
 import { query } from '$lib/database/connection'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger'
 
 export const POST: RequestHandler = async () => {
   try {
@@ -19,9 +20,9 @@ export const POST: RequestHandler = async () => {
     `
 
     const checkResult = await query(checkQuery, [operatingAccountId])
-    console.log(`Found ${checkResult.rows.length} potential salary transactions:`)
+    logger.info(`Found ${checkResult.rows.length} potential salary transactions:`)
     checkResult.rows.forEach((row) => {
-      console.log(`- ${row.counterparty}: ${row.description} (${row.amount})`)
+      logger.info(`- ${row.counterparty}: ${row.description} (${row.amount})`)
     })
 
     // 직접 SQL로 업데이트 (조건 완화)
@@ -38,9 +39,9 @@ export const POST: RequestHandler = async () => {
     const result = await query(updateQuery, [operatingAccountId])
     const updatedCount = result.rows.length
 
-    console.log(`Updated ${updatedCount} salary transactions:`)
+    logger.info(`Updated ${updatedCount} salary transactions:`)
     result.rows.forEach((row) => {
-      console.log(`- ${row.counterparty}: ${row.description}`)
+      logger.info(`- ${row.counterparty}: ${row.description}`)
     })
 
     return json({
@@ -50,7 +51,7 @@ export const POST: RequestHandler = async () => {
       updatedTransactions: result.rows,
     })
   } catch (error) {
-    console.error('급여 거래 적요 업데이트 실패:', error)
+    logger.error('급여 거래 적요 업데이트 실패:', error)
     return json(
       {
         success: false,

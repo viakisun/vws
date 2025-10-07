@@ -1,6 +1,7 @@
 import { query } from '$lib/database/connection'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger'
 
 // 은행별 계좌 요약 정보 조회
 export const GET: RequestHandler = async () => {
@@ -44,7 +45,7 @@ export const GET: RequestHandler = async () => {
       data: summaries,
     })
   } catch (error) {
-    console.error('은행별 요약 정보 조회 실패:', error)
+    logger.error('은행별 요약 정보 조회 실패:', error)
     return json(
       {
         success: false,

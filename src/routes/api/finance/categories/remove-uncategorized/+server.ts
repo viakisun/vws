@@ -1,11 +1,12 @@
 import { query } from '$lib/database/connection'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger'
 
 // 미분류 카테고리 제거 및 기타수입/기타지출로 통합
 export const POST: RequestHandler = async () => {
   try {
-    console.log('🔥🔥🔥 미분류 카테고리 제거 시작 🔥🔥🔥')
+    logger.info('🔥🔥🔥 미분류 카테고리 제거 시작 🔥🔥🔥')
 
     // 미분류 카테고리 ID 조회
     const uncategorizedResult = await query(`
@@ -22,7 +23,7 @@ export const POST: RequestHandler = async () => {
     }
 
     const uncategorizedCategoryId = uncategorizedResult.rows[0].id
-    console.log('🔥 미분류 카테고리 ID:', uncategorizedCategoryId)
+    logger.info('🔥 미분류 카테고리 ID:', uncategorizedCategoryId)
 
     // 기타수입/기타지출 카테고리 ID 조회
     const otherCategoriesResult = await query(`
@@ -41,8 +42,8 @@ export const POST: RequestHandler = async () => {
     const 기타수입CategoryId = otherCategories.find((c) => c.name === '기타수입')?.id
     const 기타지출CategoryId = otherCategories.find((c) => c.name === '기타지출')?.id
 
-    console.log('🔥 기타수입 카테고리 ID:', 기타수입CategoryId)
-    console.log('🔥 기타지출 카테고리 ID:', 기타지출CategoryId)
+    logger.info('🔥 기타수입 카테고리 ID:', 기타수입CategoryId)
+    logger.info('🔥 기타지출 카테고리 ID:', 기타지출CategoryId)
 
     // 미분류 거래들을 거래 유형에 따라 기타수입/기타지출로 분류
     const updateResult = await query(
@@ -67,8 +68,8 @@ export const POST: RequestHandler = async () => {
       (t) => t.category_id === 기타지출CategoryId,
     ).length
 
-    console.log(`✅ 기타수입으로 이동: ${기타수입으로이동}건`)
-    console.log(`✅ 기타지출로 이동: ${기타지출로이동}건`)
+    logger.info(`✅ 기타수입으로 이동: ${기타수입으로이동}건`)
+    logger.info(`✅ 기타지출로 이동: ${기타지출로이동}건`)
 
     // 미분류 카테고리 비활성화 (삭제 대신 비활성화)
     await query(
@@ -80,7 +81,7 @@ export const POST: RequestHandler = async () => {
       [uncategorizedCategoryId],
     )
 
-    console.log('✅ 미분류 카테고리 비활성화 완료')
+    logger.info('✅ 미분류 카테고리 비활성화 완료')
 
     return json({
       success: true,
@@ -92,7 +93,7 @@ export const POST: RequestHandler = async () => {
       },
     })
   } catch (error: any) {
-    console.error('🔥🔥🔥 미분류 카테고리 제거 실패:', error)
+    logger.error('🔥🔥🔥 미분류 카테고리 제거 실패:', error)
     return json(
       {
         success: false,

@@ -1,6 +1,7 @@
 import { query } from '$lib/database/connection'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger'
 
 // 카테고리 목록 조회
 export const GET: RequestHandler = async () => {
@@ -28,7 +29,7 @@ export const GET: RequestHandler = async () => {
       data: result.rows,
     })
   } catch (error) {
-    console.error('카테고리 조회 실패:', error)
+    logger.error('카테고리 조회 실패:', error)
     return json(
       {
         success: false,
@@ -93,7 +94,7 @@ export const POST: RequestHandler = async ({ request }) => {
       message: '카테고리가 성공적으로 생성되었습니다.',
     })
   } catch (error) {
-    console.error('카테고리 생성 실패:', error)
+    logger.error('카테고리 생성 실패:', error)
     return json(
       {
         success: false,

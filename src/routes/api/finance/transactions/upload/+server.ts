@@ -286,9 +286,10 @@ export const POST: RequestHandler = async ({ request }) => {
           ],
         )
         insertedCount++
-      } catch (txError: any) {
+      } catch (txError) {
+        const errorMessage = txError instanceof Error ? txError.message : String(txError)
         transactionErrors.push(
-          `거래 삽입 오류 (${transaction.transactionDate}, ${transaction.description}): ${txError.message}`,
+          `거래 삽입 오류 (${transaction.transactionDate}, ${transaction.description}): ${errorMessage}`,
         )
         // 임시로 거래 삽입 오류 로그 비활성화 (디버깅용)
         // logger.error(`거래 삽입 오류: ${txError.message}`, { transaction, accountId: targetAccountId })
@@ -318,10 +319,11 @@ export const POST: RequestHandler = async ({ request }) => {
       skippedCount,
       errors: transactionErrors,
     })
-  } catch (error: any) {
+  } catch (error) {
     logger.error('파일 업로드 API 오류:', error)
+    const errorMessage = error instanceof Error ? error.message : String(error)
     return json(
-      { success: false, message: '서버 오류 발생', error: error.message },
+      { success: false, message: '서버 오류 발생', error: errorMessage },
       { status: 500 },
     )
   }
@@ -343,10 +345,11 @@ export const GET: RequestHandler = async () => {
       },
     ]
     return json({ success: true, supportedBanks })
-  } catch (error: any) {
+  } catch (error) {
     logger.error('지원 은행 목록 조회 오류:', error)
+    const errorMessage = error instanceof Error ? error.message : String(error)
     return json(
-      { success: false, message: '서버 오류 발생', error: error.message },
+      { success: false, message: '서버 오류 발생', error: errorMessage },
       { status: 500 },
     )
   }

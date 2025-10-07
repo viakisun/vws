@@ -1,6 +1,7 @@
 import { query } from '$lib/database/connection'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger'
 
 // 전문 회계 기준에 맞는 카테고리 데이터 (중복 제거)
 const PROFESSIONAL_CATEGORIES = [
@@ -385,7 +386,7 @@ export const POST: RequestHandler = async () => {
       count: PROFESSIONAL_CATEGORIES.length,
     })
   } catch (error) {
-    console.error('카테고리 업데이트 실패:', error)
+    logger.error('카테고리 업데이트 실패:', error)
     return json(
       {
         success: false,

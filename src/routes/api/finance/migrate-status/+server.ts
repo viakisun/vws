@@ -1,6 +1,7 @@
 import { query } from '$lib/database/connection'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger'
 
 // finance_transactions 테이블에 status 컬럼 추가
 export const POST: RequestHandler = async () => {
@@ -23,7 +24,7 @@ export const POST: RequestHandler = async () => {
       message: 'Status 컬럼이 성공적으로 추가되었습니다.',
     })
   } catch (error) {
-    console.error('Status 컬럼 추가 실패:', error)
+    logger.error('Status 컬럼 추가 실패:', error)
     return json(
       {
         success: false,

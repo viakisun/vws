@@ -1,6 +1,7 @@
 import { query } from '$lib/database/connection'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger'
 
 // 적요 기반 자동 카테고리 매핑
 export const POST: RequestHandler = async () => {
@@ -173,7 +174,7 @@ export const POST: RequestHandler = async () => {
       )
 
       if (!categoryResult.rows || categoryResult.rows.length === 0) {
-        console.log(`⚠️ 카테고리 '${mapping.categoryName}'를 찾을 수 없습니다.`)
+        logger.info(`⚠️ 카테고리 '${mapping.categoryName}'를 찾을 수 없습니다.`)
         continue
       }
 
@@ -192,7 +193,7 @@ export const POST: RequestHandler = async () => {
         )
 
         if (updateResult.rowCount && updateResult.rowCount > 0) {
-          console.log(`🔥 '${keyword}' → '${mapping.categoryName}': ${updateResult.rowCount}건`)
+          logger.info(`🔥 '${keyword}' → '${mapping.categoryName}': ${updateResult.rowCount}건`)
           totalUpdated += updateResult.rowCount
 
           updateResults.push({
@@ -234,12 +235,12 @@ export const POST: RequestHandler = async () => {
     for (const specialCase of specialCases) {
       const result = await query(specialCase.query, [uncategorizedCategoryId])
       if (result.rowCount && result.rowCount > 0) {
-        console.log(`🔥 ${specialCase.description}: ${result.rowCount}건`)
+        logger.info(`🔥 ${specialCase.description}: ${result.rowCount}건`)
         totalUpdated += result.rowCount
       }
     }
 
-    console.log(`🔥🔥🔥 자동 카테고리 매핑 완료: 총 ${totalUpdated}건 업데이트`)
+    logger.info(`🔥🔥🔥 자동 카테고리 매핑 완료: 총 ${totalUpdated}건 업데이트`)
 
     return json({
       success: true,
@@ -248,7 +249,7 @@ export const POST: RequestHandler = async () => {
       updateResults: updateResults.slice(0, 20), // 최대 20개만 반환
     })
   } catch (error) {
-    console.error('자동 카테고리 매핑 실패:', error)
+    logger.error('자동 카테고리 매핑 실패:', error)
     return json(
       {
         success: false,

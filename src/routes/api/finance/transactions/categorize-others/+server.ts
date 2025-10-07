@@ -1,11 +1,12 @@
 import { query } from '$lib/database/connection'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger'
 
 // 기타지출/기타수입 거래들을 적절한 카테고리로 자동 분류
 export const POST: RequestHandler = async () => {
   try {
-    console.log('🔥🔥🔥 기타지출/기타수입 자동 분류 시작 🔥🔥🔥')
+    logger.info('🔥🔥🔥 기타지출/기타수입 자동 분류 시작 🔥🔥🔥')
 
     // 기타지출/기타수입 카테고리 ID 조회
     const otherCategoriesResult = await query(`
@@ -21,7 +22,7 @@ export const POST: RequestHandler = async () => {
     }
 
     const otherCategoryIds = otherCategoriesResult.rows.map((row) => row.id)
-    console.log('🔥 기타 카테고리 ID들:', otherCategoryIds)
+    logger.info('🔥 기타 카테고리 ID들:', otherCategoryIds)
 
     // 카테고리별 키워드 매핑 (더 정교한 분류)
     const categoryMappings = [
@@ -117,7 +118,7 @@ export const POST: RequestHandler = async () => {
       )
 
       if (!targetCategoryResult.rows || targetCategoryResult.rows.length === 0) {
-        console.log(`⚠️ 카테고리를 찾을 수 없음: ${mapping.categoryName} (${mapping.type})`)
+        logger.info(`⚠️ 카테고리를 찾을 수 없음: ${mapping.categoryName} (${mapping.type})`)
         continue
       }
 
@@ -141,7 +142,7 @@ export const POST: RequestHandler = async () => {
             category: mapping.categoryName,
             count,
           })
-          console.log(`✅ "${keyword}" → ${mapping.categoryName}: ${count}건`)
+          logger.info(`✅ "${keyword}" → ${mapping.categoryName}: ${count}건`)
         }
       }
     }
@@ -149,7 +150,7 @@ export const POST: RequestHandler = async () => {
     // 총 업데이트된 거래 수 계산
     const totalUpdated = updateResults.reduce((sum, result) => sum + result.count, 0)
 
-    console.log(`🔥🔥🔥 자동 분류 완료: 총 ${totalUpdated}건 업데이트 🔥🔥🔥`)
+    logger.info(`🔥🔥🔥 자동 분류 완료: 총 ${totalUpdated}건 업데이트 🔥🔥🔥`)
 
     return json({
       success: true,
@@ -158,7 +159,7 @@ export const POST: RequestHandler = async () => {
       details: updateResults,
     })
   } catch (error: any) {
-    console.error('🔥🔥🔥 자동 분류 실패:', error)
+    logger.error('🔥🔥🔥 자동 분류 실패:', error)
     return json(
       {
         success: false,

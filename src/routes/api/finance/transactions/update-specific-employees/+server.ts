@@ -1,6 +1,7 @@
 import { query } from '$lib/database/connection'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger'
 
 export const POST: RequestHandler = async () => {
   try {
@@ -62,7 +63,7 @@ export const POST: RequestHandler = async () => {
           counterparty: transaction.counterparty,
         })
 
-        console.log(`Updated: ${transaction.description} -> ${newDescription}`)
+        logger.info(`Updated: ${transaction.description} -> ${newDescription}`)
       }
     }
 
@@ -73,7 +74,7 @@ export const POST: RequestHandler = async () => {
       updatedTransactions,
     })
   } catch (error) {
-    console.error('직원 급여 거래 적요 업데이트 실패:', error)
+    logger.error('직원 급여 거래 적요 업데이트 실패:', error)
     return json(
       {
         success: false,

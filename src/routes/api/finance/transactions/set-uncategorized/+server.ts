@@ -1,6 +1,7 @@
 import { query } from '$lib/database/connection'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger'
 
 // 모든 거래를 미분류 카테고리로 설정
 export const POST: RequestHandler = async () => {
@@ -45,7 +46,7 @@ export const POST: RequestHandler = async () => {
 
     const updatedCount = countResult.rows?.[0]?.count || 0
 
-    console.log(`🔥 미분류 카테고리로 설정 완료: ${updatedCount}건`)
+    logger.info(`🔥 미분류 카테고리로 설정 완료: ${updatedCount}건`)
 
     return json({
       success: true,
@@ -53,7 +54,7 @@ export const POST: RequestHandler = async () => {
       updatedCount: parseInt(updatedCount),
     })
   } catch (error) {
-    console.error('거래 미분류 설정 실패:', error)
+    logger.error('거래 미분류 설정 실패:', error)
     return json(
       {
         success: false,

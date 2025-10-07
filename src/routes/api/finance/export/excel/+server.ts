@@ -1,6 +1,7 @@
 import { query } from '$lib/database/connection'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger'
 
 // 엑셀 데이터 내보내기
 export const GET: RequestHandler = async ({ url }) => {
@@ -49,7 +50,7 @@ export const GET: RequestHandler = async ({ url }) => {
       },
     })
   } catch (error) {
-    console.error('엑셀 내보내기 실패:', error)
+    logger.error('엑셀 내보내기 실패:', error)
     return json(
       {
         success: false,

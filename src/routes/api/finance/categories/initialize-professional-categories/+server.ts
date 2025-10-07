@@ -1,6 +1,7 @@
 import { query } from '$lib/database/connection'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger'
 
 // 중소기업 전문 비용 분석 카테고리 (전문회계코드 포함)
 const professionalCategories = [
@@ -295,7 +296,7 @@ const professionalCategories = [
 
 export const POST: RequestHandler = async () => {
   try {
-    console.log('🏢 전문 비용 분석 카테고리 초기화 시작...')
+    logger.info('🏢 전문 비용 분석 카테고리 초기화 시작...')
 
     // 기존 카테고리 비활성화 (시스템 카테고리 제외)
     await query('UPDATE finance_categories SET is_active = false WHERE is_system = false')
@@ -323,9 +324,9 @@ export const POST: RequestHandler = async () => {
 
         createdCategories.push(result.rows[0])
         createdCount++
-        console.log(`✅ ${category.name} (${category.code}) 생성 완료`)
+        logger.info(`✅ ${category.name} (${category.code}) 생성 완료`)
       } catch (error) {
-        console.error(`❌ ${category.name} 생성 실패:`, error)
+        logger.error(`❌ ${category.name} 생성 실패:`, error)
       }
     }
 
@@ -336,7 +337,7 @@ export const POST: RequestHandler = async () => {
       categories: createdCategories,
     })
   } catch (error) {
-    console.error('❌ 전문 카테고리 초기화 실패:', error)
+    logger.error('❌ 전문 카테고리 초기화 실패:', error)
     return json(
       {
         success: false,

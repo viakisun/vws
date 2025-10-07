@@ -3,6 +3,7 @@ import { transactionDbService } from '$lib/finance/services/database/transaction
 import type { UpdateTransactionRequest } from '$lib/finance/types'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger'
 
 export const PUT: RequestHandler = async ({ params, request }) => {
   try {
@@ -59,7 +60,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
       throw error
     }
   } catch (error) {
-    console.error('거래 수정 실패:', error)
+    logger.error('거래 수정 실패:', error)
     return json(
       {
         success: false,
@@ -154,7 +155,7 @@ export const DELETE: RequestHandler = async ({ params }) => {
       throw error
     }
   } catch (error) {
-    console.error('거래 삭제 실패:', error)
+    logger.error('거래 삭제 실패:', error)
     return json(
       {
         success: false,

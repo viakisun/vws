@@ -1,6 +1,7 @@
 import { query } from '$lib/database/connection'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger'
 
 export const GET: RequestHandler = async () => {
   try {
@@ -24,7 +25,7 @@ export const GET: RequestHandler = async () => {
       totalCount: result.rows.length,
     })
   } catch (error) {
-    console.error('운영통장 거래 조회 실패:', error)
+    logger.error('운영통장 거래 조회 실패:', error)
     return json(
       {
         success: false,
