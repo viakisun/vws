@@ -5,6 +5,7 @@
 Playwright는 실제 브라우저(Chromium, Firefox, Safari)에서 웹 애플리케이션을 테스트하는 E2E(End-to-End) 테스트 프레임워크입니다.
 
 **Vitest vs Playwright:**
+
 - **Vitest**: 단위 테스트 (함수, 컴포넌트 로직)
 - **Playwright**: E2E 테스트 (실제 사용자 시나리오)
 
@@ -292,27 +293,34 @@ test('테스트 1', async ({ page }) => {
 ## 🐛 디버깅 팁
 
 ### 1. UI 모드 사용
+
 ```bash
 pnpm exec playwright test --ui
 ```
+
 - 테스트 실행 과정 시각화
 - 각 단계별 DOM 스냅샷
 - 타임라인 확인
 
 ### 2. 디버그 모드
+
 ```bash
 pnpm exec playwright test --debug
 ```
+
 - 브라우저 개발자 도구 사용 가능
 - 단계별 실행
 
 ### 3. Trace 확인
+
 ```bash
 pnpm exec playwright show-trace trace.zip
 ```
+
 - 실패한 테스트의 trace 파일 분석
 
 ### 4. 콘솔 로그
+
 ```typescript
 test('디버깅', async ({ page }) => {
   // 브라우저 콘솔 메시지 캡처
