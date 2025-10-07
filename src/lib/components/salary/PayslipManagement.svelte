@@ -457,7 +457,9 @@
           }
           if (allowanceIndex !== -1) {
             existingAllowances[allowanceIndex].amount = Number(payment.amount || 0)
-            console.log(`✅ 매핑 성공: ${existingAllowances[allowanceIndex].name} = ${payment.amount}`)
+            console.log(
+              `✅ 매핑 성공: ${existingAllowances[allowanceIndex].name} = ${payment.amount}`,
+            )
           } else {
             console.warn(`❌ 매핑 실패: payment.id=${payment.id}, payment.name=${payment.name}`)
           }
@@ -527,7 +529,11 @@
       ]
 
       // 기존 deductions 배열에서 각 항목을 매핑 (name으로 매칭)
-      console.log('🔍 매핑 전 deductionsArray 체크:', deductionsArray, Array.isArray(deductionsArray))
+      console.log(
+        '🔍 매핑 전 deductionsArray 체크:',
+        deductionsArray,
+        Array.isArray(deductionsArray),
+      )
       if (deductionsArray && Array.isArray(deductionsArray) && deductionsArray.length > 0) {
         console.log('🟣 deductions 배열 매핑 시작... 배열 길이:', deductionsArray.length)
         deductionsArray.forEach((deduction: any, index: number) => {
@@ -539,9 +545,13 @@
           }
           if (deductionIndex !== -1) {
             defaultDeductions[deductionIndex].amount = Number(deduction.amount || 0)
-            console.log(`✅ 매핑 성공: ${defaultDeductions[deductionIndex].name} = ${deduction.amount}`)
+            console.log(
+              `✅ 매핑 성공: ${defaultDeductions[deductionIndex].name} = ${deduction.amount}`,
+            )
           } else {
-            console.warn(`❌ 매핑 실패: deduction.id=${deduction.id}, deduction.name=${deduction.name}`)
+            console.warn(
+              `❌ 매핑 실패: deduction.id=${deduction.id}, deduction.name=${deduction.name}`,
+            )
           }
         })
       } else {
@@ -1519,8 +1529,14 @@
                                 console.log('=== 편집 버튼 클릭 ===')
                                 console.log('monthData:', monthData)
                                 console.log('monthData.payslip:', monthData.payslip)
-                                console.log('monthData.payslip.payments:', monthData.payslip?.payments)
-                                console.log('monthData.payslip.deductions:', monthData.payslip?.deductions)
+                                console.log(
+                                  'monthData.payslip.payments:',
+                                  monthData.payslip?.payments,
+                                )
+                                console.log(
+                                  'monthData.payslip.deductions:',
+                                  monthData.payslip?.deductions,
+                                )
                                 enterEditMode(monthData.month || 1, monthData.payslip || undefined)
                               }}
                             >

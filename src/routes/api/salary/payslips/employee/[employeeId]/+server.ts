@@ -130,7 +130,8 @@ export const GET: RequestHandler = async ({ params, url }) => {
       const parsedData = result.rows.map((row: any) => ({
         ...row,
         payments: typeof row.payments === 'string' ? JSON.parse(row.payments) : row.payments,
-        deductions: typeof row.deductions === 'string' ? JSON.parse(row.deductions) : row.deductions,
+        deductions:
+          typeof row.deductions === 'string' ? JSON.parse(row.deductions) : row.deductions,
       }))
 
       const response: ApiResponse<PayslipData[]> = {
@@ -181,7 +182,8 @@ export const GET: RequestHandler = async ({ params, url }) => {
         const parsedRow = {
           ...row,
           payments: typeof row.payments === 'string' ? JSON.parse(row.payments) : row.payments,
-          deductions: typeof row.deductions === 'string' ? JSON.parse(row.deductions) : row.deductions,
+          deductions:
+            typeof row.deductions === 'string' ? JSON.parse(row.deductions) : row.deductions,
         }
 
         const response: ApiResponse<PayslipData> = {
