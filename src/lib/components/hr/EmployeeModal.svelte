@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { pushToast } from '$lib/stores/toasts'
   import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
   import ThemeModal from '$lib/components/ui/ThemeModal.svelte'
   import type { Employee, EmployeeLevel, EmployeeStatus, EmploymentType } from '$lib/types/hr'
@@ -181,7 +182,7 @@
 
     for (const field of requiredFields) {
       if (!formData[field as keyof Employee]) {
-        // alert(`${getFieldLabel(field)}은(는) 필수 입력 항목입니다.`)
+        // pushToast(`${getFieldLabel(field, 'info')}은(는) 필수 입력 항목입니다.`)
         return false
       }
     }
@@ -189,14 +190,14 @@
     // 이메일 형식 검사
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(formData.email!)) {
-      // alert('올바른 이메일 형식을 입력해주세요.')
+      // pushToast('올바른 이메일 형식을 입력해주세요.', 'info')
       return false
     }
 
     // 전화번호 형식 검사
     const phoneRegex = /^[0-9-+\s()]+$/
     if (!phoneRegex.test(formData.phone!)) {
-      // alert('올바른 전화번호 형식을 입력해주세요.')
+      // pushToast('올바른 전화번호 형식을 입력해주세요.', 'info')
       return false
     }
 

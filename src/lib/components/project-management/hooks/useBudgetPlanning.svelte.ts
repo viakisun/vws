@@ -1,3 +1,5 @@
+import { pushToast } from '$lib/stores/toasts'
+
 /**
  * useBudgetPlanning Hook
  *
@@ -87,7 +89,7 @@ export function useBudgetPlanning(options: UseBudgetPlanningOptions) {
   async function addMember(): Promise<void> {
     // 참여율 검증
     if (store.forms.member.participationRate < 0 || store.forms.member.participationRate > 100) {
-      alert('참여율은 0-100 사이의 값이어야 합니다.')
+      pushToast('참여율은 0-100 사이의 값이어야 합니다.', 'info')
       return
     }
 
@@ -120,7 +122,7 @@ export function useBudgetPlanning(options: UseBudgetPlanningOptions) {
       onRefresh()
     } catch (error) {
       logger.error('참여연구원 추가 실패:', error)
-      alert('참여연구원 추가 중 오류가 발생했습니다.')
+      pushToast('참여연구원 추가 중 오류가 발생했습니다.', 'success')
       throw error
     }
   }
@@ -225,7 +227,7 @@ export function useBudgetPlanning(options: UseBudgetPlanningOptions) {
 
     // 참여율 검증
     if (store.forms.member.participationRate < 0 || store.forms.member.participationRate > 100) {
-      alert('참여율은 0-100 사이의 값이어야 합니다.')
+      pushToast('참여율은 0-100 사이의 값이어야 합니다.', 'info')
       return
     }
 
@@ -246,7 +248,7 @@ export function useBudgetPlanning(options: UseBudgetPlanningOptions) {
 
     // 필수 필드 검증
     if (!store.forms.member.startDate || !store.forms.member.endDate) {
-      alert('참여기간(시작일, 종료일)을 모두 입력해주세요.')
+      pushToast('참여기간(시작일, 종료일)을 모두 입력해주세요.', 'info')
       return
     }
 
@@ -286,10 +288,10 @@ export function useBudgetPlanning(options: UseBudgetPlanningOptions) {
       onRefresh()
 
       // 성공 메시지 표시
-      alert('연구원 정보가 수정되었습니다.')
+      pushToast('연구원 정보가 수정되었습니다.', 'success')
     } catch (error) {
       logger.error('참여연구원 수정 실패:', error)
-      alert('연구원 정보 수정 중 오류가 발생했습니다.')
+      pushToast('연구원 정보 수정 중 오류가 발생했습니다.', 'success')
       throw error
     }
   }
@@ -307,7 +309,7 @@ export function useBudgetPlanning(options: UseBudgetPlanningOptions) {
       onRefresh()
     } catch (error) {
       logger.error('참여연구원 삭제 실패:', error)
-      alert('참여연구원 삭제 중 오류가 발생했습니다.')
+      pushToast('참여연구원 삭제 중 오류가 발생했습니다.', 'success')
       throw error
     }
   }

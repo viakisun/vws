@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { pushToast } from '$lib/stores/toasts'
   import { onMount } from 'svelte'
   import type { PageData } from './$types'
   import type { LeaveData } from '$lib/types/dashboard'
@@ -39,7 +40,7 @@
   // 휴가 신청
   async function submitLeaveRequest() {
     if (!startDate || !endDate || !reason) {
-      alert('필수 정보를 모두 입력해주세요.')
+      pushToast('필수 정보를 모두 입력해주세요.', 'info')
       return
     }
 
@@ -66,13 +67,13 @@
         showRequestModal = false
         resetForm()
         await loadLeaveData()
-        alert('휴가 신청이 완료되었습니다.')
+        pushToast('휴가 신청이 완료되었습니다.', 'success')
       } else {
-        alert(result.message)
+        pushToast(result.message, 'info')
       }
     } catch (error) {
       console.error('Error submitting leave request:', error)
-      alert('휴가 신청에 실패했습니다.')
+      pushToast('휴가 신청에 실패했습니다.', 'error')
     }
   }
 

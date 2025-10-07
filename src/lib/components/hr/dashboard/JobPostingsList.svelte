@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { pushToast } from '$lib/stores/toasts'
   import type { JobPosting } from '$lib/types/dashboard'
   import ThemeCard from '$lib/components/ui/ThemeCard.svelte'
   import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
@@ -66,7 +67,7 @@
             size="sm"
             onclick={() => {
               // TODO: 채용 공고 상세 보기
-              alert('채용 공고 상세 보기 기능은 준비 중입니다.')
+              pushToast('채용 공고 상세 보기 기능은 준비 중입니다.', 'info')
             }}
           >
             👁️
@@ -76,7 +77,7 @@
             size="sm"
             onclick={() => {
               // TODO: 채용 공고 수정
-              alert('채용 공고 수정 기능은 준비 중입니다.')
+              pushToast('채용 공고 수정 기능은 준비 중입니다.', 'success')
             }}
           >
             ✏️
@@ -86,7 +87,7 @@
             size="sm"
             onclick={() => {
               // TODO: 채용 공고 삭제
-              alert('채용 공고 삭제 기능은 준비 중입니다.')
+              pushToast('채용 공고 삭제 기능은 준비 중입니다.', 'success')
             }}
           >
             🗑️

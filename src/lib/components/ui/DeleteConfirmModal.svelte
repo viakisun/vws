@@ -2,6 +2,7 @@
   import { createEventDispatcher } from 'svelte'
   import ThemeModal from './ThemeModal.svelte'
   import ThemeButton from './ThemeButton.svelte'
+  import ThemeInput from './ThemeInput.svelte'
   import { AlertTriangleIcon, TrashIcon, ArchiveIcon } from '@lucide/svelte'
 
   interface Props {
@@ -9,22 +10,39 @@
     title: string
     message: string
     itemName?: string
+    confirmText?: string // 확인을 위해 입력해야 하는 텍스트 (예: 직원 번호)
+    confirmLabel?: string // 확인 입력 필드 라벨
     loading?: boolean
     showArchive?: boolean
   }
 
-  let { open, title, message, itemName = '', loading = false, showArchive = true }: Props = $props()
+  let {
+    open,
+    title,
+    message,
+    itemName = '',
+    confirmText = '',
+    confirmLabel = '확인을 위해 입력하세요',
+    loading = false,
+    showArchive = true
+  }: Props = $props()
 
   const dispatch = createEventDispatcher<{
     close: void
     confirm: { action: 'delete' | 'archive' }
   }>()
 
+  let inputValue = $state('')
+  let isConfirmValid = $derived(confirmText ? inputValue === confirmText : true)
+
   function handleConfirm(action: 'delete' | 'archive') {
+    if (!isConfirmValid) return
     dispatch('confirm', { action })
+    inputValue = '' // 리셋
   }
 
   function handleClose() {
+    inputValue = '' // 리셋
     dispatch('close')
   }
 </script>
@@ -55,6 +73,30 @@
       </div>
     {/if}
 
+    {#if confirmText}
+      <div class="mb-6">
+        <label
+          for="confirm-input"
+          class="block text-sm font-medium mb-2"
+          style:color="var(--color-text)"
+        >
+          {confirmLabel}
+        </label>
+        <ThemeInput
+          id="confirm-input"
+          type="text"
+          placeholder={`"${confirmText}" 입력`}
+          bind:value={inputValue}
+          disabled={loading}
+        />
+        {#if inputValue && !isConfirmValid}
+          <p class="text-sm mt-1" style:color="var(--color-error)">
+            입력한 값이 일치하지 않습니다.
+          </p>
+        {/if}
+      </div>
+    {/if}
+
     <div class="flex items-center justify-end gap-3">
       <ThemeButton variant="ghost" onclick={handleClose} disabled={loading}>취소</ThemeButton>
 
@@ -62,7 +104,7 @@
         <ThemeButton
           variant="warning"
           onclick={() => handleConfirm('archive')}
-          disabled={loading}
+          disabled={loading || !isConfirmValid}
           class="flex items-center gap-2"
         >
           {#if loading}
@@ -79,7 +121,7 @@
       <ThemeButton
         variant="error"
         onclick={() => handleConfirm('delete')}
-        disabled={loading}
+        disabled={loading || !isConfirmValid}
         class="flex items-center gap-2"
       >
         {#if loading}

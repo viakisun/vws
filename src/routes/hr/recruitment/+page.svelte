@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { pushToast } from '$lib/stores/toasts'
   import Badge from '$lib/components/ui/Badge.svelte'
   import Card from '$lib/components/ui/Card.svelte'
   import Modal from '$lib/components/ui/Modal.svelte'
@@ -144,12 +145,12 @@
 
   function publishJob(jobId: string) {
     publishJobPosting(jobId)
-    alert('채용 공고가 게시되었습니다.')
+    pushToast('채용 공고가 게시되었습니다.', 'info')
   }
 
   function closeJob(jobId: string) {
     closeJobPosting(jobId)
-    alert('채용 공고가 마감되었습니다.')
+    pushToast('채용 공고가 마감되었습니다.', 'info')
   }
 
   function getStatusBadgeVariant(

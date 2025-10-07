@@ -1,3 +1,5 @@
+import { pushToast } from '$lib/stores/toasts'
+
 /**
  * useProjectValidation Hook
  *
@@ -118,7 +120,7 @@ export function useProjectValidation(options: UseProjectValidationOptions) {
       store.openModal('validation')
     } catch (error) {
       logger.error('검증 실행 실패:', error)
-      alert('검증 실행 중 오류가 발생했습니다.')
+      pushToast('검증 실행 중 오류가 발생했습니다.', 'error')
       throw error
     } finally {
       store.setLoading('validating', false)

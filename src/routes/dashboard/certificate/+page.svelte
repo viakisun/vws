@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { pushToast } from '$lib/stores/toasts'
   import { onMount } from 'svelte'
   import type { PageData } from './$types'
 
@@ -65,7 +66,7 @@
   // 재직증명서 신청
   async function submitCertificateRequest() {
     if (!purpose) {
-      alert('발급 목적을 입력해주세요.')
+      pushToast('발급 목적을 입력해주세요.', 'success')
       return
     }
 
@@ -87,13 +88,13 @@
         showRequestModal = false
         resetForm()
         await loadCertificateData()
-        alert('재직증명서 발급 요청이 완료되었습니다.')
+        pushToast('재직증명서 발급 요청이 완료되었습니다.', 'success')
       } else {
-        alert(result.message)
+        pushToast(result.message, 'info')
       }
     } catch (error) {
       console.error('Error submitting certificate request:', error)
-      alert('재직증명서 발급 요청에 실패했습니다.')
+      pushToast('재직증명서 발급 요청에 실패했습니다.', 'success')
     }
   }
 

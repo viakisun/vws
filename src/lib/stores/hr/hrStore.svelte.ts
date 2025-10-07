@@ -21,7 +21,7 @@ import { logger } from '$lib/utils/logger'
 // Types
 // ============================================================================
 
-interface HRData {
+export interface HRData {
   employees: Employee[]
   departments: Department[]
   positions: Position[]
@@ -32,7 +32,7 @@ interface HRData {
   trainingPrograms: TrainingProgram[]
 }
 
-interface HRFilters {
+export interface HRFilters {
   searchTerm: string
   status: 'all' | 'active' | 'inactive' | 'on-leave' | 'terminated'
   department: string
@@ -41,7 +41,7 @@ interface HRFilters {
   level: 'all' | 'intern' | 'junior' | 'mid' | 'senior' | 'lead' | 'manager' | 'director'
 }
 
-interface HRModals {
+export interface HRModals {
   showEmployeeModal: boolean
   showDepartmentModal: boolean
   showPositionModal: boolean
@@ -54,7 +54,7 @@ interface HRModals {
   showDetailView: boolean
 }
 
-interface HRForms {
+export interface HRForms {
   employee: Partial<Employee>
   department: Partial<Department>
   position: Partial<Position>
@@ -65,15 +65,15 @@ interface HRForms {
   trainingProgram: Partial<TrainingProgram>
 }
 
-interface HRSelected {
-  employee: Employee | null
-  department: Department | null
-  position: Position | null
-  executive: Executive | null
-  jobTitle: JobTitle | null
-  leaveRequest: LeaveRequest | null
-  performanceReview: PerformanceReview | null
-  trainingProgram: TrainingProgram | null
+export interface HRSelected {
+  editingEmployee: Employee | null
+  editingDepartment: Department | null
+  editingPosition: Position | null
+  editingExecutive: Executive | null
+  editingJobTitle: JobTitle | null
+  editingLeaveRequest: LeaveRequest | null
+  editingPerformanceReview: PerformanceReview | null
+  editingTrainingProgram: TrainingProgram | null
   itemToDelete: { type: string; item: any } | null
 }
 
@@ -81,7 +81,7 @@ interface HRSelected {
 // Store Class
 // ============================================================================
 
-class HRStore {
+export class HRStore {
   // State
   data = $state<HRData>({
     employees: [],
@@ -128,14 +128,14 @@ class HRStore {
   })
 
   selected = $state<HRSelected>({
-    employee: null,
-    department: null,
-    position: null,
-    executive: null,
-    jobTitle: null,
-    leaveRequest: null,
-    performanceReview: null,
-    trainingProgram: null,
+    editingEmployee: null,
+    editingDepartment: null,
+    editingPosition: null,
+    editingExecutive: null,
+    editingJobTitle: null,
+    editingLeaveRequest: null,
+    editingPerformanceReview: null,
+    editingTrainingProgram: null,
     itemToDelete: null,
   })
 
@@ -151,7 +151,7 @@ class HRStore {
   }
 
   get activeEmployees() {
-    return this.data.employees.filter(e => e.status === 'active').length
+    return this.data.employees.filter((e) => e.status === 'active').length
   }
 
   get departmentCount() {
@@ -159,7 +159,7 @@ class HRStore {
   }
 
   get averageTenure() {
-    const activeEmps = this.data.employees.filter(e => e.status === 'active')
+    const activeEmps = this.data.employees.filter((e) => e.status === 'active')
     if (activeEmps.length === 0) return 0
 
     const totalYears = activeEmps.reduce((sum, emp) => {
@@ -251,10 +251,10 @@ class HRStore {
 
   openEmployeeModal(employee?: Employee) {
     if (employee) {
-      this.selected.employee = employee
+      this.selected.editingEmployee = employee
       this.forms.employee = { ...employee }
     } else {
-      this.selected.employee = null
+      this.selected.editingEmployee = null
       this.forms.employee = {}
     }
     this.modals.showEmployeeModal = true
@@ -262,16 +262,16 @@ class HRStore {
 
   closeEmployeeModal() {
     this.modals.showEmployeeModal = false
-    this.selected.employee = null
+    this.selected.editingEmployee = null
     this.forms.employee = {}
   }
 
   openDepartmentModal(department?: Department) {
     if (department) {
-      this.selected.department = department
+      this.selected.editingDepartment = department
       this.forms.department = { ...department }
     } else {
-      this.selected.department = null
+      this.selected.editingDepartment = null
       this.forms.department = {}
     }
     this.modals.showDepartmentModal = true
@@ -279,16 +279,16 @@ class HRStore {
 
   closeDepartmentModal() {
     this.modals.showDepartmentModal = false
-    this.selected.department = null
+    this.selected.editingDepartment = null
     this.forms.department = {}
   }
 
   openPositionModal(position?: Position) {
     if (position) {
-      this.selected.position = position
+      this.selected.editingPosition = position
       this.forms.position = { ...position }
     } else {
-      this.selected.position = null
+      this.selected.editingPosition = null
       this.forms.position = {}
     }
     this.modals.showPositionModal = true
@@ -296,8 +296,25 @@ class HRStore {
 
   closePositionModal() {
     this.modals.showPositionModal = false
-    this.selected.position = null
+    this.selected.editingPosition = null
     this.forms.position = {}
+  }
+
+  openJobTitleModal(jobTitle?: JobTitle) {
+    if (jobTitle) {
+      this.selected.editingJobTitle = jobTitle
+      this.forms.jobTitle = { ...jobTitle }
+    } else {
+      this.selected.editingJobTitle = null
+      this.forms.jobTitle = {}
+    }
+    this.modals.showJobTitleModal = true
+  }
+
+  closeJobTitleModal() {
+    this.modals.showJobTitleModal = false
+    this.selected.editingJobTitle = null
+    this.forms.jobTitle = {}
   }
 
   openDeleteConfirm(type: string, item: any) {

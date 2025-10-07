@@ -238,7 +238,8 @@
                     >
                       <span>총액: {formatCurrency(contract.total_amount)}</span>
                       <span>지급액: {formatCurrency(contract.paid_amount)}</span>
-                      <span>잔액: {formatCurrency(contract.total_amount - contract.paid_amount)}</span
+                      <span
+                        >잔액: {formatCurrency(contract.total_amount - contract.paid_amount)}</span
                       >
                     </div>
                   </div>
@@ -399,7 +400,8 @@
     <div class="space-y-4">
       <h3 class="text-lg font-semibold mb-4" style:color="var(--color-text)">
         {#if store.createModalType === 'customer'}새 거래처 추가{:else if store.createModalType === 'opportunity'}새
-          영업기회 추가{:else if store.createModalType === 'contract'}새 계약 추가{:else}새 거래 내역 추가{/if}
+          영업기회 추가{:else if store.createModalType === 'contract'}새 계약 추가{:else}새 거래
+          내역 추가{/if}
       </h3>
 
       {#if store.createModalType === 'customer'}

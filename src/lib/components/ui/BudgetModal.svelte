@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { pushToast } from '$lib/stores/toasts'
   import type { BudgetCategory, BudgetGoal } from '$lib/stores/budget'
   import { createEventDispatcher, onMount } from 'svelte'
 
@@ -56,12 +57,12 @@
 
   function handleSubmit() {
     if (!formData.name || !formData.amount) {
-      alert('모든 필수 항목을 입력해주세요.')
+      pushToast('모든 필수 항목을 입력해주세요.', 'info')
       return
     }
 
     if (type === 'goal' && !formData.deadline) {
-      alert('목표 마감일을 입력해주세요.')
+      pushToast('목표 마감일을 입력해주세요.', 'info')
       return
     }
 

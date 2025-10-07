@@ -4,7 +4,7 @@
   import ThemeCard from '$lib/components/ui/ThemeCard.svelte'
   import ThemeInput from '$lib/components/ui/ThemeInput.svelte'
   import ThemeSpacer from '$lib/components/ui/ThemeSpacer.svelte'
-  import type { Employee, Department, Position } from '$lib/types/hr'
+  import type { Employee, Department, Position, JobTitle } from '$lib/types/hr'
   import { formatDate, formatEmployeeName } from '$lib/utils/format'
   import {
     getEmploymentTypeBadgeColor,
@@ -28,6 +28,7 @@
     employees = [],
     departments = [],
     positions = [],
+    jobTitles = [],
     searchTerm = '',
     statusFilter = 'all',
     departmentFilter = 'all',
@@ -48,6 +49,7 @@
     employees: Employee[]
     departments?: Department[]
     positions?: Position[]
+    jobTitles?: JobTitle[]
     searchTerm?: string
     statusFilter?: string
     departmentFilter?: string
@@ -77,6 +79,13 @@
     const pos = positions.find((p) => p.id === positionId)
     return pos?.name || '-'
   }
+
+  // 직책명 가져오기
+  function getJobTitleName(jobTitleId?: string): string {
+    if (!jobTitleId) return '-'
+    const jobTitle = jobTitles.find((jt) => jt.id === jobTitleId)
+    return jobTitle?.name || '-'
+  }
 </script>
 
 <ThemeSpacer size={6}>
@@ -95,10 +104,12 @@
     <!-- 검색 바 -->
     <div class="mb-4">
       <div class="relative">
-        <SearchIcon
+        <div
           class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5"
           style:color="var(--color-text-secondary)"
-        />
+        >
+          <SearchIcon />
+        </div>
         <ThemeInput
           type="search"
           placeholder="이름, 사번, 이메일, 전화번호로 검색..."
@@ -123,7 +134,6 @@
         <option value="active">재직중</option>
         <option value="inactive">비활성</option>
         <option value="on-leave">휴직중</option>
-        <option value="terminated">퇴사</option>
       </select>
 
       <select
@@ -189,109 +199,132 @@
     </div>
   </ThemeCard>
 
-  <!-- 직원 리스트 -->
-  <div class="space-y-4">
-    {#each employees as employee (employee.id)}
-      <ThemeCard class="p-6 hover:shadow-lg transition-shadow">
-        <div class="flex items-start justify-between">
-          <div class="flex-1">
-            <div class="flex items-center gap-3 mb-2">
-              <h4 class="text-lg font-semibold" style:color="var(--color-text)">
-                {formatEmployeeName(employee.name)}
-              </h4>
-              <span class="text-sm" style:color="var(--color-text-secondary)">
-                {employee.employee_id}
-              </span>
-              <ThemeBadge variant={getStatusBadgeColor(employee.status) as any}>
-                {getStatusLabel(employee.status)}
-              </ThemeBadge>
-              <ThemeBadge variant={getEmploymentTypeBadgeColor(employee.employment_type) as any}>
-                {getEmploymentTypeLabel(employee.employment_type)}
-              </ThemeBadge>
-              {#if employee.level}
-                <ThemeBadge variant="primary">
-                  {getLevelLabel(employee.level)}
-                </ThemeBadge>
-              {/if}
-            </div>
+  <!-- 직원 테이블 -->
+  <ThemeCard class="overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full">
+        <thead>
+          <tr class="border-b" style:border-color="var(--color-border)">
+            <th class="px-4 py-3 text-left text-sm font-semibold" style:color="var(--color-text)">직원정보</th>
+            <th class="px-4 py-3 text-left text-sm font-semibold" style:color="var(--color-text)">부서</th>
+            <th class="px-4 py-3 text-left text-sm font-semibold" style:color="var(--color-text)">직급/직책</th>
+            <th class="px-4 py-3 text-left text-sm font-semibold" style:color="var(--color-text)">상태</th>
+            <th class="px-4 py-3 text-left text-sm font-semibold" style:color="var(--color-text)">연락처</th>
+            <th class="px-4 py-3 text-center text-sm font-semibold" style:color="var(--color-text)">작업</th>
+          </tr>
+        </thead>
+        <tbody>
+          {#each employees as employee (employee.id)}
+            <tr class="border-b hover:bg-opacity-50 transition-colors" style:border-color="var(--color-border)" style:background="transparent">
+              <!-- 직원정보 (2줄) -->
+              <td class="px-4 py-3">
+                <div class="flex flex-col gap-1">
+                  <!-- 1줄: 이름 -->
+                  <div class="flex items-center gap-2">
+                    <div
+                      class="w-8 h-8 rounded-full flex items-center justify-center text-white font-semibold text-sm flex-shrink-0"
+                      style:background="var(--color-primary)"
+                    >
+                      {employee.last_name.charAt(0)}
+                    </div>
+                    <span class="font-medium" style:color="var(--color-text)">
+                      {employee.last_name}{employee.first_name}
+                    </span>
+                  </div>
+                  <!-- 2줄: 사번 / 입사일 -->
+                  <div class="text-xs ml-10" style:color="var(--color-text-secondary)">
+                    {employee.employee_id} · 입사 {formatDate(employee.hire_date)}
+                  </div>
+                </div>
+              </td>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
-              <div class="flex items-center gap-2">
-                <span class="text-sm" style:color="var(--color-text-secondary)">부서:</span>
-                <span class="text-sm font-medium" style:color="var(--color-text)">
-                  {getDepartmentName(employee.department_id)}
-                </span>
-              </div>
-              <div class="flex items-center gap-2">
-                <span class="text-sm" style:color="var(--color-text-secondary)">직급:</span>
-                <span class="text-sm font-medium" style:color="var(--color-text)">
-                  {getPositionName(employee.position_id)}
-                </span>
-              </div>
-              {#if employee.email}
-                <div class="flex items-center gap-2">
-                  <MailIcon class="w-4 h-4" style:color="var(--color-text-secondary)" />
-                  <a
-                    href={`mailto:${employee.email}`}
-                    class="text-sm hover:underline"
-                    style:color="var(--color-primary)"
-                  >
-                    {employee.email}
-                  </a>
-                </div>
-              {/if}
-              {#if employee.phone}
-                <div class="flex items-center gap-2">
-                  <PhoneIcon class="w-4 h-4" style:color="var(--color-text-secondary)" />
-                  <a
-                    href={`tel:${employee.phone}`}
-                    class="text-sm hover:underline"
-                    style:color="var(--color-primary)"
-                  >
-                    {employee.phone}
-                  </a>
-                </div>
-              {/if}
-              <div class="flex items-center gap-2">
-                <span class="text-sm" style:color="var(--color-text-secondary)">입사일:</span>
-                <span class="text-sm font-medium" style:color="var(--color-text)">
-                  {formatDate(employee.hire_date)}
-                </span>
-              </div>
-              {#if employee.job_title}
-                <div class="flex items-center gap-2">
-                  <span class="text-sm" style:color="var(--color-text-secondary)">직책:</span>
-                  <span class="text-sm font-medium" style:color="var(--color-text)">
-                    {employee.job_title}
-                  </span>
-                </div>
-              {/if}
-            </div>
-          </div>
+              <!-- 부서 -->
+              <td class="px-4 py-3 text-sm" style:color="var(--color-text)">
+                {employee.department || '-'}
+              </td>
 
-          <div class="flex items-center gap-2 ml-4">
-            {#if onView}
-              <ThemeButton size="sm" variant="secondary" onclick={() => onView(employee)}>
-                <EyeIcon class="w-4 h-4" />
-              </ThemeButton>
-            {/if}
-            {#if onEdit}
-              <ThemeButton size="sm" variant="secondary" onclick={() => onEdit(employee)}>
-                <EditIcon class="w-4 h-4" />
-              </ThemeButton>
-            {/if}
-            {#if onDelete}
-              <ThemeButton size="sm" variant="danger" onclick={() => onDelete(employee)}>
-                <TrashIcon class="w-4 h-4" />
-              </ThemeButton>
-            {/if}
-          </div>
-        </div>
-      </ThemeCard>
-    {:else}
-      <ThemeCard class="p-12 text-center">
-        <p style:color="var(--color-text-secondary)">직원이 없습니다.</p>
-      </ThemeCard>
-    {/each}
-  </div>
+              <!-- 직급/직책 (2줄) -->
+              <td class="px-4 py-3">
+                <div class="flex flex-col gap-1">
+                  <div class="text-sm" style:color="var(--color-text)">
+                    {employee.position || '-'}
+                  </div>
+                  <div class="text-xs" style:color="var(--color-text-secondary)">
+                    {getJobTitleName(employee.job_title_id)}
+                  </div>
+                </div>
+              </td>
+
+              <!-- 상태 -->
+              <td class="px-4 py-3">
+                <div class="flex flex-col gap-1">
+                  <ThemeBadge variant={getStatusBadgeColor(employee.status) as any}>
+                    {getStatusLabel(employee.status)}
+                  </ThemeBadge>
+                  <ThemeBadge variant={getEmploymentTypeBadgeColor(employee.employment_type) as any}>
+                    {getEmploymentTypeLabel(employee.employment_type)}
+                  </ThemeBadge>
+                </div>
+              </td>
+
+              <!-- 연락처 (2줄) -->
+              <td class="px-4 py-3">
+                <div class="flex flex-col gap-1">
+                  <!-- 이메일 -->
+                  {#if employee.email}
+                    <a
+                      href={`mailto:${employee.email}`}
+                      class="text-xs hover:underline truncate max-w-[200px]"
+                      style:color="var(--color-primary)"
+                      title={employee.email}
+                    >
+                      {employee.email}
+                    </a>
+                  {:else}
+                    <span class="text-xs" style:color="var(--color-text-secondary)">-</span>
+                  {/if}
+                  <!-- 전화번호 -->
+                  {#if employee.phone}
+                    <a
+                      href={`tel:${employee.phone}`}
+                      class="text-xs hover:underline"
+                      style:color="var(--color-primary)"
+                    >
+                      {employee.phone}
+                    </a>
+                  {:else}
+                    <span class="text-xs" style:color="var(--color-text-secondary)">-</span>
+                  {/if}
+                </div>
+              </td>
+
+              <!-- 작업 -->
+              <td class="px-4 py-3">
+                <div class="flex items-center justify-center gap-2">
+                  {#if onEdit}
+                    <ThemeButton size="sm" variant="ghost" onclick={() => onEdit(employee)}>
+                      <EditIcon class="w-4 h-4" />
+                    </ThemeButton>
+                  {/if}
+                  {#if onDelete}
+                    <ThemeButton size="sm" variant="ghost" onclick={() => onDelete(employee)}>
+                      <span style:color="var(--color-error)">
+                        <TrashIcon class="w-4 h-4" />
+                      </span>
+                    </ThemeButton>
+                  {/if}
+                </div>
+              </td>
+            </tr>
+          {:else}
+            <tr>
+              <td colspan="6" class="px-4 py-12 text-center" style:color="var(--color-text-secondary)">
+                직원이 없습니다.
+              </td>
+            </tr>
+          {/each}
+        </tbody>
+      </table>
+    </div>
+  </ThemeCard>
 </ThemeSpacer>

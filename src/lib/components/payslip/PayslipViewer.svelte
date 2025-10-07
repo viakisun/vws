@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { pushToast } from '$lib/stores/toasts'
   import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
   import ThemeModal from '$lib/components/ui/ThemeModal.svelte'
   import { formatCurrency, formatDate } from '$lib/utils/format'
@@ -185,7 +186,7 @@
       window.URL.revokeObjectURL(url)
     } catch (err) {
       logger.error('Error downloading payslip:', err)
-      alert(ERROR_MESSAGES.DOWNLOAD_FAILED)
+      pushToast(ERROR_MESSAGES.DOWNLOAD_FAILED, 'info')
     }
   }
 

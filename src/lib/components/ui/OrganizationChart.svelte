@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { pushToast } from '$lib/stores/toasts'
   import { logger } from '$lib/utils/logger'
 
   import { onMount } from 'svelte'
@@ -87,7 +88,7 @@
       document.body.removeChild(a)
     } catch (err) {
       logger.error('Error downloading CSV:', err)
-      alert('다운로드 중 오류가 발생했습니다.')
+      pushToast('다운로드 중 오류가 발생했습니다.', 'error')
     }
   }
 

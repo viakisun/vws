@@ -1,3 +1,5 @@
+import { pushToast } from '$lib/stores/toasts'
+
 /**
  * useSalesManagement Hook
  *
@@ -35,9 +37,9 @@ export function useSalesManagement() {
         if (res.success && res.data) store.setCustomers(res.data)
       })
       store.closeCreateModal()
-      alert('거래처가 성공적으로 생성되었습니다.')
+      pushToast('거래처가 성공적으로 생성되었습니다.', 'success')
     } else {
-      alert(result.error || '거래처 저장에 실패했습니다.')
+      pushToast(result.error || '거래처 저장에 실패했습니다.', 'error')
     }
   }
 
@@ -54,9 +56,9 @@ export function useSalesManagement() {
         if (res.success && res.data) store.setCustomers(res.data)
       })
       store.closeEditModal()
-      alert('거래처가 성공적으로 수정되었습니다.')
+      pushToast('거래처가 성공적으로 수정되었습니다.', 'success')
     } else {
-      alert(result.error || '거래처 수정에 실패했습니다.')
+      pushToast(result.error || '거래처 수정에 실패했습니다.', 'error')
     }
   }
 
@@ -68,9 +70,9 @@ export function useSalesManagement() {
     if (result.success) {
       store.deleteCustomer(store.selected.customerToDelete.id)
       store.closeDeleteConfirm()
-      alert('거래처가 삭제되었습니다.')
+      pushToast('거래처가 삭제되었습니다.', 'success')
     } else {
-      alert(result.error || '거래처 삭제에 실패했습니다.')
+      pushToast(result.error || '거래처 삭제에 실패했습니다.', 'error')
     }
   }
 
@@ -86,9 +88,9 @@ export function useSalesManagement() {
         if (res.success && res.data) store.setOpportunities(res.data)
       })
       store.closeCreateModal()
-      alert('영업기회가 성공적으로 생성되었습니다.')
+      pushToast('영업기회가 성공적으로 생성되었습니다.', 'success')
     } else {
-      alert(result.error || '영업기회 저장에 실패했습니다.')
+      pushToast(result.error || '영업기회 저장에 실패했습니다.', 'error')
     }
   }
 
@@ -104,9 +106,9 @@ export function useSalesManagement() {
         if (res.success && res.data) store.setContracts(res.data)
       })
       store.closeCreateModal()
-      alert('계약이 성공적으로 생성되었습니다.')
+      pushToast('계약이 성공적으로 생성되었습니다.', 'success')
     } else {
-      alert(result.error || '계약 저장에 실패했습니다.')
+      pushToast(result.error || '계약 저장에 실패했습니다.', 'error')
     }
   }
 
@@ -122,9 +124,9 @@ export function useSalesManagement() {
         if (res.success && res.data) store.setTransactions(res.data)
       })
       store.closeCreateModal()
-      alert('거래가 성공적으로 생성되었습니다.')
+      pushToast('거래가 성공적으로 생성되었습니다.', 'success')
     } else {
-      alert(result.error || '거래 저장에 실패했습니다.')
+      pushToast(result.error || '거래 저장에 실패했습니다.', 'error')
     }
   }
 

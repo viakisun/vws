@@ -4,51 +4,55 @@
   import ThemeButton from './ThemeButton.svelte'
   import ThemeModal from './ThemeModal.svelte'
 
-  interface Department {
+  interface JobTitle {
     id?: string
     name: string
     description: string
+    level: number
+    allowance: number
     status: 'active' | 'inactive'
-    max_employees?: number // T/O (정원)
   }
 
   interface Props {
     open?: boolean
-    department?: Department | null
+    jobTitle?: JobTitle | null
     loading?: boolean
   }
 
-  let { open = false, department = null, loading = false }: Props = $props()
+  let { open = false, jobTitle = null, loading = false }: Props = $props()
 
   const dispatch = createEventDispatcher()
 
   let formData = $state({
     name: '',
     description: '',
+    level: 1,
+    allowance: 0,
     status: 'active' as 'active' | 'inactive',
-    to: 0,
   })
 
-  // 부서 데이터가 변경될 때 폼 데이터 업데이트
+  // 직책 데이터가 변경될 때 폼 데이터 업데이트
   function _updateData() {
-    if (department) {
-      formData.name = department.name || ''
-      formData.description = department.description || ''
-      formData.status = department.status || 'active'
-      formData.to = department.max_employees || 0
+    if (jobTitle) {
+      formData.name = jobTitle.name || ''
+      formData.description = jobTitle.description || ''
+      formData.level = jobTitle.level || 1
+      formData.allowance = jobTitle.allowance || 0
+      formData.status = jobTitle.status || 'active'
     } else {
-      // 새 부서 추가 시 기본값으로 리셋
+      // 새 직책 추가 시 기본값으로 리셋
       formData.name = ''
       formData.description = ''
+      formData.level = 1
+      formData.allowance = 0
       formData.status = 'active'
-      formData.to = 0
     }
   }
 
   function handleSave() {
     // 필수 필드 검증
     if (!formData.name?.trim()) {
-      pushToast('부서명은 필수 입력 항목입니다.', 'info')
+      pushToast('직책명은 필수 입력 항목입니다.', 'info')
       return
     }
 
@@ -69,7 +73,7 @@
   <div class="space-y-6">
     <div class="flex items-center justify-between">
       <h2 class="text-xl font-semibold" style:color="var(--color-text)">
-        {department ? '부서 수정' : '새 부서 추가'}
+        {jobTitle ? '직책 수정' : '새 직책 추가'}
       </h2>
     </div>
 
@@ -80,20 +84,20 @@
       }}
       class="space-y-4"
     >
-      <!-- 부서명 -->
+      <!-- 직책명 -->
       <div>
         <label
-          for="dept-name"
+          for="job-title-name"
           class="block text-sm font-medium mb-2"
           style:color="var(--color-text)"
         >
-          부서명 *
+          직책명 *
         </label>
         <input
-          id="dept-name"
+          id="job-title-name"
           type="text"
           bind:value={formData.name}
-          placeholder="예: 개발팀, 마케팅팀, 연구원"
+          placeholder="예: 팀장, 파트장, 실장, 본부장"
           class="w-full px-3 py-2 border rounded-md text-sm"
           style:border-color="var(--color-border)"
           style:background="var(--color-surface)"
@@ -102,19 +106,19 @@
         />
       </div>
 
-      <!-- 부서 설명 -->
+      <!-- 직책 설명 -->
       <div>
         <label
-          for="dept-description"
+          for="job-title-description"
           class="block text-sm font-medium mb-2"
           style:color="var(--color-text)"
         >
-          부서 설명
+          직책 설명
         </label>
         <textarea
-          id="dept-description"
+          id="job-title-description"
           bind:value={formData.description}
-          placeholder="부서의 역할과 책임을 설명해주세요"
+          placeholder="직책의 역할과 책임을 설명해주세요"
           rows="3"
           class="w-full px-3 py-2 border rounded-md text-sm resize-none"
           style:border-color="var(--color-border)"
@@ -123,38 +127,67 @@
         ></textarea>
       </div>
 
-      <!-- T/O (정원) -->
+      <!-- 직책 레벨 -->
       <div>
-        <label for="dept-to" class="block text-sm font-medium mb-2" style:color="var(--color-text)">
-          T/O (정원)
+        <label
+          for="job-title-level"
+          class="block text-sm font-medium mb-2"
+          style:color="var(--color-text)"
+        >
+          직책 레벨
         </label>
         <input
-          id="dept-to"
+          id="job-title-level"
           type="number"
-          bind:value={formData.to}
-          placeholder="0 (무제한)"
-          min="0"
+          bind:value={formData.level}
+          min="1"
+          max="10"
           class="w-full px-3 py-2 border rounded-md text-sm"
           style:border-color="var(--color-border)"
           style:background="var(--color-surface)"
           style:color="var(--color-text)"
         />
         <p class="text-xs mt-1" style:color="var(--color-text-secondary)">
-          0으로 설정하면 현재 인원이 최대 인원으로 간주됩니다.
+          숫자가 높을수록 상위 직책입니다 (1-10)
+        </p>
+      </div>
+
+      <!-- 직책 수당 -->
+      <div>
+        <label
+          for="job-title-allowance"
+          class="block text-sm font-medium mb-2"
+          style:color="var(--color-text)"
+        >
+          직책 수당 (원)
+        </label>
+        <input
+          id="job-title-allowance"
+          type="number"
+          bind:value={formData.allowance}
+          min="0"
+          step="10000"
+          class="w-full px-3 py-2 border rounded-md text-sm"
+          style:border-color="var(--color-border)"
+          style:background="var(--color-surface)"
+          style:color="var(--color-text)"
+        />
+        <p class="text-xs mt-1" style:color="var(--color-text-secondary)">
+          이 직책에 대한 월 수당 금액
         </p>
       </div>
 
       <!-- 상태 -->
       <div>
         <label
-          for="dept-status"
+          for="job-title-status"
           class="block text-sm font-medium mb-2"
           style:color="var(--color-text)"
         >
           상태
         </label>
         <select
-          id="dept-status"
+          id="job-title-status"
           bind:value={formData.status}
           class="w-full px-3 py-2 border rounded-md text-sm"
           style:border-color="var(--color-border)"
@@ -172,7 +205,7 @@
   <div class="flex justify-end gap-2 pt-4 border-t" style:border-color="var(--color-border)">
     <ThemeButton variant="ghost" onclick={handleClose} disabled={loading}>취소</ThemeButton>
     <ThemeButton variant="primary" onclick={handleSave} disabled={loading}>
-      {loading ? '저장 중...' : department ? '수정' : '추가'}
+      {loading ? '저장 중...' : jobTitle ? '수정' : '추가'}
     </ThemeButton>
   </div>
 </ThemeModal>

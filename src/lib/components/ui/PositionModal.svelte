@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { pushToast } from '$lib/stores/toasts'
   import { createEventDispatcher, onMount } from 'svelte'
   import ThemeButton from './ThemeButton.svelte'
   import ThemeModal from './ThemeModal.svelte'
@@ -52,12 +53,12 @@
   function handleSave() {
     // 필수 필드 검증
     if (!formData.name?.trim()) {
-      alert('직급명은 필수 입력 항목입니다.')
+      pushToast('직급명은 필수 입력 항목입니다.', 'info')
       return
     }
 
     if (!formData.department?.trim()) {
-      alert('부서는 필수 선택 항목입니다.')
+      pushToast('부서는 필수 선택 항목입니다.', 'info')
       return
     }
 

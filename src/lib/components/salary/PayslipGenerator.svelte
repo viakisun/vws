@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { pushToast } from '$lib/stores/toasts'
   import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
   import { formatCurrency, formatNumber } from '$lib/utils/format'
   import { formatKoreanNameStandard, sortKoreanNames } from '$lib/utils/korean-name'
@@ -183,7 +184,7 @@
     } catch (error) {
       console.error('급여명세서 데이터 로드 실패:', error)
       payslipData = [] as any
-      alert('급여명세서 데이터를 불러올 수 없습니다. 데이터베이스 연결을 확인하세요.')
+      pushToast('급여명세서 데이터를 불러올 수 없습니다. 데이터베이스 연결을 확인하세요.', 'error')
     } finally {
       isLoadingPayslipData = false
     }
@@ -231,7 +232,7 @@
     } catch (error) {
       console.error('직원 목록 로드 실패:', error)
       employeeList = []
-      alert('직원 목록을 불러올 수 없습니다. 데이터베이스 연결을 확인하세요.')
+      pushToast('직원 목록을 불러올 수 없습니다. 데이터베이스 연결을 확인하세요.', 'error')
     }
   }
 
@@ -304,7 +305,7 @@
     } catch (error) {
       console.error('계약 정보 로드 실패:', error)
       employeeContract = null
-      alert('급여 계약 정보를 불러올 수 없습니다. 데이터베이스 연결을 확인하세요.')
+      pushToast('급여 계약 정보를 불러올 수 없습니다. 데이터베이스 연결을 확인하세요.', 'error')
     } finally {
       isLoadingContract = false
     }
@@ -675,14 +676,14 @@
 
       const result = await response.json()
       if (result.success) {
-        alert('급여명세서가 저장되었습니다.')
+        pushToast('급여명세서가 저장되었습니다.', 'info')
         cancelEdit()
         loadPayslipData()
       } else {
-        alert(`저장에 실패했습니다: ${result.error}`)
+        pushToast(`저장에 실패했습니다: ${result.error}`, 'info')
       }
     } catch (_error) {
-      alert('저장 중 오류가 발생했습니다.')
+      pushToast('저장 중 오류가 발생했습니다.', 'error')
     }
   }
 

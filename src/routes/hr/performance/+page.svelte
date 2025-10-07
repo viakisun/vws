@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { pushToast } from '$lib/stores/toasts'
   import Badge from '$lib/components/ui/Badge.svelte'
   import Card from '$lib/components/ui/Card.svelte'
   import Modal from '$lib/components/ui/Modal.svelte'
@@ -221,7 +222,7 @@
 
   function handleReviewSubmit() {
     if (!selectedEmployeeId) {
-      alert('직원을 선택해주세요.')
+      pushToast('직원을 선택해주세요.', 'info')
       return
     }
 
@@ -235,12 +236,12 @@
       })
     }
     isReviewModalOpen = false
-    alert('성과 평가가 저장되었습니다.')
+    pushToast('성과 평가가 저장되었습니다.', 'info')
   }
 
   function handleFeedbackSubmit() {
     if (!selectedEmployeeId) {
-      alert('직원을 선택해주세요.')
+      pushToast('직원을 선택해주세요.', 'info')
       return
     }
 
@@ -250,17 +251,17 @@
       status: 'pending',
     })
     isFeedbackModalOpen = false
-    alert('360도 피드백이 제출되었습니다.')
+    pushToast('360도 피드백이 제출되었습니다.', 'info')
   }
 
   function completeReview(reviewId: string) {
     completePerformanceReview(reviewId)
-    alert('성과 평가가 완료되었습니다.')
+    pushToast('성과 평가가 완료되었습니다.', 'success')
   }
 
   function approveReview(reviewId: string) {
     approvePerformanceReview(reviewId, 'HR팀')
-    alert('성과 평가가 승인되었습니다.')
+    pushToast('성과 평가가 승인되었습니다.', 'success')
   }
 
   function getStatusBadgeVariant(

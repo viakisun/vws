@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { pushToast } from '$lib/stores/toasts'
   import { logger } from '$lib/utils/logger'
   import { onMount } from 'svelte'
 
@@ -94,11 +95,11 @@
           onclose()
         }
       } else {
-        alert('오류: ' + result.error)
+        pushToast('오류: ' + result.error, 'info')
       }
     } catch (error) {
       logger.error('Error saving company:', error)
-      alert('회사 정보 저장 중 오류가 발생했습니다.')
+      pushToast('회사 정보 저장 중 오류가 발생했습니다.', 'error')
     }
   }
 

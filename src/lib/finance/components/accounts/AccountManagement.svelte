@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { pushToast } from '$lib/stores/toasts'
   import { accountService } from '$lib/finance/services'
   import type { Account, Bank, CreateAccountRequest } from '$lib/finance/types'
   import {
@@ -105,7 +106,7 @@
       const result = await accountService.deleteAccount(account.id)
 
       // 성공 메시지 표시
-      alert(result.message)
+      pushToast(result.message, 'info')
 
       // 계좌 목록에서 제거
       accounts = accounts.filter((a) => a.id !== account.id)
@@ -143,7 +144,7 @@
       })
 
       // 성공 메시지 표시
-      alert('계좌 정보가 성공적으로 수정되었습니다.')
+      pushToast('계좌 정보가 성공적으로 수정되었습니다.', 'success')
 
       // 계좌 목록에서 업데이트 (API에서 반환된 완전한 정보 사용)
       const index = accounts.findIndex((a) => a.id === account.id)

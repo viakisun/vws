@@ -58,18 +58,43 @@
 
 <!-- Toast notifications -->
 {#if $toasts.length}
-  <div class="fixed bottom-4 right-4 space-y-2 z-50" aria-live="polite" aria-atomic="true">
-    {#each $toasts as t, i (i)}
+  <div class="fixed top-4 right-4 space-y-2 z-50 pointer-events-none" aria-live="polite" aria-atomic="true">
+    {#each $toasts as t (t.id)}
       <div
-        class="px-4 py-3 rounded-lg shadow-lg border text-sm transition-all duration-300"
-        style:background="var(--color-surface)"
-        style:border-color="var(--color-border)"
-        style:color="var(--color-text)"
-        class:text-green-600={t.type === 'success'}
-        class:text-red-600={t.type === 'error'}
-        class:text-blue-600={t.type === 'info'}
+        class="pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg border text-sm transition-all duration-300 min-w-[320px] max-w-md animate-slide-in"
+        class:bg-green-50={t.type === 'success'}
+        class:dark:bg-green-900={t.type === 'success'}
+        class:border-green-200={t.type === 'success'}
+        class:dark:border-green-800={t.type === 'success'}
+        class:text-green-800={t.type === 'success'}
+        class:dark:text-green-200={t.type === 'success'}
+        class:bg-red-50={t.type === 'error'}
+        class:dark:bg-red-900={t.type === 'error'}
+        class:border-red-200={t.type === 'error'}
+        class:dark:border-red-800={t.type === 'error'}
+        class:text-red-800={t.type === 'error'}
+        class:dark:text-red-200={t.type === 'error'}
+        class:bg-blue-50={t.type === 'info'}
+        class:dark:bg-blue-900={t.type === 'info'}
+        class:border-blue-200={t.type === 'info'}
+        class:dark:border-blue-800={t.type === 'info'}
+        class:text-blue-800={t.type === 'info'}
+        class:dark:text-blue-200={t.type === 'info'}
       >
-        {t.message}
+        {#if t.type === 'success'}
+          <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        {:else if t.type === 'error'}
+          <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        {:else}
+          <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        {/if}
+        <p class="flex-1 font-medium">{t.message}</p>
       </div>
     {/each}
   </div>
@@ -77,4 +102,19 @@
 
 <style>
   /* Layout handled by CSS variables and Tailwind */
+
+  @keyframes slide-in {
+    from {
+      transform: translateX(100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+
+  .animate-slide-in {
+    animation: slide-in 0.3s ease-out;
+  }
 </style>

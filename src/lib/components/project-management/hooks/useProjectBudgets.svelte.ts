@@ -1,3 +1,5 @@
+import { pushToast } from '$lib/stores/toasts'
+
 /**
  * useProjectBudgets Hook
  *
@@ -69,13 +71,13 @@ export function useProjectBudgets(options: UseProjectBudgetsOptions) {
   async function addBudget(): Promise<void> {
     // 필수 필드 검증
     if (!store.forms.budget.startDate || !store.forms.budget.endDate) {
-      alert('연차 기간(시작일, 종료일)을 모두 입력해주세요.')
+      pushToast('연차 기간(시작일, 종료일)을 모두 입력해주세요.', 'info')
       return
     }
 
     // 시작일이 종료일보다 늦은지 검증
     if (new Date(store.forms.budget.startDate) >= new Date(store.forms.budget.endDate)) {
-      alert('시작일은 종료일보다 빨라야 합니다.')
+      pushToast('시작일은 종료일보다 빨라야 합니다.', 'info')
       return
     }
 
@@ -106,10 +108,10 @@ export function useProjectBudgets(options: UseProjectBudgetsOptions) {
       store.incrementBudgetRefresh()
       onRefresh()
 
-      alert('사업비가 성공적으로 추가되었습니다.')
+      pushToast('사업비가 성공적으로 추가되었습니다.', 'success')
     } catch (error) {
       logger.error('사업비 추가 실패:', error)
-      alert('사업비 추가 중 오류가 발생했습니다.')
+      pushToast('사업비 추가 중 오류가 발생했습니다.', 'success')
       throw error
     }
   }
@@ -159,13 +161,13 @@ export function useProjectBudgets(options: UseProjectBudgetsOptions) {
 
     // 필수 필드 검증
     if (!store.forms.budget.startDate || !store.forms.budget.endDate) {
-      alert('연차 기간(시작일, 종료일)을 모두 입력해주세요.')
+      pushToast('연차 기간(시작일, 종료일)을 모두 입력해주세요.', 'info')
       return
     }
 
     // 시작일이 종료일보다 늦은지 검증
     if (new Date(store.forms.budget.startDate) >= new Date(store.forms.budget.endDate)) {
-      alert('시작일은 종료일보다 빨라야 합니다.')
+      pushToast('시작일은 종료일보다 빨라야 합니다.', 'info')
       return
     }
 
@@ -199,7 +201,7 @@ export function useProjectBudgets(options: UseProjectBudgetsOptions) {
       )
 
       if (!validationResponse.ok) {
-        alert('예산 수정 전 검증에 실패했습니다.')
+        pushToast('예산 수정 전 검증에 실패했습니다.', 'success')
         return
       }
 
@@ -216,7 +218,7 @@ export function useProjectBudgets(options: UseProjectBudgetsOptions) {
       await proceedWithUpdate()
     } catch (error) {
       logger.error('사업비 업데이트 실패:', error)
-      alert('사업비 수정 중 오류가 발생했습니다.')
+      pushToast('사업비 수정 중 오류가 발생했습니다.', 'success')
       throw error
     }
   }
@@ -258,10 +260,10 @@ export function useProjectBudgets(options: UseProjectBudgetsOptions) {
       store.incrementBudgetRefresh()
       onRefresh()
 
-      alert('사업비가 성공적으로 수정되었습니다.')
+      pushToast('사업비가 성공적으로 수정되었습니다.', 'success')
     } catch (error) {
       logger.error('사업비 수정 실패:', error)
-      alert('사업비 수정 중 오류가 발생했습니다.')
+      pushToast('사업비 수정 중 오류가 발생했습니다.', 'success')
       throw error
     }
   }
@@ -294,7 +296,7 @@ export function useProjectBudgets(options: UseProjectBudgetsOptions) {
       onRefresh()
     } catch (error) {
       logger.error('사업비 삭제 실패:', error)
-      alert('사업비 삭제 중 오류가 발생했습니다.')
+      pushToast('사업비 삭제 중 오류가 발생했습니다.', 'success')
       throw error
     }
   }

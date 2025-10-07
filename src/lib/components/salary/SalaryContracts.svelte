@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { pushToast } from '$lib/stores/toasts'
   import ThemeBadge from '$lib/components/ui/ThemeBadge.svelte'
   import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
   import ThemeCard from '$lib/components/ui/ThemeCard.svelte'
@@ -268,7 +269,7 @@
       !formData.annualSalary ||
       !formData.monthlySalary
     ) {
-      alert('필수 필드를 모두 입력해주세요.')
+      pushToast('필수 필드를 모두 입력해주세요.', 'info')
       return
     }
 

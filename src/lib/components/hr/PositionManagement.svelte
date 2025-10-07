@@ -5,13 +5,7 @@
   import ThemeSpacer from '$lib/components/ui/ThemeSpacer.svelte'
   import type { Position, Employee } from '$lib/types/hr'
   import { formatCurrency, formatDate } from '$lib/utils/format'
-  import {
-    AwardIcon,
-    EditIcon,
-    PlusIcon,
-    TrashIcon,
-    UsersIcon,
-  } from '@lucide/svelte'
+  import { AwardIcon, EditIcon, PlusIcon, TrashIcon, UsersIcon } from '@lucide/svelte'
 
   let {
     positions = [],
@@ -29,9 +23,9 @@
 
   // 직급별 직원 수 계산
   function getEmployeeCount(positionId: string): number {
-    return employees.filter(
-      (e) => e.position_id === positionId && e.status === 'active'
-    ).length
+    const pos = positions.find(p => p.id === positionId)
+    if (!pos) return 0
+    return employees.filter((e) => e.position === pos.name && e.status === 'active').length
   }
 
   // 직급 레벨 색상
@@ -58,129 +52,122 @@
   <ThemeCard class="p-6 mb-6">
     <div class="flex items-center justify-between">
       <div class="flex items-center gap-3">
-        <AwardIcon class="w-6 h-6" style:color="var(--color-primary)" />
+        <div class="w-6 h-6" style:color="var(--color-primary)">
+          <AwardIcon />
+        </div>
         <div>
-          <h3 class="text-lg font-semibold" style:color="var(--color-text)">직급 관리</h3>
+          <h3 class="text-lg font-semibold" style:color="var(--color-text)">직급/직책 관리</h3>
           <p class="text-sm" style:color="var(--color-text-secondary)">
-            총 {positions.length}개 직급
+            총 {positions.length}개 직급/직책
           </p>
         </div>
       </div>
       {#if onAdd}
         <ThemeButton onclick={onAdd}>
           <PlusIcon class="w-4 h-4 mr-2" />
-          직급 추가
+          직급/직책 추가
         </ThemeButton>
       {/if}
     </div>
   </ThemeCard>
 
-  <!-- 직급 리스트 -->
-  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-    {#each positions.sort((a, b) => (b.level || 0) - (a.level || 0)) as position (position.id)}
-      <ThemeCard class="p-6 hover:shadow-lg transition-shadow">
-        <div class="flex items-start justify-between mb-4">
-          <div class="flex items-center gap-3">
-            <div
-              class="w-12 h-12 rounded-lg flex items-center justify-center"
-              style:background="var(--color-{getLevelColor(position.level)}-light)"
-            >
-              <AwardIcon
-                class="w-6 h-6"
-                style:color="var(--color-{getLevelColor(position.level)})"
-              />
-            </div>
-            <div>
-              <h4 class="font-semibold" style:color="var(--color-text)">
-                {position.name}
-              </h4>
-              {#if position.code}
-                <span class="text-sm" style:color="var(--color-text-secondary)">
-                  {position.code}
-                </span>
-              {/if}
-            </div>
-          </div>
-          <div class="flex gap-1">
-            {#if onEdit}
-              <ThemeButton size="sm" variant="ghost" onclick={() => onEdit(position)}>
-                <EditIcon class="w-4 h-4" />
-              </ThemeButton>
-            {/if}
-            {#if onDelete}
-              <ThemeButton size="sm" variant="ghost" onclick={() => onDelete(position)}>
-                <TrashIcon class="w-4 h-4" style:color="var(--color-error)" />
-              </ThemeButton>
-            {/if}
-          </div>
-        </div>
-
-        <div class="space-y-2">
-          {#if position.description}
-            <p class="text-sm" style:color="var(--color-text-secondary)">
-              {position.description}
-            </p>
-          {/if}
-
-          <div class="flex items-center gap-2">
-            <UsersIcon class="w-4 h-4" style:color="var(--color-text-secondary)" />
-            <span class="text-sm" style:color="var(--color-text)">
-              {getEmployeeCount(position.id)}명
-            </span>
-          </div>
-
-          {#if position.level}
-            <div class="flex items-center gap-2">
-              <span class="text-sm" style:color="var(--color-text-secondary)">레벨:</span>
-              <span class="text-sm font-medium" style:color="var(--color-text)">
-                {position.level}
-              </span>
-              <ThemeBadge variant={getLevelColor(position.level) as any}>
-                {getLevelLabel(position.level)}
-              </ThemeBadge>
-            </div>
-          {/if}
-
-          {#if position.min_salary || position.max_salary}
-            <div class="flex items-center gap-2">
-              <span class="text-sm" style:color="var(--color-text-secondary)">급여범위:</span>
-              <span class="text-sm font-medium" style:color="var(--color-text)">
-                {position.min_salary ? formatCurrency(position.min_salary) : ''}
-                {position.min_salary && position.max_salary ? ' ~ ' : ''}
-                {position.max_salary ? formatCurrency(position.max_salary) : ''}
-              </span>
-            </div>
-          {/if}
-
-          {#if position.created_at}
-            <div class="flex items-center gap-2">
-              <span class="text-sm" style:color="var(--color-text-secondary)">생성일:</span>
-              <span class="text-sm" style:color="var(--color-text)">
-                {formatDate(position.created_at)}
-              </span>
-            </div>
-          {/if}
-
-          {#if position.status}
-            <div class="mt-2">
-              <ThemeBadge variant={position.status === 'active' ? 'success' : 'secondary'}>
-                {position.status === 'active' ? '활성' : '비활성'}
-              </ThemeBadge>
-            </div>
-          {/if}
-        </div>
-      </ThemeCard>
-    {:else}
-      <ThemeCard class="col-span-full p-12 text-center">
-        <AwardIcon class="w-12 h-12 mx-auto mb-4" style:color="var(--color-text-secondary)" />
-        <p style:color="var(--color-text-secondary)">등록된 직급이 없습니다.</p>
-        {#if onAdd}
-          <ThemeButton onclick={onAdd} class="mt-4">
-            <PlusIcon class="w-4 h-4 mr-2" />
-            첫 직급 추가하기
-          </ThemeButton>
-        {/if}
-      </ThemeCard>
-    {/each}
-  </div>
+  <!-- 직급 테이블 -->
+  <ThemeCard class="overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full">
+        <thead>
+          <tr class="border-b" style:border-color="var(--color-border)">
+            <th class="px-4 py-3 text-left text-sm font-semibold" style:color="var(--color-text)">직급명</th>
+            <th class="px-4 py-3 text-left text-sm font-semibold" style:color="var(--color-text)">직급코드</th>
+            <th class="px-4 py-3 text-left text-sm font-semibold" style:color="var(--color-text)">설명</th>
+            <th class="px-4 py-3 text-left text-sm font-semibold" style:color="var(--color-text)">레벨</th>
+            <th class="px-4 py-3 text-left text-sm font-semibold" style:color="var(--color-text)">인원</th>
+            <th class="px-4 py-3 text-left text-sm font-semibold" style:color="var(--color-text)">급여범위</th>
+            <th class="px-4 py-3 text-left text-sm font-semibold" style:color="var(--color-text)">상태</th>
+            <th class="px-4 py-3 text-center text-sm font-semibold" style:color="var(--color-text)">작업</th>
+          </tr>
+        </thead>
+        <tbody>
+          {#each [...positions].sort((a, b) => (b.level || 0) - (a.level || 0)) as position (position.id)}
+            <tr class="border-b hover:bg-opacity-50 transition-colors" style:border-color="var(--color-border)">
+              <td class="px-4 py-3">
+                <div class="flex items-center gap-2">
+                  <div
+                    class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+                    style:background="var(--color-{getLevelColor(position.level)}-light)"
+                  >
+                    <div class="w-4 h-4" style:color="var(--color-{getLevelColor(position.level)})">
+                      <AwardIcon />
+                    </div>
+                  </div>
+                  <span class="font-medium" style:color="var(--color-text)">
+                    {position.name}
+                  </span>
+                </div>
+              </td>
+              <td class="px-4 py-3 text-sm" style:color="var(--color-text-secondary)">
+                {position.code || '-'}
+              </td>
+              <td class="px-4 py-3 text-sm" style:color="var(--color-text-secondary)">
+                {position.description || '-'}
+              </td>
+              <td class="px-4 py-3">
+                {#if position.level}
+                  <div class="flex items-center gap-2">
+                    <span class="text-sm font-medium" style:color="var(--color-text)">
+                      {position.level}
+                    </span>
+                    <ThemeBadge variant={getLevelColor(position.level) as any}>
+                      {getLevelLabel(position.level)}
+                    </ThemeBadge>
+                  </div>
+                {:else}
+                  <span class="text-sm" style:color="var(--color-text-secondary)">-</span>
+                {/if}
+              </td>
+              <td class="px-4 py-3 text-sm" style:color="var(--color-text)">
+                {getEmployeeCount(position.id)}명
+              </td>
+              <td class="px-4 py-3 text-sm" style:color="var(--color-text)">
+                {#if position.min_salary || position.max_salary}
+                  {position.min_salary ? formatCurrency(position.min_salary) : ''}
+                  {position.min_salary && position.max_salary ? ' ~ ' : ''}
+                  {position.max_salary ? formatCurrency(position.max_salary) : ''}
+                {:else}
+                  -
+                {/if}
+              </td>
+              <td class="px-4 py-3">
+                <ThemeBadge variant={position.status === 'active' ? 'success' : 'secondary'}>
+                  {position.status === 'active' ? '활성' : '비활성'}
+                </ThemeBadge>
+              </td>
+              <td class="px-4 py-3">
+                <div class="flex items-center justify-center gap-1">
+                  {#if onEdit}
+                    <ThemeButton size="sm" variant="ghost" onclick={() => onEdit(position)}>
+                      <EditIcon class="w-4 h-4" />
+                    </ThemeButton>
+                  {/if}
+                  {#if onDelete}
+                    <ThemeButton size="sm" variant="ghost" onclick={() => onDelete(position)}>
+                      <div class="w-4 h-4" style:color="var(--color-error)">
+                        <TrashIcon />
+                      </div>
+                    </ThemeButton>
+                  {/if}
+                </div>
+              </td>
+            </tr>
+          {:else}
+            <tr>
+              <td colspan="8" class="px-4 py-12 text-center" style:color="var(--color-text-secondary)">
+                등록된 직급이 없습니다.
+              </td>
+            </tr>
+          {/each}
+        </tbody>
+      </table>
+    </div>
+  </ThemeCard>
 </ThemeSpacer>

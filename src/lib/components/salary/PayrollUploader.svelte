@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { pushToast } from '$lib/stores/toasts'
   import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
   import ThemeModal from '$lib/components/ui/ThemeModal.svelte'
   import {
@@ -56,7 +57,7 @@
     if (file) {
       // 파일 확장자 검증
       if (!file.name.endsWith('.xlsx') && !file.name.endsWith('.xls')) {
-        alert('엑셀 파일(.xlsx, .xls)만 업로드 가능합니다.')
+        pushToast('엑셀 파일(.xlsx, .xls)만 업로드 가능합니다.', 'info')
         target.value = ''
         return
       }
@@ -68,7 +69,7 @@
   // 파일 업로드
   async function uploadFile() {
     if (!selectedFile) {
-      alert('파일을 선택해주세요.')
+      pushToast('파일을 선택해주세요.', 'info')
       return
     }
 
@@ -92,10 +93,10 @@
         showUploadModal = false
         selectedFile = null
       } else {
-        alert(`업로드 실패: ${result.error}`)
+        pushToast(`업로드 실패: ${result.error}`, 'info')
       }
     } catch (_error) {
-      alert('업로드 중 오류가 발생했습니다.')
+      pushToast('업로드 중 오류가 발생했습니다.', 'error')
     } finally {
       isUploading = false
     }

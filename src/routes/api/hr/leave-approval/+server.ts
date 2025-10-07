@@ -40,7 +40,7 @@ export const GET: RequestHandler = async (event) => {
     // 연차 신청 목록 조회
     const requestsResult = await query(
       `
-      SELECT 
+      SELECT
         lr.*,
         e.first_name || ' ' || e.last_name as employee_name,
         e.employee_id,
@@ -48,13 +48,10 @@ export const GET: RequestHandler = async (event) => {
         e.position,
         e.email,
         e.phone,
-        approver.first_name || ' ' || approver.last_name as approver_name,
-        lb.remaining_annual_leave,
-        lb.remaining_sick_leave
+        approver.first_name || ' ' || approver.last_name as approver_name
       FROM leave_requests lr
       JOIN employees e ON lr.employee_id = e.id
       LEFT JOIN employees approver ON lr.approved_by = approver.id
-      LEFT JOIN leave_balances lb ON lr.employee_id = lb.employee_id AND lb.year = EXTRACT(YEAR FROM lr.start_date)
       WHERE ${whereClause}
       ORDER BY lr.created_at DESC
       LIMIT $2 OFFSET $3
@@ -77,12 +74,12 @@ export const GET: RequestHandler = async (event) => {
 
     // 통계 조회
     const statsResult = await query(`
-      SELECT 
+      SELECT
         COUNT(*) as total_requests,
-        COUNT(CASE WHEN status = 'pending' THEN 1 END) as pending_requests,
-        COUNT(CASE WHEN status = 'approved' THEN 1 END) as approved_requests,
-        COUNT(CASE WHEN status = 'rejected' THEN 1 END) as rejected_requests,
-        COUNT(CASE WHEN status = 'cancelled' THEN 1 END) as cancelled_requests
+        COUNT(CASE WHEN lr.status = 'pending' THEN 1 END) as pending_requests,
+        COUNT(CASE WHEN lr.status = 'approved' THEN 1 END) as approved_requests,
+        COUNT(CASE WHEN lr.status = 'rejected' THEN 1 END) as rejected_requests,
+        COUNT(CASE WHEN lr.status = 'cancelled' THEN 1 END) as cancelled_requests
       FROM leave_requests lr
       JOIN employees e ON lr.employee_id = e.id
       WHERE lr.created_at >= CURRENT_DATE - INTERVAL '30 days'

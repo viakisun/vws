@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { pushToast } from '$lib/stores/toasts'
   import { onMount } from 'svelte'
   import type { PageData } from './$types'
   import type { AttendanceData } from '$lib/types/dashboard'
@@ -106,13 +107,13 @@
 
       if (result.success) {
         await loadAttendanceData()
-        alert('출근이 기록되었습니다.')
+        pushToast('출근이 기록되었습니다.', 'info')
       } else {
-        alert(result.message)
+        pushToast(result.message, 'info')
       }
     } catch (error) {
       console.error('Error checking in:', error)
-      alert('출근 기록에 실패했습니다.')
+      pushToast('출근 기록에 실패했습니다.', 'error')
     }
   }
 
@@ -134,13 +135,13 @@
 
       if (result.success) {
         await loadAttendanceData()
-        alert('퇴근이 기록되었습니다.')
+        pushToast('퇴근이 기록되었습니다.', 'info')
       } else {
-        alert(result.message)
+        pushToast(result.message, 'info')
       }
     } catch (error) {
       console.error('Error checking out:', error)
-      alert('퇴근 기록에 실패했습니다.')
+      pushToast('퇴근 기록에 실패했습니다.', 'error')
     }
   }
 
@@ -161,13 +162,13 @@
 
       if (result.success) {
         await loadAttendanceData()
-        alert('휴게가 시작되었습니다.')
+        pushToast('휴게가 시작되었습니다.', 'info')
       } else {
-        alert(result.message)
+        pushToast(result.message, 'info')
       }
     } catch (error) {
       console.error('Error starting break:', error)
-      alert('휴게 시작에 실패했습니다.')
+      pushToast('휴게 시작에 실패했습니다.', 'error')
     }
   }
 
@@ -188,13 +189,13 @@
 
       if (result.success) {
         await loadAttendanceData()
-        alert('휴게가 종료되었습니다.')
+        pushToast('휴게가 종료되었습니다.', 'info')
       } else {
-        alert(result.message)
+        pushToast(result.message, 'info')
       }
     } catch (error) {
       console.error('Error ending break:', error)
-      alert('휴게 종료에 실패했습니다.')
+      pushToast('휴게 종료에 실패했습니다.', 'error')
     }
   }
 

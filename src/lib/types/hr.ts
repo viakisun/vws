@@ -9,25 +9,29 @@ export type ManagerId = string
 // ===== 직원 관련 타입 =====
 export interface Employee {
   id: EmployeeId
-  employeeId: string // 사번
-  name: string
+  employee_id: string // 사번
+  first_name: string
+  last_name: string
+  name?: string // Computed field
   email: string
   phone: string
   address?: string
   department: string
   position: string
-  level: EmployeeLevel
-  employmentType: EmploymentType
-  hireDate: string
-  birthDate?: string
+  job_title_id?: string // 직책 ID (optional)
+  level?: EmployeeLevel
+  employment_type: EmploymentType
+  hire_date: string
+  birth_date?: string
+  salary?: number
   status: EmployeeStatus
-  managerId?: ManagerId
-  profileImage?: string
-  emergencyContact: EmergencyContact
-  personalInfo: PersonalInfo
-  createdAt: string
-  updatedAt: string
-  terminationDate?: string
+  manager_id?: ManagerId
+  profile_image?: string
+  emergency_contact?: EmergencyContact
+  personal_info?: PersonalInfo
+  created_at?: string
+  updated_at?: string
+  termination_date?: string
 }
 
 export type EmployeeLevel = 'intern' | 'junior' | 'mid' | 'senior' | 'lead' | 'manager' | 'director'
@@ -52,27 +56,29 @@ export interface Department {
   id: DepartmentId
   name: string
   description?: string
-  managerId?: ManagerId
-  parentDepartmentId?: DepartmentId
-  level: number
-  order: number
-  isActive: boolean
-  createdAt: string
-  updatedAt: string
+  manager_id?: ManagerId
+  parent_department_id?: DepartmentId
+  level?: number
+  order?: number
+  status?: 'active' | 'inactive'
+  created_at?: string
+  updated_at?: string
 }
 
 // ===== 직위 관련 타입 =====
 export interface Position {
   id: PositionId
   name: string
-  level: number
-  department: string
+  code?: string
+  level?: number
+  min_salary?: number
+  max_salary?: number
   description?: string
   requirements?: string
   responsibilities?: string
-  isActive: boolean
-  createdAt: string
-  updatedAt: string
+  status?: 'active' | 'inactive'
+  created_at?: string
+  updated_at?: string
 }
 
 // ===== 근로 계약서 관련 타입 =====
@@ -117,6 +123,35 @@ export interface JobRequirement {
   skill: string
   level: 'beginner' | 'intermediate' | 'advanced' | 'expert'
   required: boolean
+}
+
+// ===== 임원 관련 타입 =====
+export interface Executive {
+  id: string
+  employeeId: EmployeeId
+  name: string
+  position: string
+  department: string
+  email: string
+  phone: string
+  startDate: string
+  endDate?: string
+  isActive: boolean
+  createdAt: string
+  updatedAt: string
+}
+
+// ===== 직책 관련 타입 =====
+export interface JobTitle {
+  id: string
+  name: string
+  title: string
+  level: number
+  category: string
+  description?: string
+  isActive: boolean
+  createdAt: string
+  updatedAt: string
 }
 
 // ===== 성과 평가 관련 타입 =====

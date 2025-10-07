@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { pushToast } from '$lib/stores/toasts'
   import { onMount } from 'svelte'
   import type { PageData } from './$types'
   import type { LeaveRequest, LeaveStats } from '$lib/types/dashboard'
@@ -110,11 +111,11 @@
         rejectionReason = ''
         loadApprovalRequests()
       } else {
-        alert(result.message)
+        pushToast(result.message, 'info')
       }
     } catch (error) {
       console.error('Error processing approval:', error)
-      alert('처리 중 오류가 발생했습니다.')
+      pushToast('처리 중 오류가 발생했습니다.', 'error')
     }
   }
 

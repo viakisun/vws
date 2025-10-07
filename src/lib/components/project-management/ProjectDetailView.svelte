@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { pushToast } from '$lib/stores/toasts'
   /**
    * ProjectDetailView - Orchestrator Component
    *
@@ -107,13 +108,13 @@
       if (response.ok) {
         store.closeModal('editProject')
         refresh()
-        alert('프로젝트가 수정되었습니다.')
+        pushToast('프로젝트가 수정되었습니다.', 'success')
       } else {
-        alert('프로젝트 수정에 실패했습니다.')
+        pushToast('프로젝트 수정에 실패했습니다.', 'success')
       }
     } catch (error) {
       logger.error('프로젝트 수정 실패:', error)
-      alert('프로젝트 수정 중 오류가 발생했습니다.')
+      pushToast('프로젝트 수정 중 오류가 발생했습니다.', 'success')
     } finally {
       store.setLoading('updating', false)
     }
@@ -122,7 +123,7 @@
   async function deleteProject() {
     if (!selectedProject?.id) return
     if (store.selected.deleteCode !== selectedProject.code) {
-      alert('프로젝트 코드가 일치하지 않습니다.')
+      pushToast('프로젝트 코드가 일치하지 않습니다.', 'info')
       return
     }
 
@@ -136,13 +137,13 @@
       if (response.ok) {
         store.closeModal('deleteConfirm')
         refresh()
-        alert('프로젝트가 삭제되었습니다.')
+        pushToast('프로젝트가 삭제되었습니다.', 'success')
       } else {
-        alert('프로젝트 삭제에 실패했습니다.')
+        pushToast('프로젝트 삭제에 실패했습니다.', 'success')
       }
     } catch (error) {
       logger.error('프로젝트 삭제 실패:', error)
-      alert('프로젝트 삭제 중 오류가 발생했습니다.')
+      pushToast('프로젝트 삭제 중 오류가 발생했습니다.', 'success')
     } finally {
       store.setLoading('deleting', false)
     }

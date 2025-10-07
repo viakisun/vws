@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { pushToast } from '$lib/stores/toasts'
   import { keyOf } from '$lib/utils/keyOf'
 
   import Badge from '$lib/components/ui/Badge.svelte'
@@ -112,7 +113,7 @@
       !leaveRequestForm.startDate ||
       !leaveRequestForm.endDate
     ) {
-      alert('모든 필수 항목을 입력해주세요.')
+      pushToast('모든 필수 항목을 입력해주세요.', 'info')
       return
     }
 
@@ -131,12 +132,12 @@
     })
 
     isLeaveRequestModalOpen = false
-    alert('휴가 신청이 완료되었습니다.')
+    pushToast('휴가 신청이 완료되었습니다.', 'success')
   }
 
   function handleAttendanceSubmit() {
     if (!selectedEmployeeId || !attendanceForm.date) {
-      alert('직원과 날짜를 선택해주세요.')
+      pushToast('직원과 날짜를 선택해주세요.', 'info')
       return
     }
 
@@ -165,32 +166,32 @@
 
   function handleCheckIn() {
     if (!selectedEmployeeId) {
-      alert('직원을 선택해주세요.')
+      pushToast('직원을 선택해주세요.', 'info')
       return
     }
     checkIn(selectedEmployeeId)
-    alert('출근 체크가 완료되었습니다.')
+    pushToast('출근 체크가 완료되었습니다.', 'success')
   }
 
   function handleCheckOut() {
     if (!selectedEmployeeId) {
-      alert('직원을 선택해주세요.')
+      pushToast('직원을 선택해주세요.', 'info')
       return
     }
     checkOut(selectedEmployeeId)
-    alert('퇴근 체크가 완료되었습니다.')
+    pushToast('퇴근 체크가 완료되었습니다.', 'success')
   }
 
   function approveLeave(leaveId: string) {
     approveLeaveRequest(leaveId, 'HR팀')
-    alert('휴가가 승인되었습니다.')
+    pushToast('휴가가 승인되었습니다.', 'success')
   }
 
   function rejectLeave(leaveId: string) {
     const reason = prompt('거부 사유를 입력해주세요:')
     if (reason) {
       rejectLeaveRequest(leaveId, reason)
-      alert('휴가가 거부되었습니다.')
+      pushToast('휴가가 거부되었습니다.', 'info')
     }
   }
 

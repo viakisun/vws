@@ -54,12 +54,10 @@ export const GET: RequestHandler = async ({ url }) => {
         : null,
     }))
 
-    const response: ApiResponse<DatabaseEmployee[]> = {
+    return json({
       success: true,
-      data: employees,
-    }
-
-    return json(response)
+      employees: employees,
+    })
   } catch (_error) {
     logger.error('Error fetching employees:', _error)
     return json(
@@ -195,7 +193,7 @@ export const POST: RequestHandler = async ({ request }) => {
         terminationDate ? toUTC(terminationDate).split('T')[0] : null,
         data.status || 'active',
         data.employment_type || 'full-time',
-        data.job_title_id || null,
+        data.job_title_id && data.job_title_id.trim() !== '' ? data.job_title_id : null,
         new Date(),
         new Date(),
       ],
@@ -365,7 +363,7 @@ export const PUT: RequestHandler = async ({ request }) => {
         terminationDate ? toUTC(terminationDate).split('T')[0] : null,
         status,
         data.employment_type || 'full-time',
-        data.job_title_id || null,
+        data.job_title_id && data.job_title_id.trim() !== '' ? data.job_title_id : null,
         new Date(),
       ],
     )

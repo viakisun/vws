@@ -1,3 +1,5 @@
+import { pushToast } from '$lib/stores/toasts'
+
 /**
  * useProjectEvidence Hook
  *
@@ -185,7 +187,7 @@ export function useProjectEvidence(options: UseProjectEvidenceOptions) {
       !store.forms.newEvidence.name ||
       !store.forms.newEvidence.budgetAmount
     ) {
-      alert('필수 필드를 모두 입력해주세요.')
+      pushToast('필수 필드를 모두 입력해주세요.', 'info')
       return
     }
 
@@ -211,7 +213,7 @@ export function useProjectEvidence(options: UseProjectEvidenceOptions) {
       store.closeModal('evidence')
     } catch (error) {
       logger.error('증빙 항목 추가 실패:', error)
-      alert('증빙 항목 추가에 실패했습니다.')
+      pushToast('증빙 항목 추가에 실패했습니다.', 'success')
       throw error
     } finally {
       store.setLoading('updating', false)

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { pushToast } from '$lib/stores/toasts'
   import { page } from '$app/stores'
   import { accountService, transactionService } from '$lib/finance/services'
   import type {
@@ -122,7 +123,7 @@
 
   async function uploadMultipleFiles() {
     if (selectedFiles.length === 0) {
-      alert('업로드할 파일을 선택해주세요.')
+      pushToast('업로드할 파일을 선택해주세요.', 'info')
       return
     }
 
@@ -699,7 +700,7 @@
   async function uploadAccountTransactions(accountId: string) {
     const uploadState = accountUploadStates[accountId]
     if (!uploadState || !uploadState.selectedFile) {
-      alert('파일을 선택해주세요.')
+      pushToast('파일을 선택해주세요.', 'info')
       return
     }
 
@@ -771,7 +772,7 @@
 
     // 계좌번호 확인
     if (deleteState.confirmAccountNumber !== account.accountNumber) {
-      alert('계좌번호가 일치하지 않습니다.')
+      pushToast('계좌번호가 일치하지 않습니다.', 'info')
       return
     }
 
@@ -785,14 +786,14 @@
       const result = await response.json()
 
       if (result.success) {
-        alert('계좌와 모든 거래 내역이 삭제되었습니다.')
+        pushToast('계좌와 모든 거래 내역이 삭제되었습니다.', 'success')
         // 데이터 새로고침
         await loadData()
       } else {
-        alert(`삭제 실패: ${result.error}`)
+        pushToast(`삭제 실패: ${result.error}`, 'info')
       }
     } catch (error: any) {
-      alert(`삭제 중 오류 발생: ${error.message}`)
+      pushToast(`삭제 중 오류 발생: ${error.message}`, 'info')
     } finally {
       deleteState.isDeleting = false
       deleteState.showDeleteConfirm = false

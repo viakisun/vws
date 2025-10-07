@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { pushToast } from '$lib/stores/toasts'
   import { logger } from '$lib/utils/logger'
   import { onMount } from 'svelte'
 
@@ -214,27 +215,30 @@
       !formData.department?.trim() ||
       !formData.position?.trim()
     ) {
-      alert('성, 이름, 이메일, 부서, 직급은 필수 입력 항목입니다.')
+      pushToast('성, 이름, 이메일, 부서, 직급은 필수 입력 항목입니다.', 'info')
       return
     }
 
     // 이름 분리 검증 - 성과 이름이 명확히 분리되어야 함
     if (formData.first_name.trim().length === 0 || formData.last_name.trim().length === 0) {
-      alert('성과 이름은 반드시 분리되어 입력되어야 합니다.')
+      pushToast('성과 이름은 반드시 분리되어 입력되어야 합니다.', 'info')
       return
     }
 
     // 이메일 형식 검증
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(formData.email)) {
-      alert('올바른 이메일 형식을 입력해주세요.')
+      pushToast('올바른 이메일 형식을 입력해주세요.', 'info')
       return
     }
 
-    // salary를 숫자로 변환
+    // salary를 숫자로 변환, job_title_id는 빈 문자열이면 null로 변환
     const dataToSave = {
       ...formData,
       salary: Number(formData.salary) || 0,
+      job_title_id: formData.job_title_id && formData.job_title_id.trim() !== ''
+        ? formData.job_title_id
+        : null,
     }
 
     // 수정 모드일 때는 id를 포함
@@ -255,6 +259,9 @@
   let isEdit = $derived(!!employee?.id)
   let title = $derived(isEdit ? '직원 정보 수정' : '새 직원 추가')
 
+  // 탭 상태
+  let activeTab = $state<'basic' | 'employment' | 'additional'>('basic')
+
   // 컴포넌트 마운트 시 초기화
   onMount(() => {
     // 초기화 함수들 호출
@@ -269,6 +276,40 @@
       </h2>
     </div>
 
+    <!-- 탭 네비게이션 -->
+    <div class="flex gap-2 mb-6 border-b" style:border-color="var(--color-border)">
+      <button
+        type="button"
+        onclick={() => (activeTab = 'basic')}
+        class="px-4 py-2 text-sm font-medium transition-colors"
+        class:border-b-2={activeTab === 'basic'}
+        style:border-color={activeTab === 'basic' ? 'var(--color-primary)' : 'transparent'}
+        style:color={activeTab === 'basic' ? 'var(--color-primary)' : 'var(--color-text-secondary)'}
+      >
+        기본 정보
+      </button>
+      <button
+        type="button"
+        onclick={() => (activeTab = 'employment')}
+        class="px-4 py-2 text-sm font-medium transition-colors"
+        class:border-b-2={activeTab === 'employment'}
+        style:border-color={activeTab === 'employment' ? 'var(--color-primary)' : 'transparent'}
+        style:color={activeTab === 'employment' ? 'var(--color-primary)' : 'var(--color-text-secondary)'}
+      >
+        고용 정보
+      </button>
+      <button
+        type="button"
+        onclick={() => (activeTab = 'additional')}
+        class="px-4 py-2 text-sm font-medium transition-colors"
+        class:border-b-2={activeTab === 'additional'}
+        style:border-color={activeTab === 'additional' ? 'var(--color-primary)' : 'transparent'}
+        style:color={activeTab === 'additional' ? 'var(--color-primary)' : 'var(--color-text-secondary)'}
+      >
+        추가 정보
+      </button>
+    </div>
+
     <form
       onsubmit={(e) => {
         e.preventDefault()
@@ -276,6 +317,8 @@
       }}
       class="space-y-4"
     >
+      <!-- 기본 정보 탭 -->
+      {#if activeTab === 'basic'}
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <!-- 전체 이름 (새 직원 추가 시에만 표시) -->
         {#if !employee?.id}
@@ -343,7 +386,7 @@
         </div>
 
         <!-- 이메일 -->
-        <div>
+        <div class="md:col-span-2">
           <label for="email" class="block text-sm font-medium mb-2" style:color="var(--color-text)"
             >이메일 *</label
           >
@@ -361,7 +404,7 @@
         </div>
 
         <!-- 전화번호 -->
-        <div>
+        <div class="md:col-span-2">
           <label for="phone" class="block text-sm font-medium mb-2" style:color="var(--color-text)"
             >전화번호</label
           >
@@ -376,7 +419,12 @@
             style:color="var(--color-text)"
           />
         </div>
+      </div>
+      {/if}
 
+      <!-- 고용 정보 탭 -->
+      {#if activeTab === 'employment'}
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <!-- 부서 -->
         <div>
           <label
@@ -456,56 +504,56 @@
             style:border-color="var(--color-border)"
             style:color="var(--color-text)"
           >
-            <option value="">직책을 선택하세요 (선택사항)</option>
+            <option value="">직책 없음</option>
             {#each jobTitles as jobTitle, i (i)}
-              <option value={jobTitle.id}>{jobTitle.name} ({jobTitle.category})</option>
+              <option value={jobTitle.id}>{jobTitle.name}</option>
             {/each}
           </select>
           <p class="text-xs mt-1" style:color="var(--color-text-secondary)">
-            직책이 있으면 직급 대신 직책으로 표시됩니다.
+            직책이 있으면 직원 목록에 표시됩니다.
           </p>
         </div>
 
-        <!-- 급여 -->
+        <!-- 상태 -->
         <div>
-          <label for="salary" class="block text-sm font-medium mb-2" style:color="var(--color-text)"
-            >급여 *</label
+          <label for="status" class="block text-sm font-medium mb-2" style:color="var(--color-text)"
+            >상태 *</label
           >
-          <div class="flex items-center gap-2">
-            <div class="relative flex-1">
-              <input
-                id="salary"
-                type="number"
-                bind:value={formData.salary}
-                placeholder="급여를 입력하세요"
-                required
-                readonly
-                disabled
-                class="w-full px-3 py-2 border rounded-md text-sm cursor-not-allowed opacity-60"
-                style:border-color="var(--color-border)"
-                style:color="var(--color-text-secondary)"
-                style:background="var(--color-surface)"
-                title="급여는 근로계약서를 통해 관리됩니다"
-              />
-              <div
-                class="absolute inset-0 bg-gray-100 bg-opacity-50 pointer-events-none rounded-md"
-              ></div>
-            </div>
-            <button
-              type="button"
-              onclick={() => {
-                // 급여 관리 페이지로 이동
-                window.location.href = '/salary'
-              }}
-              class="px-3 py-2 text-xs bg-blue-100 text-blue-600 rounded-md hover:bg-blue-200 transition-colors whitespace-nowrap shadow-sm"
-              title="급여 수정은 근로계약서를 통해 관리됩니다"
-            >
-              급여 관리
-            </button>
-          </div>
-          <p class="text-xs mt-1 text-gray-500 italic">
-            * 급여 수정은 근로계약서를 통해 관리됩니다
-          </p>
+          <select
+            id="status"
+            bind:value={formData.status}
+            required
+            class="w-full px-3 py-2 border rounded-md text-sm"
+            style:background="var(--color-surface)"
+            style:border-color="var(--color-border)"
+            style:color="var(--color-text)"
+          >
+            {#each statusOptions as option, i (i)}
+              <option value={option.value}>{option.label}</option>
+            {/each}
+          </select>
+        </div>
+
+        <!-- 고용 형태 -->
+        <div>
+          <label
+            for="employment-type"
+            class="block text-sm font-medium mb-2"
+            style:color="var(--color-text)">고용 형태 *</label
+          >
+          <select
+            id="employment-type"
+            bind:value={formData.employment_type}
+            required
+            class="w-full px-3 py-2 border rounded-md text-sm"
+            style:background="var(--color-surface)"
+            style:border-color="var(--color-border)"
+            style:color="var(--color-text)"
+          >
+            {#each employmentTypeOptions as option, i (i)}
+              <option value={option.value}>{option.label}</option>
+            {/each}
+          </select>
         </div>
 
         <!-- 입사일 -->
@@ -526,7 +574,12 @@
             style:color="var(--color-text)"
           />
         </div>
+      </div>
+      {/if}
 
+      <!-- 추가 정보 탭 -->
+      {#if activeTab === 'additional'}
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <!-- 생일 -->
         <div>
           <label
@@ -563,46 +616,47 @@
           />
         </div>
 
-        <!-- 상태 -->
-        <div>
-          <label for="status" class="block text-sm font-medium mb-2" style:color="var(--color-text)"
-            >상태</label
+        <!-- 급여 정보 -->
+        <div class="md:col-span-2">
+          <label for="salary" class="block text-sm font-medium mb-2" style:color="var(--color-text)"
+            >급여 정보</label
           >
-          <select
-            id="status"
-            bind:value={formData.status}
-            class="w-full px-3 py-2 border rounded-md text-sm"
-            style:background="var(--color-surface)"
-            style:border-color="var(--color-border)"
-            style:color="var(--color-text)"
-          >
-            {#each statusOptions as option, i (i)}
-              <option value={option.value}>{option.label}</option>
-            {/each}
-          </select>
-        </div>
-
-        <!-- 고용 형태 -->
-        <div>
-          <label
-            for="employment-type"
-            class="block text-sm font-medium mb-2"
-            style:color="var(--color-text)">고용 형태</label
-          >
-          <select
-            id="employment-type"
-            bind:value={formData.employment_type}
-            class="w-full px-3 py-2 border rounded-md text-sm"
-            style:background="var(--color-surface)"
-            style:border-color="var(--color-border)"
-            style:color="var(--color-text)"
-          >
-            {#each employmentTypeOptions as option, i (i)}
-              <option value={option.value}>{option.label}</option>
-            {/each}
-          </select>
+          <div class="flex items-center gap-2">
+            <div class="relative flex-1">
+              <input
+                id="salary"
+                type="number"
+                bind:value={formData.salary}
+                placeholder="급여를 입력하세요"
+                readonly
+                disabled
+                class="w-full px-3 py-2 border rounded-md text-sm cursor-not-allowed opacity-60"
+                style:border-color="var(--color-border)"
+                style:color="var(--color-text-secondary)"
+                style:background="var(--color-surface)"
+                title="급여는 근로계약서를 통해 관리됩니다"
+              />
+              <div
+                class="absolute inset-0 bg-gray-100 bg-opacity-50 pointer-events-none rounded-md"
+              ></div>
+            </div>
+            <button
+              type="button"
+              onclick={() => {
+                window.location.href = '/salary'
+              }}
+              class="px-3 py-2 text-xs bg-blue-100 text-blue-600 rounded-md hover:bg-blue-200 transition-colors whitespace-nowrap shadow-sm"
+              title="급여 수정은 근로계약서를 통해 관리됩니다"
+            >
+              급여 관리
+            </button>
+          </div>
+          <p class="text-xs mt-1 text-gray-500 italic">
+            * 급여 수정은 근로계약서를 통해 관리됩니다
+          </p>
         </div>
       </div>
+      {/if}
 
       <div
         class="flex items-center justify-end gap-3 pt-6 border-t"

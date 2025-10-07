@@ -54,7 +54,10 @@ export async function createEmployee(employee: Partial<Employee>): Promise<ApiRe
   }
 }
 
-export async function updateEmployee(id: string, employee: Partial<Employee>): Promise<ApiResponse<Employee>> {
+export async function updateEmployee(
+  id: string,
+  employee: Partial<Employee>,
+): Promise<ApiResponse<Employee>> {
   try {
     const response = await fetch(`/api/employees/${id}`, {
       method: 'PUT',
@@ -96,15 +99,17 @@ export async function loadDepartments(): Promise<ApiResponse<Department[]>> {
     const response = await fetch('/api/departments')
     if (!response.ok) throw new Error('Failed to fetch departments')
 
-    const data = await response.json()
-    return { success: true, data: data.departments || [] }
+    const result = await response.json()
+    return { success: true, data: result.data || [] }
   } catch (error) {
     logger.error('Failed to load departments:', error)
     return { success: false, error: '부서 목록을 불러오는데 실패했습니다.' }
   }
 }
 
-export async function createDepartment(department: Partial<Department>): Promise<ApiResponse<Department>> {
+export async function createDepartment(
+  department: Partial<Department>,
+): Promise<ApiResponse<Department>> {
   try {
     const response = await fetch('/api/departments', {
       method: 'POST',
@@ -122,7 +127,10 @@ export async function createDepartment(department: Partial<Department>): Promise
   }
 }
 
-export async function updateDepartment(id: string, department: Partial<Department>): Promise<ApiResponse<Department>> {
+export async function updateDepartment(
+  id: string,
+  department: Partial<Department>,
+): Promise<ApiResponse<Department>> {
   try {
     const response = await fetch(`/api/departments/${id}`, {
       method: 'PUT',
@@ -164,8 +172,8 @@ export async function loadPositions(): Promise<ApiResponse<Position[]>> {
     const response = await fetch('/api/positions')
     if (!response.ok) throw new Error('Failed to fetch positions')
 
-    const data = await response.json()
-    return { success: true, data: data.positions || [] }
+    const result = await response.json()
+    return { success: true, data: result.data || [] }
   } catch (error) {
     logger.error('Failed to load positions:', error)
     return { success: false, error: '직급 목록을 불러오는데 실패했습니다.' }
@@ -190,7 +198,10 @@ export async function createPosition(position: Partial<Position>): Promise<ApiRe
   }
 }
 
-export async function updatePosition(id: string, position: Partial<Position>): Promise<ApiResponse<Position>> {
+export async function updatePosition(
+  id: string,
+  position: Partial<Position>,
+): Promise<ApiResponse<Position>> {
   try {
     const response = await fetch(`/api/positions/${id}`, {
       method: 'PUT',
@@ -232,15 +243,17 @@ export async function loadExecutives(): Promise<ApiResponse<Executive[]>> {
     const response = await fetch('/api/executives')
     if (!response.ok) throw new Error('Failed to fetch executives')
 
-    const data = await response.json()
-    return { success: true, data: data.executives || [] }
+    const result = await response.json()
+    return { success: true, data: result.data || [] }
   } catch (error) {
     logger.error('Failed to load executives:', error)
     return { success: false, error: '임원 목록을 불러오는데 실패했습니다.' }
   }
 }
 
-export async function createExecutive(executive: Partial<Executive>): Promise<ApiResponse<Executive>> {
+export async function createExecutive(
+  executive: Partial<Executive>,
+): Promise<ApiResponse<Executive>> {
   try {
     const response = await fetch('/api/executives', {
       method: 'POST',
@@ -258,7 +271,10 @@ export async function createExecutive(executive: Partial<Executive>): Promise<Ap
   }
 }
 
-export async function updateExecutive(id: string, executive: Partial<Executive>): Promise<ApiResponse<Executive>> {
+export async function updateExecutive(
+  id: string,
+  executive: Partial<Executive>,
+): Promise<ApiResponse<Executive>> {
   try {
     const response = await fetch(`/api/executives/${id}`, {
       method: 'PUT',
@@ -300,8 +316,8 @@ export async function loadJobTitles(): Promise<ApiResponse<JobTitle[]>> {
     const response = await fetch('/api/job-titles')
     if (!response.ok) throw new Error('Failed to fetch job titles')
 
-    const data = await response.json()
-    return { success: true, data: data.jobTitles || [] }
+    const result = await response.json()
+    return { success: true, data: result.data || [] }
   } catch (error) {
     logger.error('Failed to load job titles:', error)
     return { success: false, error: '직책 목록을 불러오는데 실패했습니다.' }
@@ -326,7 +342,10 @@ export async function createJobTitle(jobTitle: Partial<JobTitle>): Promise<ApiRe
   }
 }
 
-export async function updateJobTitle(id: string, jobTitle: Partial<JobTitle>): Promise<ApiResponse<JobTitle>> {
+export async function updateJobTitle(
+  id: string,
+  jobTitle: Partial<JobTitle>,
+): Promise<ApiResponse<JobTitle>> {
   try {
     const response = await fetch(`/api/job-titles/${id}`, {
       method: 'PUT',
@@ -368,8 +387,8 @@ export async function loadLeaveRequests(): Promise<ApiResponse<LeaveRequest[]>> 
     const response = await fetch('/api/hr/leave-approval')
     if (!response.ok) throw new Error('Failed to fetch leave requests')
 
-    const data = await response.json()
-    return { success: true, data: data.requests || [] }
+    const result = await response.json()
+    return { success: true, data: result.data?.requests || [] }
   } catch (error) {
     logger.error('Failed to load leave requests:', error)
     return { success: false, error: '휴가 신청 목록을 불러오는데 실패했습니다.' }
@@ -432,14 +451,15 @@ export async function loadLeaveStatistics() {
 // ============================================================================
 
 export async function loadAllHRData() {
-  const [employees, departments, positions, executives, jobTitles, leaveRequests] = await Promise.all([
-    loadEmployees(),
-    loadDepartments(),
-    loadPositions(),
-    loadExecutives(),
-    loadJobTitles(),
-    loadLeaveRequests(),
-  ])
+  const [employees, departments, positions, executives, jobTitles, leaveRequests] =
+    await Promise.all([
+      loadEmployees(),
+      loadDepartments(),
+      loadPositions(),
+      loadExecutives(),
+      loadJobTitles(),
+      loadLeaveRequests(),
+    ])
 
   return {
     employees: employees.success ? employees.data : [],
