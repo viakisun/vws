@@ -1,6 +1,7 @@
 <script lang="ts">
   import { pushToast } from '$lib/stores/toasts'
   import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
+  import PayslipPDFViewer from './PayslipPDFViewer.svelte'
   import { logger } from '$lib/utils/logger'
   import { formatCurrency, formatNumber } from '$lib/utils/format'
   import { formatKoreanNameStandard, sortKoreanNames } from '$lib/utils/korean-name'
@@ -63,6 +64,9 @@
       totalPayments?: number
       totalDeductions?: number
       netSalary?: number
+      payments?: any[]
+      deductions?: any[]
+      payDate?: string
     }
     employeeInfo?: {
       name?: string
@@ -84,6 +88,8 @@
   let editingPayslip = $state<PayslipData | null>(null)
   let employeeContract = $state<any>(null)
   let isLoadingContract = $state(false)
+  let showPDFModal = $state(false)
+  let selectedPayslipForPDF = $state<any>(null)
 
   // 직원 선택 시 자동으로 데이터 로드
   function handleEmployeeChange() {
@@ -691,6 +697,71 @@
   // 누락된 급여명세서 개수 계산 (잠금된 월 제외)
   function getMissingPayslipCount() {
     return payslipData.filter((month) => !month.hasData && !month.isLocked).length
+  }
+
+  // PDF 출력 모달 열기
+  function openPDFModal(monthData: PayslipData) {
+    const selectedEmployee = employeeList.find((emp) => emp.id === selectedEmployeeId)
+    if (!selectedEmployee || !monthData.payslip) return
+
+    const payslip = monthData.payslip
+
+    // payments 배열에서 기본급 추출
+    const baseSalaryItem = (payslip.payments || []).find((p: any) => p.id === 'basic_salary')
+    const baseSalary = baseSalaryItem?.amount || payslip.baseSalary || 0
+
+    // payments에서 기본급을 제외한 수당들 추출
+    const allowances = (payslip.payments || [])
+      .filter((p: any) => p.id !== 'basic_salary')
+      .map((p: any) => ({
+        name: p.name || '',
+        amount: p.amount || 0,
+      }))
+
+    // deductions 추출
+    const deductions = (payslip.deductions || []).map((d: any) => ({
+      name: d.name || '',
+      amount: d.amount || 0,
+    }))
+
+    // 수당 합계 계산 (기본급 제외)
+    const totalAllowances = allowances.reduce((sum: number, a: any) => sum + (a.amount || 0), 0)
+
+    // PayslipData를 PDF Viewer에 필요한 형식으로 변환
+    selectedPayslipForPDF = {
+      // 직원 정보
+      employeeName: selectedEmployee.name || '',
+      employeeId: selectedEmployee.employeeId || '',
+      department: selectedEmployee.department || '',
+      position: selectedEmployee.position || '',
+
+      // 급여 기간
+      year: selectedYear,
+      month: monthData.month || 1,
+      paymentDate: payslip.payDate || monthData.period || '',
+
+      // 급여 항목
+      baseSalary: baseSalary,
+      allowances: allowances,
+      deductions: deductions,
+
+      // 합계
+      totalAllowances: totalAllowances,
+      totalDeductions: payslip.totalDeductions || 0,
+      totalPayments: payslip.totalPayments || 0,
+      netSalary: payslip.netSalary || 0,
+
+      // 회사 정보
+      companyName: '비아허브',
+    }
+
+    showPDFModal = true
+  }
+
+  // PDF 모달 닫기
+  function closePDFModal() {
+    showPDFModal = false
+    selectedPayslipForPDF = null
   }
 
   // 계약 기간 내 누락된 급여명세서 확인 (잠금된 월 제외)
@@ -1340,15 +1411,25 @@
                         {:else if isOutsideContract}
                           <span class="text-orange-600 text-sm"> 계약기간외 </span>
                         {:else if monthData.hasData ?? false}
-                          <ThemeButton
-                            variant="ghost"
-                            size="sm"
-                            onclick={() =>
-                              enterEditMode(monthData.month || 1, monthData.payslip || undefined)}
-                          >
-                            <EditIcon size={16} class="mr-1" />
-                            편집
-                          </ThemeButton>
+                          <div class="flex items-center justify-end gap-2">
+                            <ThemeButton
+                              variant="ghost"
+                              size="sm"
+                              onclick={() =>
+                                enterEditMode(monthData.month || 1, monthData.payslip || undefined)}
+                            >
+                              <EditIcon size={16} class="mr-1" />
+                              편집
+                            </ThemeButton>
+                            <ThemeButton
+                              variant="ghost"
+                              size="sm"
+                              onclick={() => openPDFModal(monthData)}
+                            >
+                              <PrinterIcon size={16} class="mr-1" />
+                              출력
+                            </ThemeButton>
+                          </div>
                         {:else}
                           <ThemeButton
                             variant="ghost"
@@ -1399,4 +1480,9 @@
       </ThemeButton>
     </div>
   </div>
+{/if}
+
+<!-- PDF 출력 모달 -->
+{#if showPDFModal && selectedPayslipForPDF}
+  <PayslipPDFViewer payslip={selectedPayslipForPDF} onClose={closePDFModal} />
 {/if}
