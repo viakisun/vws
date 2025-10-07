@@ -85,8 +85,8 @@ export const GET: RequestHandler = async ({ url }) => {
 				p.total_payments AS "totalPayments",
 				p.total_deductions AS "totalDeductions",
 				p.net_salary AS "netSalary",
-				p.payments,
-				p.deductions,
+				p.payments::text AS payments,
+				p.deductions::text AS deductions,
 				p.status,
 				p.is_generated AS "isGenerated",
 				p.created_at AS "createdAt",
@@ -105,9 +105,16 @@ export const GET: RequestHandler = async ({ url }) => {
       params,
     )
 
+    // payments와 deductions를 파싱
+    const parsedData = result.rows.map((row: any) => ({
+      ...row,
+      payments: typeof row.payments === 'string' ? JSON.parse(row.payments) : row.payments,
+      deductions: typeof row.deductions === 'string' ? JSON.parse(row.deductions) : row.deductions,
+    }))
+
     const response: ApiResponse<PayslipData[]> = {
       success: true,
-      data: result.rows,
+      data: parsedData,
     }
 
     return json(response)

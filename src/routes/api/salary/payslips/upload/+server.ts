@@ -148,6 +148,119 @@ export const POST: RequestHandler = async (event) => {
         const actualEmployeeId = employeeResult.rows[0].employee_id
         const isUpdate = existingEmployeeIds.has(employeeId)
 
+        // payments 배열 생성 (엑셀 데이터 기반)
+        const payments = [
+          {
+            id: 'basic_salary',
+            name: '기본급',
+            amount: employee.basic_salary || 0,
+            type: 'basic',
+            isTaxable: true,
+          },
+          {
+            id: 'position_allowance',
+            name: '직책수당',
+            amount: 0,
+            type: 'allowance',
+            isTaxable: true,
+          },
+          {
+            id: 'bonus',
+            name: '상여금',
+            amount: employee.research_allowance || 0,
+            type: 'bonus',
+            isTaxable: true,
+          },
+          {
+            id: 'meal_allowance',
+            name: '식대',
+            amount: employee.meal_allowance || 0,
+            type: 'allowance',
+            isTaxable: false,
+          },
+          {
+            id: 'vehicle_maintenance',
+            name: '차량유지',
+            amount: employee.vehicle_allowance || 0,
+            type: 'allowance',
+            isTaxable: false,
+          },
+          {
+            id: 'annual_leave_allowance',
+            name: '연차수당',
+            amount: 0,
+            type: 'allowance',
+            isTaxable: true,
+          },
+          {
+            id: 'year_end_settlement',
+            name: '연말정산',
+            amount: 0,
+            type: 'settlement',
+            isTaxable: true,
+          },
+        ]
+
+        // deductions 배열 생성 (엑셀 데이터 기반)
+        const deductions = [
+          {
+            id: 'health_insurance',
+            name: '건강보험',
+            rate: 0.034,
+            type: 'insurance',
+            amount: employee.health_insurance || 0,
+            isMandatory: true,
+          },
+          {
+            id: 'long_term_care',
+            name: '장기요양보험',
+            rate: 0.0034,
+            type: 'insurance',
+            amount: employee.long_term_care_insurance || 0,
+            isMandatory: true,
+          },
+          {
+            id: 'national_pension',
+            name: '국민연금',
+            rate: 0.045,
+            type: 'pension',
+            amount: employee.national_pension || 0,
+            isMandatory: true,
+          },
+          {
+            id: 'employment_insurance',
+            name: '고용보험',
+            rate: 0.008,
+            type: 'insurance',
+            amount: employee.employment_insurance || 0,
+            isMandatory: true,
+          },
+          {
+            id: 'income_tax',
+            name: '갑근세',
+            rate: 0.13,
+            type: 'tax',
+            amount: employee.income_tax || 0,
+            isMandatory: true,
+          },
+          {
+            id: 'local_tax',
+            name: '주민세',
+            rate: 0.013,
+            type: 'tax',
+            amount: employee.local_income_tax || 0,
+            isMandatory: true,
+          },
+          {
+            id: 'other',
+            name: '기타',
+            rate: 0,
+            type: 'other',
+            amount: 0,
+            isMandatory: false,
+          },
+        ]
+
         // 급여명세서 저장/업데이트
         if (isUpdate) {
           await query(
@@ -167,8 +280,10 @@ export const POST: RequestHandler = async (event) => {
               department = $13,
               position = $14,
               hire_date = $15,
+              payments = $16,
+              deductions = $17,
               updated_at = CURRENT_TIMESTAMP,
-              updated_by = $16
+              updated_by = $18
             WHERE employee_id = $1 AND period = $2
           `,
             [
@@ -190,6 +305,8 @@ export const POST: RequestHandler = async (event) => {
               employee.department || '',
               employee.position,
               employee.hire_date,
+              JSON.stringify(payments),
+              JSON.stringify(deductions),
               user.email,
             ],
           )
@@ -201,9 +318,10 @@ export const POST: RequestHandler = async (event) => {
               employee_id, period, pay_period_start, pay_period_end,
               base_salary, overtime_pay, bonus, total_amount, total_payments, total_deductions, net_salary,
               status, is_generated, employee_name, employee_id_number, department, position, hire_date,
+              payments, deductions,
               created_by, updated_by
             ) VALUES (
-              $1, $2, $3, $4, $5, $6, $7, $8, $8, $9, $10, 'generated', true, $11, $12, $13, $14, $15, $16, $16
+              $1, $2, $3, $4, $5, $6, $7, $8, $8, $9, $10, 'generated', true, $11, $12, $13, $14, $15, $16, $17, $18, $18
             )
           `,
             [
@@ -225,6 +343,8 @@ export const POST: RequestHandler = async (event) => {
               employee.department || '',
               employee.position,
               employee.hire_date,
+              JSON.stringify(payments),
+              JSON.stringify(deductions),
               user.email,
             ],
           )

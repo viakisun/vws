@@ -151,3 +151,49 @@
     color: var(--color-text-secondary);
   }
 }
+
+/* ============================================
+   급여명세서 PDF 프린트 스타일
+   ============================================ */
+@media print {
+  /* A4 크기 설정 */
+  @page {
+    size: A4 portrait;
+    margin: 20mm;
+  }
+
+  /* 모달 헤더 숨기기 */
+  .payslip-modal-header {
+    display: none !important;
+  }
+
+  /* 모달 래퍼 스타일 간소화 */
+  .payslip-modal-wrapper {
+    position: static !important;
+    background: white !important;
+    padding: 0 !important;
+  }
+
+  /* 모달 컨테이너 스타일 간소화 */
+  .payslip-modal-content {
+    box-shadow: none !important;
+    max-width: 100% !important;
+    max-height: none !important;
+    overflow: visible !important;
+    border-radius: 0 !important;
+  }
+
+  /* 급여명세서 프린트 영역 */
+  .payslip-print-area {
+    padding: 20px !important;
+    margin: 0 !important;
+    max-width: 100% !important;
+    page-break-inside: avoid;
+  }
+
+  /* 색상 정확히 출력 */
+  .payslip-print-area * {
+    print-color-adjust: exact !important;
+    -webkit-print-color-adjust: exact !important;
+  }
+}

@@ -1,7 +1,7 @@
 <script lang="ts">
   import { pushToast } from '$lib/stores/toasts'
   import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
-  import PayslipPDFViewer from './PayslipPDFViewer.svelte'
+  import PayslipPDFModal from '$lib/components/payslip/PayslipPDFModal.svelte'
   import { logger } from '$lib/utils/logger'
   import { formatCurrency, formatNumber } from '$lib/utils/format'
   import { formatKoreanNameStandard, sortKoreanNames } from '$lib/utils/korean-name'
@@ -90,6 +90,7 @@
   let isLoadingContract = $state(false)
   let showPDFModal = $state(false)
   let selectedPayslipForPDF = $state<any>(null)
+  let companyInfo = $state<any>(null)
 
   // 직원 선택 시 자동으로 데이터 로드
   function handleEmployeeChange() {
@@ -377,6 +378,10 @@
 
   // 급여명세서 편집 모드 진입
   async function enterEditMode(month: number, payslip?: any) {
+    console.log('🔵 enterEditMode 함수 시작')
+    console.log('🔵 month:', month)
+    console.log('🔵 payslip 파라미터:', payslip)
+
     // 해당 월의 계약 정보를 먼저 로드
     await loadEmployeeContract(selectedEmployeeId, selectedYear, month)
 
@@ -390,6 +395,44 @@
 
     editingMonth = month
     if (payslip) {
+      console.log('🟢 payslip 존재 - 기존 데이터 편집 모드')
+      console.log('🟢 payslip.payments 타입:', typeof payslip.payments)
+      console.log('🟢 payslip.deductions 타입:', typeof payslip.deductions)
+
+      // JSON 문자열인 경우 파싱
+      let paymentsArray = payslip.payments
+      let deductionsArray = payslip.deductions
+
+      console.log('🔍 원본 paymentsArray:', paymentsArray)
+      console.log('🔍 paymentsArray is Array?', Array.isArray(paymentsArray))
+      console.log('🔍 paymentsArray length:', paymentsArray?.length)
+
+      if (typeof payslip.payments === 'string') {
+        console.log('⚠️ payments가 문자열입니다. 파싱 시도...')
+        try {
+          paymentsArray = JSON.parse(payslip.payments)
+          console.log('✅ payments 파싱 성공:', paymentsArray)
+        } catch (error) {
+          console.error('❌ payments 파싱 실패:', error)
+          paymentsArray = []
+        }
+      }
+
+      console.log('🔍 원본 deductionsArray:', deductionsArray)
+      console.log('🔍 deductionsArray is Array?', Array.isArray(deductionsArray))
+      console.log('🔍 deductionsArray length:', deductionsArray?.length)
+
+      if (typeof payslip.deductions === 'string') {
+        console.log('⚠️ deductions가 문자열입니다. 파싱 시도...')
+        try {
+          deductionsArray = JSON.parse(payslip.deductions)
+          console.log('✅ deductions 파싱 성공:', deductionsArray)
+        } catch (error) {
+          console.error('❌ deductions 파싱 실패:', error)
+          deductionsArray = []
+        }
+      }
+
       // 기존 급여명세서 데이터를 편집 가능한 형태로 변환
       const existingAllowances = createDefaultAllowances()
 
@@ -401,78 +444,120 @@
         }
       }
 
-      // 기존 payments 배열에서 각 항목을 매핑
-      if (payslip.payments && Array.isArray(payslip.payments)) {
-        payslip.payments.forEach((payment: any) => {
-          const allowanceIndex = existingAllowances.findIndex((a) => a.id === payment.id)
+      // 기존 payments 배열에서 각 항목을 매핑 (name으로 매칭)
+      console.log('🔍 매핑 전 paymentsArray 체크:', paymentsArray, Array.isArray(paymentsArray))
+      if (paymentsArray && Array.isArray(paymentsArray) && paymentsArray.length > 0) {
+        console.log('🟡 payments 배열 매핑 시작... 배열 길이:', paymentsArray.length)
+        paymentsArray.forEach((payment: any, index: number) => {
+          console.log(`🟡 [${index}] 처리 중인 payment:`, payment)
+          // id로 매칭 시도, 실패하면 name으로 매칭
+          let allowanceIndex = existingAllowances.findIndex((a) => a.id === payment.id)
+          if (allowanceIndex === -1) {
+            allowanceIndex = existingAllowances.findIndex((a) => a.name === payment.name)
+          }
           if (allowanceIndex !== -1) {
             existingAllowances[allowanceIndex].amount = Number(payment.amount || 0)
+            console.log(`✅ 매핑 성공: ${existingAllowances[allowanceIndex].name} = ${payment.amount}`)
+          } else {
+            console.warn(`❌ 매핑 실패: payment.id=${payment.id}, payment.name=${payment.name}`)
           }
         })
+      } else {
+        console.log('⚠️ paymentsArray가 비어있음 - 기본 allowances 사용 (이미 baseSalary는 설정됨)')
       }
+
+      // 공제 항목 기본값 생성
+      const defaultDeductions = [
+        {
+          id: 'health_insurance',
+          name: '건강보험',
+          rate: 0.034,
+          type: 'insurance',
+          amount: 0,
+          isMandatory: true,
+        },
+        {
+          id: 'long_term_care',
+          name: '장기요양보험',
+          rate: 0.0034,
+          type: 'insurance',
+          amount: 0,
+          isMandatory: true,
+        },
+        {
+          id: 'national_pension',
+          name: '국민연금',
+          rate: 0.045,
+          type: 'pension',
+          amount: 0,
+          isMandatory: true,
+        },
+        {
+          id: 'employment_insurance',
+          name: '고용보험',
+          rate: 0.008,
+          type: 'insurance',
+          amount: 0,
+          isMandatory: true,
+        },
+        {
+          id: 'income_tax',
+          name: '갑근세',
+          rate: 0.13,
+          type: 'tax',
+          amount: 0,
+          isMandatory: true,
+        },
+        {
+          id: 'local_tax',
+          name: '주민세',
+          rate: 0.013,
+          type: 'tax',
+          amount: 0,
+          isMandatory: true,
+        },
+        {
+          id: 'other',
+          name: '기타',
+          rate: 0,
+          type: 'other',
+          amount: 0,
+          isMandatory: false,
+        },
+      ]
+
+      // 기존 deductions 배열에서 각 항목을 매핑 (name으로 매칭)
+      console.log('🔍 매핑 전 deductionsArray 체크:', deductionsArray, Array.isArray(deductionsArray))
+      if (deductionsArray && Array.isArray(deductionsArray) && deductionsArray.length > 0) {
+        console.log('🟣 deductions 배열 매핑 시작... 배열 길이:', deductionsArray.length)
+        deductionsArray.forEach((deduction: any, index: number) => {
+          console.log(`🟣 [${index}] 처리 중인 deduction:`, deduction)
+          // id로 매칭 시도, 실패하면 name으로 매칭
+          let deductionIndex = defaultDeductions.findIndex((d) => d.id === deduction.id)
+          if (deductionIndex === -1) {
+            deductionIndex = defaultDeductions.findIndex((d) => d.name === deduction.name)
+          }
+          if (deductionIndex !== -1) {
+            defaultDeductions[deductionIndex].amount = Number(deduction.amount || 0)
+            console.log(`✅ 매핑 성공: ${defaultDeductions[deductionIndex].name} = ${deduction.amount}`)
+          } else {
+            console.warn(`❌ 매핑 실패: deduction.id=${deduction.id}, deduction.name=${deduction.name}`)
+          }
+        })
+      } else {
+        console.log('⚠️ deductionsArray가 비어있음 - 기본 defaultDeductions 사용 (모두 0원)')
+      }
+
+      console.log('🔷 최종 existingAllowances:', existingAllowances)
+      console.log('🔷 최종 defaultDeductions:', defaultDeductions)
 
       editingPayslip = {
         ...payslip,
         allowances: existingAllowances,
-        deductions: payslip.deductions || [
-          {
-            id: 'health_insurance',
-            name: '건강보험',
-            rate: 0.034,
-            type: 'insurance',
-            amount: 0,
-            isMandatory: true,
-          },
-          {
-            id: 'long_term_care',
-            name: '장기요양보험',
-            rate: 0.0034,
-            type: 'insurance',
-            amount: 0,
-            isMandatory: true,
-          },
-          {
-            id: 'national_pension',
-            name: '국민연금',
-            rate: 0.045,
-            type: 'pension',
-            amount: 0,
-            isMandatory: true,
-          },
-          {
-            id: 'employment_insurance',
-            name: '고용보험',
-            rate: 0.008,
-            type: 'insurance',
-            amount: 0,
-            isMandatory: true,
-          },
-          {
-            id: 'income_tax',
-            name: '갑근세',
-            rate: 0.13,
-            type: 'tax',
-            amount: 0,
-            isMandatory: true,
-          },
-          {
-            id: 'local_tax',
-            name: '주민세',
-            rate: 0.013,
-            type: 'tax',
-            amount: 0,
-            isMandatory: true,
-          },
-          {
-            id: 'other',
-            name: '기타',
-            rate: 0,
-            type: 'other',
-            amount: 0,
-            isMandatory: false,
-          },
-        ],
+        deductions: defaultDeductions,
       }
+
+      console.log('🔷 최종 editingPayslip:', editingPayslip)
     } else {
       // 새 급여명세서 생성
       editingPayslip = {
@@ -706,26 +791,25 @@
 
     const payslip = monthData.payslip
 
-    // payments 배열에서 기본급 추출
-    const baseSalaryItem = (payslip.payments || []).find((p: any) => p.id === 'basic_salary')
-    const baseSalary = baseSalaryItem?.amount || payslip.baseSalary || 0
+    // 디버깅: 급여명세서 데이터 확인
+    logger.info('급여명세서 원본 데이터:', payslip)
+    logger.info('payments 배열:', payslip.payments)
+    logger.info('deductions 배열:', payslip.deductions)
 
-    // payments에서 기본급을 제외한 수당들 추출
-    const allowances = (payslip.payments || [])
-      .filter((p: any) => p.id !== 'basic_salary')
-      .map((p: any) => ({
-        name: p.name || '',
-        amount: p.amount || 0,
-      }))
-
-    // deductions 추출
-    const deductions = (payslip.deductions || []).map((d: any) => ({
-      name: d.name || '',
-      amount: d.amount || 0,
+    // payments의 모든 항목을 지급항목으로 포함 (기본급 포함, 0원 포함)
+    const allPayments = (payslip.payments || []).map((p: any) => ({
+      name: p.name || '',
+      amount: Number(p.amount) || 0,
     }))
 
-    // 수당 합계 계산 (기본급 제외)
-    const totalAllowances = allowances.reduce((sum: number, a: any) => sum + (a.amount || 0), 0)
+    // deductions 추출 (0원 포함)
+    const deductions = (payslip.deductions || []).map((d: any) => ({
+      name: d.name || '',
+      amount: Number(d.amount) || 0,
+    }))
+
+    logger.info('변환된 payments:', allPayments)
+    logger.info('변환된 deductions:', deductions)
 
     // PayslipData를 PDF Viewer에 필요한 형식으로 변환
     selectedPayslipForPDF = {
@@ -740,19 +824,18 @@
       month: monthData.month || 1,
       paymentDate: payslip.payDate || monthData.period || '',
 
-      // 급여 항목
-      baseSalary: baseSalary,
-      allowances: allowances,
+      // 급여 항목 (모든 지급 항목)
+      payments: allPayments,
       deductions: deductions,
 
       // 합계
-      totalAllowances: totalAllowances,
-      totalDeductions: payslip.totalDeductions || 0,
       totalPayments: payslip.totalPayments || 0,
+      totalDeductions: payslip.totalDeductions || 0,
       netSalary: payslip.netSalary || 0,
 
       // 회사 정보
-      companyName: '비아허브',
+      companyName: companyInfo?.name || '비아허브',
+      ceoName: companyInfo?.ceoName || '',
     }
 
     showPDFModal = true
@@ -867,9 +950,24 @@
     }
   }
 
+  // 회사 정보 로드
+  async function loadCompanyInfo() {
+    try {
+      const response = await fetch('/api/companies')
+      const result = await response.json()
+      if (result.success && result.data && result.data.length > 0) {
+        // 첫 번째 회사 정보 사용 (일반적으로 자사 정보)
+        companyInfo = result.data[0]
+      }
+    } catch (error) {
+      logger.error('회사 정보 로드 실패:', error)
+    }
+  }
+
   // 컴포넌트 마운트 시 초기화
   onMount(() => {
     loadEmployeeList()
+    loadCompanyInfo()
   })
 </script>
 
@@ -1323,7 +1421,7 @@
                           : 'text-gray-500'}"
                       >
                         {(monthData.hasData ?? false)
-                          ? formatCurrency(monthData.payslip?.baseSalary ?? 0)
+                          ? formatNumber(monthData.payslip?.baseSalary ?? 0, true, '원')
                           : (monthData.isLocked ?? false)
                             ? '잠금'
                             : '-'}
@@ -1334,9 +1432,11 @@
                           : 'text-gray-500'}"
                       >
                         {(monthData.hasData ?? false)
-                          ? formatCurrency(
+                          ? formatNumber(
                               (monthData.payslip?.totalPayments ?? 0) -
                                 (monthData.payslip?.baseSalary ?? 0),
+                              true,
+                              '원',
                             )
                           : (monthData.isLocked ?? false)
                             ? '잠금'
@@ -1359,7 +1459,7 @@
                           : 'text-gray-500'}"
                       >
                         {(monthData.hasData ?? false)
-                          ? formatCurrency(monthData.payslip?.totalDeductions || 0)
+                          ? formatNumber(monthData.payslip?.totalDeductions || 0, true, '원')
                           : (monthData.isLocked ?? false)
                             ? '잠금'
                             : '-'}
@@ -1371,7 +1471,7 @@
                           : 'text-gray-900'}"
                       >
                         {(monthData.hasData ?? false)
-                          ? formatCurrency(monthData.payslip?.netSalary || 0)
+                          ? formatNumber(monthData.payslip?.netSalary || 0, true, '원')
                           : (monthData.isLocked ?? false)
                             ? '잠금'
                             : '-'}
@@ -1415,8 +1515,14 @@
                             <ThemeButton
                               variant="ghost"
                               size="sm"
-                              onclick={() =>
-                                enterEditMode(monthData.month || 1, monthData.payslip || undefined)}
+                              onclick={() => {
+                                console.log('=== 편집 버튼 클릭 ===')
+                                console.log('monthData:', monthData)
+                                console.log('monthData.payslip:', monthData.payslip)
+                                console.log('monthData.payslip.payments:', monthData.payslip?.payments)
+                                console.log('monthData.payslip.deductions:', monthData.payslip?.deductions)
+                                enterEditMode(monthData.month || 1, monthData.payslip || undefined)
+                              }}
                             >
                               <EditIcon size={16} class="mr-1" />
                               편집
@@ -1484,5 +1590,5 @@
 
 <!-- PDF 출력 모달 -->
 {#if showPDFModal && selectedPayslipForPDF}
-  <PayslipPDFViewer payslip={selectedPayslipForPDF} onClose={closePDFModal} />
+  <PayslipPDFModal payslip={selectedPayslipForPDF} onClose={closePDFModal} />
 {/if}

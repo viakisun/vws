@@ -1,45 +1,27 @@
 <script lang="ts">
   /**
-   * Payslip PDF Viewer Component
+   * 공용 급여명세서 PDF 모달 컴포넌트
    *
-   * 글로벌 기업 스타일의 깔끔한 급여명세서 PDF 생성 및 출력
-   * - A4 크기에 최적화
-   * - 단순하고 명확한 레이아웃
-   * - 지급항목, 공제항목, 실지급액 명확히 표현
+   * 사용처:
+   * - 급여 관리 페이지 (관리자용)
+   * - 개인 대시보드 (직원 본인용)
+   *
+   * 기능:
+   * - A4 크기 최적화 PDF 출력
+   * - 브라우저 인쇄 다이얼로그 연동
+   * - 깔끔한 글로벌 기업 스타일
    */
 
   import { DownloadIcon, PrinterIcon, XIcon } from '@lucide/svelte'
+  import type { PayslipPDFData } from '$lib/types/payslip'
+  import { printPayslip } from '$lib/utils/payslip-print'
 
-  interface PayslipItem {
-    name: string
-    amount: number
+  interface Props {
+    payslip: PayslipPDFData
+    onClose: () => void
   }
 
-  interface PayslipData {
-    // 직원 정보
-    employeeName: string
-    employeeId: string
-    department?: string
-    position?: string
-
-    // 급여 기간
-    year: number
-    month: number
-    paymentDate?: string
-
-    // 급여 항목
-    payments: PayslipItem[]
-    deductions: PayslipItem[]
-
-    // 합계
-    totalPayments: number
-    totalDeductions: number
-    netSalary: number
-
-    // 회사 정보 (옵션)
-    companyName?: string
-    companyAddress?: string
-  }
+  const { payslip, onClose }: Props = $props()
 
   /**
    * 금액을 세자리 콤마로 포맷 (원 단위, 정수만)
@@ -48,25 +30,18 @@
     return Math.floor(amount).toLocaleString('ko-KR') + '원'
   }
 
-  interface Props {
-    payslip: PayslipData
-    onClose: () => void
-  }
-
-  const { payslip, onClose }: Props = $props()
-
   /**
-   * PDF 출력 (브라우저 인쇄 다이얼로그)
+   * PDF 출력 (별도 윈도우에서 프린트)
    */
   function handlePrint() {
-    window.print()
+    printPayslip(payslip)
   }
 
   /**
-   * PDF 다운로드 (인쇄 > PDF로 저장 가이드)
+   * PDF 다운로드 (프린트 다이얼로그에서 PDF로 저장)
    */
   function handleDownload() {
-    window.print() // 브라우저의 "PDF로 저장" 기능 활용
+    printPayslip(payslip)
   }
 
   // 급여 기간 포맷
@@ -76,15 +51,17 @@
 
 <!-- 모달 배경 (화면에서만 표시) -->
 <div
-  class="print-hide fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+  class="payslip-modal-wrapper fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
   role="dialog"
   aria-modal="true"
 >
   <!-- 모달 컨테이너 -->
-  <div class="bg-white rounded-lg shadow-2xl max-w-4xl w-full max-h-[95vh] overflow-y-auto">
+  <div
+    class="payslip-modal-content bg-white rounded-lg shadow-2xl max-w-4xl w-full max-h-[95vh] overflow-y-auto"
+  >
     <!-- 상단 액션 바 (화면에서만 표시) -->
     <div
-      class="print-hide sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between z-10"
+      class="payslip-modal-header sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between z-10"
     >
       <h2 class="text-lg font-semibold text-gray-900">급여명세서 미리보기</h2>
       <div class="flex items-center gap-2">
@@ -116,7 +93,7 @@
     </div>
 
     <!-- 급여명세서 본문 (A4 크기) -->
-    <div class="payslip-container p-8 bg-white" style="max-width: 210mm; margin: 0 auto;">
+    <div class="payslip-print-area p-8 bg-white" style="max-width: 210mm; margin: 0 auto;">
       <!-- 헤더: 회사 정보 & 제목 -->
       <header class="text-center mb-8 border-b-2 border-gray-900 pb-6">
         {#if payslip.companyName}
@@ -239,47 +216,4 @@
   </div>
 </div>
 
-<!-- Print Styles -->
-<style>
-  @media print {
-    /* A4 크기 최적화 */
-    @page {
-      size: A4 portrait;
-      margin: 20mm;
-    }
-
-    /* 페이지의 모든 요소 숨기기 */
-    :global(body *) {
-      visibility: hidden !important;
-    }
-
-    /* 급여명세서 모달 컨테이너와 하위 요소만 표시 */
-    :global(body) .payslip-container,
-    :global(body) .payslip-container * {
-      visibility: visible !important;
-    }
-
-    /* 모달 배경과 버튼 숨기기 */
-    .print-hide {
-      display: none !important;
-    }
-
-    /* 급여명세서를 페이지 최상단에 배치 */
-    .payslip-container {
-      position: absolute !important;
-      left: 0 !important;
-      top: 0 !important;
-      width: 100% !important;
-      max-width: 100% !important;
-      margin: 0 !important;
-      padding: 20px !important;
-      page-break-inside: avoid;
-    }
-
-    /* 색상 정확히 출력 */
-    * {
-      print-color-adjust: exact !important;
-      -webkit-print-color-adjust: exact !important;
-    }
-  }
-</style>
+<!-- 프린트 스타일은 src/app.css에서 전역으로 관리됨 -->
