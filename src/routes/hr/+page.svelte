@@ -103,12 +103,17 @@
         return 'overview'
     }
   })
+
+  // 대시보드에서 탭 전환 함수
+  function handleNavigateToTab(tab: string) {
+    activeTab = tab
+  }
 </script>
 
 <PageLayout title="인사 관리" {stats}>
   <ThemeTabs {tabs} bind:activeTab>
     {#if activeComponent === 'overview'}
-      <HROverviewTab />
+      <HROverviewTab onNavigate={handleNavigateToTab} />
     {:else if activeComponent === 'employees'}
       <EmployeeList
         employees={hr.filteredEmployees}

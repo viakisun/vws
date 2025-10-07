@@ -58,6 +58,7 @@ export interface Department {
   description?: string
   manager_id?: ManagerId
   parent_department_id?: DepartmentId
+  headcount?: number // T.O (정원)
   level?: number
   order?: number
   status?: 'active' | 'inactive'

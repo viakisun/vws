@@ -1,25 +1,30 @@
 <script lang="ts">
-  import ThemeGrid from '$lib/components/ui/ThemeGrid.svelte'
-  import ThemeSpacer from '$lib/components/ui/ThemeSpacer.svelte'
-  import DepartmentOverview from './DepartmentOverview.svelte'
-  import RecentActivities from './RecentActivities.svelte'
-  import HRCharts from './HRCharts.svelte'
-  import JobPostingsList from './JobPostingsList.svelte'
+  import { hrStore } from '$lib/stores/hr/hrStore.svelte'
+  import ActionItemsPanel from './ActionItemsPanel.svelte'
+  import HeadcountPanel from './HeadcountPanel.svelte'
+  import QuickStatsCards from './QuickStatsCards.svelte'
+
+  interface Props {
+    onNavigate?: (tab: string) => void
+  }
+
+  let { onNavigate = () => {} }: Props = $props()
 </script>
 
-<ThemeSpacer size={6}>
-  <!-- 메인 대시보드 -->
-  <ThemeGrid cols={1} lgCols={2} gap={6}>
-    <!-- 부서별 직원 현황 -->
-    <DepartmentOverview />
+<div class="space-y-6">
+  <!-- 빠른 통계 카드 -->
+  <QuickStatsCards employees={hrStore.data.employees} />
 
-    <!-- 최근 활동 -->
-    <RecentActivities />
-  </ThemeGrid>
+  <!-- 메인 콘텐츠: 처리 필요 항목 + T.O 관리 -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- 처리 필요 항목 -->
+    <ActionItemsPanel
+      employees={hrStore.data.employees}
+      leaveRequests={hrStore.data.leaveRequests}
+      {onNavigate}
+    />
 
-  <!-- 차트 섹션 -->
-  <HRCharts />
-
-  <!-- 최근 채용 공고 -->
-  <JobPostingsList />
-</ThemeSpacer>
+    <!-- T.O (정원) 관리 -->
+    <HeadcountPanel departments={hrStore.data.departments} employees={hrStore.data.employees} />
+  </div>
+</div>
