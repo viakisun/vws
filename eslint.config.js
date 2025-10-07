@@ -529,6 +529,8 @@ export default [
       'package-lock.json',
       'pnpm-lock.yaml',
       'yarn.lock',
+      // CI/CD workflows
+      '.github/workflows/**',
     ],
   },
 
