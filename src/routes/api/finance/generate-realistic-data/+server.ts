@@ -1,6 +1,31 @@
 import { query } from '$lib/database/connection'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
+import { logger } from '$lib/utils/logger'
+
+interface AccountRow {
+  id: string
+  name: string
+  bank_name: string
+  bank_code: string
+}
+
+interface CategoryRow {
+  id: string
+  name: string
+  type: string
+  accounting_code?: string
+}
+
+interface TransactionInsert {
+  accountId: string
+  categoryId: string
+  amount: number
+  type: string
+  description: string
+  transactionDate: string
+  status: string
+}
 
 // 날짜 유틸리티 함수
 function getDateString(year: number, month: number, day: number): string {
@@ -20,10 +45,10 @@ function formatAmount(amount: number): number {
 
 export const POST: RequestHandler = async () => {
   try {
-    console.log('🏢 실제 회사 운영 데이터 생성 시작...')
+    logger.info('🏢 실제 회사 운영 데이터 생성 시작...')
 
     // 계좌 정보 조회
-    const accountsResult = await query(`
+    const accountsResult = await query<AccountRow>(`
       SELECT a.id, a.name, b.name as bank_name, b.code as bank_code
       FROM finance_accounts a
       JOIN finance_banks b ON a.bank_id = b.id
@@ -38,11 +63,11 @@ export const POST: RequestHandler = async () => {
       throw new Error('필요한 계좌를 찾을 수 없습니다.')
     }
 
-    console.log(`📊 운영자금 계좌: ${operatingAccount.name}`)
-    console.log(`💰 매출통장 계좌: ${salesAccount.name}`)
+    logger.info(`📊 운영자금 계좌: ${operatingAccount.name}`)
+    logger.info(`💰 매출통장 계좌: ${salesAccount.name}`)
 
     // 카테고리 정보 조회
-    const categoriesResult = await query(`
+    const categoriesResult = await query<CategoryRow>(`
       SELECT id, name, type, accounting_code
       FROM finance_categories
       WHERE is_active = true
@@ -54,27 +79,19 @@ export const POST: RequestHandler = async () => {
     const expenseCategories = categories.filter((cat) => cat.type === 'expense')
     const transferCategories = categories.filter((cat) => cat.type === 'transfer')
 
-    console.log(`📋 수입 카테고리: ${incomeCategories.length}개`)
-    console.log(`📋 지출 카테고리: ${expenseCategories.length}개`)
+    logger.info(`📋 수입 카테고리: ${incomeCategories.length}개`)
+    logger.info(`📋 지출 카테고리: ${expenseCategories.length}개`)
 
     // 기존 거래 내역 삭제 (새로운 데이터로 교체)
-    console.log('🗑️ 기존 거래 내역 삭제 중...')
+    logger.info('🗑️ 기존 거래 내역 삭제 중...')
     await query('DELETE FROM finance_transactions')
     // finance_accounts 테이블의 balance 컬럼은 제거되었으므로 거래 내역 삭제만 수행
 
-    const transactions: Array<{
-      accountId: string
-      categoryId: string
-      amount: number
-      type: string
-      description: string
-      transactionDate: string
-      status: string
-    }> = []
+    const transactions: TransactionInsert[] = []
 
     // 2025년 1월~9월 데이터 생성
     for (let month = 1; month <= 9; month++) {
-      console.log(`📅 ${month}월 데이터 생성 중...`)
+      logger.info(`📅 ${month}월 데이터 생성 중...`)
 
       // === 매출 데이터 (농협 매출통장) ===
       const monthlySales = 15000000 + Math.random() * 5000000 // 월 매출 1500만~2000만원
@@ -201,7 +218,7 @@ export const POST: RequestHandler = async () => {
     }
 
     // === 대표이사 차입 (4회, 총 5000만원) ===
-    console.log('💳 대표이사 차입 데이터 생성 중...')
+    logger.info('💳 대표이사 차입 데이터 생성 중...')
     const loanAmounts = [15000000, 12000000, 13000000, 10000000] // 총 5000만원
     const loanMonths = [2, 4, 6, 8] // 2월, 4월, 6월, 8월
     const otherIncomeCategory = incomeCategories.find((cat) => cat.name === '기타수입')
@@ -239,7 +256,7 @@ export const POST: RequestHandler = async () => {
     }
 
     // === 거래 내역 삽입 ===
-    console.log(`💾 ${transactions.length}개 거래 내역 삽입 중...`)
+    logger.info(`💾 ${transactions.length}개 거래 내역 삽입 중...`)
 
     for (const transaction of transactions) {
       await query(
@@ -262,7 +279,7 @@ export const POST: RequestHandler = async () => {
     }
 
     // === 계좌 잔액 계산 및 업데이트 ===
-    console.log('💰 계좌 잔액 계산 중...')
+    logger.info('💰 계좌 잔액 계산 중...')
 
     for (const account of accounts) {
       const balanceResult = await query(
@@ -283,7 +300,7 @@ export const POST: RequestHandler = async () => {
       // finance_accounts 테이블의 balance 컬럼은 제거되었으므로 별도 업데이트 불필요
       // 잔액은 거래 내역의 최신 balance에서 자동으로 계산됩니다
 
-      console.log(`📊 ${account.name}: ${balance.toLocaleString()}원`)
+      logger.info(`📊 ${account.name}: ${balance.toLocaleString()}원`)
     }
 
     // === 결과 요약 ===
@@ -297,11 +314,11 @@ export const POST: RequestHandler = async () => {
 
     const summary = summaryResult.rows[0]
 
-    console.log('\n🎉 실제 회사 운영 데이터 생성 완료!')
-    console.log(`📊 총 거래 건수: ${summary.total_transactions}건`)
-    console.log(`💰 총 수입: ${parseFloat(summary.total_income).toLocaleString()}원`)
-    console.log(`💸 총 지출: ${parseFloat(summary.total_expense).toLocaleString()}원`)
-    console.log(
+    logger.info('\n🎉 실제 회사 운영 데이터 생성 완료!')
+    logger.info(`📊 총 거래 건수: ${summary.total_transactions}건`)
+    logger.info(`💰 총 수입: ${parseFloat(summary.total_income).toLocaleString()}원`)
+    logger.info(`💸 총 지출: ${parseFloat(summary.total_expense).toLocaleString()}원`)
+    logger.info(
       `📈 순이익: ${(parseFloat(summary.total_income) - parseFloat(summary.total_expense)).toLocaleString()}원`,
     )
 
@@ -316,7 +333,7 @@ export const POST: RequestHandler = async () => {
       },
     })
   } catch (error) {
-    console.error('❌ 데이터 생성 실패:', error)
+    logger.error('❌ 데이터 생성 실패:', error)
     return json(
       {
         success: false,
