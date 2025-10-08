@@ -2,11 +2,7 @@
  * TransactionManagement 유틸리티 함수들
  */
 
-import type {
-  Transaction,
-  Account,
-  CreateTransactionRequest,
-} from '$lib/finance/types'
+import type { Transaction, Account, CreateTransactionRequest } from '$lib/finance/types'
 import type { FilteredStatistics } from '$lib/finance/types/transaction-state'
 import { getCurrentUTCTimestamp, convertToDateTimeLocal } from './transaction-formatters'
 
@@ -76,10 +72,7 @@ export function filterTransactions(
 /**
  * 계좌 필터링
  */
-export function filterAccounts(
-  activeAccounts: Account[],
-  selectedAccount: string,
-): Account[] {
+export function filterAccounts(activeAccounts: Account[], selectedAccount: string): Account[] {
   return selectedAccount
     ? activeAccounts.filter((account) => account.id === selectedAccount)
     : activeAccounts
