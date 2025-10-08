@@ -1,4 +1,5 @@
 import type { User } from '$lib/auth/user-service'
+import type { UserPermissionCache } from '$lib/server/services/permission.service'
 
 interface Employee {
   id: string
@@ -22,6 +23,7 @@ declare global {
   namespace App {
     interface Locals {
       user: UserWithEmployee | null
+      permissions: UserPermissionCache | null
     }
     // interface Error {}
     // interface PageData {}

@@ -5,6 +5,7 @@
   import VersionInfo from '$lib/components/ui/VersionInfo.svelte'
   import { themeManager } from '$lib/stores/theme'
   import { toasts } from '$lib/stores/toasts'
+  import { initializePermissions, clearPermissions } from '$lib/stores/permissions'
   import { onMount } from 'svelte'
   import '../app.css'
   import type { LayoutServerData } from './$types'
@@ -14,9 +15,14 @@
   let sidebarCollapsed = $state(true)
   let user = $state(data.user)
 
-  // Initialize theme on mount
+  // Initialize theme and permissions on mount
   onMount(() => {
     themeManager.applyTheme()
+
+    // Initialize permissions store if user is logged in
+    if (data.permissions) {
+      initializePermissions(data.permissions)
+    }
   })
 
   // Handle logout
@@ -24,6 +30,7 @@
     try {
       await fetch('/api/auth/logout', { method: 'POST' })
       user = null
+      clearPermissions() // Clear permissions store
       goto('/login')
     } catch (error) {
       logger.error('Logout error:', error)

@@ -82,15 +82,88 @@ export const POST: RequestHandler = async ({ request }) => {
       return json(response, { status: 400 })
     }
 
-    // 데이터베이스에서 사용자 조회
+    // 1. 먼저 시스템 계정인지 확인
+    const systemAccountResult = await DatabaseService.query(`
+      SELECT
+        u.id, u.email, u.password_hash, u.name, u.role, u.is_active,
+        sa.account_type
+      FROM users u
+      INNER JOIN system_accounts sa ON sa.user_id = u.id
+      WHERE u.email = $1 AND u.is_active = true
+    `, [email])
+
+    if (systemAccountResult.rows.length > 0) {
+      const systemUser = systemAccountResult.rows[0]
+
+      // 비밀번호 검증
+      const isValidPassword = await bcrypt.compare(password, systemUser.password_hash)
+      if (!isValidPassword) {
+        logger.warn('System account login attempt with invalid password', { email })
+        const response: ApiResponse<null> = {
+          success: false,
+          error: '이메일 또는 비밀번호가 올바르지 않습니다.',
+        }
+        return json(response, { status: 401 })
+      }
+
+      // JWT 토큰 생성
+      const now = Math.floor(Date.now() / 1000)
+      const payload: JWTPayload = {
+        userId: systemUser.id,
+        email: systemUser.email,
+        role: systemUser.role,
+        iat: now,
+        exp: now + 24 * 60 * 60,
+      }
+
+      const token = jwt.sign(payload, config.jwt.secret, {
+        algorithm: 'HS256',
+        expiresIn: '24h',
+        issuer: 'vws-system',
+        audience: 'vws-client',
+      })
+
+      // 마지막 로그인 시간 업데이트
+      await DatabaseService.query('UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = $1', [systemUser.id])
+      logger.info('System account login successful', {
+        userId: systemUser.id,
+        email: systemUser.email,
+        accountType: systemUser.account_type,
+      })
+
+      // 시스템 계정 응답
+      const userResponse: UserResponse = {
+        id: systemUser.id,
+        email: systemUser.email,
+        name: systemUser.name,
+        role: systemUser.role,
+        is_active: systemUser.is_active,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      }
+
+      const response: ApiResponse<LoginResponse> = {
+        success: true,
+        message: '로그인에 성공했습니다.',
+        data: {
+          user: userResponse,
+          token,
+          expiresIn: 24 * 60 * 60,
+        },
+      }
+
+      return json(response)
+    }
+
+    // 2. 시스템 계정이 아니면 직원 계정인지 확인
     const user = await DatabaseService.getUserByEmail(email)
     if (!user) {
       logger.warn('Login attempt with non-existent email', { email })
       const response: ApiResponse<null> = {
         success: false,
-        error: '이메일 또는 비밀번호가 올바르지 않습니다.',
+        error: '이 시스템에 접근할 권한이 없습니다.',
       }
-      return json(response, { status: 401 })
+      return json(response, { status: 403 })
     }
 
     // 사용자 활성 상태 확인

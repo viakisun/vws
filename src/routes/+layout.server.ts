@@ -17,5 +17,6 @@ export const load: LayoutServerLoad = async ({ locals, url }) => {
 
   return {
     user: locals.user,
+    permissions: locals.permissions,
   }
 }

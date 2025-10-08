@@ -2,6 +2,7 @@
   import { page } from '$app/stores'
   import type { User } from '$lib/auth/user-service'
   import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
+  import { menuAccess, can, RoleCode, Resource } from '$lib/stores/permissions'
   import {
     BanknoteIcon,
     BarChart3Icon,
@@ -17,6 +18,7 @@
     MessageSquareIcon,
     SettingsIcon,
     UsersIcon,
+    ShieldIcon,
   } from '@lucide/svelte'
 
   let { isCollapsed = $bindable(true), user = null } = $props<{
@@ -24,30 +26,118 @@
     user?: User | null
   }>()
 
-  const navigationItems = [
-    { name: '대시보드', href: '/', icon: HomeIcon },
-    { name: '재무관리', href: '/finance', icon: BanknoteIcon },
-    { name: '급여관리', href: '/salary', icon: DollarSignIcon },
-    { name: '인사관리', href: '/hr', icon: UsersIcon },
+  interface NavItem {
+    name: string;
+    href: string;
+    icon: any;
+    permission?: {
+      resource?: string;
+      roles?: RoleCode[];
+    };
+  }
+
+  const navigationItems: NavItem[] = [
     {
-      name: '연차관리',
-      href: '/hr/leave-management',
-      icon: CalendarIcon,
-      roles: ['ADMIN', 'MANAGER'],
+      name: '대시보드',
+      href: '/',
+      icon: HomeIcon,
+      permission: { resource: Resource.DASHBOARD }
     },
-    { name: '연구개발', href: '/project-management', icon: FlaskConicalIcon },
-    { name: '영업관리', href: '/sales', icon: BriefcaseIcon },
-    { name: '고객관리', href: '/crm', icon: BuildingIcon },
+    {
+      name: '재무관리',
+      href: '/finance',
+      icon: BanknoteIcon,
+      permission: { resource: Resource.FINANCE_ACCOUNTS }
+    },
+    {
+      name: '급여관리',
+      href: '/salary',
+      icon: DollarSignIcon,
+      permission: { resource: Resource.HR_PAYSLIPS }
+    },
+    {
+      name: '인사관리',
+      href: '/hr',
+      icon: UsersIcon,
+      permission: { resource: Resource.HR_EMPLOYEES }
+    },
+    {
+      name: '연구개발',
+      href: '/project-management',
+      icon: FlaskConicalIcon,
+      permission: {
+        roles: [RoleCode.RESEARCH_DIRECTOR, RoleCode.RESEARCHER, RoleCode.ADMIN]
+      }
+    },
+    {
+      name: '영업관리',
+      href: '/sales',
+      icon: BriefcaseIcon,
+      permission: {
+        roles: [RoleCode.SALES, RoleCode.MANAGEMENT, RoleCode.ADMIN]
+      }
+    },
+    {
+      name: '고객관리',
+      href: '/crm',
+      icon: BuildingIcon,
+      permission: {
+        roles: [RoleCode.SALES, RoleCode.MANAGEMENT, RoleCode.ADMIN]
+      }
+    },
     { name: '일정관리', href: '/calendar', icon: CalendarIcon },
-    { name: '보고서', href: '/reports', icon: FileTextIcon },
-    { name: '분석', href: '/analytics', icon: BarChart3Icon },
+    {
+      name: '보고서',
+      href: '/reports',
+      icon: FileTextIcon,
+      permission: {
+        roles: [RoleCode.MANAGEMENT, RoleCode.RESEARCH_DIRECTOR, RoleCode.ADMIN]
+      }
+    },
+    {
+      name: '분석',
+      href: '/analytics',
+      icon: BarChart3Icon,
+      permission: {
+        roles: [RoleCode.MANAGEMENT, RoleCode.FINANCE_MANAGER, RoleCode.ADMIN]
+      }
+    },
     { name: '메시지', href: '/messages', icon: MessageSquareIcon },
     { name: '설정', href: '/settings', icon: SettingsIcon },
+    {
+      name: '권한관리',
+      href: '/admin/permissions',
+      icon: ShieldIcon,
+      permission: {
+        roles: [RoleCode.ADMIN]
+      }
+    },
   ]
 
-  // 사용자 역할에 따른 메뉴 필터링
+  // 사용자 권한에 따른 메뉴 필터링
   const filteredNavigationItems = $derived(
-    navigationItems.filter((item) => !item.roles || item.roles.includes(user?.role || '')),
+    navigationItems.filter((item) => {
+      // 권한 설정이 없는 경우 모두에게 표시
+      if (!item.permission) {
+        return true;
+      }
+
+      // 리소스 권한 체크
+      if (item.permission.resource) {
+        if (!$can.read(item.permission.resource)) {
+          return false;
+        }
+      }
+
+      // 역할 권한 체크
+      if (item.permission.roles && item.permission.roles.length > 0) {
+        if (!$can.hasAnyRole(item.permission.roles)) {
+          return false;
+        }
+      }
+
+      return true;
+    }),
   )
 
   function toggleCollapse() {
