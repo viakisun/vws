@@ -618,7 +618,7 @@ jobs:
             --output json)
 
           if [ "$IMAGES" != "[]" ] && [ "$IMAGES" != "null" ]; then
-            echo "$IMAGES" | jq -r '.[]' | while read digest; do
+            echo "$IMAGES" | jq -r '.[][] // empty' | while read digest; do
               echo "Deleting image: $digest"
               aws ecr batch-delete-image \
                 --repository-name ${{ env.ECR_REPOSITORY }} \
