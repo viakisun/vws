@@ -9,13 +9,13 @@ import {
 } from 'lucide-svelte'
 
 export interface User {
-  id: string
+  id: string // UUID (system_accounts.id 또는 employees.id)
   email: string
   name: string
-  employee_id?: string
+  employee_code?: string // 사번 (UI 표시용, 예: "1001")
   department?: string
   position?: string
-  account_type?: string
+  account_type: 'system' | 'employee' // 어느 테이블인지 구분
   roles: Array<{
     code: string
     name: string
@@ -132,6 +132,10 @@ class PermissionManagementStore {
 
   async loadUsers(): Promise<void> {
     const response = await fetch('/api/admin/users')
+    if (response.status === 403) {
+      pushToast('사용자 목록을 조회할 권한이 없습니다.', 'error')
+      throw new Error('Forbidden')
+    }
     if (!response.ok) {
       throw new Error('Failed to load users')
     }
@@ -140,6 +144,10 @@ class PermissionManagementStore {
 
   async loadRoles(): Promise<void> {
     const response = await fetch('/api/admin/roles')
+    if (response.status === 403) {
+      pushToast('역할 목록을 조회할 권한이 없습니다.', 'error')
+      throw new Error('Forbidden')
+    }
     if (!response.ok) {
       throw new Error('Failed to load roles')
     }
@@ -154,12 +162,23 @@ class PermissionManagementStore {
         body: JSON.stringify({ userId, roleCode }),
       })
 
+      if (response.status === 403) {
+        pushToast('이 작업을 수행할 권한이 없습니다.', 'error')
+        return false
+      }
+
       if (!response.ok) {
         throw new Error('Failed to assign role')
       }
 
       pushToast('역할이 성공적으로 할당되었습니다.', 'success')
       await this.loadUsers()
+
+      // selectedUser 업데이트
+      if (this.selectedUser) {
+        this.selectedUser = this.users.find(u => u.id === this.selectedUser!.id) || null
+      }
+
       this.selectedRole = null
       return true
     } catch (error) {
@@ -177,12 +196,23 @@ class PermissionManagementStore {
         body: JSON.stringify({ userId, roleCode }),
       })
 
+      if (response.status === 403) {
+        pushToast('이 작업을 수행할 권한이 없습니다.', 'error')
+        return false
+      }
+
       if (!response.ok) {
         throw new Error('Failed to revoke role')
       }
 
       pushToast('역할이 성공적으로 제거되었습니다.', 'success')
       await this.loadUsers()
+
+      // selectedUser 업데이트
+      if (this.selectedUser) {
+        this.selectedUser = this.users.find(u => u.id === this.selectedUser!.id) || null
+      }
+
       return true
     } catch (error) {
       console.error('Failed to revoke role:', error)
@@ -196,6 +226,11 @@ class PermissionManagementStore {
       const response = await fetch(`/api/admin/users/${userId}/refresh-cache`, {
         method: 'POST',
       })
+
+      if (response.status === 403) {
+        pushToast('이 작업을 수행할 권한이 없습니다.', 'error')
+        return false
+      }
 
       if (!response.ok) {
         throw new Error('Failed to refresh cache')
