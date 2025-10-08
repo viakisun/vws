@@ -36,15 +36,15 @@ export const GET: RequestHandler = async (event) => {
         )::date AS date
       )
       SELECT
-        ds.date,
+        TO_CHAR(ds.date, 'YYYY-MM-DD') as date,
         lr.id,
         e.id as employee_id,
         e.first_name,
         e.last_name,
         e.department,
         lt.name as leave_type_name,
-        lr.start_date,
-        lr.end_date,
+        TO_CHAR(lr.start_date, 'YYYY-MM-DD') as start_date,
+        TO_CHAR(lr.end_date, 'YYYY-MM-DD') as end_date,
         lr.total_days,
         lr.reason
       FROM date_series ds
@@ -62,10 +62,10 @@ export const GET: RequestHandler = async (event) => {
     // 날짜별로 그룹화
     const dailyLeavesMap = new Map<string, any[]>()
 
-    result.rows.forEach((row) => {
+    result.rows.forEach((row: any) => {
       if (!row.id) return // 연차가 없는 날짜는 skip
 
-      const dateStr = new Date(row.date).toISOString().split('T')[0]
+      const dateStr = row.date // 이미 'YYYY-MM-DD' 형식
       if (!dailyLeavesMap.has(dateStr)) {
         dailyLeavesMap.set(dateStr, [])
       }
@@ -127,42 +127,37 @@ export const GET: RequestHandler = async (event) => {
     // 연차 촉진 대상자 (미사용 50% 이상)
     const promotionResult = await query(
       `
-      SELECT
-        e.id,
-        e.first_name,
-        e.last_name,
-        e.department,
-        lb.total_days,
-        COALESCE((
-          SELECT SUM(lr.total_days)
-          FROM leave_requests lr
-          WHERE lr.employee_id = e.id
-            AND lr.status = 'approved'
-            AND EXTRACT(YEAR FROM lr.start_date) = $1
-            AND lr.leave_type_id IN (
-              SELECT id FROM leave_types WHERE name IN ('연차', '반차', '반반차')
-            )
-        ), 0) as used_days
-      FROM employees e
-      JOIN leave_balances lb ON lb.employee_id = e.id AND lb.year = $1
-      WHERE e.status = 'active'
-      HAVING (lb.total_days - COALESCE((
-        SELECT SUM(lr.total_days)
-        FROM leave_requests lr
-        WHERE lr.employee_id = e.id
-          AND lr.status = 'approved'
-          AND EXTRACT(YEAR FROM lr.start_date) = $1
-          AND lr.leave_type_id IN (
-            SELECT id FROM leave_types WHERE name IN ('연차', '반차', '반반차')
-          )
-      ), 0)) / lb.total_days >= 0.5
-      ORDER BY (lb.total_days - used_days) DESC
+      WITH employee_leave_usage AS (
+        SELECT
+          e.id,
+          e.first_name,
+          e.last_name,
+          e.department,
+          lb.total_days,
+          COALESCE((
+            SELECT SUM(lr.total_days)
+            FROM leave_requests lr
+            WHERE lr.employee_id = e.id
+              AND lr.status = 'approved'
+              AND EXTRACT(YEAR FROM lr.start_date) = $1
+              AND lr.leave_type_id IN (
+                SELECT id FROM leave_types WHERE name IN ('연차', '반차', '반반차')
+              )
+          ), 0) as used_days
+        FROM employees e
+        JOIN leave_balances lb ON lb.employee_id = e.id AND lb.year = $1
+        WHERE e.status = 'active'
+      )
+      SELECT *
+      FROM employee_leave_usage
+      WHERE (total_days - used_days) / total_days >= 0.5
+      ORDER BY (total_days - used_days) DESC
       LIMIT 10
       `,
       [year],
     )
 
-    const promotion_targets = promotionResult.rows.map((row) => ({
+    const promotion_targets = promotionResult.rows.map((row: any) => ({
       employee_id: row.id,
       employee_name: `${row.last_name}${row.first_name}`,
       department: row.department,
@@ -179,8 +174,9 @@ export const GET: RequestHandler = async (event) => {
       department_stats: deptStatsResult.rows,
       promotion_targets,
       summary: {
-        total_days_used: daily_leaves.reduce((sum, day) =>
-          sum + day.leaves.reduce((daySum, leave) => daySum + leave.total_days, 0), 0
+        total_days_used: daily_leaves.reduce(
+          (sum, day) => sum + day.leaves.reduce((daySum, leave) => daySum + leave.total_days, 0),
+          0,
         ),
         today_on_leave: dailyLeavesMap.get(new Date().toISOString().split('T')[0])?.length || 0,
       },

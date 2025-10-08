@@ -276,7 +276,8 @@
             {@const isSaturday = dayOfWeek === 6}
             {@const isSunday = dayOfWeek === 0}
             {@const isWeekend = isSaturday || isSunday}
-            {@const hasData = dayData && (dayData.present > 0 || dayData.late > 0 || dayData.absent > 0)}
+            {@const hasData =
+              dayData && (dayData.present > 0 || dayData.late > 0 || dayData.absent > 0)}
 
             <button
               type="button"
@@ -305,7 +306,8 @@
               <!-- Status Badge (fixed position top-right) -->
               {#if hasData}
                 <span
-                  class="absolute top-2 right-2 inline-flex items-center justify-center w-5 h-5 rounded-full {dayData.late > 0
+                  class="absolute top-2 right-2 inline-flex items-center justify-center w-5 h-5 rounded-full {dayData.late >
+                  0
                     ? 'bg-yellow-500'
                     : dayData.absent > 0
                       ? 'bg-red-500'

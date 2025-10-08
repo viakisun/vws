@@ -23,6 +23,10 @@
       )
       if (response.ok) {
         calendarData = await response.json()
+        console.log('연차 캘린더 데이터:', calendarData)
+        console.log('일별 연차:', calendarData.daily_leaves)
+      } else {
+        console.error('연차 캘린더 로드 실패:', response.status, await response.text())
       }
     } catch (error) {
       console.error('Failed to load leave calendar:', error)
@@ -36,7 +40,11 @@
    */
   function handleDateClick(date: string) {
     selectedDate = date
-    const dayData = calendarData.daily_leaves.find((d) => d.date === date)
+    const dayData = calendarData.daily_leaves.find((d: any) => {
+      // 날짜 형식 정규화하여 비교
+      const normalizedApiDate = d.date.replace(/\.\s*/g, '-').replace(/-$/, '')
+      return normalizedApiDate === date || d.date === date
+    })
     selectedLeaves = dayData?.leaves || []
   }
 
@@ -134,6 +142,31 @@
 
     <!-- 캘린더 -->
     <div class="bg-white p-6 rounded-lg shadow">
+      <!-- 범례 -->
+      <div class="mb-4 flex flex-wrap gap-4 items-center text-sm">
+        <span class="font-semibold text-gray-700">연차 타입:</span>
+        <div class="flex items-center gap-1">
+          <div class="w-4 h-4 rounded bg-blue-500"></div>
+          <span>연차</span>
+        </div>
+        <div class="flex items-center gap-1">
+          <div class="w-4 h-4 rounded bg-yellow-500"></div>
+          <span>반차</span>
+        </div>
+        <div class="flex items-center gap-1">
+          <div class="w-4 h-4 rounded bg-orange-500"></div>
+          <span>반반차</span>
+        </div>
+        <div class="flex items-center gap-1">
+          <div class="w-4 h-4 rounded bg-purple-500"></div>
+          <span>경조사</span>
+        </div>
+        <div class="flex items-center gap-1">
+          <div class="w-4 h-4 rounded bg-green-500"></div>
+          <span>예비군/민방위</span>
+        </div>
+      </div>
+
       <div class="grid grid-cols-7 gap-2">
         <div class="text-center font-semibold text-gray-700">일</div>
         <div class="text-center font-semibold text-gray-700">월</div>
@@ -150,7 +183,10 @@
         {#each Array(new Date(currentYear, currentMonth, 0).getDate()) as _, i}
           {@const day = i + 1}
           {@const dateStr = `${currentYear}-${String(currentMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`}
-          {@const dayData = calendarData.daily_leaves.find((d) => d.date === dateStr)}
+          {@const dayData = calendarData.daily_leaves.find((d: any) => {
+            const normalizedApiDate = d.date.replace(/\.\s*/g, '-').replace(/-$/, '')
+            return normalizedApiDate === dateStr || d.date === dateStr
+          })}
 
           <button
             type="button"
@@ -162,7 +198,9 @@
               <div class="space-y-1">
                 {#each dayData.leaves.slice(0, 2) as leave}
                   <div
-                    class="text-xs px-1 py-0.5 rounded text-white truncate {getLeaveTypeColor(leave.type)}"
+                    class="text-xs px-1 py-0.5 rounded text-white truncate {getLeaveTypeColor(
+                      leave.type,
+                    )}"
                   >
                     {leave.employee_name}
                   </div>
@@ -189,7 +227,8 @@
                 <span class="text-sm text-gray-600 ml-2">({target.department})</span>
               </div>
               <div class="text-sm">
-                <span class="text-orange-600 font-semibold">{target.remaining_days.toFixed(1)}</span>
+                <span class="text-orange-600 font-semibold">{target.remaining_days.toFixed(1)}</span
+                >
                 일 잔여
                 <span class="text-gray-500">/ {target.total_days.toFixed(1)}일</span>
               </div>
@@ -239,9 +278,7 @@
                       </span>
                     </td>
                     <td class="py-2 text-sm">
-                      {new Date(leave.start_date).toLocaleDateString('ko-KR')}
-                      ~
-                      {new Date(leave.end_date).toLocaleDateString('ko-KR')}
+                      {leave.start_date} ~ {leave.end_date}
                     </td>
                     <td class="py-2 text-sm">{leave.reason}</td>
                   </tr>

@@ -70,7 +70,9 @@ export const GET: RequestHandler = async (event) => {
       GROUP BY ds.date
       ORDER BY ds.date
       `,
-      departmentId ? [startDate, endDateStr, totalEmployees, departmentId] : [startDate, endDateStr, totalEmployees],
+      departmentId
+        ? [startDate, endDateStr, totalEmployees, departmentId]
+        : [startDate, endDateStr, totalEmployees],
     )
 
     return json({
