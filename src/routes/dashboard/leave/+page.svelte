@@ -24,6 +24,7 @@
   let requests = $state<any[]>([]) // 선택된 월의 연차 데이터
   let yearRequests = $state<any[]>([]) // 올해 전체 연차 데이터
   let leaveTypes = $state<any[]>([])
+  let needsPromotion = $state(false) // 연차 촉진 대상 여부
 
   /**
    * 연차 타입 조회
@@ -74,6 +75,7 @@
         employee = data.employee
         balance = data.balance
         requests = data.requests || []
+        needsPromotion = data.needsPromotion || false
       } else {
         const error = await response.json()
         pushToast(error.error || '데이터 로드 실패', 'error')
@@ -233,6 +235,21 @@
         <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
       </div>
     {:else}
+      <!-- 연차 촉진 알림 -->
+      {#if needsPromotion}
+        <div
+          class="bg-gradient-to-r from-orange-500 to-red-500 rounded-2xl shadow-xl p-6 text-white flex items-center gap-4"
+        >
+          <div class="text-4xl">⚠️</div>
+          <div class="flex-1">
+            <h3 class="text-xl font-bold mb-2">연차 사용 촉진 대상입니다</h3>
+            <p class="text-orange-50">
+              올해 연차 소진율이 50% 이하입니다. 연말까지 남은 연차를 적극적으로 사용해주세요.
+            </p>
+          </div>
+        </div>
+      {/if}
+
       {#if balance}
         <!-- 연차 현황 -->
         <div

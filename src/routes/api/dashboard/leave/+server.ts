@@ -120,6 +120,32 @@ export const GET: RequestHandler = async (event) => {
       [employee.id, parseInt(year)],
     )
 
+    // 연차 촉진 대상 여부 확인 (9월 1일 이후, 입사 1년 이상, 소진율 50% 이하)
+    const today = new Date()
+    const currentMonth = today.getMonth() + 1
+    let needsPromotion = false
+
+    if (currentMonth >= 9 && balanceResult.rows[0]) {
+      const balance = balanceResult.rows[0]
+      const usageRate = balance.used_days / balance.total_days
+
+      // 입사일 확인
+      const employeeInfoResult = await query(`SELECT hire_date FROM employees WHERE id = $1`, [
+        employee.id,
+      ])
+
+      if (employeeInfoResult.rows[0]) {
+        const hireDate = new Date(employeeInfoResult.rows[0].hire_date)
+        const oneYearAgo = new Date()
+        oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1)
+
+        // 입사 1년 이상 && 소진율 50% 이하
+        if (hireDate <= oneYearAgo && usageRate <= 0.5) {
+          needsPromotion = true
+        }
+      }
+    }
+
     const responseData = {
       employee: {
         id: employee.id,
@@ -128,6 +154,7 @@ export const GET: RequestHandler = async (event) => {
       },
       balance: balanceResult.rows[0] || null,
       requests: leaveRequestsResult.rows,
+      needsPromotion,
     }
 
     return json(responseData)

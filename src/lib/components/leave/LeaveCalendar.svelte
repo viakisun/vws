@@ -93,11 +93,14 @@
       case '연차':
         return 'bg-blue-500'
       case '반차':
-        return 'bg-green-500'
-      case '오전반반차':
         return 'bg-yellow-500'
+      case '오전반반차':
       case '오후반반차':
         return 'bg-orange-500'
+      case '경조사':
+        return 'bg-purple-500'
+      case '예비군/민방위':
+        return 'bg-green-500'
       default:
         return 'bg-gray-500'
     }
@@ -111,9 +114,12 @@
       case '반차':
         return '🌤️'
       case '오전반반차':
-        return '🌅'
       case '오후반반차':
-        return '🌆'
+        return '🌅'
+      case '경조사':
+        return '💐'
+      case '예비군/민방위':
+        return '🪖'
       default:
         return '📋'
     }
@@ -313,7 +319,7 @@
     </div>
     <div class="flex items-center gap-2">
       <div
-        class="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center text-white text-xs"
+        class="w-6 h-6 rounded-full bg-yellow-500 flex items-center justify-center text-white text-xs"
       >
         🌤️
       </div>
@@ -321,19 +327,27 @@
     </div>
     <div class="flex items-center gap-2">
       <div
-        class="w-6 h-6 rounded-full bg-yellow-500 flex items-center justify-center text-white text-xs"
+        class="w-6 h-6 rounded-full bg-orange-500 flex items-center justify-center text-white text-xs"
       >
         🌅
       </div>
-      <span class="text-gray-700">오전반반차</span>
+      <span class="text-gray-700">반반차</span>
     </div>
     <div class="flex items-center gap-2">
       <div
-        class="w-6 h-6 rounded-full bg-orange-500 flex items-center justify-center text-white text-xs"
+        class="w-6 h-6 rounded-full bg-purple-500 flex items-center justify-center text-white text-xs"
       >
-        🌆
+        💐
       </div>
-      <span class="text-gray-700">오후반반차</span>
+      <span class="text-gray-700">경조사</span>
+    </div>
+    <div class="flex items-center gap-2">
+      <div
+        class="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center text-white text-xs"
+      >
+        🪖
+      </div>
+      <span class="text-gray-700">예비군/민방위</span>
     </div>
   </div>
 </div>
