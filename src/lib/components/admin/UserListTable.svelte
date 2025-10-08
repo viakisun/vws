@@ -1,19 +1,19 @@
 <script lang="ts">
-  import ThemeCard from '$lib/components/ui/ThemeCard.svelte';
-  import ThemeBadge from '$lib/components/ui/ThemeBadge.svelte';
-  import { Edit as EditIcon, RefreshCw as RefreshCwIcon, Trash as TrashIcon } from 'lucide-svelte';
-  import { formatKoreanNameStandard } from '$lib/utils/korean-name';
-  import type { User } from '$lib/hooks/admin/usePermissionManagement.svelte';
+  import ThemeCard from '$lib/components/ui/ThemeCard.svelte'
+  import ThemeBadge from '$lib/components/ui/ThemeBadge.svelte'
+  import { Edit as EditIcon, RefreshCw as RefreshCwIcon, Trash as TrashIcon } from 'lucide-svelte'
+  import { formatKoreanNameStandard } from '$lib/utils/korean-name'
+  import type { User } from '$lib/hooks/admin/usePermissionManagement.svelte'
 
   interface Props {
-    users: User[];
-    onSelectUser: (user: User) => void;
-    onRefreshCache: (userId: string) => void;
-    onDeleteUser?: (user: User) => void;
-    getRoleColor: (roleCode: string) => string;
+    users: User[]
+    onSelectUser: (user: User) => void
+    onRefreshCache: (userId: string) => void
+    onDeleteUser?: (user: User) => void
+    getRoleColor: (roleCode: string) => string
   }
 
-  let { users, onSelectUser, onRefreshCache, onDeleteUser, getRoleColor }: Props = $props();
+  let { users, onSelectUser, onRefreshCache, onDeleteUser, getRoleColor }: Props = $props()
 </script>
 
 <ThemeCard class="overflow-hidden">
@@ -21,9 +21,16 @@
     <table class="w-full">
       <thead class="bg-gray-50 border-b border-gray-200">
         <tr>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">이름</th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">역할</th>
-          <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">작업</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >이름</th
+          >
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >역할</th
+          >
+          <th
+            class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >작업</th
+          >
         </tr>
       </thead>
       <tbody class="bg-white divide-y divide-gray-200">
@@ -55,12 +62,16 @@
             <td class="px-6 py-4">
               <div class="flex flex-wrap gap-1">
                 {#if user.roles.length === 0}
-                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                  <span
+                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800"
+                  >
                     권한 없음
                   </span>
                 {:else}
                   {#each user.roles as role}
-                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                    <span
+                      class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+                    >
                       {role.nameKo}
                     </span>
                   {/each}
@@ -100,9 +111,7 @@
           </tr>
         {:else}
           <tr>
-            <td colspan="3" class="px-6 py-12 text-center text-gray-500">
-              사용자가 없습니다.
-            </td>
+            <td colspan="3" class="px-6 py-12 text-center text-gray-500"> 사용자가 없습니다. </td>
           </tr>
         {/each}
       </tbody>

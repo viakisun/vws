@@ -1,32 +1,26 @@
 <script lang="ts">
-  import ThemeCard from '$lib/components/ui/ThemeCard.svelte';
-  import ThemeButton from '$lib/components/ui/ThemeButton.svelte';
-  import ThemeInput from '$lib/components/ui/ThemeInput.svelte';
+  import ThemeCard from '$lib/components/ui/ThemeCard.svelte'
+  import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
+  import ThemeInput from '$lib/components/ui/ThemeInput.svelte'
   import {
     ShieldCheck as ShieldCheckIcon,
     Key as KeyIcon,
     XCircle as XCircleIcon,
     Plus as PlusIcon,
-    Shield as ShieldIcon
-  } from 'lucide-svelte';
-  import { ROLE_NAMES_KO, ROLE_DESCRIPTIONS, type RoleCode } from '$lib/stores/permissions';
-  import type { User } from '$lib/hooks/admin/usePermissionManagement.svelte';
+    Shield as ShieldIcon,
+  } from 'lucide-svelte'
+  import { ROLE_NAMES_KO, ROLE_DESCRIPTIONS, type RoleCode } from '$lib/stores/permissions'
+  import type { User } from '$lib/hooks/admin/usePermissionManagement.svelte'
 
   interface Props {
-    selectedUser: User | null;
-    selectedRole: RoleCode | null;
-    onAssignRole: (userId: string, roleCode: string) => void;
-    onRevokeRole: (type: 'user_role', data: any) => void;
-    onRoleChange: (roleCode: RoleCode | null) => void;
+    selectedUser: User | null
+    selectedRole: RoleCode | null
+    onAssignRole: (userId: string, roleCode: string) => void
+    onRevokeRole: (type: 'user_role', data: any) => void
+    onRoleChange: (roleCode: RoleCode | null) => void
   }
 
-  let {
-    selectedUser,
-    selectedRole,
-    onAssignRole,
-    onRevokeRole,
-    onRoleChange
-  }: Props = $props();
+  let { selectedUser, selectedRole, onAssignRole, onRevokeRole, onRoleChange }: Props = $props()
 </script>
 
 <ThemeCard class="p-6">
@@ -49,12 +43,16 @@
         <div class="text-sm font-medium text-gray-700 mb-3">현재 역할</div>
         <div class="space-y-2">
           {#if selectedUser.roles.length === 0}
-            <div class="text-sm text-gray-500 py-4 text-center border border-dashed border-gray-300 rounded-lg">
+            <div
+              class="text-sm text-gray-500 py-4 text-center border border-dashed border-gray-300 rounded-lg"
+            >
               할당된 역할이 없습니다.
             </div>
           {:else}
             {#each selectedUser.roles as role}
-              <div class="flex items-center justify-between p-3 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors">
+              <div
+                class="flex items-center justify-between p-3 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors"
+              >
                 <div class="flex items-center gap-2">
                   <KeyIcon size={16} class="text-blue-600" />
                   <span class="font-medium text-gray-900">{role.nameKo}</span>
@@ -63,12 +61,13 @@
                 <button
                   type="button"
                   class="text-red-600 hover:text-red-700 transition-colors"
-                  onclick={() => onRevokeRole('user_role', {
-                    userId: selectedUser.id,
-                    roleCode: role.code,
-                    userName: selectedUser.name,
-                    roleName: role.nameKo
-                  })}
+                  onclick={() =>
+                    onRevokeRole('user_role', {
+                      userId: selectedUser.id,
+                      roleCode: role.code,
+                      userName: selectedUser.name,
+                      roleName: role.nameKo,
+                    })}
                   title="역할 제거"
                 >
                   <XCircleIcon size={18} />
@@ -107,7 +106,7 @@
               class="w-full flex items-center justify-center gap-2"
               onclick={() => {
                 if (selectedRole && selectedUser) {
-                  onAssignRole(selectedUser.id, selectedRole);
+                  onAssignRole(selectedUser.id, selectedRole)
                 }
               }}
             >

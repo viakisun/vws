@@ -1,14 +1,14 @@
-import { json } from '@sveltejs/kit';
-import type { RequestHandler } from './$types';
-import { DatabaseService } from '$lib/database/connection';
-import { permissionService, RoleCode } from '$lib/server/services/permission.service';
+import { json } from '@sveltejs/kit'
+import type { RequestHandler } from './$types'
+import { DatabaseService } from '$lib/database/connection'
+import { permissionService, RoleCode } from '$lib/server/services/permission.service'
 
 export const GET: RequestHandler = async ({ locals }) => {
-  const user = locals.user;
+  const user = locals.user
 
   // 관리자 권한 확인
   if (!user || !(await permissionService.hasRole(user.id, RoleCode.ADMIN))) {
-    return json({ error: 'Unauthorized' }, { status: 403 });
+    return json({ error: 'Unauthorized' }, { status: 403 })
   }
 
   try {
@@ -27,11 +27,11 @@ export const GET: RequestHandler = async ({ locals }) => {
       WHERE r.is_active = true
       GROUP BY r.id, r.code, r.name, r.name_ko, r.description, r.priority
       ORDER BY r.priority DESC
-    `);
+    `)
 
-    return json(result.rows);
+    return json(result.rows)
   } catch (error) {
-    console.error('Failed to get roles:', error);
-    return json({ error: 'Failed to load roles' }, { status: 500 });
+    console.error('Failed to get roles:', error)
+    return json({ error: 'Failed to load roles' }, { status: 500 })
   }
-};
+}

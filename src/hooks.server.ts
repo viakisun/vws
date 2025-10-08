@@ -112,7 +112,7 @@ export const handle: Handle = async ({ event, resolve }) => {
       '/api/auth/register',
       '/api/auth/logout',
       '/api/auth/google',
-      '/api/auth/callback/google'  // Google OAuth 콜백 경로 수정
+      '/api/auth/callback/google', // Google OAuth 콜백 경로 수정
     ]
     if (!user && !publicAPIs.some((api) => event.url.pathname.startsWith(api))) {
       throw error(401, 'Unauthorized')

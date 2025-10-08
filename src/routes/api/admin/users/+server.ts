@@ -1,14 +1,14 @@
-import { json } from '@sveltejs/kit';
-import type { RequestHandler } from './$types';
-import { DatabaseService } from '$lib/database/connection';
-import { permissionService, RoleCode } from '$lib/server/services/permission.service';
+import { json } from '@sveltejs/kit'
+import type { RequestHandler } from './$types'
+import { DatabaseService } from '$lib/database/connection'
+import { permissionService, RoleCode } from '$lib/server/services/permission.service'
 
 export const GET: RequestHandler = async ({ locals }) => {
-  const user = locals.user;
+  const user = locals.user
 
   // 관리자 권한 확인
   if (!user || !(await permissionService.hasRole(user.id, RoleCode.ADMIN))) {
-    return json({ error: 'Unauthorized' }, { status: 403 });
+    return json({ error: 'Unauthorized' }, { status: 403 })
   }
 
   try {
@@ -40,7 +40,7 @@ export const GET: RequestHandler = async ({ locals }) => {
       WHERE u.is_active = true
       GROUP BY u.id, u.email, u.name, e.employee_id, e.department, e.position
       ORDER BY u.name
-    `);
+    `)
 
     // 2. 시스템 계정 조회
     const systemResult = await DatabaseService.query(`
@@ -70,14 +70,14 @@ export const GET: RequestHandler = async ({ locals }) => {
       WHERE u.is_active = true
       GROUP BY u.id, u.email, u.name, u.department, u.position, sa.account_type
       ORDER BY u.name
-    `);
+    `)
 
     // 3. 두 결과 합치기 (시스템 계정을 먼저 표시)
-    const allUsers = [...systemResult.rows, ...employeeResult.rows];
+    const allUsers = [...systemResult.rows, ...employeeResult.rows]
 
-    return json(allUsers);
+    return json(allUsers)
   } catch (error) {
-    console.error('Failed to get users:', error);
-    return json({ error: 'Failed to load users' }, { status: 500 });
+    console.error('Failed to get users:', error)
+    return json({ error: 'Failed to load users' }, { status: 500 })
   }
-};
+}

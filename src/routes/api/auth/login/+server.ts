@@ -83,14 +83,17 @@ export const POST: RequestHandler = async ({ request }) => {
     }
 
     // 1. 먼저 시스템 계정인지 확인
-    const systemAccountResult = await DatabaseService.query(`
+    const systemAccountResult = await DatabaseService.query(
+      `
       SELECT
         u.id, u.email, u.password_hash, u.name, u.role, u.is_active,
         sa.account_type
       FROM users u
       INNER JOIN system_accounts sa ON sa.user_id = u.id
       WHERE u.email = $1 AND u.is_active = true
-    `, [email])
+    `,
+      [email],
+    )
 
     if (systemAccountResult.rows.length > 0) {
       const systemUser = systemAccountResult.rows[0]
@@ -124,7 +127,9 @@ export const POST: RequestHandler = async ({ request }) => {
       })
 
       // 마지막 로그인 시간 업데이트
-      await DatabaseService.query('UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = $1', [systemUser.id])
+      await DatabaseService.query('UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = $1', [
+        systemUser.id,
+      ])
       logger.info('System account login successful', {
         userId: systemUser.id,
         email: systemUser.email,
