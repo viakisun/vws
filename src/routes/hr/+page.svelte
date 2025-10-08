@@ -10,10 +10,13 @@
    */
 
   import { onMount } from 'svelte'
+  import { page } from '$app/stores'
   import PageLayout from '$lib/components/layout/PageLayout.svelte'
   import DepartmentManagement from '$lib/components/hr/DepartmentManagement.svelte'
   import EmployeeList from '$lib/components/hr/EmployeeList.svelte'
   import HROverviewTab from '$lib/components/hr/dashboard/HROverviewTab.svelte'
+  import AttendanceTab from '$lib/components/hr/dashboard/AttendanceTab.svelte'
+  import LeaveTab from '$lib/components/hr/dashboard/LeaveTab.svelte'
   import JobTitleManagement from '$lib/components/hr/JobTitleManagement.svelte'
   import PositionManagement from '$lib/components/hr/PositionManagement.svelte'
   import DeleteConfirmModal from '$lib/components/ui/DeleteConfirmModal.svelte'
@@ -31,7 +34,9 @@
     TagIcon,
     UsersIcon,
     AwardIcon,
-  } from '@lucide/svelte'
+    ClockIcon,
+    CalendarIcon,
+  } from 'lucide-svelte'
 
   // Hook 사용
   const hr = useHRManagement()
@@ -51,6 +56,8 @@
   // Tabs
   const tabs = [
     { id: 'overview', label: '대시보드', icon: ChartBarIcon },
+    { id: 'attendance', label: '근태관리', icon: ClockIcon },
+    { id: 'leave', label: '연차관리', icon: CalendarIcon },
     { id: 'employees', label: '직원관리', icon: UsersIcon },
     { id: 'departments', label: '부서관리', icon: BuildingIcon },
     { id: 'positions', label: '직급관리', icon: AwardIcon },
@@ -59,6 +66,14 @@
   ]
 
   let activeTab = $state('overview')
+
+  // URL 파라미터에서 탭 설정
+  $effect(() => {
+    const tab = $page.url.searchParams.get('tab')
+    if (tab && tabs.some((t) => t.id === tab)) {
+      activeTab = tab
+    }
+  })
 
   // 데이터 로드
   onMount(() => {
@@ -70,6 +85,10 @@
     switch (activeTab) {
       case 'overview':
         return 'overview'
+      case 'attendance':
+        return 'attendance'
+      case 'leave':
+        return 'leave'
       case 'employees':
         return 'employees'
       case 'departments':
@@ -95,6 +114,10 @@
   <ThemeTabs {tabs} bind:activeTab>
     {#if activeComponent === 'overview'}
       <HROverviewTab onNavigate={handleNavigateToTab} />
+    {:else if activeComponent === 'attendance'}
+      <AttendanceTab />
+    {:else if activeComponent === 'leave'}
+      <LeaveTab />
     {:else if activeComponent === 'employees'}
       <EmployeeList
         employees={hr.filteredEmployees}
