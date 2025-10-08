@@ -1,4 +1,4 @@
-name: ci
+name: Deploy and Cleanup
 
 # ============================================================================
 # Required GitHub Secrets (configured in repository settings):
@@ -589,7 +589,75 @@ jobs:
             echo "🎉 Deployment completed successfully!"
 
   # ============================================================================
-  # Stage 11: Final Status
+  # Stage 11: Cleanup ECR and EC2 (Main 브랜치만)
+  # ============================================================================
+
+  cleanup:
+    name: 🧹 Cleanup ECR and EC2
+    runs-on: ubuntu-latest
+    needs: deploy
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: 🔐 Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: 🧹 Cleanup old ECR images
+        run: |
+          echo "🧹 Cleaning up old ECR images (keeping latest 3)..."
+
+          IMAGES=$(aws ecr describe-images \
+            --repository-name ${{ env.ECR_REPOSITORY }} \
+            --query 'sort_by(imageDetails,&imagePushedAt)[:-3].[imageDigest]' \
+            --output json)
+
+          if [ "$IMAGES" != "[]" ] && [ "$IMAGES" != "null" ]; then
+            echo "$IMAGES" | jq -r '.[]' | while read digest; do
+              echo "Deleting image: $digest"
+              aws ecr batch-delete-image \
+                --repository-name ${{ env.ECR_REPOSITORY }} \
+                --image-ids imageDigest=$digest
+            done
+            echo "✅ Old ECR images cleaned"
+          else
+            echo "ℹ️ No old images to clean"
+          fi
+
+      - name: 🧹 Cleanup EC2 Docker resources
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            echo "🧹 Cleaning up unused Docker resources..."
+
+            # Remove stopped containers
+            docker container prune -f
+
+            # Remove unused images (keep running containers' images)
+            docker image prune -a -f --filter "until=24h"
+
+            # Remove unused volumes
+            docker volume prune -f
+
+            # Remove build cache
+            docker builder prune -f
+
+            echo "✅ EC2 Docker cleanup complete"
+
+            # Show remaining resources
+            echo "📊 Remaining Docker resources:"
+            docker system df
+
+  # ============================================================================
+  # Stage 12: Final Status
   # ============================================================================
 
   final-status:
@@ -631,13 +699,13 @@ jobs:
           exit 1
 
   # ============================================================================
-  # Stage 12: Notifications (Optional)
+  # Stage 13: Notifications (Optional)
   # ============================================================================
 
   notify:
     name: 📢 Notify
     runs-on: ubuntu-latest
-    needs: [final-status, deploy]
+    needs: [final-status, deploy, cleanup]
     if: always() && github.event_name != 'pull_request'
     steps:
       - name: 📢 Success Notification
@@ -656,7 +724,7 @@ jobs:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 
       - name: 📢 Deployment Success
-        if: needs.deploy.result == 'success'
+        if: needs.deploy.result == 'success' && needs.cleanup.result == 'success'
         uses: 8398a7/action-slack@v3
         continue-on-error: true
         with:
@@ -671,7 +739,7 @@ jobs:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 
       - name: 📢 Failure Notification
-        if: needs.final-status.result == 'failure' || needs.deploy.result == 'failure'
+        if: needs.final-status.result == 'failure' || needs.deploy.result == 'failure' || needs.cleanup.result == 'failure'
         uses: 8398a7/action-slack@v3
         continue-on-error: true
         with:
@@ -681,7 +749,7 @@ jobs:
             ❌ **VWS CI/CD Pipeline Failed**
             • Branch: `${{ github.ref_name }}`
             • Commit: `${{ github.sha }}`
-            • Failed Stage: ${{ needs.final-status.result == 'failure' && 'Tests/Build' || 'Deployment' }}
+            • Failed Stage: ${{ needs.final-status.result == 'failure' && 'Tests/Build' || (needs.deploy.result == 'failure' && 'Deployment' || 'Cleanup') }}
             • Check: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}

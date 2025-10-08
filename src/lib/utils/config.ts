@@ -27,7 +27,7 @@ export const config = {
     redirectUri: fromEnv('GOOGLE_REDIRECT_URI', 'http://localhost:5173/api/auth/callback/google'),
   },
   auth: {
-    allowedDomains: fromEnv('ALLOWED_DOMAINS', 'viasofts.com').split(','),
-    adminEmails: fromEnv('ADMIN_EMAILS', 'kisun@viasofts.com').split(','),
+    allowedDomains: fromEnv('ALLOWED_DOMAINS', 'viasofts.com,viasoft.ai').split(','),
+    adminEmails: fromEnv('ADMIN_EMAILS', 'admin@viasofts.com,admin@viasoft.ai').split(','),
   },
 }
