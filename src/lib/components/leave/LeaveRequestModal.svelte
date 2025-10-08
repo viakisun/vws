@@ -152,7 +152,7 @@
       reasonType = ''
       customReason = ''
     } catch (error) {
-      console.error('연차 신청 실패:', error)
+      // 에러는 상위에서 처리
     } finally {
       isSubmitting = false
     }

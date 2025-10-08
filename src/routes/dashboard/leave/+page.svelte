@@ -25,7 +25,9 @@
   let yearRequests = $state<any[]>([]) // 올해 전체 연차 데이터
   let leaveTypes = $state<any[]>([])
 
-  // 연차 타입 조회
+  /**
+   * 연차 타입 조회
+   */
   async function loadLeaveTypes() {
     try {
       const response = await fetch(
@@ -37,63 +39,49 @@
         leaveTypes = data.leaveTypes || []
       }
     } catch (error) {
-      console.error('연차 타입 조회 실패:', error)
+      // 에러는 무시 (타입 로드 실패해도 기본 동작)
     }
   }
 
-  // 올해 전체 연차 데이터 로드
+  /**
+   * 올해 전체 연차 데이터 로드 (캘린더 월별 배지 표시용)
+   */
   async function loadYearLeaveData() {
-    console.log('[연차 페이지] loadYearLeaveData 시작')
     try {
       const dateStr = `${currentYear}-01-01`
-      console.log(
-        '[연차 페이지] 올해 전체 데이터 API 호출:',
-        `/api/dashboard/leave?date=${dateStr}&all=true`,
-      )
       const response = await fetch(`/api/dashboard/leave?date=${dateStr}&all=true`)
 
       if (response.ok) {
         const data = await response.json()
-        console.log('[연차 페이지] 올해 전체 데이터:', data)
         yearRequests = data.requests || []
       }
     } catch (error) {
-      console.error('[연차 페이지] 올해 연차 데이터 조회 실패:', error)
+      // 에러 무시 (전체 데이터는 선택적)
     }
   }
 
-  // 연차 데이터 로드
+  /**
+   * 선택된 월의 연차 데이터 로드
+   */
   async function loadLeaveData() {
-    console.log('[연차 페이지] loadLeaveData 시작')
     loading = true
     try {
       const dateStr = `${currentYear}-${String(currentMonth).padStart(2, '0')}-01`
-      console.log('[연차 페이지] API 호출:', `/api/dashboard/leave?date=${dateStr}`)
       const response = await fetch(`/api/dashboard/leave?date=${dateStr}`)
-      console.log('[연차 페이지] API 응답 상태:', response.status, response.ok)
 
       if (response.ok) {
         const data = await response.json()
-        console.log('[연차 페이지] API 응답 데이터:', data)
         employee = data.employee
         balance = data.balance
         requests = data.requests || []
-        console.log('[연차 페이지] 상태 업데이트 완료:', {
-          employee,
-          balance,
-          requestCount: requests.length,
-        })
       } else {
         const error = await response.json()
-        console.error('[연차 페이지] API 오류 응답:', error)
         pushToast(error.error || '데이터 로드 실패', 'error')
       }
     } catch (error) {
-      console.error('[연차 페이지] 연차 데이터 조회 실패:', error)
       pushToast('연차 데이터 조회에 실패했습니다.', 'error')
     } finally {
       loading = false
-      console.log('[연차 페이지] loadLeaveData 완료, loading =', loading)
     }
   }
 
@@ -110,14 +98,18 @@
     loadLeaveData()
   }
 
-  // 연도 변경 핸들러
+  /**
+   * 연도 변경 핸들러
+   */
   function handleYearChange(year: number) {
     currentYear = year
-    loadYearLeaveData() // 올해 전체 데이터 다시 로드
+    loadYearLeaveData()
     loadLeaveData()
   }
 
-  // 연차 신청 핸들러
+  /**
+   * 연차 신청 핸들러
+   */
   async function handleLeaveSubmit(data: {
     leaveTypeId: string
     startDate: string
@@ -127,7 +119,6 @@
     halfDayType?: 'morning' | 'afternoon'
   }) {
     try {
-      console.log('연차 신청 데이터:', data)
       const response = await fetch('/api/dashboard/leave', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -139,21 +130,22 @@
         pushToast(result.message || '연차 신청이 완료되었습니다.', 'success')
         showRequestModal = false
         selectedDate = null
-        // 연차 데이터 새로고침
-        await loadYearLeaveData() // 올해 전체 데이터 다시 로드
+
+        // 데이터 새로고침
+        await loadYearLeaveData()
         await loadLeaveData()
-        console.log('연차 신청 완료, 잔액 업데이트됨:', balance)
       } else {
         const error = await response.json()
         pushToast(error.error || '연차 신청 실패', 'error')
       }
     } catch (error) {
-      console.error('연차 신청 실패:', error)
       pushToast('연차 신청에 실패했습니다.', 'error')
     }
   }
 
-  // 연차 취소 핸들러
+  /**
+   * 연차 취소 핸들러
+   */
   async function handleCancelRequest(requestId: string) {
     if (!confirm('연차 신청을 취소하시겠습니까?')) return
 
@@ -164,35 +156,38 @@
 
       if (response.ok) {
         pushToast('연차 신청이 취소되었습니다.', 'success')
-        await loadYearLeaveData() // 올해 전체 데이터 다시 로드
+        await loadYearLeaveData()
         await loadLeaveData()
       } else {
         const error = await response.json()
         pushToast(error.error || '연차 취소 실패', 'error')
       }
     } catch (error) {
-      console.error('연차 취소 실패:', error)
       pushToast('연차 취소에 실패했습니다.', 'error')
     }
   }
 
-  // 날짜 포맷팅
+  /**
+   * 날짜 포맷팅 (YYYY-MM-DD -> 한국 형식)
+   */
   function formatDate(dateString: string) {
     return new Date(dateString).toLocaleDateString('ko-KR')
   }
 
-  // 뒤로 가기
+  /**
+   * 대시보드로 이동
+   */
   function goBack() {
     goto('/dashboard')
   }
 
-  // 초기 로드
+  /**
+   * 페이지 초기화
+   */
   onMount(async () => {
-    console.log('[연차 페이지] onMount 시작')
     await loadLeaveTypes()
-    await loadYearLeaveData() // 올해 전체 데이터 먼저 로드
+    await loadYearLeaveData()
     await loadLeaveData()
-    console.log('[연차 페이지] onMount 완료')
   })
 </script>
 

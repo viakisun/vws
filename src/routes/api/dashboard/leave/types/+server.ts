@@ -30,7 +30,6 @@ export const GET: RequestHandler = async (event) => {
       leaveTypes: result.rows,
     })
   } catch (error) {
-    console.error('연차 타입 조회 실패:', error)
     return json({ error: '연차 타입 조회에 실패했습니다.' }, { status: 500 })
   }
 }

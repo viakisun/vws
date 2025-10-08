@@ -130,15 +130,8 @@ export const GET: RequestHandler = async (event) => {
       requests: leaveRequestsResult.rows,
     }
 
-    console.log(`[연차 조회] ${year}-${month}:`, {
-      employee: responseData.employee.name,
-      balance: responseData.balance,
-      requestCount: responseData.requests.length,
-    })
-
     return json(responseData)
   } catch (error) {
-    console.error('연차 데이터 조회 실패:', error)
     return json({ error: '연차 데이터 조회에 실패했습니다.' }, { status: 500 })
   }
 }
@@ -320,7 +313,11 @@ export const POST: RequestHandler = async (event) => {
     // 연차 신청 생성 (승인 없이 바로 approved, 타임스탬프 저장)
     // total_days: 연차 차감 타입은 실제 근무일 수, 비차감 타입(경조사/예비군)은 0
     const now = new Date().toISOString()
-    const finalDaysToDeduct = shouldDeductLeave ? (leaveTypeName === '연차' ? actualWorkingDays : totalDays) : 0
+    const finalDaysToDeduct = shouldDeductLeave
+      ? leaveTypeName === '연차'
+        ? actualWorkingDays
+        : totalDays
+      : 0
     const insertResult = await query(
       `INSERT INTO leave_requests
        (employee_id, leave_type_id, start_date, end_date, total_days, reason, status, approved_at, created_at)
@@ -339,7 +336,6 @@ export const POST: RequestHandler = async (event) => {
       message: '연차 신청이 완료되었습니다.',
     })
   } catch (error) {
-    console.error('연차 신청 실패:', error)
     return json({ error: '연차 신청에 실패했습니다.' }, { status: 500 })
   }
 }

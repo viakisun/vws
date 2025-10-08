@@ -57,7 +57,6 @@ export const DELETE: RequestHandler = async (event) => {
       message: '연차 신청이 취소되었습니다.',
     })
   } catch (error) {
-    console.error('연차 취소 실패:', error)
     return json({ error: '연차 취소에 실패했습니다.' }, { status: 500 })
   }
 }
