@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-svelte'
   import { getHoliday } from '$lib/utils/holidays'
 
   interface AttendanceRecord {
@@ -30,9 +29,6 @@
   // Computed
   const year = $derived(currentMonth.getFullYear())
   const monthIndex = $derived(currentMonth.getMonth())
-  const monthName = $derived(
-    currentMonth.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long' }),
-  )
 
   const firstDay = $derived(new Date(year, monthIndex, 1).getDay())
   const daysInMonth = $derived(new Date(year, monthIndex + 1, 0).getDate())
@@ -54,20 +50,6 @@
   })
 
   // Functions
-  function previousMonth() {
-    currentMonth = new Date(year, monthIndex - 1, 1)
-    if (onMonthChange) {
-      onMonthChange(currentMonth)
-    }
-  }
-
-  function nextMonth() {
-    currentMonth = new Date(year, monthIndex + 1, 1)
-    if (onMonthChange) {
-      onMonthChange(currentMonth)
-    }
-  }
-
   function goToToday() {
     currentMonth = new Date()
     if (onMonthChange) {
@@ -140,41 +122,72 @@
 
 <div class="bg-white rounded-lg shadow p-6">
   <!-- Calendar Header -->
-  <div class="flex items-center justify-between mb-6">
-    <h2 class="text-xl font-bold text-gray-900">{monthName}</h2>
-    <div class="flex items-center gap-2">
-      <button
-        type="button"
-        onclick={previousMonth}
-        class="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-        aria-label="이전 달"
-      >
-        <ChevronLeftIcon size={20} class="text-gray-600" />
-      </button>
-      <button
-        type="button"
-        onclick={goToToday}
-        class="px-4 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-      >
-        오늘
-      </button>
-      <button
-        type="button"
-        onclick={nextMonth}
-        class="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-        aria-label="다음 달"
-      >
-        <ChevronRightIcon size={20} class="text-gray-600" />
-      </button>
+  <div class="mb-6 space-y-4">
+    <!-- Year Selector -->
+    <div class="flex items-center justify-between">
+      <h2 class="text-xl font-bold text-gray-900">출퇴근 캘린더</h2>
+      <div class="flex items-center gap-2">
+        <select
+          value={year}
+          onchange={(e) => {
+            const newYear = parseInt(e.currentTarget.value)
+            currentMonth = new Date(newYear, monthIndex, 1)
+            if (onMonthChange) {
+              onMonthChange(currentMonth)
+            }
+          }}
+          class="px-3 py-2 border border-gray-300 rounded-lg font-semibold text-gray-900 hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          {#each Array.from({ length: 3 }, (_, i) => new Date().getFullYear() - i).reverse() as y}
+            <option value={y}>{y}년</option>
+          {/each}
+        </select>
+        <button
+          type="button"
+          onclick={goToToday}
+          class="px-4 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+        >
+          오늘
+        </button>
+      </div>
+    </div>
+
+    <!-- Month Selector -->
+    <div class="grid grid-cols-6 md:grid-cols-12 gap-2">
+      {#each Array.from({ length: 12 }, (_, i) => i) as m}
+        {@const monthDate = new Date(year, m, 1)}
+        {@const isCurrentMonth = m === monthIndex}
+        {@const isFutureMonth = monthDate > new Date()}
+        {@const monthLabel = m + 1 + '월'}
+        <button
+          type="button"
+          onclick={() => {
+            if (!isFutureMonth) {
+              currentMonth = new Date(year, m, 1)
+              if (onMonthChange) {
+                onMonthChange(currentMonth)
+              }
+            }
+          }}
+          disabled={isFutureMonth}
+          class="px-3 py-2 text-sm font-medium rounded-lg transition-colors {isCurrentMonth
+            ? 'bg-blue-600 text-white'
+            : isFutureMonth
+              ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+              : 'bg-gray-50 text-gray-700 hover:bg-gray-200'}"
+        >
+          {monthLabel}
+        </button>
+      {/each}
     </div>
   </div>
 
   <!-- Calendar Grid -->
-  <div class="grid grid-cols-7 gap-2">
+  <div class="grid grid-cols-7 gap-3">
     <!-- Weekday Headers -->
     {#each ['일', '월', '화', '수', '목', '금', '토'] as day, i}
       <div
-        class="text-center font-semibold text-sm py-2 {i === 0
+        class="text-center font-bold text-base py-3 {i === 0
           ? 'text-red-600'
           : i === 6
             ? 'text-blue-600'
@@ -187,7 +200,7 @@
     <!-- Calendar Days -->
     {#each calendarDays as day, index}
       {#if day === null}
-        <div class="aspect-square"></div>
+        <div class="h-32"></div>
       {:else}
         {@const record = getRecordForDay(day)}
         {@const today = isToday(day)}
@@ -199,60 +212,133 @@
         <button
           type="button"
           onclick={() => handleDateClick(day)}
-          class="aspect-square p-2 border-2 rounded-lg transition-all hover:shadow-md {today
-            ? 'ring-2 ring-blue-500'
-            : ''} {holiday
-            ? 'bg-red-50 border-red-200'
-            : isWeekend
-              ? 'bg-gray-50 border-gray-300'
-              : record
-                ? getStatusColor(record.status)
-                : 'border-gray-200 hover:border-gray-300'}"
+          class="h-32 p-2 border-2 rounded-xl transition-all hover:shadow-lg hover:scale-[1.02] relative {today
+            ? 'ring-2 ring-blue-500 ring-offset-2'
+            : ''} {record
+            ? getStatusColor(record.status)
+            : holiday
+              ? 'bg-red-50 border-red-200'
+              : isWeekend
+                ? 'bg-gray-50 border-gray-300'
+                : 'bg-white border-gray-200 hover:border-gray-400'}"
         >
-          <div class="flex flex-col h-full">
-            <div
-              class="text-sm font-semibold mb-1 {holiday || dayOfWeek === 0
-                ? 'text-red-600'
-                : dayOfWeek === 6
-                  ? 'text-blue-600'
-                  : 'text-gray-900'}"
-            >
-              {day}
-            </div>
+          <!-- Date (fixed position top-left) -->
+          <span
+            class="absolute top-2 left-2 text-base font-bold {holiday || dayOfWeek === 0
+              ? 'text-red-600'
+              : dayOfWeek === 6
+                ? 'text-blue-600'
+                : 'text-gray-900'}"
+          >
+            {day}
+          </span>
 
+          <!-- Status Badge (fixed position top-right) -->
+          {#if record}
+            {@const workHours =
+              typeof record.total_work_hours === 'string'
+                ? parseFloat(record.total_work_hours)
+                : record.total_work_hours || 0}
+            {@const isOverwork = workHours >= 11}
             {#if holiday}
-              <div class="flex-1 flex flex-col justify-center items-center text-xs">
-                <div class="text-red-600 font-semibold text-[10px] text-center leading-tight">
-                  {holiday}
-                </div>
+              <!-- 휴일 근무: 근무시간만 표시 (지각/조퇴 없음) -->
+              <span
+                class="absolute top-2 right-2 inline-flex items-center justify-center w-5 h-5 rounded-full {isOverwork
+                  ? 'bg-purple-500'
+                  : 'bg-blue-500'} text-white text-xs font-bold"
+                title={isOverwork ? '휴일 장시간 근무' : '휴일 근무'}
+              >
+                {isOverwork ? '⚡' : '✓'}
+              </span>
+            {:else if record.status === 'present'}
+              <span
+                class="absolute top-2 right-2 inline-flex items-center justify-center w-5 h-5 rounded-full {isOverwork
+                  ? 'bg-purple-500'
+                  : 'bg-green-500'} text-white text-xs font-bold"
+                title={isOverwork ? '장시간 근무' : '정상'}
+              >
+                {isOverwork ? '⚡' : '✓'}
+              </span>
+            {:else if record.status === 'late'}
+              <span
+                class="absolute top-2 right-2 inline-flex items-center justify-center w-5 h-5 rounded-full {isOverwork
+                  ? 'bg-purple-500'
+                  : 'bg-yellow-500'} text-white text-xs font-bold"
+                title={isOverwork ? '지각 + 장시간 근무' : '지각'}
+              >
+                {isOverwork ? '⚡' : '!'}
+              </span>
+            {:else if record.status === 'early_leave'}
+              <span
+                class="absolute top-2 right-2 inline-flex items-center justify-center w-5 h-5 rounded-full bg-orange-500 text-white text-xs font-bold"
+                title="조기퇴근"
+              >
+                ↑
+              </span>
+            {:else if record.status === 'absent'}
+              <span
+                class="absolute top-2 right-2 inline-flex items-center justify-center w-5 h-5 rounded-full bg-red-500 text-white text-xs font-bold"
+                title="결근"
+              >
+                ✕
+              </span>
+            {/if}
+          {/if}
+
+          <!-- Content Area -->
+          <div class="flex flex-col items-center justify-center flex-1 gap-1.5 min-h-0">
+            {#if holiday && !record}
+              <!-- 휴일만 있고 출퇴근 기록 없음 -->
+              <div class="text-red-600 font-bold text-xs text-center leading-tight px-1">
+                {holiday}
               </div>
-            {:else if record}
-              <div class="flex-1 flex flex-col justify-center items-center text-xs gap-0.5">
-                <div class="font-medium text-gray-700 text-[10px]">
-                  {getStatusText(record.status)}
-                </div>
-                {#if record.check_in_time}
-                  <div class="text-gray-600 text-[10px]">
+            {:else if holiday && record}
+              <!-- 휴일 + 출퇴근 기록 -->
+              <div class="text-red-600 font-bold text-[11px] text-center leading-tight mb-0.5">
+                {holiday}
+              </div>
+            {/if}
+
+            {#if record}
+              <!-- Time Info -->
+              <div class="space-y-0.5">
+                {#if record.check_in_time && record.check_out_time}
+                  <div class="text-center text-[10px] text-gray-600 font-medium">
                     {record.check_in_time.substring(11, 16)}
                   </div>
-                {/if}
-                {#if record.check_out_time}
-                  <div class="text-gray-500 text-[10px]">
-                    ~ {record.check_out_time.substring(11, 16)}
+                  <div class="text-center text-[10px] text-gray-500">~</div>
+                  <div class="text-center text-[10px] text-gray-600 font-medium">
+                    {record.check_out_time.substring(11, 16)}
                   </div>
-                {/if}
-                {#if record.total_work_hours}
-                  {@const workHours =
-                    typeof record.total_work_hours === 'string'
-                      ? parseFloat(record.total_work_hours)
-                      : record.total_work_hours}
-                  {@const hours = Math.floor(workHours)}
-                  {@const minutes = Math.round((workHours - hours) * 60)}
-                  <div class="text-blue-600 font-semibold text-[10px] mt-0.5">
-                    {hours}시간{minutes > 0 ? ` ${minutes}분` : ''}
+                {:else if record.check_in_time}
+                  <div class="text-center text-[10px] text-gray-600 font-medium">
+                    {record.check_in_time.substring(11, 16)}
                   </div>
+                  <div class="text-center text-[9px] text-gray-500">출근중</div>
                 {/if}
               </div>
+
+              <!-- Work Hours -->
+              {#if record.total_work_hours}
+                {@const workHours =
+                  typeof record.total_work_hours === 'string'
+                    ? parseFloat(record.total_work_hours)
+                    : record.total_work_hours}
+                {@const hours = Math.floor(workHours)}
+                {@const minutes = Math.round((workHours - hours) * 60)}
+                {@const isOverwork = workHours >= 11}
+                {#if hours > 0 || minutes > 0}
+                  <div class="mt-0.5">
+                    <span
+                      class="inline-flex items-center px-2 py-0.5 rounded-md text-[9px] font-bold {isOverwork
+                        ? 'bg-purple-600'
+                        : 'bg-blue-600'} text-white shadow-sm"
+                    >
+                      {hours}h {minutes}m
+                    </span>
+                  </div>
+                {/if}
+              {/if}
             {/if}
           </div>
         </button>
@@ -262,23 +348,47 @@
 
   <!-- Legend -->
   <div class="mt-6 pt-4 border-t border-gray-200">
-    <div class="text-sm font-medium text-gray-700 mb-2">범례</div>
-    <div class="grid grid-cols-2 md:grid-cols-5 gap-2">
+    <div class="text-sm font-medium text-gray-700 mb-3">상태 아이콘</div>
+    <div class="grid grid-cols-2 md:grid-cols-6 gap-3">
       <div class="flex items-center gap-2">
-        <div class="w-4 h-4 rounded bg-green-100 border-2 border-green-300"></div>
+        <div
+          class="w-5 h-5 rounded-full bg-green-500 text-white flex items-center justify-center text-xs font-bold"
+        >
+          ✓
+        </div>
         <span class="text-xs text-gray-600">정상</span>
       </div>
       <div class="flex items-center gap-2">
-        <div class="w-4 h-4 rounded bg-yellow-100 border-2 border-yellow-300"></div>
+        <div
+          class="w-5 h-5 rounded-full bg-yellow-500 text-white flex items-center justify-center text-xs font-bold"
+        >
+          !
+        </div>
         <span class="text-xs text-gray-600">지각</span>
       </div>
       <div class="flex items-center gap-2">
-        <div class="w-4 h-4 rounded bg-orange-100 border-2 border-orange-300"></div>
+        <div
+          class="w-5 h-5 rounded-full bg-orange-500 text-white flex items-center justify-center text-xs font-bold"
+        >
+          ↑
+        </div>
         <span class="text-xs text-gray-600">조기퇴근</span>
       </div>
       <div class="flex items-center gap-2">
-        <div class="w-4 h-4 rounded bg-red-100 border-2 border-red-300"></div>
+        <div
+          class="w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center text-xs font-bold"
+        >
+          ✕
+        </div>
         <span class="text-xs text-gray-600">결근</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <div
+          class="w-5 h-5 rounded-full bg-purple-500 text-white flex items-center justify-center text-xs font-bold"
+        >
+          ⚡
+        </div>
+        <span class="text-xs text-gray-600">장시간 근무</span>
       </div>
       <div class="flex items-center gap-2">
         <div class="w-4 h-4 rounded bg-blue-100 border-2 border-blue-300"></div>

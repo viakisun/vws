@@ -1,6 +1,7 @@
 import { requireAuth } from '$lib/auth/middleware'
 import { query } from '$lib/database/connection'
 import { logger } from '$lib/utils/logger'
+import { getHoliday } from '$lib/utils/holidays'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
 
@@ -154,17 +155,18 @@ export const POST: RequestHandler = async (event) => {
     // 클라이언트 IP 주소 가져오기
     const clientIp = event.getClientAddress()
 
-    // user_id로 employee_id 및 company_id 조회
-    const employeeResult = await query(`SELECT id, company_id FROM employees WHERE user_id = $1`, [
-      user.id,
-    ])
+    // user_id로 employee_id 조회
+    const employeeResult = await query(`SELECT id FROM employees WHERE user_id = $1`, [user.id])
 
     if (employeeResult.rows.length === 0) {
       return json({ success: false, message: '직원 정보를 찾을 수 없습니다.' }, { status: 404 })
     }
 
     const employeeId = employeeResult.rows[0].id
-    const companyId = employeeResult.rows[0].company_id
+
+    // 회사 ID 조회 (현재 시스템에는 회사가 하나만 있음)
+    const companyResult = await query(`SELECT id FROM companies LIMIT 1`)
+    const companyId = companyResult.rows[0]?.id
 
     const settingsResult = await query(
       `
@@ -214,7 +216,12 @@ export const POST: RequestHandler = async (event) => {
     if (action === 'check_in') {
       // 출근 시간 검증 및 상태 결정
       let status = 'present'
-      if (settings) {
+
+      // 휴일 체크
+      const isHoliday = getHoliday(today) !== null
+
+      // 휴일이 아닌 경우에만 지각/조퇴 체크
+      if (settings && !isHoliday) {
         const checkInTime = new Date(now)
         const workStartTime = new Date(today + ' ' + settings.work_start_time)
         const diffMinutes = (checkInTime.getTime() - workStartTime.getTime()) / (1000 * 60)
@@ -251,7 +258,12 @@ export const POST: RequestHandler = async (event) => {
     } else if (action === 'check_out') {
       // 퇴근 시간 검증 및 상태 업데이트
       let statusUpdate = ''
-      if (settings) {
+
+      // 휴일 체크
+      const isHoliday = getHoliday(today) !== null
+
+      // 휴일이 아닌 경우에만 조퇴 체크
+      if (settings && !isHoliday) {
         const checkOutTime = new Date(now)
         const workEndTime = new Date(today + ' ' + settings.work_end_time)
         const diffMinutes = (workEndTime.getTime() - checkOutTime.getTime()) / (1000 * 60)

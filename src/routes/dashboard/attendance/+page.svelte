@@ -40,11 +40,34 @@
   // 현재 시간 업데이트
   let timeInterval: ReturnType<typeof setInterval> | null = null
 
+  // 실시간 근무시간 계산
+  const liveWorkTime = $derived.by(() => {
+    if (!attendanceData?.today?.check_in_time || !isToday) {
+      const hours = attendanceData?.today?.total_work_hours || 0
+      return { hours: Math.floor(hours), minutes: Math.round((hours % 1) * 60) }
+    }
+
+    const checkIn = new Date(attendanceData.today.check_in_time)
+    const checkOut = attendanceData.today.check_out_time
+      ? new Date(attendanceData.today.check_out_time)
+      : currentTime
+
+    const diffMs = checkOut.getTime() - checkIn.getTime()
+    const totalMinutes = Math.floor(diffMs / (1000 * 60))
+    const hours = Math.floor(totalMinutes / 60)
+    const minutes = totalMinutes % 60
+
+    // 휴게시간 제외 (향후 구현)
+    return { hours: Math.max(0, hours), minutes: Math.max(0, minutes) }
+  })
+
   // 출퇴근 데이터 로드
   async function loadAttendanceData() {
     loading = true
     try {
-      const response = await fetch(`/api/dashboard/attendance?date=${selectedDate}`)
+      const response = await fetch(`/api/dashboard/attendance?date=${selectedDate}`, {
+        credentials: 'include',
+      })
       const result = await response.json()
 
       if (result.success) {
@@ -112,6 +135,7 @@
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify({
           action: 'check_in',
           notes: notes,
@@ -140,6 +164,7 @@
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify({
           action: 'check_out',
           notes: notes,
@@ -168,6 +193,7 @@
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify({
           action: 'break_start',
         }),
@@ -195,6 +221,7 @@
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify({
           action: 'break_end',
         }),
@@ -340,8 +367,8 @@
               <h3 class="font-semibold">총 근무시간</h3>
             </div>
             <div class="text-4xl font-bold text-gray-900">
-              {attendanceData.today.total_work_hours || 0}
-              <span class="text-2xl text-gray-500">시간</span>
+              {liveWorkTime.hours}<span class="text-2xl text-gray-500">시간</span>
+              {liveWorkTime.minutes}<span class="text-2xl text-gray-500">분</span>
             </div>
           </div>
 
@@ -560,7 +587,9 @@
             loadAttendanceData()
           }}
           onMonthChange={(date) => {
-            selectedDate = date.toISOString().split('T')[0]
+            const year = date.getFullYear()
+            const month = String(date.getMonth() + 1).padStart(2, '0')
+            selectedDate = `${year}-${month}-01`
             loadAttendanceData()
           }}
         />
