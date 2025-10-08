@@ -7,7 +7,7 @@ export interface AttendanceRecord {
   date: string
   check_in_time?: string
   check_out_time?: string
-  total_work_hours?: number
+  total_work_hours?: string | number
   overtime_hours?: number
   status: 'present' | 'absent' | 'late' | 'early_leave' | 'holiday'
   notes?: string
@@ -35,6 +35,7 @@ export interface AttendanceData {
     notes?: string
   }
   week?: AttendanceRecord[]
+  month?: AttendanceRecord[]
   stats?: AttendanceStats
 }
 
