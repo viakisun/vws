@@ -1,370 +1,247 @@
 <script lang="ts">
-  import { pushToast } from '$lib/stores/toasts'
-  import { onMount } from 'svelte'
+  import { goto } from '$app/navigation'
+  import type { User } from '$lib/auth/user-service'
+  import CertificatePDFModal from '$lib/components/certificate/CertificatePDFModal.svelte'
+  import { ArrowLeftIcon, FileTextIcon } from '@lucide/svelte'
+  import { formatKoreanName } from '$lib/utils/format'
   import type { PageData } from './$types'
-  import { logger } from '$lib/utils/logger'
 
-  const { data: _data }: { data: PageData } = $props()
+  const { data }: { data: PageData } = $props()
 
+  // =============================================
   // Types
-  interface CertificateRequest {
+  // =============================================
+
+  interface EmployeeInfo {
     id: string
-    certificate_type: string
-    purpose: string
-    status: string
-    request_date: string
-    created_at: string // alias for request_date
-    approval_date?: string
-    approver_name?: string
-    issue_date?: string
-    issued_at?: string // alias for issue_date
+    employee_id: string
+    first_name: string
+    last_name: string
+    department: string
+    position: string
+    hire_date: string
+  }
+
+  interface ExtendedUser extends User {
+    employee?: EmployeeInfo
   }
 
   interface CertificateData {
-    userInfo: {
-      name: string
-      employeeId: string
-      department: string
-      position: string
-      hireDate: string
-      email: string
-    }
-    stats: {
-      totalRequests: number
-      pendingRequests: number
-      approvedRequests: number
-      issuedRequests: number
-    }
-    requests: CertificateRequest[]
+    employeeName: string
+    employeeId: string
+    department: string
+    position: string
+    hireDate: string
+    purpose: string
+    companyName: string
   }
 
-  // 상태 관리
-  let certificateData = $state<CertificateData | null>(null)
-  let loading = $state(false)
-  let showRequestModal = $state(false)
+  // =============================================
+  // State
+  // =============================================
 
-  // 재직증명서 신청 폼
-  let certificateType = $state('employment')
+  const user: ExtendedUser | null = $state(data.user as ExtendedUser | null)
+  let selectedCertificate = $state<CertificateData | null>(null)
   let purpose = $state('')
 
-  // 재직증명서 데이터 로드
-  async function loadCertificateData() {
-    loading = true
-    try {
-      const response = await fetch('/api/dashboard/certificate')
-      const result = await response.json()
+  // =============================================
+  // Computed Values
+  // =============================================
 
-      if (result.success) {
-        certificateData = result.data
-      }
-    } catch (error) {
-      logger.error('Error loading certificate data:', error)
-    } finally {
-      loading = false
+  const hasEmployeeInfo = $derived(!!user?.employee)
+
+  const displayName = $derived.by(() => {
+    if (user?.employee?.last_name && user?.employee?.first_name) {
+      return formatKoreanName(user.employee.last_name, user.employee.first_name)
     }
+    return user?.name || '사용자'
+  })
+
+  const formattedHireDate = $derived.by(() => {
+    if (!user?.employee?.hire_date) return ''
+    return new Date(user.employee.hire_date).toLocaleDateString('ko-KR', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    })
+  })
+
+  // =============================================
+  // Functions
+  // =============================================
+
+  function openCertificatePDF(purposeText: string) {
+    if (!user?.employee) return
+
+    const certData: CertificateData = {
+      employeeName: displayName,
+      employeeId: user.employee.employee_id,
+      department: user.employee.department,
+      position: user.employee.position,
+      hireDate: formattedHireDate,
+      purpose: purposeText,
+      companyName: '(주)비아',
+    }
+
+    selectedCertificate = certData
   }
 
-  // 재직증명서 신청
-  async function submitCertificateRequest() {
-    if (!purpose) {
-      pushToast('발급 목적을 입력해주세요.', 'success')
-      return
-    }
-
-    try {
-      const response = await fetch('/api/dashboard/certificate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          certificateType,
-          purpose,
-        }),
-      })
-
-      const result = await response.json()
-
-      if (result.success) {
-        showRequestModal = false
-        resetForm()
-        await loadCertificateData()
-        pushToast('재직증명서 발급 요청이 완료되었습니다.', 'success')
-      } else {
-        pushToast(result.message, 'info')
-      }
-    } catch (error) {
-      logger.error('Error submitting certificate request:', error)
-      pushToast('재직증명서 발급 요청에 실패했습니다.', 'success')
-    }
-  }
-
-  // 폼 초기화
-  function resetForm() {
-    certificateType = 'employment'
+  function closePDFModal() {
+    selectedCertificate = null
     purpose = ''
   }
 
-  // 증명서 타입 라벨
-  function getCertificateTypeLabel(type: string) {
-    const labels = {
-      employment: '재직증명서',
-      income: '소득증명서',
-      career: '경력증명서',
-      other: '기타',
-    }
-    return labels[type] || type
+  function goBack() {
+    goto('/dashboard')
   }
 
-  // 상태 라벨
-  function getStatusLabel(status: string) {
-    const labels = {
-      pending: '대기중',
-      approved: '승인',
-      rejected: '반려',
-      issued: '발급완료',
-    }
-    return labels[status] || status
-  }
-
-  // 상태 색상
-  function getStatusColor(status: string) {
-    const colors = {
-      pending: 'bg-yellow-100 text-yellow-800',
-      approved: 'bg-green-100 text-green-800',
-      rejected: 'bg-red-100 text-red-800',
-      issued: 'bg-blue-100 text-blue-800',
-    }
-    return colors[status] || 'bg-gray-100 text-gray-800'
-  }
-
-  // 날짜 포맷팅
-  function formatDate(dateString: string) {
-    return new Date(dateString).toLocaleDateString('ko-KR')
-  }
-
-  // 초기 로드
-  onMount(() => {
-    loadCertificateData()
-  })
+  // 빠른 발급용 목적 템플릿
+  const purposeTemplates = ['금융기관 제출용', '관공서 제출용', '비자 발급용', '기타 제출용']
 </script>
 
 <svelte:head>
   <title>재직증명서 - VWS</title>
 </svelte:head>
 
-<div class="space-y-6">
-  <!-- 페이지 헤더 -->
-  <div class="bg-white rounded-lg shadow p-6">
-    <div class="flex justify-between items-center">
-      <div>
-        <h1 class="text-2xl font-bold text-gray-900 mb-2">재직증명서</h1>
-        <p class="text-gray-600">재직증명서 발급 요청 및 내역을 확인할 수 있습니다.</p>
+<div class="min-h-screen bg-gray-50 p-6">
+  <div class="max-w-4xl mx-auto space-y-6">
+    <!-- Header -->
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-4">
+        <button
+          type="button"
+          onclick={goBack}
+          class="flex items-center gap-2 text-gray-600 hover:text-gray-900"
+        >
+          <ArrowLeftIcon size={20} />
+          <span>대시보드</span>
+        </button>
+        <div class="h-6 w-px bg-gray-300"></div>
+        <h1 class="text-2xl font-bold text-gray-900">재직증명서</h1>
       </div>
-      <button
-        type="button"
-        onclick={() => (showRequestModal = true)}
-        class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
-      >
-        발급 요청
-      </button>
     </div>
-  </div>
 
-  {#if loading}
-    <div class="flex justify-center items-center py-8">
-      <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-    </div>
-  {:else if certificateData}
-    <!-- 개인 정보 -->
-    <div class="bg-white rounded-lg shadow p-6">
-      <h2 class="text-lg font-semibold text-gray-900 mb-4">개인 정보</h2>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div class="space-y-4">
+    {#if !hasEmployeeInfo}
+      <!-- No Employee Info Warning -->
+      <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+        <div class="flex items-center gap-3">
+          <div class="text-4xl">⚠️</div>
           <div>
-            <label class="block text-sm font-medium text-gray-700">성명</label>
-            <div class="text-lg font-semibold text-gray-900">{certificateData.userInfo.name}</div>
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700">사번</label>
-            <div class="text-lg text-gray-900">{certificateData.userInfo.employeeId}</div>
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700">부서</label>
-            <div class="text-lg text-gray-900">{certificateData.userInfo.department}</div>
+            <h3 class="text-lg font-semibold text-yellow-800 mb-1">
+              재직증명서를 발급할 수 없습니다
+            </h3>
+            <p class="text-yellow-700">
+              직원 정보가 등록되지 않아 재직증명서를 발급할 수 없습니다. 관리자에게 문의해주세요.
+            </p>
           </div>
         </div>
-        <div class="space-y-4">
+      </div>
+    {:else}
+      <!-- Employee Info Card -->
+      <div class="bg-white rounded-lg shadow p-6">
+        <div class="flex items-start justify-between mb-6">
           <div>
-            <label class="block text-sm font-medium text-gray-700">직급</label>
-            <div class="text-lg text-gray-900">{certificateData.userInfo.position}</div>
+            <h2 class="text-lg font-semibold text-gray-900 mb-1">직원 정보</h2>
+            <p class="text-sm text-gray-600">재직증명서에 표시될 정보입니다</p>
           </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700">입사일</label>
-            <div class="text-lg text-gray-900">
-              {new Date(certificateData.userInfo.hireDate).toLocaleDateString('ko-KR')}
+          <div class="text-4xl">👤</div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div class="space-y-3">
+            <div>
+              <div class="text-sm text-gray-600 mb-1">성명</div>
+              <div class="text-lg font-medium text-gray-900">{displayName}</div>
+            </div>
+            <div>
+              <div class="text-sm text-gray-600 mb-1">사번</div>
+              <div class="text-lg font-medium text-gray-900">{user.employee.employee_id}</div>
+            </div>
+            <div>
+              <div class="text-sm text-gray-600 mb-1">부서</div>
+              <div class="text-lg font-medium text-gray-900">{user.employee.department}</div>
             </div>
           </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700">이메일</label>
-            <div class="text-lg text-gray-900">{certificateData.userInfo.email}</div>
+          <div class="space-y-3">
+            <div>
+              <div class="text-sm text-gray-600 mb-1">직급</div>
+              <div class="text-lg font-medium text-gray-900">{user.employee.position}</div>
+            </div>
+            <div>
+              <div class="text-sm text-gray-600 mb-1">입사일</div>
+              <div class="text-lg font-medium text-gray-900">{formattedHireDate}</div>
+            </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- 발급 통계 -->
-    <div class="bg-white rounded-lg shadow p-6">
-      <h2 class="text-lg font-semibold text-gray-900 mb-4">이번 해 발급 통계</h2>
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div class="bg-blue-50 p-4 rounded-lg">
-          <div class="text-sm text-blue-600">총 요청</div>
-          <div class="text-2xl font-bold text-blue-900">
-            {certificateData.stats.totalRequests}건
-          </div>
-        </div>
-        <div class="bg-yellow-50 p-4 rounded-lg">
-          <div class="text-sm text-yellow-600">대기중</div>
-          <div class="text-2xl font-bold text-yellow-900">
-            {certificateData.stats.pendingRequests}건
-          </div>
-        </div>
-        <div class="bg-green-50 p-4 rounded-lg">
-          <div class="text-sm text-green-600">승인</div>
-          <div class="text-2xl font-bold text-green-900">
-            {certificateData.stats.approvedRequests}건
-          </div>
-        </div>
-        <div class="bg-purple-50 p-4 rounded-lg">
-          <div class="text-sm text-purple-600">발급완료</div>
-          <div class="text-2xl font-bold text-purple-900">
-            {certificateData.stats.issuedRequests}건
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 발급 요청 내역 -->
-    <div class="bg-white rounded-lg shadow p-6">
-      <h2 class="text-lg font-semibold text-gray-900 mb-4">발급 요청 내역</h2>
-      <div class="overflow-x-auto">
-        <table class="min-w-full divide-y divide-gray-200">
-          <thead class="bg-gray-50">
-            <tr>
-              <th
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >증명서 유형</th
-              >
-              <th
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >발급 목적</th
-              >
-              <th
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >상태</th
-              >
-              <th
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >요청일</th
-              >
-              <th
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >승인자</th
-              >
-              <th
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >발급일</th
-              >
-            </tr>
-          </thead>
-          <tbody class="bg-white divide-y divide-gray-200">
-            {#each certificateData.requests as request}
-              <tr class="hover:bg-gray-50">
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {getCertificateTypeLabel(request.certificate_type)}
-                </td>
-                <td class="px-6 py-4 text-sm text-gray-900">
-                  {request.purpose}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <span
-                    class="inline-flex px-2 py-1 text-xs font-semibold rounded-full {getStatusColor(
-                      request.status,
-                    )}"
-                  >
-                    {getStatusLabel(request.status)}
-                  </span>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {formatDate(request.created_at)}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {request.approver_name || '-'}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {request.issued_at ? formatDate(request.issued_at) : '-'}
-                </td>
-              </tr>
-            {/each}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  {/if}
-</div>
-
-<!-- 발급 요청 모달 -->
-{#if showRequestModal}
-  <div class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-      <div class="mt-3">
-        <h3 class="text-lg font-medium text-gray-900 mb-4">재직증명서 발급 요청</h3>
+      <!-- Certificate Issue Form -->
+      <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">재직증명서 발급</h2>
 
         <div class="space-y-4">
+          <!-- Purpose Input -->
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">증명서 유형</label>
-            <select
-              bind:value={certificateType}
-              class="w-full border border-gray-300 rounded-md px-3 py-2"
-            >
-              <option value="employment">재직증명서</option>
-              <option value="income">소득증명서</option>
-              <option value="career">경력증명서</option>
-              <option value="other">기타</option>
-            </select>
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">발급 목적</label>
-            <textarea
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              발급 목적 <span class="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
               bind:value={purpose}
-              placeholder="재직증명서 발급 목적을 입력해주세요 (예: 대출 신청, 주택 구입 등)"
-              class="w-full border border-gray-300 rounded-md px-3 py-2"
-              rows="3"
-            ></textarea>
+              placeholder="예: 금융기관 제출용"
+              class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
           </div>
-        </div>
 
-        <div class="flex justify-end space-x-3 mt-6">
+          <!-- Quick Templates -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">빠른 선택</label>
+            <div class="grid grid-cols-2 gap-2">
+              {#each purposeTemplates as template}
+                <button
+                  type="button"
+                  onclick={() => (purpose = template)}
+                  class="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm text-gray-700 transition-colors"
+                >
+                  {template}
+                </button>
+              {/each}
+            </div>
+          </div>
+
+          <!-- Issue Button -->
           <button
             type="button"
-            onclick={() => {
-              showRequestModal = false
-              resetForm()
-            }}
-            class="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400"
+            onclick={() => openCertificatePDF(purpose)}
+            disabled={!purpose.trim()}
+            class="w-full flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
           >
-            취소
-          </button>
-          <button
-            type="button"
-            onclick={submitCertificateRequest}
-            class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-          >
-            요청
+            <FileTextIcon size={20} />
+            <span>재직증명서 발급</span>
           </button>
         </div>
       </div>
-    </div>
+
+      <!-- Info Note -->
+      <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <div class="flex gap-2">
+          <div class="text-blue-600 mt-0.5">ℹ️</div>
+          <div class="text-sm text-blue-800">
+            <p class="font-medium mb-1">재직증명서 안내</p>
+            <ul class="space-y-1 text-blue-700">
+              <li>• 발급 목적을 입력하고 "재직증명서 발급" 버튼을 클릭하세요</li>
+              <li>• PDF로 저장하거나 인쇄할 수 있습니다</li>
+              <li>• 발급된 증명서는 공식 문서로 사용 가능합니다</li>
+              <li>• 직인이 필요한 경우 인사담당자에게 문의하세요</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    {/if}
   </div>
+</div>
+
+<!-- PDF Modal -->
+{#if selectedCertificate}
+  <CertificatePDFModal certificate={selectedCertificate} onClose={closePDFModal} />
 {/if}

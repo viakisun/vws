@@ -196,9 +196,7 @@
                   {payslip.year}년 {payslip.month}월
                 </div>
               </div>
-              <div
-                class="p-2 bg-blue-50 rounded-lg group-hover:bg-blue-100 transition-colors"
-              >
+              <div class="p-2 bg-blue-50 rounded-lg group-hover:bg-blue-100 transition-colors">
                 <FileTextIcon size={24} class="text-blue-600" />
               </div>
             </div>
@@ -218,18 +216,12 @@
               </div>
             </div>
 
-            <div
-              class="pt-3 border-t border-gray-200 flex justify-between items-center"
-            >
+            <div class="pt-3 border-t border-gray-200 flex justify-between items-center">
               <span class="text-sm font-medium text-gray-700">실지급액</span>
-              <span class="text-lg font-bold text-blue-600"
-                >{formatCurrency(payslip.net_pay)}</span
-              >
+              <span class="text-lg font-bold text-blue-600">{formatCurrency(payslip.net_pay)}</span>
             </div>
 
-            <div class="mt-4 text-xs text-gray-400 text-center">
-              클릭하여 상세 보기 및 출력
-            </div>
+            <div class="mt-4 text-xs text-gray-400 text-center">클릭하여 상세 보기 및 출력</div>
           </button>
         {/each}
       </div>

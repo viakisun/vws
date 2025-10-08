@@ -196,4 +196,35 @@
     print-color-adjust: exact !important;
     -webkit-print-color-adjust: exact !important;
   }
+
+  /* 재직증명서 프린트 스타일 */
+  .certificate-modal-header {
+    display: none !important;
+  }
+
+  .certificate-modal-wrapper {
+    position: static !important;
+    background: white !important;
+    padding: 0 !important;
+  }
+
+  .certificate-modal-content {
+    box-shadow: none !important;
+    max-width: 100% !important;
+    max-height: none !important;
+    overflow: visible !important;
+    border-radius: 0 !important;
+  }
+
+  .certificate-print-area {
+    padding: 20px !important;
+    margin: 0 !important;
+    max-width: 100% !important;
+    page-break-inside: avoid;
+  }
+
+  .certificate-print-area * {
+    print-color-adjust: exact !important;
+    -webkit-print-color-adjust: exact !important;
+  }
 }
