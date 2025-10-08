@@ -1,5 +1,23 @@
 # VWS Release Notes
 
+## Version 0.3.3 (2025-10-08)
+
+### ✨ Features
+
+#### Leave Management Enhancements
+
+- **Leave Promotion Targets**: Added notifications for employees with low leave usage rates (≤50% by September 1st, after 1 year of employment)
+- **Enhanced Leave Calendar UI**: Improved monthly calendar view with better navigation, holiday display, and leave type visualization
+- **Leave Type Improvements**: Updated leave type colors and icons for better distinction (annual, half-day, quarter-day, bereavement, military leave)
+
+### 🔧 Improvements
+
+- **Calendar Navigation**: Added year selector, "Today" button, and month-based navigation for better UX
+- **Leave Balance Display**: Enhanced balance display with usage statistics and promotion alerts
+- **Code Quality**: Disabled Svelte inspector for production builds and updated Vitest configuration
+
+---
+
 ## Version 0.3.2 (2025-10-08)
 
 ### ✨ 급여명세서 PDF 출력 기능 완전 개선
