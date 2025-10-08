@@ -1,317 +1,338 @@
-import { requireAuth } from '$lib/auth/middleware'
-import { query } from '$lib/database/connection'
-import { LeaveCalculator } from '$lib/utils/leave-calculator'
-import { logger } from '$lib/utils/logger'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
+import { query } from '$lib/database/connection'
+import { requireAuth } from '$lib/auth/middleware'
+import { getWorkingDays, isNonWorkingDay } from '$lib/utils/holidays'
 
-// 연차 현황 및 휴가 신청 내역 조회
+/**
+ * GET /api/dashboard/leave
+ * 연차 데이터 조회 (캘린더용)
+ * Query params:
+ * - date: YYYY-MM-DD (해당 월의 데이터 조회)
+ */
 export const GET: RequestHandler = async (event) => {
   try {
     const { user } = await requireAuth(event)
     const { url } = event
 
-    const year = parseInt(url.searchParams.get('year') || new Date().getFullYear().toString())
+    const date = url.searchParams.get('date') || new Date().toISOString().split('T')[0]
+    const all = url.searchParams.get('all') === 'true' // 올해 전체 데이터 요청 여부
+    const [year, month] = date.split('-')
 
-    // 직원 정보 조회 (입사일 확인)
+    // 직원 정보 조회
     const employeeResult = await query(
-      `
-      SELECT id, first_name, last_name, hire_date, email
-      FROM employees 
-      WHERE id = $1
-    `,
+      `SELECT id, employee_id, first_name, last_name
+       FROM employees
+       WHERE user_id = $1 AND status = 'active'
+       LIMIT 1`,
       [user.id],
     )
 
     if (employeeResult.rows.length === 0) {
-      return json({ success: false, message: '직원 정보를 찾을 수 없습니다.' }, { status: 404 })
+      return json({ error: '직원 정보를 찾을 수 없습니다.' }, { status: 404 })
     }
 
     const employee = employeeResult.rows[0]
-    const hireDate = new Date(employee.hire_date)
 
-    // 대한민국 연차부여 시스템에 따른 연차 계산
-    const leaveCalculation = LeaveCalculator.calculateLeaveBalance(hireDate, 0, new Date())
-
-    // 연차 잔여일수 조회
-    const balanceResult = await query(
-      `
-      SELECT 
-        used_annual_leave,
-        used_sick_leave
-      FROM leave_balances 
-      WHERE employee_id = $1 AND year = $2
-    `,
-      [user.id, year],
-    )
-
-    let usedAnnualLeave = 0
-    let usedSickLeave = 0
-
-    if (balanceResult.rows.length > 0) {
-      usedAnnualLeave = parseFloat(balanceResult.rows[0].used_annual_leave || 0)
-      usedSickLeave = parseFloat(balanceResult.rows[0].used_sick_leave || 0)
-    }
-
-    // 연차 잔여일수 레코드가 없으면 생성
-    if (balanceResult.rows.length === 0) {
-      await query(
-        `
-        INSERT INTO leave_balances (
-          employee_id, 
-          year, 
-          total_annual_leave, 
-          used_annual_leave,
-          remaining_annual_leave, 
-          total_sick_leave, 
-          used_sick_leave,
-          remaining_sick_leave
-        )
-        VALUES ($1, $2, $3, $4, $5, 5, 0, 5)
-      `,
-        [
-          user.id,
-          year,
-          leaveCalculation.totalAnnualLeave,
-          usedAnnualLeave,
-          leaveCalculation.totalAnnualLeave - usedAnnualLeave,
-        ],
+    // 연차 신청 내역 조회
+    let leaveRequestsResult
+    if (all) {
+      // 올해 전체 데이터 조회
+      leaveRequestsResult = await query(
+        `SELECT
+          lr.id,
+          lr.start_date,
+          lr.end_date,
+          lr.total_days,
+          lr.reason,
+          lr.status,
+          lr.created_at,
+          lr.approved_at,
+          lt.name as leave_type_name,
+          lt.id as leave_type_id,
+          TO_CHAR(lr.start_date AT TIME ZONE 'Asia/Seoul', 'HH24:MI') as start_time,
+          TO_CHAR(lr.end_date AT TIME ZONE 'Asia/Seoul', 'HH24:MI') as end_time
+        FROM leave_requests lr
+        JOIN leave_types lt ON lr.leave_type_id = lt.id
+        WHERE lr.employee_id = $1
+          AND EXTRACT(YEAR FROM lr.start_date) = $2
+        ORDER BY lr.start_date`,
+        [employee.id, parseInt(year)],
       )
     } else {
-      // 기존 레코드 업데이트
-      await query(
-        `
-        UPDATE leave_balances 
-        SET 
-          total_annual_leave = $3,
-          remaining_annual_leave = $4,
-          updated_at = CURRENT_TIMESTAMP
-        WHERE employee_id = $1 AND year = $2
-      `,
-        [
-          user.id,
-          year,
-          leaveCalculation.totalAnnualLeave,
-          leaveCalculation.totalAnnualLeave - usedAnnualLeave,
-        ],
+      // 해당 월의 연차 신청 내역 조회 (타임스탬프 포함)
+      leaveRequestsResult = await query(
+        `SELECT
+          lr.id,
+          lr.start_date,
+          lr.end_date,
+          lr.total_days,
+          lr.reason,
+          lr.status,
+          lr.created_at,
+          lr.approved_at,
+          lt.name as leave_type_name,
+          lt.id as leave_type_id,
+          TO_CHAR(lr.start_date AT TIME ZONE 'Asia/Seoul', 'HH24:MI') as start_time,
+          TO_CHAR(lr.end_date AT TIME ZONE 'Asia/Seoul', 'HH24:MI') as end_time
+        FROM leave_requests lr
+        JOIN leave_types lt ON lr.leave_type_id = lt.id
+        WHERE lr.employee_id = $1
+          AND DATE_TRUNC('month', lr.start_date) = DATE_TRUNC('month', $2::date)
+        ORDER BY lr.start_date`,
+        [employee.id, `${year}-${month}-01`],
       )
     }
 
-    const balance = {
-      total_annual_leave: leaveCalculation.totalAnnualLeave,
-      used_annual_leave: usedAnnualLeave,
-      remaining_annual_leave: leaveCalculation.totalAnnualLeave - usedAnnualLeave,
-      total_sick_leave: 5,
-      used_sick_leave: usedSickLeave,
-      remaining_sick_leave: 5 - usedSickLeave,
+    // 연차 잔액 조회 (현재 연도)
+    // total_days는 테이블에서, used_days와 remaining_days는 실시간 집계
+    // 모든 타입(연차, 반차, 반반차)의 승인된 요청을 합산 (경조사 제외)
+    const balanceResult = await query(
+      `WITH used_calc AS (
+        SELECT
+          lb.employee_id,
+          lb.year,
+          COALESCE(SUM(lr.total_days), 0) as total_used
+        FROM leave_balances lb
+        LEFT JOIN leave_requests lr ON lr.employee_id = lb.employee_id
+          AND lr.status = 'approved'
+          AND EXTRACT(YEAR FROM lr.start_date) = lb.year
+          AND lr.leave_type_id IN (
+            SELECT id FROM leave_types WHERE name IN ('연차', '반차', '반반차')
+          )
+        WHERE lb.employee_id = $1 AND lb.year = $2
+        GROUP BY lb.employee_id, lb.year
+      )
+      SELECT
+        lb.year,
+        lb.total_days,
+        uc.total_used as used_days,
+        lb.total_days - uc.total_used as remaining_days,
+        lt.name as leave_type_name
+      FROM leave_balances lb
+      JOIN leave_types lt ON lb.leave_type_id = lt.id
+      JOIN used_calc uc ON uc.employee_id = lb.employee_id
+        AND uc.year = lb.year
+      WHERE lb.employee_id = $1
+        AND lb.year = $2
+        AND lt.name = '연차'
+      LIMIT 1`,
+      [employee.id, parseInt(year)],
+    )
+
+    const responseData = {
+      employee: {
+        id: employee.id,
+        employeeId: employee.employee_id,
+        name: `${employee.last_name}${employee.first_name}`,
+      },
+      balance: balanceResult.rows[0] || null,
+      requests: leaveRequestsResult.rows,
     }
 
-    // 휴가 신청 내역 조회
-    const requestsResult = await query(
-      `
-      SELECT 
-        lr.*,
-        approver.first_name || ' ' || approver.last_name as approver_name
-      FROM leave_requests lr
-      LEFT JOIN employees approver ON lr.approved_by = approver.id
-      WHERE lr.employee_id = $1
-      ORDER BY lr.created_at DESC
-      LIMIT 20
-    `,
-      [user.id],
-    )
-
-    // 이번 달 휴가 신청 조회
-    const monthStart = new Date()
-    monthStart.setDate(1)
-    const monthEnd = new Date(monthStart)
-    monthEnd.setMonth(monthEnd.getMonth() + 1)
-    monthEnd.setDate(0)
-
-    const monthlyResult = await query(
-      `
-      SELECT 
-        COUNT(*) as total_requests,
-        COUNT(CASE WHEN status = 'pending' THEN 1 END) as pending_requests,
-        COUNT(CASE WHEN status = 'approved' THEN 1 END) as approved_requests,
-        COALESCE(SUM(CASE WHEN status = 'approved' THEN days ELSE 0 END), 0) as approved_days
-      FROM leave_requests 
-      WHERE employee_id = $1 
-        AND start_date >= $2 
-        AND start_date <= $3
-    `,
-      [user.id, monthStart.toISOString().split('T')[0], monthEnd.toISOString().split('T')[0]],
-    )
-
-    const monthlyStats = monthlyResult.rows[0]
-
-    return json({
-      success: true,
-      data: {
-        balance: {
-          annual: {
-            total: balance.total_annual_leave,
-            used: balance.used_annual_leave,
-            remaining: balance.remaining_annual_leave,
-          },
-          sick: {
-            total: balance.total_sick_leave,
-            used: balance.used_sick_leave,
-            remaining: balance.remaining_sick_leave,
-          },
-        },
-        requests: requestsResult.rows,
-        monthlyStats: {
-          totalRequests: parseInt(monthlyStats.total_requests),
-          pendingRequests: parseInt(monthlyStats.pending_requests),
-          approvedRequests: parseInt(monthlyStats.approved_requests),
-          approvedDays: parseFloat(monthlyStats.approved_days),
-        },
-      },
+    console.log(`[연차 조회] ${year}-${month}:`, {
+      employee: responseData.employee.name,
+      balance: responseData.balance,
+      requestCount: responseData.requests.length,
     })
+
+    return json(responseData)
   } catch (error) {
-    logger.error('Error fetching leave data:', error)
-    return json({ success: false, message: '연차 데이터 조회에 실패했습니다.' }, { status: 500 })
+    console.error('연차 데이터 조회 실패:', error)
+    return json({ error: '연차 데이터 조회에 실패했습니다.' }, { status: 500 })
   }
 }
 
-// 휴가 신청
+/**
+ * POST /api/dashboard/leave
+ * 연차 신청 (승인 없이 바로 approved 처리)
+ * Body:
+ * - leaveTypeId: string
+ * - startDate: YYYY-MM-DD
+ * - endDate: YYYY-MM-DD
+ * - totalDays: number
+ * - reason: string
+ * - halfDayType?: '10-15' | '15-19' (반차인 경우)
+ * - quarterDayType?: '10-12' | '13-15' | '15-17' | '17-19' (반반차인 경우)
+ */
 export const POST: RequestHandler = async (event) => {
   try {
     const { user } = await requireAuth(event)
-    const { leaveType, startDate, endDate, startTime, endTime, days, reason } =
+    const { leaveTypeId, startDate, endDate, totalDays, reason, halfDayType, quarterDayType } =
       await event.request.json()
 
-    // 필수 필드 검증
-    if (!leaveType || !startDate || !endDate || !days || !reason) {
-      return json({ success: false, message: '필수 정보가 누락되었습니다.' }, { status: 400 })
+    // 입력 검증
+    if (!leaveTypeId || !startDate || !endDate || !totalDays || !reason) {
+      return json({ error: '필수 항목이 누락되었습니다.' }, { status: 400 })
     }
 
-    // 날짜 유효성 검증
-    const start = new Date(startDate)
-    const end = new Date(endDate)
+    // 반차/반반차는 휴일 불가 검증
+    const leaveTypeResult = await query(`SELECT name FROM leave_types WHERE id = $1`, [leaveTypeId])
 
-    if (start > end) {
+    if (leaveTypeResult.rows.length === 0) {
+      return json({ error: '올바르지 않은 연차 타입입니다.' }, { status: 400 })
+    }
+
+    const leaveTypeName = leaveTypeResult.rows[0].name
+
+    // 반차, 반반차는 하루만 신청 가능하고, 휴일에는 불가
+    if (leaveTypeName !== '연차') {
+      if (startDate !== endDate) {
+        return json({ error: '반차/반반차는 하루만 신청 가능합니다.' }, { status: 400 })
+      }
+      if (isNonWorkingDay(startDate)) {
+        return json({ error: '휴일에는 반차/반반차를 신청할 수 없습니다.' }, { status: 400 })
+      }
+    }
+
+    // 연차의 경우: 실제 근무일 수 계산
+    const actualWorkingDays = getWorkingDays(startDate, endDate)
+
+    // 기간 내에 근무일이 하나도 없으면 신청 불가
+    if (actualWorkingDays === 0) {
+      return json({ error: '선택한 기간에 근무일이 없습니다.' }, { status: 400 })
+    }
+
+    // 직원 정보 조회
+    const employeeResult = await query(
+      `SELECT id FROM employees WHERE user_id = $1 AND status = 'active' LIMIT 1`,
+      [user.id],
+    )
+
+    if (employeeResult.rows.length === 0) {
+      return json({ error: '직원 정보를 찾을 수 없습니다.' }, { status: 404 })
+    }
+
+    const employeeId = employeeResult.rows[0].id
+
+    // 타임스탬프 생성 (한국 시간 기준)
+    let startTimestamp: string
+    let endTimestamp: string
+
+    if (leaveTypeName === '연차') {
+      // 연차: 00:00:00 ~ 23:59:59
+      startTimestamp = `${startDate}T00:00:00+09:00`
+      endTimestamp = `${endDate}T23:59:59+09:00`
+    } else if (leaveTypeName === '반차') {
+      // 반차: 10-15시 또는 15-19시
+      if (halfDayType === '10-15') {
+        startTimestamp = `${startDate}T10:00:00+09:00`
+        endTimestamp = `${startDate}T15:00:00+09:00`
+      } else {
+        // 15-19
+        startTimestamp = `${startDate}T15:00:00+09:00`
+        endTimestamp = `${startDate}T19:00:00+09:00`
+      }
+    } else if (leaveTypeName === '반반차') {
+      // 반반차: 10-12, 13-15, 15-17, 17-19
+      if (quarterDayType === '10-12') {
+        startTimestamp = `${startDate}T10:00:00+09:00`
+        endTimestamp = `${startDate}T12:00:00+09:00`
+      } else if (quarterDayType === '13-15') {
+        startTimestamp = `${startDate}T13:00:00+09:00`
+        endTimestamp = `${startDate}T15:00:00+09:00`
+      } else if (quarterDayType === '15-17') {
+        startTimestamp = `${startDate}T15:00:00+09:00`
+        endTimestamp = `${startDate}T17:00:00+09:00`
+      } else {
+        // 17-19
+        startTimestamp = `${startDate}T17:00:00+09:00`
+        endTimestamp = `${startDate}T19:00:00+09:00`
+      }
+    } else {
+      // 기본값 (연차와 동일)
+      startTimestamp = `${startDate}T00:00:00+09:00`
+      endTimestamp = `${endDate}T23:59:59+09:00`
+    }
+
+    // 연차 잔액 확인 (실시간 집계)
+    // 모든 타입(연차, 반차, 반반차)의 승인된 요청을 합산 (경조사 제외)
+    const year = new Date(startDate).getFullYear()
+    const balanceResult = await query(
+      `WITH used_calc AS (
+        SELECT
+          lb.employee_id,
+          lb.year,
+          COALESCE(SUM(lr.total_days), 0) as total_used
+        FROM leave_balances lb
+        LEFT JOIN leave_requests lr ON lr.employee_id = lb.employee_id
+          AND lr.status = 'approved'
+          AND EXTRACT(YEAR FROM lr.start_date) = lb.year
+          AND lr.leave_type_id IN (
+            SELECT id FROM leave_types WHERE name IN ('연차', '반차', '반반차')
+          )
+        WHERE lb.employee_id = $1 AND lb.year = $2
+        GROUP BY lb.employee_id, lb.year
+      )
+      SELECT
+        lb.total_days - uc.total_used as remaining_days
+      FROM leave_balances lb
+      JOIN leave_types lt ON lb.leave_type_id = lt.id
+      JOIN used_calc uc ON uc.employee_id = lb.employee_id
+        AND uc.year = lb.year
+      WHERE lb.employee_id = $1 AND lb.year = $2 AND lt.name = '연차'
+      LIMIT 1`,
+      [employeeId, year],
+    )
+
+    if (balanceResult.rows.length === 0) {
+      return json({ error: `${year}년도 연차 정보가 없습니다.` }, { status: 400 })
+    }
+
+    const remainingDays = parseFloat(balanceResult.rows[0].remaining_days)
+
+    // 연차의 경우 실제 근무일 수 사용, 반차/반반차는 그대로
+    const daysToDeduct = leaveTypeName === '연차' ? actualWorkingDays : totalDays
+
+    if (remainingDays < daysToDeduct) {
       return json(
-        { success: false, message: '시작일이 종료일보다 늦을 수 없습니다.' },
+        {
+          error: `연차가 부족합니다. (잔여: ${remainingDays}일, 필요: ${daysToDeduct}일)`,
+        },
         { status: 400 },
       )
     }
 
-    if (start < new Date()) {
-      return json(
-        { success: false, message: '과거 날짜로 휴가를 신청할 수 없습니다.' },
-        { status: 400 },
-      )
-    }
-
-    // 연차 잔여일수 확인
-    if (leaveType === 'annual') {
-      // 직원 정보 조회 (입사일 확인)
-      const employeeResult = await query(
-        `
-        SELECT hire_date
-        FROM employees 
-        WHERE id = $1
-      `,
-        [user.id],
-      )
-
-      if (employeeResult.rows.length === 0) {
-        return json({ success: false, message: '직원 정보를 찾을 수 없습니다.' }, { status: 404 })
-      }
-
-      const hireDate = new Date(employeeResult.rows[0].hire_date)
-
-      // 사용한 연차 조회
-      const usedLeaveResult = await query(
-        `
-        SELECT used_annual_leave 
-        FROM leave_balances 
-        WHERE employee_id = $1 AND year = $2
-      `,
-        [user.id, new Date().getFullYear()],
-      )
-
-      const usedLeave =
-        usedLeaveResult.rows.length > 0
-          ? parseFloat(usedLeaveResult.rows[0].used_annual_leave || 0)
-          : 0
-
-      // 연차 사용 가능 여부 확인
-      const canUse = LeaveCalculator.canUseLeave(hireDate, usedLeave, days)
-
-      if (!canUse) {
-        const balance = LeaveCalculator.calculateLeaveBalance(hireDate, usedLeave)
-        return json(
-          {
-            success: false,
-            message: `연차 잔여일수가 부족합니다. (잔여: ${balance.remainingAnnualLeave}일, 신청: ${days}일)`,
-          },
-          { status: 400 },
-        )
-      }
-    }
-
-    // 휴가 신청 등록
-    const result = await query(
-      `
-      INSERT INTO leave_requests (
-        employee_id, 
-        leave_type, 
-        start_date, 
-        end_date, 
-        start_time, 
-        end_time, 
-        days, 
-        reason, 
-        status
-      )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'pending')
-      RETURNING *
-    `,
-      [user.id, leaveType, startDate, endDate, startTime, endTime, days, reason],
+    // 중복 신청 확인 (타임스탬프 기준)
+    const overlapResult = await query(
+      `SELECT id FROM leave_requests
+       WHERE employee_id = $1
+         AND status IN ('pending', 'approved')
+         AND (
+           (start_date <= $2::timestamptz AND end_date >= $2::timestamptz) OR
+           (start_date <= $3::timestamptz AND end_date >= $3::timestamptz) OR
+           (start_date >= $2::timestamptz AND end_date <= $3::timestamptz)
+         )
+       LIMIT 1`,
+      [employeeId, startTimestamp, endTimestamp],
     )
 
-    // 승인자에게 알림 생성 (관리자)
-    await query(
-      `
-      INSERT INTO notifications (
-        employee_id,
-        title,
-        message,
-        type,
-        category,
-        action_url,
-        action_data
-      )
-      SELECT 
-        e.id,
-        '휴가 신청 알림',
-        $1 || '님이 ' || $2 || '부터 ' || $3 || '까지 ' || $4 || '일 휴가를 신청했습니다.',
-        'approval_request',
-        'leave',
-        '/hr/leave-approval',
-        $5::jsonb
-      FROM employees e
-      WHERE e.role IN ('ADMIN', 'MANAGER')
-    `,
-      [
-        user.name || user.email,
-        startDate,
-        endDate,
-        days,
-        JSON.stringify({ requestId: result.rows[0].id, employeeId: user.id }),
-      ],
+    if (overlapResult.rows.length > 0) {
+      return json({ error: '이미 해당 기간에 신청한 연차가 있습니다.' }, { status: 400 })
+    }
+
+    // 연차 신청 생성 (승인 없이 바로 approved, 타임스탬프 저장)
+    // total_days는 실제 근무일 수 사용
+    const now = new Date().toISOString()
+    const insertResult = await query(
+      `INSERT INTO leave_requests
+       (employee_id, leave_type_id, start_date, end_date, total_days, reason, status, approved_at, created_at)
+       VALUES ($1, $2, $3::timestamptz, $4::timestamptz, $5, $6, 'approved', $7, $7)
+       RETURNING id`,
+      [employeeId, leaveTypeId, startTimestamp, endTimestamp, daysToDeduct, reason, now],
     )
+
+    const requestId = insertResult.rows[0].id
+
+    // 연차 잔액은 실시간 집계로 처리하므로 별도 업데이트 불필요
 
     return json({
       success: true,
-      message: '휴가 신청이 완료되었습니다.',
-      data: result.rows[0],
+      requestId,
+      message: '연차 신청이 완료되었습니다.',
     })
   } catch (error) {
-    logger.error('Error creating leave request:', error)
-    return json({ success: false, message: '휴가 신청에 실패했습니다.' }, { status: 500 })
+    console.error('연차 신청 실패:', error)
+    return json({ error: '연차 신청에 실패했습니다.' }, { status: 500 })
   }
 }
