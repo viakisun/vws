@@ -37,8 +37,22 @@
   let endDate = $state('')
   let halfDayType = $state<'10-15' | '15-19'>('10-15') // 반차 시간대
   let quarterDayType = $state<'10-12' | '13-15' | '15-17' | '17-19'>('10-12') // 반반차 시간대
-  let reason = $state('')
+  let reasonType = $state('') // 사유 종류
+  let customReason = $state('') // 기타 사유 직접 입력
   let isSubmitting = $state(false)
+
+  // 연차 사유 목록 (연차/반차/반반차용)
+  const leaveReasons = [
+    { value: '가족 행사', label: '가족 행사' },
+    { value: '병원 진료', label: '병원 진료' },
+    { value: '자녀 학교 행사', label: '자녀 학교 행사' },
+    { value: '휴식', label: '휴식' },
+    { value: '여행', label: '여행' },
+    { value: '기타', label: '기타 (직접 입력)' },
+  ]
+
+  // 최종 사유 (reasonType이 '기타'면 customReason 사용)
+  const finalReason = $derived(reasonType === '기타' ? customReason : reasonType)
 
   // 선택된 날짜가 변경되면 시작/종료일 자동 설정
   $effect(() => {
@@ -70,6 +84,7 @@
       case '반반차':
         return 0.25
       case '경조사':
+      case '예비군/민방위':
         if (!startDate || !endDate) return 0
         return getWorkingDays(startDate, endDate)
       default:
@@ -93,9 +108,22 @@
   async function handleSubmit(e: Event) {
     e.preventDefault()
 
-    if (!leaveTypeId || !startDate || !endDate || !reason.trim()) {
+    if (!leaveTypeId || !startDate || !endDate) {
       alert('모든 항목을 입력해주세요.')
       return
+    }
+
+    // 연차/반차/반반차는 사유 필수
+    const leaveTypeName = selectedLeaveType?.name
+    if (leaveTypeName === '연차' || leaveTypeName === '반차' || leaveTypeName === '반반차') {
+      if (!reasonType) {
+        alert('사유를 선택해주세요.')
+        return
+      }
+      if (reasonType === '기타' && !customReason.trim()) {
+        alert('기타 사유를 입력해주세요.')
+        return
+      }
     }
 
     if (isInsufficientBalance) {
@@ -110,7 +138,7 @@
         startDate,
         endDate,
         totalDays: calculatedDays,
-        reason,
+        reason: finalReason || '경영지원팀 서류 제출', // 경조사 등은 기본 사유
         halfDayType: selectedLeaveType?.name === '반차' ? halfDayType : undefined,
         quarterDayType: selectedLeaveType?.name === '반반차' ? quarterDayType : undefined,
       })
@@ -121,7 +149,8 @@
       endDate = ''
       halfDayType = '10-15'
       quarterDayType = '10-12'
-      reason = ''
+      reasonType = ''
+      customReason = ''
     } catch (error) {
       console.error('연차 신청 실패:', error)
     } finally {
@@ -135,7 +164,8 @@
     endDate = ''
     halfDayType = '10-15'
     quarterDayType = '10-12'
-    reason = ''
+    reasonType = ''
+    customReason = ''
     onClose()
   }
 </script>
@@ -210,7 +240,7 @@
             </div>
 
             <!-- 날짜 선택 -->
-            {#if selectedLeaveType?.name === '연차'}
+            {#if selectedLeaveType?.name === '연차' || selectedLeaveType?.name === '경조사' || selectedLeaveType?.name === '예비군/민방위'}
               <div class="grid grid-cols-2 gap-4">
                 <div>
                   <label for="startDate" class="block text-sm font-medium text-gray-700 mb-2">
@@ -342,20 +372,51 @@
               </div>
             {/if}
 
-            <!-- 사유 입력 -->
-            <div>
-              <label for="reason" class="block text-sm font-medium text-gray-700 mb-2">
-                사유 *
-              </label>
-              <textarea
-                id="reason"
-                bind:value={reason}
-                required
-                rows="3"
-                placeholder="연차 사용 사유를 입력해주세요"
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
-              ></textarea>
-            </div>
+            <!-- 사유 선택 (연차/반차/반반차만 해당) -->
+            {#if selectedLeaveType && (selectedLeaveType.name === '연차' || selectedLeaveType.name === '반차' || selectedLeaveType.name === '반반차')}
+              <div>
+                <label for="reasonType" class="block text-sm font-medium text-gray-700 mb-2">
+                  사유 *
+                </label>
+                <select
+                  id="reasonType"
+                  bind:value={reasonType}
+                  required
+                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="">선택해주세요</option>
+                  {#each leaveReasons as reason}
+                    <option value={reason.value}>{reason.label}</option>
+                  {/each}
+                </select>
+              </div>
+
+              <!-- 기타 사유 직접 입력 -->
+              {#if reasonType === '기타'}
+                <div>
+                  <label for="customReason" class="block text-sm font-medium text-gray-700 mb-2">
+                    상세 사유 *
+                  </label>
+                  <textarea
+                    id="customReason"
+                    bind:value={customReason}
+                    required
+                    rows="3"
+                    placeholder="사유를 입력해주세요."
+                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                  ></textarea>
+                </div>
+              {/if}
+            {/if}
+
+            <!-- 경조사/예비군 등 기타 휴가 안내 -->
+            {#if selectedLeaveType && (selectedLeaveType.name === '경조사' || selectedLeaveType.name === '예비군/민방위')}
+              <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <p class="text-sm text-blue-800">
+                  <strong>{selectedLeaveType.name}</strong> 신청 후 경영지원팀에 관련 서류를 제출해주세요.
+                </p>
+              </div>
+            {/if}
           </div>
 
           <!-- 푸터 -->

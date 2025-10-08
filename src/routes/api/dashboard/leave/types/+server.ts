@@ -15,13 +15,14 @@ export const GET: RequestHandler = async (event) => {
       `SELECT id, name, description, max_days, is_paid, requires_approval
        FROM leave_types
        WHERE status = 'active'
-         AND name IN ('연차', '반차', '반반차', '경조사')
+         AND name IN ('연차', '반차', '반반차', '경조사', '예비군/민방위')
        ORDER BY
          CASE
            WHEN name = '연차' THEN 1
            WHEN name = '반차' THEN 2
            WHEN name = '반반차' THEN 3
            WHEN name = '경조사' THEN 4
+           WHEN name = '예비군/민방위' THEN 5
          END`,
     )
 

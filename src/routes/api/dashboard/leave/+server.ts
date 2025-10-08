@@ -176,7 +176,7 @@ export const POST: RequestHandler = async (event) => {
     const leaveTypeName = leaveTypeResult.rows[0].name
 
     // 반차, 반반차는 하루만 신청 가능하고, 휴일에는 불가
-    if (leaveTypeName !== '연차') {
+    if (leaveTypeName === '반차' || leaveTypeName === '반반차') {
       if (startDate !== endDate) {
         return json({ error: '반차/반반차는 하루만 신청 가능합니다.' }, { status: 400 })
       }
@@ -245,52 +245,58 @@ export const POST: RequestHandler = async (event) => {
       endTimestamp = `${endDate}T23:59:59+09:00`
     }
 
-    // 연차 잔액 확인 (실시간 집계)
-    // 모든 타입(연차, 반차, 반반차)의 승인된 요청을 합산 (경조사 제외)
-    const year = new Date(startDate).getFullYear()
-    const balanceResult = await query(
-      `WITH used_calc AS (
+    // 연차 차감이 필요한 타입만 잔액 확인 (경조사, 예비군/민방위는 제외)
+    const deductibleLeaveTypes = ['연차', '반차', '반반차']
+    const shouldDeductLeave = deductibleLeaveTypes.includes(leaveTypeName)
+
+    if (shouldDeductLeave) {
+      // 연차 잔액 확인 (실시간 집계)
+      // 모든 타입(연차, 반차, 반반차)의 승인된 요청을 합산 (경조사, 예비군/민방위 제외)
+      const year = new Date(startDate).getFullYear()
+      const balanceResult = await query(
+        `WITH used_calc AS (
+          SELECT
+            lb.employee_id,
+            lb.year,
+            COALESCE(SUM(lr.total_days), 0) as total_used
+          FROM leave_balances lb
+          LEFT JOIN leave_requests lr ON lr.employee_id = lb.employee_id
+            AND lr.status = 'approved'
+            AND EXTRACT(YEAR FROM lr.start_date) = lb.year
+            AND lr.leave_type_id IN (
+              SELECT id FROM leave_types WHERE name IN ('연차', '반차', '반반차')
+            )
+          WHERE lb.employee_id = $1 AND lb.year = $2
+          GROUP BY lb.employee_id, lb.year
+        )
         SELECT
-          lb.employee_id,
-          lb.year,
-          COALESCE(SUM(lr.total_days), 0) as total_used
+          lb.total_days - uc.total_used as remaining_days
         FROM leave_balances lb
-        LEFT JOIN leave_requests lr ON lr.employee_id = lb.employee_id
-          AND lr.status = 'approved'
-          AND EXTRACT(YEAR FROM lr.start_date) = lb.year
-          AND lr.leave_type_id IN (
-            SELECT id FROM leave_types WHERE name IN ('연차', '반차', '반반차')
-          )
-        WHERE lb.employee_id = $1 AND lb.year = $2
-        GROUP BY lb.employee_id, lb.year
+        JOIN leave_types lt ON lb.leave_type_id = lt.id
+        JOIN used_calc uc ON uc.employee_id = lb.employee_id
+          AND uc.year = lb.year
+        WHERE lb.employee_id = $1 AND lb.year = $2 AND lt.name = '연차'
+        LIMIT 1`,
+        [employeeId, year],
       )
-      SELECT
-        lb.total_days - uc.total_used as remaining_days
-      FROM leave_balances lb
-      JOIN leave_types lt ON lb.leave_type_id = lt.id
-      JOIN used_calc uc ON uc.employee_id = lb.employee_id
-        AND uc.year = lb.year
-      WHERE lb.employee_id = $1 AND lb.year = $2 AND lt.name = '연차'
-      LIMIT 1`,
-      [employeeId, year],
-    )
 
-    if (balanceResult.rows.length === 0) {
-      return json({ error: `${year}년도 연차 정보가 없습니다.` }, { status: 400 })
-    }
+      if (balanceResult.rows.length === 0) {
+        return json({ error: `${year}년도 연차 정보가 없습니다.` }, { status: 400 })
+      }
 
-    const remainingDays = parseFloat(balanceResult.rows[0].remaining_days)
+      const remainingDays = parseFloat(balanceResult.rows[0].remaining_days)
 
-    // 연차의 경우 실제 근무일 수 사용, 반차/반반차는 그대로
-    const daysToDeduct = leaveTypeName === '연차' ? actualWorkingDays : totalDays
+      // 연차의 경우 실제 근무일 수 사용, 반차/반반차는 그대로
+      const daysToDeduct = leaveTypeName === '연차' ? actualWorkingDays : totalDays
 
-    if (remainingDays < daysToDeduct) {
-      return json(
-        {
-          error: `연차가 부족합니다. (잔여: ${remainingDays}일, 필요: ${daysToDeduct}일)`,
-        },
-        { status: 400 },
-      )
+      if (remainingDays < daysToDeduct) {
+        return json(
+          {
+            error: `연차가 부족합니다. (잔여: ${remainingDays}일, 필요: ${daysToDeduct}일)`,
+          },
+          { status: 400 },
+        )
+      }
     }
 
     // 중복 신청 확인 (타임스탬프 기준)
@@ -312,14 +318,15 @@ export const POST: RequestHandler = async (event) => {
     }
 
     // 연차 신청 생성 (승인 없이 바로 approved, 타임스탬프 저장)
-    // total_days는 실제 근무일 수 사용
+    // total_days: 연차 차감 타입은 실제 근무일 수, 비차감 타입(경조사/예비군)은 0
     const now = new Date().toISOString()
+    const finalDaysToDeduct = shouldDeductLeave ? (leaveTypeName === '연차' ? actualWorkingDays : totalDays) : 0
     const insertResult = await query(
       `INSERT INTO leave_requests
        (employee_id, leave_type_id, start_date, end_date, total_days, reason, status, approved_at, created_at)
        VALUES ($1, $2, $3::timestamptz, $4::timestamptz, $5, $6, 'approved', $7, $7)
        RETURNING id`,
-      [employeeId, leaveTypeId, startTimestamp, endTimestamp, daysToDeduct, reason, now],
+      [employeeId, leaveTypeId, startTimestamp, endTimestamp, finalDaysToDeduct, reason, now],
     )
 
     const requestId = insertResult.rows[0].id
