@@ -44,14 +44,13 @@ export function validateSalaryAmount(
     return null
   }
 
-  const basicSalary =
-    Number(allowances.find((a) => a.id === 'basic_salary')?.amount || 0)
+  const basicSalary = Number(allowances.find((a) => a.id === 'basic_salary')?.amount || 0)
 
-  const vehicleMaintenance =
-    Number(allowances.find((a) => a.id === 'vehicle_maintenance')?.amount || 0)
+  const vehicleMaintenance = Number(
+    allowances.find((a) => a.id === 'vehicle_maintenance')?.amount || 0,
+  )
 
-  const mealAllowance =
-    Number(allowances.find((a) => a.id === 'meal_allowance')?.amount || 0)
+  const mealAllowance = Number(allowances.find((a) => a.id === 'meal_allowance')?.amount || 0)
 
   const coreSalaryTotal = basicSalary + vehicleMaintenance + mealAllowance
   const contractSalary = contract.monthlySalary || 0
@@ -75,12 +74,10 @@ export function validateSalaryAmount(
 export function getSalaryValidationMessage(
   validation: ValidationResult | null,
   formatNumber: (value: number, withComma: boolean, suffix: string) => string,
-):
-  | {
-      type: 'success' | 'error'
-      message: string
-    }
-  | null {
+): {
+  type: 'success' | 'error'
+  message: string
+} | null {
   if (!validation) return null
 
   if (validation.isValid) {

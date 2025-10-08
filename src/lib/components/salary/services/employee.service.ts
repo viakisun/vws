@@ -39,9 +39,7 @@ export async function fetchEmployeeList(limit: number = 100): Promise<Employee[]
  * @returns 급여 계약 정보 (없으면 null)
  * @throws API 호출 실패 시 에러
  */
-export async function fetchEmployeeContract(
-  employeeId: string,
-): Promise<EmployeeContract | null> {
+export async function fetchEmployeeContract(employeeId: string): Promise<EmployeeContract | null> {
   if (!employeeId) {
     return null
   }
