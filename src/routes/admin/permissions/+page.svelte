@@ -26,7 +26,7 @@
   const store = usePermissionManagement()
 
   let showDeleteModal = $state(false)
-  let deleteTarget = $state<{ type: 'role' | 'user_role' | 'user'; data: any } | null>(null)
+  let deleteTarget = $state<{ type: 'role' | 'employee_role' | 'user'; data: any } | null>(null)
   let showUserAddModal = $state(false)
 
   // 역할별 색상 매핑
@@ -49,7 +49,7 @@
     store.loadData()
   })
 
-  function confirmDelete(type: 'role' | 'user_role' | 'user', data: any) {
+  function confirmDelete(type: 'role' | 'employee_role' | 'user', data: any) {
     deleteTarget = { type, data }
     showDeleteModal = true
   }
@@ -57,7 +57,7 @@
   async function handleDelete() {
     if (!deleteTarget) return
 
-    if (deleteTarget.type === 'user_role') {
+    if (deleteTarget.type === 'employee_role') {
       await store.revokeRole(deleteTarget.data.userId, deleteTarget.data.roleCode)
     } else if (deleteTarget.type === 'user') {
       // TODO: 사용자 삭제 API 구현
@@ -78,6 +78,16 @@
       userName: user.name,
       userEmail: user.email,
     })
+  }
+
+  function handleViewPermissions(role: any) {
+    // 권한 매트릭스 탭으로 이동
+    store.activeTab = 'permissions'
+    pushToast(`${role.nameKo} 역할의 권한을 확인하세요.`, 'info')
+  }
+
+  function handleEditRole(role: any) {
+    pushToast('역할 편집 기능은 준비 중입니다.', 'info')
   }
 </script>
 
@@ -189,7 +199,12 @@
               </div>
               <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {#each store.roles as role (role.id)}
-                  <RoleCard {role} {getRoleColor} />
+                  <RoleCard
+                    {role}
+                    {getRoleColor}
+                    onViewPermissions={handleViewPermissions}
+                    onEdit={handleEditRole}
+                  />
                 {/each}
               </div>
             </div>

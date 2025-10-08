@@ -16,7 +16,7 @@
     selectedUser: User | null
     selectedRole: RoleCode | null
     onAssignRole: (userId: string, roleCode: string) => void
-    onRevokeRole: (type: 'user_role', data: any) => void
+    onRevokeRole: (type: 'role' | 'employee_role' | 'user', data: any) => void
     onRoleChange: (roleCode: RoleCode | null) => void
   }
 
@@ -62,7 +62,7 @@
                   type="button"
                   class="text-red-600 hover:text-red-700 transition-colors"
                   onclick={() =>
-                    onRevokeRole('user_role', {
+                    onRevokeRole('employee_role', {
                       userId: selectedUser.id,
                       roleCode: role.code,
                       userName: selectedUser.name,

@@ -1,5 +1,4 @@
 import { DatabaseService } from '$lib/database/connection'
-import type { User } from '$lib/types'
 
 // 권한 타입 정의
 export interface Permission {
@@ -54,11 +53,33 @@ export class PermissionService {
    */
   async getUserPermissions(userId: string): Promise<UserPermissionCache> {
     try {
-      // 1. 캐시 확인
-      const cached = await DatabaseService.query<UserPermissionCache>(
-        `SELECT user_id as "userId", permissions, roles, calculated_at as "calculatedAt", expires_at as "expiresAt"
+      // 1. 시스템 계정 확인
+      const systemAccount = await DatabaseService.query(
+        `SELECT id FROM system_accounts WHERE id = $1`,
+        [userId],
+      )
+
+      if (systemAccount.rows.length > 0) {
+        // 시스템 계정은 모든 권한 자동 부여
+        const allRoles = await this.getAllRoles()
+        const allPermissions = await DatabaseService.query(
+          `SELECT code, resource, action, scope FROM permissions WHERE is_active = true`,
+        )
+
+        return {
+          userId,
+          permissions: allPermissions.rows as Permission[],
+          roles: allRoles,
+          calculatedAt: new Date(),
+          expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24시간
+        }
+      }
+
+      // 2. 캐시 확인 (직원 계정만)
+      const cached = await DatabaseService.query(
+        `SELECT employee_id as "userId", permissions, roles, calculated_at as "calculatedAt", expires_at as "expiresAt"
          FROM permission_cache
-         WHERE user_id = $1 AND expires_at > NOW()`,
+         WHERE employee_id = $1 AND expires_at > NOW()`,
         [userId],
       )
 
@@ -66,7 +87,7 @@ export class PermissionService {
         return cached.rows[0]
       }
 
-      // 2. 권한 새로 계산
+      // 3. 권한 새로 계산 (직원 계정)
       return await this.refreshPermissionCache(userId)
     } catch (error) {
       console.error('Failed to get user permissions:', error)
@@ -75,39 +96,46 @@ export class PermissionService {
   }
 
   /**
-   * 사용자 권한 캐시 갱신
+   * 사용자 권한 캐시 갱신 (직원 계정만)
    */
-  async refreshPermissionCache(userId: string): Promise<UserPermissionCache> {
+  async refreshPermissionCache(employeeId: string): Promise<UserPermissionCache> {
     try {
-      // 1. 사용자의 유효한 역할 가져오기 (상속 포함)
-      const rolesResult = await DatabaseService.query<Role>(
+      // 1. 직원의 역할 가져오기
+      const rolesResult = await DatabaseService.query(
         `SELECT DISTINCT
-           role_id as id,
-           code,
-           name,
-           name_ko as "nameKo",
-           priority,
-           assignment_type as "assignmentType"
-         FROM user_effective_roles
-         WHERE user_id = $1
-         ORDER BY priority DESC`,
-        [userId],
+           r.id,
+           r.code,
+           r.name,
+           r.name_ko as "nameKo",
+           r.priority
+         FROM employee_roles er
+         JOIN roles r ON r.id = er.role_id
+         WHERE er.employee_id = $1 AND er.is_active = true AND r.is_active = true
+         ORDER BY r.priority DESC`,
+        [employeeId],
       )
 
-      const roles = rolesResult.rows
+      const roles = rolesResult.rows as Role[]
 
-      // 2. 권한 계산 (상속 포함)
-      const permissionsResult = await DatabaseService.query<Permission>(
-        `SELECT permission_code as code, resource, action, scope
-         FROM calculate_user_permissions($1)`,
-        [userId],
+      // 2. 역할별 권한 가져오기
+      const permissionsResult = await DatabaseService.query(
+        `SELECT DISTINCT
+           p.code,
+           p.resource,
+           p.action,
+           p.scope
+         FROM employee_roles er
+         JOIN role_permissions rp ON rp.role_id = er.role_id
+         JOIN permissions p ON p.id = rp.permission_id
+         WHERE er.employee_id = $1 AND er.is_active = true AND p.is_active = true`,
+        [employeeId],
       )
 
-      const permissions = permissionsResult.rows
+      const permissions = permissionsResult.rows as Permission[]
 
       // 3. 캐시 저장
       const cache: UserPermissionCache = {
-        userId,
+        userId: employeeId,
         permissions,
         roles,
         calculatedAt: new Date(),
@@ -115,12 +143,12 @@ export class PermissionService {
       }
 
       await DatabaseService.query(
-        `INSERT INTO permission_cache (user_id, permissions, roles, calculated_at, expires_at)
+        `INSERT INTO permission_cache (employee_id, permissions, roles, calculated_at, expires_at)
          VALUES ($1, $2, $3, $4, $5)
-         ON CONFLICT (user_id) DO UPDATE
+         ON CONFLICT (employee_id) DO UPDATE
          SET permissions = $2, roles = $3, calculated_at = $4, expires_at = $5`,
         [
-          userId,
+          employeeId,
           JSON.stringify(permissions),
           JSON.stringify(roles),
           cache.calculatedAt,
@@ -175,6 +203,17 @@ export class PermissionService {
    */
   async hasRole(userId: string, roleCode: RoleCode): Promise<boolean> {
     try {
+      // 1. 시스템 계정 확인 - 시스템 계정은 모든 역할 보유
+      const systemAccount = await DatabaseService.query(
+        `SELECT id FROM system_accounts WHERE id = $1`,
+        [userId],
+      )
+
+      if (systemAccount.rows.length > 0) {
+        return true // 시스템 계정은 모든 역할 가짐
+      }
+
+      // 2. 직원 계정의 역할 확인
       const cache = await this.getUserPermissions(userId)
       return cache.roles.some((role) => role.code === roleCode)
     } catch (error) {
@@ -184,10 +223,10 @@ export class PermissionService {
   }
 
   /**
-   * 사용자에게 역할 할당
+   * 직원에게 역할 할당
    */
   async assignRole(
-    userId: string,
+    employeeId: string,
     roleCode: RoleCode,
     assignedBy: string,
     expiresAt?: Date,
@@ -205,20 +244,32 @@ export class PermissionService {
 
       const roleId = roleResult.rows[0].id
 
+      // assignedBy가 직원인지 시스템 계정인지 확인
+      const employeeCheck = await DatabaseService.query(`SELECT id FROM employees WHERE id = $1`, [
+        assignedBy,
+      ])
+
+      const assignedByEmployeeId = employeeCheck.rows.length > 0 ? assignedBy : null
+
       // 역할 할당
       await DatabaseService.query(
-        `INSERT INTO user_roles (user_id, role_id, assigned_by, expires_at)
+        `INSERT INTO employee_roles (employee_id, role_id, assigned_by_employee_id, expires_at)
          VALUES ($1, $2, $3, $4)
-         ON CONFLICT (user_id, role_id) DO UPDATE
-         SET assigned_by = $3, assigned_at = NOW(), expires_at = $4, is_active = true`,
-        [userId, roleId, assignedBy, expiresAt],
+         ON CONFLICT (employee_id, role_id) DO UPDATE
+         SET assigned_by_employee_id = $3, assigned_at = NOW(), expires_at = $4, is_active = true`,
+        [employeeId, roleId, assignedByEmployeeId, expiresAt],
       )
 
       // 감사 로그
-      await this.logAudit(assignedBy, 'grant_role', userId, roleId, null, { roleCode, expiresAt })
+      await this.logAudit(assignedBy, 'grant_role', employeeId, roleId, undefined, {
+        roleCode,
+        expiresAt,
+      })
 
-      // 캐시 무효화 (트리거로 자동 처리되지만 명시적으로도 실행)
-      await DatabaseService.query(`DELETE FROM permission_cache WHERE user_id = $1`, [userId])
+      // 캐시 무효화
+      await DatabaseService.query(`DELETE FROM permission_cache WHERE employee_id = $1`, [
+        employeeId,
+      ])
     } catch (error) {
       console.error('Failed to assign role:', error)
       throw new Error('역할 할당에 실패했습니다.')
@@ -226,9 +277,9 @@ export class PermissionService {
   }
 
   /**
-   * 사용자에서 역할 제거
+   * 직원에서 역할 제거
    */
-  async revokeRole(userId: string, roleCode: RoleCode, revokedBy: string): Promise<void> {
+  async revokeRole(employeeId: string, roleCode: RoleCode, revokedBy: string): Promise<void> {
     try {
       // 역할 ID 조회
       const roleResult = await DatabaseService.query(`SELECT id FROM roles WHERE code = $1`, [
@@ -243,17 +294,19 @@ export class PermissionService {
 
       // 역할 비활성화
       await DatabaseService.query(
-        `UPDATE user_roles
+        `UPDATE employee_roles
          SET is_active = false
-         WHERE user_id = $1 AND role_id = $2`,
-        [userId, roleId],
+         WHERE employee_id = $1 AND role_id = $2`,
+        [employeeId, roleId],
       )
 
       // 감사 로그
-      await this.logAudit(revokedBy, 'revoke_role', userId, roleId, null, { roleCode })
+      await this.logAudit(revokedBy, 'revoke_role', employeeId, roleId, undefined, { roleCode })
 
       // 캐시 무효화
-      await DatabaseService.query(`DELETE FROM permission_cache WHERE user_id = $1`, [userId])
+      await DatabaseService.query(`DELETE FROM permission_cache WHERE employee_id = $1`, [
+        employeeId,
+      ])
     } catch (error) {
       console.error('Failed to revoke role:', error)
       throw new Error('역할 제거에 실패했습니다.')
@@ -333,19 +386,32 @@ export class PermissionService {
    * 권한 감사 로그 기록
    */
   private async logAudit(
-    userId: string,
+    actorId: string,
     action: string,
-    targetUserId?: string,
+    targetEmployeeId?: string,
     targetRoleId?: string,
     targetPermissionId?: string,
     details?: any,
   ): Promise<void> {
     try {
+      // actorId가 시스템 계정인 경우 employee_id를 NULL로 설정
+      const employeeCheck = await DatabaseService.query(`SELECT id FROM employees WHERE id = $1`, [
+        actorId,
+      ])
+      const employeeId = employeeCheck.rows.length > 0 ? actorId : null
+
       await DatabaseService.query(
         `INSERT INTO permission_audit_log
-         (user_id, action, target_user_id, target_role_id, target_permission_id, details)
+         (employee_id, action, target_employee_id, target_role_id, target_permission_id, details)
          VALUES ($1, $2, $3, $4, $5, $6)`,
-        [userId, action, targetUserId, targetRoleId, targetPermissionId, JSON.stringify(details)],
+        [
+          employeeId,
+          action,
+          targetEmployeeId,
+          targetRoleId,
+          targetPermissionId,
+          JSON.stringify(details),
+        ],
       )
     } catch (error) {
       console.error('Failed to log audit:', error)
@@ -358,7 +424,7 @@ export class PermissionService {
    */
   async getAllRoles(): Promise<Role[]> {
     try {
-      const result = await DatabaseService.query<Role>(
+      const result = await DatabaseService.query(
         `SELECT
            id,
            code,
@@ -372,7 +438,7 @@ export class PermissionService {
          ORDER BY priority DESC`,
       )
 
-      return result.rows
+      return result.rows as Role[]
     } catch (error) {
       console.error('Failed to get all roles:', error)
       throw new Error('역할 목록을 가져올 수 없습니다.')
@@ -384,7 +450,7 @@ export class PermissionService {
    */
   async getRolePermissions(roleCode: RoleCode): Promise<Permission[]> {
     try {
-      const result = await DatabaseService.query<Permission>(
+      const result = await DatabaseService.query(
         `SELECT
            p.code,
            p.resource,
@@ -398,7 +464,7 @@ export class PermissionService {
         [roleCode],
       )
 
-      return result.rows
+      return result.rows as Permission[]
     } catch (error) {
       console.error('Failed to get role permissions:', error)
       throw new Error('역할 권한을 가져올 수 없습니다.')

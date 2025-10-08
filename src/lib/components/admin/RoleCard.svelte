@@ -8,9 +8,11 @@
   interface Props {
     role: Role
     getRoleColor: (roleCode: string) => string
+    onViewPermissions?: (role: Role) => void
+    onEdit?: (role: Role) => void
   }
 
-  let { role, getRoleColor }: Props = $props()
+  let { role, getRoleColor, onViewPermissions, onEdit }: Props = $props()
 
   // 역할별 색상 매핑 (theme-color)
   function getRoleBgColor(roleCode: string): string {
@@ -81,11 +83,16 @@
     </div>
 
     <div class="flex gap-2">
-      <ThemeButton variant="ghost" size="sm" class="flex-1 justify-center">
+      <ThemeButton
+        variant="ghost"
+        size="sm"
+        class="flex-1 justify-center"
+        onclick={() => onViewPermissions?.(role)}
+      >
         <LockIcon size={14} />
         <span class="ml-1">권한 보기</span>
       </ThemeButton>
-      <ThemeButton size="sm" class="flex-1 justify-center">
+      <ThemeButton size="sm" class="flex-1 justify-center" onclick={() => onEdit?.(role)}>
         <EditIcon size={14} />
         <span class="ml-1">편집</span>
       </ThemeButton>

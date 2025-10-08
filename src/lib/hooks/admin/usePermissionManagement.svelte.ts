@@ -176,7 +176,7 @@ class PermissionManagementStore {
 
       // selectedUser 업데이트
       if (this.selectedUser) {
-        this.selectedUser = this.users.find(u => u.id === this.selectedUser!.id) || null
+        this.selectedUser = this.users.find((u) => u.id === this.selectedUser!.id) || null
       }
 
       this.selectedRole = null
@@ -210,7 +210,7 @@ class PermissionManagementStore {
 
       // selectedUser 업데이트
       if (this.selectedUser) {
-        this.selectedUser = this.users.find(u => u.id === this.selectedUser!.id) || null
+        this.selectedUser = this.users.find((u) => u.id === this.selectedUser!.id) || null
       }
 
       return true

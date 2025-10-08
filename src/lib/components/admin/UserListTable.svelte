@@ -42,14 +42,14 @@
                   <div class="text-sm font-medium text-gray-900">
                     {formatKoreanNameStandard(user.name)}
                   </div>
-                  {#if user.account_type && user.account_type !== 'employee'}
+                  {#if user.account_type === 'system'}
                     <ThemeBadge variant="warning" size="sm">시스템</ThemeBadge>
-                  {:else if user.employee_id}
-                    <ThemeBadge variant="info" size="sm">{user.employee_id}</ThemeBadge>
+                  {:else if user.employee_code}
+                    <ThemeBadge variant="info" size="sm">{user.employee_code}</ThemeBadge>
                   {/if}
                 </div>
                 <div class="text-xs text-gray-500">
-                  {#if user.account_type && user.account_type !== 'employee'}
+                  {#if user.account_type === 'system'}
                     시스템 계정 • {user.email}
                   {:else if user.department && user.position}
                     {user.department} / {user.position}

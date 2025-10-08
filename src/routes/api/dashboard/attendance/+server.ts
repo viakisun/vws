@@ -13,14 +13,8 @@ export const GET: RequestHandler = async (event) => {
 
     const date = url.searchParams.get('date') || new Date().toISOString().split('T')[0]
 
-    // user_id로 employee_id 조회
-    const employeeResult = await query(`SELECT id FROM employees WHERE user_id = $1`, [user.id])
-
-    if (employeeResult.rows.length === 0) {
-      return json({ success: false, message: '직원 정보를 찾을 수 없습니다.' }, { status: 404 })
-    }
-
-    const employeeId = employeeResult.rows[0].id
+    // user.id가 이미 employee.id (시스템 계정은 출퇴근 기록 없음)
+    const employeeId = user.id
 
     // 오늘의 출퇴근 기록 조회
     const attendanceResult = await query(
@@ -155,14 +149,8 @@ export const POST: RequestHandler = async (event) => {
     // 클라이언트 IP 주소 가져오기
     const clientIp = event.getClientAddress()
 
-    // user_id로 employee_id 조회
-    const employeeResult = await query(`SELECT id FROM employees WHERE user_id = $1`, [user.id])
-
-    if (employeeResult.rows.length === 0) {
-      return json({ success: false, message: '직원 정보를 찾을 수 없습니다.' }, { status: 404 })
-    }
-
-    const employeeId = employeeResult.rows[0].id
+    // user.id가 이미 employee.id
+    const employeeId = user.id
 
     // 회사 ID 조회 (현재 시스템에는 회사가 하나만 있음)
     const companyResult = await query(`SELECT id FROM companies LIMIT 1`)

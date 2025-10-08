@@ -101,32 +101,42 @@ export const handle: Handle = async ({ event, resolve }) => {
     event.cookies.delete('auth_token', { path: '/' })
   }
 
-  // Permission check middleware for API routes
+  // 직원 계정 권한 체크 미들웨어
   if (event.url.pathname.startsWith('/api/')) {
     const user = event.locals.user
     const permissions = event.locals.permissions
 
-    // 인증되지 않은 사용자는 공개 API만 접근 가능
+    // 공개 API는 인증 불필요
     const publicAPIs = [
       '/api/auth/login',
       '/api/auth/register',
       '/api/auth/logout',
       '/api/auth/google',
-      '/api/auth/callback/google', // Google OAuth 콜백 경로 수정
+      '/api/auth/callback/google',
     ]
     if (!user && !publicAPIs.some((api) => event.url.pathname.startsWith(api))) {
       throw error(401, 'Unauthorized')
     }
 
-    // 인증된 사용자의 권한 체크
-    if (user && permissions) {
-      // 라우트별 권한 체크
+    // 시스템 계정 (user.employee 없음) → 모든 API 접근 허용
+    if (user && !user.employee) {
+      return resolve(event)
+    }
+
+    // 직원 계정 (user.employee 있음) → 권한 체크 수행
+    if (user && user.employee && permissions) {
+      // ADMIN 역할을 가진 직원 → 모든 API 접근 허용
+      const isAdmin = permissions.roles.some((role) => role.code === 'ADMIN')
+      if (isAdmin) {
+        return resolve(event)
+      }
+
+      // 일반 직원 → 개별 권한 체크
       for (const [route, requiredPerm] of Object.entries(ROUTE_PERMISSIONS)) {
         if (event.url.pathname.startsWith(route)) {
           const method = event.request.method
           const action = METHOD_ACTION_MAP[method] || requiredPerm.action
 
-          // 권한 확인
           const hasPermission = await permissionService.hasPermission(
             user.id,
             requiredPerm.resource,

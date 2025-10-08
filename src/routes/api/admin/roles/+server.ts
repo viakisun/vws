@@ -12,7 +12,7 @@ export const GET: RequestHandler = async ({ locals }) => {
   }
 
   try {
-    // 모든 역할과 사용자 수 조회
+    // 모든 역할과 직원 수 조회
     const result = await DatabaseService.query(`
       SELECT
         r.id,
@@ -21,9 +21,9 @@ export const GET: RequestHandler = async ({ locals }) => {
         r.name_ko as "nameKo",
         r.description,
         r.priority,
-        COUNT(DISTINCT ur.user_id) as "userCount"
+        COUNT(DISTINCT er.employee_id) as "userCount"
       FROM roles r
-      LEFT JOIN user_roles ur ON ur.role_id = r.id AND ur.is_active = true
+      LEFT JOIN employee_roles er ON er.role_id = r.id AND er.is_active = true
       WHERE r.is_active = true
       GROUP BY r.id, r.code, r.name, r.name_ko, r.description, r.priority
       ORDER BY r.priority DESC
