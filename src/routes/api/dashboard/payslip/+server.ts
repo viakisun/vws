@@ -86,6 +86,10 @@ export const GET: RequestHandler = async (event) => {
       const year = payPeriodStart.getFullYear()
       const month = payPeriodStart.getMonth() + 1
 
+      // JSONB columns are already parsed by PostgreSQL driver
+      const payments = Array.isArray(row.payments) ? row.payments : []
+      const deductions = Array.isArray(row.deductions) ? row.deductions : []
+
       return {
         id: row.id,
         employee_id: row.employee_id,
@@ -95,20 +99,23 @@ export const GET: RequestHandler = async (event) => {
         period: row.period || `${year}-${month.toString().padStart(2, '0')}`,
         year,
         month,
+        payments, // Include payments array
+        deductions, // Include deductions array
         basic_salary: parseFloat(row.base_salary || 0),
         overtime_pay: parseFloat(row.overtime_pay || 0),
         bonus: parseFloat(row.bonus || 0),
-        allowances: 0, // 기존 테이블에 없음
+        allowances: 0,
         gross_pay: parseFloat(row.total_payments || 0),
-        income_tax: 0, // deductions JSON에서 추출 필요
-        national_pension: 0, // deductions JSON에서 추출 필요
-        health_insurance: 0, // deductions JSON에서 추출 필요
-        employment_insurance: 0, // deductions JSON에서 추출 필요
-        long_term_care_insurance: 0, // deductions JSON에서 추출 필요
+        total_payments: parseFloat(row.total_payments || 0),
+        income_tax: 0,
+        national_pension: 0,
+        health_insurance: 0,
+        employment_insurance: 0,
+        long_term_care_insurance: 0,
         total_deductions: parseFloat(row.total_deductions || 0),
         net_pay: parseFloat(row.net_salary || 0),
-        working_days: 22, // 기본값
-        overtime_hours: 0, // 기본값
+        working_days: 22,
+        overtime_hours: 0,
         created_at: row.created_at,
       }
     })

@@ -1,26 +1,31 @@
 <script lang="ts">
   import type { User } from '$lib/auth/user-service'
   import type { PageData } from './$types'
+  import { formatKoreanName } from '$lib/utils/format'
 
   const { data }: { data: PageData } = $props()
 
-  // Extended user type with optional employee info
+  // =============================================
+  // Types
+  // =============================================
+
   interface EmployeeInfo {
+    id: string
     employee_id: string
+    first_name: string
+    last_name: string
     department: string
     position: string
     hire_date: string
+    status: string
+    employment_type: string
+    phone: string
+    birth_date: string
   }
 
   interface ExtendedUser extends User {
     employee?: EmployeeInfo
   }
-
-  const user: ExtendedUser | null = $state(data.user as ExtendedUser | null)
-
-  // =============================================
-  // Types
-  // =============================================
 
   interface DashboardCard {
     title: string
@@ -38,6 +43,12 @@
     unit: string
     icon: string
   }
+
+  // =============================================
+  // State
+  // =============================================
+
+  const user: ExtendedUser | null = $state(data.user as ExtendedUser | null)
 
   // =============================================
   // Constants - Dashboard Cards
@@ -183,29 +194,70 @@
   const hasEmployeeInfo = $derived(!!user?.employee)
 
   /**
-   * Get user's display name
+   * Get user's display name (formatted Korean name if employee info exists)
    */
-  const displayName = $derived(user?.name || '사용자')
+  const displayName = $derived.by(() => {
+    if (user?.employee?.last_name && user?.employee?.first_name) {
+      return formatKoreanName(user.employee.last_name, user.employee.first_name)
+    }
+    return user?.name || '사용자'
+  })
 
   /**
    * Get user's first initial for avatar
    */
-  const userInitial = $derived(user?.name?.charAt(0) || 'U')
+  const userInitial = $derived(() => {
+    const name = displayName
+    return name?.charAt(0) || 'U'
+  })
 
   /**
-   * Format last login date
+   * Format last login date with relative time
    */
-  const lastLoginDisplay = $derived(() => {
+  const lastLoginDisplay = $derived.by(() => {
     if (!user?.last_login) return '방금 전'
-    return new Date(user.last_login).toLocaleString('ko-KR')
+
+    const loginDate = new Date(user.last_login)
+    const now = new Date()
+    const diffMs = now.getTime() - loginDate.getTime()
+    const diffMins = Math.floor(diffMs / 60000)
+    const diffHours = Math.floor(diffMs / 3600000)
+    const diffDays = Math.floor(diffMs / 86400000)
+
+    if (diffMins < 1) return '방금 전'
+    if (diffMins < 60) return `${diffMins}분 전`
+    if (diffHours < 24) return `${diffHours}시간 전`
+    if (diffDays < 7) return `${diffDays}일 전`
+
+    return loginDate.toLocaleDateString('ko-KR', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    })
   })
 
   /**
    * Format hire date
    */
-  const hireDateDisplay = $derived(() => {
+  const hireDateDisplay = $derived.by(() => {
     if (!user?.employee?.hire_date) return ''
-    return new Date(user.employee.hire_date).toLocaleDateString('ko-KR')
+    return new Date(user.employee.hire_date).toLocaleDateString('ko-KR', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    })
+  })
+
+  /**
+   * Get role display name in Korean
+   */
+  const roleDisplay = $derived.by(() => {
+    const roleMap: Record<string, string> = {
+      ADMIN: '관리자',
+      MANAGER: '매니저',
+      EMPLOYEE: '직원',
+    }
+    return roleMap[user?.role || 'EMPLOYEE'] || user?.role || '직원'
   })
 </script>
 
@@ -216,59 +268,22 @@
 <div class="space-y-6">
   <!-- Welcome Section -->
   <div class="bg-white rounded-lg shadow p-6">
-    <h1 class="text-3xl font-bold text-gray-900 mb-2">안녕하세요, {displayName}님! 👋</h1>
-    <p class="text-gray-600">
-      VWS(VIA Work System)에 오신 것을 환영합니다. 오늘도 좋은 하루 되세요!
-    </p>
-  </div>
-
-  <!-- User Info Card -->
-  <div class="bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg shadow text-white p-6">
-    <div class="flex items-center space-x-4">
-      <!-- User Avatar -->
-      {#if user?.picture}
-        <img
-          src={user.picture}
-          alt={user.name}
-          class="w-16 h-16 rounded-full border-4 border-white/20"
-        />
-      {:else}
-        <div
-          class="w-16 h-16 rounded-full border-4 border-white/20 bg-white/20 flex items-center justify-center text-2xl font-bold"
-        >
-          {userInitial}
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-2xl font-bold text-gray-900 mb-1">안녕하세요, {displayName}님 👋</h1>
+        <p class="text-gray-600">오늘도 좋은 하루 되세요!</p>
+      </div>
+      {#if !hasEmployeeInfo}
+        <div class="bg-yellow-50 border border-yellow-200 rounded-lg px-4 py-2">
+          <p class="text-sm font-medium text-yellow-800">⚠️ 직원 정보 미등록</p>
+          <p class="text-xs text-yellow-600">관리자에게 문의해주세요</p>
         </div>
       {/if}
-
-      <!-- User Details -->
-      <div class="flex-1">
-        <h2 class="text-xl font-semibold">{displayName}</h2>
-        <p class="text-blue-100">{user?.role || 'EMPLOYEE'} • {user?.email || ''}</p>
-        <p class="text-sm text-blue-100">마지막 로그인: {lastLoginDisplay}</p>
-
-        <!-- Employee Info -->
-        {#if user?.employee}
-          <div class="mt-2 p-2 bg-white/10 rounded-lg">
-            <p class="text-sm font-medium">직원 정보</p>
-            <p class="text-xs text-blue-100">
-              사번: {user.employee.employee_id} • {user.employee.department} •
-              {user.employee.position}
-            </p>
-            <p class="text-xs text-blue-100">입사일: {hireDateDisplay}</p>
-          </div>
-        {:else}
-          <div class="mt-2 p-2 bg-yellow-500/20 border border-yellow-400/30 rounded-lg">
-            <p class="text-sm font-medium text-yellow-100">⚠️ 직원 정보 없음</p>
-            <p class="text-xs text-yellow-200">직원명부에서 해당 이메일을 찾을 수 없습니다.</p>
-            <p class="text-xs text-yellow-200">관리자에게 문의하여 직원 정보를 등록해주세요.</p>
-          </div>
-        {/if}
-      </div>
     </div>
   </div>
 
   <!-- Personal Features Section -->
-  <section class="space-y-6">
+  <section class="space-y-4">
     <h2 class="text-xl font-semibold text-gray-900">개인 업무</h2>
 
     {#if hasEmployeeInfo}
@@ -297,7 +312,7 @@
               직원 정보가 등록되지 않아 출퇴근, 연차, 급여명세서 등의 개인 업무 기능을 사용할 수
               없습니다.
             </p>
-            <div class="text-sm text-yellow-600">
+            <div class="text-sm text-yellow-600 space-y-1">
               <p>• 관리자에게 문의하여 직원 정보를 등록해주세요</p>
               <p>• 등록 후에는 출퇴근, 연차관리, 급여명세서 조회가 가능합니다</p>
             </div>
@@ -309,7 +324,7 @@
 
   <!-- Admin Features Section -->
   {#if filteredAdminCards.length > 0}
-    <section class="space-y-6">
+    <section class="space-y-4">
       <h2 class="text-xl font-semibold text-gray-900">관리 기능</h2>
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {#each filteredAdminCards as card (card.title)}
@@ -327,7 +342,7 @@
   {/if}
 
   <!-- Statistics Section -->
-  <section class="space-y-6">
+  <section class="space-y-4">
     <h2 class="text-xl font-semibold text-gray-900">이번 달 현황</h2>
 
     {#if hasEmployeeInfo}
