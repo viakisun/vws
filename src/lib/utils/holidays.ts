@@ -97,7 +97,10 @@ const holidayMap = new Map<string, Holiday>()
  * @returns 공휴일 정보 또는 null
  */
 export function getHoliday(date: string | Date): Holiday | null {
-  const dateStr = typeof date === 'string' ? date : date.toISOString().split('T')[0]
+  const dateStr =
+    typeof date === 'string'
+      ? date
+      : `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
   return holidayMap.get(dateStr) || null
 }
 
@@ -143,4 +146,66 @@ export function getHolidaysInYear(year: number): Holiday[] {
   })
 
   return holidays.sort((a, b) => a.date.localeCompare(b.date))
+}
+
+/**
+ * 특정 날짜가 주말인지 확인
+ * @param date Date 객체 또는 YYYY-MM-DD 형식의 날짜 문자열
+ */
+export function isWeekend(date: string | Date): boolean {
+  const dateObj = typeof date === 'string' ? new Date(date) : date
+  const dayOfWeek = dateObj.getDay()
+  return dayOfWeek === 0 || dayOfWeek === 6 // 일요일(0) 또는 토요일(6)
+}
+
+/**
+ * 특정 날짜가 휴일(주말 또는 공휴일)인지 확인
+ * @param date Date 객체 또는 YYYY-MM-DD 형식의 날짜 문자열
+ */
+export function isNonWorkingDay(date: string | Date): boolean {
+  return isWeekend(date) || isHoliday(date)
+}
+
+/**
+ * 두 날짜 사이의 실제 근무일 수 계산 (주말 및 공휴일 제외)
+ * @param startDate 시작 날짜 (포함)
+ * @param endDate 종료 날짜 (포함)
+ * @returns 근무일 수
+ */
+export function getWorkingDays(startDate: string | Date, endDate: string | Date): number {
+  const start = typeof startDate === 'string' ? new Date(startDate) : startDate
+  const end = typeof endDate === 'string' ? new Date(endDate) : endDate
+
+  let workingDays = 0
+  const current = new Date(start)
+
+  while (current <= end) {
+    if (!isNonWorkingDay(current)) {
+      workingDays++
+    }
+    current.setDate(current.getDate() + 1)
+  }
+
+  return workingDays
+}
+
+/**
+ * 기간 내에 휴일이 포함되어 있는지 확인
+ * @param startDate 시작 날짜
+ * @param endDate 종료 날짜
+ * @returns 휴일 포함 여부
+ */
+export function hasNonWorkingDayInRange(startDate: string | Date, endDate: string | Date): boolean {
+  const start = typeof startDate === 'string' ? new Date(startDate) : startDate
+  const end = typeof endDate === 'string' ? new Date(endDate) : endDate
+
+  const current = new Date(start)
+  while (current <= end) {
+    if (isNonWorkingDay(current)) {
+      return true
+    }
+    current.setDate(current.getDate() + 1)
+  }
+
+  return false
 }

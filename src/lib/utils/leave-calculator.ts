@@ -2,13 +2,19 @@
  * 대한민국 연차부여 시스템에 따른 연차 계산 유틸리티
  *
  * 규정:
- * - 입사 1년 미만: 입사 후 1개월마다 1개씩 연차 부여
- * - 입사 1년 이상: 매년 15개 연차 부여
- * - 입사 3년 이상: 매년 16개 연차 부여
- * - 입사 5년 이상: 매년 17개 연차 부여
- * - 입사 7년 이상: 매년 18개 연차 부여
- * - 입사 10년 이상: 매년 19개 연차 부여
- * - 입사 15년 이상: 매년 20개 연차 부여
+ * - 입사 1년 미만: 입사 후 매월 1일마다 1개씩 연차 부여 (월차)
+ * - 입사 1년차: 기존 월차 12개 + 15개의 월할 계산 (입사월부터 연말까지)
+ *   예) 5월 1일 입사 → 2020년: 12개(월차) + 15×(8/12)=10개 = 22개
+ * - 입사 1년 이후: 매년 1월 1일에 연차 리셋 및 증가
+ *   - 기본 15개 + 매년 0.5개씩 추가
+ *   - 미사용 연차는 매년 말 소멸
+ *   예) 2019년 5월 1일 입사
+ *       2020년: 22개
+ *       2021년: 15.5개 (리셋)
+ *       2022년: 16개 (리셋)
+ *       2023년: 16.5개 (리셋)
+ *       2024년: 17개 (리셋)
+ *       2025년: 17.5개 (리셋)
  */
 
 export interface LeaveCalculationResult {
@@ -28,30 +34,34 @@ export class LeaveCalculator {
    * @returns 연차 개수
    */
   public static calculateAnnualLeave(hireDate: Date, calculationDate: Date = new Date()): number {
-    const workDuration = this.calculateWorkDuration(hireDate, calculationDate)
+    const hire = new Date(hireDate)
+    const calc = new Date(calculationDate)
+    const workDuration = this.calculateWorkDuration(hire, calc)
 
-    // 입사 1년 미만인 경우
+    // 입사 1년 미만인 경우: 월차만 계산
     if (workDuration.years < 1) {
       return workDuration.months
     }
 
-    // 입사 1년 이상인 경우
-    return this.getAnnualLeaveByWorkYears(workDuration.years)
-  }
+    // 입사 1년 이상인 경우: 연도별 연차 계산
+    const hireYear = hire.getFullYear()
+    const hireMonth = hire.getMonth() // 0-11
+    const calcYear = calc.getFullYear()
 
-  /**
-   * 근속년수에 따른 연차 개수 반환
-   * @param workYears 근속년수
-   * @returns 연차 개수
-   */
-  private static getAnnualLeaveByWorkYears(workYears: number): number {
-    if (workYears < 1) return 0
-    if (workYears < 3) return 15
-    if (workYears < 5) return 16
-    if (workYears < 7) return 17
-    if (workYears < 10) return 18
-    if (workYears < 15) return 19
-    return 20
+    // 1년차 입사기념일
+    const oneYearAnniversary = new Date(hireYear + 1, hireMonth, 1)
+    const oneYearAnnivYear = oneYearAnniversary.getFullYear()
+
+    // 현재 연도가 1년차 연도인 경우: 월차 12개 + 15개의 월할
+    if (calcYear === oneYearAnnivYear) {
+      const remainingMonths = 12 - hireMonth
+      const proratedLeave = (15 * remainingMonths) / 12
+      return 12 + proratedLeave
+    }
+
+    // 1년차 이후: 15 + (현재 연도 - 1년차 연도) * 0.5
+    const yearsSinceOneYear = calcYear - oneYearAnnivYear
+    return 15 + yearsSinceOneYear * 0.5
   }
 
   /**
@@ -128,7 +138,7 @@ export class LeaveCalculator {
   }
 
   /**
-   * 연차 부여 예정일 계산 (입사 1년 미만인 경우)
+   * 연차 부여 예정일 계산
    * @param hireDate 입사일
    * @param calculationDate 계산 기준일
    * @returns 다음 연차 부여 예정일
@@ -137,20 +147,39 @@ export class LeaveCalculator {
     hireDate: Date,
     calculationDate: Date = new Date(),
   ): Date | null {
-    const workDuration = this.calculateWorkDuration(hireDate, calculationDate)
+    const hire = new Date(hireDate)
+    const calc = new Date(calculationDate)
+    const workDuration = this.calculateWorkDuration(hire, calc)
 
-    // 입사 1년 이상인 경우는 매년 1월 1일에 연차 부여
-    if (workDuration.years >= 1) {
-      const nextYear = new Date(calculationDate)
-      nextYear.setFullYear(nextYear.getFullYear() + 1)
-      nextYear.setMonth(0, 1) // 1월 1일
-      return nextYear
+    // 입사 1년 미만인 경우는 다음 달 1일
+    if (workDuration.years < 1) {
+      const nextMonth = new Date(hire)
+      nextMonth.setMonth(nextMonth.getMonth() + workDuration.months + 1)
+      nextMonth.setDate(1)
+      return nextMonth
     }
 
-    // 입사 1년 미만인 경우는 다음 달 입사일
-    const nextMonth = new Date(hireDate)
-    nextMonth.setMonth(nextMonth.getMonth() + workDuration.months + 1)
-    return nextMonth
+    // 입사 1년 이상인 경우: 다가오는 1월 1일 또는 입사기념일(X월 1일) 중 가까운 날짜
+    const hireMonth = hire.getMonth()
+    const calcYear = calc.getFullYear()
+    const calcMonth = calc.getMonth()
+    const calcDay = calc.getDate()
+
+    // 이번 연도의 1월 1일
+    const thisYearJan1 = new Date(calcYear, 0, 1)
+    // 이번 연도의 입사기념일
+    const thisYearAnniversary = new Date(calcYear, hireMonth, 1)
+    // 다음 연도의 1월 1일
+    const nextYearJan1 = new Date(calcYear + 1, 0, 1)
+
+    // 현재 날짜 이후의 가장 가까운 부여 예정일 찾기
+    if (thisYearJan1 > calc) {
+      return thisYearJan1
+    } else if (thisYearAnniversary > calc) {
+      return thisYearAnniversary
+    } else {
+      return nextYearJan1
+    }
   }
 
   /**
@@ -182,16 +211,39 @@ export class LeaveCalculator {
         })
       }
     } else {
-      // 입사 1년 이상인 경우 - 매년 연차 부여
-      for (let year = 1; year <= workDuration.years; year++) {
-        const grantDate = new Date(hireDate)
-        grantDate.setFullYear(grantDate.getFullYear() + year)
-        const annualLeave = this.getAnnualLeaveByWorkYears(year)
-        history.push({
-          date: grantDate,
-          grantedLeave: annualLeave,
-          reason: `입사 ${year}년차 연차 부여`,
-        })
+      // 입사 1년 이상인 경우 - 새로운 방식
+      const hire = new Date(hireDate)
+      const calc = new Date(calculationDate)
+      const hireYear = hire.getFullYear()
+      const hireMonth = hire.getMonth()
+      const calcYear = calc.getFullYear()
+      const calcMonth = calc.getMonth()
+      const calcDay = calc.getDate()
+
+      // 1년차 입사기념일: 기존 월차 12개 + 15개의 월할 계산
+      const oneYearAnniversary = new Date(hireYear + 1, hireMonth, 1)
+      const oneYearAnnivYear = oneYearAnniversary.getFullYear()
+      const remainingMonths = 12 - hireMonth
+      const proratedLeave = (15 * remainingMonths) / 12
+
+      history.push({
+        date: oneYearAnniversary,
+        grantedLeave: 12 + proratedLeave,
+        reason: `${oneYearAnnivYear}년 연차: 월차 12개 + 연차 월할(${remainingMonths}개월) ${proratedLeave.toFixed(1)}개 = ${(12 + proratedLeave).toFixed(1)}개`,
+      })
+
+      // 1년차 다음 해부터 매년 1월 1일에 새로운 연차 부여
+      for (let year = oneYearAnnivYear + 1; year <= calcYear; year++) {
+        const jan1 = new Date(year, 0, 1)
+        if (jan1 <= calc) {
+          const yearsSinceOneYear = year - oneYearAnnivYear
+          const yearlyLeave = 15 + yearsSinceOneYear * 0.5
+          history.push({
+            date: jan1,
+            grantedLeave: yearlyLeave,
+            reason: `${year}년 연차: 15 + ${yearsSinceOneYear} × 0.5 = ${yearlyLeave}개`,
+          })
+        }
       }
     }
 
