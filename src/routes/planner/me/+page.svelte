@@ -294,7 +294,10 @@
                           <h4 class="font-medium mb-1" style:color="var(--color-text-primary)">
                             {initiative.title}
                           </h4>
-                          <p class="text-xs mb-2 line-clamp-2" style:color="var(--color-text-secondary)">
+                          <p
+                            class="text-xs mb-2 line-clamp-2"
+                            style:color="var(--color-text-secondary)"
+                          >
                             {initiative.intent}
                           </p>
                           <div class="flex items-center gap-3 text-xs">
@@ -302,15 +305,23 @@
                               {initiative.milestone.name}
                             </span>
                             <span style:color="var(--color-text-tertiary)">
-                              목표: {new Date(initiative.milestone.target_date).toLocaleDateString('ko-KR')}
+                              목표: {new Date(initiative.milestone.target_date).toLocaleDateString(
+                                'ko-KR',
+                              )}
                             </span>
                           </div>
                         </div>
                         <span
                           class="ml-3 px-3 py-1.5 text-sm font-bold rounded-lg border-2 whitespace-nowrap"
-                          style:background={dday.isOverdue ? 'var(--color-red-light)' : 'var(--color-yellow-light)'}
-                          style:color={dday.isOverdue ? 'var(--color-red)' : 'var(--color-yellow-dark)'}
-                          style:border-color={dday.isOverdue ? 'var(--color-red)' : 'var(--color-yellow)'}
+                          style:background={dday.isOverdue
+                            ? 'var(--color-red-light)'
+                            : 'var(--color-yellow-light)'}
+                          style:color={dday.isOverdue
+                            ? 'var(--color-red)'
+                            : 'var(--color-yellow-dark)'}
+                          style:border-color={dday.isOverdue
+                            ? 'var(--color-red)'
+                            : 'var(--color-yellow)'}
                         >
                           {dday.text}
                         </span>

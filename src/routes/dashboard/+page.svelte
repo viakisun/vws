@@ -1,11 +1,7 @@
 <script lang="ts">
   import type { User } from '$lib/auth/user-service'
   import type { PageData } from './$types'
-  import type {
-    ProductWithOwner,
-    ProductStatus,
-    InitiativeWithOwner,
-  } from '$lib/planner/types'
+  import type { ProductWithOwner, ProductStatus, InitiativeWithOwner } from '$lib/planner/types'
   import { formatKoreanName } from '$lib/utils/format'
   import ThemeCard from '$lib/components/ui/ThemeCard.svelte'
   import ThemeGrid from '$lib/components/ui/ThemeGrid.svelte'

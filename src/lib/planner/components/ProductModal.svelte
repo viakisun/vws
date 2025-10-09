@@ -26,7 +26,9 @@
   let code = $state('')
   let description = $state('')
   let owner_id = $state('')
-  let status = $state<'planning' | 'development' | 'beta' | 'active' | 'maintenance' | 'sunset' | 'archived'>('active')
+  let status = $state<
+    'planning' | 'development' | 'beta' | 'active' | 'maintenance' | 'sunset' | 'archived'
+  >('active')
   let repository_url = $state('')
   let documentation_url = $state('')
   let category = $state('')

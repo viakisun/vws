@@ -8,7 +8,14 @@ export type FormationRole = 'driver' | 'contributor' | 'advisor' | 'observer'
 export type FormationBandwidth = 'full' | 'partial' | 'support'
 export type CadenceType = 'daily' | 'weekly' | 'biweekly' | 'async'
 export type EnergyState = 'aligned' | 'healthy' | 'strained' | 'blocked'
-export type ProductStatus = 'planning' | 'development' | 'beta' | 'active' | 'maintenance' | 'sunset' | 'archived'
+export type ProductStatus =
+  | 'planning'
+  | 'development'
+  | 'beta'
+  | 'active'
+  | 'maintenance'
+  | 'sunset'
+  | 'archived'
 export type MilestoneStatus = 'upcoming' | 'in_progress' | 'achieved' | 'missed'
 
 export interface ExternalLink {
