@@ -1,0 +1,22 @@
+# Build outputs
+node_modules/
+dist/
+build/
+coverage/
+.svelte-kit/
+
+# Logs and temp files
+*.log
+*.pid
+summary.txt
+.prettier-failures.txt
+eslint*.log
+prettier.log
+auto-validation.log
+
+# Reports
+.reports/
+eslint.*.json
+
+# GitHub workflows - ignore YAML linting
+.github/workflows/
