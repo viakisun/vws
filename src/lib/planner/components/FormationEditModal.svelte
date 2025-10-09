@@ -112,7 +112,11 @@
 
         <!-- Name -->
         <div>
-          <label for="name" class="block text-sm font-medium mb-1.5" style:color="var(--color-text-secondary)">
+          <label
+            for="name"
+            class="block text-sm font-medium mb-1.5"
+            style:color="var(--color-text-secondary)"
+          >
             이름 *
           </label>
           <input
@@ -130,7 +134,11 @@
 
         <!-- Description -->
         <div>
-          <label for="description" class="block text-sm font-medium mb-1.5" style:color="var(--color-text-secondary)">
+          <label
+            for="description"
+            class="block text-sm font-medium mb-1.5"
+            style:color="var(--color-text-secondary)"
+          >
             설명
           </label>
           <textarea
@@ -147,7 +155,11 @@
 
         <!-- Cadence Type -->
         <div>
-          <label for="cadence" class="block text-sm font-medium mb-1.5" style:color="var(--color-text-secondary)">
+          <label
+            for="cadence"
+            class="block text-sm font-medium mb-1.5"
+            style:color="var(--color-text-secondary)"
+          >
             주기
           </label>
           <select
@@ -171,7 +183,11 @@
         <!-- Cadence Anchor Time -->
         {#if formData.cadence_type !== 'async'}
           <div>
-            <label for="anchor-time" class="block text-sm font-medium mb-1.5" style:color="var(--color-text-secondary)">
+            <label
+              for="anchor-time"
+              class="block text-sm font-medium mb-1.5"
+              style:color="var(--color-text-secondary)"
+            >
               싱크 시간 (선택)
             </label>
             <input
@@ -191,7 +207,11 @@
 
         <!-- Energy State -->
         <div>
-          <label for="energy" class="block text-sm font-medium mb-1.5" style:color="var(--color-text-secondary)">
+          <label
+            for="energy"
+            class="block text-sm font-medium mb-1.5"
+            style:color="var(--color-text-secondary)"
+          >
             에너지 상태
           </label>
           <select

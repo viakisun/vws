@@ -319,11 +319,7 @@
     <!-- Kanban Board -->
     <div class="grid grid-cols-3 gap-4">
       <!-- INBOX Column -->
-      <div
-        class="flex flex-col"
-        ondragover={handleDragOver}
-        ondrop={(e) => handleDrop('todo', e)}
-      >
+      <div class="flex flex-col" ondragover={handleDragOver} ondrop={(e) => handleDrop('todo', e)}>
         <div
           class="mb-3 p-2 rounded-lg text-center font-semibold text-sm"
           style:background="var(--color-gray-100)"
@@ -425,7 +421,10 @@
                 style:box-shadow="0 1px 3px rgba(0,0,0,0.1)"
               >
                 <div class="flex items-start gap-2 mb-2">
-                  <div class="opacity-40 group-hover:opacity-100 transition" style:color="var(--color-text-tertiary)">
+                  <div
+                    class="opacity-40 group-hover:opacity-100 transition"
+                    style:color="var(--color-text-tertiary)"
+                  >
                     <GripVerticalIcon size={16} />
                   </div>
                   <div class="flex-1">
@@ -597,7 +596,10 @@
                 style:box-shadow="0 1px 3px rgba(59, 130, 246, 0.15)"
               >
                 <div class="flex items-start gap-2 mb-2">
-                  <div class="opacity-40 group-hover:opacity-100 transition" style:color="var(--color-blue-600)">
+                  <div
+                    class="opacity-40 group-hover:opacity-100 transition"
+                    style:color="var(--color-blue-600)"
+                  >
                     <GripVerticalIcon size={16} />
                   </div>
                   <div class="flex-1">
@@ -663,11 +665,7 @@
       </div>
 
       <!-- DONE Column -->
-      <div
-        class="flex flex-col"
-        ondragover={handleDragOver}
-        ondrop={(e) => handleDrop('done', e)}
-      >
+      <div class="flex flex-col" ondragover={handleDragOver} ondrop={(e) => handleDrop('done', e)}>
         <div
           class="mb-3 p-2 rounded-lg text-center font-semibold text-sm"
           style:background="var(--color-green-100)"
@@ -686,7 +684,10 @@
               style:box-shadow="0 1px 3px rgba(34, 197, 94, 0.15)"
             >
               <div class="flex items-start gap-2 mb-2">
-                <div class="opacity-40 group-hover:opacity-100 transition" style:color="var(--color-green-600)">
+                <div
+                  class="opacity-40 group-hover:opacity-100 transition"
+                  style:color="var(--color-green-600)"
+                >
                   <GripVerticalIcon size={16} />
                 </div>
                 <div class="flex-1">

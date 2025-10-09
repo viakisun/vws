@@ -69,21 +69,15 @@
             // Filter active employees only and use 'employees' key
             const allEmployees = data.employees || []
             employees = allEmployees.filter((emp: any) => emp.status === 'active')
-            console.log('Loaded employees:', employees.length)
-          } else {
-            console.error('Failed to load employees:', employeesRes.status)
           }
 
           if (formationsRes.ok) {
             const data = await formationsRes.json()
             formations = data.data || []
-            console.log('Loaded formations:', formations.length, formations)
-          } else {
-            console.error('Failed to load formations:', formationsRes.status, await formationsRes.text())
           }
         })
-        .catch((e) => {
-          console.error('Failed to load data:', e)
+        .catch(() => {
+          // Failed to load data
         })
         .finally(() => {
           loadingData = false
@@ -118,11 +112,9 @@
         formation_id: formationId || null,
         milestone_id: milestoneId || null,
       }
-      console.log('Submitting initiative details:', updateData)
       await onSave(updateData)
       onClose()
     } catch (e) {
-      console.error('Failed to save details:', e)
       alert(e instanceof Error ? e.message : 'Failed to update details')
     } finally {
       saving = false
@@ -157,7 +149,11 @@
       <div class="space-y-4">
         <!-- Owner -->
         <div>
-          <label for="owner-select" class="block text-sm font-medium mb-2" style:color="var(--color-text-secondary)">
+          <label
+            for="owner-select"
+            class="block text-sm font-medium mb-2"
+            style:color="var(--color-text-secondary)"
+          >
             Owner
           </label>
           <select
@@ -178,7 +174,11 @@
 
         <!-- Team (Formation) -->
         <div>
-          <label for="formation-select" class="block text-sm font-medium mb-2" style:color="var(--color-text-secondary)">
+          <label
+            for="formation-select"
+            class="block text-sm font-medium mb-2"
+            style:color="var(--color-text-secondary)"
+          >
             포메이션
           </label>
           <select
@@ -244,7 +244,11 @@
 
         <!-- Target Date -->
         <div>
-          <label for="target-date" class="block text-sm font-medium mb-2" style:color="var(--color-text-secondary)">
+          <label
+            for="target-date"
+            class="block text-sm font-medium mb-2"
+            style:color="var(--color-text-secondary)"
+          >
             Target Date
           </label>
           <input

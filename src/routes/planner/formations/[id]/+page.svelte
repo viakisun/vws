@@ -220,7 +220,10 @@
   }
 
   async function deleteFormation() {
-    if (!confirm('이 포메이션을 삭제하시겠습니까?\n연결된 이니셔티브와 멤버 정보도 모두 삭제됩니다.')) return
+    if (
+      !confirm('이 포메이션을 삭제하시겠습니까?\n연결된 이니셔티브와 멤버 정보도 모두 삭제됩니다.')
+    )
+      return
 
     try {
       const res = await fetch(`/api/planner/formations/${formation?.id}`, {
@@ -495,7 +498,7 @@
 
   <FormationEditModal
     bind:open={showFormationEditModal}
-    formation={formation}
+    {formation}
     onclose={() => {
       showFormationEditModal = false
     }}

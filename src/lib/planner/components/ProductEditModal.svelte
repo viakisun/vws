@@ -146,7 +146,11 @@
 
         <!-- Product Name -->
         <div>
-          <label for="name" class="block text-sm font-medium mb-1.5" style:color="var(--color-text-secondary)">
+          <label
+            for="name"
+            class="block text-sm font-medium mb-1.5"
+            style:color="var(--color-text-secondary)"
+          >
             제품명 *
           </label>
           <input
@@ -163,7 +167,11 @@
 
         <!-- Product Code -->
         <div>
-          <label for="code" class="block text-sm font-medium mb-1.5" style:color="var(--color-text-secondary)">
+          <label
+            for="code"
+            class="block text-sm font-medium mb-1.5"
+            style:color="var(--color-text-secondary)"
+          >
             제품 코드 *
           </label>
           <input
@@ -184,7 +192,11 @@
 
         <!-- Category -->
         <div>
-          <label for="category" class="block text-sm font-medium mb-1.5" style:color="var(--color-text-secondary)">
+          <label
+            for="category"
+            class="block text-sm font-medium mb-1.5"
+            style:color="var(--color-text-secondary)"
+          >
             카테고리
           </label>
           <select
@@ -203,7 +215,11 @@
 
         <!-- Description -->
         <div>
-          <label for="description" class="block text-sm font-medium mb-1.5" style:color="var(--color-text-secondary)">
+          <label
+            for="description"
+            class="block text-sm font-medium mb-1.5"
+            style:color="var(--color-text-secondary)"
+          >
             설명
           </label>
           <textarea
@@ -220,7 +236,11 @@
 
         <!-- Repository URL -->
         <div>
-          <label for="repository_url" class="block text-sm font-medium mb-1.5" style:color="var(--color-text-secondary)">
+          <label
+            for="repository_url"
+            class="block text-sm font-medium mb-1.5"
+            style:color="var(--color-text-secondary)"
+          >
             저장소 URL
           </label>
           <input
@@ -237,7 +257,11 @@
 
         <!-- Documentation URL -->
         <div>
-          <label for="documentation_url" class="block text-sm font-medium mb-1.5" style:color="var(--color-text-secondary)">
+          <label
+            for="documentation_url"
+            class="block text-sm font-medium mb-1.5"
+            style:color="var(--color-text-secondary)"
+          >
             문서 URL
           </label>
           <input
@@ -254,7 +278,11 @@
 
         <!-- Status -->
         <div>
-          <label for="status" class="block text-sm font-medium mb-1.5" style:color="var(--color-text-secondary)">
+          <label
+            for="status"
+            class="block text-sm font-medium mb-1.5"
+            style:color="var(--color-text-secondary)"
+          >
             상태
           </label>
           <select

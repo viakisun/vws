@@ -186,10 +186,7 @@
   </div>
 
   {#if error}
-    <div
-      class="p-4 rounded-lg border border-red-200 bg-red-50"
-      style:color="var(--color-error)"
-    >
+    <div class="p-4 rounded-lg border border-red-200 bg-red-50" style:color="var(--color-error)">
       {error}
     </div>
   {/if}

@@ -134,7 +134,12 @@
     subtitle="프로젝트 실행을 위한 크로스펑셔널 포메이션 구성"
     {stats}
     actions={[
-      { label: '새 포메이션 구성', variant: 'primary', icon: UsersIcon, href: '/planner/formations/new' },
+      {
+        label: '새 포메이션 구성',
+        variant: 'primary',
+        icon: UsersIcon,
+        href: '/planner/formations/new',
+      },
     ]}
   >
     {#if formations.length === 0}
@@ -145,7 +150,9 @@
             class="mx-auto mb-4 opacity-30"
             style="color: var(--color-text-tertiary);"
           />
-          <p class="text-sm mb-4" style:color="var(--color-text-secondary)">아직 포메이션이 없습니다</p>
+          <p class="text-sm mb-4" style:color="var(--color-text-secondary)">
+            아직 포메이션이 없습니다
+          </p>
           <a href="/planner/formations/new">
             <ThemeButton variant="primary" size="md">
               <UsersIcon size={18} />
