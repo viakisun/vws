@@ -241,9 +241,7 @@
               class:bg-gray-100={isAchieved}
               class:border-gray-400={isAchieved}
               style:background={!isInProgress && !isAchieved ? 'var(--color-surface)' : undefined}
-              style:border-color={!isInProgress && !isAchieved
-                ? 'var(--color-border)'
-                : undefined}
+              style:border-color={!isInProgress && !isAchieved ? 'var(--color-border)' : undefined}
             >
               <div class="flex items-start justify-between mb-2">
                 <div class="flex-1">
@@ -266,7 +264,10 @@
                       </p>
                     {/if}
                   </div>
-                  <div class="flex items-center gap-4 text-xs" style:color="var(--color-text-tertiary)">
+                  <div
+                    class="flex items-center gap-4 text-xs"
+                    style:color="var(--color-text-tertiary)"
+                  >
                     <span>목표일: {formatDate(milestone.target_date)}</span>
                     <span>{milestone.initiative_count}개 이니셔티브</span>
                   </div>

@@ -325,7 +325,10 @@
                           <div class="flex-1">
                             <!-- Product / Milestone / Title -->
                             {#if initiative.product || initiative.milestone}
-                              <div class="flex items-center gap-2 mb-1 text-xs" style:color="var(--color-text-tertiary)">
+                              <div
+                                class="flex items-center gap-2 mb-1 text-xs"
+                                style:color="var(--color-text-tertiary)"
+                              >
                                 {#if initiative.product}
                                   <span>{initiative.product.name}</span>
                                 {/if}
@@ -396,7 +399,10 @@
                           <div class="flex-1">
                             <!-- Product / Milestone / Title -->
                             {#if initiative.product || initiative.milestone}
-                              <div class="flex items-center gap-2 mb-1 text-xs" style:color="var(--color-text-tertiary)">
+                              <div
+                                class="flex items-center gap-2 mb-1 text-xs"
+                                style:color="var(--color-text-tertiary)"
+                              >
                                 {#if initiative.product}
                                   <span>{initiative.product.name}</span>
                                 {/if}

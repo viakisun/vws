@@ -77,7 +77,11 @@
     {#if selectedMilestoneId}
       {@const selected = milestones.find((m) => m.id === selectedMilestoneId)}
       {#if selected}
-        <div class="mb-2 px-3 py-2 rounded border" style:background="var(--color-surface-secondary)" style:border-color="var(--color-border)">
+        <div
+          class="mb-2 px-3 py-2 rounded border"
+          style:background="var(--color-surface-secondary)"
+          style:border-color="var(--color-border)"
+        >
           <div class="flex items-center justify-between">
             <div>
               <div class="text-sm font-medium" style:color="var(--color-text-primary)">
@@ -89,13 +93,18 @@
                 </div>
               {/if}
             </div>
-            <span class="text-xs px-2 py-1 rounded"
+            <span
+              class="text-xs px-2 py-1 rounded"
               class:bg-green-100={selected.status === 'in_progress'}
               class:text-green-700={selected.status === 'in_progress'}
               class:bg-gray-100={selected.status === 'upcoming' || selected.status === 'achieved'}
               class:text-gray-600={selected.status === 'upcoming' || selected.status === 'achieved'}
             >
-              {selected.status === 'in_progress' ? '진행중' : selected.status === 'achieved' ? '달성' : '예정'}
+              {selected.status === 'in_progress'
+                ? '진행중'
+                : selected.status === 'achieved'
+                  ? '달성'
+                  : '예정'}
             </span>
           </div>
         </div>
