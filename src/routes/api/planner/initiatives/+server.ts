@@ -1,11 +1,7 @@
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
 import { initiativeService } from '$lib/planner/services/initiative.service'
-import type {
-  CreateInitiativeInput,
-  InitiativeFilters,
-  InitiativeStatus,
-} from '$lib/planner/types'
+import type { CreateInitiativeInput, InitiativeFilters, InitiativeStatus } from '$lib/planner/types'
 
 // List initiatives with filters
 export const GET: RequestHandler = async ({ url, locals }) => {
