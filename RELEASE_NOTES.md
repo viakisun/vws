@@ -1,5 +1,69 @@
 # VWS Release Notes
 
+## Version 0.4.0 (2025-10-09)
+
+### ✨ Features
+
+#### Planner System Enhancements
+
+- **Milestone-Initiative Connection**: Full integration of milestone tracking with initiatives
+  - Added MilestoneSelector component with status-based grouping (진행중, 예정, 달성, 미달성)
+  - Display milestone in initiative header breadcrumb (Product / Milestone / Title)
+  - Show milestone badges in initiative cards and lists
+  - Filter initiatives by milestone
+
+- **INBOX Status Workflow**: New initiative status for better workflow management
+  - Added 'inbox' status to initiative lifecycle
+  - Bidirectional transitions: inbox ↔ active ↔ paused
+  - Updated UI components to support inbox state
+
+- **Visual TODO Indicators**: Improved user experience with clear visual cues
+  - Red borders and backgrounds for unassigned team/target date
+  - Warning icons with descriptive messages
+  - Intuitive indication of required actions
+
+- **Flexible Stage Transitions**: Removed all stage transition restrictions
+  - Free movement between any stage (Shaping → Building → Testing → Shipping → Done)
+  - No status requirements for stage changes
+  - Simplified workflow for better flexibility
+
+- **Improved Stage Stepper UI**: Complete redesign of stage progression interface
+  - Card-based layout with uniform sizing
+  - English labels (Shaping, Building, Testing, Shipping, Done)
+  - Center-aligned layout with consistent spacing
+  - Stage #1-5 numbering for clarity
+
+### 🔧 Technical Improvements
+
+- **TypeScript Type Safety**: Fixed 11 TypeScript compilation errors
+  - Corrected InitiativeState → InitiativeStage naming
+  - Fixed Record<string, unknown> compatibility in ActivityLog
+  - Updated import paths and auth handling
+
+- **ESLint Configuration**: Improved linting setup
+  - Added .eslintignore to exclude GitHub workflows
+  - Prevented YAML linting warnings in CI/CD pipeline
+
+- **Code Quality**:
+  - Prettier formatting applied consistently
+  - Type-safe milestone handling throughout the system
+  - Clean component composition patterns
+
+### 📊 Database Changes
+
+- Updated `planner_initiatives` table constraints to include 'inbox' status
+- Added milestone_id foreign key support in initiative queries
+- Enhanced JOIN queries for milestone data retrieval
+
+### 🎨 UI/UX Improvements
+
+- Product/Milestone hierarchy display across all planner views
+- Simplified milestone selector with clean date formatting (10. 14.)
+- Consistent visual language for warnings and alerts
+- Improved stage stepper alignment and spacing
+
+---
+
 ## Version 0.3.3 (2025-10-08)
 
 ### ✨ Features

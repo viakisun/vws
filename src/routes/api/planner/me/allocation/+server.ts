@@ -1,16 +1,16 @@
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
-import { DatabaseService } from '$lib/database/database.service'
+import { DatabaseService } from '$lib/database/connection'
 
 // GET: Calculate total allocation for current user
 export const GET: RequestHandler = async ({ locals }) => {
   try {
-    const session = await locals.auth()
-    if (!session?.user?.employee_id) {
+    const user = locals.user
+    if (!user?.employee_id) {
       return json({ success: false, error: 'Unauthorized' }, { status: 401 })
     }
 
-    const employeeId = session.user.employee_id
+    const employeeId = user.employee_id
 
     // Get all formations where user is a member with their allocations
     const result = await DatabaseService.query(

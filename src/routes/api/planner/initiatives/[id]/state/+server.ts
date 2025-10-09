@@ -1,9 +1,9 @@
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
 import { initiativeService } from '$lib/planner/services/initiative.service'
-import type { InitiativeState } from '$lib/planner/types'
+import type { InitiativeStage } from '$lib/planner/types'
 
-// Change initiative state
+// Change initiative stage
 export const POST: RequestHandler = async ({ params, request, locals }) => {
   try {
     const user = locals.user
@@ -12,23 +12,23 @@ export const POST: RequestHandler = async ({ params, request, locals }) => {
     }
 
     const body = await request.json()
-    const newState = body.state as InitiativeState
+    const newStage = body.stage as InitiativeStage
     const metadata = {
       reason: body.reason,
       notes: body.notes,
     }
 
-    if (!newState) {
+    if (!newStage) {
       return json(
         {
           success: false,
-          error: 'Missing required field: state',
+          error: 'Missing required field: stage',
         },
         { status: 400 },
       )
     }
 
-    const initiative = await initiativeService.changeState(params.id, newState, user.id, metadata)
+    const initiative = await initiativeService.changeStage(params.id, newStage, user.id)
 
     if (!initiative) {
       return json({ success: false, error: 'Initiative not found' }, { status: 404 })
@@ -39,11 +39,11 @@ export const POST: RequestHandler = async ({ params, request, locals }) => {
       data: initiative,
     })
   } catch (error) {
-    console.error('Failed to change initiative state:', error)
+    console.error('Failed to change initiative stage:', error)
     return json(
       {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to change initiative state',
+        error: error instanceof Error ? error.message : 'Failed to change initiative stage',
       },
       { status: 500 },
     )

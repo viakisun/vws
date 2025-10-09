@@ -1,7 +1,11 @@
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
 import { initiativeService } from '$lib/planner/services/initiative.service'
-import type { CreateInitiativeInput, InitiativeFilters } from '$lib/planner/types'
+import type {
+  CreateInitiativeInput,
+  InitiativeFilters,
+  InitiativeStatus,
+} from '$lib/planner/types'
 
 // List initiatives with filters
 export const GET: RequestHandler = async ({ url, locals }) => {
@@ -14,9 +18,9 @@ export const GET: RequestHandler = async ({ url, locals }) => {
     // Parse filters from query params
     const filters: InitiativeFilters = {}
 
-    const state = url.searchParams.get('state')
-    if (state) {
-      filters.state = state.split(',') as any
+    const status = url.searchParams.get('status')
+    if (status) {
+      filters.status = status.split(',') as InitiativeStatus[]
     }
 
     const owner_id = url.searchParams.get('owner_id')

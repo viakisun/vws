@@ -361,8 +361,8 @@ export class InitiativeService {
         entity_id: id,
         action: 'updated',
         actor_id: actorId,
-        old_value: current,
-        new_value: updated,
+        old_value: current as unknown as Record<string, unknown>,
+        new_value: updated as unknown as Record<string, unknown>,
       })
     }
 
@@ -503,7 +503,7 @@ export class InitiativeService {
       entity_id: id,
       action: 'deleted',
       actor_id: actorId,
-      old_value: current,
+      old_value: current as unknown as Record<string, unknown>,
     })
 
     return true
