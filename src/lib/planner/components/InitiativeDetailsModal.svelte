@@ -134,9 +134,7 @@
       style:border-color="var(--color-border)"
     >
       <div class="mb-4">
-        <h2 class="text-xl font-semibold" style:color="var(--color-text-primary)">
-          Edit Details
-        </h2>
+        <h2 class="text-xl font-semibold" style:color="var(--color-text-primary)">Edit Details</h2>
       </div>
 
       <div class="space-y-4">
@@ -231,9 +229,7 @@
 
       <!-- Actions -->
       <div class="flex justify-end gap-2 mt-6">
-        <ThemeButton variant="ghost" onclick={onClose} disabled={saving}>
-          Cancel
-        </ThemeButton>
+        <ThemeButton variant="ghost" onclick={onClose} disabled={saving}>Cancel</ThemeButton>
         <ThemeButton variant="primary" onclick={handleSubmit} disabled={saving}>
           {saving ? 'Saving...' : 'Save Changes'}
         </ThemeButton>

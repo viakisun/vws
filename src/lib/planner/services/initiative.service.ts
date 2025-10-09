@@ -75,6 +75,13 @@ export class InitiativeService {
           'department', e.department,
           'position', e.position
         ) as owner,
+        CASE WHEN p.id IS NOT NULL THEN
+          json_build_object(
+            'id', p.id,
+            'name', p.name,
+            'description', p.description
+          )
+        ELSE NULL END as product,
         CASE WHEN f.id IS NOT NULL THEN
           json_build_object(
             'id', f.id,
@@ -99,6 +106,7 @@ export class InitiativeService {
         ) as thread_counts
       FROM planner_initiatives i
       JOIN employees e ON e.id = i.owner_id
+      LEFT JOIN planner_products p ON p.id = i.product_id AND p.deleted_at IS NULL
       LEFT JOIN planner_formations f ON f.id = i.formation_id AND f.deleted_at IS NULL
       WHERE i.id = $1 AND i.deleted_at IS NULL`,
       [id],

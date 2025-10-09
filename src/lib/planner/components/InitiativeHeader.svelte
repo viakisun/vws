@@ -45,20 +45,26 @@
 </script>
 
 <!-- Breadcrumb -->
-<div class="mb-4 flex items-center gap-2 text-sm" style:color="var(--color-text-tertiary)">
+<div class="mb-6 flex items-center gap-2 text-sm" style:color="var(--color-text-tertiary)">
   <a href="/planner" class="hover:underline">플래너</a>
   <span>/</span>
-  {#if initiative.product}
+  {#if !initiative.product}
+    <span style:color="var(--color-error)">⚠ 제품 정보 없음</span>
+  {:else}
     <a href="/planner/products/{initiative.product.id}" class="hover:underline">
       {initiative.product.name}
     </a>
     <span>/</span>
+    <span style:color="var(--color-text-secondary)">{initiative.title}</span>
   {/if}
-  <span style:color="var(--color-text-secondary)">{initiative.title}</span>
 </div>
 
 <!-- Main Info Section -->
-<div class="rounded-lg border p-6 mb-4" style:background="var(--color-surface)" style:border-color="var(--color-border)">
+<div
+  class="rounded-lg border p-6 mb-4"
+  style:background="var(--color-surface)"
+  style:border-color="var(--color-border)"
+>
   <div class="flex items-center gap-2 mb-4">
     <span class="px-2 py-1 text-xs font-medium rounded bg-purple-100 text-purple-700">
       이니셔티브
@@ -100,9 +106,26 @@
     </select>
   </div>
 
-  <h1 class="text-2xl font-bold mb-3" style:color="var(--color-text-primary)">
-    {initiative.title}
-  </h1>
+  <!-- Title with Product Name -->
+  <div class="mb-3">
+    {#if !initiative.product}
+      <div class="flex items-center gap-2 mb-2 px-3 py-2 rounded bg-red-50 border border-red-200">
+        <span class="text-sm font-medium" style:color="var(--color-error)">
+          ⚠ 이 이니셔티브에 제품 정보가 연결되어 있지 않습니다.
+        </span>
+      </div>
+    {:else}
+      <div class="flex items-center gap-2 mb-1">
+        <span class="text-lg font-light" style:color="var(--color-text-tertiary)">
+          {initiative.product.name}
+        </span>
+        <span style:color="var(--color-text-tertiary)">/</span>
+      </div>
+    {/if}
+    <h1 class="text-2xl font-bold" style:color="var(--color-text-primary)">
+      {initiative.title}
+    </h1>
+  </div>
 
   <p class="text-sm" style:color="var(--color-text-secondary)">
     {initiative.intent}
@@ -110,47 +133,102 @@
 </div>
 
 <!-- Details Section -->
-<div class="rounded-lg border p-6" style:background="var(--color-surface)" style:border-color="var(--color-border)">
+<div
+  class="rounded-lg border p-6"
+  style:background="var(--color-surface)"
+  style:border-color="var(--color-border)"
+>
   <SectionHeader title="Details">
     {#if onEditDetails}
       <SectionActionButton onclick={onEditDetails}>Edit</SectionActionButton>
     {/if}
   </SectionHeader>
 
-  <div class="space-y-4">
+  <div class="space-y-6">
     <!-- Success Criteria -->
     {#if initiative.success_criteria && initiative.success_criteria.length > 0}
       <div>
-        <div class="text-xs font-semibold mb-2" style:color="var(--color-text-tertiary)">
+        <div
+          class="text-xs font-semibold uppercase tracking-wide mb-3"
+          style:color="var(--color-text-tertiary)"
+        >
           Success Criteria
         </div>
-        <ul class="space-y-1">
-          {#each initiative.success_criteria as criterion}
-            <li class="text-sm flex items-start gap-2" style:color="var(--color-text-secondary)">
-              <span class="text-green-500 flex-shrink-0">✓</span>
-              <span>{criterion}</span>
-            </li>
+        <div
+          class="rounded-lg border p-4 space-y-2"
+          style:background="var(--color-surface-secondary)"
+          style:border-color="var(--color-border)"
+        >
+          {#each initiative.success_criteria as criterion, i}
+            <div class="flex items-start gap-3">
+              <div
+                class="flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-xs font-semibold text-white bg-green-500"
+              >
+                {i + 1}
+              </div>
+              <p class="text-sm pt-0.5" style:color="var(--color-text-primary)">
+                {criterion}
+              </p>
+            </div>
           {/each}
-        </ul>
+        </div>
       </div>
     {/if}
 
-    <!-- Meta Info -->
-    <div class="flex flex-col gap-2 text-sm">
-      <div class="flex items-center gap-2">
-        <span style:color="var(--color-text-tertiary)">Owner:</span>
-        <strong style:color="var(--color-text-secondary)">{formatKoreanName(initiative.owner.last_name, initiative.owner.first_name)}</strong>
+    <!-- Meta Info Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <!-- Owner Card -->
+      <div
+        class="rounded-lg border p-4"
+        style:background="var(--color-surface-secondary)"
+        style:border-color="var(--color-border)"
+      >
+        <div
+          class="text-xs font-semibold uppercase tracking-wide mb-2"
+          style:color="var(--color-text-tertiary)"
+        >
+          Owner
+        </div>
+        <div class="text-sm font-medium" style:color="var(--color-text-primary)">
+          {formatKoreanName(initiative.owner.last_name, initiative.owner.first_name)}
+        </div>
       </div>
+
+      <!-- Team Card -->
       {#if initiative.formation}
-        <div class="flex items-center gap-2">
-          <span style:color="var(--color-text-tertiary)">Team:</span>
-          <strong style:color="var(--color-text-secondary)">{initiative.formation.name}</strong>
+        <div
+          class="rounded-lg border p-4"
+          style:background="var(--color-surface-secondary)"
+          style:border-color="var(--color-border)"
+        >
+          <div
+            class="text-xs font-semibold uppercase tracking-wide mb-2"
+            style:color="var(--color-text-tertiary)"
+          >
+            Team
+          </div>
+          <div class="text-sm font-medium" style:color="var(--color-text-primary)">
+            {initiative.formation.name}
+          </div>
         </div>
       {/if}
+
+      <!-- Target Date Card -->
       {#if initiative.horizon}
-        <div class="flex items-center gap-2">
-          <span style:color="var(--color-text-tertiary)">Target Date:</span>
-          <strong style:color="var(--color-text-secondary)">{new Date(initiative.horizon).toLocaleDateString('ko-KR')}</strong>
+        <div
+          class="rounded-lg border p-4"
+          style:background="var(--color-surface-secondary)"
+          style:border-color="var(--color-border)"
+        >
+          <div
+            class="text-xs font-semibold uppercase tracking-wide mb-2"
+            style:color="var(--color-text-tertiary)"
+          >
+            Target Date
+          </div>
+          <div class="text-sm font-medium" style:color="var(--color-text-primary)">
+            {new Date(initiative.horizon).toLocaleDateString('ko-KR')}
+          </div>
         </div>
       {/if}
     </div>

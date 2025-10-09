@@ -9,14 +9,31 @@
     todos: TodoWithAssignee[]
     showAddForm: boolean
     adding: boolean
-    onAddTodo: (input: { title: string; description?: string; assignee_id?: string; due_date?: string }) => Promise<void>
-    onUpdateTodo: (todoId: string, input: { status?: 'todo' | 'in_progress' | 'done' }) => Promise<void>
+    onAddTodo: (input: {
+      title: string
+      description?: string
+      assignee_id?: string
+      due_date?: string
+    }) => Promise<void>
+    onUpdateTodo: (
+      todoId: string,
+      input: { status?: 'todo' | 'in_progress' | 'done' },
+    ) => Promise<void>
     onDeleteTodo: (todoId: string) => Promise<void>
     onToggleForm: () => void
     onCloseForm: () => void
   }
 
-  let { todos, showAddForm, adding, onAddTodo, onUpdateTodo, onDeleteTodo, onToggleForm, onCloseForm }: Props = $props()
+  let {
+    todos,
+    showAddForm,
+    adding,
+    onAddTodo,
+    onUpdateTodo,
+    onDeleteTodo,
+    onToggleForm,
+    onCloseForm,
+  }: Props = $props()
 
   let newTitle = $state('')
   let newDescription = $state('')
@@ -61,7 +78,11 @@
   })
 </script>
 
-<div class="rounded-lg border p-6" style:background="var(--color-surface)" style:border-color="var(--color-border)">
+<div
+  class="rounded-lg border p-6"
+  style:background="var(--color-surface)"
+  style:border-color="var(--color-border)"
+>
   <SectionHeader title="To-do" count={todos.length}>
     <SectionActionButton onclick={onToggleForm}>
       {showAddForm ? 'Cancel' : '+ Add To-do'}
@@ -69,7 +90,11 @@
   </SectionHeader>
 
   {#if showAddForm}
-    <div class="mb-4 p-4 rounded-lg border" style:background="var(--color-surface-secondary)" style:border-color="var(--color-border)">
+    <div
+      class="mb-4 p-4 rounded-lg border"
+      style:background="var(--color-surface-secondary)"
+      style:border-color="var(--color-border)"
+    >
       <input
         type="text"
         bind:value={newTitle}
@@ -89,7 +114,12 @@
         style:border-color="var(--color-border)"
       ></textarea>
       <div class="flex gap-2">
-        <ThemeButton variant="primary" size="sm" onclick={handleSubmit} disabled={adding || !newTitle.trim()}>
+        <ThemeButton
+          variant="primary"
+          size="sm"
+          onclick={handleSubmit}
+          disabled={adding || !newTitle.trim()}
+        >
           {adding ? '추가 중...' : '추가'}
         </ThemeButton>
         <ThemeButton variant="ghost" size="sm" onclick={onCloseForm} disabled={adding}>
@@ -110,7 +140,10 @@
           <h4 class="text-sm font-semibold mb-2 text-gray-600">할 일</h4>
           <div class="space-y-2">
             {#each todosByStatus.todo as todo}
-              <div class="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 transition" style:border="1px solid var(--color-border)">
+              <div
+                class="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 transition"
+                style:border="1px solid var(--color-border)"
+              >
                 <input
                   type="checkbox"
                   checked={false}
@@ -118,9 +151,13 @@
                   class="mt-1 cursor-pointer"
                 />
                 <div class="flex-1">
-                  <div class="font-medium" style:color="var(--color-text-primary)">{todo.title}</div>
+                  <div class="font-medium" style:color="var(--color-text-primary)">
+                    {todo.title}
+                  </div>
                   {#if todo.description}
-                    <div class="text-sm mt-1" style:color="var(--color-text-secondary)">{todo.description}</div>
+                    <div class="text-sm mt-1" style:color="var(--color-text-secondary)">
+                      {todo.description}
+                    </div>
                   {/if}
                   {#if todo.assignee}
                     <div class="text-xs mt-1" style:color="var(--color-text-tertiary)">
@@ -145,7 +182,10 @@
           <h4 class="text-sm font-semibold mb-2 text-blue-600">진행 중</h4>
           <div class="space-y-2">
             {#each todosByStatus.in_progress as todo}
-              <div class="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 transition bg-blue-50" style:border="1px solid var(--color-border)">
+              <div
+                class="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 transition bg-blue-50"
+                style:border="1px solid var(--color-border)"
+              >
                 <input
                   type="checkbox"
                   checked={false}
@@ -153,9 +193,13 @@
                   class="mt-1 cursor-pointer"
                 />
                 <div class="flex-1">
-                  <div class="font-medium" style:color="var(--color-text-primary)">{todo.title}</div>
+                  <div class="font-medium" style:color="var(--color-text-primary)">
+                    {todo.title}
+                  </div>
                   {#if todo.description}
-                    <div class="text-sm mt-1" style:color="var(--color-text-secondary)">{todo.description}</div>
+                    <div class="text-sm mt-1" style:color="var(--color-text-secondary)">
+                      {todo.description}
+                    </div>
                   {/if}
                   {#if todo.assignee}
                     <div class="text-xs mt-1" style:color="var(--color-text-tertiary)">
@@ -186,7 +230,10 @@
           <h4 class="text-sm font-semibold mb-2 text-green-600">완료</h4>
           <div class="space-y-2">
             {#each todosByStatus.done as todo}
-              <div class="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 transition bg-green-50 opacity-75" style:border="1px solid var(--color-border)">
+              <div
+                class="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 transition bg-green-50 opacity-75"
+                style:border="1px solid var(--color-border)"
+              >
                 <input
                   type="checkbox"
                   checked={true}
@@ -194,9 +241,13 @@
                   class="mt-1 cursor-pointer"
                 />
                 <div class="flex-1">
-                  <div class="font-medium line-through" style:color="var(--color-text-secondary)">{todo.title}</div>
+                  <div class="font-medium line-through" style:color="var(--color-text-secondary)">
+                    {todo.title}
+                  </div>
                   {#if todo.description}
-                    <div class="text-sm mt-1 line-through" style:color="var(--color-text-tertiary)">{todo.description}</div>
+                    <div class="text-sm mt-1 line-through" style:color="var(--color-text-tertiary)">
+                      {todo.description}
+                    </div>
                   {/if}
                   {#if todo.assignee}
                     <div class="text-xs mt-1" style:color="var(--color-text-tertiary)">

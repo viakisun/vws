@@ -57,11 +57,7 @@
             </ThemeButton>
           </a>
         {:else}
-          <ThemeButton
-            variant={action.variant || 'primary'}
-            size="md"
-            onclick={action.onclick}
-          >
+          <ThemeButton variant={action.variant || 'primary'} size="md" onclick={action.onclick}>
             {#if action.icon}
               <action.icon size={18} />
             {/if}

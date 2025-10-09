@@ -68,7 +68,11 @@
       </h3>
 
       <div class="mb-6">
-        <label for="status-select" class="block text-sm font-medium mb-2" style:color="var(--color-text-secondary)">
+        <label
+          for="status-select"
+          class="block text-sm font-medium mb-2"
+          style:color="var(--color-text-secondary)"
+        >
           상태 선택
         </label>
         <select

@@ -75,6 +75,8 @@ export const POST: RequestHandler = async ({ request, locals }) => {
       intent: body.intent,
       success_criteria: body.success_criteria || [],
       owner_id: body.owner_id || user.id, // Default to current user if not provided
+      product_id: body.product_id,
+      milestone_id: body.milestone_id,
       formation_id: body.formation_id,
       horizon: body.horizon,
       context_links: body.context_links || [],

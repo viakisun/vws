@@ -65,7 +65,11 @@
   }
 </script>
 
-<div class="rounded-lg border p-6" style:background="var(--color-surface)" style:border-color="var(--color-border)">
+<div
+  class="rounded-lg border p-6"
+  style:background="var(--color-surface)"
+  style:border-color="var(--color-border)"
+>
   <SectionHeader title="Links" count={links.length}>
     <SectionActionButton onclick={onToggleForm}>
       {showAddForm ? 'Cancel' : '+ Add Link'}

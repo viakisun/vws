@@ -32,7 +32,11 @@
   }
 </script>
 
-<div class="rounded-lg border p-6" style:background="var(--color-surface)" style:border-color="var(--color-border)">
+<div
+  class="rounded-lg border p-6"
+  style:background="var(--color-surface)"
+  style:border-color="var(--color-border)"
+>
   <SectionHeader title="Stage" />
   <div class="flex items-center justify-between">
     {#each stages as stage, index}

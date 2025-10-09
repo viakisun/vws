@@ -14,7 +14,11 @@
   let { threads, initiativeId, onSelectThread }: Props = $props()
 </script>
 
-<div class="rounded-lg border p-6" style:background="var(--color-surface)" style:border-color="var(--color-border)">
+<div
+  class="rounded-lg border p-6"
+  style:background="var(--color-surface)"
+  style:border-color="var(--color-border)"
+>
   <SectionHeader title="Active Threads" count={threads.length}>
     <SectionActionButton onclick={() => goto(`/planner/threads/new?initiative_id=${initiativeId}`)}>
       + New Thread

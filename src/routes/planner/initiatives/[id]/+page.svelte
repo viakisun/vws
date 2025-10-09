@@ -24,11 +24,7 @@
 
   // Load data on mount
   onMount(async () => {
-    await Promise.all([
-      initiativeStore.load(),
-      threadsStore.loadThreads(),
-      todosStore.loadTodos(),
-    ])
+    await Promise.all([initiativeStore.load(), threadsStore.loadThreads(), todosStore.loadTodos()])
 
     // Initialize links from initiative
     if (initiativeStore.initiative?.context_links) {

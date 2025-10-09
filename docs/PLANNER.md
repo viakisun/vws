@@ -4,9 +4,10 @@
 
 **Planner** is not a task tracker. It's a **living system of intention** — where teams define outcomes they care about, align around meaningful work, and maintain clear accountability without ceremony.
 
-Most tools fail because they optimize for *tracking* rather than *thinking*. They ask "what are you doing?" before "why does this matter?" Planner inverts this: it starts with **intent**, flows into **shape**, and resolves into **motion**.
+Most tools fail because they optimize for _tracking_ rather than _thinking_. They ask "what are you doing?" before "why does this matter?" Planner inverts this: it starts with **intent**, flows into **shape**, and resolves into **motion**.
 
 ### Core Principle
+
 > **Clarity precedes execution. Accountability follows naturally from shared understanding.**
 
 ---
@@ -16,7 +17,8 @@ Most tools fail because they optimize for *tracking* rather than *thinking*. The
 Planner organizes work across three conceptual layers:
 
 ### 1. **Initiatives** (Why & What)
-*The outcomes we're committed to delivering*
+
+_The outcomes we're committed to delivering_
 
 - **Purpose**: Strategic containers that represent meaningful change or value
 - **Horizon**: Weeks to months
@@ -26,7 +28,8 @@ Planner organizes work across three conceptual layers:
 **Example**: "Enable real-time collaboration in finance module" or "회사소개서 제작 완료"
 
 ### 2. **Formations** (Who & How)
-*The working groups assembled to execute*
+
+_The working groups assembled to execute_
 
 - **Purpose**: Fluid team structures with explicit roles and sync rhythms
 - **Roles**: Driver, Contributor, Advisor, Observer
@@ -36,7 +39,8 @@ Planner organizes work across three conceptual layers:
 **Visual metaphor**: Think "squad configuration" rather than "assigned resources"
 
 ### 3. **Threads** (What's happening now)
-*The atomic units of progress and communication*
+
+_The atomic units of progress and communication_
 
 - **Purpose**: Replace tasks, tickets, and status updates with contextual micro-commitments
 - **Shapes**:
@@ -52,25 +56,32 @@ Planner organizes work across three conceptual layers:
 ## Key Features
 
 ### 1. **Intent-First Design**
+
 Every Initiative starts with:
+
 - **Intent**: The "why" — explains purpose and context
 - **Success Criteria**: What will be true when this succeeds
 - **Horizon**: Expected resolution signal (not a deadline)
 
 ### 2. **Shape-Based Threading**
+
 Threads are categorized by nature, not just status:
+
 - Blocks surface urgency automatically
 - Questions cluster decision-making
 - Different shapes get different visual priority
 
 ### 3. **Formation Energy Tracking**
+
 Instead of burndown charts, track team health:
+
 - **Aligned**: Everything flowing smoothly
 - **Healthy**: Normal working state
 - **Strained**: Capacity concerns, attention needed
 - **Blocked**: Cannot proceed, intervention required
 
 ### 4. **Activity Feed**
+
 Automatic audit log of all state transitions and significant changes across all entities.
 
 ---
@@ -101,6 +112,7 @@ Threads (M) ← (M) ThreadContributors
 ## API Routes
 
 ### Initiatives
+
 - `GET /api/planner/initiatives` - List with filters
 - `POST /api/planner/initiatives` - Create new
 - `GET /api/planner/initiatives/{id}` - Get details
@@ -109,6 +121,7 @@ Threads (M) ← (M) ThreadContributors
 - `POST /api/planner/initiatives/{id}/state` - Change state
 
 ### Formations
+
 - `GET /api/planner/formations` - List
 - `POST /api/planner/formations` - Create
 - `GET /api/planner/formations/{id}` - Get details
@@ -118,6 +131,7 @@ Threads (M) ← (M) ThreadContributors
 - `DELETE /api/planner/formations/{id}/members` - Remove member
 
 ### Threads
+
 - `GET /api/planner/threads` - List with filters
 - `POST /api/planner/threads` - Create
 - `GET /api/planner/threads/{id}` - Get details
@@ -132,26 +146,32 @@ Threads (M) ← (M) ThreadContributors
 ## UI Views
 
 ### 1. **Overview** (`/planner`)
+
 The pulse of all work.
 
 **Layout**:
+
 - **Left rail**: Active Initiatives (sorted by horizon proximity)
 - **Center**: "What's moving" — recent Thread activity
 - **Right rail**: My accountability — Initiatives & Threads I own
 
 ### 2. **Initiative View** (`/planner/initiatives/{id}`)
+
 Deep context for one Initiative.
 
 **Sections**:
+
 - Intent & Success Criteria
 - Active Threads (grouped by shape: Blocks first)
 - Formation info (if linked)
 - Resolved threads (collapsed)
 
 ### 3. **Formation View** (`/planner/formations/{id}`)
+
 Team configuration + roster.
 
 **Sections**:
+
 - Members with roles and bandwidth
 - Linked initiatives
 - Energy state indicator
@@ -184,21 +204,25 @@ archived → active (can restore)
 ## Use Cases
 
 ### Engineering/R&D
+
 - Initiative: "Ship real-time notifications system"
 - Formation: "Platform Engineering Squad"
 - Threads: Technical spikes, architecture decisions, implementation builds
 
 ### Marketing/Communications
+
 - Initiative: "2025년 회사소개서 제작"
 - Formation: "브랜드 커뮤니케이션팀"
 - Threads: 디자인 컨셉 결정, 번역 검토, 인쇄업체 선정
 
 ### Operations/Admin
+
 - Initiative: "사무실 자재 정리 및 재고 시스템 구축"
 - Formation: "오피스 운영팀"
 - Threads: 창고 정리, 재고 리스트 작성, 발주 기준 정립
 
 ### HR/Recruitment
+
 - Initiative: "시니어 개발자 3명 채용"
 - Formation: "채용 태스크포스"
 - Threads: JD 작성, 헤드헌터 미팅, 면접 일정 조율
@@ -232,18 +256,21 @@ archived → active (can restore)
 ## Future Enhancements (Phase 2+)
 
 ### Intelligence Features
+
 - Smart prompts & nudges for stale work
 - Auto-archive resolved threads after 30 days
 - Pre-sync digest generation for Formations
 - Search across all entities
 
 ### Collaboration Features
+
 - @mentions in Thread replies
 - Email digest notifications
 - Real-time collaboration indicators
 - Slack integration
 
 ### Analytics
+
 - Cycle time analysis (Initiative shaping → shipped)
 - Thread resolution patterns
 - Formation health trends
@@ -256,6 +283,7 @@ archived → active (can restore)
 Database migration file: `src/lib/database/migrations/009-planner-schema.sql`
 
 Run with:
+
 ```bash
 psql -h $DB_HOST -U $DB_USER -d $DB_NAME -f 009-planner-schema.sql
 ```
@@ -275,13 +303,14 @@ psql -h $DB_HOST -U $DB_USER -d $DB_NAME -f 009-planner-schema.sql
 
 ## Why This Design?
 
-**Against Jira**: Tasks are not the unit of thought. Jira optimizes for granular tracking, which creates overhead. Planner optimizes for *shared understanding*.
+**Against Jira**: Tasks are not the unit of thought. Jira optimizes for granular tracking, which creates overhead. Planner optimizes for _shared understanding_.
 
-**Against Notion**: Docs are great for artifacts, bad for accountability. Planner is structured around *who owns what* and *what's blocking progress*.
+**Against Notion**: Docs are great for artifacts, bad for accountability. Planner is structured around _who owns what_ and _what's blocking progress_.
 
 **Against Gantt charts**: Timelines imply false precision. Planner uses **horizons** — signals of intent, not contracts.
 
 **The Innovation**:
+
 - **Threads** replace tasks, tickets, and status updates
 - **Formations** replace rigid team structures
 - **Energy states** replace burndown charts
