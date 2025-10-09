@@ -40,7 +40,13 @@
     if (milestone) {
       name = milestone.name
       description = milestone.description || ''
-      target_date = milestone.target_date || ''
+      // Convert ISO date to YYYY-MM-DD format for date input
+      if (milestone.target_date) {
+        const date = new Date(milestone.target_date)
+        target_date = date.toISOString().split('T')[0]
+      } else {
+        target_date = ''
+      }
       status = milestone.status
     } else {
       resetForm()
