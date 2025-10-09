@@ -64,8 +64,9 @@ export const POST: RequestHandler = async ({ params, request, locals }) => {
           description,
           assignee_id,
           status,
-          due_date
-        ) VALUES ($1, $2, $3, $4, 'todo', $5)
+          due_date,
+          external_links
+        ) VALUES ($1, $2, $3, $4, 'todo', $5, $6)
         RETURNING *
       )
       SELECT
@@ -85,6 +86,7 @@ export const POST: RequestHandler = async ({ params, request, locals }) => {
         input.description || null,
         input.assignee_id || null,
         input.due_date || null,
+        JSON.stringify(input.external_links || []),
       ],
     )
 

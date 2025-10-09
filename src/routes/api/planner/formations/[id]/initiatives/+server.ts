@@ -31,7 +31,6 @@ export const GET: RequestHandler = async ({ params }) => {
       JOIN employees e ON i.owner_id = e.id
       LEFT JOIN planner_products p ON p.id = i.product_id AND p.deleted_at IS NULL
       WHERE fi.formation_id = $1
-        AND i.deleted_at IS NULL
       ORDER BY fi.created_at DESC
     `,
       [params.id],
@@ -164,7 +163,6 @@ export const PUT: RequestHandler = async ({ params, request, locals }) => {
       SET ${updates.join(', ')}
       WHERE formation_id = $${paramCount - 1}
         AND initiative_id = $${paramCount}
-        AND deleted_at IS NULL
     `,
       values,
     )

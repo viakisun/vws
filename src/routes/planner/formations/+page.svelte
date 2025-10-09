@@ -96,13 +96,13 @@
 
   const stats = $derived([
     {
-      title: '전체 팀',
+      title: '전체 포메이션',
       value: formations.length,
       icon: UsersIcon,
       color: 'purple' as const,
     },
     {
-      title: '총 팀원',
+      title: '총 멤버',
       value: formations.reduce((sum, f) => sum + (f.member_count || 0), 0),
       icon: UsersIcon,
       color: 'blue' as const,
@@ -117,7 +117,7 @@
 </script>
 
 <svelte:head>
-  <title>팀 - 플래너</title>
+  <title>포메이션 - 플래너</title>
 </svelte:head>
 
 {#if loading}
@@ -130,11 +130,11 @@
   </ThemeCard>
 {:else}
   <PageLayout
-    title="팀"
-    subtitle="프로젝트 실행을 위한 크로스펑셔널 팀 구성"
+    title="포메이션"
+    subtitle="프로젝트 실행을 위한 크로스펑셔널 포메이션 구성"
     {stats}
     actions={[
-      { label: '새 팀 구성', variant: 'primary', icon: UsersIcon, href: '/planner/formations/new' },
+      { label: '새 포메이션 구성', variant: 'primary', icon: UsersIcon, href: '/planner/formations/new' },
     ]}
   >
     {#if formations.length === 0}
@@ -145,11 +145,11 @@
             class="mx-auto mb-4 opacity-30"
             style="color: var(--color-text-tertiary);"
           />
-          <p class="text-sm mb-4" style:color="var(--color-text-secondary)">아직 팀이 없습니다</p>
+          <p class="text-sm mb-4" style:color="var(--color-text-secondary)">아직 포메이션이 없습니다</p>
           <a href="/planner/formations/new">
             <ThemeButton variant="primary" size="md">
               <UsersIcon size={18} />
-              첫 팀 만들기
+              첫 포메이션 만들기
             </ThemeButton>
           </a>
         </div>
@@ -200,7 +200,7 @@
                 </div>
                 {#if formation.members && formation.members.length > 0}
                   <div class="ml-auto flex items-center gap-1 text-xs">
-                    <span style:color="var(--color-text-tertiary)">팀원:</span>
+                    <span style:color="var(--color-text-tertiary)">멤버:</span>
                     <span class="font-medium" style:color="var(--color-text-primary)">
                       {formation.members
                         .slice(0, 3)

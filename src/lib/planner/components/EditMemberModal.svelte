@@ -143,7 +143,7 @@
           <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
             <p class="text-sm text-yellow-900 font-medium mb-2">정말 삭제하시겠습니까?</p>
             <p class="text-xs text-yellow-700 mb-3">
-              이 작업은 되돌릴 수 없습니다. 멤버를 팀에서 제거합니다.
+              이 작업은 되돌릴 수 없습니다. 멤버를 포메이션에서 제거합니다.
             </p>
             <div class="flex gap-2">
               <button
@@ -174,7 +174,7 @@
               bind:value={role}
               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
-              <option value="driver">추진자 - 이니셔티브를 주도</option>
+              <option value="driver">드라이버 - 이니셔티브를 주도</option>
               <option value="contributor">기여자 - 적극적으로 기여</option>
               <option value="advisor">자문 - 조언 제공</option>
               <option value="observer">참관자 - 정보 공유 대상</option>

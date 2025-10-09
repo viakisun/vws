@@ -178,6 +178,18 @@ export class ProductService {
       paramIndex++
     }
 
+    if (input.category !== undefined) {
+      updates.push(`category = $${paramIndex}`)
+      params.push(input.category)
+      paramIndex++
+    }
+
+    if (input.display_order !== undefined) {
+      updates.push(`display_order = $${paramIndex}`)
+      params.push(input.display_order)
+      paramIndex++
+    }
+
     if (updates.length === 0) return current
 
     updates.push(`updated_at = NOW()`)

@@ -1,12 +1,13 @@
 <script lang="ts">
   import { onMount } from 'svelte'
   import { page } from '$app/stores'
-  import { UsersIcon, ZapIcon, TrashIcon, SettingsIcon } from 'lucide-svelte'
+  import { UsersIcon, ZapIcon, TrashIcon, SettingsIcon, PencilIcon } from 'lucide-svelte'
   import type { FormationWithMembers, InitiativeWithOwner } from '$lib/planner/types'
   import AddMemberModal from '$lib/planner/components/AddMemberModal.svelte'
   import EditMemberModal from '$lib/planner/components/EditMemberModal.svelte'
   import LinkInitiativeModal from '$lib/planner/components/LinkInitiativeModal.svelte'
   import AllocationModal from '$lib/planner/components/AllocationModal.svelte'
+  import FormationEditModal from '$lib/planner/components/FormationEditModal.svelte'
   import { formatKoreanName } from '$lib/utils/korean-name'
   import ThemeCard from '$lib/components/ui/ThemeCard.svelte'
   import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
@@ -25,6 +26,7 @@
   let showLinkInitiativeModal = $state(false)
   let showAllocationModal = $state(false)
   let selectedInitiative = $state<any>(null)
+  let showFormationEditModal = $state(false)
 
   // =============================================
   // Data Fetching
@@ -36,12 +38,14 @@
       error = null
 
       const id = $page.params.id
+      console.log('Loading formation data for:', id)
 
       const res = await fetch(`/api/planner/formations/${id}`)
       if (!res.ok) throw new Error('Failed to load formation')
 
       const data = await res.json()
       formation = data.data
+      console.log('Formation loaded:', formation)
 
       // Load formation initiatives with allocation data
       await loadFormationInitiatives()
@@ -133,7 +137,7 @@
   function getRoleText(role: string): string {
     switch (role) {
       case 'driver':
-        return '추진자'
+        return '드라이버'
       case 'contributor':
         return '기여자'
       case 'advisor':
@@ -214,10 +218,30 @@
       console.error('Failed to unlink initiative:', e)
     }
   }
+
+  async function deleteFormation() {
+    if (!confirm('이 포메이션을 삭제하시겠습니까?\n연결된 이니셔티브와 멤버 정보도 모두 삭제됩니다.')) return
+
+    try {
+      const res = await fetch(`/api/planner/formations/${formation?.id}`, {
+        method: 'DELETE',
+      })
+
+      if (res.ok) {
+        window.location.href = '/planner/formations'
+      } else {
+        const data = await res.json()
+        alert(data.error || '포메이션 삭제 실패')
+      }
+    } catch (e) {
+      console.error('Failed to delete formation:', e)
+      alert('포메이션 삭제 실패')
+    }
+  }
 </script>
 
 <svelte:head>
-  <title>{formation?.name || '팀 구성'} - 플래너</title>
+  <title>{formation?.name || '포메이션'} - 플래너</title>
 </svelte:head>
 
 <div class="max-w-5xl mx-auto p-6 space-y-6">
@@ -227,14 +251,14 @@
     </div>
   {:else if error || !formation}
     <ThemeCard variant="outlined" class="border-red-200 bg-red-50">
-      <p style:color="var(--color-error)">{error || '팀 구성을 찾을 수 없습니다'}</p>
+      <p style:color="var(--color-error)">{error || '포메이션을 찾을 수 없습니다'}</p>
     </ThemeCard>
   {:else}
     <!-- Breadcrumb -->
     <div class="flex items-center gap-2 text-sm" style:color="var(--color-text-secondary)">
       <a href="/planner" class="hover:opacity-70 transition">플래너</a>
       <span>/</span>
-      <a href="/planner/formations" class="hover:opacity-70 transition">팀</a>
+      <a href="/planner/formations" class="hover:opacity-70 transition">포메이션</a>
       <span>/</span>
       <span style:color="var(--color-text-primary)">{formation.name}</span>
     </div>
@@ -251,6 +275,28 @@
           </p>
         {/if}
       </div>
+      <div class="flex gap-2">
+        <button
+          type="button"
+          onclick={() => (showFormationEditModal = true)}
+          class="p-2 rounded-lg transition hover:opacity-70"
+          style:background="var(--color-surface-elevated)"
+          style:color="var(--color-text-secondary)"
+          title="포메이션 편집"
+        >
+          <PencilIcon size={16} />
+        </button>
+        <button
+          type="button"
+          onclick={() => deleteFormation()}
+          class="p-2 rounded-lg transition hover:opacity-70"
+          style:background="var(--color-surface-elevated)"
+          style:color="var(--color-error)"
+          title="포메이션 삭제"
+        >
+          <TrashIcon size={16} />
+        </button>
+      </div>
     </div>
 
     <!-- Members Section -->
@@ -260,7 +306,7 @@
           <span class="mr-2" style:color="var(--color-blue-base)">
             <UsersIcon class="w-5 h-5" />
           </span>
-          팀 멤버 ({formation.member_count}명)
+          멤버 ({formation.member_count}명)
         </h2>
         <ThemeButton variant="secondary" size="sm" onclick={() => (showAddMemberModal = true)}>
           + 멤버 추가
@@ -270,22 +316,17 @@
       <div class="space-y-2">
         {#each formation.members as member}
           {@const roleColor = getRoleBadgeColor(member.role)}
-          <button
-            type="button"
-            onclick={() => {
-              selectedMember = member
-              showEditMemberModal = true
-            }}
-            class="w-full flex items-center justify-between p-3 rounded-lg border transition hover:border-gray-300"
+          <div
+            class="flex items-center justify-between p-3 rounded-lg border"
             style:background="var(--color-surface-base)"
             style:border-color="var(--color-border)"
           >
-            <div class="flex items-center gap-3">
+            <div class="flex items-center gap-3 flex-1">
               <div>
-                <p class="text-sm font-medium text-left" style:color="var(--color-text-primary)">
+                <p class="text-sm font-medium" style:color="var(--color-text-primary)">
                   {formatKoreanName(member.employee.last_name, member.employee.first_name)}
                 </p>
-                <p class="text-xs text-left" style:color="var(--color-text-secondary)">
+                <p class="text-xs" style:color="var(--color-text-secondary)">
                   {member.employee.position || member.employee.department}
                 </p>
               </div>
@@ -301,8 +342,21 @@
               <span class="text-xs" style:color="var(--color-text-tertiary)">
                 {getBandwidthText(member.bandwidth)}
               </span>
+              <button
+                type="button"
+                onclick={() => {
+                  selectedMember = member
+                  showEditMemberModal = true
+                }}
+                class="p-1.5 rounded-lg transition hover:opacity-70"
+                style:background="var(--color-surface-elevated)"
+                style:color="var(--color-text-secondary)"
+                title="멤버 편집"
+              >
+                <PencilIcon size={14} />
+              </button>
             </div>
-          </button>
+          </div>
         {/each}
       </div>
     </div>
@@ -436,6 +490,18 @@
     }}
     onSuccess={() => {
       loadData()
+    }}
+  />
+
+  <FormationEditModal
+    bind:open={showFormationEditModal}
+    formation={formation}
+    onclose={() => {
+      showFormationEditModal = false
+    }}
+    onsave={async () => {
+      showFormationEditModal = false
+      await loadData()
     }}
   />
 

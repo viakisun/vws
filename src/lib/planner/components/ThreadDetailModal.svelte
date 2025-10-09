@@ -33,6 +33,7 @@
     role="dialog"
     aria-modal="true"
     aria-labelledby="thread-modal-title"
+    tabindex="-1"
     class="fixed inset-0 z-50 flex items-center justify-center p-4"
     style:background="rgba(0, 0, 0, 0.5)"
     onclick={onClose}
@@ -40,6 +41,8 @@
       if (e.key === 'Escape') onClose()
     }}
   >
+    <!-- svelte-ignore a11y_click_events_have_key_events -->
+    <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div
       class="w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-lg"
       style:background="var(--color-surface-base)"

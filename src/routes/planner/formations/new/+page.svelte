@@ -44,12 +44,12 @@
       const data = await response.json()
 
       if (!data.success) {
-        throw new Error(data.error || '팀 구성 생성 실패')
+        throw new Error(data.error || '포메이션 생성 실패')
       }
 
       goto(`/planner/formations/${data.data.id}`)
     } catch (e) {
-      error = e instanceof Error ? e.message : '팀 구성 생성 실패'
+      error = e instanceof Error ? e.message : '포메이션 생성 실패'
       console.error('Error creating formation:', e)
     } finally {
       loading = false
@@ -58,7 +58,7 @@
 </script>
 
 <svelte:head>
-  <title>새 팀 구성 - 플래너</title>
+  <title>새 포메이션 - 플래너</title>
 </svelte:head>
 
 <div class="min-h-screen bg-gray-50">
@@ -69,7 +69,7 @@
         <a href="/planner/formations" class="text-gray-500 hover:text-gray-700 transition text-sm">
           ← 뒤로
         </a>
-        <h1 class="text-2xl font-light text-gray-900">새 팀 구성</h1>
+        <h1 class="text-2xl font-light text-gray-900">새 포메이션</h1>
       </div>
     </div>
   </div>
@@ -99,7 +99,7 @@
           id="name"
           bind:value={name}
           required
-          placeholder="예: 플랫폼 엔지니어링 팀"
+          placeholder="예: VWS-CORE-TF"
           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         />
       </div>
@@ -111,7 +111,7 @@
           id="description"
           bind:value={description}
           rows="3"
-          placeholder="이 팀 구성의 목적에 대한 간단한 설명"
+          placeholder="이 포메이션의 목적에 대한 간단한 설명"
           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         ></textarea>
       </div>
@@ -129,7 +129,7 @@
           <option value="biweekly">격주</option>
           <option value="async">비동기</option>
         </select>
-        <p class="text-xs text-gray-500 mt-1">이 팀의 싱크 주기는 얼마나 되나요?</p>
+        <p class="text-xs text-gray-500 mt-1">이 포메이션의 싱크 주기는 얼마나 되나요?</p>
       </div>
 
       <!-- Cadence Anchor Time -->
@@ -168,9 +168,9 @@
       <!-- Info Box -->
       <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
         <p class="text-sm text-blue-900 font-medium mb-2">다음 단계</p>
-        <p class="text-xs text-blue-700">팀 구성을 생성한 후 다음을 수행할 수 있습니다:</p>
+        <p class="text-xs text-blue-700">포메이션을 생성한 후 다음을 수행할 수 있습니다:</p>
         <ul class="text-xs text-blue-700 mt-2 space-y-1 ml-4 list-disc">
-          <li>특정 역할(추진자, 기여자, 자문, 참관자)로 멤버 추가</li>
+          <li>특정 역할(드라이버, 기여자, 자문)로 멤버 추가</li>
           <li>기존 이니셔티브 연결</li>
           <li>사전 싱크 다이제스트 생성</li>
         </ul>
@@ -183,7 +183,7 @@
           disabled={loading}
           class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
         >
-          {loading ? '생성 중...' : '팀 구성 만들기'}
+          {loading ? '생성 중...' : '포메이션 만들기'}
         </button>
         <a
           href="/planner/formations"

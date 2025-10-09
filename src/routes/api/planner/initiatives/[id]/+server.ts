@@ -46,6 +46,7 @@ export const PATCH: RequestHandler = async ({ params, request, locals }) => {
       title: body.title,
       intent: body.intent,
       success_criteria: body.success_criteria,
+      owner_id: body.owner_id,
       formation_id: body.formation_id,
       horizon: body.horizon,
       context_links: body.context_links,
@@ -55,7 +56,10 @@ export const PATCH: RequestHandler = async ({ params, request, locals }) => {
       milestone_id: body.milestone_id,
     }
 
-    const initiative = await initiativeService.update(params.id, input, user.id)
+    await initiativeService.update(params.id, input, user.id)
+
+    // Fetch the updated initiative with all details (owner, formation, etc.)
+    const initiative = await initiativeService.getByIdWithDetails(params.id)
 
     if (!initiative) {
       return json({ success: false, error: 'Initiative not found' }, { status: 404 })

@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { InitiativeWithOwner } from '../types'
+  import { formatKoreanName } from '$lib/utils/korean-name'
 
   interface Props {
     initiative: InitiativeWithOwner
@@ -60,8 +61,7 @@
       {/if}
     </div>
     <p class="text-xs text-gray-600 mb-2">
-      {initiative.owner.first_name}
-      {initiative.owner.last_name}
+      {formatKoreanName(initiative.owner.last_name, initiative.owner.first_name)}
     </p>
     <div class="text-xs text-gray-500">{getThreadSummary()}</div>
   </a>
@@ -86,8 +86,7 @@
     <div class="flex items-center justify-between text-sm text-gray-600">
       <div class="flex items-center gap-4">
         <span>
-          {initiative.owner.first_name}
-          {initiative.owner.last_name}
+          {formatKoreanName(initiative.owner.last_name, initiative.owner.first_name)}
         </span>
         {#if initiative.milestone}
           <span class="text-xs px-2 py-1 bg-purple-100 text-purple-700 rounded">

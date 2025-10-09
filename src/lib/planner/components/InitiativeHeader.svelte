@@ -201,7 +201,7 @@
         </div>
       </div>
 
-      <!-- Team Card -->
+      <!-- Formation Card -->
       <div
         class="rounded-lg p-4"
         class:border={initiative.formation}
@@ -215,14 +215,14 @@
           class="text-xs font-semibold uppercase tracking-wide mb-2"
           style:color="var(--color-text-tertiary)"
         >
-          Team
+          포메이션
         </div>
         {#if initiative.formation}
           <div class="text-sm font-medium" style:color="var(--color-text-primary)">
             {initiative.formation.name}
           </div>
         {:else}
-          <div class="text-sm font-medium text-red-600">⚠ 미지정 - 팀을 설정해주세요</div>
+          <div class="text-sm font-medium text-red-600">⚠ 미지정 - 포메이션을 설정해주세요</div>
         {/if}
       </div>
 

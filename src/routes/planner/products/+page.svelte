@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte'
-  import { PackageIcon, FilterIcon } from 'lucide-svelte'
+  import { PackageIcon, FilterIcon, SettingsIcon } from 'lucide-svelte'
   import type { ProductWithOwner } from '$lib/planner/types'
   import PageLayout from '$lib/components/layout/PageLayout.svelte'
   import ThemeGrid from '$lib/components/ui/ThemeGrid.svelte'
@@ -146,6 +146,12 @@
   subtitle="VIA의 모든 제품과 서비스를 관리합니다"
   {stats}
   actions={[
+    {
+      label: '카테고리 관리',
+      variant: 'secondary' as const,
+      icon: SettingsIcon,
+      href: '/planner/settings/categories',
+    },
     {
       label: '제품 추가',
       variant: 'primary' as const,

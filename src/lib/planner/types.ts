@@ -30,6 +30,8 @@ export interface Product {
   status: ProductStatus
   repository_url?: string
   documentation_url?: string
+  category?: string
+  display_order?: number
   deleted_at?: string
   created_at: string
   updated_at: string
@@ -144,6 +146,7 @@ export interface Todo {
   assignee_id?: string
   status: 'todo' | 'in_progress' | 'done'
   due_date?: string // ISO date string
+  external_links?: ExternalLink[]
   completed_at?: string
   deleted_at?: string
   created_at: string
@@ -247,6 +250,8 @@ export interface UpdateProductInput {
   status?: ProductStatus
   repository_url?: string
   documentation_url?: string
+  category?: string
+  display_order?: number
 }
 
 export interface CreateMilestoneInput {
@@ -280,6 +285,7 @@ export interface UpdateInitiativeInput {
   title?: string
   intent?: string
   success_criteria?: string[]
+  owner_id?: string
   product_id?: string
   milestone_id?: string
   formation_id?: string
@@ -346,14 +352,16 @@ export interface CreateTodoInput {
   description?: string
   assignee_id?: string
   due_date?: string
+  external_links?: ExternalLink[]
 }
 
 export interface UpdateTodoInput {
   title?: string
   description?: string
-  assignee_id?: string
+  assignee_id?: string | null
   status?: 'todo' | 'in_progress' | 'done'
   due_date?: string
+  external_links?: ExternalLink[]
 }
 
 // ============================================================================

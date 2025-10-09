@@ -147,7 +147,7 @@
             bind:value={role}
             class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
-            <option value="driver">추진자 - 이니셔티브를 주도</option>
+            <option value="driver">드라이버 - 이니셔티브를 주도</option>
             <option value="contributor">기여자 - 적극적으로 기여</option>
             <option value="advisor">자문 - 조언 제공</option>
             <option value="observer">참관자 - 정보 공유 대상</option>

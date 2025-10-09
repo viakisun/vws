@@ -69,11 +69,17 @@
             // Filter active employees only and use 'employees' key
             const allEmployees = data.employees || []
             employees = allEmployees.filter((emp: any) => emp.status === 'active')
+            console.log('Loaded employees:', employees.length)
+          } else {
+            console.error('Failed to load employees:', employeesRes.status)
           }
 
           if (formationsRes.ok) {
             const data = await formationsRes.json()
             formations = data.data || []
+            console.log('Loaded formations:', formations.length, formations)
+          } else {
+            console.error('Failed to load formations:', formationsRes.status, await formationsRes.text())
           }
         })
         .catch((e) => {
@@ -105,15 +111,18 @@
 
     saving = true
     try {
-      await onSave({
+      const updateData = {
         success_criteria: successCriteria.filter((c) => c.trim()),
         horizon: horizon || undefined,
         owner_id: ownerId,
         formation_id: formationId || null,
         milestone_id: milestoneId || null,
-      })
+      }
+      console.log('Submitting initiative details:', updateData)
+      await onSave(updateData)
       onClose()
     } catch (e) {
+      console.error('Failed to save details:', e)
       alert(e instanceof Error ? e.message : 'Failed to update details')
     } finally {
       saving = false
@@ -140,15 +149,19 @@
     >
       <div class="mb-4">
         <h2 class="text-xl font-semibold" style:color="var(--color-text-primary)">Edit Details</h2>
+        <p class="text-sm mt-1" style:color="var(--color-text-tertiary); font-weight: 300;">
+          {initiative.title}
+        </p>
       </div>
 
       <div class="space-y-4">
         <!-- Owner -->
         <div>
-          <label class="block text-sm font-medium mb-2" style:color="var(--color-text-secondary)">
+          <label for="owner-select" class="block text-sm font-medium mb-2" style:color="var(--color-text-secondary)">
             Owner
           </label>
           <select
+            id="owner-select"
             bind:value={ownerId}
             disabled={loadingData}
             class="w-full px-3 py-2 rounded border text-sm"
@@ -165,10 +178,11 @@
 
         <!-- Team (Formation) -->
         <div>
-          <label class="block text-sm font-medium mb-2" style:color="var(--color-text-secondary)">
-            Team
+          <label for="formation-select" class="block text-sm font-medium mb-2" style:color="var(--color-text-secondary)">
+            포메이션
           </label>
           <select
+            id="formation-select"
             bind:value={formationId}
             disabled={loadingData}
             class="w-full px-3 py-2 rounded border text-sm"
@@ -176,7 +190,7 @@
             style:color="var(--color-text-primary)"
             style:border-color="var(--color-border)"
           >
-            <option value={null}>No team</option>
+            <option value={null}>포메이션 없음</option>
             {#each formations as formation}
               <option value={formation.id}>{formation.name}</option>
             {/each}
@@ -196,9 +210,9 @@
 
         <!-- Success Criteria -->
         <div>
-          <label class="block text-sm font-medium mb-2" style:color="var(--color-text-secondary)">
+          <div class="block text-sm font-medium mb-2" style:color="var(--color-text-secondary)">
             Success Criteria
-          </label>
+          </div>
           <div class="space-y-2">
             {#each successCriteria as criterion, index}
               <div class="flex gap-2">
@@ -211,6 +225,7 @@
                   style:background="var(--color-surface)"
                   style:color="var(--color-text-primary)"
                   style:border-color="var(--color-border)"
+                  aria-label="Success criterion {index + 1}"
                 />
                 <button
                   type="button"
@@ -229,10 +244,11 @@
 
         <!-- Target Date -->
         <div>
-          <label class="block text-sm font-medium mb-2" style:color="var(--color-text-secondary)">
+          <label for="target-date" class="block text-sm font-medium mb-2" style:color="var(--color-text-secondary)">
             Target Date
           </label>
           <input
+            id="target-date"
             type="date"
             bind:value={horizon}
             class="w-full px-3 py-2 rounded border text-sm"

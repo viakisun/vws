@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte'
   import { page } from '$app/stores'
-  import { ArrowLeftIcon, GithubIcon, FileTextIcon } from 'lucide-svelte'
+  import { ArrowLeftIcon, GithubIcon, FileTextIcon, PencilIcon } from 'lucide-svelte'
   import type {
     ProductWithOwner,
     MilestoneWithProduct,
@@ -12,6 +12,7 @@
   import SectionActionButton from '$lib/components/ui/SectionActionButton.svelte'
   import MilestoneModal from '$lib/planner/components/MilestoneModal.svelte'
   import InitiativeCard from '$lib/planner/components/InitiativeCard.svelte'
+  import ProductEditModal from '$lib/planner/components/ProductEditModal.svelte'
 
   // =============================================
   // State
@@ -24,6 +25,7 @@
   let error = $state<string | null>(null)
   let showMilestoneModal = $state(false)
   let editingMilestone = $state<MilestoneWithProduct | null>(null)
+  let showProductEditModal = $state(false)
 
   // =============================================
   // Data Fetching
@@ -156,17 +158,29 @@
             </p>
           {/if}
         </div>
-        <span
-          class="ml-4 px-3 py-1 text-xs font-medium rounded-full whitespace-nowrap"
-          style:background={product.status === 'active'
-            ? 'var(--color-green-light)'
-            : 'var(--color-surface-elevated)'}
-          style:color={product.status === 'active'
-            ? 'var(--color-green)'
-            : 'var(--color-text-secondary)'}
-        >
-          {product.status === 'active' ? '활성' : '보관'}
-        </span>
+        <div class="flex items-center gap-2 ml-4">
+          <button
+            type="button"
+            onclick={() => (showProductEditModal = true)}
+            class="p-2 rounded-lg transition hover:opacity-70"
+            style:background="var(--color-surface-elevated)"
+            style:color="var(--color-text-secondary)"
+            title="제품 편집"
+          >
+            <PencilIcon size={16} />
+          </button>
+          <span
+            class="px-3 py-1 text-xs font-medium rounded-full whitespace-nowrap"
+            style:background={product.status === 'active'
+              ? 'var(--color-green-light)'
+              : 'var(--color-surface-elevated)'}
+            style:color={product.status === 'active'
+              ? 'var(--color-green)'
+              : 'var(--color-text-secondary)'}
+          >
+            {product.status === 'active' ? '활성' : '보관'}
+          </span>
+        </div>
       </div>
 
       <div class="flex items-center gap-6 pt-4" style:border-top="1px solid var(--color-border)">
@@ -342,6 +356,19 @@
       showMilestoneModal = false
       editingMilestone = null
       loadMilestones()
+    }}
+  />
+
+  <!-- Product Edit Modal -->
+  <ProductEditModal
+    bind:open={showProductEditModal}
+    {product}
+    onclose={() => {
+      showProductEditModal = false
+    }}
+    onsave={() => {
+      showProductEditModal = false
+      loadData()
     }}
   />
 {/if}

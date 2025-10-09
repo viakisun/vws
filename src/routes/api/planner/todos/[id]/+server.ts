@@ -47,6 +47,11 @@ export const PATCH: RequestHandler = async ({ params, request, locals }) => {
       values.push(input.due_date || null)
     }
 
+    if (input.external_links !== undefined) {
+      updates.push(`external_links = $${paramIndex++}`)
+      values.push(JSON.stringify(input.external_links || []))
+    }
+
     if (updates.length === 0) {
       return json({ error: 'No updates provided' }, { status: 400 })
     }

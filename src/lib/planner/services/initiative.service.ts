@@ -299,6 +299,12 @@ export class InitiativeService {
       params.push(input.success_criteria)
     }
 
+    if (input.owner_id !== undefined) {
+      paramCount++
+      updates.push(`owner_id = $${paramCount}`)
+      params.push(input.owner_id)
+    }
+
     if (input.formation_id !== undefined) {
       paramCount++
       updates.push(`formation_id = $${paramCount}`)

@@ -111,6 +111,7 @@ export function createInitiativeStore(initiativeId: string) {
     if (!initiative) return
 
     try {
+      console.log('Updating initiative details:', details)
       const res = await fetch(`/api/planner/initiatives/${initiative.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -119,9 +120,13 @@ export function createInitiativeStore(initiativeId: string) {
 
       if (res.ok) {
         const data = await res.json()
-        initiative = { ...initiative, ...data.data }
+        console.log('Update response:', data)
+        initiative = data.data
+        console.log('Initiative after update:', initiative)
       } else {
-        throw new Error('Failed to update details')
+        const errorData = await res.json()
+        console.error('Update failed:', errorData)
+        throw new Error(errorData.error || 'Failed to update details')
       }
     } catch (e) {
       console.error('Error updating details:', e)

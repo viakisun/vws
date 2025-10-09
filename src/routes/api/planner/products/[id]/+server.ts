@@ -50,6 +50,8 @@ export const PUT: RequestHandler = async ({ params, request, locals }) => {
       status: body.status,
       repository_url: body.repository_url,
       documentation_url: body.documentation_url,
+      category: body.category,
+      display_order: body.display_order,
     }
 
     const product = await productService.update(params.id, input, user.id)
