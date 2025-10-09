@@ -3,6 +3,7 @@
   import ThemePageHeader from '$lib/components/ui/ThemePageHeader.svelte'
   import ThemeSpacer from '$lib/components/ui/ThemeSpacer.svelte'
   import ThemeStatCard from '$lib/components/ui/ThemeStatCard.svelte'
+  import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
 
   interface Props {
     title: string
@@ -16,8 +17,15 @@
       href?: string
       color?: 'blue' | 'green' | 'purple' | 'orange' | 'red' | 'yellow' | 'indigo' | 'pink'
     }>
-    actions?: any
+    actions?: Array<{
+      label: string
+      variant?: 'primary' | 'secondary' | 'success' | 'warning' | 'error' | 'info' | 'ghost'
+      icon?: any
+      onclick?: () => void
+      href?: string
+    }>
     searchPlaceholder?: string
+    backLink?: string
   }
 
   const {
@@ -27,6 +35,7 @@
     stats = [],
     actions = [],
     searchPlaceholder: _searchPlaceholder,
+    backLink,
   }: Props = $props()
 </script>
 
@@ -38,16 +47,27 @@
   {#if actions.length > 0}
     <div class="mb-6 flex flex-wrap gap-3">
       {#each actions as action}
-        <button
-          type="button"
-          onclick={action.onclick}
-          class="theme-button theme-button-{action.variant || 'primary'} theme-button-md"
-        >
-          {#if action.icon}
-            <action.icon size={18} class="mr-2" />
-          {/if}
-          {action.label}
-        </button>
+        {#if action.href}
+          <a href={action.href}>
+            <ThemeButton variant={action.variant || 'primary'} size="md">
+              {#if action.icon}
+                <action.icon size={18} />
+              {/if}
+              {action.label}
+            </ThemeButton>
+          </a>
+        {:else}
+          <ThemeButton
+            variant={action.variant || 'primary'}
+            size="md"
+            onclick={action.onclick}
+          >
+            {#if action.icon}
+              <action.icon size={18} />
+            {/if}
+            {action.label}
+          </ThemeButton>
+        {/if}
       {/each}
     </div>
   {/if}
@@ -76,7 +96,3 @@
     {@render children()}
   </ThemeSpacer>
 </div>
-
-<style>
-  /* 추가 스타일이 필요한 경우 여기에 작성 */
-</style>

@@ -2,11 +2,13 @@
   const {
     color = 'gray',
     variant = 'secondary',
+    useTheme = false,
     class: className = '',
     children,
   } = $props<{
     color?: 'gray' | 'green' | 'red' | 'yellow' | 'blue'
     variant?: 'primary' | 'secondary' | 'success' | 'warning' | 'danger'
+    useTheme?: boolean
     class?: string
     children?: import('svelte').Snippet
   }>()
@@ -30,8 +32,19 @@
   const finalClasses = $derived(variantClasses[variant] || colorClasses[color])
 </script>
 
-<span
-  class={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium ${finalClasses} ${className}`}
->
-  {@render children?.()}
-</span>
+{#if useTheme}
+  <span
+    class={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium ${className}`}
+    style:background="var(--color-surface-secondary)"
+    style:color="var(--color-text-tertiary)"
+    style:border-color="var(--color-border)"
+  >
+    {@render children?.()}
+  </span>
+{:else}
+  <span
+    class={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium ${finalClasses} ${className}`}
+  >
+    {@render children?.()}
+  </span>
+{/if}

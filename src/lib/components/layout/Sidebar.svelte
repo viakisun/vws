@@ -19,6 +19,7 @@
     SettingsIcon,
     UsersIcon,
     ShieldIcon,
+    TargetIcon,
   } from '@lucide/svelte'
 
   let { isCollapsed = $bindable(true), user = null } = $props<{
@@ -65,6 +66,14 @@
       name: '연구개발',
       href: '/project-management',
       icon: FlaskConicalIcon,
+      permission: {
+        roles: [RoleCode.RESEARCH_DIRECTOR, RoleCode.RESEARCHER, RoleCode.ADMIN],
+      },
+    },
+    {
+      name: 'Planner',
+      href: '/planner',
+      icon: TargetIcon,
       permission: {
         roles: [RoleCode.RESEARCH_DIRECTOR, RoleCode.RESEARCHER, RoleCode.ADMIN],
       },
