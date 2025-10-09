@@ -38,7 +38,7 @@
     onCloseForm: () => void
   }
 
-  let {
+  const {
     todos,
     showAddForm,
     adding,
@@ -274,6 +274,7 @@
                 style:border-color="var(--color-border)"
               />
               <button
+                type="button"
                 onclick={() => removeNewLink(index)}
                 class="p-1 hover:opacity-70"
                 style:color="var(--color-error)"
@@ -287,6 +288,7 @@
 
       <div class="flex gap-2 mb-3">
         <button
+          type="button"
           onclick={addNewLink}
           class="text-xs px-2 py-1 rounded hover:opacity-70"
           style:color="var(--color-primary)"
@@ -319,7 +321,12 @@
     <!-- Kanban Board -->
     <div class="grid grid-cols-3 gap-4">
       <!-- INBOX Column -->
-      <div class="flex flex-col" ondragover={handleDragOver} ondrop={(e) => handleDrop('todo', e)}>
+      <div
+        role="region"
+        class="flex flex-col"
+        ondragover={handleDragOver}
+        ondrop={(e) => handleDrop('todo', e)}
+      >
         <div
           class="mb-3 p-2 rounded-lg text-center font-semibold text-sm"
           style:background="var(--color-gray-100)"
@@ -384,6 +391,7 @@
                           style:border-color="var(--color-border)"
                         />
                         <button
+                          type="button"
                           onclick={() => removeEditLink(index)}
                           class="p-1 hover:opacity-70"
                           style:color="var(--color-error)"
@@ -396,6 +404,7 @@
                 {/if}
 
                 <button
+                  type="button"
                   onclick={addEditLink}
                   class="text-xs px-2 py-1 mb-2 rounded hover:opacity-70"
                   style:color="var(--color-primary)"
@@ -413,6 +422,8 @@
             {:else}
               <!-- View Card -->
               <div
+                role="button"
+                tabindex="0"
                 draggable="true"
                 ondragstart={(e) => handleDragStart(todo, e)}
                 class="p-3 rounded-lg border cursor-move hover:shadow-md transition group"
@@ -466,6 +477,7 @@
                   </div>
                   <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition">
                     <button
+                      type="button"
                       onclick={() => startEdit(todo)}
                       class="p-1 hover:opacity-70"
                       style:color="var(--color-text-tertiary)"
@@ -474,6 +486,7 @@
                       <PencilIcon size={14} />
                     </button>
                     <button
+                      type="button"
                       onclick={() => handleDelete(todo.id)}
                       class="p-1 hover:opacity-70"
                       style:color="var(--color-error)"
@@ -491,6 +504,7 @@
 
       <!-- DOING Column -->
       <div
+        role="region"
         class="flex flex-col"
         ondragover={handleDragOver}
         ondrop={(e) => handleDrop('in_progress', e)}
@@ -559,6 +573,7 @@
                           style:border-color="var(--color-border)"
                         />
                         <button
+                          type="button"
                           onclick={() => removeEditLink(index)}
                           class="p-1 hover:opacity-70"
                           style:color="var(--color-error)"
@@ -571,6 +586,7 @@
                 {/if}
 
                 <button
+                  type="button"
                   onclick={addEditLink}
                   class="text-xs px-2 py-1 mb-2 rounded hover:opacity-70"
                   style:color="var(--color-primary)"
@@ -588,6 +604,8 @@
             {:else}
               <!-- View Card -->
               <div
+                role="button"
+                tabindex="0"
                 draggable="true"
                 ondragstart={(e) => handleDragStart(todo, e)}
                 class="p-3 rounded-lg border cursor-move hover:shadow-md transition group"
@@ -641,6 +659,7 @@
                   </div>
                   <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition">
                     <button
+                      type="button"
                       onclick={() => startEdit(todo)}
                       class="p-1 hover:opacity-70"
                       style:color="var(--color-text-tertiary)"
@@ -649,6 +668,7 @@
                       <PencilIcon size={14} />
                     </button>
                     <button
+                      type="button"
                       onclick={() => handleDelete(todo.id)}
                       class="p-1 hover:opacity-70"
                       style:color="var(--color-error)"
@@ -665,7 +685,12 @@
       </div>
 
       <!-- DONE Column -->
-      <div class="flex flex-col" ondragover={handleDragOver} ondrop={(e) => handleDrop('done', e)}>
+      <div
+        role="region"
+        class="flex flex-col"
+        ondragover={handleDragOver}
+        ondrop={(e) => handleDrop('done', e)}
+      >
         <div
           class="mb-3 p-2 rounded-lg text-center font-semibold text-sm"
           style:background="var(--color-green-100)"
@@ -676,6 +701,8 @@
         <div class="space-y-2 min-h-[200px]">
           {#each todosByStatus.done as todo}
             <div
+              role="button"
+              tabindex="0"
               draggable="true"
               ondragstart={(e) => handleDragStart(todo, e)}
               class="p-3 rounded-lg border cursor-move hover:shadow-md transition group opacity-75 hover:opacity-100"
@@ -732,6 +759,7 @@
                 </div>
                 <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition">
                   <button
+                    type="button"
                     onclick={() => handleDelete(todo.id)}
                     class="p-1 hover:opacity-70"
                     style:color="var(--color-error)"
