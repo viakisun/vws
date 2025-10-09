@@ -9,9 +9,9 @@
 
   let { initiative, compact = false }: Props = $props()
 
-  function getStateColor(state: string): string {
-    switch (state) {
-      case 'shaping':
+  function getStatusColor(status: string): string {
+    switch (status) {
+      case 'inbox':
         return 'bg-gray-100 text-gray-700'
       case 'active':
         return 'bg-blue-100 text-blue-700'
@@ -75,8 +75,8 @@
       <div class="flex-1">
         <div class="flex items-center gap-2 mb-2">
           <h3 class="text-lg font-medium text-gray-900">{initiative.title}</h3>
-          <span class="px-2 py-1 text-xs font-medium rounded {getStateColor(initiative.state)}">
-            {initiative.state}
+          <span class="px-2 py-1 text-xs font-medium rounded {getStatusColor(initiative.status)}">
+            {initiative.status}
           </span>
         </div>
         <p class="text-sm text-gray-600 line-clamp-2">{initiative.intent}</p>

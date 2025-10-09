@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte'
-  import type { MemberRole, BandwidthAllocation } from '$lib/planner/types'
+  import type { FormationRole, FormationBandwidth } from '$lib/planner/types'
   import { formatKoreanName } from '$lib/utils/korean-name'
 
   // =============================================
@@ -22,8 +22,8 @@
 
   let employees = $state<any[]>([])
   let selectedEmployeeId = $state('')
-  let role = $state<MemberRole>('contributor')
-  let bandwidth = $state<BandwidthAllocation>('partial')
+  let role = $state<FormationRole>('contributor')
+  let bandwidth = $state<FormationBandwidth>('partial')
   let loading = $state(false)
   let error = $state<string | null>(null)
 

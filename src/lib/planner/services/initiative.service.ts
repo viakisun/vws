@@ -8,7 +8,7 @@ import type {
   InitiativeWithOwner,
   UpdateInitiativeInput,
 } from '../types'
-import { INITIATIVE_STAGE_TRANSITIONS, INITIATIVE_STATUS_TRANSITIONS } from '../types'
+import { INITIATIVE_STATUS_TRANSITIONS } from '../types'
 import { activityLogService } from './activity-log.service'
 
 export class InitiativeService {
@@ -132,7 +132,6 @@ export class InitiativeService {
     let query = `
       SELECT
         i.*,
-        p.name as product_name,
         json_build_object(
           'id', e.id,
           'first_name', e.first_name,
@@ -141,6 +140,14 @@ export class InitiativeService {
           'department', e.department,
           'position', e.position
         ) as owner,
+        CASE WHEN p.id IS NOT NULL THEN
+          json_build_object(
+            'id', p.id,
+            'name', p.name,
+            'code', p.code,
+            'description', p.description
+          )
+        ELSE NULL END as product,
         CASE WHEN f.id IS NOT NULL THEN
           json_build_object(
             'id', f.id,

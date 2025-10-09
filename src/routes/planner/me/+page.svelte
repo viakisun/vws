@@ -6,7 +6,8 @@
     UsersIcon,
     AlertCircleIcon,
     CheckCircleIcon,
-    TrendingUpIcon,
+    CircleIcon,
+    MessageSquareIcon,
   } from 'lucide-svelte'
   import type {
     ProductWithOwner,
@@ -18,6 +19,7 @@
   import PageLayout from '$lib/components/layout/PageLayout.svelte'
   import ThemeCard from '$lib/components/ui/ThemeCard.svelte'
   import ThemeGrid from '$lib/components/ui/ThemeGrid.svelte'
+  import InitiativeCard from '$lib/planner/components/InitiativeCard.svelte'
 
   // =============================================
   // State
@@ -104,6 +106,38 @@
 
   const isOverAllocated = $derived(allocationData?.is_over_allocated || false)
 
+  // 마일스톤이 임박한 이니셔티브 (D-10 이내)
+  const upcomingMilestoneInitiatives = $derived.by(() => {
+    const now = new Date()
+    return myInitiatives
+      .filter((initiative) => {
+        if (!initiative.milestone?.target_date) return false
+        const targetDate = new Date(initiative.milestone.target_date)
+        const diffTime = targetDate.getTime() - now.getTime()
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+        return diffDays <= 10 && diffDays >= -30 // D-10부터 D+30까지 (지난 것도 포함)
+      })
+      .sort((a, b) => {
+        const dateA = new Date(a.milestone!.target_date!)
+        const dateB = new Date(b.milestone!.target_date!)
+        return dateA.getTime() - dateB.getTime()
+      })
+  })
+
+  // D-Day 계산
+  function getDDay(targetDate: string): { text: string; isOverdue: boolean } {
+    const now = new Date()
+    now.setHours(0, 0, 0, 0)
+    const target = new Date(targetDate)
+    target.setHours(0, 0, 0, 0)
+    const diffTime = target.getTime() - now.getTime()
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+
+    if (diffDays === 0) return { text: 'D-Day', isOverdue: false }
+    if (diffDays > 0) return { text: `D-${diffDays}`, isOverdue: false }
+    return { text: `D+${Math.abs(diffDays)}`, isOverdue: true }
+  }
+
   const stats = $derived([
     { title: '내 제품', value: myProducts.length, icon: PackageIcon, color: 'blue' },
     {
@@ -159,20 +193,37 @@
     }
   }
 
-  function getShapeIcon(shape: string): string {
+  function getShapeText(shape: string): string {
     switch (shape) {
       case 'block':
-        return '🔴'
+        return '차단'
       case 'question':
-        return '🟡'
+        return '질문'
       case 'decision':
-        return '🟣'
+        return '결정'
       case 'build':
-        return '🔵'
+        return '개발'
       case 'research':
-        return '🟢'
+        return '리서치'
       default:
-        return '⚪'
+        return shape
+    }
+  }
+
+  function getShapeColor(shape: string): string {
+    switch (shape) {
+      case 'block':
+        return 'red'
+      case 'question':
+        return 'yellow'
+      case 'decision':
+        return 'purple'
+      case 'build':
+        return 'blue'
+      case 'research':
+        return 'green'
+      default:
+        return 'gray'
     }
   }
 
@@ -217,6 +268,62 @@
         </ThemeCard>
       {/if}
 
+      <!-- Upcoming Milestone Initiatives -->
+      {#if upcomingMilestoneInitiatives.length > 0}
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold" style:color="var(--color-text-primary)">
+              마일스톤 임박 이니셔티브
+            </h3>
+          </div>
+
+          <div class="space-y-3">
+            {#each upcomingMilestoneInitiatives as initiative}
+              {@const dday = getDDay(initiative.milestone.target_date)}
+              <div class="relative">
+                <a href="/planner/initiatives/{initiative.id}" class="block">
+                  <div
+                    class="rounded-lg transition-all hover:shadow-md"
+                    style:background={dday.isOverdue
+                      ? 'linear-gradient(to bottom right, rgba(239, 68, 68, 0.12), rgba(239, 68, 68, 0.06))'
+                      : 'linear-gradient(to bottom right, rgba(251, 191, 36, 0.12), rgba(251, 191, 36, 0.06))'}
+                  >
+                    <div class="p-4">
+                      <div class="flex items-start justify-between mb-3">
+                        <div class="flex-1">
+                          <h4 class="font-medium mb-1" style:color="var(--color-text-primary)">
+                            {initiative.title}
+                          </h4>
+                          <p class="text-xs mb-2 line-clamp-2" style:color="var(--color-text-secondary)">
+                            {initiative.intent}
+                          </p>
+                          <div class="flex items-center gap-3 text-xs">
+                            <span style:color="var(--color-text-tertiary)">
+                              {initiative.milestone.name}
+                            </span>
+                            <span style:color="var(--color-text-tertiary)">
+                              목표: {new Date(initiative.milestone.target_date).toLocaleDateString('ko-KR')}
+                            </span>
+                          </div>
+                        </div>
+                        <span
+                          class="ml-3 px-3 py-1.5 text-sm font-bold rounded-lg border-2 whitespace-nowrap"
+                          style:background={dday.isOverdue ? 'var(--color-red-light)' : 'var(--color-yellow-light)'}
+                          style:color={dday.isOverdue ? 'var(--color-red)' : 'var(--color-yellow-dark)'}
+                          style:border-color={dday.isOverdue ? 'var(--color-red)' : 'var(--color-yellow)'}
+                        >
+                          {dday.text}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </a>
+              </div>
+            {/each}
+          </div>
+        </div>
+      {/if}
+
       <!-- My Products -->
       <div>
         <div class="flex items-center justify-between mb-4">
@@ -245,18 +352,30 @@
             {#each myProducts as product}
               <a href="/planner/products/{product.id}" class="block">
                 <ThemeCard variant="default" hover clickable>
-                  <h4 class="font-semibold mb-1" style:color="var(--color-text-primary)">
-                    {product.name}
-                  </h4>
-                  <p class="text-xs mb-3 font-mono" style:color="var(--color-text-tertiary)">
-                    {product.code}
-                  </p>
+                  <div class="mb-3">
+                    <h4 class="font-semibold mb-1" style:color="var(--color-text-primary)">
+                      {product.name}
+                    </h4>
+                    <p class="text-xs font-mono" style:color="var(--color-text-tertiary)">
+                      {product.code}
+                    </p>
+                  </div>
                   <div
-                    class="flex items-center gap-3 text-xs"
-                    style:color="var(--color-text-secondary)"
+                    class="flex items-center gap-4 text-xs pt-3"
+                    style:border-top="1px solid var(--color-border-light)"
                   >
-                    <span>{product.initiative_count} 이니셔티브</span>
-                    <span>{product.milestone_count} 마일스톤</span>
+                    <div class="flex items-center gap-1.5">
+                      <span class="font-bold" style:color="var(--color-primary)">
+                        {product.initiative_count || 0}
+                      </span>
+                      <span style:color="var(--color-text-secondary)">이니셔티브</span>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                      <span class="font-bold" style:color="var(--color-purple)">
+                        {product.milestone_count || 0}
+                      </span>
+                      <span style:color="var(--color-text-secondary)">마일스톤</span>
+                    </div>
                   </div>
                 </ThemeCard>
               </a>
@@ -397,14 +516,24 @@
         {:else}
           <div class="space-y-3">
             {#each myThreads as thread}
+              {@const shapeColor = getShapeColor(thread.shape)}
               <a href="/planner/threads/{thread.id}" class="block">
                 <ThemeCard variant="default" hover clickable>
-                  <div class="flex items-start gap-3">
-                    <span class="text-xl">{getShapeIcon(thread.shape)}</span>
+                  <div class="flex items-start justify-between gap-3">
                     <div class="flex-1">
-                      <h4 class="font-medium mb-1" style:color="var(--color-text-primary)">
-                        {thread.title}
-                      </h4>
+                      <div class="flex items-center gap-2 mb-2">
+                        <h4 class="font-medium" style:color="var(--color-text-primary)">
+                          {thread.title}
+                        </h4>
+                        <span
+                          class="px-2 py-0.5 text-xs font-medium rounded border whitespace-nowrap"
+                          style:background="var(--color-{shapeColor}-light)"
+                          style:color="var(--color-{shapeColor}-dark)"
+                          style:border-color="var(--color-{shapeColor})"
+                        >
+                          {getShapeText(thread.shape)}
+                        </span>
+                      </div>
                       <p class="text-xs mb-2" style:color="var(--color-text-secondary)">
                         {thread.initiative_title}
                       </p>
@@ -413,7 +542,10 @@
                         style:color="var(--color-text-tertiary)"
                       >
                         {#if thread.reply_count > 0}
-                          <span>💬 {thread.reply_count}</span>
+                          <div class="flex items-center gap-1">
+                            <MessageSquareIcon size={12} />
+                            <span>{thread.reply_count}</span>
+                          </div>
                         {/if}
                         <span>{formatDate(thread.updated_at)}</span>
                       </div>
@@ -433,6 +565,7 @@
   .line-clamp-2 {
     display: -webkit-box;
     -webkit-line-clamp: 2;
+    line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
   }

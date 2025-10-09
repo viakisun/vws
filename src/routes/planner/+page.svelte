@@ -58,8 +58,10 @@
         products = productsData.data || []
       }
 
-      // Load active initiatives
-      const initiativesRes = await fetch('/api/planner/initiatives?state=active&limit=20')
+      // Load active initiatives (exclude shipped and abandoned)
+      const initiativesRes = await fetch(
+        '/api/planner/initiatives?status=active&status=paused&status=inbox&limit=20',
+      )
       if (initiativesRes.ok) {
         const initiativesData = await initiativesRes.json()
         activeInitiatives = initiativesData.data || []
@@ -132,6 +134,42 @@
       month: 'short',
       day: 'numeric',
     }).format(date)
+  }
+
+  function getDDay(targetDate: string): {
+    text: string
+    isOverdue: boolean
+    daysRemaining: number
+    colorLevel: 'normal' | 'warning' | 'urgent' | 'overdue'
+  } {
+    const now = new Date()
+    now.setHours(0, 0, 0, 0)
+    const target = new Date(targetDate)
+    target.setHours(0, 0, 0, 0)
+    const diffTime = target.getTime() - now.getTime()
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+
+    let text: string
+    let isOverdue = false
+    let colorLevel: 'normal' | 'warning' | 'urgent' | 'overdue' = 'normal'
+
+    if (diffDays === 0) {
+      text = 'D-Day'
+      colorLevel = 'urgent'
+    } else if (diffDays > 0) {
+      text = `D-${diffDays}`
+      if (diffDays <= 3) {
+        colorLevel = 'urgent'
+      } else if (diffDays <= 14) {
+        colorLevel = 'warning'
+      }
+    } else {
+      text = `D+${Math.abs(diffDays)}`
+      isOverdue = true
+      colorLevel = 'overdue'
+    }
+
+    return { text, isOverdue, daysRemaining: diffDays, colorLevel }
   }
 
   function getStateColor(status: string): string {
@@ -318,16 +356,37 @@
               {:else}
                 <div class="space-y-3">
                   {#each activeInitiatives.slice(0, 8) as initiative}
+                    {@const dday = initiative.horizon ? getDDay(initiative.horizon) : null}
+                    {@const isOverdue =
+                      dday?.colorLevel === 'overdue' && initiative.status !== 'shipped'}
                     {@const stateColor = getStateColor(initiative.status)}
+                    {@const bgStyle = isOverdue
+                      ? 'linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)'
+                      : dday?.colorLevel === 'urgent' && initiative.status !== 'shipped'
+                        ? 'linear-gradient(to bottom right, rgba(251, 146, 60, 0.15), rgba(251, 146, 60, 0.08))'
+                        : dday?.colorLevel === 'warning' && initiative.status !== 'shipped'
+                          ? 'linear-gradient(to bottom right, rgba(234, 179, 8, 0.08), rgba(234, 179, 8, 0.04))'
+                          : ''}
+                    {@const textColor = isOverdue ? '#ffffff' : 'var(--color-text-primary)'}
+                    {@const secondaryTextColor = isOverdue
+                      ? 'rgba(255, 255, 255, 0.9)'
+                      : 'var(--color-text-secondary)'}
+                    {@const tertiaryTextColor = isOverdue
+                      ? 'rgba(255, 255, 255, 0.7)'
+                      : 'var(--color-text-tertiary)'}
+                    {@const badgeColor = isOverdue ? '#ffffff' : `var(--color-${stateColor})`}
+                    {@const badgeBg = isOverdue
+                      ? 'rgba(255, 255, 255, 0.2)'
+                      : `var(--color-${stateColor}-light)`}
                     <a href="/planner/initiatives/{initiative.id}" class="block">
-                      <ThemeCard variant="default" hover clickable>
+                      <ThemeCard variant="default" hover clickable style="background: {bgStyle}">
                         <div class="flex items-start justify-between">
                           <div class="flex-1">
                             <!-- Product / Milestone / Title -->
                             {#if initiative.product || initiative.milestone}
                               <div
                                 class="flex items-center gap-2 mb-1 text-xs"
-                                style:color="var(--color-text-tertiary)"
+                                style:color={tertiaryTextColor}
                               >
                                 {#if initiative.product}
                                   <span>{initiative.product.name}</span>
@@ -338,12 +397,12 @@
                                 {/if}
                               </div>
                             {/if}
-                            <h4 class="font-medium mb-1" style:color="var(--color-text-primary)">
+                            <h4 class="font-medium mb-1" style:color={textColor}>
                               {initiative.title}
                             </h4>
                             <div
                               class="flex items-center gap-3 text-xs"
-                              style:color="var(--color-text-secondary)"
+                              style:color={secondaryTextColor}
                             >
                               <span>
                                 {formatKoreanName(
@@ -359,8 +418,8 @@
                           </div>
                           <span
                             class="px-2 py-1 text-xs font-medium rounded-full"
-                            style:background="var(--color-{stateColor}-light)"
-                            style:color="var(--color-{stateColor})"
+                            style:background={badgeBg}
+                            style:color={badgeColor}
                           >
                             {getStateText(initiative.status)}
                           </span>
@@ -392,16 +451,37 @@
               {:else}
                 <div class="space-y-3">
                   {#each myInitiatives as initiative}
+                    {@const dday = initiative.horizon ? getDDay(initiative.horizon) : null}
+                    {@const isOverdue =
+                      dday?.colorLevel === 'overdue' && initiative.status !== 'shipped'}
                     {@const stateColor = getStateColor(initiative.status)}
+                    {@const bgStyle = isOverdue
+                      ? 'linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)'
+                      : dday?.colorLevel === 'urgent' && initiative.status !== 'shipped'
+                        ? 'linear-gradient(to bottom right, rgba(251, 146, 60, 0.15), rgba(251, 146, 60, 0.08))'
+                        : dday?.colorLevel === 'warning' && initiative.status !== 'shipped'
+                          ? 'linear-gradient(to bottom right, rgba(234, 179, 8, 0.08), rgba(234, 179, 8, 0.04))'
+                          : ''}
+                    {@const textColor = isOverdue ? '#ffffff' : 'var(--color-text-primary)'}
+                    {@const secondaryTextColor = isOverdue
+                      ? 'rgba(255, 255, 255, 0.9)'
+                      : 'var(--color-text-secondary)'}
+                    {@const tertiaryTextColor = isOverdue
+                      ? 'rgba(255, 255, 255, 0.7)'
+                      : 'var(--color-text-tertiary)'}
+                    {@const badgeColor = isOverdue ? '#ffffff' : `var(--color-${stateColor})`}
+                    {@const badgeBg = isOverdue
+                      ? 'rgba(255, 255, 255, 0.2)'
+                      : `var(--color-${stateColor}-light)`}
                     <a href="/planner/initiatives/{initiative.id}" class="block">
-                      <ThemeCard variant="default" hover clickable>
+                      <ThemeCard variant="default" hover clickable style="background: {bgStyle}">
                         <div class="flex items-start justify-between">
                           <div class="flex-1">
                             <!-- Product / Milestone / Title -->
                             {#if initiative.product || initiative.milestone}
                               <div
                                 class="flex items-center gap-2 mb-1 text-xs"
-                                style:color="var(--color-text-tertiary)"
+                                style:color={tertiaryTextColor}
                               >
                                 {#if initiative.product}
                                   <span>{initiative.product.name}</span>
@@ -412,17 +492,17 @@
                                 {/if}
                               </div>
                             {/if}
-                            <h4 class="font-medium mb-1" style:color="var(--color-text-primary)">
+                            <h4 class="font-medium mb-1" style:color={textColor}>
                               {initiative.title}
                             </h4>
-                            <p class="text-xs" style:color="var(--color-text-secondary)">
+                            <p class="text-xs" style:color={secondaryTextColor}>
                               {getThreadCountText(initiative)}
                             </p>
                           </div>
                           <span
                             class="px-2 py-1 text-xs font-medium rounded-full"
-                            style:background="var(--color-{stateColor}-light)"
-                            style:color="var(--color-{stateColor})"
+                            style:background={badgeBg}
+                            style:color={badgeColor}
                           >
                             {getStateText(initiative.status)}
                           </span>

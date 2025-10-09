@@ -45,7 +45,7 @@
       if (initiativesData.success) {
         // Filter to only show active and shaping initiatives
         initiatives = initiativesData.data.filter(
-          (i: InitiativeWithOwner) => i.state === 'active' || i.state === 'shaping',
+          (i: InitiativeWithOwner) => i.status === 'active' || i.status === 'inbox',
         )
       }
 
@@ -104,7 +104,7 @@
       }
 
       const productKey = initiative.product_id || 'no-product'
-      const productName = initiative.product_name || '제품 없음'
+      const productName = initiative.product?.name || '제품 없음'
 
       if (!grouped.has(productKey)) {
         grouped.set(productKey, {
@@ -342,14 +342,14 @@
                               </div>
                               <span
                                 class="px-2 py-0.5 text-xs font-medium rounded flex-shrink-0"
-                                style:background={initiative.state === 'active'
+                                style:background={initiative.status === 'active'
                                   ? 'var(--color-green-light)'
                                   : 'var(--color-gray-light)'}
-                                style:color={initiative.state === 'active'
+                                style:color={initiative.status === 'active'
                                   ? 'var(--color-green-dark)'
                                   : 'var(--color-gray-dark)'}
                               >
-                                {getStateText(initiative.state)}
+                                {getStateText(initiative.status)}
                               </span>
                             </div>
 

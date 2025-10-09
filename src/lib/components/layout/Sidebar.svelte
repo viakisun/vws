@@ -40,9 +40,8 @@
   const navigationItems: NavItem[] = [
     {
       name: '대시보드',
-      href: '/',
+      href: '/dashboard',
       icon: HomeIcon,
-      permission: { resource: Resource.DASHBOARD },
     },
     {
       name: '재무관리',

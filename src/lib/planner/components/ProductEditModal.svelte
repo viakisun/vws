@@ -293,8 +293,13 @@
             style:border-color="var(--color-border)"
             style:color="var(--color-text-primary)"
           >
-            <option value="active">활성</option>
-            <option value="archived">보관</option>
+            <option value="planning">기획</option>
+            <option value="development">개발</option>
+            <option value="beta">베타</option>
+            <option value="active">운영</option>
+            <option value="maintenance">유지보수</option>
+            <option value="sunset">종료예정</option>
+            <option value="archived">종료</option>
           </select>
         </div>
 

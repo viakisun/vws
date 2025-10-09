@@ -6,6 +6,7 @@
     hover?: boolean
     clickable?: boolean
     class?: string
+    style?: string
     children?: any
   }
 

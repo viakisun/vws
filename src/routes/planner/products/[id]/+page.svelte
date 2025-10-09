@@ -116,6 +116,48 @@
       day: 'numeric',
     })
   }
+
+  function getProductStatusText(status: string): string {
+    switch (status) {
+      case 'planning':
+        return '기획'
+      case 'development':
+        return '개발'
+      case 'beta':
+        return '베타'
+      case 'active':
+        return '운영'
+      case 'maintenance':
+        return '유지보수'
+      case 'sunset':
+        return '종료예정'
+      case 'archived':
+        return '종료'
+      default:
+        return status
+    }
+  }
+
+  function getProductStatusColor(status: string): string {
+    switch (status) {
+      case 'planning':
+        return 'gray'
+      case 'development':
+        return 'blue'
+      case 'beta':
+        return 'purple'
+      case 'active':
+        return 'green'
+      case 'maintenance':
+        return 'orange'
+      case 'sunset':
+        return 'red'
+      case 'archived':
+        return 'gray'
+      default:
+        return 'gray'
+    }
+  }
 </script>
 
 <svelte:head>
@@ -149,9 +191,23 @@
     >
       <div class="flex items-start justify-between mb-4">
         <div class="flex-1">
-          <h1 class="text-2xl font-bold mb-2" style:color="var(--color-text-primary)">
-            {product.name}
-          </h1>
+          <div class="flex items-center gap-3 mb-2">
+            <h1 class="text-2xl font-bold" style:color="var(--color-text-primary)">
+              {product.name}
+            </h1>
+            {#if product}
+              {@const statusColor = getProductStatusColor(product.status)}
+              <span
+                class="px-2.5 py-1 text-xs font-medium rounded border whitespace-nowrap"
+                style:background="var(--color-{statusColor}-light)"
+                style:color="var(--color-{statusColor}-dark)"
+                style:border-color="var(--color-{statusColor})"
+                style:opacity="0.9"
+              >
+                {getProductStatusText(product.status)}
+              </span>
+            {/if}
+          </div>
           {#if product.description}
             <p class="text-sm" style:color="var(--color-text-secondary)">
               {product.description}
@@ -169,17 +225,6 @@
           >
             <PencilIcon size={16} />
           </button>
-          <span
-            class="px-3 py-1 text-xs font-medium rounded-full whitespace-nowrap"
-            style:background={product.status === 'active'
-              ? 'var(--color-green-light)'
-              : 'var(--color-surface-elevated)'}
-            style:color={product.status === 'active'
-              ? 'var(--color-green)'
-              : 'var(--color-text-secondary)'}
-          >
-            {product.status === 'active' ? '활성' : '보관'}
-          </span>
         </div>
       </div>
 

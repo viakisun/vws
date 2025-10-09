@@ -13,55 +13,55 @@
   // =============================================
 
   let products = $state<ProductWithOwner[]>([])
+  let categories = $state<
+    Array<{ id: string; name: string; code: string; color: string; product_count: number }>
+  >([])
   let loading = $state(true)
   let error = $state<string | null>(null)
   let showProductModal = $state(false)
   let selectedCategory = $state<string>('all')
 
   // =============================================
-  // Category Mapping
+  // Category Colors (fallback)
   // =============================================
 
-  const CATEGORY_MAP: Record<string, string> = {
-    workstream: 'Cloud Platforms',
-    danngam: 'Cloud Platforms',
-    farmflow: 'Cloud Platforms',
-    'viahub-dev': 'Cloud Platforms',
-    eidryon: 'GCS',
-    floodeye: 'GCS',
-    aprofleet: 'Deployed Services',
-    craneeyes: 'Deployed Services',
-    'cargolink-gcs': 'Deployed Services',
-    'growth-analysis-robot': 'Robotics',
-    whizlink: 'Robotics',
-    newlearn: 'AI/Data Services',
-    jb2: 'Web Services',
-    fida: 'Web Services',
-    kdsa: 'Web Services',
-  }
-
-  const CATEGORY_COLORS: Record<string, string> = {
-    'Cloud Platforms': 'blue',
-    GCS: 'purple',
-    'Deployed Services': 'green',
-    Robotics: 'orange',
-    'AI/Data Services': 'pink',
-    'Web Services': 'indigo',
-  }
-
-  const CATEGORIES = [
-    { id: 'all', label: '전체', icon: PackageIcon },
-    { id: 'Cloud Platforms', label: 'Cloud Platforms', icon: PackageIcon },
-    { id: 'GCS', label: 'GCS', icon: PackageIcon },
-    { id: 'Deployed Services', label: 'Deployed Services', icon: PackageIcon },
-    { id: 'Robotics', label: 'Robotics', icon: PackageIcon },
-    { id: 'AI/Data Services', label: 'AI/Data Services', icon: PackageIcon },
-    { id: 'Web Services', label: 'Web Services', icon: PackageIcon },
+  const CATEGORY_COLOR_DEFAULTS: string[] = [
+    'blue',
+    'purple',
+    'green',
+    'orange',
+    'pink',
+    'indigo',
+    'red',
+    'yellow',
   ]
 
   // =============================================
   // Data Fetching
   // =============================================
+
+  async function loadCategories() {
+    try {
+      const res = await fetch('/api/planner/categories')
+      if (!res.ok) throw new Error('Failed to load categories')
+
+      const data = await res.json()
+      categories = data.data.map(
+        (
+          cat: { id: string; name: string; code: string; color?: string; product_count: number },
+          index: number,
+        ) => ({
+          id: cat.code,
+          name: cat.name,
+          code: cat.code,
+          color: cat.color || CATEGORY_COLOR_DEFAULTS[index % CATEGORY_COLOR_DEFAULTS.length],
+          product_count: cat.product_count,
+        }),
+      )
+    } catch (e) {
+      console.error('Error loading categories:', e)
+    }
+  }
 
   async function loadProducts() {
     try {
@@ -82,6 +82,7 @@
   }
 
   onMount(() => {
+    loadCategories()
     loadProducts()
   })
 
@@ -89,22 +90,77 @@
   // Helpers
   // =============================================
 
-  function getProductCategory(code: string): string {
-    return CATEGORY_MAP[code] || 'Other'
+  function getProductCategory(product: ProductWithOwner): string | null {
+    return product.category || null
   }
 
-  function getCategoryColor(category: string): string {
-    return CATEGORY_COLORS[category] || 'gray'
+  function getCategoryInfo(code: string | null) {
+    if (!code) return { name: 'Other', color: 'gray' }
+    const category = categories.find((c) => c.code === code)
+    return category
+      ? { name: category.name, color: category.color }
+      : { name: 'Other', color: 'gray' }
+  }
+
+  function getProductStatusText(status: string): string {
+    switch (status) {
+      case 'planning':
+        return '기획'
+      case 'development':
+        return '개발'
+      case 'beta':
+        return '베타'
+      case 'active':
+        return '운영'
+      case 'maintenance':
+        return '유지보수'
+      case 'sunset':
+        return '종료예정'
+      case 'archived':
+        return '종료'
+      default:
+        return status
+    }
+  }
+
+  function getProductStatusColor(status: string): string {
+    switch (status) {
+      case 'planning':
+        return 'gray'
+      case 'development':
+        return 'blue'
+      case 'beta':
+        return 'purple'
+      case 'active':
+        return 'green'
+      case 'maintenance':
+        return 'orange'
+      case 'sunset':
+        return 'red'
+      case 'archived':
+        return 'gray'
+      default:
+        return 'gray'
+    }
   }
 
   // =============================================
   // Computed Values
   // =============================================
 
+  const categoryTabs = $derived([
+    { id: 'all', label: '전체', icon: PackageIcon },
+    ...categories.map((cat) => ({
+      id: cat.code,
+      label: cat.name,
+      icon: PackageIcon,
+    })),
+  ])
+
   const filteredProducts = $derived(
     selectedCategory === 'all'
       ? products
-      : products.filter((p) => getProductCategory(p.code) === selectedCategory),
+      : products.filter((p) => getProductCategory(p) === selectedCategory),
   )
 
   const totalProducts = $derived(products.length)
@@ -117,23 +173,38 @@
   )
 
   const stats = $derived([
-    { title: '전체 제품', value: totalProducts, icon: PackageIcon, color: 'blue' },
-    { title: '활성 제품', value: activeProducts, icon: PackageIcon, color: 'green' },
-    { title: '이니셔티브', value: totalInitiatives, color: 'purple' },
-    { title: '마일스톤', value: totalMilestones, color: 'orange' },
+    { title: '전체 제품', value: totalProducts, icon: PackageIcon, color: 'blue' as const },
+    { title: '활성 제품', value: activeProducts, icon: PackageIcon, color: 'green' as const },
+    { title: '이니셔티브', value: totalInitiatives, color: 'purple' as const },
+    { title: '마일스톤', value: totalMilestones, color: 'orange' as const },
   ])
 
-  // Group products by category for display
+  // Group products by category for display with proper ordering
   const productsByCategory = $derived(() => {
+    // Create a map to preserve category order
+    const categoryOrderMap = new Map<string, number>()
+    categories.forEach((cat, index) => {
+      categoryOrderMap.set(cat.name, index)
+    })
+
     const grouped: Record<string, ProductWithOwner[]> = {}
     filteredProducts.forEach((product) => {
-      const category = getProductCategory(product.code)
-      if (!grouped[category]) {
-        grouped[category] = []
+      const categoryCode = getProductCategory(product)
+      const categoryInfo = getCategoryInfo(categoryCode)
+      const categoryName = categoryInfo.name
+
+      if (!grouped[categoryName]) {
+        grouped[categoryName] = []
       }
-      grouped[category].push(product)
+      grouped[categoryName].push(product)
     })
-    return grouped
+
+    // Sort the entries by category order, then return as sorted array
+    return Object.entries(grouped).sort(([nameA], [nameB]) => {
+      const orderA = categoryOrderMap.get(nameA) ?? 999
+      const orderB = categoryOrderMap.get(nameB) ?? 999
+      return orderA - orderB
+    })
   })
 </script>
 
@@ -174,33 +245,27 @@
     </div>
   {:else}
     <!-- Category Filter -->
-    <ThemeTabs tabs={CATEGORIES} bind:activeTab={selectedCategory} variant="pills">
+    <ThemeTabs tabs={categoryTabs} bind:activeTab={selectedCategory} variant="pills">
       {#snippet children(tab)}
         <div class="mt-8">
           {#if selectedCategory === 'all'}
             <!-- Show all categories with headers -->
-            {#each Object.entries(productsByCategory()) as [category, categoryProducts]}
+            {#each productsByCategory() as [categoryName, categoryProducts]}
               {#if categoryProducts.length > 0}
-                {@const badgeColor = getCategoryColor(category)}
+                {@const firstProduct = categoryProducts[0]}
+                {@const categoryCode = getProductCategory(firstProduct)}
+                {@const categoryInfo = getCategoryInfo(categoryCode)}
+                {@const badgeColor = categoryInfo.color}
                 <div class="mb-12">
                   <div class="flex items-center gap-4 mb-6">
-                    <h2 class="text-2xl font-bold" style:color="var(--color-text-primary)">
-                      {category}
+                    <h2 class="text-2xl font-thin" style:color="var(--color-text-primary)">
+                      {categoryName}
                     </h2>
                     <span
-                      class="px-3 py-1.5 text-xs font-semibold rounded-lg"
-                      class:bg-blue-100={badgeColor === 'blue'}
-                      class:text-blue-700={badgeColor === 'blue'}
-                      class:bg-purple-100={badgeColor === 'purple'}
-                      class:text-purple-700={badgeColor === 'purple'}
-                      class:bg-green-100={badgeColor === 'green'}
-                      class:text-green-700={badgeColor === 'green'}
-                      class:bg-orange-100={badgeColor === 'orange'}
-                      class:text-orange-700={badgeColor === 'orange'}
-                      class:bg-pink-100={badgeColor === 'pink'}
-                      class:text-pink-700={badgeColor === 'pink'}
-                      class:bg-indigo-100={badgeColor === 'indigo'}
-                      class:text-indigo-700={badgeColor === 'indigo'}
+                      class="px-3 py-1.5 text-sm font-medium rounded-lg border"
+                      style:background="var(--color-background)"
+                      style:color="var(--color-text-secondary)"
+                      style:border-color="var(--color-border)"
                     >
                       {categoryProducts.length}
                     </span>
@@ -208,17 +273,58 @@
 
                   <ThemeGrid cols={1} mdCols={2} lgCols={3} gap={6}>
                     {#each categoryProducts as product}
+                      {@const isDevelopment = product.status === 'development'}
+                      {@const isBeta = product.status === 'beta'}
+                      {@const isActive = product.status === 'active'}
+                      {@const isHighlighted = isDevelopment || isBeta || isActive}
+                      {@const statusColor = getProductStatusColor(product.status)}
+                      {@const bgStyle = isDevelopment
+                        ? 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)'
+                        : isBeta
+                          ? 'linear-gradient(135deg, #a855f7 0%, #9333ea 100%)'
+                          : isActive
+                            ? 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)'
+                            : ''}
+                      {@const textColor = isHighlighted ? '#ffffff' : 'var(--color-text-primary)'}
+                      {@const secondaryTextColor = isHighlighted
+                        ? 'rgba(255, 255, 255, 0.9)'
+                        : 'var(--color-text-secondary)'}
+                      {@const tertiaryTextColor = isHighlighted
+                        ? 'rgba(255, 255, 255, 0.7)'
+                        : 'var(--color-text-tertiary)'}
+                      {@const borderColor = isHighlighted
+                        ? 'rgba(255, 255, 255, 0.3)'
+                        : 'var(--color-border-light)'}
+                      {@const badgeColor = isHighlighted
+                        ? '#ffffff'
+                        : `var(--color-${statusColor}-dark)`}
+                      {@const badgeBg = isHighlighted
+                        ? 'rgba(255, 255, 255, 0.2)'
+                        : `var(--color-${statusColor}-light)`}
+                      {@const badgeBorder = isHighlighted
+                        ? 'rgba(255, 255, 255, 0.5)'
+                        : `var(--color-${statusColor})`}
+                      {@const statColor1 = isHighlighted ? '#ffffff' : 'var(--color-primary)'}
+                      {@const statColor2 = isHighlighted ? '#ffffff' : 'var(--color-purple)'}
                       <a href="/planner/products/{product.id}" class="block">
-                        <ThemeCard variant="default" hover clickable>
+                        <ThemeCard variant="default" hover clickable style="background: {bgStyle}">
                           <!-- Product Name -->
                           <div class="mb-4">
-                            <h3
-                              class="text-xl font-bold mb-2"
-                              style:color="var(--color-text-primary)"
-                            >
-                              {product.name}
-                            </h3>
-                            <p class="text-xs font-mono" style:color="var(--color-text-tertiary)">
+                            <div class="flex items-center gap-2 mb-2">
+                              <h3 class="text-xl font-bold" style:color={textColor}>
+                                {product.name}
+                              </h3>
+                              <span
+                                class="px-2.5 py-1 text-xs font-medium rounded border whitespace-nowrap"
+                                style:background={badgeBg}
+                                style:color={badgeColor}
+                                style:border-color={badgeBorder}
+                                style:opacity="0.9"
+                              >
+                                {getProductStatusText(product.status)}
+                              </span>
+                            </div>
+                            <p class="text-xs font-mono" style:color={tertiaryTextColor}>
                               {product.code}
                             </p>
                           </div>
@@ -228,7 +334,7 @@
                             {#if product.description}
                               <p
                                 class="text-sm line-clamp-2 leading-relaxed"
-                                style:color="var(--color-text-secondary)"
+                                style:color={secondaryTextColor}
                               >
                                 {product.description}
                               </p>
@@ -238,19 +344,19 @@
                           <!-- Stats -->
                           <div
                             class="flex items-center gap-6 text-sm pt-4"
-                            style:border-top="1px solid var(--color-border-light)"
+                            style:border-top="1px solid {borderColor}"
                           >
                             <div class="flex items-center gap-2">
-                              <span class="text-lg font-bold" style:color="var(--color-primary)">
+                              <span class="text-lg font-bold" style:color={statColor1}>
                                 {product.initiative_count || 0}
                               </span>
-                              <span style:color="var(--color-text-secondary)">이니셔티브</span>
+                              <span style:color={secondaryTextColor}>이니셔티브</span>
                             </div>
                             <div class="flex items-center gap-2">
-                              <span class="text-lg font-bold" style:color="var(--color-purple)">
+                              <span class="text-lg font-bold" style:color={statColor2}>
                                 {product.milestone_count || 0}
                               </span>
-                              <span style:color="var(--color-text-secondary)">마일스톤</span>
+                              <span style:color={secondaryTextColor}>마일스톤</span>
                             </div>
                           </div>
                         </ThemeCard>
@@ -266,14 +372,58 @@
             {#if categoryProducts.length > 0}
               <ThemeGrid cols={1} mdCols={2} lgCols={3} gap={6}>
                 {#each categoryProducts as product}
+                  {@const isDevelopment = product.status === 'development'}
+                  {@const isBeta = product.status === 'beta'}
+                  {@const isActive = product.status === 'active'}
+                  {@const isHighlighted = isDevelopment || isBeta || isActive}
+                  {@const statusColor = getProductStatusColor(product.status)}
+                  {@const bgStyle = isDevelopment
+                    ? 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)'
+                    : isBeta
+                      ? 'linear-gradient(135deg, #a855f7 0%, #9333ea 100%)'
+                      : isActive
+                        ? 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)'
+                        : ''}
+                  {@const textColor = isHighlighted ? '#ffffff' : 'var(--color-text-primary)'}
+                  {@const secondaryTextColor = isHighlighted
+                    ? 'rgba(255, 255, 255, 0.9)'
+                    : 'var(--color-text-secondary)'}
+                  {@const tertiaryTextColor = isHighlighted
+                    ? 'rgba(255, 255, 255, 0.7)'
+                    : 'var(--color-text-tertiary)'}
+                  {@const borderColor = isHighlighted
+                    ? 'rgba(255, 255, 255, 0.3)'
+                    : 'var(--color-border-light)'}
+                  {@const badgeColor = isHighlighted
+                    ? '#ffffff'
+                    : `var(--color-${statusColor}-dark)`}
+                  {@const badgeBg = isHighlighted
+                    ? 'rgba(255, 255, 255, 0.2)'
+                    : `var(--color-${statusColor}-light)`}
+                  {@const badgeBorder = isHighlighted
+                    ? 'rgba(255, 255, 255, 0.5)'
+                    : `var(--color-${statusColor})`}
+                  {@const statColor1 = isHighlighted ? '#ffffff' : 'var(--color-primary)'}
+                  {@const statColor2 = isHighlighted ? '#ffffff' : 'var(--color-purple)'}
                   <a href="/planner/products/{product.id}" class="block">
-                    <ThemeCard variant="default" hover clickable>
+                    <ThemeCard variant="default" hover clickable style="background: {bgStyle}">
                       <!-- Product Name -->
                       <div class="mb-4">
-                        <h3 class="text-xl font-bold mb-2" style:color="var(--color-text-primary)">
-                          {product.name}
-                        </h3>
-                        <p class="text-xs font-mono" style:color="var(--color-text-tertiary)">
+                        <div class="flex items-center gap-2 mb-2">
+                          <h3 class="text-xl font-bold" style:color={textColor}>
+                            {product.name}
+                          </h3>
+                          <span
+                            class="px-2.5 py-1 text-xs font-medium rounded border whitespace-nowrap"
+                            style:background={badgeBg}
+                            style:color={badgeColor}
+                            style:border-color={badgeBorder}
+                            style:opacity="0.9"
+                          >
+                            {getProductStatusText(product.status)}
+                          </span>
+                        </div>
+                        <p class="text-xs font-mono" style:color={tertiaryTextColor}>
                           {product.code}
                         </p>
                       </div>
@@ -283,7 +433,7 @@
                         {#if product.description}
                           <p
                             class="text-sm line-clamp-2 leading-relaxed"
-                            style:color="var(--color-text-secondary)"
+                            style:color={secondaryTextColor}
                           >
                             {product.description}
                           </p>
@@ -293,19 +443,19 @@
                       <!-- Stats -->
                       <div
                         class="flex items-center gap-6 text-sm pt-4"
-                        style:border-top="1px solid var(--color-border-light)"
+                        style:border-top="1px solid {borderColor}"
                       >
                         <div class="flex items-center gap-2">
-                          <span class="text-lg font-bold" style:color="var(--color-primary)">
+                          <span class="text-lg font-bold" style:color={statColor1}>
                             {product.initiative_count || 0}
                           </span>
-                          <span style:color="var(--color-text-secondary)">이니셔티브</span>
+                          <span style:color={secondaryTextColor}>이니셔티브</span>
                         </div>
                         <div class="flex items-center gap-2">
-                          <span class="text-lg font-bold" style:color="var(--color-purple)">
+                          <span class="text-lg font-bold" style:color={statColor2}>
                             {product.milestone_count || 0}
                           </span>
-                          <span style:color="var(--color-text-secondary)">마일스톤</span>
+                          <span style:color={secondaryTextColor}>마일스톤</span>
                         </div>
                       </div>
                     </ThemeCard>
@@ -338,6 +488,7 @@
   .line-clamp-2 {
     display: -webkit-box;
     -webkit-line-clamp: 2;
+    line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
   }

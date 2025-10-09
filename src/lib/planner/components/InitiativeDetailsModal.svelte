@@ -52,7 +52,7 @@
         horizon = ''
       }
       ownerId = initiative.owner_id
-      formationId = initiative.formation_id
+      formationId = initiative.formation_id || null
       milestoneId = initiative.milestone_id || null
     }
   })

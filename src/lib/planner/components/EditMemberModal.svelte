@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { MemberRole, BandwidthAllocation } from '$lib/planner/types'
+  import type { FormationRole, FormationBandwidth } from '$lib/planner/types'
 
   // =============================================
   // Props
@@ -10,8 +10,8 @@
     member: {
       id: string
       employee_id: string
-      role: MemberRole
-      bandwidth: BandwidthAllocation
+      role: FormationRole
+      bandwidth: FormationBandwidth
       employee: {
         first_name: string
         last_name: string
@@ -31,8 +31,8 @@
   // State
   // =============================================
 
-  let role = $state<MemberRole>('contributor')
-  let bandwidth = $state<BandwidthAllocation>('partial')
+  let role = $state<FormationRole>('contributor')
+  let bandwidth = $state<FormationBandwidth>('partial')
   let loading = $state(false)
   let error = $state<string | null>(null)
   let showDeleteConfirm = $state(false)

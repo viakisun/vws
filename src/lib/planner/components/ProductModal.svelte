@@ -26,9 +26,12 @@
   let code = $state('')
   let description = $state('')
   let owner_id = $state('')
-  let status = $state<'active' | 'archived'>('active')
+  let status = $state<'planning' | 'development' | 'beta' | 'active' | 'maintenance' | 'sunset' | 'archived'>('active')
   let repository_url = $state('')
   let documentation_url = $state('')
+  let category = $state('')
+
+  let categories = $state<any[]>([])
 
   let employees = $state<any[]>([])
   let loading = $state(false)
@@ -57,8 +60,21 @@
     }
   }
 
+  async function loadCategories() {
+    try {
+      const res = await fetch('/api/planner/categories')
+      const data = await res.json()
+      if (data.success) {
+        categories = data.data || []
+      }
+    } catch (e) {
+      console.error('Failed to load categories:', e)
+    }
+  }
+
   onMount(() => {
     loadEmployees()
+    loadCategories()
   })
 
   // =============================================
@@ -74,6 +90,7 @@
       status = product.status
       repository_url = product.repository_url || ''
       documentation_url = product.documentation_url || ''
+      category = product.category || ''
     } else {
       resetForm()
     }
@@ -91,6 +108,7 @@
     status = 'active'
     repository_url = ''
     documentation_url = ''
+    category = ''
     error = null
   }
 
@@ -116,6 +134,7 @@
           description: description.trim() || undefined,
           owner_id,
           status,
+          category: category || undefined,
           repository_url: repository_url.trim() || undefined,
           documentation_url: documentation_url.trim() || undefined,
         }),
@@ -223,31 +242,55 @@
         ></textarea>
       </div>
 
-      <!-- Owner & Status -->
+      <!-- Product Owner -->
+      <div>
+        <label
+          for="product-owner"
+          class="block text-sm font-medium mb-1"
+          style:color="var(--color-text-secondary)"
+        >
+          제품 책임자 *
+        </label>
+        <select
+          id="product-owner"
+          bind:value={owner_id}
+          class="w-full px-3 py-2 rounded-lg border transition"
+          style:border-color="var(--color-border)"
+          style:background="var(--color-surface)"
+          style:color="var(--color-text-primary)"
+          required
+          disabled={loading}
+        >
+          <option value="">선택하세요</option>
+          {#each employees as employee}
+            <option value={employee.id}>
+              {formatKoreanName(employee.last_name, employee.first_name)}
+            </option>
+          {/each}
+        </select>
+      </div>
+
+      <!-- Category & Status -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label
-            for="product-owner"
+            for="product-category"
             class="block text-sm font-medium mb-1"
             style:color="var(--color-text-secondary)"
           >
-            제품 책임자 *
+            카테고리
           </label>
           <select
-            id="product-owner"
-            bind:value={owner_id}
+            id="product-category"
+            bind:value={category}
             class="w-full px-3 py-2 rounded-lg border transition"
             style:border-color="var(--color-border)"
             style:background="var(--color-surface)"
             style:color="var(--color-text-primary)"
-            required
-            disabled={loading}
           >
             <option value="">선택하세요</option>
-            {#each employees as employee}
-              <option value={employee.id}>
-                {formatKoreanName(employee.last_name, employee.first_name)}
-              </option>
+            {#each categories as cat}
+              <option value={cat.code}>{cat.name}</option>
             {/each}
           </select>
         </div>
@@ -258,7 +301,7 @@
             class="block text-sm font-medium mb-1"
             style:color="var(--color-text-secondary)"
           >
-            상태 *
+            상태
           </label>
           <select
             id="product-status"
@@ -269,8 +312,13 @@
             style:color="var(--color-text-primary)"
             required
           >
-            <option value="active">활성</option>
-            <option value="archived">보관</option>
+            <option value="planning">기획</option>
+            <option value="development">개발</option>
+            <option value="beta">베타</option>
+            <option value="active">운영</option>
+            <option value="maintenance">유지보수</option>
+            <option value="sunset">종료예정</option>
+            <option value="archived">종료</option>
           </select>
         </div>
       </div>
