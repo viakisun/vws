@@ -94,6 +94,15 @@ export class InitiativeService {
             'updated_at', f.updated_at
           )
         ELSE NULL END as formation,
+        CASE WHEN m.id IS NOT NULL THEN
+          json_build_object(
+            'id', m.id,
+            'name', m.name,
+            'description', m.description,
+            'target_date', m.target_date,
+            'status', m.status
+          )
+        ELSE NULL END as milestone,
         json_build_object(
           'total', (SELECT COUNT(*) FROM planner_threads WHERE initiative_id = i.id AND deleted_at IS NULL),
           'blocks', (SELECT COUNT(*) FROM planner_threads WHERE initiative_id = i.id AND shape = 'block' AND state = 'active' AND deleted_at IS NULL),
@@ -108,6 +117,7 @@ export class InitiativeService {
       JOIN employees e ON e.id = i.owner_id
       LEFT JOIN planner_products p ON p.id = i.product_id AND p.deleted_at IS NULL
       LEFT JOIN planner_formations f ON f.id = i.formation_id AND f.deleted_at IS NULL
+      LEFT JOIN planner_milestones m ON m.id = i.milestone_id AND m.deleted_at IS NULL
       WHERE i.id = $1 AND i.deleted_at IS NULL`,
       [id],
     )
@@ -143,6 +153,15 @@ export class InitiativeService {
             'updated_at', f.updated_at
           )
         ELSE NULL END as formation,
+        CASE WHEN m.id IS NOT NULL THEN
+          json_build_object(
+            'id', m.id,
+            'name', m.name,
+            'description', m.description,
+            'target_date', m.target_date,
+            'status', m.status
+          )
+        ELSE NULL END as milestone,
         json_build_object(
           'total', (SELECT COUNT(*) FROM planner_threads WHERE initiative_id = i.id AND deleted_at IS NULL),
           'blocks', (SELECT COUNT(*) FROM planner_threads WHERE initiative_id = i.id AND shape = 'block' AND state = 'active' AND deleted_at IS NULL),
@@ -157,6 +176,7 @@ export class InitiativeService {
       JOIN employees e ON e.id = i.owner_id
       LEFT JOIN planner_formations f ON f.id = i.formation_id AND f.deleted_at IS NULL
       LEFT JOIN planner_products p ON p.id = i.product_id AND p.deleted_at IS NULL
+      LEFT JOIN planner_milestones m ON m.id = i.milestone_id AND m.deleted_at IS NULL
       WHERE i.deleted_at IS NULL
     `
 
@@ -285,6 +305,12 @@ export class InitiativeService {
       params.push(input.formation_id || null)
     }
 
+    if (input.milestone_id !== undefined) {
+      paramCount++
+      updates.push(`milestone_id = $${paramCount}`)
+      params.push(input.milestone_id || null)
+    }
+
     if (input.horizon !== undefined) {
       paramCount++
       updates.push(`horizon = $${paramCount}`)
@@ -344,7 +370,7 @@ export class InitiativeService {
   }
 
   /**
-   * Change initiative stage with validation
+   * Change initiative stage
    */
   async changeStage(
     id: string,
@@ -353,21 +379,6 @@ export class InitiativeService {
   ): Promise<Initiative | null> {
     const current = await this.getById(id)
     if (!current) return null
-
-    // Validate stage transition
-    const allowedTransitions = INITIATIVE_STAGE_TRANSITIONS[current.stage]
-    if (!allowedTransitions.allowed.includes(newStage)) {
-      throw new Error(
-        `Cannot transition from ${current.stage} to ${newStage}. Allowed: ${allowedTransitions.allowed.join(', ')}`,
-      )
-    }
-
-    // Validate requirements
-    if (newStage === 'building' && current.stage === 'shaping') {
-      if (!current.success_criteria || current.success_criteria.length === 0) {
-        throw new Error('Cannot start building without success criteria')
-      }
-    }
 
     const result = await DatabaseService.query(
       `UPDATE planner_initiatives

@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { InitiativeWithOwner } from '../types'
   import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
+  import MilestoneSelector from './MilestoneSelector.svelte'
 
   interface Employee {
     id: string
@@ -21,6 +22,7 @@
       horizon?: string
       owner_id?: string
       formation_id?: string | null
+      milestone_id?: string | null
     }) => Promise<void>
   }
 
@@ -30,6 +32,7 @@
   let horizon = $state('')
   let ownerId = $state('')
   let formationId = $state<string | null>(null)
+  let milestoneId = $state<string | null>(null)
   let saving = $state(false)
 
   let employees = $state<Employee[]>([])
@@ -50,6 +53,7 @@
       }
       ownerId = initiative.owner_id
       formationId = initiative.formation_id
+      milestoneId = initiative.milestone_id || null
     }
   })
 
@@ -106,6 +110,7 @@
         horizon: horizon || undefined,
         owner_id: ownerId,
         formation_id: formationId || null,
+        milestone_id: milestoneId || null,
       })
       onClose()
     } catch (e) {
@@ -177,6 +182,17 @@
             {/each}
           </select>
         </div>
+
+        <!-- Milestone -->
+        {#if initiative?.product_id}
+          <MilestoneSelector
+            productId={initiative.product_id}
+            bind:selectedMilestoneId={milestoneId}
+            onSelect={(id) => {
+              milestoneId = id
+            }}
+          />
+        {/if}
 
         <!-- Success Criteria -->
         <div>

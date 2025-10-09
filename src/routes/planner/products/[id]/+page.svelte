@@ -126,10 +126,7 @@
       <div style:color="var(--color-text-secondary)">로딩 중...</div>
     </div>
   {:else if error || !product}
-    <div
-      class="p-4 rounded-lg border border-red-200 bg-red-50"
-      style:color="var(--color-error)"
-    >
+    <div class="p-4 rounded-lg border border-red-200 bg-red-50" style:color="var(--color-error)">
       {error || '제품을 찾을 수 없습니다'}
     </div>
   {:else}
@@ -174,9 +171,7 @@
 
       <div class="flex items-center gap-6 pt-4" style:border-top="1px solid var(--color-border)">
         <div class="flex items-center gap-2">
-          <span class="text-xs font-semibold" style:color="var(--color-text-tertiary)"
-            >책임자</span
-          >
+          <span class="text-xs font-semibold" style:color="var(--color-text-tertiary)">책임자</span>
           <span class="text-sm font-medium" style:color="var(--color-text-primary)">
             {formatKoreanName(product.owner.last_name, product.owner.first_name)}
           </span>
@@ -228,32 +223,55 @@
           style:background="var(--color-surface)"
           style:border-color="var(--color-border)"
         >
-          <p class="text-sm" style:color="var(--color-text-tertiary)">
-            아직 마일스톤이 없습니다.
-          </p>
+          <p class="text-sm" style:color="var(--color-text-tertiary)">아직 마일스톤이 없습니다.</p>
         </div>
       {:else}
         <div class="space-y-3">
           {#each milestones as milestone}
             {@const statusColor = getMilestoneStatusColor(milestone.status)}
             {@const isAchieved = milestone.status === 'achieved'}
+            {@const isInProgress = milestone.status === 'in_progress'}
+            {@const isUpcoming = milestone.status === 'upcoming'}
             <div
-              class="p-4 rounded-lg border-2 transition"
-              style:background={isAchieved
-                ? 'var(--color-green-light)'
-                : 'var(--color-surface)'}
-              style:border-color={isAchieved
-                ? 'var(--color-green)'
-                : 'var(--color-border)'}
+              class="p-4 rounded-lg transition"
+              class:border-2={isInProgress}
+              class:border={!isInProgress}
+              class:bg-green-50={isInProgress}
+              class:border-green-500={isInProgress}
+              class:bg-gray-100={isAchieved}
+              class:border-gray-400={isAchieved}
+              style:background={!isInProgress && !isAchieved ? 'var(--color-surface)' : undefined}
+              style:border-color={!isInProgress && !isAchieved
+                ? 'var(--color-border)'
+                : undefined}
             >
               <div class="flex items-start justify-between mb-2">
-                <h4 class="text-base font-medium" style:color="var(--color-text-primary)">
-                  {#if isAchieved}
-                    <span class="mr-2">✓</span>
-                  {/if}
-                  {milestone.name}
-                </h4>
-                <div class="flex items-center gap-2">
+                <div class="flex-1">
+                  <div class="flex items-center gap-3 mb-1">
+                    <h4
+                      class="text-base font-medium"
+                      class:line-through={isAchieved}
+                      class:text-gray-500={isAchieved}
+                      style:color={!isAchieved ? 'var(--color-text-primary)' : undefined}
+                    >
+                      {#if isAchieved}
+                        <span class="mr-2 text-green-600">✓</span>
+                      {/if}
+                      {milestone.name}
+                    </h4>
+                    <span class="text-gray-400">/</span>
+                    {#if milestone.description}
+                      <p class="text-sm" style:color="var(--color-text-secondary)">
+                        {milestone.description}
+                      </p>
+                    {/if}
+                  </div>
+                  <div class="flex items-center gap-4 text-xs" style:color="var(--color-text-tertiary)">
+                    <span>목표일: {formatDate(milestone.target_date)}</span>
+                    <span>{milestone.initiative_count}개 이니셔티브</span>
+                  </div>
+                </div>
+                <div class="flex items-center gap-2 ml-4">
                   <span
                     class="px-2 py-0.5 text-xs font-medium rounded-full"
                     style:background="var(--color-{statusColor}-light)"
@@ -273,15 +291,6 @@
                     Edit
                   </button>
                 </div>
-              </div>
-              {#if milestone.description}
-                <p class="text-sm mb-3" style:color="var(--color-text-secondary)">
-                  {milestone.description}
-                </p>
-              {/if}
-              <div class="flex items-center gap-4 text-xs" style:color="var(--color-text-tertiary)">
-                <span>목표일: {formatDate(milestone.target_date)}</span>
-                <span>{milestone.initiative_count}개 이니셔티브</span>
               </div>
             </div>
           {/each}

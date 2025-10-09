@@ -134,10 +134,10 @@
     }).format(date)
   }
 
-  function getStateColor(state: string): string {
-    switch (state) {
-      case 'shaping':
-        return 'purple'
+  function getStateColor(status: string): string {
+    switch (status) {
+      case 'inbox':
+        return 'gray'
       case 'active':
         return 'blue'
       case 'paused':
@@ -151,12 +151,12 @@
     }
   }
 
-  function getStateText(state: string): string {
-    switch (state) {
-      case 'shaping':
-        return '구체화'
+  function getStateText(status: string): string {
+    switch (status) {
+      case 'inbox':
+        return 'INBOX'
       case 'active':
-        return '진행 중'
+        return '진행중'
       case 'paused':
         return '일시중지'
       case 'shipped':
@@ -164,7 +164,7 @@
       case 'abandoned':
         return '중단'
       default:
-        return state
+        return status
     }
   }
 
@@ -318,11 +318,23 @@
               {:else}
                 <div class="space-y-3">
                   {#each activeInitiatives.slice(0, 8) as initiative}
-                    {@const stateColor = getStateColor(initiative.state)}
+                    {@const stateColor = getStateColor(initiative.status)}
                     <a href="/planner/initiatives/{initiative.id}" class="block">
                       <ThemeCard variant="default" hover clickable>
                         <div class="flex items-start justify-between">
                           <div class="flex-1">
+                            <!-- Product / Milestone / Title -->
+                            {#if initiative.product || initiative.milestone}
+                              <div class="flex items-center gap-2 mb-1 text-xs" style:color="var(--color-text-tertiary)">
+                                {#if initiative.product}
+                                  <span>{initiative.product.name}</span>
+                                {/if}
+                                {#if initiative.milestone}
+                                  <span>/</span>
+                                  <span>{initiative.milestone.name}</span>
+                                {/if}
+                              </div>
+                            {/if}
                             <h4 class="font-medium mb-1" style:color="var(--color-text-primary)">
                               {initiative.title}
                             </h4>
@@ -347,7 +359,7 @@
                             style:background="var(--color-{stateColor}-light)"
                             style:color="var(--color-{stateColor})"
                           >
-                            {getStateText(initiative.state)}
+                            {getStateText(initiative.status)}
                           </span>
                         </div>
                       </ThemeCard>
@@ -377,14 +389,38 @@
               {:else}
                 <div class="space-y-3">
                   {#each myInitiatives as initiative}
+                    {@const stateColor = getStateColor(initiative.status)}
                     <a href="/planner/initiatives/{initiative.id}" class="block">
                       <ThemeCard variant="default" hover clickable>
-                        <h4 class="font-medium mb-2" style:color="var(--color-text-primary)">
-                          {initiative.title}
-                        </h4>
-                        <p class="text-xs" style:color="var(--color-text-secondary)">
-                          {getThreadCountText(initiative)}
-                        </p>
+                        <div class="flex items-start justify-between">
+                          <div class="flex-1">
+                            <!-- Product / Milestone / Title -->
+                            {#if initiative.product || initiative.milestone}
+                              <div class="flex items-center gap-2 mb-1 text-xs" style:color="var(--color-text-tertiary)">
+                                {#if initiative.product}
+                                  <span>{initiative.product.name}</span>
+                                {/if}
+                                {#if initiative.milestone}
+                                  <span>/</span>
+                                  <span>{initiative.milestone.name}</span>
+                                {/if}
+                              </div>
+                            {/if}
+                            <h4 class="font-medium mb-1" style:color="var(--color-text-primary)">
+                              {initiative.title}
+                            </h4>
+                            <p class="text-xs" style:color="var(--color-text-secondary)">
+                              {getThreadCountText(initiative)}
+                            </p>
+                          </div>
+                          <span
+                            class="px-2 py-1 text-xs font-medium rounded-full"
+                            style:background="var(--color-{stateColor}-light)"
+                            style:color="var(--color-{stateColor})"
+                          >
+                            {getStateText(initiative.status)}
+                          </span>
+                        </div>
                       </ThemeCard>
                     </a>
                   {/each}

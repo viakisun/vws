@@ -1,7 +1,7 @@
 // Planner Type Definitions
 
 export type InitiativeStage = 'shaping' | 'building' | 'testing' | 'shipping' | 'done'
-export type InitiativeStatus = 'active' | 'paused' | 'shipped' | 'abandoned'
+export type InitiativeStatus = 'inbox' | 'active' | 'paused' | 'shipped' | 'abandoned'
 export type ThreadState = 'proposed' | 'active' | 'resolved' | 'archived'
 export type ThreadShape = 'decision' | 'build' | 'research' | 'block' | 'question'
 export type FormationRole = 'driver' | 'contributor' | 'advisor' | 'observer'
@@ -439,11 +439,14 @@ export const INITIATIVE_STATUS_TRANSITIONS: Record<
   InitiativeStatus,
   { allowed: InitiativeStatus[] }
 > = {
+  inbox: {
+    allowed: ['active', 'abandoned'],
+  },
   active: {
-    allowed: ['paused', 'shipped', 'abandoned'],
+    allowed: ['inbox', 'paused', 'shipped', 'abandoned'],
   },
   paused: {
-    allowed: ['active', 'abandoned'],
+    allowed: ['inbox', 'active', 'abandoned'],
   },
   shipped: {
     allowed: [], // terminal status
@@ -508,6 +511,7 @@ export const INITIATIVE_STAGE_COLORS: Record<InitiativeStage, string> = {
 }
 
 export const INITIATIVE_STATUS_COLORS: Record<InitiativeStatus, string> = {
+  inbox: 'gray',
   active: 'blue',
   paused: 'orange',
   shipped: 'green',

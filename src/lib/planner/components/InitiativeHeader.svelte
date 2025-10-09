@@ -17,7 +17,8 @@
   const statusColor = $derived(getStatusColor(initiative.status))
 
   const STATUS_OPTIONS: Array<{ value: InitiativeStatus; label: string }> = [
-    { value: 'active', label: '진행 중' },
+    { value: 'inbox', label: 'INBOX' },
+    { value: 'active', label: '진행중' },
     { value: 'paused', label: '일시중지' },
     { value: 'shipped', label: '완료' },
     { value: 'abandoned', label: '중단' },
@@ -106,7 +107,7 @@
     </select>
   </div>
 
-  <!-- Title with Product Name -->
+  <!-- Title with Product Name and Milestone -->
   <div class="mb-3">
     {#if !initiative.product}
       <div class="flex items-center gap-2 mb-2 px-3 py-2 rounded bg-red-50 border border-red-200">
@@ -119,6 +120,12 @@
         <span class="text-lg font-light" style:color="var(--color-text-tertiary)">
           {initiative.product.name}
         </span>
+        {#if initiative.milestone}
+          <span style:color="var(--color-text-tertiary)">/</span>
+          <span class="text-lg font-light" style:color="var(--color-text-tertiary)">
+            {initiative.milestone.name}
+          </span>
+        {/if}
         <span style:color="var(--color-text-tertiary)">/</span>
       </div>
     {/if}
@@ -195,42 +202,54 @@
       </div>
 
       <!-- Team Card -->
-      {#if initiative.formation}
+      <div
+        class="rounded-lg p-4"
+        class:border={initiative.formation}
+        class:border-2={!initiative.formation}
+        class:border-red-300={!initiative.formation}
+        class:bg-red-50={!initiative.formation}
+        style:background={initiative.formation ? 'var(--color-surface-secondary)' : ''}
+        style:border-color={initiative.formation ? 'var(--color-border)' : ''}
+      >
         <div
-          class="rounded-lg border p-4"
-          style:background="var(--color-surface-secondary)"
-          style:border-color="var(--color-border)"
+          class="text-xs font-semibold uppercase tracking-wide mb-2"
+          style:color="var(--color-text-tertiary)"
         >
-          <div
-            class="text-xs font-semibold uppercase tracking-wide mb-2"
-            style:color="var(--color-text-tertiary)"
-          >
-            Team
-          </div>
+          Team
+        </div>
+        {#if initiative.formation}
           <div class="text-sm font-medium" style:color="var(--color-text-primary)">
             {initiative.formation.name}
           </div>
-        </div>
-      {/if}
+        {:else}
+          <div class="text-sm font-medium text-red-600">⚠ 미지정 - 팀을 설정해주세요</div>
+        {/if}
+      </div>
 
       <!-- Target Date Card -->
-      {#if initiative.horizon}
+      <div
+        class="rounded-lg p-4"
+        class:border={initiative.horizon}
+        class:border-2={!initiative.horizon}
+        class:border-red-300={!initiative.horizon}
+        class:bg-red-50={!initiative.horizon}
+        style:background={initiative.horizon ? 'var(--color-surface-secondary)' : ''}
+        style:border-color={initiative.horizon ? 'var(--color-border)' : ''}
+      >
         <div
-          class="rounded-lg border p-4"
-          style:background="var(--color-surface-secondary)"
-          style:border-color="var(--color-border)"
+          class="text-xs font-semibold uppercase tracking-wide mb-2"
+          style:color="var(--color-text-tertiary)"
         >
-          <div
-            class="text-xs font-semibold uppercase tracking-wide mb-2"
-            style:color="var(--color-text-tertiary)"
-          >
-            Target Date
-          </div>
+          Target Date
+        </div>
+        {#if initiative.horizon}
           <div class="text-sm font-medium" style:color="var(--color-text-primary)">
             {new Date(initiative.horizon).toLocaleDateString('ko-KR')}
           </div>
-        </div>
-      {/if}
+        {:else}
+          <div class="text-sm font-medium text-red-600">⚠ 미지정 - 목표일을 설정해주세요</div>
+        {/if}
+      </div>
     </div>
   </div>
 </div>

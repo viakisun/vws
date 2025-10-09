@@ -89,6 +89,11 @@
           {initiative.owner.first_name}
           {initiative.owner.last_name}
         </span>
+        {#if initiative.milestone}
+          <span class="text-xs px-2 py-1 bg-purple-100 text-purple-700 rounded">
+            📍 {initiative.milestone.name}
+          </span>
+        {/if}
         {#if initiative.formation}
           <span class="text-xs px-2 py-1 bg-gray-100 rounded">{initiative.formation.name}</span>
         {/if}

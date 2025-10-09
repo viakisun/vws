@@ -52,6 +52,7 @@ export const PATCH: RequestHandler = async ({ params, request, locals }) => {
       pause_reason: body.pause_reason,
       abandonment_reason: body.abandonment_reason,
       shipped_notes: body.shipped_notes,
+      milestone_id: body.milestone_id,
     }
 
     const initiative = await initiativeService.update(params.id, input, user.id)

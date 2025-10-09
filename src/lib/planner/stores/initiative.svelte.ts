@@ -106,6 +106,7 @@ export function createInitiativeStore(initiativeId: string) {
     horizon?: string
     owner_id?: string
     formation_id?: string | null
+    milestone_id?: string | null
   }) {
     if (!initiative) return
 
