@@ -43,9 +43,7 @@
       if (res.ok) {
         const data = await res.json()
         // Exclude archived and sunset products - only show products in active development
-        products = (data.data || []).filter(
-          (p) => p.status !== 'archived' && p.status !== 'sunset',
-        )
+        products = (data.data || []).filter((p) => p.status !== 'archived' && p.status !== 'sunset')
         console.log('Loaded products:', products)
       } else {
         console.error('Failed to load products - status:', res.status)

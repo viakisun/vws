@@ -478,11 +478,7 @@
     <section class="space-y-4">
       <div class="flex items-center justify-between">
         <h2 class="text-xl font-semibold" style:color="var(--color-text-primary)">내 제품</h2>
-        <a
-          href="/planner"
-          class="text-sm hover:underline"
-          style:color="var(--color-primary)"
-        >
+        <a href="/planner" class="text-sm hover:underline" style:color="var(--color-primary)">
           전체 보기
         </a>
       </div>

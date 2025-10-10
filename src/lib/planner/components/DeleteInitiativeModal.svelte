@@ -189,18 +189,18 @@
           </div>
 
           <!-- Warning Box -->
-                 <div
-                   class="p-4 rounded-lg bg-red-50 border border-red-200"
-                   style:color="var(--color-error)"
-                   role="alert"
-                 >
-                   <p class="text-sm font-medium mb-2">⚠️ 주의사항</p>
-                   <ul class="text-xs space-y-1 list-disc list-inside">
-                     <li>삭제된 이니셔티브는 복구할 수 없습니다</li>
-                     <li>연관된 스레드와 투두도 함께 삭제됩니다</li>
-                     <li>활동 기록은 보존됩니다</li>
-                   </ul>
-                 </div>
+          <div
+            class="p-4 rounded-lg bg-red-50 border border-red-200"
+            style:color="var(--color-error)"
+            role="alert"
+          >
+            <p class="text-sm font-medium mb-2">⚠️ 주의사항</p>
+            <ul class="text-xs space-y-1 list-disc list-inside">
+              <li>삭제된 이니셔티브는 복구할 수 없습니다</li>
+              <li>연관된 스레드와 투두도 함께 삭제됩니다</li>
+              <li>활동 기록은 보존됩니다</li>
+            </ul>
+          </div>
         </div>
       </div>
 

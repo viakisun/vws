@@ -2,18 +2,14 @@
   import PageLayout from '$lib/components/layout/PageLayout.svelte'
   import ThemeCard from '$lib/components/ui/ThemeCard.svelte'
   import ThemeGrid from '$lib/components/ui/ThemeGrid.svelte'
-  import type {
-    InitiativeWithOwner,
-    ProductWithOwner,
-    ThreadWithDetails
-  } from '$lib/planner/types'
+  import type { InitiativeWithOwner, ProductWithOwner, ThreadWithDetails } from '$lib/planner/types'
   import {
     AlertCircleIcon,
     CheckCircleIcon,
     MessageSquareIcon,
     PackageIcon,
     UsersIcon,
-    ZapIcon
+    ZapIcon,
   } from 'lucide-svelte'
   import { onMount } from 'svelte'
 

@@ -73,9 +73,7 @@
 
       const data = await res.json()
       // Exclude archived and sunset products
-      products = (data.data || []).filter(
-        (p) => p.status !== 'archived' && p.status !== 'sunset',
-      )
+      products = (data.data || []).filter((p) => p.status !== 'archived' && p.status !== 'sunset')
     } catch (e) {
       error = e instanceof Error ? e.message : 'Failed to load products'
       console.error('Error loading products:', e)
