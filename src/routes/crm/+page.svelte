@@ -191,26 +191,27 @@
   ]
 
   // 필터링된 고객 데이터
-  const filteredCustomers = $derived<Customer[]>(
-    (() => {
-      let customers: Customer[] = crmData.customers
+  const filteredCustomers = $derived.by(() => {
+    const list = crmData.customers ?? []
 
-      if (searchTerm) {
-        customers = customers.filter(
-          (customer) =>
-            customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            customer.contact.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            customer.industry.toLowerCase().includes(searchTerm.toLowerCase()),
-        )
-      }
+    const term = (searchTerm ?? '').trim().toLowerCase()
+    let filtered = list
 
-      if (selectedStatus !== 'all') {
-        customers = customers.filter((customer) => customer.status === selectedStatus)
-      }
+    if (term) {
+      filtered = filtered.filter((customer) => {
+        const name = (customer.name ?? '').toLowerCase()
+        const contact = (customer.contact ?? '').toLowerCase()
+        const industry = (customer.industry ?? '').toLowerCase()
+        return name.includes(term) || contact.includes(term) || industry.includes(term)
+      })
+    }
 
-      return customers
-    })(),
-  )
+    if (selectedStatus !== 'all') {
+      filtered = filtered.filter((c) => c.status === selectedStatus)
+    }
+
+    return filtered
+  })
 
   // 상태별 색상
   const getStatusColor = (status: string) => {
