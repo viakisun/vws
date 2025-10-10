@@ -144,18 +144,7 @@ export interface DatabaseDepartment {
   [key: string]: unknown
 }
 
-export interface DatabaseUser {
-  id: string
-  email: string
-  name: string
-  role: string
-  department?: string
-  position?: string
-  is_active: boolean
-  created_at: string
-  updated_at: string
-  last_login?: string
-}
+// DatabaseUser removed - using system_accounts and employees instead
 
 export interface DatabaseExecutive {
   id: string

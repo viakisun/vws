@@ -655,20 +655,7 @@ export interface BudgetAlert {
 }
 
 // ===== 데이터베이스 타입 =====
-export interface DatabaseUser {
-  id: string
-  email: string
-  name: string
-  department?: string
-  position?: string
-  role: string
-  is_active: boolean
-  last_login?: Date
-  created_at: Date
-  updated_at: Date
-  password_hash?: string
-  [key: string]: unknown
-}
+// DatabaseUser removed - using system_accounts and employees instead
 
 export interface DatabaseCompany {
   id: string
