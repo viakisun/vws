@@ -217,7 +217,9 @@
         <!-- 필터 -->
         <div class="mb-6 grid grid-cols-1 md:grid-cols-4 gap-4">
           <div>
-            <label for="status-filter" class="block text-sm font-medium text-gray-700 mb-2">상태</label>
+            <label for="status-filter" class="block text-sm font-medium text-gray-700 mb-2"
+              >상태</label
+            >
             <select
               id="status-filter"
               bind:value={statusFilter}
@@ -231,7 +233,9 @@
             </select>
           </div>
           <div>
-            <label for="department-filter" class="block text-sm font-medium text-gray-700 mb-2">부서</label>
+            <label for="department-filter" class="block text-sm font-medium text-gray-700 mb-2"
+              >부서</label
+            >
             <input
               id="department-filter"
               type="text"
@@ -241,7 +245,9 @@
             />
           </div>
           <div>
-            <label for="employee-name-filter" class="block text-sm font-medium text-gray-700 mb-2">직원명</label>
+            <label for="employee-name-filter" class="block text-sm font-medium text-gray-700 mb-2"
+              >직원명</label
+            >
             <input
               id="employee-name-filter"
               type="text"
@@ -522,7 +528,9 @@
 
         {#if approvalAction === 'reject'}
           <div class="mb-4">
-            <label for="rejection-reason" class="block text-sm font-medium text-gray-700 mb-2">반려 사유</label>
+            <label for="rejection-reason" class="block text-sm font-medium text-gray-700 mb-2"
+              >반려 사유</label
+            >
             <textarea
               id="rejection-reason"
               bind:value={rejectionReason}

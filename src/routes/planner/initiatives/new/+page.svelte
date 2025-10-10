@@ -291,7 +291,11 @@
 
       <!-- Success Criteria -->
       <div>
-        <div aria-label="성공 기준" class="block text-sm font-medium mb-2" style:color="var(--color-text-primary)">
+        <div
+          aria-label="성공 기준"
+          class="block text-sm font-medium mb-2"
+          style:color="var(--color-text-primary)"
+        >
           성공 기준
         </div>
         <p class="text-xs mb-3" style:color="var(--color-text-secondary)">

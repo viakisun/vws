@@ -277,7 +277,11 @@
 
         <!-- Shape -->
         <div>
-          <div aria-label="유형" class="block text-sm font-medium mb-3" style:color="var(--color-text-primary)">
+          <div
+            aria-label="유형"
+            class="block text-sm font-medium mb-3"
+            style:color="var(--color-text-primary)"
+          >
             유형 <span style:color="var(--color-error)">*</span>
           </div>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -358,7 +362,11 @@
 
         <!-- External Links -->
         <div>
-          <div aria-label="외부 링크 (선택사항)" class="block text-sm font-medium mb-2" style:color="var(--color-text-primary)">
+          <div
+            aria-label="외부 링크 (선택사항)"
+            class="block text-sm font-medium mb-2"
+            style:color="var(--color-text-primary)"
+          >
             외부 링크 (선택사항)
           </div>
           <p class="text-xs mb-3" style:color="var(--color-text-secondary)">

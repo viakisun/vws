@@ -213,7 +213,9 @@
           ondragstart={() => handleDragStart(index)}
           ondragover={(e) => handleDragOver(e, index)}
           ondragend={handleDragEnd}
-          onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') e.preventDefault() }}
+          onkeydown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') e.preventDefault()
+          }}
           class="flex items-center gap-3 p-4 rounded-lg border transition cursor-move"
           class:opacity-50={draggedIndex === index}
           style:background="var(--color-surface)"

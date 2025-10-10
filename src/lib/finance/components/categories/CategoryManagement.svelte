@@ -208,7 +208,9 @@
       <h3 class="text-lg font-medium text-gray-900 mb-4">새 카테고리 생성</h3>
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
-          <label for="new-category-name" class="block text-sm font-medium text-gray-700 mb-1">카테고리명</label>
+          <label for="new-category-name" class="block text-sm font-medium text-gray-700 mb-1"
+            >카테고리명</label
+          >
           <input
             id="new-category-name"
             type="text"
@@ -218,7 +220,9 @@
           />
         </div>
         <div>
-          <label for="new-category-type" class="block text-sm font-medium text-gray-700 mb-1">타입</label>
+          <label for="new-category-type" class="block text-sm font-medium text-gray-700 mb-1"
+            >타입</label
+          >
           <select
             id="new-category-type"
             bind:value={newCategory.type}
@@ -230,7 +234,9 @@
           </select>
         </div>
         <div>
-          <label for="category-code" class="block text-sm font-medium text-gray-700 mb-1">회계코드</label>
+          <label for="category-code" class="block text-sm font-medium text-gray-700 mb-1"
+            >회계코드</label
+          >
           <input
             id="category-code"
             type="text"
@@ -240,7 +246,9 @@
           />
         </div>
         <div>
-          <label for="category-color" class="block text-sm font-medium text-gray-700 mb-1">색상</label>
+          <label for="category-color" class="block text-sm font-medium text-gray-700 mb-1"
+            >색상</label
+          >
           <div class="flex items-center space-x-2">
             <input
               id="category-color"
@@ -264,7 +272,9 @@
           </div>
         </div>
         <div class="md:col-span-2">
-          <label for="category-description" class="block text-sm font-medium text-gray-700 mb-1">설명 (선택사항)</label>
+          <label for="category-description" class="block text-sm font-medium text-gray-700 mb-1"
+            >설명 (선택사항)</label
+          >
           <input
             id="category-description"
             type="text"

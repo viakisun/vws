@@ -288,7 +288,10 @@
 
               {#if allowed_ips.length > 0}
                 <div>
-                  <div aria-label="허용된 IP 주소 목록" class="block text-sm font-medium text-gray-700 mb-2">
+                  <div
+                    aria-label="허용된 IP 주소 목록"
+                    class="block text-sm font-medium text-gray-700 mb-2"
+                  >
                     허용된 IP 주소 목록 ({allowed_ips.length}개)
                   </div>
                   <div class="space-y-2">

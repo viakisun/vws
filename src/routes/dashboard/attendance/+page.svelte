@@ -525,7 +525,9 @@
           <!-- 메모 -->
           {#if isToday}
             <div class="mt-6">
-              <label for="attendance-notes" class="block text-sm font-medium text-gray-700 mb-2">메모</label>
+              <label for="attendance-notes" class="block text-sm font-medium text-gray-700 mb-2"
+                >메모</label
+              >
               <textarea
                 id="attendance-notes"
                 bind:value={notes}

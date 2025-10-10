@@ -452,7 +452,12 @@
                       class:bg-gray-50={$userTimezone !== tz.key}
                       class:border-gray-200={$userTimezone !== tz.key}
                       onclick={() => setUserTimezone(tz.key)}
-                      onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setUserTimezone(tz.key); } }}
+                      onkeydown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault()
+                          setUserTimezone(tz.key)
+                        }
+                      }}
                     >
                       <div class="font-medium text-sm" style:color="var(--color-text)">
                         {tz.displayName}

@@ -246,7 +246,10 @@
         class="space-y-4"
       >
         <div>
-          <label for="tag-name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <label
+            for="tag-name"
+            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+          >
             태그 이름 *
           </label>
           <input
@@ -259,7 +262,10 @@
         </div>
 
         <div>
-          <label for="tag-color" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <label
+            for="tag-color"
+            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+          >
             색상 *
           </label>
           <div class="flex items-center gap-2">
@@ -280,7 +286,10 @@
         </div>
 
         <div>
-          <label for="tag-description" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <label
+            for="tag-description"
+            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+          >
             설명
           </label>
           <textarea
