@@ -41,6 +41,9 @@
     onRemoveMember: (memberId: number) => void
     onUpdateMonthlyAmount: () => void
   } = $props()
+
+  // Local state for manual monthly amount tracking
+  let isManualMonthlyAmount = $state(_isManualMonthlyAmount)
 </script>
 
 <ThemeCard class="p-6">
