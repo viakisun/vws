@@ -1,9 +1,9 @@
 <script lang="ts">
-  import type { InitiativeWithOwner, InitiativeStatus } from '../types'
-  import { getStageColor, getStageText, getStatusColor } from '../utils/initiative-helpers'
-  import { formatKoreanName } from '$lib/utils/korean-name'
-  import SectionHeader from '$lib/components/ui/SectionHeader.svelte'
   import SectionActionButton from '$lib/components/ui/SectionActionButton.svelte'
+  import SectionHeader from '$lib/components/ui/SectionHeader.svelte'
+  import { formatKoreanName } from '$lib/utils/korean-name'
+  import type { InitiativeStatus, InitiativeWithOwner } from '../types'
+  import { getStageColor, getStageText, getStatusColor } from '../utils/initiative-helpers'
 
   interface Props {
     initiative: InitiativeWithOwner

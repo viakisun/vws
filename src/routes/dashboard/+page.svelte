@@ -1,27 +1,27 @@
 <script lang="ts">
   import type { User } from '$lib/auth/user-service'
-  import type { PageData } from './$types'
-  import type { ProductWithOwner, ProductStatus, InitiativeWithOwner } from '$lib/planner/types'
-  import { formatKoreanName } from '$lib/utils/format'
   import ThemeCard from '$lib/components/ui/ThemeCard.svelte'
   import ThemeGrid from '$lib/components/ui/ThemeGrid.svelte'
+  import type { InitiativeWithOwner, ProductStatus, ProductWithOwner } from '$lib/planner/types'
+  import { formatKoreanName } from '$lib/utils/format'
   import {
-    ClockIcon,
-    CalendarIcon,
-    CreditCardIcon,
-    FileTextIcon,
-    DollarSignIcon,
-    UsersIcon,
-    FlaskConicalIcon,
-    TrendingUpIcon,
-    SettingsIcon,
     AlertCircleIcon,
     BanknoteIcon,
-    TargetIcon,
-    PackageIcon,
-    ListTodoIcon,
+    CalendarIcon,
+    ClockIcon,
+    CreditCardIcon,
+    DollarSignIcon,
+    FileTextIcon,
     FlagIcon,
+    FlaskConicalIcon,
+    ListTodoIcon,
+    PackageIcon,
+    SettingsIcon,
+    TargetIcon,
+    TrendingUpIcon,
+    UsersIcon,
   } from 'lucide-svelte'
+  import type { PageData } from './$types'
 
   const { data }: { data: PageData } = $props()
 
@@ -479,7 +479,7 @@
       <div class="flex items-center justify-between">
         <h2 class="text-xl font-semibold" style:color="var(--color-text-primary)">내 제품</h2>
         <a
-          href="/planner/products"
+          href="/planner"
           class="text-sm hover:underline"
           style:color="var(--color-primary)"
         >

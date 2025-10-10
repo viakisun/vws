@@ -1,12 +1,12 @@
 import { DatabaseService } from '$lib/database/connection'
 import type {
-  CreateInitiativeInput,
-  Initiative,
-  InitiativeFilters,
-  InitiativeStage,
-  InitiativeStatus,
-  InitiativeWithOwner,
-  UpdateInitiativeInput,
+    CreateInitiativeInput,
+    Initiative,
+    InitiativeFilters,
+    InitiativeStage,
+    InitiativeStatus,
+    InitiativeWithOwner,
+    UpdateInitiativeInput,
 } from '../types'
 import { INITIATIVE_STATUS_TRANSITIONS } from '../types'
 import { activityLogService } from './activity-log.service'
@@ -18,15 +18,17 @@ export class InitiativeService {
   async create(input: CreateInitiativeInput, actorId: string): Promise<Initiative> {
     const result = await DatabaseService.query(
       `INSERT INTO planner_initiatives (
-        title, intent, success_criteria, owner_id, formation_id, horizon, context_links, stage, status
+        title, intent, success_criteria, owner_id, product_id, milestone_id, formation_id, horizon, context_links, stage, status
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, 'shaping', 'active')
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'shaping', 'active')
       RETURNING *`,
       [
         input.title,
         input.intent,
         input.success_criteria || [],
         input.owner_id,
+        input.product_id || null,
+        input.milestone_id || null,
         input.formation_id || null,
         input.horizon || null,
         JSON.stringify(input.context_links || []),
@@ -498,12 +500,29 @@ export class InitiativeService {
   }
 
   /**
-   * Soft delete initiative
+   * Soft delete initiative and all related data (threads, todos)
    */
   async delete(id: string, actorId: string): Promise<boolean> {
     const current = await this.getById(id)
     if (!current) return false
 
+    // Delete all related threads
+    await DatabaseService.query(
+      `UPDATE planner_threads
+       SET deleted_at = NOW()
+       WHERE initiative_id = $1 AND deleted_at IS NULL`,
+      [id],
+    )
+
+    // Delete all related todos
+    await DatabaseService.query(
+      `UPDATE planner_todos
+       SET deleted_at = NOW()
+       WHERE initiative_id = $1 AND deleted_at IS NULL`,
+      [id],
+    )
+
+    // Delete the initiative itself
     await DatabaseService.query(
       `UPDATE planner_initiatives
        SET deleted_at = NOW()

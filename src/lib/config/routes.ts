@@ -11,8 +11,8 @@
  */
 
 import { Resource, RoleCode } from '$lib/stores/permissions'
-import { Routes } from './routes.enum'
 import { PermissionAction, PermissionScope } from './permissions'
+import { Routes } from './routes.enum'
 
 // ============================================
 // Permission Configuration
@@ -102,10 +102,6 @@ export const ROUTE_PERMISSIONS: Record<string, RoutePermission> = {
     resource: Resource.PLANNER_PRODUCTS,
     action: PermissionAction.READ,
     fallback: Routes.UNAUTHORIZED,
-  },
-  [Routes.PLANNER_PRODUCTS]: {
-    resource: Resource.PLANNER_PRODUCTS,
-    action: PermissionAction.READ,
   },
   [Routes.PLANNER_INITIATIVES]: {
     resource: Resource.PLANNER_INITIATIVES,

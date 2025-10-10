@@ -1,17 +1,17 @@
 <script lang="ts">
-  import { onMount } from 'svelte'
   import { goto } from '$app/navigation'
   import { page } from '$app/stores'
-  import { ArrowLeftIcon, PlusIcon, XIcon } from 'lucide-svelte'
+  import PageLayout from '$lib/components/layout/PageLayout.svelte'
+  import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
+  import ThemeCard from '$lib/components/ui/ThemeCard.svelte'
   import type {
     ExternalLink,
-    ProductWithOwner,
-    MilestoneWithProduct,
     FormationWithMembers,
+    MilestoneWithProduct,
+    ProductWithOwner,
   } from '$lib/planner/types'
-  import PageLayout from '$lib/components/layout/PageLayout.svelte'
-  import ThemeCard from '$lib/components/ui/ThemeCard.svelte'
-  import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
+  import { PlusIcon, XIcon } from 'lucide-svelte'
+  import { onMount } from 'svelte'
 
   // =============================================
   // State
@@ -39,10 +39,13 @@
 
   async function loadProducts() {
     try {
-      const res = await fetch('/api/planner/products?status=active')
+      const res = await fetch('/api/planner/products')
       if (res.ok) {
         const data = await res.json()
-        products = data.data || []
+        // Exclude archived and sunset products - only show products in active development
+        products = (data.data || []).filter(
+          (p) => p.status !== 'archived' && p.status !== 'sunset',
+        )
         console.log('Loaded products:', products)
       } else {
         console.error('Failed to load products - status:', res.status)

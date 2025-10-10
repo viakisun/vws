@@ -56,7 +56,6 @@ export enum Routes {
   // Planner
   PLANNER = '/planner',
   PLANNER_ME = '/planner/me',
-  PLANNER_PRODUCTS = '/planner/products',
   PLANNER_PRODUCT_DETAIL = '/planner/products/:id',
   PLANNER_INITIATIVES = '/planner/initiatives',
   PLANNER_INITIATIVE_NEW = '/planner/initiatives/new',

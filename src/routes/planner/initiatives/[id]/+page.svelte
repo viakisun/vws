@@ -1,17 +1,18 @@
 <script lang="ts">
-  import { onMount } from 'svelte'
   import { page } from '$app/stores'
-  import { createInitiativeStore } from '$lib/planner/stores/initiative.svelte'
-  import { createThreadsStore } from '$lib/planner/stores/threads.svelte'
-  import { createLinksStore } from '$lib/planner/stores/links.svelte'
-  import { createTodosStore } from '$lib/planner/stores/todos.svelte'
-  import InitiativeHeader from '$lib/planner/components/InitiativeHeader.svelte'
-  import StageStepper from '$lib/planner/components/StageStepper.svelte'
-  import LinksSection from '$lib/planner/components/LinksSection.svelte'
-  import TodosSection from '$lib/planner/components/TodosSection.svelte'
-  import ThreadsSection from '$lib/planner/components/ThreadsSection.svelte'
-  import ThreadDetailModal from '$lib/planner/components/ThreadDetailModal.svelte'
+  import DeleteInitiativeModal from '$lib/planner/components/DeleteInitiativeModal.svelte'
   import InitiativeDetailsModal from '$lib/planner/components/InitiativeDetailsModal.svelte'
+  import InitiativeHeader from '$lib/planner/components/InitiativeHeader.svelte'
+  import LinksSection from '$lib/planner/components/LinksSection.svelte'
+  import StageStepper from '$lib/planner/components/StageStepper.svelte'
+  import ThreadDetailModal from '$lib/planner/components/ThreadDetailModal.svelte'
+  import ThreadsSection from '$lib/planner/components/ThreadsSection.svelte'
+  import TodosSection from '$lib/planner/components/TodosSection.svelte'
+  import { createInitiativeStore } from '$lib/planner/stores/initiative.svelte'
+  import { createLinksStore } from '$lib/planner/stores/links.svelte'
+  import { createThreadsStore } from '$lib/planner/stores/threads.svelte'
+  import { createTodosStore } from '$lib/planner/stores/todos.svelte'
+  import { onMount } from 'svelte'
 
   // Initialize stores
   const initiativeId = $page.params.id
@@ -21,6 +22,7 @@
   const todosStore = createTodosStore(initiativeId)
 
   let showDetailsModal = $state(false)
+  let showDeleteModal = $state(false)
 
   // Load data on mount
   onMount(async () => {
@@ -99,6 +101,27 @@
       onSelectThread={threadsStore.selectThread}
     />
 
+    <!-- Danger Zone (at the bottom of the page) -->
+    <div class="mt-8 pt-6 border-t" style:border-color="var(--color-border)">
+      <div class="rounded-lg border border-red-200 bg-red-50 p-4">
+        <div class="flex items-center justify-between gap-4">
+          <div class="flex-1">
+            <h3 class="text-sm font-semibold mb-1 text-red-700">위험 영역</h3>
+            <p class="text-xs text-red-600">
+              이니셔티브와 연관된 스레드, 투두를 모두 삭제합니다. 복구할 수 없습니다.
+            </p>
+          </div>
+          <button
+            type="button"
+            onclick={() => (showDeleteModal = true)}
+            class="px-3 py-1.5 text-xs font-medium text-red-700 border border-red-300 rounded hover:bg-red-100 transition-colors whitespace-nowrap"
+          >
+            삭제
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- Thread Detail Modal -->
     <ThreadDetailModal
       thread={threadsStore.selectedThread}
@@ -113,6 +136,13 @@
       initiative={showDetailsModal ? initiativeStore.initiative : null}
       onClose={() => (showDetailsModal = false)}
       onSave={initiativeStore.updateDetails}
+    />
+
+    <!-- Delete Initiative Modal -->
+    <DeleteInitiativeModal
+      initiative={initiativeStore.initiative}
+      bind:open={showDeleteModal}
+      onclose={() => (showDeleteModal = false)}
     />
   {/if}
 </div>

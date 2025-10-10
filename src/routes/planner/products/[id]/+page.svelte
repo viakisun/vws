@@ -1,18 +1,18 @@
 <script lang="ts">
-  import { onMount } from 'svelte'
   import { page } from '$app/stores'
-  import { ArrowLeftIcon, GithubIcon, FileTextIcon, PencilIcon } from 'lucide-svelte'
+  import SectionActionButton from '$lib/components/ui/SectionActionButton.svelte'
+  import SectionHeader from '$lib/components/ui/SectionHeader.svelte'
+  import InitiativeCard from '$lib/planner/components/InitiativeCard.svelte'
+  import MilestoneModal from '$lib/planner/components/MilestoneModal.svelte'
+  import ProductEditModal from '$lib/planner/components/ProductEditModal.svelte'
   import type {
-    ProductWithOwner,
-    MilestoneWithProduct,
     InitiativeWithOwner,
+    MilestoneWithProduct,
+    ProductWithOwner,
   } from '$lib/planner/types'
   import { formatKoreanName } from '$lib/utils/korean-name'
-  import SectionHeader from '$lib/components/ui/SectionHeader.svelte'
-  import SectionActionButton from '$lib/components/ui/SectionActionButton.svelte'
-  import MilestoneModal from '$lib/planner/components/MilestoneModal.svelte'
-  import InitiativeCard from '$lib/planner/components/InitiativeCard.svelte'
-  import ProductEditModal from '$lib/planner/components/ProductEditModal.svelte'
+  import { FileTextIcon, GithubIcon, PencilIcon } from 'lucide-svelte'
+  import { onMount } from 'svelte'
 
   // =============================================
   // State
@@ -177,8 +177,6 @@
     <!-- Breadcrumb -->
     <div class="flex items-center gap-2 text-sm" style:color="var(--color-text-tertiary)">
       <a href="/planner" class="hover:underline">플래너</a>
-      <span>/</span>
-      <a href="/planner/products" class="hover:underline">제품</a>
       <span>/</span>
       <span style:color="var(--color-text-secondary)">{product.name}</span>
     </div>

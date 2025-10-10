@@ -1,25 +1,21 @@
 <script lang="ts">
-  import { onMount } from 'svelte'
-  import {
-    PackageIcon,
-    ZapIcon,
-    UsersIcon,
-    AlertCircleIcon,
-    CheckCircleIcon,
-    CircleIcon,
-    MessageSquareIcon,
-  } from 'lucide-svelte'
-  import type {
-    ProductWithOwner,
-    InitiativeWithOwner,
-    FormationWithMembers,
-    ThreadWithDetails,
-  } from '$lib/planner/types'
-  import { formatKoreanName } from '$lib/utils/korean-name'
   import PageLayout from '$lib/components/layout/PageLayout.svelte'
   import ThemeCard from '$lib/components/ui/ThemeCard.svelte'
   import ThemeGrid from '$lib/components/ui/ThemeGrid.svelte'
-  import InitiativeCard from '$lib/planner/components/InitiativeCard.svelte'
+  import type {
+    InitiativeWithOwner,
+    ProductWithOwner,
+    ThreadWithDetails
+  } from '$lib/planner/types'
+  import {
+    AlertCircleIcon,
+    CheckCircleIcon,
+    MessageSquareIcon,
+    PackageIcon,
+    UsersIcon,
+    ZapIcon
+  } from 'lucide-svelte'
+  import { onMount } from 'svelte'
 
   // =============================================
   // State
@@ -344,7 +340,7 @@
             내가 책임지는 제품
           </h3>
           <a
-            href="/planner/products"
+            href="/planner"
             class="text-sm transition hover:opacity-70"
             style:color="var(--color-primary)"
           >
