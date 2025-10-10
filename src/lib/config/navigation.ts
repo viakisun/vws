@@ -8,7 +8,7 @@
 import type { ComponentType } from 'svelte'
 import { Routes } from './routes.enum'
 import { ROUTE_PERMISSIONS, type RoutePermission } from './routes'
-import { getNavResources, type ResourceDefinition, ResourceCategory } from './resources'
+import { getNavResources, type ResourceDefinition } from './resources'
 import { getResourceIcon } from './resource-icons'
 
 // ============================================
@@ -32,30 +32,6 @@ export interface NavItem {
   readonly badge?: () => number | string
   /** 메뉴 표시 여부 */
   readonly visible?: boolean
-  /** 메뉴 그룹 (섹션 구분용) */
-  readonly group?: NavGroup
-}
-
-export enum NavGroup {
-  CORE = 'core',
-  MANAGEMENT = 'management',
-  BUSINESS = 'business',
-  TOOLS = 'tools',
-  SYSTEM = 'system',
-}
-
-// ============================================
-// 카테고리 → 그룹 매핑
-// ============================================
-
-const CATEGORY_TO_GROUP: Record<ResourceCategory, NavGroup> = {
-  [ResourceCategory.COMMON]: NavGroup.CORE,
-  [ResourceCategory.FINANCE]: NavGroup.MANAGEMENT,
-  [ResourceCategory.HR]: NavGroup.MANAGEMENT,
-  [ResourceCategory.PROJECT]: NavGroup.BUSINESS,
-  [ResourceCategory.PLANNER]: NavGroup.BUSINESS,
-  [ResourceCategory.SALES]: NavGroup.BUSINESS,
-  [ResourceCategory.SYSTEM]: NavGroup.SYSTEM,
 }
 
 // ============================================
@@ -75,8 +51,7 @@ function resourceToNavItem(resource: ResourceDefinition): NavItem {
     name: resource.nameKo,
     route: resource.route,
     icon: getResourceIcon(resource.key),
-    group: CATEGORY_TO_GROUP[resource.category],
-    visible: resource.showInNav,
+    visible: true,
     // 권한이 정의된 경우 자동으로 연결
     permission: ROUTE_PERMISSIONS[resource.route],
   }
@@ -87,23 +62,13 @@ function resourceToNavItem(resource: ResourceDefinition): NavItem {
 // ============================================
 
 /**
+/**
  * 전체 네비게이션 메뉴
- * resources.ts에서 showInNav=true인 리소스를 기반으로 자동 생성
+ * resources.ts에서 route가 있는 리소스를 기반으로 자동 생성
  */
 export const NAVIGATION_MENU: readonly NavItem[] = Object.freeze(
   getNavResources().map(resourceToNavItem),
 )
-
-/**
- * 그룹별 메뉴 접근
- */
-export const MENU_BY_GROUP: Readonly<Record<NavGroup, readonly NavItem[]>> = Object.freeze({
-  [NavGroup.CORE]: NAVIGATION_MENU.filter((item) => item.group === NavGroup.CORE),
-  [NavGroup.MANAGEMENT]: NAVIGATION_MENU.filter((item) => item.group === NavGroup.MANAGEMENT),
-  [NavGroup.BUSINESS]: NAVIGATION_MENU.filter((item) => item.group === NavGroup.BUSINESS),
-  [NavGroup.TOOLS]: NAVIGATION_MENU.filter((item) => item.group === NavGroup.TOOLS),
-  [NavGroup.SYSTEM]: NAVIGATION_MENU.filter((item) => item.group === NavGroup.SYSTEM),
-})
 
 // ============================================
 // Type Guards
@@ -190,13 +155,6 @@ export function findMenuItemByRoute(
     }
   }
   return null
-}
-
-/**
- * 그룹으로 메뉴 항목 필터링
- */
-export function getMenuItemsByGroup(group: NavGroup): readonly NavItem[] {
-  return MENU_BY_GROUP[group] ?? []
 }
 
 /**

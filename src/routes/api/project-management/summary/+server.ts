@@ -86,7 +86,7 @@ export const GET: RequestHandler = async () => {
 				p.updated_at,
 				e.first_name || ' ' || e.last_name as manager_name
 			FROM projects p
-			LEFT JOIN employees e ON p.manager_id = e.id
+			LEFT JOIN employees e ON p.manager_employee_id = e.id
 			ORDER BY p.updated_at DESC
 			LIMIT 10
 		`)

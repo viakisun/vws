@@ -54,23 +54,18 @@ function color(text: string, colorCode: string): string {
 
 /**
  * resources.ts에서 모든 리소스 키 추출
- *
- * 규칙:
- * - 부모 리소스: showInMatrix가 true거나 route가 있을 때만 포함
- * - 자식 리소스: 항상 포함
+ * 모든 리소스 포함 (부모 + 자식 모두)
  */
 function extractAllResourceKeys(resources: readonly ResourceDefinition[]): string[] {
   const keys = new Set<string>()
 
-  function extract(resource: ResourceDefinition, isChild = false) {
-    // 자식이거나, 매트릭스 표시거나, 라우트가 있으면 포함
-    if (isChild || resource.showInMatrix || resource.route) {
-      keys.add(resource.key)
-    }
+  function extract(resource: ResourceDefinition) {
+    // 모든 리소스 포함
+    keys.add(resource.key)
 
     // 하위 리소스 재귀 처리
     if (resource.children) {
-      resource.children.forEach((child) => extract(child, true))
+      resource.children.forEach((child) => extract(child))
     }
   }
 

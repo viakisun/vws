@@ -163,7 +163,8 @@
       <div>
         <h4 class="font-semibold text-blue-900 mb-1">권한 편집 가능</h4>
         <p class="text-sm text-blue-700">
-          아이콘을 클릭하여 권한을 변경할 수 있습니다. 클릭 순서: 권한 없음 → 읽기 권한 → 전체 권한 → 권한 없음
+          아이콘을 클릭하여 권한을 변경할 수 있습니다. 클릭 순서: 권한 없음 → 읽기 권한 → 전체 권한
+          → 권한 없음
           <br />
           <span class="font-semibold">ADMIN 역할은 시스템 보호를 위해 수정할 수 없습니다.</span>
         </p>
@@ -204,7 +205,8 @@
                 {@const roleKey = role.code.toLowerCase()}
                 {@const permission = row[roleKey as keyof typeof row] as 'full' | 'read' | 'none'}
                 {@const { icon: Icon, class: iconClass } = getPermissionIcon(permission)}
-                {@const isUpdating = updating?.resource === row.resource && updating?.role === role.code}
+                {@const isUpdating =
+                  updating?.resource === row.resource && updating?.role === role.code}
                 {@const isAdmin = role.code === 'ADMIN'}
                 <td class="px-4 py-3 text-center">
                   <button

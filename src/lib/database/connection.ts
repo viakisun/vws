@@ -410,7 +410,7 @@ export class DatabaseService {
   // Project operations
   static async createProject(projectData: Partial<DatabaseProject>): Promise<DatabaseProject> {
     const result = await query<DatabaseProject>(
-      `INSERT INTO projects (code, title, description, sponsor, sponsor_type, start_date, end_date, manager_id, status, budget_total)
+      `INSERT INTO projects (code, title, description, sponsor, sponsor_type, start_date, end_date, manager_employee_id, status, budget_total)
 			 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
 			 RETURNING *`,
       [
@@ -455,7 +455,7 @@ export class DatabaseService {
 
     if (filters?.manager_id) {
       paramCount++
-      queryText += ` AND manager_id = $${paramCount}`
+      queryText += ` AND manager_employee_id = $${paramCount}`
       params.push(filters.manager_id)
     }
 
@@ -559,8 +559,8 @@ export class DatabaseService {
   // Employee operations
   static async createEmployee(employeeData: Partial<DatabaseEmployee>): Promise<DatabaseEmployee> {
     const result = await query<DatabaseEmployee>(
-      `INSERT INTO employees (employee_id, user_id, first_name, last_name, email, phone, department, position, manager_id, employment_type, hire_date, salary, status, address, emergency_contact)
-			 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+      `INSERT INTO employees (employee_id, user_id, first_name, last_name, email, phone, department, position, employment_type, hire_date, salary, status, address, emergency_contact)
+			 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
 			 RETURNING *`,
       [
         employeeData.employee_id,
@@ -571,7 +571,6 @@ export class DatabaseService {
         employeeData.phone,
         employeeData.department,
         employeeData.position,
-        employeeData.manager_id,
         employeeData.employment_type,
         employeeData.hire_date,
         employeeData.salary,
@@ -583,6 +582,17 @@ export class DatabaseService {
     if (!result.rows[0]) {
       throw new Error('데이터 생성에 실패했습니다.')
     }
+
+    // 매니저가 지정된 경우 보고 관계 생성
+    if (employeeData.manager_id) {
+      await query(
+        `INSERT INTO reporting_relationships (employee_id, manager_id, report_type, start_date)
+         VALUES ($1, $2, 'direct', $3)
+         ON CONFLICT DO NOTHING`,
+        [result.rows[0].id, employeeData.manager_id, employeeData.hire_date || new Date()],
+      )
+    }
+
     return result.rows[0]
   }
 

@@ -79,7 +79,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
 			     sponsor_type = COALESCE($4, sponsor_type),
 			     start_date = COALESCE($5, start_date),
 			     end_date = COALESCE($6, end_date),
-			     manager_id = COALESCE($7, manager_id),
+			     manager_employee_id = COALESCE($7, manager_employee_id),
 			     status = COALESCE($8, status),
 			     budget_total = COALESCE($9, budget_total),
 			     updated_at = CURRENT_TIMESTAMP

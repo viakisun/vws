@@ -43,6 +43,8 @@ export enum RoleCode {
 export enum Resource {
   // 공통
   DASHBOARD = 'common.dashboard',
+  CALENDAR = 'common.calendar',
+  MESSAGES = 'common.messages',
   PROFILE = 'common.profile',
 
   // 재무

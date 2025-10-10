@@ -20,7 +20,7 @@ export const GET: RequestHandler = async ({ url }) => {
 				p.sponsor_type,
 				p.start_date,
 				p.end_date,
-				p.manager_id,
+				p.manager_employee_id,
 				p.status as project_status,
 				p.budget_total,
 				p.created_at,

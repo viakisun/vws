@@ -33,7 +33,7 @@ export const GET: RequestHandler = async (event) => {
 				COUNT(pm.id) as member_count,
 				COALESCE(SUM(pm.participation_rate), 0) as total_participation_rate
 			FROM projects p
-			LEFT JOIN employees e ON p.manager_id = e.id
+			LEFT JOIN employees e ON p.manager_employee_id = e.id
 			LEFT JOIN project_members pm ON p.id = pm.project_id AND pm.status = 'active'
 		`
 
@@ -62,7 +62,7 @@ export const GET: RequestHandler = async (event) => {
     }
 
     if (managerId) {
-      conditions.push(`p.manager_id = $${paramIndex++}`)
+      conditions.push(`p.manager_employee_id = $${paramIndex++}`)
       params.push(managerId)
     }
 

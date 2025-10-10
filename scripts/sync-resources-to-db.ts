@@ -70,23 +70,22 @@ interface ResourceInfo {
 
 /**
  * resources.ts에서 동기화할 리소스 추출
+ * 모든 리소스를 DB에 동기화 (부모 + 자식 모두)
  */
 function extractResourcesToSync(resources: readonly ResourceDefinition[]): ResourceInfo[] {
   const result: ResourceInfo[] = []
 
-  function extract(resource: ResourceDefinition, isChild = false) {
-    // 자식이거나, 매트릭스 표시거나, 라우트가 있으면 포함
-    if (isChild || resource.showInMatrix || resource.route) {
-      result.push({
-        key: resource.key,
-        nameKo: resource.nameKo,
-        description: resource.description || resource.nameKo,
-      })
-    }
+  function extract(resource: ResourceDefinition) {
+    // 모든 리소스 포함
+    result.push({
+      key: resource.key,
+      nameKo: resource.nameKo,
+      description: resource.description || resource.nameKo,
+    })
 
     // 하위 리소스 재귀 처리
     if (resource.children) {
-      resource.children.forEach((child) => extract(child, true))
+      resource.children.forEach((child) => extract(child))
     }
   }
 

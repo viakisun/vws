@@ -41,6 +41,18 @@ export interface RoutePermission {
  * 향후 API 엔드포인트에서 WRITE/DELETE 권한 체크 추가 필요
  */
 export const ROUTE_PERMISSIONS: Record<string, RoutePermission> = {
+  // 공통
+  [Routes.CALENDAR]: {
+    resource: Resource.CALENDAR,
+    action: PermissionAction.READ,
+    fallback: Routes.DASHBOARD,
+  },
+  [Routes.MESSAGES]: {
+    resource: Resource.MESSAGES,
+    action: PermissionAction.READ,
+    fallback: Routes.DASHBOARD,
+  },
+
   // 재무
   [Routes.FINANCE]: {
     resource: Resource.FINANCE_ACCOUNTS,

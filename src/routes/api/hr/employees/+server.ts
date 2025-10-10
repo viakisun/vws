@@ -175,11 +175,13 @@ export const GET: RequestHandler = async ({ url }) => {
 				e.employment_type,
 				e.hire_date,
 				e.status,
-				e.manager_id,
+				vcm.manager_id,
+				vcm.manager_name,
 				e.emergency_contact,
 				e.created_at,
 				e.updated_at
 			FROM employees e
+			LEFT JOIN v_employee_current_manager vcm ON e.id = vcm.employee_id
 			${whereClause}
 			ORDER BY e.${sortField} ${orderDirection}
 			LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
@@ -296,10 +298,10 @@ export const POST: RequestHandler = async ({ request }) => {
       `
 			INSERT INTO employees (
 				employee_id, name, email, phone, address, department, position, level,
-				employment_type, hire_date, birth_date, status, manager_id, profile_image,
+				employment_type, hire_date, birth_date, status, profile_image,
 				emergency_contact, personal_info, termination_date, created_at, updated_at
 			) VALUES (
-				$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, NOW(), NOW()
+				$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, NOW(), NOW()
 			) RETURNING *
 		`,
       [
@@ -315,7 +317,6 @@ export const POST: RequestHandler = async ({ request }) => {
         employeeData.hireDate,
         employeeData.birthDate || '',
         employeeData.status || 'active',
-        employeeData.managerId || '',
         employeeData.profileImage || '',
         JSON.stringify(employeeData.emergencyContact || {}),
         JSON.stringify(employeeData.personalInfo || {}),
@@ -325,6 +326,32 @@ export const POST: RequestHandler = async ({ request }) => {
 
     if (!result.rows[0]) {
       throw new Error('직원 생성에 실패했습니다.')
+    }
+
+    // 매니저가 지정된 경우 보고 관계 생성
+    if (employeeData.managerId) {
+      await query(
+        `INSERT INTO reporting_relationships (employee_id, manager_id, report_type, start_date)
+         VALUES ($1, $2, 'direct', $3)`,
+        [result.rows[0].id, employeeData.managerId, employeeData.hireDate || new Date()],
+      )
+    }
+
+    // 부서가 지정된 경우 조직 소속 생성
+    if (employeeData.department) {
+      // 부서 코드로 org_unit 찾기
+      const orgUnit = await query(`SELECT id FROM org_units WHERE code = $1 OR name = $2 LIMIT 1`, [
+        employeeData.department.toLowerCase().replace(/[^a-z0-9가-힣]/g, '_'),
+        employeeData.department,
+      ])
+
+      if (orgUnit.rows.length > 0) {
+        await query(
+          `INSERT INTO org_memberships (employee_id, org_unit_id, is_primary, start_date)
+           VALUES ($1, $2, true, $3)`,
+          [result.rows[0].id, orgUnit.rows[0].id, employeeData.hireDate || new Date()],
+        )
+      }
     }
 
     const newEmployee: Employee = {
@@ -343,7 +370,7 @@ export const POST: RequestHandler = async ({ request }) => {
       hire_date: result.rows[0].hire_date,
       birth_date: result.rows[0].birth_date,
       status: result.rows[0].status as EmployeeStatus,
-      manager_id: result.rows[0].manager_id,
+      manager_id: employeeData.managerId, // 전달받은 값 사용
       profile_image: result.rows[0].profile_image,
       emergency_contact: (result.rows[0].emergency_contact
         ? JSON.parse(result.rows[0].emergency_contact)
