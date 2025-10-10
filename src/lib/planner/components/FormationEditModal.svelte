@@ -76,11 +76,17 @@
     class="fixed inset-0 z-50 flex items-center justify-center p-4"
     style:background="rgba(0, 0, 0, 0.5)"
     onclick={handleClose}
+    onkeydown={(e) => e.key === 'Escape' && handleClose()}
+    role="button"
+    tabindex="0"
   >
     <div
       class="w-full max-w-2xl rounded-lg shadow-lg"
       style:background="var(--color-surface)"
       onclick={(e) => e.stopPropagation()}
+      onkeydown={(e) => e.stopPropagation()}
+      role="dialog"
+      tabindex="-1"
     >
       <!-- Header -->
       <div

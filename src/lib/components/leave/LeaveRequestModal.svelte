@@ -176,6 +176,9 @@
     <div
       class="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
       onclick={handleClose}
+      onkeydown={(e) => e.key === 'Escape' && handleClose()}
+      role="button"
+      tabindex="0"
     ></div>
 
     <!-- 모달 -->
@@ -183,6 +186,9 @@
       <div
         class="relative bg-white rounded-lg shadow-xl max-w-md w-full"
         onclick={(e) => e.stopPropagation()}
+        onkeydown={(e) => e.stopPropagation()}
+        role="dialog"
+        tabindex="-1"
       >
         <!-- 헤더 -->
         <div class="px-6 py-4 border-b border-gray-200">
@@ -190,6 +196,7 @@
           <button
             type="button"
             onclick={handleClose}
+            aria-label="닫기"
             class="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
           >
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">

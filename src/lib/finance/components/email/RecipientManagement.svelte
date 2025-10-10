@@ -346,8 +346,9 @@
         <div class="space-y-4">
           <!-- 이름 -->
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">이름</label>
+            <label for="recipient-name" class="block text-sm font-medium text-gray-700 mb-1">이름</label>
             <input
+              id="recipient-name"
               type="text"
               bind:value={formData.name}
               required
@@ -358,8 +359,9 @@
 
           <!-- 이메일 -->
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">이메일</label>
+            <label for="recipient-email" class="block text-sm font-medium text-gray-700 mb-1">이메일</label>
             <input
+              id="recipient-email"
               type="email"
               bind:value={formData.email}
               required
@@ -370,8 +372,9 @@
 
           <!-- 역할 -->
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">역할</label>
+            <label for="recipient-role" class="block text-sm font-medium text-gray-700 mb-1">역할</label>
             <select
+              id="recipient-role"
               bind:value={formData.role}
               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
@@ -387,55 +390,61 @@
           <div class="flex items-center">
             <input
               type="checkbox"
+              id="is-active"
               bind:checked={formData.isActive}
               class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
             />
-            <label class="ml-2 block text-sm text-gray-700">활성 상태</label>
+            <label for="is-active" class="ml-2 block text-sm text-gray-700">활성 상태</label>
           </div>
 
           <!-- 알림 설정 -->
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">알림 설정</label>
+            <div aria-label="알림 설정" class="block text-sm font-medium text-gray-700 mb-2">알림 설정</div>
             <div class="space-y-2">
               <div class="flex items-center">
                 <input
                   type="checkbox"
+                  id="daily-report"
                   bind:checked={formData.preferences.dailyReport}
                   class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                 />
-                <label class="ml-2 block text-sm text-gray-700">일일 리포트</label>
+                <label for="daily-report" class="ml-2 block text-sm text-gray-700">일일 리포트</label>
               </div>
               <div class="flex items-center">
                 <input
                   type="checkbox"
+                  id="weekly-report"
                   bind:checked={formData.preferences.weeklyReport}
                   class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                 />
-                <label class="ml-2 block text-sm text-gray-700">주간 리포트</label>
+                <label for="weekly-report" class="ml-2 block text-sm text-gray-700">주간 리포트</label>
               </div>
               <div class="flex items-center">
                 <input
                   type="checkbox"
+                  id="monthly-report"
                   bind:checked={formData.preferences.monthlyReport}
                   class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                 />
-                <label class="ml-2 block text-sm text-gray-700">월간 리포트</label>
+                <label for="monthly-report" class="ml-2 block text-sm text-gray-700">월간 리포트</label>
               </div>
               <div class="flex items-center">
                 <input
                   type="checkbox"
+                  id="budget-alerts"
                   bind:checked={formData.preferences.budgetAlerts}
                   class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                 />
-                <label class="ml-2 block text-sm text-gray-700">예산 알림</label>
+                <label for="budget-alerts" class="ml-2 block text-sm text-gray-700">예산 알림</label>
               </div>
               <div class="flex items-center">
                 <input
                   type="checkbox"
+                  id="urgent-alerts"
                   bind:checked={formData.preferences.urgentAlerts}
                   class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                 />
-                <label class="ml-2 block text-sm text-gray-700">긴급 알림</label>
+                <label for="urgent-alerts" class="ml-2 block text-sm text-gray-700">긴급 알림</label>
               </div>
             </div>
           </div>

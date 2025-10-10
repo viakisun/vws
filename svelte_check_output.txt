@@ -1,0 +1,7 @@
+
+====================================
+Loading svelte-check in workspace: /Users/adminvia/devwork/_viahub/vws
+Getting Svelte diagnostics...
+
+====================================
+svelte-check found 0 errors and 32 warnings in 8 files

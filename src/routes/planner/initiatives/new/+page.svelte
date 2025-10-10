@@ -291,9 +291,9 @@
 
       <!-- Success Criteria -->
       <div>
-        <label class="block text-sm font-medium mb-2" style:color="var(--color-text-primary)">
+        <div aria-label="성공 기준" class="block text-sm font-medium mb-2" style:color="var(--color-text-primary)">
           성공 기준
-        </label>
+        </div>
         <p class="text-xs mb-3" style:color="var(--color-text-secondary)">
           이 이니셔티브가 성공했을 때 어떤 상태가 되나요?
         </p>

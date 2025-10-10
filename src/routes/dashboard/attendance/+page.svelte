@@ -525,8 +525,9 @@
           <!-- 메모 -->
           {#if isToday}
             <div class="mt-6">
-              <label class="block text-sm font-medium text-gray-700 mb-2">메모</label>
+              <label for="attendance-notes" class="block text-sm font-medium text-gray-700 mb-2">메모</label>
               <textarea
+                id="attendance-notes"
                 bind:value={notes}
                 placeholder="출퇴근 관련 메모를 입력하세요"
                 class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"

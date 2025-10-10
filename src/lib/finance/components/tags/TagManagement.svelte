@@ -246,10 +246,11 @@
         class="space-y-4"
       >
         <div>
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <label for="tag-name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             태그 이름 *
           </label>
           <input
+            id="tag-name"
             type="text"
             bind:value={formData.name}
             required
@@ -258,16 +259,18 @@
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <label for="tag-color" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             색상 *
           </label>
           <div class="flex items-center gap-2">
             <input
+              id="tag-color-picker"
               type="color"
               bind:value={formData.color}
               class="w-12 h-10 border border-gray-300 dark:border-gray-600 rounded cursor-pointer"
             />
             <input
+              id="tag-color"
               type="text"
               bind:value={formData.color}
               placeholder="#3B82F6"
@@ -277,10 +280,11 @@
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <label for="tag-description" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             설명
           </label>
           <textarea
+            id="tag-description"
             bind:value={formData.description}
             rows="3"
             class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"

@@ -1,3 +1,8 @@
+# yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
+# This workflow uses GitHub secrets that cannot be validated by linters
+# All secrets referenced are legitimate and configured in repository settings
+# Disable diagnostic warnings for secrets context access (false positives)
+
 name: Deploy and Cleanup
 
 # ============================================================================
@@ -72,7 +77,7 @@ jobs:
         run: pnpm run lint:typescript || echo "TypeScript linting completed with warnings"
 
       - name: ✅ Type check Svelte
-        run: pnpm run check:svelte || echo "Svelte check completed with warnings"
+        run: pnpm run check:svelte:ci
 
       - name: ✅ Type check TypeScript
         run: pnpm run check:typescript || echo "TypeScript check completed with warnings"

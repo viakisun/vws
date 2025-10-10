@@ -208,8 +208,9 @@
       <h3 class="text-lg font-medium text-gray-900 mb-4">새 카테고리 생성</h3>
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">카테고리명</label>
+          <label for="new-category-name" class="block text-sm font-medium text-gray-700 mb-1">카테고리명</label>
           <input
+            id="new-category-name"
             type="text"
             bind:value={newCategory.name}
             placeholder="예: 인건비, 공과금, 임대료"
@@ -217,8 +218,9 @@
           />
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">타입</label>
+          <label for="new-category-type" class="block text-sm font-medium text-gray-700 mb-1">타입</label>
           <select
+            id="new-category-type"
             bind:value={newCategory.type}
             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
@@ -228,8 +230,9 @@
           </select>
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">회계코드</label>
+          <label for="category-code" class="block text-sm font-medium text-gray-700 mb-1">회계코드</label>
           <input
+            id="category-code"
             type="text"
             bind:value={newCategory.code}
             placeholder="예: 5201"
@@ -237,9 +240,10 @@
           />
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">색상</label>
+          <label for="category-color" class="block text-sm font-medium text-gray-700 mb-1">색상</label>
           <div class="flex items-center space-x-2">
             <input
+              id="category-color"
               type="color"
               bind:value={newCategory.color}
               class="w-10 h-10 border border-gray-300 rounded cursor-pointer"
@@ -249,6 +253,7 @@
                 <button
                   type="button"
                   onclick={() => (newCategory.color = color)}
+                  aria-label="색상 선택: {color}"
                   class="w-6 h-6 rounded border-2 {newCategory.color === color
                     ? 'border-gray-800'
                     : 'border-gray-300'}"
@@ -259,8 +264,9 @@
           </div>
         </div>
         <div class="md:col-span-2">
-          <label class="block text-sm font-medium text-gray-700 mb-1">설명 (선택사항)</label>
+          <label for="category-description" class="block text-sm font-medium text-gray-700 mb-1">설명 (선택사항)</label>
           <input
+            id="category-description"
             type="text"
             bind:value={newCategory.description}
             placeholder="카테고리 설명"

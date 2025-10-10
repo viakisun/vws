@@ -797,7 +797,7 @@
 
           <!-- 태그 선택 -->
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">태그</label>
+            <div aria-label="태그" class="block text-sm font-medium text-gray-700 mb-2">태그</div>
             <div class="space-y-2 max-h-40 overflow-y-auto border border-gray-200 rounded-lg p-3">
               {#each availableTags as tag}
                 <label class="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1 rounded">

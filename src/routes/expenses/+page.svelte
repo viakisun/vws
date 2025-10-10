@@ -121,7 +121,7 @@
       </thead>
       <tbody class="divide-y">
         {#each filtered as d, i (i)}
-          <tr class="hover:bg-gray-50 cursor-pointer" onclick={() => (selectedId = d.id)}>
+          <tr class="hover:bg-gray-50 cursor-pointer" onclick={() => (selectedId = d.id)} onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectedId = d.id; } }} tabindex="0">
             <td class="px-3 py-2">{d.id}</td>
             <td class="px-3 py-2">{d.title}</td>
             <td class="px-3 py-2">{d.category}</td>

@@ -1,16 +1,20 @@
 # 016: 조직 구조 리팩토링
 
 ## 목적
+
 `employees.manager_id` 컬럼을 제거하고 조직 구조를 별도 관계 테이블로 분리하여 유연한 조직 관리 구현
 
 ## 배경
+
 ### 기존 구조의 문제점
+
 1. **1:1 관계 제약**: 한 명의 직원이 한 명의 매니저만 가질 수 있음
 2. **히스토리 부재**: 과거 조직 변경 이력 추적 불가
 3. **다중 소속 불가**: 겸직, 매트릭스 조직 등 표현 불가
 4. **조직도 혼동**: 조직 구조와 보고 라인이 혼재됨
 
 ### 새로운 구조의 장점
+
 1. ✅ 조직 변경 이력 완벽 추적 (start_date, end_date)
 2. ✅ 다중 소속 가능 (겸직, 프로젝트 조직)
 3. ✅ 조직도와 보고 라인 분리 관리
@@ -22,6 +26,7 @@
 ### 새로 생성되는 테이블
 
 #### 1. `departments` - 부서/조직 정보
+
 ```sql
 - id: UUID (PK)
 - code: VARCHAR(50) UNIQUE - 부서 코드
@@ -33,6 +38,7 @@
 ```
 
 #### 2. `employee_departments` - 직원-부서 관계
+
 ```sql
 - id: UUID (PK)
 - employee_id: UUID (FK)
@@ -44,11 +50,13 @@
 ```
 
 **특징:**
+
 - 한 직원이 여러 부서에 소속 가능 (겸직)
 - `end_date IS NULL`인 레코드가 현재 소속
 - 이력 관리로 과거 조직 변경 추적 가능
 
 #### 3. `reporting_lines` - 보고 라인
+
 ```sql
 - id: UUID (PK)
 - employee_id: UUID (FK) - 보고하는 직원
@@ -59,23 +67,29 @@
 ```
 
 **특징:**
+
 - 조직도와 독립적인 보고 관계 관리
 - 매트릭스 조직의 복수 보고 라인 지원
 - 보고 유형 구분 (직접, 점선, 기능별)
 
 ### 제거되는 컬럼
+
 - ❌ `employees.manager_id` - `reporting_lines` 테이블로 대체
 
 ### 생성되는 뷰
 
 #### `v_employee_current_department`
+
 직원의 현재 부서 정보 조회
+
 ```sql
 SELECT * FROM v_employee_current_department WHERE employee_id = '...';
 ```
 
 #### `v_employee_current_manager`
+
 직원의 현재 보고 라인 조회
+
 ```sql
 SELECT * FROM v_employee_current_manager WHERE employee_id = '...';
 ```
@@ -83,7 +97,9 @@ SELECT * FROM v_employee_current_manager WHERE employee_id = '...';
 ### 생성되는 함수
 
 #### `get_department_tree(root_dept_id)`
+
 부서 트리 구조를 재귀적으로 조회
+
 ```sql
 SELECT * FROM get_department_tree(); -- 전체 조직도
 SELECT * FROM get_department_tree('dept-uuid'); -- 특정 부서 하위
@@ -92,19 +108,23 @@ SELECT * FROM get_department_tree('dept-uuid'); -- 특정 부서 하위
 ## 데이터 마이그레이션
 
 ### 1. 부서 생성
+
 - `employees.department` 값에서 중복 제거하여 `departments` 생성
 - 코드는 자동 생성 (한글/영문/숫자만 유지)
 
 ### 2. 직원-부서 관계 생성
+
 - 모든 직원을 현재 부서에 매핑
 - `hire_date`를 `start_date`로 사용
 - 모두 주 소속(`is_primary = true`)으로 설정
 
 ### 3. 보고 라인 생성
+
 - 기존 `manager_id`를 `reporting_lines`로 이전
 - 모두 직접 보고(`report_type = 'direct'`)로 설정
 
 ### 4. 기존 컬럼 제거
+
 - `employees.manager_id` DROP
 
 ## 실행 방법
@@ -144,6 +164,7 @@ ALTER TABLE employees ADD COLUMN manager_id UUID REFERENCES employees(id);
 ## 코드 변경 필요 사항
 
 ### API 수정 필요
+
 1. **직원 조회 API** - manager_id 대신 v_employee_current_manager 사용
 2. **조직도 API** - 새로운 departments 테이블 사용
 3. **직원 등록/수정 API** - employee_departments, reporting_lines 사용
@@ -151,6 +172,7 @@ ALTER TABLE employees ADD COLUMN manager_id UUID REFERENCES employees(id);
 ### 예시 쿼리 변경
 
 **Before:**
+
 ```sql
 SELECT e.*, m.first_name || ' ' || m.last_name as manager_name
 FROM employees e
@@ -158,6 +180,7 @@ LEFT JOIN employees m ON e.manager_id = m.id
 ```
 
 **After:**
+
 ```sql
 SELECT e.*, vcm.manager_name
 FROM employees e
@@ -181,19 +204,21 @@ LEFT JOIN v_employee_current_manager vcm ON e.id = vcm.employee_id
 ## 테스트 시나리오
 
 ### 1. 다중 소속 테스트
+
 ```sql
 -- 개발팀 + AI팀 겸직
 INSERT INTO employee_departments (employee_id, department_id, role, is_primary)
-VALUES 
+VALUES
   ('emp-uuid', 'dev-dept-uuid', '팀원', true),
   ('emp-uuid', 'ai-dept-uuid', '연구원', false);
 ```
 
 ### 2. 보고 라인 변경 테스트
+
 ```sql
 -- 기존 보고 라인 종료
-UPDATE reporting_lines 
-SET end_date = CURRENT_DATE 
+UPDATE reporting_lines
+SET end_date = CURRENT_DATE
 WHERE employee_id = 'emp-uuid' AND end_date IS NULL;
 
 -- 새 보고 라인 추가
@@ -202,6 +227,7 @@ VALUES ('emp-uuid', 'new-manager-uuid', 'direct');
 ```
 
 ### 3. 조직도 조회 테스트
+
 ```sql
 -- 전체 조직도
 SELECT * FROM get_department_tree();
@@ -210,7 +236,7 @@ SELECT * FROM get_department_tree();
 SELECT * FROM v_employee_current_department WHERE employee_id = 'emp-uuid';
 
 -- 특정 매니저의 부하 직원들
-SELECT e.first_name, e.last_name 
+SELECT e.first_name, e.last_name
 FROM v_employee_current_manager vcm
 JOIN employees e ON vcm.employee_id = e.id
 WHERE vcm.manager_id = 'manager-uuid';
@@ -227,6 +253,7 @@ WHERE vcm.manager_id = 'manager-uuid';
 - [ ] 프론트엔드 조직도 UI 업데이트
 
 ## 관련 이슈
+
 - 조직 구조 유연성 개선
 - 이력 관리 기능 추가
 - 매트릭스 조직 지원

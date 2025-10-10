@@ -282,9 +282,9 @@
 
         <!-- Initiative Selection by Product -->
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-3">
+          <div aria-label="이니셔티브 선택" class="block text-sm font-medium text-gray-700 mb-3">
             이니셔티브 선택 <span class="text-red-500">*</span>
-          </label>
+          </div>
           {#if initiatives.length === 0}
             <div class="text-center py-8 text-gray-500">
               <p class="text-sm">연결 가능한 이니셔티브가 없습니다.</p>
@@ -454,6 +454,7 @@
   .line-clamp-2 {
     display: -webkit-box;
     -webkit-line-clamp: 2;
+    line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
   }

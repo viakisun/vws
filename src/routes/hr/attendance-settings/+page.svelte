@@ -169,10 +169,11 @@
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">
+            <label for="work-start-time" class="block text-sm font-medium text-gray-700 mb-2">
               출근 시간 <span class="text-red-500">*</span>
             </label>
             <input
+              id="work-start-time"
               type="time"
               bind:value={work_start_time}
               class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -180,10 +181,11 @@
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">
+            <label for="work-end-time" class="block text-sm font-medium text-gray-700 mb-2">
               퇴근 시간 <span class="text-red-500">*</span>
             </label>
             <input
+              id="work-end-time"
               type="time"
               bind:value={work_end_time}
               class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -191,10 +193,11 @@
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">
+            <label for="late-threshold" class="block text-sm font-medium text-gray-700 mb-2">
               지각 기준 (분) <span class="text-red-500">*</span>
             </label>
             <input
+              id="late-threshold"
               type="number"
               bind:value={late_threshold_minutes}
               min="0"
@@ -207,10 +210,11 @@
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">
+            <label for="early-leave-threshold" class="block text-sm font-medium text-gray-700 mb-2">
               조기퇴근 기준 (분) <span class="text-red-500">*</span>
             </label>
             <input
+              id="early-leave-threshold"
               type="number"
               bind:value={early_leave_threshold_minutes}
               min="0"
@@ -260,11 +264,12 @@
           {#if require_ip_check}
             <div class="mt-4 space-y-4">
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">
+                <label for="new-ip" class="block text-sm font-medium text-gray-700 mb-2">
                   허용 IP 주소 추가
                 </label>
                 <div class="flex gap-2">
                   <input
+                    id="new-ip"
                     type="text"
                     bind:value={newIp}
                     placeholder="예: 192.168.1.1"
@@ -283,9 +288,9 @@
 
               {#if allowed_ips.length > 0}
                 <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-2">
+                  <div aria-label="허용된 IP 주소 목록" class="block text-sm font-medium text-gray-700 mb-2">
                     허용된 IP 주소 목록 ({allowed_ips.length}개)
-                  </label>
+                  </div>
                   <div class="space-y-2">
                     {#each allowed_ips as ip}
                       <div

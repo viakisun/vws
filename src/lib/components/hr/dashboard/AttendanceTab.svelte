@@ -394,6 +394,11 @@
       onclick={(e) => {
         if (e.target === e.currentTarget) selectedDate = null
       }}
+      onkeydown={(e) => {
+        if (e.key === 'Escape') selectedDate = null
+      }}
+      role="button"
+      tabindex="0"
     >
       <div class="bg-white rounded-lg shadow-xl max-w-6xl w-full mx-4 max-h-[85vh] overflow-hidden">
         <div class="p-6 border-b bg-gradient-to-r from-blue-600 to-purple-600 text-white">

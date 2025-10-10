@@ -426,6 +426,7 @@
                 tabindex="0"
                 draggable="true"
                 ondragstart={(e) => handleDragStart(todo, e)}
+                onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') e.preventDefault() }}
                 class="p-3 rounded-lg border cursor-move hover:shadow-md transition group"
                 style:background="var(--color-surface)"
                 style:border-color="var(--color-border)"
@@ -608,6 +609,7 @@
                 tabindex="0"
                 draggable="true"
                 ondragstart={(e) => handleDragStart(todo, e)}
+                onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') e.preventDefault() }}
                 class="p-3 rounded-lg border cursor-move hover:shadow-md transition group"
                 style:background="var(--color-surface)"
                 style:border-color="var(--color-blue-300)"
@@ -705,6 +707,7 @@
               tabindex="0"
               draggable="true"
               ondragstart={(e) => handleDragStart(todo, e)}
+              onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') e.preventDefault() }}
               class="p-3 rounded-lg border cursor-move hover:shadow-md transition group opacity-75 hover:opacity-100"
               style:background="var(--color-surface)"
               style:border-color="var(--color-green-300)"

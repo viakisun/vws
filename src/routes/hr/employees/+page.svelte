@@ -473,18 +473,24 @@
               <th
                 class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                 onclick={() => sort('employeeId')}
+                onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); sort('employeeId'); } }}
+                tabindex="0"
               >
                 사번 {#if sortBy === 'employeeId'}{sortOrder === 'asc' ? '↑' : '↓'}{/if}
               </th>
               <th
                 class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                 onclick={() => sort('name')}
+                onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); sort('name'); } }}
+                tabindex="0"
               >
                 이름 {#if sortBy === 'name'}{sortOrder === 'asc' ? '↑' : '↓'}{/if}
               </th>
               <th
                 class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                 onclick={() => sort('department')}
+                onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); sort('department'); } }}
+                tabindex="0"
               >
                 부서 {#if sortBy === 'department'}{sortOrder === 'asc' ? '↑' : '↓'}{/if}
               </th>
@@ -506,6 +512,8 @@
               <th
                 class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                 onclick={() => sort('hireDate')}
+                onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); sort('hireDate'); } }}
+                tabindex="0"
               >
                 입사일 {#if sortBy === 'hireDate'}{sortOrder === 'asc' ? '↑' : '↓'}{/if}
               </th>

@@ -182,10 +182,11 @@
         <div class="space-y-4">
           <!-- Purpose Input -->
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">
+            <label for="purpose" class="block text-sm font-medium text-gray-700 mb-2">
               발급 목적 <span class="text-red-500">*</span>
             </label>
             <input
+              id="purpose"
               type="text"
               bind:value={purpose}
               placeholder="예: 금융기관 제출용"
@@ -195,7 +196,6 @@
 
           <!-- Quick Templates -->
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">빠른 선택</label>
             <div class="grid grid-cols-2 gap-2">
               {#each purposeTemplates as template}
                 <button

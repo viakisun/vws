@@ -36,6 +36,13 @@
   function handleDragOver(event: DragEvent) {
     event.preventDefault()
   }
+
+  function handleKeyDown(event: KeyboardEvent) {
+    if ((event.key === 'Enter' || event.key === ' ') && !disabled) {
+      event.preventDefault()
+      document.getElementById(`file-upload-${multiple ? 'multi' : 'single'}`)?.click()
+    }
+  }
 </script>
 
 <div
@@ -44,6 +51,7 @@
     : 'hover:border-blue-400 cursor-pointer'}"
   ondrop={handleDrop}
   ondragover={handleDragOver}
+  onkeydown={handleKeyDown}
   role="button"
   tabindex="0"
 >

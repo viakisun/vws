@@ -213,10 +213,13 @@
           ondragstart={() => handleDragStart(index)}
           ondragover={(e) => handleDragOver(e, index)}
           ondragend={handleDragEnd}
+          onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') e.preventDefault() }}
           class="flex items-center gap-3 p-4 rounded-lg border transition cursor-move"
           class:opacity-50={draggedIndex === index}
           style:background="var(--color-surface)"
           style:border-color="var(--color-border)"
+          role="button"
+          tabindex="0"
         >
           <div class="cursor-grab" style:color="var(--color-text-tertiary)">
             <GripVerticalIcon size={20} />
@@ -283,11 +286,17 @@
     class="fixed inset-0 z-50 flex items-center justify-center p-4"
     style:background="rgba(0, 0, 0, 0.5)"
     onclick={() => !saving && (showModal = false)}
+    role="button"
+    tabindex="0"
+    onkeydown={(e) => e.key === 'Escape' && !saving && (showModal = false)}
   >
     <div
       class="w-full max-w-md rounded-lg shadow-lg"
       style:background="var(--color-surface)"
       onclick={(e) => e.stopPropagation()}
+      onkeydown={(e) => e.stopPropagation()}
+      role="dialog"
+      tabindex="-1"
     >
       <div
         class="flex items-center justify-between p-6 border-b"
