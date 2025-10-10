@@ -80,7 +80,7 @@
   // =============================================
 
   function addExternalLink() {
-    externalLinks = [...externalLinks, { title: '', url: '' }]
+    externalLinks = [...externalLinks, { title: '', url: '', type: 'other' }]
   }
 
   function removeExternalLink(index: number) {

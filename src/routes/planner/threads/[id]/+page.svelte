@@ -154,14 +154,14 @@
     }
   }
 
-  function getStateColor(state: string): string {
+  function getStateColor(state: string): 'blue' | 'green' | 'yellow' | 'indigo' | 'purple' | 'red' | 'orange' | 'pink' {
     switch (state) {
       case 'active':
         return 'blue'
       case 'resolved':
         return 'green'
       case 'archived':
-        return 'gray'
+        return 'indigo'
       default:
         return 'blue'
     }
@@ -203,19 +203,19 @@
             title: '유형',
             value: getShapeText(thread.shape),
             icon: MessageSquareIcon,
-            color: 'purple',
+            color: 'purple' as const,
           },
           {
             title: '상태',
             value: getStateText(thread.state),
-            color: getStateColor(thread.state) as any,
+            color: getStateColor(thread.state),
           },
-          { title: '댓글', value: replies.length, icon: MessageSquareIcon, color: 'blue' },
+          { title: '댓글', value: replies.length, icon: MessageSquareIcon, color: 'blue' as const },
           {
             title: '작성일',
             value: formatDate(thread.created_at).split(' ')[0],
             icon: CalendarIcon,
-            color: 'green',
+            color: 'green' as const,
           },
         ]
       : [],

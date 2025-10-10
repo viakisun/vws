@@ -106,6 +106,7 @@
       | '98xl'
       | '99xl'
       | '100xl'
+    type?: 'button' | 'submit' | 'reset'
     disabled?: boolean
     loading?: boolean
     onclick?: () => void
@@ -116,6 +117,7 @@
   const {
     variant = 'primary',
     size = 'md',
+    type = 'button',
     disabled = false,
     loading = false,
     onclick,
@@ -165,7 +167,7 @@
 </script>
 
 <button
-  type="button"
+  {type}
   class={getButtonClasses()}
   onclick={handleClick}
   disabled={disabled || loading}
