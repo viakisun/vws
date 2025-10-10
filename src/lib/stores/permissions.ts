@@ -56,9 +56,19 @@ export enum Resource {
   HR_ATTENDANCE = 'hr.attendance',
   HR_LEAVES = 'hr.leaves',
 
+  // 급여
+  SALARY_MANAGEMENT = 'salary.management',
+
   // 프로젝트
   PROJECT_PROJECTS = 'project.projects',
   PROJECT_DELIVERABLES = 'project.deliverables',
+
+  // 플래너
+  PLANNER_PRODUCTS = 'planner.products',
+  PLANNER_INITIATIVES = 'planner.initiatives',
+  PLANNER_THREADS = 'planner.threads',
+  PLANNER_FORMATIONS = 'planner.formations',
+  PLANNER_MILESTONES = 'planner.milestones',
 
   // 영업
   SALES_CUSTOMERS = 'sales.customers',
@@ -158,6 +168,7 @@ export const menuAccess: Readable<{
   finance: boolean
   hr: boolean
   projects: boolean
+  planner: boolean
   sales: boolean
   admin: boolean
   reports: boolean
@@ -173,6 +184,12 @@ export const menuAccess: Readable<{
     $can.read(Resource.HR_ATTENDANCE) ||
     $can.read(Resource.HR_LEAVES),
   projects: $can.read(Resource.PROJECT_PROJECTS) || $can.read(Resource.PROJECT_DELIVERABLES),
+  planner:
+    $can.read(Resource.PLANNER_PRODUCTS) ||
+    $can.read(Resource.PLANNER_INITIATIVES) ||
+    $can.read(Resource.PLANNER_THREADS) ||
+    $can.read(Resource.PLANNER_FORMATIONS) ||
+    $can.read(Resource.PLANNER_MILESTONES),
   sales: $can.read(Resource.SALES_CUSTOMERS) || $can.read(Resource.SALES_CONTRACTS),
   admin:
     $can.read(Resource.SYSTEM_USERS) ||

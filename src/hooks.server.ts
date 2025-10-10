@@ -71,21 +71,41 @@ export const handle: Handle = async ({ event, resolve }) => {
                 birth_date: employee.birth_date,
               },
             }
+
+            // 권한 정보 로드 (직원 ID 사용)
+            try {
+              const permissions = await permissionService.getUserPermissions(employee.id)
+              event.locals.permissions = permissions
+            } catch (_permError) {
+              console.error('Failed to load employee permissions:', _permError)
+              event.locals.permissions = {
+                userId: employee.id,
+                permissions: [],
+                roles: [],
+                calculatedAt: new Date(),
+                expiresAt: new Date(),
+              }
+            }
           } else {
+            // 시스템 계정 (직원 정보 없음)
             event.locals.user = user
+            try {
+              const permissions = await permissionService.getUserPermissions(user.id)
+              event.locals.permissions = permissions
+            } catch (_permError) {
+              console.error('Failed to load system user permissions:', _permError)
+              event.locals.permissions = {
+                userId: user.id,
+                permissions: [],
+                roles: [],
+                calculatedAt: new Date(),
+                expiresAt: new Date(),
+              }
+            }
           }
         } catch (_employeeError) {
           // 직원 정보 조회 실패 시 기본 user만 설정
           event.locals.user = user
-        }
-
-        // 권한 정보 로드 및 캐싱
-        try {
-          const permissions = await permissionService.getUserPermissions(user.id)
-          event.locals.permissions = permissions
-        } catch (_permError) {
-          console.error('Failed to load user permissions:', _permError)
-          // 권한 로드 실패시 빈 권한으로 설정
           event.locals.permissions = {
             userId: user.id,
             permissions: [],

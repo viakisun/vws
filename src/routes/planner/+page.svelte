@@ -16,9 +16,11 @@
   } from '$lib/planner/types'
   import { formatKoreanName } from '$lib/utils/korean-name'
   import PageLayout from '$lib/components/layout/PageLayout.svelte'
+  import PermissionGate from '$lib/components/auth/PermissionGate.svelte'
   import ThemeTabs from '$lib/components/ui/ThemeTabs.svelte'
   import ThemeCard from '$lib/components/ui/ThemeCard.svelte'
   import ThemeGrid from '$lib/components/ui/ThemeGrid.svelte'
+  import { Resource, PermissionAction } from '$lib/stores/permissions'
 
   // =============================================
   // State
@@ -241,21 +243,23 @@
   <title>플래너 - VWS</title>
 </svelte:head>
 
-<PageLayout
-  title="플래너"
-  subtitle="의도적인 업무를 위한 시스템"
-  stats={[
-    { title: '제품', value: totalProducts, icon: PackageIcon, color: 'blue' },
-    { title: '활성 이니셔티브', value: totalInitiatives, icon: ZapIcon, color: 'purple' },
-    { title: '활성 스레드', value: totalThreads, color: 'orange' },
-    { title: '팀', value: totalFormations, icon: UsersIcon, color: 'green' },
-  ]}
-  actions={[
-    {
-      label: '제품 보기',
-      variant: 'secondary' as const,
-      icon: PackageIcon,
-      href: '/planner/products',
+<PermissionGate resource={Resource.PLANNER_PRODUCTS} action={PermissionAction.READ}>
+  {#snippet children()}
+    <PageLayout
+      title="플래너"
+      subtitle="의도적인 업무를 위한 시스템"
+      stats={[
+        { title: '제품', value: totalProducts, icon: PackageIcon, color: 'blue' },
+        { title: '활성 이니셔티브', value: totalInitiatives, icon: ZapIcon, color: 'purple' },
+        { title: '활성 스레드', value: totalThreads, color: 'orange' },
+        { title: '팀', value: totalFormations, icon: UsersIcon, color: 'green' },
+      ]}
+      actions={[
+        {
+          label: '제품 보기',
+          variant: 'secondary' as const,
+          icon: PackageIcon,
+          href: '/planner/products',
     },
     {
       label: '마일스톤',
@@ -598,3 +602,5 @@
     </ThemeTabs>
   {/if}
 </PageLayout>
+  {/snippet}
+</PermissionGate>

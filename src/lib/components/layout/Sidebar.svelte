@@ -53,7 +53,7 @@
       name: '급여관리',
       href: '/salary',
       icon: DollarSignIcon,
-      permission: { resource: Resource.HR_PAYSLIPS },
+      permission: { resource: Resource.SALARY_MANAGEMENT },
     },
     {
       name: '인사관리',
@@ -65,17 +65,13 @@
       name: '연구개발',
       href: '/project-management',
       icon: FlaskConicalIcon,
-      permission: {
-        roles: [RoleCode.RESEARCH_DIRECTOR, RoleCode.RESEARCHER, RoleCode.ADMIN],
-      },
+      permission: { resource: Resource.PROJECT_PROJECTS },
     },
     {
       name: 'Planner',
       href: '/planner',
       icon: TargetIcon,
-      permission: {
-        roles: [RoleCode.RESEARCH_DIRECTOR, RoleCode.RESEARCHER, RoleCode.ADMIN],
-      },
+      permission: { resource: Resource.PLANNER_PRODUCTS },
     },
     {
       name: '영업관리',

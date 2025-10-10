@@ -15,6 +15,7 @@
 
   // Layouts & UI Components
   import PageLayout from '$lib/components/layout/PageLayout.svelte'
+  import PermissionGate from '$lib/components/auth/PermissionGate.svelte'
   import ThemeSpacer from '$lib/components/ui/ThemeSpacer.svelte'
   import ThemeTabs from '$lib/components/ui/ThemeTabs.svelte'
 
@@ -26,6 +27,7 @@
 
   // Business Logic
   import { useSalaryManagement } from '$lib/hooks/salary/useSalaryManagement.svelte'
+  import { Resource, PermissionAction } from '$lib/stores/permissions'
 
   // ============================================================================
   // State & Data Management
@@ -113,9 +115,10 @@
   <meta name="description" content="직원 급여 계약 관리 및 급여명세서 생성 시스템" />
 </svelte:head>
 
-<PageLayout title="급여 관리" {stats}>
-  <ThemeTabs {tabs} bind:activeTab onTabChange={handleTabChange}>
-    <!-- 대시보드 탭 -->
+<PermissionGate resource={Resource.SALARY_MANAGEMENT} action={PermissionAction.READ}>
+  <PageLayout title="급여 관리" {stats}>
+    <ThemeTabs {tabs} bind:activeTab onTabChange={handleTabChange}>
+      <!-- 대시보드 탭 -->
     {#if activeComponent === 'overview'}
       <SalaryOverviewTab
         dashboardStats={salary.statistics.dashboard}
@@ -171,3 +174,4 @@
     {/if}
   </ThemeTabs>
 </PageLayout>
+</PermissionGate>

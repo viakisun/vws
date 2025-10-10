@@ -5,6 +5,7 @@
   import { goto } from '$app/navigation'
   import { page } from '$app/state'
   import PageLayout from '$lib/components/layout/PageLayout.svelte'
+  import PermissionGate from '$lib/components/auth/PermissionGate.svelte'
   import AnnualBudgetForm from '$lib/components/project-management/AnnualBudgetForm.svelte'
   import ParticipationCard from '$lib/components/project-management/ParticipationCard.svelte'
   import ProjectCreationForm from '$lib/components/project-management/ProjectCreationForm.svelte'
@@ -12,6 +13,7 @@
   import ProjectOverviewCard from '$lib/components/project-management/ProjectOverviewCard.svelte'
   import ThemeModal from '$lib/components/ui/ThemeModal.svelte'
   import ThemeTabs from '$lib/components/ui/ThemeTabs.svelte'
+  import { Resource, PermissionAction } from '$lib/stores/permissions'
   import { BarChart3Icon, FlaskConicalIcon, PercentIcon } from '@lucide/svelte'
   import { onMount } from 'svelte'
 
@@ -411,10 +413,11 @@
   }
 </script>
 
-<PageLayout title="프로젝트 관리" subtitle="연구개발 프로젝트 및 참여율 관리 시스템">
-  {#if browser}
-    <!-- 탭 네비게이션 -->
-    <ThemeTabs {tabs} {activeTab} onTabChange={handleTabChange} />
+<PermissionGate resource={Resource.PROJECT_PROJECTS} action={PermissionAction.READ}>
+  <PageLayout title="프로젝트 관리" subtitle="연구개발 프로젝트 및 참여율 관리 시스템">
+    {#if browser}
+      <!-- 탭 네비게이션 -->
+      <ThemeTabs {tabs} {activeTab} onTabChange={handleTabChange} />
 
     <!-- 개요 탭 -->
     {#if activeTab === 'overview'}
@@ -453,6 +456,7 @@
     {/if}
   {/if}
 </PageLayout>
+</PermissionGate>
 
 <!-- 프로젝트 생성 모달 -->
 {#if browser}
