@@ -154,7 +154,9 @@
     }
   }
 
-  function getStateColor(state: string): 'blue' | 'green' | 'yellow' | 'indigo' | 'purple' | 'red' | 'orange' | 'pink' {
+  function getStateColor(
+    state: string,
+  ): 'blue' | 'green' | 'yellow' | 'indigo' | 'purple' | 'red' | 'orange' | 'pink' {
     switch (state) {
       case 'active':
         return 'blue'

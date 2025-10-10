@@ -107,6 +107,7 @@
       | '99xl'
       | '100xl'
     type?: 'button' | 'submit' | 'reset'
+    href?: string
     disabled?: boolean
     loading?: boolean
     onclick?: () => void
@@ -118,6 +119,7 @@
     variant = 'primary',
     size = 'md',
     type = 'button',
+    href,
     disabled = false,
     loading = false,
     onclick,
@@ -166,23 +168,42 @@
   }
 </script>
 
-<button
-  {type}
-  class={getButtonClasses()}
-  onclick={handleClick}
-  disabled={disabled || loading}
-  {...restProps}
->
-  {#if loading}
-    <span class="theme-button-spinner-container">
-      {@html getLoadingSpinner()}
-    </span>
-  {/if}
+{#if href}
+  <a
+    {href}
+    class={getButtonClasses()}
+    onclick={handleClick}
+    {...restProps}
+  >
+    {#if loading}
+      <span class="theme-button-spinner-container">
+        {@html getLoadingSpinner()}
+      </span>
+    {/if}
 
-  <span class="theme-button-content">
-    {@render children?.()}
-  </span>
-</button>
+    <span class="theme-button-content">
+      {@render children?.()}
+    </span>
+  </a>
+{:else}
+  <button
+    {type}
+    class={getButtonClasses()}
+    onclick={handleClick}
+    disabled={disabled || loading}
+    {...restProps}
+  >
+    {#if loading}
+      <span class="theme-button-spinner-container">
+        {@html getLoadingSpinner()}
+      </span>
+    {/if}
+
+    <span class="theme-button-content">
+      {@render children?.()}
+    </span>
+  </button>
+{/if}
 
 <style>
   .theme-button {

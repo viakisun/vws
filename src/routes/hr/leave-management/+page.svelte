@@ -14,7 +14,7 @@
     departmentStats: [],
     monthlyStats: [],
   })
-  const _loading = $state(false)
+  let loading = $state(false)
   let selectedRequest = $state<LeaveRequest | null>(null)
   let showApprovalModal = $state(false)
   let approvalAction = $state('')

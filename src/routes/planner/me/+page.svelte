@@ -139,19 +139,19 @@
   }
 
   const stats = $derived([
-    { title: '내 제품', value: myProducts.length, icon: PackageIcon, color: 'blue' },
+    { title: '내 제품', value: myProducts.length, icon: PackageIcon, color: 'blue' as const },
     {
       title: '내 이니셔티브',
       value: myInitiatives.length,
       icon: ZapIcon,
-      color: 'purple',
+      color: 'purple' as const,
     },
-    { title: '소속 팀', value: myFormations.length, icon: UsersIcon, color: 'green' },
+    { title: '소속 팀', value: myFormations.length, icon: UsersIcon, color: 'green' as const },
     {
       title: '총 할당',
       value: `${totalAllocation}%`,
       icon: isOverAllocated ? AlertCircleIcon : CheckCircleIcon,
-      color: isOverAllocated ? 'red' : 'green',
+      color: isOverAllocated ? ('red' as const) : ('green' as const),
     },
   ])
 
@@ -279,8 +279,9 @@
 
           <div class="space-y-3">
             {#each upcomingMilestoneInitiatives as initiative}
-              {@const dday = getDDay(initiative.milestone.target_date)}
-              <div class="relative">
+              {#if initiative.milestone && initiative.milestone.target_date}
+                {@const dday = getDDay(initiative.milestone.target_date)}
+                <div class="relative">
                 <a href="/planner/initiatives/{initiative.id}" class="block">
                   <div
                     class="rounded-lg transition-all hover:shadow-md"
@@ -330,6 +331,7 @@
                   </div>
                 </a>
               </div>
+              {/if}
             {/each}
           </div>
         </div>
@@ -421,7 +423,7 @@
         {:else}
           <div class="space-y-3">
             {#each myInitiatives as initiative}
-              {@const stateColor = getStateColor(initiative.state)}
+              {@const stateColor = getStateColor(initiative.stage)}
               <a href="/planner/initiatives/{initiative.id}" class="block">
                 <ThemeCard variant="default" hover clickable>
                   <div class="flex items-start justify-between">
@@ -438,7 +440,7 @@
                       style:background="var(--color-{stateColor}-light)"
                       style:color="var(--color-{stateColor})"
                     >
-                      {getStateText(initiative.state)}
+                      {getStateText(initiative.stage)}
                     </span>
                   </div>
                 </ThemeCard>
