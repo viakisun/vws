@@ -3,10 +3,14 @@
  *
  * ADMIN은 모든 권한을 자동으로 가지며,
  * 다른 사용자는 특정 권한을 확인합니다.
+ *
+ * TODO: 현재 모든 함수가 READ 액션만 사용 중
+ * WRITE/DELETE/APPROVE 구현 시 해당 액션도 체크하도록 업데이트 필요
  */
 
 import { redirect } from '@sveltejs/kit'
 import type { UserPermissions } from '$lib/stores/permissions'
+import { PermissionAction } from '$lib/config/permissions'
 
 /**
  * 사용자가 ADMIN 역할을 가지고 있는지 확인
@@ -23,7 +27,7 @@ export function isAdmin(permissions: UserPermissions | null): boolean {
 export function hasPermission(
   permissions: UserPermissions | null,
   resource: string,
-  action: 'read' | 'write' | 'delete' | 'approve',
+  action: PermissionAction,
 ): boolean {
   if (!permissions) return false
 
@@ -41,7 +45,7 @@ export function hasPermission(
 export function requirePermission(
   permissions: UserPermissions | null,
   resource: string,
-  action: 'read' | 'write' | 'delete' | 'approve' = 'read',
+  action: PermissionAction = PermissionAction.READ,
   redirectUrl: string = '/unauthorized',
 ): void {
   // 로그인되지 않음
@@ -66,7 +70,7 @@ export function requirePermission(
  */
 export function requireAnyPermission(
   permissions: UserPermissions | null,
-  resources: Array<{ resource: string; action: 'read' | 'write' | 'delete' | 'approve' }>,
+  resources: Array<{ resource: string; action: PermissionAction }>,
   redirectUrl: string = '/unauthorized',
 ): void {
   // 로그인되지 않음

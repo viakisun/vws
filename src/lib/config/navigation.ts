@@ -1,29 +1,15 @@
 /**
  * 네비게이션 메뉴 설정
+ * - resources.ts의 리소스 정의를 기반으로 자동 생성
  * - 사이드바 메뉴 구조 및 아이콘 관리
  * - UI 레이어 전용 설정
- * - Builder 패턴 및 헬퍼 함수로 수준 높은 구조 제공
  */
 
 import type { ComponentType } from 'svelte'
 import { Routes } from './routes.enum'
 import { ROUTE_PERMISSIONS, type RoutePermission } from './routes'
-import {
-  BanknoteIcon,
-  BarChart3Icon,
-  BriefcaseIcon,
-  BuildingIcon,
-  CalendarIcon,
-  DollarSignIcon,
-  FileTextIcon,
-  FlaskConicalIcon,
-  HomeIcon,
-  MessageSquareIcon,
-  SettingsIcon,
-  ShieldIcon,
-  TargetIcon,
-  UsersIcon,
-} from 'lucide-svelte'
+import { getNavResources, type ResourceDefinition, ResourceCategory } from './resources'
+import { getResourceIcon } from './resource-icons'
 
 // ============================================
 // Types
@@ -59,213 +45,65 @@ export enum NavGroup {
 }
 
 // ============================================
+// 카테고리 → 그룹 매핑
+// ============================================
+
+const CATEGORY_TO_GROUP: Record<ResourceCategory, NavGroup> = {
+  [ResourceCategory.COMMON]: NavGroup.CORE,
+  [ResourceCategory.FINANCE]: NavGroup.MANAGEMENT,
+  [ResourceCategory.HR]: NavGroup.MANAGEMENT,
+  [ResourceCategory.PROJECT]: NavGroup.BUSINESS,
+  [ResourceCategory.PLANNER]: NavGroup.BUSINESS,
+  [ResourceCategory.SALES]: NavGroup.BUSINESS,
+  [ResourceCategory.SYSTEM]: NavGroup.SYSTEM,
+}
+
+// ============================================
 // Builder Helpers
 // ============================================
 
 /**
- * 네비게이션 아이템 빌더
- * 타입 안전성과 가독성을 높이는 팩토리 함수
+ * ResourceDefinition을 NavItem으로 변환
  */
-function createNavItem(config: {
-  key: string
-  name: string
-  route: Routes
-  icon?: ComponentType
-  group?: NavGroup
-  visible?: boolean
-}): NavItem {
-  const { key, name, route, icon, group, visible = true } = config
+function resourceToNavItem(resource: ResourceDefinition): NavItem {
+  if (!resource.route) {
+    throw new Error(`Resource ${resource.key} has no route defined`)
+  }
 
   return {
-    key,
-    name,
-    route,
-    icon,
-    group,
-    visible,
+    key: resource.key,
+    name: resource.nameKo,
+    route: resource.route,
+    icon: getResourceIcon(resource.key),
+    group: CATEGORY_TO_GROUP[resource.category],
+    visible: resource.showInNav,
     // 권한이 정의된 경우 자동으로 연결
-    permission: ROUTE_PERMISSIONS[route],
-  }
-}
-
-/**
- * 하위 메뉴가 있는 네비게이션 아이템 생성
- * (향후 하위 메뉴 추가 시 사용)
- */
-function _createNavItemWithChildren(
-  config: {
-    key: string
-    name: string
-    route: Routes
-    icon?: ComponentType
-    group?: NavGroup
-  },
-  children: NavItem[],
-): NavItem {
-  return {
-    ...createNavItem(config),
-    children: Object.freeze(children),
+    permission: ROUTE_PERMISSIONS[resource.route],
   }
 }
 
 // ============================================
-// Menu Sections
-// ============================================
-
-/**
- * 핵심 메뉴 (항상 표시)
- */
-const CORE_MENU: readonly NavItem[] = Object.freeze([
-  createNavItem({
-    key: 'dashboard',
-    name: '대시보드',
-    route: Routes.DASHBOARD,
-    icon: HomeIcon,
-    group: NavGroup.CORE,
-  }),
-  createNavItem({
-    key: 'calendar',
-    name: '일정관리',
-    route: Routes.CALENDAR,
-    icon: CalendarIcon,
-    group: NavGroup.CORE,
-  }),
-  createNavItem({
-    key: 'messages',
-    name: '메시지',
-    route: Routes.MESSAGES,
-    icon: MessageSquareIcon,
-    group: NavGroup.CORE,
-  }),
-])
-
-/**
- * 관리 메뉴 (재무, 급여, 인사)
- */
-const MANAGEMENT_MENU: readonly NavItem[] = Object.freeze([
-  createNavItem({
-    key: 'finance',
-    name: '재무관리',
-    route: Routes.FINANCE,
-    icon: BanknoteIcon,
-    group: NavGroup.MANAGEMENT,
-  }),
-  createNavItem({
-    key: 'salary',
-    name: '급여관리',
-    route: Routes.SALARY,
-    icon: DollarSignIcon,
-    group: NavGroup.MANAGEMENT,
-  }),
-  createNavItem({
-    key: 'hr',
-    name: '인사관리',
-    route: Routes.HR,
-    icon: UsersIcon,
-    group: NavGroup.MANAGEMENT,
-  }),
-])
-
-/**
- * 비즈니스 메뉴 (영업, 고객, 프로젝트)
- */
-const BUSINESS_MENU: readonly NavItem[] = Object.freeze([
-  createNavItem({
-    key: 'sales',
-    name: '영업관리',
-    route: Routes.SALES,
-    icon: BriefcaseIcon,
-    group: NavGroup.BUSINESS,
-  }),
-  createNavItem({
-    key: 'crm',
-    name: '고객관리',
-    route: Routes.CRM,
-    icon: BuildingIcon,
-    group: NavGroup.BUSINESS,
-  }),
-  createNavItem({
-    key: 'project',
-    name: '연구개발',
-    route: Routes.PROJECT,
-    icon: FlaskConicalIcon,
-    group: NavGroup.BUSINESS,
-  }),
-  createNavItem({
-    key: 'planner',
-    name: 'Planner',
-    route: Routes.PLANNER,
-    icon: TargetIcon,
-    group: NavGroup.BUSINESS,
-  }),
-])
-
-/**
- * 도구 메뉴 (보고서, 분석)
- */
-const TOOLS_MENU: readonly NavItem[] = Object.freeze([
-  createNavItem({
-    key: 'reports',
-    name: '보고서',
-    route: Routes.REPORTS,
-    icon: FileTextIcon,
-    group: NavGroup.TOOLS,
-  }),
-  createNavItem({
-    key: 'analytics',
-    name: '분석',
-    route: Routes.ANALYTICS,
-    icon: BarChart3Icon,
-    group: NavGroup.TOOLS,
-  }),
-])
-
-/**
- * 시스템 메뉴 (설정, 권한)
- */
-const SYSTEM_MENU: readonly NavItem[] = Object.freeze([
-  createNavItem({
-    key: 'settings',
-    name: '설정',
-    route: Routes.SETTINGS,
-    icon: SettingsIcon,
-    group: NavGroup.SYSTEM,
-  }),
-  createNavItem({
-    key: 'admin',
-    name: '권한관리',
-    route: Routes.ADMIN_PERMISSIONS,
-    icon: ShieldIcon,
-    group: NavGroup.SYSTEM,
-  }),
-])
-
-// ============================================
-// Navigation Menu Configuration
+// Navigation Menu (자동 생성)
 // ============================================
 
 /**
  * 전체 네비게이션 메뉴
- * 섹션별로 구조화되어 있으며, 순서와 그룹핑이 명확함
+ * resources.ts에서 showInNav=true인 리소스를 기반으로 자동 생성
  */
-export const NAVIGATION_MENU: readonly NavItem[] = Object.freeze([
-  ...CORE_MENU,
-  ...MANAGEMENT_MENU,
-  ...BUSINESS_MENU,
-  ...TOOLS_MENU,
-  ...SYSTEM_MENU,
-])
+export const NAVIGATION_MENU: readonly NavItem[] = Object.freeze(
+  getNavResources().map(resourceToNavItem),
+)
 
 /**
- * 그룹별 메뉴 접근을 위한 맵
+ * 그룹별 메뉴 접근
  */
-export const MENU_BY_GROUP = Object.freeze({
-  [NavGroup.CORE]: CORE_MENU,
-  [NavGroup.MANAGEMENT]: MANAGEMENT_MENU,
-  [NavGroup.BUSINESS]: BUSINESS_MENU,
-  [NavGroup.TOOLS]: TOOLS_MENU,
-  [NavGroup.SYSTEM]: SYSTEM_MENU,
-} as const)
+export const MENU_BY_GROUP: Readonly<Record<NavGroup, readonly NavItem[]>> = Object.freeze({
+  [NavGroup.CORE]: NAVIGATION_MENU.filter((item) => item.group === NavGroup.CORE),
+  [NavGroup.MANAGEMENT]: NAVIGATION_MENU.filter((item) => item.group === NavGroup.MANAGEMENT),
+  [NavGroup.BUSINESS]: NAVIGATION_MENU.filter((item) => item.group === NavGroup.BUSINESS),
+  [NavGroup.TOOLS]: NAVIGATION_MENU.filter((item) => item.group === NavGroup.TOOLS),
+  [NavGroup.SYSTEM]: NAVIGATION_MENU.filter((item) => item.group === NavGroup.SYSTEM),
+})
 
 // ============================================
 // Type Guards

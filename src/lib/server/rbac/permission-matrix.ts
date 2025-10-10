@@ -1,10 +1,12 @@
 import { getConnection } from '$lib/database/connection'
+import { getMatrixResources, getAllResourceKeys } from '$lib/config/resources'
+import { PermissionAction, PermissionLevel } from '$lib/config/permissions'
 
 export interface RolePermissionMatrix {
   resource: string
   resourceKo: string
   permissions: {
-    [roleCode: string]: 'full' | 'read' | 'none'
+    [roleCode: string]: PermissionLevel
   }
 }
 
@@ -34,8 +36,13 @@ export async function getPermissionMatrix(): Promise<{
 
     const roles: RoleInfo[] = rolesResult.rows
 
-    // 2. 리소스별 권한 매핑 조회
-    const matrixResult = await client.query(`
+    // 2. resources.ts에서 권한 매트릭스에 표시할 리소스 가져오기
+    const matrixResources = getMatrixResources()
+    const allResourceKeys = getAllResourceKeys()
+
+    // 3. 리소스별 권한 매핑 조회 (동적으로 모든 리소스 포함)
+    const matrixResult = await client.query(
+      `
       SELECT 
         p.resource,
         p.action,
@@ -49,29 +56,14 @@ export async function getPermissionMatrix(): Promise<{
       LEFT JOIN role_permissions rp ON rp.permission_id = p.id AND rp.role_id = r.id
       WHERE p.is_active = true 
         AND r.is_active = true
-        AND p.resource IN (
-          'common.dashboard',
-          'finance.accounts',
-          'finance.transactions',
-          'finance.budgets',
-          'hr.employees',
-          'hr.payslips',
-          'hr.attendance',
-          'hr.leaves',
-          'project.projects',
-          'project.deliverables',
-          'planner.products',
-          'planner.initiatives',
-          'planner.threads',
-          'planner.formations',
-          'planner.milestones',
-          'sales.customers',
-          'sales.contracts'
-        )
+        AND p.resource = ANY($1)
       ORDER BY p.resource, p.action, r.priority DESC
-    `)
+    `,
+      [allResourceKeys],
+    )
 
-    // 3. 리소스별로 그룹핑하여 매트릭스 구성
+    // 4. 매트릭스용 리소스 데이터 구성
+    // resources.ts에서 정의한 리소스를 기반으로 권한 집계
     const resourceMap = new Map<string, Map<string, Set<string>>>()
 
     for (const row of matrixResult.rows) {
@@ -89,74 +81,62 @@ export async function getPermissionMatrix(): Promise<{
       }
     }
 
-    // 4. 리소스별 집계하여 간소화된 매트릭스 생성
-    const resourceGroupMap = new Map<string, Map<string, Set<string>>>()
-
-    // 리소스 그룹별로 집계 (예: finance.*, hr.*, planner.*)
-    for (const [resource, roleMap] of resourceMap.entries()) {
-      const [category] = resource.split('.')
-      const groupKey =
-        category === 'common'
-          ? 'common.dashboard'
-          : category === 'finance'
-            ? '재무 관리'
-            : category === 'hr'
-              ? '인사 관리'
-              : category === 'project'
-                ? '프로젝트 관리'
-                : category === 'planner'
-                  ? '플래너'
-                  : category === 'sales'
-                    ? '영업 관리'
-                    : resource
-
-      if (!resourceGroupMap.has(groupKey)) {
-        resourceGroupMap.set(groupKey, new Map())
-      }
-
-      const groupRoleMap = resourceGroupMap.get(groupKey)!
-
-      for (const [roleCode, actions] of roleMap.entries()) {
-        if (!groupRoleMap.has(roleCode)) {
-          groupRoleMap.set(roleCode, new Set())
-        }
-        actions.forEach((action) => groupRoleMap.get(roleCode)!.add(action))
-      }
-    }
-
-    // 5. 매트릭스 구성
+    // 5. 매트릭스 구성 - resources.ts에서 showInMatrix=true인 리소스만 사용
     const matrix: RolePermissionMatrix[] = []
 
-    const displayResources = [
-      { key: '재무 관리', name: '재무 관리' },
-      { key: '인사 관리', name: '인사 관리' },
-      { key: '프로젝트 관리', name: '프로젝트 관리' },
-      { key: '플래너', name: '플래너' },
-      { key: '영업 관리', name: '영업 관리' },
-      { key: 'common.dashboard', name: '대시보드' },
-    ]
+    for (const resource of matrixResources) {
+      // 해당 리소스와 하위 리소스들의 권한 집계
+      const aggregatedActions = new Map<string, Set<string>>()
 
-    for (const { key, name } of displayResources) {
-      const roleMap = resourceGroupMap.get(key)
-      if (!roleMap) continue
+      // 부모 리소스 권한
+      const parentRoleMap = resourceMap.get(resource.key)
+      if (parentRoleMap) {
+        for (const [roleCode, actions] of parentRoleMap.entries()) {
+          if (!aggregatedActions.has(roleCode)) {
+            aggregatedActions.set(roleCode, new Set())
+          }
+          actions.forEach((action) => aggregatedActions.get(roleCode)!.add(action))
+        }
+      }
 
-      const permissions: Record<string, 'full' | 'read' | 'none'> = {}
+      // 하위 리소스 권한 (예: finance → finance.accounts, finance.transactions)
+      if (resource.children) {
+        for (const child of resource.children) {
+          const childRoleMap = resourceMap.get(child.key)
+          if (childRoleMap) {
+            for (const [roleCode, actions] of childRoleMap.entries()) {
+              if (!aggregatedActions.has(roleCode)) {
+                aggregatedActions.set(roleCode, new Set())
+              }
+              actions.forEach((action) => aggregatedActions.get(roleCode)!.add(action))
+            }
+          }
+        }
+      }
+
+      // 역할별 권한 레벨 결정
+      const permissions: Record<string, PermissionLevel> = {}
 
       for (const role of roles) {
-        const actions = roleMap.get(role.code) || new Set()
+        const actions = aggregatedActions.get(role.code) || new Set()
 
-        if (actions.has('write') || actions.has('delete') || actions.has('approve')) {
-          permissions[role.code.toLowerCase()] = 'full'
-        } else if (actions.has('read')) {
-          permissions[role.code.toLowerCase()] = 'read'
+        // write/delete/approve 중 하나라도 있으면 full 권한
+        if (
+          actions.has(PermissionAction.WRITE) ||
+          actions.has(PermissionAction.DELETE) ||
+          actions.has(PermissionAction.APPROVE)
+        ) {
+          permissions[role.code.toLowerCase()] = PermissionLevel.FULL
+        } else if (actions.has(PermissionAction.READ)) {
+          permissions[role.code.toLowerCase()] = PermissionLevel.READ
         } else {
-          permissions[role.code.toLowerCase()] = 'none'
+          permissions[role.code.toLowerCase()] = PermissionLevel.NONE
         }
       }
 
       matrix.push({
-        resource: key,
-        resourceKo: name,
+        resource: resource.key,
+        resourceKo: resource.nameKo,
         permissions,
       })
     }

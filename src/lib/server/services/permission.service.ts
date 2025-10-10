@@ -1,11 +1,14 @@
 import { DatabaseService } from '$lib/database/connection'
+import { PermissionScope } from '$lib/config/permissions'
+// NOTE: PermissionAction은 src/lib/config/permissions.ts에 정의되어 있음
+// 이 파일에서는 사용하지 않지만, 참조용으로 주석 남김
 
 // 권한 타입 정의
 export interface Permission {
   code: string
   resource: string
   action: string
-  scope: 'own' | 'department' | 'all'
+  scope: PermissionScope
 }
 
 export interface Role {
@@ -37,14 +40,6 @@ export enum RoleCode {
   SALES = 'SALES',
   RESEARCHER = 'RESEARCHER',
   EMPLOYEE = 'EMPLOYEE',
-}
-
-// 권한 액션 enum
-export enum PermissionAction {
-  READ = 'read',
-  WRITE = 'write',
-  DELETE = 'delete',
-  APPROVE = 'approve',
 }
 
 export class PermissionService {
@@ -165,12 +160,25 @@ export class PermissionService {
 
   /**
    * 사용자가 특정 권한을 가지고 있는지 확인
+   *
+   * TODO: 현재 action 매개변수는 string이지만, 실제로는 PermissionAction enum 값만 사용
+   * 향후 타입을 PermissionAction으로 변경하여 타입 안전성 강화 필요
+   *
+   * @example
+   * ```typescript
+   * import { PermissionAction } from '$lib/config/permissions'
+   *
+   * // 권장 사용법
+   * await hasPermission(userId, Resource.HR_EMPLOYEES, PermissionAction.READ)
+   * await hasPermission(userId, Resource.HR_EMPLOYEES, PermissionAction.WRITE)  // TODO: 미구현
+   * await hasPermission(userId, Resource.HR_EMPLOYEES, PermissionAction.DELETE) // TODO: 미구현
+   * ```
    */
   async hasPermission(
     userId: string,
     resource: string,
-    action: string,
-    scope?: 'own' | 'department' | 'all',
+    action: string, // TODO: PermissionAction으로 변경
+    scope?: PermissionScope,
   ): Promise<boolean> {
     try {
       const cache = await this.getUserPermissions(userId)
@@ -182,11 +190,14 @@ export class PermissionService {
         }
 
         // 범위 확인 (all > department > own)
-        if (!scope || perm.scope === 'all') {
+        if (!scope || perm.scope === PermissionScope.ALL) {
           return true
         }
 
-        if (perm.scope === 'department' && (scope === 'department' || scope === 'own')) {
+        if (
+          perm.scope === PermissionScope.DEPARTMENT &&
+          (scope === PermissionScope.DEPARTMENT || scope === PermissionScope.OWN)
+        ) {
           return true
         }
 

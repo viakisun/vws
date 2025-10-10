@@ -73,8 +73,11 @@ export enum Resource {
   // 영업
   SALES_CUSTOMERS = 'sales.customers',
   SALES_CONTRACTS = 'sales.contracts',
+  CRM = 'crm',
 
   // 시스템
+  REPORTS = 'reports',
+  ANALYTICS = 'analytics',
   SYSTEM_USERS = 'system.users',
   SYSTEM_ROLES = 'system.roles',
   SYSTEM_PERMISSIONS = 'system.permissions',

@@ -4,6 +4,7 @@ import { permissionService } from '$lib/server/services/permission.service'
 import { logger } from '$lib/utils/logger'
 import { Routes } from '$lib/config/routes.enum'
 import { ROUTE_PERMISSIONS } from '$lib/config/routes'
+import { PermissionAction, PermissionScope } from '$lib/config/permissions'
 import type { Handle } from '@sveltejs/kit'
 import { error } from '@sveltejs/kit'
 
@@ -17,12 +18,14 @@ const PUBLIC_API_ROUTES = [
 ]
 
 // HTTP 메소드별 액션 매핑
-const METHOD_ACTION_MAP: Record<string, string> = {
-  GET: 'read',
-  POST: 'write',
-  PUT: 'write',
-  PATCH: 'write',
-  DELETE: 'delete',
+// TODO: 현재 POST/PUT/PATCH가 'write'로 매핑되지만 실제로는 READ만 체크됨
+// 향후 API 엔드포인트에서 WRITE/DELETE 권한 체크 구현 필요
+const METHOD_ACTION_MAP: Record<string, PermissionAction> = {
+  GET: PermissionAction.READ,
+  POST: PermissionAction.WRITE,
+  PUT: PermissionAction.WRITE,
+  PATCH: PermissionAction.WRITE,
+  DELETE: PermissionAction.DELETE,
 }
 
 // ============================================
@@ -197,7 +200,7 @@ export const handle: Handle = async ({ event, resolve }) => {
                 user.employee.id,
                 permission.resource,
                 action,
-                'own',
+                PermissionScope.OWN,
               )
 
               if (!hasOwnPermission) {

@@ -1,115 +1,136 @@
-# Workstream Enterprise Management Platform (SvelteKit)
+# VIA Workstream - Enterprise Management Platform
 
-## Setup
+> SvelteKit 기반의 통합 업무 관리 플랫폼
 
-1. Node 20+
-2. Install deps:
+## 🚀 Quick Start
+
+### Prerequisites
+
+- Node.js 20+
+- PostgreSQL (AWS RDS)
+
+### Installation
 
 ```bash
+# Install dependencies
 npm ci
-```
 
-3. Copy env:
-
-```bash
+# Copy environment file
 cp env.example .env
+
+# Start development server
+npm run dev
 ```
 
-## Scripts
+---
 
-- dev: `npm run dev`
-- build: `npm run build`
-- preview: `npm run preview`
-- check: `npm run check`
-- test: `npm run test`
+## 📋 Table of Contents
 
-## 오류 체크 및 코드 품질
+- [Features](#-features)
+- [Architecture](#-architecture)
+- [Development Guide](#-development-guide)
+- [Adding New Pages](#-adding-new-pages)
+- [Scripts](#-scripts)
+- [Code Quality](#-code-quality)
+- [Deployment](#-deployment)
 
-- **빠른 체크**: `npm run check:quick` - TypeScript + 빌드 체크
-- **상세 체크**: `npm run check:errors` - 모든 오류 상세 분석
-- **전체 체크**: `npm run check:all` - 오류 + TypeScript + 빌드 + 린터
-- **개발 중**: `npm run check:watch` - 파일 변경 시 자동 체크
+---
 
-### 코드 작성 후 필수 체크
+## ✨ Features
 
-```bash
-# 코드 작성 후 즉시 실행
-npm run check:quick
+### 🎯 Core Modules
 
-# 문제가 있을 때 상세 분석
-npm run check:errors
-```
+- **재무 관리**: 계정 과목, 거래 내역, 예산 관리
+- **인사 관리**: 직원 정보, 급여, 근태, 휴가 관리
+- **프로젝트 관리**: 프로젝트, 산출물, 예산 추적
+- **플래너**: VIA 이니셔티브, 제품, 스레드, 포메이션, 마일스톤
+- **영업 관리**: 고객, 계약, CRM
+- **시스템**: 권한 관리, 역할 관리, 보고서, 분석
 
-### 타이트한 코드 품질 관리 시스템
+### 🔐 RBAC (Role-Based Access Control)
 
-#### 🔒 **Pre-commit Hook (강화됨)**
+- 9개 역할: ADMIN, MANAGEMENT, FINANCE_MANAGER, HR_MANAGER, 등
+- 128개 권한: 32개 리소스 × 4개 액션 (read/write/delete/approve)
+- 동적 권한 매트릭스 UI
+- 실시간 권한 캐싱
 
-- TypeScript 타입 체크 (오류 0개 허용)
-- ESLint 코드 품질 체크 (오류 0개, 경고 10개 이하)
-- 빌드 테스트 (120초 이내)
-- 보안 취약점 체크
-- 의존성 무결성 체크
-
-#### 🚀 **CI/CD 파이프라인**
-
-- **코드 품질 체크**: TypeScript, ESLint, 빌드, 테스트
-- **성능 테스트**: 번들 크기 체크
-- **보안 스캔**: npm audit, CodeQL 분석
-- **배포 준비**: 프로덕션 빌드 및 아티팩트 업로드
-
-#### 📊 **품질 게이트**
-
-- TypeScript 오류: **0개 허용**
-- ESLint 오류: **0개 허용**
-- ESLint 경고: **10개 이하**
-- 테스트 커버리지: **80% 이상**
-- 보안 취약점: **0개 허용**
-- 빌드 시간: **120초 이내**
-
-#### 🛠 **개발 도구**
-
-- **ESLint**: 100+ 규칙으로 엄격한 코드 품질 관리
-- **Prettier**: 일관된 코드 포맷팅
-- **TypeScript**: Strict 모드 + 추가 엄격 옵션
-- **VS Code**: 자동 포맷팅, 린팅, 타입 체크
-
-### 📋 **사용 가능한 명령어**
-
-```bash
-# 기본 체크
-npm run check          # TypeScript 타입 체크
-npm run lint           # ESLint 체크
-npm run lint:strict    # ESLint 엄격 체크 (경고도 오류로 처리)
-npm run build          # 빌드 테스트
-
-# 품질 관리
-npm run quality:gate   # 품질 게이트 실행
-npm run quality:full   # 전체 품질 체크
-npm run ci             # CI 파이프라인 시뮬레이션
-
-# 자동 수정
-npm run lint:fix       # ESLint 자동 수정
-npm run format         # Prettier 포맷팅
-npm run security:fix   # 보안 취약점 자동 수정
-
-# 상세 분석
-npm run check:errors   # 상세 오류 리포트
-npm run security:audit # 보안 취약점 분석
-```
-
-### ⚠️ **현재 상태**
-
-- 🔴 **667개 문제 발견**: TypeScript 오류 332개, ESLint 경고 335개
-- 🎯 **목표**: 모든 문제를 0개로 줄이기
-- 🚀 **다음 단계**: 타입 정의 통합 및 Svelte 5 마이그레이션 완료
+---
 
 ## 🏗️ Architecture
 
+### Single Source of Truth
+
+모든 리소스와 권한은 **`src/lib/config/resources.ts`** 에서 중앙 관리됩니다.
+
+```
+resources.ts (Single Source of Truth)
+    ↓
+    ├─→ navigation.ts (자동 생성)
+    ├─→ permission-matrix.ts (자동 생성)
+    └─→ Database (자동 동기화)
+```
+
+### Project Structure
+
+```
+src/
+├── lib/
+│   ├── config/           # 중앙 설정
+│   │   ├── resources.ts      # 🎯 리소스 정의 (Single Source)
+│   │   ├── resource-icons.ts # 🎨 아이콘 매핑
+│   │   ├── navigation.ts     # 🧭 네비게이션 (자동 생성)
+│   │   ├── routes.ts         # 🛣️ 라우트 권한
+│   │   └── permissions.ts    # 🔐 권한 타입
+│   ├── components/       # UI 컴포넌트
+│   ├── services/         # API 서비스 레이어
+│   ├── stores/           # Svelte 스토어
+│   └── server/           # 서버 사이드 로직
+│       ├── rbac/         # RBAC 시스템
+│       └── services/     # 서버 서비스
+├── routes/               # SvelteKit 라우트
+└── hooks.server.ts       # 권한 체크 미들웨어
+
+scripts/
+├── validate-resources.ts    # ✅ 검증
+├── sync-resources-to-db.ts  # 🔄 동기화
+└── generate-migration.ts    # 📝 마이그레이션 생성
+
+migrations/
+└── [번호]_*.sql          # DB 마이그레이션
+```
+
+### Data Flow
+
+```
+Client Request
+    ↓
+hooks.server.ts (권한 체크)
+    ↓
++page.server.ts (데이터 로드)
+    ↓
+Service Layer (API 호출)
+    ↓
+Database (PostgreSQL)
+```
+
+---
+
+## 💻 Development Guide
+
+### Code Style
+
+프로젝트는 엄격한 코드 품질 관리 시스템을 사용합니다:
+
+- **TypeScript Strict Mode**: 타입 안전성 보장
+- **ESLint**: 100+ 규칙으로 코드 품질 관리
+- **Prettier**: 일관된 코드 포맷팅
+- **Pre-commit Hook**: 커밋 전 자동 검증
+
+자세한 내용은 [AGENTS.md](./AGENTS.md)를 참고하세요.
+
 ### Project Management Module
 
-대규모 컴포넌트를 계층화된 서비스, 비즈니스 로직, 데이터 변환 계층으로 분리했습니다.
-
-**구조:**
+대규모 컴포넌트를 계층화된 아키텍처로 분리:
 
 ```
 Component (2,709 lines)
@@ -123,77 +144,271 @@ Data Transformers (281 lines, 13 functions)
 Database
 ```
 
-**주요 구성요소:**
+자세한 내용: [프로젝트 관리 아키텍처](./docs/project-management-architecture.md)
 
-- **Service Layer**: 21개 API 호출을 5개 서비스로 캡슐화
-- **Business Logic**: 도메인 계산 로직 (기간 계산, 예산 계산 등)
-- **Data Transformers**: API ↔ UI 데이터 변환, 타입 안전성 보장
+---
 
-**자세한 내용**: [프로젝트 관리 아키텍처 문서](./docs/project-management-architecture.md)
+## 🆕 Adding New Pages
 
-### Utilities
+### Step-by-Step Guide
+
+새로운 페이지를 추가하는 것은 **3단계**로 매우 간단합니다:
+
+#### 1️⃣ 리소스 정의 추가
+
+`src/lib/config/resources.ts`에 새 리소스를 추가합니다:
 
 ```typescript
-// Service Layer (21 APIs)
-import * as projectService from '$lib/services/project-management/project.service'
-import * as memberService from '$lib/services/project-management/member.service'
-import * as budgetService from '$lib/services/project-management/budget.service'
-import * as evidenceService from '$lib/services/project-management/evidence.service'
-import * as validationService from '$lib/services/project-management/validation.service'
+export const RESOURCE_REGISTRY: readonly ResourceDefinition[] = Object.freeze([
+  // ... 기존 리소스들
 
-// Business Logic (3 functions)
-import * as calculationUtils from '$lib/components/project-management/utils/calculationUtils'
-// - calculatePeriodMonths(startDate, endDate): 기간(개월) 계산
-// - calculateMemberBudget(member, months): 멤버 예산 계산
-// - calculateTotalBudget(categories): 총 예산 계산
-
-// Data Transformers (13 functions)
-import * as dataTransformers from '$lib/components/project-management/utils/dataTransformers'
-// - safeStringToNumber(), safeNumberToString(): 안전한 타입 변환
-// - extractCashAmount(), extractInKindAmount(): 필드 추출
-// - calculateMemberContribution(): 멤버 기여금 계산
-// - distributeMemberAmount(): 현금/현물 자동 분배
-// - transformBudgetToCategories(): 예산 → 카테고리 변환
-// - extractApiData(), extractApiArrayData(): API 응답 추출
-// - groupIssuesByMember(): Validation issue 그룹화
+  {
+    key: 'marketing', // 🎯 리소스 키 (DB와 매칭)
+    category: ResourceCategory.BUSINESS,
+    nameKo: '마케팅', // 한글 이름
+    nameEn: 'Marketing',
+    route: Routes.MARKETING, // 라우트
+    showInMatrix: true, // 권한 매트릭스 표시
+    showInNav: true, // 네비게이션 표시
+    description: '마케팅 캠페인 관리',
+    children: [
+      // 하위 리소스 (선택)
+      {
+        key: 'marketing.campaigns',
+        category: ResourceCategory.BUSINESS,
+        nameKo: '캠페인',
+        nameEn: 'Campaigns',
+        showInMatrix: false,
+        showInNav: false,
+      },
+    ],
+  },
+])
 ```
 
-**테스트:**
+#### 2️⃣ 아이콘 추가 (선택)
 
-- Unit Tests: 53/53 passing (100%)
-- Coverage: dataTransformers.ts (90%+)
+`src/lib/config/resource-icons.ts`에 아이콘을 매핑합니다:
 
-## Tech
+```typescript
+import { MegaphoneIcon } from 'lucide-svelte'
 
-- SvelteKit 2, Svelte 5, TypeScript
-- Tailwind CSS 4
-- Vitest
+export const RESOURCE_ICONS: Record<string, ComponentType> = {
+  // ... 기존 아이콘들
+  marketing: MegaphoneIcon,
+}
+```
 
-## Env
+#### 3️⃣ DB 동기화
 
-- `API_BASE_URL` default `http://localhost:3000/api`
-- `LOG_LEVEL` one of `debug|info|warn|error`
+터미널에서 자동 동기화를 실행합니다:
 
-## Deploy
+```bash
+# 1. 검증 (코드와 DB 비교)
+npm run validate-resources
 
-- Node:
+# 2. 동기화 (DB에 권한 자동 추가)
+npm run sync-resources
+```
+
+### 🎉 완료!
+
+이제 다음이 자동으로 생성됩니다:
+
+- ✅ **네비게이션 메뉴**: 사이드바에 자동 추가
+- ✅ **DB 권한**: 4개 액션 (read/write/delete/approve) 자동 생성
+- ✅ **ADMIN 할당**: ADMIN 역할에 자동 할당
+- ✅ **권한 매트릭스**: 권한 관리 UI에 자동 표시
+
+### 🔍 검증 및 배포
+
+```bash
+# 개발 환경 테스트
+npm run dev
+
+# 프로덕션 배포용 Migration 생성
+npm run generate-migration
+
+# 생성된 Migration 파일 검토
+cat migrations/[번호]_sync_resources.sql
+
+# Git 커밋
+git add .
+git commit -m "feat: add marketing page"
+```
+
+### 📊 Before & After
+
+**Before (수동 관리):**
+
+```
+1. resources.ts 수정 (5분)
+2. migration SQL 작성 (10분)
+3. 권한 할당 SQL 작성 (10분)
+4. 네비게이션 수정 (5분)
+5. 테스트 (10분)
+---
+총 40분 + 실수 가능성 높음 ❌
+```
+
+**After (자동화):**
+
+```
+1. resources.ts 수정 (5분)
+2. npm run sync-resources (자동)
+3. 테스트 (5분)
+---
+총 10분 + 실수 제로 ✅
+```
+
+**⚡ 시간 75% 단축!**
+
+---
+
+## 📜 Scripts
+
+### Development
+
+```bash
+npm run dev              # 개발 서버 시작
+npm run build            # 프로덕션 빌드
+npm run preview          # 빌드 미리보기
+```
+
+### Code Quality
+
+```bash
+npm run check            # TypeScript 타입 체크
+npm run lint             # ESLint 체크
+npm run format           # Prettier 포맷팅
+npm run test             # 유닛 테스트 실행
+npm run test:coverage    # 테스트 커버리지
+```
+
+### Resource Management
+
+```bash
+npm run validate-resources     # 리소스 검증 (코드 ↔ DB 비교)
+npm run sync-resources         # DB 동기화 (실제 적용)
+npm run sync-resources:dry     # Dry run (미리보기만)
+npm run generate-migration     # Migration 파일 생성
+```
+
+### CI/CD
+
+```bash
+npm run ci               # CI 파이프라인 시뮬레이션
+npm run quality:gate     # 품질 게이트 실행
+```
+
+---
+
+## 🎯 Code Quality
+
+### Quality Gates
+
+- ✅ TypeScript 오류: **0개 허용**
+- ✅ ESLint 오류: **0개 허용**
+- ✅ 테스트 커버리지: **75% 이상**
+- ✅ 보안 취약점: **0개 허용**
+
+### Pre-commit Hooks
+
+모든 커밋 전 자동으로 실행됩니다:
+
+1. TypeScript 타입 체크
+2. ESLint 코드 품질 체크
+3. Prettier 포맷팅 체크
+4. 테스트 실행
+
+### Available Commands
+
+```bash
+# 빠른 체크
+npm run check:quick      # TypeScript + 빌드
+
+# 상세 분석
+npm run check:errors     # 상세 오류 리포트
+
+# 자동 수정
+npm run lint:fix         # ESLint 자동 수정
+npm run format           # Prettier 포맷팅
+```
+
+---
+
+## 🚀 Deployment
+
+### Environment Variables
+
+```bash
+# .env
+DATABASE_URL=postgresql://user:pass@host:5432/db
+API_BASE_URL=http://localhost:3000/api
+LOG_LEVEL=info
+```
+
+### Node.js
 
 ```bash
 npm run build
 node build/index.js
 ```
 
-- Adapter can be switched in `svelte.config.js`
+### Docker
 
-## AWS ECS/ECR Deploy (template)
+```bash
+docker build -t vws .
+docker run -p 3000:3000 vws
+```
 
-1. Create ECR repo `workstream-svelte` in `ap-northeast-2`.
-2. Configure OIDC/GitHub in AWS and set repo secrets:
-   - `AWS_ROLE_TO_ASSUME`: ARN for GitHub OIDC role
-   - `ECS_EXEC_ROLE_ARN`: ECS execution role ARN
-   - `ECS_TASK_ROLE_ARN`: ECS task role ARN
-3. Build & push image:
-   - Run GitHub Action `Push to ECR` (ecr.yml)
-4. Deploy to ECS:
-   - Ensure `ECS_CLUSTER`/`ECS_SERVICE` in `ecs-deploy.yml`
-   - Run GitHub Action `ECS Deploy`
+### AWS ECS/ECR
+
+1. **ECR Repository 생성**: `workstream-svelte` (ap-northeast-2)
+2. **GitHub Secrets 설정**:
+   - `AWS_ROLE_TO_ASSUME`: OIDC 역할 ARN
+   - `ECS_EXEC_ROLE_ARN`: ECS 실행 역할 ARN
+   - `ECS_TASK_ROLE_ARN`: ECS 태스크 역할 ARN
+3. **Build & Push**: GitHub Action `Push to ECR` 실행
+4. **Deploy**: GitHub Action `ECS Deploy` 실행
+
+---
+
+## 📚 Documentation
+
+- [개발 가이드](./DEVELOPMENT_GUIDE.md)
+- [빠른 시작](./QUICK_START.md)
+- [릴리즈 노트](./RELEASE_NOTES.md)
+- [RBAC 구현 계획](./docs/RBAC_IMPLEMENTATION_PLAN.md)
+- [프로젝트 관리 아키텍처](./docs/project-management-architecture.md)
+- [리소스 동기화 계획](./docs/RESOURCE_SYNC_PLAN.md)
+
+---
+
+## 🛠️ Tech Stack
+
+- **Frontend**: SvelteKit 2, Svelte 5, TypeScript
+- **Styling**: Tailwind CSS 4
+- **Database**: PostgreSQL (AWS RDS)
+- **Testing**: Vitest, Testing Library
+- **CI/CD**: GitHub Actions
+- **Deployment**: AWS ECS, Docker
+
+---
+
+## 📄 License
+
+Proprietary - VIA Corporation
+
+---
+
+## 🤝 Contributing
+
+1. 브랜치 생성: `git checkout -b feature/new-feature`
+2. 변경사항 커밋: `git commit -m 'feat: add new feature'`
+3. 푸시: `git push origin feature/new-feature`
+4. Pull Request 생성
+
+---
+
+**Made with ❤️ by VIA Team**

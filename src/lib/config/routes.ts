@@ -5,10 +5,14 @@
  *
  * Note: Routes enum은 './routes.enum'에서 직접 import하세요
  * Note: 네비게이션 메뉴는 './navigation'에서 관리합니다
+ *
+ * TODO: 현재 모든 라우트가 PermissionAction.READ만 사용 중
+ * WRITE/DELETE/APPROVE 액션은 향후 API 레벨에서 구현 필요
  */
 
 import { Resource, RoleCode } from '$lib/stores/permissions'
 import { Routes } from './routes.enum'
+import { PermissionAction, PermissionScope } from './permissions'
 
 // ============================================
 // Permission Configuration
@@ -17,10 +21,10 @@ import { Routes } from './routes.enum'
 export interface RoutePermission {
   /** 리소스 권한 */
   resource?: Resource
-  /** 필요한 액션 (기본: read) */
-  action?: 'read' | 'write' | 'delete' | 'approve'
+  /** 필요한 액션 (기본: read) - TODO: WRITE/DELETE/APPROVE 구현 필요 */
+  action?: PermissionAction
   /** 권한 범위 */
-  scope?: 'own' | 'department' | 'all'
+  scope?: PermissionScope
   /** 필요한 역할 (하나라도 만족하면 OK) */
   roles?: RoleCode[]
   /** 모든 조건을 만족해야 하는지 */
@@ -32,96 +36,103 @@ export interface RoutePermission {
 /**
  * 라우트별 권한 설정
  * 여기에 정의된 라우트는 자동으로 권한 체크됨
+ *
+ * TODO: 현재 모든 라우트가 action: PermissionAction.READ만 사용
+ * 향후 API 엔드포인트에서 WRITE/DELETE 권한 체크 추가 필요
  */
 export const ROUTE_PERMISSIONS: Record<string, RoutePermission> = {
   // 재무
   [Routes.FINANCE]: {
     resource: Resource.FINANCE_ACCOUNTS,
-    action: 'read',
+    action: PermissionAction.READ,
     fallback: Routes.UNAUTHORIZED,
   },
 
   // 급여
   [Routes.SALARY]: {
     resource: Resource.SALARY_MANAGEMENT,
-    action: 'read',
+    action: PermissionAction.READ,
     fallback: Routes.UNAUTHORIZED,
   },
 
   // 인사
   [Routes.HR]: {
     resource: Resource.HR_EMPLOYEES,
-    action: 'read',
+    action: PermissionAction.READ,
     fallback: Routes.UNAUTHORIZED,
   },
   [Routes.HR_EMPLOYEES]: {
     resource: Resource.HR_EMPLOYEES,
-    action: 'read',
+    action: PermissionAction.READ,
   },
   [Routes.HR_ATTENDANCE]: {
     resource: Resource.HR_ATTENDANCE,
-    action: 'read',
+    action: PermissionAction.READ,
   },
   [Routes.HR_LEAVE]: {
     resource: Resource.HR_LEAVES,
-    action: 'read',
+    action: PermissionAction.READ,
   },
 
   // 프로젝트
   [Routes.PROJECT]: {
     resource: Resource.PROJECT_PROJECTS,
-    action: 'read',
+    action: PermissionAction.READ,
     fallback: Routes.UNAUTHORIZED,
   },
   [Routes.PROJECT_PROJECTS]: {
     resource: Resource.PROJECT_PROJECTS,
-    action: 'read',
+    action: PermissionAction.READ,
   },
 
   // Planner
   [Routes.PLANNER]: {
     resource: Resource.PLANNER_PRODUCTS,
-    action: 'read',
+    action: PermissionAction.READ,
     fallback: Routes.UNAUTHORIZED,
   },
   [Routes.PLANNER_PRODUCTS]: {
     resource: Resource.PLANNER_PRODUCTS,
-    action: 'read',
+    action: PermissionAction.READ,
   },
   [Routes.PLANNER_INITIATIVES]: {
     resource: Resource.PLANNER_INITIATIVES,
-    action: 'read',
+    action: PermissionAction.READ,
   },
   [Routes.PLANNER_THREADS]: {
     resource: Resource.PLANNER_THREADS,
-    action: 'read',
+    action: PermissionAction.READ,
   },
   [Routes.PLANNER_FORMATIONS]: {
     resource: Resource.PLANNER_FORMATIONS,
-    action: 'read',
+    action: PermissionAction.READ,
   },
   [Routes.PLANNER_MILESTONES]: {
     resource: Resource.PLANNER_MILESTONES,
-    action: 'read',
+    action: PermissionAction.READ,
   },
 
-  // 영업/고객 (역할 기반)
+  // 영업/고객
   [Routes.SALES]: {
-    roles: [RoleCode.SALES, RoleCode.MANAGEMENT, RoleCode.ADMIN],
+    resource: Resource.SALES_CUSTOMERS,
+    action: PermissionAction.READ,
     fallback: Routes.UNAUTHORIZED,
   },
   [Routes.CRM]: {
-    roles: [RoleCode.SALES, RoleCode.MANAGEMENT, RoleCode.ADMIN],
+    resource: Resource.CRM,
+    action: PermissionAction.READ,
     fallback: Routes.UNAUTHORIZED,
   },
 
-  // 보고서/분석 (역할 기반)
+  // 보고서/분석 (리소스 기반)
   [Routes.REPORTS]: {
-    roles: [RoleCode.MANAGEMENT, RoleCode.RESEARCH_DIRECTOR, RoleCode.ADMIN],
+    resource: Resource.REPORTS,
+    action: PermissionAction.READ,
     fallback: Routes.UNAUTHORIZED,
   },
   [Routes.ANALYTICS]: {
-    roles: [RoleCode.MANAGEMENT, RoleCode.FINANCE_MANAGER, RoleCode.ADMIN],
+    resource: Resource.ANALYTICS,
+    action: PermissionAction.READ,
     fallback: Routes.UNAUTHORIZED,
   },
 
@@ -133,53 +144,54 @@ export const ROUTE_PERMISSIONS: Record<string, RoutePermission> = {
 
   // ============================================
   // API Routes Permissions
+  // TODO: POST/PUT/DELETE 엔드포인트에서 WRITE/DELETE 권한 체크 추가 필요
   // ============================================
 
   // 재무 API
   [Routes.API_FINANCE_ACCOUNTS]: {
     resource: Resource.FINANCE_ACCOUNTS,
-    action: 'read',
+    action: PermissionAction.READ,
   },
   [Routes.API_FINANCE_TRANSACTIONS]: {
     resource: Resource.FINANCE_TRANSACTIONS,
-    action: 'read',
+    action: PermissionAction.READ,
   },
   [Routes.API_FINANCE_BUDGETS]: {
     resource: Resource.FINANCE_BUDGETS,
-    action: 'read',
+    action: PermissionAction.READ,
   },
 
   // 인사 API
   [Routes.API_HR_EMPLOYEES]: {
     resource: Resource.HR_EMPLOYEES,
-    action: 'read',
+    action: PermissionAction.READ,
   },
   [Routes.API_HR_PAYSLIPS]: {
     resource: Resource.HR_PAYSLIPS,
-    action: 'read',
+    action: PermissionAction.READ,
   },
   [Routes.API_HR_ATTENDANCE]: {
     resource: Resource.HR_ATTENDANCE,
-    action: 'read',
+    action: PermissionAction.READ,
   },
   [Routes.API_HR_LEAVES]: {
     resource: Resource.HR_LEAVES,
-    action: 'read',
+    action: PermissionAction.READ,
   },
 
   // 프로젝트 API
   [Routes.API_PROJECTS]: {
     resource: Resource.PROJECT_PROJECTS,
-    action: 'read',
+    action: PermissionAction.READ,
   },
 
   // 시스템 관리 API
   [Routes.API_ADMIN_USERS]: {
     resource: Resource.SYSTEM_USERS,
-    action: 'read',
+    action: PermissionAction.READ,
   },
   [Routes.API_ADMIN_ROLES]: {
     resource: Resource.SYSTEM_ROLES,
-    action: 'read',
+    action: PermissionAction.READ,
   },
 }
