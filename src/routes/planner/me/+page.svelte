@@ -282,55 +282,55 @@
               {#if initiative.milestone && initiative.milestone.target_date}
                 {@const dday = getDDay(initiative.milestone.target_date)}
                 <div class="relative">
-                <a href="/planner/initiatives/{initiative.id}" class="block">
-                  <div
-                    class="rounded-lg transition-all hover:shadow-md"
-                    style:background={dday.isOverdue
-                      ? 'linear-gradient(to bottom right, rgba(239, 68, 68, 0.12), rgba(239, 68, 68, 0.06))'
-                      : 'linear-gradient(to bottom right, rgba(251, 191, 36, 0.12), rgba(251, 191, 36, 0.06))'}
-                  >
-                    <div class="p-4">
-                      <div class="flex items-start justify-between mb-3">
-                        <div class="flex-1">
-                          <h4 class="font-medium mb-1" style:color="var(--color-text-primary)">
-                            {initiative.title}
-                          </h4>
-                          <p
-                            class="text-xs mb-2 line-clamp-2"
-                            style:color="var(--color-text-secondary)"
-                          >
-                            {initiative.intent}
-                          </p>
-                          <div class="flex items-center gap-3 text-xs">
-                            <span style:color="var(--color-text-tertiary)">
-                              {initiative.milestone.name}
-                            </span>
-                            <span style:color="var(--color-text-tertiary)">
-                              목표: {new Date(initiative.milestone.target_date).toLocaleDateString(
-                                'ko-KR',
-                              )}
-                            </span>
+                  <a href="/planner/initiatives/{initiative.id}" class="block">
+                    <div
+                      class="rounded-lg transition-all hover:shadow-md"
+                      style:background={dday.isOverdue
+                        ? 'linear-gradient(to bottom right, rgba(239, 68, 68, 0.12), rgba(239, 68, 68, 0.06))'
+                        : 'linear-gradient(to bottom right, rgba(251, 191, 36, 0.12), rgba(251, 191, 36, 0.06))'}
+                    >
+                      <div class="p-4">
+                        <div class="flex items-start justify-between mb-3">
+                          <div class="flex-1">
+                            <h4 class="font-medium mb-1" style:color="var(--color-text-primary)">
+                              {initiative.title}
+                            </h4>
+                            <p
+                              class="text-xs mb-2 line-clamp-2"
+                              style:color="var(--color-text-secondary)"
+                            >
+                              {initiative.intent}
+                            </p>
+                            <div class="flex items-center gap-3 text-xs">
+                              <span style:color="var(--color-text-tertiary)">
+                                {initiative.milestone.name}
+                              </span>
+                              <span style:color="var(--color-text-tertiary)">
+                                목표: {new Date(
+                                  initiative.milestone.target_date,
+                                ).toLocaleDateString('ko-KR')}
+                              </span>
+                            </div>
                           </div>
+                          <span
+                            class="ml-3 px-3 py-1.5 text-sm font-bold rounded-lg border-2 whitespace-nowrap"
+                            style:background={dday.isOverdue
+                              ? 'var(--color-red-light)'
+                              : 'var(--color-yellow-light)'}
+                            style:color={dday.isOverdue
+                              ? 'var(--color-red)'
+                              : 'var(--color-yellow-dark)'}
+                            style:border-color={dday.isOverdue
+                              ? 'var(--color-red)'
+                              : 'var(--color-yellow)'}
+                          >
+                            {dday.text}
+                          </span>
                         </div>
-                        <span
-                          class="ml-3 px-3 py-1.5 text-sm font-bold rounded-lg border-2 whitespace-nowrap"
-                          style:background={dday.isOverdue
-                            ? 'var(--color-red-light)'
-                            : 'var(--color-yellow-light)'}
-                          style:color={dday.isOverdue
-                            ? 'var(--color-red)'
-                            : 'var(--color-yellow-dark)'}
-                          style:border-color={dday.isOverdue
-                            ? 'var(--color-red)'
-                            : 'var(--color-yellow)'}
-                        >
-                          {dday.text}
-                        </span>
                       </div>
                     </div>
-                  </div>
-                </a>
-              </div>
+                  </a>
+                </div>
               {/if}
             {/each}
           </div>

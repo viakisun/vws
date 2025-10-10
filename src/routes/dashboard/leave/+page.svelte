@@ -118,7 +118,8 @@
     endDate: string
     totalDays: number
     reason: string
-    halfDayType?: 'morning' | 'afternoon'
+    halfDayType?: '10-15' | '15-19'
+    quarterDayType?: '10-12' | '13-15' | '15-17' | '17-19'
   }) {
     try {
       const response = await fetch('/api/dashboard/leave', {
@@ -264,14 +265,14 @@
               <div class="flex items-baseline gap-2">
                 <span class="text-sm text-blue-100">잔여</span>
                 <span class="text-5xl font-bold tabular-nums"
-                  >{parseFloat(balance?.remaining_days || 0)}</span
+                  >{parseFloat(String(balance?.remaining_days || 0))}</span
                 >
                 <span class="text-xl text-blue-100">일</span>
               </div>
               <div class="flex gap-4 text-sm text-blue-100">
-                <span>총 {parseFloat(balance?.total_days || 0)}일</span>
+                <span>총 {parseFloat(String(balance?.total_days || 0))}일</span>
                 <span>|</span>
-                <span>사용 {parseFloat(balance?.used_days || 0)}일</span>
+                <span>사용 {parseFloat(String(balance?.used_days || 0))}일</span>
               </div>
             </div>
             {#if employee}

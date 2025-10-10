@@ -155,17 +155,17 @@
             </div>
             <div>
               <div class="text-sm text-gray-600 mb-1">사번</div>
-              <div class="text-lg font-medium text-gray-900">{user.employee.employee_id}</div>
+              <div class="text-lg font-medium text-gray-900">{user?.employee?.employee_id}</div>
             </div>
             <div>
               <div class="text-sm text-gray-600 mb-1">부서</div>
-              <div class="text-lg font-medium text-gray-900">{user.employee.department}</div>
+              <div class="text-lg font-medium text-gray-900">{user?.employee?.department}</div>
             </div>
           </div>
           <div class="space-y-3">
             <div>
               <div class="text-sm text-gray-600 mb-1">직급</div>
-              <div class="text-lg font-medium text-gray-900">{user.employee.position}</div>
+              <div class="text-lg font-medium text-gray-900">{user?.employee?.position}</div>
             </div>
             <div>
               <div class="text-sm text-gray-600 mb-1">입사일</div>

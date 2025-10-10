@@ -106,6 +106,7 @@
   function getMilestonesForDate(date: Date): MilestoneWithProduct[] {
     const dateStr = date.toISOString().split('T')[0]
     return milestones.filter((m) => {
+      if (!m.target_date) return false
       const targetDate = new Date(m.target_date).toISOString().split('T')[0]
       return targetDate === dateStr
     })
@@ -294,7 +295,7 @@
                     class="block px-2 py-1 rounded text-xs font-medium truncate transition hover:opacity-80"
                     style:background="var(--color-{statusColor}-light)"
                     style:color="var(--color-{statusColor})"
-                    title={`${milestone.name} - ${milestone.product_name}`}
+                    title={`${milestone.name} - ${milestone.product.name}`}
                   >
                     {milestone.name}
                   </a>
@@ -317,7 +318,7 @@
         다가오는 마일스톤
       </h3>
 
-      {#if milestones.filter((m) => new Date(m.target_date) >= new Date() && m.status !== 'achieved').length === 0}
+      {#if milestones.filter((m) => m.target_date && new Date(m.target_date) >= new Date() && m.status !== 'achieved').length === 0}
         <ThemeCard variant="default">
           <p class="text-center py-8 text-sm" style:color="var(--color-text-tertiary)">
             다가오는 마일스톤이 없습니다.
@@ -326,8 +327,11 @@
       {:else}
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {#each milestones
-            .filter((m) => new Date(m.target_date) >= new Date() && m.status !== 'achieved')
-            .sort((a, b) => new Date(a.target_date).getTime() - new Date(b.target_date).getTime())
+            .filter((m) => m.target_date && new Date(m.target_date) >= new Date() && m.status !== 'achieved')
+            .sort((a, b) => {
+              if (!a.target_date || !b.target_date) return 0
+              return new Date(a.target_date).getTime() - new Date(b.target_date).getTime()
+            })
             .slice(0, 6) as milestone}
             {@const statusColor = getMilestoneStatusColor(milestone.status)}
             <a href="/planner/products/{milestone.product_id}" class="block">
@@ -358,12 +362,14 @@
                   class="flex items-center justify-between text-xs pt-3"
                   style:border-top="1px solid var(--color-border-light)"
                 >
-                  <span style:color="var(--color-text-tertiary)">{milestone.product_name}</span>
+                  <span style:color="var(--color-text-tertiary)">{milestone.product.name}</span>
                   <span class="font-medium" style:color="var(--color-primary)">
-                    {new Date(milestone.target_date).toLocaleDateString('ko-KR', {
-                      month: 'long',
-                      day: 'numeric',
-                    })}
+                    {milestone.target_date
+                      ? new Date(milestone.target_date).toLocaleDateString('ko-KR', {
+                          month: 'long',
+                          day: 'numeric',
+                        })
+                      : 'N/A'}
                   </span>
                 </div>
               </ThemeCard>
@@ -378,6 +384,7 @@
 <!-- Milestone Modal -->
 <MilestoneModal
   bind:open={showMilestoneModal}
+  productId=""
   onclose={() => (showMilestoneModal = false)}
   onsave={() => {
     showMilestoneModal = false

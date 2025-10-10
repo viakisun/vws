@@ -169,12 +169,7 @@
 </script>
 
 {#if href}
-  <a
-    {href}
-    class={getButtonClasses()}
-    onclick={handleClick}
-    {...restProps}
-  >
+  <a {href} class={getButtonClasses()} onclick={handleClick} {...restProps}>
     {#if loading}
       <span class="theme-button-spinner-container">
         {@html getLoadingSpinner()}
