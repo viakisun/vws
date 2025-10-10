@@ -49,13 +49,15 @@ async function exploreData() {
         acc[row.resource].push({ action: row.action, scope: row.scope })
         return acc
       },
-      {} as Record<string, any[]>,
+      {} as Record<string, Array<{ action: string; scope: string }>>,
     )
 
-    Object.entries(grouped).forEach(([resource, actions]) => {
-      console.log(`  ${resource}:`)
-      actions.forEach((a) => console.log(`    - ${a.action} (${a.scope})`))
-    })
+    Object.entries(grouped).forEach(
+      ([resource, actions]: [string, Array<{ action: string; scope: string }>]) => {
+        console.log(`  ${resource}:`)
+        actions.forEach((a) => console.log(`    - ${a.action} (${a.scope})`))
+      },
+    )
 
     // 3. 프로젝트 권한 상세
     console.log('\n📌 3. 프로젝트 관련 권한 (project.*)')
@@ -74,13 +76,15 @@ async function exploreData() {
         acc[row.resource].push({ action: row.action, scope: row.scope })
         return acc
       },
-      {} as Record<string, any[]>,
+      {} as Record<string, Array<{ action: string; scope: string }>>,
     )
 
-    Object.entries(projGrouped).forEach(([resource, actions]) => {
-      console.log(`  ${resource}:`)
-      actions.forEach((a) => console.log(`    - ${a.action} (${a.scope})`))
-    })
+    Object.entries(projGrouped).forEach(
+      ([resource, actions]: [string, Array<{ action: string; scope: string }>]) => {
+        console.log(`  ${resource}:`)
+        actions.forEach((a) => console.log(`    - ${a.action} (${a.scope})`))
+      },
+    )
 
     // 4. 역할별 권한 매트릭스
     console.log('\n📌 4. 역할별 권한 매트릭스')
@@ -140,7 +144,7 @@ async function exploreData() {
       {} as Record<string, string[]>,
     )
 
-    Object.entries(resGrouped).forEach(([category, perms]) => {
+    Object.entries(resGrouped).forEach(([category, perms]: [string, string[]]) => {
       console.log(`  ${category}:`)
       perms.forEach((p) => console.log(`    - ${p}`))
     })

@@ -1,4 +1,4 @@
-import type { DatabaseCompany, DatabaseProject, DatabaseUser } from '$lib/types'
+import type { DatabaseCompany, DatabaseProject } from '$lib/types'
 import { formatDateForDisplay, toUTC, type DateInputFormat } from '$lib/utils/date-handler'
 import { logger } from '$lib/utils/logger'
 import { config } from 'dotenv'
@@ -324,85 +324,8 @@ export class DatabaseService {
     return await query(text, params)
   }
 
-  // User operations
-  static async createUser(
-    userData: Partial<DatabaseUser> & { password_hash?: string },
-  ): Promise<DatabaseUser> {
-    const result = await query<DatabaseUser>(
-      `INSERT INTO users (email, password_hash, name, department, position, role)
-			 VALUES ($1, $2, $3, $4, $5, $6)
-			 RETURNING *`,
-      [
-        userData.email,
-        userData.password_hash,
-        userData.name,
-        userData.department,
-        userData.position,
-        userData.role,
-      ],
-    )
-    if (!result.rows[0]) {
-      throw new Error('사용자 생성에 실패했습니다.')
-    }
-    return result.rows[0]
-  }
-
-  static async getUserById(id: string): Promise<DatabaseUser | null> {
-    const result = await query<DatabaseUser>('SELECT * FROM users WHERE id = $1', [id])
-    return result.rows[0] || null
-  }
-
-  static async getUserByEmail(email: string): Promise<DatabaseUser | null> {
-    const result = await query<DatabaseUser>('SELECT * FROM users WHERE email = $1', [email])
-    return result.rows[0] || null
-  }
-
-  static async getUsers(filters?: {
-    department?: string
-    role?: string
-    is_active?: boolean
-    limit?: number
-    offset?: number
-  }): Promise<DatabaseUser[]> {
-    let queryText = 'SELECT * FROM users WHERE 1=1'
-    const params: unknown[] = []
-    let paramCount = 0
-
-    if (filters?.department) {
-      paramCount++
-      queryText += ` AND department = $${paramCount}`
-      params.push(filters.department)
-    }
-
-    if (filters?.role) {
-      paramCount++
-      queryText += ` AND role = $${paramCount}`
-      params.push(filters.role)
-    }
-
-    if (filters?.is_active !== undefined) {
-      paramCount++
-      queryText += ` AND is_active = $${paramCount}`
-      params.push(filters.is_active)
-    }
-
-    queryText += ' ORDER BY created_at DESC'
-
-    if (filters?.limit) {
-      paramCount++
-      queryText += ` LIMIT $${paramCount}`
-      params.push(filters.limit)
-    }
-
-    if (filters?.offset) {
-      paramCount++
-      queryText += ` OFFSET $${paramCount}`
-      params.push(filters.offset)
-    }
-
-    const result = await query<DatabaseUser>(queryText, params)
-    return result.rows
-  }
+  // User operations removed - using system_accounts and employees instead
+  // See user-service.ts for authentication logic
 
   // Company operations
   static async createCompany(companyData: Partial<DatabaseCompany>): Promise<DatabaseCompany> {

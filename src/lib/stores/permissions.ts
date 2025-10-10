@@ -135,19 +135,22 @@ export const can: Readable<{
 }> = derived(userPermissions, ($userPermissions) => {
   const permissions = $userPermissions?.permissions || []
   const roles = $userPermissions?.roles || []
+  const isAdmin = hasRole(roles, RoleCode.ADMIN)
 
   return {
+    // ADMIN은 모든 권한 체크를 우회하고 항상 true 반환
     read: (resource: string, scope?: 'own' | 'department' | 'all') =>
-      hasPermission(permissions, resource, PermissionAction.READ, scope),
+      isAdmin || hasPermission(permissions, resource, PermissionAction.READ, scope),
     write: (resource: string, scope?: 'own' | 'department' | 'all') =>
-      hasPermission(permissions, resource, PermissionAction.WRITE, scope),
+      isAdmin || hasPermission(permissions, resource, PermissionAction.WRITE, scope),
     delete: (resource: string, scope?: 'own' | 'department' | 'all') =>
-      hasPermission(permissions, resource, PermissionAction.DELETE, scope),
+      isAdmin || hasPermission(permissions, resource, PermissionAction.DELETE, scope),
     approve: (resource: string, scope?: 'own' | 'department' | 'all') =>
-      hasPermission(permissions, resource, PermissionAction.APPROVE, scope),
+      isAdmin || hasPermission(permissions, resource, PermissionAction.APPROVE, scope),
     hasRole: (roleCode: RoleCode) => hasRole(roles, roleCode),
-    hasAnyRole: (roleCodes: RoleCode[]) => roleCodes.some((code) => hasRole(roles, code)),
-    isAdmin: () => hasRole(roles, RoleCode.ADMIN),
+    hasAnyRole: (roleCodes: RoleCode[]) =>
+      isAdmin || roleCodes.some((code) => hasRole(roles, code)),
+    isAdmin: () => isAdmin,
   }
 })
 
