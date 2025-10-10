@@ -36,7 +36,6 @@
     accountType: 'checking',
     description: '',
     isPrimary: false,
-    alertThreshold: undefined,
   })
 
   // 데이터 로드
@@ -117,7 +116,6 @@
         accountType: 'checking',
         description: '',
         isPrimary: false,
-        alertThreshold: undefined,
       }
       selectedTagIds = []
 
@@ -181,7 +179,6 @@
         accountType: account.accountType,
         description: account.description,
         isPrimary: account.isPrimary,
-        alertThreshold: account.alertThreshold,
         status: account.status,
       })
 
