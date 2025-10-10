@@ -3,36 +3,43 @@
 ## 전체 작업 내용
 
 ### 1️⃣ Planner 권한 추가
+
 - 15개 권한 생성 (products, initiatives, threads, formations, milestones × 3 actions)
 - 연구원에게 전체 권한 부여
 - ✅ 완료
 
 ### 2️⃣ 연구원 권한 정리
+
 - 프로젝트 관리 권한 삭제
 - 플래너 권한 부여
 - ✅ 완료
 
 ### 3️⃣ 코드-DB 연동
+
 - PermissionMatrix 컴포넌트 동적 로딩
 - API 엔드포인트 생성
 - ✅ 완료
 
 ### 4️⃣ PermissionGate 추가
+
 - `/salary` 페이지
 - `/project-management` 페이지
 - `/planner` 페이지
 - ✅ 완료
 
 ### 5️⃣ 사이드바 권한 체크
+
 - 역할 기반 → 리소스 기반 변경
 - ✅ 완료
 
 ### 6️⃣ 서버 사이드 권한 체크 (Critical Bug Fix!)
+
 - `hooks.server.ts` 수정: `user.id` → `employee.id`
 - `+page.server.ts` 추가
 - ✅ 완료
 
 ### 7️⃣ 급여관리 권한 분리 (Critical Bug Fix!)
+
 - 문제: `hr.payslips.read`로 급여 시스템 전체 접근 가능
 - 해결: `salary.management.read` 권한 신규 생성
 - ✅ 진행 중
@@ -40,7 +47,9 @@
 ## 발견된 버그들
 
 ### 🐛 Bug #1: 잘못된 사용자 ID
+
 **문제**: `hooks.server.ts`에서 `user.id` 사용
+
 ```typescript
 // Before (잘못됨)
 const permissions = await permissionService.getUserPermissions(user.id)
@@ -52,21 +61,29 @@ const permissions = await permissionService.getUserPermissions(employee.id)
 **영향**: 권한이 전혀 로드되지 않거나 잘못된 권한 로드
 
 ### 🐛 Bug #2: 권한 혼동
+
 **문제**: `hr.payslips.read`를 급여 관리 시스템 접근 권한으로 사용
+
 ```typescript
 // Before (잘못됨)
-permission: { resource: Resource.HR_PAYSLIPS }  // 급여명세서 조회
+permission: {
+  resource: Resource.HR_PAYSLIPS
+} // 급여명세서 조회
 
 // After (올바름)
-permission: { resource: Resource.SALARY_MANAGEMENT }  // 급여 관리 시스템
+permission: {
+  resource: Resource.SALARY_MANAGEMENT
+} // 급여 관리 시스템
 ```
 
 **영향**: 연구원이 급여 시스템 전체에 접근 가능
 
 ### 🐛 Bug #3: 클라이언트만 권한 체크
+
 **문제**: PermissionGate만 사용 (서버 사이드 체크 없음)
 
 **해결**: `+page.server.ts` 추가
+
 ```typescript
 export const load: ServerLoad = async ({ locals }) => {
   if (!hasPermission) {
@@ -78,6 +95,7 @@ export const load: ServerLoad = async ({ locals }) => {
 ## 최종 권한 구조
 
 ### 연구원 (RESEARCHER) - 21개 권한
+
 ```
 ✅ 공통 (3)
    - common.dashboard.read
@@ -99,17 +117,20 @@ export const load: ServerLoad = async ({ locals }) => {
 ```
 
 ### 관리자 (ADMIN)
+
 ```
 ✅ 모든 권한
 ```
 
 ### HR 매니저 (HR_MANAGER)
+
 ```
 ✅ HR 관련 모든 권한
 ✅ salary.management ✅
 ```
 
 ### 경영진 (MANAGEMENT)
+
 ```
 ✅ 대부분 권한
 ✅ salary.management ✅
@@ -118,6 +139,7 @@ export const load: ServerLoad = async ({ locals }) => {
 ## 보안 레이어
 
 ### 4중 방어 시스템
+
 ```
 1. 사이드바 메뉴
    ↓ (리소스 권한 체크)
@@ -139,6 +161,7 @@ export const load: ServerLoad = async ({ locals }) => {
 ## 테스트 체크리스트
 
 ### 연구원 계정
+
 - [ ] 로그아웃 → 재로그인
 - [ ] `/salary` 접근 → `/unauthorized` 리다이렉트
 - [ ] `/project-management` 접근 → `/unauthorized` 리다이렉트
@@ -148,10 +171,12 @@ export const load: ServerLoad = async ({ locals }) => {
 - [ ] 사이드바에서 Planner 메뉴 표시 확인
 
 ### 관리자 계정
+
 - [ ] 모든 페이지 접근 가능
 - [ ] 모든 메뉴 표시
 
 ### 서버 로그
+
 ```
 🔍 [Salary Page] Checking permissions...
 👥 Roles: [ 'RESEARCHER' ]
@@ -190,6 +215,7 @@ export const load: ServerLoad = async ({ locals }) => {
 ## 파일 목록
 
 ### 마이그레이션
+
 - migrations/003_add_planner_permissions.sql
 - migrations/004_fix_researcher_permissions.sql
 - migrations/005_add_planner_to_all_roles.sql
@@ -199,6 +225,7 @@ export const load: ServerLoad = async ({ locals }) => {
 - migrations/008_SALARY_PERMISSION_FIX.md
 
 ### 코드
+
 - src/lib/stores/permissions.ts
 - src/lib/components/admin/PermissionMatrix.svelte
 - src/lib/components/layout/Sidebar.svelte
@@ -212,6 +239,7 @@ export const load: ServerLoad = async ({ locals }) => {
 - src/hooks.server.ts ⭐ FIXED
 
 ### 문서
+
 - migrations/PERMISSION_SYSTEM_SUMMARY.md
 - migrations/RBAC_TABLES_EXPLAINED.md
 - migrations/003_MIGRATION_GUIDE.md

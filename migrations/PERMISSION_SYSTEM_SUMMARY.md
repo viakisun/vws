@@ -1,6 +1,7 @@
 # 권한 시스템 통합 완료 요약
 
 ## 🎯 목표
+
 1. ✅ `/planner`를 권한 매트릭스에 추가
 2. ✅ 연구원에게 플래너 전체 권한 부여
 3. ✅ 연구원의 급여관리/프로젝트 관리 권한 제거
@@ -10,13 +11,15 @@
 ## 📦 수정된 파일
 
 ### 1. 데이터베이스 마이그레이션
+
 - `migrations/003_add_planner_permissions.sql` - 플래너 15개 권한 생성
 - `migrations/004_fix_researcher_permissions.sql` - 연구원 권한 설정
 - `migrations/005_add_planner_to_all_roles.sql` - 역할별 플래너 권한 매핑
 - `migrations/006_remove_researcher_salary_project.sql` - 연구원 권한 정리
 
 ### 2. 프론트엔드 코드
-- `src/lib/stores/permissions.ts` - PLANNER_* 리소스 추가
+
+- `src/lib/stores/permissions.ts` - PLANNER\_\* 리소스 추가
 - `src/lib/components/admin/PermissionMatrix.svelte` - 동적 로딩으로 변경
 - `src/routes/planner/+page.svelte` - PermissionGate 추가
 - `src/routes/salary/+page.svelte` - PermissionGate 추가 ⭐
@@ -24,12 +27,14 @@
 - `src/lib/components/layout/Sidebar.svelte` - 리소스 기반 권한 체크로 변경 ⭐
 
 ### 3. 백엔드 API
+
 - `src/lib/server/rbac/permission-matrix.ts` - 권한 매트릭스 로직
 - `src/routes/api/admin/permission-matrix/+server.ts` - API 엔드포인트
 
 ## 🔐 최종 권한 상태
 
 ### 연구원(RESEARCHER) - 21개 권한
+
 ```
 공통 (3개)
 ├─ common.dashboard.read      ✅
@@ -57,6 +62,7 @@ HR (3개)
 ## 🛡️ 보안 레이어
 
 ### 레이어 1: 사이드바 메뉴
+
 ```typescript
 // Sidebar.svelte
 {
@@ -64,18 +70,22 @@ HR (3개)
   permission: { resource: Resource.PROJECT_PROJECTS }  // 권한 없으면 메뉴 숨김
 }
 ```
+
 → 연구원에게 "연구개발" 메뉴 **안 보임**
 
 ### 레이어 2: 페이지 접근
+
 ```svelte
 <!-- project-management/+page.svelte -->
 <PermissionGate resource={Resource.PROJECT_PROJECTS} action={PermissionAction.READ}>
   <PageLayout>...</PageLayout>
 </PermissionGate>
 ```
+
 → 연구원이 직접 URL 입력해도 **차단됨**
 
 ### 레이어 3: API 호출 (추후 추가 권장)
+
 ```typescript
 // +page.server.ts
 export const load = async ({ locals }) => {
@@ -83,11 +93,13 @@ export const load = async ({ locals }) => {
   // ...
 }
 ```
+
 → API 레벨에서도 차단 (추후 구현)
 
 ## 🚀 변경 사항 테스트
 
 ### 연구원 계정 테스트
+
 1. **사이드바 확인**
    - ✅ 대시보드 (표시)
    - ❌ 급여관리 (숨김)
@@ -96,6 +108,7 @@ export const load = async ({ locals }) => {
    - ✅ Planner (표시)
 
 2. **페이지 접근 테스트**
+
    ```
    /dashboard           ✅ 접근 가능
    /planner             ✅ 접근 가능
@@ -114,52 +127,58 @@ export const load = async ({ locals }) => {
 ## 🔧 기술적 세부사항
 
 ### 권한 체크 로직
+
 ```typescript
 // permissions.ts
 const filteredNavigationItems = $derived(
   navigationItems.filter((item) => {
     if (!item.permission) return true
-    
+
     // 리소스 권한 체크 (개선됨)
     if (item.permission.resource) {
       if (!$can.read(item.permission.resource)) {
         return false
       }
     }
-    
+
     // 역할 권한 체크 (레거시, 점진적으로 제거 예정)
     if (item.permission.roles?.length > 0) {
       if (!$can.hasAnyRole(item.permission.roles)) {
         return false
       }
     }
-    
+
     return true
-  })
+  }),
 )
 ```
 
 ### 역할 vs 리소스 권한
 
 #### Before (역할 기반)
+
 ```typescript
 permission: {
-  roles: [RoleCode.RESEARCHER]  // 연구원 역할이면 무조건 표시
+  roles: [RoleCode.RESEARCHER] // 연구원 역할이면 무조건 표시
 }
 ```
+
 → 문제: 역할은 있지만 실제 권한이 없어도 메뉴 표시
 
 #### After (리소스 기반)
+
 ```typescript
 permission: {
-  resource: Resource.PROJECT_PROJECTS  // 실제 권한 확인
+  resource: Resource.PROJECT_PROJECTS // 실제 권한 확인
 }
 ```
+
 → 개선: DB의 실제 권한 데이터와 동기화
 
 ## 📝 다음 단계 (선택사항)
 
 ### 1. 나머지 메뉴도 리소스 기반으로 변경
+
 ```typescript
 // 현재 역할 기반인 메뉴들
 - 영업관리 (roles: [SALES, MANAGEMENT, ADMIN])
@@ -175,6 +194,7 @@ permission: {
 ```
 
 ### 2. API 라우트에 서버 사이드 권한 체크 추가
+
 ```typescript
 // src/routes/api/project-management/+server.ts
 import { requirePermission } from '$lib/server/rbac/middleware'
@@ -186,6 +206,7 @@ export const GET = async ({ locals }) => {
 ```
 
 ### 3. 컴포넌트 레벨 권한 체크
+
 ```svelte
 <!-- 버튼/액션에도 권한 체크 -->
 {#if $can.write(Resource.PLANNER_PRODUCTS)}
@@ -194,6 +215,7 @@ export const GET = async ({ locals }) => {
 ```
 
 ## ✅ 완료 체크리스트
+
 - [x] 플래너 권한 15개 DB 생성
 - [x] 연구원에게 플래너 권한 부여
 - [x] 연구원의 급여/프로젝트 권한 제거
@@ -206,7 +228,9 @@ export const GET = async ({ locals }) => {
 - [x] 문서화 완료
 
 ## 🎉 결론
+
 연구원은 이제:
+
 - ✅ 플래너 모듈 전체 접근 가능
 - ❌ 급여관리 페이지 접근 불가
 - ❌ 프로젝트 관리 페이지 접근 불가

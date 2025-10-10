@@ -17,10 +17,12 @@ permissions (권한)
 ## 🔍 테이블별 역할
 
 ### 1. `roles` (역할 테이블)
+
 ```sql
 -- 역할 정의
 id, code, name, name_ko, priority
 ```
+
 - ADMIN, MANAGEMENT, RESEARCHER 등의 역할 정의
 - 역할의 기본 정보만 저장
 
@@ -33,10 +35,12 @@ id, code, name, name_ko, priority
 ---
 
 ### 2. `permissions` (권한 테이블)
+
 ```sql
 -- 권한 정의
 id, code, resource, action, scope
 ```
+
 - 실제 수행 가능한 작업(권한) 정의
 - 예: `planner.products.read`, `hr.employees.write`
 
@@ -49,10 +53,12 @@ id, code, resource, action, scope
 ---
 
 ### 3. `role_permissions` (역할-권한 매핑)
+
 ```sql
 -- 역할에 권한 할당
 role_id, permission_id
 ```
+
 - **"이 역할은 이런 권한들을 가진다"**
 - 역할(role)과 권한(permission)을 연결
 
@@ -63,16 +69,19 @@ role_id, permission_id
 | RESEARCHER | planner.products.write |
 | RESEARCHER | common.dashboard.read |
 
-**의미:** 
+**의미:**
+
 - 연구원(RESEARCHER) 역할은 플래너 제품을 읽고 쓸 수 있다
 
 ---
 
 ### 4. `employee_roles` (직원-역할 매핑)
+
 ```sql
 -- 직원에게 역할 할당
 employee_id, role_id
 ```
+
 - **"이 직원은 이런 역할을 가진다"**
 - 실제 직원(employee)과 역할(role)을 연결
 
@@ -83,6 +92,7 @@ employee_id, role_id
 | emp_002 | ADMIN |
 
 **의미:**
+
 - emp_001 직원은 연구원(RESEARCHER) 역할을 가진다
 
 ---
@@ -113,10 +123,10 @@ employee_id, role_id
 
 ## 💡 핵심 차이점
 
-| 테이블 | 연결 대상 | 목적 | 예시 |
-|--------|-----------|------|------|
+| 테이블               | 연결 대상    | 목적                            | 예시                               |
+| -------------------- | ------------ | ------------------------------- | ---------------------------------- |
 | **role_permissions** | 역할 ↔ 권한 | 역할이 무엇을 할 수 있는지 정의 | "연구원은 플래너를 사용할 수 있다" |
-| **employee_roles** | 직원 ↔ 역할 | 직원이 어떤 역할인지 정의 | "김연구님은 연구원이다" |
+| **employee_roles**   | 직원 ↔ 역할 | 직원이 어떤 역할인지 정의       | "김연구님은 연구원이다"            |
 
 ## 🎯 우리가 수정하는 것
 
@@ -125,10 +135,10 @@ employee_id, role_id
 ```sql
 -- 연구원(RESEARCHER) 역할에 플래너 권한 추가
 INSERT INTO role_permissions (role_id, permission_id)
-SELECT 
+SELECT
   (SELECT id FROM roles WHERE code = 'RESEARCHER'),  -- 역할: 연구원
   id
-FROM permissions 
+FROM permissions
 WHERE resource LIKE 'planner.%';  -- 권한: 플래너 관련 모든 것
 ```
 

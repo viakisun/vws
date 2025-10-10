@@ -14,7 +14,7 @@ async function exploreData() {
 
   try {
     console.log('🔍 데이터베이스 권한 데이터 탐색\n')
-    console.log('=' .repeat(80))
+    console.log('='.repeat(80))
 
     // 1. 전체 역할 목록
     console.log('\n📌 1. 전체 역할 목록')
@@ -27,7 +27,9 @@ async function exploreData() {
     console.log(`총 ${roles.rows.length}개 역할:\n`)
     roles.rows.forEach((row) => {
       const status = row.is_active ? '✓' : '✗'
-      console.log(`  ${status} ${row.name_ko.padEnd(15)} (${row.code.padEnd(20)}) 우선순위: ${row.priority}`)
+      console.log(
+        `  ${status} ${row.name_ko.padEnd(15)} (${row.code.padEnd(20)}) 우선순위: ${row.priority}`,
+      )
     })
 
     // 2. 플래너 권한 상세
@@ -40,12 +42,15 @@ async function exploreData() {
       ORDER BY resource, action
     `)
     console.log(`총 ${plannerPerms.rows.length}개 플래너 권한:\n`)
-    
-    const grouped = plannerPerms.rows.reduce((acc, row) => {
-      if (!acc[row.resource]) acc[row.resource] = []
-      acc[row.resource].push({ action: row.action, scope: row.scope })
-      return acc
-    }, {} as Record<string, any[]>)
+
+    const grouped = plannerPerms.rows.reduce(
+      (acc, row) => {
+        if (!acc[row.resource]) acc[row.resource] = []
+        acc[row.resource].push({ action: row.action, scope: row.scope })
+        return acc
+      },
+      {} as Record<string, any[]>,
+    )
 
     Object.entries(grouped).forEach(([resource, actions]) => {
       console.log(`  ${resource}:`)
@@ -62,12 +67,15 @@ async function exploreData() {
       ORDER BY resource, action
     `)
     console.log(`총 ${projectPerms.rows.length}개 프로젝트 권한:\n`)
-    
-    const projGrouped = projectPerms.rows.reduce((acc, row) => {
-      if (!acc[row.resource]) acc[row.resource] = []
-      acc[row.resource].push({ action: row.action, scope: row.scope })
-      return acc
-    }, {} as Record<string, any[]>)
+
+    const projGrouped = projectPerms.rows.reduce(
+      (acc, row) => {
+        if (!acc[row.resource]) acc[row.resource] = []
+        acc[row.resource].push({ action: row.action, scope: row.scope })
+        return acc
+      },
+      {} as Record<string, any[]>,
+    )
 
     Object.entries(projGrouped).forEach(([resource, actions]) => {
       console.log(`  ${resource}:`)
@@ -94,7 +102,7 @@ async function exploreData() {
       GROUP BY r.code, r.name_ko, r.priority
       ORDER BY r.priority DESC
     `)
-    
+
     console.log('\n역할        | 플래너 | 프로젝트 | 재무 | 인사 | 영업 | 전체')
     console.log('-'.repeat(80))
     matrix.rows.forEach((row) => {
@@ -119,15 +127,18 @@ async function exploreData() {
       WHERE r.code = 'RESEARCHER'
       ORDER BY p.resource, p.action
     `)
-    
+
     console.log(`총 ${researcher.rows.length}개 권한:\n`)
-    
-    const resGrouped = researcher.rows.reduce((acc, row) => {
-      const [category] = row.resource.split('.')
-      if (!acc[category]) acc[category] = []
-      acc[category].push(`${row.action} (${row.scope})`)
-      return acc
-    }, {} as Record<string, string[]>)
+
+    const resGrouped = researcher.rows.reduce(
+      (acc, row) => {
+        const [category] = row.resource.split('.')
+        if (!acc[category]) acc[category] = []
+        acc[category].push(`${row.action} (${row.scope})`)
+        return acc
+      },
+      {} as Record<string, string[]>,
+    )
 
     Object.entries(resGrouped).forEach(([category, perms]) => {
       console.log(`  ${category}:`)

@@ -3,17 +3,20 @@
 ## 🎯 작업 완료 내용
 
 ### 1. DB 마이그레이션 파일 생성
+
 - 📄 `migrations/003_add_planner_permissions.sql`
 - 📄 `migrations/003_MIGRATION_GUIDE.md`
 
 **추가된 권한:**
+
 - `planner.products.*` (read, write, delete)
-- `planner.initiatives.*` (read, write, delete)  
+- `planner.initiatives.*` (read, write, delete)
 - `planner.threads.*` (read, write, delete)
 - `planner.formations.*` (read, write, delete)
 - `planner.milestones.*` (read, write, delete)
 
 **역할별 권한 변경:**
+
 - RESEARCHER: 프로젝트 관리 권한 제거 → 플래너 전체 권한 추가
 - RESEARCH_DIRECTOR: 플래너 전체 권한 추가
 - MANAGEMENT: 플래너 읽기 권한 추가
@@ -22,6 +25,7 @@
 ### 2. 코드 변경
 
 #### `src/lib/stores/permissions.ts`
+
 ```typescript
 // Resource enum에 플래너 추가
 export enum Resource {
@@ -43,6 +47,7 @@ export const menuAccess: Readable<{
 ```
 
 #### `src/routes/planner/+page.svelte`
+
 ```svelte
 <!-- PermissionGate 추가로 권한 체크 -->
 <PermissionGate resource={Resource.PLANNER_PRODUCTS} action={PermissionAction.READ}>
@@ -51,17 +56,20 @@ export const menuAccess: Readable<{
 ```
 
 #### `src/lib/components/admin/PermissionMatrix.svelte`
+
 - 하드코딩된 권한 데이터 제거
 - DB에서 실시간으로 권한 매트릭스 로딩
 - 새로고침 버튼 추가
 - 로딩/에러 상태 처리
 
 #### `src/lib/server/rbac/permission-matrix.ts` (신규)
+
 - DB에서 역할별 권한 데이터 조회
 - 리소스별 권한 집계
 - 매트릭스 형태로 데이터 반환
 
 #### `src/routes/api/admin/permission-matrix/+server.ts` (신규)
+
 - GET 엔드포인트로 권한 매트릭스 제공
 - `/api/admin/permission-matrix`
 
@@ -141,16 +149,19 @@ npm run dev
 ## 📊 변경 전/후 비교
 
 ### Before (하드코딩)
+
 ```typescript
 const permissions: PermissionRow[] = [
   { resource: '플래너', admin: 'full', researcher: 'full', ... }
 ]
 ```
+
 - ❌ DB와 무관한 정적 데이터
 - ❌ 실제 권한과 불일치 가능
 - ❌ 권한 변경시 코드 수정 필요
 
 ### After (DB 연동)
+
 ```typescript
 async function loadPermissionMatrix() {
   const response = await fetch('/api/admin/permission-matrix')
@@ -158,6 +169,7 @@ async function loadPermissionMatrix() {
   // DB에서 실시간 데이터 로딩
 }
 ```
+
 - ✅ DB의 실제 권한 데이터 반영
 - ✅ 권한 변경시 자동 업데이트
 - ✅ 실제 RBAC 시스템과 100% 일치
@@ -165,31 +177,32 @@ async function loadPermissionMatrix() {
 ## 🔒 보안 강화
 
 ### 플래너 페이지 권한 체크
+
 ```svelte
-<PermissionGate 
-  resource={Resource.PLANNER_PRODUCTS} 
-  action={PermissionAction.READ}
->
+<PermissionGate resource={Resource.PLANNER_PRODUCTS} action={PermissionAction.READ}>
   <!-- 권한이 있는 사용자만 접근 가능 -->
 </PermissionGate>
 ```
 
 ### 메뉴 접근 제어
+
 ```typescript
 export const menuAccess: Readable<{
-  planner: boolean  // 플래너 권한 자동 체크
+  planner: boolean // 플래너 권한 자동 체크
 }>
 ```
 
 ## 📝 관련 파일
 
 ### 신규 파일
+
 - `migrations/003_add_planner_permissions.sql`
 - `migrations/003_MIGRATION_GUIDE.md`
 - `src/lib/server/rbac/permission-matrix.ts`
 - `src/routes/api/admin/permission-matrix/+server.ts`
 
 ### 수정된 파일
+
 - `src/lib/stores/permissions.ts`
 - `src/lib/components/admin/PermissionMatrix.svelte`
 - `src/routes/planner/+page.svelte`

@@ -119,59 +119,60 @@
   <PageLayout title="급여 관리" {stats}>
     <ThemeTabs {tabs} bind:activeTab onTabChange={handleTabChange}>
       <!-- 대시보드 탭 -->
-    {#if activeComponent === 'overview'}
-      <SalaryOverviewTab
-        dashboardStats={salary.statistics.dashboard}
-        actionItems={salary.statistics.actionItems}
-        onNavigate={handleNavigateToTab}
-      />
+      {#if activeComponent === 'overview'}
+        <SalaryOverviewTab
+          dashboardStats={salary.statistics.dashboard}
+          actionItems={salary.statistics.actionItems}
+          onNavigate={handleNavigateToTab}
+        />
 
-      <!-- 급여 계약 탭 -->
-    {:else if activeComponent === 'contracts'}
-      <ThemeSpacer size={6}>
-        <SalaryContracts />
-      </ThemeSpacer>
+        <!-- 급여 계약 탭 -->
+      {:else if activeComponent === 'contracts'}
+        <ThemeSpacer size={6}>
+          <SalaryContracts />
+        </ThemeSpacer>
 
-      <!-- 급여명세서 탭 -->
-    {:else if activeComponent === 'payslips'}
-      <ThemeSpacer size={6}>
-        <div class="space-y-6">
-          <!-- 급여대장 업로드 섹션 -->
-          <section class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <header class="mb-6">
-              <h3 class="text-lg font-semibold text-gray-900 mb-2">급여대장 일괄 처리</h3>
-              <p class="text-sm text-gray-600">
-                엑셀 형식의 급여대장 파일을 업로드하여 전체 직원의 급여명세서를 자동으로 생성합니다.
-              </p>
-            </header>
+        <!-- 급여명세서 탭 -->
+      {:else if activeComponent === 'payslips'}
+        <ThemeSpacer size={6}>
+          <div class="space-y-6">
+            <!-- 급여대장 업로드 섹션 -->
+            <section class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+              <header class="mb-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-2">급여대장 일괄 처리</h3>
+                <p class="text-sm text-gray-600">
+                  엑셀 형식의 급여대장 파일을 업로드하여 전체 직원의 급여명세서를 자동으로
+                  생성합니다.
+                </p>
+              </header>
 
-            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <div class="flex items-center justify-between gap-4">
-                <div class="flex-1">
-                  <h4 class="font-medium text-blue-900 mb-1">급여대장 파일 업로드</h4>
-                  <p class="text-sm text-blue-700">
-                    표준 양식의 급여대장 엑셀 파일을 업로드하면 급여명세서가 자동 생성됩니다.
-                  </p>
+              <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div class="flex items-center justify-between gap-4">
+                  <div class="flex-1">
+                    <h4 class="font-medium text-blue-900 mb-1">급여대장 파일 업로드</h4>
+                    <p class="text-sm text-blue-700">
+                      표준 양식의 급여대장 엑셀 파일을 업로드하면 급여명세서가 자동 생성됩니다.
+                    </p>
+                  </div>
+                  <PayrollUploader />
                 </div>
-                <PayrollUploader />
               </div>
-            </div>
-          </section>
+            </section>
 
-          <!-- 개별 급여명세서 관리 섹션 -->
-          <section class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <header class="mb-4">
-              <h3 class="text-lg font-semibold text-gray-900 mb-2">급여명세서 관리</h3>
-              <p class="text-sm text-gray-600">
-                직원별 급여명세서를 개별적으로 조회, 생성, 수정 및 출력할 수 있습니다.
-              </p>
-            </header>
+            <!-- 개별 급여명세서 관리 섹션 -->
+            <section class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+              <header class="mb-4">
+                <h3 class="text-lg font-semibold text-gray-900 mb-2">급여명세서 관리</h3>
+                <p class="text-sm text-gray-600">
+                  직원별 급여명세서를 개별적으로 조회, 생성, 수정 및 출력할 수 있습니다.
+                </p>
+              </header>
 
-            <PayslipManagement />
-          </section>
-        </div>
-      </ThemeSpacer>
-    {/if}
-  </ThemeTabs>
-</PageLayout>
+              <PayslipManagement />
+            </section>
+          </div>
+        </ThemeSpacer>
+      {/if}
+    </ThemeTabs>
+  </PageLayout>
 </PermissionGate>

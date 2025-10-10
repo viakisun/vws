@@ -30,16 +30,16 @@ async function removeResearcherPermissions() {
     `)
 
     console.log(`현재 연구원 권한: ${current.rows.length}개\n`)
-    
+
     // 급여관리와 프로젝트 관리 권한 찾기
-    const salaryPerms = current.rows.filter(p => p.resource.startsWith('salary.'))
-    const projectPerms = current.rows.filter(p => p.resource.startsWith('project.'))
-    
+    const salaryPerms = current.rows.filter((p) => p.resource.startsWith('salary.'))
+    const projectPerms = current.rows.filter((p) => p.resource.startsWith('project.'))
+
     console.log('📋 급여관리 권한:')
-    salaryPerms.forEach(p => console.log(`  - ${p.resource}.${p.action}: ${p.description}`))
-    
+    salaryPerms.forEach((p) => console.log(`  - ${p.resource}.${p.action}: ${p.description}`))
+
     console.log('\n📋 프로젝트 관리 권한:')
-    projectPerms.forEach(p => console.log(`  - ${p.resource}.${p.action}: ${p.description}`))
+    projectPerms.forEach((p) => console.log(`  - ${p.resource}.${p.action}: ${p.description}`))
 
     // 삭제 확인
     const toRemove = [...salaryPerms, ...projectPerms]
@@ -51,31 +51,29 @@ async function removeResearcherPermissions() {
     console.log(`\n🗑️  총 ${toRemove.length}개 권한 삭제 중...`)
 
     // 연구원 역할 ID 가져오기
-    const roleResult = await client.query(
-      "SELECT id FROM roles WHERE code = 'RESEARCHER'"
-    )
+    const roleResult = await client.query("SELECT id FROM roles WHERE code = 'RESEARCHER'")
     const researcherRoleId = roleResult.rows[0].id
 
     // 급여관리 권한 삭제
     if (salaryPerms.length > 0) {
-      const salaryIds = salaryPerms.map(p => p.id)
+      const salaryIds = salaryPerms.map((p) => p.id)
       await client.query(
         `DELETE FROM role_permissions 
          WHERE role_id = $1 
          AND permission_id = ANY($2)`,
-        [researcherRoleId, salaryIds]
+        [researcherRoleId, salaryIds],
       )
       console.log(`  ✅ 급여관리 권한 ${salaryPerms.length}개 삭제`)
     }
 
     // 프로젝트 관리 권한 삭제
     if (projectPerms.length > 0) {
-      const projectIds = projectPerms.map(p => p.id)
+      const projectIds = projectPerms.map((p) => p.id)
       await client.query(
         `DELETE FROM role_permissions 
          WHERE role_id = $1 
          AND permission_id = ANY($2)`,
-        [researcherRoleId, projectIds]
+        [researcherRoleId, projectIds],
       )
       console.log(`  ✅ 프로젝트 관리 권한 ${projectPerms.length}개 삭제`)
     }
@@ -106,10 +104,9 @@ async function removeResearcherPermissions() {
     `)
 
     console.log('\n📋 남은 권한:')
-    remaining.rows.forEach(r => {
+    remaining.rows.forEach((r) => {
       console.log(`  - ${r.resource}: ${r.count}개`)
     })
-
   } catch (error) {
     console.error('❌ 오류:', error)
     throw error

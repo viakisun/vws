@@ -17,13 +17,10 @@
    - **RESEARCHER (연구원)**
      - ❌ 프로젝트 관리 권한 제거 (`project.*`)
      - ✅ 플래너 전체 권한 추가 (`planner.*`)
-   
    - **RESEARCH_DIRECTOR (연구소장)**
      - ✅ 플래너 전체 권한 추가 (`planner.*`)
-   
    - **MANAGEMENT (경영관리자)**
      - ✅ 플래너 읽기 권한 추가 (`planner.*.read`)
-   
    - **ADMIN (관리자)**
      - ✅ 플래너 전체 권한 추가 (`planner.*`)
 
@@ -62,13 +59,13 @@ psql -h localhost -U postgres -d vws_dev -f migrations/003_add_planner_permissio
 
 ```sql
 -- 플래너 권한 확인
-SELECT code, resource, action, scope 
-FROM permissions 
+SELECT code, resource, action, scope
+FROM permissions
 WHERE resource LIKE 'planner.%'
 ORDER BY resource, action;
 
 -- 연구원 역할의 플래너 권한 확인
-SELECT 
+SELECT
   r.code as role_code,
   r.name_ko as role_name,
   p.code as permission_code,
@@ -82,7 +79,7 @@ WHERE r.code = 'RESEARCHER'
 ORDER BY p.resource, p.action;
 
 -- 연구원의 프로젝트 관리 권한이 제거되었는지 확인 (결과 없어야 함)
-SELECT 
+SELECT
   r.code as role_code,
   p.code as permission_code
 FROM roles r
@@ -114,6 +111,7 @@ npm run dev
 ### 2. 플래너 접근 테스트
 
 #### 연구원 계정으로 테스트
+
 ```
 ✅ /planner - 접근 가능
 ✅ /planner/products - 접근 가능
@@ -122,6 +120,7 @@ npm run dev
 ```
 
 #### 일반 직원 계정으로 테스트
+
 ```
 ❌ /planner - 접근 불가 (권한 없음 메시지)
 ```
@@ -139,7 +138,7 @@ curl http://localhost:5173/api/admin/permission-matrix
 
 ```sql
 -- 1. 플래너 권한 삭제
-DELETE FROM role_permissions 
+DELETE FROM role_permissions
 WHERE permission_id IN (
   SELECT id FROM permissions WHERE resource LIKE 'planner.%'
 );

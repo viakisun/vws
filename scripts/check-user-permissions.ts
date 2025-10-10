@@ -92,7 +92,9 @@ async function checkUserPermissions(email: string) {
     const hasProjectPerm = permissions.rows.some(
       (p) => p.resource === 'project.projects' && p.action === 'read',
     )
-    console.log(`   프로젝트 관리 (project.projects.read): ${hasProjectPerm ? '✅ 있음' : '❌ 없음'}`)
+    console.log(
+      `   프로젝트 관리 (project.projects.read): ${hasProjectPerm ? '✅ 있음' : '❌ 없음'}`,
+    )
 
     const hasPlannerPerm = permissions.rows.some((p) => p.resource.startsWith('planner.'))
     console.log(`   플래너 (planner.*): ${hasPlannerPerm ? '✅ 있음' : '❌ 없음'}`)

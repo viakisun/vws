@@ -3,6 +3,7 @@
 ## ✅ 완료된 작업
 
 ### 1. 연구원(RESEARCHER) 권한 설정
+
 ```
 기본 권한:     6개  (대시보드, 프로필, 급여, 근태, 연차)
 플래너 권한:  15개  (products, initiatives, threads, formations, milestones)
@@ -11,12 +12,14 @@
 ```
 
 ### 2. 전체 역할 플래너 권한 추가
+
 - ✅ ADMIN → 플래너 전체 권한 (15개)
 - ✅ MANAGEMENT → 플래너 읽기 권한 (5개)
 - ✅ RESEARCH_DIRECTOR → 플래너 전체 권한 (15개)
 - ✅ RESEARCHER → 플래너 전체 권한 (15개) + 기본 권한 (6개)
 
 ### 3. 권한 캐시 무효화
+
 - ✅ 영향받는 모든 사용자의 권한 캐시 삭제
 - ✅ 다음 로그인 시 최신 권한 반영
 
@@ -41,6 +44,7 @@
 ## 📝 다음 단계
 
 ### 1. 웹 UI에서 확인
+
 ```bash
 # 브라우저에서
 https://ws.viahub.dev/admin/permissions
@@ -48,6 +52,7 @@ https://ws.viahub.dev/admin/permissions
 ```
 
 ### 2. 연구원 계정 테스트
+
 ```bash
 # 연구원으로 로그인 후
 1. /planner 접근 → ✅ 성공
@@ -56,6 +61,7 @@ https://ws.viahub.dev/admin/permissions
 ```
 
 ### 3. 개발 서버 재시작
+
 ```bash
 npm run dev
 ```
@@ -63,6 +69,7 @@ npm run dev
 ## 🎯 연구원이 할 수 있는 것
 
 ### ✅ 가능한 기능
+
 - 대시보드 조회
 - 개인 프로필 관리
 - 본인 급여/근태/연차 조회
@@ -74,6 +81,7 @@ npm run dev
   - 마일스톤 관리
 
 ### ❌ 불가능한 기능
+
 - 프로젝트 관리 (제거됨)
 - 다른 사람 급여/인사 정보
 - 재무 관리
@@ -83,6 +91,7 @@ npm run dev
 ## ✨ 완료!
 
 연구원 권한이 제대로 설정되었습니다!
+
 - 기본적인 것들 ✅
 - 플래너 전체 권한 ✅
 - 프로젝트 관리 제거 ✅

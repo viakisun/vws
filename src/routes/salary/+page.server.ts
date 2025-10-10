@@ -14,8 +14,14 @@ export const load: ServerLoad = async ({ locals }) => {
     throw redirect(302, '/login')
   }
 
-  console.log('👥 Roles:', permissions.roles.map((r) => r.code))
-  console.log('🎫 Permissions:', permissions.permissions.map((p) => `${p.resource}.${p.action}`))
+  console.log(
+    '👥 Roles:',
+    permissions.roles.map((r) => r.code),
+  )
+  console.log(
+    '🎫 Permissions:',
+    permissions.permissions.map((p) => `${p.resource}.${p.action}`),
+  )
 
   // ADMIN은 모든 권한 허용
   const isAdmin = permissions.roles.some((role) => role.code === 'ADMIN')

@@ -5,6 +5,7 @@
 ## ✅ 완료된 작업 체크리스트
 
 ### 1. 데이터베이스 마이그레이션
+
 - [x] `migrations/003_add_planner_permissions.sql` 작성
 - [x] 플래너 권한 15개 정의 (products, initiatives, threads, formations, milestones)
 - [x] 역할별 권한 매핑
@@ -19,6 +20,7 @@
 ### 2. 코드 변경
 
 #### `src/lib/stores/permissions.ts`
+
 - [x] Resource enum에 플래너 리소스 5개 추가
   ```typescript
   PLANNER_PRODUCTS = 'planner.products'
@@ -33,6 +35,7 @@
   ```
 
 #### `src/routes/planner/+page.svelte`
+
 - [x] PermissionGate 컴포넌트 import
 - [x] Resource, PermissionAction import
 - [x] 전체 페이지를 PermissionGate로 감싸기
@@ -43,6 +46,7 @@
   ```
 
 #### `src/lib/components/admin/PermissionMatrix.svelte`
+
 - [x] 하드코딩된 permissions 배열 제거
 - [x] 동적 데이터 로딩 로직 추가
   - [x] onMount에서 API 호출
@@ -55,6 +59,7 @@
   - [x] 권한 레벨별 아이콘 표시
 
 #### `src/lib/server/rbac/permission-matrix.ts` (신규)
+
 - [x] getPermissionMatrix() 함수 구현
 - [x] DB에서 역할 조회
 - [x] DB에서 권한 매핑 조회
@@ -67,23 +72,27 @@
   ```
 
 #### `src/routes/api/admin/permission-matrix/+server.ts` (신규)
+
 - [x] GET 엔드포인트 구현
 - [x] getPermissionMatrix() 호출
 - [x] JSON 응답 반환
 - [x] 에러 처리
 
 ### 3. 문서화
+
 - [x] `migrations/003_MIGRATION_GUIDE.md` - 마이그레이션 가이드
 - [x] `migrations/003_IMPLEMENTATION_SUMMARY.md` - 구현 요약
 - [x] `migrations/003_COMPLETED.md` - 완료 체크리스트 (이 파일)
 
 ### 4. 테스트 스크립트
+
 - [x] `scripts/run-migration-003.ts` - 마이그레이션 실행 및 검증
 - [x] `scripts/check-permissions.ts` - 권한 현황 확인
 
 ## 📊 변경 통계
 
 ### 신규 파일 (6개)
+
 1. `migrations/003_add_planner_permissions.sql`
 2. `migrations/003_MIGRATION_GUIDE.md`
 3. `migrations/003_IMPLEMENTATION_SUMMARY.md`
@@ -94,33 +103,38 @@
 8. `scripts/check-permissions.ts`
 
 ### 수정된 파일 (3개)
+
 1. `src/lib/stores/permissions.ts` (Resource enum, menuAccess)
 2. `src/routes/planner/+page.svelte` (PermissionGate 추가)
 3. `src/lib/components/admin/PermissionMatrix.svelte` (동적 로딩)
 
 ### 데이터베이스 변경
-- **추가된 권한**: 15개 (planner.*)
-- **삭제된 역할 권한**: RESEARCHER의 project.* 권한
-- **추가된 역할 권한**: 
-  - RESEARCHER: planner.* (15개)
-  - RESEARCH_DIRECTOR: planner.* (15개)
-  - MANAGEMENT: planner.*.read (5개)
-  - ADMIN: planner.* (15개, 이미 존재하는 경우 스킵)
+
+- **추가된 권한**: 15개 (planner.\*)
+- **삭제된 역할 권한**: RESEARCHER의 project.\* 권한
+- **추가된 역할 권한**:
+  - RESEARCHER: planner.\* (15개)
+  - RESEARCH_DIRECTOR: planner.\* (15개)
+  - MANAGEMENT: planner.\*.read (5개)
+  - ADMIN: planner.\* (15개, 이미 존재하는 경우 스킵)
 
 ## 🎯 핵심 변경사항
 
 ### Before (하드코딩)
+
 ```typescript
 // PermissionMatrix.svelte
 const permissions: PermissionRow[] = [
   { resource: '플래너', admin: 'full', researcher: 'full', ... }
 ]
 ```
+
 - ❌ 정적 데이터
 - ❌ DB와 불일치 가능
 - ❌ 권한 변경시 코드 수정 필요
 
 ### After (DB 연동)
+
 ```typescript
 // PermissionMatrix.svelte
 async function loadPermissionMatrix() {
@@ -130,6 +144,7 @@ async function loadPermissionMatrix() {
   roles = data.roles
 }
 ```
+
 - ✅ 동적 데이터
 - ✅ DB와 100% 일치
 - ✅ 권한 변경시 자동 반영
@@ -137,21 +152,25 @@ async function loadPermissionMatrix() {
 ## 🚀 실행 방법
 
 ### 1. 마이그레이션 실행
+
 ```bash
 npx tsx scripts/run-migration-003.ts
 ```
 
 ### 2. 권한 확인
+
 ```bash
 npx tsx scripts/check-permissions.ts
 ```
 
 ### 3. 개발 서버 재시작
+
 ```bash
 npm run dev
 ```
 
 ### 4. 웹에서 확인
+
 1. 관리자로 로그인
 2. `/admin/permissions` 접속
 3. "권한 매트릭스" 탭 클릭
@@ -163,6 +182,7 @@ npm run dev
 ## 🧪 테스트 시나리오
 
 ### 시나리오 1: 연구원 권한 확인
+
 - [ ] 연구원 계정으로 로그인
 - [ ] `/planner` 접근 → ✅ 성공
 - [ ] `/planner/products` 접근 → ✅ 성공
@@ -170,16 +190,19 @@ npm run dev
 - [ ] `/project-management` 접근 → ❌ 실패 (권한 없음)
 
 ### 시나리오 2: 일반 직원 권한 확인
+
 - [ ] 일반 직원 계정으로 로그인
 - [ ] `/planner` 접근 → ❌ 실패 (권한 없음)
 - [ ] 권한 없음 메시지 표시 확인
 
 ### 시나리오 3: 경영관리자 권한 확인
+
 - [ ] 경영관리자 계정으로 로그인
 - [ ] `/planner` 접근 → ✅ 성공 (읽기 권한)
 - [ ] 제품 생성 버튼 → ❌ 비활성화 또는 권한 없음
 
 ### 시나리오 4: 권한 매트릭스 UI
+
 - [ ] 관리자로 `/admin/permissions` 접속
 - [ ] "권한 매트릭스" 탭 클릭
 - [ ] "플래너" 행 존재 확인

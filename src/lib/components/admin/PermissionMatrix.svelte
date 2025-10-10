@@ -108,7 +108,8 @@
       <div>
         <h4 class="font-semibold text-blue-900 mb-1">권한 상속 구조</h4>
         <p class="text-sm text-blue-700">
-          상위 역할은 하위 역할의 모든 권한을 상속받습니다. DB에서 실시간으로 권한 정보를 가져옵니다.
+          상위 역할은 하위 역할의 모든 권한을 상속받습니다. DB에서 실시간으로 권한 정보를
+          가져옵니다.
         </p>
       </div>
     </div>
@@ -131,10 +132,7 @@
               <td class="px-4 py-3 font-medium text-gray-900">{row.resourceKo}</td>
               {#each roles as role}
                 {@const roleKey = role.code.toLowerCase()}
-                {@const permission = row[roleKey as keyof typeof row] as
-                  | 'full'
-                  | 'read'
-                  | 'none'}
+                {@const permission = row[roleKey as keyof typeof row] as 'full' | 'read' | 'none'}
                 {@const { icon: Icon, class: iconClass } = getPermissionIcon(permission)}
                 <td class="px-4 py-3 text-center">
                   <Icon size={20} class="{iconClass} inline" />

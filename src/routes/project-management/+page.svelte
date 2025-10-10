@@ -419,43 +419,43 @@
       <!-- 탭 네비게이션 -->
       <ThemeTabs {tabs} {activeTab} onTabChange={handleTabChange} />
 
-    <!-- 개요 탭 -->
-    {#if activeTab === 'overview'}
-      <!-- 프로젝트 개요 카드 -->
-      <ProjectOverviewCard {projectSummary} {alerts} />
-    {/if}
+      <!-- 개요 탭 -->
+      {#if activeTab === 'overview'}
+        <!-- 프로젝트 개요 카드 -->
+        <ProjectOverviewCard {projectSummary} {alerts} />
+      {/if}
 
-    <!-- 프로젝트 탭 -->
-    {#if activeTab === 'projects'}
-      <!-- 프로젝트 목록 카드 -->
-      <ProjectListCard
-        {projects}
-        {selectedProject}
-        {selectedProjectId}
-        {budgetRefreshKey}
-        loading={tabLoadingStates.projects}
-        error={tabErrors.projects}
-        on:create-project={() => (showCreateProjectModal = true)}
-        on:project-deleted={handleProjectDeleted}
-        on:project-updated={handleProjectUpdated}
-        on:refresh={loadProjectData}
-        on:project-selected={(e) => handleProjectSelection(e.detail.project)}
-        on:show-budget-modal={() => {
-          if (selectedProject?.id) {
-            loadProjectBudgets(selectedProject.id)
-          }
-          showBudgetModal = true
-        }}
-      />
-    {/if}
+      <!-- 프로젝트 탭 -->
+      {#if activeTab === 'projects'}
+        <!-- 프로젝트 목록 카드 -->
+        <ProjectListCard
+          {projects}
+          {selectedProject}
+          {selectedProjectId}
+          {budgetRefreshKey}
+          loading={tabLoadingStates.projects}
+          error={tabErrors.projects}
+          on:create-project={() => (showCreateProjectModal = true)}
+          on:project-deleted={handleProjectDeleted}
+          on:project-updated={handleProjectUpdated}
+          on:refresh={loadProjectData}
+          on:project-selected={(e) => handleProjectSelection(e.detail.project)}
+          on:show-budget-modal={() => {
+            if (selectedProject?.id) {
+              loadProjectBudgets(selectedProject.id)
+            }
+            showBudgetModal = true
+          }}
+        />
+      {/if}
 
-    <!-- 참여율 관리 탭 -->
-    {#if activeTab === 'participation'}
-      <!-- TODO::참여율 관리 카드 -->
-      <ParticipationCard {employeeParticipationSummary} />
+      <!-- 참여율 관리 탭 -->
+      {#if activeTab === 'participation'}
+        <!-- TODO::참여율 관리 카드 -->
+        <ParticipationCard {employeeParticipationSummary} />
+      {/if}
     {/if}
-  {/if}
-</PageLayout>
+  </PageLayout>
 </PermissionGate>
 
 <!-- 프로젝트 생성 모달 -->
