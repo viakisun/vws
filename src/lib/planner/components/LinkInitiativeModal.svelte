@@ -228,7 +228,8 @@
     }
   }
 
-  function getHorizonText(horizon: string): string {
+  function getHorizonText(horizon?: string): string {
+    if (!horizon) return '-'
     switch (horizon) {
       case 'current':
         return '현재'
@@ -241,7 +242,8 @@
     }
   }
 
-  function getHorizonColor(horizon: string): string {
+  function getHorizonColor(horizon?: string): string {
+    if (!horizon) return 'gray'
     switch (horizon) {
       case 'current':
         return 'blue'

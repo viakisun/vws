@@ -193,7 +193,7 @@
   // 필터링된 고객 데이터
   const filteredCustomers = $derived<Customer[]>(
     (() => {
-      let customers = crmData.customers
+      let customers: Customer[] = crmData.customers
 
       if (searchTerm) {
         customers = customers.filter(

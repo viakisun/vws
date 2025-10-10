@@ -95,7 +95,7 @@
         <div class="pt-4 border-t" style:border-color="var(--color-border)">
           <MentionInput bind:value={replyText} bind:mentions={replyMentions} />
           <div class="flex justify-end gap-2 mt-3">
-            <ThemeButton variant="outline" size="sm" onclick={onClose}>닫기</ThemeButton>
+            <ThemeButton variant="secondary" size="sm" onclick={onClose}>닫기</ThemeButton>
             <ThemeButton
               variant="primary"
               size="sm"
