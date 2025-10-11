@@ -1,24 +1,19 @@
 import { logger } from '$lib/utils/logger'
 
 /**
- * 간소화된 날짜 처리 유틸리티
+ * KST 전용 날짜 처리 유틸리티
  *
  * 핵심 원칙:
- * - DB는 이미 KST(Asia/Seoul) 타임존으로 설정됨
- * - 모든 날짜는 TIMESTAMPTZ로 저장됨
- * - ::text 캐스팅으로 KST 문자열로 조회
+ * - 글로벌 지원 없음: 대한민국 KST만 사용
+ * - 모든 날짜는 문자열로 처리
+ * - DB 세션은 Asia/Seoul로 고정
+ * - 모든 TIMESTAMPTZ 컬럼은 ::text로 캐스팅
  *
  * 데이터 흐름:
- * 1. 사용자 입력 → HTML <input type="date"> → YYYY-MM-DD
- * 2. DB 저장 → ISO 8601 문자열 (new Date().toISOString())
- * 3. DB 조회 → ::text → "YYYY-MM-DD HH:MM:SS+09" 또는 "YYYY-MM-DD"
- * 4. 화면 표시 → 간단한 포맷팅 ("YYYY. MM. DD.", "YYYY년 MM월 DD일" 등)
- *
- * 사용법:
- * - 저장: toUTC(userInput) → DB에 ISO 문자열 저장
- * - 조회: SELECT created_at::text → "2025-10-08 11:24:23.373+09"
- * - 표시: formatDateForDisplay(dbString) → "2025. 10. 08."
- * - 입력: formatDateForInput(dbString) → "2025-10-08"
+ * 1. 사용자 입력 → HTML <input type="datetime-local"> → YYYY-MM-DDTHH:MM
+ * 2. DB 저장 → toKstTextFromDateTimeLocal() → YYYY-MM-DD HH:MM+09
+ * 3. DB 조회 → ::text → "YYYY-MM-DD HH:MM:SS.sss+09" 또는 "YYYY-MM-DD"
+ * 4. 화면 표시 → formatDateForDisplay() → "YYYY. MM. DD." 또는 "YYYY년 MM월 DD일"
  */
 
 // =============================================
@@ -26,155 +21,205 @@ import { logger } from '$lib/utils/logger'
 // =============================================
 
 /**
- * 표준화된 날짜 타입 (ISO 8601 문자열)
- */
-export type StandardDate = string & { readonly __brand: 'StandardDate' }
-
-/**
- * 지원하는 날짜 입력 형식
- * - string: YYYY-MM-DD, ISO 8601
- * - Date: JavaScript Date 객체
- */
-export type DateInputFormat = string | Date
-
-/**
  * 날짜 표시 형식
  */
-export const DATE_FORMATS = {
-  FULL: 'YYYY. MM. DD.', // 2025. 01. 15.
-  SHORT: 'MM/DD', // 01/15
-  ISO: 'YYYY-MM-DD', // 2025-01-15
-  KOREAN: 'YYYY년 MM월 DD일', // 2025년 01월 15일
-} as const
-
-export type DateFormatType = keyof typeof DATE_FORMATS
+export type DateFormatType = 'FULL' | 'SHORT' | 'ISO' | 'KOREAN'
 
 // =============================================
-// Public API Functions
+// Core Functions (KST Only)
 // =============================================
 
 /**
- * 현재 시간을 ISO 8601 문자열로 반환
+ * datetime-local input → KST TIMESTAMPTZ 문자열
  *
- * @returns ISO 8601 문자열 (예: "2025-10-08T02:24:23.373Z")
+ * HTML <input type="datetime-local">에서 가져온 값을 DB에 저장할 형식으로 변환
+ *
+ * @param value - HTML datetime-local 값 (YYYY-MM-DDTHH:MM)
+ * @returns KST TIMESTAMPTZ 문자열 (YYYY-MM-DD HH:MM+09)
  *
  * @example
- * const now = getCurrentUTC()
- * await query('UPDATE table SET updated_at = $1', [now])
+ * toKstTextFromDateTimeLocal('2025-10-08T11:30')
+ * // → '2025-10-08 11:30+09'
+ *
+ * @example SQL Usage
+ * const kstText = toKstTextFromDateTimeLocal(userInput)
+ * await query('INSERT INTO meetings (starts_at) VALUES ($1::timestamptz)', [kstText])
  */
-export function getCurrentUTC(): StandardDate {
-  return new Date().toISOString() as StandardDate
-}
-
-/**
- * 사용자 입력을 ISO 8601 문자열로 변환 (DB 저장용)
- *
- * @param date - YYYY-MM-DD 문자열 또는 Date 객체
- * @returns ISO 8601 문자열 또는 빈 문자열
- *
- * @example
- * // HTML input에서
- * const utcDate = toUTC('2025-10-08')
- * await query('INSERT INTO table (date) VALUES ($1)', [utcDate])
- *
- * @example
- * // Date 객체에서
- * const utcDate = toUTC(new Date())
- * await query('INSERT INTO table (date) VALUES ($1)', [utcDate])
- */
-export function toUTC(date: DateInputFormat): StandardDate {
-  if (!date) return '' as StandardDate
+export function toKstTextFromDateTimeLocal(value: string): string {
+  if (!value) return ''
 
   try {
-    // Date 객체면 바로 ISO 문자열로
-    if (date instanceof Date) {
-      if (isNaN(date.getTime())) {
-        const stack = new Error().stack
-        const callerLine = stack?.split('\n')[2]?.trim() || 'unknown location'
-
-        logger.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
-        logger.error('❌ [toUTC] Invalid Date object')
-        logger.error('   Value:', date)
-        logger.error('   Called from:', callerLine)
-        logger.error('')
-        logger.error('   Possible causes:')
-        logger.error('   - Date object is NaN or Invalid Date')
-        logger.error('   - Incorrect date construction')
-        logger.error('')
-        logger.error('   Stack trace:')
-        logger.error(stack || 'Stack trace not available')
-        logger.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
-        return '' as StandardDate
-      }
-      return date.toISOString() as StandardDate
-    }
-
-    // 문자열이면 Date 객체로 변환 후 ISO 문자열로
-    const dateObj = new Date(date)
-    if (isNaN(dateObj.getTime())) {
+    // YYYY-MM-DDTHH:MM → YYYY-MM-DD HH:MM+09
+    const match = value.match(/^(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2})/)
+    if (!match) {
       const stack = new Error().stack
       const callerLine = stack?.split('\n')[2]?.trim() || 'unknown location'
 
       logger.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
-      logger.error('❌ [toUTC] Invalid date string')
-      logger.error('   Input:', date)
-      logger.error('   Type:', typeof date)
+      logger.error('❌ [toKstTextFromDateTimeLocal] Invalid datetime-local format')
+      logger.error('   Input:', value)
+      logger.error('   Expected: YYYY-MM-DDTHH:MM (e.g., "2025-10-08T11:30")')
       logger.error('   Called from:', callerLine)
-      logger.error('')
-      logger.error('   Expected formats:')
-      logger.error('   ✅ "YYYY-MM-DD" (e.g., "2025-10-08")')
-      logger.error('   ✅ "YYYY-MM-DDTHH:MM:SS.sssZ" (ISO 8601)')
       logger.error('')
       logger.error('   Stack trace:')
       logger.error(stack || 'Stack trace not available')
       logger.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
-      return '' as StandardDate
+      return ''
     }
 
-    return dateObj.toISOString() as StandardDate
+    return `${match[1]} ${match[2]}+09`
   } catch (error) {
-    const stack = new Error().stack
-
+    const stack = error instanceof Error ? error.stack : new Error().stack
     logger.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
-    logger.error('❌ [toUTC] Date conversion error')
-    logger.error('   Input:', date)
-    logger.error('   Type:', typeof date)
+    logger.error('❌ [toKstTextFromDateTimeLocal] Conversion error')
+    logger.error('   Input:', value)
     logger.error('   Error:', error)
-    if (error instanceof Error) {
-      logger.error('   Error message:', error.message)
-      logger.error('   Error stack:')
-      logger.error(error.stack || 'Error stack not available')
-    }
     logger.error('')
-    logger.error('   Function stack trace:')
+    logger.error('   Stack trace:')
     logger.error(stack || 'Stack trace not available')
     logger.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
-    return '' as StandardDate
+    return ''
   }
 }
 
 /**
- * DB에서 가져온 날짜 문자열을 화면 표시용으로 포맷팅
+ * DB TIMESTAMPTZ → HTML date input
  *
- * @param dateStr - DB 문자열 (YYYY-MM-DD HH:MM:SS+09 또는 YYYY-MM-DD)
+ * DB에서 ::text로 가져온 날짜를 HTML <input type="date">에 사용할 형식으로 변환
+ *
+ * @param dateStr - DB 날짜 문자열
+ * @returns YYYY-MM-DD 형식
+ *
+ * @example
+ * formatDateForInput('2025-10-08 11:24:23.373+09')
+ * // → '2025-10-08'
+ *
+ * @example
+ * formatDateForInput('2025-10-08')
+ * // → '2025-10-08'
+ */
+export function formatDateForInput(dateStr: string): string {
+  if (!dateStr) return ''
+
+  try {
+    // YYYY-MM-DD 부분만 추출
+    const match = dateStr.match(/^(\d{4}-\d{2}-\d{2})/)
+    if (!match) {
+      const stack = new Error().stack
+      const callerLine = stack?.split('\n')[2]?.trim() || 'unknown location'
+
+      logger.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+      logger.error('❌ [formatDateForInput] Invalid date format')
+      logger.error('   Input:', dateStr)
+      logger.error('   Expected: YYYY-MM-DD or YYYY-MM-DD HH:MM:SS+09')
+      logger.error('   Called from:', callerLine)
+      logger.error('')
+      logger.error('   Reminder: Use ::text in SQL queries')
+      logger.error('   Example: SELECT created_at::text FROM table')
+      logger.error('')
+      logger.error('   Stack trace:')
+      logger.error(stack || 'Stack trace not available')
+      logger.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+      return ''
+    }
+
+    return match[1]
+  } catch (error) {
+    const stack = error instanceof Error ? error.stack : new Error().stack
+    logger.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+    logger.error('❌ [formatDateForInput] Formatting error')
+    logger.error('   Input:', dateStr)
+    logger.error('   Error:', error)
+    logger.error('')
+    logger.error('   Stack trace:')
+    logger.error(stack || 'Stack trace not available')
+    logger.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+    return ''
+  }
+}
+
+/**
+ * DB TIMESTAMPTZ → HTML datetime-local input
+ *
+ * DB에서 ::text로 가져온 타임스탬프를 HTML <input type="datetime-local">에 사용할 형식으로 변환
+ *
+ * @param dateStr - DB 타임스탬프 문자열
+ * @returns YYYY-MM-DDTHH:MM 형식
+ *
+ * @example
+ * formatDateTimeForInput('2025-10-08 11:24:23+09')
+ * // → '2025-10-08T11:24'
+ *
+ * @example
+ * formatDateTimeForInput('2025-10-08 11:24:23.373+09')
+ * // → '2025-10-08T11:24'
+ */
+export function formatDateTimeForInput(dateStr: string): string {
+  if (!dateStr) return ''
+
+  try {
+    // YYYY-MM-DD HH:MM:SS+09 → YYYY-MM-DDTHH:MM
+    const match = dateStr.match(/^(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2})/)
+    if (!match) {
+      const stack = new Error().stack
+      const callerLine = stack?.split('\n')[2]?.trim() || 'unknown location'
+
+      logger.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+      logger.error('❌ [formatDateTimeForInput] Invalid datetime format')
+      logger.error('   Input:', dateStr)
+      logger.error('   Expected: YYYY-MM-DD HH:MM:SS+09 (with time component)')
+      logger.error('   Called from:', callerLine)
+      logger.error('')
+      logger.error('   Hint: If you only have a date (YYYY-MM-DD),')
+      logger.error('         use formatDateForInput() instead')
+      logger.error('')
+      logger.error('   Stack trace:')
+      logger.error(stack || 'Stack trace not available')
+      logger.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+      return ''
+    }
+
+    return `${match[1]}T${match[2]}`
+  } catch (error) {
+    const stack = error instanceof Error ? error.stack : new Error().stack
+    logger.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+    logger.error('❌ [formatDateTimeForInput] Formatting error')
+    logger.error('   Input:', dateStr)
+    logger.error('   Error:', error)
+    logger.error('')
+    logger.error('   Stack trace:')
+    logger.error(stack || 'Stack trace not available')
+    logger.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+    return ''
+  }
+}
+
+/**
+ * DB 날짜 → 화면 표시
+ *
+ * DB에서 가져온 날짜를 사용자 친화적 형식으로 변환
+ *
+ * @param dateStr - DB 날짜 문자열
  * @param format - 표시 형식 (기본값: 'FULL')
  * @returns 포맷된 날짜 문자열
  *
  * @example
- * // DB에서 조회
- * const dbDate = "2025-10-08 11:24:23.373+09"
- * formatDateForDisplay(dbDate) // "2025. 10. 08."
- * formatDateForDisplay(dbDate, 'KOREAN') // "2025년 10월 08일"
+ * formatDateForDisplay('2025-10-08', 'FULL')
+ * // → '2025. 10. 08.'
  *
  * @example
- * // DATE 타입
- * const dbDate = "2025-10-08"
- * formatDateForDisplay(dbDate) // "2025. 10. 08."
+ * formatDateForDisplay('2025-10-08 11:24:23+09', 'KOREAN')
+ * // → '2025년 10월 08일'
+ *
+ * @example
+ * formatDateForDisplay('2025-10-08', 'SHORT')
+ * // → '10/08'
+ *
+ * @example
+ * formatDateForDisplay('2025-10-08', 'ISO')
+ * // → '2025-10-08'
  */
-export function formatDateForDisplay(
-  dateStr: StandardDate | string,
-  format: DateFormatType = 'FULL',
-): string {
+export function formatDateForDisplay(dateStr: string, format: DateFormatType = 'FULL'): string {
   if (!dateStr) return ''
 
   try {
@@ -190,11 +235,8 @@ export function formatDateForDisplay(
       logger.error('   Format requested:', format)
       logger.error('   Called from:', callerLine)
       logger.error('')
-      logger.error('   Expected DB formats:')
-      logger.error('   ✅ "YYYY-MM-DD" (e.g., "2025-10-08")')
-      logger.error('   ✅ "YYYY-MM-DD HH:MM:SS+09" (e.g., "2025-10-08 11:24:23.373+09")')
-      logger.error('')
-      logger.error('   Make sure you are using ::text in your SQL query')
+      logger.error('   Expected: YYYY-MM-DD or YYYY-MM-DD HH:MM:SS+09')
+      logger.error('   Reminder: Use ::text in SQL queries')
       logger.error('   Example: SELECT created_at::text FROM table')
       logger.error('')
       logger.error('   Stack trace:')
@@ -218,135 +260,14 @@ export function formatDateForDisplay(
         return `${year}. ${month}. ${day}.`
     }
   } catch (error) {
-    const stack = new Error().stack
-
+    const stack = error instanceof Error ? error.stack : new Error().stack
     logger.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
-    logger.error('❌ [formatDateForDisplay] Formatting error')
+    logger.error('❌ [formatDateForDisplay] Display formatting error')
     logger.error('   Input:', dateStr)
     logger.error('   Format:', format)
     logger.error('   Error:', error)
-    if (error instanceof Error) {
-      logger.error('   Error message:', error.message)
-      logger.error('   Error stack:')
-      logger.error(error.stack || 'Error stack not available')
-    }
     logger.error('')
-    logger.error('   Function stack trace:')
-    logger.error(stack || 'Stack trace not available')
-    logger.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
-    return ''
-  }
-}
-
-/**
- * DB 날짜 문자열을 HTML input[type="date"] 형식으로 변환
- *
- * @param dateStr - DB 문자열 (YYYY-MM-DD HH:MM:SS+09 또는 YYYY-MM-DD)
- * @returns YYYY-MM-DD 형식 문자열
- *
- * @example
- * const dbDate = "2025-10-08 11:24:23.373+09"
- * const inputValue = formatDateForInput(dbDate) // "2025-10-08"
- * // <input type="date" value={inputValue} />
- */
-export function formatDateForInput(dateStr: StandardDate | string): string {
-  if (!dateStr) return ''
-
-  try {
-    // YYYY-MM-DD 부분만 추출
-    const match = dateStr.match(/^(\d{4}-\d{2}-\d{2})/)
-    if (!match) {
-      const stack = new Error().stack
-      const callerLine = stack?.split('\n')[2]?.trim() || 'unknown location'
-
-      logger.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
-      logger.error('❌ [formatDateForInput] Invalid date format')
-      logger.error('   Input:', dateStr)
-      logger.error('   Called from:', callerLine)
-      logger.error('')
-      logger.error('   Expected DB formats:')
-      logger.error('   ✅ "YYYY-MM-DD" (e.g., "2025-10-08")')
-      logger.error('   ✅ "YYYY-MM-DD HH:MM:SS+09" (e.g., "2025-10-08 11:24:23.373+09")')
-      logger.error('')
-      logger.error('   Stack trace:')
-      logger.error(stack || 'Stack trace not available')
-      logger.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
-      return ''
-    }
-    return match[1]
-  } catch (error) {
-    const stack = new Error().stack
-
-    logger.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
-    logger.error('❌ [formatDateForInput] Formatting error')
-    logger.error('   Input:', dateStr)
-    logger.error('   Error:', error)
-    if (error instanceof Error) {
-      logger.error('   Error message:', error.message)
-      logger.error('   Error stack:')
-      logger.error(error.stack || 'Error stack not available')
-    }
-    logger.error('')
-    logger.error('   Function stack trace:')
-    logger.error(stack || 'Stack trace not available')
-    logger.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
-    return ''
-  }
-}
-
-/**
- * DB 날짜 문자열을 HTML input[type="datetime-local"] 형식으로 변환
- *
- * @param dateStr - DB 문자열 (YYYY-MM-DD HH:MM:SS+09)
- * @returns YYYY-MM-DDTHH:MM 형식 문자열
- *
- * @example
- * const dbDate = "2025-10-08 11:24:23.373+09"
- * const inputValue = formatDateTimeForInput(dbDate) // "2025-10-08T11:24"
- * // <input type="datetime-local" value={inputValue} />
- */
-export function formatDateTimeForInput(dateStr: StandardDate | string): string {
-  if (!dateStr) return ''
-
-  try {
-    // YYYY-MM-DD HH:MM:SS+09 → YYYY-MM-DDTHH:MM
-    const match = dateStr.match(/^(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2})/)
-    if (!match) {
-      const stack = new Error().stack
-      const callerLine = stack?.split('\n')[2]?.trim() || 'unknown location'
-
-      logger.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
-      logger.error('❌ [formatDateTimeForInput] Invalid datetime format')
-      logger.error('   Input:', dateStr)
-      logger.error('   Called from:', callerLine)
-      logger.error('')
-      logger.error('   Expected DB format:')
-      logger.error('   ✅ "YYYY-MM-DD HH:MM:SS+09" (e.g., "2025-10-08 11:24:23.373+09")')
-      logger.error('')
-      logger.error('   Note: This function requires timestamp with time component')
-      logger.error('   Use formatDateForInput() for date-only values')
-      logger.error('')
-      logger.error('   Stack trace:')
-      logger.error(stack || 'Stack trace not available')
-      logger.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
-      return ''
-    }
-
-    return `${match[1]}T${match[2]}`
-  } catch (error) {
-    const stack = new Error().stack
-
-    logger.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
-    logger.error('❌ [formatDateTimeForInput] Formatting error')
-    logger.error('   Input:', dateStr)
-    logger.error('   Error:', error)
-    if (error instanceof Error) {
-      logger.error('   Error message:', error.message)
-      logger.error('   Error stack:')
-      logger.error(error.stack || 'Error stack not available')
-    }
-    logger.error('')
-    logger.error('   Function stack trace:')
+    logger.error('   Stack trace:')
     logger.error(stack || 'Stack trace not available')
     logger.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
     return ''
@@ -357,71 +278,79 @@ export function formatDateTimeForInput(dateStr: StandardDate | string): string {
  * 날짜 유효성 검사
  *
  * @param date - 검사할 날짜 (문자열 또는 Date 객체)
- * @returns 유효하면 true, 아니면 false
+ * @returns 유효한 날짜면 true
  *
  * @example
- * if (!isValidDate(userInput)) {
- *   throw new Error('올바른 날짜를 입력해주세요.')
- * }
+ * isValidDate('2025-10-08') // → true
+ * isValidDate('invalid') // → false
+ * isValidDate(new Date()) // → true
  */
-export function isValidDate(date: DateInputFormat): boolean {
+export function isValidDate(date: string | Date): boolean {
   if (!date) return false
 
   try {
-    // Date 객체 확인
-    if (date instanceof Date) {
-      return !isNaN(date.getTime())
-    }
-
-    // 문자열 확인 - YYYY-MM-DD 형식이거나 유효한 Date 문자열
-    if (typeof date === 'string') {
-      // YYYY-MM-DD 형식 체크
-      if (/^\d{4}-\d{2}-\d{2}/.test(date)) {
-        const dateObj = new Date(date)
-        return !isNaN(dateObj.getTime())
-      }
-      // 기타 유효한 날짜 문자열 체크
-      const dateObj = new Date(date)
-      return !isNaN(dateObj.getTime())
-    }
-
-    return false
+    const d = new Date(date)
+    return !isNaN(d.getTime())
   } catch {
     return false
   }
 }
 
+/**
+ * 현재 시간을 ISO 8601 형식으로 반환
+ *
+ * KST 시스템에서 현재 timestamp를 얻을 때 사용
+ * DB에 저장 시 PostgreSQL이 자동으로 KST로 변환
+ *
+ * @returns ISO 8601 형식 문자열
+ *
+ * @example
+ * getCurrentKstIso()
+ * // → '2025-10-11T02:30:45.123Z'
+ *
+ * @example SQL Usage
+ * // 더 나은 방법: SQL의 now() 사용
+ * await query('INSERT INTO logs (created_at) VALUES (now())')
+ *
+ * // 또는 명시적으로:
+ * await query('INSERT INTO logs (created_at) VALUES ($1)', [getCurrentKstIso()])
+ */
+export function getCurrentKstIso(): string {
+  return new Date().toISOString()
+}
+
 // =============================================
-// Usage Examples (for documentation)
+// DEPRECATED - Backward Compatibility
 // =============================================
 
 /**
- * 📚 사용 가이드라인
- *
- * 1. DB에 저장할 때:
- *    const utcDate = toUTC(userInput)
- *    await query('INSERT INTO table (date) VALUES ($1)', [utcDate])
- *
- * 2. DB에서 조회할 때:
- *    const result = await query('SELECT created_at::text FROM table')
- *    // result.rows[0].created_at = "2025-10-08 11:24:23.373+09"
- *
- * 3. 화면에 표시할 때:
- *    const displayDate = formatDateForDisplay(dbDate)
- *    // "2025. 10. 08."
- *
- * 4. HTML input에 바인딩할 때:
- *    <input type="date" value={formatDateForInput(dbDate)} />
- *
- * 5. datetime-local input에 바인딩할 때:
- *    <input type="datetime-local" value={formatDateTimeForInput(dbDate)} />
- *
- * 6. 현재 시간 저장할 때:
- *    const now = getCurrentUTC()
- *    await query('UPDATE table SET updated_at = $1', [now])
- *
- * 7. 입력 검증할 때:
- *    if (!isValidDate(userInput)) {
- *      throw new Error('올바른 날짜를 입력해주세요.')
- *    }
+ * @deprecated Use getCurrentKstIso() instead
  */
+export const getCurrentUTC = getCurrentKstIso
+
+/**
+ * @deprecated For DATE columns, pass YYYY-MM-DD string directly
+ * @deprecated For TIMESTAMP columns, use new Date().toISOString() or now() in SQL
+ */
+export function toUTC(date: string | Date): string {
+  if (!date) return ''
+  if (date instanceof Date) {
+    return date.toISOString()
+  }
+  return new Date(date).toISOString()
+}
+
+// =============================================
+// Re-exported from date-calculator
+// =============================================
+
+export {
+  calculateAnnualPeriod,
+  calculateParticipationPeriod,
+  validateContractOverlap,
+  formatDateForAPI,
+  formatDateForKorean,
+  calculateDaysBetween,
+  getCurrentDateForAPI,
+  isValidDateRange,
+} from './date-calculator'

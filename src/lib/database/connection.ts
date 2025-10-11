@@ -1,5 +1,4 @@
 import type { DatabaseCompany, DatabaseProject } from '$lib/types'
-import { toUTC, type DateInputFormat } from '$lib/utils/date-handler'
 import { logger } from '$lib/utils/logger'
 import { config } from 'dotenv'
 import type { PoolClient, QueryResult } from 'pg'
@@ -16,27 +15,31 @@ let pool: Pool | null = null
 // =============================================
 
 /**
- * 데이터베이스에서 가져온 날짜를 안전하게 처리
+ * DB에서 가져온 날짜가 올바른 문자열 형식인지 검증
  *
- * ✅ 허용되는 표준 형식:
- * 1. TIMESTAMPTZ::text → "2025-10-08 11:24:23.373+09" (KST 문자열)
- * 2. DATE → "2025-10-08"
+ * ✅ 허용 형식:
+ * - "YYYY-MM-DD" (DATE)
+ * - "YYYY-MM-DD HH:MM:SS.sss+09" (TIMESTAMPTZ::text)
  *
- * ❌ 허용되지 않는 형식 (::text 누락):
- * - Date 객체 → SELECT * 또는 RETURNING * 사용 중
- * - ISO 8601 문자열 → ::text 누락
+ * ❌ 에러 (::text 누락):
+ * - Date 객체
+ * - ISO 8601 (YYYY-MM-DDTHH:MM:SSZ)
  */
-export function processDatabaseDate(dateValue: unknown): string {
-  if (!dateValue) return ''
+export function assertDbDateText(value: unknown): string {
+  if (!value) return ''
 
   // ❌ Date 객체 - SELECT * 또는 RETURNING * 사용 중!
-  if (dateValue instanceof Date) {
+  if (value instanceof Date) {
     const stack = new Error().stack
     const callerLine = stack?.split('\n')[2]?.trim() || 'unknown location'
 
     logger.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
-    logger.error('❌ Date object detected - BAD QUERY PATTERN!')
-    logger.error('   Value:', dateValue.toISOString())
+    logger.error('❌ [assertDbDateText] Date object detected - BAD QUERY PATTERN!')
+    try {
+      logger.error('   Value:', value.toISOString())
+    } catch {
+      logger.error('   Value:', String(value))
+    }
     logger.error('   Called from:', callerLine)
     logger.error('')
     logger.error('   Cause: Using SELECT * or RETURNING * or missing ::text')
@@ -54,80 +57,58 @@ export function processDatabaseDate(dateValue: unknown): string {
     logger.error('   Stack trace:')
     logger.error(stack || 'Stack trace not available')
     logger.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
-    // 일단 변환은 해주되 에러 로그로 추적
-    return dateValue.toISOString()
+    return String(value)
   }
 
-  if (typeof dateValue !== 'string') {
+  if (typeof value !== 'string') {
     const stack = new Error().stack
     logger.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
-    logger.error('❌ Unexpected date type:', typeof dateValue)
-    logger.error('   Value:', dateValue)
+    logger.error('❌ [assertDbDateText] Non-string date from DB')
+    logger.error('   Type:', typeof value)
+    logger.error('   Value:', value)
+    logger.error('')
+    logger.error('   Cause: Missing ::text in SELECT query')
+    logger.error('   Fix: Add ::text to date/timestamp columns')
+    logger.error('')
     logger.error('   Stack trace:')
     logger.error(stack || 'Stack trace not available')
     logger.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
-    return String(dateValue)
+    return String(value ?? '')
   }
 
-  // ✅ 표준 1: TIMESTAMPTZ::text → "2025-10-08 11:24:23.373+09" (KST)
-  if (dateValue.match(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*[+-]\d{2}/)) {
-    return dateValue
-  }
+  // ✅ DATE 형식
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return value
 
-  // ❌ ISO 8601 문자열 - ::text 누락!
-  if (dateValue.match(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.*Z$/)) {
+  // ✅ TIMESTAMPTZ::text 형식
+  if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}(?:\.\d+)?[+-]\d{2}/.test(value)) return value
+
+  // ❌ ISO 8601 (::text 누락)
+  if (/^\d{4}-\d{2}-\d{2}T/.test(value)) {
     const stack = new Error().stack
     const callerLine = stack?.split('\n')[2]?.trim() || 'unknown location'
 
     logger.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
-    logger.error('❌ ISO 8601 string detected - MISSING ::text!')
-    logger.error('   Value:', dateValue)
+    logger.error('❌ [assertDbDateText] ISO 8601 detected')
+    logger.error('   Value:', value)
+    logger.error('   Missing ::text in SQL query')
     logger.error('   Called from:', callerLine)
-    logger.error('')
-    logger.error('   Cause: Query returns TIMESTAMPTZ without ::text')
-    logger.error('   Fix: Add ::text to column selection')
-    logger.error('')
-    logger.error('   Example:')
-    logger.error('   ❌ SELECT created_at FROM table')
-    logger.error('   ✅ SELECT created_at::text FROM table')
     logger.error('')
     logger.error('   Stack trace:')
     logger.error(stack || 'Stack trace not available')
     logger.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
-    // 일단 통과는 시키되 에러 로그로 추적
-    return dateValue
+    return value
   }
 
-  // ✅ 표준 2: DATE → "2025-10-08"
-  if (dateValue.match(/^\d{4}-\d{2}-\d{2}$/)) {
-    return dateValue
-  }
-
-  // ❌ 완전 비표준 형식
+  // ❌ 기타 비표준 형식
   const stack = new Error().stack
   logger.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
-  logger.error('❌ Unexpected date format:', dateValue)
-  logger.error('   Expected: "YYYY-MM-DD HH:MM:SS+TZ" or "YYYY-MM-DD"')
+  logger.error('❌ [assertDbDateText] Unexpected format')
+  logger.error('   Value:', value)
+  logger.error('')
   logger.error('   Stack trace:')
   logger.error(stack || 'Stack trace not available')
   logger.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
-  return dateValue
-}
-
-/**
- * 사용자 입력 날짜를 데이터베이스 저장용으로 변환
- * 다양한 형식 -> UTC TIMESTAMP WITH TIME ZONE
- */
-export function prepareDateForDatabase(dateValue: unknown): string {
-  if (!dateValue) return ''
-
-  try {
-    const utcDate = toUTC(dateValue as DateInputFormat)
-    return utcDate || ''
-  } catch (error) {
-    logger.error('Date preparation error:', error, 'for value:', dateValue)
-    return ''
-  }
+  return value
 }
 
 /**
@@ -174,7 +155,7 @@ export function processQueryResultDates<T = unknown>(result: QueryResult<T>): Qu
 
     dateFields.forEach((field) => {
       if (field in processedRow && processedRow[field]) {
-        processedRow[field] = processDatabaseDate(processedRow[field])
+        processedRow[field] = assertDbDateText(processedRow[field])
       }
     })
 
@@ -235,7 +216,7 @@ export function initializeDatabase(): Pool {
       process.exit(-1)
     })
 
-    logger.info('Database connection pool initialized with UTC timezone')
+    logger.info('Database connection pool initialized (Asia/Seoul KST)')
   }
 
   return pool
