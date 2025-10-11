@@ -352,6 +352,5 @@ export {
   formatDateForKorean,
   getCurrentDateForAPI,
   isValidDateRange,
-  validateContractOverlap
+  validateContractOverlap,
 } from './date-calculator'
-

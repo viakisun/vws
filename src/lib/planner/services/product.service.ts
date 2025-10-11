@@ -102,7 +102,19 @@ export class ProductService {
     const result = await DatabaseService.query(
       `
 			SELECT
-				p.*,
+				p.id,
+				p.name,
+				p.code,
+				p.description,
+				p.owner_id,
+				p.status,
+				p.repository_url,
+				p.documentation_url,
+				p.category,
+				p.display_order,
+				p.deleted_at::text as deleted_at,
+				p.created_at::text as created_at,
+				p.updated_at::text as updated_at,
 				json_build_object(
 					'id', e.id,
 					'first_name', e.first_name,
