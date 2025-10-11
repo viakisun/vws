@@ -12,17 +12,8 @@ export const DELETE: RequestHandler = async (event) => {
     const { user } = await requireAuth(event)
     const requestId = event.params.id
 
-    // 직원 정보 조회
-    const employeeResult = await query(
-      `SELECT id FROM employees WHERE user_id = $1 AND status = 'active' LIMIT 1`,
-      [user.id],
-    )
-
-    if (employeeResult.rows.length === 0) {
-      return json({ error: '직원 정보를 찾을 수 없습니다.' }, { status: 404 })
-    }
-
-    const employeeId = employeeResult.rows[0].id
+    // user.id가 곧 employee_id입니다 (출퇴근/연차 조회 API와 동일)
+    const employeeId = user.id
 
     // 연차 신청 조회
     const leaveResult = await query(
@@ -40,8 +31,10 @@ export const DELETE: RequestHandler = async (event) => {
     const leaveRequest = leaveResult.rows[0]
 
     // 이미 시작된 연차는 취소 불가
-    const today = new Date().toISOString().split('T')[0]
-    const startDate = new Date(leaveRequest.start_date).toISOString().split('T')[0]
+    // DB에서 KST 기준 오늘 날짜 가져오기
+    const todayResult = await query(`SELECT CURRENT_DATE::text as today`)
+    const today = todayResult.rows[0].today // KST 기준 오늘 날짜 (예: "2025-10-11")
+    const startDate = leaveRequest.start_date.substring(0, 10) // KST 문자열에서 날짜 부분
 
     if (startDate <= today) {
       return json({ error: '이미 시작된 연차는 취소할 수 없습니다.' }, { status: 400 })
@@ -57,6 +50,8 @@ export const DELETE: RequestHandler = async (event) => {
       message: '연차 신청이 취소되었습니다.',
     })
   } catch (error) {
-    return json({ error: '연차 취소에 실패했습니다.' }, { status: 500 })
+    console.error('❌ Leave cancellation error:', error)
+    const message = error instanceof Error ? error.message : '연차 취소에 실패했습니다.'
+    return json({ error: message }, { status: 500 })
   }
 }

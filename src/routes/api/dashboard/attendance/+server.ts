@@ -53,15 +53,15 @@ export const POST: RequestHandler = async (event) => {
       break
 
     case 'check_out':
-      result = await attendanceService.recordCheckOut(employeeId, today, clientIp, notes)
+      result = await attendanceService.recordCheckOut(employeeId, clientIp, notes)
       break
 
     case 'break_start':
-      result = await attendanceService.recordBreakStart(employeeId, today)
+      result = await attendanceService.recordBreakStart(employeeId)
       break
 
     case 'break_end':
-      result = await attendanceService.recordBreakEnd(employeeId, today)
+      result = await attendanceService.recordBreakEnd(employeeId)
       break
 
     default:

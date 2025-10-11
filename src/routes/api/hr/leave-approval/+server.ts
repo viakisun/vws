@@ -161,7 +161,20 @@ export const POST: RequestHandler = async (event) => {
         rejection_reason = $4,
         updated_at = CURRENT_TIMESTAMP
       WHERE id = $1
-      RETURNING *
+      RETURNING 
+        id,
+        employee_id,
+        leave_type_id,
+        start_date::text,
+        end_date::text,
+        total_days,
+        reason,
+        status,
+        approved_by,
+        approved_at::text,
+        rejection_reason,
+        created_at::text,
+        updated_at::text
     `,
       [requestId, action === 'approve' ? 'approved' : 'rejected', user.id, rejectionReason],
     )

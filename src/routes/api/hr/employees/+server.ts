@@ -3,13 +3,13 @@
 import { query } from '$lib/database/connection'
 import type { ApiResponse } from '$lib/types/database'
 import type {
-  EmergencyContact,
-  Employee,
-  EmployeeLevel,
-  EmployeeStatus,
-  EmploymentType,
-  PaginatedResponse,
-  PersonalInfo,
+    EmergencyContact,
+    Employee,
+    EmployeeLevel,
+    EmployeeStatus,
+    EmploymentType,
+    PaginatedResponse,
+    PersonalInfo,
 } from '$lib/types/hr'
 import { logger } from '$lib/utils/logger'
 import { json } from '@sveltejs/kit'
@@ -302,7 +302,26 @@ export const POST: RequestHandler = async ({ request }) => {
 				emergency_contact, personal_info, termination_date, created_at, updated_at
 			) VALUES (
 				$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, NOW(), NOW()
-			) RETURNING *
+			) RETURNING 
+        id,
+        employee_id,
+        name,
+        email,
+        phone,
+        address,
+        department,
+        position,
+        level,
+        employment_type,
+        hire_date,
+        birth_date,
+        status,
+        profile_image,
+        emergency_contact,
+        personal_info,
+        termination_date,
+        created_at::text,
+        updated_at::text
 		`,
       [
         employeeData.employeeId,

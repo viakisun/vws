@@ -17,7 +17,7 @@
     currentMonth: number
     requests: LeaveRequest[]
     yearRequests: LeaveRequest[]
-    onDateClick: (date: Date) => void
+    onDateClick: (date: Date, existingLeave?: LeaveRequest | null) => void
     onMonthChange: (date: Date) => void
     onYearChange: (year: number) => void
   }
@@ -80,8 +80,9 @@
     const dateStr = date.toISOString().split('T')[0]
     return (
       requests.find((req) => {
-        const start = new Date(req.start_date).toISOString().split('T')[0]
-        const end = new Date(req.end_date).toISOString().split('T')[0]
+        // KST 타임스탬프에서 날짜 부분만 추출 (substring 사용)
+        const start = req.start_date ? req.start_date.substring(0, 10) : ''
+        const end = req.end_date ? req.end_date.substring(0, 10) : ''
         return dateStr >= start && dateStr <= end
       }) || null
     )
@@ -136,13 +137,16 @@
       .filter((req) => {
         if (req.status !== 'approved') return false
 
-        const reqStart = new Date(req.start_date)
-        const reqEnd = new Date(req.end_date)
-        const monthStart = new Date(year, month - 1, 1)
-        const monthEnd = new Date(year, month, 0)
+        // KST 타임스탬프에서 날짜 부분만 추출
+        const reqStartStr = req.start_date ? req.start_date.substring(0, 10) : ''
+        const reqEndStr = req.end_date ? req.end_date.substring(0, 10) : ''
+        
+        // 월의 시작/끝 날짜 (YYYY-MM-DD 형식)
+        const monthStartStr = `${year}-${String(month).padStart(2, '0')}-01`
+        const monthEndStr = `${year}-${String(month).padStart(2, '0')}-${new Date(year, month, 0).getDate()}`
 
-        // 연차 기간이 해당 월과 겹치는지 확인
-        return reqStart <= monthEnd && reqEnd >= monthStart
+        // 연차 기간이 해당 월과 겹치는지 확인 (문자열 비교)
+        return reqStartStr <= monthEndStr && reqEndStr >= monthStartStr
       })
       .reduce((sum, req) => {
         // total_days를 숫자로 변환하여 사용
@@ -240,7 +244,7 @@
         {#if date}
           <button
             type="button"
-            onclick={() => !isHolidayOrWeekend && onDateClick(date)}
+            onclick={() => !isHolidayOrWeekend && onDateClick(date, leaveRequest)}
             disabled={isHolidayOrWeekend}
             class="relative h-32 rounded-xl border-2 transition-all shadow-sm {isHolidayOrWeekend
               ? 'border-gray-200 bg-gray-100 cursor-not-allowed opacity-50'

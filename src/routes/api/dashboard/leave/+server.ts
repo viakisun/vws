@@ -1,8 +1,8 @@
+import { requireAuth } from '$lib/auth/middleware'
+import { query } from '$lib/database/connection'
+import { getWorkingDays, isNonWorkingDay } from '$lib/utils/holidays'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
-import { query } from '$lib/database/connection'
-import { requireAuth } from '$lib/auth/middleware'
-import { getWorkingDays, isNonWorkingDay } from '$lib/utils/holidays'
 
 /**
  * GET /api/dashboard/leave
@@ -19,20 +19,19 @@ export const GET: RequestHandler = async (event) => {
     const all = url.searchParams.get('all') === 'true' // 올해 전체 데이터 요청 여부
     const [year, month] = date.split('-')
 
-    // 직원 정보 조회
-    const employeeResult = await query(
-      `SELECT id, employee_id, first_name, last_name
-       FROM employees
-       WHERE user_id = $1 AND status = 'active'
-       LIMIT 1`,
-      [user.id],
+    // user.id가 곧 employee_id입니다 (출퇴근 API와 동일한 패턴)
+    const employeeId = user.id
+
+    // 직원 기본 정보 조회 (이름 표시용)
+    const employeeInfoResult = await query(
+      `SELECT employee_id, first_name, last_name FROM employees WHERE id = $1`,
+      [employeeId],
     )
-
-    if (employeeResult.rows.length === 0) {
-      return json({ error: '직원 정보를 찾을 수 없습니다.' }, { status: 404 })
+    const employeeInfo = employeeInfoResult.rows[0] || {
+      employee_id: '',
+      first_name: '',
+      last_name: '',
     }
-
-    const employee = employeeResult.rows[0]
 
     // 연차 신청 내역 조회
     let leaveRequestsResult
@@ -41,46 +40,42 @@ export const GET: RequestHandler = async (event) => {
       leaveRequestsResult = await query(
         `SELECT
           lr.id,
-          lr.start_date,
-          lr.end_date,
+          lr.start_date::text as start_date,
+          lr.end_date::text as end_date,
           lr.total_days,
           lr.reason,
           lr.status,
-          lr.created_at,
-          lr.approved_at,
+          COALESCE(lr.created_at::text, '') as created_at,
+          COALESCE(lr.approved_at::text, '') as approved_at,
           lt.name as leave_type_name,
-          lt.id as leave_type_id,
-          TO_CHAR(lr.start_date AT TIME ZONE 'Asia/Seoul', 'HH24:MI') as start_time,
-          TO_CHAR(lr.end_date AT TIME ZONE 'Asia/Seoul', 'HH24:MI') as end_time
+          lt.id as leave_type_id
         FROM leave_requests lr
         JOIN leave_types lt ON lr.leave_type_id = lt.id
         WHERE lr.employee_id = $1
           AND EXTRACT(YEAR FROM lr.start_date) = $2
         ORDER BY lr.start_date`,
-        [employee.id, parseInt(year)],
+        [employeeId, parseInt(year)],
       )
     } else {
-      // 해당 월의 연차 신청 내역 조회 (타임스탬프 포함)
+      // 해당 월의 연차 신청 내역 조회
       leaveRequestsResult = await query(
         `SELECT
           lr.id,
-          lr.start_date,
-          lr.end_date,
+          lr.start_date::text as start_date,
+          lr.end_date::text as end_date,
           lr.total_days,
           lr.reason,
           lr.status,
-          lr.created_at,
-          lr.approved_at,
+          COALESCE(lr.created_at::text, '') as created_at,
+          COALESCE(lr.approved_at::text, '') as approved_at,
           lt.name as leave_type_name,
-          lt.id as leave_type_id,
-          TO_CHAR(lr.start_date AT TIME ZONE 'Asia/Seoul', 'HH24:MI') as start_time,
-          TO_CHAR(lr.end_date AT TIME ZONE 'Asia/Seoul', 'HH24:MI') as end_time
+          lt.id as leave_type_id
         FROM leave_requests lr
         JOIN leave_types lt ON lr.leave_type_id = lt.id
         WHERE lr.employee_id = $1
           AND DATE_TRUNC('month', lr.start_date) = DATE_TRUNC('month', $2::date)
         ORDER BY lr.start_date`,
-        [employee.id, `${year}-${month}-01`],
+        [employeeId, `${year}-${month}-01`],
       )
     }
 
@@ -117,7 +112,7 @@ export const GET: RequestHandler = async (event) => {
         AND lb.year = $2
         AND lt.name = '연차'
       LIMIT 1`,
-      [employee.id, parseInt(year)],
+      [employeeId, parseInt(year)],
     )
 
     // 연차 촉진 대상 여부 확인 (9월 1일 이후, 입사 1년 이상, 소진율 50% 이하)
@@ -131,7 +126,7 @@ export const GET: RequestHandler = async (event) => {
 
       // 입사일 확인
       const employeeInfoResult = await query(`SELECT hire_date FROM employees WHERE id = $1`, [
-        employee.id,
+        employeeId,
       ])
 
       if (employeeInfoResult.rows[0]) {
@@ -148,9 +143,9 @@ export const GET: RequestHandler = async (event) => {
 
     const responseData = {
       employee: {
-        id: employee.id,
-        employeeId: employee.employee_id,
-        name: `${employee.last_name}${employee.first_name}`,
+        id: employeeId,
+        employeeId: employeeInfo.employee_id,
+        name: `${employeeInfo.last_name}${employeeInfo.first_name}`,
       },
       balance: balanceResult.rows[0] || null,
       requests: leaveRequestsResult.rows,
@@ -159,7 +154,9 @@ export const GET: RequestHandler = async (event) => {
 
     return json(responseData)
   } catch (error) {
-    return json({ error: '연차 데이터 조회에 실패했습니다.' }, { status: 500 })
+    console.error('❌ Leave data fetch error:', error)
+    const message = error instanceof Error ? error.message : '연차 데이터 조회에 실패했습니다.'
+    return json({ error: message }, { status: 500 })
   }
 }
 
@@ -213,17 +210,8 @@ export const POST: RequestHandler = async (event) => {
       return json({ error: '선택한 기간에 근무일이 없습니다.' }, { status: 400 })
     }
 
-    // 직원 정보 조회
-    const employeeResult = await query(
-      `SELECT id FROM employees WHERE user_id = $1 AND status = 'active' LIMIT 1`,
-      [user.id],
-    )
-
-    if (employeeResult.rows.length === 0) {
-      return json({ error: '직원 정보를 찾을 수 없습니다.' }, { status: 404 })
-    }
-
-    const employeeId = employeeResult.rows[0].id
+    // user.id가 곧 employee_id입니다 (출퇴근 API와 동일한 패턴)
+    const employeeId = user.id
 
     // 타임스탬프 생성 (한국 시간 기준)
     let startTimestamp: string
@@ -339,7 +327,6 @@ export const POST: RequestHandler = async (event) => {
 
     // 연차 신청 생성 (승인 없이 바로 approved, 타임스탬프 저장)
     // total_days: 연차 차감 타입은 실제 근무일 수, 비차감 타입(경조사/예비군)은 0
-    const now = new Date().toISOString()
     const finalDaysToDeduct = shouldDeductLeave
       ? leaveTypeName === '연차'
         ? actualWorkingDays
@@ -348,9 +335,9 @@ export const POST: RequestHandler = async (event) => {
     const insertResult = await query(
       `INSERT INTO leave_requests
        (employee_id, leave_type_id, start_date, end_date, total_days, reason, status, approved_at, created_at)
-       VALUES ($1, $2, $3::timestamptz, $4::timestamptz, $5, $6, 'approved', $7, $7)
+       VALUES ($1, $2, $3::timestamptz, $4::timestamptz, $5, $6, 'approved', now(), now())
        RETURNING id`,
-      [employeeId, leaveTypeId, startTimestamp, endTimestamp, finalDaysToDeduct, reason, now],
+      [employeeId, leaveTypeId, startTimestamp, endTimestamp, finalDaysToDeduct, reason],
     )
 
     const requestId = insertResult.rows[0].id
@@ -363,6 +350,8 @@ export const POST: RequestHandler = async (event) => {
       message: '연차 신청이 완료되었습니다.',
     })
   } catch (error) {
-    return json({ error: '연차 신청에 실패했습니다.' }, { status: 500 })
+    console.error('❌ Leave request creation error:', error)
+    const message = error instanceof Error ? error.message : '연차 신청에 실패했습니다.'
+    return json({ error: message }, { status: 500 })
   }
 }

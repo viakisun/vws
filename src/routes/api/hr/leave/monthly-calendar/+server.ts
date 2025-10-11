@@ -1,7 +1,7 @@
+import { requireAuth } from '$lib/auth/middleware'
+import { query } from '$lib/database/connection'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
-import { query } from '$lib/database/connection'
-import { requireAuth } from '$lib/auth/middleware'
 
 /**
  * GET /api/hr/leave/monthly-calendar
@@ -39,19 +39,18 @@ export const GET: RequestHandler = async (event) => {
         TO_CHAR(ds.date, 'YYYY-MM-DD') as date,
         lr.id,
         e.id as employee_id,
-        e.first_name,
-        e.last_name,
-        e.department,
-        lt.name as leave_type_name,
-        TO_CHAR(lr.start_date AT TIME ZONE 'Asia/Seoul', 'YYYY-MM-DD') as start_date,
-        TO_CHAR(lr.end_date AT TIME ZONE 'Asia/Seoul', 'YYYY-MM-DD') as end_date,
+        COALESCE(e.first_name, '') as first_name,
+        COALESCE(e.last_name, '') as last_name,
+        COALESCE(e.department, '-') as department,
+        COALESCE(lt.name, '연차') as leave_type_name,
+        lr.start_date::text as start_date,
+        lr.end_date::text as end_date,
         lr.total_days,
         lr.reason
       FROM date_series ds
-      LEFT JOIN leave_requests lr ON ds.date BETWEEN DATE(lr.start_date AT TIME ZONE 'Asia/Seoul') AND DATE(lr.end_date AT TIME ZONE 'Asia/Seoul')
+      LEFT JOIN leave_requests lr ON ds.date BETWEEN DATE(lr.start_date) AND DATE(lr.end_date)
         AND lr.status = 'approved'
       LEFT JOIN employees e ON lr.employee_id = e.id
-        AND e.status = 'active'
       LEFT JOIN leave_types lt ON lr.leave_type_id = lt.id
       WHERE 1=1
       ORDER BY ds.date, e.department, e.last_name, e.first_name
@@ -73,9 +72,9 @@ export const GET: RequestHandler = async (event) => {
       dailyLeavesMap.get(dateStr)!.push({
         id: row.id,
         employee_id: row.employee_id,
-        employee_name: `${row.last_name}${row.first_name}`,
-        department: row.department,
-        type: row.leave_type_name,
+        employee_name: `${row.last_name || ''}${row.first_name || ''}` || '(알 수 없음)',
+        department: row.department || '-',
+        type: row.leave_type_name || '연차',
         start_date: row.start_date,
         end_date: row.end_date,
         total_days: parseFloat(row.total_days),
@@ -157,7 +156,13 @@ export const GET: RequestHandler = async (event) => {
           WHERE e.status = 'active'
             AND e.hire_date <= CURRENT_DATE - INTERVAL '1 year'
         )
-        SELECT *
+        SELECT 
+          employee_id,
+          employee_name,
+          department,
+          total_days,
+          used_days,
+          remaining_days
         FROM employee_leave_usage
         WHERE used_days / NULLIF(total_days, 0) <= 0.5
         ORDER BY (total_days - used_days) DESC

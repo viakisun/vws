@@ -1,5 +1,5 @@
 import type { DatabaseCompany, DatabaseProject } from '$lib/types'
-import { formatDateForDisplay, toUTC, type DateInputFormat } from '$lib/utils/date-handler'
+import { toUTC, type DateInputFormat } from '$lib/utils/date-handler'
 import { logger } from '$lib/utils/logger'
 import { config } from 'dotenv'
 import type { PoolClient, QueryResult } from 'pg'
@@ -17,42 +17,74 @@ let pool: Pool | null = null
 
 /**
  * 데이터베이스에서 가져온 날짜를 안전하게 처리
- * TIMESTAMP WITH TIME ZONE -> 표시용 문자열로 변환
+ * 
+ * ✅ 허용되는 표준 형식:
+ * 1. TIMESTAMPTZ::text → "2025-10-08 11:24:23.373+09" (KST 문자열)
+ * 2. DATE → "2025-10-08"
+ * 
+ * ❌ 허용되지 않는 형식 (::text 누락):
+ * - Date 객체 → SELECT * 또는 RETURNING * 사용 중
+ * - ISO 8601 문자열 → ::text 누락
  */
 export function processDatabaseDate(dateValue: unknown): string {
   if (!dateValue) return ''
 
-  try {
-    // PostgreSQL TIMESTAMP WITH TIME ZONE는 이미 UTC로 저장됨
-    if (dateValue instanceof Date) {
-      return formatDateForDisplay(toUTC(dateValue))
-    }
-
-    if (typeof dateValue === 'string') {
-      // 이미 표시 형식으로 변환된 경우 (YYYY. MM. DD. 형식)
-      if (dateValue.match(/^\d{4}\.\s*\d{2}\.\s*\d{2}\.?$/)) {
-        return dateValue
-      }
-
-      // ISO 문자열인 경우 그대로 사용
-      if (dateValue.includes('T') || dateValue.includes('Z')) {
-        return formatDateForDisplay(dateValue)
-      }
-
-      // YYYY-MM-DD 형식인 경우 시간대 정보 추가
-      if (dateValue.match(/^\d{4}-\d{2}-\d{2}$/)) {
-        return formatDateForDisplay(`${dateValue}T00:00:00Z`)
-      }
-
-      // 기타 형식은 그대로 반환
-      return formatDateForDisplay(dateValue)
-    }
-
-    return String(dateValue)
-  } catch (error) {
-    logger.error('Date processing error:', error, 'for value:', dateValue)
-    return ''
+  // ❌ Date 객체 - SELECT * 또는 RETURNING * 사용 중!
+  if (dateValue instanceof Date) {
+    logger.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+    logger.error('❌ Date object detected - BAD QUERY PATTERN!')
+    logger.error('   Value:', dateValue.toISOString())
+    logger.error('')
+    logger.error('   Cause: Using SELECT * or RETURNING *')
+    logger.error('   Fix: Explicitly select columns with ::text')
+    logger.error('')
+    logger.error('   Example:')
+    logger.error('   ❌ SELECT * FROM table')
+    logger.error('   ✅ SELECT id, name, created_at::text FROM table')
+    logger.error('')
+    logger.error('   ❌ RETURNING *')
+    logger.error('   ✅ RETURNING id, name, created_at::text')
+    logger.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+    // 일단 변환은 해주되 에러 로그로 추적
+    return dateValue.toISOString()
   }
+
+  if (typeof dateValue !== 'string') {
+    logger.error('❌ Unexpected date type:', typeof dateValue, 'value:', dateValue)
+    return String(dateValue)
+  }
+
+  // ✅ 표준 1: TIMESTAMPTZ::text → "2025-10-08 11:24:23.373+09" (KST)
+  if (dateValue.match(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*[+-]\d{2}/)) {
+    return dateValue
+  }
+
+  // ❌ ISO 8601 문자열 - ::text 누락!
+  if (dateValue.match(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.*Z$/)) {
+    logger.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+    logger.error('❌ ISO 8601 string detected - MISSING ::text!')
+    logger.error('   Value:', dateValue)
+    logger.error('')
+    logger.error('   Cause: Query returns TIMESTAMPTZ without ::text')
+    logger.error('   Fix: Add ::text to column selection')
+    logger.error('')
+    logger.error('   Example:')
+    logger.error('   ❌ SELECT created_at FROM table')
+    logger.error('   ✅ SELECT created_at::text FROM table')
+    logger.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+    // 일단 통과는 시키되 에러 로그로 추적
+    return dateValue
+  }
+
+  // ✅ 표준 2: DATE → "2025-10-08"
+  if (dateValue.match(/^\d{4}-\d{2}-\d{2}$/)) {
+    return dateValue
+  }
+
+  // ❌ 완전 비표준 형식
+  logger.error('❌ Unexpected date format:', dateValue)
+  logger.error('   Expected: "YYYY-MM-DD HH:MM:SS+TZ" or "YYYY-MM-DD"')
+  return dateValue
 }
 
 /**

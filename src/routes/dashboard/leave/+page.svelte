@@ -1,15 +1,16 @@
 <script lang="ts">
-  import { pushToast } from '$lib/stores/toasts'
-  import { onMount } from 'svelte'
   import { goto } from '$app/navigation'
   import LeaveCalendar from '$lib/components/leave/LeaveCalendar.svelte'
   import LeaveRequestModal from '$lib/components/leave/LeaveRequestModal.svelte'
+  import { pushToast } from '$lib/stores/toasts'
   import { ArrowLeftIcon, CalendarIcon, PlusIcon } from 'lucide-svelte'
+  import { onMount } from 'svelte'
 
   // 상태 관리
   let loading = $state(false)
   let showRequestModal = $state(false)
   let selectedDate = $state<Date | null>(null)
+  let editingRequestId = $state<string | null>(null)
   let currentYear = $state(new Date().getFullYear())
   let currentMonth = $state(new Date().getMonth() + 1)
 
@@ -88,9 +89,35 @@
   }
 
   // 날짜 클릭 핸들러
-  function handleDateClick(date: Date) {
-    selectedDate = date
-    showRequestModal = true
+  function handleDateClick(date: Date, existingLeave?: any) {
+    if (existingLeave) {
+      // 기존 연차가 있으면 상세 정보 표시
+      handleShowLeaveDetail(existingLeave)
+    } else {
+      // 새 연차 신청
+      selectedDate = date
+      editingRequestId = null
+      showRequestModal = true
+    }
+  }
+
+  // 연차 상세 정보 표시 핸들러
+  let showLeaveDetailModal = $state(false)
+  let selectedLeaveDetail = $state<any>(null)
+
+  function handleShowLeaveDetail(leave: any) {
+    selectedLeaveDetail = leave
+    showLeaveDetailModal = true
+  }
+
+  function closeLeaveDetailModal() {
+    showLeaveDetailModal = false
+    selectedLeaveDetail = null
+  }
+
+  async function handleQuickCancel(requestId: string) {
+    await handleCancelRequest(requestId)
+    closeLeaveDetailModal()
   }
 
   // 월 변경 핸들러
@@ -147,9 +174,62 @@
   }
 
   /**
+   * 연차 수정 핸들러
+   */
+  function handleEditRequest(request: any) {
+    if (!request || !request.start_date) {
+      pushToast('연차 정보를 찾을 수 없습니다.', 'error')
+      return
+    }
+
+    // 날짜 확인
+    if (!canModifyLeave(request.start_date)) {
+      const isPast = isPastLeave(request.start_date)
+      pushToast(
+        isPast 
+          ? '지난 연차는 수정할 수 없습니다.' 
+          : '오늘 시작하는 연차는 수정할 수 없습니다.',
+        'error'
+      )
+      return
+    }
+
+    // 연차 정보로 모달 채우기
+    selectedDate = new Date(formatDate(request.start_date))
+    editingRequestId = request.id
+    
+    // 모달 열기 전에 연차 타입 설정
+    setTimeout(() => {
+      showRequestModal = true
+    }, 0)
+    
+    pushToast('연차 수정은 취소 후 재신청해주세요.', 'info')
+  }
+
+  /**
    * 연차 취소 핸들러
    */
   async function handleCancelRequest(requestId: string) {
+    // 해당 연차 찾기
+    const request = [...requests, ...yearRequests].find((r) => r.id === requestId)
+    
+    if (!request) {
+      pushToast('연차 정보를 찾을 수 없습니다.', 'error')
+      return
+    }
+
+    // 날짜 확인
+    if (!canModifyLeave(request.start_date)) {
+      const isPast = isPastLeave(request.start_date)
+      pushToast(
+        isPast 
+          ? '지난 연차는 취소할 수 없습니다.' 
+          : '오늘 시작하는 연차는 취소할 수 없습니다.',
+        'error'
+      )
+      return
+    }
+
     if (!confirm('연차 신청을 취소하시겠습니까?')) return
 
     try {
@@ -171,10 +251,52 @@
   }
 
   /**
-   * 날짜 포맷팅 (YYYY-MM-DD -> 한국 형식)
+   * 날짜 포맷팅 (KST 문자열에서 날짜 부분만 추출)
+   * 예: "2025-10-11 11:09:00+09" → "2025-10-11"
    */
   function formatDate(dateString: string) {
-    return new Date(dateString).toLocaleDateString('ko-KR')
+    if (!dateString) return ''
+    return dateString.substring(0, 10)
+  }
+
+  /**
+   * 시간 포맷팅 (KST 문자열에서 시간 부분만 추출)
+   * 예: "2025-10-11 11:09:00+09" → "11:09"
+   */
+  function formatTime(dateString: string) {
+    if (!dateString) return ''
+    return dateString.substring(11, 16)
+  }
+
+  /**
+   * KST 기준 오늘 날짜 (YYYY-MM-DD)
+   */
+  function getTodayKST(): string {
+    const now = new Date()
+    const year = now.getFullYear()
+    const month = String(now.getMonth() + 1).padStart(2, '0')
+    const day = String(now.getDate()).padStart(2, '0')
+    return `${year}-${month}-${day}`
+  }
+
+  /**
+   * 연차 시작일이 오늘 이전인지 확인 (지난 연차인지)
+   */
+  function isPastLeave(startDateString: string): boolean {
+    if (!startDateString) return false
+    const today = getTodayKST()
+    const startDate = formatDate(startDateString)
+    return startDate < today // 오늘보다 이전이면 true
+  }
+
+  /**
+   * 연차 수정/취소 가능 여부 (오늘 이후만 가능)
+   */
+  function canModifyLeave(startDateString: string): boolean {
+    if (!startDateString) return false
+    const today = getTodayKST()
+    const startDate = formatDate(startDateString)
+    return startDate > today // 오늘보다 미래면 true
   }
 
   /**
@@ -351,24 +473,45 @@
                   </div>
                   <div class="text-sm font-medium text-gray-700 mb-1">
                     {formatDate(request.start_date)}
-                    {#if request.start_date !== request.end_date}
+                    {#if formatDate(request.start_date) !== formatDate(request.end_date)}
                       ~ {formatDate(request.end_date)}
                     {/if}
-                    {#if request.start_time && request.end_time}
-                      <span class="text-gray-500 ml-2">
-                        ({request.start_time} - {request.end_time})
-                      </span>
-                    {/if}
+                    <span class="text-gray-500 ml-2">
+                      ({formatTime(request.start_date)} ~ {formatTime(request.end_date)})
+                    </span>
                   </div>
                   <div class="text-sm text-gray-600">{request.reason}</div>
                 </div>
-                <button
-                  type="button"
-                  onclick={() => handleCancelRequest(request.id)}
-                  class="ml-4 px-4 py-2 text-sm font-semibold text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
-                >
-                  취소
-                </button>
+                
+                <!-- 액션 버튼 -->
+                <div class="ml-4 flex gap-2">
+                  {#if request.status === 'pending' || request.status === 'approved'}
+                    {#if canModifyLeave(request.start_date)}
+                      <!-- 수정 버튼 (오늘 이후만) -->
+                      <button
+                        type="button"
+                        onclick={() => handleEditRequest(request)}
+                        class="px-4 py-2 text-sm font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
+                      >
+                        수정
+                      </button>
+                      
+                      <!-- 취소 버튼 (오늘 이후만) -->
+                      <button
+                        type="button"
+                        onclick={() => handleCancelRequest(request.id)}
+                        class="px-4 py-2 text-sm font-semibold text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
+                      >
+                        취소
+                      </button>
+                    {:else}
+                      <!-- 지난 연차는 수정/취소 불가 -->
+                      <span class="px-4 py-2 text-sm text-gray-400 italic">
+                        수정/취소 불가
+                      </span>
+                    {/if}
+                  {/if}
+                </div>
               </div>
             {/each}
           </div>
@@ -390,3 +533,161 @@
   }}
   onSubmit={handleLeaveSubmit}
 />
+
+<!-- 연차 상세 모달 -->
+{#if showLeaveDetailModal && selectedLeaveDetail}
+  <div
+    class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+    onclick={(e) => {
+      if (e.target === e.currentTarget) closeLeaveDetailModal()
+    }}
+    onkeydown={(e) => {
+      if (e.key === 'Escape') closeLeaveDetailModal()
+    }}
+    role="button"
+    tabindex="0"
+  >
+    <div
+      class="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden transform transition-all"
+    >
+      <!-- 헤더 -->
+      <div class="bg-gradient-to-r from-purple-600 to-blue-600 p-6 text-white">
+        <div class="flex items-center justify-between mb-2">
+          <h3 class="text-2xl font-bold">연차 상세 정보</h3>
+          <button
+            type="button"
+            onclick={closeLeaveDetailModal}
+            class="text-white hover:text-gray-200 text-2xl font-bold transition-colors"
+          >
+            ✕
+          </button>
+        </div>
+        <p class="text-purple-100">연차 신청 내역을 확인하고 관리할 수 있습니다</p>
+      </div>
+
+      <!-- 컨텐츠 -->
+      <div class="p-6 space-y-4">
+        <!-- 연차 타입 -->
+        <div class="flex items-center gap-3 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl">
+          <span class="text-3xl">
+            {#if selectedLeaveDetail.leave_type_name === '연차'}
+              📅
+            {:else if selectedLeaveDetail.leave_type_name === '반차'}
+              🌤️
+            {:else if selectedLeaveDetail.leave_type_name.includes('반반차')}
+              🌅
+            {:else if selectedLeaveDetail.leave_type_name === '경조사'}
+              💐
+            {:else if selectedLeaveDetail.leave_type_name === '예비군/민방위'}
+              🪖
+            {:else}
+              📋
+            {/if}
+          </span>
+          <div>
+            <div class="text-sm text-gray-600 font-medium">연차 종류</div>
+            <div class="text-lg font-bold text-gray-900">{selectedLeaveDetail.leave_type_name}</div>
+          </div>
+        </div>
+
+        <!-- 기간 -->
+        <div class="space-y-2">
+          <div class="text-sm text-gray-600 font-medium">연차 기간</div>
+          <div class="flex items-center gap-2 text-gray-900">
+            <span class="font-semibold">{formatDate(selectedLeaveDetail.start_date)}</span>
+            {#if formatDate(selectedLeaveDetail.start_date) !== formatDate(selectedLeaveDetail.end_date)}
+              <span class="text-gray-400">~</span>
+              <span class="font-semibold">{formatDate(selectedLeaveDetail.end_date)}</span>
+            {/if}
+          </div>
+          <div class="text-sm text-gray-500">
+            {formatTime(selectedLeaveDetail.start_date)} ~ {formatTime(selectedLeaveDetail.end_date)}
+          </div>
+        </div>
+
+        <!-- 총 일수 -->
+        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+          <span class="text-sm text-gray-600 font-medium">사용 일수</span>
+          <span class="text-lg font-bold text-blue-600">{selectedLeaveDetail.total_days}일</span>
+        </div>
+
+        <!-- 사유 -->
+        {#if selectedLeaveDetail.reason}
+          <div class="space-y-2">
+            <div class="text-sm text-gray-600 font-medium">사유</div>
+            <div class="p-3 bg-gray-50 rounded-lg text-gray-900">{selectedLeaveDetail.reason}</div>
+          </div>
+        {/if}
+
+        <!-- 상태 -->
+        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+          <span class="text-sm text-gray-600 font-medium">상태</span>
+          <span
+            class="px-3 py-1 rounded-full text-sm font-semibold {selectedLeaveDetail.status ===
+            'approved'
+              ? 'bg-emerald-100 text-emerald-700'
+              : selectedLeaveDetail.status === 'pending'
+                ? 'bg-amber-100 text-amber-700'
+                : 'bg-rose-100 text-rose-700'}"
+          >
+            {selectedLeaveDetail.status === 'approved'
+              ? '✓ 승인됨'
+              : selectedLeaveDetail.status === 'pending'
+                ? '⏳ 대기중'
+                : '✕ 거부됨'}
+          </span>
+        </div>
+      </div>
+
+      <!-- 액션 버튼 -->
+      <div class="p-6 bg-gray-50 flex gap-3">
+        {#if selectedLeaveDetail.status === 'pending' || selectedLeaveDetail.status === 'approved'}
+          {#if canModifyLeave(selectedLeaveDetail.start_date)}
+            <!-- 미래 연차: 수정/취소 가능 -->
+            <button
+              type="button"
+              onclick={() => {
+                closeLeaveDetailModal()
+                handleEditRequest(selectedLeaveDetail)
+              }}
+              class="flex-1 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-colors shadow-md hover:shadow-lg"
+            >
+              수정하기
+            </button>
+            <button
+              type="button"
+              onclick={() => handleQuickCancel(selectedLeaveDetail.id)}
+              class="flex-1 px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-xl transition-colors shadow-md hover:shadow-lg"
+            >
+              취소하기
+            </button>
+          {:else}
+            <!-- 오늘 또는 지난 연차: 수정/취소 불가 -->
+            <div class="flex-1 text-center">
+              <p class="text-sm text-gray-500 mb-2">
+                {isPastLeave(selectedLeaveDetail.start_date) 
+                  ? '지난 연차는 수정/취소할 수 없습니다.' 
+                  : '오늘 시작하는 연차는 수정/취소할 수 없습니다.'}
+              </p>
+              <button
+                type="button"
+                onclick={closeLeaveDetailModal}
+                class="w-full px-6 py-3 bg-gray-300 hover:bg-gray-400 text-gray-700 font-semibold rounded-xl transition-colors"
+              >
+                닫기
+              </button>
+            </div>
+          {/if}
+        {:else}
+          <button
+            type="button"
+            onclick={closeLeaveDetailModal}
+            class="flex-1 px-6 py-3 bg-gray-300 hover:bg-gray-400 text-gray-700 font-semibold rounded-xl transition-colors"
+          >
+            닫기
+          </button>
+        {/if}
+      </div>
+    </div>
+  </div>
+{/if}

@@ -73,7 +73,7 @@ export function useAttendance() {
       const message = err instanceof Error ? err.message : '데이터 조회 중 오류가 발생했습니다.'
       error = message
       logger.error('Failed to load attendance data:', err)
-      pushToast({ type: 'error', message })
+      pushToast(message, 'error')
     } finally {
       loading = false
     }
@@ -104,7 +104,7 @@ export function useAttendance() {
         throw new Error(result.message || '출근 기록에 실패했습니다.')
       }
 
-      pushToast({ type: 'success', message: result.message || '출근이 기록되었습니다.' })
+      pushToast(result.message || '출근이 기록되었습니다.', 'success')
 
       // 데이터 갱신
       await loadAttendanceData()
@@ -114,7 +114,7 @@ export function useAttendance() {
       const message = err instanceof Error ? err.message : '출근 기록 중 오류가 발생했습니다.'
       error = message
       logger.error('Failed to check in:', err)
-      pushToast({ type: 'error', message })
+      pushToast(message, 'error')
       return false
     } finally {
       loading = false
@@ -146,7 +146,7 @@ export function useAttendance() {
         throw new Error(result.message || '퇴근 기록에 실패했습니다.')
       }
 
-      pushToast({ type: 'success', message: result.message || '퇴근이 기록되었습니다.' })
+      pushToast(result.message || '퇴근이 기록되었습니다.', 'success')
 
       // 데이터 갱신
       await loadAttendanceData()
@@ -156,7 +156,7 @@ export function useAttendance() {
       const message = err instanceof Error ? err.message : '퇴근 기록 중 오류가 발생했습니다.'
       error = message
       logger.error('Failed to check out:', err)
-      pushToast({ type: 'error', message })
+      pushToast(message, 'error')
       return false
     } finally {
       loading = false
@@ -185,7 +185,7 @@ export function useAttendance() {
         throw new Error(result.message || '휴게 시작 기록에 실패했습니다.')
       }
 
-      pushToast({ type: 'success', message: result.message || '휴게가 시작되었습니다.' })
+      pushToast(result.message || '휴게가 시작되었습니다.', 'success')
 
       // 데이터 갱신
       await loadAttendanceData()
@@ -195,7 +195,7 @@ export function useAttendance() {
       const message = err instanceof Error ? err.message : '휴게 시작 기록 중 오류가 발생했습니다.'
       error = message
       logger.error('Failed to start break:', err)
-      pushToast({ type: 'error', message })
+      pushToast(message, 'error')
       return false
     } finally {
       loading = false
@@ -224,7 +224,7 @@ export function useAttendance() {
         throw new Error(result.message || '휴게 종료 기록에 실패했습니다.')
       }
 
-      pushToast({ type: 'success', message: result.message || '휴게가 종료되었습니다.' })
+      pushToast(result.message || '휴게가 종료되었습니다.', 'success')
 
       // 데이터 갱신
       await loadAttendanceData()
@@ -234,7 +234,7 @@ export function useAttendance() {
       const message = err instanceof Error ? err.message : '휴게 종료 기록 중 오류가 발생했습니다.'
       error = message
       logger.error('Failed to end break:', err)
-      pushToast({ type: 'error', message })
+      pushToast(message, 'error')
       return false
     } finally {
       loading = false

@@ -43,7 +43,7 @@ const QUERIES = {
   GET_TODAY_ATTENDANCE: `
     SELECT
       id,
-      date,
+      DATE(check_in_time) as date,
       check_in_time::text as check_in_time,
       check_out_time::text as check_out_time,
       break_start_time::text as break_start_time,
@@ -53,13 +53,13 @@ const QUERIES = {
       status,
       notes
     FROM attendance
-    WHERE employee_id = $1 AND date = $2
+    WHERE employee_id = $1 AND DATE(check_in_time) = $2::date
   `,
 
   // 주간 출퇴근 기록
   GET_WEEK_ATTENDANCE: `
     SELECT
-      date,
+      DATE(check_in_time) as date,
       check_in_time::text as check_in_time,
       check_out_time::text as check_out_time,
       total_work_hours,
@@ -67,9 +67,9 @@ const QUERIES = {
       status
     FROM attendance
     WHERE employee_id = $1
-      AND date >= $2
-      AND date <= $3
-    ORDER BY date DESC
+      AND DATE(check_in_time) >= $2::date
+      AND DATE(check_in_time) <= $3::date
+    ORDER BY DATE(check_in_time) DESC
   `,
 
   // 월간 통계
@@ -83,37 +83,49 @@ const QUERIES = {
       COALESCE(SUM(overtime_hours), 0) as total_overtime_hours
     FROM attendance
     WHERE employee_id = $1
-      AND date >= $2
-      AND date <= $3
+      AND DATE(check_in_time) >= $2::date
+      AND DATE(check_in_time) <= $3::date
   `,
 
   // 월간 캘린더 기록
   GET_MONTH_CALENDAR: `
     SELECT
-      date::text as date_str,
+      DATE(check_in_time)::text as date_str,
       check_in_time::text as check_in_time,
       check_out_time::text as check_out_time,
       total_work_hours,
       status
     FROM attendance
     WHERE employee_id = $1
-      AND date >= $2
-      AND date <= $3
-    ORDER BY date ASC
+      AND DATE(check_in_time) >= $2::date
+      AND DATE(check_in_time) <= $3::date
+    ORDER BY DATE(check_in_time) ASC
   `,
 
   // 출근 기록
   RECORD_CHECK_IN: `
-    INSERT INTO attendance (employee_id, date, check_in_time, check_in_ip, notes, status)
-    VALUES ($1, $2, now(), $3, $4, $5)
-    ON CONFLICT (employee_id, date)
+    INSERT INTO attendance (employee_id, check_in_time, check_in_ip, notes, status)
+    VALUES ($1, now(), $2, $3, $4)
+    ON CONFLICT (employee_id, DATE(check_in_time))
     DO UPDATE SET
       check_in_time = now(),
-      check_in_ip = $3,
-      notes = $4,
-      status = $5,
+      check_in_ip = $2,
+      notes = $3,
+      status = $4,
       updated_at = now()
-    RETURNING *
+    RETURNING 
+      id,
+      employee_id,
+      check_in_time::text,
+      check_out_time::text,
+      break_start_time::text,
+      break_end_time::text,
+      total_work_hours,
+      overtime_hours,
+      status,
+      notes,
+      created_at::text,
+      updated_at::text
   `,
 
   // 퇴근 기록
@@ -121,11 +133,23 @@ const QUERIES = {
     UPDATE attendance
     SET
       check_out_time = now(),
-      check_out_ip = $3,
-      notes = COALESCE($4, notes),
+      check_out_ip = $2,
+      notes = COALESCE($3, notes),
       updated_at = now()
-    WHERE employee_id = $1 AND date = $2
-    RETURNING *
+    WHERE employee_id = $1 AND DATE(check_in_time) = CURRENT_DATE
+    RETURNING 
+      id,
+      employee_id,
+      check_in_time::text,
+      check_out_time::text,
+      break_start_time::text,
+      break_end_time::text,
+      total_work_hours,
+      overtime_hours,
+      status,
+      notes,
+      created_at::text,
+      updated_at::text
   `,
 
   // 조기퇴근 기록
@@ -133,12 +157,24 @@ const QUERIES = {
     UPDATE attendance
     SET
       check_out_time = now(),
-      check_out_ip = $3,
-      notes = COALESCE($4, notes),
+      check_out_ip = $2,
+      notes = COALESCE($3, notes),
       status = 'early_leave',
       updated_at = now()
-    WHERE employee_id = $1 AND date = $2
-    RETURNING *
+    WHERE employee_id = $1 AND DATE(check_in_time) = CURRENT_DATE
+    RETURNING 
+      id,
+      employee_id,
+      check_in_time::text,
+      check_out_time::text,
+      break_start_time::text,
+      break_end_time::text,
+      total_work_hours,
+      overtime_hours,
+      status,
+      notes,
+      created_at::text,
+      updated_at::text
   `,
 
   // 휴게 시작
@@ -147,8 +183,20 @@ const QUERIES = {
     SET
       break_start_time = now(),
       updated_at = now()
-    WHERE employee_id = $1 AND date = $2
-    RETURNING *
+    WHERE employee_id = $1 AND DATE(check_in_time) = CURRENT_DATE
+    RETURNING 
+      id,
+      employee_id,
+      check_in_time::text,
+      check_out_time::text,
+      break_start_time::text,
+      break_end_time::text,
+      total_work_hours,
+      overtime_hours,
+      status,
+      notes,
+      created_at::text,
+      updated_at::text
   `,
 
   // 휴게 종료
@@ -157,8 +205,20 @@ const QUERIES = {
     SET
       break_end_time = now(),
       updated_at = now()
-    WHERE employee_id = $1 AND date = $2
-    RETURNING *
+    WHERE employee_id = $1 AND DATE(check_in_time) = CURRENT_DATE
+    RETURNING 
+      id,
+      employee_id,
+      check_in_time::text,
+      check_out_time::text,
+      break_start_time::text,
+      break_end_time::text,
+      total_work_hours,
+      overtime_hours,
+      status,
+      notes,
+      created_at::text,
+      updated_at::text
   `,
 
   // 회사 ID 조회
@@ -432,7 +492,6 @@ export async function recordCheckIn(
     // 출근 기록
     const result = await query(QUERIES.RECORD_CHECK_IN, [
       employeeId,
-      date,
       clientIp,
       notes || '',
       status,
@@ -459,20 +518,19 @@ export async function recordCheckIn(
  * 퇴근 기록
  *
  * @param employeeId - 직원 ID
- * @param date - 날짜 (YYYY-MM-DD)
  * @param clientIp - 클라이언트 IP
  * @param notes - 메모
  * @returns 퇴근 기록 결과
  */
 export async function recordCheckOut(
   employeeId: string,
-  date: string,
   clientIp: string,
   notes?: string,
 ): Promise<ServiceResult<AttendanceRecord>> {
   try {
     const now = new Date()
     const settings = await fetchAttendanceSettings()
+    const today = now.toISOString().split('T')[0]
 
     // IP 주소 검증
     const ipValidation = validateIpAddress(clientIp, settings)
@@ -484,11 +542,11 @@ export async function recordCheckOut(
     }
 
     // 조기퇴근 여부 판정
-    const earlyLeave = isEarlyLeave(now, date, settings)
+    const earlyLeave = isEarlyLeave(now, today, settings)
 
     // 퇴근 기록
     const queryStr = earlyLeave ? QUERIES.RECORD_CHECK_OUT_EARLY : QUERIES.RECORD_CHECK_OUT
-    const result = await query(queryStr, [employeeId, date, clientIp, notes || ''])
+    const result = await query(queryStr, [employeeId, clientIp, notes || ''])
 
     if (result.rows.length === 0) {
       return {
@@ -517,15 +575,13 @@ export async function recordCheckOut(
  * 휴게 시작 기록
  *
  * @param employeeId - 직원 ID
- * @param date - 날짜 (YYYY-MM-DD)
  * @returns 휴게 시작 기록 결과
  */
 export async function recordBreakStart(
   employeeId: string,
-  date: string,
 ): Promise<ServiceResult<AttendanceRecord>> {
   try {
-    const result = await query(QUERIES.RECORD_BREAK_START, [employeeId, date])
+    const result = await query(QUERIES.RECORD_BREAK_START, [employeeId])
 
     if (result.rows.length === 0) {
       return {
@@ -552,15 +608,13 @@ export async function recordBreakStart(
  * 휴게 종료 기록
  *
  * @param employeeId - 직원 ID
- * @param date - 날짜 (YYYY-MM-DD)
  * @returns 휴게 종료 기록 결과
  */
 export async function recordBreakEnd(
   employeeId: string,
-  date: string,
 ): Promise<ServiceResult<AttendanceRecord>> {
   try {
-    const result = await query(QUERIES.RECORD_BREAK_END, [employeeId, date])
+    const result = await query(QUERIES.RECORD_BREAK_END, [employeeId])
 
     if (result.rows.length === 0) {
       return {

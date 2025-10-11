@@ -51,7 +51,17 @@ export const GET: RequestHandler = async (event) => {
         `
         INSERT INTO attendance_settings (company_id)
         VALUES ($1)
-        RETURNING *
+        RETURNING 
+          id,
+          company_id,
+          work_start_time,
+          work_end_time,
+          late_threshold_minutes,
+          early_leave_threshold_minutes,
+          allowed_ips,
+          require_ip_check,
+          created_at::text,
+          updated_at::text
       `,
         [companyId],
       )
@@ -115,7 +125,17 @@ export const PUT: RequestHandler = async (event) => {
         require_ip_check = COALESCE($7, require_ip_check),
         updated_at = CURRENT_TIMESTAMP
       WHERE company_id = $1
-      RETURNING *
+      RETURNING 
+        id,
+        company_id,
+        work_start_time,
+        work_end_time,
+        late_threshold_minutes,
+        early_leave_threshold_minutes,
+        allowed_ips,
+        require_ip_check,
+        created_at::text,
+        updated_at::text
     `,
       [
         companyId,

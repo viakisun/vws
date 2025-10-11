@@ -1,9 +1,9 @@
 <script lang="ts">
   import { pushToast } from '$lib/stores/toasts'
-  import { onMount } from 'svelte'
-  import type { PageData } from './$types'
   import type { LeaveRequest, LeaveStats } from '$lib/types/dashboard'
   import { logger } from '$lib/utils/logger'
+  import { onMount } from 'svelte'
+  import type { PageData } from './$types'
 
   const { data: _data }: { data: PageData } = $props()
 
@@ -128,8 +128,13 @@
   }
 
   // 날짜 포맷팅
+  /**
+   * 날짜 포맷팅 (KST 문자열에서 날짜 부분만 추출)
+   * 예: "2025-10-11 11:09:00+09" → "2025-10-11"
+   */
   function formatDate(dateString: string) {
-    return new Date(dateString).toLocaleDateString('ko-KR')
+    if (!dateString) return ''
+    return dateString.substring(0, 10)
   }
 
   // 상태 라벨
