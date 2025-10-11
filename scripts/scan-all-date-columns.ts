@@ -115,7 +115,6 @@ async function scanAllDateColumns() {
     } else {
       console.log('⚠️  TIMESTAMP 칼럼을 TIMESTAMPTZ로 변환해야 합니다.\n')
     }
-
   } catch (error) {
     console.error('❌ Error:', error)
   } finally {
@@ -124,4 +123,3 @@ async function scanAllDateColumns() {
 }
 
 scanAllDateColumns()
-

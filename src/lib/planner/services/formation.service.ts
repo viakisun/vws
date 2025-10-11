@@ -1,12 +1,12 @@
 import { DatabaseService } from '$lib/database/connection'
 import type {
-  AddFormationMemberInput,
-  CreateFormationInput,
-  Formation,
-  FormationFilters,
-  FormationMember,
-  FormationWithMembers,
-  UpdateFormationInput,
+    AddFormationMemberInput,
+    CreateFormationInput,
+    Formation,
+    FormationFilters,
+    FormationMember,
+    FormationWithMembers,
+    UpdateFormationInput,
 } from '../types'
 import { activityLogService } from './activity-log.service'
 
@@ -20,7 +20,8 @@ export class FormationService {
         name, description, cadence_type, cadence_anchor_time, energy_state
       )
       VALUES ($1, $2, $3, $4, $5)
-      RETURNING *`,
+      RETURNING id, name, description, cadence_type, cadence_anchor_time, energy_state, 
+                deleted_at::text, created_at::text, updated_at::text`,
       [
         input.name,
         input.description || null,
@@ -231,7 +232,8 @@ export class FormationService {
       `UPDATE planner_formations
        SET ${updates.join(', ')}
        WHERE id = $${paramCount} AND deleted_at IS NULL
-       RETURNING *`,
+       RETURNING id, name, description, cadence_type, cadence_anchor_time, energy_state, 
+                 deleted_at::text, created_at::text, updated_at::text`,
       params,
     )
 
@@ -261,7 +263,7 @@ export class FormationService {
       VALUES ($1, $2, $3, $4)
       ON CONFLICT (formation_id, employee_id) DO UPDATE
       SET role = $3, bandwidth = $4
-      RETURNING *`,
+      RETURNING id, formation_id, employee_id, role, bandwidth, created_at::text, updated_at::text`,
       [input.formation_id, input.employee_id, input.role, input.bandwidth],
     )
 

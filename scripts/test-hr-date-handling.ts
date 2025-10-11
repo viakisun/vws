@@ -3,8 +3,8 @@
  * SELECT * / RETURNING * 제거 확인
  */
 
-import pg from 'pg'
 import { config } from 'dotenv'
+import pg from 'pg'
 
 config()
 
@@ -29,11 +29,14 @@ async function testDateHandling() {
     SELECT id, first_name, last_name FROM employees LIMIT 1
   `)
   const employeeId = employeeResult.rows[0]?.id
-  console.log(`테스트 대상 직원: ${employeeResult.rows[0]?.first_name} ${employeeResult.rows[0]?.last_name} (${employeeId})\n`)
+  console.log(
+    `테스트 대상 직원: ${employeeResult.rows[0]?.first_name} ${employeeResult.rows[0]?.last_name} (${employeeId})\n`,
+  )
 
   // 1. 출퇴근 데이터 조회 (attendance-service와 동일한 쿼리)
   console.log('1️⃣ 출퇴근 데이터 조회')
-  const attendanceResult = await pool.query(`
+  const attendanceResult = await pool.query(
+    `
     SELECT
       id,
       DATE(check_in_time) as date,
@@ -49,7 +52,9 @@ async function testDateHandling() {
     WHERE employee_id = $1
     ORDER BY check_in_time DESC
     LIMIT 1
-  `, [employeeId])
+  `,
+    [employeeId],
+  )
 
   if (attendanceResult.rows.length > 0) {
     const row = attendanceResult.rows[0]
@@ -65,7 +70,8 @@ async function testDateHandling() {
 
   // 2. 연차 데이터 조회 (dashboard/leave와 동일한 쿼리)
   console.log('\n2️⃣ 연차 데이터 조회')
-  const leaveResult = await pool.query(`
+  const leaveResult = await pool.query(
+    `
     SELECT
       lr.id,
       lr.employee_id,
@@ -86,7 +92,9 @@ async function testDateHandling() {
     WHERE lr.employee_id = $1
     ORDER BY lr.start_date DESC
     LIMIT 1
-  `, [employeeId])
+  `,
+    [employeeId],
+  )
 
   if (leaveResult.rows.length > 0) {
     const row = leaveResult.rows[0]
@@ -104,7 +112,8 @@ async function testDateHandling() {
 
   // 3. 직원 데이터 조회
   console.log('\n3️⃣ 직원 데이터 조회')
-  const employeeDetailResult = await pool.query(`
+  const employeeDetailResult = await pool.query(
+    `
     SELECT
       id,
       first_name,
@@ -114,7 +123,9 @@ async function testDateHandling() {
       updated_at::text as updated_at
     FROM employees
     WHERE id = $1
-  `, [employeeId])
+  `,
+    [employeeId],
+  )
 
   if (employeeDetailResult.rows.length > 0) {
     const row = employeeDetailResult.rows[0]
@@ -138,4 +149,3 @@ try {
 } finally {
   await pool.end()
 }
-

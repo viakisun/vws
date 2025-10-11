@@ -1,7 +1,7 @@
-import { json } from '@sveltejs/kit'
-import type { RequestHandler } from './$types'
 import { query } from '$lib/database/connection'
 import type { TodoWithAssignee, UpdateTodoInput } from '$lib/planner/types'
+import { json } from '@sveltejs/kit'
+import type { RequestHandler } from './$types'
 
 // PATCH /api/planner/todos/[id]
 export const PATCH: RequestHandler = async ({ params, request, locals }) => {
@@ -65,7 +65,19 @@ export const PATCH: RequestHandler = async ({ params, request, locals }) => {
         UPDATE planner_todos
         SET ${updates.join(', ')}
         WHERE id = $${paramIndex} AND deleted_at IS NULL
-        RETURNING *
+        RETURNING 
+          id,
+          initiative_id,
+          title,
+          description,
+          assignee_id,
+          status,
+          due_date,
+          completed_at::text,
+          deleted_at::text,
+          created_at::text,
+          updated_at::text,
+          external_links
       )
       SELECT
         t.*,

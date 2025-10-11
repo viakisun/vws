@@ -1,6 +1,6 @@
+import { DatabaseService } from '$lib/database/connection'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
-import { DatabaseService } from '$lib/database/connection'
 
 // GET: List all categories with product counts
 export const GET: RequestHandler = async ({ locals }) => {
@@ -63,7 +63,14 @@ export const POST: RequestHandler = async ({ request, locals }) => {
       `
       INSERT INTO planner_product_categories (name, code, description, display_order)
       VALUES ($1, $2, $3, $4)
-      RETURNING *
+      RETURNING 
+        id,
+        name,
+        code,
+        description,
+        display_order,
+        created_at::text,
+        updated_at::text
     `,
       [name, code, description || null, nextOrder],
     )

@@ -17,11 +17,11 @@ let pool: Pool | null = null
 
 /**
  * 데이터베이스에서 가져온 날짜를 안전하게 처리
- * 
+ *
  * ✅ 허용되는 표준 형식:
  * 1. TIMESTAMPTZ::text → "2025-10-08 11:24:23.373+09" (KST 문자열)
  * 2. DATE → "2025-10-08"
- * 
+ *
  * ❌ 허용되지 않는 형식 (::text 누락):
  * - Date 객체 → SELECT * 또는 RETURNING * 사용 중
  * - ISO 8601 문자열 → ::text 누락

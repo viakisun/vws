@@ -186,10 +186,8 @@
     if (!canModifyLeave(request.start_date)) {
       const isPast = isPastLeave(request.start_date)
       pushToast(
-        isPast 
-          ? '지난 연차는 수정할 수 없습니다.' 
-          : '오늘 시작하는 연차는 수정할 수 없습니다.',
-        'error'
+        isPast ? '지난 연차는 수정할 수 없습니다.' : '오늘 시작하는 연차는 수정할 수 없습니다.',
+        'error',
       )
       return
     }
@@ -197,12 +195,12 @@
     // 연차 정보로 모달 채우기
     selectedDate = new Date(formatDate(request.start_date))
     editingRequestId = request.id
-    
+
     // 모달 열기 전에 연차 타입 설정
     setTimeout(() => {
       showRequestModal = true
     }, 0)
-    
+
     pushToast('연차 수정은 취소 후 재신청해주세요.', 'info')
   }
 
@@ -212,7 +210,7 @@
   async function handleCancelRequest(requestId: string) {
     // 해당 연차 찾기
     const request = [...requests, ...yearRequests].find((r) => r.id === requestId)
-    
+
     if (!request) {
       pushToast('연차 정보를 찾을 수 없습니다.', 'error')
       return
@@ -222,10 +220,8 @@
     if (!canModifyLeave(request.start_date)) {
       const isPast = isPastLeave(request.start_date)
       pushToast(
-        isPast 
-          ? '지난 연차는 취소할 수 없습니다.' 
-          : '오늘 시작하는 연차는 취소할 수 없습니다.',
-        'error'
+        isPast ? '지난 연차는 취소할 수 없습니다.' : '오늘 시작하는 연차는 취소할 수 없습니다.',
+        'error',
       )
       return
     }
@@ -482,7 +478,7 @@
                   </div>
                   <div class="text-sm text-gray-600">{request.reason}</div>
                 </div>
-                
+
                 <!-- 액션 버튼 -->
                 <div class="ml-4 flex gap-2">
                   {#if request.status === 'pending' || request.status === 'approved'}
@@ -495,7 +491,7 @@
                       >
                         수정
                       </button>
-                      
+
                       <!-- 취소 버튼 (오늘 이후만) -->
                       <button
                         type="button"
@@ -506,9 +502,7 @@
                       </button>
                     {:else}
                       <!-- 지난 연차는 수정/취소 불가 -->
-                      <span class="px-4 py-2 text-sm text-gray-400 italic">
-                        수정/취소 불가
-                      </span>
+                      <span class="px-4 py-2 text-sm text-gray-400 italic"> 수정/취소 불가 </span>
                     {/if}
                   {/if}
                 </div>
@@ -568,7 +562,9 @@
       <!-- 컨텐츠 -->
       <div class="p-6 space-y-4">
         <!-- 연차 타입 -->
-        <div class="flex items-center gap-3 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl">
+        <div
+          class="flex items-center gap-3 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl"
+        >
           <span class="text-3xl">
             {#if selectedLeaveDetail.leave_type_name === '연차'}
               📅
@@ -601,7 +597,9 @@
             {/if}
           </div>
           <div class="text-sm text-gray-500">
-            {formatTime(selectedLeaveDetail.start_date)} ~ {formatTime(selectedLeaveDetail.end_date)}
+            {formatTime(selectedLeaveDetail.start_date)} ~ {formatTime(
+              selectedLeaveDetail.end_date,
+            )}
           </div>
         </div>
 
@@ -665,8 +663,8 @@
             <!-- 오늘 또는 지난 연차: 수정/취소 불가 -->
             <div class="flex-1 text-center">
               <p class="text-sm text-gray-500 mb-2">
-                {isPastLeave(selectedLeaveDetail.start_date) 
-                  ? '지난 연차는 수정/취소할 수 없습니다.' 
+                {isPastLeave(selectedLeaveDetail.start_date)
+                  ? '지난 연차는 수정/취소할 수 없습니다.'
                   : '오늘 시작하는 연차는 수정/취소할 수 없습니다.'}
               </p>
               <button

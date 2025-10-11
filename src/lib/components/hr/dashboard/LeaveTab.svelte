@@ -173,8 +173,7 @@
             >
               <!-- 날짜 (좌상단 고정) -->
               <span
-                class="absolute top-2 left-2 text-base font-bold {calDay.holiday ||
-                calDay.isSunday
+                class="absolute top-2 left-2 text-base font-bold {calDay.holiday || calDay.isSunday
                   ? 'text-red-600'
                   : calDay.isSaturday
                     ? 'text-blue-600'
@@ -262,8 +261,7 @@
                 <span class="text-sm text-gray-600 ml-2">({target.department})</span>
               </div>
               <div class="text-sm">
-                <span class="text-orange-600 font-semibold"
-                  >{target.remaining_days.toFixed(1)}</span
+                <span class="text-orange-600 font-semibold">{target.remaining_days.toFixed(1)}</span
                 >
                 일 잔여
                 <span class="text-gray-500">/ {target.total_days.toFixed(1)}일</span>

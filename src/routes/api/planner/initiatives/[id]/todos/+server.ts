@@ -1,7 +1,7 @@
+import { query } from '$lib/database/connection'
+import type { CreateTodoInput, TodoWithAssignee } from '$lib/planner/types'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
-import { query } from '$lib/database/connection'
-import type { TodoWithAssignee, CreateTodoInput } from '$lib/planner/types'
 
 // GET /api/planner/initiatives/[id]/todos
 export const GET: RequestHandler = async ({ params, locals }) => {
@@ -67,7 +67,19 @@ export const POST: RequestHandler = async ({ params, request, locals }) => {
           due_date,
           external_links
         ) VALUES ($1, $2, $3, $4, 'todo', $5, $6)
-        RETURNING *
+        RETURNING 
+          id,
+          initiative_id,
+          title,
+          description,
+          assignee_id,
+          status,
+          due_date,
+          completed_at::text,
+          deleted_at::text,
+          created_at::text,
+          updated_at::text,
+          external_links
       )
       SELECT
         t.*,

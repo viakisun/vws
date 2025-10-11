@@ -200,7 +200,19 @@ export const POST: RequestHandler = async ({ request }) => {
 				employee_id, start_date, end_date, annual_salary, monthly_salary,
 				contract_type, status, notes, created_by
 			) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-			RETURNING *
+			RETURNING 
+        id,
+        employee_id,
+        annual_salary,
+        start_date,
+        end_date,
+        contract_type,
+        status,
+        created_at::text,
+        updated_at::text,
+        monthly_salary,
+        notes,
+        created_by
 		`,
       [
         contractData.employeeId,

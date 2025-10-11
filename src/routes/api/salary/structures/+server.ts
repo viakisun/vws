@@ -51,7 +51,23 @@ export const GET: RequestHandler = async ({ url }) => {
 
     const result = await query<DatabaseSalaryStructure>(
       `
-			SELECT *
+			SELECT 
+        id,
+        employee_id,
+        base_salary,
+        allowances,
+        deductions,
+        total_allowances,
+        total_deductions,
+        net_salary,
+        effective_date,
+        end_date,
+        status,
+        created_at::text,
+        updated_at::text,
+        created_by,
+        approved_by,
+        approved_at::text
 			FROM salary_structures
 			${whereClause}
 			ORDER BY effective_date DESC, created_at DESC
@@ -120,7 +136,23 @@ export const POST: RequestHandler = async ({ request }) => {
 				total_allowances, total_deductions, net_salary,
 				effective_date, end_date, status, created_by
 			) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-			RETURNING *
+			RETURNING 
+        id,
+        employee_id,
+        base_salary,
+        allowances,
+        deductions,
+        total_allowances,
+        total_deductions,
+        net_salary,
+        effective_date,
+        end_date,
+        status,
+        created_at::text,
+        updated_at::text,
+        created_by,
+        approved_by,
+        approved_at::text
 		`,
       [
         structureData.employeeId,

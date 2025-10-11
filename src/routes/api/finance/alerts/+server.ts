@@ -1,8 +1,8 @@
 import { query } from '$lib/database/connection'
 import type { FinanceAlert } from '$lib/finance/types'
+import { logger } from '$lib/utils/logger'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
-import { logger } from '$lib/utils/logger'
 
 // 알림 목록 조회
 export const GET: RequestHandler = async ({ url }) => {
@@ -135,7 +135,18 @@ export const POST: RequestHandler = async ({ request }) => {
         type, severity, title, message,
         account_id, transaction_id
       ) VALUES ($1, $2, $3, $4, $5, $6)
-      RETURNING *
+      RETURNING 
+        id,
+        type,
+        severity,
+        title,
+        message,
+        account_id,
+        transaction_id,
+        is_read,
+        is_resolved,
+        created_at::text,
+        updated_at::text
     `
 
     const params = [

@@ -1,10 +1,10 @@
 import { DatabaseService } from '$lib/database/connection'
 import type {
-  Product,
-  ProductWithOwner,
-  CreateProductInput,
-  UpdateProductInput,
-  ProductFilters,
+    CreateProductInput,
+    Product,
+    ProductFilters,
+    ProductWithOwner,
+    UpdateProductInput,
 } from '$lib/planner/types'
 
 export class ProductService {
@@ -21,7 +21,9 @@ export class ProductService {
 				status, created_at, updated_at
 			)
 			VALUES ($1, $2, $3, $4, $5, $6, 'active', NOW(), NOW())
-			RETURNING *
+			RETURNING id, name, code, description, owner_id, status, repository_url, 
+                documentation_url, deleted_at::text, created_at::text, updated_at::text, 
+                category, display_order
 		`,
       [
         input.name,
@@ -199,7 +201,9 @@ export class ProductService {
 			UPDATE planner_products
 			SET ${updates.join(', ')}
 			WHERE id = $${paramIndex} AND deleted_at IS NULL
-			RETURNING *
+			RETURNING id, name, code, description, owner_id, status, repository_url, 
+                documentation_url, deleted_at::text, created_at::text, updated_at::text, 
+                category, display_order
 		`,
       [...params, id],
     )

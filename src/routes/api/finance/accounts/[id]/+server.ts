@@ -1,7 +1,7 @@
 import { query } from '$lib/database/connection'
+import { logger } from '$lib/utils/logger'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
-import { logger } from '$lib/utils/logger'
 
 // 특정 계좌 조회
 export const GET: RequestHandler = async ({ params }) => {
@@ -148,7 +148,17 @@ export const PUT: RequestHandler = async ({ params, request }) => {
       UPDATE finance_accounts
       SET ${updateFields.join(', ')}
       WHERE id = $${paramIndex}
-      RETURNING *,
+      RETURNING 
+        id,
+        name,
+        account_number,
+        bank_id,
+        account_type,
+        status,
+        description,
+        is_primary,
+        created_at::text,
+        updated_at::text,
         (SELECT name FROM finance_banks WHERE id = finance_accounts.bank_id) as bank_name,
         (SELECT code FROM finance_banks WHERE id = finance_accounts.bank_id) as bank_code,
         (SELECT color FROM finance_banks WHERE id = finance_accounts.bank_id) as bank_color,

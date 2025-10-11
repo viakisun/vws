@@ -21,7 +21,11 @@ export class InitiativeService {
         title, intent, success_criteria, owner_id, product_id, milestone_id, formation_id, horizon, context_links, stage, status
       )
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'shaping', 'active')
-      RETURNING *`,
+      RETURNING 
+        id, title, intent, success_criteria, owner_id, formation_id, horizon, 
+        context_links, pause_reason, abandonment_reason, shipped_notes, 
+        deleted_at::text, created_at::text, updated_at::text, product_id, 
+        milestone_id, stage, status`,
       [
         input.title,
         input.intent,
@@ -365,7 +369,11 @@ export class InitiativeService {
       `UPDATE planner_initiatives
        SET ${updates.join(', ')}
        WHERE id = $${paramCount} AND deleted_at IS NULL
-       RETURNING *`,
+       RETURNING 
+         id, title, intent, success_criteria, owner_id, formation_id, horizon, 
+         context_links, pause_reason, abandonment_reason, shipped_notes, 
+         deleted_at::text, created_at::text, updated_at::text, product_id, 
+         milestone_id, stage, status`,
       params,
     )
 
@@ -399,7 +407,11 @@ export class InitiativeService {
       `UPDATE planner_initiatives
        SET stage = $1
        WHERE id = $2 AND deleted_at IS NULL
-       RETURNING *`,
+       RETURNING 
+         id, title, intent, success_criteria, owner_id, formation_id, horizon, 
+         context_links, pause_reason, abandonment_reason, shipped_notes, 
+         deleted_at::text, created_at::text, updated_at::text, product_id, 
+         milestone_id, stage, status`,
       [newStage, id],
     )
 
@@ -473,7 +485,11 @@ export class InitiativeService {
            abandonment_reason = $3,
            shipped_notes = $4
        WHERE id = $5 AND deleted_at IS NULL
-       RETURNING *`,
+       RETURNING 
+         id, title, intent, success_criteria, owner_id, formation_id, horizon, 
+         context_links, pause_reason, abandonment_reason, shipped_notes, 
+         deleted_at::text, created_at::text, updated_at::text, product_id, 
+         milestone_id, stage, status`,
       [
         newStatus,
         updates.pause_reason || null,

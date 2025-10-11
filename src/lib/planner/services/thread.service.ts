@@ -1,14 +1,14 @@
 import { DatabaseService } from '$lib/database/connection'
 import type {
-  CreateThreadInput,
-  CreateThreadReplyInput,
-  Thread,
-  ThreadFilters,
-  ThreadReply,
-  ThreadReplyWithAuthor,
-  ThreadState,
-  ThreadWithDetails,
-  UpdateThreadInput,
+    CreateThreadInput,
+    CreateThreadReplyInput,
+    Thread,
+    ThreadFilters,
+    ThreadReply,
+    ThreadReplyWithAuthor,
+    ThreadState,
+    ThreadWithDetails,
+    UpdateThreadInput,
 } from '../types'
 import { THREAD_STATE_TRANSITIONS } from '../types'
 import { activityLogService } from './activity-log.service'
@@ -24,7 +24,9 @@ export class ThreadService {
         initiative_id, title, body, shape, owner_id, external_links, mentions, state
       )
       VALUES ($1, $2, $3, $4, $5, $6, $7, 'proposed')
-      RETURNING *`,
+      RETURNING id, initiative_id, title, body, shape, state, owner_id, external_links, 
+                resolution, resolved_at::text, deleted_at::text, created_at::text, 
+                updated_at::text, mentions`,
       [
         input.initiative_id,
         input.title,
@@ -333,7 +335,9 @@ export class ThreadService {
       `UPDATE planner_threads
        SET ${updates.join(', ')}
        WHERE id = $${paramCount} AND deleted_at IS NULL
-       RETURNING *`,
+       RETURNING id, initiative_id, title, body, shape, state, owner_id, external_links, 
+                 resolution, resolved_at::text, deleted_at::text, created_at::text, 
+                 updated_at::text, mentions`,
       params,
     )
 
@@ -381,7 +385,9 @@ export class ThreadService {
       `UPDATE planner_threads
        SET state = $1, resolution = COALESCE($2, resolution)
        WHERE id = $3 AND deleted_at IS NULL
-       RETURNING *`,
+       RETURNING id, initiative_id, title, body, shape, state, owner_id, external_links, 
+                 resolution, resolved_at::text, deleted_at::text, created_at::text, 
+                 updated_at::text, mentions`,
       [newState, resolution || null, id],
     )
 
@@ -448,7 +454,7 @@ export class ThreadService {
         thread_id, author_id, content, mentions
       )
       VALUES ($1, $2, $3, $4)
-      RETURNING *`,
+      RETURNING id, thread_id, author_id, content, mentions, created_at::text, updated_at::text`,
       [input.thread_id, input.author_id, input.content, JSON.stringify(input.mentions || [])],
     )
 

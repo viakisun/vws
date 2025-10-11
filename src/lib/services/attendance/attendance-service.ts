@@ -490,12 +490,7 @@ export async function recordCheckIn(
     const status = determineCheckInStatus(now, date, settings)
 
     // 출근 기록
-    const result = await query(QUERIES.RECORD_CHECK_IN, [
-      employeeId,
-      clientIp,
-      notes || '',
-      status,
-    ])
+    const result = await query(QUERIES.RECORD_CHECK_IN, [employeeId, clientIp, notes || '', status])
 
     const message =
       status === 'late' ? ATTENDANCE_MESSAGES.CHECK_IN_LATE : ATTENDANCE_MESSAGES.CHECK_IN
@@ -610,9 +605,7 @@ export async function recordBreakStart(
  * @param employeeId - 직원 ID
  * @returns 휴게 종료 기록 결과
  */
-export async function recordBreakEnd(
-  employeeId: string,
-): Promise<ServiceResult<AttendanceRecord>> {
+export async function recordBreakEnd(employeeId: string): Promise<ServiceResult<AttendanceRecord>> {
   try {
     const result = await query(QUERIES.RECORD_BREAK_END, [employeeId])
 

@@ -1,7 +1,7 @@
 import { query } from '$lib/database/connection'
+import { logger } from '$lib/utils/logger'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
-import { logger } from '$lib/utils/logger'
 
 // 알림 읽음 처리
 export const PUT: RequestHandler = async ({ params, request }) => {
@@ -22,12 +22,27 @@ export const PUT: RequestHandler = async ({ params, request }) => {
     let queryText: string
     let params_array: any[]
 
+    const returningClause = `
+      RETURNING 
+        id,
+        type,
+        severity,
+        title,
+        message,
+        account_id,
+        transaction_id,
+        is_read,
+        is_resolved,
+        created_at::text,
+        updated_at::text
+    `
+
     if (body.action === 'read') {
       queryText = `
         UPDATE finance_alerts
         SET is_read = true, updated_at = NOW()
         WHERE id = $1
-        RETURNING *
+        ${returningClause}
       `
       params_array = [alertId]
     } else {
@@ -35,7 +50,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
         UPDATE finance_alerts
         SET is_resolved = true, updated_at = NOW()
         WHERE id = $1
-        RETURNING *
+        ${returningClause}
       `
       params_array = [alertId]
     }

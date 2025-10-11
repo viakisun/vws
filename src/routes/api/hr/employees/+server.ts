@@ -3,13 +3,13 @@
 import { query } from '$lib/database/connection'
 import type { ApiResponse } from '$lib/types/database'
 import type {
-    EmergencyContact,
-    Employee,
-    EmployeeLevel,
-    EmployeeStatus,
-    EmploymentType,
-    PaginatedResponse,
-    PersonalInfo,
+  EmergencyContact,
+  Employee,
+  EmployeeLevel,
+  EmployeeStatus,
+  EmploymentType,
+  PaginatedResponse,
+  PersonalInfo,
 } from '$lib/types/hr'
 import { logger } from '$lib/utils/logger'
 import { json } from '@sveltejs/kit'

@@ -32,7 +32,23 @@ export const GET: RequestHandler = async ({ params }) => {
 
     const result = await query<DatabaseSalaryStructure>(
       `
-			SELECT *
+			SELECT 
+        id,
+        employee_id,
+        base_salary,
+        allowances,
+        deductions,
+        total_allowances,
+        total_deductions,
+        net_salary,
+        effective_date,
+        end_date,
+        status,
+        created_at::text,
+        updated_at::text,
+        created_by,
+        approved_by,
+        approved_at::text
 			FROM salary_structures
 			WHERE id = $1
 		`,
@@ -168,7 +184,23 @@ export const PUT: RequestHandler = async ({ params, request }) => {
 			UPDATE salary_structures
 			SET ${updateFields.join(', ')}
 			WHERE id = $${paramIndex}
-			RETURNING *
+			RETURNING 
+        id,
+        employee_id,
+        base_salary,
+        allowances,
+        deductions,
+        total_allowances,
+        total_deductions,
+        net_salary,
+        effective_date,
+        end_date,
+        status,
+        created_at::text,
+        updated_at::text,
+        created_by,
+        approved_by,
+        approved_at::text
 		`,
       [...values, id],
     )

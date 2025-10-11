@@ -21,7 +21,8 @@ export class ActivityLogService {
         entity_type, entity_id, action, actor_id, old_value, new_value, metadata
       )
       VALUES ($1, $2, $3, $4, $5, $6, $7)
-      RETURNING *`,
+      RETURNING id, entity_type, entity_id, action, actor_id, old_value, new_value, 
+                metadata, created_at::text, product_id, milestone_id`,
       [
         input.entity_type,
         input.entity_id,

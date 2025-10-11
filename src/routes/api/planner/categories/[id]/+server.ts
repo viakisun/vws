@@ -1,6 +1,6 @@
+import { DatabaseService } from '$lib/database/connection'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
-import { DatabaseService } from '$lib/database/connection'
 
 // PUT: Update category
 export const PUT: RequestHandler = async ({ params, request, locals }) => {
@@ -22,7 +22,14 @@ export const PUT: RequestHandler = async ({ params, request, locals }) => {
       UPDATE planner_product_categories
       SET name = $1, description = $2, updated_at = NOW()
       WHERE id = $3
-      RETURNING *
+      RETURNING 
+        id,
+        name,
+        code,
+        description,
+        display_order,
+        created_at::text,
+        updated_at::text
     `,
       [name, description || null, params.id],
     )
@@ -69,7 +76,15 @@ export const DELETE: RequestHandler = async ({ params, locals }) => {
     }
 
     const result = await DatabaseService.query(
-      'DELETE FROM planner_product_categories WHERE id = $1 RETURNING *',
+      `DELETE FROM planner_product_categories WHERE id = $1 
+      RETURNING 
+        id,
+        name,
+        code,
+        description,
+        display_order,
+        created_at::text,
+        updated_at::text`,
       [params.id],
     )
 

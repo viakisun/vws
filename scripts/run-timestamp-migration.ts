@@ -21,11 +21,15 @@ async function runMigration() {
 
   try {
     console.log('\n🚀 Migration 021: TIMESTAMP → TIMESTAMPTZ 표준화')
-    console.log('=' .repeat(60))
+    console.log('='.repeat(60))
     console.log()
 
     // 마이그레이션 파일 읽기
-    const migrationPath = path.join(process.cwd(), 'migrations', '021_standardize_all_timestamps.sql')
+    const migrationPath = path.join(
+      process.cwd(),
+      'migrations',
+      '021_standardize_all_timestamps.sql',
+    )
     const migrationSql = fs.readFileSync(migrationPath, 'utf-8')
 
     console.log('📄 마이그레이션 파일 로드 완료')
@@ -75,9 +79,8 @@ async function runMigration() {
     }
 
     console.log()
-    console.log('=' .repeat(60))
+    console.log('='.repeat(60))
     console.log('🎉 완료!\n')
-
   } catch (error) {
     console.error('\n❌ 마이그레이션 실패:', error)
     console.error()
@@ -88,4 +91,3 @@ async function runMigration() {
 }
 
 runMigration()
-

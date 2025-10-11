@@ -1,9 +1,9 @@
 import { query } from '$lib/database/connection'
 import { alertGenerator } from '$lib/finance/services/alerts/alert-generator'
 import type { CreateTransactionRequest, Transaction } from '$lib/finance/types'
+import { logger } from '$lib/utils/logger'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
-import { logger } from '$lib/utils/logger'
 
 interface TransactionRow {
   id: string
@@ -304,7 +304,28 @@ export const POST: RequestHandler = async ({ request }) => {
         transaction_date, counterparty, deposits, withdrawals, balance,
         reference_number, notes, tags, is_recurring, recurring_pattern
       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
-      RETURNING *
+      RETURNING 
+        id,
+        account_id,
+        category_id,
+        amount,
+        type,
+        description,
+        reference,
+        transaction_date,
+        created_by,
+        created_at::text,
+        updated_at::text,
+        status,
+        reference_number,
+        notes,
+        tags,
+        is_recurring,
+        recurring_pattern,
+        counterparty,
+        deposits,
+        withdrawals,
+        balance
     `
 
     const params = [

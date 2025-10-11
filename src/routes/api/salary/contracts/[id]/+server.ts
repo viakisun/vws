@@ -188,7 +188,20 @@ export const PUT: RequestHandler = async ({ params, request }) => {
     queryParams.push(id)
 
     const result = await query<DatabaseSalaryContract>(
-      `UPDATE salary_contracts SET ${updateFields.join(', ')} WHERE id = $${paramIndex} RETURNING *`,
+      `UPDATE salary_contracts SET ${updateFields.join(', ')} WHERE id = $${paramIndex} 
+      RETURNING 
+        id,
+        employee_id,
+        annual_salary,
+        start_date,
+        end_date,
+        contract_type,
+        status,
+        created_at::text,
+        updated_at::text,
+        monthly_salary,
+        notes,
+        created_by`,
       queryParams,
     )
 

@@ -1,7 +1,7 @@
 import { query } from '$lib/database/connection'
+import { logger } from '$lib/utils/logger'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
-import { logger } from '$lib/utils/logger'
 
 // ============================================================================
 // Types
@@ -385,7 +385,24 @@ export const POST: RequestHandler = async ({ request }) => {
          account_summaries, category_summaries, alerts, notes,
          generated_at, generated_by
        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
-       RETURNING *`,
+       RETURNING 
+         id,
+         report_date,
+         status,
+         opening_balance,
+         closing_balance,
+         total_inflow,
+         total_outflow,
+         net_flow,
+         transaction_count,
+         account_summaries,
+         category_summaries,
+         alerts,
+         notes,
+         generated_at,
+         generated_by,
+         created_at::text,
+         updated_at::text`,
       [
         date,
         'completed',

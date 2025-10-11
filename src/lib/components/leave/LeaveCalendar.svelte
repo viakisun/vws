@@ -140,7 +140,7 @@
         // KST 타임스탬프에서 날짜 부분만 추출
         const reqStartStr = req.start_date ? req.start_date.substring(0, 10) : ''
         const reqEndStr = req.end_date ? req.end_date.substring(0, 10) : ''
-        
+
         // 월의 시작/끝 날짜 (YYYY-MM-DD 형식)
         const monthStartStr = `${year}-${String(month).padStart(2, '0')}-01`
         const monthEndStr = `${year}-${String(month).padStart(2, '0')}-${new Date(year, month, 0).getDate()}`

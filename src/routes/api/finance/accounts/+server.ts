@@ -1,8 +1,8 @@
 import { query } from '$lib/database/connection'
 import type { Account, CreateAccountRequest } from '$lib/finance/types'
+import { logger } from '$lib/utils/logger'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
-import { logger } from '$lib/utils/logger'
 
 // 계좌 목록 조회
 export const GET: RequestHandler = async ({ url }) => {
@@ -173,7 +173,17 @@ export const POST: RequestHandler = async ({ request }) => {
         name, account_number, bank_id, account_type,
         description, is_primary
       ) VALUES ($1, $2, $3, $4, $5, $6)
-      RETURNING *
+      RETURNING 
+        id,
+        name,
+        account_number,
+        bank_id,
+        account_type,
+        status,
+        description,
+        is_primary,
+        created_at::text,
+        updated_at::text
     `
 
     const params = [

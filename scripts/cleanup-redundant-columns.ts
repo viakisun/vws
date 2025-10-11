@@ -19,18 +19,14 @@ async function cleanupRedundantColumns() {
 
   try {
     console.log('\n🧹 중복 칼럼 및 백업 테이블 정리\n')
-    console.log('=' .repeat(60))
+    console.log('='.repeat(60))
 
     await pool.query('BEGIN')
 
     // 1. 백업 테이블 삭제
     console.log('\n🗑️  Step 1: 백업 테이블 삭제 중...\n')
-    
-    const backupTables = [
-      'attendance_backup_20241011',
-      'project_members_backup',
-      'projects_backup'
-    ]
+
+    const backupTables = ['attendance_backup_20241011', 'project_members_backup', 'projects_backup']
 
     for (const table of backupTables) {
       await pool.query(`DROP TABLE IF EXISTS ${table} CASCADE`)
@@ -39,7 +35,7 @@ async function cleanupRedundantColumns() {
 
     // 2. attendance 중복 칼럼 제거
     console.log('\n🔧 Step 2: attendance 중복 칼럼 제거 중...\n')
-    
+
     await pool.query(`
       ALTER TABLE attendance
       DROP COLUMN IF EXISTS date CASCADE,
@@ -50,7 +46,7 @@ async function cleanupRedundantColumns() {
 
     // 3. attendance_records 중복 칼럼 제거
     console.log('\n🔧 Step 3: attendance_records 중복 칼럼 제거 중...\n')
-    
+
     await pool.query(`
       ALTER TABLE attendance_records
       DROP COLUMN IF EXISTS date CASCADE,
@@ -61,7 +57,7 @@ async function cleanupRedundantColumns() {
 
     // 4. leave_requests 중복 칼럼 제거
     console.log('\n🔧 Step 4: leave_requests 중복 칼럼 제거 중...\n')
-    
+
     await pool.query(`
       ALTER TABLE leave_requests
       DROP COLUMN IF EXISTS local_start_date CASCADE,
@@ -74,7 +70,7 @@ async function cleanupRedundantColumns() {
 
     // 5. 최종 확인
     console.log('\n✅ Step 5: 최종 확인 중...\n')
-    
+
     const dateResult = await pool.query(`
       SELECT COUNT(*) as date_count
       FROM information_schema.columns
@@ -84,13 +80,12 @@ async function cleanupRedundantColumns() {
 
     const dateCount = parseInt(dateResult.rows[0].date_count)
 
-    console.log('=' .repeat(60))
+    console.log('='.repeat(60))
     console.log(`📊 남은 DATE 칼럼: ${dateCount}개`)
-    console.log('=' .repeat(60))
+    console.log('='.repeat(60))
     console.log()
     console.log('🎉 정리 완료!')
     console.log()
-
   } catch (error) {
     console.error('\n❌ 오류 발생:', error)
     console.log('\n🔄 롤백 중...')
@@ -103,4 +98,3 @@ async function cleanupRedundantColumns() {
 }
 
 cleanupRedundantColumns()
-

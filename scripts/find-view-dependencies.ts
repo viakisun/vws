@@ -39,7 +39,7 @@ async function findViewDependencies() {
     console.log(`발견된 의존성: ${result.rows.length}개\n`)
 
     const dependencies = new Map<string, Set<string>>()
-    
+
     result.rows.forEach((row) => {
       const key = `${row.dependent_table}.${row.dependent_column}`
       if (!dependencies.has(key)) {
@@ -51,18 +51,17 @@ async function findViewDependencies() {
     console.log('📋 VIEW에 의존하는 칼럼 목록:\n')
     for (const [column, views] of dependencies) {
       console.log(`  - ${column}`)
-      views.forEach(view => console.log(`      ← ${view}`))
+      views.forEach((view) => console.log(`      ← ${view}`))
     }
 
     console.log(`\n총 ${dependencies.size}개의 칼럼이 VIEW에 의존하고 있습니다.`)
-    
+
     // 마이그레이션에서 제외할 목록 생성
     console.log('\n마이그레이션에서 제외해야 할 칼럼:')
     console.log('----------------------------------------')
     for (const column of dependencies.keys()) {
       console.log(column)
     }
-
   } catch (error) {
     console.error('❌ Error:', error)
   } finally {
@@ -71,4 +70,3 @@ async function findViewDependencies() {
 }
 
 findViewDependencies()
-

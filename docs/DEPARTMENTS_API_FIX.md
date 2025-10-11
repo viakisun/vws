@@ -9,6 +9,7 @@ Error fetching departments: error: relation "departments" does not exist
 **원인**: `departments` 테이블이 데이터베이스에 존재하지 않음
 
 **실제 구조**:
+
 - `employees` 테이블에 `department` 컬럼(VARCHAR)만 존재
 - 별도의 `departments` 테이블 없음
 
@@ -19,6 +20,7 @@ Error fetching departments: error: relation "departments" does not exist
 ### GET: 부서 목록 조회
 
 **Before**:
+
 ```sql
 SELECT id, name, description, status, max_employees, created_at, updated_at
 FROM departments
@@ -27,8 +29,9 @@ ORDER BY name ASC
 ```
 
 **After**:
+
 ```sql
-SELECT 
+SELECT
   department as name,
   COUNT(*) as employee_count,
   MIN(hire_date) as created_at
@@ -40,6 +43,7 @@ ORDER BY department ASC
 ```
 
 **변환 로직**:
+
 ```typescript
 const departments = result.rows.map((row) => ({
   id: row.name, // department 이름을 ID로 사용
@@ -56,6 +60,7 @@ const departments = result.rows.map((row) => ({
 ### POST: 부서 생성
 
 **변경 사항**:
+
 - `departments` 테이블에 INSERT 대신 가상 응답 반환
 - 중복 체크는 `employees.department`에서 수행
 - 실제 부서는 직원 생성 시 `department` 필드로 관리됨
@@ -123,7 +128,7 @@ CREATE TABLE departments (
 
 -- 2. 현재 사용 중인 부서 데이터 마이그레이션
 INSERT INTO departments (name, created_at, updated_at)
-SELECT DISTINCT 
+SELECT DISTINCT
   department,
   MIN(hire_date),
   now()
@@ -160,14 +165,17 @@ WHERE e.department = d.name;
 ## 📝 참고
 
 **현재 데이터베이스 구조**:
+
 - `employees.department`: VARCHAR (text)
 - 별도의 `departments` 테이블 없음
 - 부서는 직원 생성 시 직접 입력
 
 **관련 파일**:
+
 - `src/routes/api/departments/+server.ts`
 
 **테스트 방법**:
+
 ```bash
 # 부서 목록 조회
 curl http://localhost:5173/api/departments?status=active
@@ -181,4 +189,3 @@ curl -X POST http://localhost:5173/api/departments \
 ---
 
 **작업 완료!** 🎉
-

@@ -134,11 +134,7 @@ export function getDaysInMonth(year: number, month: number): number {
  */
 export function isToday(year: number, month: number, day: number): boolean {
   const today = new Date()
-  return (
-    today.getDate() === day &&
-    today.getMonth() === month - 1 &&
-    today.getFullYear() === year
-  )
+  return today.getDate() === day && today.getMonth() === month - 1 && today.getFullYear() === year
 }
 
 /**
@@ -257,7 +253,7 @@ export function getLeaveTypeColor(type: string): string {
 /**
  * KST 타임스탬프 문자열에서 날짜 부분만 추출
  * 예: "2025-10-08 11:24:23.373+09" → "2025-10-08"
- * 
+ *
  * 출퇴근과 동일한 패턴: substring(0, 10)
  */
 export function formatLeaveDate(dateTimeString: string): string {
@@ -269,7 +265,7 @@ export function formatLeaveDate(dateTimeString: string): string {
 /**
  * KST 타임스탬프 문자열에서 시간 부분만 추출 (반차/반반차용)
  * 예: "2025-10-08 11:24:23.373+09" → "11:24"
- * 
+ *
  * 출퇴근과 동일한 패턴: substring(11, 16)
  */
 export function formatLeaveTime(dateTimeString: string): string {
@@ -286,14 +282,14 @@ export function formatLeaveTime(dateTimeString: string): string {
 export function formatLeavePeriod(startDate: string, endDate: string, leaveType: string): string {
   const startDateOnly = formatLeaveDate(startDate)
   const endDateOnly = formatLeaveDate(endDate)
-  
+
   // 같은 날짜인 경우 (반차/반반차)
   if (startDateOnly === endDateOnly) {
     const startTime = formatLeaveTime(startDate)
     const endTime = formatLeaveTime(endDate)
     return `${startDateOnly} (${startTime} ~ ${endTime})`
   }
-  
+
   // 다른 날짜인 경우 (연차)
   return `${startDateOnly} ~ ${endDateOnly}`
 }
@@ -322,4 +318,3 @@ export function isFutureMonth(year: number, month: number): boolean {
   today.setHours(0, 0, 0, 0)
   return monthDate > today
 }
-

@@ -1,11 +1,11 @@
 import { DatabaseService } from '$lib/database/connection'
 import type {
-  Milestone,
-  MilestoneWithProduct,
-  CreateMilestoneInput,
-  UpdateMilestoneInput,
-  MilestoneFilters,
-  MilestoneStatus,
+    CreateMilestoneInput,
+    Milestone,
+    MilestoneFilters,
+    MilestoneStatus,
+    MilestoneWithProduct,
+    UpdateMilestoneInput,
 } from '$lib/planner/types'
 
 export class MilestoneService {
@@ -21,7 +21,8 @@ export class MilestoneService {
 				status, created_at, updated_at
 			)
 			VALUES ($1, $2, $3, $4, 'upcoming', NOW(), NOW())
-			RETURNING *
+			RETURNING id, product_id, name, description, target_date, status, achieved_at::text, 
+                achievement_notes, deleted_at::text, created_at::text, updated_at::text
 		`,
       [input.product_id, input.name, input.description || null, input.target_date || null],
     )
@@ -180,7 +181,8 @@ export class MilestoneService {
 			UPDATE planner_milestones
 			SET ${updates.join(', ')}
 			WHERE id = $${paramIndex} AND deleted_at IS NULL
-			RETURNING *
+			RETURNING id, product_id, name, description, target_date, status, achieved_at::text, 
+                achievement_notes, deleted_at::text, created_at::text, updated_at::text
 		`,
       [...params, id],
     )

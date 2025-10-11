@@ -36,7 +36,8 @@ export class NotificationService {
         employee_id, title, message, type, category, action_url, action_data
       )
       VALUES ($1, $2, $3, $4, $5, $6, $7)
-      RETURNING *`,
+      RETURNING id, employee_id, title, message, type, category, is_read, read_at::text, 
+                action_url, action_data, expires_at::text, created_at::text, updated_at::text`,
       [
         input.employee_id,
         input.title,

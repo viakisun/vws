@@ -7,10 +7,7 @@
  * - 월/년도 네비게이션
  */
 
-import type {
-    LeaveCalendarData,
-    LeaveEmployee
-} from '$lib/services/leave/leave-calendar-service'
+import type { LeaveCalendarData, LeaveEmployee } from '$lib/services/leave/leave-calendar-service'
 import * as leaveCalendarService from '$lib/services/leave/leave-calendar-service'
 import { logger } from '$lib/utils/logger'
 
@@ -228,4 +225,3 @@ export function useLeaveCalendar() {
 // ============================================================================
 
 export type LeaveCalendarHook = ReturnType<typeof useLeaveCalendar>
-

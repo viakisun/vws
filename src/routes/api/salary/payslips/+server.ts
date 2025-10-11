@@ -193,7 +193,34 @@ export const POST: RequestHandler = async ({ request }) => {
 					is_generated = $14,
 					updated_at = CURRENT_TIMESTAMP
 				WHERE employee_id = $1 AND period = $2
-				RETURNING *
+				RETURNING 
+          id,
+          employee_id,
+          period,
+          pay_date,
+          pay_period_start,
+          pay_period_end,
+          base_salary,
+          overtime_pay,
+          bonus,
+          old_deductions,
+          total_payments,
+          total_deductions,
+          net_salary,
+          total_amount,
+          payments,
+          deductions,
+          status,
+          is_generated,
+          created_at::text,
+          updated_at::text,
+          employee_name,
+          employee_id_number,
+          department,
+          position,
+          hire_date,
+          created_by,
+          updated_by
 				`,
         [
           employeeId,
@@ -222,7 +249,34 @@ export const POST: RequestHandler = async ({ request }) => {
 					payments, deductions, status, is_generated
 				) VALUES (
 					$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14
-				) RETURNING *
+				) RETURNING 
+          id,
+          employee_id,
+          period,
+          pay_date,
+          pay_period_start,
+          pay_period_end,
+          base_salary,
+          overtime_pay,
+          bonus,
+          old_deductions,
+          total_payments,
+          total_deductions,
+          net_salary,
+          total_amount,
+          payments,
+          deductions,
+          status,
+          is_generated,
+          created_at::text,
+          updated_at::text,
+          employee_name,
+          employee_id_number,
+          department,
+          position,
+          hire_date,
+          created_by,
+          updated_by
 				`,
         [
           employeeId,

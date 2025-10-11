@@ -1,6 +1,6 @@
+import { DatabaseService } from '$lib/database/connection'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
-import { DatabaseService } from '$lib/database/connection'
 
 // Update member
 export const PUT: RequestHandler = async ({ params, request, locals }) => {
@@ -20,7 +20,14 @@ export const PUT: RequestHandler = async ({ params, request, locals }) => {
 				bandwidth = $2,
 				updated_at = NOW()
 			WHERE id = $3 AND formation_id = $4
-			RETURNING *
+			RETURNING 
+        id,
+        formation_id,
+        employee_id,
+        role,
+        bandwidth,
+        created_at::text,
+        updated_at::text
 		`,
       [body.role, body.bandwidth, params.memberId, params.id],
     )
