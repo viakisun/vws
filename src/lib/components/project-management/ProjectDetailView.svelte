@@ -386,9 +386,11 @@
           </div>
         {/if}
       </div>
+    </ThemeCard>
 
-      <!-- 사업비 예산 요약 -->
-      <div class="mt-4 pt-4 border-t" style:border-color="var(--color-border)">
+    <!-- 사업비 예산 요약 -->
+    <ThemeCard>
+      <div class="pt-4 border-t" style:border-color="var(--color-border)">
         {#await import('$lib/components/project-management/ProjectBudgetSummary.svelte')}
           <div class="flex items-center justify-center py-4">
             <div
