@@ -4,7 +4,7 @@
 
 프로젝트의 `start_date`, `end_date` 컬럼을 `projects` 테이블에서 제거했습니다. 이는 다음과 같은 이유 때문입니다:
 
-1. **중복 데이터 제거**: 사업 기간은 연차별 예산 데이터(`rd_project_budgets`)에 이미 저장되어 있음
+1. **중복 데이터 제거**: 사업 기간은 연차별 예산 데이터(`project_budgets`)에 이미 저장되어 있음
 2. **데이터 일관성**: 연차별 예산이 변경될 때마다 프로젝트 날짜를 수동으로 업데이트해야 하는 번거로움 제거
 3. **정확한 데이터**: 연차별 예산의 MIN/MAX를 사용하면 항상 정확한 사업 기간을 보장
 
@@ -15,25 +15,27 @@
 프로젝트 조회 시 연차별 예산 테이블에서 MIN/MAX를 실시간으로 계산합니다:
 
 ```sql
-SELECT 
+SELECT
   p.*,
   -- 연차별 예산에서 시작일/종료일 계산
-  (SELECT MIN(pb.start_date)::text 
-   FROM rd_project_budgets pb 
+  (SELECT MIN(pb.start_date)::text
+   FROM project_budgets pb
    WHERE pb.project_id = p.id) as start_date,
-  (SELECT MAX(pb.end_date)::text 
-   FROM rd_project_budgets pb 
+  (SELECT MAX(pb.end_date)::text
+   FROM project_budgets pb
    WHERE pb.project_id = p.id) as end_date
 FROM projects p
 WHERE p.id = $1;
 ```
 
 **장점:**
+
 - 항상 최신 데이터 보장
 - 추가적인 업데이트 로직 불필요
 - `::text` 캐스팅을 정확히 제어 가능
 
 **단점:**
+
 - 서브쿼리로 인한 약간의 성능 오버헤드 (일반적으로 무시할 수 있는 수준)
 
 ### 2. PostgreSQL View 사용 (대안)
@@ -42,13 +44,13 @@ View를 생성하여 계산 로직을 재사용할 수 있습니다:
 
 ```sql
 CREATE VIEW v_projects_with_dates AS
-SELECT 
+SELECT
   p.*,
-  (SELECT MIN(pb.start_date) 
-   FROM rd_project_budgets pb 
+  (SELECT MIN(pb.start_date)
+   FROM project_budgets pb
    WHERE pb.project_id = p.id) AS calculated_start_date,
-  (SELECT MAX(pb.end_date) 
-   FROM rd_project_budgets pb 
+  (SELECT MAX(pb.end_date)
+   FROM project_budgets pb
    WHERE pb.project_id = p.id) AS calculated_end_date
 FROM projects p;
 ```
@@ -75,7 +77,7 @@ FROM projects p;
 
 ## 성능 고려사항
 
-- **인덱스**: `rd_project_budgets(project_id, start_date, end_date)` 복합 인덱스 권장
+- **인덱스**: `project_budgets(project_id, start_date, end_date)` 복합 인덱스 권장
 - **캐싱**: 프론트엔드에서 적절한 캐싱 전략 사용
 - **최적화**: 대량 데이터 조회 시 JOIN 대신 서브쿼리가 더 효율적일 수 있음
 
@@ -87,9 +89,9 @@ FROM projects p;
 ## 결론
 
 이 접근 방식은:
+
 - ✅ 데이터 중복을 제거하고
 - ✅ 데이터 일관성을 보장하며
 - ✅ 유지보수를 간소화합니다
 
 연차별 예산 데이터가 프로젝트 기간의 **Single Source of Truth**가 되어, 더욱 안정적이고 확장 가능한 시스템을 구축할 수 있습니다.
-

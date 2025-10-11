@@ -9,10 +9,10 @@ CREATE VIEW v_projects_with_dates AS
 SELECT 
   p.*,
   (SELECT MIN(pb.start_date) 
-   FROM rd_project_budgets pb 
+   FROM project_budgets pb 
    WHERE pb.project_id = p.id) AS calculated_start_date,
   (SELECT MAX(pb.end_date) 
-   FROM rd_project_budgets pb 
+   FROM project_budgets pb 
    WHERE pb.project_id = p.id) AS calculated_end_date
 FROM projects p;
 

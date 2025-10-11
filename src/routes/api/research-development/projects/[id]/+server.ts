@@ -39,11 +39,11 @@ export const GET: RequestHandler = async ({ params }) => {
 				COUNT(DISTINCT pm.id) as member_count,
 				COALESCE(SUM(pm.participation_rate), 0) as total_participation_rate,
 				-- 연차별 예산에서 시작일/종료일 계산
-				(SELECT MIN(pb.start_date)::text FROM rd_project_budgets pb WHERE pb.project_id = p.id) as start_date,
-				(SELECT MAX(pb.end_date)::text FROM rd_project_budgets pb WHERE pb.project_id = p.id) as end_date
+				(SELECT MIN(pb.start_date)::text FROM project_budgets pb WHERE pb.project_id = p.id) as start_date,
+				(SELECT MAX(pb.end_date)::text FROM project_budgets pb WHERE pb.project_id = p.id) as end_date
 			FROM projects p
 			LEFT JOIN employees e ON p.manager_employee_id = e.id
-			LEFT JOIN rd_project_members pm ON p.id = pm.project_id AND pm.status = 'active'
+			LEFT JOIN project_members pm ON p.id = pm.project_id AND pm.status = 'active'
 			WHERE p.id = $1
 			GROUP BY p.id, p.code, p.title, p.project_task_name, p.description, p.sponsor, p.sponsor_name, p.sponsor_type,
 			         p.manager_employee_id, p.status, p.budget_total,
