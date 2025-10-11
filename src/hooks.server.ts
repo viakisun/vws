@@ -1,10 +1,10 @@
 import { UserService } from '$lib/auth/user-service'
+import { PermissionAction, PermissionScope } from '$lib/config/permissions'
+import { ROUTE_PERMISSIONS } from '$lib/config/routes'
+import { Routes } from '$lib/config/routes.enum'
 import { DatabaseService } from '$lib/database/connection'
 import { permissionService } from '$lib/server/services/permission.service'
 import { logger } from '$lib/utils/logger'
-import { Routes } from '$lib/config/routes.enum'
-import { ROUTE_PERMISSIONS } from '$lib/config/routes'
-import { PermissionAction, PermissionScope } from '$lib/config/permissions'
 import type { Handle } from '@sveltejs/kit'
 import { error } from '@sveltejs/kit'
 
@@ -92,9 +92,26 @@ async function handleSystemAdmin(event: any, user: any) {
 /** 직원 계정 처리 */
 async function handleEmployeeAccount(event: any, user: any) {
   try {
-    const employeeResult = await DatabaseService.query('SELECT * FROM employees WHERE email = $1', [
-      user.email,
-    ])
+    const employeeResult = await DatabaseService.query(
+      `SELECT 
+        id, 
+        employee_id, 
+        first_name, 
+        last_name, 
+        email, 
+        department, 
+        position, 
+        hire_date::text as hire_date, 
+        birth_date::text as birth_date,
+        status, 
+        employment_type, 
+        phone,
+        created_at::text as created_at,
+        updated_at::text as updated_at
+      FROM employees 
+      WHERE email = $1`,
+      [user.email],
+    )
 
     if (employeeResult.rows.length === 0) {
       // 직원 정보 없음 → 권한 없는 일반 사용자

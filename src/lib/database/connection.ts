@@ -31,26 +31,41 @@ export function processDatabaseDate(dateValue: unknown): string {
 
   // ❌ Date 객체 - SELECT * 또는 RETURNING * 사용 중!
   if (dateValue instanceof Date) {
+    const stack = new Error().stack
+    const callerLine = stack?.split('\n')[2]?.trim() || 'unknown location'
+
     logger.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
     logger.error('❌ Date object detected - BAD QUERY PATTERN!')
     logger.error('   Value:', dateValue.toISOString())
+    logger.error('   Called from:', callerLine)
     logger.error('')
-    logger.error('   Cause: Using SELECT * or RETURNING *')
+    logger.error('   Cause: Using SELECT * or RETURNING * or missing ::text')
     logger.error('   Fix: Explicitly select columns with ::text')
     logger.error('')
     logger.error('   Example:')
     logger.error('   ❌ SELECT * FROM table')
+    logger.error('   ❌ SELECT DATE(column) FROM table')
     logger.error('   ✅ SELECT id, name, created_at::text FROM table')
+    logger.error('   ✅ SELECT DATE(column)::text FROM table')
     logger.error('')
     logger.error('   ❌ RETURNING *')
     logger.error('   ✅ RETURNING id, name, created_at::text')
+    logger.error('')
+    logger.error('   Stack trace:')
+    logger.error(stack || 'Stack trace not available')
     logger.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
     // 일단 변환은 해주되 에러 로그로 추적
     return dateValue.toISOString()
   }
 
   if (typeof dateValue !== 'string') {
-    logger.error('❌ Unexpected date type:', typeof dateValue, 'value:', dateValue)
+    const stack = new Error().stack
+    logger.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+    logger.error('❌ Unexpected date type:', typeof dateValue)
+    logger.error('   Value:', dateValue)
+    logger.error('   Stack trace:')
+    logger.error(stack || 'Stack trace not available')
+    logger.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
     return String(dateValue)
   }
 
@@ -61,9 +76,13 @@ export function processDatabaseDate(dateValue: unknown): string {
 
   // ❌ ISO 8601 문자열 - ::text 누락!
   if (dateValue.match(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.*Z$/)) {
+    const stack = new Error().stack
+    const callerLine = stack?.split('\n')[2]?.trim() || 'unknown location'
+
     logger.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
     logger.error('❌ ISO 8601 string detected - MISSING ::text!')
     logger.error('   Value:', dateValue)
+    logger.error('   Called from:', callerLine)
     logger.error('')
     logger.error('   Cause: Query returns TIMESTAMPTZ without ::text')
     logger.error('   Fix: Add ::text to column selection')
@@ -71,6 +90,9 @@ export function processDatabaseDate(dateValue: unknown): string {
     logger.error('   Example:')
     logger.error('   ❌ SELECT created_at FROM table')
     logger.error('   ✅ SELECT created_at::text FROM table')
+    logger.error('')
+    logger.error('   Stack trace:')
+    logger.error(stack || 'Stack trace not available')
     logger.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
     // 일단 통과는 시키되 에러 로그로 추적
     return dateValue
@@ -82,8 +104,13 @@ export function processDatabaseDate(dateValue: unknown): string {
   }
 
   // ❌ 완전 비표준 형식
+  const stack = new Error().stack
+  logger.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
   logger.error('❌ Unexpected date format:', dateValue)
   logger.error('   Expected: "YYYY-MM-DD HH:MM:SS+TZ" or "YYYY-MM-DD"')
+  logger.error('   Stack trace:')
+  logger.error(stack || 'Stack trace not available')
+  logger.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
   return dateValue
 }
 

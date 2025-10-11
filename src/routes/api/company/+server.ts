@@ -39,9 +39,9 @@ export const GET: RequestHandler = async () => {
   try {
     const result = await query<CompanyInfo>(`
 			SELECT 
-				id, name, establishment_date, ceo_name, business_type,
+				id, name, establishment_date::text as establishment_date, ceo_name, business_type,
 				address, phone, fax, email, website, registration_number,
-				created_at, updated_at
+				created_at::text as created_at, updated_at::text as updated_at
 			FROM companies 
 			ORDER BY created_at DESC
 			LIMIT 1
@@ -106,9 +106,9 @@ export const POST: RequestHandler = async ({ request }) => {
 					registration_number = $10,
 					updated_at = $11
 				WHERE id = (SELECT id FROM companies LIMIT 1)
-				RETURNING id, name, establishment_date, ceo_name, business_type,
+				RETURNING id, name, establishment_date::text as establishment_date, ceo_name, business_type,
 					address, phone, fax, email, website, registration_number,
-					created_at, updated_at
+					created_at::text as created_at, updated_at::text as updated_at
 			`,
         [
           data.name,
@@ -133,9 +133,9 @@ export const POST: RequestHandler = async ({ request }) => {
 					address, phone, fax, email, website, registration_number,
 					created_at, updated_at
 				) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
-				RETURNING id, name, establishment_date, ceo_name, business_type,
+				RETURNING id, name, establishment_date::text as establishment_date, ceo_name, business_type,
 					address, phone, fax, email, website, registration_number,
-					created_at, updated_at
+					created_at::text as created_at, updated_at::text as updated_at
 			`,
         [
           data.name,

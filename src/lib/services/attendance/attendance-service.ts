@@ -43,7 +43,7 @@ const QUERIES = {
   GET_TODAY_ATTENDANCE: `
     SELECT
       id,
-      DATE(check_in_time) as date,
+      DATE(check_in_time)::text as date,
       check_in_time::text as check_in_time,
       check_out_time::text as check_out_time,
       break_start_time::text as break_start_time,
@@ -59,7 +59,7 @@ const QUERIES = {
   // 주간 출퇴근 기록
   GET_WEEK_ATTENDANCE: `
     SELECT
-      DATE(check_in_time) as date,
+      DATE(check_in_time)::text as date,
       check_in_time::text as check_in_time,
       check_out_time::text as check_out_time,
       total_work_hours,
@@ -415,6 +415,8 @@ export async function fetchAttendanceData(
     const weekRange = getWeekRange(targetDate)
     const monthRange = getMonthRange(targetDate)
 
+    logger.info(`[fetchAttendanceData] Loading for employee: ${employeeId}, date: ${targetDate}`)
+
     // 병렬 쿼리 실행 (성능 최적화)
     const [todayResult, weekResult, statsResult, monthResult] = await Promise.all([
       query(QUERIES.GET_TODAY_ATTENDANCE, [employeeId, targetDate]),
@@ -433,6 +435,10 @@ export async function fetchAttendanceData(
       status: row.status,
     }))
 
+    logger.info(
+      `[fetchAttendanceData] Success: today=${!!todayResult.rows[0]}, week=${weekResult.rows.length}, month=${monthRecords.length}`,
+    )
+
     return {
       success: true,
       data: {
@@ -450,7 +456,17 @@ export async function fetchAttendanceData(
       },
     }
   } catch (error) {
-    logger.error('Error fetching attendance data:', error)
+    logger.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+    logger.error('❌ [fetchAttendanceData] Error fetching attendance data')
+    logger.error('   Employee ID:', employeeId)
+    logger.error('   Date:', date)
+    logger.error('   Error:', error)
+    if (error instanceof Error) {
+      logger.error('   Error message:', error.message)
+      logger.error('   Stack trace:')
+      logger.error(error.stack || 'Stack trace not available')
+    }
+    logger.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
     return {
       success: false,
       message: ATTENDANCE_ERRORS.FETCH_FAILED,
@@ -475,11 +491,14 @@ export async function recordCheckIn(
 ): Promise<ServiceResult<AttendanceRecord>> {
   try {
     const now = new Date()
+    logger.info(`[recordCheckIn] Employee: ${employeeId}, Date: ${date}, IP: ${clientIp}`)
+
     const settings = await fetchAttendanceSettings()
 
     // IP 주소 검증
     const ipValidation = validateIpAddress(clientIp, settings)
     if (!ipValidation.valid) {
+      logger.warn(`[recordCheckIn] IP validation failed for ${clientIp}`)
       return {
         success: false,
         message: ipValidation.message,
@@ -488,6 +507,7 @@ export async function recordCheckIn(
 
     // 출근 상태 판정
     const status = determineCheckInStatus(now, date, settings)
+    logger.info(`[recordCheckIn] Status determined: ${status}`)
 
     // 출근 기록
     const result = await query(QUERIES.RECORD_CHECK_IN, [employeeId, clientIp, notes || '', status])
@@ -495,13 +515,25 @@ export async function recordCheckIn(
     const message =
       status === 'late' ? ATTENDANCE_MESSAGES.CHECK_IN_LATE : ATTENDANCE_MESSAGES.CHECK_IN
 
+    logger.info(`[recordCheckIn] Success: ${message}`)
     return {
       success: true,
       data: result.rows[0],
       message,
     }
   } catch (error) {
-    logger.error('Error recording check-in:', error)
+    logger.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+    logger.error('❌ [recordCheckIn] Error recording check-in')
+    logger.error('   Employee ID:', employeeId)
+    logger.error('   Date:', date)
+    logger.error('   Client IP:', clientIp)
+    logger.error('   Error:', error)
+    if (error instanceof Error) {
+      logger.error('   Error message:', error.message)
+      logger.error('   Stack trace:')
+      logger.error(error.stack || 'Stack trace not available')
+    }
+    logger.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
     return {
       success: false,
       message: ATTENDANCE_ERRORS.RECORD_FAILED,
@@ -524,12 +556,15 @@ export async function recordCheckOut(
 ): Promise<ServiceResult<AttendanceRecord>> {
   try {
     const now = new Date()
-    const settings = await fetchAttendanceSettings()
     const today = now.toISOString().split('T')[0]
+    logger.info(`[recordCheckOut] Employee: ${employeeId}, IP: ${clientIp}`)
+
+    const settings = await fetchAttendanceSettings()
 
     // IP 주소 검증
     const ipValidation = validateIpAddress(clientIp, settings)
     if (!ipValidation.valid) {
+      logger.warn(`[recordCheckOut] IP validation failed for ${clientIp}`)
       return {
         success: false,
         message: ipValidation.message,
@@ -538,12 +573,14 @@ export async function recordCheckOut(
 
     // 조기퇴근 여부 판정
     const earlyLeave = isEarlyLeave(now, today, settings)
+    logger.info(`[recordCheckOut] Early leave: ${earlyLeave}`)
 
     // 퇴근 기록
     const queryStr = earlyLeave ? QUERIES.RECORD_CHECK_OUT_EARLY : QUERIES.RECORD_CHECK_OUT
     const result = await query(queryStr, [employeeId, clientIp, notes || ''])
 
     if (result.rows.length === 0) {
+      logger.warn(`[recordCheckOut] No check-in record found for employee ${employeeId}`)
       return {
         success: false,
         message: ATTENDANCE_ERRORS.NO_CHECK_IN,
@@ -552,13 +589,24 @@ export async function recordCheckOut(
 
     const message = earlyLeave ? ATTENDANCE_MESSAGES.CHECK_OUT_EARLY : ATTENDANCE_MESSAGES.CHECK_OUT
 
+    logger.info(`[recordCheckOut] Success: ${message}`)
     return {
       success: true,
       data: result.rows[0],
       message,
     }
   } catch (error) {
-    logger.error('Error recording check-out:', error)
+    logger.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+    logger.error('❌ [recordCheckOut] Error recording check-out')
+    logger.error('   Employee ID:', employeeId)
+    logger.error('   Client IP:', clientIp)
+    logger.error('   Error:', error)
+    if (error instanceof Error) {
+      logger.error('   Error message:', error.message)
+      logger.error('   Stack trace:')
+      logger.error(error.stack || 'Stack trace not available')
+    }
+    logger.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
     return {
       success: false,
       message: ATTENDANCE_ERRORS.RECORD_FAILED,
@@ -576,22 +624,34 @@ export async function recordBreakStart(
   employeeId: string,
 ): Promise<ServiceResult<AttendanceRecord>> {
   try {
+    logger.info(`[recordBreakStart] Employee: ${employeeId}`)
     const result = await query(QUERIES.RECORD_BREAK_START, [employeeId])
 
     if (result.rows.length === 0) {
+      logger.warn(`[recordBreakStart] No check-in record found for employee ${employeeId}`)
       return {
         success: false,
         message: ATTENDANCE_ERRORS.NO_CHECK_IN,
       }
     }
 
+    logger.info(`[recordBreakStart] Success`)
     return {
       success: true,
       data: result.rows[0],
       message: ATTENDANCE_MESSAGES.BREAK_START,
     }
   } catch (error) {
-    logger.error('Error recording break start:', error)
+    logger.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+    logger.error('❌ [recordBreakStart] Error recording break start')
+    logger.error('   Employee ID:', employeeId)
+    logger.error('   Error:', error)
+    if (error instanceof Error) {
+      logger.error('   Error message:', error.message)
+      logger.error('   Stack trace:')
+      logger.error(error.stack || 'Stack trace not available')
+    }
+    logger.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
     return {
       success: false,
       message: ATTENDANCE_ERRORS.RECORD_FAILED,
@@ -607,22 +667,34 @@ export async function recordBreakStart(
  */
 export async function recordBreakEnd(employeeId: string): Promise<ServiceResult<AttendanceRecord>> {
   try {
+    logger.info(`[recordBreakEnd] Employee: ${employeeId}`)
     const result = await query(QUERIES.RECORD_BREAK_END, [employeeId])
 
     if (result.rows.length === 0) {
+      logger.warn(`[recordBreakEnd] No check-in record found for employee ${employeeId}`)
       return {
         success: false,
         message: ATTENDANCE_ERRORS.NO_CHECK_IN,
       }
     }
 
+    logger.info(`[recordBreakEnd] Success`)
     return {
       success: true,
       data: result.rows[0],
       message: ATTENDANCE_MESSAGES.BREAK_END,
     }
   } catch (error) {
-    logger.error('Error recording break end:', error)
+    logger.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+    logger.error('❌ [recordBreakEnd] Error recording break end')
+    logger.error('   Employee ID:', employeeId)
+    logger.error('   Error:', error)
+    if (error instanceof Error) {
+      logger.error('   Error message:', error.message)
+      logger.error('   Stack trace:')
+      logger.error(error.stack || 'Stack trace not available')
+    }
+    logger.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
     return {
       success: false,
       message: ATTENDANCE_ERRORS.RECORD_FAILED,
