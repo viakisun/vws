@@ -13,7 +13,8 @@ export const GET: RequestHandler = async () => {
     const result = await query(
       `
 			SELECT
-				ec.*,
+				ec.id, ec.name, ec.description,
+				ec.created_at::text as created_at, ec.updated_at::text as updated_at,
 				COUNT(ei.id) as item_count,
 				COUNT(CASE WHEN ei.status = 'completed' THEN 1 END) as completed_count,
 				COUNT(CASE WHEN ei.status = 'in_progress' THEN 1 END) as in_progress_count,

@@ -4,8 +4,8 @@
   import { browser } from '$app/environment'
   import { goto } from '$app/navigation'
   import { page } from '$app/state'
-  import PageLayout from '$lib/components/layout/PageLayout.svelte'
   import PermissionGate from '$lib/components/auth/PermissionGate.svelte'
+  import PageLayout from '$lib/components/layout/PageLayout.svelte'
   import AnnualBudgetForm from '$lib/components/project-management/AnnualBudgetForm.svelte'
   import ParticipationCard from '$lib/components/project-management/ParticipationCard.svelte'
   import ProjectCreationForm from '$lib/components/project-management/ProjectCreationForm.svelte'
@@ -13,7 +13,7 @@
   import ProjectOverviewCard from '$lib/components/project-management/ProjectOverviewCard.svelte'
   import ThemeModal from '$lib/components/ui/ThemeModal.svelte'
   import ThemeTabs from '$lib/components/ui/ThemeTabs.svelte'
-  import { Resource, PermissionAction } from '$lib/stores/permissions'
+  import { PermissionAction, Resource } from '$lib/stores/permissions'
   import { BarChart3Icon, FlaskConicalIcon, PercentIcon } from '@lucide/svelte'
   import { onMount } from 'svelte'
 
@@ -169,18 +169,10 @@
   // API 호출 함수들
   async function loadProjectData() {
     try {
-      logger.log('🔍 프로젝트 데이터 로딩 시작...')
-
-      // API 응답 시간 측정
-      const startTime = Date.now()
       const response = await fetch('/api/project-management/projects')
-      const responseTime = Date.now() - startTime
-
-      logger.log(`⏱️ API 응답 시간: ${responseTime}ms`)
 
       if (response.ok) {
         const data = await response.json()
-        logger.log('📊 API 응답 데이터:', data)
 
         if (data.success) {
           const projectData = data.data || []
@@ -195,7 +187,6 @@
           }
 
           projects = projectData
-          logger.log(`✅ ${projectData.length}개 프로젝트 로드 완료`)
         } else {
           throw new Error(data.message || '프로젝트 데이터를 불러오는데 실패했습니다.')
         }

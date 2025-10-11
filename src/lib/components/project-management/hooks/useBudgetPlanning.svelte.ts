@@ -8,13 +8,13 @@ import { pushToast } from '$lib/stores/toasts'
  * - 참여연구원 관리 (인건비 배분의 핵심)
  */
 
-import { logger } from '$lib/utils/logger'
-import { formatDateForInput } from '$lib/utils/format'
 import * as memberService from '$lib/services/project-management/member.service'
-import * as memberUtilsImported from '../utils/memberUtils'
+import { formatDateForInput } from '$lib/utils/format'
+import { logger } from '$lib/utils/logger'
+import type { ProjectDetailStore } from '../stores/projectDetailStore.svelte'
 import * as calculationUtilsImported from '../utils/calculationUtils'
 import * as dataTransformers from '../utils/dataTransformers'
-import type { ProjectDetailStore } from '../stores/projectDetailStore.svelte'
+import * as memberUtilsImported from '../utils/memberUtils'
 
 export interface UseBudgetPlanningOptions {
   store: ProjectDetailStore
@@ -31,16 +31,7 @@ export function useBudgetPlanning(options: UseBudgetPlanningOptions) {
 
   async function loadMembers(): Promise<void> {
     try {
-      logger.log('참여연구원 목록 로드 시작, 프로젝트 ID:', projectId)
-
       const members = await memberService.getProjectMembers(projectId)
-
-      logger.log('🔍 API에서 받은 원본 멤버 데이터:', members)
-      if (members.length > 0) {
-        logger.log('🔍 첫 번째 멤버 상세:', members[0])
-        logger.log('🔍 첫 번째 멤버의 start_date:', members[0].start_date)
-        logger.log('🔍 첫 번째 멤버의 end_date:', members[0].end_date)
-      }
 
       // 각 멤버의 참여개월수 계산
       store.data.projectMembers = members.map((member: any) => {
@@ -48,19 +39,11 @@ export function useBudgetPlanning(options: UseBudgetPlanningOptions) {
           member.start_date,
           member.end_date,
         )
-        logger.log(`🔍 멤버 ${member.employee_name} 참여개월수 계산:`, {
-          start_date: member.start_date,
-          end_date: member.end_date,
-          calculated: participationMonths,
-        })
         return {
           ...member,
           participationMonths,
         }
       })
-
-      logger.log('참여연구원 목록 로드 성공:', store.data.projectMembers.length, '명')
-      logger.log('🔍 최종 projectMembers:', store.data.projectMembers)
     } catch (error) {
       logger.error('참여연구원 로드 실패:', error)
       throw error
@@ -73,9 +56,7 @@ export function useBudgetPlanning(options: UseBudgetPlanningOptions) {
 
   async function loadAvailableEmployees(): Promise<void> {
     try {
-      logger.log('직원 목록 로딩 시작, 프로젝트 ID:', projectId)
       store.data.availableEmployees = await memberService.getAvailableEmployees(projectId)
-      logger.log('로드된 직원 수:', store.data.availableEmployees.length)
     } catch (error) {
       logger.error('직원 목록 로드 실패:', error)
       throw error
@@ -153,11 +134,6 @@ export function useBudgetPlanning(options: UseBudgetPlanningOptions) {
   function editMember(member: any): void {
     store.selected.member = member
 
-    // 디버깅: 멤버 데이터 확인
-    logger.log('editMember - member data:', member)
-    logger.log('editMember - startDate raw:', memberUtilsImported.getMemberStartDate(member))
-    logger.log('editMember - endDate raw:', memberUtilsImported.getMemberEndDate(member))
-
     // 날짜 데이터 확인 및 안전한 처리
     const rawStartDate = memberUtilsImported.getMemberStartDate(member)
     const rawEndDate = memberUtilsImported.getMemberEndDate(member)
@@ -181,8 +157,6 @@ export function useBudgetPlanning(options: UseBudgetPlanningOptions) {
       cashAmount: dataTransformers.extractCashAmount(member),
       inKindAmount: dataTransformers.extractInKindAmount(member),
     }
-
-    logger.log('editMember - forms.member:', store.forms.member)
 
     // 수정 시 월간금액 자동 계산 (수동 입력 플래그 초기화)
     store.ui.isManualMonthlyAmount = false
@@ -231,21 +205,6 @@ export function useBudgetPlanning(options: UseBudgetPlanningOptions) {
       return
     }
 
-    // 디버깅: 필드 값 확인
-    logger.log('updateMember - forms.member:', store.forms.member)
-    logger.log(
-      'updateMember - startDate:',
-      store.forms.member.startDate,
-      'type:',
-      typeof store.forms.member.startDate,
-    )
-    logger.log(
-      'updateMember - endDate:',
-      store.forms.member.endDate,
-      'type:',
-      typeof store.forms.member.endDate,
-    )
-
     // 필수 필드 검증
     if (!store.forms.member.startDate || !store.forms.member.endDate) {
       pushToast('참여기간(시작일, 종료일)을 모두 입력해주세요.', 'info')
@@ -259,14 +218,6 @@ export function useBudgetPlanning(options: UseBudgetPlanningOptions) {
       )
       const formattedEndDate = calculationUtilsImported.convertDateToISO(store.forms.member.endDate)
 
-      logger.log('참여연구원 수정 요청 데이터:', {
-        id: store.selected.member.id,
-        role: store.forms.member.role,
-        startDate: formattedStartDate,
-        endDate: formattedEndDate,
-        participationRate: store.forms.member.participationRate,
-      })
-
       await memberService.updateMember({
         id: store.selected.member.id,
         role: store.forms.member.role,
@@ -275,15 +226,12 @@ export function useBudgetPlanning(options: UseBudgetPlanningOptions) {
         participationRate: store.forms.member.participationRate,
       })
 
-      logger.log('참여연구원 수정 성공')
-
       store.selected.member = null
       store.setLoading('addingMember', false)
       resetForm()
 
       // 데이터 새로고침
       await loadMembers()
-      logger.log('참여연구원 목록 새로고침 완료')
 
       onRefresh()
 

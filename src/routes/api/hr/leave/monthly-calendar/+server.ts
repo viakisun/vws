@@ -157,12 +157,13 @@ export const GET: RequestHandler = async (event) => {
             AND e.hire_date <= CURRENT_DATE - INTERVAL '1 year'
         )
         SELECT 
-          employee_id,
-          employee_name,
+          id,
+          first_name,
+          last_name,
           department,
           total_days,
           used_days,
-          remaining_days
+          (total_days - used_days) as remaining_days
         FROM employee_leave_usage
         WHERE used_days / NULLIF(total_days, 0) <= 0.5
         ORDER BY (total_days - used_days) DESC

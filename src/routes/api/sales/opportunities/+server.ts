@@ -45,7 +45,9 @@ export const GET: RequestHandler = async ({ url }) => {
     const result = await query(
       `
       SELECT 
-        o.*,
+        o.id, o.title, o.customer_id, o.type, o.stage, o.value, o.probability,
+        o.expected_close_date::text as expected_close_date, o.owner_id, o.description, o.status,
+        o.created_at::text as created_at, o.updated_at::text as updated_at,
         c.name as customer_name,
         c.type as customer_type
       FROM sales_opportunities o
@@ -107,8 +109,8 @@ export const POST: RequestHandler = async ({ request }) => {
       )
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
       RETURNING id, title, customer_id, type, stage, value, probability,
-                expected_close_date, owner_id, description, status,
-                created_at::text, updated_at::text
+                expected_close_date::text as expected_close_date, owner_id, description, status,
+                created_at::text as created_at, updated_at::text as updated_at
       `,
       [
         data.title,

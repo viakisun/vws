@@ -21,7 +21,7 @@ export const GET: RequestHandler = async ({ url }) => {
       SELECT 
         department as name,
         COUNT(*) as employee_count,
-        MIN(hire_date) as created_at
+        MIN(hire_date)::text as created_at
       FROM employees e
       ${whereClause}
       GROUP BY department
@@ -103,8 +103,8 @@ export const POST: RequestHandler = async ({ request }) => {
         description: data.description?.trim() || '',
         status: 'active',
         max_employees: null,
-        created_at: new Date(),
-        updated_at: new Date(),
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
         employee_count: 0,
       },
       message: '부서가 등록되었습니다. 이제 이 부서로 직원을 배정할 수 있습니다.',

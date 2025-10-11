@@ -33,8 +33,14 @@ export const GET: RequestHandler = async ({ url }) => {
       `
 			SELECT
 				e.id, e.employee_id, e.first_name, e.last_name, e.email, e.phone,
-				e.department, e.position, e.salary, e.hire_date, e.birth_date, e.termination_date, e.status,
-				e.employment_type, e.job_title_id, e.created_at, e.updated_at,
+				e.department, e.position, e.salary, 
+				e.hire_date::text as hire_date, 
+				e.birth_date::text as birth_date, 
+				e.termination_date::text as termination_date, 
+				e.status,
+				e.employment_type, e.job_title_id, 
+				e.created_at::text as created_at, 
+				e.updated_at::text as updated_at,
 				jt.name as job_title_name, jt.level as job_title_level, jt.category as job_title_category
 			FROM employees e
 			LEFT JOIN job_titles jt ON e.job_title_id = jt.id
@@ -75,14 +81,24 @@ export const POST: RequestHandler = async ({ request }) => {
   try {
     const data = (await request.json()) as Partial<DatabaseEmployee>
 
+    logger.info('Employee creation request:', data)
+
     // 필수 필드 검증
-    const requiredFields = ['first_name', 'last_name', 'email', 'department', 'position', 'salary']
+    const requiredFields = ['first_name', 'last_name', 'email', 'department', 'position']
     const missingFields = requiredFields.filter(
-      (field) =>
-        !data[field as keyof DatabaseEmployee] || data[field as keyof DatabaseEmployee] === '',
+      (field) => {
+        const value = data[field as keyof DatabaseEmployee]
+        return value === null || value === undefined || value === ''
+      },
     )
+    
+    // salary는 0도 유효하므로 별도 체크
+    if (data.salary === null || data.salary === undefined) {
+      missingFields.push('salary')
+    }
 
     if (missingFields.length > 0) {
+      logger.error('Missing required fields:', missingFields)
       return json(
         {
           success: false,
@@ -174,10 +190,10 @@ export const POST: RequestHandler = async ({ request }) => {
 				employee_id, first_name, last_name, email, phone,
 				department, position, salary, hire_date, birth_date, termination_date, status,
 				employment_type, job_title_id, created_at, updated_at
-			) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+			) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, now(), now())
 			RETURNING id, employee_id, first_name, last_name, email, phone,
-				department, position, salary, hire_date, birth_date, termination_date, status,
-				employment_type, job_title_id, created_at, updated_at
+				department, position, salary, hire_date::text as hire_date, birth_date::text as birth_date, termination_date::text as termination_date, status,
+				employment_type, job_title_id, created_at::text as created_at, updated_at::text as updated_at
 		`,
       [
         employeeId,
@@ -194,8 +210,6 @@ export const POST: RequestHandler = async ({ request }) => {
         data.status || 'active',
         data.employment_type || 'full-time',
         data.job_title_id && data.job_title_id.trim() !== '' ? data.job_title_id : null,
-        new Date(),
-        new Date(),
       ],
     )
 
@@ -246,8 +260,16 @@ export const PUT: RequestHandler = async ({ request }) => {
       )
     }
 
-    const requiredFields = ['first_name', 'last_name', 'email', 'department', 'position', 'salary']
-    const missingFields = requiredFields.filter((field) => !data[field] || data[field] === '')
+    const requiredFields = ['first_name', 'last_name', 'email', 'department', 'position']
+    const missingFields = requiredFields.filter((field) => {
+      const value = data[field]
+      return value === null || value === undefined || value === ''
+    })
+    
+    // salary는 0도 유효하므로 별도 체크
+    if (data.salary === null || data.salary === undefined) {
+      missingFields.push('salary')
+    }
 
     if (missingFields.length > 0) {
       return json(
@@ -343,11 +365,11 @@ export const PUT: RequestHandler = async ({ request }) => {
 				status = $12,
 				employment_type = $13,
 				job_title_id = $14,
-				updated_at = $15
+				updated_at = now()
 			WHERE id = $1
 			RETURNING id, employee_id, first_name, last_name, email, phone,
-				department, position, salary, hire_date, birth_date, termination_date, status,
-				employment_type, job_title_id, created_at, updated_at
+				department, position, salary, hire_date::text as hire_date, birth_date::text as birth_date, termination_date::text as termination_date, status,
+				employment_type, job_title_id, created_at::text as created_at, updated_at::text as updated_at
 		`,
       [
         data.id,
@@ -364,7 +386,6 @@ export const PUT: RequestHandler = async ({ request }) => {
         status,
         data.employment_type || 'full-time',
         data.job_title_id && data.job_title_id.trim() !== '' ? data.job_title_id : null,
-        new Date(),
       ],
     )
 

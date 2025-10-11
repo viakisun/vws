@@ -1,7 +1,7 @@
+import { requireAuth } from '$lib/auth/middleware'
+import { query } from '$lib/database/connection'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
-import { query } from '$lib/database/connection'
-import { requireAuth } from '$lib/auth/middleware'
 
 /**
  * GET /api/hr/attendance/monthly-summary
@@ -62,7 +62,7 @@ export const GET: RequestHandler = async (event) => {
         END), 0)::integer as absent,
         COALESCE(COUNT(DISTINCT lr.employee_id), 0)::integer as on_leave
       FROM date_series ds
-      LEFT JOIN attendance a ON a.date = ds.date
+      LEFT JOIN attendance a ON DATE(a.check_in_time) = ds.date
       LEFT JOIN employees e ON a.employee_id = e.id AND e.status = 'active' ${departmentFilter}
       LEFT JOIN leave_requests lr ON lr.employee_id = e.id
         AND lr.status = 'approved'

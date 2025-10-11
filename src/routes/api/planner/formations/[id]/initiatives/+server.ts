@@ -1,7 +1,7 @@
+import { DatabaseService } from '$lib/database/connection'
+import { formationService } from '$lib/planner/services/formation.service'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
-import { formationService } from '$lib/planner/services/formation.service'
-import { DatabaseService } from '$lib/database/connection'
 
 // GET: List initiatives for a formation
 export const GET: RequestHandler = async ({ params }) => {
@@ -11,12 +11,13 @@ export const GET: RequestHandler = async ({ params }) => {
       SELECT
         fi.initiative_id,
         fi.allocation_percentage,
-        fi.start_date,
-        fi.end_date,
-        fi.created_at,
+        fi.start_date::text as start_date,
+        fi.end_date::text as end_date,
+        fi.created_at::text as created_at,
         i.title,
         i.intent,
-        i.state,
+        i.status,
+        i.stage,
         i.horizon,
         i.product_id,
         p.name as product_name,

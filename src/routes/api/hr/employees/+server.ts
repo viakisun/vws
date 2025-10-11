@@ -3,13 +3,13 @@
 import { query } from '$lib/database/connection'
 import type { ApiResponse } from '$lib/types/database'
 import type {
-  EmergencyContact,
-  Employee,
-  EmployeeLevel,
-  EmployeeStatus,
-  EmploymentType,
-  PaginatedResponse,
-  PersonalInfo,
+    EmergencyContact,
+    Employee,
+    EmployeeLevel,
+    EmployeeStatus,
+    EmploymentType,
+    PaginatedResponse,
+    PersonalInfo,
 } from '$lib/types/hr'
 import { logger } from '$lib/utils/logger'
 import { json } from '@sveltejs/kit'
@@ -173,13 +173,13 @@ export const GET: RequestHandler = async ({ url }) => {
 				e.position,
 				e.position as level,
 				e.employment_type,
-				e.hire_date,
+				e.hire_date::text as hire_date,
 				e.status,
 				vcm.manager_id,
 				vcm.manager_name,
 				e.emergency_contact,
-				e.created_at,
-				e.updated_at
+				e.created_at::text as created_at,
+				e.updated_at::text as updated_at
 			FROM employees e
 			LEFT JOIN v_employee_current_manager vcm ON e.id = vcm.employee_id
 			${whereClause}
@@ -313,15 +313,15 @@ export const POST: RequestHandler = async ({ request }) => {
         position,
         level,
         employment_type,
-        hire_date,
-        birth_date,
+        hire_date::text as hire_date,
+        birth_date::text as birth_date,
         status,
         profile_image,
         emergency_contact,
         personal_info,
-        termination_date,
-        created_at::text,
-        updated_at::text
+        termination_date::text as termination_date,
+        created_at::text as created_at,
+        updated_at::text as updated_at
 		`,
       [
         employeeData.employeeId,

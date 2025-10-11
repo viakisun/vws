@@ -12,7 +12,17 @@ export const GET: RequestHandler = async ({ url }) => {
 
     let sqlQuery = `
 			SELECT
-				pb.*,
+				pb.id, pb.project_id, pb.period_number,
+				pb.start_date::text as start_date, pb.end_date::text as end_date,
+				pb.personnel_cost, pb.research_material_cost, pb.research_activity_cost,
+				pb.research_stipend, pb.indirect_cost,
+				pb.personnel_cost_cash, pb.personnel_cost_in_kind,
+				pb.research_material_cost_cash, pb.research_material_cost_in_kind,
+				pb.research_activity_cost_cash, pb.research_activity_cost_in_kind,
+				pb.research_stipend_cash, pb.research_stipend_in_kind,
+				pb.indirect_cost_cash, pb.indirect_cost_in_kind,
+				pb.government_funding_amount, pb.company_cash_amount, pb.company_in_kind_amount,
+				pb.created_at::text as created_at, pb.updated_at::text as updated_at,
 				p.title as project_title,
 				p.code as project_code
 			FROM project_budgets pb
@@ -163,7 +173,17 @@ export const POST: RequestHandler = async ({ request }) => {
     const budgetWithDetails = await query(
       `
 			SELECT
-				pb.*,
+				pb.id, pb.project_id, pb.period_number,
+				pb.start_date::text as start_date, pb.end_date::text as end_date,
+				pb.personnel_cost, pb.research_material_cost, pb.research_activity_cost,
+				pb.research_stipend, pb.indirect_cost,
+				pb.personnel_cost_cash, pb.personnel_cost_in_kind,
+				pb.research_material_cost_cash, pb.research_material_cost_in_kind,
+				pb.research_activity_cost_cash, pb.research_activity_cost_in_kind,
+				pb.research_stipend_cash, pb.research_stipend_in_kind,
+				pb.indirect_cost_cash, pb.indirect_cost_in_kind,
+				pb.government_funding_amount, pb.company_cash_amount, pb.company_in_kind_amount,
+				pb.created_at::text as created_at, pb.updated_at::text as updated_at,
 				p.title as project_title,
 				p.code as project_code
 			FROM project_budgets pb

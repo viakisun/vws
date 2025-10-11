@@ -15,9 +15,10 @@ export const GET: RequestHandler = async ({ params }) => {
     const budgetResult = await query(
       `
 			SELECT
-				id, project_id, period_number, start_date, end_date,
+				id, project_id, period_number,
+				start_date::text as start_date, end_date::text as end_date,
 				government_funding_amount, company_cash_amount, company_in_kind_amount,
-				created_at, updated_at
+				created_at::text as created_at, updated_at::text as updated_at
 			FROM project_budgets
 			WHERE project_id = $1
 			ORDER BY period_number
@@ -247,9 +248,10 @@ export const POST: RequestHandler = async ({ params, request }) => {
     const result = await query(
       `
 			SELECT
-				id, project_id, period_number, start_date, end_date,
+				id, project_id, period_number,
+				start_date::text as start_date, end_date::text as end_date,
 				government_funding_amount, company_cash_amount, company_in_kind_amount,
-				created_at, updated_at
+				created_at::text as created_at, updated_at::text as updated_at
 			FROM project_budgets
 			WHERE project_id = $1
 			ORDER BY period_number

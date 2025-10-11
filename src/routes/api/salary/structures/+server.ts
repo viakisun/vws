@@ -60,14 +60,14 @@ export const GET: RequestHandler = async ({ url }) => {
         total_allowances,
         total_deductions,
         net_salary,
-        effective_date,
-        end_date,
+        effective_date::text as effective_date,
+        end_date::text as end_date,
         status,
-        created_at::text,
-        updated_at::text,
+        created_at::text as created_at,
+        updated_at::text as updated_at,
         created_by,
         approved_by,
-        approved_at::text
+        approved_at::text as approved_at
 			FROM salary_structures
 			${whereClause}
 			ORDER BY effective_date DESC, created_at DESC
@@ -145,14 +145,14 @@ export const POST: RequestHandler = async ({ request }) => {
         total_allowances,
         total_deductions,
         net_salary,
-        effective_date,
-        end_date,
+        effective_date::text as effective_date,
+        end_date::text as end_date,
         status,
-        created_at::text,
-        updated_at::text,
+        created_at::text as created_at,
+        updated_at::text as updated_at,
         created_by,
         approved_by,
-        approved_at::text
+        approved_at::text as approved_at
 		`,
       [
         structureData.employeeId,

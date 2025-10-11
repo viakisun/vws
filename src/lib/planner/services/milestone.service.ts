@@ -1,11 +1,11 @@
 import { DatabaseService } from '$lib/database/connection'
 import type {
-  CreateMilestoneInput,
-  Milestone,
-  MilestoneFilters,
-  MilestoneStatus,
-  MilestoneWithProduct,
-  UpdateMilestoneInput,
+    CreateMilestoneInput,
+    Milestone,
+    MilestoneFilters,
+    MilestoneStatus,
+    MilestoneWithProduct,
+    UpdateMilestoneInput,
 } from '$lib/planner/types'
 
 export class MilestoneService {
@@ -101,7 +101,17 @@ export class MilestoneService {
     const result = await DatabaseService.query(
       `
 			SELECT
-				m.*,
+				m.id,
+				m.product_id,
+				m.name,
+				m.description,
+				m.target_date::text as target_date,
+				m.status,
+				m.achieved_at::text as achieved_at,
+				m.achievement_notes,
+				m.deleted_at::text as deleted_at,
+				m.created_at::text as created_at,
+				m.updated_at::text as updated_at,
 				json_build_object(
 					'id', p.id,
 					'name', p.name,

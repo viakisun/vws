@@ -125,9 +125,10 @@ export const GET: RequestHandler = async (event) => {
       const usageRate = balance.used_days / balance.total_days
 
       // 입사일 확인
-      const employeeInfoResult = await query(`SELECT hire_date FROM employees WHERE id = $1`, [
-        employeeId,
-      ])
+      const employeeInfoResult = await query(
+        `SELECT hire_date::text FROM employees WHERE id = $1`,
+        [employeeId],
+      )
 
       if (employeeInfoResult.rows[0]) {
         const hireDate = new Date(employeeInfoResult.rows[0].hire_date)

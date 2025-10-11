@@ -1,4 +1,4 @@
-import { DatabaseService } from '$lib/database/connection'
+import { companyService } from '$lib/services/company/company-service'
 import type { DatabaseCompany } from '$lib/types'
 import type { ApiResponse } from '$lib/types/database'
 import { logger } from '$lib/utils/logger'
@@ -6,43 +6,38 @@ import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
 
 interface CompanyQueryParams {
-  type?: string
-  status?: string
-  industry?: string
+  business_type?: string
   limit?: number
   offset?: number
 }
 
 interface CreateCompanyRequest {
   name: string
-  type: string
-  status?: string
-  industry?: string
+  establishment_date?: string
+  ceo_name?: string
+  business_type?: string
   address?: string
   phone?: string
+  fax?: string
   email?: string
   website?: string
-  description?: string
+  registration_number?: string
 }
 
 // GET /api/companies - Get all companies
 export const GET: RequestHandler = async ({ url }) => {
   try {
-    const type = url.searchParams.get('type')
-    const status = url.searchParams.get('status')
-    const industry = url.searchParams.get('industry')
+    const business_type = url.searchParams.get('business_type')
     const limit = url.searchParams.get('limit')
     const offset = url.searchParams.get('offset')
 
     const queryParams: CompanyQueryParams = {
-      type: type || undefined,
-      status: status || undefined,
-      industry: industry || undefined,
+      business_type: business_type || undefined,
       limit: limit ? parseInt(limit) : undefined,
       offset: offset ? parseInt(offset) : undefined,
     }
 
-    const companies = await DatabaseService.getCompanies(queryParams)
+    const companies = await companyService.list(queryParams)
 
     const response: ApiResponse<DatabaseCompany[]> = {
       success: true,
@@ -67,21 +62,18 @@ export const POST: RequestHandler = async ({ request }) => {
     const companyData = (await request.json()) as CreateCompanyRequest
 
     // Validate required fields
-    if (!companyData.name || !companyData.type) {
+    if (!companyData.name) {
       const response: ApiResponse<null> = {
         success: false,
-        error: '회사명과 유형은 필수입니다.',
+        error: '회사명은 필수입니다.',
       }
       return json(response, { status: 400 })
     }
 
     // Check if company name already exists
-    const existingCompany = await DatabaseService.query(
-      'SELECT id FROM companies WHERE name = $1',
-      [companyData.name],
-    )
+    const existingCompany = await companyService.getByName(companyData.name)
 
-    if (existingCompany.rows.length > 0) {
+    if (existingCompany) {
       const response: ApiResponse<null> = {
         success: false,
         error: '이미 존재하는 회사명입니다.',
@@ -89,7 +81,7 @@ export const POST: RequestHandler = async ({ request }) => {
       return json(response, { status: 400 })
     }
 
-    const company = await DatabaseService.createCompany(companyData as Partial<DatabaseCompany>)
+    const company = await companyService.create(companyData)
 
     const response: ApiResponse<DatabaseCompany> = {
       success: true,

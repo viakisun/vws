@@ -62,7 +62,7 @@ export const GET: RequestHandler = async ({ url }) => {
 
     const result = await query<JobTitleInfo>(
       `
-			SELECT id, name, level, category, description, is_active, created_at, updated_at
+			SELECT id, name, level, category, description, is_active, created_at::text as created_at, updated_at::text as updated_at
 			FROM job_titles
 			${whereClause}
 			ORDER BY level ASC, name ASC
@@ -143,8 +143,8 @@ export const POST: RequestHandler = async ({ request }) => {
     const result = await query<JobTitleInfo>(
       `
 			INSERT INTO job_titles (name, level, category, description, is_active, created_at, updated_at)
-			VALUES ($1, $2, $3, $4, $5, $6, $7)
-			RETURNING id, name, level, category, description, is_active, created_at, updated_at
+			VALUES ($1, $2, $3, $4, $5, now(), now())
+			RETURNING id, name, level, category, description, is_active, created_at::text as created_at, updated_at::text as updated_at
 		`,
       [
         data.name.trim(),
@@ -152,8 +152,6 @@ export const POST: RequestHandler = async ({ request }) => {
         data.category.trim(),
         data.description?.trim() || '',
         data.is_active !== false,
-        new Date(),
-        new Date(),
       ],
     )
 

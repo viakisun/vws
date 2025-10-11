@@ -1,12 +1,12 @@
 import { DatabaseService } from '$lib/database/connection'
 import type {
-  CreateInitiativeInput,
-  Initiative,
-  InitiativeFilters,
-  InitiativeStage,
-  InitiativeStatus,
-  InitiativeWithOwner,
-  UpdateInitiativeInput,
+    CreateInitiativeInput,
+    Initiative,
+    InitiativeFilters,
+    InitiativeStage,
+    InitiativeStatus,
+    InitiativeWithOwner,
+    UpdateInitiativeInput,
 } from '../types'
 import { INITIATIVE_STATUS_TRANSITIONS } from '../types'
 import { activityLogService } from './activity-log.service'
@@ -59,7 +59,26 @@ export class InitiativeService {
    */
   async getById(id: string): Promise<Initiative | null> {
     const result = await DatabaseService.query(
-      `SELECT * FROM planner_initiatives
+      `SELECT 
+        id,
+        title,
+        intent,
+        success_criteria,
+        owner_id,
+        product_id,
+        milestone_id,
+        formation_id,
+        stage,
+        status,
+        horizon,
+        context_links,
+        pause_reason,
+        abandonment_reason,
+        shipped_notes,
+        deleted_at::text as deleted_at,
+        created_at::text as created_at,
+        updated_at::text as updated_at
+       FROM planner_initiatives
        WHERE id = $1 AND deleted_at IS NULL`,
       [id],
     )
@@ -72,7 +91,24 @@ export class InitiativeService {
   async getByIdWithDetails(id: string): Promise<InitiativeWithOwner | null> {
     const result = await DatabaseService.query(
       `SELECT
-        i.*,
+        i.id,
+        i.title,
+        i.intent,
+        i.success_criteria,
+        i.owner_id,
+        i.product_id,
+        i.milestone_id,
+        i.formation_id,
+        i.stage,
+        i.status,
+        i.horizon,
+        i.context_links,
+        i.pause_reason,
+        i.abandonment_reason,
+        i.shipped_notes,
+        i.deleted_at::text as deleted_at,
+        i.created_at::text as created_at,
+        i.updated_at::text as updated_at,
         json_build_object(
           'id', e.id,
           'first_name', e.first_name,
@@ -96,8 +132,8 @@ export class InitiativeService {
             'cadence_type', f.cadence_type,
             'cadence_anchor_time', f.cadence_anchor_time,
             'energy_state', f.energy_state,
-            'created_at', f.created_at,
-            'updated_at', f.updated_at
+            'created_at', f.created_at::text,
+            'updated_at', f.updated_at::text
           )
         ELSE NULL END as formation,
         CASE WHEN m.id IS NOT NULL THEN
@@ -105,7 +141,7 @@ export class InitiativeService {
             'id', m.id,
             'name', m.name,
             'description', m.description,
-            'target_date', m.target_date,
+            'target_date', m.target_date::text,
             'status', m.status
           )
         ELSE NULL END as milestone,

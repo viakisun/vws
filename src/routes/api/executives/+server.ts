@@ -69,8 +69,8 @@ export const GET: RequestHandler = async ({ url }) => {
       `
 			SELECT 
 				e.id, e.executive_id, e.first_name, e.last_name, e.email, e.phone,
-				e.department, e.appointment_date, e.term_end_date, e.status, e.bio, e.profile_image_url,
-				e.created_at, e.updated_at,
+				e.department, e.appointment_date::text as appointment_date, e.term_end_date::text as term_end_date, e.status, e.bio, e.profile_image_url,
+				e.created_at::text as created_at, e.updated_at::text as updated_at,
 				jt.name as job_title_name, jt.level as job_title_level, jt.category as job_title_category
 			FROM executives e
 			LEFT JOIN job_titles jt ON e.job_title_id = jt.id
@@ -162,9 +162,9 @@ export const POST: RequestHandler = async ({ request }) => {
 				department, appointment_date, term_end_date, status, bio, profile_image_url,
 				created_at, updated_at
 			)
-			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, now(), now())
 			RETURNING id, executive_id, first_name, last_name, email, phone, department, 
-			          appointment_date, term_end_date, status, bio, profile_image_url, created_at, updated_at
+			          appointment_date::text as appointment_date, term_end_date::text as term_end_date, status, bio, profile_image_url, created_at::text as created_at, updated_at::text as updated_at
 		`,
       [
         executiveId,
@@ -179,8 +179,6 @@ export const POST: RequestHandler = async ({ request }) => {
         data.status || 'active',
         data.bio?.trim() || '',
         data.profile_image_url?.trim() || '',
-        new Date(),
-        new Date(),
       ],
     )
 

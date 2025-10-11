@@ -13,7 +13,13 @@ export const GET: RequestHandler = async ({ locals }) => {
     const result = await DatabaseService.query(
       `
       SELECT
-        c.*,
+        c.id,
+        c.name,
+        c.code,
+        c.description,
+        c.display_order,
+        c.created_at::text as created_at,
+        c.updated_at::text as updated_at,
         COUNT(p.id) as product_count
       FROM planner_product_categories c
       LEFT JOIN planner_products p ON p.category = c.code AND p.deleted_at IS NULL

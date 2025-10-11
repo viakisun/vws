@@ -20,16 +20,16 @@ export const GET: RequestHandler = async ({ url }) => {
 				pm.project_id,
 				pm.employee_id,
 				pm.role,
-				pm.start_date,
-				pm.end_date,
+				pm.start_date::text as start_date,
+				pm.end_date::text as end_date,
 				pm.participation_rate,
 				pm.monthly_salary,
 				pm.monthly_amount,
 				pm.cash_amount,
 				pm.in_kind_amount,
 				pm.status,
-				pm.created_at,
-				pm.updated_at,
+				pm.created_at::text as created_at,
+				pm.updated_at::text as updated_at,
 				CASE
 					WHEN e.first_name ~ '^[가-힣]+$' AND e.last_name ~ '^[가-힣]+$'
 					THEN CONCAT(e.last_name, e.first_name)

@@ -28,7 +28,10 @@ export const GET: RequestHandler = async (event) => {
 
     let sqlQuery = `
 			SELECT 
-				p.*,
+				p.id, p.code, p.title, p.description, p.sponsor, p.sponsor_type,
+				p.start_date::text as start_date, p.end_date::text as end_date,
+				p.manager_employee_id, p.status, p.budget_total, p.research_type, p.priority,
+				p.created_at::text as created_at, p.updated_at::text as updated_at,
 				e.first_name || ' ' || e.last_name as manager_name,
 				COUNT(pm.id) as member_count,
 				COALESCE(SUM(pm.participation_rate), 0) as total_participation_rate
@@ -89,7 +92,10 @@ export const GET: RequestHandler = async (event) => {
     }
 
     sqlQuery += `
-			GROUP BY p.id, e.first_name, e.last_name
+			GROUP BY p.id, p.code, p.title, p.description, p.sponsor, p.sponsor_type,
+			         p.start_date, p.end_date, p.manager_employee_id, p.status, p.budget_total,
+			         p.research_type, p.priority, p.created_at, p.updated_at,
+			         e.first_name, e.last_name
 			ORDER BY 
 				CASE 
 					WHEN p.code ~ '^[0-9]{4}-[0-9]+-' THEN 

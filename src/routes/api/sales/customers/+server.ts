@@ -39,7 +39,10 @@ export const GET: RequestHandler = async ({ url }) => {
 
     const result = await query(
       `
-      SELECT * FROM sales_customers 
+      SELECT id, name, type, business_number, contact_person, contact_phone,
+             contact_email, address, industry, payment_terms, status, notes,
+             created_at::text as created_at, updated_at::text as updated_at
+      FROM sales_customers 
       ${whereClause}
       ORDER BY created_at DESC
       `,

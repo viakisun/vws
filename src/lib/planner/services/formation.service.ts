@@ -1,12 +1,12 @@
 import { DatabaseService } from '$lib/database/connection'
 import type {
-  AddFormationMemberInput,
-  CreateFormationInput,
-  Formation,
-  FormationFilters,
-  FormationMember,
-  FormationWithMembers,
-  UpdateFormationInput,
+    AddFormationMemberInput,
+    CreateFormationInput,
+    Formation,
+    FormationFilters,
+    FormationMember,
+    FormationWithMembers,
+    UpdateFormationInput,
 } from '../types'
 import { activityLogService } from './activity-log.service'
 
@@ -50,7 +50,17 @@ export class FormationService {
    */
   async getById(id: string): Promise<Formation | null> {
     const result = await DatabaseService.query(
-      `SELECT * FROM planner_formations
+      `SELECT 
+        id,
+        name,
+        description,
+        cadence_type,
+        cadence_anchor_time,
+        energy_state,
+        deleted_at::text as deleted_at,
+        created_at::text as created_at,
+        updated_at::text as updated_at
+       FROM planner_formations
        WHERE id = $1 AND deleted_at IS NULL`,
       [id],
     )
@@ -67,7 +77,13 @@ export class FormationService {
     // Get members
     const membersResult = await DatabaseService.query(
       `SELECT
-        fm.*,
+        fm.id,
+        fm.formation_id,
+        fm.employee_id,
+        fm.role,
+        fm.bandwidth,
+        fm.created_at::text as created_at,
+        fm.updated_at::text as updated_at,
         json_build_object(
           'id', e.id,
           'first_name', e.first_name,
@@ -91,7 +107,25 @@ export class FormationService {
 
     // Get linked initiatives
     const initiativesResult = await DatabaseService.query(
-      `SELECT i.*
+      `SELECT 
+        i.id,
+        i.title,
+        i.intent,
+        i.success_criteria,
+        i.owner_id,
+        i.product_id,
+        i.milestone_id,
+        i.formation_id,
+        i.stage,
+        i.status,
+        i.horizon,
+        i.context_links,
+        i.pause_reason,
+        i.abandonment_reason,
+        i.shipped_notes,
+        i.deleted_at::text as deleted_at,
+        i.created_at::text as created_at,
+        i.updated_at::text as updated_at
       FROM planner_initiatives i
       JOIN planner_formation_initiatives fi ON fi.initiative_id = i.id
       WHERE fi.formation_id = $1 AND i.deleted_at IS NULL
@@ -127,7 +161,15 @@ export class FormationService {
   async list(filters?: FormationFilters): Promise<FormationWithMembers[]> {
     let query = `
       SELECT
-        f.*,
+        f.id,
+        f.name,
+        f.description,
+        f.cadence_type,
+        f.cadence_anchor_time,
+        f.energy_state,
+        f.deleted_at::text as deleted_at,
+        f.created_at::text as created_at,
+        f.updated_at::text as updated_at,
         (SELECT COUNT(*) FROM planner_formation_members WHERE formation_id = f.id) as member_count
       FROM planner_formations f
       WHERE f.deleted_at IS NULL

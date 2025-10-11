@@ -1,7 +1,7 @@
 import { query } from '$lib/database/connection'
+import { logger } from '$lib/utils/logger'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
-import { logger } from '$lib/utils/logger'
 
 // GET /api/project-management/alerts - 프로젝트 관리 알림 조회
 export const GET: RequestHandler = async ({ url }) => {
@@ -21,7 +21,7 @@ export const GET: RequestHandler = async ({ url }) => {
 					'info' as severity,
 					'budget' as alert_type,
 					'예산 사용률 0%' as message,
-					pb.updated_at as created_at
+					pb.updated_at::text as created_at
 				FROM projects p
 				JOIN project_budgets pb ON p.id = pb.project_id
 				WHERE (COALESCE(pb.government_funding_amount, 0) + COALESCE(pb.company_cash_amount, 0) + COALESCE(pb.company_in_kind_amount, 0)) > 0
@@ -41,7 +41,7 @@ export const GET: RequestHandler = async ({ url }) => {
 					END as severity,
 					'participation' as alert_type,
 					'참여율 ' || pr.total_participation || '% (한계 초과)' as message,
-					pr.updated_at as created_at
+					pr.updated_at::text as created_at
 				FROM employees e
 				JOIN (
 					SELECT 
@@ -69,7 +69,7 @@ export const GET: RequestHandler = async ({ url }) => {
 					END as severity,
 					'deadline' as alert_type,
 					'프로젝트 종료 예정일: ' || p.end_date as message,
-					p.updated_at as created_at
+					p.updated_at::text as created_at
 				FROM projects p
 				WHERE p.status = 'active'
 				AND p.end_date IS NOT NULL

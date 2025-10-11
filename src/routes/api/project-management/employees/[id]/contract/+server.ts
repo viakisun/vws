@@ -37,8 +37,8 @@ export const GET: RequestHandler = async ({ params, url }) => {
 				sc.id,
 				sc.employee_id,
 				sc.annual_salary,
-				sc.start_date,
-				sc.end_date,
+				sc.start_date::text as start_date,
+				sc.end_date::text as end_date,
 				sc.status,
 				sc.contract_type
 			FROM salary_contracts sc
@@ -57,8 +57,8 @@ export const GET: RequestHandler = async ({ params, url }) => {
 				sc.id,
 				sc.employee_id,
 				sc.annual_salary,
-				sc.start_date,
-				sc.end_date,
+				sc.start_date::text as start_date,
+				sc.end_date::text as end_date,
 				sc.status,
 				sc.contract_type
 			FROM salary_contracts sc

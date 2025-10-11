@@ -3,8 +3,8 @@
    * 근태관리 탭 (관리자용)
    * 전체 직원의 출퇴근 현황을 월간 캘린더로 표시
    */
-  import { onMount } from 'svelte'
   import { getHoliday } from '$lib/utils/holidays'
+  import { onMount } from 'svelte'
 
   let loading = $state(false)
   let currentYear = $state(new Date().getFullYear())
@@ -41,8 +41,6 @@
       )
       if (response.ok) {
         monthlySummary = await response.json()
-        console.log('Monthly summary loaded:', monthlySummary)
-        console.log('Daily summary count:', monthlySummary.daily_summary?.length)
       } else {
         console.error('Failed to load monthly summary:', response.status, await response.text())
       }

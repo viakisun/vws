@@ -41,7 +41,19 @@ export const GET: RequestHandler = async (event) => {
     const requestsResult = await query(
       `
       SELECT
-        lr.*,
+        lr.id,
+        lr.employee_id,
+        lr.leave_type_id,
+        lr.start_date::text as start_date,
+        lr.end_date::text as end_date,
+        lr.total_days,
+        lr.reason,
+        lr.status,
+        lr.approved_by,
+        lr.approved_at::text as approved_at,
+        lr.rejection_reason,
+        lr.created_at::text as created_at,
+        lr.updated_at::text as updated_at,
         e.first_name || ' ' || e.last_name as employee_name,
         e.employee_id,
         e.department,
@@ -130,7 +142,19 @@ export const POST: RequestHandler = async (event) => {
     const requestResult = await query(
       `
       SELECT 
-        lr.*,
+        lr.id,
+        lr.employee_id,
+        lr.leave_type_id,
+        lr.start_date::text as start_date,
+        lr.end_date::text as end_date,
+        lr.total_days,
+        lr.reason,
+        lr.status,
+        lr.approved_by,
+        lr.approved_at::text as approved_at,
+        lr.rejection_reason,
+        lr.created_at::text as created_at,
+        lr.updated_at::text as updated_at,
         e.first_name || ' ' || e.last_name as employee_name,
         e.email as employee_email
       FROM leave_requests lr

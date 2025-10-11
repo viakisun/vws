@@ -1,12 +1,11 @@
 import { getConnection, query } from '$lib/database/connection'
 import type { ApiResponse, DatabaseProjectMember } from '$lib/types/database'
 import {
-  calculateParticipationPeriod,
-  formatDateForAPI,
-  isValidDate,
-  isValidDateRange,
+    calculateParticipationPeriod,
+    formatDateForAPI,
+    isValidDate,
+    isValidDateRange,
 } from '$lib/utils/date-calculator'
-import { toUTC } from '$lib/utils/date-handler'
 import { logger } from '$lib/utils/logger'
 import { json } from '@sveltejs/kit'
 import type { PoolClient, QueryResult } from 'pg'
@@ -23,8 +22,8 @@ const MEMBER_DETAILS_QUERY = `
     pm.project_id,
     pm.employee_id,
     pm.role,
-    pm.start_date,
-    pm.end_date,
+    pm.start_date::text as start_date,
+    pm.end_date::text as end_date,
     pm.participation_rate,
     pm.monthly_salary,
     pm.monthly_amount,
@@ -32,8 +31,8 @@ const MEMBER_DETAILS_QUERY = `
     pm.in_kind_amount,
     pm.status,
     pm.notes,
-    pm.created_at,
-    pm.updated_at,
+    pm.created_at::text as created_at,
+    pm.updated_at::text as updated_at,
     CASE
       WHEN e.first_name ~ '^[가-힣]+$' AND e.last_name ~ '^[가-힣]+$'
       THEN CONCAT(e.last_name, ' ', e.first_name)
@@ -79,18 +78,24 @@ function errorResponse(message: string, error: Error, includeStack = false) {
 }
 
 async function getMemberById(memberId: string): Promise<QueryResult<Record<string, unknown>>> {
-  return (await query('SELECT * FROM project_members WHERE id = $1', [memberId])) as QueryResult<
-    Record<string, unknown>
-  >
+  return (await query(
+    `SELECT id, project_id, employee_id, role, start_date::text as start_date, 
+     end_date::text as end_date, participation_rate, monthly_salary, monthly_amount, 
+     cash_amount, in_kind_amount, status, notes, 
+     created_at::text as created_at, updated_at::text as updated_at 
+     FROM project_members WHERE id = $1`,
+    [memberId],
+  )) as QueryResult<Record<string, unknown>>
 }
 
 async function getProjectById(
   client: PoolClient,
   projectId: string,
 ): Promise<QueryResult<Record<string, unknown>>> {
-  return (await client.query('SELECT start_date, end_date FROM projects WHERE id = $1', [
-    projectId,
-  ])) as QueryResult<Record<string, unknown>>
+  return (await client.query(
+    'SELECT start_date::text as start_date, end_date::text as end_date FROM projects WHERE id = $1',
+    [projectId],
+  )) as QueryResult<Record<string, unknown>>
 }
 
 // ============================================================================
@@ -233,9 +238,9 @@ export const PUT: RequestHandler = async ({ params, request }) => {
         return badRequestResponse('유효하지 않은 시작일 형식입니다.')
       }
 
-      const formattedStartDate = new Date(startDateStr + 'T00:00:00.000+09:00')
+      const formattedStartDate = startDateStr + ' 00:00:00+09'
       updateFields.push(`start_date = $${paramIndex}`)
-      updateValues.push(toUTC(formattedStartDate))
+      updateValues.push(formattedStartDate)
       paramIndex++
     }
 
@@ -246,9 +251,9 @@ export const PUT: RequestHandler = async ({ params, request }) => {
         return badRequestResponse('유효하지 않은 종료일 형식입니다.')
       }
 
-      const formattedEndDate = new Date(endDateStr + 'T23:59:59.999+09:00')
+      const formattedEndDate = endDateStr + ' 23:59:59.999+09'
       updateFields.push(`end_date = $${paramIndex}`)
-      updateValues.push(toUTC(formattedEndDate))
+      updateValues.push(formattedEndDate)
       paramIndex++
     }
 
@@ -299,9 +304,6 @@ export const PUT: RequestHandler = async ({ params, request }) => {
     // updated_at 자동 업데이트
     updateFields.push(`updated_at = CURRENT_TIMESTAMP`)
     updateValues.push(params.id)
-
-    logger.log('Updating project member with fields:', updateFields)
-    logger.log('Update values:', updateValues)
 
     // 멤버 업데이트 실행
     await query(

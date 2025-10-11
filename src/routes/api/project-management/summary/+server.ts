@@ -2,9 +2,9 @@
 // 프로젝트 관리 시스템의 요약 정보 API
 
 import { query } from '$lib/database/connection'
+import { logger } from '$lib/utils/logger'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
-import { logger } from '$lib/utils/logger'
 
 export const GET: RequestHandler = async () => {
   try {
@@ -83,7 +83,7 @@ export const GET: RequestHandler = async () => {
 				p.code,
 				p.title,
 				p.status,
-				p.updated_at,
+				p.updated_at::text as updated_at,
 				e.first_name || ' ' || e.last_name as manager_name
 			FROM projects p
 			LEFT JOIN employees e ON p.manager_employee_id = e.id

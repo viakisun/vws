@@ -68,7 +68,11 @@ export const GET: RequestHandler = async ({ url }) => {
     const result = await query(
       `
       SELECT 
-        t.*,
+        t.id, t.transaction_number, t.contract_id, t.customer_id, t.type, t.amount,
+        t.transaction_date::text as transaction_date, t.due_date::text as due_date,
+        t.payment_date::text as payment_date, t.payment_status,
+        t.description, t.notes, t.created_by,
+        t.created_at::text as created_at, t.updated_at::text as updated_at,
         c.name as customer_name,
         c.type as customer_type,
         contract.title as contract_title,
@@ -152,8 +156,9 @@ export const POST: RequestHandler = async ({ request }) => {
       )
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
       RETURNING id, transaction_number, contract_id, customer_id, type, amount,
-                transaction_date, due_date, payment_date, payment_status,
-                description, notes, created_by, created_at::text, updated_at::text
+                transaction_date::text as transaction_date, due_date::text as due_date,
+                payment_date::text as payment_date, payment_status,
+                description, notes, created_by, created_at::text as created_at, updated_at::text as updated_at
       `,
       [
         transactionNumber,
