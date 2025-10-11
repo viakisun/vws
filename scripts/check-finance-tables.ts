@@ -31,4 +31,3 @@ async function checkTables() {
 }
 
 checkTables()
-

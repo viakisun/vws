@@ -13,10 +13,9 @@ console.log('🔍 남은 RETURNING * 찾기...\n')
 
 for (const path of paths) {
   try {
-    const result = execSync(
-      `grep -rn "RETURNING \\*" ${path} --include="*.ts" || true`,
-      { encoding: 'utf-8' },
-    )
+    const result = execSync(`grep -rn "RETURNING \\*" ${path} --include="*.ts" || true`, {
+      encoding: 'utf-8',
+    })
     if (result.trim()) {
       console.log(`\n📁 ${path}:`)
       console.log(result)
@@ -27,4 +26,3 @@ for (const path of paths) {
 }
 
 console.log('\n✅ 완료!')
-

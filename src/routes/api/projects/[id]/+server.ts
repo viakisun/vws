@@ -84,7 +84,10 @@ export const PUT: RequestHandler = async ({ params, request }) => {
 			     budget_total = COALESCE($9, budget_total),
 			     updated_at = CURRENT_TIMESTAMP
 			 WHERE id = $10
-			 RETURNING *`,
+			 RETURNING id, code, title, description, sponsor, sponsor_type, manager_employee_id,
+                 status, budget_total, created_at::text, updated_at::text, sponsor_name,
+                 budget_currency, research_type, technology_area, priority,
+                 start_date::text, end_date::text`,
       [
         updateData.title,
         updateData.description,

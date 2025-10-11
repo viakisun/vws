@@ -83,7 +83,9 @@ export const POST: RequestHandler = async ({ request }) => {
         contact_email, address, industry, payment_terms, status, notes
       )
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-      RETURNING *
+      RETURNING id, name, type, business_number, contact_person, contact_phone,
+                contact_email, address, industry, payment_terms, status, notes,
+                created_at::text, updated_at::text
       `,
       [
         data.name,

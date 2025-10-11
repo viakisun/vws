@@ -1,14 +1,14 @@
 import { DatabaseService } from '$lib/database/connection'
 import type {
-    CreateThreadInput,
-    CreateThreadReplyInput,
-    Thread,
-    ThreadFilters,
-    ThreadReply,
-    ThreadReplyWithAuthor,
-    ThreadState,
-    ThreadWithDetails,
-    UpdateThreadInput,
+  CreateThreadInput,
+  CreateThreadReplyInput,
+  Thread,
+  ThreadFilters,
+  ThreadReply,
+  ThreadReplyWithAuthor,
+  ThreadState,
+  ThreadWithDetails,
+  UpdateThreadInput,
 } from '../types'
 import { THREAD_STATE_TRANSITIONS } from '../types'
 import { activityLogService } from './activity-log.service'

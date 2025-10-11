@@ -135,7 +135,9 @@ export const POST: RequestHandler = async (event) => {
         UPDATE notifications 
         SET is_read = true, read_at = CURRENT_TIMESTAMP
         WHERE id = $1 AND employee_id = $2
-        RETURNING *
+        RETURNING id, employee_id, title, message, type, category, is_read,
+                  read_at::text, action_url, action_data, expires_at::text,
+                  created_at::text, updated_at::text
       `,
         [notificationId, user.id],
       )
@@ -156,7 +158,9 @@ export const POST: RequestHandler = async (event) => {
         UPDATE notifications 
         SET is_read = false, read_at = NULL
         WHERE id = $1 AND employee_id = $2
-        RETURNING *
+        RETURNING id, employee_id, title, message, type, category, is_read,
+                  read_at::text, action_url, action_data, expires_at::text,
+                  created_at::text, updated_at::text
       `,
         [notificationId, user.id],
       )
@@ -195,7 +199,9 @@ export const POST: RequestHandler = async (event) => {
         `
         DELETE FROM notifications 
         WHERE id = $1 AND employee_id = $2
-        RETURNING *
+        RETURNING id, employee_id, title, message, type, category, is_read,
+                  read_at::text, action_url, action_data, expires_at::text,
+                  created_at::text, updated_at::text
       `,
         [notificationId, user.id],
       )

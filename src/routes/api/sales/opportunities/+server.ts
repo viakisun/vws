@@ -106,7 +106,9 @@ export const POST: RequestHandler = async ({ request }) => {
         expected_close_date, owner_id, description, status
       )
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-      RETURNING *
+      RETURNING id, title, customer_id, type, stage, value, probability,
+                expected_close_date, owner_id, description, status,
+                created_at::text, updated_at::text
       `,
       [
         data.title,

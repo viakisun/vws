@@ -126,7 +126,9 @@ export const POST: RequestHandler = async (event) => {
         status
       )
       VALUES ($1, $2, $3, 'pending')
-      RETURNING *
+      RETURNING id, employee_id, certificate_type, purpose, status, approved_by,
+                approved_at::text, issued_at::text, file_path, rejection_reason,
+                created_at::text, updated_at::text
     `,
       [user.id, certificateType, purpose],
     )

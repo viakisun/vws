@@ -66,7 +66,9 @@ export const PUT: RequestHandler = async ({ params, request }) => {
         notes = $11,
         updated_at = NOW()
       WHERE id = $12
-      RETURNING *
+      RETURNING id, name, type, business_number, contact_person, contact_phone,
+                contact_email, address, industry, payment_terms, status, notes,
+                created_at::text, updated_at::text
       `,
       [
         data.name,
@@ -134,7 +136,13 @@ export const DELETE: RequestHandler = async ({ params }) => {
       return json(response, { status: 400 })
     }
 
-    const result = await query('DELETE FROM sales_customers WHERE id = $1 RETURNING *', [id])
+    const result = await query(
+      `DELETE FROM sales_customers WHERE id = $1 
+       RETURNING id, name, type, business_number, contact_person, contact_phone,
+                 contact_email, address, industry, payment_terms, status, notes,
+                 created_at::text, updated_at::text`,
+      [id],
+    )
 
     if (result.rows.length === 0) {
       const response: SalesApiResponse<null> = {

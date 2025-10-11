@@ -104,7 +104,9 @@ export const POST: RequestHandler = async ({ request }) => {
         end_date, total_amount, paid_amount, payment_terms, description, owner_id
       )
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
-      RETURNING *
+      RETURNING id, contract_number, title, customer_id, type, status, start_date,
+                end_date, total_amount, paid_amount, payment_terms, description,
+                owner_id, created_at::text, updated_at::text
       `,
       [
         contractNumber,

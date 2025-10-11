@@ -1,12 +1,12 @@
 import { DatabaseService } from '$lib/database/connection'
 import type {
-    AddFormationMemberInput,
-    CreateFormationInput,
-    Formation,
-    FormationFilters,
-    FormationMember,
-    FormationWithMembers,
-    UpdateFormationInput,
+  AddFormationMemberInput,
+  CreateFormationInput,
+  Formation,
+  FormationFilters,
+  FormationMember,
+  FormationWithMembers,
+  UpdateFormationInput,
 } from '../types'
 import { activityLogService } from './activity-log.service'
 
