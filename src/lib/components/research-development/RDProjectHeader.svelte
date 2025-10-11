@@ -3,6 +3,31 @@
   import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
   import ThemeCard from '$lib/components/ui/ThemeCard.svelte'
   import { CalendarIcon, DollarSignIcon, EditIcon, TrashIcon } from '@lucide/svelte'
+  import {
+    getRDPriorityColor,
+    getRDPriorityText,
+    getRDResearchTypeText,
+    getRDSponsorTypeText,
+    getRDStatusColor,
+    getRDStatusText,
+  } from './utils/rd-status-utils'
+
+  /**
+   * Props 인터페이스
+   * 연구개발사업 헤더 컴포넌트의 속성 정의
+   */
+  interface Props {
+    /** 선택된 연구개발사업 */
+    selectedProject: any
+    /** 예산 새로고침 트리거 */
+    budgetRefreshTrigger?: number
+    /** 연구개발사업 정보 수정 핸들러 */
+    onEditProject: () => void
+    /** 예산 수정 모달 표시 핸들러 */
+    onShowBudgetModal: () => void
+    /** 연구개발사업 삭제 핸들러 */
+    onDeleteProject: () => void
+  }
 
   const {
     selectedProject,
@@ -10,83 +35,7 @@
     onEditProject,
     onShowBudgetModal,
     onDeleteProject,
-  }: {
-    selectedProject: any
-    budgetRefreshTrigger?: number
-    onEditProject: () => void
-    onShowBudgetModal: () => void
-    onDeleteProject: () => void
-  } = $props()
-
-  function getStatusColor(
-    status: string,
-  ): 'primary' | 'success' | 'warning' | 'error' | 'info' | 'ghost' | 'default' {
-    const statusMap: Record<
-      string,
-      'primary' | 'success' | 'warning' | 'error' | 'info' | 'ghost' | 'default'
-    > = {
-      active: 'success',
-      planning: 'info',
-      completed: 'default',
-      cancelled: 'error',
-      suspended: 'warning',
-    }
-    return statusMap[status] || 'default'
-  }
-
-  function getStatusText(status: string): string {
-    const statusMap: Record<string, string> = {
-      active: '진행중',
-      planning: '기획중',
-      completed: '완료',
-      cancelled: '취소',
-      suspended: '중단',
-    }
-    return statusMap[status] || status
-  }
-
-  function getPriorityColor(
-    priority: string,
-  ): 'primary' | 'success' | 'warning' | 'error' | 'info' | 'ghost' | 'default' {
-    const priorityMap: Record<
-      string,
-      'primary' | 'success' | 'warning' | 'error' | 'info' | 'ghost' | 'default'
-    > = {
-      low: 'default',
-      medium: 'info',
-      high: 'warning',
-      critical: 'error',
-    }
-    return priorityMap[priority] || 'default'
-  }
-
-  function getPriorityText(priority: string): string {
-    const priorityMap: Record<string, string> = {
-      low: '낮음',
-      medium: '보통',
-      high: '높음',
-      critical: '긴급',
-    }
-    return priorityMap[priority] || priority
-  }
-
-  function getSponsorTypeText(type: string): string {
-    const sponsorMap: Record<string, string> = {
-      government: '정부',
-      private: '민간',
-      internal: '자체',
-    }
-    return sponsorMap[type] || type
-  }
-
-  function getResearchTypeText(type: string): string {
-    const researchMap: Record<string, string> = {
-      basic: '기초연구',
-      applied: '응용연구',
-      development: '개발연구',
-    }
-    return researchMap[type] || type
-  }
+  }: Props = $props()
 </script>
 
 <ThemeCard class="p-6">
@@ -103,17 +52,17 @@
 
       <!-- 상태 및 우선순위 태그 -->
       <div class="flex items-center gap-2 mb-3">
-        <ThemeBadge variant={getStatusColor(selectedProject.status)} size="md">
-          {getStatusText(selectedProject.status)}
+        <ThemeBadge variant={getRDStatusColor(selectedProject.status)} size="md">
+          {getRDStatusText(selectedProject.status)}
         </ThemeBadge>
-        <ThemeBadge variant={getPriorityColor(selectedProject.priority)} size="md">
-          {getPriorityText(selectedProject.priority)}
+        <ThemeBadge variant={getRDPriorityColor(selectedProject.priority)} size="md">
+          {getRDPriorityText(selectedProject.priority)}
         </ThemeBadge>
         <ThemeBadge variant="info" size="md">
-          {getSponsorTypeText(selectedProject.sponsor_type || selectedProject.sponsorType)}
+          {getRDSponsorTypeText(selectedProject.sponsor_type || selectedProject.sponsorType)}
         </ThemeBadge>
         <ThemeBadge variant="primary" size="md">
-          {getResearchTypeText(selectedProject.research_type || selectedProject.researchType)}
+          {getRDResearchTypeText(selectedProject.research_type || selectedProject.researchType)}
         </ThemeBadge>
       </div>
 
@@ -147,13 +96,13 @@
 
   <!-- 사업비 예산 -->
   <div class="bg-gray-50 rounded-lg p-6">
-    {#await import('$lib/components/research-development/ResearchDevelopmentFundingStructure.svelte')}
+    {#await import('$lib/components/research-development/RDFundingStructure.svelte')}
       <div class="flex items-center justify-center py-4">
         <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
         <span class="ml-2 text-gray-600 text-sm">로딩 중...</span>
       </div>
-    {:then { default: ProjectBudgetSummary }}
-      <ProjectBudgetSummary
+    {:then { default: RDFundingStructure }}
+      <RDFundingStructure
         projectId={selectedProject.id}
         compact={true}
         refreshTrigger={budgetRefreshTrigger}

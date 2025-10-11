@@ -217,14 +217,14 @@ src/lib/components/research-development/
 
 ```
 src/lib/components/research-development/
-└── ResearchDevelopmentDetailView.svelte  # 2,742 → 1,710 lines (37% 감소)
+└── RDDetailView.svelte  # 2,742 → 1,710 lines (37% 감소)
 ```
 
 ### 백업 파일
 
 ```
 src/lib/components/research-development/
-└── ResearchDevelopmentDetailView.svelte.backup  # 원본 백업
+└── RDDetailView.svelte.backup  # 원본 백업
 ```
 
 ---

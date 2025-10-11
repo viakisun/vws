@@ -1,5 +1,5 @@
 <script lang="ts">
-  import ResearchDevelopmentDetailView from '$lib/components/research-development/ResearchDevelopmentDetailView.svelte'
+  import RDDetailView from '$lib/components/research-development/RDDetailView.svelte'
   import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
   import ThemeCard from '$lib/components/ui/ThemeCard.svelte'
   import type { Project } from '$lib/types/index'
@@ -139,13 +139,9 @@
   {#if selectedProject}
     <div class="space-y-6">
       <!-- 프로젝트 기본 정보 -->
-      <ProjectDetailView
+      <RDDetailView
         {selectedProject}
         externalRefreshTrigger={budgetRefreshKey}
-        on:refresh={handleRefresh}
-        on:project-deleted={handleProjectDeleted}
-        on:project-updated={handleProjectUpdated}
-        on:show-budget-modal={handleShowBudgetModal}
       />
     </div>
   {:else if projects.length === 0 && !loading && !error}

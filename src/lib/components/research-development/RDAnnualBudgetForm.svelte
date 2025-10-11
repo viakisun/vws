@@ -5,6 +5,7 @@
   import type { AnnualBudget, AnnualBudgetFormData, BudgetSummary } from '$lib/types/project-budget'
   import { CheckIcon, PlusIcon, TrashIcon, XIcon } from '@lucide/svelte'
   import { createEventDispatcher } from 'svelte'
+  import { formatRDCurrency } from './utils/rd-format-utils'
 
   const dispatch = createEventDispatcher()
 
@@ -159,9 +160,6 @@
   }
 
   // 숫자 포맷팅
-  function formatCurrency(amount: number): string {
-    return new Intl.NumberFormat('ko-KR').format(amount)
-  }
 
   // Props 변경 시 데이터 동기화
   let lastProjectId = $state('')
@@ -222,13 +220,13 @@
         <div>
           <div class="text-blue-700 font-medium">전체 사업비</div>
           <div class="text-xl font-bold text-blue-900">
-            {formatCurrency(budgetSummary.totalBudget)}원
+            {formatRDCurrency(budgetSummary.totalBudget)}원
           </div>
         </div>
         <div>
           <div class="text-green-700 font-medium">지원금 (현금)</div>
           <div class="text-lg font-semibold text-green-800">
-            {formatCurrency(budgetSummary.totalGovernmentFunding)}원
+            {formatRDCurrency(budgetSummary.totalGovernmentFunding)}원
             <span class="text-sm text-green-600"
               >({Math.floor(budgetSummary.governmentFundingRatio)}%)</span
             >
@@ -237,13 +235,13 @@
         <div>
           <div class="text-orange-700 font-medium">기업부담금 (현금)</div>
           <div class="text-lg font-semibold text-orange-800">
-            {formatCurrency(budgetSummary.totalCompanyCash)}원
+            {formatRDCurrency(budgetSummary.totalCompanyCash)}원
           </div>
         </div>
         <div>
           <div class="text-purple-700 font-medium">기업부담금 (현물)</div>
           <div class="text-lg font-semibold text-purple-800">
-            {formatCurrency(budgetSummary.totalCompanyInKind)}원
+            {formatRDCurrency(budgetSummary.totalCompanyInKind)}원
           </div>
         </div>
       </div>
@@ -252,7 +250,7 @@
           <div>
             <span class="text-blue-700 font-medium">현금 총액:</span>
             <span class="ml-2 font-semibold"
-              >{formatCurrency(budgetSummary.totalCash)}원 ({Math.floor(
+              >{formatRDCurrency(budgetSummary.totalCash)}원 ({Math.floor(
                 budgetSummary.cashRatio,
               )}%)</span
             >
@@ -260,7 +258,7 @@
           <div>
             <span class="text-blue-700 font-medium">현물 총액:</span>
             <span class="ml-2 font-semibold"
-              >{formatCurrency(budgetSummary.totalInKind)}원 ({Math.floor(
+              >{formatRDCurrency(budgetSummary.totalInKind)}원 ({Math.floor(
                 budgetSummary.inKindRatio,
               )}%)</span
             >
@@ -394,17 +392,17 @@
               <div class="flex justify-between">
                 <span>현금 합계:</span>
                 <span class="font-medium">
-                  {formatCurrency((budget.governmentFunding || 0) + (budget.companyCash || 0))}원
+                  {formatRDCurrency((budget.governmentFunding || 0) + (budget.companyCash || 0))}원
                 </span>
               </div>
               <div class="flex justify-between">
                 <span>현물 합계:</span>
-                <span class="font-medium">{formatCurrency(budget.companyInKind || 0)}원</span>
+                <span class="font-medium">{formatRDCurrency(budget.companyInKind || 0)}원</span>
               </div>
               <div class="flex justify-between border-t pt-1 font-semibold text-gray-900">
                 <span>{budget.year}차년도 사업비:</span>
                 <span>
-                  {formatCurrency(
+                  {formatRDCurrency(
                     (budget.governmentFunding || 0) +
                       (budget.companyCash || 0) +
                       (budget.companyInKind || 0),

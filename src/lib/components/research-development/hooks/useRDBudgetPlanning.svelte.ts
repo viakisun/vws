@@ -1,35 +1,32 @@
 import { pushToast } from '$lib/stores/toasts'
 
 /**
- * useProjectMembers Hook
+ * useBudgetPlanning Hook
  *
- * Handles all project member-related business logic:
- * - Loading members
- * - Adding new members
- * - Editing existing members
- * - Deleting members
- * - Form management
+ * 2단계: 예산 계획 (Budget Planning)
+ * - 인건비, 재료비, 활동비 등으로 배분 계획
+ * - 참여연구원 관리 (인건비 배분의 핵심)
  */
 
 import * as memberService from '$lib/services/research-development/member.service'
 import { formatDateForInput } from '$lib/utils/format'
 import { logger } from '$lib/utils/logger'
-import type { ProjectDetailStore } from '../stores/projectDetailStore.svelte'
-import * as calculationUtilsImported from '../utils/calculationUtils'
-import * as dataTransformers from '../utils/dataTransformers'
-import * as memberUtilsImported from '../utils/memberUtils'
+import type { RDDetailStore } from '../stores/RDDetailStore.svelte'
+import * as calculationUtilsImported from '../utils/rd-calculation-utils'
+import * as dataTransformers from '../utils/rd-data-transformers'
+import * as memberUtilsImported from '../utils/rd-member-utils'
 
-export interface UseProjectMembersOptions {
-  store: ProjectDetailStore
+export interface UseBudgetPlanningOptions {
+  store: RDDetailStore
   projectId: string
   onRefresh: () => void
 }
 
-export function useProjectMembers(options: UseProjectMembersOptions) {
+export function useRDBudgetPlanning(options: UseBudgetPlanningOptions) {
   const { store, projectId, onRefresh } = options
 
   // ============================================================================
-  // Load Members
+  // Load Members (인건비 계획 - 참여연구원 로드)
   // ============================================================================
 
   async function loadMembers(): Promise<void> {
@@ -48,13 +45,13 @@ export function useProjectMembers(options: UseProjectMembersOptions) {
         }
       })
     } catch (error) {
-      logger.error('프로젝트 멤버 로드 실패:', error)
+      logger.error('참여연구원 로드 실패:', error)
       throw error
     }
   }
 
   // ============================================================================
-  // Load Available Employees
+  // Load Available Employees (추가 가능한 직원 로드)
   // ============================================================================
 
   async function loadAvailableEmployees(): Promise<void> {
@@ -67,7 +64,7 @@ export function useProjectMembers(options: UseProjectMembersOptions) {
   }
 
   // ============================================================================
-  // Add Member
+  // Add Member (참여연구원 추가 - 인건비 계획)
   // ============================================================================
 
   async function addMember(): Promise<void> {
@@ -105,8 +102,8 @@ export function useProjectMembers(options: UseProjectMembersOptions) {
       await loadMembers()
       onRefresh()
     } catch (error) {
-      logger.error('멤버 추가 실패:', error)
-      pushToast('멤버 추가 중 오류가 발생했습니다.', 'success')
+      logger.error('참여연구원 추가 실패:', error)
+      pushToast('참여연구원 추가 중 오류가 발생했습니다.', 'success')
       throw error
     }
   }
@@ -131,7 +128,7 @@ export function useProjectMembers(options: UseProjectMembersOptions) {
   }
 
   // ============================================================================
-  // Edit Member
+  // Edit Member (참여연구원 수정 준비)
   // ============================================================================
 
   function editMember(member: any): void {
@@ -196,7 +193,7 @@ export function useProjectMembers(options: UseProjectMembersOptions) {
   }
 
   // ============================================================================
-  // Update Member
+  // Update Member (참여연구원 수정 - 인건비 계획 변경)
   // ============================================================================
 
   async function updateMember(): Promise<void> {
@@ -241,26 +238,26 @@ export function useProjectMembers(options: UseProjectMembersOptions) {
       // 성공 메시지 표시
       pushToast('연구원 정보가 수정되었습니다.', 'success')
     } catch (error) {
-      logger.error('멤버 수정 실패:', error)
+      logger.error('참여연구원 수정 실패:', error)
       pushToast('연구원 정보 수정 중 오류가 발생했습니다.', 'success')
       throw error
     }
   }
 
   // ============================================================================
-  // Remove Member
+  // Remove Member (참여연구원 삭제)
   // ============================================================================
 
   async function removeMember(memberId: string): Promise<void> {
-    if (!confirm('정말로 이 멤버를 제거하시겠습니까?')) return
+    if (!confirm('정말로 이 연구원을 제거하시겠습니까?')) return
 
     try {
       await memberService.deleteMember(memberId)
       await loadMembers()
       onRefresh()
     } catch (error) {
-      logger.error('멤버 삭제 실패:', error)
-      pushToast('멤버 삭제 중 오류가 발생했습니다.', 'success')
+      logger.error('참여연구원 삭제 실패:', error)
+      pushToast('참여연구원 삭제 중 오류가 발생했습니다.', 'success')
       throw error
     }
   }

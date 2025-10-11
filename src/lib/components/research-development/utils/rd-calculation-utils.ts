@@ -1,11 +1,12 @@
 /**
- * 프로젝트 관리 계산 유틸리티
+ * Research Development Calculation Utility Functions
+ * 연구개발사업 계산 유틸리티
  *
- * 프로젝트 예산, 멤버, 기간 등의 계산 로직을 포함합니다.
+ * 연구개발사업 예산, 멤버, 기간 등의 계산 로직을 포함합니다.
  */
 
-import * as memberUtils from './memberUtils'
-import * as budgetUtils from './budgetUtils'
+import * as budgetUtils from './rd-budget-utils'
+import * as memberUtils from './rd-member-utils'
 
 // ============================================================================
 // 타입 정의

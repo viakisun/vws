@@ -100,7 +100,7 @@
 ```
 src/lib/components/research-development/
 │
-├── ResearchDevelopmentDetailView.svelte  # 메인 UI 컴포넌트
+├── RDDetailView.svelte  # 메인 UI 컴포넌트
 │
 ├── stores/
 │   └── projectDetailStore.svelte.ts      # 중앙 상태 관리
@@ -259,9 +259,9 @@ User Action → Hook Method → Service → API
 
 ```svelte
 <script lang="ts">
-  import { useProjectDetail } from './hooks/useProjectDetail.svelte'
+  import { useRDDetail } from './hooks/useRDDetail.svelte'
 
-  const pd = useProjectDetail({ selectedProject })
+  const pd = useRDDetail({ selectedProject })
 
   // 이제 모든 기능이 명확하게 구조화됨:
   // pd.funding.addBudget()

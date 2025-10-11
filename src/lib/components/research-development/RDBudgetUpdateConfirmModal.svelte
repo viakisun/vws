@@ -1,6 +1,7 @@
 <script lang="ts">
-  import ThemeModal from '$lib/components/ui/ThemeModal.svelte'
   import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
+  import ThemeModal from '$lib/components/ui/ThemeModal.svelte'
+  import { formatRDCurrency } from './utils/rd-format-utils'
 
   // TypeScript interfaces for validation data
   interface BudgetUpdateValidationData {
@@ -74,11 +75,11 @@
           <div class="space-y-2 text-sm">
             <div class="flex justify-between">
               <span class="text-gray-600">기존 총 예산:</span>
-              <span class="font-medium">{validationData.oldTotalBudget?.toLocaleString()}원</span>
+              <span class="font-medium">{formatRDCurrency(validationData.oldTotalBudget || 0)}</span>
             </div>
             <div class="flex justify-between">
               <span class="text-gray-600">새 총 예산:</span>
-              <span class="font-medium">{validationData.newTotalBudget?.toLocaleString()}원</span>
+              <span class="font-medium">{formatRDCurrency(validationData.newTotalBudget || 0)}</span>
             </div>
             <div class="flex justify-between border-t pt-2">
               <span class="text-gray-600">변경 금액:</span>
@@ -89,7 +90,7 @@
               >
                 {validationData.totalBudgetChange > 0
                   ? '+'
-                  : ''}{validationData.totalBudgetChange?.toLocaleString()}원
+                  : ''}{formatRDCurrency(validationData.totalBudgetChange || 0)}
               </span>
             </div>
           </div>

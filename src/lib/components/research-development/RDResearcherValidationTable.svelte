@@ -14,6 +14,7 @@
     XCircleIcon,
   } from '@lucide/svelte'
   import { onMount } from 'svelte'
+  import { formatRDCurrency } from './utils/rd-format-utils'
 
   // Props
   const {
@@ -181,15 +182,6 @@
     return new Date(dateString).toLocaleDateString('ko-KR')
   }
 
-  // 금액 포맷팅
-  function formatCurrency(amount: number) {
-    if (!amount) return '0원'
-    return new Intl.NumberFormat('ko-KR', {
-      style: 'currency',
-      currency: 'KRW',
-      minimumFractionDigits: 0,
-    }).format(amount)
-  }
 
   // 컴포넌트 마운트 시 자동 검증
   onMount(() => {
@@ -336,7 +328,7 @@
 
               <!-- 월간금액 -->
               <td class="py-3 px-4" style:color="var(--color-text)">
-                {formatCurrency(parseFloat(member.monthly_amount) || 0)}
+                {formatRDCurrency(parseFloat(member.monthly_amount) || 0)}
               </td>
 
               <!-- 참여기간 -->
@@ -421,7 +413,7 @@
             <div>
               <span class="text-gray-600">월간금액:</span>
               <span class="ml-2">
-                {formatCurrency(parseFloat(selectedMember.monthly_amount) || 0)}
+                {formatRDCurrency(parseFloat(selectedMember.monthly_amount) || 0)}
               </span>
             </div>
             <div>

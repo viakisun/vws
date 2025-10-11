@@ -11,21 +11,21 @@ import { pushToast } from '$lib/stores/toasts'
  * - Evidence validation for employment period
  */
 
-import { logger } from '$lib/utils/logger'
 import * as evidenceService from '$lib/services/research-development/evidence.service'
-import * as memberUtilsImported from '../utils/memberUtils'
-import * as budgetUtilsImported from '../utils/budgetUtils'
-import * as dataTransformers from '../utils/dataTransformers'
-import type { ProjectDetailStore } from '../stores/projectDetailStore.svelte'
+import { logger } from '$lib/utils/logger'
+import type { RDDetailStore } from '../stores/RDDetailStore.svelte'
+import * as budgetUtilsImported from '../utils/rd-budget-utils'
+import * as dataTransformers from '../utils/rd-data-transformers'
+import * as memberUtilsImported from '../utils/rd-member-utils'
 
 export interface UseProjectEvidenceOptions {
-  store: ProjectDetailStore
+  store: RDDetailStore
   projectId: string
   availableEmployees: any[]
   projectBudgets: any[]
 }
 
-export function useProjectEvidence(options: UseProjectEvidenceOptions) {
+export function useRDEvidence(options: UseProjectEvidenceOptions) {
   const { store, availableEmployees, projectBudgets } = options
 
   // ============================================================================

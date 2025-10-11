@@ -11,9 +11,9 @@
     UsersIcon,
     XIcon,
   } from '@lucide/svelte'
-  import * as calculationUtilsImported from './utils/calculationUtils'
-  import * as dataTransformers from './utils/dataTransformers'
-  import * as memberUtilsImported from './utils/memberUtils'
+  import * as calculationUtilsImported from './utils/rd-calculation-utils'
+  import * as dataTransformers from './utils/rd-data-transformers'
+  import * as memberUtilsImported from './utils/rd-member-utils'
 
   const {
     projectMembers = [],

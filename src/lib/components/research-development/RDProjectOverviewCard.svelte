@@ -1,7 +1,7 @@
 <script lang="ts">
   import ThemeBadge from '$lib/components/ui/ThemeBadge.svelte'
   import ThemeCard from '$lib/components/ui/ThemeCard.svelte'
-  import { formatCurrency, formatDate } from '$lib/utils/format'
+  import { formatDate } from '$lib/utils/format'
   import {
     ActivityIcon,
     AlertTriangleIcon,
@@ -9,6 +9,7 @@
     FlaskConicalIcon,
     UsersIcon,
   } from '@lucide/svelte'
+  import { formatRDCurrency } from './utils/rd-format-utils'
 
   import type { ProjectSummary } from '$lib/types/index'
 
@@ -88,11 +89,11 @@
         <div class="ml-4">
           <p class="text-sm font-medium text-gray-500">총 예산</p>
           <p class="text-2xl font-semibold text-gray-900">
-            {formatCurrency(projectSummary?.totalBudget || 0)}
+            {formatRDCurrency(projectSummary?.totalBudget || 0)}
           </p>
           <div class="flex items-center mt-2">
             <span class="text-sm text-blue-600">
-              올해: {formatCurrency(projectSummary?.currentYearBudget || 0)}
+              올해: {formatRDCurrency(projectSummary?.currentYearBudget || 0)}
             </span>
           </div>
         </div>

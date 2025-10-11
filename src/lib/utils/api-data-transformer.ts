@@ -152,12 +152,20 @@ export function transformProjectBudgetData(budget: Record<string, unknown>) {
     ...otherFields
   } = budget
 
+  // 날짜 값이 유효한 경우만 변환
+  const safeStartDate = start_date && String(start_date) !== 'null' && String(start_date) !== '' 
+    ? formatDateForAPI(String(start_date)) 
+    : null
+  const safeEndDate = end_date && String(end_date) !== 'null' && String(end_date) !== ''
+    ? formatDateForAPI(String(end_date))
+    : null
+
   return {
     ...otherFields,
     // camelCase로 변환된 필드들만 포함
     projectId: project_id,
-    startDate: formatDateForAPI(String(start_date)),
-    endDate: formatDateForAPI(String(end_date)),
+    startDate: safeStartDate,
+    endDate: safeEndDate,
     fiscalYear: period_number,
     periodNumber: period_number,
     createdAt: created_at,

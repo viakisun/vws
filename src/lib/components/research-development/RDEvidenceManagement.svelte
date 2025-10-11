@@ -1,6 +1,6 @@
 <script lang="ts">
   import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
-  import { formatCurrency, formatDate } from '$lib/utils/format'
+  import { formatDate } from '$lib/utils/format'
   import {
     ChevronDownIcon,
     ChevronRightIcon,
@@ -8,9 +8,10 @@
     FileTextIcon,
     PlusIcon,
   } from '@lucide/svelte'
-  import * as budgetUtilsImported from './utils/budgetUtils'
-  import * as dataTransformers from './utils/dataTransformers'
-  import * as memberUtilsImported from './utils/memberUtils'
+  import * as budgetUtilsImported from './utils/rd-budget-utils'
+  import * as dataTransformers from './utils/rd-data-transformers'
+  import { formatRDCurrency } from './utils/rd-format-utils'
+  import * as memberUtilsImported from './utils/rd-member-utils'
 
   let {
     projectBudgets = [],
@@ -100,7 +101,7 @@
                   {budgetCategory.name}
                 </h4>
                 <div class="text-xs text-gray-500">
-                  예산: {formatCurrency(totalAmount)} | 증빙: {totalItems}개 | 완료: {completedItems}개
+                  예산: {formatRDCurrency(totalAmount)} | 증빙: {totalItems}개 | 완료: {completedItems}개
                   | 진행중: {inProgressItems}개
                 </div>
               </div>
@@ -182,7 +183,7 @@
 
                           <!-- 금액 -->
                           <td class="px-3 py-3 whitespace-nowrap text-sm text-gray-900 text-center">
-                            <span class="font-medium">{formatCurrency(item.budget_amount)}</span>
+                            <span class="font-medium">{formatRDCurrency(item.budget_amount)}</span>
                           </td>
 
                           <!-- 담당자 -->

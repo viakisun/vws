@@ -1,5 +1,6 @@
 /**
- * Data Transformation Utilities
+ * Research Development Data Transformation Utilities
+ * 연구개발사업 데이터 변환 유틸리티
  *
  * API 응답 데이터와 UI 폼 데이터 간의 변환을 처리하는 유틸리티 함수들
  * - Field name normalization (snake_case ↔ camelCase)

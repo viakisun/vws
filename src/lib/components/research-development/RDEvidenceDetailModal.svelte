@@ -1,8 +1,8 @@
 <script lang="ts">
-  import ThemeModal from '../ui/ThemeModal.svelte'
+  import { CalendarIcon, FileTextIcon, PlusIcon } from '@lucide/svelte'
   import ThemeButton from '../ui/ThemeButton.svelte'
-  import { PlusIcon, FileTextIcon, CalendarIcon } from '@lucide/svelte'
-  import * as memberUtilsImported from './utils/memberUtils'
+  import ThemeModal from '../ui/ThemeModal.svelte'
+  import * as memberUtilsImported from './utils/rd-member-utils'
 
   interface EvidenceItem {
     id?: number
@@ -35,12 +35,12 @@
   interface Props {
     visible: boolean
     selectedItem: EvidenceItem | null
-    formatCurrency: (amount: number) => string
+    formatRDCurrency: (amount: number) => string
     formatDate: (date: string) => string
     onclose: () => void
   }
 
-  let { visible = $bindable(), selectedItem, formatCurrency, formatDate, onclose }: Props = $props()
+  let { visible = $bindable(), selectedItem, formatRDCurrency, formatDate, onclose }: Props = $props()
 </script>
 
 <!-- 증빙 상세 모달 -->
@@ -62,7 +62,7 @@
               <div>
                 <span class="text-gray-600">예산액:</span>
                 <span class="ml-2 font-medium">
-                  {formatCurrency(selectedItem.budget_amount || 0)}
+                  {formatRDCurrency(selectedItem.budget_amount || 0)}
                 </span>
               </div>
               <div>

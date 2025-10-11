@@ -1,10 +1,12 @@
 /**
- * 프로젝트(Project) 관련 유틸리티 함수
- * ProjectDetailView에서 사용하는 프로젝트 데이터 처리 함수들
+ * Research Development Project Utility Functions
+ * 연구개발사업 관련 유틸리티 함수
+ * RDDetailView에서 사용하는 연구개발사업 데이터 처리 함수들
  */
 
 /**
- * 프로젝트 필드 접근 유틸리티 - camelCase와 snake_case 모두 지원
+ * 연구개발사업 필드 접근 유틸리티
+ * camelCase와 snake_case 모두 지원
  */
 export function getProjectField<T>(
   project: Record<string, any>,
@@ -16,70 +18,71 @@ export function getProjectField<T>(
 }
 
 /**
- * 프로젝트 시작일 가져오기
+ * 연구개발사업 시작일 가져오기
  */
 export function getProjectStartDate(project: Record<string, any>): string {
   return getProjectField(project, 'startDate', 'start_date', '')
 }
 
 /**
- * 프로젝트 종료일 가져오기
+ * 연구개발사업 종료일 가져오기
  */
 export function getProjectEndDate(project: Record<string, any>): string {
   return getProjectField(project, 'endDate', 'end_date', '')
 }
 
 /**
- * 프로젝트 코드 가져오기
+ * 연구개발사업 코드 가져오기
  */
 export function getProjectCode(project: Record<string, any>): string {
   return getProjectField(project, 'code', 'project_code', '')
 }
 
 /**
- * 프로젝트 설명 가져오기
+ * 연구개발사업 설명 가져오기
  */
 export function getProjectDescription(project: Record<string, any>): string {
   return getProjectField(project, 'description', 'description', '')
 }
 
 /**
- * 프로젝트 상태 가져오기
+ * 연구개발사업 상태 가져오기
  */
 export function getProjectStatus(project: Record<string, any>): string {
   return getProjectField(project, 'status', 'status', '')
 }
 
 /**
- * 프로젝트 후원 유형 가져오기
+ * 연구개발사업 후원 유형 가져오기
  */
 export function getProjectSponsorType(project: Record<string, any>): string {
   return getProjectField(project, 'sponsorType', 'sponsor_type', '')
 }
 
 /**
- * 프로젝트 이름 가져오기
+ * 연구개발사업 이름 가져오기
  */
 export function getProjectName(project: Record<string, any>): string {
   return getProjectField(project, 'name', 'project_name', '')
 }
 
 /**
- * 프로젝트 ID 가져오기
+ * 연구개발사업 ID 가져오기
  */
 export function getProjectId(project: Record<string, any>): string | number {
   return getProjectField(project, 'id', 'project_id', '')
 }
 
 /**
- * 프로젝트 총 예산 가져오기
+ * 연구개발사업 총 예산 가져오기
  */
 export function getProjectTotalBudget(project: Record<string, any>): number {
   return getProjectField(project, 'totalBudget', 'total_budget', 0)
 }
 
 /**
- * 프로젝트 상태 배지 색상 반환
+ * 연구개발사업 상태 배지 색상 반환
+ * @deprecated Use getRDStatusColor from rd-status-utils instead
  */
 export function getProjectStatusColor(status: string): string {
   const statusColors: Record<string, string> = {
@@ -94,7 +97,8 @@ export function getProjectStatusColor(status: string): string {
 }
 
 /**
- * 프로젝트 상태 한글명 반환
+ * 연구개발사업 상태 한글명 반환
+ * @deprecated Use getRDStatusText from rd-status-utils instead
  */
 export function getProjectStatusLabel(status: string): string {
   const statusLabels: Record<string, string> = {

@@ -73,13 +73,21 @@ export interface BudgetForm {
 }
 
 export interface ProjectForm {
-  title: string
-  code: string
+  title: string // 사업명
+  code: string // 과제 코드
+  projectTaskName: string // 과제명
+  sponsor: string // 주관기관
+  managerEmployeeId: string // 과제책임자
   description: string
   status: string
   sponsorType: string
   priority: string
   researchType: string
+  // 선택 필드 - 전담기관 정보
+  dedicatedAgency?: string // 전담기관
+  dedicatedAgencyContactName?: string // 전담기관 담당자 이름
+  dedicatedAgencyContactPhone?: string // 전담기관 담당자 전화번호
+  dedicatedAgencyContactEmail?: string // 전담기관 담당자 이메일
 }
 
 export interface MemberForm {
@@ -137,7 +145,7 @@ export interface EditProjectForm {
 // Store Class
 // ============================================================================
 
-export class ProjectDetailStore {
+export class RDDetailStore {
   // Modal States
   modals = $state<ModalStates>({
     budget: false,
@@ -209,11 +217,18 @@ export class ProjectDetailStore {
     project: {
       title: '',
       code: '',
+      projectTaskName: '',
+      sponsor: '',
+      managerEmployeeId: '',
       description: '',
       status: 'active',
       sponsorType: 'internal',
       priority: 'medium',
       researchType: 'applied',
+      dedicatedAgency: '',
+      dedicatedAgencyContactName: '',
+      dedicatedAgencyContactPhone: '',
+      dedicatedAgencyContactEmail: '',
     },
     member: {
       employeeId: '',
@@ -378,6 +393,6 @@ export class ProjectDetailStore {
 // Singleton Instance
 // ============================================================================
 
-export function createProjectDetailStore(): ProjectDetailStore {
-  return new ProjectDetailStore()
+export function createRDDetailStore(): RDDetailStore {
+  return new RDDetailStore()
 }

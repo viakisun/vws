@@ -1,6 +1,7 @@
 /**
- * 예산(Budget) 관련 유틸리티 함수
- * ProjectDetailView에서 사용하는 예산 데이터 처리 함수들
+ * Research Development Budget Utility Functions
+ * 연구개발사업 예산 관련 유틸리티 함수
+ * RDDetailView에서 사용하는 예산 데이터 처리 함수들
  */
 
 /**

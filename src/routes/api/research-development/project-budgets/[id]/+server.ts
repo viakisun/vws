@@ -10,7 +10,17 @@ export const GET: RequestHandler = async ({ params }) => {
     const result = await query(
       `
 			SELECT
-				pb.*,
+				pb.id, pb.project_id, pb.period_number,
+				pb.start_date::text as start_date, pb.end_date::text as end_date,
+				pb.personnel_cost, pb.research_material_cost, pb.research_activity_cost,
+				pb.research_stipend, pb.indirect_cost,
+				pb.personnel_cost_cash, pb.personnel_cost_in_kind,
+				pb.research_material_cost_cash, pb.research_material_cost_in_kind,
+				pb.research_activity_cost_cash, pb.research_activity_cost_in_kind,
+				pb.research_stipend_cash, pb.research_stipend_in_kind,
+				pb.indirect_cost_cash, pb.indirect_cost_in_kind,
+				pb.government_funding_amount, pb.company_cash_amount, pb.company_in_kind_amount,
+				pb.created_at::text as created_at, pb.updated_at::text as updated_at,
 				p.title as project_title,
 				p.code as project_code
 			FROM project_budgets pb
@@ -71,7 +81,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
     } = data
 
     // 사업비 존재 확인
-    const existingBudget = await query('SELECT * FROM project_budgets WHERE id = $1', [id])
+    const existingBudget = await query('SELECT id FROM project_budgets WHERE id = $1', [id])
 
     if (existingBudget.rows.length === 0) {
       return json(
@@ -92,31 +102,30 @@ export const PUT: RequestHandler = async ({ params, request }) => {
     const researchStipend = Number(researchStipendCash || 0) + Number(researchStipendInKind || 0)
     const indirectCost = Number(indirectCostCash || 0) + Number(indirectCostInKind || 0)
 
-    // 사업비 수정
+    // 사업비 수정 (period_number는 변경하지 않음)
     const _result = await query(
       `
 			UPDATE project_budgets
 			SET
-				period_number = $1,
-				start_date = $2,
-				end_date = $3,
-				personnel_cost = $4,
-				research_material_cost = $5,
-				research_activity_cost = $6,
-				research_stipend = $7,
-				indirect_cost = $8,
-				personnel_cost_cash = $9,
-				personnel_cost_in_kind = $10,
-				research_material_cost_cash = $11,
-				research_material_cost_in_kind = $12,
-				research_activity_cost_cash = $13,
-				research_activity_cost_in_kind = $14,
-				research_stipend_cash = $15,
-				research_stipend_in_kind = $16,
-				indirect_cost_cash = $17,
-				indirect_cost_in_kind = $18,
+				start_date = $1,
+				end_date = $2,
+				personnel_cost = $3,
+				research_material_cost = $4,
+				research_activity_cost = $5,
+				research_stipend = $6,
+				indirect_cost = $7,
+				personnel_cost_cash = $8,
+				personnel_cost_in_kind = $9,
+				research_material_cost_cash = $10,
+				research_material_cost_in_kind = $11,
+				research_activity_cost_cash = $12,
+				research_activity_cost_in_kind = $13,
+				research_stipend_cash = $14,
+				research_stipend_in_kind = $15,
+				indirect_cost_cash = $16,
+				indirect_cost_in_kind = $17,
 				updated_at = CURRENT_TIMESTAMP
-			WHERE id = $19
+			WHERE id = $18
 			RETURNING id, project_id, personnel_cost, research_material_cost, research_activity_cost,
 			          indirect_cost, created_at::text, updated_at::text, personnel_cost_cash,
 			          personnel_cost_in_kind, research_material_cost_cash, research_material_cost_in_kind,
@@ -126,7 +135,6 @@ export const PUT: RequestHandler = async ({ params, request }) => {
 			          research_stipend, research_stipend_cash, research_stipend_in_kind
 		`,
       [
-        periodNumber,
         startDate,
         endDate,
         personnelCost,
@@ -152,7 +160,17 @@ export const PUT: RequestHandler = async ({ params, request }) => {
     const budgetWithDetails = await query(
       `
 			SELECT
-				pb.*,
+				pb.id, pb.project_id, pb.period_number,
+				pb.start_date::text as start_date, pb.end_date::text as end_date,
+				pb.personnel_cost, pb.research_material_cost, pb.research_activity_cost,
+				pb.research_stipend, pb.indirect_cost,
+				pb.personnel_cost_cash, pb.personnel_cost_in_kind,
+				pb.research_material_cost_cash, pb.research_material_cost_in_kind,
+				pb.research_activity_cost_cash, pb.research_activity_cost_in_kind,
+				pb.research_stipend_cash, pb.research_stipend_in_kind,
+				pb.indirect_cost_cash, pb.indirect_cost_in_kind,
+				pb.government_funding_amount, pb.company_cash_amount, pb.company_in_kind_amount,
+				pb.created_at::text as created_at, pb.updated_at::text as updated_at,
 				p.title as project_title,
 				p.code as project_code
 			FROM project_budgets pb
@@ -185,7 +203,7 @@ export const DELETE: RequestHandler = async ({ params }) => {
   try {
     const { id } = params as Record<string, string>
     // 사업비 존재 확인
-    const existingBudget = await query('SELECT * FROM project_budgets WHERE id = $1', [id])
+    const existingBudget = await query('SELECT id FROM project_budgets WHERE id = $1', [id])
 
     if (existingBudget.rows.length === 0) {
       return json(

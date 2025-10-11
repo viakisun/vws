@@ -8,21 +8,21 @@ import { pushToast } from '$lib/stores/toasts'
  * - 계획된 예산 항목에 따라 실제 집행 추적
  */
 
-import { logger } from '$lib/utils/logger'
 import * as evidenceService from '$lib/services/research-development/evidence.service'
-import * as memberUtilsImported from '../utils/memberUtils'
-import * as budgetUtilsImported from '../utils/budgetUtils'
-import * as dataTransformers from '../utils/dataTransformers'
-import type { ProjectDetailStore } from '../stores/projectDetailStore.svelte'
+import { logger } from '$lib/utils/logger'
+import type { RDDetailStore } from '../stores/RDDetailStore.svelte'
+import * as budgetUtilsImported from '../utils/rd-budget-utils'
+import * as dataTransformers from '../utils/rd-data-transformers'
+import * as memberUtilsImported from '../utils/rd-member-utils'
 
 export interface UseBudgetExecutionOptions {
-  store: ProjectDetailStore
+  store: RDDetailStore
   projectId: string
   availableEmployees: any[]
   projectBudgets: any[]
 }
 
-export function useBudgetExecution(options: UseBudgetExecutionOptions) {
+export function useRDBudgetExecution(options: UseBudgetExecutionOptions) {
   const { store, availableEmployees, projectBudgets } = options
 
   // ============================================================================

@@ -3,7 +3,7 @@
   import { page } from '$app/state'
   import PermissionGate from '$lib/components/auth/PermissionGate.svelte'
   import PageLayout from '$lib/components/layout/PageLayout.svelte'
-  import ResearchDevelopmentDetailView from '$lib/components/research-development/ResearchDevelopmentDetailView.svelte'
+  import RDDetailView from '$lib/components/research-development/RDDetailView.svelte'
   import { PermissionAction, Resource } from '$lib/stores/permissions'
   import { logger } from '$lib/utils/logger'
   import { ArrowLeftIcon } from '@lucide/svelte'
@@ -55,7 +55,7 @@
         <div style:color="var(--color-text-secondary)">로딩 중...</div>
       </div>
     {:else if project}
-      <ResearchDevelopmentDetailView selectedProject={project} />
+      <RDDetailView selectedProject={project} />
     {:else}
       <div class="text-center py-12">
         <p style:color="var(--color-text-secondary)">프로젝트를 찾을 수 없습니다.</p>

@@ -2,7 +2,7 @@
  * Validation Utility Functions
  *
  * 검증 관련 유틸리티 함수들
- * ResearchDevelopmentDetailView.svelte에서 추출된 검증 로직 함수들
+ * RDDetailView.svelte에서 추출된 검증 로직 함수들
  */
 
 // ============================================================================

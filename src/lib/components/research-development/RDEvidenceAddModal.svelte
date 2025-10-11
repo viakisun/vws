@@ -27,10 +27,14 @@
   }
 
   interface Employee {
-    id: number
+    id: string | number
     first_name?: string
     last_name?: string
+    name?: string
     korean_name?: string
+    formatted_name?: string
+    department?: string
+    position?: string
   }
 
   interface Props {

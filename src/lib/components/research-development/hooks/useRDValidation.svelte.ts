@@ -10,18 +10,18 @@ import { pushToast } from '$lib/stores/toasts'
  * - Member validation status tracking
  */
 
-import { logger } from '$lib/utils/logger'
 import * as validationService from '$lib/services/research-development/validation.service'
-import * as dataTransformers from '../utils/dataTransformers'
-import type { ProjectDetailStore } from '../stores/projectDetailStore.svelte'
+import { logger } from '$lib/utils/logger'
+import type { RDDetailStore } from '../stores/RDDetailStore.svelte'
+import * as dataTransformers from '../utils/rd-data-transformers'
 
 export interface UseProjectValidationOptions {
-  store: ProjectDetailStore
+  store: RDDetailStore
   projectId: string
   projectMembers: any[]
 }
 
-export function useProjectValidation(options: UseProjectValidationOptions) {
+export function useRDValidation(options: UseProjectValidationOptions) {
   const { store, projectId, projectMembers } = options
 
   // ============================================================================

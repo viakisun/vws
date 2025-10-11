@@ -1,6 +1,7 @@
 /**
- * 멤버(Member) 관련 유틸리티 함수
- * ProjectDetailView에서 사용하는 프로젝트 멤버 데이터 처리 함수들
+ * Research Development Member Utility Functions
+ * 연구개발사업 멤버(참여연구원) 관련 유틸리티 함수
+ * RDDetailView에서 사용하는 참여연구원 데이터 처리 함수들
  */
 
 import { isKoreanName } from '$lib/utils/korean-name'

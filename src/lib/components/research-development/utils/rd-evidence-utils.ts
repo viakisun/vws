@@ -2,7 +2,7 @@
  * Evidence Management Utility Functions
  *
  * 증빙 관리 관련 유틸리티 함수들
- * ResearchDevelopmentDetailView.svelte에서 추출된 증빙 데이터 처리 함수들
+ * RDDetailView.svelte에서 추출된 증빙 데이터 처리 함수들
  */
 
 // ============================================================================

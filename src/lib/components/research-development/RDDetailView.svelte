@@ -8,19 +8,19 @@
    * 3단계: Budget Execution (예산 집행) - execution.*
    */
 
-  import { useProjectAvailableEmployees } from '$lib/hooks/employee/useProjectAvailableEmployees.svelte'
+  import { useActiveEmployees } from '$lib/hooks/employee/useActiveEmployees.svelte'
   import { logger } from '$lib/utils/logger'
   import { PencilIcon } from 'lucide-svelte'
   import { createEventDispatcher, onMount } from 'svelte'
-  import { useProjectDetail } from './hooks/useProjectDetail.svelte'
-  // Sub-components
+  import { useRDDetail } from './hooks/useRDDetail.svelte'
+// Sub-components
   import ThemeBadge from '$lib/components/ui/ThemeBadge.svelte'
   import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
   import ThemeCard from '$lib/components/ui/ThemeCard.svelte'
   import RDEvidenceManagement from './RDEvidenceManagement.svelte'
+  import RDExecutionPlan from './RDExecutionPlan.svelte'
   import RDProjectMemberTable from './RDProjectMemberTable.svelte'
-  import ResearchDevelopmentExecutionPlan from './ResearchDevelopmentExecutionPlan.svelte'
-  // Modal Components
+// Modal Components
   import RDBudgetUpdateConfirmModal from './RDBudgetUpdateConfirmModal.svelte'
   import RDEvidenceAddModal from './RDEvidenceAddModal.svelte'
   import RDEvidenceDetailModal from './RDEvidenceDetailModal.svelte'
@@ -29,11 +29,20 @@
   import RDProjectEditModal from './RDProjectEditModal.svelte'
   import RDProjectMemberForm from './RDProjectMemberForm.svelte'
   import RDValidationResultModal from './RDValidationResultModal.svelte'
-  // Utility functions
-  import { formatCurrency, formatDate, formatNumber } from '$lib/utils/format'
-  import * as calculationUtilsImported from './utils/calculationUtils'
-  import * as dataTransformers from './utils/dataTransformers'
-  import * as projectUtilsImported from './utils/projectUtils'
+// Utility functions
+  import { formatDate, formatNumber } from '$lib/utils/format'
+  import * as calculationUtilsImported from './utils/rd-calculation-utils'
+  import * as dataTransformers from './utils/rd-data-transformers'
+  import { formatRDCurrency } from './utils/rd-format-utils'
+  import * as projectUtilsImported from './utils/rd-project-utils'
+  import {
+    getRDPriorityColor,
+    getRDPriorityText,
+    getRDResearchTypeText,
+    getRDSponsorTypeText,
+    getRDStatusColor,
+    getRDStatusText,
+  } from './utils/rd-status-utils'
 
   // ============================================================================
   // Props & Dispatcher
@@ -50,7 +59,7 @@
   // Initialize Project Detail Hook (3-Stage Architecture)
   // ============================================================================
 
-  const pd = useProjectDetail({ selectedProject, externalRefreshTrigger })
+  const pd = useRDDetail({ selectedProject, externalRefreshTrigger })
 
   // Destructure for convenience
   const { store, funding, planning, execution, updateProjectPeriod, refresh } = pd
@@ -78,24 +87,23 @@
   const projectMembers = $derived(store.data.projectMembers)
   const projectBudgets = $derived(store.data.projectBudgets)
 
-  // Available Employees (프로젝트 멤버 제외 현직 직원)
-  // projectMembers is passed as a reactive state reference
-  const employeeFilterState = $state({ members: projectMembers })
-  const employeeFilter = useProjectAvailableEmployees(employeeFilterState.members)
-
-  // Update filter when projectMembers changes
-  $effect(() => {
-    employeeFilterState.members = projectMembers
+  // Available Employees (참여연구원 제외 현직 직원)
+  const activeEmployees = useActiveEmployees()
+  
+  // 참여연구원을 제외한 직원 목록을 $derived.by()로 직접 계산
+  const availableEmployees = $derived.by(() => {
+    const memberEmployeeIds = new Set(
+      projectMembers.map((m: any) => m.employee_id || m.id)
+    )
+    return activeEmployees.employees.filter((emp: any) => !memberEmployeeIds.has(emp.id))
   })
-
-  const availableEmployees = $derived(employeeFilter.employees)
 
   // Validation
   const validationData = $derived(store.validation)
 
   // Load available employees on mount
   onMount(() => {
-    employeeFilter.load()
+    activeEmployees.load()
   })
 
   // ============================================================================
@@ -131,6 +139,13 @@
       })
 
       if (response.ok) {
+        const result = await response.json()
+        
+        // 업데이트된 데이터로 selectedProject 갱신
+        if (result.data) {
+          Object.assign(selectedProject, result.data)
+        }
+        
         store.closeModal('editProject')
         refresh()
         pushToast('연구개발사업이 수정되었습니다.', 'success')
@@ -148,7 +163,7 @@
   async function deleteProject() {
     if (!selectedProject?.id) return
     if (store.selected.deleteCode !== selectedProject.code) {
-      pushToast('프로젝트 코드가 일치하지 않습니다.', 'info')
+      pushToast('연구개발사업 코드가 일치하지 않습니다.', 'info')
       return
     }
 
@@ -162,13 +177,13 @@
       if (response.ok) {
         store.closeModal('deleteConfirm')
         refresh()
-        pushToast('프로젝트가 삭제되었습니다.', 'success')
+        pushToast('연구개발사업이 삭제되었습니다.', 'success')
       } else {
-        pushToast('프로젝트 삭제에 실패했습니다.', 'success')
+        pushToast('연구개발사업 삭제에 실패했습니다.', 'error')
       }
     } catch (error) {
-      logger.error('프로젝트 삭제 실패:', error)
-      pushToast('프로젝트 삭제 중 오류가 발생했습니다.', 'success')
+      logger.error('연구개발사업 삭제 실패:', error)
+      pushToast('연구개발사업 삭제 중 오류가 발생했습니다.', 'error')
     } finally {
       store.setLoading('deleting', false)
     }
@@ -305,80 +320,6 @@
   }
 
   // ============================================================================
-  // UI Helper Functions
-  // ============================================================================
-
-  function getStatusColor(
-    status: string,
-  ): 'primary' | 'success' | 'warning' | 'error' | 'info' | 'ghost' | 'default' {
-    const statusMap: Record<
-      string,
-      'primary' | 'success' | 'warning' | 'error' | 'info' | 'ghost' | 'default'
-    > = {
-      active: 'success',
-      planning: 'info',
-      completed: 'default',
-      cancelled: 'error',
-      suspended: 'warning',
-    }
-    return statusMap[status] || 'default'
-  }
-
-  function getStatusText(status: string): string {
-    const statusMap: Record<string, string> = {
-      active: '진행중',
-      planning: '기획중',
-      completed: '완료',
-      cancelled: '취소',
-      suspended: '중단',
-    }
-    return statusMap[status] || status
-  }
-
-  function getPriorityColor(
-    priority: string,
-  ): 'primary' | 'success' | 'warning' | 'error' | 'info' | 'ghost' | 'default' {
-    const priorityMap: Record<
-      string,
-      'primary' | 'success' | 'warning' | 'error' | 'info' | 'ghost' | 'default'
-    > = {
-      low: 'default',
-      medium: 'info',
-      high: 'warning',
-      critical: 'error',
-    }
-    return priorityMap[priority] || 'default'
-  }
-
-  function getPriorityText(priority: string): string {
-    const priorityMap: Record<string, string> = {
-      low: '낮음',
-      medium: '보통',
-      high: '높음',
-      critical: '긴급',
-    }
-    return priorityMap[priority] || priority
-  }
-
-  function getSponsorTypeText(type: string): string {
-    const sponsorMap: Record<string, string> = {
-      government: '정부',
-      private: '민간',
-      internal: '자체',
-    }
-    return sponsorMap[type] || type
-  }
-
-  function getResearchTypeText(type: string): string {
-    const researchMap: Record<string, string> = {
-      basic: '기초연구',
-      applied: '응용연구',
-      development: '개발연구',
-    }
-    return researchMap[type] || type
-  }
-
-  // ============================================================================
   // Watch external project change
   // ============================================================================
 
@@ -391,10 +332,10 @@
 
 {#if selectedProject}
   <div class="space-y-6">
-    <!-- 프로젝트 기본 정보 -->
+    <!-- 연구개발사업 기본 정보 -->
     <ThemeCard>
       <div class="flex items-center justify-between mb-6">
-        <h3 class="text-lg font-semibold text-gray-900">프로젝트 정보</h3>
+        <h3 class="text-lg font-semibold text-gray-900">연구개발사업 정보</h3>
         <ThemeButton
           variant="secondary"
           size="sm"
@@ -410,17 +351,17 @@
 
       <!-- 상태 및 태그 -->
       <div class="flex items-center gap-2 mb-4">
-        <ThemeBadge variant={getStatusColor(selectedProject.status)} size="md">
-          {getStatusText(selectedProject.status)}
+        <ThemeBadge variant={getRDStatusColor(selectedProject.status)} size="md">
+          {getRDStatusText(selectedProject.status)}
         </ThemeBadge>
-        <ThemeBadge variant={getPriorityColor(selectedProject.priority)} size="md">
-          {getPriorityText(selectedProject.priority)}
+        <ThemeBadge variant={getRDPriorityColor(selectedProject.priority)} size="md">
+          {getRDPriorityText(selectedProject.priority)}
         </ThemeBadge>
         <ThemeBadge variant="info" size="md">
-          {getSponsorTypeText(selectedProject.sponsor_type || selectedProject.sponsorType)}
+          {getRDSponsorTypeText(selectedProject.sponsor_type || selectedProject.sponsorType)}
         </ThemeBadge>
         <ThemeBadge variant="primary" size="md">
-          {getResearchTypeText(selectedProject.research_type || selectedProject.researchType)}
+          {getRDResearchTypeText(selectedProject.research_type || selectedProject.researchType)}
         </ThemeBadge>
       </div>
 
@@ -520,22 +461,10 @@
 
     <!-- 재원 구성 -->
     <ThemeCard>
-      <div class="flex items-center justify-between mb-6">
-        <h3 class="text-lg font-semibold text-gray-900">재원 구성</h3>
-        <ThemeButton
-          variant="secondary"
-          size="sm"
-          onclick={() => {
-            uiStates.budgetRefreshTrigger++
-          }}
-        >
-          <PencilIcon size={16} class="mr-1" />
-          새로고침
-        </ThemeButton>
-      </div>
+      <h3 class="text-lg font-semibold text-gray-900 mb-6">재원 구성</h3>
 
       <div>
-        {#await import('$lib/components/research-development/ResearchDevelopmentFundingStructure.svelte')}
+        {#await import('$lib/components/research-development/RDFundingStructure.svelte')}
           <div class="flex items-center justify-center py-4">
             <div
               class="animate-spin rounded-full h-4 w-4 border-b-2"
@@ -543,8 +472,8 @@
             ></div>
             <span class="ml-2 text-sm" style:color="var(--color-text-secondary)">로딩 중...</span>
           </div>
-        {:then { default: ResearchDevelopmentFundingStructure }}
-          <ResearchDevelopmentFundingStructure
+        {:then { default: RDFundingStructure }}
+          <RDFundingStructure
             projectId={selectedProject.id}
             compact={true}
             refreshTrigger={uiStates.budgetRefreshTrigger}
@@ -561,13 +490,9 @@
 
     <!-- 집행 계획 -->
     <ThemeCard>
-      <ResearchDevelopmentExecutionPlan
-        {projectBudgets}
-        budgetUpdateKey={uiStates.budgetUpdateKey}
-        evidencePeriod={selectedItems.evidencePeriod}
-        onEditBudget={(budget) => funding.editBudget(budget)}
-        onRemoveBudget={(budgetId) => funding.removeBudget(String(budgetId))}
-        onAddBudget={() => (modalStates.budget = true)}
+      <RDExecutionPlan
+        projectId={selectedProject.id}
+        refreshTrigger={uiStates.budgetUpdateKey}
       />
     </ThemeCard>
   </div>
@@ -671,7 +596,7 @@
   <RDEvidenceDetailModal
     bind:visible={modalStates.evidenceDetail}
     selectedItem={selectedItems.evidenceItem}
-    {formatCurrency}
+    {formatRDCurrency}
     {formatDate}
     onclose={() => (modalStates.evidenceDetail = false)}
   />
@@ -690,7 +615,7 @@
     onsubmit={execution.handleAddEvidenceItem}
   />
 
-  <!-- 프로젝트 수정 모달 -->
+  <!-- 연구개발사업 수정 모달 -->
   <RDProjectEditModal
     bind:visible={modalStates.editProject}
     bind:projectForm={forms.project}
@@ -699,7 +624,7 @@
     onupdate={updateProject}
   />
 
-  <!-- 프로젝트 삭제 확인 모달 -->
+  <!-- 연구개발사업 삭제 확인 모달 -->
   <RDProjectDeleteConfirmModal
     bind:open={modalStates.deleteConfirm}
     onclose={() => {

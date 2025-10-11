@@ -25,11 +25,11 @@
     const errors: string[] = []
 
     if (!projectData.title.trim()) {
-      errors.push('프로젝트명을 입력해주세요.')
+      errors.push('연구개발사업명을 입력해주세요.')
     }
 
     if (!projectData.code.trim()) {
-      errors.push('프로젝트 코드를 입력해주세요.')
+      errors.push('연구개발사업 코드를 입력해주세요.')
     }
 
     validationErrors = errors
@@ -44,7 +44,7 @@
     validationErrors = []
 
     try {
-      logger.log('🚀 [UI] 프로젝트 생성 요청 시작')
+      logger.log('🚀 [UI] 연구개발사업 생성 요청 시작')
       logger.log('📋 [UI] 전송 데이터:', JSON.stringify(projectData, null, 2))
 
       const response = await fetch('/api/research-development/projects', {
@@ -58,17 +58,17 @@
       const result = await response.json()
 
       if (result.success) {
-        logger.log('✅ [UI] 프로젝트 생성 성공:', result)
-        // 프로젝트 생성 후 바로 완료
+        logger.log('✅ [UI] 연구개발사업 생성 성공:', result)
+        // 연구개발사업 생성 후 바로 완료
         dispatch('projectCreated', result)
         resetForm()
       } else {
-        logger.log('❌ [UI] 프로젝트 생성 실패:', result.error)
-        validationErrors = [result.error || '프로젝트 생성 중 오류가 발생했습니다.']
+        logger.log('❌ [UI] 연구개발사업 생성 실패:', result.error)
+        validationErrors = [result.error || '연구개발사업 생성 중 오류가 발생했습니다.']
       }
     } catch (error) {
-      logger.error('💥 [UI] 프로젝트 생성 중 오류:', error)
-      validationErrors = ['프로젝트 생성 중 오류가 발생했습니다.']
+      logger.error('💥 [UI] 연구개발사업 생성 중 오류:', error)
+      validationErrors = ['연구개발사업 생성 중 오류가 발생했습니다.']
     } finally {
       isSubmitting = false
     }
@@ -84,7 +84,7 @@
 </script>
 
 <div class="p-6">
-  <h2 class="text-2xl font-bold text-gray-900 mb-6">새 프로젝트 생성</h2>
+  <h2 class="text-2xl font-bold text-gray-900 mb-6">새 연구개발사업 생성</h2>
 
   <!-- 검증 오류 표시 -->
   {#if validationErrors.length > 0}
@@ -100,24 +100,24 @@
       </ul>
     </div>
   {/if}
-  <!-- 프로젝트 정보 입력 -->
+  <!-- 연구개발사업 정보 입력 -->
   <div class="space-y-6">
     <div>
       <label for="projectTitle" class="block text-sm font-medium text-gray-700 mb-2">
-        프로젝트명 *
+        연구개발사업명 *
       </label>
       <input
         id="projectTitle"
         type="text"
         bind:value={projectData.title}
         class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-        placeholder="프로젝트명을 입력하세요"
+        placeholder="연구개발사업명을 입력하세요"
       />
     </div>
 
     <div>
       <label for="projectCode" class="block text-sm font-medium text-gray-700 mb-2">
-        프로젝트 코드 *
+        연구개발사업 코드 *
       </label>
       <input
         id="projectCode"
@@ -130,20 +130,20 @@
 
     <div>
       <label for="description" class="block text-sm font-medium text-gray-700 mb-2">
-        프로젝트 설명 (선택사항)
+        연구개발사업 설명 (선택사항)
       </label>
       <textarea
         id="description"
         bind:value={projectData.description}
         rows="4"
         class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-        placeholder="프로젝트에 대한 설명을 입력하세요"
+        placeholder="연구개발사업에 대한 설명을 입력하세요"
       ></textarea>
     </div>
 
     <div>
       <label for="status" class="block text-sm font-medium text-gray-700 mb-2">
-        프로젝트 상태
+        연구개발사업 상태
       </label>
       <select
         id="status"
@@ -170,7 +170,7 @@
         생성 중...
       {:else}
         <CheckIcon class="w-4 h-4 mr-2" />
-        프로젝트 생성
+        연구개발사업 생성
       {/if}
     </button>
   </div>

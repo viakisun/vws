@@ -9,24 +9,24 @@
  * This is the single entry point for the ProjectDetailView component
  */
 
-import { createEventDispatcher, onMount } from 'svelte'
 import { logger } from '$lib/utils/logger'
-import { createProjectDetailStore } from '../stores/projectDetailStore.svelte'
-import { useBudgetFunding } from './useBudgetFunding.svelte'
-import { useBudgetPlanning } from './useBudgetPlanning.svelte'
-import { useBudgetExecution } from './useBudgetExecution.svelte'
+import { createEventDispatcher, onMount } from 'svelte'
+import { createRDDetailStore } from '../stores/RDDetailStore.svelte'
+import { useRDBudgetExecution } from './useRDBudgetExecution.svelte'
+import { useRDBudgetFunding } from './useRDBudgetFunding.svelte'
+import { useRDBudgetPlanning } from './useRDBudgetPlanning.svelte'
 
 export interface UseProjectDetailOptions {
   selectedProject: any
   externalRefreshTrigger?: number
 }
 
-export function useProjectDetail(options: UseProjectDetailOptions) {
+export function useRDDetail(options: UseProjectDetailOptions) {
   const { selectedProject, externalRefreshTrigger = 0 } = options
   const dispatch = createEventDispatcher()
 
   // Create store instance
-  const store = createProjectDetailStore()
+  const store = createRDDetailStore()
 
   // ============================================================================
   // Refresh Handler
@@ -85,7 +85,7 @@ export function useProjectDetail(options: UseProjectDetailOptions) {
   // ============================================================================
 
   // 1단계: Budget Funding Hook (예산 조달)
-  const fundingHook = useBudgetFunding({
+  const fundingHook = useRDBudgetFunding({
     store,
     projectId: selectedProject?.id,
     onRefresh: handleRefresh,
@@ -93,14 +93,14 @@ export function useProjectDetail(options: UseProjectDetailOptions) {
   })
 
   // 2단계: Budget Planning Hook (예산 계획 - 인건비 중심)
-  const planningHook = useBudgetPlanning({
+  const planningHook = useRDBudgetPlanning({
     store,
     projectId: selectedProject?.id,
     onRefresh: handleRefresh,
   })
 
   // 3단계: Budget Execution Hook (예산 집행 - 증빙)
-  const executionHook = useBudgetExecution({
+  const executionHook = useRDBudgetExecution({
     store,
     projectId: selectedProject?.id,
     availableEmployees: store.data.availableEmployees,
