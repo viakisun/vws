@@ -54,13 +54,16 @@ src/lib/
 ## 레이어별 역할
 
 ### 1. Database Layer (`database/`)
+
 **책임**: 순수 DB 연결 관리
+
 - 연결 풀 관리
 - 쿼리 실행 (`query`, `transaction`)
 - 날짜 검증 (`assertDbDateText`)
 - 타임존 설정
 
 **규칙**:
+
 - ❌ 비즈니스 로직 금지
 - ❌ 도메인 특화 CRUD 금지
 - ✅ 순수 DB 유틸리티만
@@ -77,7 +80,9 @@ export class DatabaseService {
 ```
 
 ### 2. Service Layer (`services/`)
+
 **책임**: 비즈니스 로직 및 데이터 처리
+
 - CRUD 작업
 - 비즈니스 규칙 적용
 - 데이터 검증
@@ -86,6 +91,7 @@ export class DatabaseService {
 **명명 규칙**: `[domain]-service.ts`
 
 **구조**:
+
 ```typescript
 // services/company/company-service.ts
 import { query, transaction } from '$lib/database/connection'
@@ -120,7 +126,9 @@ export const companyService = new CompanyService()
 ```
 
 ### 3. Store Layer (`stores/`)
+
 **책임**: 클라이언트 상태 관리 (Svelte 5 runes)
+
 - 리액티브 상태
 - 상태 변경 메서드
 - 로컬 캐싱
@@ -128,6 +136,7 @@ export const companyService = new CompanyService()
 **명명 규칙**: `[domain]-store.ts`
 
 **구조**:
+
 ```typescript
 // stores/company/company-store.ts
 import { companyService } from '$lib/services/company/company-service'
@@ -138,9 +147,15 @@ function createCompanyStore() {
   let error = $state<string | null>(null)
 
   return {
-    get companies() { return companies },
-    get loading() { return loading },
-    get error() { return error },
+    get companies() {
+      return companies
+    },
+    get loading() {
+      return loading
+    },
+    get error() {
+      return error
+    },
 
     async loadCompanies() {
       loading = true
@@ -151,7 +166,7 @@ function createCompanyStore() {
       } finally {
         loading = false
       }
-    }
+    },
   }
 }
 
@@ -159,7 +174,9 @@ export const companyStore = createCompanyStore()
 ```
 
 ### 4. Hook Layer (`hooks/`)
+
 **책임**: UI 로직 + 서비스 통합 (Svelte 5 runes)
+
 - 폼 상태 관리
 - API 호출
 - 에러 핸들링
@@ -168,6 +185,7 @@ export const companyStore = createCompanyStore()
 **명명 규칙**: `use[Domain].svelte.ts`
 
 **구조**:
+
 ```typescript
 // hooks/company/useCompany.svelte.ts
 import { companyService } from '$lib/services/company/company-service'
@@ -193,8 +211,12 @@ export function useCompany() {
   }
 
   return {
-    get companies() { return companies },
-    get loading() { return loading },
+    get companies() {
+      return companies
+    },
+    get loading() {
+      return loading
+    },
     createCompany,
     // ... other methods
   }
@@ -202,7 +224,9 @@ export function useCompany() {
 ```
 
 ### 5. Component Layer (`components/`)
+
 **책임**: UI 렌더링
+
 - 훅 사용
 - 이벤트 핸들링
 - 사용자 인터페이션
@@ -211,7 +235,7 @@ export function useCompany() {
 <!-- components/company/CompanyList.svelte -->
 <script lang="ts">
   import { useCompany } from '$lib/hooks/company/useCompany.svelte'
-  
+
   const { companies, loading, createCompany } = useCompany()
 </script>
 
@@ -243,20 +267,21 @@ Component → Hook → Service → Database → Service → Hook → Component
 ## 모범 사례
 
 ### Service 작성
+
 ```typescript
 // ✅ Good: 명확한 책임
 export class CompanyService {
   async create(data: CreateCompanyDto): Promise<Company> {
     // 1. 검증
     this.validateCompanyData(data)
-    
+
     // 2. DB 쿼리
     const result = await query(`
-      INSERT INTO companies (name, ...) 
-      VALUES ($1, ...) 
+      INSERT INTO companies (name, ...)
+      VALUES ($1, ...)
       RETURNING id, name, created_at::text as created_at
     `, [data.name, ...])
-    
+
     // 3. 반환
     return result.rows[0]
   }
@@ -274,6 +299,7 @@ export class CompanyService {
 ```
 
 ### Hook 작성
+
 ```typescript
 // ✅ Good: UI 로직 + 서비스 호출
 export function useCompany() {
@@ -296,6 +322,7 @@ export function useCompany() {
 ```
 
 ### Store 작성
+
 ```typescript
 // ✅ Good: 글로벌 상태만
 function createAuthStore() {
@@ -303,17 +330,21 @@ function createAuthStore() {
   let isAuthenticated = $derived(user !== null)
 
   return {
-    get user() { return user },
-    get isAuthenticated() { return isAuthenticated },
-    setUser: (u: User | null) => user = u
+    get user() {
+      return user
+    },
+    get isAuthenticated() {
+      return isAuthenticated
+    },
+    setUser: (u: User | null) => (user = u),
   }
 }
 
 // ❌ Bad: 로컬 UI 상태
 function createAuthStore() {
   let user = $state<User | null>(null)
-  let formData = $state({ email: '', password: '' })  // ❌ 컴포넌트 로컬 상태
-  let showModal = $state(false)  // ❌ UI 상태
+  let formData = $state({ email: '', password: '' }) // ❌ 컴포넌트 로컬 상태
+  let showModal = $state(false) // ❌ UI 상태
 }
 ```
 
@@ -322,11 +353,13 @@ function createAuthStore() {
 기존 `DatabaseService` → 새 아키텍처:
 
 1. **서비스 파일 생성**
+
 ```bash
 src/lib/services/company/company-service.ts
 ```
 
 2. **DatabaseService 메서드 이동**
+
 ```typescript
 // Before: connection.ts
 export class DatabaseService {
@@ -341,6 +374,7 @@ export const companyService = new CompanyService()
 ```
 
 3. **임포트 업데이트**
+
 ```typescript
 // Before
 import { DatabaseService } from '$lib/database/connection'
@@ -354,6 +388,7 @@ await companyService.create(data)
 ## 체크리스트
 
 새 기능 추가 시:
+
 - [ ] 적절한 레이어에 코드 작성
 - [ ] Service: 비즈니스 로직
 - [ ] Hook: UI 로직
@@ -362,4 +397,3 @@ await companyService.create(data)
 - [ ] 타입 정의 (`types/`)
 - [ ] 날짜 필드는 `::text` 캐스팅
 - [ ] 에러 핸들링 및 로깅
-

@@ -85,13 +85,11 @@ export const POST: RequestHandler = async ({ request }) => {
 
     // 필수 필드 검증
     const requiredFields = ['first_name', 'last_name', 'email', 'department', 'position']
-    const missingFields = requiredFields.filter(
-      (field) => {
-        const value = data[field as keyof DatabaseEmployee]
-        return value === null || value === undefined || value === ''
-      },
-    )
-    
+    const missingFields = requiredFields.filter((field) => {
+      const value = data[field as keyof DatabaseEmployee]
+      return value === null || value === undefined || value === ''
+    })
+
     // salary는 0도 유효하므로 별도 체크
     if (data.salary === null || data.salary === undefined) {
       missingFields.push('salary')
@@ -265,7 +263,7 @@ export const PUT: RequestHandler = async ({ request }) => {
       const value = data[field]
       return value === null || value === undefined || value === ''
     })
-    
+
     // salary는 0도 유효하므로 별도 체크
     if (data.salary === null || data.salary === undefined) {
       missingFields.push('salary')

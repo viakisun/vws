@@ -1,10 +1,10 @@
 import { getConnection, query } from '$lib/database/connection'
 import type { ApiResponse, DatabaseProjectMember } from '$lib/types/database'
 import {
-    calculateParticipationPeriod,
-    formatDateForAPI,
-    isValidDate,
-    isValidDateRange,
+  calculateParticipationPeriod,
+  formatDateForAPI,
+  isValidDate,
+  isValidDateRange,
 } from '$lib/utils/date-calculator'
 import { logger } from '$lib/utils/logger'
 import { json } from '@sveltejs/kit'

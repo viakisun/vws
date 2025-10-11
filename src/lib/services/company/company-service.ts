@@ -251,4 +251,3 @@ export class CompanyService {
 
 // 싱글톤 인스턴스 export
 export const companyService = new CompanyService()
-

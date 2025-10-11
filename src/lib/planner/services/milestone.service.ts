@@ -1,11 +1,11 @@
 import { DatabaseService } from '$lib/database/connection'
 import type {
-    CreateMilestoneInput,
-    Milestone,
-    MilestoneFilters,
-    MilestoneStatus,
-    MilestoneWithProduct,
-    UpdateMilestoneInput,
+  CreateMilestoneInput,
+  Milestone,
+  MilestoneFilters,
+  MilestoneStatus,
+  MilestoneWithProduct,
+  UpdateMilestoneInput,
 } from '$lib/planner/types'
 
 export class MilestoneService {

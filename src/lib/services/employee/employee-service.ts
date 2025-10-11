@@ -1,7 +1,7 @@
 /**
  * Employee Service
  * 직원 관리 비즈니스 로직
- * 
+ *
  * Note: 이 서비스는 connection.ts의 DatabaseEmployee 타입 기반입니다.
  * HR 모듈의 더 상세한 직원 관리는 services/hr/hr-service.ts를 사용하세요.
  */
@@ -296,4 +296,3 @@ export class EmployeeService {
 
 // 싱글톤 인스턴스 export
 export const employeeService = new EmployeeService()
-

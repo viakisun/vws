@@ -1,12 +1,12 @@
 import { DatabaseService } from '$lib/database/connection'
 import type {
-    CreateInitiativeInput,
-    Initiative,
-    InitiativeFilters,
-    InitiativeStage,
-    InitiativeStatus,
-    InitiativeWithOwner,
-    UpdateInitiativeInput,
+  CreateInitiativeInput,
+  Initiative,
+  InitiativeFilters,
+  InitiativeStage,
+  InitiativeStatus,
+  InitiativeWithOwner,
+  UpdateInitiativeInput,
 } from '../types'
 import { INITIATIVE_STATUS_TRANSITIONS } from '../types'
 import { activityLogService } from './activity-log.service'

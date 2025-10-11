@@ -8,6 +8,7 @@
 ## 변경 사항
 
 ### Before (Old)
+
 ```typescript
 import { DatabaseService } from '$lib/database/connection'
 
@@ -26,6 +27,7 @@ const transactions = await DatabaseService.getTransactions({ type: 'income' })
 ```
 
 ### After (New)
+
 ```typescript
 import { companyService } from '$lib/services/company/company-service'
 import { projectService } from '$lib/services/project/project-service'
@@ -50,48 +52,48 @@ const transactions = await transactionService.list({ type: 'income' })
 
 ### Company
 
-| Old | New |
-|-----|-----|
-| `DatabaseService.createCompany(data)` | `companyService.create(data)` |
-| `DatabaseService.getCompanyById(id)` | `companyService.getById(id)` |
-| `DatabaseService.getCompanies(filters)` | `companyService.list(filters)` |
-| N/A | `companyService.getByName(name)` ✨ 신규 |
-| N/A | `companyService.update(id, data)` ✨ 신규 |
-| N/A | `companyService.delete(id)` ✨ 신규 |
+| Old                                     | New                                       |
+| --------------------------------------- | ----------------------------------------- |
+| `DatabaseService.createCompany(data)`   | `companyService.create(data)`             |
+| `DatabaseService.getCompanyById(id)`    | `companyService.getById(id)`              |
+| `DatabaseService.getCompanies(filters)` | `companyService.list(filters)`            |
+| N/A                                     | `companyService.getByName(name)` ✨ 신규  |
+| N/A                                     | `companyService.update(id, data)` ✨ 신규 |
+| N/A                                     | `companyService.delete(id)` ✨ 신규       |
 
 ### Project
 
-| Old | New |
-|-----|-----|
-| `DatabaseService.createProject(data)` | `projectService.create(data)` |
-| `DatabaseService.getProjectById(id)` | `projectService.getById(id)` |
-| `DatabaseService.getProjects(filters)` | `projectService.list(filters)` |
-| N/A | `projectService.getByCode(code)` ✨ 신규 |
-| N/A | `projectService.update(id, data)` ✨ 신규 |
-| N/A | `projectService.delete(id)` ✨ 신규 |
+| Old                                    | New                                       |
+| -------------------------------------- | ----------------------------------------- |
+| `DatabaseService.createProject(data)`  | `projectService.create(data)`             |
+| `DatabaseService.getProjectById(id)`   | `projectService.getById(id)`              |
+| `DatabaseService.getProjects(filters)` | `projectService.list(filters)`            |
+| N/A                                    | `projectService.getByCode(code)` ✨ 신규  |
+| N/A                                    | `projectService.update(id, data)` ✨ 신규 |
+| N/A                                    | `projectService.delete(id)` ✨ 신규       |
 
 ### Employee
 
-| Old | New |
-|-----|-----|
-| `DatabaseService.createEmployee(data)` | `employeeService.create(data)` |
-| `DatabaseService.getEmployeeById(id)` | `employeeService.getById(id)` |
-| `DatabaseService.getEmployees(filters)` | `employeeService.list(filters)` |
-| N/A | `employeeService.getByEmployeeId(employeeId)` ✨ 신규 |
-| N/A | `employeeService.update(id, data)` ✨ 신규 |
-| N/A | `employeeService.delete(id)` ✨ 신규 |
-| N/A | `employeeService.terminate(id)` ✨ 신규 |
+| Old                                     | New                                                   |
+| --------------------------------------- | ----------------------------------------------------- |
+| `DatabaseService.createEmployee(data)`  | `employeeService.create(data)`                        |
+| `DatabaseService.getEmployeeById(id)`   | `employeeService.getById(id)`                         |
+| `DatabaseService.getEmployees(filters)` | `employeeService.list(filters)`                       |
+| N/A                                     | `employeeService.getByEmployeeId(employeeId)` ✨ 신규 |
+| N/A                                     | `employeeService.update(id, data)` ✨ 신규            |
+| N/A                                     | `employeeService.delete(id)` ✨ 신규                  |
+| N/A                                     | `employeeService.terminate(id)` ✨ 신규               |
 
 ### Transaction
 
-| Old | New |
-|-----|-----|
-| `DatabaseService.createTransaction(data)` | `transactionService.create(data)` |
-| `DatabaseService.getTransactionById(id)` | `transactionService.getById(id)` |
-| `DatabaseService.getTransactions(filters)` | `transactionService.list(filters)` |
-| N/A | `transactionService.update(id, data)` ✨ 신규 |
-| N/A | `transactionService.delete(id)` ✨ 신규 |
-| N/A | `transactionService.getAccountSummary(accountId)` ✨ 신규 |
+| Old                                        | New                                                       |
+| ------------------------------------------ | --------------------------------------------------------- |
+| `DatabaseService.createTransaction(data)`  | `transactionService.create(data)`                         |
+| `DatabaseService.getTransactionById(id)`   | `transactionService.getById(id)`                          |
+| `DatabaseService.getTransactions(filters)` | `transactionService.list(filters)`                        |
+| N/A                                        | `transactionService.update(id, data)` ✨ 신규             |
+| N/A                                        | `transactionService.delete(id)` ✨ 신규                   |
+| N/A                                        | `transactionService.getAccountSummary(accountId)` ✨ 신규 |
 
 ## 단계별 마이그레이션
 
@@ -111,13 +113,13 @@ import { companyService } from '$lib/services/company/company-service'
 // ❌ Before
 const company = await DatabaseService.createCompany({
   name: '회사명',
-  type: 'startup'
+  type: 'startup',
 })
 
 // ✅ After
 const company = await companyService.create({
   name: '회사명',
-  business_type: 'startup'  // 필드명도 변경됨
+  business_type: 'startup', // 필드명도 변경됨
 })
 ```
 
@@ -138,20 +140,20 @@ try {
 
 Company 관련 필드명이 변경되었습니다:
 
-| Old | New |
-|-----|-----|
-| `type` | `business_type` |
-| `industry` | 제거됨 |
-| `status` | 제거됨 |
-| `contact_person` | 제거됨 |
-| `revenue` | 제거됨 |
-| `employees` | 제거됨 |
-| `notes` | 제거됨 |
-| `tags` | 제거됨 |
-| N/A | `establishment_date` 추가 |
-| N/A | `ceo_name` 추가 |
-| N/A | `fax` 추가 |
-| N/A | `registration_number` 추가 |
+| Old              | New                        |
+| ---------------- | -------------------------- |
+| `type`           | `business_type`            |
+| `industry`       | 제거됨                     |
+| `status`         | 제거됨                     |
+| `contact_person` | 제거됨                     |
+| `revenue`        | 제거됨                     |
+| `employees`      | 제거됨                     |
+| `notes`          | 제거됨                     |
+| `tags`           | 제거됨                     |
+| N/A              | `establishment_date` 추가  |
+| N/A              | `ceo_name` 추가            |
+| N/A              | `fax` 추가                 |
+| N/A              | `registration_number` 추가 |
 
 ### 2. 타입 안전성
 
@@ -163,7 +165,7 @@ import type { CreateCompanyDto } from '$lib/services/company/company-service'
 
 const dto: CreateCompanyDto = {
   name: '회사명',
-  business_type: 'IT서비스업',  // 자동완성 지원
+  business_type: 'IT서비스업', // 자동완성 지원
   // ... 다른 필드들
 }
 
@@ -176,7 +178,7 @@ await companyService.create(dto)
 
 ```typescript
 const company = await companyService.getById(id)
-console.log(company.created_at)  // "2025-10-11 18:30:00+09" (string)
+console.log(company.created_at) // "2025-10-11 18:30:00+09" (string)
 ```
 
 ## 마이그레이션 체크리스트
@@ -220,4 +222,3 @@ A: 해당 도메인의 서비스 클래스에 추가하세요. 예: `CompanyServ
 
 **Q: expense_items나 다른 테이블은요?**
 A: 필요시 새 서비스를 만드세요. 예: `src/lib/services/expense/expense-service.ts`
-

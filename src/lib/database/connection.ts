@@ -370,12 +370,12 @@ export interface DatabaseTransaction {
 /**
  * @deprecated DatabaseService가 제거되었습니다.
  * 각 도메인별 서비스를 사용하세요:
- * 
+ *
  * - Company: import { companyService } from '$lib/services/company/company-service'
  * - Project: import { projectService } from '$lib/services/project/project-service'
  * - Employee: import { employeeService } from '$lib/services/employee/employee-service'
  * - Transaction: import { transactionService } from '$lib/services/transaction/transaction-service'
- * 
+ *
  * 마이그레이션 가이드: docs/ARCHITECTURE.md 참고
  */
 export class DatabaseService {

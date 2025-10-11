@@ -1,10 +1,10 @@
 import { DatabaseService } from '$lib/database/connection'
 import type {
-    CreateProductInput,
-    Product,
-    ProductFilters,
-    ProductWithOwner,
-    UpdateProductInput,
+  CreateProductInput,
+  Product,
+  ProductFilters,
+  ProductWithOwner,
+  UpdateProductInput,
 } from '$lib/planner/types'
 
 export class ProductService {
