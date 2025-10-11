@@ -119,7 +119,7 @@
     {
       title: '연구개발',
       description: '프로젝트 및 연구개발 관리',
-      href: '/project-management',
+      href: '/research-development',
       icon: FlaskConicalIcon,
       roles: ['ADMIN', 'RESEARCH_DIRECTOR', 'RESEARCHER'],
     },

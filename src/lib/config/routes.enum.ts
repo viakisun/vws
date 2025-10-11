@@ -38,20 +38,20 @@ export enum Routes {
   HR_RECRUITMENT = '/hr/recruitment',
 
   // 연구개발 (프로젝트)
-  PROJECT = '/project-management',
-  PROJECT_DASHBOARD = '/project-management/dashboard',
-  PROJECT_PROJECTS = '/project-management/projects',
-  PROJECT_DETAIL = '/project-management/projects/:id',
-  PROJECT_BUDGET = '/project-management/projects/:id/budget',
-  PROJECT_PERSONNEL = '/project-management/projects/:id/personnel',
-  PROJECT_DELIVERABLES = '/project-management/projects/:id/deliverables',
-  PROJECT_EXPENSES = '/project-management/projects/:id/expenses',
-  PROJECT_REPORTS = '/project-management/projects/:id/reports',
-  PROJECT_COMPLIANCE = '/project-management/projects/:id/compliance',
-  PROJECT_BUDGET_OVERVIEW = '/project-management/budget-overview',
-  PROJECT_PARTICIPATION = '/project-management/participation',
-  PROJECT_REPORTS_LIST = '/project-management/reports',
-  PROJECT_COMPLIANCE_LIST = '/project-management/compliance',
+  PROJECT = '/research-development',
+  PROJECT_DASHBOARD = '/research-development/dashboard',
+  PROJECT_PROJECTS = '/research-development/projects',
+  PROJECT_DETAIL = '/research-development/projects/:id',
+  PROJECT_BUDGET = '/research-development/projects/:id/budget',
+  PROJECT_PERSONNEL = '/research-development/projects/:id/personnel',
+  PROJECT_DELIVERABLES = '/research-development/projects/:id/deliverables',
+  PROJECT_EXPENSES = '/research-development/projects/:id/expenses',
+  PROJECT_REPORTS = '/research-development/projects/:id/reports',
+  PROJECT_COMPLIANCE = '/research-development/projects/:id/compliance',
+  PROJECT_BUDGET_OVERVIEW = '/research-development/budget-overview',
+  PROJECT_PARTICIPATION = '/research-development/participation',
+  PROJECT_REPORTS_LIST = '/research-development/reports',
+  PROJECT_COMPLIANCE_LIST = '/research-development/compliance',
 
   // Planner
   PLANNER = '/planner',
@@ -132,7 +132,7 @@ type RouteParams = Record<string, string | number>
 /**
  * 라우트 경로에 파라미터를 바인딩하여 실제 URL 생성
  * @example
- * buildRoute(Routes.PROJECT_DETAIL, { id: 123 }) // '/project-management/projects/123'
+ * buildRoute(Routes.PROJECT_DETAIL, { id: 123 }) // '/research-development/projects/123'
  */
 export function buildRoute(route: Routes, params?: RouteParams): string {
   if (!params) return route

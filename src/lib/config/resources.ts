@@ -6,8 +6,8 @@
  * - 아이콘은 resource-icons.ts에서 별도 관리 (Node.js 환경 호환성)
  */
 
-import { Routes } from './routes.enum'
 import type { ComponentType } from 'svelte'
+import { Routes } from './routes.enum'
 
 // ============================================
 // Resource Definition (리소스 정의)
@@ -144,14 +144,14 @@ export const RESOURCE_REGISTRY: readonly ResourceDefinition[] = Object.freeze([
   },
 
   // ============================================
-  // PROJECT (프로젝트 관리)
+  // PROJECT (연구개발사업 관리)
   // ============================================
   {
     key: 'project',
-    nameKo: '프로젝트 관리',
-    nameEn: 'Project Management',
+    nameKo: '연구개발사업 관리',
+    nameEn: 'Research & Development',
     route: Routes.PROJECT,
-    description: '프로젝트 관리',
+    description: '연구개발사업 관리',
     children: [
       {
         key: 'project.projects',

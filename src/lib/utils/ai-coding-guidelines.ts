@@ -59,7 +59,7 @@ export const AI_CODING_GUIDELINES: CodingGuideline[] = [
     title: 'API 엔드포인트 명명 규칙',
     description: 'API 엔드포인트는 kebab-case를 사용해야 합니다.',
     examples: {
-      good: ['/api/project-management/projects', '/api/project-management/budget-validation'],
+      good: ['/api/research-development/projects', '/api/research-development/budget-validation'],
       bad: ['/api/projectManagement/projects', '/api/project_management/budgetValidation'],
     },
     severity: 'error',
