@@ -38,8 +38,18 @@ export const GET: RequestHandler = async ({ url }) => {
 			SELECT
 				ed.*,
 				ei.name as evidence_item_name,
-				uploader.first_name || ' ' || uploader.last_name as uploader_name,
-				reviewer.first_name || ' ' || reviewer.last_name as reviewer_name
+				CASE
+					WHEN uploader.first_name ~ '^[가-힣]+$' AND uploader.last_name ~ '^[가-힣]+$' THEN
+						uploader.last_name || uploader.first_name
+					ELSE
+						uploader.first_name || ' ' || uploader.last_name
+				END as uploader_name,
+				CASE
+					WHEN reviewer.first_name ~ '^[가-힣]+$' AND reviewer.last_name ~ '^[가-힣]+$' THEN
+						reviewer.last_name || reviewer.first_name
+					ELSE
+						reviewer.first_name || ' ' || reviewer.last_name
+				END as reviewer_name
 			FROM evidence_documents ed
 			JOIN evidence_items ei ON ed.evidence_item_id = ei.id
 			LEFT JOIN employees uploader ON ed.uploader_id = uploader.id
@@ -138,8 +148,18 @@ export const POST: RequestHandler = async ({ request }) => {
 			SELECT
 				ed.*,
 				ei.name as evidence_item_name,
-				uploader.first_name || ' ' || uploader.last_name as uploader_name,
-				reviewer.first_name || ' ' || reviewer.last_name as reviewer_name
+				CASE
+					WHEN uploader.first_name ~ '^[가-힣]+$' AND uploader.last_name ~ '^[가-힣]+$' THEN
+						uploader.last_name || uploader.first_name
+					ELSE
+						uploader.first_name || ' ' || uploader.last_name
+				END as uploader_name,
+				CASE
+					WHEN reviewer.first_name ~ '^[가-힣]+$' AND reviewer.last_name ~ '^[가-힣]+$' THEN
+						reviewer.last_name || reviewer.first_name
+					ELSE
+						reviewer.first_name || ' ' || reviewer.last_name
+				END as reviewer_name
 			FROM evidence_documents ed
 			JOIN evidence_items ei ON ed.evidence_item_id = ei.id
 			LEFT JOIN employees uploader ON ed.uploader_id = uploader.id

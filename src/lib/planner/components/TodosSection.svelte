@@ -1,16 +1,11 @@
 <script lang="ts">
-  import type { TodoWithAssignee, ExternalLink } from '../types'
-  import { formatKoreanName } from '$lib/utils/korean-name'
-  import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
-  import SectionHeader from '$lib/components/ui/SectionHeader.svelte'
   import SectionActionButton from '$lib/components/ui/SectionActionButton.svelte'
-  import { PencilIcon, TrashIcon, LinkIcon, XIcon, GripVerticalIcon } from 'lucide-svelte'
-
-  interface Employee {
-    id: string
-    first_name: string
-    last_name: string
-  }
+  import SectionHeader from '$lib/components/ui/SectionHeader.svelte'
+  import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
+  import ThemeEmployeeDropdown from '$lib/components/ui/ThemeEmployeeDropdown.svelte'
+  import { formatKoreanName } from '$lib/utils/korean-name'
+  import { GripVerticalIcon, LinkIcon, PencilIcon, TrashIcon, XIcon } from 'lucide-svelte'
+  import type { ExternalLink, TodoWithAssignee } from '../types'
 
   interface Props {
     todos: TodoWithAssignee[]
@@ -53,8 +48,6 @@
   let newDescription = $state('')
   let newAssigneeId = $state<string>('')
   let newLinks = $state<ExternalLink[]>([])
-  let employees = $state<Employee[]>([])
-  let loadingEmployees = $state(false)
 
   let editingId = $state<string | null>(null)
   let editTitle = $state('')
@@ -63,26 +56,6 @@
   let editLinks = $state<ExternalLink[]>([])
 
   let draggedTodo = $state<TodoWithAssignee | null>(null)
-
-  // Load employees when component mounts
-  $effect(() => {
-    loadEmployees()
-  })
-
-  async function loadEmployees() {
-    try {
-      loadingEmployees = true
-      const res = await fetch('/api/employees')
-      if (res.ok) {
-        const data = await res.json()
-        employees = (data.employees || []).filter((emp: any) => emp.status === 'active')
-      }
-    } catch (e) {
-      console.error('Failed to load employees:', e)
-    } finally {
-      loadingEmployees = false
-    }
-  }
 
   async function handleSubmit() {
     if (!newTitle.trim()) return
@@ -235,21 +208,15 @@
         style:border-color="var(--color-border)"
       ></textarea>
 
-      <select
-        bind:value={newAssigneeId}
-        class="w-full px-3 py-2 mb-2 rounded border text-sm"
-        style:background="var(--color-surface)"
-        style:color="var(--color-text-primary)"
-        style:border-color="var(--color-border)"
-        disabled={loadingEmployees}
-      >
-        <option value="">담당자 없음</option>
-        {#each employees as employee}
-          <option value={employee.id}>
-            {formatKoreanName(employee.last_name, employee.first_name)}
-          </option>
-        {/each}
-      </select>
+      <div class="mb-2">
+        <ThemeEmployeeDropdown
+          bind:value={newAssigneeId}
+          allowNone={true}
+          noneLabel="담당자 없음"
+          showDepartment={false}
+          showPosition={false}
+        />
+      </div>
 
       {#if newLinks.length > 0}
         <div class="mb-2 space-y-2">
@@ -362,20 +329,16 @@
                   style:border-color="var(--color-border)"
                 ></textarea>
 
-                <select
-                  bind:value={editAssigneeId}
-                  class="w-full px-2 py-1 mb-2 rounded border text-xs"
-                  style:background="var(--color-surface)"
-                  style:color="var(--color-text-primary)"
-                  style:border-color="var(--color-border)"
-                >
-                  <option value="">담당자 없음</option>
-                  {#each employees as employee}
-                    <option value={employee.id}>
-                      {formatKoreanName(employee.last_name, employee.first_name)}
-                    </option>
-                  {/each}
-                </select>
+                <div class="mb-2">
+                  <ThemeEmployeeDropdown
+                    bind:value={editAssigneeId}
+                    allowNone={true}
+                    noneLabel="담당자 없음"
+                    showDepartment={false}
+                    showPosition={false}
+                    class="text-xs"
+                  />
+                </div>
 
                 {#if editLinks.length > 0}
                   <div class="mb-2 space-y-1">
@@ -547,20 +510,16 @@
                   style:border-color="var(--color-border)"
                 ></textarea>
 
-                <select
-                  bind:value={editAssigneeId}
-                  class="w-full px-2 py-1 mb-2 rounded border text-xs"
-                  style:background="var(--color-surface)"
-                  style:color="var(--color-text-primary)"
-                  style:border-color="var(--color-border)"
-                >
-                  <option value="">담당자 없음</option>
-                  {#each employees as employee}
-                    <option value={employee.id}>
-                      {formatKoreanName(employee.last_name, employee.first_name)}
-                    </option>
-                  {/each}
-                </select>
+                <div class="mb-2">
+                  <ThemeEmployeeDropdown
+                    bind:value={editAssigneeId}
+                    allowNone={true}
+                    noneLabel="담당자 없음"
+                    showDepartment={false}
+                    showPosition={false}
+                    class="text-xs"
+                  />
+                </div>
 
                 {#if editLinks.length > 0}
                   <div class="mb-2 space-y-1">

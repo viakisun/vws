@@ -30,7 +30,14 @@ export const GET: RequestHandler = async (event) => {
     }
 
     if (employeeName) {
-      whereConditions.push(`(e.first_name || ' ' || e.last_name) ILIKE $${paramIndex}`)
+      whereConditions.push(`(
+				CASE
+					WHEN e.first_name ~ '^[가-힣]+$' AND e.last_name ~ '^[가-힣]+$' THEN
+						e.last_name || e.first_name
+					ELSE
+						e.first_name || ' ' || e.last_name
+				END
+			) ILIKE $${paramIndex}`)
       params.push(`%${employeeName}%`)
       paramIndex++
     }
@@ -54,13 +61,23 @@ export const GET: RequestHandler = async (event) => {
         lr.rejection_reason,
         lr.created_at::text as created_at,
         lr.updated_at::text as updated_at,
-        e.first_name || ' ' || e.last_name as employee_name,
+        CASE
+					WHEN e.first_name ~ '^[가-힣]+$' AND e.last_name ~ '^[가-힣]+$' THEN
+						e.last_name || e.first_name
+					ELSE
+						e.first_name || ' ' || e.last_name
+				END as employee_name,
         e.employee_id,
         e.department,
         e.position,
         e.email,
         e.phone,
-        approver.first_name || ' ' || approver.last_name as approver_name
+        CASE
+					WHEN approver.first_name ~ '^[가-힣]+$' AND approver.last_name ~ '^[가-힣]+$' THEN
+						approver.last_name || approver.first_name
+					ELSE
+						approver.first_name || ' ' || approver.last_name
+				END as approver_name
       FROM leave_requests lr
       JOIN employees e ON lr.employee_id = e.id
       LEFT JOIN employees approver ON lr.approved_by = approver.id
@@ -155,7 +172,12 @@ export const POST: RequestHandler = async (event) => {
         lr.rejection_reason,
         lr.created_at::text as created_at,
         lr.updated_at::text as updated_at,
-        e.first_name || ' ' || e.last_name as employee_name,
+        CASE
+					WHEN e.first_name ~ '^[가-힣]+$' AND e.last_name ~ '^[가-힣]+$' THEN
+						e.last_name || e.first_name
+					ELSE
+						e.first_name || ' ' || e.last_name
+				END as employee_name,
         e.email as employee_email
       FROM leave_requests lr
       JOIN employees e ON lr.employee_id = e.id

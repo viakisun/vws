@@ -1,4 +1,5 @@
 <script lang="ts">
+  import ThemeEmployeeDropdown from '$lib/components/ui/ThemeEmployeeDropdown.svelte'
   import type { Employee } from '../types'
 
   type Props = {
@@ -21,10 +22,9 @@
     onToggleActiveFilter,
   }: Props = $props()
 
-  function handleEmployeeChange(e: Event) {
-    const target = e.currentTarget as HTMLSelectElement
-    selectedEmployeeId = target.value
-    onEmployeeChange(target.value)
+  function handleEmployeeChange(employeeId: string) {
+    selectedEmployeeId = employeeId
+    onEmployeeChange(employeeId)
   }
 
   function handleYearChange(e: Event) {
@@ -39,17 +39,15 @@
     <label for="employee-select" class="block text-sm font-medium text-gray-700 mb-2"
       >직원 선택</label
     >
-    <select
+    <ThemeEmployeeDropdown
       id="employee-select"
       value={selectedEmployeeId}
+      employees={employeeList}
+      placeholder="직원을 선택하세요"
+      showDepartment={false}
+      showPosition={true}
       onchange={handleEmployeeChange}
-      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-    >
-      <option value="">직원을 선택하세요</option>
-      {#each employeeList as employee (employee.id)}
-        <option value={employee.id}>{employee.name} ({employee.position})</option>
-      {/each}
-    </select>
+    />
   </div>
   <div class="w-32">
     <label for="year-select" class="block text-sm font-medium text-gray-700 mb-2">연도</label>

@@ -1,13 +1,8 @@
 <script lang="ts">
-  import type { InitiativeWithOwner } from '../types'
   import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
+  import ThemeEmployeeDropdown from '$lib/components/ui/ThemeEmployeeDropdown.svelte'
+  import type { InitiativeWithOwner } from '../types'
   import MilestoneSelector from './MilestoneSelector.svelte'
-
-  interface Employee {
-    id: string
-    first_name: string
-    last_name: string
-  }
 
   interface Formation {
     id: string
@@ -35,7 +30,6 @@
   let milestoneId = $state<string | null>(null)
   let saving = $state(false)
 
-  let employees = $state<Employee[]>([])
   let formations = $state<Formation[]>([])
   let loadingData = $state(false)
   let dataLoaded = $state(false)
@@ -57,22 +51,15 @@
     }
   })
 
-  // Load employees and formations once when modal opens
+  // Load formations once when modal opens
   $effect(() => {
     if (initiative && !dataLoaded) {
       dataLoaded = true
       loadingData = true
-      Promise.all([fetch('/api/employees'), fetch('/api/planner/formations')])
-        .then(async ([employeesRes, formationsRes]) => {
-          if (employeesRes.ok) {
-            const data = await employeesRes.json()
-            // Filter active employees only and use 'employees' key
-            const allEmployees = data.employees || []
-            employees = allEmployees.filter((emp: any) => emp.status === 'active')
-          }
-
-          if (formationsRes.ok) {
-            const data = await formationsRes.json()
+      fetch('/api/planner/formations')
+        .then(async (res) => {
+          if (res.ok) {
+            const data = await res.json()
             formations = data.data || []
           }
         })
@@ -156,20 +143,14 @@
           >
             Owner
           </label>
-          <select
+          <ThemeEmployeeDropdown
             id="owner-select"
             bind:value={ownerId}
             disabled={loadingData}
-            class="w-full px-3 py-2 rounded border text-sm"
-            style:background="var(--color-surface)"
-            style:color="var(--color-text-primary)"
-            style:border-color="var(--color-border)"
-          >
-            <option value="">Select owner</option>
-            {#each employees as employee}
-              <option value={employee.id}>{employee.last_name} {employee.first_name}</option>
-            {/each}
-          </select>
+            placeholder="Select owner"
+            showDepartment={false}
+            showPosition={false}
+          />
         </div>
 
         <!-- Team (Formation) -->

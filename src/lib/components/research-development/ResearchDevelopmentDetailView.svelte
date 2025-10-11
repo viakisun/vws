@@ -8,9 +8,10 @@
    * 3단계: Budget Execution (예산 집행) - execution.*
    */
 
+  import { useProjectAvailableEmployees } from '$lib/hooks/employee/useProjectAvailableEmployees.svelte'
   import { logger } from '$lib/utils/logger'
   import { PencilIcon } from 'lucide-svelte'
-  import { createEventDispatcher } from 'svelte'
+  import { createEventDispatcher, onMount } from 'svelte'
   import { useProjectDetail } from './hooks/useProjectDetail.svelte'
   // Sub-components
   import ThemeBadge from '$lib/components/ui/ThemeBadge.svelte'
@@ -76,10 +77,26 @@
   // Data
   const projectMembers = $derived(store.data.projectMembers)
   const projectBudgets = $derived(store.data.projectBudgets)
-  const availableEmployees = $derived(store.data.availableEmployees)
+
+  // Available Employees (프로젝트 멤버 제외 현직 직원)
+  // projectMembers is passed as a reactive state reference
+  const employeeFilterState = $state({ members: projectMembers })
+  const employeeFilter = useProjectAvailableEmployees(employeeFilterState.members)
+
+  // Update filter when projectMembers changes
+  $effect(() => {
+    employeeFilterState.members = projectMembers
+  })
+
+  const availableEmployees = $derived(employeeFilter.employees)
 
   // Validation
   const validationData = $derived(store.validation)
+
+  // Load available employees on mount
+  onMount(() => {
+    employeeFilter.load()
+  })
 
   // ============================================================================
   // Project Management Functions
@@ -676,7 +693,7 @@
   <!-- 프로젝트 수정 모달 -->
   <RDProjectEditModal
     bind:visible={modalStates.editProject}
-    projectForm={forms.project}
+    bind:projectForm={forms.project}
     isUpdating={loadingStates.updating}
     onclose={() => (modalStates.editProject = false)}
     onupdate={updateProject}

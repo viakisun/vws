@@ -1,11 +1,11 @@
 // Project Management API - Participation Rates Summary
 // 개인별 참여율 요약 API
 
-import { json } from '@sveltejs/kit'
 import { query } from '$lib/database/connection'
-import type { RequestHandler } from './$types'
-import { logger } from '$lib/utils/logger'
 import type { ApiResponse } from '$lib/types/database'
+import { logger } from '$lib/utils/logger'
+import { json } from '@sveltejs/kit'
+import type { RequestHandler } from './$types'
 
 interface ParticipationSummary {
   employee_id: string
@@ -23,7 +23,12 @@ export const GET: RequestHandler = async () => {
     const summaryResult = await query(`
 			SELECT
 				e.id as employee_id,
-				e.first_name || ' ' || e.last_name as employee_name,
+				CASE
+					WHEN e.first_name ~ '^[가-힣]+$' AND e.last_name ~ '^[가-힣]+$' THEN
+						e.last_name || e.first_name
+					ELSE
+						e.first_name || ' ' || e.last_name
+				END as employee_name,
 				e.department,
 				e.position,
 				COUNT(pr.project_id) as active_projects,

@@ -1,5 +1,6 @@
 <script lang="ts">
   import ThemeButton from '../ui/ThemeButton.svelte'
+  import ThemeEmployeeDropdown from '../ui/ThemeEmployeeDropdown.svelte'
   import ThemeModal from '../ui/ThemeModal.svelte'
 
   interface ProjectForm {
@@ -20,14 +21,6 @@
     dedicatedAgencyContactEmail?: string // 전담기관 담당자 이메일
   }
 
-  interface Employee {
-    id: string
-    first_name: string
-    last_name: string
-    department?: string
-    position?: string
-  }
-
   interface Props {
     visible: boolean
     projectForm: ProjectForm
@@ -43,50 +36,6 @@
     onclose,
     onupdate,
   }: Props = $props()
-
-  let employees: Employee[] = $state([])
-  let loadingEmployees = $state(false)
-
-  // Load employees list
-  async function loadEmployees() {
-    if (employees.length > 0) return // Already loaded
-
-    try {
-      loadingEmployees = true
-      const response = await fetch('/api/employees')
-
-      if (response.ok) {
-        const data = await response.json()
-        employees = data.employees || data.data || []
-      } else {
-        const errorText = await response.text()
-        console.error('직원 목록 로드 실패:', response.status, errorText)
-      }
-    } catch (error) {
-      console.error('직원 목록 로드 오류:', error)
-    } finally {
-      loadingEmployees = false
-    }
-  }
-
-  // Load employees when modal becomes visible
-  $effect(() => {
-    if (visible && !loadingEmployees && employees.length === 0) {
-      loadEmployees()
-    }
-  })
-
-  // Get employee display name
-  function getEmployeeName(employee: Employee): string {
-    const firstName = employee.first_name || ''
-    const lastName = employee.last_name || ''
-    // 한글 이름은 "성 이름" 순서
-    if (firstName.match(/^[가-힣]+$/) && lastName.match(/^[가-힣]+$/)) {
-      return `${lastName} ${firstName}`
-    }
-    // 영문 이름은 "이름 성" 순서
-    return `${firstName} ${lastName}`
-  }
 </script>
 
 {#if visible}
@@ -160,29 +109,14 @@
           <label for="edit-project-manager" class="block text-sm font-medium text-gray-700 mb-1">
             과제책임자 *
           </label>
-          {#if loadingEmployees}
-            <div class="flex items-center justify-center py-2">
-              <div class="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-500"></div>
-              <span class="ml-2 text-sm text-gray-500">로딩 중...</span>
-            </div>
-          {:else}
-            <select
-              id="edit-project-manager"
-              bind:value={projectForm.managerEmployeeId}
-              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              required
-            >
-              <option value="">과제책임자를 선택하세요</option>
-              {#each employees as employee}
-                <option value={employee.id}>
-                  {getEmployeeName(employee)}
-                  {#if employee.position || employee.department}
-                    ({[employee.position, employee.department].filter(Boolean).join(', ')})
-                  {/if}
-                </option>
-              {/each}
-            </select>
-          {/if}
+          <ThemeEmployeeDropdown
+            id="edit-project-manager"
+            bind:value={projectForm.managerEmployeeId}
+            required
+            placeholder="과제책임자를 선택하세요"
+            showDepartment={true}
+            showPosition={true}
+          />
         </div>
 
         <!-- 사업 개요 -->

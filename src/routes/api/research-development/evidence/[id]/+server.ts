@@ -54,8 +54,18 @@ export const GET: RequestHandler = async ({ params }) => {
       `
 			SELECT
 				ed.*,
-				uploader.first_name || ' ' || uploader.last_name as uploader_name,
-				reviewer.first_name || ' ' || reviewer.last_name as reviewer_name
+				CASE
+					WHEN uploader.first_name ~ '^[가-힣]+$' AND uploader.last_name ~ '^[가-힣]+$' THEN
+						uploader.last_name || uploader.first_name
+					ELSE
+						uploader.first_name || ' ' || uploader.last_name
+				END as uploader_name,
+				CASE
+					WHEN reviewer.first_name ~ '^[가-힣]+$' AND reviewer.last_name ~ '^[가-힣]+$' THEN
+						reviewer.last_name || reviewer.first_name
+					ELSE
+						reviewer.first_name || ' ' || reviewer.last_name
+				END as reviewer_name
 			FROM evidence_documents ed
 			LEFT JOIN employees uploader ON ed.uploader_id = uploader.id
 			LEFT JOIN employees reviewer ON ed.reviewer_id = reviewer.id
@@ -84,7 +94,12 @@ export const GET: RequestHandler = async ({ params }) => {
       `
 			SELECT
 				erh.*,
-				reviewer.first_name || ' ' || reviewer.last_name as reviewer_name
+				CASE
+					WHEN reviewer.first_name ~ '^[가-힣]+$' AND reviewer.last_name ~ '^[가-힣]+$' THEN
+						reviewer.last_name || reviewer.first_name
+					ELSE
+						reviewer.first_name || ' ' || reviewer.last_name
+				END as reviewer_name
 			FROM evidence_review_history erh
 			LEFT JOIN employees reviewer ON erh.reviewer_id = reviewer.id
 			WHERE erh.evidence_item_id = $1

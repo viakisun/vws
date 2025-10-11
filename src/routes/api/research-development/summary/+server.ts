@@ -23,14 +23,20 @@ export const GET: RequestHandler = async () => {
 			FROM projects
 		`)
 
-    // 총 사업비 통계
+    // 총 사업비 통계 (v_projects_with_dates view 사용)
     const budgetStatsResult = await query(
       `
 			SELECT
-				COALESCE(SUM(budget_total), 0) as total_budget,
-				COALESCE(SUM(CASE WHEN EXTRACT(YEAR FROM start_date) = $1 THEN budget_total ELSE 0 END), 0) as current_year_budget
-			FROM projects
-			WHERE budget_total IS NOT NULL
+				COALESCE(SUM(p.budget_total), 0) as total_budget,
+				COALESCE(SUM(
+					CASE 
+						WHEN EXTRACT(YEAR FROM p.calculated_start_date) = $1 
+						THEN p.budget_total 
+						ELSE 0 
+					END
+				), 0) as current_year_budget
+			FROM v_projects_with_dates p
+			WHERE p.budget_total IS NOT NULL
 		`,
       [currentYear],
     )
@@ -84,7 +90,12 @@ export const GET: RequestHandler = async () => {
 				p.title,
 				p.status,
 				p.updated_at::text as updated_at,
-				e.first_name || ' ' || e.last_name as manager_name
+				CASE
+					WHEN e.first_name ~ '^[가-힣]+$' AND e.last_name ~ '^[가-힣]+$' THEN
+						e.last_name || e.first_name
+					ELSE
+						e.first_name || ' ' || e.last_name
+				END as manager_name
 			FROM projects p
 			LEFT JOIN employees e ON p.manager_employee_id = e.id
 			ORDER BY p.updated_at DESC

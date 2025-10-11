@@ -1,8 +1,8 @@
 <script lang="ts">
-  import ThemeModal from '../ui/ThemeModal.svelte'
+  import { RefreshCwIcon, ShieldAlertIcon, ShieldCheckIcon } from '@lucide/svelte'
   import ThemeButton from '../ui/ThemeButton.svelte'
-  import { RefreshCwIcon, ShieldCheckIcon, ShieldAlertIcon } from '@lucide/svelte'
-  import * as memberUtilsImported from './utils/memberUtils'
+  import ThemeEmployeeDropdown from '../ui/ThemeEmployeeDropdown.svelte'
+  import ThemeModal from '../ui/ThemeModal.svelte'
 
   interface EvidenceCategory {
     id: number
@@ -58,6 +58,25 @@
     onvalidate,
     onsubmit,
   }: Props = $props()
+
+  // 직원 데이터를 ThemeEmployeeDropdown 형식으로 변환
+  const formattedEmployees = $derived(
+    availableEmployees.map((emp) => ({
+      id: String(emp.id),
+      name: emp.korean_name || `${emp.first_name || ''} ${emp.last_name || ''}`.trim(),
+      first_name: emp.first_name,
+      last_name: emp.last_name,
+    })),
+  )
+
+  // 담당자 ID를 string으로 변환 (computed)
+  let assigneeIdString = $derived(String(evidenceForm.assigneeId || ''))
+
+  // 담당자 변경 핸들러
+  function handleAssigneeChange(assigneeId: string) {
+    evidenceForm.assigneeId = assigneeId ? Number(assigneeId) : ''
+    onvalidate()
+  }
 </script>
 
 <!-- 증빙 추가 모달 -->
@@ -136,19 +155,15 @@
           <label for="evidence-assignee" class="block text-sm font-medium text-gray-700 mb-1">
             담당자
           </label>
-          <select
+          <ThemeEmployeeDropdown
             id="evidence-assignee"
-            bind:value={evidenceForm.assigneeId}
-            onchange={onvalidate}
-            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="">담당자를 선택하세요</option>
-            {#each availableEmployees as employee, i (i)}
-              <option value={employee.id}>
-                {memberUtilsImported.formatEmployeeForSelect(employee)}
-              </option>
-            {/each}
-          </select>
+            value={assigneeIdString}
+            employees={formattedEmployees}
+            placeholder="담당자를 선택하세요"
+            showDepartment={true}
+            showPosition={false}
+            onchange={handleAssigneeChange}
+          />
         </div>
 
         <!-- 마감일 -->

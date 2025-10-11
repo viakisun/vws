@@ -235,9 +235,19 @@ async function fetchRecentRequests(department?: string): Promise<RecentRequest[]
     `
       SELECT 
         lr.*,
-        e.first_name || ' ' || e.last_name as employee_name,
+        CASE
+					WHEN e.first_name ~ '^[가-힣]+$' AND e.last_name ~ '^[가-힣]+$' THEN
+						e.last_name || e.first_name
+					ELSE
+						e.first_name || ' ' || e.last_name
+				END as employee_name,
         e.department,
-        approver.first_name || ' ' || approver.last_name as approver_name
+        CASE
+					WHEN approver.first_name ~ '^[가-힣]+$' AND approver.last_name ~ '^[가-힣]+$' THEN
+						approver.last_name || approver.first_name
+					ELSE
+						approver.first_name || ' ' || approver.last_name
+				END as approver_name
       FROM leave_requests lr
       JOIN employees e ON lr.employee_id = e.id
       LEFT JOIN employees approver ON lr.approved_by = approver.id

@@ -58,22 +58,22 @@ export const GET: RequestHandler = async ({ url }) => {
 				SELECT 
 					p.id as project_id,
 					p.title as project_title,
-					EXTRACT(YEAR FROM p.end_date)::integer as fiscal_year,
+					EXTRACT(YEAR FROM p.calculated_end_date)::integer as fiscal_year,
 					NULL::decimal as total_budget,
 					NULL::decimal as spent_amount,
 					NULL::decimal as usage_percentage,
 					CASE 
-						WHEN p.end_date <= CURRENT_DATE + INTERVAL '7 days' THEN 'critical'
-						WHEN p.end_date <= CURRENT_DATE + INTERVAL '30 days' THEN 'warning'
+						WHEN p.calculated_end_date <= CURRENT_DATE + INTERVAL '7 days' THEN 'critical'
+						WHEN p.calculated_end_date <= CURRENT_DATE + INTERVAL '30 days' THEN 'warning'
 						ELSE 'info'
 					END as severity,
 					'deadline' as alert_type,
-					'프로젝트 종료 예정일: ' || p.end_date as message,
+					'프로젝트 종료 예정일: ' || p.calculated_end_date::text as message,
 					p.updated_at::text as created_at
-				FROM projects p
+				FROM v_projects_with_dates p
 				WHERE p.status = 'active'
-				AND p.end_date IS NOT NULL
-				AND p.end_date <= CURRENT_DATE + INTERVAL '30 days'
+				AND p.calculated_end_date IS NOT NULL
+				AND p.calculated_end_date <= CURRENT_DATE + INTERVAL '30 days'
 			)
 			SELECT * FROM budget_alerts
 			UNION ALL

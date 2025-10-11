@@ -20,7 +20,12 @@ export const GET: RequestHandler = async ({ url }) => {
     let sqlQuery = `
 			SELECT
 				pr.*,
-				e.first_name || ' ' || e.last_name as employee_name,
+				CASE
+					WHEN e.first_name ~ '^[가-힣]+$' AND e.last_name ~ '^[가-힣]+$' THEN
+						e.last_name || e.first_name
+					ELSE
+						e.first_name || ' ' || e.last_name
+				END as employee_name,
 				e.department,
 				p.title as project_name,
 				p.code as project_code

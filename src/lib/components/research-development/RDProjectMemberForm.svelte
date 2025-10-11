@@ -1,8 +1,8 @@
 <script lang="ts">
-  import ThemeCard from '../ui/ThemeCard.svelte'
+  import { CheckIcon, XIcon } from '@lucide/svelte'
   import ThemeButton from '../ui/ThemeButton.svelte'
-  import { XIcon, CheckIcon } from '@lucide/svelte'
-  import * as memberUtilsImported from './utils/memberUtils'
+  import ThemeCard from '../ui/ThemeCard.svelte'
+  import ThemeEmployeeDropdown from '../ui/ThemeEmployeeDropdown.svelte'
 
   interface MemberForm {
     employeeId: string
@@ -38,6 +38,13 @@
     onsubmit,
     onupdateMonthlyAmount,
   }: Props = $props()
+
+  // 직원 선택 변경 핸들러
+  function handleEmployeeChange(employeeId: string) {
+    memberForm.employeeId = employeeId
+    isManualMonthlyAmount = false
+    onupdateMonthlyAmount()
+  }
 </script>
 
 {#if visible}
@@ -53,22 +60,16 @@
         <label for="member-employee-select" class="block text-sm font-medium text-gray-700 mb-2"
           >연구원</label
         >
-        <select
+        <ThemeEmployeeDropdown
           id="member-employee-select"
           bind:value={memberForm.employeeId}
-          class="w-full px-3 py-2 border border-green-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm font-medium bg-white shadow-sm"
-          onchange={() => {
-            isManualMonthlyAmount = false
-            onupdateMonthlyAmount()
-          }}
-        >
-          <option value="">👥 연구원 선택 ({availableEmployees.length}명)</option>
-          {#each availableEmployees as employee, i (i)}
-            <option value={employee.id}
-              >{memberUtilsImported.formatKoreanName(employee.name)} ({employee.department})</option
-            >
-          {/each}
-        </select>
+          employees={availableEmployees}
+          placeholder="👥 연구원 선택 ({availableEmployees.length}명)"
+          showDepartment={true}
+          showPosition={false}
+          onchange={handleEmployeeChange}
+          class="border-green-300 focus:ring-green-500 focus:border-green-500"
+        />
       </div>
 
       <!-- 역할 -->

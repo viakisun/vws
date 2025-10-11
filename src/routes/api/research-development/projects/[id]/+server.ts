@@ -25,7 +25,7 @@ export const GET: RequestHandler = async ({ params }) => {
   try {
     const { id } = params
 
-    // 프로젝트 기본 정보 조회 (시작일/종료일은 연차별 예산에서 계산)
+    // 프로젝트 기본 정보 조회 (v_projects_with_dates view 사용)
     const projectResult = await query<DatabaseProject>(
       `
 			SELECT
@@ -35,13 +35,17 @@ export const GET: RequestHandler = async ({ params }) => {
 				p.dedicated_agency, p.dedicated_agency_contact_name,
 				p.dedicated_agency_contact_phone, p.dedicated_agency_contact_email,
 				p.created_at::text as created_at, p.updated_at::text as updated_at,
-				e.first_name || ' ' || e.last_name as manager_name,
+				p.calculated_start_date::text as start_date,
+				p.calculated_end_date::text as end_date,
+				CASE
+					WHEN e.first_name ~ '^[가-힣]+$' AND e.last_name ~ '^[가-힣]+$' THEN
+						e.last_name || e.first_name
+					ELSE
+						e.first_name || ' ' || e.last_name
+				END as manager_name,
 				COUNT(DISTINCT pm.id) as member_count,
-				COALESCE(SUM(pm.participation_rate), 0) as total_participation_rate,
-				-- 연차별 예산에서 시작일/종료일 계산
-				(SELECT MIN(pb.start_date)::text FROM project_budgets pb WHERE pb.project_id = p.id) as start_date,
-				(SELECT MAX(pb.end_date)::text FROM project_budgets pb WHERE pb.project_id = p.id) as end_date
-			FROM projects p
+				COALESCE(SUM(pm.participation_rate), 0) as total_participation_rate
+			FROM v_projects_with_dates p
 			LEFT JOIN employees e ON p.manager_employee_id = e.id
 			LEFT JOIN project_members pm ON p.id = pm.project_id AND pm.status = 'active'
 			WHERE p.id = $1
@@ -50,7 +54,8 @@ export const GET: RequestHandler = async ({ params }) => {
 			         p.budget_currency, p.research_type, p.technology_area, p.priority,
 			         p.dedicated_agency, p.dedicated_agency_contact_name,
 			         p.dedicated_agency_contact_phone, p.dedicated_agency_contact_email,
-			         p.created_at, p.updated_at, e.first_name, e.last_name
+			         p.created_at, p.updated_at, p.calculated_start_date, p.calculated_end_date,
+			         e.first_name, e.last_name
 		`,
       [id],
     )
@@ -76,7 +81,12 @@ export const GET: RequestHandler = async ({ params }) => {
 				pm.participation_rate, pm.monthly_salary, pm.monthly_amount,
 				pm.cash_amount, pm.in_kind_amount, pm.status, pm.notes,
 				pm.created_at::text as created_at, pm.updated_at::text as updated_at,
-				e.first_name || ' ' || e.last_name as employee_name,
+				CASE
+					WHEN e.first_name ~ '^[가-힣]+$' AND e.last_name ~ '^[가-힣]+$' THEN
+						e.last_name || e.first_name
+					ELSE
+						e.first_name || ' ' || e.last_name
+				END as employee_name,
 				e.department
 			FROM project_members pm
 			LEFT JOIN employees e ON pm.employee_id = e.id
@@ -130,7 +140,12 @@ export const GET: RequestHandler = async ({ params }) => {
 				pr.id, pr.project_id, pr.title, pr.description,
 				pr.probability, pr.impact, pr.status, pr.owner_id,
 				pr.created_at::text as created_at, pr.updated_at::text as updated_at,
-				e.first_name || ' ' || e.last_name as owner_name
+				CASE
+					WHEN e.first_name ~ '^[가-힣]+$' AND e.last_name ~ '^[가-힣]+$' THEN
+						e.last_name || e.first_name
+					ELSE
+						e.first_name || ' ' || e.last_name
+				END as owner_name
 			FROM project_risks pr
 			LEFT JOIN employees e ON pr.owner_id = e.id
 			WHERE pr.project_id = $1
@@ -245,8 +260,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
       description,
       sponsor_name: sponsorName,
       sponsor_type: sponsorType,
-      start_date: startDate,
-      end_date: endDate,
+      // start_date, end_date는 project_budgets에서 계산되므로 제외
       budget_total: budgetTotal,
       research_type: researchType,
       technology_area: technologyArea,
@@ -284,7 +298,6 @@ export const PUT: RequestHandler = async ({ params, request }) => {
        RETURNING id, code, title, project_task_name, description, sponsor, sponsor_type, manager_employee_id,
                  status, budget_total, created_at::text, updated_at::text, sponsor_name,
                  budget_currency, research_type, technology_area, priority,
-                 start_date::text, end_date::text,
                  dedicated_agency, dedicated_agency_contact_name,
                  dedicated_agency_contact_phone, dedicated_agency_contact_email`,
       updateValues,
@@ -292,30 +305,37 @@ export const PUT: RequestHandler = async ({ params, request }) => {
 
     const _updatedProject = result.rows[0] as Record<string, unknown>
 
-    // 업데이트된 프로젝트 정보와 함께 반환
+    // 업데이트된 프로젝트 정보와 함께 반환 (v_projects_with_dates view 사용)
     const projectWithDetails = await query(
       `
 			SELECT
 				p.id, p.code, p.title, p.project_task_name, p.description, p.sponsor, p.sponsor_name, p.sponsor_type,
-				p.start_date::text as start_date, p.end_date::text as end_date,
 				p.manager_employee_id, p.status, p.budget_total, p.budget_currency,
 				p.research_type, p.technology_area, p.priority,
 				p.dedicated_agency, p.dedicated_agency_contact_name,
 				p.dedicated_agency_contact_phone, p.dedicated_agency_contact_email,
 				p.created_at::text as created_at, p.updated_at::text as updated_at,
-				e.first_name || ' ' || e.last_name as manager_name,
-				COUNT(pm.id) as member_count,
+				p.calculated_start_date::text as start_date,
+				p.calculated_end_date::text as end_date,
+				CASE
+					WHEN e.first_name ~ '^[가-힣]+$' AND e.last_name ~ '^[가-힣]+$' THEN
+						e.last_name || e.first_name
+					ELSE
+						e.first_name || ' ' || e.last_name
+				END as manager_name,
+				COUNT(DISTINCT pm.id) as member_count,
 				COALESCE(SUM(pm.participation_rate), 0) as total_participation_rate
-			FROM projects p
+			FROM v_projects_with_dates p
 			LEFT JOIN employees e ON p.manager_employee_id = e.id
 			LEFT JOIN project_members pm ON p.id = pm.project_id AND pm.status = 'active'
 			WHERE p.id = $1
 			GROUP BY p.id, p.code, p.title, p.project_task_name, p.description, p.sponsor, p.sponsor_name, p.sponsor_type,
-			         p.start_date, p.end_date, p.manager_employee_id, p.status, p.budget_total,
+			         p.manager_employee_id, p.status, p.budget_total,
 			         p.budget_currency, p.research_type, p.technology_area, p.priority,
 			         p.dedicated_agency, p.dedicated_agency_contact_name,
 			         p.dedicated_agency_contact_phone, p.dedicated_agency_contact_email,
-			         p.created_at, p.updated_at, e.first_name, e.last_name
+			         p.created_at, p.updated_at, p.calculated_start_date, p.calculated_end_date,
+			         e.first_name, e.last_name
 		`,
       [id],
     )

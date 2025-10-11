@@ -1,7 +1,6 @@
 <script lang="ts">
-  import { onMount } from 'svelte'
-  import type { FormationRole, FormationBandwidth } from '$lib/planner/types'
-  import { formatKoreanName } from '$lib/utils/korean-name'
+  import ThemeEmployeeDropdown from '$lib/components/ui/ThemeEmployeeDropdown.svelte'
+  import type { FormationBandwidth, FormationRole } from '$lib/planner/types'
 
   // =============================================
   // Props
@@ -20,40 +19,11 @@
   // State
   // =============================================
 
-  let employees = $state<any[]>([])
   let selectedEmployeeId = $state('')
   let role = $state<FormationRole>('contributor')
   let bandwidth = $state<FormationBandwidth>('partial')
   let loading = $state(false)
   let error = $state<string | null>(null)
-
-  // =============================================
-  // Data Fetching
-  // =============================================
-
-  async function loadEmployees() {
-    try {
-      const res = await fetch('/api/employees?status=active')
-      const data = await res.json()
-      if (data.success) {
-        employees = data.employees || []
-      }
-    } catch (e) {
-      console.error('Failed to load employees:', e)
-    }
-  }
-
-  onMount(() => {
-    if (isOpen) {
-      loadEmployees()
-    }
-  })
-
-  $effect(() => {
-    if (isOpen) {
-      loadEmployees()
-    }
-  })
 
   // =============================================
   // Actions
@@ -124,19 +94,14 @@
           <label for="employee" class="block text-sm font-medium text-gray-700 mb-2">
             직원 <span class="text-red-500">*</span>
           </label>
-          <select
+          <ThemeEmployeeDropdown
             id="employee"
             bind:value={selectedEmployeeId}
-            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          >
-            <option value="">선택하세요</option>
-            {#each employees as employee}
-              <option value={employee.id}>
-                {formatKoreanName(employee.last_name, employee.first_name)} - {employee.position ||
-                  employee.department}
-              </option>
-            {/each}
-          </select>
+            required
+            placeholder="선택하세요"
+            showDepartment={true}
+            showPosition={true}
+          />
         </div>
 
         <!-- Role -->

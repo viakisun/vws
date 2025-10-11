@@ -1,9 +1,9 @@
 <script lang="ts">
-  import { onMount } from 'svelte'
-  import ThemeModal from '$lib/components/ui/ThemeModal.svelte'
   import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
+  import ThemeEmployeeDropdown from '$lib/components/ui/ThemeEmployeeDropdown.svelte'
+  import ThemeModal from '$lib/components/ui/ThemeModal.svelte'
   import type { ProductWithOwner } from '$lib/planner/types'
-  import { formatKoreanName } from '$lib/utils/korean-name'
+  import { onMount } from 'svelte'
 
   // =============================================
   // Props
@@ -35,7 +35,6 @@
 
   let categories = $state<any[]>([])
 
-  let employees = $state<any[]>([])
   let loading = $state(false)
   let saving = $state(false)
   let error = $state<string | null>(null)
@@ -46,21 +45,6 @@
   // =============================================
   // Data Loading
   // =============================================
-
-  async function loadEmployees() {
-    try {
-      loading = true
-      const res = await fetch('/api/employees?status=active')
-      const data = await res.json()
-      if (data.success) {
-        employees = data.employees || []
-      }
-    } catch (e) {
-      console.error('Failed to load employees:', e)
-    } finally {
-      loading = false
-    }
-  }
 
   async function loadCategories() {
     try {
@@ -75,7 +59,6 @@
   }
 
   onMount(() => {
-    loadEmployees()
     loadCategories()
   })
 
@@ -253,23 +236,15 @@
         >
           제품 책임자 *
         </label>
-        <select
+        <ThemeEmployeeDropdown
           id="product-owner"
           bind:value={owner_id}
-          class="w-full px-3 py-2 rounded-lg border transition"
-          style:border-color="var(--color-border)"
-          style:background="var(--color-surface)"
-          style:color="var(--color-text-primary)"
           required
           disabled={loading}
-        >
-          <option value="">선택하세요</option>
-          {#each employees as employee}
-            <option value={employee.id}>
-              {formatKoreanName(employee.last_name, employee.first_name)}
-            </option>
-          {/each}
-        </select>
+          placeholder="선택하세요"
+          showDepartment={false}
+          showPosition={false}
+        />
       </div>
 
       <!-- Category & Status -->
