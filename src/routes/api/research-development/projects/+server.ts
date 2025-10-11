@@ -99,6 +99,7 @@ export const GET: RequestHandler = async (event) => {
 			         p.dedicated_agency, p.dedicated_agency_contact_name,
 			         p.dedicated_agency_contact_phone, p.dedicated_agency_contact_email,
 			         p.created_at, p.updated_at,
+			         p.calculated_start_date, p.calculated_end_date,
 			         e.first_name, e.last_name
 			ORDER BY 
 				CASE 
