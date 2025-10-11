@@ -153,12 +153,14 @@ export function transformProjectBudgetData(budget: Record<string, unknown>) {
   } = budget
 
   // 날짜 값이 유효한 경우만 변환
-  const safeStartDate = start_date && String(start_date) !== 'null' && String(start_date) !== '' 
-    ? formatDateForAPI(String(start_date)) 
-    : null
-  const safeEndDate = end_date && String(end_date) !== 'null' && String(end_date) !== ''
-    ? formatDateForAPI(String(end_date))
-    : null
+  const safeStartDate =
+    start_date && String(start_date) !== 'null' && String(start_date) !== ''
+      ? formatDateForAPI(String(start_date))
+      : null
+  const safeEndDate =
+    end_date && String(end_date) !== 'null' && String(end_date) !== ''
+      ? formatDateForAPI(String(end_date))
+      : null
 
   return {
     ...otherFields,

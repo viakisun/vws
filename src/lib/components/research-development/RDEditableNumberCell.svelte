@@ -1,7 +1,7 @@
 <script lang="ts">
   /**
    * 노션 스타일 인라인 편집 가능한 숫자 셀 컴포넌트
-   * 
+   *
    * - 클릭하여 편집 모드로 전환
    * - 자동 콤마 포맷팅
    * - Enter 키 또는 blur 시 저장
@@ -91,4 +91,3 @@
     {formatNumberWithComma(value)}
   </button>
 {/if}
-

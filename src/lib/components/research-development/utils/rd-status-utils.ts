@@ -4,11 +4,11 @@
  */
 
 import {
-    RDProjectPriority,
-    RDProjectStatus,
-    RDResearchType,
-    RDSponsorType,
-    type BadgeVariant,
+  RDProjectPriority,
+  RDProjectStatus,
+  RDResearchType,
+  RDSponsorType,
+  type BadgeVariant,
 } from '../types/rd-project.types'
 
 /**
@@ -88,4 +88,3 @@ export function getRDResearchTypeText(type: string): string {
   }
   return researchMap[type] || type
 }
-

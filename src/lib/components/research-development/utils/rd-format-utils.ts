@@ -1,6 +1,6 @@
 /**
  * RD 모듈 전용 포맷팅 유틸리티
- * 
+ *
  * 연구개발(RD) 모듈에서 사용하는 통일된 포맷팅 함수들
  */
 
@@ -9,7 +9,7 @@
  * - 원 단위
  * - 세자리 수 콤마
  * - 단위 표시 없음
- * 
+ *
  * @example
  * formatRDCurrency(100000000) // "100,000,000"
  * formatRDCurrency(0) // "0"
@@ -23,4 +23,3 @@ export function formatRDCurrency(amount: number | string | undefined | null): st
 
   return Math.floor(numAmount).toLocaleString('ko-KR')
 }
-

@@ -50,16 +50,16 @@
   // 날짜 저장
   function saveDateChanges(index: number) {
     if (!budgetDetails) return
-    
+
     // 로컬 상태 업데이트
     budgetDetails[index] = {
       ...budgetDetails[index],
       startDate: editingStartDate,
       endDate: editingEndDate,
     }
-    
+
     stopEditingCell()
-    
+
     // 저장
     saveAllBudgets()
   }
@@ -126,28 +126,29 @@
   // 값 변경 시 저장 (Enter 키 또는 blur 시 호출됨)
   function handleValueChange(index: number, field: string, value: any) {
     if (!budgetDetails) return
-    
+
     // 숫자 필드인 경우 콤마 제거하여 숫자로 변환
     const numericValue = typeof value === 'string' ? unformatNumber(value) : value
-    
+
     // 로컬 상태 즉시 업데이트 (낙관적 업데이트)
     budgetDetails[index] = {
       ...budgetDetails[index],
       [field]: numericValue,
     }
-    
+
     // 금액 필드인 경우 총액 재계산
     if (['governmentFunding', 'companyCash', 'companyInKind'].includes(field)) {
       const budget = budgetDetails[index]
       const govFunding = parseFloat(String(budget.governmentFunding)) || 0
       const companyCash = parseFloat(String(budget.companyCash)) || 0
       const companyInKind = parseFloat(String(budget.companyInKind)) || 0
-      
+
       budgetDetails[index].totalCash = govFunding + companyCash
       budgetDetails[index].totalInKind = companyInKind
-      budgetDetails[index].yearlyTotal = budgetDetails[index].totalCash + budgetDetails[index].totalInKind
+      budgetDetails[index].yearlyTotal =
+        budgetDetails[index].totalCash + budgetDetails[index].totalInKind
     }
-    
+
     // 즉시 저장
     saveAllBudgets()
   }
@@ -155,7 +156,7 @@
   // 전체 예산 저장
   async function saveAllBudgets() {
     if (!budgetDetails || budgetDetails.length === 0) return
-    
+
     try {
       isSaving = true
       error = null
@@ -182,18 +183,21 @@
         companyInKind: parseFloat(String(b.companyInKind)) || 0,
       }))
 
-      const response = await fetch(`/api/research-development/projects/${projectId}/annual-budgets`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ budgets: budgetsToSave }),
-      })
+      const response = await fetch(
+        `/api/research-development/projects/${projectId}/annual-budgets`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ budgets: budgetsToSave }),
+        },
+      )
 
       const result = await response.json()
 
       if (result.success) {
         // 성공 시 데이터 새로고침
         await loadBudgetSummary()
-        
+
         if (result.data?.warnings && result.data.warnings.length > 0) {
           logger.warn('예산 저장 경고:', result.data.warnings)
         }
@@ -217,34 +221,35 @@
     if (!budgetDetails) {
       budgetDetails = []
     }
-    
-    const nextYear = budgetDetails.length > 0 ? Math.max(...budgetDetails.map((b) => b.year)) + 1 : 1
+
+    const nextYear =
+      budgetDetails.length > 0 ? Math.max(...budgetDetails.map((b) => b.year)) + 1 : 1
     const lastBudget = budgetDetails[budgetDetails.length - 1]
-    
+
     // 이전 연차의 종료일 다음날을 시작일로 설정
     let startDate = ''
     let endDate = ''
-    
+
     if (lastBudget && lastBudget.endDate) {
       const lastEndDate = new Date(lastBudget.endDate)
       lastEndDate.setDate(lastEndDate.getDate() + 1)
       startDate = lastEndDate.toISOString().split('T')[0]
-      
+
       // 1년 후를 종료일로 설정
       const newEndDate = new Date(startDate)
       newEndDate.setFullYear(newEndDate.getFullYear() + 1)
       newEndDate.setDate(newEndDate.getDate() - 1)
       endDate = newEndDate.toISOString().split('T')[0]
     }
-    
+
     // 이전 연차의 재원 구성 복사 (없으면 0)
-    const governmentFunding = lastBudget ? (lastBudget.governmentFunding || 0) : 0
-    const companyCash = lastBudget ? (lastBudget.companyCash || 0) : 0
-    const companyInKind = lastBudget ? (lastBudget.companyInKind || 0) : 0
+    const governmentFunding = lastBudget ? lastBudget.governmentFunding || 0 : 0
+    const companyCash = lastBudget ? lastBudget.companyCash || 0 : 0
+    const companyInKind = lastBudget ? lastBudget.companyInKind || 0 : 0
     const totalCash = governmentFunding + companyCash
     const totalInKind = companyInKind
     const yearlyTotal = totalCash + totalInKind
-    
+
     budgetDetails = [
       ...budgetDetails,
       {
@@ -260,7 +265,7 @@
         isNew: true,
       },
     ]
-    
+
     // 즉시 저장
     await saveAllBudgets()
   }
@@ -268,12 +273,12 @@
   // 연차 삭제
   async function deleteYear(index: number) {
     if (!budgetDetails) return
-    
+
     const confirmed = confirm(`${budgetDetails[index].year}차년도 예산을 삭제하시겠습니까?`)
     if (!confirmed) return
-    
+
     budgetDetails = budgetDetails.filter((_, i) => i !== index)
-    
+
     // 즉시 저장
     await saveAllBudgets()
   }
@@ -306,7 +311,7 @@
         {:else}
           <div></div>
         {/if}
-        
+
         {#if isSaving}
           <div class="flex items-center gap-2 text-xs text-gray-500">
             <div class="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600"></div>
@@ -317,7 +322,6 @@
 
       <!-- 연차별 예산 구성 표 -->
       {#if budgetDetails && budgetDetails.length > 0}
-        
         <!-- 단위 표시 -->
         <div class="text-right text-sm text-gray-500 mb-2">단위: 원</div>
         <div class="overflow-x-auto">
@@ -349,19 +353,18 @@
                   >총 합계</th
                 >
                 <th class="px-4 py-3 text-center font-medium text-gray-700 border-b min-w-[60px]"
-                  ></th
-                >
+                ></th>
               </tr>
             </thead>
             <tbody class="divide-y divide-gray-200">
               {#each budgetDetails as budget, i (i)}
-                <tr 
+                <tr
                   class="group hover:bg-gray-50 transition-colors"
-                  onmouseenter={() => hoveredRow = i}
-                  onmouseleave={() => hoveredRow = null}
+                  onmouseenter={() => (hoveredRow = i)}
+                  onmouseleave={() => (hoveredRow = null)}
                 >
                   <td class="px-4 py-3 font-medium text-gray-900">{budget.year}차년도</td>
-                  
+
                   <!-- 사업기간 -->
                   <td class="px-4 py-3 text-center text-gray-700 text-xs">
                     {#if editingCell?.index === i && editingCell?.field === 'dates'}
@@ -410,12 +413,13 @@
                       </button>
                     {/if}
                   </td>
-                  
+
                   <!-- 정부지원금 -->
                   <td class="px-4 py-3 text-right text-green-800">
                     <RDEditableNumberCell
                       value={budget.governmentFunding}
-                      isEditing={editingCell?.index === i && editingCell?.field === 'governmentFunding'}
+                      isEditing={editingCell?.index === i &&
+                        editingCell?.field === 'governmentFunding'}
                       onStartEdit={() => startEditingCell(i, 'governmentFunding')}
                       onStopEdit={stopEditingCell}
                       onChange={(value) => handleValueChange(i, 'governmentFunding', value)}
@@ -423,7 +427,7 @@
                       className="text-right"
                     />
                   </td>
-                  
+
                   <!-- 기업부담금(현금) -->
                   <td class="px-4 py-3 text-right text-orange-800">
                     <RDEditableNumberCell
@@ -436,7 +440,7 @@
                       className="text-right"
                     />
                   </td>
-                  
+
                   <!-- 기업부담금(현물) -->
                   <td class="px-4 py-3 text-right text-purple-800">
                     <RDEditableNumberCell
@@ -449,7 +453,7 @@
                       className="text-right"
                     />
                   </td>
-                  
+
                   <td class="px-4 py-3 text-right text-blue-800 font-medium"
                     >{formatRDCurrency(budget.totalCash)}</td
                   >
@@ -459,7 +463,7 @@
                   <td class="px-4 py-3 text-right text-gray-900 font-bold"
                     >{formatRDCurrency(budget.yearlyTotal)}</td
                   >
-                  
+
                   <!-- 삭제 버튼 (hover 시 표시) -->
                   <td class="px-4 py-3 text-center">
                     {#if hoveredRow === i}

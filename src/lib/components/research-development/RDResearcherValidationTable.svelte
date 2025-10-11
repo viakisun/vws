@@ -182,7 +182,6 @@
     return new Date(dateString).toLocaleDateString('ko-KR')
   }
 
-
   // 컴포넌트 마운트 시 자동 검증
   onMount(() => {
     if (projectId && members.length > 0) {

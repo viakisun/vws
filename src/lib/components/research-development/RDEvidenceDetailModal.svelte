@@ -40,7 +40,13 @@
     onclose: () => void
   }
 
-  let { visible = $bindable(), selectedItem, formatRDCurrency, formatDate, onclose }: Props = $props()
+  let {
+    visible = $bindable(),
+    selectedItem,
+    formatRDCurrency,
+    formatDate,
+    onclose,
+  }: Props = $props()
 </script>
 
 <!-- 증빙 상세 모달 -->

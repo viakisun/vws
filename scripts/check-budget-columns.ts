@@ -34,16 +34,20 @@ async function checkColumns() {
     console.log('📊 project_budgets table:')
     console.log('')
     budgetColumns.rows.forEach((row) => {
-      const precision = row.numeric_precision ? `(${row.numeric_precision},${row.numeric_scale})` : ''
+      const precision = row.numeric_precision
+        ? `(${row.numeric_precision},${row.numeric_scale})`
+        : ''
       console.log(`  ${row.column_name.padEnd(35)} : ${row.data_type}${precision}`)
     })
 
     // Check if there are any DECIMAL columns
-    const decimalColumns = budgetColumns.rows.filter(row => row.data_type === 'numeric')
-    
+    const decimalColumns = budgetColumns.rows.filter((row) => row.data_type === 'numeric')
+
     console.log('')
     if (decimalColumns.length > 0) {
-      console.log(`⚠️  Found ${decimalColumns.length} DECIMAL/NUMERIC columns that should be converted to BIGINT`)
+      console.log(
+        `⚠️  Found ${decimalColumns.length} DECIMAL/NUMERIC columns that should be converted to BIGINT`,
+      )
     } else {
       console.log('✅ All columns are already integer types')
     }
@@ -61,13 +65,12 @@ async function checkColumns() {
       FROM project_budgets
       LIMIT 3
     `)
-    
+
     if (sampleData.rows.length > 0) {
       console.table(sampleData.rows)
     } else {
       console.log('  (No data found)')
     }
-
   } catch (error) {
     console.error('❌ Error:', error)
     throw error
@@ -78,4 +81,3 @@ async function checkColumns() {
 }
 
 checkColumns().catch(console.error)
-

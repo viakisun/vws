@@ -66,4 +66,3 @@ async function runMigration() {
 }
 
 runMigration().catch(console.error)
-

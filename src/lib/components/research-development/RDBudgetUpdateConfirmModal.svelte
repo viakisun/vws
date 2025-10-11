@@ -75,11 +75,13 @@
           <div class="space-y-2 text-sm">
             <div class="flex justify-between">
               <span class="text-gray-600">기존 총 예산:</span>
-              <span class="font-medium">{formatRDCurrency(validationData.oldTotalBudget || 0)}</span>
+              <span class="font-medium">{formatRDCurrency(validationData.oldTotalBudget || 0)}</span
+              >
             </div>
             <div class="flex justify-between">
               <span class="text-gray-600">새 총 예산:</span>
-              <span class="font-medium">{formatRDCurrency(validationData.newTotalBudget || 0)}</span>
+              <span class="font-medium">{formatRDCurrency(validationData.newTotalBudget || 0)}</span
+              >
             </div>
             <div class="flex justify-between border-t pt-2">
               <span class="text-gray-600">변경 금액:</span>
@@ -88,9 +90,9 @@
                   ? 'text-red-600'
                   : 'text-green-600'}"
               >
-                {validationData.totalBudgetChange > 0
-                  ? '+'
-                  : ''}{formatRDCurrency(validationData.totalBudgetChange || 0)}
+                {validationData.totalBudgetChange > 0 ? '+' : ''}{formatRDCurrency(
+                  validationData.totalBudgetChange || 0,
+                )}
               </span>
             </div>
           </div>

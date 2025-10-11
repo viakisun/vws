@@ -139,10 +139,7 @@
   {#if selectedProject}
     <div class="space-y-6">
       <!-- 프로젝트 기본 정보 -->
-      <RDDetailView
-        {selectedProject}
-        externalRefreshTrigger={budgetRefreshKey}
-      />
+      <RDDetailView {selectedProject} externalRefreshTrigger={budgetRefreshKey} />
     </div>
   {:else if projects.length === 0 && !loading && !error}
     <ThemeCard>

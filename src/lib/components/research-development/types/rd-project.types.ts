@@ -45,5 +45,11 @@ export enum RDResearchType {
 /**
  * Badge Variant 타입 (ThemeBadge 컴포넌트에서 사용)
  */
-export type BadgeVariant = 'primary' | 'success' | 'warning' | 'error' | 'info' | 'ghost' | 'default'
-
+export type BadgeVariant =
+  | 'primary'
+  | 'success'
+  | 'warning'
+  | 'error'
+  | 'info'
+  | 'ghost'
+  | 'default'

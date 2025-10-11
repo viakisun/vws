@@ -13,14 +13,14 @@
   import { PencilIcon } from 'lucide-svelte'
   import { createEventDispatcher, onMount } from 'svelte'
   import { useRDDetail } from './hooks/useRDDetail.svelte'
-// Sub-components
+  // Sub-components
   import ThemeBadge from '$lib/components/ui/ThemeBadge.svelte'
   import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
   import ThemeCard from '$lib/components/ui/ThemeCard.svelte'
   import RDEvidenceManagement from './RDEvidenceManagement.svelte'
   import RDExecutionPlan from './RDExecutionPlan.svelte'
   import RDProjectMemberTable from './RDProjectMemberTable.svelte'
-// Modal Components
+  // Modal Components
   import RDBudgetUpdateConfirmModal from './RDBudgetUpdateConfirmModal.svelte'
   import RDEvidenceAddModal from './RDEvidenceAddModal.svelte'
   import RDEvidenceDetailModal from './RDEvidenceDetailModal.svelte'
@@ -29,7 +29,7 @@
   import RDProjectEditModal from './RDProjectEditModal.svelte'
   import RDProjectMemberForm from './RDProjectMemberForm.svelte'
   import RDValidationResultModal from './RDValidationResultModal.svelte'
-// Utility functions
+  // Utility functions
   import { formatDate, formatNumber } from '$lib/utils/format'
   import * as calculationUtilsImported from './utils/rd-calculation-utils'
   import * as dataTransformers from './utils/rd-data-transformers'
@@ -89,12 +89,10 @@
 
   // Available Employees (참여연구원 제외 현직 직원)
   const activeEmployees = useActiveEmployees()
-  
+
   // 참여연구원을 제외한 직원 목록을 $derived.by()로 직접 계산
   const availableEmployees = $derived.by(() => {
-    const memberEmployeeIds = new Set(
-      projectMembers.map((m: any) => m.employee_id || m.id)
-    )
+    const memberEmployeeIds = new Set(projectMembers.map((m: any) => m.employee_id || m.id))
     return activeEmployees.employees.filter((emp: any) => !memberEmployeeIds.has(emp.id))
   })
 
@@ -140,12 +138,12 @@
 
       if (response.ok) {
         const result = await response.json()
-        
+
         // 업데이트된 데이터로 selectedProject 갱신
         if (result.data) {
           Object.assign(selectedProject, result.data)
         }
-        
+
         store.closeModal('editProject')
         refresh()
         pushToast('연구개발사업이 수정되었습니다.', 'success')
@@ -490,10 +488,7 @@
 
     <!-- 집행 계획 -->
     <ThemeCard>
-      <RDExecutionPlan
-        projectId={selectedProject.id}
-        refreshTrigger={uiStates.budgetUpdateKey}
-      />
+      <RDExecutionPlan projectId={selectedProject.id} refreshTrigger={uiStates.budgetUpdateKey} />
     </ThemeCard>
   </div>
 
