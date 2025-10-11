@@ -20,14 +20,14 @@
   } from 'lucide-svelte'
   import { createEventDispatcher, onMount } from 'svelte'
   import { useRDDetail } from './hooks/useRDDetail.svelte'
-// Sub-components
+  // Sub-components
   import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
   import ThemeCard from '$lib/components/ui/ThemeCard.svelte'
   import ThemeMarkdown from '$lib/components/ui/ThemeMarkdown.svelte'
   import RDEvidenceManagement from './RDEvidenceManagement.svelte'
   import RDExecutionPlan from './RDExecutionPlan.svelte'
   import RDProjectMemberTable from './RDProjectMemberTable.svelte'
-// Modal Components
+  // Modal Components
   import RDBudgetUpdateConfirmModal from './RDBudgetUpdateConfirmModal.svelte'
   import RDEvidenceAddModal from './RDEvidenceAddModal.svelte'
   import RDEvidenceDetailModal from './RDEvidenceDetailModal.svelte'
@@ -36,7 +36,7 @@
   import RDProjectEditModal from './RDProjectEditModal.svelte'
   import RDProjectMemberForm from './RDProjectMemberForm.svelte'
   import RDValidationResultModal from './RDValidationResultModal.svelte'
-// Utility functions
+  // Utility functions
   import { formatDate, formatNumber } from '$lib/utils/format'
   import * as calculationUtilsImported from './utils/rd-calculation-utils'
   import * as dataTransformers from './utils/rd-data-transformers'

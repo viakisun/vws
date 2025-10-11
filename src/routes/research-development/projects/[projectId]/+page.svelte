@@ -48,7 +48,10 @@
 
 <PermissionGate resource={Resource.PROJECT_PROJECTS} action={PermissionAction.READ}>
   <PageLayout
-    title={project?.project_task_name || project?.projectTaskName || project?.title || '프로젝트 상세'}
+    title={project?.project_task_name ||
+      project?.projectTaskName ||
+      project?.title ||
+      '프로젝트 상세'}
     subtitle={`${project?.title || ''} ${project?.code ? `(${project.code})` : ''}`}
     actions={[
       {

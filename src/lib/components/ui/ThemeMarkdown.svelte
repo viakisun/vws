@@ -39,13 +39,7 @@
 
   import DOMPurify from 'dompurify'
   import 'github-markdown-css/github-markdown.css'
-  import {
-    CheckIcon,
-    ChevronDownIcon,
-    ChevronUpIcon,
-    CopyIcon,
-    ListIcon
-  } from 'lucide-svelte'
+  import { CheckIcon, ChevronDownIcon, ChevronUpIcon, CopyIcon, ListIcon } from 'lucide-svelte'
   import { marked } from 'marked'
 
   const {
@@ -407,4 +401,3 @@
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   }
 </style>
-
