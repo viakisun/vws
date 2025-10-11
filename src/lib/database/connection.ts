@@ -159,13 +159,24 @@ export function initializeDatabase(): Pool {
   if (!pool) {
     pool = new Pool(dbConfig)
 
+    // Set timezone to Asia/Seoul for all connections
+    // 한국 전용 서비스이므로 KST로 고정 (TIMESTAMPTZ는 안전망으로 유지)
+    pool.on('connect', async (client) => {
+      try {
+        await client.query("SET TIME ZONE 'Asia/Seoul'")
+        logger.info('Database session timezone set to Asia/Seoul (KST)')
+      } catch (error) {
+        logger.error('Failed to set timezone:', error)
+      }
+    })
+
     // Handle pool errors
     pool.on('error', (err: Error) => {
       logger.error('Unexpected error on idle client', err)
       process.exit(-1)
     })
 
-    // Database connection pool initialized
+    logger.info('Database connection pool initialized with UTC timezone')
   }
 
   return pool

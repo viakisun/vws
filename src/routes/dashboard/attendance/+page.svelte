@@ -1,19 +1,19 @@
 <script lang="ts">
   import { goto } from '$app/navigation'
+  import AttendanceCalendar from '$lib/components/attendance/AttendanceCalendar.svelte'
   import { pushToast } from '$lib/stores/toasts'
-  import { onMount } from 'svelte'
-  import type { PageData } from './$types'
   import type { AttendanceData } from '$lib/types/dashboard'
   import { logger } from '$lib/utils/logger'
-  import AttendanceCalendar from '$lib/components/attendance/AttendanceCalendar.svelte'
   import {
     ArrowLeftIcon,
+    CalendarIcon,
     ClockIcon,
+    CoffeeIcon,
     LogInIcon,
     LogOutIcon,
-    CoffeeIcon,
-    CalendarIcon,
   } from 'lucide-svelte'
+  import { onMount } from 'svelte'
+  import type { PageData } from './$types'
 
   const { data: _data }: { data: PageData } = $props()
 
@@ -47,6 +47,7 @@
       return { hours: Math.floor(hours), minutes: Math.round((hours % 1) * 60) }
     }
 
+    // KST 세션이므로 직접 Date 객체 생성 가능
     const checkIn = new Date(attendanceData.today.check_in_time)
     const checkOut = attendanceData.today.check_out_time
       ? new Date(attendanceData.today.check_out_time)
@@ -97,30 +98,18 @@
     canBreakStart = Boolean(today.check_in_time && !today.check_out_time && !today.break_start_time)
     canBreakEnd = Boolean(today.break_start_time && !today.break_end_time)
 
-    // 시간 표시 업데이트
+    // 시간 표시 업데이트 (KST 세션이므로 그대로 사용)
     if (today.check_in_time) {
-      checkInTime = new Date(today.check_in_time).toLocaleTimeString('ko-KR', {
-        hour: '2-digit',
-        minute: '2-digit',
-      })
+      checkInTime = String(today.check_in_time).substring(11, 16) // HH:MM만 추출
     }
     if (today.check_out_time) {
-      checkOutTime = new Date(today.check_out_time).toLocaleTimeString('ko-KR', {
-        hour: '2-digit',
-        minute: '2-digit',
-      })
+      checkOutTime = String(today.check_out_time).substring(11, 16)
     }
     if (today.break_start_time) {
-      breakStartTime = new Date(today.break_start_time).toLocaleTimeString('ko-KR', {
-        hour: '2-digit',
-        minute: '2-digit',
-      })
+      breakStartTime = String(today.break_start_time).substring(11, 16)
     }
     if (today.break_end_time) {
-      breakEndTime = new Date(today.break_end_time).toLocaleTimeString('ko-KR', {
-        hour: '2-digit',
-        minute: '2-digit',
-      })
+      breakEndTime = String(today.break_end_time).substring(11, 16)
     }
     if (today.notes) {
       notes = today.notes

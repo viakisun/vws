@@ -229,7 +229,6 @@ export default [
     rules: {
       ...TYPESCRIPT_RULES,
       'unused-imports/no-unused-imports': 'warn',
-      // 서버 전용 규칙이 필요하면 여기에 추가
     },
   },
 

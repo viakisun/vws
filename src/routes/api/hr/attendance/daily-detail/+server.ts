@@ -1,7 +1,7 @@
+import { requireAuth } from '$lib/auth/middleware'
+import { query } from '$lib/database/connection'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
-import { query } from '$lib/database/connection'
-import { requireAuth } from '$lib/auth/middleware'
 
 /**
  * GET /api/hr/attendance/daily-detail
@@ -31,8 +31,8 @@ export const GET: RequestHandler = async (event) => {
         e.first_name,
         e.last_name,
         e.department as department_name,
-        TO_CHAR(a.check_in_time, 'HH24:MI') as check_in_time,
-        TO_CHAR(a.check_out_time, 'HH24:MI') as check_out_time,
+        a.check_in_time,
+        a.check_out_time,
         a.status,
         a.total_work_hours,
         lr.id as leave_request_id,

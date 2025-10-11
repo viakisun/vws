@@ -333,7 +333,11 @@ export const POST: RequestHandler = async ({ request }) => {
       await query(
         `INSERT INTO reporting_relationships (employee_id, manager_id, report_type, start_date)
          VALUES ($1, $2, 'direct', $3)`,
-        [result.rows[0].id, employeeData.managerId, employeeData.hireDate || new Date()],
+        [
+          result.rows[0].id,
+          employeeData.managerId,
+          employeeData.hireDate || new Date().toISOString(),
+        ],
       )
     }
 
@@ -349,7 +353,11 @@ export const POST: RequestHandler = async ({ request }) => {
         await query(
           `INSERT INTO org_memberships (employee_id, org_unit_id, is_primary, start_date)
            VALUES ($1, $2, true, $3)`,
-          [result.rows[0].id, orgUnit.rows[0].id, employeeData.hireDate || new Date()],
+          [
+            result.rows[0].id,
+            orgUnit.rows[0].id,
+            employeeData.hireDate || new Date().toISOString(),
+          ],
         )
       }
     }
