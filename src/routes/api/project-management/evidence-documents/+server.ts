@@ -122,7 +122,9 @@ export const POST: RequestHandler = async ({ request }) => {
 				evidence_item_id, document_type, document_name, file_path,
 				file_size, mime_type, uploader_id
 			) VALUES ($1, $2, $3, $4, $5, $6, $7)
-			RETURNING *
+			RETURNING id, evidence_item_id, document_type, document_name, file_path, file_size,
+			          mime_type, upload_date::text, uploader_id, status, reviewer_id,
+			          review_date::text, review_notes, created_at::text, updated_at::text
 		`,
       [evidenceItemId, documentType, documentName, filePath, fileSize, mimeType, uploaderId],
     )

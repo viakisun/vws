@@ -266,7 +266,9 @@ export const POST: RequestHandler = async ({ request }) => {
       `
 			INSERT INTO project_members (project_id, employee_id, role, start_date, end_date, participation_rate, monthly_amount, cash_amount, in_kind_amount, status)
 			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-			RETURNING *
+			RETURNING id, project_id, employee_id, role, participation_rate, monthly_salary, status,
+			          notes, created_at::text, updated_at::text, monthly_amount, start_date::text,
+			          end_date::text, cash_amount, in_kind_amount
 		`,
       [
         projectId,

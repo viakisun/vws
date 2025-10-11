@@ -231,7 +231,11 @@ export const PUT: RequestHandler = async ({ params, request }) => {
     updateValues.push(id)
 
     const result = await query(
-      `UPDATE projects SET ${updateFields.join(', ')} WHERE id = $${paramIndex} RETURNING *`,
+      `UPDATE projects SET ${updateFields.join(', ')} WHERE id = $${paramIndex} 
+       RETURNING id, code, title, description, sponsor, sponsor_type, manager_employee_id,
+                 status, budget_total, created_at::text, updated_at::text, sponsor_name,
+                 budget_currency, research_type, technology_area, priority,
+                 start_date::text, end_date::text`,
       updateValues,
     )
 

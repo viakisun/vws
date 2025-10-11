@@ -128,7 +128,13 @@ export const POST: RequestHandler = async ({ request }) => {
 				indirect_cost_cash, indirect_cost_in_kind
 			)
 			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
-			RETURNING *
+			RETURNING id, project_id, personnel_cost, research_material_cost, research_activity_cost,
+			          indirect_cost, created_at::text, updated_at::text, personnel_cost_cash,
+			          personnel_cost_in_kind, research_material_cost_cash, research_material_cost_in_kind,
+			          research_activity_cost_cash, research_activity_cost_in_kind, indirect_cost_cash,
+			          indirect_cost_in_kind, period_number, start_date::text, end_date::text,
+			          government_funding_amount, company_cash_amount, company_in_kind_amount,
+			          research_stipend, research_stipend_cash, research_stipend_in_kind
 		`,
       [
         projectId,

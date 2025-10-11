@@ -45,7 +45,9 @@ export const PUT: RequestHandler = async ({ params, request }) => {
 				rejection_reason = $3,
 				updated_at = CURRENT_TIMESTAMP
 			WHERE id = $1
-			RETURNING *
+			RETURNING id, project_budget_id, evidence_type, title, description, amount, evidence_date,
+			          file_path, file_name, file_size, mime_type, status, created_by,
+			          created_at::text, updated_at::text, approved_by, approved_at::text, rejection_reason
 		`
 
     const result = await query<BudgetEvidence>(updateQuery, [id, approvedBy, rejectionReason])

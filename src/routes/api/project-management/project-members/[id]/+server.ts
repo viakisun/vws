@@ -305,7 +305,10 @@ export const PUT: RequestHandler = async ({ params, request }) => {
 
     // 멤버 업데이트 실행
     await query(
-      `UPDATE project_members SET ${updateFields.join(', ')} WHERE id = $${paramIndex} RETURNING *`,
+      `UPDATE project_members SET ${updateFields.join(', ')} WHERE id = $${paramIndex}
+       RETURNING id, project_id, employee_id, role, participation_rate, monthly_salary, status,
+                 notes, created_at::text, updated_at::text, monthly_amount, start_date::text,
+                 end_date::text, cash_amount, in_kind_amount`,
       updateValues,
     )
 

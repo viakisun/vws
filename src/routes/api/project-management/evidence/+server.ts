@@ -179,7 +179,9 @@ export const POST: RequestHandler = async ({ request }) => {
 				project_budget_id, category_id, name, description, budget_amount,
 				assignee_id, assignee_name, due_date, start_date, end_date
 			) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-			RETURNING *
+			RETURNING id, project_budget_id, category_id, name, description, budget_amount, spent_amount,
+			          assignee_id, assignee_name, progress, status, due_date, start_date, end_date,
+			          created_at::text, updated_at::text
 		`,
       [
         projectBudgetId,

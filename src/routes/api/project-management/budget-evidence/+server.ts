@@ -131,7 +131,9 @@ export const POST: RequestHandler = async ({ request }) => {
 				project_budget_id, evidence_type, title, description, amount,
 				evidence_date, file_path, file_name, file_size, mime_type, created_by
 			) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-			RETURNING *
+			RETURNING id, project_budget_id, evidence_type, title, description, amount, evidence_date,
+			          file_path, file_name, file_size, mime_type, status, created_by,
+			          created_at::text, updated_at::text, approved_by, approved_at::text, rejection_reason
 		`
 
     const result = await query(insertQuery, [

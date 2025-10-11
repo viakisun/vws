@@ -194,7 +194,10 @@ export const POST: RequestHandler = async ({ request }) => {
 			INSERT INTO projects (
 				code, title, description, status
 			) VALUES ($1, $2, $3, $4)
-			RETURNING *
+			RETURNING id, code, title, description, sponsor, sponsor_type, manager_employee_id,
+			          status, budget_total, created_at::text, updated_at::text, sponsor_name,
+			          budget_currency, research_type, technology_area, priority,
+			          start_date::text, end_date::text
 		`,
       [code, title, description, status],
     )

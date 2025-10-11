@@ -473,7 +473,13 @@ export const PUT: RequestHandler = async ({ params, request }) => {
 				company_in_kind_amount = $7,
 				updated_at = CURRENT_TIMESTAMP
 			WHERE project_id = $1 AND period_number = $2
-			RETURNING *
+			RETURNING id, project_id, personnel_cost, research_material_cost, research_activity_cost,
+			          indirect_cost, created_at::text, updated_at::text, personnel_cost_cash,
+			          personnel_cost_in_kind, research_material_cost_cash, research_material_cost_in_kind,
+			          research_activity_cost_cash, research_activity_cost_in_kind, indirect_cost_cash,
+			          indirect_cost_in_kind, period_number, start_date::text, end_date::text,
+			          government_funding_amount, company_cash_amount, company_in_kind_amount,
+			          research_stipend, research_stipend_cash, research_stipend_in_kind
 			`,
       [
         projectId,
@@ -570,7 +576,14 @@ export const DELETE: RequestHandler = async ({ params, request }) => {
     }
 
     const result = await query(
-      'DELETE FROM project_budgets WHERE project_id = $1 AND period_number = $2 RETURNING *',
+      `DELETE FROM project_budgets WHERE project_id = $1 AND period_number = $2
+       RETURNING id, project_id, personnel_cost, research_material_cost, research_activity_cost,
+                 indirect_cost, created_at::text, updated_at::text, personnel_cost_cash,
+                 personnel_cost_in_kind, research_material_cost_cash, research_material_cost_in_kind,
+                 research_activity_cost_cash, research_activity_cost_in_kind, indirect_cost_cash,
+                 indirect_cost_in_kind, period_number, start_date::text, end_date::text,
+                 government_funding_amount, company_cash_amount, company_in_kind_amount,
+                 research_stipend, research_stipend_cash, research_stipend_in_kind`,
       [projectId, year],
     )
 

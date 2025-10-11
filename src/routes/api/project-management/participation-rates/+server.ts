@@ -167,7 +167,8 @@ export const PUT: RequestHandler = async ({ request }) => {
 					participation_rate = $1,
 					updated_at = CURRENT_TIMESTAMP
 				WHERE id = $2
-				RETURNING *
+				RETURNING id, employee_id, project_id, participation_rate, start_date, end_date,
+				          status, created_by, created_at::text, updated_at::text
 			`,
         [participationRate, oldRate.id],
       )

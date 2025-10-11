@@ -1,8 +1,8 @@
 import { query } from '$lib/database/connection'
 import type { Contract, SalesApiResponse } from '$lib/sales/types'
+import { logger } from '$lib/utils/logger'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
-import { logger } from '$lib/utils/logger'
 
 // 계약 목록 조회
 export const GET: RequestHandler = async ({ url }) => {

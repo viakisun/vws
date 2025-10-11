@@ -75,7 +75,13 @@ export const POST: RequestHandler = async ({ params, request }) => {
 				indirect_cost_in_kind = $16,
 				updated_at = CURRENT_TIMESTAMP
 			WHERE id = $17
-			RETURNING *
+			RETURNING id, project_id, personnel_cost, research_material_cost, research_activity_cost,
+			          indirect_cost, created_at::text, updated_at::text, personnel_cost_cash,
+			          personnel_cost_in_kind, research_material_cost_cash, research_material_cost_in_kind,
+			          research_activity_cost_cash, research_activity_cost_in_kind, indirect_cost_cash,
+			          indirect_cost_in_kind, period_number, start_date::text, end_date::text,
+			          government_funding_amount, company_cash_amount, company_in_kind_amount,
+			          research_stipend, research_stipend_cash, research_stipend_in_kind
 		`,
       [
         personnelCost,

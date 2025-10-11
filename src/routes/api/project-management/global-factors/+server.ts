@@ -97,7 +97,7 @@ export const PUT: RequestHandler = async ({ request }) => {
 			UPDATE global_factors 
 			SET factor_value = $1, description = $2, updated_at = CURRENT_TIMESTAMP
 			WHERE factor_name = $3
-			RETURNING *
+			RETURNING id, factor_name, factor_value, description, created_at::text, updated_at::text
 		`,
       [factorValue, description || null, factorName],
     )

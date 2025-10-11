@@ -71,7 +71,7 @@ export const POST: RequestHandler = async ({ request }) => {
       `
 			INSERT INTO evidence_categories (name, description)
 			VALUES ($1, $2)
-			RETURNING *
+			RETURNING id, name, description, created_at::text, updated_at::text
 		`,
       [name, description],
     )

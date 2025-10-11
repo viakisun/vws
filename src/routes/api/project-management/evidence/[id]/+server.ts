@@ -188,7 +188,10 @@ export const PUT: RequestHandler = async ({ params, request }) => {
     updateValues.push(id) // Add id as the last parameter for WHERE clause
 
     const result = await query(
-      `UPDATE evidence_items SET ${updateFields.join(', ')} WHERE id = $${paramIndex} RETURNING *`,
+      `UPDATE evidence_items SET ${updateFields.join(', ')} WHERE id = $${paramIndex}
+       RETURNING id, project_budget_id, category_id, name, description, budget_amount, spent_amount,
+                 assignee_id, assignee_name, progress, status, due_date, start_date, end_date,
+                 created_at::text, updated_at::text`,
       updateValues,
     )
 

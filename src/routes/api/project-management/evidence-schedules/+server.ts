@@ -108,7 +108,8 @@ export const POST: RequestHandler = async ({ request }) => {
 			INSERT INTO evidence_schedules (
 				evidence_item_id, task_name, description, due_date, assignee_id, priority
 			) VALUES ($1, $2, $3, $4, $5, $6)
-			RETURNING *
+			RETURNING id, evidence_item_id, task_name, description, due_date, completed_date,
+			          assignee_id, status, priority, created_at::text, updated_at::text
 		`,
       [evidenceItemId, taskName, description, dueDate, assigneeId, priority],
     )
