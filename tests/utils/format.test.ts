@@ -40,9 +40,10 @@ describe('Format Utils', () => {
       expect(formatDate('2024-12-31')).toBe('2024. 12. 31.')
     })
 
-    it('should format Date objects correctly', () => {
-      const date = new Date('2024-01-15')
-      expect(formatDate(date.toString())).toBe('2024. 01. 15.')
+    it('should format DB timestamp strings correctly', () => {
+      // DB에서 ::text로 가져온 형식 테스트
+      expect(formatDate('2024-01-15 10:30:00+09')).toBe('2024. 01. 15.')
+      expect(formatDate('2024-12-31 23:59:59.123+09')).toBe('2024. 12. 31.')
     })
 
     it('should handle invalid date strings', () => {
