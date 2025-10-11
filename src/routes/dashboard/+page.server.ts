@@ -36,9 +36,9 @@ export const load: PageServerLoad = async ({ locals }) => {
 
     // Check today's attendance record
     const attendanceResult = await query(
-      `SELECT id, check_in_time, check_out_time, status
+      `SELECT id, check_in_time::text as check_in_time, check_out_time::text as check_out_time, status
        FROM attendance
-       WHERE employee_id = $1 AND date = $2`,
+       WHERE employee_id = $1 AND DATE(check_in_time) = $2`,
       [user.id, today],
     )
 

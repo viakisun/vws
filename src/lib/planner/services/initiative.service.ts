@@ -137,7 +137,24 @@ export class InitiativeService {
   async list(filters?: InitiativeFilters): Promise<InitiativeWithOwner[]> {
     let query = `
       SELECT
-        i.*,
+        i.id,
+        i.title,
+        i.intent,
+        i.success_criteria,
+        i.owner_id,
+        i.product_id,
+        i.milestone_id,
+        i.formation_id,
+        i.stage,
+        i.status,
+        i.horizon,
+        i.context_links,
+        i.pause_reason,
+        i.abandonment_reason,
+        i.shipped_notes,
+        i.deleted_at::text as deleted_at,
+        i.created_at::text as created_at,
+        i.updated_at::text as updated_at,
         json_build_object(
           'id', e.id,
           'first_name', e.first_name,
@@ -162,8 +179,8 @@ export class InitiativeService {
             'cadence_type', f.cadence_type,
             'cadence_anchor_time', f.cadence_anchor_time,
             'energy_state', f.energy_state,
-            'created_at', f.created_at,
-            'updated_at', f.updated_at
+            'created_at', f.created_at::text,
+            'updated_at', f.updated_at::text
           )
         ELSE NULL END as formation,
         CASE WHEN m.id IS NOT NULL THEN
@@ -171,7 +188,7 @@ export class InitiativeService {
             'id', m.id,
             'name', m.name,
             'description', m.description,
-            'target_date', m.target_date,
+            'target_date', m.target_date::text,
             'status', m.status
           )
         ELSE NULL END as milestone,
