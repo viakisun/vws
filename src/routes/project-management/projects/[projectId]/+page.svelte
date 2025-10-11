@@ -1,53 +1,65 @@
 <script lang="ts">
-  import Card from '$lib/components/ui/Card.svelte'
-  import Badge from '$lib/components/ui/Badge.svelte'
-  import Progress from '$lib/components/ui/Progress.svelte'
-  import { projectsStore } from '$lib/stores/rnd'
+  import { browser } from '$app/environment'
   import { page } from '$app/state'
-  import { formatKRW } from '$lib/utils/format'
-  import { getProjectStatusColor } from '$lib/utils/project-status'
+  import PermissionGate from '$lib/components/auth/PermissionGate.svelte'
+  import PageLayout from '$lib/components/layout/PageLayout.svelte'
+  import ProjectDetailView from '$lib/components/project-management/ProjectDetailView.svelte'
+  import { PermissionAction, Resource } from '$lib/stores/permissions'
+  import { logger } from '$lib/utils/logger'
+  import { ArrowLeftIcon } from '@lucide/svelte'
+  import { onMount } from 'svelte'
 
   const projectId = page.params.projectId
-  const project = $derived($projectsStore.find((p) => p.id === projectId))
+  let project: any = $state(null)
+  let loading = $state(true)
+
+  onMount(async () => {
+    if (browser) {
+      await loadProject()
+    }
+  })
+
+  async function loadProject() {
+    try {
+      loading = true
+      const response = await fetch(`/api/project-management/projects/${projectId}`)
+      if (response.ok) {
+        const data = await response.json()
+        if (data.success) {
+          project = data.data
+        }
+      }
+    } catch (err) {
+      logger.error('프로젝트 로드 실패:', err)
+    } finally {
+      loading = false
+    }
+  }
 </script>
 
-<h2 class="text-lg font-semibold mb-3">Project {projectId}</h2>
-
-{#if project}
-  <Card>
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-      <div>
-        <div class="text-caption">이름</div>
-        <div class="font-semibold">{project.name}</div>
+<PermissionGate resource={Resource.PROJECT_PROJECTS} action={PermissionAction.READ}>
+  <PageLayout
+    title={project?.title || '프로젝트 상세'}
+    subtitle={project?.code || ''}
+    actions={[
+      {
+        label: '목록으로',
+        variant: 'secondary' as const,
+        icon: ArrowLeftIcon,
+        href: '/project-management',
+      },
+    ]}
+  >
+    {#if loading}
+      <div class="text-center py-12">
+        <div style:color="var(--color-text-secondary)">로딩 중...</div>
       </div>
-      <div>
-        <div class="text-caption">상태</div>
-        <Badge color={getProjectStatusColor(project.status)}>{project.status}</Badge>
+    {:else if project}
+      <ProjectDetailView selectedProject={project} />
+    {:else}
+      <div class="text-center py-12">
+        <p style:color="var(--color-text-secondary)">프로젝트를 찾을 수 없습니다.</p>
       </div>
-      <div>
-        <div class="text-caption">진행률</div>
-        <div class="w-48"><Progress value={project.progressPct} /></div>
-      </div>
-      <div>
-        <div class="text-caption">예산</div>
-        <div class="font-semibold">{formatKRW(project.budgetKRW || 0)}</div>
-      </div>
-      <div>
-        <div class="text-caption">집행</div>
-        <div class="font-semibold">{formatKRW(project.spentKRW || 0)}</div>
-      </div>
-      <div>
-        <div class="text-caption">기간</div>
-        <div class="font-semibold">{project.startDate} ~ {project.dueDate}</div>
-      </div>
-    </div>
-  </Card>
-{/if}
-<div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4">
-  <a class="card hover:bg-gray-50" href="budget">Budget</a>
-  <a class="card hover:bg-gray-50" href="personnel">Personnel</a>
-  <a class="card hover:bg-gray-50" href="expenses">Expenses</a>
-  <a class="card hover:bg-gray-50" href="deliverables">Deliverables</a>
-  <a class="card hover:bg-gray-50" href="reports">Reports</a>
-  <a class="card hover:bg-gray-50" href="compliance">Compliance</a>
-</div>
+    {/if}
+  </PageLayout>
+</PermissionGate>

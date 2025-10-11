@@ -11,28 +11,26 @@
   import { logger } from '$lib/utils/logger'
   import { createEventDispatcher } from 'svelte'
   import { useProjectDetail } from './hooks/useProjectDetail.svelte'
-
-  // Sub-components
-  import ProjectHeader from './ProjectHeader.svelte'
+// Sub-components
+  import ThemeBadge from '$lib/components/ui/ThemeBadge.svelte'
+  import ThemeCard from '$lib/components/ui/ThemeCard.svelte'
   import BudgetTable from './BudgetTable.svelte'
-  import MemberTable from './MemberTable.svelte'
   import EvidenceManagement from './EvidenceManagement.svelte'
-
-  // Modal Components
-  import ProjectBudgetModal from './ProjectBudgetModal.svelte'
-  import ProjectMemberForm from './ProjectMemberForm.svelte'
-  import EvidenceDetailModal from './EvidenceDetailModal.svelte'
-  import EvidenceAddModal from './EvidenceAddModal.svelte'
-  import ProjectEditModal from './ProjectEditModal.svelte'
-  import ProjectDeleteConfirmModal from './ProjectDeleteConfirmModal.svelte'
+  import MemberTable from './MemberTable.svelte'
+// Modal Components
   import BudgetUpdateConfirmModal from './BudgetUpdateConfirmModal.svelte'
+  import EvidenceAddModal from './EvidenceAddModal.svelte'
+  import EvidenceDetailModal from './EvidenceDetailModal.svelte'
+  import ProjectBudgetModal from './ProjectBudgetModal.svelte'
+  import ProjectDeleteConfirmModal from './ProjectDeleteConfirmModal.svelte'
+  import ProjectEditModal from './ProjectEditModal.svelte'
+  import ProjectMemberForm from './ProjectMemberForm.svelte'
   import ValidationResultModal from './ValidationResultModal.svelte'
-
-  // Utility functions
+// Utility functions
   import { formatCurrency, formatDate, formatNumber } from '$lib/utils/format'
-  import * as projectUtilsImported from './utils/projectUtils'
   import * as calculationUtilsImported from './utils/calculationUtils'
   import * as dataTransformers from './utils/dataTransformers'
+  import * as projectUtilsImported from './utils/projectUtils'
 
   // ============================================================================
   // Props & Dispatcher
@@ -262,6 +260,80 @@
   }
 
   // ============================================================================
+  // UI Helper Functions
+  // ============================================================================
+
+  function getStatusColor(
+    status: string,
+  ): 'primary' | 'success' | 'warning' | 'error' | 'info' | 'ghost' | 'default' {
+    const statusMap: Record<
+      string,
+      'primary' | 'success' | 'warning' | 'error' | 'info' | 'ghost' | 'default'
+    > = {
+      active: 'success',
+      planning: 'info',
+      completed: 'default',
+      cancelled: 'error',
+      suspended: 'warning',
+    }
+    return statusMap[status] || 'default'
+  }
+
+  function getStatusText(status: string): string {
+    const statusMap: Record<string, string> = {
+      active: '진행중',
+      planning: '기획중',
+      completed: '완료',
+      cancelled: '취소',
+      suspended: '중단',
+    }
+    return statusMap[status] || status
+  }
+
+  function getPriorityColor(
+    priority: string,
+  ): 'primary' | 'success' | 'warning' | 'error' | 'info' | 'ghost' | 'default' {
+    const priorityMap: Record<
+      string,
+      'primary' | 'success' | 'warning' | 'error' | 'info' | 'ghost' | 'default'
+    > = {
+      low: 'default',
+      medium: 'info',
+      high: 'warning',
+      critical: 'error',
+    }
+    return priorityMap[priority] || 'default'
+  }
+
+  function getPriorityText(priority: string): string {
+    const priorityMap: Record<string, string> = {
+      low: '낮음',
+      medium: '보통',
+      high: '높음',
+      critical: '긴급',
+    }
+    return priorityMap[priority] || priority
+  }
+
+  function getSponsorTypeText(type: string): string {
+    const sponsorMap: Record<string, string> = {
+      government: '정부',
+      private: '민간',
+      internal: '자체',
+    }
+    return sponsorMap[type] || type
+  }
+
+  function getResearchTypeText(type: string): string {
+    const researchMap: Record<string, string> = {
+      basic: '기초연구',
+      applied: '응용연구',
+      development: '개발연구',
+    }
+    return researchMap[type] || type
+  }
+
+  // ============================================================================
   // Watch external project change
   // ============================================================================
 
@@ -275,25 +347,82 @@
 {#if selectedProject}
   <div class="space-y-6">
     <!-- 프로젝트 기본 정보 -->
-    <ProjectHeader
-      {selectedProject}
-      budgetRefreshTrigger={uiStates.budgetRefreshTrigger}
-      onEditProject={() => {
-        initProjectForm()
-        modalStates.editProject = true
-      }}
-      onShowBudgetModal={() => dispatch('show-budget-modal')}
-      onDeleteProject={() => (modalStates.deleteConfirm = true)}
-    />
+    <ThemeCard>
+      <!-- 상태 및 태그 -->
+      <div class="flex items-center gap-2 mb-4">
+        <ThemeBadge variant={getStatusColor(selectedProject.status)} size="md">
+          {getStatusText(selectedProject.status)}
+        </ThemeBadge>
+        <ThemeBadge variant={getPriorityColor(selectedProject.priority)} size="md">
+          {getPriorityText(selectedProject.priority)}
+        </ThemeBadge>
+        <ThemeBadge variant="info" size="md">
+          {getSponsorTypeText(selectedProject.sponsor_type || selectedProject.sponsorType)}
+        </ThemeBadge>
+        <ThemeBadge variant="primary" size="md">
+          {getResearchTypeText(selectedProject.research_type || selectedProject.researchType)}
+        </ThemeBadge>
+      </div>
+
+      <div class="space-y-3">
+        {#if selectedProject.description}
+          <div>
+            <div class="text-sm font-medium mb-1" style:color="var(--color-text-secondary)">
+              사업 개요
+            </div>
+            <p class="text-sm whitespace-pre-line" style:color="var(--color-text-primary)">
+              {selectedProject.description}
+            </p>
+          </div>
+        {/if}
+        {#if selectedProject.start_date || selectedProject.end_date}
+          <div>
+            <div class="text-sm font-medium mb-1" style:color="var(--color-text-secondary)">
+              사업 기간
+            </div>
+            <p class="text-sm" style:color="var(--color-text-primary)">
+              {selectedProject.start_date || '미정'} ~ {selectedProject.end_date || '미정'}
+            </p>
+          </div>
+        {/if}
+      </div>
+
+      <!-- 사업비 예산 요약 -->
+      <div class="mt-4 pt-4 border-t" style:border-color="var(--color-border)">
+        {#await import('$lib/components/project-management/ProjectBudgetSummary.svelte')}
+          <div class="flex items-center justify-center py-4">
+            <div
+              class="animate-spin rounded-full h-4 w-4 border-b-2"
+              style:border-color="var(--color-primary)"
+            ></div>
+            <span class="ml-2 text-sm" style:color="var(--color-text-secondary)">로딩 중...</span>
+          </div>
+        {:then { default: ProjectBudgetSummary }}
+          <ProjectBudgetSummary
+            projectId={selectedProject.id}
+            compact={true}
+            refreshTrigger={uiStates.budgetRefreshTrigger}
+          />
+        {:catch}
+          <div class="text-center py-4">
+            <p class="text-sm" style:color="var(--color-text-secondary)">
+              예산 정보를 불러올 수 없습니다.
+            </p>
+          </div>
+        {/await}
+      </div>
+    </ThemeCard>
 
     <!-- 연차별 사업비 관리 -->
-    <BudgetTable
-      {projectBudgets}
-      budgetUpdateKey={uiStates.budgetUpdateKey}
-      evidencePeriod={selectedItems.evidencePeriod}
-      onEditBudget={(budget) => funding.editBudget(budget)}
-      onRemoveBudget={(budgetId) => funding.removeBudget(String(budgetId))}
-    />
+    <ThemeCard>
+      <BudgetTable
+        {projectBudgets}
+        budgetUpdateKey={uiStates.budgetUpdateKey}
+        evidencePeriod={selectedItems.evidencePeriod}
+        onEditBudget={(budget) => funding.editBudget(budget)}
+        onRemoveBudget={(budgetId) => funding.removeBudget(String(budgetId))}
+      />
+    </ThemeCard>
   </div>
 
   <!-- 사업비 추가/편집 모달 -->
@@ -359,33 +488,37 @@
   />
 
   <!-- 참여연구원 관리 -->
-  <MemberTable
-    {projectMembers}
-    selectedMember={selectedItems.member}
-    memberForm={forms.member}
-    isManualMonthlyAmount={uiStates.isManualMonthlyAmount}
-    loadingAddingMember={loadingStates.addingMember}
-    onStartAddMember={planning.startAddMember}
-    onEditMember={(member) => planning.editMember(member)}
-    onCancelEditMember={planning.cancelEditMember}
-    onUpdateMember={planning.updateMember}
-    onRemoveMember={(memberId) => planning.removeMember(String(memberId))}
-    onUpdateMonthlyAmount={updateMonthlyAmount}
-  />
+  <ThemeCard>
+    <MemberTable
+      {projectMembers}
+      selectedMember={selectedItems.member}
+      memberForm={forms.member}
+      isManualMonthlyAmount={uiStates.isManualMonthlyAmount}
+      loadingAddingMember={loadingStates.addingMember}
+      onStartAddMember={planning.startAddMember}
+      onEditMember={(member) => planning.editMember(member)}
+      onCancelEditMember={planning.cancelEditMember}
+      onUpdateMember={planning.updateMember}
+      onRemoveMember={(memberId) => planning.removeMember(String(memberId))}
+      onUpdateMonthlyAmount={updateMonthlyAmount}
+    />
+  </ThemeCard>
 
   <!-- 증빙 관리 -->
-  <EvidenceManagement
-    {projectBudgets}
-    {validationData}
-    selectedEvidencePeriod={selectedItems.evidencePeriod}
-    loadingEvidence={loadingStates.loadingEvidence}
-    expandedEvidenceSections={uiStates.expandedEvidenceSections}
-    onAddEvidence={() => (modalStates.evidence = true)}
-    onOpenEvidenceDetail={(item) => execution.openEvidenceDetail(item)}
-    onToggleSection={(sectionType) =>
-      (uiStates.expandedEvidenceSections[sectionType] =
-        !uiStates.expandedEvidenceSections[sectionType])}
-  />
+  <ThemeCard>
+    <EvidenceManagement
+      {projectBudgets}
+      {validationData}
+      selectedEvidencePeriod={selectedItems.evidencePeriod}
+      loadingEvidence={loadingStates.loadingEvidence}
+      expandedEvidenceSections={uiStates.expandedEvidenceSections}
+      onAddEvidence={() => (modalStates.evidence = true)}
+      onOpenEvidenceDetail={(item) => execution.openEvidenceDetail(item)}
+      onToggleSection={(sectionType) =>
+        (uiStates.expandedEvidenceSections[sectionType] =
+          !uiStates.expandedEvidenceSections[sectionType])}
+    />
+  </ThemeCard>
 
   <!-- 증빙 상세 모달 -->
   <EvidenceDetailModal

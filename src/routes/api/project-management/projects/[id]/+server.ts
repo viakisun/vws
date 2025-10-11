@@ -29,7 +29,11 @@ export const GET: RequestHandler = async ({ params }) => {
     const projectResult = await query<DatabaseProject>(
       `
 			SELECT
-				p.*,
+				p.id, p.code, p.title, p.description, p.sponsor, p.sponsor_name, p.sponsor_type,
+				p.start_date::text as start_date, p.end_date::text as end_date,
+				p.manager_employee_id, p.status, p.budget_total, p.budget_currency,
+				p.research_type, p.technology_area, p.priority,
+				p.created_at::text as created_at, p.updated_at::text as updated_at,
 				e.first_name || ' ' || e.last_name as manager_name,
 				COUNT(pm.id) as member_count,
 				COALESCE(SUM(pm.participation_rate), 0) as total_participation_rate
@@ -37,7 +41,10 @@ export const GET: RequestHandler = async ({ params }) => {
 			LEFT JOIN employees e ON p.manager_employee_id = e.id
 			LEFT JOIN project_members pm ON p.id = pm.project_id AND pm.status = 'active'
 			WHERE p.id = $1
-			GROUP BY p.id, e.first_name, e.last_name
+			GROUP BY p.id, p.code, p.title, p.description, p.sponsor, p.sponsor_name, p.sponsor_type,
+			         p.start_date, p.end_date, p.manager_employee_id, p.status, p.budget_total,
+			         p.budget_currency, p.research_type, p.technology_area, p.priority,
+			         p.created_at, p.updated_at, e.first_name, e.last_name
 		`,
       [id],
     )
@@ -58,7 +65,11 @@ export const GET: RequestHandler = async ({ params }) => {
     const membersResult = await query<DatabaseProjectMember>(
       `
 			SELECT
-				pm.*,
+				pm.id, pm.project_id, pm.employee_id, pm.role,
+				pm.start_date::text as start_date, pm.end_date::text as end_date,
+				pm.participation_rate, pm.monthly_salary, pm.monthly_amount,
+				pm.cash_amount, pm.in_kind_amount, pm.status, pm.notes,
+				pm.created_at::text as created_at, pm.updated_at::text as updated_at,
 				e.first_name || ' ' || e.last_name as employee_name,
 				e.department
 			FROM project_members pm
@@ -72,7 +83,19 @@ export const GET: RequestHandler = async ({ params }) => {
     // 프로젝트 사업비 조회
     const budgetsResult = await query<DatabaseProjectBudget>(
       `
-			SELECT * FROM project_budgets
+			SELECT
+				id, project_id, period_number,
+				start_date::text as start_date, end_date::text as end_date,
+				personnel_cost, research_material_cost, research_activity_cost,
+				research_stipend, indirect_cost,
+				personnel_cost_cash, personnel_cost_in_kind,
+				research_material_cost_cash, research_material_cost_in_kind,
+				research_activity_cost_cash, research_activity_cost_in_kind,
+				research_stipend_cash, research_stipend_in_kind,
+				indirect_cost_cash, indirect_cost_in_kind,
+				government_funding_amount, company_cash_amount, company_in_kind_amount,
+				created_at::text as created_at, updated_at::text as updated_at
+			FROM project_budgets
 			WHERE project_id = $1
 			ORDER BY period_number DESC
 		`,
@@ -82,7 +105,12 @@ export const GET: RequestHandler = async ({ params }) => {
     // 프로젝트 마일스톤 조회
     const milestonesResult = await query(
       `
-			SELECT * FROM project_milestones
+			SELECT
+				id, project_id, title, description,
+				milestone_date::text as milestone_date,
+				status,
+				created_at::text as created_at, updated_at::text as updated_at
+			FROM project_milestones
 			WHERE project_id = $1
 			ORDER BY milestone_date ASC
 		`,
@@ -93,7 +121,9 @@ export const GET: RequestHandler = async ({ params }) => {
     const risksResult = await query(
       `
 			SELECT
-				pr.*,
+				pr.id, pr.project_id, pr.title, pr.description,
+				pr.probability, pr.impact, pr.status, pr.owner_id,
+				pr.created_at::text as created_at, pr.updated_at::text as updated_at,
 				e.first_name || ' ' || e.last_name as owner_name
 			FROM project_risks pr
 			LEFT JOIN employees e ON pr.owner_id = e.id
@@ -245,7 +275,11 @@ export const PUT: RequestHandler = async ({ params, request }) => {
     const projectWithDetails = await query(
       `
 			SELECT
-				p.*,
+				p.id, p.code, p.title, p.description, p.sponsor, p.sponsor_name, p.sponsor_type,
+				p.start_date::text as start_date, p.end_date::text as end_date,
+				p.manager_employee_id, p.status, p.budget_total, p.budget_currency,
+				p.research_type, p.technology_area, p.priority,
+				p.created_at::text as created_at, p.updated_at::text as updated_at,
 				e.first_name || ' ' || e.last_name as manager_name,
 				COUNT(pm.id) as member_count,
 				COALESCE(SUM(pm.participation_rate), 0) as total_participation_rate
@@ -253,7 +287,10 @@ export const PUT: RequestHandler = async ({ params, request }) => {
 			LEFT JOIN employees e ON p.manager_employee_id = e.id
 			LEFT JOIN project_members pm ON p.id = pm.project_id AND pm.status = 'active'
 			WHERE p.id = $1
-			GROUP BY p.id, e.first_name, e.last_name
+			GROUP BY p.id, p.code, p.title, p.description, p.sponsor, p.sponsor_name, p.sponsor_type,
+			         p.start_date, p.end_date, p.manager_employee_id, p.status, p.budget_total,
+			         p.budget_currency, p.research_type, p.technology_area, p.priority,
+			         p.created_at, p.updated_at, e.first_name, e.last_name
 		`,
       [id],
     )

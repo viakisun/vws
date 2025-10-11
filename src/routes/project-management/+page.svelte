@@ -1,20 +1,15 @@
 <script lang="ts">
-  import { logger } from '$lib/utils/logger'
-
   import { browser } from '$app/environment'
-  import { goto } from '$app/navigation'
-  import { page } from '$app/state'
   import PermissionGate from '$lib/components/auth/PermissionGate.svelte'
   import PageLayout from '$lib/components/layout/PageLayout.svelte'
-  import AnnualBudgetForm from '$lib/components/project-management/AnnualBudgetForm.svelte'
-  import ParticipationCard from '$lib/components/project-management/ParticipationCard.svelte'
   import ProjectCreationForm from '$lib/components/project-management/ProjectCreationForm.svelte'
-  import ProjectListCard from '$lib/components/project-management/ProjectListCard.svelte'
-  import ProjectOverviewCard from '$lib/components/project-management/ProjectOverviewCard.svelte'
+  import ThemeCard from '$lib/components/ui/ThemeCard.svelte'
+  import ThemeGrid from '$lib/components/ui/ThemeGrid.svelte'
   import ThemeModal from '$lib/components/ui/ThemeModal.svelte'
-  import ThemeTabs from '$lib/components/ui/ThemeTabs.svelte'
   import { PermissionAction, Resource } from '$lib/stores/permissions'
-  import { BarChart3Icon, FlaskConicalIcon, PercentIcon } from '@lucide/svelte'
+  import { formatCurrency } from '$lib/utils/format'
+  import { logger } from '$lib/utils/logger'
+  import { DollarSignIcon, FlaskConicalIcon, PercentIcon, UsersIcon } from '@lucide/svelte'
   import { onMount } from 'svelte'
 
   /**
@@ -53,118 +48,25 @@
    * @property {number} totalParticipationRate
    */
 
-  // 탭 정의
-  const tabs = [
-    {
-      id: 'overview',
-      label: '개요',
-      icon: BarChart3Icon,
-    },
-    {
-      id: 'projects',
-      label: '프로젝트',
-      icon: FlaskConicalIcon,
-    },
-    {
-      id: 'participation',
-      label: '참여율 관리',
-      icon: PercentIcon,
-    },
-  ]
-
-  // URL 파라미터에서 활성 탭 관리
-  let activeTab = $state('overview')
-
-  // 페이지 마운트 후 URL 파라미터 처리
-  onMount(() => {
-    activeTab = page.url.searchParams.get('tab') || 'overview'
-    loadInitialTabContent()
-    updateData()
-  })
-
   // 상태 변수들
-  let mounted = $state(false)
   let projects: any[] = $state([])
-  let projectSummary = $state(null)
-  let employeeParticipationSummary = $state([])
-  let alerts = $state([])
-
-  // 탭별 로딩 상태 및 오류 체크
-  const tabLoadingStates = $state({
-    overview: false,
-    projects: false,
-    participation: false,
-  })
-  const tabErrors = $state({
-    overview: null,
-    projects: null,
-    participation: null,
-  })
-  const tabLastLoaded = $state({
-    overview: null,
-    projects: null,
-    participation: null,
-  })
-
-  // 탭별 데이터 로딩 함수들
-  async function loadTabData(tabName) {
-    if (tabLoadingStates[tabName]) return
-
-    tabLoadingStates[tabName] = true
-    tabErrors[tabName] = null
-
-    try {
-      switch (tabName) {
-        case 'overview':
-          await Promise.all([
-            loadProjectSummary(),
-            loadEmployeeParticipationSummary(),
-            loadBudgetSummaryByYear(),
-            loadAlerts(),
-          ])
-          break
-        case 'projects':
-          await loadProjectData()
-          break
-        case 'participation':
-          await loadEmployeeParticipationSummary()
-          break
-      }
-      tabLastLoaded[tabName] = new Date()
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.'
-      tabErrors[tabName] = errorMessage
-      logger.error(`${tabName} 탭 데이터 로딩 실패:`, err)
-    } finally {
-      tabLoadingStates[tabName] = false
-    }
-  }
-
-  // Svelte 5: 탭 변경 시 데이터 로드 (무한 루프 방지)
-  let lastLoadedTab = $state('')
-  function updateData() {
-    if (mounted && activeTab && activeTab !== lastLoadedTab) {
-      lastLoadedTab = activeTab
-      loadTabData(activeTab)
-    }
-  }
-
-  // 프로젝트 관련 상태
-  let selectedProject: any = $state(null)
-  let selectedProjectId = $state('')
+  let projectSummary: any = $state(null)
+  let loading = $state(true)
   let showCreateProjectModal = $state(false)
-  let showBudgetModal = $state(false)
-  let projectBudgets = $state<any[]>([])
-  let budgetRefreshKey = $state(0) // ProjectDetailView refresh trigger
 
-  // 탭 변경 핸들러
-  function handleTabChange(tabId) {
-    activeTab = tabId
-    const url = new URL(page.url)
-    url.searchParams.set('tab', tabId)
-    goto(url.toString(), { replaceState: true })
-    loadTabData(tabId)
-  }
+  // 페이지 마운트 시 데이터 로드
+  onMount(async () => {
+    if (browser) {
+      loading = true
+      try {
+        await Promise.all([loadProjectData(), loadProjectSummary()])
+      } catch (err) {
+        logger.error('데이터 로드 실패:', err)
+      } finally {
+        loading = false
+      }
+    }
+  })
 
   // API 호출 함수들
   async function loadProjectData() {
@@ -273,177 +175,186 @@
     }
   }
 
-  async function loadEmployeeParticipationSummary() {
-    try {
-      const response = await fetch('/api/project-management/participation-rates/summary')
-      if (response.ok) {
-        const data = await response.json()
-        employeeParticipationSummary = data.data || []
-      }
-    } catch {
-      // 직원 참여율 데이터 로드 실패 - 조용히 처리
-    }
-  }
-
-  async function loadBudgetSummaryByYear() {
-    try {
-      const response = await fetch('/api/project-management/budgets/summary-by-year')
-      if (response.ok) {
-        // const data = await response.json()
-        // budgetSummaryByYear = data.data || []
-      }
-    } catch {
-      // 연도별 예산 데이터 로드 실패 - 조용히 처리
-    }
-  }
-
-  async function loadAlerts() {
-    try {
-      const response = await fetch('/api/project-management/alerts')
-      if (response.ok) {
-        const data = await response.json()
-        alerts = data.data || []
-      }
-    } catch {
-      // 알림 데이터 로드 실패 - 조용히 처리
-    }
-  }
-
   // 프로젝트 생성 완료 핸들러
-  function handleProjectCreated() {
+  async function handleProjectCreated() {
     showCreateProjectModal = false
-    loadProjectData()
-    loadProjectSummary()
+    await Promise.all([loadProjectData(), loadProjectSummary()])
   }
 
-  // 프로젝트 삭제 이벤트 처리
-  function handleProjectDeleted(event: any) {
-    const { projectId } = event.detail
-
-    // 삭제된 프로젝트가 현재 선택된 프로젝트라면 선택 해제
-    if (selectedProject && selectedProject.id === projectId) {
-      selectedProject = null
-      selectedProjectId = ''
-    }
-
-    // 프로젝트 목록에서 삭제된 프로젝트 제거
-    projects = projects.filter((p) => p.id !== projectId)
-
-    // 프로젝트 데이터 새로고침
-    loadProjectData()
-  }
-
-  // 프로젝트 수정 이벤트 처리
-  function handleProjectUpdated(event: any) {
-    const { projectId, updatedProject } = event.detail
-
-    // 프로젝트 목록에서 해당 프로젝트 업데이트
-    const projectIndex = projects.findIndex((p) => p.id === projectId)
-    if (projectIndex !== -1) {
-      projects[projectIndex] = { ...projects[projectIndex], ...updatedProject }
-    }
-
-    // 현재 선택된 프로젝트가 수정된 프로젝트라면 업데이트
-    if (selectedProject && selectedProject.id === projectId) {
-      selectedProject = { ...selectedProject, ...updatedProject }
-    }
-
-    // 프로젝트 데이터 새로고침 (드롭다운 업데이트)
-    loadProjectData()
-  }
-
-  // 프로젝트 예산 로드
-  async function loadProjectBudgets(projectId: string) {
-    try {
-      const response = await fetch(`/api/project-management/projects/${projectId}/annual-budgets`)
-      if (response.ok) {
-        const data = await response.json()
-        if (data.success && data.data) {
-          projectBudgets = data.data.budgets || []
-          logger.log(`프로젝트 예산 로드 완료: ${projectBudgets.length}개`)
-        } else {
-          projectBudgets = []
-        }
-      }
-    } catch (error) {
-      logger.error('프로젝트 예산 로드 실패:', error)
-      projectBudgets = []
+  // 상태별 레이블 변환
+  function getStatusLabel(status: string): string {
+    switch (status) {
+      case 'active':
+        return '진행중'
+      case 'planning':
+        return '기획'
+      case 'completed':
+        return '완료'
+      default:
+        return status
     }
   }
 
-  // 프로젝트 선택 시 관련 데이터 모두 초기화
-  async function handleProjectSelection(project: any) {
-    // 1. 프로젝트 정보 업데이트
-    selectedProject = project
-    selectedProjectId = project.id
-
-    // 2. 열려있는 모달 닫기
-    showBudgetModal = false
-    showCreateProjectModal = false
-
-    // 3. 예산 데이터 로드 (annual-budgets API)
-    await loadProjectBudgets(project.id)
-
-    // 4. UI 새로고침 트리거
-    // budgetRefreshKey를 증가시키면:
-    // - ProjectDetailView의 externalRefreshTrigger가 변경됨
-    // - ProjectDetailView가 내부 budgetRefreshTrigger를 동기화
-    // - ProjectBudgetSummary가 refreshTrigger 변경 감지
-    // - ProjectDetailView가 loadProjectBudgets() 호출 (project-budgets API)
-    // - ProjectDetailView가 다른 종속 데이터들도 자동 로드 (onMount 또는 $effect)
-    budgetRefreshKey++
-  }
-
-  // 초기화 - 첫 번째 탭만 로드
-  function loadInitialTabContent() {
-    if (!mounted && browser) {
-      mounted = true
-      // 초기 탭 데이터 로드
-      loadTabData(activeTab)
+  // 상태별 그라데이션 스타일
+  function getStatusGradient(status: string): string {
+    switch (status) {
+      case 'active':
+        return 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)'
+      case 'planning':
+        return 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)'
+      default:
+        return ''
     }
   }
+
+  // 상태별 강조 여부
+  function isHighlightedStatus(status: string): boolean {
+    return status === 'active' || status === 'planning'
+  }
+
+  // PageLayout stats 구성
+  const stats = $derived([
+    {
+      title: '전체 프로젝트',
+      value: projectSummary?.totalProjects || 0,
+      icon: FlaskConicalIcon,
+      color: 'blue' as const,
+    },
+    {
+      title: '진행중',
+      value: projectSummary?.activeProjects || 0,
+      icon: FlaskConicalIcon,
+      color: 'green' as const,
+    },
+    {
+      title: '총 예산',
+      value: formatCurrency(projectSummary?.totalBudget || 0),
+      icon: DollarSignIcon,
+      color: 'purple' as const,
+    },
+    {
+      title: '참여 연구원',
+      value: projectSummary?.totalMembers || 0,
+      icon: UsersIcon,
+      color: 'orange' as const,
+    },
+  ])
+
+  // PageLayout actions 구성
+  const actions = [
+    {
+      label: '참여율 관리',
+      variant: 'secondary' as const,
+      icon: PercentIcon,
+      href: '/project-management/participation',
+    },
+    {
+      label: '새 프로젝트',
+      variant: 'primary' as const,
+      icon: FlaskConicalIcon,
+      onclick: () => (showCreateProjectModal = true),
+    },
+  ]
 </script>
 
 <PermissionGate resource={Resource.PROJECT_PROJECTS} action={PermissionAction.READ}>
-  <PageLayout title="프로젝트 관리" subtitle="연구개발 프로젝트 및 참여율 관리 시스템">
+  <PageLayout
+    title="프로젝트 관리"
+    subtitle="연구개발 프로젝트 및 참여율 관리 시스템"
+    {stats}
+    {actions}
+  >
     {#if browser}
-      <!-- 탭 네비게이션 -->
-      <ThemeTabs {tabs} {activeTab} onTabChange={handleTabChange} />
+      {#if loading}
+        <div class="text-center py-12">
+          <div style:color="var(--color-text-secondary)">로딩 중...</div>
+        </div>
+      {:else if projects.length === 0}
+        <div class="text-center py-12">
+          <p style:color="var(--color-text-secondary)">프로젝트가 없습니다.</p>
+        </div>
+      {:else}
+        <!-- 프로젝트 카드 그리드 -->
+        <ThemeGrid cols={1} mdCols={2} lgCols={3} gap={6}>
+          {#each projects as project}
+            {@const isHighlighted = isHighlightedStatus(project.status)}
+            {@const bgStyle = getStatusGradient(project.status)}
+            {@const textColor = isHighlighted ? '#ffffff' : 'var(--color-text-primary)'}
+            {@const secondaryTextColor = isHighlighted
+              ? 'rgba(255, 255, 255, 0.9)'
+              : 'var(--color-text-secondary)'}
+            {@const tertiaryTextColor = isHighlighted
+              ? 'rgba(255, 255, 255, 0.7)'
+              : 'var(--color-text-tertiary)'}
+            {@const borderColor = isHighlighted
+              ? 'rgba(255, 255, 255, 0.3)'
+              : 'var(--color-border-light)'}
+            {@const badgeColor = isHighlighted ? '#ffffff' : 'var(--color-primary-dark)'}
+            {@const badgeBg = isHighlighted
+              ? 'rgba(255, 255, 255, 0.2)'
+              : 'var(--color-primary-light)'}
+            {@const badgeBorder = isHighlighted
+              ? 'rgba(255, 255, 255, 0.5)'
+              : 'var(--color-primary)'}
+            {@const statColor = isHighlighted ? '#ffffff' : 'var(--color-primary)'}
 
-      <!-- 개요 탭 -->
-      {#if activeTab === 'overview'}
-        <!-- 프로젝트 개요 카드 -->
-        <ProjectOverviewCard {projectSummary} {alerts} />
-      {/if}
+            <a href="/project-management/projects/{project.id}" class="block">
+              <ThemeCard variant="default" hover clickable style="background: {bgStyle}">
+                <!-- 프로젝트 이름 + 상태 뱃지 -->
+                <div class="mb-4">
+                  <div class="flex items-center gap-2 mb-2">
+                    <h3 class="text-xl font-bold" style:color={textColor}>
+                      {project.title}
+                    </h3>
+                    <span
+                      class="px-2.5 py-1 text-xs font-medium rounded border whitespace-nowrap"
+                      style:background={badgeBg}
+                      style:color={badgeColor}
+                      style:border-color={badgeBorder}
+                      style:opacity="0.9"
+                    >
+                      {getStatusLabel(project.status)}
+                    </span>
+                  </div>
+                  <p class="text-xs font-mono" style:color={tertiaryTextColor}>
+                    {project.code}
+                  </p>
+                </div>
 
-      <!-- 프로젝트 탭 -->
-      {#if activeTab === 'projects'}
-        <!-- 프로젝트 목록 카드 -->
-        <ProjectListCard
-          {projects}
-          {selectedProject}
-          {selectedProjectId}
-          {budgetRefreshKey}
-          loading={tabLoadingStates.projects}
-          error={tabErrors.projects}
-          on:create-project={() => (showCreateProjectModal = true)}
-          on:project-deleted={handleProjectDeleted}
-          on:project-updated={handleProjectUpdated}
-          on:refresh={loadProjectData}
-          on:project-selected={(e) => handleProjectSelection(e.detail.project)}
-          on:show-budget-modal={() => {
-            if (selectedProject?.id) {
-              loadProjectBudgets(selectedProject.id)
-            }
-            showBudgetModal = true
-          }}
-        />
-      {/if}
+                <!-- 설명 (2줄 말줄임) -->
+                <div class="mb-6 h-10">
+                  {#if project.description}
+                    <p
+                      class="text-sm line-clamp-2 leading-relaxed"
+                      style:color={secondaryTextColor}
+                    >
+                      {project.description}
+                    </p>
+                  {/if}
+                </div>
 
-      <!-- 참여율 관리 탭 -->
-      {#if activeTab === 'participation'}
-        <!-- TODO::참여율 관리 카드 -->
-        <ParticipationCard {employeeParticipationSummary} />
+                <!-- 통계 -->
+                <div
+                  class="flex items-center gap-6 text-sm pt-4"
+                  style:border-top="1px solid {borderColor}"
+                >
+                  <div class="flex items-center gap-2">
+                    <span class="text-lg font-bold" style:color={statColor}>
+                      {formatCurrency(project.budget_total || 0)}
+                    </span>
+                    <span style:color={secondaryTextColor}>예산</span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-lg font-bold" style:color={statColor}>
+                      {project.member_count || 0}
+                    </span>
+                    <span style:color={secondaryTextColor}>팀원</span>
+                  </div>
+                </div>
+              </ThemeCard>
+            </a>
+          {/each}
+        </ThemeGrid>
       {/if}
     {/if}
   </PageLayout>
@@ -456,25 +367,12 @@
   </ThemeModal>
 {/if}
 
-<!-- 예산 수정 모달 -->
-{#if browser && selectedProject}
-  <ThemeModal open={showBudgetModal} onclose={() => (showBudgetModal = false)}>
-    <AnnualBudgetForm
-      projectId={selectedProject.id}
-      existingBudgets={projectBudgets}
-      on:budget-updated={async () => {
-        showBudgetModal = false
-
-        // 프로젝트 데이터와 예산 데이터 모두 새로고침
-        await loadProjectData()
-
-        if (selectedProject?.id) {
-          await loadProjectBudgets(selectedProject.id)
-        }
-
-        // ProjectDetailView에 refresh 신호 전달
-        budgetRefreshKey++
-      }}
-    />
-  </ThemeModal>
-{/if}
+<style>
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+</style>
