@@ -89,7 +89,21 @@ export function toUTC(date: DateInputFormat): StandardDate {
     // Date 객체면 바로 ISO 문자열로
     if (date instanceof Date) {
       if (isNaN(date.getTime())) {
-        logger.error('Invalid Date object:', date)
+        const stack = new Error().stack
+        const callerLine = stack?.split('\n')[2]?.trim() || 'unknown location'
+
+        logger.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+        logger.error('❌ [toUTC] Invalid Date object')
+        logger.error('   Value:', date)
+        logger.error('   Called from:', callerLine)
+        logger.error('')
+        logger.error('   Possible causes:')
+        logger.error('   - Date object is NaN or Invalid Date')
+        logger.error('   - Incorrect date construction')
+        logger.error('')
+        logger.error('   Stack trace:')
+        logger.error(stack || 'Stack trace not available')
+        logger.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
         return '' as StandardDate
       }
       return date.toISOString() as StandardDate
@@ -98,13 +112,43 @@ export function toUTC(date: DateInputFormat): StandardDate {
     // 문자열이면 Date 객체로 변환 후 ISO 문자열로
     const dateObj = new Date(date)
     if (isNaN(dateObj.getTime())) {
-      logger.error('Invalid date string:', date)
+      const stack = new Error().stack
+      const callerLine = stack?.split('\n')[2]?.trim() || 'unknown location'
+
+      logger.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+      logger.error('❌ [toUTC] Invalid date string')
+      logger.error('   Input:', date)
+      logger.error('   Type:', typeof date)
+      logger.error('   Called from:', callerLine)
+      logger.error('')
+      logger.error('   Expected formats:')
+      logger.error('   ✅ "YYYY-MM-DD" (e.g., "2025-10-08")')
+      logger.error('   ✅ "YYYY-MM-DDTHH:MM:SS.sssZ" (ISO 8601)')
+      logger.error('')
+      logger.error('   Stack trace:')
+      logger.error(stack || 'Stack trace not available')
+      logger.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
       return '' as StandardDate
     }
 
     return dateObj.toISOString() as StandardDate
   } catch (error) {
-    logger.error('Date conversion error:', error, 'for input:', date)
+    const stack = new Error().stack
+
+    logger.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+    logger.error('❌ [toUTC] Date conversion error')
+    logger.error('   Input:', date)
+    logger.error('   Type:', typeof date)
+    logger.error('   Error:', error)
+    if (error instanceof Error) {
+      logger.error('   Error message:', error.message)
+      logger.error('   Error stack:')
+      logger.error(error.stack || 'Error stack not available')
+    }
+    logger.error('')
+    logger.error('   Function stack trace:')
+    logger.error(stack || 'Stack trace not available')
+    logger.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
     return '' as StandardDate
   }
 }
@@ -137,7 +181,25 @@ export function formatDateForDisplay(
     // YYYY-MM-DD 또는 YYYY-MM-DD HH:MM:SS+09 에서 날짜 부분만 추출
     const match = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})/)
     if (!match) {
-      logger.debug('Invalid date format for display:', dateStr)
+      const stack = new Error().stack
+      const callerLine = stack?.split('\n')[2]?.trim() || 'unknown location'
+
+      logger.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+      logger.error('❌ [formatDateForDisplay] Invalid date format')
+      logger.error('   Input:', dateStr)
+      logger.error('   Format requested:', format)
+      logger.error('   Called from:', callerLine)
+      logger.error('')
+      logger.error('   Expected DB formats:')
+      logger.error('   ✅ "YYYY-MM-DD" (e.g., "2025-10-08")')
+      logger.error('   ✅ "YYYY-MM-DD HH:MM:SS+09" (e.g., "2025-10-08 11:24:23.373+09")')
+      logger.error('')
+      logger.error('   Make sure you are using ::text in your SQL query')
+      logger.error('   Example: SELECT created_at::text FROM table')
+      logger.error('')
+      logger.error('   Stack trace:')
+      logger.error(stack || 'Stack trace not available')
+      logger.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
       return ''
     }
 
@@ -156,7 +218,22 @@ export function formatDateForDisplay(
         return `${year}. ${month}. ${day}.`
     }
   } catch (error) {
-    logger.error('Date display formatting error:', error, 'for date:', dateStr)
+    const stack = new Error().stack
+
+    logger.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+    logger.error('❌ [formatDateForDisplay] Formatting error')
+    logger.error('   Input:', dateStr)
+    logger.error('   Format:', format)
+    logger.error('   Error:', error)
+    if (error instanceof Error) {
+      logger.error('   Error message:', error.message)
+      logger.error('   Error stack:')
+      logger.error(error.stack || 'Error stack not available')
+    }
+    logger.error('')
+    logger.error('   Function stack trace:')
+    logger.error(stack || 'Stack trace not available')
+    logger.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
     return ''
   }
 }
@@ -178,9 +255,41 @@ export function formatDateForInput(dateStr: StandardDate | string): string {
   try {
     // YYYY-MM-DD 부분만 추출
     const match = dateStr.match(/^(\d{4}-\d{2}-\d{2})/)
-    return match ? match[1] : ''
+    if (!match) {
+      const stack = new Error().stack
+      const callerLine = stack?.split('\n')[2]?.trim() || 'unknown location'
+
+      logger.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+      logger.error('❌ [formatDateForInput] Invalid date format')
+      logger.error('   Input:', dateStr)
+      logger.error('   Called from:', callerLine)
+      logger.error('')
+      logger.error('   Expected DB formats:')
+      logger.error('   ✅ "YYYY-MM-DD" (e.g., "2025-10-08")')
+      logger.error('   ✅ "YYYY-MM-DD HH:MM:SS+09" (e.g., "2025-10-08 11:24:23.373+09")')
+      logger.error('')
+      logger.error('   Stack trace:')
+      logger.error(stack || 'Stack trace not available')
+      logger.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+      return ''
+    }
+    return match[1]
   } catch (error) {
-    logger.error('Date input formatting error:', error, 'for date:', dateStr)
+    const stack = new Error().stack
+
+    logger.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+    logger.error('❌ [formatDateForInput] Formatting error')
+    logger.error('   Input:', dateStr)
+    logger.error('   Error:', error)
+    if (error instanceof Error) {
+      logger.error('   Error message:', error.message)
+      logger.error('   Error stack:')
+      logger.error(error.stack || 'Error stack not available')
+    }
+    logger.error('')
+    logger.error('   Function stack trace:')
+    logger.error(stack || 'Stack trace not available')
+    logger.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
     return ''
   }
 }
@@ -203,13 +312,43 @@ export function formatDateTimeForInput(dateStr: StandardDate | string): string {
     // YYYY-MM-DD HH:MM:SS+09 → YYYY-MM-DDTHH:MM
     const match = dateStr.match(/^(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2})/)
     if (!match) {
-      logger.debug('Invalid datetime format for input:', dateStr)
+      const stack = new Error().stack
+      const callerLine = stack?.split('\n')[2]?.trim() || 'unknown location'
+
+      logger.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+      logger.error('❌ [formatDateTimeForInput] Invalid datetime format')
+      logger.error('   Input:', dateStr)
+      logger.error('   Called from:', callerLine)
+      logger.error('')
+      logger.error('   Expected DB format:')
+      logger.error('   ✅ "YYYY-MM-DD HH:MM:SS+09" (e.g., "2025-10-08 11:24:23.373+09")')
+      logger.error('')
+      logger.error('   Note: This function requires timestamp with time component')
+      logger.error('   Use formatDateForInput() for date-only values')
+      logger.error('')
+      logger.error('   Stack trace:')
+      logger.error(stack || 'Stack trace not available')
+      logger.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
       return ''
     }
 
     return `${match[1]}T${match[2]}`
   } catch (error) {
-    logger.error('DateTime input formatting error:', error, 'for date:', dateStr)
+    const stack = new Error().stack
+
+    logger.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+    logger.error('❌ [formatDateTimeForInput] Formatting error')
+    logger.error('   Input:', dateStr)
+    logger.error('   Error:', error)
+    if (error instanceof Error) {
+      logger.error('   Error message:', error.message)
+      logger.error('   Error stack:')
+      logger.error(error.stack || 'Error stack not available')
+    }
+    logger.error('')
+    logger.error('   Function stack trace:')
+    logger.error(stack || 'Stack trace not available')
+    logger.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
     return ''
   }
 }
