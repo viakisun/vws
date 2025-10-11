@@ -29,17 +29,19 @@ export const GET: RequestHandler = async (event) => {
     let sqlQuery = `
 			SELECT 
 				p.id, p.code, p.title, p.project_task_name, p.description, p.sponsor, p.sponsor_type,
-				p.start_date::text as start_date, p.end_date::text as end_date,
 				p.manager_employee_id, p.status, p.budget_total, p.research_type, p.priority,
 				p.dedicated_agency, p.dedicated_agency_contact_name,
 				p.dedicated_agency_contact_phone, p.dedicated_agency_contact_email,
 				p.created_at::text as created_at, p.updated_at::text as updated_at,
 				e.first_name || ' ' || e.last_name as manager_name,
-				COUNT(pm.id) as member_count,
-				COALESCE(SUM(pm.participation_rate), 0) as total_participation_rate
+				COUNT(DISTINCT pm.id) as member_count,
+				COALESCE(SUM(pm.participation_rate), 0) as total_participation_rate,
+				-- 연차별 예산에서 시작일/종료일 계산
+				(SELECT MIN(pb.start_date)::text FROM rd_project_budgets pb WHERE pb.project_id = p.id) as start_date,
+				(SELECT MAX(pb.end_date)::text FROM rd_project_budgets pb WHERE pb.project_id = p.id) as end_date
 			FROM projects p
 			LEFT JOIN employees e ON p.manager_employee_id = e.id
-			LEFT JOIN project_members pm ON p.id = pm.project_id AND pm.status = 'active'
+			LEFT JOIN rd_project_members pm ON p.id = pm.project_id AND pm.status = 'active'
 		`
 
     const conditions: string[] = []
@@ -79,15 +81,8 @@ export const GET: RequestHandler = async (event) => {
       paramIndex++
     }
 
-    if (startDateFrom) {
-      conditions.push(`p.start_date >= $${paramIndex++}`)
-      params.push(startDateFrom)
-    }
-
-    if (startDateTo) {
-      conditions.push(`p.start_date <= $${paramIndex++}`)
-      params.push(startDateTo)
-    }
+    // Note: startDateFrom, startDateTo 필터는 서브쿼리로 계산된 start_date를 필터링할 수 없으므로 제거
+    // 필요시 CTE나 외부 쿼리로 감싸서 구현 가능
 
     if (conditions.length > 0) {
       sqlQuery += ' WHERE ' + conditions.join(' AND ')
@@ -95,7 +90,7 @@ export const GET: RequestHandler = async (event) => {
 
     sqlQuery += `
 			GROUP BY p.id, p.code, p.title, p.project_task_name, p.description, p.sponsor, p.sponsor_type,
-			         p.start_date, p.end_date, p.manager_employee_id, p.status, p.budget_total,
+			         p.manager_employee_id, p.status, p.budget_total,
 			         p.research_type, p.priority,
 			         p.dedicated_agency, p.dedicated_agency_contact_name,
 			         p.dedicated_agency_contact_phone, p.dedicated_agency_contact_email,

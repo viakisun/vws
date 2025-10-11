@@ -25,26 +25,28 @@ export const GET: RequestHandler = async ({ params }) => {
   try {
     const { id } = params
 
-    // 프로젝트 기본 정보 조회
+    // 프로젝트 기본 정보 조회 (시작일/종료일은 연차별 예산에서 계산)
     const projectResult = await query<DatabaseProject>(
       `
 			SELECT
 				p.id, p.code, p.title, p.project_task_name, p.description, p.sponsor, p.sponsor_name, p.sponsor_type,
-				p.start_date::text as start_date, p.end_date::text as end_date,
 				p.manager_employee_id, p.status, p.budget_total, p.budget_currency,
 				p.research_type, p.technology_area, p.priority,
 				p.dedicated_agency, p.dedicated_agency_contact_name,
 				p.dedicated_agency_contact_phone, p.dedicated_agency_contact_email,
 				p.created_at::text as created_at, p.updated_at::text as updated_at,
 				e.first_name || ' ' || e.last_name as manager_name,
-				COUNT(pm.id) as member_count,
-				COALESCE(SUM(pm.participation_rate), 0) as total_participation_rate
+				COUNT(DISTINCT pm.id) as member_count,
+				COALESCE(SUM(pm.participation_rate), 0) as total_participation_rate,
+				-- 연차별 예산에서 시작일/종료일 계산
+				(SELECT MIN(pb.start_date)::text FROM rd_project_budgets pb WHERE pb.project_id = p.id) as start_date,
+				(SELECT MAX(pb.end_date)::text FROM rd_project_budgets pb WHERE pb.project_id = p.id) as end_date
 			FROM projects p
 			LEFT JOIN employees e ON p.manager_employee_id = e.id
-			LEFT JOIN project_members pm ON p.id = pm.project_id AND pm.status = 'active'
+			LEFT JOIN rd_project_members pm ON p.id = pm.project_id AND pm.status = 'active'
 			WHERE p.id = $1
 			GROUP BY p.id, p.code, p.title, p.project_task_name, p.description, p.sponsor, p.sponsor_name, p.sponsor_type,
-			         p.start_date, p.end_date, p.manager_employee_id, p.status, p.budget_total,
+			         p.manager_employee_id, p.status, p.budget_total,
 			         p.budget_currency, p.research_type, p.technology_area, p.priority,
 			         p.dedicated_agency, p.dedicated_agency_contact_name,
 			         p.dedicated_agency_contact_phone, p.dedicated_agency_contact_email,

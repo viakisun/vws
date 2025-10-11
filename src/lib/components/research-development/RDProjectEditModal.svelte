@@ -53,31 +53,25 @@
 
     try {
       loadingEmployees = true
-      console.log('🔄 직원 목록 로딩 시작...')
       const response = await fetch('/api/employees')
-      console.log('📡 API 응답 상태:', response.status, response.ok)
 
       if (response.ok) {
         const data = await response.json()
-        console.log('📦 받은 데이터:', data)
         employees = data.employees || data.data || []
-        console.log('✅ 직원 목록 로드 완료:', employees.length, '명')
       } else {
         const errorText = await response.text()
-        console.error('❌ API 오류 응답:', response.status, errorText)
+        console.error('직원 목록 로드 실패:', response.status, errorText)
       }
     } catch (error) {
-      console.error('❌ 직원 목록 로드 실패:', error)
+      console.error('직원 목록 로드 오류:', error)
     } finally {
       loadingEmployees = false
-      console.log('✔️ 로딩 상태 종료')
     }
   }
 
   // Load employees when modal becomes visible
   $effect(() => {
     if (visible && !loadingEmployees && employees.length === 0) {
-      console.log('🎯 모달 열림 - 직원 목록 로드 트리거')
       loadEmployees()
     }
   })
