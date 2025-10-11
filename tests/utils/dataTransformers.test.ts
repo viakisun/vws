@@ -15,7 +15,7 @@ import {
   type BudgetCategory,
   type ApiResponse,
   type ValidationIssue,
-} from '$lib/components/research-development/utils/dataTransformers'
+} from '$lib/components/research-development/utils/rd-data-transformers'
 
 describe('Data Transformers', () => {
   describe('extractCashAmount', () => {
