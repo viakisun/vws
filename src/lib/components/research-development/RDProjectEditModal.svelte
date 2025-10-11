@@ -14,6 +14,10 @@
     priority: string
     sponsorType: string
     researchType: string
+    // 선택 필드 - 주관기관 담당자 정보
+    sponsorContactName?: string // 주관기관 담당자 이름
+    sponsorContactPhone?: string // 주관기관 담당자 전화번호
+    sponsorContactEmail?: string // 주관기관 담당자 이메일
     // 선택 필드 - 전담기관 정보
     dedicatedAgency?: string // 전담기관
     dedicatedAgencyContactName?: string // 전담기관 담당자 이름
@@ -104,6 +108,57 @@
           />
         </div>
 
+        <!-- 주관기관 담당자 정보 (선택) -->
+        <div class="grid grid-cols-1 gap-4 pl-4 border-l-2 border-gray-200">
+          <div>
+            <label
+              for="edit-sponsor-contact-name"
+              class="block text-sm font-medium text-gray-700 mb-1"
+            >
+              주관기관 담당자
+            </label>
+            <input
+              id="edit-sponsor-contact-name"
+              type="text"
+              bind:value={projectForm.sponsorContactName}
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="담당자 이름"
+            />
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label
+                for="edit-sponsor-contact-phone"
+                class="block text-sm font-medium text-gray-700 mb-1"
+              >
+                전화번호
+              </label>
+              <input
+                id="edit-sponsor-contact-phone"
+                type="tel"
+                bind:value={projectForm.sponsorContactPhone}
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="010-0000-0000"
+              />
+            </div>
+            <div>
+              <label
+                for="edit-sponsor-contact-email"
+                class="block text-sm font-medium text-gray-700 mb-1"
+              >
+                이메일
+              </label>
+              <input
+                id="edit-sponsor-contact-email"
+                type="email"
+                bind:value={projectForm.sponsorContactEmail}
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="example@company.com"
+              />
+            </div>
+          </div>
+        </div>
+
         <!-- 과제책임자 -->
         <div>
           <label for="edit-project-manager" class="block text-sm font-medium text-gray-700 mb-1">
@@ -126,14 +181,26 @@
             class="block text-sm font-medium text-gray-700 mb-1"
           >
             사업 개요
+            <span class="text-xs text-gray-500 font-normal ml-2">(마크다운 지원)</span>
           </label>
           <textarea
             id="edit-project-description"
             bind:value={projectForm.description}
-            rows="3"
-            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="사업 개요를 입력하세요"
+            rows="8"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-xs"
+            placeholder="마크다운 형식으로 입력 가능합니다.
+
+예시:
+## 제목
+- 리스트 항목
+- **굵게**, *기울임*
+* 표, 코드블록 등도 지원됩니다
+
+줄바꿈은 Enter 한 번으로 반영됩니다."
           ></textarea>
+          <p class="text-xs text-gray-500 mt-1">
+            💡 마크다운 문법 지원 | 줄바꿈은 Enter 한 번으로 반영됩니다.
+          </p>
         </div>
 
         <!-- 상태 및 우선순위 -->

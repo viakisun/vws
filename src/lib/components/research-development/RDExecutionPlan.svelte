@@ -282,46 +282,17 @@
   </div>
 
   <div class="overflow-x-auto">
-    <table class="w-full divide-y divide-gray-200" style:min-width="100%">
+    <table class="w-full text-sm border border-gray-200 rounded-lg">
       <thead class="bg-gray-50">
         <tr>
-          <th
-            class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24"
-            >연차</th
-          >
-          <th
-            class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
-          >
-            <div>인건비</div>
-          </th>
-          <th
-            class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
-          >
-            <div>연구재료비</div>
-          </th>
-          <th
-            class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
-          >
-            <div>연구활동비</div>
-          </th>
-          <th
-            class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
-          >
-            <div>연구수당</div>
-          </th>
-          <th
-            class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
-          >
-            <div>간접비</div>
-          </th>
-          <th
-            class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
-          >
-            <div>총 예산</div>
-          </th>
-          <th
-            class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-16"
-          ></th>
+          <th class="px-4 py-3 text-left font-medium text-gray-700 border-b w-24">연차</th>
+          <th class="px-4 py-3 text-right font-medium text-blue-700 border-b">인건비</th>
+          <th class="px-4 py-3 text-right font-medium text-green-700 border-b">연구재료비</th>
+          <th class="px-4 py-3 text-right font-medium text-orange-700 border-b">연구활동비</th>
+          <th class="px-4 py-3 text-right font-medium text-purple-700 border-b">연구수당</th>
+          <th class="px-4 py-3 text-right font-medium text-pink-700 border-b">간접비</th>
+          <th class="px-4 py-3 text-right font-medium text-gray-900 border-b">총 예산</th>
+          <th class="px-4 py-3 text-center font-medium text-gray-700 border-b w-16"></th>
         </tr>
       </thead>
       <tbody class="bg-white divide-y divide-gray-200">
@@ -379,7 +350,7 @@
                 </div>
               </td>
               <!-- 인건비 (현금/현물) -->
-              <td class="px-4 py-4 text-sm text-gray-900 text-right">
+              <td class="px-4 py-4 text-sm text-right">
                 <div class="flex flex-col gap-2">
                   <!-- 현금 -->
                   <div class="min-h-[2rem] flex items-center justify-end">
@@ -390,7 +361,7 @@
                       onStartEdit={() => startEditingCell(i, 'personnel_cost_cash')}
                       onStopEdit={stopEditingCell}
                       onChange={(value) => handleValueChange(i, 'personnel_cost_cash', value)}
-                      textColor="text-blue-600"
+                      textColor="text-blue-700"
                     />
                   </div>
 
@@ -403,13 +374,13 @@
                       onStartEdit={() => startEditingCell(i, 'personnel_cost_in_kind')}
                       onStopEdit={stopEditingCell}
                       onChange={(value) => handleValueChange(i, 'personnel_cost_in_kind', value)}
-                      textColor="text-gray-600"
+                      textColor="text-blue-500"
                     />
                   </div>
                 </div>
               </td>
               <!-- 연구재료비 (현금/현물) -->
-              <td class="px-4 py-4 text-sm text-gray-900 text-right">
+              <td class="px-4 py-4 text-sm text-right">
                 <div class="flex flex-col gap-2">
                   <div class="min-h-[2rem] flex items-center justify-end">
                     <RDEditableNumberCell
@@ -420,7 +391,7 @@
                       onStopEdit={stopEditingCell}
                       onChange={(value) =>
                         handleValueChange(i, 'research_material_cost_cash', value)}
-                      textColor="text-blue-600"
+                      textColor="text-green-700"
                     />
                   </div>
                   <div class="min-h-[2rem] flex items-center justify-end">
@@ -432,13 +403,13 @@
                       onStopEdit={stopEditingCell}
                       onChange={(value) =>
                         handleValueChange(i, 'research_material_cost_in_kind', value)}
-                      textColor="text-gray-600"
+                      textColor="text-green-500"
                     />
                   </div>
                 </div>
               </td>
               <!-- 연구활동비 (현금/현물) -->
-              <td class="px-4 py-4 text-sm text-gray-900 text-right">
+              <td class="px-4 py-4 text-sm text-right">
                 <div class="flex flex-col gap-2">
                   <div class="min-h-[2rem] flex items-center justify-end">
                     <RDEditableNumberCell
@@ -449,7 +420,7 @@
                       onStopEdit={stopEditingCell}
                       onChange={(value) =>
                         handleValueChange(i, 'research_activity_cost_cash', value)}
-                      textColor="text-blue-600"
+                      textColor="text-orange-700"
                     />
                   </div>
                   <div class="min-h-[2rem] flex items-center justify-end">
@@ -461,13 +432,13 @@
                       onStopEdit={stopEditingCell}
                       onChange={(value) =>
                         handleValueChange(i, 'research_activity_cost_in_kind', value)}
-                      textColor="text-gray-600"
+                      textColor="text-orange-500"
                     />
                   </div>
                 </div>
               </td>
               <!-- 연구수당 (현금/현물) -->
-              <td class="px-4 py-4 text-sm text-gray-900 text-right">
+              <td class="px-4 py-4 text-sm text-right">
                 <div class="flex flex-col gap-2">
                   <div class="min-h-[2rem] flex items-center justify-end">
                     <RDEditableNumberCell
@@ -477,7 +448,7 @@
                       onStartEdit={() => startEditingCell(i, 'research_stipend_cash')}
                       onStopEdit={stopEditingCell}
                       onChange={(value) => handleValueChange(i, 'research_stipend_cash', value)}
-                      textColor="text-blue-600"
+                      textColor="text-purple-700"
                     />
                   </div>
                   <div class="min-h-[2rem] flex items-center justify-end">
@@ -488,13 +459,13 @@
                       onStartEdit={() => startEditingCell(i, 'research_stipend_in_kind')}
                       onStopEdit={stopEditingCell}
                       onChange={(value) => handleValueChange(i, 'research_stipend_in_kind', value)}
-                      textColor="text-gray-600"
+                      textColor="text-purple-500"
                     />
                   </div>
                 </div>
               </td>
               <!-- 간접비 (현금/현물) -->
-              <td class="px-4 py-4 text-sm text-gray-900 text-right">
+              <td class="px-4 py-4 text-sm text-right">
                 <div class="flex flex-col gap-2">
                   <div class="min-h-[2rem] flex items-center justify-end">
                     <RDEditableNumberCell
@@ -504,7 +475,7 @@
                       onStartEdit={() => startEditingCell(i, 'indirect_cost_cash')}
                       onStopEdit={stopEditingCell}
                       onChange={(value) => handleValueChange(i, 'indirect_cost_cash', value)}
-                      textColor="text-blue-600"
+                      textColor="text-pink-700"
                     />
                   </div>
                   <div class="min-h-[2rem] flex items-center justify-end">
@@ -515,7 +486,7 @@
                       onStartEdit={() => startEditingCell(i, 'indirect_cost_in_kind')}
                       onStopEdit={stopEditingCell}
                       onChange={(value) => handleValueChange(i, 'indirect_cost_in_kind', value)}
-                      textColor="text-gray-600"
+                      textColor="text-pink-500"
                     />
                   </div>
                 </div>
@@ -576,12 +547,12 @@
               </div>
             </td>
             <!-- 인건비 (현금/현물) -->
-            <td class="px-4 py-4 text-sm text-gray-900 text-right">
+            <td class="px-4 py-4 text-sm text-right">
               <div class="flex flex-col gap-2">
-                <div class="min-h-[2rem] flex items-center justify-end text-blue-600 font-medium">
+                <div class="min-h-[2rem] flex items-center justify-end text-blue-700 font-medium">
                   {formatRDCurrency(totals.personnelCash)}
                 </div>
-                <div class="min-h-[2rem] flex items-center justify-end text-gray-600">
+                <div class="min-h-[2rem] flex items-center justify-end text-blue-500">
                   {formatRDCurrency(totals.personnelInKind)}
                 </div>
                 <div class="text-sm text-gray-800 font-medium border-t pt-2">
@@ -592,12 +563,12 @@
               </div>
             </td>
             <!-- 연구재료비 (현금/현물) -->
-            <td class="px-4 py-4 text-sm text-gray-900 text-right">
+            <td class="px-4 py-4 text-sm text-right">
               <div class="flex flex-col gap-2">
-                <div class="min-h-[2rem] flex items-center justify-end text-blue-600 font-medium">
+                <div class="min-h-[2rem] flex items-center justify-end text-green-700 font-medium">
                   {formatRDCurrency(totals.researchMaterialCash)}
                 </div>
-                <div class="min-h-[2rem] flex items-center justify-end text-gray-600">
+                <div class="min-h-[2rem] flex items-center justify-end text-green-500">
                   {formatRDCurrency(totals.researchMaterialInKind)}
                 </div>
                 <div class="text-sm text-gray-800 font-medium border-t pt-2">
@@ -608,12 +579,12 @@
               </div>
             </td>
             <!-- 연구활동비 (현금/현물) -->
-            <td class="px-4 py-4 text-sm text-gray-900 text-right">
+            <td class="px-4 py-4 text-sm text-right">
               <div class="flex flex-col gap-2">
-                <div class="min-h-[2rem] flex items-center justify-end text-blue-600 font-medium">
+                <div class="min-h-[2rem] flex items-center justify-end text-orange-700 font-medium">
                   {formatRDCurrency(totals.researchActivityCash)}
                 </div>
-                <div class="min-h-[2rem] flex items-center justify-end text-gray-600">
+                <div class="min-h-[2rem] flex items-center justify-end text-orange-500">
                   {formatRDCurrency(totals.researchActivityInKind)}
                 </div>
                 <div class="text-sm text-gray-800 font-medium border-t pt-2">
@@ -624,12 +595,12 @@
               </div>
             </td>
             <!-- 연구수당 (현금/현물) -->
-            <td class="px-4 py-4 text-sm text-gray-900 text-right">
+            <td class="px-4 py-4 text-sm text-right">
               <div class="flex flex-col gap-2">
-                <div class="min-h-[2rem] flex items-center justify-end text-blue-600 font-medium">
+                <div class="min-h-[2rem] flex items-center justify-end text-purple-700 font-medium">
                   {formatRDCurrency(totals.researchStipendCash)}
                 </div>
-                <div class="min-h-[2rem] flex items-center justify-end text-gray-600">
+                <div class="min-h-[2rem] flex items-center justify-end text-purple-500">
                   {formatRDCurrency(totals.researchStipendInKind)}
                 </div>
                 <div class="text-sm text-gray-800 font-medium border-t pt-2">
@@ -640,12 +611,12 @@
               </div>
             </td>
             <!-- 간접비 (현금/현물) -->
-            <td class="px-4 py-4 text-sm text-gray-900 text-right">
+            <td class="px-4 py-4 text-sm text-right">
               <div class="flex flex-col gap-2">
-                <div class="min-h-[2rem] flex items-center justify-end text-blue-600 font-medium">
+                <div class="min-h-[2rem] flex items-center justify-end text-pink-700 font-medium">
                   {formatRDCurrency(totals.indirectCash)}
                 </div>
-                <div class="min-h-[2rem] flex items-center justify-end text-gray-600">
+                <div class="min-h-[2rem] flex items-center justify-end text-pink-500">
                   {formatRDCurrency(totals.indirectInKind)}
                 </div>
                 <div class="text-sm text-gray-800 font-medium border-t pt-2">

@@ -4,6 +4,15 @@
   import PermissionGate from '$lib/components/auth/PermissionGate.svelte'
   import PageLayout from '$lib/components/layout/PageLayout.svelte'
   import RDDetailView from '$lib/components/research-development/RDDetailView.svelte'
+  import {
+    getRDPriorityColor,
+    getRDPriorityText,
+    getRDResearchTypeText,
+    getRDSponsorTypeText,
+    getRDStatusColor,
+    getRDStatusText,
+  } from '$lib/components/research-development/utils/rd-status-utils'
+  import ThemeBadge from '$lib/components/ui/ThemeBadge.svelte'
   import { PermissionAction, Resource } from '$lib/stores/permissions'
   import { logger } from '$lib/utils/logger'
   import { ArrowLeftIcon } from '@lucide/svelte'
@@ -39,8 +48,8 @@
 
 <PermissionGate resource={Resource.PROJECT_PROJECTS} action={PermissionAction.READ}>
   <PageLayout
-    title={project?.title || '프로젝트 상세'}
-    subtitle={project?.code || ''}
+    title={project?.project_task_name || project?.projectTaskName || project?.title || '프로젝트 상세'}
+    subtitle={`${project?.title || ''} ${project?.code ? `(${project.code})` : ''}`}
     actions={[
       {
         label: '목록으로',
@@ -50,6 +59,25 @@
       },
     ]}
   >
+    {#snippet headerExtra()}
+      {#if project && !loading}
+        <div class="flex items-center gap-2">
+          <ThemeBadge variant={getRDStatusColor(project.status)} size="md">
+            {getRDStatusText(project.status)}
+          </ThemeBadge>
+          <ThemeBadge variant={getRDPriorityColor(project.priority)} size="md">
+            {getRDPriorityText(project.priority)}
+          </ThemeBadge>
+          <ThemeBadge variant="info" size="md">
+            {getRDSponsorTypeText(project.sponsor_type || project.sponsorType)}
+          </ThemeBadge>
+          <ThemeBadge variant="primary" size="md">
+            {getRDResearchTypeText(project.research_type || project.researchType)}
+          </ThemeBadge>
+        </div>
+      {/if}
+    {/snippet}
+
     {#if loading}
       <div class="text-center py-12">
         <div style:color="var(--color-text-secondary)">로딩 중...</div>

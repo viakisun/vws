@@ -1,14 +1,15 @@
 <script lang="ts">
+  import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
   import ThemeGrid from '$lib/components/ui/ThemeGrid.svelte'
-  import ThemePageHeader from '$lib/components/ui/ThemePageHeader.svelte'
   import ThemeSpacer from '$lib/components/ui/ThemeSpacer.svelte'
   import ThemeStatCard from '$lib/components/ui/ThemeStatCard.svelte'
-  import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
+  import type { Snippet } from 'svelte'
 
   interface Props {
     title: string
     subtitle?: string
     children?: any
+    headerExtra?: Snippet
     stats?: Array<{
       title: string
       value: string | number
@@ -32,6 +33,7 @@
     title,
     subtitle = '',
     children,
+    headerExtra,
     stats = [],
     actions = [],
     searchPlaceholder: _searchPlaceholder,
@@ -40,33 +42,55 @@
 </script>
 
 <div>
-  <!-- 페이지 헤더 -->
-  <ThemePageHeader {title} {subtitle} children={undefined} />
+  <!-- 페이지 헤더와 액션 버튼 -->
+  <div class="mb-6 flex items-start justify-between">
+    <div class="flex-1">
+      <!-- 제목과 부제목 -->
+      {#if title}
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+          {title}
+        </h1>
+      {/if}
 
-  <!-- 액션 버튼들 -->
-  {#if actions.length > 0}
-    <div class="mb-6 flex flex-wrap gap-3">
-      {#each actions as action}
-        {#if action.href}
-          <a href={action.href}>
-            <ThemeButton variant={action.variant || 'primary'} size="md">
+      {#if subtitle}
+        <p class="text-gray-600 dark:text-gray-300" class:mb-4={!headerExtra}>
+          {subtitle}
+        </p>
+      {/if}
+
+      <!-- 헤더 추가 콘텐츠 (태그 등) -->
+      {#if headerExtra}
+        <div class:mt-3={subtitle}>
+          {@render headerExtra()}
+        </div>
+      {/if}
+    </div>
+
+    <!-- 액션 버튼들 (우측 상단) -->
+    {#if actions.length > 0}
+      <div class="flex flex-wrap gap-3 ml-4">
+        {#each actions as action}
+          {#if action.href}
+            <a href={action.href}>
+              <ThemeButton variant={action.variant || 'primary'} size="md">
+                {#if action.icon}
+                  <action.icon size={18} />
+                {/if}
+                {action.label}
+              </ThemeButton>
+            </a>
+          {:else}
+            <ThemeButton variant={action.variant || 'primary'} size="md" onclick={action.onclick}>
               {#if action.icon}
                 <action.icon size={18} />
               {/if}
               {action.label}
             </ThemeButton>
-          </a>
-        {:else}
-          <ThemeButton variant={action.variant || 'primary'} size="md" onclick={action.onclick}>
-            {#if action.icon}
-              <action.icon size={18} />
-            {/if}
-            {action.label}
-          </ThemeButton>
-        {/if}
-      {/each}
-    </div>
-  {/if}
+          {/if}
+        {/each}
+      </div>
+    {/if}
+  </div>
 
   <!-- 통계 카드들 -->
   {#if stats.length > 0}

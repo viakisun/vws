@@ -77,6 +77,9 @@ export interface ProjectForm {
   code: string // 과제 코드
   projectTaskName: string // 과제명
   sponsor: string // 주관기관
+  sponsorContactName?: string // 주관기관 담당자 이름
+  sponsorContactPhone?: string // 주관기관 담당자 전화번호
+  sponsorContactEmail?: string // 주관기관 담당자 이메일
   managerEmployeeId: string // 과제책임자
   description: string
   status: string

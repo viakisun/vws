@@ -165,10 +165,14 @@
       for (const budget of budgetDetails) {
         if (!budget.startDate || !budget.endDate) {
           error = '모든 연차의 사업기간을 입력해주세요.'
-          return
+          // 날짜가 없어도 금액은 저장되도록 경고만 표시
+          logger.warn('날짜 없이 저장:', budget)
+          // return 대신 계속 진행
         }
         if (budget.year < 1) {
           error = '연차는 1 이상이어야 합니다.'
+          // 실패 시 데이터 다시 로드하여 원래 상태로 복구
+          await loadBudgetSummary()
           return
         }
       }
@@ -176,8 +180,8 @@
       // API 형식에 맞게 데이터 변환
       const budgetsToSave = budgetDetails.map((b) => ({
         year: b.year,
-        startDate: b.startDate,
-        endDate: b.endDate,
+        startDate: b.startDate || '', // 날짜가 없으면 빈 문자열
+        endDate: b.endDate || '', // 날짜가 없으면 빈 문자열
         governmentFunding: parseFloat(String(b.governmentFunding)) || 0,
         companyCash: parseFloat(String(b.companyCash)) || 0,
         companyInKind: parseFloat(String(b.companyInKind)) || 0,
@@ -302,15 +306,9 @@
   {#if compact}
     <!-- 연차별 사업비 구성 표 -->
     <div class="space-y-4">
-      <!-- 에러 메시지 & 저장 상태 표시 -->
-      <div class="flex items-center justify-between min-h-[24px]">
-        {#if error}
-          <div class="text-sm text-red-600">
-            {error}
-          </div>
-        {:else}
-          <div></div>
-        {/if}
+      <!-- 헤더 & 저장 상태 -->
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-semibold text-gray-900">재원 구성</h3>
 
         {#if isSaving}
           <div class="flex items-center gap-2 text-xs text-gray-500">
@@ -320,10 +318,25 @@
         {/if}
       </div>
 
+      <!-- 에러 메시지 -->
+      {#if error}
+        <div class="mb-4 p-3 bg-red-50 border-l-4 border-red-400 rounded text-sm text-red-700">
+          {error}
+        </div>
+      {/if}
+
+      <!-- 단위 안내 -->
+      <div class="mb-4 p-3 bg-gray-50 border border-gray-200 rounded-lg">
+        <div class="flex items-center justify-between">
+          <div class="text-sm text-gray-700">
+            <span class="font-medium">금액 단위: 원</span>
+          </div>
+          <div class="text-xs text-gray-600">클릭하여 바로 편집</div>
+        </div>
+      </div>
+
       <!-- 연차별 예산 구성 표 -->
       {#if budgetDetails && budgetDetails.length > 0}
-        <!-- 단위 표시 -->
-        <div class="text-right text-sm text-gray-500 mb-2">단위: 원</div>
         <div class="overflow-x-auto">
           <table class="w-full text-sm border border-gray-200 rounded-lg">
             <thead class="bg-gray-50">
@@ -403,7 +416,7 @@
                     {:else}
                       <button
                         onclick={() => startEditingDates(i)}
-                        class="w-full text-center hover:bg-gray-100 rounded px-2 py-1 transition-colors"
+                        class="w-full text-right hover:bg-gray-100 rounded px-2 py-1 transition-colors"
                       >
                         {#if budget.startDate && budget.endDate}
                           {formatDate(budget.startDate)} ~ {formatDate(budget.endDate)}

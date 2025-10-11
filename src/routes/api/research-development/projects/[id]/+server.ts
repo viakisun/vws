@@ -3,18 +3,18 @@
 
 import { query } from '$lib/database/connection'
 import type {
-  ApiResponse,
-  DatabaseProject,
-  DatabaseProjectBudget,
-  DatabaseProjectMember,
+    ApiResponse,
+    DatabaseProject,
+    DatabaseProjectBudget,
+    DatabaseProjectMember,
 } from '$lib/types/database'
 import {
-  transformArrayData,
-  transformMilestoneData,
-  transformProjectBudgetData,
-  transformProjectData,
-  transformProjectMemberData,
-  transformRiskData,
+    transformArrayData,
+    transformMilestoneData,
+    transformProjectBudgetData,
+    transformProjectData,
+    transformProjectMemberData,
+    transformRiskData,
 } from '$lib/utils/api-data-transformer'
 import { logger } from '$lib/utils/logger'
 import { json } from '@sveltejs/kit'
@@ -30,6 +30,7 @@ export const GET: RequestHandler = async ({ params }) => {
       `
 			SELECT
 				p.id, p.code, p.title, p.project_task_name, p.description, p.sponsor, p.sponsor_name, p.sponsor_type,
+				p.sponsor_contact_name, p.sponsor_contact_phone, p.sponsor_contact_email,
 				p.manager_employee_id, p.status, p.budget_total, p.budget_currency,
 				p.research_type, p.technology_area, p.priority,
 				p.dedicated_agency, p.dedicated_agency_contact_name,
@@ -50,6 +51,7 @@ export const GET: RequestHandler = async ({ params }) => {
 			LEFT JOIN project_members pm ON p.id = pm.project_id AND pm.status = 'active'
 			WHERE p.id = $1
 			GROUP BY p.id, p.code, p.title, p.project_task_name, p.description, p.sponsor, p.sponsor_name, p.sponsor_type,
+			         p.sponsor_contact_name, p.sponsor_contact_phone, p.sponsor_contact_email,
 			         p.manager_employee_id, p.status, p.budget_total,
 			         p.budget_currency, p.research_type, p.technology_area, p.priority,
 			         p.dedicated_agency, p.dedicated_agency_contact_name,
@@ -196,6 +198,9 @@ export const PUT: RequestHandler = async ({ params, request }) => {
       title,
       projectTaskName,
       sponsor,
+      sponsorContactName,
+      sponsorContactPhone,
+      sponsorContactEmail,
       managerEmployeeId,
       description,
       sponsorName,
@@ -256,6 +261,9 @@ export const PUT: RequestHandler = async ({ params, request }) => {
       title,
       project_task_name: projectTaskName,
       sponsor,
+      sponsor_contact_name: sponsorContactName,
+      sponsor_contact_phone: sponsorContactPhone,
+      sponsor_contact_email: sponsorContactEmail,
       manager_employee_id: managerEmployeeId || managerId,
       description,
       sponsor_name: sponsorName,

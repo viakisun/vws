@@ -86,7 +86,7 @@
 {:else}
   <button
     onclick={onStartEdit}
-    class="w-full text-sm {textColor} font-medium text-right hover:bg-gray-100 rounded px-2 py-1 transition-colors {className}"
+    class="w-full text-sm {textColor} font-medium text-right hover:bg-gray-100 rounded px-2 py-1 transition-colors border border-gray-200 hover:border-gray-300 {className}"
   >
     {formatNumberWithComma(value)}
   </button>

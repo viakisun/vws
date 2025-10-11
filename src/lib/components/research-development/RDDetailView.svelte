@@ -10,17 +10,24 @@
 
   import { useActiveEmployees } from '$lib/hooks/employee/useActiveEmployees.svelte'
   import { logger } from '$lib/utils/logger'
-  import { PencilIcon } from 'lucide-svelte'
+  import {
+    BuildingIcon,
+    CalendarIcon,
+    ChevronDownIcon,
+    FileTextIcon,
+    PencilIcon,
+    UserIcon,
+  } from 'lucide-svelte'
   import { createEventDispatcher, onMount } from 'svelte'
   import { useRDDetail } from './hooks/useRDDetail.svelte'
-  // Sub-components
-  import ThemeBadge from '$lib/components/ui/ThemeBadge.svelte'
+// Sub-components
   import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
   import ThemeCard from '$lib/components/ui/ThemeCard.svelte'
+  import ThemeMarkdown from '$lib/components/ui/ThemeMarkdown.svelte'
   import RDEvidenceManagement from './RDEvidenceManagement.svelte'
   import RDExecutionPlan from './RDExecutionPlan.svelte'
   import RDProjectMemberTable from './RDProjectMemberTable.svelte'
-  // Modal Components
+// Modal Components
   import RDBudgetUpdateConfirmModal from './RDBudgetUpdateConfirmModal.svelte'
   import RDEvidenceAddModal from './RDEvidenceAddModal.svelte'
   import RDEvidenceDetailModal from './RDEvidenceDetailModal.svelte'
@@ -29,20 +36,12 @@
   import RDProjectEditModal from './RDProjectEditModal.svelte'
   import RDProjectMemberForm from './RDProjectMemberForm.svelte'
   import RDValidationResultModal from './RDValidationResultModal.svelte'
-  // Utility functions
+// Utility functions
   import { formatDate, formatNumber } from '$lib/utils/format'
   import * as calculationUtilsImported from './utils/rd-calculation-utils'
   import * as dataTransformers from './utils/rd-data-transformers'
   import { formatRDCurrency } from './utils/rd-format-utils'
   import * as projectUtilsImported from './utils/rd-project-utils'
-  import {
-    getRDPriorityColor,
-    getRDPriorityText,
-    getRDResearchTypeText,
-    getRDSponsorTypeText,
-    getRDStatusColor,
-    getRDStatusText,
-  } from './utils/rd-status-utils'
 
   // ============================================================================
   // Props & Dispatcher
@@ -99,6 +98,23 @@
   // Validation
   const validationData = $derived(store.validation)
 
+  // 사업기간 계산
+  const projectPeriod = $derived.by(() => {
+    const budgets = store.data.projectBudgets
+    if (!budgets || budgets.length === 0) return null
+    const firstBudget = budgets[0]
+    const lastBudget = budgets[budgets.length - 1]
+    if (firstBudget?.start_date && lastBudget?.end_date) {
+      return `${formatDate(firstBudget.start_date)} ~ ${formatDate(lastBudget.end_date)}`
+    }
+    return null
+  })
+
+  // 전담기관/주관기관/사업개요 정보 표시 여부
+  let showSponsor = $state(false)
+  let showDedicatedAgency = $state(false)
+  let showDescription = $state(false)
+
   // Load available employees on mount
   onMount(() => {
     activeEmployees.load()
@@ -122,6 +138,9 @@
           code: store.forms.project.code,
           projectTaskName: store.forms.project.projectTaskName,
           sponsor: store.forms.project.sponsor,
+          sponsorContactName: store.forms.project.sponsorContactName,
+          sponsorContactPhone: store.forms.project.sponsorContactPhone,
+          sponsorContactEmail: store.forms.project.sponsorContactEmail,
           managerEmployeeId: store.forms.project.managerEmployeeId,
           description: store.forms.project.description,
           status: store.forms.project.status,
@@ -198,6 +217,12 @@
         code: projectUtilsImported.getProjectCode(selectedProject),
         projectTaskName: selectedProject.project_task_name || selectedProject.projectTaskName || '',
         sponsor: selectedProject.sponsor || '',
+        sponsorContactName:
+          selectedProject.sponsor_contact_name || selectedProject.sponsorContactName || '',
+        sponsorContactPhone:
+          selectedProject.sponsor_contact_phone || selectedProject.sponsorContactPhone || '',
+        sponsorContactEmail:
+          selectedProject.sponsor_contact_email || selectedProject.sponsorContactEmail || '',
         managerEmployeeId:
           selectedProject.manager_employee_id || selectedProject.managerEmployeeId || '',
         description: projectUtilsImported.getProjectDescription(selectedProject),
@@ -332,7 +357,7 @@
   <div class="space-y-6">
     <!-- 연구개발사업 기본 정보 -->
     <ThemeCard>
-      <div class="flex items-center justify-between mb-6">
+      <div class="flex items-center justify-between mb-4">
         <h3 class="text-lg font-semibold text-gray-900">연구개발사업 정보</h3>
         <ThemeButton
           variant="secondary"
@@ -347,111 +372,161 @@
         </ThemeButton>
       </div>
 
-      <!-- 상태 및 태그 -->
-      <div class="flex items-center gap-2 mb-4">
-        <ThemeBadge variant={getRDStatusColor(selectedProject.status)} size="md">
-          {getRDStatusText(selectedProject.status)}
-        </ThemeBadge>
-        <ThemeBadge variant={getRDPriorityColor(selectedProject.priority)} size="md">
-          {getRDPriorityText(selectedProject.priority)}
-        </ThemeBadge>
-        <ThemeBadge variant="info" size="md">
-          {getRDSponsorTypeText(selectedProject.sponsor_type || selectedProject.sponsorType)}
-        </ThemeBadge>
-        <ThemeBadge variant="primary" size="md">
-          {getRDResearchTypeText(selectedProject.research_type || selectedProject.researchType)}
-        </ThemeBadge>
-      </div>
+      <!-- 사업기간 -->
+      {#if projectPeriod}
+        <div class="flex items-center gap-2 text-sm text-gray-600 mb-4">
+          <CalendarIcon size={16} class="text-blue-600" />
+          <span>사업기간: {projectPeriod}</span>
+        </div>
+      {/if}
 
-      <div class="space-y-3">
-        {#if selectedProject.project_task_name || selectedProject.projectTaskName}
-          <div>
-            <div class="text-sm font-medium mb-1" style:color="var(--color-text-secondary)">
-              과제명
-            </div>
-            <p class="text-sm" style:color="var(--color-text-primary)">
-              {selectedProject.project_task_name || selectedProject.projectTaskName}
-            </p>
-          </div>
-        {/if}
-        {#if selectedProject.sponsor}
-          <div>
-            <div class="text-sm font-medium mb-1" style:color="var(--color-text-secondary)">
-              주관기관
-            </div>
-            <p class="text-sm" style:color="var(--color-text-primary)">
-              {selectedProject.sponsor}
-            </p>
-          </div>
-        {/if}
+      <div class="space-y-2">
+        <!-- 과제책임자 -->
         {#if selectedProject.manager_name || selectedProject.managerName}
-          <div>
-            <div class="text-sm font-medium mb-1" style:color="var(--color-text-secondary)">
-              과제책임자
+          <div class="pt-2 border-t border-gray-200">
+            <div class="flex items-center gap-2 p-2">
+              <UserIcon size={16} class="text-gray-500" />
+              <span class="text-sm font-medium text-gray-700">과제책임자</span>
+              <span class="text-xs text-gray-500">
+                {selectedProject.manager_name || selectedProject.managerName}
+              </span>
             </div>
-            <p class="text-sm" style:color="var(--color-text-primary)">
-              {selectedProject.manager_name || selectedProject.managerName}
-            </p>
           </div>
         {/if}
-        {#if selectedProject.description}
-          <div>
-            <div class="text-sm font-medium mb-1" style:color="var(--color-text-secondary)">
-              사업 개요
-            </div>
-            <p class="text-sm whitespace-pre-line" style:color="var(--color-text-primary)">
-              {selectedProject.description}
-            </p>
-          </div>
-        {/if}
-        {#if selectedProject.dedicated_agency || selectedProject.dedicatedAgency}
-          <div class="pt-3 mt-3 border-t border-gray-200">
-            <div class="text-sm font-medium mb-2" style:color="var(--color-text-secondary)">
-              전담기관 정보
-            </div>
-            <div class="space-y-2 pl-3">
-              <div class="flex items-start">
-                <span class="text-xs font-medium w-20" style:color="var(--color-text-secondary)">
-                  기관명:
+
+        <!-- 주관기관 정보 (Collapsible) -->
+        {#if selectedProject.sponsor}
+          <div class="pt-2 border-t border-gray-200">
+            <button
+              onclick={() => (showSponsor = !showSponsor)}
+              class="flex items-center justify-between w-full text-left hover:bg-gray-50 p-2 rounded transition-colors"
+            >
+              <div class="flex items-center gap-2">
+                <BuildingIcon size={16} class="text-gray-500" />
+                <span class="text-sm font-medium text-gray-700">주관기관</span>
+                <span class="text-xs text-gray-500">
+                  {selectedProject.sponsor}
                 </span>
-                <span class="text-sm flex-1" style:color="var(--color-text-primary)">
+              </div>
+              <ChevronDownIcon
+                size={16}
+                class="text-gray-400 transition-transform {showSponsor ? 'rotate-180' : ''}"
+              />
+            </button>
+
+            {#if showSponsor}
+              <div class="space-y-1 pl-8 pt-2 pb-2">
+                {#if selectedProject.sponsor_contact_name || selectedProject.sponsorContactName}
+                  <div class="flex items-center gap-2">
+                    <span class="text-xs text-gray-500 w-16">담당자:</span>
+                    <span class="text-sm text-gray-700">
+                      {selectedProject.sponsor_contact_name || selectedProject.sponsorContactName}
+                    </span>
+                  </div>
+                {/if}
+                {#if selectedProject.sponsor_contact_phone || selectedProject.sponsorContactPhone}
+                  <div class="flex items-center gap-2">
+                    <span class="text-xs text-gray-500 w-16">전화번호:</span>
+                    <span class="text-sm text-gray-700">
+                      {selectedProject.sponsor_contact_phone || selectedProject.sponsorContactPhone}
+                    </span>
+                  </div>
+                {/if}
+                {#if selectedProject.sponsor_contact_email || selectedProject.sponsorContactEmail}
+                  <div class="flex items-center gap-2">
+                    <span class="text-xs text-gray-500 w-16">이메일:</span>
+                    <span class="text-sm text-gray-700">
+                      {selectedProject.sponsor_contact_email || selectedProject.sponsorContactEmail}
+                    </span>
+                  </div>
+                {/if}
+              </div>
+            {/if}
+          </div>
+        {/if}
+
+        <!-- 전담기관 정보 (Collapsible) -->
+        {#if selectedProject.dedicated_agency || selectedProject.dedicatedAgency}
+          <div class="pt-2 border-t border-gray-200">
+            <button
+              onclick={() => (showDedicatedAgency = !showDedicatedAgency)}
+              class="flex items-center justify-between w-full text-left hover:bg-gray-50 p-2 rounded transition-colors"
+            >
+              <div class="flex items-center gap-2">
+                <BuildingIcon size={16} class="text-gray-500" />
+                <span class="text-sm font-medium text-gray-700">전담기관</span>
+                <span class="text-xs text-gray-500">
                   {selectedProject.dedicated_agency || selectedProject.dedicatedAgency}
                 </span>
               </div>
-              {#if selectedProject.dedicated_agency_contact_name || selectedProject.dedicatedAgencyContactName}
-                <div class="flex items-start">
-                  <span class="text-xs font-medium w-20" style:color="var(--color-text-secondary)">
-                    담당자:
-                  </span>
-                  <span class="text-sm flex-1" style:color="var(--color-text-primary)">
-                    {selectedProject.dedicated_agency_contact_name ||
-                      selectedProject.dedicatedAgencyContactName}
-                  </span>
-                </div>
-              {/if}
-              {#if selectedProject.dedicated_agency_contact_phone || selectedProject.dedicatedAgencyContactPhone}
-                <div class="flex items-start">
-                  <span class="text-xs font-medium w-20" style:color="var(--color-text-secondary)">
-                    전화번호:
-                  </span>
-                  <span class="text-sm flex-1" style:color="var(--color-text-primary)">
-                    {selectedProject.dedicated_agency_contact_phone ||
-                      selectedProject.dedicatedAgencyContactPhone}
-                  </span>
-                </div>
-              {/if}
-              {#if selectedProject.dedicated_agency_contact_email || selectedProject.dedicatedAgencyContactEmail}
-                <div class="flex items-start">
-                  <span class="text-xs font-medium w-20" style:color="var(--color-text-secondary)">
-                    이메일:
-                  </span>
-                  <span class="text-sm flex-1" style:color="var(--color-text-primary)">
-                    {selectedProject.dedicated_agency_contact_email ||
-                      selectedProject.dedicatedAgencyContactEmail}
-                  </span>
-                </div>
-              {/if}
-            </div>
+              <ChevronDownIcon
+                size={16}
+                class="text-gray-400 transition-transform {showDedicatedAgency ? 'rotate-180' : ''}"
+              />
+            </button>
+
+            {#if showDedicatedAgency}
+              <div class="space-y-1 pl-8 pt-2 pb-2">
+                {#if selectedProject.dedicated_agency_contact_name || selectedProject.dedicatedAgencyContactName}
+                  <div class="flex items-center gap-2">
+                    <span class="text-xs text-gray-500 w-16">담당자:</span>
+                    <span class="text-sm text-gray-700">
+                      {selectedProject.dedicated_agency_contact_name ||
+                        selectedProject.dedicatedAgencyContactName}
+                    </span>
+                  </div>
+                {/if}
+                {#if selectedProject.dedicated_agency_contact_phone || selectedProject.dedicatedAgencyContactPhone}
+                  <div class="flex items-center gap-2">
+                    <span class="text-xs text-gray-500 w-16">전화번호:</span>
+                    <span class="text-sm text-gray-700">
+                      {selectedProject.dedicated_agency_contact_phone ||
+                        selectedProject.dedicatedAgencyContactPhone}
+                    </span>
+                  </div>
+                {/if}
+                {#if selectedProject.dedicated_agency_contact_email || selectedProject.dedicatedAgencyContactEmail}
+                  <div class="flex items-center gap-2">
+                    <span class="text-xs text-gray-500 w-16">이메일:</span>
+                    <span class="text-sm text-gray-700">
+                      {selectedProject.dedicated_agency_contact_email ||
+                        selectedProject.dedicatedAgencyContactEmail}
+                    </span>
+                  </div>
+                {/if}
+              </div>
+            {/if}
+          </div>
+        {/if}
+
+        <!-- 사업 개요 (Collapsible) -->
+        {#if selectedProject.description}
+          <div class="pt-2 border-t border-gray-200">
+            <button
+              onclick={() => (showDescription = !showDescription)}
+              class="flex items-center justify-between w-full text-left hover:bg-gray-50 p-2 rounded transition-colors"
+            >
+              <div class="flex items-center gap-2">
+                <FileTextIcon size={16} class="text-gray-500" />
+                <span class="text-sm font-medium text-gray-700">사업 개요</span>
+              </div>
+              <ChevronDownIcon
+                size={16}
+                class="text-gray-400 transition-transform {showDescription ? 'rotate-180' : ''}"
+              />
+            </button>
+
+            {#if showDescription}
+              <div class="pl-8 pt-2 pb-2">
+                <ThemeMarkdown
+                  content={selectedProject.description}
+                  variant="card"
+                  showCopy={true}
+                  showToc={true}
+                  maxPreviewHeight={600}
+                />
+              </div>
+            {/if}
           </div>
         {/if}
       </div>
@@ -459,31 +534,27 @@
 
     <!-- 재원 구성 -->
     <ThemeCard>
-      <h3 class="text-lg font-semibold text-gray-900 mb-6">재원 구성</h3>
-
-      <div>
-        {#await import('$lib/components/research-development/RDFundingStructure.svelte')}
-          <div class="flex items-center justify-center py-4">
-            <div
-              class="animate-spin rounded-full h-4 w-4 border-b-2"
-              style:border-color="var(--color-primary)"
-            ></div>
-            <span class="ml-2 text-sm" style:color="var(--color-text-secondary)">로딩 중...</span>
-          </div>
-        {:then { default: RDFundingStructure }}
-          <RDFundingStructure
-            projectId={selectedProject.id}
-            compact={true}
-            refreshTrigger={uiStates.budgetRefreshTrigger}
-          />
-        {:catch}
-          <div class="text-center py-4">
-            <p class="text-sm" style:color="var(--color-text-secondary)">
-              예산 정보를 불러올 수 없습니다.
-            </p>
-          </div>
-        {/await}
-      </div>
+      {#await import('$lib/components/research-development/RDFundingStructure.svelte')}
+        <div class="flex items-center justify-center py-4">
+          <div
+            class="animate-spin rounded-full h-4 w-4 border-b-2"
+            style:border-color="var(--color-primary)"
+          ></div>
+          <span class="ml-2 text-sm" style:color="var(--color-text-secondary)">로딩 중...</span>
+        </div>
+      {:then { default: RDFundingStructure }}
+        <RDFundingStructure
+          projectId={selectedProject.id}
+          compact={true}
+          refreshTrigger={uiStates.budgetRefreshTrigger}
+        />
+      {:catch}
+        <div class="text-center py-4">
+          <p class="text-sm" style:color="var(--color-text-secondary)">
+            예산 정보를 불러올 수 없습니다.
+          </p>
+        </div>
+      {/await}
     </ThemeCard>
 
     <!-- 집행 계획 -->
