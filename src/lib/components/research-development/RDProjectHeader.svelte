@@ -147,7 +147,7 @@
 
   <!-- 사업비 예산 -->
   <div class="bg-gray-50 rounded-lg p-6">
-    {#await import('$lib/components/project-management/ResearchDevelopmentFundingStructure.svelte')}
+    {#await import('$lib/components/research-development/ResearchDevelopmentFundingStructure.svelte')}
       <div class="flex items-center justify-center py-4">
         <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
         <span class="ml-2 text-gray-600 text-sm">로딩 중...</span>

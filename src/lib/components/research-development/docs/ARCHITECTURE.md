@@ -98,9 +98,9 @@
 ## 파일 구조
 
 ```
-src/lib/components/project-management/
+src/lib/components/research-development/
 │
-├── ProjectDetailView.svelte              # 메인 UI 컴포넌트
+├── ResearchDevelopmentDetailView.svelte  # 메인 UI 컴포넌트
 │
 ├── stores/
 │   └── projectDetailStore.svelte.ts      # 중앙 상태 관리

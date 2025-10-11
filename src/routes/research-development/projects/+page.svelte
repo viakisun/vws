@@ -76,7 +76,7 @@
       <Card>
         <a
           class="flex items-center justify-between gap-4 hover:bg-gray-50 rounded-md px-2 py-2 transition-colors"
-          href={`/project-management/projects/${p.id}`}
+          href={`/research-development/projects/${p.id}`}
         >
           <div>
             <div class="text-sm font-semibold">{p.title || p.name}</div>

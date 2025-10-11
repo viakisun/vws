@@ -260,7 +260,7 @@
 
   const _updateSort = (newSortBy: string) => {
     const newSortOrder = sortBy === newSortBy && sortOrder === 'desc' ? 'asc' : 'desc'
-    goto(`/project-management/participation?sort=${newSortOrder}&sortBy=${newSortBy}`)
+    goto(`/research-development/participation?sort=${newSortOrder}&sortBy=${newSortBy}`)
   }
 
   const exportData = () => {

@@ -202,7 +202,7 @@ function sendNotification(alert: SLAAlert): void {
     type: alert.severity === 'critical' ? 'error' : alert.severity === 'high' ? 'warning' : 'info',
     priority: alert.severity,
     read: false,
-    actionUrl: `/project-management/${alert.entityType}/${alert.entityId}`,
+    actionUrl: `/research-development/${alert.entityType}/${alert.entityId}`,
     createdAt: new Date().toISOString(),
   }
 

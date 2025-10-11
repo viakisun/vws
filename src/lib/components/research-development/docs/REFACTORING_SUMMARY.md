@@ -201,7 +201,7 @@ npm run build
 ### 생성된 파일
 
 ```
-src/lib/components/project-management/
+src/lib/components/research-development/
 ├── hooks/
 │   ├── useProjectDetail.svelte.ts        # 164 lines - Master Hook
 │   ├── useBudgetFunding.svelte.ts        # 240 lines - 1단계
@@ -216,15 +216,15 @@ src/lib/components/project-management/
 ### 수정된 파일
 
 ```
-src/lib/components/project-management/
-└── ProjectDetailView.svelte              # 2,742 → 1,710 lines (37% 감소)
+src/lib/components/research-development/
+└── ResearchDevelopmentDetailView.svelte  # 2,742 → 1,710 lines (37% 감소)
 ```
 
 ### 백업 파일
 
 ```
-src/lib/components/project-management/
-└── ProjectDetailView.svelte.backup       # 원본 백업
+src/lib/components/research-development/
+└── ResearchDevelopmentDetailView.svelte.backup  # 원본 백업
 ```
 
 ---
