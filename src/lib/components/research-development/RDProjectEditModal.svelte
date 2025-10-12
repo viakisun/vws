@@ -2,6 +2,18 @@
   import ThemeButton from '../ui/ThemeButton.svelte'
   import ThemeEmployeeDropdown from '../ui/ThemeEmployeeDropdown.svelte'
   import ThemeModal from '../ui/ThemeModal.svelte'
+  import {
+    RDProjectPriority,
+    RDProjectStatus,
+    RDResearchType,
+    RDSponsorType,
+  } from './types/rd-project.types'
+  import {
+    getRDPriorityText,
+    getRDResearchTypeText,
+    getRDSponsorTypeText,
+    getRDStatusText,
+  } from './utils/rd-status-utils'
 
   interface ProjectForm {
     title: string // 사업명
@@ -215,11 +227,11 @@
               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               required
             >
-              <option value="planning">계획</option>
-              <option value="active">진행중</option>
-              <option value="completed">완료</option>
-              <option value="cancelled">취소</option>
-              <option value="suspended">중단</option>
+              <option value={RDProjectStatus.PLANNING}>{getRDStatusText(RDProjectStatus.PLANNING)}</option>
+              <option value={RDProjectStatus.ACTIVE}>{getRDStatusText(RDProjectStatus.ACTIVE)}</option>
+              <option value={RDProjectStatus.COMPLETED}>{getRDStatusText(RDProjectStatus.COMPLETED)}</option>
+              <option value={RDProjectStatus.CANCELLED}>{getRDStatusText(RDProjectStatus.CANCELLED)}</option>
+              <option value={RDProjectStatus.SUSPENDED}>{getRDStatusText(RDProjectStatus.SUSPENDED)}</option>
             </select>
           </div>
           <div>
@@ -232,10 +244,10 @@
               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               required
             >
-              <option value="low">낮음</option>
-              <option value="medium">보통</option>
-              <option value="high">높음</option>
-              <option value="critical">긴급</option>
+              <option value={RDProjectPriority.LOW}>{getRDPriorityText(RDProjectPriority.LOW)}</option>
+              <option value={RDProjectPriority.MEDIUM}>{getRDPriorityText(RDProjectPriority.MEDIUM)}</option>
+              <option value={RDProjectPriority.HIGH}>{getRDPriorityText(RDProjectPriority.HIGH)}</option>
+              <option value={RDProjectPriority.CRITICAL}>{getRDPriorityText(RDProjectPriority.CRITICAL)}</option>
             </select>
           </div>
         </div>
@@ -255,10 +267,9 @@
               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               required
             >
-              <option value="internal">내부</option>
-              <option value="government">정부</option>
-              <option value="private">민간</option>
-              <option value="international">국제</option>
+              <option value={RDSponsorType.GOVERNMENT_RND}>{getRDSponsorTypeText(RDSponsorType.GOVERNMENT_RND)}</option>
+              <option value={RDSponsorType.LOCAL_GOV_RND}>{getRDSponsorTypeText(RDSponsorType.LOCAL_GOV_RND)}</option>
+              <option value={RDSponsorType.NON_RND}>{getRDSponsorTypeText(RDSponsorType.NON_RND)}</option>
             </select>
           </div>
           <div>
@@ -274,9 +285,9 @@
               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               required
             >
-              <option value="basic">기초연구</option>
-              <option value="applied">응용연구</option>
-              <option value="development">개발연구</option>
+              <option value={RDResearchType.BASIC}>{getRDResearchTypeText(RDResearchType.BASIC)}</option>
+              <option value={RDResearchType.APPLIED}>{getRDResearchTypeText(RDResearchType.APPLIED)}</option>
+              <option value={RDResearchType.DEVELOPMENT}>{getRDResearchTypeText(RDResearchType.DEVELOPMENT)}</option>
             </select>
           </div>
         </div>

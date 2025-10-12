@@ -25,12 +25,12 @@ export enum RDProjectPriority {
 }
 
 /**
- * 연구개발사업 스폰서 타입
+ * 연구개발사업 후원기관 유형
  */
 export enum RDSponsorType {
-  GOVERNMENT = 'government',
-  PRIVATE = 'private',
-  INTERNAL = 'internal',
+  GOVERNMENT_RND = 'government_rnd', // 정부RND
+  LOCAL_GOV_RND = 'local_gov_rnd', // 지자체RND
+  NON_RND = 'non_rnd', // 비RND
 }
 
 /**

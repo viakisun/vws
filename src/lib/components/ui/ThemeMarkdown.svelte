@@ -4,13 +4,13 @@
   // ============================================================================
   const MARKDOWN_STYLE_CONFIG = {
     // 기본 폰트
-    baseFontSize: '12px',
+    baseFontSize: '14px',
     baseLineHeight: '1.7',
 
     // 제목 크기 (em 단위)
-    h1Size: '1.6em',
-    h2Size: '1.4em',
-    h3Size: '1.2em',
+    h1Size: '1.3em',
+    h2Size: '1.2em',
+    h3Size: '1.1em',
     h4Size: '1.0em',
 
     // 제목 간격 (px)

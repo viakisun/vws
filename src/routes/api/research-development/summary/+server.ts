@@ -23,23 +23,44 @@ export const GET: RequestHandler = async () => {
 			FROM projects
 		`)
 
-    // 총 사업비 통계 (v_projects_with_dates view 사용)
-    const budgetStatsResult = await query(
-      `
+    // 총 사업비 통계 (project_budgets 테이블에서 직접 계산)
+    // 총 사업비: 모든 연차별 사업비의 합계
+    // 총 사업비 (지원금): 정부지원금만 합계
+    // 당해연도 사업비: 현재 진행 중인 프로젝트들의 예산 합계
+    // 당해연도 사업비 (지원금): 정부지원금만 합계
+    const budgetStatsResult = await query(`
 			SELECT
-				COALESCE(SUM(p.budget_total), 0) as total_budget,
+				-- 총 사업비: 모든 연차의 합계
+				COALESCE(SUM(
+					COALESCE(pb.government_funding_amount, 0) +
+					COALESCE(pb.company_cash_amount, 0) +
+					COALESCE(pb.company_in_kind_amount, 0)
+				), 0) as total_budget,
+				-- 총 사업비 (지원금만): 정부지원금만 합계
+				COALESCE(SUM(COALESCE(pb.government_funding_amount, 0)), 0) as total_government_funding,
+				-- 당해연도 사업비: 현재 진행 중인 예산 (현재 날짜 기준)
 				COALESCE(SUM(
 					CASE 
-						WHEN EXTRACT(YEAR FROM p.calculated_start_date) = $1 
-						THEN p.budget_total 
+						WHEN pb.start_date <= CURRENT_DATE
+						  AND pb.end_date >= CURRENT_DATE
+						THEN 
+							COALESCE(pb.government_funding_amount, 0) +
+							COALESCE(pb.company_cash_amount, 0) +
+							COALESCE(pb.company_in_kind_amount, 0)
 						ELSE 0 
 					END
-				), 0) as current_year_budget
-			FROM v_projects_with_dates p
-			WHERE p.budget_total IS NOT NULL
-		`,
-      [currentYear],
-    )
+				), 0) as current_year_budget,
+				-- 당해연도 사업비 (지원금만): 정부지원금만 합계
+				COALESCE(SUM(
+					CASE 
+						WHEN pb.start_date <= CURRENT_DATE
+						  AND pb.end_date >= CURRENT_DATE
+						THEN COALESCE(pb.government_funding_amount, 0)
+						ELSE 0 
+					END
+				), 0) as current_year_government_funding
+			FROM project_budgets pb
+		`)
 
     // 참여 연구원 수
     const memberStatsResult = await query(`
@@ -174,7 +195,10 @@ export const GET: RequestHandler = async () => {
 
       // 사업비 통계
       totalBudget: parseFloat(String(budgetStats.total_budget || 0)) || 0,
+      totalGovernmentFunding: parseFloat(String(budgetStats.total_government_funding || 0)) || 0,
       currentYearBudget: parseFloat(String(budgetStats.current_year_budget || 0)) || 0,
+      currentYearGovernmentFunding:
+        parseFloat(String(budgetStats.current_year_government_funding || 0)) || 0,
 
       // 연구원 통계
       totalMembers: parseInt(String(memberStats.total_members || 0)) || 0,

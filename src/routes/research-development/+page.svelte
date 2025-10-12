@@ -2,14 +2,16 @@
   import { browser } from '$app/environment'
   import PermissionGate from '$lib/components/auth/PermissionGate.svelte'
   import PageLayout from '$lib/components/layout/PageLayout.svelte'
+  import RDProjectCard from '$lib/components/research-development/RDProjectCard.svelte'
   import RDProjectCreationForm from '$lib/components/research-development/RDProjectCreationForm.svelte'
-  import ThemeCard from '$lib/components/ui/ThemeCard.svelte'
+  import { RDSponsorType } from '$lib/components/research-development/types/rd-project.types'
+  import { getRDSponsorTypeText } from '$lib/components/research-development/utils/rd-status-utils'
   import ThemeGrid from '$lib/components/ui/ThemeGrid.svelte'
   import ThemeModal from '$lib/components/ui/ThemeModal.svelte'
   import { PermissionAction, Resource } from '$lib/stores/permissions'
-  import { formatCurrency } from '$lib/utils/format'
+  import { formatNumber } from '$lib/utils/format'
   import { logger } from '$lib/utils/logger'
-  import { DollarSignIcon, FlaskConicalIcon, PercentIcon, UsersIcon } from '@lucide/svelte'
+  import { DollarSignIcon, FlaskConicalIcon, PercentIcon } from '@lucide/svelte'
   import { onMount } from 'svelte'
 
   /**
@@ -181,37 +183,6 @@
     await Promise.all([loadProjectData(), loadProjectSummary()])
   }
 
-  // 상태별 레이블 변환
-  function getStatusLabel(status: string): string {
-    switch (status) {
-      case 'active':
-        return '진행중'
-      case 'planning':
-        return '기획'
-      case 'completed':
-        return '완료'
-      default:
-        return status
-    }
-  }
-
-  // 상태별 그라데이션 스타일
-  function getStatusGradient(status: string): string {
-    switch (status) {
-      case 'active':
-        return 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)'
-      case 'planning':
-        return 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)'
-      default:
-        return ''
-    }
-  }
-
-  // 상태별 강조 여부
-  function isHighlightedStatus(status: string): boolean {
-    return status === 'active' || status === 'planning'
-  }
-
   // PageLayout stats 구성
   const stats = $derived([
     {
@@ -227,16 +198,16 @@
       color: 'green' as const,
     },
     {
-      title: '총 예산',
-      value: formatCurrency(projectSummary?.totalBudget || 0),
+      title: '총 지원금',
+      value: formatNumber(projectSummary?.totalGovernmentFunding || 0, true, '원'),
       icon: DollarSignIcon,
       color: 'purple' as const,
     },
     {
-      title: '참여 연구원',
-      value: projectSummary?.totalMembers || 0,
-      icon: UsersIcon,
-      color: 'orange' as const,
+      title: '당해연도 지원금',
+      value: formatNumber(projectSummary?.currentYearGovernmentFunding || 0, true, '원'),
+      icon: DollarSignIcon,
+      color: 'indigo' as const,
     },
   ])
 
@@ -255,6 +226,31 @@
       onclick: () => (showCreateProjectModal = true),
     },
   ]
+
+  // 후원기관 유형별로 프로젝트 그룹화
+  const projectsByType = $derived.by(() => {
+    const groups = {
+      [RDSponsorType.GOVERNMENT_RND]: [] as any[],
+      [RDSponsorType.LOCAL_GOV_RND]: [] as any[],
+      [RDSponsorType.NON_RND]: [] as any[],
+    }
+
+    projects.forEach((project) => {
+      const sponsorType = project.sponsor_type || project.sponsorType
+      if (sponsorType && groups[sponsorType as keyof typeof groups]) {
+        groups[sponsorType as keyof typeof groups].push(project)
+      }
+    })
+
+    return groups
+  })
+
+  // 카테고리별 프로젝트 존재 여부
+  const hasProjectsInCategory = $derived.by(() => ({
+    [RDSponsorType.GOVERNMENT_RND]: projectsByType[RDSponsorType.GOVERNMENT_RND].length > 0,
+    [RDSponsorType.LOCAL_GOV_RND]: projectsByType[RDSponsorType.LOCAL_GOV_RND].length > 0,
+    [RDSponsorType.NON_RND]: projectsByType[RDSponsorType.NON_RND].length > 0,
+  }))
 </script>
 
 <PermissionGate resource={Resource.PROJECT_PROJECTS} action={PermissionAction.READ}>
@@ -274,87 +270,58 @@
           <p style:color="var(--color-text-secondary)">프로젝트가 없습니다.</p>
         </div>
       {:else}
-        <!-- 프로젝트 카드 그리드 -->
-        <ThemeGrid cols={1} mdCols={2} lgCols={3} gap={6}>
-          {#each projects as project}
-            {@const isHighlighted = isHighlightedStatus(project.status)}
-            {@const bgStyle = getStatusGradient(project.status)}
-            {@const textColor = isHighlighted ? '#ffffff' : 'var(--color-text-primary)'}
-            {@const secondaryTextColor = isHighlighted
-              ? 'rgba(255, 255, 255, 0.9)'
-              : 'var(--color-text-secondary)'}
-            {@const tertiaryTextColor = isHighlighted
-              ? 'rgba(255, 255, 255, 0.7)'
-              : 'var(--color-text-tertiary)'}
-            {@const borderColor = isHighlighted
-              ? 'rgba(255, 255, 255, 0.3)'
-              : 'var(--color-border-light)'}
-            {@const badgeColor = isHighlighted ? '#ffffff' : 'var(--color-primary-dark)'}
-            {@const badgeBg = isHighlighted
-              ? 'rgba(255, 255, 255, 0.2)'
-              : 'var(--color-primary-light)'}
-            {@const badgeBorder = isHighlighted
-              ? 'rgba(255, 255, 255, 0.5)'
-              : 'var(--color-primary)'}
-            {@const statColor = isHighlighted ? '#ffffff' : 'var(--color-primary)'}
+        <div class="space-y-8">
+          <!-- 정부RND -->
+          {#if hasProjectsInCategory[RDSponsorType.GOVERNMENT_RND]}
+            <div>
+              <h2 class="text-2xl font-light text-gray-900 mb-4 pb-2 border-b-2 border-blue-500">
+                {getRDSponsorTypeText(RDSponsorType.GOVERNMENT_RND)}
+                <span class="text-lg text-gray-500 ml-2">
+                  ({projectsByType[RDSponsorType.GOVERNMENT_RND].length})
+                </span>
+              </h2>
+              <ThemeGrid cols={1} mdCols={1} lgCols={1} gap={4}>
+                {#each projectsByType[RDSponsorType.GOVERNMENT_RND] as project}
+                  <RDProjectCard {project} />
+                {/each}
+              </ThemeGrid>
+            </div>
+          {/if}
 
-            <a href="/research-development/projects/{project.id}" class="block">
-              <ThemeCard variant="default" hover clickable style="background: {bgStyle}">
-                <!-- 프로젝트 이름 + 상태 뱃지 -->
-                <div class="mb-4">
-                  <div class="flex items-center gap-2 mb-2">
-                    <h3 class="text-xl font-bold" style:color={textColor}>
-                      {project.title}
-                    </h3>
-                    <span
-                      class="px-2.5 py-1 text-xs font-medium rounded border whitespace-nowrap"
-                      style:background={badgeBg}
-                      style:color={badgeColor}
-                      style:border-color={badgeBorder}
-                      style:opacity="0.9"
-                    >
-                      {getStatusLabel(project.status)}
-                    </span>
-                  </div>
-                  <p class="text-xs font-mono" style:color={tertiaryTextColor}>
-                    {project.code}
-                  </p>
-                </div>
+          <!-- 지자체RND -->
+          {#if hasProjectsInCategory[RDSponsorType.LOCAL_GOV_RND]}
+            <div>
+              <h2 class="text-2xl font-light text-gray-900 mb-4 pb-2 border-b-2 border-green-500">
+                {getRDSponsorTypeText(RDSponsorType.LOCAL_GOV_RND)}
+                <span class="text-lg text-gray-500 ml-2">
+                  ({projectsByType[RDSponsorType.LOCAL_GOV_RND].length})
+                </span>
+              </h2>
+              <ThemeGrid cols={1} mdCols={1} lgCols={1} gap={4}>
+                {#each projectsByType[RDSponsorType.LOCAL_GOV_RND] as project}
+                  <RDProjectCard {project} />
+                {/each}
+              </ThemeGrid>
+            </div>
+          {/if}
 
-                <!-- 설명 (2줄 말줄임) -->
-                <div class="mb-6 h-10">
-                  {#if project.description}
-                    <p
-                      class="text-sm line-clamp-2 leading-relaxed"
-                      style:color={secondaryTextColor}
-                    >
-                      {project.description}
-                    </p>
-                  {/if}
-                </div>
-
-                <!-- 통계 -->
-                <div
-                  class="flex items-center gap-6 text-sm pt-4"
-                  style:border-top="1px solid {borderColor}"
-                >
-                  <div class="flex items-center gap-2">
-                    <span class="text-lg font-bold" style:color={statColor}>
-                      {formatCurrency(project.budget_total || 0)}
-                    </span>
-                    <span style:color={secondaryTextColor}>예산</span>
-                  </div>
-                  <div class="flex items-center gap-2">
-                    <span class="text-lg font-bold" style:color={statColor}>
-                      {project.member_count || 0}
-                    </span>
-                    <span style:color={secondaryTextColor}>팀원</span>
-                  </div>
-                </div>
-              </ThemeCard>
-            </a>
-          {/each}
-        </ThemeGrid>
+          <!-- 비RND -->
+          {#if hasProjectsInCategory[RDSponsorType.NON_RND]}
+            <div>
+              <h2 class="text-2xl font-light text-gray-900 mb-4 pb-2 border-b-2 border-purple-500">
+                {getRDSponsorTypeText(RDSponsorType.NON_RND)}
+                <span class="text-lg text-gray-500 ml-2">
+                  ({projectsByType[RDSponsorType.NON_RND].length})
+                </span>
+              </h2>
+              <ThemeGrid cols={1} mdCols={1} lgCols={1} gap={4}>
+                {#each projectsByType[RDSponsorType.NON_RND] as project}
+                  <RDProjectCard {project} />
+                {/each}
+              </ThemeGrid>
+            </div>
+          {/if}
+        </div>
       {/if}
     {/if}
   </PageLayout>
@@ -366,13 +333,3 @@
     <RDProjectCreationForm on:projectCreated={handleProjectCreated} />
   </ThemeModal>
 {/if}
-
-<style>
-  .line-clamp-2 {
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
-</style>

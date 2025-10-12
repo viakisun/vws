@@ -4,7 +4,7 @@
 import { requireAuth } from '$lib/auth/middleware'
 import { query } from '$lib/database/connection'
 import type { ApiResponse, DatabaseProject } from '$lib/types/database'
-import { transformArrayData, transformProjectData } from '$lib/utils/api-data-transformer'
+import { transformProjectData } from '$lib/utils/api-data-transformer'
 import { logger } from '$lib/utils/logger'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
@@ -29,7 +29,7 @@ export const GET: RequestHandler = async (event) => {
     let sqlQuery = `
       SELECT
         p.id, p.code, p.title, p.project_task_name, p.description, p.sponsor, p.sponsor_type,
-        p.manager_employee_id, p.status, p.budget_total, p.research_type, p.priority,
+        p.manager_employee_id, p.status, p.research_type, p.priority,
         p.dedicated_agency, p.dedicated_agency_contact_name,
         p.dedicated_agency_contact_phone, p.dedicated_agency_contact_email,
         p.created_at::text as created_at, p.updated_at::text as updated_at,
@@ -41,11 +41,65 @@ export const GET: RequestHandler = async (event) => {
 					ELSE
 						e.first_name || ' ' || e.last_name
 				END as manager_name,
-        COUNT(DISTINCT pm.id) as member_count,
-        COALESCE(SUM(pm.participation_rate), 0) as total_participation_rate
+        -- 총 사업비: 서브쿼리로 중복 방지
+        COALESCE((
+          SELECT SUM(
+            COALESCE(pb.government_funding_amount, 0) +
+            COALESCE(pb.company_cash_amount, 0) +
+            COALESCE(pb.company_in_kind_amount, 0)
+          )
+          FROM project_budgets pb
+          WHERE pb.project_id = p.id
+        ), 0) as budget_total,
+        -- 총 사업비 (지원금만): 정부지원금만 계산
+        COALESCE((
+          SELECT SUM(COALESCE(pb.government_funding_amount, 0))
+          FROM project_budgets pb
+          WHERE pb.project_id = p.id
+        ), 0) as government_funding_total,
+        -- 당해연도 사업비: 현재 진행 중인 예산 (현재 날짜 기준)
+        COALESCE((
+          SELECT SUM(
+            CASE 
+              WHEN pb.start_date <= CURRENT_DATE
+                AND pb.end_date >= CURRENT_DATE
+              THEN 
+                COALESCE(pb.government_funding_amount, 0) +
+                COALESCE(pb.company_cash_amount, 0) +
+                COALESCE(pb.company_in_kind_amount, 0)
+              ELSE 0 
+            END
+          )
+          FROM project_budgets pb
+          WHERE pb.project_id = p.id
+        ), 0) as current_year_budget,
+        -- 당해연도 사업비 (지원금만): 정부지원금만 계산
+        COALESCE((
+          SELECT SUM(
+            CASE 
+              WHEN pb.start_date <= CURRENT_DATE
+                AND pb.end_date >= CURRENT_DATE
+              THEN COALESCE(pb.government_funding_amount, 0)
+              ELSE 0 
+            END
+          )
+          FROM project_budgets pb
+          WHERE pb.project_id = p.id
+        ), 0) as current_year_government_funding,
+        -- 참여 연구원 수: 서브쿼리로 중복 방지
+        (
+          SELECT COUNT(DISTINCT pm.id)
+          FROM project_members pm
+          WHERE pm.project_id = p.id AND pm.status = 'active'
+        ) as member_count,
+        -- 총 참여율: 서브쿼리로 중복 방지
+        COALESCE((
+          SELECT SUM(pm.participation_rate)
+          FROM project_members pm
+          WHERE pm.project_id = p.id AND pm.status = 'active'
+        ), 0) as total_participation_rate
       FROM v_projects_with_dates p
 			LEFT JOIN employees e ON p.manager_employee_id = e.id
-			LEFT JOIN project_members pm ON p.id = pm.project_id AND pm.status = 'active'
 		`
 
     const conditions: string[] = []
@@ -93,14 +147,6 @@ export const GET: RequestHandler = async (event) => {
     }
 
     sqlQuery += `
-			GROUP BY p.id, p.code, p.title, p.project_task_name, p.description, p.sponsor, p.sponsor_type,
-			         p.manager_employee_id, p.status, p.budget_total,
-			         p.research_type, p.priority,
-			         p.dedicated_agency, p.dedicated_agency_contact_name,
-			         p.dedicated_agency_contact_phone, p.dedicated_agency_contact_email,
-			         p.created_at, p.updated_at,
-			         p.calculated_start_date, p.calculated_end_date,
-			         e.first_name, e.last_name
 			ORDER BY 
 				CASE 
 					WHEN p.code ~ '^[0-9]{4}-[0-9]+-' THEN 
@@ -119,13 +165,11 @@ export const GET: RequestHandler = async (event) => {
 
     const result = await query<DatabaseProject>(sqlQuery, params)
 
-    // 데이터 변환: snake_case를 camelCase로 변환
-    const transformedData = transformArrayData(result.rows, transformProjectData)
-
+    // snake_case 그대로 반환 (PostgreSQL 표준)
     const response: ApiResponse<unknown[]> = {
       success: true,
-      data: transformedData,
-      count: transformedData.length,
+      data: result.rows,
+      count: result.rows.length,
     }
 
     return json(response)

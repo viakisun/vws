@@ -66,13 +66,13 @@ export function getRDPriorityColor(priority: string): BadgeVariant {
 }
 
 /**
- * 스폰서 타입을 한글 텍스트로 변환
+ * 후원기관 유형을 한글 텍스트로 변환
  */
 export function getRDSponsorTypeText(type: string): string {
   const sponsorMap: Record<string, string> = {
-    [RDSponsorType.GOVERNMENT]: '정부',
-    [RDSponsorType.PRIVATE]: '민간',
-    [RDSponsorType.INTERNAL]: '자체',
+    [RDSponsorType.GOVERNMENT_RND]: '정부RND',
+    [RDSponsorType.LOCAL_GOV_RND]: '지자체RND',
+    [RDSponsorType.NON_RND]: '비RND',
   }
   return sponsorMap[type] || type
 }

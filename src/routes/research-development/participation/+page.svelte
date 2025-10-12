@@ -4,7 +4,7 @@
   import { goto } from '$app/navigation'
   import { page } from '$app/state'
   import PageLayout from '$lib/components/layout/PageLayout.svelte'
-  import ResearcherValidationTable from '$lib/components/research-development/ResearcherValidationTable.svelte'
+  import ResearcherValidationTable from '$lib/components/research-development/RDResearcherValidationTable.svelte'
   import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
   import ThemeCard from '$lib/components/ui/ThemeCard.svelte'
   import ThemeGrid from '$lib/components/ui/ThemeGrid.svelte'
