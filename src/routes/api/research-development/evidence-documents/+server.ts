@@ -128,7 +128,7 @@ export const POST: RequestHandler = async ({ request }) => {
     // 증빙 서류 생성
     const result = await query(
       `
-			INSERT INTO rd_evidence_documents (
+			INSERT INTO evidence_documents (
 				evidence_item_id, document_type, document_name, file_path,
 				file_size, mime_type, uploader_id
 			) VALUES ($1, $2, $3, $4, $5, $6, $7)

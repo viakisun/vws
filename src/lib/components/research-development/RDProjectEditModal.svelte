@@ -227,11 +227,21 @@
               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               required
             >
-              <option value={RDProjectStatus.PLANNING}>{getRDStatusText(RDProjectStatus.PLANNING)}</option>
-              <option value={RDProjectStatus.ACTIVE}>{getRDStatusText(RDProjectStatus.ACTIVE)}</option>
-              <option value={RDProjectStatus.COMPLETED}>{getRDStatusText(RDProjectStatus.COMPLETED)}</option>
-              <option value={RDProjectStatus.CANCELLED}>{getRDStatusText(RDProjectStatus.CANCELLED)}</option>
-              <option value={RDProjectStatus.SUSPENDED}>{getRDStatusText(RDProjectStatus.SUSPENDED)}</option>
+              <option value={RDProjectStatus.PLANNING}
+                >{getRDStatusText(RDProjectStatus.PLANNING)}</option
+              >
+              <option value={RDProjectStatus.ACTIVE}
+                >{getRDStatusText(RDProjectStatus.ACTIVE)}</option
+              >
+              <option value={RDProjectStatus.COMPLETED}
+                >{getRDStatusText(RDProjectStatus.COMPLETED)}</option
+              >
+              <option value={RDProjectStatus.CANCELLED}
+                >{getRDStatusText(RDProjectStatus.CANCELLED)}</option
+              >
+              <option value={RDProjectStatus.SUSPENDED}
+                >{getRDStatusText(RDProjectStatus.SUSPENDED)}</option
+              >
             </select>
           </div>
           <div>
@@ -244,10 +254,18 @@
               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               required
             >
-              <option value={RDProjectPriority.LOW}>{getRDPriorityText(RDProjectPriority.LOW)}</option>
-              <option value={RDProjectPriority.MEDIUM}>{getRDPriorityText(RDProjectPriority.MEDIUM)}</option>
-              <option value={RDProjectPriority.HIGH}>{getRDPriorityText(RDProjectPriority.HIGH)}</option>
-              <option value={RDProjectPriority.CRITICAL}>{getRDPriorityText(RDProjectPriority.CRITICAL)}</option>
+              <option value={RDProjectPriority.LOW}
+                >{getRDPriorityText(RDProjectPriority.LOW)}</option
+              >
+              <option value={RDProjectPriority.MEDIUM}
+                >{getRDPriorityText(RDProjectPriority.MEDIUM)}</option
+              >
+              <option value={RDProjectPriority.HIGH}
+                >{getRDPriorityText(RDProjectPriority.HIGH)}</option
+              >
+              <option value={RDProjectPriority.CRITICAL}
+                >{getRDPriorityText(RDProjectPriority.CRITICAL)}</option
+              >
             </select>
           </div>
         </div>
@@ -267,9 +285,15 @@
               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               required
             >
-              <option value={RDSponsorType.GOVERNMENT_RND}>{getRDSponsorTypeText(RDSponsorType.GOVERNMENT_RND)}</option>
-              <option value={RDSponsorType.LOCAL_GOV_RND}>{getRDSponsorTypeText(RDSponsorType.LOCAL_GOV_RND)}</option>
-              <option value={RDSponsorType.NON_RND}>{getRDSponsorTypeText(RDSponsorType.NON_RND)}</option>
+              <option value={RDSponsorType.GOVERNMENT_RND}
+                >{getRDSponsorTypeText(RDSponsorType.GOVERNMENT_RND)}</option
+              >
+              <option value={RDSponsorType.LOCAL_GOV_RND}
+                >{getRDSponsorTypeText(RDSponsorType.LOCAL_GOV_RND)}</option
+              >
+              <option value={RDSponsorType.NON_RND}
+                >{getRDSponsorTypeText(RDSponsorType.NON_RND)}</option
+              >
             </select>
           </div>
           <div>
@@ -285,9 +309,15 @@
               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               required
             >
-              <option value={RDResearchType.BASIC}>{getRDResearchTypeText(RDResearchType.BASIC)}</option>
-              <option value={RDResearchType.APPLIED}>{getRDResearchTypeText(RDResearchType.APPLIED)}</option>
-              <option value={RDResearchType.DEVELOPMENT}>{getRDResearchTypeText(RDResearchType.DEVELOPMENT)}</option>
+              <option value={RDResearchType.BASIC}
+                >{getRDResearchTypeText(RDResearchType.BASIC)}</option
+              >
+              <option value={RDResearchType.APPLIED}
+                >{getRDResearchTypeText(RDResearchType.APPLIED)}</option
+              >
+              <option value={RDResearchType.DEVELOPMENT}
+                >{getRDResearchTypeText(RDResearchType.DEVELOPMENT)}</option
+              >
             </select>
           </div>
         </div>

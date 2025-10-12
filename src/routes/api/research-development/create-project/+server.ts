@@ -450,14 +450,14 @@ async function createEvidenceItems(
         } else {
           // 카테고리가 없으면 기본 카테고리 생성
           const createCategoryResult = await query(
-            'INSERT INTO rd_evidence_categories (name, description) VALUES ($1, $2) RETURNING id',
+            'INSERT INTO evidence_categories (name, description) VALUES ($1, $2) RETURNING id',
             [category.name, `${category.name} 증빙 항목`],
           )
           categoryId = String((createCategoryResult.rows[0] as Record<string, unknown>).id || '')
         }
 
         const evidenceQuery = `
-          INSERT INTO rd_evidence_items (
+          INSERT INTO evidence_items (
             project_budget_id, category_id, name, budget_amount, spent_amount,
             status, due_date, created_at, updated_at
           ) VALUES ($1, $2, $3, $4, 0, 'planned', $5, NOW(), NOW())

@@ -70,7 +70,7 @@ export const POST: RequestHandler = async ({ request }) => {
     // 증빙 카테고리 생성
     const result = await query(
       `
-			INSERT INTO rd_evidence_categories (name, description)
+			INSERT INTO evidence_categories (name, description)
 			VALUES ($1, $2)
 			RETURNING id, name, description, created_at::text, updated_at::text
 		`,

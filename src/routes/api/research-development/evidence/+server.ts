@@ -56,7 +56,25 @@ export const GET: RequestHandler = async ({ url }) => {
 
     let queryText = `
 			SELECT 
-				ei.*,
+				ei.id,
+				ei.project_budget_id,
+				ei.category_id,
+				ei.name,
+				ei.description,
+				ei.budget_amount,
+				ei.spent_amount,
+				ei.assignee_id,
+				ei.assignee_name,
+				ei.due_date::text,
+				ei.start_date::text,
+				ei.end_date::text,
+				ei.status,
+				ei.progress,
+				ei.employee_id,
+				ei.project_member_id,
+				ei.evidence_month::text,
+				ei.created_at::text,
+				ei.updated_at::text,
 				ec.name as category_name,
 				CONCAT(e.last_name, e.first_name) as assignee_full_name,
 				pb.period_number,
@@ -69,7 +87,7 @@ export const GET: RequestHandler = async ({ url }) => {
 			LEFT JOIN employees e ON ei.assignee_id = e.id
 			LEFT JOIN project_budgets pb ON ei.project_budget_id = pb.id
 			LEFT JOIN evidence_documents ed ON ei.id = ed.evidence_item_id
-			LEFT JOIN rd_evidence_schedules es ON ei.id = es.evidence_item_id
+			LEFT JOIN evidence_schedules es ON ei.id = es.evidence_item_id
 			WHERE 1=1
 		`
     const params: unknown[] = []
@@ -100,11 +118,18 @@ export const GET: RequestHandler = async ({ url }) => {
     }
 
     queryText += `
-			GROUP BY ei.id, ec.name, e.first_name, e.last_name, pb.period_number
+			GROUP BY ei.id, ei.project_budget_id, ei.category_id, ei.name, ei.description,
+			         ei.budget_amount, ei.spent_amount, ei.assignee_id, ei.assignee_name,
+			         ei.due_date, ei.start_date, ei.end_date, ei.status, ei.progress,
+			         ei.employee_id, ei.project_member_id, ei.evidence_month,
+			         ei.created_at, ei.updated_at,
+			         ec.name, e.first_name, e.last_name, pb.period_number
 			ORDER BY ei.created_at DESC
 		`
 
     const result = await query<EvidenceItem>(queryText, params)
+
+    logger.info(`Evidence API: projectBudgetId=${projectBudgetId}, categoryId=${categoryId}, found ${result.rows.length} items`)
 
     const response: ApiResponse<EvidenceItem[]> = {
       success: true,
@@ -175,7 +200,7 @@ export const POST: RequestHandler = async ({ request }) => {
     // 증빙 항목 생성
     const result = await query<EvidenceItem>(
       `
-			INSERT INTO rd_evidence_items (
+			INSERT INTO evidence_items (
 				project_budget_id, category_id, name, description, budget_amount,
 				assignee_id, assignee_name, due_date, start_date, end_date
 			) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)

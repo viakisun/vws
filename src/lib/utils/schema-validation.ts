@@ -322,6 +322,27 @@ export class SchemaValidator {
       required: false,
       description: '마감일',
     },
+    {
+      tableName: 'evidence_items',
+      columnName: 'employee_id',
+      expectedType: 'uuid',
+      required: false,
+      description: '직원 ID (인건비 증빙용)',
+    },
+    {
+      tableName: 'evidence_items',
+      columnName: 'project_member_id',
+      expectedType: 'uuid',
+      required: false,
+      description: '참여연구원 ID (연결 레코드)',
+    },
+    {
+      tableName: 'evidence_items',
+      columnName: 'evidence_month',
+      expectedType: 'date',
+      required: false,
+      description: '증빙 대상 월 (YYYY-MM-01)',
+    },
   ]
 
   /**

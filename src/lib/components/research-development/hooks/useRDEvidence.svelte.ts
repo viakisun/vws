@@ -96,24 +96,33 @@ export function useRDEvidence(options: UseProjectEvidenceOptions) {
   // ============================================================================
 
   async function loadEvidenceItems(): Promise<void> {
-    if (!projectBudgets || projectBudgets.length === 0) return
+    if (!projectBudgets || projectBudgets.length === 0) {
+      logger.warn('loadEvidenceItems: No project budgets available')
+      return
+    }
 
     try {
       store.setLoading('loadingEvidence', true)
       let allEvidenceItems: any[] = []
 
+      logger.info(`loadEvidenceItems: Loading evidence for ${projectBudgets.length} budgets`)
+
       // 모든 연차의 증빙 데이터를 로드
       for (const budget of projectBudgets) {
-        const response = await fetch(
-          `/api/research-development/evidence?projectBudgetId=${budget.id}`,
-        )
+        const url = `/api/research-development/evidence?projectBudgetId=${budget.id}`
+        logger.info(`loadEvidenceItems: Fetching ${url}`)
+        
+        const response = await fetch(url)
         const result = await response.json()
+
+        logger.info(`loadEvidenceItems: Budget ${budget.period_number} - success: ${result.success}, count: ${result.count || 0}`)
 
         if (result.success) {
           allEvidenceItems = [...allEvidenceItems, ...result.data]
         }
       }
 
+      logger.info(`loadEvidenceItems: Total evidence items loaded: ${allEvidenceItems.length}`)
       store.validation.items = allEvidenceItems
     } catch (error) {
       logger.error('증빙 항목 로드 실패:', error)

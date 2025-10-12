@@ -104,7 +104,6 @@ export function useRDDetail(options: UseProjectDetailOptions) {
     store,
     projectId: selectedProject?.id,
     availableEmployees: store.data.availableEmployees,
-    projectBudgets: store.data.projectBudgets,
   })
 
   // ============================================================================
@@ -114,14 +113,22 @@ export function useRDDetail(options: UseProjectDetailOptions) {
   onMount(() => {
     void (async () => {
       if (selectedProject?.id) {
+        logger.info('RDDetailView: onMount - Starting data load')
+        
         // 1단계: 조달 예산 로드
         await fundingHook.loadBudgets()
+        logger.info('RDDetailView: Budgets loaded, count:', store.data.projectBudgets.length)
 
         // 2단계: 계획 (인건비 - 참여연구원) 로드
         await planningHook.loadMembers()
+        logger.info('RDDetailView: Members loaded')
 
-        // 3단계: 집행 (증빙 카테고리) 로드
+        // 3단계: 집행 (증빙 카테고리 및 항목) 로드
         await executionHook.loadEvidenceCategories()
+        logger.info('RDDetailView: Evidence categories loaded')
+        
+        await executionHook.loadEvidenceItems()
+        logger.info('RDDetailView: Evidence items loaded, count:', store.validation.items.length)
       }
     })()
   })
@@ -135,6 +142,7 @@ export function useRDDetail(options: UseProjectDetailOptions) {
       void (async () => {
         await fundingHook.loadBudgets()
         await planningHook.loadMembers()
+        await executionHook.loadEvidenceItems()
       })()
     }
   })
