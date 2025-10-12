@@ -44,6 +44,12 @@ interface CreateEvidenceRequest {
   dueDate?: string
   startDate?: string
   endDate?: string
+  vendorId?: string
+  vendorName?: string
+  itemDetail?: string
+  taxAmount?: number
+  paymentDate?: string
+  notes?: string
 }
 
 // 증빙 항목 목록 조회
@@ -73,19 +79,29 @@ export const GET: RequestHandler = async ({ url }) => {
 				ei.employee_id,
 				ei.project_member_id,
 				ei.evidence_month::text,
+				ei.vendor_id,
+				ei.vendor_name,
+				ei.item_detail,
+				ei.tax_amount,
+				ei.payment_date::text,
+				ei.notes,
 				ei.created_at::text,
 				ei.updated_at::text,
 				ec.name as category_name,
+				ec.code as category_code,
 				CONCAT(e.last_name, e.first_name) as assignee_full_name,
 				pb.period_number,
-				COUNT(ed.id) as document_count,
-				COUNT(CASE WHEN ed.status = 'approved' THEN 1 END) as approved_document_count,
-				COUNT(es.id) as schedule_count,
-				COUNT(CASE WHEN es.status = 'overdue' THEN 1 END) as overdue_schedule_count
+				sc.name as vendor_full_name,
+				sc.business_number as vendor_business_number,
+				COUNT(DISTINCT ed.id) as document_count,
+				COUNT(DISTINCT CASE WHEN ed.status = 'approved' THEN ed.id END) as approved_document_count,
+				COUNT(DISTINCT es.id) as schedule_count,
+				COUNT(DISTINCT CASE WHEN es.status = 'overdue' THEN es.id END) as overdue_schedule_count
 			FROM evidence_items ei
 			JOIN evidence_categories ec ON ei.category_id = ec.id
 			LEFT JOIN employees e ON ei.assignee_id = e.id
 			LEFT JOIN project_budgets pb ON ei.project_budget_id = pb.id
+			LEFT JOIN sales_customers sc ON ei.vendor_id = sc.id
 			LEFT JOIN evidence_documents ed ON ei.id = ed.evidence_item_id
 			LEFT JOIN evidence_schedules es ON ei.id = es.evidence_item_id
 			WHERE 1=1
@@ -122,8 +138,10 @@ export const GET: RequestHandler = async ({ url }) => {
 			         ei.budget_amount, ei.spent_amount, ei.assignee_id, ei.assignee_name,
 			         ei.due_date, ei.start_date, ei.end_date, ei.status, ei.progress,
 			         ei.employee_id, ei.project_member_id, ei.evidence_month,
-			         ei.created_at, ei.updated_at,
-			         ec.name, e.first_name, e.last_name, pb.period_number
+			         ei.vendor_id, ei.vendor_name, ei.item_detail, ei.tax_amount,
+			         ei.payment_date, ei.notes, ei.created_at, ei.updated_at,
+			         ec.name, ec.code, e.first_name, e.last_name, pb.period_number,
+			         sc.name, sc.business_number
 			ORDER BY ei.created_at DESC
 		`
 
@@ -164,6 +182,12 @@ export const POST: RequestHandler = async ({ request }) => {
       dueDate,
       startDate,
       endDate,
+      vendorId,
+      vendorName,
+      itemDetail,
+      taxAmount,
+      paymentDate,
+      notes,
     } = (await request.json()) as CreateEvidenceRequest
 
     // 필수 필드 검증
@@ -204,10 +228,12 @@ export const POST: RequestHandler = async ({ request }) => {
       `
 			INSERT INTO evidence_items (
 				project_budget_id, category_id, name, description, budget_amount,
-				assignee_id, assignee_name, due_date, start_date, end_date
-			) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+				assignee_id, assignee_name, due_date, start_date, end_date,
+				vendor_id, vendor_name, item_detail, tax_amount, payment_date, notes
+			) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
 			RETURNING id, project_budget_id, category_id, name, description, budget_amount, spent_amount,
-			          assignee_id, assignee_name, progress, status, due_date, start_date, end_date,
+			          assignee_id, assignee_name, progress, status, due_date::text, start_date::text, end_date::text,
+			          vendor_id, vendor_name, item_detail, tax_amount, payment_date::text, notes,
 			          created_at::text, updated_at::text
 		`,
       [
@@ -221,6 +247,12 @@ export const POST: RequestHandler = async ({ request }) => {
         dueDate,
         startDate,
         endDate,
+        vendorId,
+        vendorName,
+        itemDetail,
+        taxAmount || 0,
+        paymentDate,
+        notes,
       ],
     )
 

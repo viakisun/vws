@@ -43,7 +43,9 @@
     "sync-resources:dry": "tsx scripts/sync-resources-to-db.ts --dry-run",
     "generate-migration": "tsx scripts/generate-migration.ts",
     "resources": "npm run validate-resources && npm run sync-resources",
-    "db:migrate:personnel": "tsx scripts/migrate-rd-personnel-data.ts"
+    "db:migrate:personnel": "tsx scripts/migrate-rd-personnel-data.ts",
+    "db:migrate:vendors": "tsx scripts/migrate-rd-vendors.ts",
+    "db:migrate:expenses": "tsx scripts/migrate-rd-expense-data.ts"
   },
   "devDependencies": {
     "@eslint/js": "^9.36.0",

@@ -343,6 +343,85 @@ export class SchemaValidator {
       required: false,
       description: '증빙 대상 월 (YYYY-MM-01)',
     },
+    {
+      tableName: 'evidence_items',
+      columnName: 'vendor_id',
+      expectedType: 'uuid',
+      required: false,
+      description: '거래처 ID (sales_customers 참조)',
+    },
+    {
+      tableName: 'evidence_items',
+      columnName: 'vendor_name',
+      expectedType: 'character varying',
+      required: false,
+      description: '거래처명 (비정규화, 검색 및 표시용)',
+    },
+    {
+      tableName: 'evidence_items',
+      columnName: 'item_detail',
+      expectedType: 'text',
+      required: false,
+      description: '품목 상세 (예: 시험용 드론 프레임, 라스베리파이 CM4)',
+    },
+    {
+      tableName: 'evidence_items',
+      columnName: 'tax_amount',
+      expectedType: 'bigint',
+      required: false,
+      description: '세액 (원 단위)',
+    },
+    {
+      tableName: 'evidence_items',
+      columnName: 'payment_date',
+      expectedType: 'date',
+      required: false,
+      description: '지급일',
+    },
+    {
+      tableName: 'evidence_items',
+      columnName: 'notes',
+      expectedType: 'text',
+      required: false,
+      description: '비고',
+    },
+
+    // evidence_categories 테이블
+    {
+      tableName: 'evidence_categories',
+      columnName: 'code',
+      expectedType: 'character varying',
+      required: true,
+      description: '카테고리 코드 (예: 1001=인건비, 2001=연구재료비, 3001=연구활동비)',
+    },
+    {
+      tableName: 'evidence_categories',
+      columnName: 'name',
+      expectedType: 'character varying',
+      required: true,
+      description: '카테고리명',
+    },
+    {
+      tableName: 'evidence_categories',
+      columnName: 'parent_code',
+      expectedType: 'character varying',
+      required: false,
+      description: '상위 카테고리 코드 (계층 구조용)',
+    },
+    {
+      tableName: 'evidence_categories',
+      columnName: 'display_order',
+      expectedType: 'integer',
+      required: false,
+      description: '표시 순서',
+    },
+    {
+      tableName: 'evidence_categories',
+      columnName: 'is_active',
+      expectedType: 'boolean',
+      required: false,
+      description: '활성화 여부',
+    },
   ]
 
   /**

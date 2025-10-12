@@ -16,8 +16,33 @@ export const GET: RequestHandler = async ({ params }) => {
     const result = await query(
       `
 			SELECT
-				ei.*,
+				ei.id,
+				ei.project_budget_id,
+				ei.category_id,
+				ei.name,
+				ei.description,
+				ei.budget_amount,
+				ei.spent_amount,
+				ei.assignee_id,
+				ei.assignee_name,
+				ei.progress,
+				ei.status,
+				ei.due_date::text,
+				ei.start_date::text,
+				ei.end_date::text,
+				ei.employee_id,
+				ei.project_member_id,
+				ei.evidence_month::text,
+				ei.vendor_id,
+				ei.vendor_name,
+				ei.item_detail,
+				ei.tax_amount,
+				ei.payment_date::text,
+				ei.notes,
+				ei.created_at::text,
+				ei.updated_at::text,
 				ec.name as category_name,
+				ec.code as category_code,
 				CONCAT(e.last_name, e.first_name) as assignee_full_name,
 				pb.period_number,
 				pb.personnel_cost_cash,
@@ -53,7 +78,20 @@ export const GET: RequestHandler = async ({ params }) => {
     const documentsResult = await query(
       `
 			SELECT
-				ed.*,
+				ed.id,
+				ed.evidence_item_id,
+				ed.document_type,
+				ed.file_name,
+				ed.file_path,
+				ed.file_size,
+				ed.uploader_id,
+				ed.reviewer_id,
+				ed.status,
+				ed.upload_date::text,
+				ed.review_date::text,
+				ed.review_comment,
+				ed.created_at::text,
+				ed.updated_at::text,
 				CASE
 					WHEN uploader.first_name ~ '^[가-힣]+$' AND uploader.last_name ~ '^[가-힣]+$' THEN
 						uploader.last_name || uploader.first_name
@@ -79,7 +117,17 @@ export const GET: RequestHandler = async ({ params }) => {
     const schedulesResult = await query(
       `
 			SELECT
-				es.*,
+				es.id,
+				es.evidence_item_id,
+				es.task_name,
+				es.description,
+				es.assignee_id,
+				es.due_date::text,
+				es.status,
+				es.priority,
+				es.completed_date::text,
+				es.created_at::text,
+				es.updated_at::text,
 				CONCAT(assignee.last_name, assignee.first_name) as assignee_name
 			FROM evidence_schedules es
 			LEFT JOIN employees assignee ON es.assignee_id = assignee.id
@@ -93,7 +141,13 @@ export const GET: RequestHandler = async ({ params }) => {
     const reviewHistoryResult = await query(
       `
 			SELECT
-				erh.*,
+				erh.id,
+				erh.evidence_item_id,
+				erh.reviewer_id,
+				erh.review_status,
+				erh.review_comment,
+				erh.reviewed_at::text,
+				erh.created_at::text,
 				CASE
 					WHEN reviewer.first_name ~ '^[가-힣]+$' AND reviewer.last_name ~ '^[가-힣]+$' THEN
 						reviewer.last_name || reviewer.first_name
@@ -216,8 +270,33 @@ export const PUT: RequestHandler = async ({ params, request }) => {
     const detailResult = await query(
       `
 			SELECT
-				ei.*,
+				ei.id,
+				ei.project_budget_id,
+				ei.category_id,
+				ei.name,
+				ei.description,
+				ei.budget_amount,
+				ei.spent_amount,
+				ei.assignee_id,
+				ei.assignee_name,
+				ei.progress,
+				ei.status,
+				ei.due_date::text,
+				ei.start_date::text,
+				ei.end_date::text,
+				ei.employee_id,
+				ei.project_member_id,
+				ei.evidence_month::text,
+				ei.vendor_id,
+				ei.vendor_name,
+				ei.item_detail,
+				ei.tax_amount,
+				ei.payment_date::text,
+				ei.notes,
+				ei.created_at::text,
+				ei.updated_at::text,
 				ec.name as category_name,
+				ec.code as category_code,
 				CONCAT(e.last_name, e.first_name) as assignee_full_name,
 				pb.period_number
 			FROM evidence_items ei

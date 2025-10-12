@@ -3,19 +3,59 @@
  * 증빙 관련 API 호출을 처리하는 서비스
  */
 
-export interface Evidence {
+export interface EvidenceItem {
   id: string
-  projectId: string
-  categoryId: string
+  project_budget_id: string
+  category_id: string
+  category_code?: string
+  category_name?: string
   name: string
   description?: string
-  // ... 기타 필드들
+  budget_amount: number
+  spent_amount: number
+  assignee_id?: string
+  assignee_name?: string
+  progress: number
+  status: 'pending' | 'in_progress' | 'completed' | 'cancelled'
+  due_date?: string
+  start_date?: string
+  end_date?: string
+
+  // 거래처 정보 (신규)
+  vendor_id?: string
+  vendor_name?: string
+  vendor_full_name?: string
+  vendor_business_number?: string
+  item_detail?: string
+  tax_amount?: number
+  payment_date?: string
+  notes?: string
+
+  // 인건비 관련 (기존)
+  employee_id?: string
+  project_member_id?: string
+  evidence_month?: string
+
+  created_at: string
+  updated_at: string
+
+  // 집계 정보
+  document_count?: number
+  approved_document_count?: number
+  schedule_count?: number
+  overdue_schedule_count?: number
 }
 
 export interface EvidenceCategory {
   id: string
+  code: string
   name: string
   description?: string
+  parent_code?: string
+  display_order: number
+  is_active: boolean
+  created_at: string
+  updated_at: string
 }
 
 export interface EvidenceType {
@@ -23,6 +63,9 @@ export interface EvidenceType {
   name: string
   code: string
 }
+
+// Legacy type alias for backward compatibility
+export type Evidence = EvidenceItem
 
 /**
  * 증빙 상세 정보 조회
