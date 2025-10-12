@@ -1,6 +1,10 @@
 <script lang="ts">
   import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
   import { getDocumentTypeInfo, getDocumentTypeLabel } from '$lib/constants/document-types'
+  import {
+    deleteEvidenceDocument,
+    downloadEvidenceDocument,
+  } from '$lib/services/s3/s3-evidence.service'
   import type { EvidenceDocument } from '$lib/types/document.types'
   import { formatFileSize } from '$lib/utils/file-validation'
   import { formatDate } from '$lib/utils/format'
@@ -21,19 +25,7 @@
 
   async function handleDownload(docId: string, fileName: string) {
     try {
-      const response = await fetch(
-        `/api/research-development/evidence/${evidenceId}/documents/${docId}/download`,
-      )
-
-      if (!response.ok) {
-        throw new Error('다운로드 URL 생성 실패')
-      }
-
-      const { data } = await response.json()
-
-      // 새 창으로 다운로드
-      window.open(data.downloadUrl, '_blank')
-
+      await downloadEvidenceDocument(evidenceId, docId)
       logger.log('Document download initiated', { evidenceId, docId, fileName })
     } catch (error) {
       logger.error('Document download failed:', error)
@@ -49,14 +41,7 @@
     try {
       deleting = docId
 
-      const response = await fetch(
-        `/api/research-development/evidence/${evidenceId}/documents/${docId}`,
-        { method: 'DELETE' },
-      )
-
-      if (!response.ok) {
-        throw new Error('삭제 실패')
-      }
+      await deleteEvidenceDocument(evidenceId, docId)
 
       logger.log('Document deleted', { evidenceId, docId, fileName })
 

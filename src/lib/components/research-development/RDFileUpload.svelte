@@ -1,6 +1,7 @@
 <script lang="ts">
   import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
   import { DOCUMENT_TYPES, DocumentType } from '$lib/constants/document-types'
+  import { uploadEvidenceDocument } from '$lib/services/s3/s3-evidence.service'
   import { formatFileSize, validateFile } from '$lib/utils/file-validation'
   import { logger } from '$lib/utils/logger'
   import { FileIcon, UploadIcon, XIcon } from '@lucide/svelte'
@@ -74,64 +75,10 @@
       uploadProgress = 0
       errorMessage = null
 
-      // Step 1: Presigned URL 요청
-      const uploadUrlResponse = await fetch(
-        `/api/research-development/evidence/${evidenceId}/upload-url`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            fileName: selectedFile.name,
-            fileSize: selectedFile.size,
-            contentType: selectedFile.type || 'application/octet-stream',
-          }),
-        },
-      )
-
-      if (!uploadUrlResponse.ok) {
-        const error = await uploadUrlResponse.json()
-        throw new Error(error.error || '업로드 URL 생성 실패')
-      }
-
-      const { data: urlData } = await uploadUrlResponse.json()
-      uploadProgress = 10
-
-      // Step 2: S3에 직접 업로드
-      const uploadResponse = await fetch(urlData.uploadUrl, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': selectedFile.type || 'application/octet-stream',
-        },
-        body: selectedFile,
+      // S3 Evidence Service를 통한 업로드 (메타데이터 저장 포함)
+      await uploadEvidenceDocument(evidenceId, selectedFile, selectedDocType, (progress) => {
+        uploadProgress = progress
       })
-
-      if (!uploadResponse.ok) {
-        throw new Error('S3 업로드 실패')
-      }
-
-      uploadProgress = 70
-
-      // Step 3: 메타데이터 저장
-      const metadataResponse = await fetch(
-        `/api/research-development/evidence/${evidenceId}/documents`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            documentType: selectedDocType,
-            fileName: selectedFile.name,
-            s3Key: urlData.s3Key,
-            fileSize: selectedFile.size,
-          }),
-        },
-      )
-
-      if (!metadataResponse.ok) {
-        const error = await metadataResponse.json()
-        throw new Error(error.error || '메타데이터 저장 실패')
-      }
-
-      uploadProgress = 100
 
       logger.log('File uploaded successfully', {
         evidenceId,

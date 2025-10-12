@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { uploadCrmDocument } from '$lib/services/s3/common-file-upload.service'
+  import { uploadCrmDocument } from '$lib/services/s3/s3-crm.service'
   import { pushToast } from '$lib/stores/toasts'
   import type { CRMData } from '$lib/types/crm'
   import { logger } from '$lib/utils/logger'
@@ -255,20 +255,12 @@
           editBusinessFile,
         )
 
-        if (!result.success) {
-          throw new Error(result.error || '사업자등록증 업로드 실패')
-        }
-
         businessRegistrationS3Key = result.s3Key
         console.log('[CRM] Business registration uploaded:', result.s3Key)
       }
 
       if (editBankFile) {
         const result = await uploadCrmDocument('1001', customer.id, 'bank-account', editBankFile)
-
-        if (!result.success) {
-          throw new Error(result.error || '통장사본 업로드 실패')
-        }
 
         bankAccountS3Key = result.s3Key
         console.log('[CRM] Bank account uploaded:', result.s3Key)

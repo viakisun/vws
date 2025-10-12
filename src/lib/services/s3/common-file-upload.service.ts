@@ -1,11 +1,13 @@
 /**
- * S3 파일 업로드 공통 서비스
- * 모든 파일 업로드를 이 게이트를 통해 처리
+ * S3 파일 업로드 공통 서비스 (Wrapper)
+ * 하위 호환성을 위해 유지됨
  *
- * 사용 예:
- * - 증빙자료 문서 업로드
- * - CRM 고객 문서 업로드 (사업자등록증, 통장사본)
+ * 새 코드는 도메인별 서비스를 직접 사용하는 것을 권장:
+ * - s3-evidence.service.ts (증빙자료)
+ * - s3-crm.service.ts (CRM)
  */
+
+import { uploadToS3Core } from './s3-core'
 
 export interface UploadFileOptions {
   file: File
@@ -22,75 +24,28 @@ export interface UploadResult {
 }
 
 /**
- * 파일을 S3에 업로드하는 공통 게이트
+ * 파일을 S3에 업로드하는 공통 게이트 (Legacy)
  *
- * 프로세스:
- * 1. Presigned URL 요청 (uploadUrlEndpoint)
- * 2. S3에 직접 업로드 (PUT)
- * 3. 결과 반환 (success, url, s3Key)
+ * @deprecated 새 코드는 s3-evidence.service.ts 또는 s3-crm.service.ts 사용 권장
  *
  * @param options - 업로드 옵션
  * @returns UploadResult - 업로드 결과
  */
 export async function uploadFileToS3(options: UploadFileOptions): Promise<UploadResult> {
-  const { file, uploadUrlEndpoint, uploadUrlParams, onProgress } = options
-
   try {
-    // Step 1: Presigned URL 요청
-    onProgress?.(10)
-    const urlResponse = await fetch(uploadUrlEndpoint, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(uploadUrlParams),
-      credentials: 'include',
+    const result = await uploadToS3Core({
+      file: options.file,
+      presignedUrlEndpoint: options.uploadUrlEndpoint,
+      presignedUrlParams: options.uploadUrlParams,
+      onProgress: options.onProgress,
     })
-
-    if (!urlResponse.ok) {
-      const errorData = await urlResponse.json().catch(() => ({}))
-      throw new Error(errorData.error || `업로드 URL 생성 실패 (${urlResponse.status})`)
-    }
-
-    const responseData = await urlResponse.json()
-    console.log('[CommonFileUpload] Presigned URL response:', responseData)
-
-    // API 응답 구조 처리 (두 가지 형식 지원)
-    // 1. { data: { uploadUrl, s3Key, finalUrl } } - 증빙자료 API
-    // 2. { url, key, finalUrl } - CRM API
-    const urlData = responseData.data || responseData
-    const uploadUrl = urlData.uploadUrl || urlData.url
-    const s3Key = urlData.s3Key || urlData.key
-    const finalUrl = urlData.finalUrl // API에서 제공하는 최종 URL
-
-    if (!uploadUrl || !s3Key) {
-      console.error('[CommonFileUpload] Invalid response structure:', responseData)
-      throw new Error('업로드 URL 또는 S3 키가 없습니다')
-    }
-
-    // Step 2: S3에 직접 업로드
-    onProgress?.(30)
-    const s3Response = await fetch(uploadUrl, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': file.type || 'application/octet-stream',
-      },
-      body: file,
-    })
-
-    if (!s3Response.ok) {
-      throw new Error(`S3 업로드 실패 (${s3Response.status})`)
-    }
-
-    // Step 3: 완료
-    onProgress?.(100)
-    console.log('[CommonFileUpload] Upload successful:', { s3Key, finalUrl })
 
     return {
       success: true,
-      url: finalUrl, // 호환성을 위해 유지 (deprecated)
-      s3Key, // 실제로 사용할 키
+      s3Key: result.s3Key,
+      url: result.finalUrl,
     }
   } catch (error) {
-    console.error('[CommonFileUpload] Upload failed:', error)
     return {
       success: false,
       error: error instanceof Error ? error.message : '알 수 없는 오류',
@@ -99,7 +54,12 @@ export async function uploadFileToS3(options: UploadFileOptions): Promise<Upload
 }
 
 /**
- * 증빙자료 문서 업로드 (기존 증빙자료 시스템용)
+ * 증빙자료 문서 업로드 (Legacy)
+ *
+ * @deprecated s3-evidence.service.ts의 uploadEvidenceDocument 사용 권장
+ *
+ * 참고: 이 함수는 메타데이터 저장을 하지 않습니다.
+ * 메타데이터 저장이 필요하면 s3-evidence.service.ts를 사용하세요.
  *
  * @param evidenceId - 증빙 항목 ID
  * @param file - 업로드할 파일
@@ -121,7 +81,9 @@ export async function uploadEvidenceDocument(
 }
 
 /**
- * CRM 고객 문서 업로드 (사업자등록증, 통장사본)
+ * CRM 고객 문서 업로드 (Legacy)
+ *
+ * @deprecated s3-crm.service.ts의 uploadCrmDocument 사용 권장
  *
  * @param companyCode - 회사 코드 (예: '1001')
  * @param customerId - 고객 ID
@@ -149,7 +111,9 @@ export async function uploadCrmDocument(
 }
 
 /**
- * 여러 파일을 병렬로 업로드
+ * 여러 파일을 병렬로 업로드 (Legacy)
+ *
+ * @deprecated 필요시 도메인별 서비스를 직접 병렬 호출 권장
  *
  * @param uploads - 업로드할 파일 목록
  * @returns UploadResult 배열
