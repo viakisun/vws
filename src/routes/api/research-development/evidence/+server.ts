@@ -101,7 +101,7 @@ export const GET: RequestHandler = async ({ url }) => {
 			JOIN evidence_categories ec ON ei.category_id = ec.id
 			LEFT JOIN employees e ON ei.assignee_id = e.id
 			LEFT JOIN project_budgets pb ON ei.project_budget_id = pb.id
-			LEFT JOIN sales_customers sc ON ei.vendor_id = sc.id
+			LEFT JOIN crm_customers sc ON ei.vendor_id = sc.id
 			LEFT JOIN evidence_documents ed ON ei.id = ed.evidence_item_id
 			LEFT JOIN evidence_schedules es ON ei.id = es.evidence_item_id
 			WHERE 1=1

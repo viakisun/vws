@@ -348,7 +348,7 @@ export class SchemaValidator {
       columnName: 'vendor_id',
       expectedType: 'uuid',
       required: false,
-      description: '거래처 ID (sales_customers 참조)',
+      description: '거래처 ID (crm_customers 참조)',
     },
     {
       tableName: 'evidence_items',
