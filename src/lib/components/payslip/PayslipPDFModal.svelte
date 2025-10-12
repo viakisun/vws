@@ -12,9 +12,9 @@
    * - 깔끔한 글로벌 기업 스타일
    */
 
-  import { DownloadIcon, PrinterIcon, XIcon } from '@lucide/svelte'
   import type { PayslipPDFData } from '$lib/types/payslip'
   import { printPayslip } from '$lib/utils/payslip-print'
+  import { DownloadIcon, PrinterIcon, XIcon } from '@lucide/svelte'
 
   interface Props {
     payslip: PayslipPDFData
@@ -51,7 +51,8 @@
 
 <!-- 모달 배경 (화면에서만 표시) -->
 <div
-  class="payslip-modal-wrapper fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+  class="payslip-modal-wrapper fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4"
+  style="z-index: 1001;"
   role="dialog"
   aria-modal="true"
 >

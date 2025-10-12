@@ -1,10 +1,11 @@
 <script lang="ts">
-  import type { EvidenceDocument } from '$lib/types/document.types'
-  import { EvidenceCategoryCode } from '$lib/constants/evidence-category-codes'
   import { CrmDocumentType } from '$lib/constants/crm'
+  import { EvidenceCategoryCode } from '$lib/constants/evidence-category-codes'
   import { downloadCrmDocument } from '$lib/services/s3/s3-crm.service'
+  import type { EvidenceDocument } from '$lib/types/document.types'
   import { logger } from '$lib/utils/logger'
-  import { CalendarIcon, EditIcon, PlusIcon, FileTextIcon, DownloadIcon } from '@lucide/svelte'
+  import { CalendarIcon, DownloadIcon, EditIcon, FileTextIcon, PlusIcon } from '@lucide/svelte'
+  import CommonPayslipModal from '../payslip/CommonPayslipModal.svelte'
   import ThemeButton from '../ui/ThemeButton.svelte'
   import ThemeModal from '../ui/ThemeModal.svelte'
   import RDDocumentList from './RDDocumentList.svelte'
@@ -101,6 +102,7 @@
   }
   let payslipInfo = $state<PayslipInfo | null>(null)
   let loadingPayslip = $state(false)
+  let showPayslipModal = $state(false)
 
   // 인건비 카테고리 여부
   const isPersonnelEvidence = $derived(
@@ -201,22 +203,10 @@
     }
   }
 
-  // 급여명세서 다운로드
-  async function downloadPayslip(payslipId: string) {
-    try {
-      // 급여명세서 다운로드 API 호출
-      const response = await fetch(`/api/dashboard/payslip/${payslipId}/download`)
-      if (response.ok) {
-        const result = await response.json()
-        if (result.downloadUrl) {
-          window.open(result.downloadUrl, '_blank')
-        }
-      } else {
-        throw new Error('다운로드 URL 생성 실패')
-      }
-    } catch (error) {
-      logger.error('Failed to download payslip:', error)
-      alert('급여명세서 다운로드에 실패했습니다.')
+  // 급여명세서 출력 모달 열기
+  function openPayslipModal() {
+    if (payslipInfo?.exists && payslipInfo?.payslipId) {
+      showPayslipModal = true
     }
   }
 
@@ -589,23 +579,24 @@
                         확인 중...
                       </div>
                     {:else if payslipInfo?.exists && payslipInfo?.payslipId}
-                      <div class="flex items-center justify-between p-3 bg-green-50 rounded-lg">
-                        <div class="flex items-center gap-2">
-                          <FileTextIcon size={16} class="text-green-600" />
-                          <span class="text-sm font-medium text-green-700"> 급여명세서 있음 </span>
-                        </div>
-                        <button
-                          type="button"
-                          onclick={() => payslipInfo && downloadPayslip(payslipInfo.payslipId!)}
-                          class="flex items-center gap-1 px-3 py-1 text-xs text-green-700 hover:text-green-800 hover:bg-green-100 rounded transition-colors"
-                        >
-                          <DownloadIcon size={14} />
-                          다운로드
-                        </button>
-                      </div>
+                      <button
+                        type="button"
+                        onclick={openPayslipModal}
+                        class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                      >
+                        급여명세서 출력
+                      </button>
                     {:else}
-                      <div class="p-3 bg-yellow-50 rounded-lg">
-                        <p class="text-sm text-yellow-700">아직 급여명세서가 없습니다</p>
+                      <div class="space-y-2">
+                        <p class="text-sm text-yellow-700 bg-yellow-50 p-3 rounded-lg">
+                          아직 급여명세서가 등록되지 않았습니다.
+                        </p>
+                        <a
+                          href="/salary"
+                          class="inline-flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700 hover:underline"
+                        >
+                          급여 관리 페이지에서 등록하기 →
+                        </a>
                       </div>
                     {/if}
                   </div>
@@ -739,4 +730,14 @@
       {/if}
     </div>
   </ThemeModal>
+{/if}
+
+<!-- 급여명세서 출력 모달 -->
+{#if showPayslipModal && payslipInfo?.payslipId}
+  <CommonPayslipModal
+    payslipId={payslipInfo.payslipId}
+    onClose={() => {
+      showPayslipModal = false
+    }}
+  />
 {/if}

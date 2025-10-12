@@ -123,6 +123,12 @@
             placeholder="예: 박기선 (2025-01), 모터 10개, 출장비 (국내)"
             required
           />
+          <!-- 인건비인 경우 자동 제목 생성 안내 -->
+          {#if evidenceForm.categoryId && evidenceCategories.find((cat) => cat.id === evidenceForm.categoryId)?.name === '인건비'}
+            <p class="mt-1 text-xs text-blue-600">
+              💡 인건비의 경우 "이름 (YYYY-MM)" 형식으로 입력하면 급여명세서와 자동 연결됩니다.
+            </p>
+          {/if}
         </div>
 
         <!-- 설명 -->
