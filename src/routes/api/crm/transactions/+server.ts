@@ -1,3 +1,4 @@
+import { verifyToken } from '$lib/auth/middleware'
 import type { CRMApiResponse, CRMTransaction } from '$lib/crm/types'
 import { query } from '$lib/database/connection'
 import { logger } from '$lib/utils/logger'
@@ -5,7 +6,18 @@ import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
 
 // 거래 내역 목록 조회
-export const GET: RequestHandler = async ({ url }) => {
+export const GET: RequestHandler = async ({ url, cookies }) => {  // 인증 확인
+  const token = cookies.get('token')
+  if (!token) {
+    return json({ error: '인증이 필요합니다' }, { status: 401 })
+  }
+
+  const user = await verifyToken(token)
+  if (!user) {
+    return json({ error: '유효하지 않은 토큰입니다' }, { status: 401 })
+  }
+
+
   try {
     const type = url.searchParams.get('type') || 'all'
     const payment_status = url.searchParams.get('payment_status') || 'all'
@@ -103,7 +115,18 @@ export const GET: RequestHandler = async ({ url }) => {
 }
 
 // 새 거래 내역 생성
-export const POST: RequestHandler = async ({ request }) => {
+export const POST: RequestHandler = async ({ request, cookies }) => {  // 인증 확인
+  const token = cookies.get('token')
+  if (!token) {
+    return json({ error: '인증이 필요합니다' }, { status: 401 })
+  }
+
+  const user = await verifyToken(token)
+  if (!user) {
+    return json({ error: '유효하지 않은 토큰입니다' }, { status: 401 })
+  }
+
+
   try {
     const data = await request.json()
 

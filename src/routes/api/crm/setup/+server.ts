@@ -1,3 +1,4 @@
+import { verifyToken } from '$lib/auth/middleware'
 import { query } from '$lib/database/connection'
 import { logger } from '$lib/utils/logger'
 import { json } from '@sveltejs/kit'

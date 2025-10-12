@@ -38,10 +38,7 @@
     X,
   } from '@lucide/svelte'
   import { onMount } from 'svelte'
-
-  // Import CRM services
-  import { loadAllCRMData } from '$lib/crm/services'
-  import type { CRMCustomer, CRMOpportunity, CRMContract, CRMTransaction } from '$lib/crm/types'
+// Import CRM services
 
   // Real CRM data from API
   const crmData = $state<CRMData>({

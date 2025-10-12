@@ -1,3 +1,4 @@
+import { verifyToken } from '$lib/auth/middleware'
 import type { CRMApiResponse, CRMCustomer } from '$lib/crm/types'
 import { query } from '$lib/database/connection'
 import { logger } from '$lib/utils/logger'
@@ -5,7 +6,18 @@ import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
 
 // 개별 고객 조회
-export const GET: RequestHandler = async ({ params }) => {
+export const GET: RequestHandler = async ({ params, cookies }) => {  // 인증 확인
+  const token = cookies.get('token')
+  if (!token) {
+    return json({ error: '인증이 필요합니다' }, { status: 401 })
+  }
+
+  const user = await verifyToken(token)
+  if (!user) {
+    return json({ error: '유효하지 않은 토큰입니다' }, { status: 401 })
+  }
+
+
   try {
     const { id } = params
 
@@ -46,7 +58,18 @@ export const GET: RequestHandler = async ({ params }) => {
 }
 
 // 고객 수정
-export const PUT: RequestHandler = async ({ params, request }) => {
+export const PUT: RequestHandler = async ({ params, request, cookies }) => {  // 인증 확인
+  const token = cookies.get('token')
+  if (!token) {
+    return json({ error: '인증이 필요합니다' }, { status: 401 })
+  }
+
+  const user = await verifyToken(token)
+  if (!user) {
+    return json({ error: '유효하지 않은 토큰입니다' }, { status: 401 })
+  }
+
+
   try {
     const { id } = params
     const data = await request.json()
@@ -150,7 +173,18 @@ export const PUT: RequestHandler = async ({ params, request }) => {
 }
 
 // 고객 삭제
-export const DELETE: RequestHandler = async ({ params }) => {
+export const DELETE: RequestHandler = async ({ params, cookies }) => {  // 인증 확인
+  const token = cookies.get('token')
+  if (!token) {
+    return json({ error: '인증이 필요합니다' }, { status: 401 })
+  }
+
+  const user = await verifyToken(token)
+  if (!user) {
+    return json({ error: '유효하지 않은 토큰입니다' }, { status: 401 })
+  }
+
+
   try {
     const { id } = params
 
