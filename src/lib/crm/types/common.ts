@@ -76,4 +76,3 @@ export interface CRMInvoice {
 }
 
 export type Invoice = CRMInvoice
-

@@ -18,7 +18,7 @@ export interface BusinessRegistrationData {
  * 사업자등록증에서 정보 추출
  */
 export function parseBusinessRegistration(
-  textractResult: TextractResult
+  textractResult: TextractResult,
 ): BusinessRegistrationData {
   const { text, lines, averageConfidence } = textractResult
 
@@ -143,7 +143,7 @@ function extractBusinessAddress(lines: string[]): string | null {
   for (const line of lines) {
     if (
       /^(서울|부산|대구|인천|광주|대전|울산|세종|경기|강원|충북|충남|전북|전남|경북|경남|제주)/.test(
-        line
+        line,
       )
     ) {
       return line
@@ -271,4 +271,3 @@ function checkIsCorporation(lines: string[], companyName: string | null): boolea
 
   return false
 }
-

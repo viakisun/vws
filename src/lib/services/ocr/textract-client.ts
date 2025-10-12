@@ -1,11 +1,11 @@
 import { env } from '$env/dynamic/private'
 import {
-    AnalyzeDocumentCommand,
-    DetectDocumentTextCommand,
-    TextractClient,
-    type AnalyzeDocumentCommandOutput,
-    type Block,
-    type DetectDocumentTextCommandOutput,
+  AnalyzeDocumentCommand,
+  DetectDocumentTextCommand,
+  TextractClient,
+  type AnalyzeDocumentCommandOutput,
+  type Block,
+  type DetectDocumentTextCommandOutput,
 } from '@aws-sdk/client-textract'
 
 // Textract 클라이언트 초기화
@@ -28,9 +28,7 @@ export interface TextractResult {
 /**
  * 바이너리 데이터에서 텍스트 추출
  */
-export async function detectDocumentText(
-  documentBytes: Buffer
-): Promise<TextractResult> {
+export async function detectDocumentText(documentBytes: Buffer): Promise<TextractResult> {
   try {
     const command = new DetectDocumentTextCommand({
       Document: {
@@ -38,13 +36,14 @@ export async function detectDocumentText(
       },
     })
 
-    const response: DetectDocumentTextCommandOutput =
-      await textractClient.send(command)
+    const response: DetectDocumentTextCommandOutput = await textractClient.send(command)
 
     return parseTextractResponse(response)
   } catch (error) {
     console.error('Textract detectDocumentText error:', error)
-    throw new Error(`Textract OCR 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`)
+    throw new Error(
+      `Textract OCR 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`,
+    )
   }
 }
 
@@ -53,7 +52,7 @@ export async function detectDocumentText(
  */
 export async function detectDocumentTextFromS3(
   bucket: string,
-  key: string
+  key: string,
 ): Promise<TextractResult> {
   try {
     const command = new DetectDocumentTextCommand({
@@ -65,13 +64,14 @@ export async function detectDocumentTextFromS3(
       },
     })
 
-    const response: DetectDocumentTextCommandOutput =
-      await textractClient.send(command)
+    const response: DetectDocumentTextCommandOutput = await textractClient.send(command)
 
     return parseTextractResponse(response)
   } catch (error) {
     console.error('Textract detectDocumentTextFromS3 error:', error)
-    throw new Error(`Textract S3 OCR 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`)
+    throw new Error(
+      `Textract S3 OCR 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`,
+    )
   }
 }
 
@@ -79,7 +79,7 @@ export async function detectDocumentTextFromS3(
  * 표 구조 분석이 필요한 경우 (사업자등록증 등)
  */
 export async function analyzeDocument(
-  documentBytes: Buffer
+  documentBytes: Buffer,
 ): Promise<AnalyzeDocumentCommandOutput> {
   try {
     const command = new AnalyzeDocumentCommand({
@@ -93,7 +93,7 @@ export async function analyzeDocument(
   } catch (error) {
     console.error('Textract analyzeDocument error:', error)
     throw new Error(
-      `Textract 문서 분석 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`
+      `Textract 문서 분석 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`,
     )
   }
 }
@@ -101,9 +101,7 @@ export async function analyzeDocument(
 /**
  * Textract 응답을 파싱하여 구조화된 데이터로 변환
  */
-function parseTextractResponse(
-  response: DetectDocumentTextCommandOutput
-): TextractResult {
+function parseTextractResponse(response: DetectDocumentTextCommandOutput): TextractResult {
   const blocks = response.Blocks || []
   const lines: string[] = []
   const words: Array<{ text: string; confidence: number }> = []
@@ -141,7 +139,7 @@ function parseTextractResponse(
 export function findTextNearKeyword(
   lines: string[],
   keyword: string,
-  maxDistance: number = 1
+  maxDistance: number = 1,
 ): string | null {
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i]
@@ -175,10 +173,7 @@ export function extractPattern(text: string, pattern: RegExp): string | null {
 /**
  * 모든 라인에서 정규식 패턴 찾기
  */
-export function extractPatternsFromLines(
-  lines: string[],
-  pattern: RegExp
-): string[] {
+export function extractPatternsFromLines(lines: string[], pattern: RegExp): string[] {
   const results: string[] = []
   for (const line of lines) {
     const matches = line.match(new RegExp(pattern.source, 'g'))
@@ -188,4 +183,3 @@ export function extractPatternsFromLines(
   }
   return results
 }
-

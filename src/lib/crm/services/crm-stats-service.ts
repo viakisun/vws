@@ -37,4 +37,3 @@ export async function loadCustomerStats(): Promise<CRMApiResponse<CRMCustomerSta
     return { success: false, error: '고객별 통계 로드 중 오류가 발생했습니다.' }
   }
 }
-

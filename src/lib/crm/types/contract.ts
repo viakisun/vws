@@ -23,4 +23,3 @@ export interface CRMContract {
 
 // 기존 호환성
 export type Contract = CRMContract
-

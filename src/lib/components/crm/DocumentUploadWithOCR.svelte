@@ -238,9 +238,7 @@
           <p class="text-lg font-medium text-gray-900">
             {step === 'business' ? '사업자등록증' : '통장사본'} 업로드
           </p>
-          <p class="text-sm text-gray-600 mt-1">
-            파일을 드래그하거나 클릭하여 선택하세요
-          </p>
+          <p class="text-sm text-gray-600 mt-1">파일을 드래그하거나 클릭하여 선택하세요</p>
           <p class="text-xs text-gray-500 mt-1">PDF, JPG, PNG (최대 5MB)</p>
         </div>
         <label>
@@ -333,17 +331,11 @@
       <ThemeButton variant="secondary" onclick={onCancel}>취소</ThemeButton>
 
       {#if step === 'business'}
-        <ThemeButton
-          variant="primary"
-          onclick={goToNextStep}
-          disabled={!businessData || loading}
-        >
+        <ThemeButton variant="primary" onclick={goToNextStep} disabled={!businessData || loading}>
           다음
         </ThemeButton>
       {:else if step === 'bank'}
-        <ThemeButton variant="secondary" onclick={handleSkipBank}>
-          통장사본 건너뛰기
-        </ThemeButton>
+        <ThemeButton variant="secondary" onclick={handleSkipBank}>통장사본 건너뛰기</ThemeButton>
         <ThemeButton variant="primary" onclick={goToNextStep} disabled={!bankData || loading}>
           완료
         </ThemeButton>
@@ -351,4 +343,3 @@
     </div>
   </div>
 </div>
-

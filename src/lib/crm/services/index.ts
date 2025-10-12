@@ -44,4 +44,3 @@ export async function loadAllCRMData(): Promise<{
     transactions: transactions.success ? transactions.data || [] : [],
   }
 }
-

@@ -72,10 +72,14 @@ export enum Resource {
   PLANNER_FORMATIONS = 'planner.formations',
   PLANNER_MILESTONES = 'planner.milestones',
 
-  // 영업
-  SALES_CUSTOMERS = 'sales.customers',
-  SALES_CONTRACTS = 'sales.contracts',
+  // CRM
   CRM = 'crm',
+  CRM_CUSTOMERS = 'crm.customers',
+  CRM_INTERACTIONS = 'crm.interactions',
+  CRM_OPPORTUNITIES = 'crm.opportunities',
+  CRM_CONTRACTS = 'crm.contracts',
+  CRM_TRANSACTIONS = 'crm.transactions',
+  CRM_REPORTS = 'crm.reports',
 
   // 시스템
   REPORTS = 'reports',
@@ -198,7 +202,7 @@ export const menuAccess: Readable<{
     $can.read(Resource.PLANNER_THREADS) ||
     $can.read(Resource.PLANNER_FORMATIONS) ||
     $can.read(Resource.PLANNER_MILESTONES),
-  sales: $can.read(Resource.SALES_CUSTOMERS) || $can.read(Resource.SALES_CONTRACTS),
+  sales: $can.read(Resource.CRM) || $can.read(Resource.CRM_CUSTOMERS),
   admin:
     $can.read(Resource.SYSTEM_USERS) ||
     $can.read(Resource.SYSTEM_ROLES) ||

@@ -57,4 +57,3 @@ export async function createOpportunity(
     return { success: false, error: '영업 기회 저장 중 오류가 발생했습니다.' }
   }
 }
-

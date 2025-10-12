@@ -775,10 +775,7 @@
   <ThemeModal open={showOcrUploadModal} onClose={closeOcrUploadModal} maxWidth="3xl">
     <div class="p-6">
       <h2 class="text-2xl font-bold text-gray-900 mb-6">문서로 고객 추가</h2>
-      <DocumentUploadWithOCR
-        onComplete={handleOcrUploadComplete}
-        onCancel={closeOcrUploadModal}
-      />
+      <DocumentUploadWithOCR onComplete={handleOcrUploadComplete} onCancel={closeOcrUploadModal} />
     </div>
   </ThemeModal>
 {/if}

@@ -142,4 +142,3 @@ export const POST: RequestHandler = async ({ request }) => {
     return json(response, { status: 500 })
   }
 }
-

@@ -1,9 +1,9 @@
 import { verifyToken } from '$lib/auth/middleware'
 import {
-    processBankAccount,
-    processBusinessRegistration,
-    type BankAccountData,
-    type BusinessRegistrationData,
+  processBankAccount,
+  processBusinessRegistration,
+  type BankAccountData,
+  type BusinessRegistrationData,
 } from '$lib/services/ocr'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
@@ -49,7 +49,7 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
     if (!allowedTypes.includes(file.type)) {
       return json(
         { error: '지원하지 않는 파일 형식입니다. PDF, JPG, PNG만 가능합니다.' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -78,8 +78,7 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
         error: 'OCR 처리 중 오류가 발생했습니다',
         details: error instanceof Error ? error.message : '알 수 없는 오류',
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
-

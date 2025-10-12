@@ -13,7 +13,7 @@ export interface CRMCustomer {
   payment_terms: number // 결제 조건 (일)
   status: 'active' | 'inactive'
   notes?: string
-  
+
   // OCR 관련 필드
   business_registration_file_url?: string
   bank_account_file_url?: string
@@ -27,7 +27,7 @@ export interface CRMCustomer {
   account_holder?: string
   ocr_processed_at?: string
   ocr_confidence?: number
-  
+
   created_at: string
   updated_at: string
 }
@@ -47,4 +47,3 @@ export interface CRMCustomerStats {
 }
 
 export type CustomerStats = CRMCustomerStats
-

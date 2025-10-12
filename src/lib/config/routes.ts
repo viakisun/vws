@@ -120,12 +120,7 @@ export const ROUTE_PERMISSIONS: Record<string, RoutePermission> = {
     action: PermissionAction.READ,
   },
 
-  // 영업/고객
-  [Routes.SALES]: {
-    resource: Resource.SALES_CUSTOMERS,
-    action: PermissionAction.READ,
-    fallback: Routes.UNAUTHORIZED,
-  },
+  // CRM (고객 관계 관리)
   [Routes.CRM]: {
     resource: Resource.CRM,
     action: PermissionAction.READ,

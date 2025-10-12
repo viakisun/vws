@@ -1,8 +1,8 @@
 import { PDFDocument } from 'pdf-lib'
 import { parseBankAccount, type BankAccountData } from './bank-account-parser'
 import {
-    parseBusinessRegistration,
-    type BusinessRegistrationData,
+  parseBusinessRegistration,
+  type BusinessRegistrationData,
 } from './business-registration-parser'
 import { detectDocumentText, detectDocumentTextFromS3 } from './textract-client'
 
@@ -11,7 +11,7 @@ import { detectDocumentText, detectDocumentTextFromS3 } from './textract-client'
  */
 export async function processBusinessRegistration(
   fileBuffer: Buffer,
-  mimeType: string
+  mimeType: string,
 ): Promise<BusinessRegistrationData> {
   try {
     // PDF인 경우 첫 페이지만 추출
@@ -30,7 +30,7 @@ export async function processBusinessRegistration(
   } catch (error) {
     console.error('processBusinessRegistration error:', error)
     throw new Error(
-      `사업자등록증 처리 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`
+      `사업자등록증 처리 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`,
     )
   }
 }
@@ -40,7 +40,7 @@ export async function processBusinessRegistration(
  */
 export async function processBankAccount(
   fileBuffer: Buffer,
-  mimeType: string
+  mimeType: string,
 ): Promise<BankAccountData> {
   try {
     // PDF인 경우 첫 페이지만 추출
@@ -59,7 +59,7 @@ export async function processBankAccount(
   } catch (error) {
     console.error('processBankAccount error:', error)
     throw new Error(
-      `통장사본 처리 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`
+      `통장사본 처리 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`,
     )
   }
 }
@@ -69,7 +69,7 @@ export async function processBankAccount(
  */
 export async function processBusinessRegistrationFromS3(
   bucket: string,
-  key: string
+  key: string,
 ): Promise<BusinessRegistrationData> {
   try {
     const textractResult = await detectDocumentTextFromS3(bucket, key)
@@ -78,7 +78,7 @@ export async function processBusinessRegistrationFromS3(
   } catch (error) {
     console.error('processBusinessRegistrationFromS3 error:', error)
     throw new Error(
-      `S3 사업자등록증 처리 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`
+      `S3 사업자등록증 처리 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`,
     )
   }
 }
@@ -88,7 +88,7 @@ export async function processBusinessRegistrationFromS3(
  */
 export async function processBankAccountFromS3(
   bucket: string,
-  key: string
+  key: string,
 ): Promise<BankAccountData> {
   try {
     const textractResult = await detectDocumentTextFromS3(bucket, key)
@@ -97,7 +97,7 @@ export async function processBankAccountFromS3(
   } catch (error) {
     console.error('processBankAccountFromS3 error:', error)
     throw new Error(
-      `S3 통장사본 처리 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`
+      `S3 통장사본 처리 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`,
     )
   }
 }
@@ -130,4 +130,3 @@ async function extractFirstPageFromPDF(pdfBuffer: Buffer): Promise<Buffer> {
 
 // Re-export types
 export type { BankAccountData, BusinessRegistrationData }
-

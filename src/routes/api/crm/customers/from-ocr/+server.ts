@@ -55,7 +55,7 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
             error: '이미 등록된 사업자번호입니다',
             existingCustomerId: checkResult.rows[0].id,
           },
-          { status: 409 }
+          { status: 409 },
         )
       }
     }
@@ -134,7 +134,7 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
         {
           error: '이미 등록된 사업자번호입니다',
         },
-        { status: 409 }
+        { status: 409 },
       )
     }
 
@@ -143,8 +143,7 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
         error: '고객 생성 중 오류가 발생했습니다',
         details: error instanceof Error ? error.message : '알 수 없는 오류',
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
-

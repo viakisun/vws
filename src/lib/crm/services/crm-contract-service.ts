@@ -40,9 +40,7 @@ export async function loadContracts(params?: {
   }
 }
 
-export async function createContract(
-  data: ContractFormData,
-): Promise<CRMApiResponse<CRMContract>> {
+export async function createContract(data: ContractFormData): Promise<CRMApiResponse<CRMContract>> {
   try {
     const response = await fetch('/api/crm/contracts', {
       method: 'POST',
@@ -56,4 +54,3 @@ export async function createContract(
     return { success: false, error: '계약 저장 중 오류가 발생했습니다.' }
   }
 }
-

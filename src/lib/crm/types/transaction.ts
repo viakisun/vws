@@ -25,4 +25,3 @@ export interface CRMTransaction {
 
 // 기존 호환성
 export type Transaction = CRMTransaction
-

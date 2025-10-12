@@ -206,4 +206,3 @@ function extractAccountHolder(lines: string[], bankName: string | null): string 
 
   return null
 }
-

@@ -21,7 +21,7 @@ export interface CustomerFormData {
   payment_terms?: number
   status?: 'active' | 'inactive'
   notes?: string
-  
+
   // OCR 관련 필드
   business_registration_file_url?: string
   bank_account_file_url?: string
@@ -70,9 +70,7 @@ export async function loadCustomer(id: string): Promise<CRMApiResponse<CRMCustom
   }
 }
 
-export async function createCustomer(
-  data: CustomerFormData,
-): Promise<CRMApiResponse<CRMCustomer>> {
+export async function createCustomer(data: CustomerFormData): Promise<CRMApiResponse<CRMCustomer>> {
   try {
     const response = await fetch('/api/crm/customers', {
       method: 'POST',
@@ -119,4 +117,3 @@ export async function deleteCustomer(id: string): Promise<CRMApiResponse<void>> 
     return { success: false, error: '고객 삭제 중 오류가 발생했습니다.' }
   }
 }
-

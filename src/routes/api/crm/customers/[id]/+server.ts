@@ -209,4 +209,3 @@ export const DELETE: RequestHandler = async ({ params }) => {
     return json(response, { status: 500 })
   }
 }
-

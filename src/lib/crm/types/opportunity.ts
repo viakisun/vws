@@ -21,4 +21,3 @@ export interface CRMOpportunity {
 
 // 기존 호환성
 export type Opportunity = CRMOpportunity
-

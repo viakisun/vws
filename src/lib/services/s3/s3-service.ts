@@ -118,7 +118,7 @@ export function generateCrmDocumentKey(
   companyCode: string,
   customerId: string,
   documentType: 'business-registration' | 'bank-account',
-  filename: string
+  filename: string,
 ): string {
   const ext = filename.split('.').pop()
   return `${companyCode}/customers/${customerId}/${documentType}.${ext}`
@@ -133,7 +133,7 @@ export async function generateCrmDocumentUploadUrl(
   documentType: 'business-registration' | 'bank-account',
   filename: string,
   contentType: string,
-  expiresIn: number = 900
+  expiresIn: number = 900,
 ): Promise<{ url: string; key: string }> {
   const key = generateCrmDocumentKey(companyCode, customerId, documentType, filename)
   const url = await generatePresignedUploadUrl(key, contentType, expiresIn)

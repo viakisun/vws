@@ -55,7 +55,7 @@
   })
 </script>
 
-<ThemeModal {open} onClose={onClose} maxWidth="4xl">
+<ThemeModal {open} {onClose} maxWidth="4xl">
   <div class="p-6">
     <h2 class="text-2xl font-bold text-gray-900 mb-4">추출된 정보 확인</h2>
 
@@ -94,38 +94,22 @@
       <div class="mb-6">
         <h3 class="text-lg font-semibold text-gray-900 mb-4">사업자등록증 정보</h3>
         <div class="grid grid-cols-2 gap-4">
-          <ThemeInput
-            label="상호명 *"
-            bind:value={editableBusinessData.companyName}
-            required
-          />
+          <ThemeInput label="상호명 *" bind:value={editableBusinessData.companyName} required />
           <ThemeInput
             label="사업자번호"
             bind:value={editableBusinessData.businessNumber}
             placeholder="123-45-67890"
           />
-          <ThemeInput
-            label="대표자명"
-            bind:value={editableBusinessData.representativeName}
-          />
+          <ThemeInput label="대표자명" bind:value={editableBusinessData.representativeName} />
           <ThemeInput
             label="개업일자"
             type="date"
             bind:value={editableBusinessData.establishmentDate}
           />
-          <ThemeInput
-            label="업태"
-            bind:value={editableBusinessData.businessType}
-          />
-          <ThemeInput
-            label="종목"
-            bind:value={editableBusinessData.businessCategory}
-          />
+          <ThemeInput label="업태" bind:value={editableBusinessData.businessType} />
+          <ThemeInput label="종목" bind:value={editableBusinessData.businessCategory} />
           <div class="col-span-2">
-            <ThemeInput
-              label="사업장 주소"
-              bind:value={editableBusinessData.businessAddress}
-            />
+            <ThemeInput label="사업장 주소" bind:value={editableBusinessData.businessAddress} />
           </div>
           <div class="col-span-2 flex items-center gap-2">
             <input
@@ -144,14 +128,8 @@
         <div class="mb-6">
           <h3 class="text-lg font-semibold text-gray-900 mb-4">통장사본 정보</h3>
           <div class="grid grid-cols-2 gap-4">
-            <ThemeInput
-              label="은행명"
-              bind:value={editableBankData.bankName}
-            />
-            <ThemeInput
-              label="예금주명"
-              bind:value={editableBankData.accountHolder}
-            />
+            <ThemeInput label="은행명" bind:value={editableBankData.bankName} />
+            <ThemeInput label="예금주명" bind:value={editableBankData.accountHolder} />
             <div class="col-span-2">
               <ThemeInput
                 label="계좌번호"
@@ -204,4 +182,3 @@
     </div>
   </div>
 </ThemeModal>
-

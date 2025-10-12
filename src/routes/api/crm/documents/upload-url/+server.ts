@@ -41,7 +41,7 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
       customerId,
       documentType as 'business-registration' | 'bank-account',
       filename,
-      contentType
+      contentType,
     )
 
     return json({
@@ -56,8 +56,7 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
         error: '업로드 URL 생성 중 오류가 발생했습니다',
         details: error instanceof Error ? error.message : '알 수 없는 오류',
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
-

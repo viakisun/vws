@@ -113,4 +113,3 @@ export const GET: RequestHandler = async ({ url }) => {
     return json(response, { status: 500 })
   }
 }
-

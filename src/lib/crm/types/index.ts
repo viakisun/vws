@@ -14,4 +14,3 @@ export * from './transaction'
 
 // 공통 타입
 export * from './common'
-
