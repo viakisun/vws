@@ -111,11 +111,13 @@ export function useRDEvidence(options: UseProjectEvidenceOptions) {
       for (const budget of projectBudgets) {
         const url = `/api/research-development/evidence?projectBudgetId=${budget.id}`
         logger.info(`loadEvidenceItems: Fetching ${url}`)
-        
+
         const response = await fetch(url)
         const result = await response.json()
 
-        logger.info(`loadEvidenceItems: Budget ${budget.period_number} - success: ${result.success}, count: ${result.count || 0}`)
+        logger.info(
+          `loadEvidenceItems: Budget ${budget.period_number} - success: ${result.success}, count: ${result.count || 0}`,
+        )
 
         if (result.success) {
           allEvidenceItems = [...allEvidenceItems, ...result.data]

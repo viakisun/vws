@@ -114,7 +114,7 @@ export function useRDDetail(options: UseProjectDetailOptions) {
     void (async () => {
       if (selectedProject?.id) {
         logger.info('RDDetailView: onMount - Starting data load')
-        
+
         // 1단계: 조달 예산 로드
         await fundingHook.loadBudgets()
         logger.info('RDDetailView: Budgets loaded, count:', store.data.projectBudgets.length)
@@ -126,7 +126,7 @@ export function useRDDetail(options: UseProjectDetailOptions) {
         // 3단계: 집행 (증빙 카테고리 및 항목) 로드
         await executionHook.loadEvidenceCategories()
         logger.info('RDDetailView: Evidence categories loaded')
-        
+
         await executionHook.loadEvidenceItems()
         logger.info('RDDetailView: Evidence items loaded, count:', store.validation.items.length)
       }

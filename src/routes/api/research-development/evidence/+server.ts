@@ -129,7 +129,9 @@ export const GET: RequestHandler = async ({ url }) => {
 
     const result = await query<EvidenceItem>(queryText, params)
 
-    logger.info(`Evidence API: projectBudgetId=${projectBudgetId}, categoryId=${categoryId}, found ${result.rows.length} items`)
+    logger.info(
+      `Evidence API: projectBudgetId=${projectBudgetId}, categoryId=${categoryId}, found ${result.rows.length} items`,
+    )
 
     const response: ApiResponse<EvidenceItem[]> = {
       success: true,

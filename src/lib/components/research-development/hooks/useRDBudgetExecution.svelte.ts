@@ -23,7 +23,7 @@ export interface UseBudgetExecutionOptions {
 
 export function useRDBudgetExecution(options: UseBudgetExecutionOptions) {
   const { store, availableEmployees } = options
-  
+
   // projectBudgets를 store에서 직접 참조 (reactive)
   const getProjectBudgets = () => store.data.projectBudgets
 
@@ -65,7 +65,7 @@ export function useRDBudgetExecution(options: UseBudgetExecutionOptions) {
 
   async function loadEvidenceItems(): Promise<void> {
     const projectBudgets = getProjectBudgets()
-    
+
     if (!projectBudgets || projectBudgets.length === 0) {
       logger.warn('loadEvidenceItems: No project budgets available')
       return
@@ -81,11 +81,13 @@ export function useRDBudgetExecution(options: UseBudgetExecutionOptions) {
       for (const budget of projectBudgets) {
         const url = `/api/research-development/evidence?projectBudgetId=${budget.id}`
         logger.info(`loadEvidenceItems: Fetching ${url}`)
-        
+
         const response = await fetch(url)
         const result = await response.json()
 
-        logger.info(`loadEvidenceItems: Budget ${budget.period_number} - success: ${result.success}, count: ${result.count || 0}`)
+        logger.info(
+          `loadEvidenceItems: Budget ${budget.period_number} - success: ${result.success}, count: ${result.count || 0}`,
+        )
 
         if (result.success) {
           allEvidenceItems = [...allEvidenceItems, ...result.data]
