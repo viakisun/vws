@@ -1,7 +1,9 @@
 <script lang="ts">
+  import type { CRMData } from '$lib/types/crm'
   import { logger } from '$lib/utils/logger'
-  import type { Customer, CRMData } from '$lib/types/crm'
 
+  import DocumentUploadWithOCR from '$lib/components/crm/DocumentUploadWithOCR.svelte'
+  import OCRResultModal from '$lib/components/crm/OCRResultModal.svelte'
   import PageLayout from '$lib/components/layout/PageLayout.svelte'
   import ThemeBadge from '$lib/components/ui/ThemeBadge.svelte'
   import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
@@ -13,6 +15,7 @@
   import ThemeSectionHeader from '$lib/components/ui/ThemeSectionHeader.svelte'
   import ThemeSpacer from '$lib/components/ui/ThemeSpacer.svelte'
   import ThemeTabs from '$lib/components/ui/ThemeTabs.svelte'
+  import type { BankAccountData, BusinessRegistrationData } from '$lib/services/ocr'
   import { formatCurrency, formatDate } from '$lib/utils/format'
   import { keyOf } from '$lib/utils/keyOf'
   import {
@@ -26,6 +29,7 @@
     MessageSquareIcon,
     PieChartIcon,
     PlusIcon,
+    ScanIcon,
     StarIcon,
     TargetIcon,
     TrashIcon,
@@ -142,6 +146,76 @@
 
   let activeTab = $state('overview')
 
+  // OCR 모달 상태
+  let showOcrUploadModal = $state(false)
+  let showOcrResultModal = $state(false)
+  let ocrBusinessData = $state<BusinessRegistrationData | null>(null)
+  let ocrBankData = $state<BankAccountData | null>(null)
+  let ocrBusinessFile = $state<File | null>(null)
+  let ocrBankFile = $state<File | null>(null)
+
+  function openOcrUploadModal() {
+    showOcrUploadModal = true
+  }
+
+  function closeOcrUploadModal() {
+    showOcrUploadModal = false
+  }
+
+  function handleOcrUploadComplete(data: {
+    businessData: BusinessRegistrationData | null
+    bankData: BankAccountData | null
+    businessFile: File | null
+    bankFile: File | null
+  }) {
+    ocrBusinessData = data.businessData
+    ocrBankData = data.bankData
+    ocrBusinessFile = data.businessFile
+    ocrBankFile = data.bankFile
+
+    showOcrUploadModal = false
+    showOcrResultModal = true
+  }
+
+  async function handleOcrConfirm(data: {
+    businessData: BusinessRegistrationData
+    bankData: BankAccountData | null
+  }) {
+    try {
+      // TODO: S3에 파일 업로드하고 URL 받기
+      // 지금은 간단히 고객 생성만
+      const response = await fetch('/api/crm/customers/from-ocr', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          businessData: data.businessData,
+          bankData: data.bankData,
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || '고객 생성 실패')
+      }
+
+      const result = await response.json()
+      console.log('Customer created:', result.customer)
+
+      // 모달 닫기
+      showOcrResultModal = false
+
+      // 성공 메시지 표시
+      alert('고객이 성공적으로 생성되었습니다!')
+
+      // TODO: 고객 목록 새로고침
+    } catch (error) {
+      console.error('Customer creation error:', error)
+      alert(error instanceof Error ? error.message : '고객 생성 중 오류가 발생했습니다')
+    }
+  }
+
   // 통계 데이터
   const stats = [
     {
@@ -177,10 +251,16 @@
   // 액션 버튼들
   const actions = [
     {
+      label: '문서로 고객 추가 (OCR)',
+      icon: ScanIcon,
+      onclick: openOcrUploadModal,
+      variant: 'primary' as const,
+    },
+    {
       label: '고객 추가',
       icon: PlusIcon,
       onclick: () => (showCreateModal = true),
-      variant: 'primary' as const,
+      variant: 'secondary' as const,
     },
     {
       label: '상호작용 기록',
@@ -689,3 +769,25 @@
     </div>
   </ThemeModal>
 {/if}
+
+<!-- OCR 업로드 모달 -->
+{#if showOcrUploadModal}
+  <ThemeModal open={showOcrUploadModal} onClose={closeOcrUploadModal} maxWidth="3xl">
+    <div class="p-6">
+      <h2 class="text-2xl font-bold text-gray-900 mb-6">문서로 고객 추가</h2>
+      <DocumentUploadWithOCR
+        onComplete={handleOcrUploadComplete}
+        onCancel={closeOcrUploadModal}
+      />
+    </div>
+  </ThemeModal>
+{/if}
+
+<!-- OCR 결과 확인 모달 -->
+<OCRResultModal
+  open={showOcrResultModal}
+  businessData={ocrBusinessData}
+  bankData={ocrBankData}
+  onClose={() => (showOcrResultModal = false)}
+  onConfirm={handleOcrConfirm}
+/>

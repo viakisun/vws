@@ -109,3 +109,34 @@ export function extractFilenameFromKey(key: string): string {
   const match = filenameWithTimestamp.match(/^\d+_(.+)$/)
   return match ? match[1] : filenameWithTimestamp
 }
+
+/**
+ * CRM 고객 문서용 S3 키 생성
+ * 형식: {companyCode}/customers/{customerId}/{documentType}.{ext}
+ */
+export function generateCrmDocumentKey(
+  companyCode: string,
+  customerId: string,
+  documentType: 'business-registration' | 'bank-account',
+  filename: string
+): string {
+  const ext = filename.split('.').pop()
+  return `${companyCode}/customers/${customerId}/${documentType}.${ext}`
+}
+
+/**
+ * CRM 문서용 업로드 Presigned URL 생성
+ */
+export async function generateCrmDocumentUploadUrl(
+  companyCode: string,
+  customerId: string,
+  documentType: 'business-registration' | 'bank-account',
+  filename: string,
+  contentType: string,
+  expiresIn: number = 900
+): Promise<{ url: string; key: string }> {
+  const key = generateCrmDocumentKey(companyCode, customerId, documentType, filename)
+  const url = await generatePresignedUploadUrl(key, contentType, expiresIn)
+
+  return { url, key }
+}

@@ -205,33 +205,46 @@ export const RESOURCE_REGISTRY: readonly ResourceDefinition[] = Object.freeze([
   },
 
   // ============================================
-  // SALES (영업관리)
+  // CRM (고객 관계 관리)
   // ============================================
   {
-    key: 'sales',
-    nameKo: '영업 관리',
-    nameEn: 'Sales Management',
-    route: Routes.SALES,
-    description: '영업 및 고객 관리',
+    key: 'crm',
+    nameKo: 'CRM',
+    nameEn: 'CRM',
+    route: Routes.CRM,
+    description: '고객 관계 관리',
     children: [
       {
-        key: 'sales.customers',
+        key: 'crm.customers',
         nameKo: '고객',
         nameEn: 'Customers',
       },
       {
-        key: 'sales.contracts',
+        key: 'crm.interactions',
+        nameKo: '상호작용',
+        nameEn: 'Interactions',
+      },
+      {
+        key: 'crm.opportunities',
+        nameKo: '영업 기회',
+        nameEn: 'Opportunities',
+      },
+      {
+        key: 'crm.contracts',
         nameKo: '계약',
         nameEn: 'Contracts',
       },
+      {
+        key: 'crm.transactions',
+        nameKo: '거래',
+        nameEn: 'Transactions',
+      },
+      {
+        key: 'crm.reports',
+        nameKo: '보고서',
+        nameEn: 'Reports',
+      },
     ],
-  },
-  {
-    key: 'crm',
-    nameKo: '고객관리',
-    nameEn: 'CRM',
-    route: Routes.CRM,
-    description: 'CRM 시스템',
   },
 
   // ============================================
@@ -331,9 +344,9 @@ export const RESOURCE_REGISTRY: readonly ResourceDefinition[] = Object.freeze([
         nameEn: 'Planner',
       },
       {
-        key: 'help.sales',
-        nameKo: '영업 관리',
-        nameEn: 'Sales',
+        key: 'help.crm',
+        nameKo: 'CRM',
+        nameEn: 'CRM',
       },
       {
         key: 'help.settings',

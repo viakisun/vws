@@ -73,7 +73,10 @@
       class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 sticky top-0"
       style:border="1px solid var(--color-border)"
     >
-      <div class="flex items-center gap-2 mb-4 pb-3 border-b" style:border-color="var(--color-border)">
+      <div
+        class="flex items-center gap-2 mb-4 pb-3 border-b"
+        style:border-color="var(--color-border)"
+      >
         <BookOpenIcon class="w-5 h-5 text-blue-600 dark:text-blue-400" />
         <h2 class="text-lg font-semibold" style:color="var(--color-text)">사용자 매뉴얼</h2>
       </div>
