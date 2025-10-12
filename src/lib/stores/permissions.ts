@@ -34,7 +34,7 @@ export enum RoleCode {
   HR_MANAGER = 'HR_MANAGER',
   ADMINISTRATOR = 'ADMINISTRATOR',
   RESEARCH_DIRECTOR = 'RESEARCH_DIRECTOR',
-  SALES = 'SALES',
+  CRM = 'CRM',
   RESEARCHER = 'RESEARCHER',
   EMPLOYEE = 'EMPLOYEE',
 }
@@ -242,7 +242,7 @@ export const ROLE_NAMES_KO: Record<RoleCode, string> = {
   [RoleCode.HR_MANAGER]: '인사관리자',
   [RoleCode.ADMINISTRATOR]: '행정원',
   [RoleCode.RESEARCH_DIRECTOR]: '연구소장',
-  [RoleCode.SALES]: '영업',
+  [RoleCode.CRM]: 'CRM',
   [RoleCode.RESEARCHER]: '연구원',
   [RoleCode.EMPLOYEE]: '일반직원',
 }
@@ -255,7 +255,7 @@ export const ROLE_DESCRIPTIONS: Record<RoleCode, string> = {
   [RoleCode.HR_MANAGER]: '급여 및 인사정보 접근 및 관리',
   [RoleCode.ADMINISTRATOR]: '일반 행정 업무 담당',
   [RoleCode.RESEARCH_DIRECTOR]: '연구개발 총괄',
-  [RoleCode.SALES]: '고객 및 영업 데이터 관리',
+  [RoleCode.CRM]: '고객 관계 관리',
   [RoleCode.RESEARCHER]: '연구개발 업무 수행',
   [RoleCode.EMPLOYEE]: '기본 사용자 권한',
 }

@@ -34,7 +34,6 @@ export const RESOURCE_ICONS: Record<string, ComponentType> = {
   hr: UsersIcon,
   project: BriefcaseIcon,
   planner: TargetIcon,
-  sales: BarChart3Icon,
   crm: BuildingIcon,
   reports: FileTextIcon,
   analytics: FlaskConicalIcon,

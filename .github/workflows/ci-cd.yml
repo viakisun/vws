@@ -21,6 +21,8 @@ name: Deploy and Cleanup
 # - GOOGLE_REDIRECT_URI: OAuth redirect URI
 # - ALLOWED_DOMAINS: Comma-separated allowed email domains
 # - ADMIN_EMAILS: Comma-separated admin email addresses
+# - OCR_ENGINE: OCR engine (openai | textract, default: openai)
+# - OPENAI_API_KEY: OpenAI API key (required if OCR_ENGINE=openai)
 # - SLACK_WEBHOOK_URL: Slack webhook for notifications (optional)
 # ============================================================================
 
@@ -522,11 +524,13 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_S3_BUCKET_NAME: ${{ secrets.AWS_S3_BUCKET_NAME }}
           AWS_S3_REGION: ${{ secrets.AWS_S3_REGION }}
+          OCR_ENGINE: ${{ secrets.OCR_ENGINE }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
-          envs: DATABASE_URL,JWT_SECRET,GOOGLE_CLIENT_ID,GOOGLE_CLIENT_SECRET,GOOGLE_REDIRECT_URI,ALLOWED_DOMAINS,ADMIN_EMAILS,AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY,AWS_S3_BUCKET_NAME,AWS_S3_REGION
+          envs: DATABASE_URL,JWT_SECRET,GOOGLE_CLIENT_ID,GOOGLE_CLIENT_SECRET,GOOGLE_REDIRECT_URI,ALLOWED_DOMAINS,ADMIN_EMAILS,AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY,AWS_S3_BUCKET_NAME,AWS_S3_REGION,OCR_ENGINE,OPENAI_API_KEY
           script: |
             echo "🔐 Logging in to ECR..."
             aws ecr get-login-password --region ap-northeast-2 | \
@@ -557,6 +561,8 @@ jobs:
               -e AWS_S3_BUCKET_NAME="${AWS_S3_BUCKET_NAME}" \
               -e AWS_S3_REGION="${AWS_S3_REGION}" \
               -e AWS_REGION="${AWS_S3_REGION}" \
+              -e OCR_ENGINE="${OCR_ENGINE:-openai}" \
+              -e OPENAI_API_KEY="${OPENAI_API_KEY}" \
               -e MAX_FILE_SIZE_MB=100 \
               -e ALLOWED_FILE_TYPES=".pdf,.png,.jpg,.jpeg,.xlsx,.xls,.docx,.doc,.hwp" \
               ${{ steps.login-ecr.outputs.registry }}/vws-app:latest

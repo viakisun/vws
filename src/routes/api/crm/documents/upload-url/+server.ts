@@ -1,4 +1,5 @@
-import { verifyToken } from '$lib/auth/middleware'
+import { env } from '$env/dynamic/private'
+import { UserService } from '$lib/auth/user-service'
 import { generateCrmDocumentUploadUrl } from '$lib/services/s3/s3-service'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
@@ -10,12 +11,14 @@ import type { RequestHandler } from './$types'
 export const POST: RequestHandler = async ({ request, cookies }) => {
   try {
     // 인증 확인
-    const token = cookies.get('token')
+    const token = cookies.get('auth_token')
     if (!token) {
       return json({ error: '인증이 필요합니다' }, { status: 401 })
     }
 
-    const user = await verifyToken(token)
+    const userService = UserService.getInstance()
+    const payload = userService.verifyToken(token)
+    const user = await userService.getUserById(payload.userId)
     if (!user) {
       return json({ error: '유효하지 않은 토큰입니다' }, { status: 401 })
     }
@@ -44,10 +47,16 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
       contentType,
     )
 
+    // 최종 S3 URL 생성 (서버에서 생성)
+    const bucketName = env.AWS_S3_BUCKET_NAME
+    const region = env.AWS_S3_REGION || 'ap-northeast-2'
+    const finalUrl = `https://${bucketName}.s3.${region}.amazonaws.com/${key}`
+
     return json({
       success: true,
-      uploadUrl: url,
-      key,
+      url, // Presigned URL (업로드용)
+      key, // S3 키
+      finalUrl, // 최종 접근 URL (DB 저장용)
     })
   } catch (error) {
     console.error('Document upload URL API error:', error)

@@ -68,9 +68,6 @@ export enum Routes {
   PLANNER_FORMATION_DETAIL = '/planner/formations/:id',
   PLANNER_MILESTONES = '/planner/milestones',
 
-  // 영업관리
-  SALES = '/sales',
-
   // 고객관리
   CRM = '/crm',
 

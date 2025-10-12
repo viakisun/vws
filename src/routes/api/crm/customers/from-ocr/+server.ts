@@ -1,5 +1,5 @@
-import { verifyToken } from '$lib/auth/middleware'
-import { getPool } from '$lib/database/connection'
+import { UserService } from '$lib/auth/user-service'
+import { query } from '$lib/database/connection'
 import type { BankAccountData, BusinessRegistrationData } from '$lib/services/ocr'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
@@ -9,15 +9,16 @@ import type { RequestHandler } from './$types'
  * POST: OCR 추출 데이터를 받아 고객 생성
  */
 export const POST: RequestHandler = async ({ request, cookies }) => {
-  const pool = getPool()
   try {
     // 인증 확인
-    const token = cookies.get('token')
+    const token = cookies.get('auth_token')
     if (!token) {
       return json({ error: '인증이 필요합니다' }, { status: 401 })
     }
 
-    const user = await verifyToken(token)
+    const userService = UserService.getInstance()
+    const payload = userService.verifyToken(token)
+    const user = await userService.getUserById(payload.userId)
     if (!user) {
       return json({ error: '유효하지 않은 토큰입니다' }, { status: 401 })
     }
@@ -43,11 +44,11 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
     // 사업자번호 중복 체크
     if (businessData.businessNumber) {
       const checkQuery = `
-        SELECT id FROM sales_customers 
+        SELECT id FROM crm_customers 
         WHERE business_number = $1 
         AND business_number != '000-00-00000'
       `
-      const checkResult = await pool.query(checkQuery, [businessData.businessNumber])
+      const checkResult = await query(checkQuery, [businessData.businessNumber])
 
       if (checkResult.rows.length > 0) {
         return json(
@@ -62,7 +63,7 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 
     // 고객 생성
     const insertQuery = `
-      INSERT INTO sales_customers (
+      INSERT INTO crm_customers (
         name,
         type,
         business_number,
@@ -72,11 +73,10 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
         address,
         industry,
         representative_name,
-        business_address,
+        establishment_date,
+        corporation_status,
         business_type,
         business_category,
-        establishment_date,
-        is_corporation,
         bank_name,
         account_number,
         account_holder,
@@ -87,9 +87,9 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
         status
       ) VALUES (
         $1, $2, $3, $4, $5, $6, $7, $8, $9, $10,
-        $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22
+        $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21
       )
-      RETURNING id, name, business_number, created_at
+      RETURNING id, name, business_number, created_at::text
     `
 
     const values = [
@@ -102,11 +102,10 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
       businessData.businessAddress, // address
       businessData.businessType, // industry
       businessData.representativeName, // representative_name
-      businessData.businessAddress, // business_address
+      businessData.establishmentDate, // establishment_date
+      businessData.isCorporation, // corporation_status
       businessData.businessType, // business_type
       businessData.businessCategory, // business_category
-      businessData.establishmentDate, // establishment_date
-      businessData.isCorporation, // is_corporation
       bankData?.bankName, // bank_name
       bankData?.accountNumber, // account_number
       bankData?.accountHolder, // account_holder
@@ -117,7 +116,7 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
       'active', // status
     ]
 
-    const result = await pool.query(insertQuery, values)
+    const result = await query(insertQuery, values)
     const newCustomer = result.rows[0]
 
     return json({

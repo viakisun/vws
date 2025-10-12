@@ -22,6 +22,9 @@ FROM node:20-alpine AS runtime
 WORKDIR /app
 ENV NODE_ENV=production
 
+# Install system dependencies for PDF processing
+RUN apk add --no-cache poppler-utils
+
 # Install pnpm
 RUN npm install -g pnpm
 

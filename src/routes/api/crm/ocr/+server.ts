@@ -1,9 +1,9 @@
-import { verifyToken } from '$lib/auth/middleware'
+import { UserService } from '$lib/auth/user-service'
 import {
-  processBankAccount,
-  processBusinessRegistration,
+  OCRService,
   type BankAccountData,
   type BusinessRegistrationData,
+  type OCREngine,
 } from '$lib/services/ocr'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
@@ -11,19 +11,37 @@ import type { RequestHandler } from './$types'
 /**
  * OCR 처리 API
  * POST: 파일 업로드하여 OCR 실행
+ * Query parameters:
+ *  - engine: OCR 엔진 선택 (openai | textract), 기본값: openai
  */
-export const POST: RequestHandler = async ({ request, cookies }) => {
+export const POST: RequestHandler = async ({ request, cookies, url }) => {
   try {
     // 인증 확인
-    const token = cookies.get('token')
+    const token = cookies.get('auth_token')
+    console.log('[OCR API] Token exists:', !!token)
+
     if (!token) {
+      console.log('[OCR API] No token found in cookies')
       return json({ error: '인증이 필요합니다' }, { status: 401 })
     }
 
-    const user = await verifyToken(token)
+    const userService = UserService.getInstance()
+    const payload = userService.verifyToken(token)
+    const user = await userService.getUserById(payload.userId)
+    console.log('[OCR API] User verified:', !!user, user?.id)
+
     if (!user) {
+      console.log('[OCR API] Token verification failed')
       return json({ error: '유효하지 않은 토큰입니다' }, { status: 401 })
     }
+
+    // OCR 엔진 선택 (선택 사항)
+    const engineParam = url.searchParams.get('engine')?.toLowerCase()
+    const engine: OCREngine =
+      engineParam === 'textract' || engineParam === 'openai' ? engineParam : 'openai'
+
+    // OCR 서비스 인스턴스 생성 (선택한 엔진으로)
+    const ocrService = new OCRService(engine)
 
     // FormData에서 파일 및 문서 타입 가져오기
     const formData = await request.formData()
@@ -61,14 +79,15 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
     let result: BusinessRegistrationData | BankAccountData
 
     if (documentType === 'business-registration') {
-      result = await processBusinessRegistration(fileBuffer, file.type)
+      result = await ocrService.processBusinessRegistration(fileBuffer, file.type)
     } else {
-      result = await processBankAccount(fileBuffer, file.type)
+      result = await ocrService.processBankAccount(fileBuffer, file.type)
     }
 
     return json({
       success: true,
       documentType,
+      engine: ocrService.getCurrentEngine(),
       data: result,
     })
   } catch (error) {

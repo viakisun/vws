@@ -82,6 +82,9 @@
     error = null
 
     try {
+      console.log('[OCR Client] Checking cookies:', document.cookie)
+      console.log('[OCR Client] Processing business registration:', file.name)
+
       const formData = new FormData()
       formData.append('file', file)
       formData.append('documentType', 'business-registration')
@@ -91,6 +94,8 @@
         body: formData,
         credentials: 'include',
       })
+
+      console.log('[OCR Client] Response status:', response.status)
 
       if (!response.ok) {
         const errorData = await response.json()

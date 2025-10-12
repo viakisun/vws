@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { uploadCrmDocument } from '$lib/services/s3/common-file-upload.service'
+  import { pushToast } from '$lib/stores/toasts'
   import type { CRMData } from '$lib/types/crm'
   import { logger } from '$lib/utils/logger'
 
@@ -21,7 +23,6 @@
   import {
     BarChart3Icon,
     BuildingIcon,
-    CalendarIcon,
     EditIcon,
     EyeIcon,
     FileTextIcon,
@@ -42,92 +43,11 @@
 
   // Real CRM data from API
   const crmData = $state<CRMData>({
-    customers: [
-      {
-        id: 'customer-1',
-        name: 'ABC 테크놀로지',
-        contact: '김영희',
-        email: 'kim@abctech.com',
-        phone: '02-1234-5678',
-        industry: 'IT/소프트웨어',
-        status: 'active',
-        value: 50000000,
-        lastContact: '2024-01-20',
-        createdAt: '2024-01-15',
-        notes: '스마트팩토리 솔루션 고객',
-      },
-      {
-        id: 'customer-2',
-        name: 'XYZ 제조',
-        contact: '박민수',
-        email: 'park@xyz.com',
-        phone: '02-9876-5432',
-        industry: '제조업',
-        status: 'active',
-        value: 30000000,
-        lastContact: '2024-01-18',
-        createdAt: '2024-01-10',
-        notes: '자동화 시스템 고객',
-      },
-    ],
-    interactions: [
-      {
-        id: 'interaction-1',
-        customerId: 'customer-1',
-        customerName: 'ABC 테크놀로지',
-        type: 'call',
-        subject: '스마트팩토리 솔루션 문의',
-        description: '새로운 기능에 대한 문의 및 상담',
-        date: '2024-01-20',
-        user: '김영희',
-        status: 'completed',
-      },
-      {
-        id: 'interaction-2',
-        customerId: 'customer-2',
-        customerName: 'XYZ 제조',
-        type: 'email',
-        subject: '자동화 시스템 업그레이드',
-        description: '기존 시스템 업그레이드 관련 이메일',
-        date: '2024-01-18',
-        user: '박민수',
-        status: 'completed',
-      },
-    ],
-    opportunities: [
-      {
-        id: 'opp-1',
-        title: 'ABC 테크놀로지 스마트팩토리',
-        customerId: 'customer-1',
-        customer_id: 'customer-1',
-        customerName: 'ABC 테크놀로지',
-        customer_name: 'ABC 테크놀로지',
-        value: 50000000,
-        stage: 'proposal',
-        probability: 70,
-        expectedClose: '2024-02-15',
-        expected_close_date: '2024-02-15',
-        status: 'open' as const,
-        owner: '김영희',
-        createdAt: '2024-01-15',
-      },
-      {
-        id: 'opp-2',
-        title: 'XYZ 제조 스마트팩토리',
-        customerId: 'customer-2',
-        customer_id: 'customer-2',
-        customerName: 'XYZ 제조',
-        customer_name: 'XYZ 제조',
-        value: 30000000,
-        stage: 'negotiation',
-        probability: 50,
-        expectedClose: '2024-02-28',
-        expected_close_date: '2024-02-28',
-        status: 'open' as const,
-        owner: '박민수',
-        createdAt: '2024-01-10',
-      },
-    ],
+    customers: [],
+    interactions: [],
+    opportunities: [],
+    contracts: [],
+    transactions: [],
   })
 
   let selectedCustomer = $state<any>(null)
@@ -154,6 +74,10 @@
   let ocrBankData = $state<BankAccountData | null>(null)
   let ocrBusinessFile = $state<File | null>(null)
   let ocrBankFile = $state<File | null>(null)
+
+  // 편집 모달에서 사용할 파일
+  let editBusinessFile = $state<File | null>(null)
+  let editBankFile = $state<File | null>(null)
 
   function openOcrUploadModal() {
     showOcrUploadModal = true
@@ -208,12 +132,196 @@
       showOcrResultModal = false
 
       // 성공 메시지 표시
-      alert('고객이 성공적으로 생성되었습니다!')
+      pushToast('고객이 성공적으로 생성되었습니다!', 'success')
 
-      // TODO: 고객 목록 새로고침
+      // 고객 목록 새로고침
+      await loadCustomers()
     } catch (error) {
       console.error('Customer creation error:', error)
-      alert(error instanceof Error ? error.message : '고객 생성 중 오류가 발생했습니다')
+      pushToast(
+        error instanceof Error ? error.message : '고객 생성 중 오류가 발생했습니다',
+        'error',
+      )
+    }
+  }
+
+  // 고객 목록 로드
+  async function loadCustomers() {
+    try {
+      const response = await fetch('/api/crm/customers', {
+        credentials: 'include',
+      })
+
+      if (!response.ok) {
+        throw new Error('고객 목록을 불러오는데 실패했습니다')
+      }
+
+      const data = await response.json()
+
+      crmData.customers = (data.data || []).map((customer: any) => ({
+        id: customer.id,
+        name: customer.name,
+        contact: customer.representative_name || customer.contact_person || '',
+        email: customer.contact_email || '',
+        phone: customer.contact_phone || '',
+        industry: customer.business_type || customer.industry || '',
+        status: customer.status || 'active',
+        value: 0,
+        lastContact: customer.updated_at?.split('T')[0] || '',
+        createdAt: customer.created_at?.split('T')[0] || '',
+        notes: customer.notes || '',
+        businessNumber: customer.business_number || '',
+        businessCategory: customer.business_category || '',
+        address: customer.address || '',
+        establishmentDate: customer.establishment_date || '',
+        corporationStatus: customer.corporation_status || false,
+        businessEntityType: customer.business_entity_type || 'individual',
+        bankName: customer.bank_name || '',
+        accountNumber: customer.account_number || '',
+        accountHolder: customer.account_holder || '',
+        ocrConfidence: customer.ocr_confidence || null,
+        businessRegistrationFileUrl: customer.business_registration_file_url || '',
+        bankAccountFileUrl: customer.bank_account_file_url || '',
+        businessRegistrationS3Key: customer.business_registration_s3_key || '',
+        bankAccountS3Key: customer.bank_account_s3_key || '',
+      }))
+
+      logger.log(`CRM 페이지 로드됨 - ${crmData.customers.length}명의 고객`)
+    } catch (error) {
+      console.error('Failed to load customers:', error)
+      pushToast('고객 목록을 불러오는데 실패했습니다', 'error')
+    }
+  }
+
+  // 고객 편집 (상세 정보 가져오기)
+  async function editCustomer(customerId: string) {
+    try {
+      const response = await fetch(`/api/crm/customers/${customerId}`, {
+        credentials: 'include',
+      })
+
+      if (!response.ok) {
+        throw new Error('고객 정보를 불러오는데 실패했습니다')
+      }
+
+      const result = await response.json()
+      const customerData = result.data || result
+
+      selectedCustomer = {
+        id: customerData.id,
+        name: customerData.name,
+        businessNumber: customerData.business_number,
+        contact: customerData.contact_person || customerData.representative_name,
+        phone: customerData.contact_phone || '',
+        email: customerData.contact_email || '',
+        industry: customerData.industry || customerData.business_type,
+        address: customerData.address || '',
+        status: customerData.status,
+        businessEntityType: customerData.business_entity_type || 'individual',
+        businessCategory: customerData.business_category || '',
+        establishmentDate: customerData.establishment_date || '',
+        bankName: customerData.bank_name || '',
+        accountNumber: customerData.account_number || '',
+        accountHolder: customerData.account_holder || '',
+        businessRegistrationFileUrl: customerData.business_registration_file_url || null,
+        bankAccountFileUrl: customerData.bank_account_file_url || null,
+        businessRegistrationS3Key: customerData.business_registration_s3_key || null,
+        bankAccountS3Key: customerData.bank_account_s3_key || null,
+        notes: customerData.notes || '',
+      }
+
+      editBusinessFile = null
+      editBankFile = null
+
+      showCreateModal = true
+    } catch (error) {
+      console.error('Edit customer error:', error)
+      pushToast(error instanceof Error ? error.message : '고객 정보를 불러올 수 없습니다', 'error')
+    }
+  }
+
+  // 고객 저장 (파일 업로드 포함)
+  async function handleCustomerSave(customer: any) {
+    try {
+      let businessRegistrationS3Key = customer.businessRegistrationS3Key
+      let bankAccountS3Key = customer.bankAccountS3Key
+
+      // 새로운 파일이 있으면 S3에 업로드
+      if (editBusinessFile) {
+        const result = await uploadCrmDocument(
+          '1001',
+          customer.id,
+          'business-registration',
+          editBusinessFile,
+        )
+
+        if (!result.success) {
+          throw new Error(result.error || '사업자등록증 업로드 실패')
+        }
+
+        businessRegistrationS3Key = result.s3Key
+        console.log('[CRM] Business registration uploaded:', result.s3Key)
+      }
+
+      if (editBankFile) {
+        const result = await uploadCrmDocument('1001', customer.id, 'bank-account', editBankFile)
+
+        if (!result.success) {
+          throw new Error(result.error || '통장사본 업로드 실패')
+        }
+
+        bankAccountS3Key = result.s3Key
+        console.log('[CRM] Bank account uploaded:', result.s3Key)
+      }
+
+      // DB 업데이트
+      const response = await fetch(`/api/crm/customers/${customer.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: customer.name,
+          business_number: customer.businessNumber,
+          type: 'customer',
+          contact_person: customer.contact,
+          contact_phone: customer.phone,
+          contact_email: customer.email,
+          address: customer.address,
+          industry: customer.industry,
+          status: customer.status,
+          business_entity_type: customer.businessEntityType,
+          representative_name: customer.contact,
+          business_type: customer.industry,
+          business_category: customer.businessCategory,
+          establishment_date: customer.establishmentDate,
+          bank_name: customer.bankName,
+          account_number: customer.accountNumber,
+          account_holder: customer.accountHolder,
+          business_registration_s3_key: businessRegistrationS3Key,
+          bank_account_s3_key: bankAccountS3Key,
+          notes: customer.notes,
+        }),
+        credentials: 'include',
+      })
+
+      if (!response.ok) {
+        throw new Error('고객 정보 저장 실패')
+      }
+
+      pushToast('고객 정보가 저장되었습니다', 'success')
+
+      editBusinessFile = null
+      editBankFile = null
+
+      showCreateModal = false
+      selectedCustomer = null
+
+      await loadCustomers()
+    } catch (error) {
+      console.error('Customer save error:', error)
+      pushToast(
+        error instanceof Error ? error.message : '고객 정보 저장 중 오류가 발생했습니다',
+        'error',
+      )
     }
   }
 
@@ -376,7 +484,7 @@
   }
 
   onMount(() => {
-    logger.log('CRM 페이지 로드됨')
+    loadCustomers()
   })
 </script>
 
@@ -517,43 +625,170 @@
                   style:background="var(--color-surface-elevated)"
                 >
                   <div class="flex-1">
-                    <div class="flex items-center gap-3 mb-2">
+                    <div class="flex items-center gap-3 mb-3">
                       <BuildingIcon size={20} style="color: var(--color-primary);" />
-                      <h4 class="font-medium" style:color="var(--color-text)">
+                      <h4 class="font-medium text-lg" style:color="var(--color-text)">
                         {customer.name}
                       </h4>
                       <ThemeBadge variant={getStatusColor(customer.status)}>
                         {getStatusLabel(customer.status)}
                       </ThemeBadge>
+                      {#if customer.businessEntityType}
+                        <span
+                          class="text-xs px-2 py-0.5 rounded-full"
+                          style:background="var(--color-surface)"
+                          style:color="var(--color-text-secondary)"
+                        >
+                          {customer.businessEntityType === 'individual'
+                            ? '개인'
+                            : customer.businessEntityType === 'corporation'
+                              ? '법인'
+                              : customer.businessEntityType === 'nonprofit'
+                                ? '비영리'
+                                : customer.businessEntityType === 'public'
+                                  ? '공공'
+                                  : customer.businessEntityType === 'cooperative'
+                                    ? '협동조합'
+                                    : customer.businessEntityType === 'foreign'
+                                      ? '외국기업'
+                                      : customer.businessEntityType}
+                        </span>
+                      {/if}
                     </div>
                     <div
-                      class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm"
+                      class="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm"
                       style:color="var(--color-text-secondary)"
                     >
-                      <div class="flex items-center gap-2">
-                        <UsersIcon size={16} />
-                        {customer.contact}
+                      <div class="flex flex-col gap-1">
+                        <span class="text-xs font-medium" style:color="var(--color-text-tertiary)">
+                          대표자
+                        </span>
+                        <div class="flex items-center gap-1.5">
+                          <UsersIcon size={14} />
+                          <span>{customer.contact || '-'}</span>
+                        </div>
                       </div>
-                      <div class="flex items-center gap-2">
-                        <MailIcon size={16} />
-                        {customer.email}
+                      <div class="flex flex-col gap-1">
+                        <span class="text-xs font-medium" style:color="var(--color-text-tertiary)">
+                          사업자번호
+                        </span>
+                        <div class="flex items-center gap-1.5">
+                          <FileTextIcon size={14} />
+                          <span>{customer.businessNumber || '-'}</span>
+                        </div>
                       </div>
-                      <div class="flex items-center gap-2">
-                        <CalendarIcon size={16} />
-                        {formatDate(customer.lastContact)}
+                      <div class="flex flex-col gap-1">
+                        <span class="text-xs font-medium" style:color="var(--color-text-tertiary)">
+                          연락처
+                        </span>
+                        <div class="flex items-center gap-1.5">
+                          <MailIcon size={14} />
+                          <span>{customer.phone || customer.email || '-'}</span>
+                        </div>
+                      </div>
+                      <div class="flex flex-col gap-1">
+                        <span class="text-xs font-medium" style:color="var(--color-text-tertiary)">
+                          업종/업태
+                        </span>
+                        <div class="flex items-center gap-1.5">
+                          <BuildingIcon size={14} />
+                          <span>
+                            {customer.industry || '-'}
+                            {#if customer.businessCategory}
+                              / {customer.businessCategory}
+                            {/if}
+                          </span>
+                        </div>
                       </div>
                     </div>
-                    {#if customer.notes}
-                      <p class="text-sm mt-2" style:color="var(--color-text-secondary)">
-                        {customer.notes}
-                      </p>
+                    {#if customer.address}
+                      <div class="mt-2 text-sm" style:color="var(--color-text-secondary)">
+                        <span class="text-xs font-medium" style:color="var(--color-text-tertiary)">
+                          주소:
+                        </span>
+                        {customer.address}
+                      </div>
                     {/if}
+                    {#if customer.bankName || customer.accountNumber}
+                      <div class="mt-2 text-sm" style:color="var(--color-text-secondary)">
+                        <span class="text-xs font-medium" style:color="var(--color-text-tertiary)">
+                          계좌:
+                        </span>
+                        {customer.bankName || ''}
+                        {customer.accountNumber || ''}
+                        {#if customer.accountHolder}
+                          ({customer.accountHolder})
+                        {/if}
+                      </div>
+                    {/if}
+                    <!-- 첨부 파일 (항상 표시) -->
+                    <div
+                      class="flex items-center gap-3 mt-3 pt-3 border-t"
+                      style:border-color="var(--color-border)"
+                    >
+                      <div class="text-xs font-medium" style:color="var(--color-text-secondary)">
+                        첨부파일:
+                      </div>
+                      <div class="flex items-center gap-2 flex-wrap">
+                        <!-- 사업자등록증 -->
+                        {#if customer.businessRegistrationS3Key}
+                          <a
+                            href="#"
+                            onclick={(e) => {
+                              e.preventDefault()
+                              // TODO: 다운로드 함수 호출
+                            }}
+                            class="flex items-center gap-1 px-2 py-1 text-xs rounded bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30"
+                            style:color="var(--color-primary)"
+                          >
+                            <FileTextIcon size={14} />
+                            사업자등록증 ✓
+                          </a>
+                        {:else}
+                          <span
+                            class="flex items-center gap-1 px-2 py-1 text-xs rounded bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400"
+                          >
+                            <FileTextIcon size={14} />
+                            사업자등록증 (비어있음)
+                          </span>
+                        {/if}
+
+                        <!-- 통장사본 -->
+                        {#if customer.bankAccountS3Key}
+                          <a
+                            href="#"
+                            onclick={(e) => {
+                              e.preventDefault()
+                              // TODO: 다운로드 함수 호출
+                            }}
+                            class="flex items-center gap-1 px-2 py-1 text-xs rounded bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30"
+                            style:color="var(--color-primary)"
+                          >
+                            <FileTextIcon size={14} />
+                            통장사본 ✓
+                          </a>
+                        {:else}
+                          <span
+                            class="flex items-center gap-1 px-2 py-1 text-xs rounded bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400"
+                          >
+                            <FileTextIcon size={14} />
+                            통장사본 (비어있음)
+                          </span>
+                        {/if}
+                      </div>
+                    </div>
                   </div>
                   <div class="flex items-center gap-2">
                     <ThemeButton variant="ghost" size="sm" onclick={() => viewCustomer(customer)}>
                       <EyeIcon size={16} />
                     </ThemeButton>
-                    <ThemeButton variant="ghost" size="sm">
+                    <ThemeButton
+                      variant="ghost"
+                      size="sm"
+                      onclick={async () => {
+                        await editCustomer(customer.id)
+                      }}
+                    >
                       <EditIcon size={16} />
                     </ThemeButton>
                     <ThemeButton
@@ -741,14 +976,19 @@
   </ThemeModal>
 {/if}
 
-<!-- 고객 생성 모달 -->
-{#if showCreateModal}
+<!-- 고객 편집 모달 -->
+{#if showCreateModal && selectedCustomer}
   <ThemeModal>
     <div class="flex justify-between items-center mb-4">
-      <h3 class="text-lg font-semibold" style:color="var(--color-text)">새 고객 추가</h3>
+      <h3 class="text-lg font-semibold" style:color="var(--color-text)">고객 정보 수정</h3>
       <button
         type="button"
-        onclick={() => (showCreateModal = false)}
+        onclick={() => {
+          showCreateModal = false
+          selectedCustomer = null
+          editBusinessFile = null
+          editBankFile = null
+        }}
         class="p-1 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700"
         style:color="var(--color-text-secondary)"
       >
@@ -756,24 +996,308 @@
       </button>
     </div>
     <div class="space-y-4">
-      <ThemeInput label="회사명" placeholder="회사명을 입력하세요" />
-      <ThemeInput label="담당자명" placeholder="담당자명을 입력하세요" />
-      <ThemeInput label="이메일" type="email" placeholder="이메일을 입력하세요" />
-      <ThemeInput label="전화번호" placeholder="전화번호를 입력하세요" />
-      <ThemeInput label="업종" placeholder="업종을 입력하세요" />
-      <ThemeInput label="고객 가치" type="number" placeholder="고객 가치를 입력하세요" />
-      <ThemeInput label="메모" placeholder="메모를 입력하세요" />
+      <ThemeInput
+        label="회사명"
+        placeholder="회사명을 입력하세요"
+        bind:value={selectedCustomer.name}
+      />
+      <ThemeInput
+        label="사업자번호"
+        placeholder="000-00-00000"
+        bind:value={selectedCustomer.businessNumber}
+      />
+      <ThemeInput
+        label="담당자명"
+        placeholder="담당자명을 입력하세요"
+        bind:value={selectedCustomer.contact}
+      />
+      <ThemeInput
+        label="전화번호"
+        placeholder="010-0000-0000"
+        bind:value={selectedCustomer.phone}
+      />
+      <ThemeInput
+        label="이메일"
+        type="email"
+        placeholder="email@example.com"
+        bind:value={selectedCustomer.email}
+      />
+      <ThemeInput
+        label="주소"
+        placeholder="주소를 입력하세요"
+        bind:value={selectedCustomer.address}
+      />
+      <ThemeInput
+        label="업종"
+        placeholder="업종을 입력하세요"
+        bind:value={selectedCustomer.industry}
+      />
+
+      <div>
+        <label class="block text-sm font-medium mb-1" style:color="var(--color-text)">
+          사업자 유형
+        </label>
+        <select
+          bind:value={selectedCustomer.businessEntityType}
+          class="w-full px-3 py-2 border rounded-md"
+          style:background="var(--color-surface)"
+          style:border-color="var(--color-border)"
+          style:color="var(--color-text)"
+        >
+          <option value="individual">개인사업자</option>
+          <option value="corporation">법인사업자</option>
+          <option value="nonprofit">비영리법인</option>
+          <option value="public">공공기관</option>
+          <option value="cooperative">협동조합</option>
+          <option value="foreign">외국기업</option>
+        </select>
+      </div>
+
+      <ThemeInput
+        label="업태"
+        placeholder="업태를 입력하세요"
+        bind:value={selectedCustomer.businessCategory}
+      />
+      <ThemeInput
+        label="설립일"
+        type="text"
+        placeholder="YYYY-MM-DD"
+        bind:value={selectedCustomer.establishmentDate}
+      />
+
+      <div class="grid grid-cols-3 gap-4">
+        <ThemeInput label="은행명" placeholder="은행명" bind:value={selectedCustomer.bankName} />
+        <ThemeInput
+          label="계좌번호"
+          placeholder="계좌번호"
+          bind:value={selectedCustomer.accountNumber}
+        />
+        <ThemeInput
+          label="예금주"
+          placeholder="예금주"
+          bind:value={selectedCustomer.accountHolder}
+        />
+      </div>
+
+      <!-- 파일 업로드 섹션 -->
+      <div class="border-t pt-4" style:border-color="var(--color-border)">
+        <div class="flex items-center justify-between mb-3">
+          <label class="block text-sm font-medium" style:color="var(--color-text)">
+            첨부 파일
+          </label>
+          {#if !selectedCustomer.businessRegistrationS3Key && !selectedCustomer.bankAccountS3Key}
+            <span
+              class="text-xs px-2 py-1 rounded-md bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300"
+            >
+              📎 첨부 파일 없음
+            </span>
+          {:else if !selectedCustomer.businessRegistrationS3Key || !selectedCustomer.bankAccountS3Key}
+            <span
+              class="text-xs px-2 py-1 rounded-md bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300"
+            >
+              ⚠️ 일부 파일 누락
+            </span>
+          {:else}
+            <span
+              class="text-xs px-2 py-1 rounded-md bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300"
+            >
+              ✓ 모든 파일 업로드됨
+            </span>
+          {/if}
+        </div>
+
+        <div class="space-y-3">
+          <!-- 사업자등록증 -->
+          <div
+            class="p-4 border rounded-lg"
+            style:border-color="var(--color-border)"
+            style:background="var(--color-surface)"
+          >
+            <div class="flex items-center justify-between mb-2">
+              <div class="flex items-center gap-2">
+                <FileTextIcon size={16} style="color: var(--color-primary);" />
+                <span class="text-sm font-medium" style:color="var(--color-text)">
+                  사업자등록증
+                </span>
+                {#if !selectedCustomer.businessRegistrationS3Key}
+                  <span
+                    class="text-xs px-1.5 py-0.5 rounded bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400"
+                  >
+                    비어있음
+                  </span>
+                {:else}
+                  <span
+                    class="text-xs px-1.5 py-0.5 rounded bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300"
+                  >
+                    ✓ 업로드됨
+                  </span>
+                {/if}
+              </div>
+              {#if selectedCustomer.businessRegistrationS3Key}
+                <div class="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onclick={() => {
+                      // TODO: 다운로드 함수 호출
+                    }}
+                    class="text-xs px-2 py-1 rounded hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                    style:color="var(--color-primary)"
+                  >
+                    다운로드
+                  </button>
+                  <button
+                    type="button"
+                    onclick={() => {
+                      selectedCustomer.businessRegistrationS3Key = null
+                      editBusinessFile = null
+                    }}
+                    class="text-xs px-2 py-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600"
+                  >
+                    삭제
+                  </button>
+                </div>
+              {/if}
+            </div>
+
+            {#if !selectedCustomer.businessRegistrationS3Key}
+              <input
+                type="file"
+                accept="application/pdf,image/jpeg,image/jpg,image/png"
+                onchange={(e) => {
+                  const file = e.currentTarget.files?.[0]
+                  if (file) {
+                    editBusinessFile = file
+                  }
+                }}
+                class="w-full text-sm"
+                style:color="var(--color-text)"
+              />
+              <p class="text-xs mt-1" style:color="var(--color-text-secondary)">
+                PDF, JPG, PNG (최대 5MB)
+              </p>
+            {:else}
+              <p class="text-xs" style:color="var(--color-text-secondary)">파일 업로드됨 ✓</p>
+            {/if}
+
+            {#if editBusinessFile}
+              <p class="text-xs mt-2 text-green-600 dark:text-green-400">
+                📎 {editBusinessFile.name} ({(editBusinessFile.size / 1024).toFixed(1)} KB)
+              </p>
+            {/if}
+          </div>
+
+          <!-- 통장사본 -->
+          <div
+            class="p-4 border rounded-lg"
+            style:border-color="var(--color-border)"
+            style:background="var(--color-surface)"
+          >
+            <div class="flex items-center justify-between mb-2">
+              <div class="flex items-center gap-2">
+                <FileTextIcon size={16} style="color: var(--color-primary);" />
+                <span class="text-sm font-medium" style:color="var(--color-text)">통장사본</span>
+                {#if !selectedCustomer.bankAccountS3Key}
+                  <span
+                    class="text-xs px-1.5 py-0.5 rounded bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400"
+                  >
+                    비어있음
+                  </span>
+                {:else}
+                  <span
+                    class="text-xs px-1.5 py-0.5 rounded bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300"
+                  >
+                    ✓ 업로드됨
+                  </span>
+                {/if}
+              </div>
+              {#if selectedCustomer.bankAccountS3Key}
+                <div class="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onclick={() => {
+                      // TODO: 다운로드 함수 호출
+                    }}
+                    class="text-xs px-2 py-1 rounded hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                    style:color="var(--color-primary)"
+                  >
+                    다운로드
+                  </button>
+                  <button
+                    type="button"
+                    onclick={() => {
+                      selectedCustomer.bankAccountS3Key = null
+                      editBankFile = null
+                    }}
+                    class="text-xs px-2 py-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600"
+                  >
+                    삭제
+                  </button>
+                </div>
+              {/if}
+            </div>
+
+            {#if !selectedCustomer.bankAccountS3Key}
+              <input
+                type="file"
+                accept="application/pdf,image/jpeg,image/jpg,image/png"
+                onchange={(e) => {
+                  const file = e.currentTarget.files?.[0]
+                  if (file) {
+                    editBankFile = file
+                  }
+                }}
+                class="w-full text-sm"
+                style:color="var(--color-text)"
+              />
+              <p class="text-xs mt-1" style:color="var(--color-text-secondary)">
+                PDF, JPG, PNG (최대 5MB)
+              </p>
+            {:else}
+              <p class="text-xs" style:color="var(--color-text-secondary)">파일 업로드됨 ✓</p>
+            {/if}
+
+            {#if editBankFile}
+              <p class="text-xs mt-2 text-green-600 dark:text-green-400">
+                📎 {editBankFile.name} ({(editBankFile.size / 1024).toFixed(1)} KB)
+              </p>
+            {/if}
+          </div>
+        </div>
+      </div>
+
+      <ThemeInput
+        label="메모"
+        placeholder="메모를 입력하세요"
+        bind:value={selectedCustomer.notes}
+      />
     </div>
     <div class="flex justify-end gap-2 mt-6">
-      <ThemeButton variant="secondary" onclick={() => (showCreateModal = false)}>취소</ThemeButton>
-      <ThemeButton variant="primary">저장</ThemeButton>
+      <ThemeButton
+        variant="secondary"
+        onclick={() => {
+          showCreateModal = false
+          selectedCustomer = null
+          editBusinessFile = null
+          editBankFile = null
+        }}>취소</ThemeButton
+      >
+      <ThemeButton
+        variant="primary"
+        onclick={async () => {
+          if (selectedCustomer) {
+            await handleCustomerSave(selectedCustomer)
+          }
+        }}
+      >
+        저장
+      </ThemeButton>
     </div>
   </ThemeModal>
 {/if}
 
 <!-- OCR 업로드 모달 -->
 {#if showOcrUploadModal}
-  <ThemeModal open={showOcrUploadModal} onClose={closeOcrUploadModal} maxWidth="3xl">
+  <ThemeModal open={showOcrUploadModal} onclose={closeOcrUploadModal}>
     <div class="p-6">
       <h2 class="text-2xl font-bold text-gray-900 mb-6">문서로 고객 추가</h2>
       <DocumentUploadWithOCR onComplete={handleOcrUploadComplete} onCancel={closeOcrUploadModal} />

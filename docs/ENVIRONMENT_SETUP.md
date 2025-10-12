@@ -229,7 +229,128 @@ MAX_FILE_SIZE_MB=100
 ALLOWED_FILE_TYPES=.pdf,.png,.jpg,.jpeg,.xlsx,.xls,.docx,.doc,.hwp
 ```
 
-### 6. JWT 시크릿 설정
+### 6. OCR 엔진 설정 (CRM 문서 인식)
+
+VWS는 CRM 고객 등록을 위한 OCR 기능을 제공합니다. 두 가지 OCR 엔진을 선택할 수 있습니다.
+
+#### 6.1. 지원되는 OCR 엔진
+
+**1. OpenAI GPT-4 Vision (권장, 기본값)**
+
+- **장점**:
+  - 한국어 문서 인식 정확도 매우 우수
+  - JSON Schema Strict Mode로 구조화된 데이터 추출
+  - 사업자등록증, 통장사본 인식에 최적화
+- **단점**:
+  - 이미지당 약 $0.01-0.02 비용
+  - OpenAI API 키 필요
+- **사용 예**: 정확한 고객 정보 추출이 중요한 경우
+
+**2. AWS Textract**
+
+- **장점**:
+  - AWS 프리 티어 제공 (월 1,000페이지 무료)
+  - AWS 통합 환경에서 사용 편리
+  - 비용 효율적
+- **단점**:
+  - 한국어 인식 정확도가 OpenAI보다 낮음
+  - 추가 파싱 로직 필요
+- **사용 예**: 대량 문서 처리, 비용 절감이 중요한 경우
+
+#### 6.2. OpenAI Vision 설정 (권장)
+
+`.env` 파일에 추가:
+
+```bash
+# OCR 엔진 선택 (기본값: openai)
+OCR_ENGINE=openai
+
+# OpenAI API 키 (필수)
+OPENAI_API_KEY=sk-your-openai-api-key-here
+```
+
+**OpenAI API 키 발급 방법**:
+
+1. [OpenAI Platform](https://platform.openai.com/) 접속
+2. 계정 생성 또는 로그인
+3. "API keys" 페이지 이동
+4. "Create new secret key" 클릭
+5. 키 이름 입력 (예: "VWS OCR") 및 생성
+6. 생성된 키를 복사하여 `.env` 저장 (다시 확인 불가!)
+
+#### 6.3. AWS Textract 설정 (선택 사항)
+
+```bash
+# OCR 엔진 선택
+OCR_ENGINE=textract
+
+# AWS 자격 증명 (S3 설정과 동일)
+AWS_ACCESS_KEY_ID=AKIA...
+AWS_SECRET_ACCESS_KEY=...
+AWS_REGION=ap-northeast-2
+```
+
+**AWS Textract IAM 권한 추가**:
+
+기존 S3 IAM 사용자에 다음 권한 추가:
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": ["textract:DetectDocumentText", "textract:AnalyzeDocument"],
+      "Resource": "*"
+    }
+  ]
+}
+```
+
+#### 6.4. OCR 엔진 전환
+
+런타임에 OCR 엔진을 전환할 수 있습니다:
+
+- **환경 변수로 전환**: `.env` 파일의 `OCR_ENGINE` 변경 후 서버 재시작
+- **API 파라미터로 전환**: 클라이언트에서 엔진 선택 가능
+
+  ```typescript
+  // OpenAI 사용
+  fetch('/api/crm/ocr?engine=openai', ...)
+
+  // Textract 사용
+  fetch('/api/crm/ocr?engine=textract', ...)
+  ```
+
+#### 6.5. 비용 및 성능 비교
+
+| 항목            | OpenAI GPT-4 Vision | AWS Textract              |
+| --------------- | ------------------- | ------------------------- |
+| 한국어 정확도   | ★★★★★               | ★★★☆☆                     |
+| 비용 (이미지당) | $0.01-0.02          | $0.0015 (프리 티어: 무료) |
+| 처리 속도       | 5-10초              | 2-5초                     |
+| 구조화된 추출   | JSON Schema         | Text + 파싱               |
+| 추천 사용처     | 정확도 중요         | 대량 처리, 비용 절감      |
+
+#### 6.6. 추출 가능한 필드
+
+**사업자등록증**:
+
+- 상호/법인명
+- 사업자등록번호 (000-00-00000)
+- 대표자명
+- 개업일자
+- 사업장 소재지
+- 업태/종목
+- 법인 여부
+
+**통장사본**:
+
+- 은행명
+- 계좌번호
+- 예금주명
+
+### 7. JWT 시크릿 설정
 
 세션 관리를 위한 JWT 시크릿 생성:
 
@@ -244,7 +365,7 @@ node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
 JWT_SECRET=your-generated-secret-here
 ```
 
-### 7. 개발 서버 실행
+### 8. 개발 서버 실행
 
 모든 설정이 완료되면 개발 서버를 실행합니다:
 
@@ -296,6 +417,12 @@ npm run dev
 - `AWS_SECRET_ACCESS_KEY`
 - `AWS_S3_BUCKET_NAME`
 - `AWS_S3_REGION`
+
+**OCR (선택 사항)**:
+
+- `OCR_ENGINE` (기본값: `openai`)
+- `OPENAI_API_KEY` (OpenAI Vision 사용 시 필수)
+- AWS Textract 사용 시 위 AWS 자격 증명 재사용
 
 **파일 업로드**:
 
@@ -390,6 +517,7 @@ proxy_read_timeout 300s;
 | `AWS_SECRET_ACCESS_KEY` | AWS 시크릿 키              | `...`                                         |
 | `AWS_S3_BUCKET_NAME`    | S3 버킷 이름               | `workstream-via`                              |
 | `AWS_S3_REGION`         | S3 리전                    | `ap-northeast-2`                              |
+| `OPENAI_API_KEY`        | OpenAI API 키 (OCR용)      | `sk-...` (선택, OCR 엔진이 OpenAI인 경우)     |
 
 ### 선택 환경변수 (기본값 있음)
 
@@ -398,6 +526,7 @@ proxy_read_timeout 300s;
 | `NODE_ENV`           | 환경 모드           | `development`                                     |
 | `MAX_FILE_SIZE_MB`   | 최대 파일 크기 (MB) | `100`                                             |
 | `ALLOWED_FILE_TYPES` | 허용 파일 형식      | `.pdf,.png,.jpg,.jpeg,.xlsx,.xls,.docx,.doc,.hwp` |
+| `OCR_ENGINE`         | OCR 엔진 선택       | `openai` (`openai` \| `textract`)                 |
 | `LOG_LEVEL`          | 로그 레벨           | `info`                                            |
 
 ---

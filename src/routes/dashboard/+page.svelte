@@ -155,9 +155,9 @@
       roles: ['ADMIN', 'MANAGEMENT'],
     },
     {
-      title: '영업관리',
-      description: '고객 및 영업 기회 관리',
-      href: '/sales',
+      title: 'CRM',
+      description: '고객 관계 관리',
+      href: '/crm',
       icon: TrendingUpIcon,
       roles: ['ADMIN', 'SALES', 'MANAGEMENT'],
     },

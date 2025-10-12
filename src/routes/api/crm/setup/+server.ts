@@ -1,4 +1,4 @@
-import { verifyToken } from '$lib/auth/middleware'
+import { UserService } from '$lib/auth/user-service'
 import { query } from '$lib/database/connection'
 import { logger } from '$lib/utils/logger'
 import { json } from '@sveltejs/kit'
@@ -210,7 +210,24 @@ async function createSampleData() {
 }
 
 // CRM 시스템 초기화 (샘플 데이터만)
-export const POST: RequestHandler = async () => {
+export const POST: RequestHandler = async ({ cookies }) => {
+  // 인증 확인
+  const token = cookies.get('auth_token')
+  if (!token) {
+    return json({ error: '인증이 필요합니다' }, { status: 401 })
+  }
+
+  const userService = UserService.getInstance()
+  try {
+    const payload = userService.verifyToken(token)
+    const user = await userService.getUserById(payload.userId)
+    if (!user) {
+      return json({ error: '유효하지 않은 토큰입니다' }, { status: 401 })
+    }
+  } catch (authError) {
+    return json({ error: '유효하지 않은 토큰입니다' }, { status: 401 })
+  }
+
   try {
     // 샘플 데이터 생성
     await createSampleData()

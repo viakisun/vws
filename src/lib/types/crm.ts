@@ -12,6 +12,20 @@ export interface Customer {
   lastContact: string
   createdAt: string
   notes?: string
+  businessNumber?: string
+  businessCategory?: string
+  address?: string
+  establishmentDate?: string
+  corporationStatus?: boolean
+  businessEntityType?: string
+  bankName?: string
+  accountNumber?: string
+  accountHolder?: string
+  ocrConfidence?: number | null
+  businessRegistrationFileUrl?: string
+  bankAccountFileUrl?: string
+  businessRegistrationS3Key?: string
+  bankAccountS3Key?: string
 }
 
 export interface Opportunity {
@@ -75,4 +89,6 @@ export interface CRMData {
   customers: Customer[]
   interactions: Interaction[]
   opportunities: OpportunityDetails[]
+  contracts: Contract[]
+  transactions: any[]
 }
