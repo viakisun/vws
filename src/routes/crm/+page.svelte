@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { uploadCrmDocument } from '$lib/services/s3/s3-crm.service'
+  import { downloadCrmDocument, uploadCrmDocument } from '$lib/services/s3/s3-crm.service'
   import { pushToast } from '$lib/stores/toasts'
   import type { CRMData } from '$lib/types/crm'
   import { logger } from '$lib/utils/logger'
@@ -312,6 +312,23 @@
       console.error('Customer save error:', error)
       pushToast(
         error instanceof Error ? error.message : '고객 정보 저장 중 오류가 발생했습니다',
+        'error',
+      )
+    }
+  }
+
+  // 문서 다운로드
+  async function handleDownloadDocument(
+    customerId: string,
+    documentType: 'business-registration' | 'bank-account',
+  ) {
+    try {
+      await downloadCrmDocument(customerId, documentType)
+      pushToast('문서 다운로드를 시작합니다', 'success')
+    } catch (error) {
+      logger.error('Document download error:', error)
+      pushToast(
+        error instanceof Error ? error.message : '문서 다운로드 중 오류가 발생했습니다',
         'error',
       )
     }
@@ -724,18 +741,16 @@
                       <div class="flex items-center gap-2 flex-wrap">
                         <!-- 사업자등록증 -->
                         {#if customer.businessRegistrationS3Key}
-                          <a
-                            href="#"
-                            onclick={(e) => {
-                              e.preventDefault()
-                              // TODO: 다운로드 함수 호출
-                            }}
-                            class="flex items-center gap-1 px-2 py-1 text-xs rounded bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30"
+                          <button
+                            type="button"
+                            onclick={() =>
+                              handleDownloadDocument(customer.id, 'business-registration')}
+                            class="flex items-center gap-1 px-2 py-1 text-xs rounded bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors cursor-pointer"
                             style:color="var(--color-primary)"
                           >
                             <FileTextIcon size={14} />
                             사업자등록증 ✓
-                          </a>
+                          </button>
                         {:else}
                           <span
                             class="flex items-center gap-1 px-2 py-1 text-xs rounded bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400"
@@ -747,18 +762,15 @@
 
                         <!-- 통장사본 -->
                         {#if customer.bankAccountS3Key}
-                          <a
-                            href="#"
-                            onclick={(e) => {
-                              e.preventDefault()
-                              // TODO: 다운로드 함수 호출
-                            }}
-                            class="flex items-center gap-1 px-2 py-1 text-xs rounded bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30"
+                          <button
+                            type="button"
+                            onclick={() => handleDownloadDocument(customer.id, 'bank-account')}
+                            class="flex items-center gap-1 px-2 py-1 text-xs rounded bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors cursor-pointer"
                             style:color="var(--color-primary)"
                           >
                             <FileTextIcon size={14} />
                             통장사본 ✓
-                          </a>
+                          </button>
                         {:else}
                           <span
                             class="flex items-center gap-1 px-2 py-1 text-xs rounded bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400"

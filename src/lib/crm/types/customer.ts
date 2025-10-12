@@ -17,6 +17,8 @@ export interface CRMCustomer {
   // OCR 관련 필드
   business_registration_file_url?: string
   bank_account_file_url?: string
+  business_registration_s3_key?: string
+  bank_account_s3_key?: string
   representative_name?: string
   establishment_date?: string
   corporation_status?: boolean

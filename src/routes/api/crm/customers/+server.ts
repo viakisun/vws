@@ -55,6 +55,7 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
       SELECT id, name, type, business_number, contact_person, contact_phone,
              contact_email, address, industry, payment_terms, status, notes,
              business_registration_file_url, bank_account_file_url,
+             business_registration_s3_key, bank_account_s3_key,
              representative_name, establishment_date, corporation_status,
              business_type, business_category, bank_name, account_number,
              account_holder, ocr_processed_at, ocr_confidence,
@@ -115,14 +116,16 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
         name, type, business_number, contact_person, contact_phone, 
         contact_email, address, industry, payment_terms, status, notes,
         business_registration_file_url, bank_account_file_url,
+        business_registration_s3_key, bank_account_s3_key,
         representative_name, establishment_date, corporation_status,
         business_type, business_category, bank_name, account_number,
         account_holder, ocr_processed_at, ocr_confidence
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25)
       RETURNING id, name, type, business_number, contact_person, contact_phone,
                 contact_email, address, industry, payment_terms, status, notes,
                 business_registration_file_url, bank_account_file_url,
+                business_registration_s3_key, bank_account_s3_key,
                 representative_name, establishment_date, corporation_status,
                 business_type, business_category, bank_name, account_number,
                 account_holder, ocr_processed_at, ocr_confidence,
@@ -142,6 +145,8 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
         data.notes || null,
         data.business_registration_file_url || null,
         data.bank_account_file_url || null,
+        data.business_registration_s3_key || null,
+        data.bank_account_s3_key || null,
         data.representative_name || null,
         data.establishment_date || null,
         data.corporation_status || null,
