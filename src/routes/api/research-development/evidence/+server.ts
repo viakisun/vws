@@ -153,9 +153,11 @@ export const GET: RequestHandler = async ({ url }) => {
 			         ei.due_date, ei.start_date, ei.end_date, ei.status, ei.progress,
 			         ei.employee_id, ei.project_member_id, ei.evidence_month,
 			         ei.vendor_id, ei.vendor_name, ei.item_detail, ei.tax_amount,
-			         ei.payment_date, ei.notes, ei.created_at, ei.updated_at,
+			         ei.payment_date, ei.notes, ei.customer_id, ei.created_at, ei.updated_at,
 			         ec.name, ec.code, e.first_name, e.last_name, pb.period_number,
-			         sc.name, sc.business_number
+			         sc.name, sc.business_number,
+			         c.name, c.business_number, c.representative_name, 
+			         c.business_registration_s3_key, c.bank_account_s3_key
 			ORDER BY ei.created_at DESC
 		`
 
