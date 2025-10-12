@@ -47,6 +47,7 @@ export async function createOpportunity(
   try {
     const response = await fetch('/api/crm/opportunities', {
       method: 'POST',
+      credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
     })

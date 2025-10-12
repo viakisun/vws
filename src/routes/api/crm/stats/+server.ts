@@ -6,7 +6,8 @@ import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
 
 // CRM 대시보드 통계
-export const GET: RequestHandler = async ({ url, cookies }) => {  // 인증 확인
+export const GET: RequestHandler = async ({ url, cookies }) => {
+  // 인증 확인
   const token = cookies.get('token')
   if (!token) {
     return json({ error: '인증이 필요합니다' }, { status: 401 })
@@ -16,7 +17,6 @@ export const GET: RequestHandler = async ({ url, cookies }) => {  // 인증 확�
   if (!user) {
     return json({ error: '유효하지 않은 토큰입니다' }, { status: 401 })
   }
-
 
   try {
     const period = url.searchParams.get('period') || 'month' // month, quarter, year

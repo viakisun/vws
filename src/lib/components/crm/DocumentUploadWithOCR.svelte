@@ -89,6 +89,7 @@
       const response = await fetch('/api/crm/ocr', {
         method: 'POST',
         body: formData,
+        credentials: 'include',
       })
 
       if (!response.ok) {
@@ -124,6 +125,7 @@
       const response = await fetch('/api/crm/ocr', {
         method: 'POST',
         body: formData,
+        credentials: 'include',
       })
 
       if (!response.ok) {

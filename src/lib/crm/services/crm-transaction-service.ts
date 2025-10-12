@@ -54,6 +54,7 @@ export async function createTransaction(
   try {
     const response = await fetch('/api/crm/transactions', {
       method: 'POST',
+      credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
     })

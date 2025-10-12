@@ -44,6 +44,7 @@ export async function createContract(data: ContractFormData): Promise<CRMApiResp
   try {
     const response = await fetch('/api/crm/contracts', {
       method: 'POST',
+      credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
     })

@@ -38,7 +38,7 @@
     X,
   } from '@lucide/svelte'
   import { onMount } from 'svelte'
-// Import CRM services
+  // Import CRM services
 
   // Real CRM data from API
   const crmData = $state<CRMData>({

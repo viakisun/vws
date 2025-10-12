@@ -74,6 +74,7 @@ export async function createCustomer(data: CustomerFormData): Promise<CRMApiResp
   try {
     const response = await fetch('/api/crm/customers', {
       method: 'POST',
+      credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
     })
@@ -93,6 +94,7 @@ export async function updateCustomer(
   try {
     const response = await fetch(`/api/crm/customers/${id}`, {
       method: 'PUT',
+      credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
     })
@@ -109,6 +111,7 @@ export async function deleteCustomer(id: string): Promise<CRMApiResponse<void>> 
   try {
     const response = await fetch(`/api/crm/customers/${id}`, {
       method: 'DELETE',
+      credentials: 'include',
     })
     const result = await response.json()
     return result
