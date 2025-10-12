@@ -1,4 +1,9 @@
 import { UserService } from '$lib/auth/user-service'
+import {
+  buildUpdateQuery,
+  mapCustomerData,
+  SELECT_QUERY,
+} from '$lib/crm/services/crm-customer-queries'
 import type { CRMApiResponse, CRMCustomer } from '$lib/crm/types'
 import { query } from '$lib/database/connection'
 import { logger } from '$lib/utils/logger'
@@ -23,18 +28,7 @@ export const GET: RequestHandler = async ({ params, cookies }) => {
   try {
     const { id } = params
 
-    const result = await query(
-      `SELECT id, name, type, business_number, contact_person, contact_phone,
-              contact_email, address, industry, payment_terms, status, notes,
-              business_registration_file_url, bank_account_file_url,
-              business_registration_s3_key, bank_account_s3_key,
-              representative_name, establishment_date, corporation_status,
-              business_type, business_category, bank_name, account_number,
-              account_holder, ocr_processed_at, ocr_confidence,
-              created_at::text as created_at, updated_at::text as updated_at
-       FROM crm_customers WHERE id = $1`,
-      [id],
-    )
+    const result = await query(`${SELECT_QUERY} WHERE id = $1`, [id])
 
     if (result.rows.length === 0) {
       const response: CRMApiResponse<null> = {
@@ -88,74 +82,9 @@ export const PUT: RequestHandler = async ({ params, request, cookies }) => {
       return json(response, { status: 400 })
     }
 
-    const result = await query(
-      `
-      UPDATE crm_customers SET
-        name = $1,
-        type = $2,
-        business_number = $3,
-        contact_person = $4,
-        contact_phone = $5,
-        contact_email = $6,
-        address = $7,
-        industry = $8,
-        payment_terms = $9,
-        status = $10,
-        notes = $11,
-        business_registration_file_url = $12,
-        bank_account_file_url = $13,
-        business_registration_s3_key = $14,
-        bank_account_s3_key = $15,
-        representative_name = $16,
-        establishment_date = $17,
-        corporation_status = $18,
-        business_type = $19,
-        business_category = $20,
-        bank_name = $21,
-        account_number = $22,
-        account_holder = $23,
-        ocr_processed_at = $24,
-        ocr_confidence = $25,
-        updated_at = NOW()
-      WHERE id = $26
-      RETURNING id, name, type, business_number, contact_person, contact_phone,
-                contact_email, address, industry, payment_terms, status, notes,
-                business_registration_file_url, bank_account_file_url,
-                business_registration_s3_key, bank_account_s3_key,
-                representative_name, establishment_date, corporation_status,
-                business_type, business_category, bank_name, account_number,
-                account_holder, ocr_processed_at, ocr_confidence,
-                created_at::text, updated_at::text
-      `,
-      [
-        data.name,
-        data.type || 'customer',
-        data.business_number,
-        data.contact_person || null,
-        data.contact_phone || null,
-        data.contact_email || null,
-        data.address || null,
-        data.industry || null,
-        data.payment_terms || 30,
-        data.status || 'active',
-        data.notes || null,
-        data.business_registration_file_url || null,
-        data.bank_account_file_url || null,
-        data.business_registration_s3_key || null,
-        data.bank_account_s3_key || null,
-        data.representative_name || null,
-        data.establishment_date || null,
-        data.corporation_status || null,
-        data.business_type || null,
-        data.business_category || null,
-        data.bank_name || null,
-        data.account_number || null,
-        data.account_holder || null,
-        data.ocr_processed_at || null,
-        data.ocr_confidence || null,
-        id,
-      ],
-    )
+    const updateQuery = buildUpdateQuery()
+    const values = [...mapCustomerData(data), id] // id는 마지막 파라미터
+    const result = await query(updateQuery, values)
 
     if (result.rows.length === 0) {
       const response: CRMApiResponse<null> = {

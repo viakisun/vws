@@ -3,9 +3,10 @@
 export interface Customer {
   id: string
   name: string
-  contact: string
-  email: string
-  phone: string
+  representativeName: string // 대표자 이름 (사업자등록증)
+  contactPerson?: string // 담당자 이름
+  contactEmail?: string // 담당자 이메일
+  contactPhone?: string // 담당자 전화번호
   industry: string
   status: 'lead' | 'prospect' | 'customer' | 'inactive' | 'active'
   value: number

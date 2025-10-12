@@ -139,7 +139,7 @@
         {id}
         class={getInputClasses()}
         {placeholder}
-        {value}
+        bind:value
         {disabled}
         {readonly}
         {required}
@@ -155,7 +155,7 @@
         {type}
         class={getInputClasses()}
         {placeholder}
-        {value}
+        bind:value
         {disabled}
         {readonly}
         {required}

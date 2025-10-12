@@ -1,4 +1,5 @@
 import { UserService } from '$lib/auth/user-service'
+import { buildInsertQuery, mapCustomerData } from '$lib/crm/services/crm-customer-queries'
 import { query } from '$lib/database/connection'
 import type { BankAccountData, BusinessRegistrationData } from '$lib/services/ocr'
 import { json } from '@sveltejs/kit'
@@ -61,61 +62,34 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
       }
     }
 
+    // OCR 데이터를 표준 형식으로 변환
+    const customerData = {
+      name: businessData.companyName,
+      type: 'customer',
+      business_number: businessData.businessNumber,
+      contact_person: null, // 담당자는 OCR에서 추출 안됨
+      contact_phone: null,
+      contact_email: null,
+      representative_name: businessData.representativeName, // 대표자 이름 (사업자등록증)
+      address: businessData.businessAddress,
+      industry: businessData.businessType,
+      business_type: businessData.businessType,
+      business_category: businessData.businessCategory,
+      establishment_date: businessData.establishmentDate,
+      corporation_status: businessData.isCorporation,
+      bank_name: bankData?.bankName,
+      account_number: bankData?.accountNumber,
+      account_holder: bankData?.accountHolder,
+      business_registration_file_url: businessRegistrationUrl,
+      bank_account_file_url: bankAccountUrl,
+      ocr_processed_at: new Date().toISOString(),
+      ocr_confidence: Math.round((businessData.confidence + (bankData?.confidence || 0)) / 2),
+      status: 'active',
+    }
+
     // 고객 생성
-    const insertQuery = `
-      INSERT INTO crm_customers (
-        name,
-        type,
-        business_number,
-        contact_person,
-        contact_phone,
-        contact_email,
-        address,
-        industry,
-        representative_name,
-        establishment_date,
-        corporation_status,
-        business_type,
-        business_category,
-        bank_name,
-        account_number,
-        account_holder,
-        business_registration_file_url,
-        bank_account_file_url,
-        ocr_processed_at,
-        ocr_confidence,
-        status
-      ) VALUES (
-        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10,
-        $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21
-      )
-      RETURNING id, name, business_number, created_at::text
-    `
-
-    const values = [
-      businessData.companyName, // name
-      'customer', // type
-      businessData.businessNumber, // business_number
-      businessData.representativeName, // contact_person
-      null, // contact_phone (OCR에서 추출 안됨)
-      null, // contact_email (OCR에서 추출 안됨)
-      businessData.businessAddress, // address
-      businessData.businessType, // industry
-      businessData.representativeName, // representative_name
-      businessData.establishmentDate, // establishment_date
-      businessData.isCorporation, // corporation_status
-      businessData.businessType, // business_type
-      businessData.businessCategory, // business_category
-      bankData?.bankName, // bank_name
-      bankData?.accountNumber, // account_number
-      bankData?.accountHolder, // account_holder
-      businessRegistrationUrl, // business_registration_file_url
-      bankAccountUrl, // bank_account_file_url
-      new Date().toISOString(), // ocr_processed_at
-      Math.round((businessData.confidence + (bankData?.confidence || 0)) / 2), // ocr_confidence (평균)
-      'active', // status
-    ]
-
+    const insertQuery = buildInsertQuery()
+    const values = mapCustomerData(customerData)
     const result = await query(insertQuery, values)
     const newCustomer = result.rows[0]
 

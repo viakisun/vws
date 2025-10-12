@@ -1,4 +1,9 @@
 import { UserService } from '$lib/auth/user-service'
+import {
+  buildInsertQuery,
+  mapCustomerData,
+  SELECT_QUERY,
+} from '$lib/crm/services/crm-customer-queries'
 import type { CRMApiResponse, CRMCustomer } from '$lib/crm/types'
 import { query } from '$lib/database/connection'
 import { logger } from '$lib/utils/logger'
@@ -50,22 +55,7 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 
     const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : ''
 
-    const result = await query(
-      `
-      SELECT id, name, type, business_number, contact_person, contact_phone,
-             contact_email, address, industry, payment_terms, status, notes,
-             business_registration_file_url, bank_account_file_url,
-             business_registration_s3_key, bank_account_s3_key,
-             representative_name, establishment_date, corporation_status,
-             business_type, business_category, bank_name, account_number,
-             account_holder, ocr_processed_at, ocr_confidence,
-             created_at::text as created_at, updated_at::text as updated_at
-      FROM crm_customers 
-      ${whereClause}
-      ORDER BY created_at DESC
-      `,
-      params,
-    )
+    const result = await query(`${SELECT_QUERY} ${whereClause} ORDER BY created_at DESC`, params)
 
     const response: CRMApiResponse<CRMCustomer[]> = {
       success: true,
@@ -110,55 +100,9 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
       return json(response, { status: 400 })
     }
 
-    const result = await query(
-      `
-      INSERT INTO crm_customers (
-        name, type, business_number, contact_person, contact_phone, 
-        contact_email, address, industry, payment_terms, status, notes,
-        business_registration_file_url, bank_account_file_url,
-        business_registration_s3_key, bank_account_s3_key,
-        representative_name, establishment_date, corporation_status,
-        business_type, business_category, bank_name, account_number,
-        account_holder, ocr_processed_at, ocr_confidence
-      )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25)
-      RETURNING id, name, type, business_number, contact_person, contact_phone,
-                contact_email, address, industry, payment_terms, status, notes,
-                business_registration_file_url, bank_account_file_url,
-                business_registration_s3_key, bank_account_s3_key,
-                representative_name, establishment_date, corporation_status,
-                business_type, business_category, bank_name, account_number,
-                account_holder, ocr_processed_at, ocr_confidence,
-                created_at::text, updated_at::text
-      `,
-      [
-        data.name,
-        data.type || 'customer',
-        data.business_number,
-        data.contact_person || null,
-        data.contact_phone || null,
-        data.contact_email || null,
-        data.address || null,
-        data.industry || null,
-        data.payment_terms || 30,
-        data.status || 'active',
-        data.notes || null,
-        data.business_registration_file_url || null,
-        data.bank_account_file_url || null,
-        data.business_registration_s3_key || null,
-        data.bank_account_s3_key || null,
-        data.representative_name || null,
-        data.establishment_date || null,
-        data.corporation_status || null,
-        data.business_type || null,
-        data.business_category || null,
-        data.bank_name || null,
-        data.account_number || null,
-        data.account_holder || null,
-        data.ocr_processed_at || null,
-        data.ocr_confidence || null,
-      ],
-    )
+    const insertQuery = buildInsertQuery()
+    const values = mapCustomerData(data)
+    const result = await query(insertQuery, values)
 
     const response: CRMApiResponse<CRMCustomer> = {
       success: true,
