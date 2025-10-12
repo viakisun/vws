@@ -3,6 +3,7 @@
  * Presigned URL 생성, 파일 삭제, S3 키 생성 등
  */
 
+import { CrmDocumentType, generateCrmDocumentS3Key } from '$lib/constants/crm'
 import { sanitizeFilename } from '$lib/utils/file-validation'
 import { logger } from '$lib/utils/logger'
 import { DeleteObjectCommand, GetObjectCommand, PutObjectCommand } from '@aws-sdk/client-s3'
@@ -112,16 +113,15 @@ export function extractFilenameFromKey(key: string): string {
 
 /**
  * CRM 고객 문서용 S3 키 생성
- * 형식: {companyCode}/customers/{customerId}/{documentType}.{ext}
+ * 형식: {companyCode}/customers/{customerId}/{documentType}/{filename}
  */
 export function generateCrmDocumentKey(
   companyCode: string,
   customerId: string,
-  documentType: 'business-registration' | 'bank-account',
+  documentType: CrmDocumentType,
   filename: string,
 ): string {
-  const ext = filename.split('.').pop()
-  return `${companyCode}/customers/${customerId}/${documentType}.${ext}`
+  return generateCrmDocumentS3Key(companyCode, customerId, documentType, filename)
 }
 
 /**
@@ -130,7 +130,7 @@ export function generateCrmDocumentKey(
 export async function generateCrmDocumentUploadUrl(
   companyCode: string,
   customerId: string,
-  documentType: 'business-registration' | 'bank-account',
+  documentType: CrmDocumentType,
   filename: string,
   contentType: string,
   expiresIn: number = 900,

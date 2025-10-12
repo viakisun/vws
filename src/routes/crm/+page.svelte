@@ -1,5 +1,6 @@
 <script lang="ts">
   import { downloadCrmDocument, uploadCrmDocument } from '$lib/services/s3/s3-crm.service'
+  import { CrmDocumentType, DEFAULT_COMPANY_CODE } from '$lib/constants/crm'
   import { pushToast } from '$lib/stores/toasts'
   import type { CRMData } from '$lib/types/crm'
   import { logger } from '$lib/utils/logger'
@@ -249,9 +250,9 @@
       // 새로운 파일이 있으면 S3에 업로드
       if (editBusinessFile) {
         const result = await uploadCrmDocument(
-          '1001',
+          DEFAULT_COMPANY_CODE,
           customer.id,
-          'business-registration',
+          CrmDocumentType.BUSINESS_REGISTRATION,
           editBusinessFile,
         )
 
@@ -260,7 +261,12 @@
       }
 
       if (editBankFile) {
-        const result = await uploadCrmDocument('1001', customer.id, 'bank-account', editBankFile)
+        const result = await uploadCrmDocument(
+          DEFAULT_COMPANY_CODE,
+          customer.id,
+          CrmDocumentType.BANK_ACCOUNT,
+          editBankFile,
+        )
 
         bankAccountS3Key = result.s3Key
         console.log('[CRM] Bank account uploaded:', result.s3Key)
@@ -318,10 +324,7 @@
   }
 
   // 문서 다운로드
-  async function handleDownloadDocument(
-    customerId: string,
-    documentType: 'business-registration' | 'bank-account',
-  ) {
+  async function handleDownloadDocument(customerId: string, documentType: CrmDocumentType) {
     try {
       await downloadCrmDocument(customerId, documentType)
       pushToast('문서 다운로드를 시작합니다', 'success')
@@ -744,7 +747,10 @@
                           <button
                             type="button"
                             onclick={() =>
-                              handleDownloadDocument(customer.id, 'business-registration')}
+                              handleDownloadDocument(
+                                customer.id,
+                                CrmDocumentType.BUSINESS_REGISTRATION,
+                              )}
                             class="flex items-center gap-1 px-2 py-1 text-xs rounded bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors cursor-pointer"
                             style:color="var(--color-primary)"
                           >
@@ -764,7 +770,8 @@
                         {#if customer.bankAccountS3Key}
                           <button
                             type="button"
-                            onclick={() => handleDownloadDocument(customer.id, 'bank-account')}
+                            onclick={() =>
+                              handleDownloadDocument(customer.id, CrmDocumentType.BANK_ACCOUNT)}
                             class="flex items-center gap-1 px-2 py-1 text-xs rounded bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors cursor-pointer"
                             style:color="var(--color-primary)"
                           >

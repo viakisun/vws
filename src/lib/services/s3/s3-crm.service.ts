@@ -7,6 +7,7 @@
  * - 문서당 하나씩 (사업자등록증 1개, 통장사본 1개)
  */
 
+import { CrmDocumentType } from '$lib/constants/crm'
 import { logger } from '$lib/utils/logger'
 import { downloadFromS3Core, uploadToS3Core } from './s3-core'
 
@@ -23,7 +24,7 @@ import { downloadFromS3Core, uploadToS3Core } from './s3-core'
  *
  * @param companyCode - 회사 코드 (예: '1001')
  * @param customerId - 고객 ID
- * @param documentType - 문서 타입 ('business-registration' | 'bank-account')
+ * @param documentType - 문서 타입
  * @param file - 업로드할 파일
  * @param onProgress - 진행률 콜백 (0-100%)
  * @returns s3Key
@@ -31,7 +32,7 @@ import { downloadFromS3Core, uploadToS3Core } from './s3-core'
 export async function uploadCrmDocument(
   companyCode: string,
   customerId: string,
-  documentType: 'business-registration' | 'bank-account',
+  documentType: CrmDocumentType,
   file: File,
   onProgress?: (progress: number) => void,
 ): Promise<{ s3Key: string }> {
@@ -71,11 +72,11 @@ export async function uploadCrmDocument(
  * CRM 고객 문서 다운로드
  *
  * @param customerId - 고객 ID
- * @param documentType - 문서 타입 ('business-registration' | 'bank-account')
+ * @param documentType - 문서 타입
  */
 export async function downloadCrmDocument(
   customerId: string,
-  documentType: 'business-registration' | 'bank-account',
+  documentType: CrmDocumentType,
 ): Promise<void> {
   return downloadFromS3Core({
     downloadUrlEndpoint: `/api/crm/documents/download/${customerId}/${documentType}`,
@@ -98,7 +99,7 @@ export async function downloadCrmDocument(
  */
 export async function deleteCrmDocument(
   customerId: string,
-  documentType: 'business-registration' | 'bank-account',
+  documentType: CrmDocumentType,
 ): Promise<void> {
   // 필요시 구현
   logger.log('[CRMS3] Delete not implemented (use customer update to set s3Key to NULL)', {

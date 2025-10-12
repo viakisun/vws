@@ -7,6 +7,7 @@
  * - s3-crm.service.ts (CRM)
  */
 
+import { CrmDocumentType } from '$lib/constants/crm'
 import { uploadToS3Core } from './s3-core'
 
 export interface UploadFileOptions {
@@ -87,14 +88,14 @@ export async function uploadEvidenceDocument(
  *
  * @param companyCode - 회사 코드 (예: '1001')
  * @param customerId - 고객 ID
- * @param documentType - 문서 유형 ('business-registration' | 'bank-account')
+ * @param documentType - 문서 유형
  * @param file - 업로드할 파일
  * @returns UploadResult
  */
 export async function uploadCrmDocument(
   companyCode: string,
   customerId: string,
-  documentType: 'business-registration' | 'bank-account',
+  documentType: CrmDocumentType,
   file: File,
 ): Promise<UploadResult> {
   return uploadFileToS3({

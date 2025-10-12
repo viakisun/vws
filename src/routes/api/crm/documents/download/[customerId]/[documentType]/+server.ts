@@ -1,4 +1,5 @@
 import { requireAuth } from '$lib/auth/middleware'
+import { CrmDocumentType, getCrmDocumentS3KeyColumn } from '$lib/constants/crm'
 import { query } from '$lib/database/connection'
 import { generatePresignedDownloadUrl } from '$lib/services/s3/s3-service'
 import { logger } from '$lib/utils/logger'
@@ -27,7 +28,7 @@ export const GET: RequestHandler = async (event) => {
     const { customerId, documentType } = event.params
 
     // 문서 타입 검증
-    if (!['business-registration', 'bank-account'].includes(documentType)) {
+    if (!Object.values(CrmDocumentType).includes(documentType as CrmDocumentType)) {
       return json<ApiResponse<never>>(
         {
           success: false,
@@ -38,10 +39,7 @@ export const GET: RequestHandler = async (event) => {
     }
 
     // DB에서 s3Key 조회
-    const s3KeyColumn =
-      documentType === 'business-registration'
-        ? 'business_registration_s3_key'
-        : 'bank_account_s3_key'
+    const s3KeyColumn = getCrmDocumentS3KeyColumn(documentType as CrmDocumentType)
 
     const result = await query(`SELECT ${s3KeyColumn} as s3_key FROM crm_customers WHERE id = $1`, [
       customerId,

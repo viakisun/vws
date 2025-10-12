@@ -1,5 +1,6 @@
 import { env } from '$env/dynamic/private'
 import { UserService } from '$lib/auth/user-service'
+import { CrmDocumentType, DEFAULT_COMPANY_CODE } from '$lib/constants/crm'
 import { generateCrmDocumentUploadUrl } from '$lib/services/s3/s3-service'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
@@ -31,18 +32,18 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
       return json({ error: '필수 파라미터가 누락되었습니다' }, { status: 400 })
     }
 
-    if (!['business-registration', 'bank-account'].includes(documentType)) {
+    if (!Object.values(CrmDocumentType).includes(documentType as CrmDocumentType)) {
       return json({ error: '유효하지 않은 문서 타입입니다' }, { status: 400 })
     }
 
-    // 회사 코드 (하드코딩 - 추후 시스템에서 가져오기)
-    const companyCode = '1001'
+    // 회사 코드
+    const companyCode = DEFAULT_COMPANY_CODE
 
     // Presigned URL 생성
     const { url, key } = await generateCrmDocumentUploadUrl(
       companyCode,
       customerId,
-      documentType as 'business-registration' | 'bank-account',
+      documentType as CrmDocumentType,
       filename,
       contentType,
     )
