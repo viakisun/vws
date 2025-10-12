@@ -1,7 +1,10 @@
 <script lang="ts">
   import type { EvidenceDocument } from '$lib/types/document.types'
+  import { EvidenceCategoryCode } from '$lib/constants/evidence-category-codes'
+  import { CrmDocumentType } from '$lib/constants/crm'
+  import { downloadCrmDocument } from '$lib/services/s3/s3-crm.service'
   import { logger } from '$lib/utils/logger'
-  import { CalendarIcon, EditIcon, PlusIcon } from '@lucide/svelte'
+  import { CalendarIcon, EditIcon, PlusIcon, FileTextIcon, DownloadIcon } from '@lucide/svelte'
   import ThemeButton from '../ui/ThemeButton.svelte'
   import ThemeModal from '../ui/ThemeModal.svelte'
   import RDDocumentList from './RDDocumentList.svelte'
@@ -17,9 +20,16 @@
     status: string
     category_id?: string
     category_name?: string
+    category_code?: string
     assignee_first_name?: string
     assignee_last_name?: string
     assignee_korean_name?: string
+    customer_id?: string
+    customer_name?: string
+    customer_business_number?: string
+    customer_representative?: string
+    business_registration_s3_key?: string
+    bank_account_s3_key?: string
     documents?: Array<{
       document_type: string
       document_name: string
@@ -68,6 +78,147 @@
   let selectedCategoryId = $state<string>('')
   let loadingDocuments = $state(false)
   let savingCategory = $state(false)
+
+  // 고객 관련 state
+  interface Customer {
+    id: string
+    name: string
+    business_number: string
+    representative_name: string
+  }
+  let customers = $state<Customer[]>([])
+  let selectedCustomerId = $state<string>('')
+  let loadingCustomers = $state(false)
+  let savingCustomer = $state(false)
+
+  // 급여명세서 관련 state
+  interface PayslipInfo {
+    exists: boolean
+    payslipId?: string
+    employeeId?: string
+    period?: string
+    employeeName?: string
+  }
+  let payslipInfo = $state<PayslipInfo | null>(null)
+  let loadingPayslip = $state(false)
+
+  // 인건비 카테고리 여부
+  const isPersonnelEvidence = $derived(
+    selectedItem?.category_code === EvidenceCategoryCode.PERSONNEL,
+  )
+
+  // 고객 목록 로드
+  async function loadCustomers() {
+    try {
+      loadingCustomers = true
+      const response = await fetch('/api/crm/customers')
+      if (response.ok) {
+        const result = await response.json()
+        if (result.success && result.data) {
+          customers = result.data.map((c: any) => ({
+            id: c.id,
+            name: c.name,
+            business_number: c.business_number,
+            representative_name: c.representative_name,
+          }))
+        }
+      }
+    } catch (error) {
+      logger.error('Failed to load customers:', error)
+    } finally {
+      loadingCustomers = false
+    }
+  }
+
+  // 고객 선택 변경
+  async function handleCustomerChange() {
+    if (!selectedItem?.id || !selectedCustomerId) return
+
+    try {
+      savingCustomer = true
+      const response = await fetch(`/api/research-development/evidence/${selectedItem.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ customerId: selectedCustomerId || null }),
+      })
+
+      if (!response.ok) {
+        throw new Error('고객 정보 업데이트 실패')
+      }
+
+      logger.log('Customer updated for evidence item', {
+        evidenceId: selectedItem.id,
+        customerId: selectedCustomerId,
+      })
+      onUpdate?.()
+    } catch (error) {
+      logger.error('Failed to update customer:', error)
+      alert('고객 정보 업데이트에 실패했습니다.')
+    } finally {
+      savingCustomer = false
+    }
+  }
+
+  // 고객 문서 다운로드
+  async function downloadCustomerDocument(documentType: CrmDocumentType) {
+    if (!selectedCustomerId) return
+
+    try {
+      await downloadCrmDocument(selectedCustomerId, documentType)
+    } catch (error) {
+      logger.error('Failed to download customer document:', error)
+      alert('문서 다운로드에 실패했습니다.')
+    }
+  }
+
+  // 인건비 증빙: 항목명에서 직원명/기간 파싱
+  function parsePersonnelName(name: string): { employeeName: string; period: string } | null {
+    // "박기선 (2025-01)" 형식 파싱
+    const match = name.match(/^(.+?)\s*\((\d{4}-\d{2})\)$/)
+    if (match) {
+      return { employeeName: match[1].trim(), period: match[2] }
+    }
+    return null
+  }
+
+  // 급여명세서 확인
+  async function checkPayslip(employeeName: string, period: string): Promise<PayslipInfo> {
+    try {
+      loadingPayslip = true
+      const response = await fetch(
+        `/api/research-development/evidence/payslip-check?employeeName=${encodeURIComponent(employeeName)}&period=${period}`,
+      )
+      if (response.ok) {
+        const result = await response.json()
+        return result.data
+      }
+      return { exists: false }
+    } catch (error) {
+      logger.error('Failed to check payslip:', error)
+      return { exists: false }
+    } finally {
+      loadingPayslip = false
+    }
+  }
+
+  // 급여명세서 다운로드
+  async function downloadPayslip(payslipId: string) {
+    try {
+      // 급여명세서 다운로드 API 호출
+      const response = await fetch(`/api/dashboard/payslip/${payslipId}/download`)
+      if (response.ok) {
+        const result = await response.json()
+        if (result.downloadUrl) {
+          window.open(result.downloadUrl, '_blank')
+        }
+      } else {
+        throw new Error('다운로드 URL 생성 실패')
+      }
+    } catch (error) {
+      logger.error('Failed to download payslip:', error)
+      alert('급여명세서 다운로드에 실패했습니다.')
+    }
+  }
 
   // 카테고리 목록 로드
   async function loadCategories() {
@@ -144,6 +295,24 @@
       selectedCategoryId = selectedItem.category_id || ''
       activeTab = 'info'
       editingCategory = false
+
+      // 인건비가 아닌 경우 고객 목록 로드
+      if (!isPersonnelEvidence) {
+        loadCustomers()
+        selectedCustomerId = selectedItem.customer_id || ''
+      }
+
+      // 인건비인 경우 급여명세서 정보 로드
+      if (isPersonnelEvidence && selectedItem.name) {
+        const parsed = parsePersonnelName(selectedItem.name)
+        if (parsed) {
+          checkPayslip(parsed.employeeName, parsed.period).then((info) => {
+            payslipInfo = info
+          })
+        } else {
+          payslipInfo = null
+        }
+      }
     }
   })
 </script>
@@ -316,6 +485,138 @@
                 </div>
               </div>
             </div>
+
+            <!-- 고객 정보 섹션 (인건비 제외) -->
+            {#if !isPersonnelEvidence}
+              <div class="bg-white border border-gray-200 rounded-lg p-6">
+                <h4 class="text-lg font-medium text-gray-900 mb-4">고객 정보</h4>
+
+                <div class="space-y-4">
+                  <div>
+                    <label
+                      for="customer-select"
+                      class="block text-sm font-medium text-gray-700 mb-2">고객 선택</label
+                    >
+                    <select
+                      id="customer-select"
+                      bind:value={selectedCustomerId}
+                      onchange={handleCustomerChange}
+                      disabled={loadingCustomers || savingCustomer}
+                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
+                    >
+                      <option value="">선택하지 않음</option>
+                      {#each customers as customer}
+                        <option value={customer.id}>
+                          {customer.name} ({customer.business_number} / {customer.representative_name})
+                        </option>
+                      {/each}
+                    </select>
+                    {#if savingCustomer}
+                      <p class="text-sm text-gray-500 mt-1">저장 중...</p>
+                    {/if}
+                  </div>
+
+                  {#if selectedCustomerId && selectedItem.business_registration_s3_key !== undefined}
+                    <div class="border-t pt-4">
+                      <h5 class="text-sm font-medium text-gray-700 mb-3">첨부 파일</h5>
+
+                      <div class="space-y-2">
+                        <!-- 사업자등록증 -->
+                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                          <div class="flex items-center gap-2">
+                            <FileTextIcon size={16} class="text-gray-600" />
+                            <span class="text-sm font-medium text-gray-700">사업자등록증</span>
+                          </div>
+                          {#if selectedItem.business_registration_s3_key}
+                            <button
+                              type="button"
+                              onclick={() =>
+                                downloadCustomerDocument(CrmDocumentType.BUSINESS_REGISTRATION)}
+                              class="flex items-center gap-1 px-3 py-1 text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded transition-colors"
+                            >
+                              <DownloadIcon size={14} />
+                              다운로드
+                            </button>
+                          {:else}
+                            <span class="text-xs text-gray-500">비어있음</span>
+                          {/if}
+                        </div>
+
+                        <!-- 통장사본 -->
+                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                          <div class="flex items-center gap-2">
+                            <FileTextIcon size={16} class="text-gray-600" />
+                            <span class="text-sm font-medium text-gray-700">통장사본</span>
+                          </div>
+                          {#if selectedItem.bank_account_s3_key}
+                            <button
+                              type="button"
+                              onclick={() => downloadCustomerDocument(CrmDocumentType.BANK_ACCOUNT)}
+                              class="flex items-center gap-1 px-3 py-1 text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded transition-colors"
+                            >
+                              <DownloadIcon size={14} />
+                              다운로드
+                            </button>
+                          {:else}
+                            <span class="text-xs text-gray-500">비어있음</span>
+                          {/if}
+                        </div>
+                      </div>
+                    </div>
+                  {/if}
+                </div>
+              </div>
+            {/if}
+
+            <!-- 급여명세서 섹션 (인건비만) -->
+            {#if isPersonnelEvidence}
+              {@const parsed = parsePersonnelName(selectedItem.name)}
+              <div class="bg-white border border-gray-200 rounded-lg p-6">
+                <h4 class="text-lg font-medium text-gray-900 mb-4">급여명세서</h4>
+
+                {#if parsed}
+                  <div class="space-y-3">
+                    <div class="text-sm text-gray-600">
+                      <span class="font-medium">{parsed.employeeName}</span>님의
+                      <span class="font-medium">{parsed.period}</span> 급여명세서
+                    </div>
+
+                    {#if loadingPayslip}
+                      <div class="flex items-center gap-2 text-sm text-gray-500">
+                        <div
+                          class="animate-spin rounded-full h-4 w-4 border-2 border-gray-300 border-t-blue-600"
+                        ></div>
+                        확인 중...
+                      </div>
+                    {:else if payslipInfo?.exists && payslipInfo?.payslipId}
+                      <div class="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                        <div class="flex items-center gap-2">
+                          <FileTextIcon size={16} class="text-green-600" />
+                          <span class="text-sm font-medium text-green-700"> 급여명세서 있음 </span>
+                        </div>
+                        <button
+                          type="button"
+                          onclick={() => payslipInfo && downloadPayslip(payslipInfo.payslipId!)}
+                          class="flex items-center gap-1 px-3 py-1 text-xs text-green-700 hover:text-green-800 hover:bg-green-100 rounded transition-colors"
+                        >
+                          <DownloadIcon size={14} />
+                          다운로드
+                        </button>
+                      </div>
+                    {:else}
+                      <div class="p-3 bg-yellow-50 rounded-lg">
+                        <p class="text-sm text-yellow-700">아직 급여명세서가 없습니다</p>
+                      </div>
+                    {/if}
+                  </div>
+                {:else}
+                  <p class="text-sm text-gray-500">
+                    증빙 항목명을 "이름 (YYYY-MM)" 형식으로 입력하면 급여명세서를 확인할 수
+                    있습니다.
+                  </p>
+                {/if}
+              </div>
+            {/if}
           {:else if activeTab === 'documents'}
             <!-- 증빙 서류 탭 -->
             <div class="space-y-6">

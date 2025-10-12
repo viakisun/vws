@@ -39,6 +39,7 @@ export const GET: RequestHandler = async ({ params }) => {
 				ei.tax_amount,
 				ei.payment_date::text,
 				ei.notes,
+				ei.customer_id::text,
 				ei.created_at::text,
 				ei.updated_at::text,
 				ec.name as category_name,
@@ -52,11 +53,17 @@ export const GET: RequestHandler = async ({ params }) => {
 				pb.research_activity_cost_cash,
 				pb.research_activity_cost_in_kind,
 				pb.indirect_cost_cash,
-				pb.indirect_cost_in_kind
+				pb.indirect_cost_in_kind,
+				c.name as customer_name,
+				c.business_number as customer_business_number,
+				c.representative_name as customer_representative,
+				c.business_registration_s3_key,
+				c.bank_account_s3_key
 			FROM evidence_items ei
 			JOIN evidence_categories ec ON ei.category_id = ec.id
 			LEFT JOIN employees e ON ei.assignee_id = e.id
 			LEFT JOIN project_budgets pb ON ei.project_budget_id = pb.id
+			LEFT JOIN crm_customers c ON ei.customer_id = c.id
 			WHERE ei.id = $1
 		`,
       [id],
@@ -186,6 +193,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
       dueDate,
       startDate,
       endDate,
+      customerId,
     } = data
 
     // 증빙 항목 존재 확인
@@ -218,6 +226,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
       due_date: dueDate,
       start_date: startDate,
       end_date: endDate,
+      customer_id: customerId,
     }
 
     Object.entries(fieldsToUpdate).forEach(([key, value]) => {

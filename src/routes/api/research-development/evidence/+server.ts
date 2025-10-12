@@ -30,6 +30,12 @@ interface EvidenceItem {
   approved_document_count?: number
   schedule_count?: number
   overdue_schedule_count?: number
+  customer_id?: string
+  customer_name?: string
+  customer_business_number?: string
+  customer_representative?: string
+  business_registration_s3_key?: string
+  bank_account_s3_key?: string
   [key: string]: unknown
 }
 
@@ -50,6 +56,7 @@ interface CreateEvidenceRequest {
   taxAmount?: number
   paymentDate?: string
   notes?: string
+  customerId?: string
 }
 
 // 증빙 항목 목록 조회
@@ -85,6 +92,7 @@ export const GET: RequestHandler = async ({ url }) => {
 				ei.tax_amount,
 				ei.payment_date::text,
 				ei.notes,
+				ei.customer_id::text,
 				ei.created_at::text,
 				ei.updated_at::text,
 				ec.name as category_name,
@@ -93,6 +101,11 @@ export const GET: RequestHandler = async ({ url }) => {
 				pb.period_number,
 				sc.name as vendor_full_name,
 				sc.business_number as vendor_business_number,
+				c.name as customer_name,
+				c.business_number as customer_business_number,
+				c.representative_name as customer_representative,
+				c.business_registration_s3_key,
+				c.bank_account_s3_key,
 				COUNT(DISTINCT ed.id) as document_count,
 				COUNT(DISTINCT CASE WHEN ed.status = 'approved' THEN ed.id END) as approved_document_count,
 				COUNT(DISTINCT es.id) as schedule_count,
@@ -102,6 +115,7 @@ export const GET: RequestHandler = async ({ url }) => {
 			LEFT JOIN employees e ON ei.assignee_id = e.id
 			LEFT JOIN project_budgets pb ON ei.project_budget_id = pb.id
 			LEFT JOIN crm_customers sc ON ei.vendor_id = sc.id
+			LEFT JOIN crm_customers c ON ei.customer_id = c.id
 			LEFT JOIN evidence_documents ed ON ei.id = ed.evidence_item_id
 			LEFT JOIN evidence_schedules es ON ei.id = es.evidence_item_id
 			WHERE 1=1
@@ -188,6 +202,7 @@ export const POST: RequestHandler = async ({ request }) => {
       taxAmount,
       paymentDate,
       notes,
+      customerId,
     } = (await request.json()) as CreateEvidenceRequest
 
     // 필수 필드 검증
@@ -229,11 +244,11 @@ export const POST: RequestHandler = async ({ request }) => {
 			INSERT INTO evidence_items (
 				project_budget_id, category_id, name, description, budget_amount,
 				assignee_id, assignee_name, due_date, start_date, end_date,
-				vendor_id, vendor_name, item_detail, tax_amount, payment_date, notes
-			) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+				vendor_id, vendor_name, item_detail, tax_amount, payment_date, notes, customer_id
+			) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
 			RETURNING id, project_budget_id, category_id, name, description, budget_amount, spent_amount,
 			          assignee_id, assignee_name, progress, status, due_date::text, start_date::text, end_date::text,
-			          vendor_id, vendor_name, item_detail, tax_amount, payment_date::text, notes,
+			          vendor_id, vendor_name, item_detail, tax_amount, payment_date::text, notes, customer_id::text,
 			          created_at::text, updated_at::text
 		`,
       [
@@ -253,6 +268,7 @@ export const POST: RequestHandler = async ({ request }) => {
         taxAmount || 0,
         paymentDate,
         notes,
+        customerId,
       ],
     )
 
