@@ -3,6 +3,11 @@
   import { onMount } from 'svelte'
 
   import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
+  import {
+    getExecutionRateColorClass,
+    getExecutionRateTextColorClass,
+  } from '$lib/services/research-development/execution-rate-utils'
+  import type { ExecutionRateData } from '$lib/types/project-budget'
   import { formatNumber } from '$lib/utils/format'
   import { DollarSignIcon, PlusIcon, TrashIcon } from '@lucide/svelte'
   import RDEditableNumberCell from './RDEditableNumberCell.svelte'
@@ -29,6 +34,11 @@
   let hoveredRow = $state<number | null>(null)
   let isSaving = $state(false)
 
+  // 집행율 표시 상태
+  let showExecutionRate = $state(false)
+  let executionRates = $state<Record<string, ExecutionRateData>>({})
+  let loadingExecutionRates = $state(false)
+
   // 숫자 언포맷팅 함수 (콤마 제거)
   function unformatNumber(value: string): number {
     if (!value) return 0
@@ -50,6 +60,10 @@
 
       if (result.success && result.data) {
         projectBudgets = result.data || []
+        // 집행율 표시가 활성화되어 있으면 집행율도 로드
+        if (showExecutionRate) {
+          await loadExecutionRates()
+        }
       } else {
         projectBudgets = []
       }
@@ -60,6 +74,52 @@
       loading = false
     }
   }
+
+  // 집행율 데이터 로드
+  async function loadExecutionRates() {
+    if (!projectBudgets || projectBudgets.length === 0) return
+
+    try {
+      loadingExecutionRates = true
+      const rates: Record<string, ExecutionRateData> = {}
+
+      // 각 연차별 집행율 조회
+      await Promise.all(
+        projectBudgets.map(async (budget) => {
+          try {
+            const response = await fetch(
+              `/api/research-development/project-budgets/${budget.id}/execution-rate`,
+            )
+            const result = await response.json()
+
+            if (result.success && result.data) {
+              rates[budget.id] = result.data
+            }
+          } catch (err) {
+            logger.error(`Failed to load execution rate for budget ${budget.id}:`, err)
+          }
+        }),
+      )
+
+      executionRates = rates
+    } catch (err) {
+      logger.error('집행율 로드 실패:', err)
+    } finally {
+      loadingExecutionRates = false
+    }
+  }
+
+  // 집행율 표시 상태 변경 감지
+  $effect(() => {
+    // showExecutionRate가 true로 변경되고 데이터가 로드되어 있으면 집행율 데이터 가져오기
+    if (showExecutionRate && projectBudgets.length > 0) {
+      // 이미 로드된 데이터가 없거나 예산 데이터가 변경된 경우에만 다시 로드
+      const hasAllRates = projectBudgets.every((budget) => executionRates[budget.id])
+      if (!hasAllRates && !loadingExecutionRates) {
+        loadExecutionRates()
+      }
+    }
+  })
 
   // 셀 클릭 - 편집 모드로 전환
   function startEditingCell(index: number, field: string) {
@@ -253,7 +313,22 @@
 {:else}
   <!-- 헤더 & 저장 상태 -->
   <div class="flex items-center justify-between mb-4">
-    <h3 class="text-lg font-semibold text-gray-900">집행 계획</h3>
+    <div class="flex items-center gap-4">
+      <h3 class="text-lg font-semibold text-gray-900">집행 계획</h3>
+
+      <!-- 집행율 보기 체크박스 -->
+      <label class="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+        <input
+          type="checkbox"
+          bind:checked={showExecutionRate}
+          class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+        />
+        <span>집행율 보기</span>
+        {#if loadingExecutionRates}
+          <div class="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600"></div>
+        {/if}
+      </label>
+    </div>
 
     {#if isSaving}
       <div class="flex items-center gap-2 text-xs text-gray-500">
@@ -377,6 +452,32 @@
                       textColor="text-blue-500"
                     />
                   </div>
+
+                  <!-- 집행율 표시 -->
+                  {#if showExecutionRate && executionRates[budget.id]}
+                    {@const rate = executionRates[budget.id]}
+                    <div class="mt-2">
+                      <div class="w-full">
+                        <div class="flex items-center justify-between mb-1">
+                          <span
+                            class="text-xs font-medium {getExecutionRateTextColorClass(
+                              rate.colorCode.personnel,
+                            )}"
+                          >
+                            {rate.personnelCostRate.toFixed(1)}%
+                          </span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                          <div
+                            class="{getExecutionRateColorClass(
+                              rate.colorCode.personnel,
+                            )} h-2 rounded-full transition-all duration-300"
+                            style="width: {Math.min(rate.personnelCostRate, 100)}%"
+                          ></div>
+                        </div>
+                      </div>
+                    </div>
+                  {/if}
                 </div>
               </td>
               <!-- 연구재료비 (현금/현물) -->
@@ -406,6 +507,32 @@
                       textColor="text-green-500"
                     />
                   </div>
+
+                  <!-- 집행율 표시 -->
+                  {#if showExecutionRate && executionRates[budget.id]}
+                    {@const rate = executionRates[budget.id]}
+                    <div class="mt-2">
+                      <div class="w-full">
+                        <div class="flex items-center justify-between mb-1">
+                          <span
+                            class="text-xs font-medium {getExecutionRateTextColorClass(
+                              rate.colorCode.material,
+                            )}"
+                          >
+                            {rate.researchMaterialCostRate.toFixed(1)}%
+                          </span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                          <div
+                            class="{getExecutionRateColorClass(
+                              rate.colorCode.material,
+                            )} h-2 rounded-full transition-all duration-300"
+                            style="width: {Math.min(rate.researchMaterialCostRate, 100)}%"
+                          ></div>
+                        </div>
+                      </div>
+                    </div>
+                  {/if}
                 </div>
               </td>
               <!-- 연구활동비 (현금/현물) -->
@@ -435,6 +562,32 @@
                       textColor="text-orange-500"
                     />
                   </div>
+
+                  <!-- 집행율 표시 -->
+                  {#if showExecutionRate && executionRates[budget.id]}
+                    {@const rate = executionRates[budget.id]}
+                    <div class="mt-2">
+                      <div class="w-full">
+                        <div class="flex items-center justify-between mb-1">
+                          <span
+                            class="text-xs font-medium {getExecutionRateTextColorClass(
+                              rate.colorCode.activity,
+                            )}"
+                          >
+                            {rate.researchActivityCostRate.toFixed(1)}%
+                          </span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                          <div
+                            class="{getExecutionRateColorClass(
+                              rate.colorCode.activity,
+                            )} h-2 rounded-full transition-all duration-300"
+                            style="width: {Math.min(rate.researchActivityCostRate, 100)}%"
+                          ></div>
+                        </div>
+                      </div>
+                    </div>
+                  {/if}
                 </div>
               </td>
               <!-- 연구수당 (현금/현물) -->
@@ -462,6 +615,32 @@
                       textColor="text-purple-500"
                     />
                   </div>
+
+                  <!-- 집행율 표시 -->
+                  {#if showExecutionRate && executionRates[budget.id]}
+                    {@const rate = executionRates[budget.id]}
+                    <div class="mt-2">
+                      <div class="w-full">
+                        <div class="flex items-center justify-between mb-1">
+                          <span
+                            class="text-xs font-medium {getExecutionRateTextColorClass(
+                              rate.colorCode.stipend,
+                            )}"
+                          >
+                            {rate.researchStipendRate.toFixed(1)}%
+                          </span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                          <div
+                            class="{getExecutionRateColorClass(
+                              rate.colorCode.stipend,
+                            )} h-2 rounded-full transition-all duration-300"
+                            style="width: {Math.min(rate.researchStipendRate, 100)}%"
+                          ></div>
+                        </div>
+                      </div>
+                    </div>
+                  {/if}
                 </div>
               </td>
               <!-- 간접비 (현금/현물) -->
@@ -489,6 +668,32 @@
                       textColor="text-pink-500"
                     />
                   </div>
+
+                  <!-- 집행율 표시 -->
+                  {#if showExecutionRate && executionRates[budget.id]}
+                    {@const rate = executionRates[budget.id]}
+                    <div class="mt-2">
+                      <div class="w-full">
+                        <div class="flex items-center justify-between mb-1">
+                          <span
+                            class="text-xs font-medium {getExecutionRateTextColorClass(
+                              rate.colorCode.indirect,
+                            )}"
+                          >
+                            {rate.indirectCostRate.toFixed(1)}%
+                          </span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                          <div
+                            class="{getExecutionRateColorClass(
+                              rate.colorCode.indirect,
+                            )} h-2 rounded-full transition-all duration-300"
+                            style="width: {Math.min(rate.indirectCostRate, 100)}%"
+                          ></div>
+                        </div>
+                      </div>
+                    </div>
+                  {/if}
                 </div>
               </td>
               <!-- 총 예산 (현금/현물) -->
@@ -504,6 +709,32 @@
                   >
                     {formatRDCurrency(inKindTotal)}
                   </div>
+
+                  <!-- 총 집행율 표시 -->
+                  {#if showExecutionRate && executionRates[budget.id]}
+                    {@const rate = executionRates[budget.id]}
+                    <div class="mt-2">
+                      <div class="w-full">
+                        <div class="flex items-center justify-between mb-1">
+                          <span
+                            class="text-xs font-medium {getExecutionRateTextColorClass(
+                              rate.colorCode.total,
+                            )}"
+                          >
+                            {rate.totalRate.toFixed(1)}%
+                          </span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                          <div
+                            class="{getExecutionRateColorClass(
+                              rate.colorCode.total,
+                            )} h-2 rounded-full transition-all duration-300"
+                            style="width: {Math.min(rate.totalRate, 100)}%"
+                          ></div>
+                        </div>
+                      </div>
+                    </div>
+                  {/if}
                 </div>
               </td>
               <!-- 삭제 버튼 (hover 시 표시) -->

@@ -84,3 +84,21 @@ export interface BudgetValidationResult {
   errors: string[]
   warnings: string[]
 }
+
+// 집행율 데이터 타입
+export interface ExecutionRateData {
+  personnelCostRate: number
+  researchMaterialCostRate: number
+  researchActivityCostRate: number
+  researchStipendRate: number
+  indirectCostRate: number
+  totalRate: number
+  colorCode: {
+    personnel: string
+    material: string
+    activity: string
+    stipend: string
+    indirect: string
+    total: string
+  }
+}

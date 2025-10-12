@@ -89,8 +89,6 @@ export function useActiveEmployees() {
       cachedEmployees = formattedEmployees
       cacheTimestamp = now
       state.employees = formattedEmployees
-
-      logger.info(`Loaded ${formattedEmployees.length} active employees`)
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : '직원 목록 로드 실패'
       state.error = errorMessage

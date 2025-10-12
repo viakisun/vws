@@ -1,5 +1,194 @@
 # VWS Release Notes
 
+## Version 0.5.0 (2025-10-12)
+
+### ✨ Features
+
+#### CRM Customer Management Enhancements
+
+- **Customer Information Reorganization**
+  - Added collapsible sections for Contact, Industry/Business Type, Address, and Account details
+  - Separated "Representative" (대표자) from "Contact Person" (담당자)
+  - Contact Person now includes name, email, and phone number fields
+  - Default state: collapsed for cleaner UI
+
+- **Customer Form Modal Refactoring**
+  - Extracted customer creation/edit form into reusable `CustomerFormModal` component
+  - Improved two-way data binding with Svelte 5 `$bindable` for `ThemeInput`
+  - Better state management and form validation
+  - Fixed infinite loop issues in form initialization
+
+- **File Upload Enhancements**
+  - Added Drag & Drop support for business registration and bank account files
+  - Client-side file validation (size: 5MB max, types: PDF, JPG, PNG)
+  - Visual feedback for drag-over state
+  - Improved user experience with toast notifications
+
+#### R&D Evidence Management Integration
+
+- **Customer Integration**
+  - Added customer field to all evidence categories except personnel expenses
+  - Autocomplete dropdown for customer selection with "(선택하지 않음)" default
+  - Automatic display of business registration certificate and bank account copy links
+  - Real-time updates when customer documents are modified in CRM
+
+- **Payslip Integration for Personnel Expenses**
+  - Automatic payslip detection based on evidence item name format: "이름 (YYYY-MM)"
+  - Direct link to payslip output modal from evidence detail view
+  - Guidance message and link to salary management page when payslip is missing
+  - Reusable `CommonPayslipModal` component for generic payslip display
+
+- **Evidence Item Naming**
+  - Automatic title generation for personnel expenses in "이름 (YYYY-MM)" format
+  - Batch update script for existing personnel expense evidence names
+  - Improved consistency across the system
+
+#### Budget Execution Rate Tracking
+
+- **Execution Plan Module**
+  - Added "집행율 보기" (Show Execution Rate) toggle checkbox
+  - Real-time calculation of execution rates by year and category
+  - Color-coded progress bars:
+    - Red: 0-30% (low execution)
+    - Green: 30-70% (optimal)
+    - Orange: 70-100% (high execution)
+  - Visual indicators for each budget category:
+    - 인건비 (Personnel Cost)
+    - 연구재료비 (Research Material Cost)
+    - 연구활동비 (Research Activity Cost)
+    - 연구수당 (Research Stipend)
+    - 간접비 (Indirect Cost)
+    - 총 예산 (Total Budget)
+
+- **Service Architecture**
+  - Separated client-side utilities (`execution-rate-utils.ts`) from server-side services
+  - Database query optimization for aggregating evidence spending
+  - Multiple category support for accurate research material and activity cost tracking
+
+### 🔧 Technical Improvements
+
+#### Database Schema Updates
+
+- **CRM Customers Table**
+  - Added `contact_person`, `contact_phone`, `contact_email` columns
+  - Renamed `contact` to `representative_name` for clarity
+  - Updated migration: `029_add_customer_to_evidence.sql`
+
+- **Evidence Items Table**
+  - Added `customer_id` UUID column with foreign key to `crm_customers`
+  - Created index on `customer_id` for performance optimization
+
+#### API Enhancements
+
+- **SQL Query Optimization**
+  - Fixed `SELECT *` issue in execution rate API to use explicit column names
+  - Added `::text` casting for all date/timestamp fields to comply with date validation
+  - Proper `GROUP BY` clause handling for aggregate queries with customer joins
+
+- **New Endpoints**
+  - `/api/research-development/evidence/payslip-check` - Check payslip existence by employee name and period
+  - `/api/research-development/project-budgets/[id]/execution-rate` - Fetch execution rates for project budget
+  - `/api/salary/payslips/[id]` - Fetch single payslip by ID with proper data transformation
+
+#### Code Quality
+
+- **Svelte 5 Reactivity Fixes**
+  - Fixed `bind:value` contract implementation in `ThemeInput` component
+  - Resolved infinite loop in `CustomerFormModal` with proper `$effect` dependency tracking
+  - Improved form data initialization to maintain reactivity
+  - Used `$derived` for computed properties in execution rate display
+
+- **Modal Z-Index Management**
+  - Set `z-index: 1001` for payslip modals to appear above evidence detail modal
+  - Consistent layering for nested modals
+
+- **Removed Development Logs**
+  - Cleaned up `logger.info` statements from:
+    - `useRDDetail.svelte.ts`
+    - `useRDBudgetExecution.svelte.ts`
+    - `useRDEvidence.svelte.ts`
+    - `useActiveEmployees.svelte.ts`
+
+### 🐛 Bug Fixes
+
+#### CRM Module
+
+- Fixed `bind:value={undefined}` error in customer form by initializing `formData` with default values
+- Resolved infinite loop in customer creation modal caused by `$effect` reactivity issues
+- Fixed validation error "회사명과 사업자번호는 필수입니다" by implementing correct two-way binding in `ThemeInput`
+- Fixed "Add Customer" button not working due to broken form data binding
+
+#### Evidence Management Module
+
+- Fixed 500 Internal Server Error in evidence items fetch due to missing columns in `GROUP BY` clause
+- Fixed PostgreSQL foreign key constraint error by using UUID type for `customer_id`
+- Fixed accessibility linter warning by adding `id`/`for` attributes to customer select field
+- Fixed null reference errors by adding nullish coalescing operators for `payslipInfo`
+
+#### Payslip Integration
+
+- Fixed "Failed to load resource: 500" error by removing JOINs to non-existent `departments` and `positions` tables
+- Updated query to use `e.department` and `e.position` string columns directly
+- Fixed data transformation to convert `period` (YYYY-MM) into separate `year` and `month` fields
+- Fixed `payments`/`deductions` JSON object to array conversion for `PayslipPDFData`
+
+#### Execution Rate Module
+
+- Fixed `ReferenceError: process is not defined` by separating client-side and server-side code
+- Fixed "집행율 보기" checkbox not working by replacing `onchange` with `$effect` for reactivity
+- Fixed 0.0% execution rate for research materials by querying multiple category codes
+- Fixed database date validation errors by explicitly selecting columns with `::text` casting
+
+### 🎨 UI/UX Improvements
+
+- **Customer Card Enhancements**
+  - Cleaner collapsed/expanded states with chevron icons
+  - Better information hierarchy
+  - Improved mobile responsiveness
+
+- **Evidence Detail Modal**
+  - Professional customer card display with document links
+  - Clear payslip status indicators
+  - Helpful guidance messages for missing documents
+
+- **Execution Plan Table**
+  - Color-coded progress bars for visual clarity
+  - Compact display with toggle option
+  - Responsive layout for different screen sizes
+
+### 📊 Data Migration
+
+- Batch update script for personnel expense evidence names (`scripts/fix-personnel-evidence-names.ts`)
+- Automatic format conversion: "고동훤 2025년 9월 인건비" → "고동훤 (2025-09)"
+- Database schema updates applied automatically
+
+### 📝 Developer Notes
+
+#### Key Components
+
+- `CustomerFormModal.svelte` - Reusable customer creation/edit form
+- `CommonPayslipModal.svelte` - Generic payslip display modal
+- `RDEvidenceDetailModal.svelte` - Enhanced with customer and payslip integration
+- `RDExecutionPlan.svelte` - Budget execution rate tracking
+
+#### Important Fixes
+
+- `ThemeInput.svelte` now correctly implements `bind:value` with `let value = $bindable('')`
+- `CustomerFormModal` uses `lastCustomerId` tracking to prevent unnecessary re-initializations
+- Execution rate service separated into client-safe utilities and server-side database queries
+
+### 🚀 Next Steps
+
+- Advanced filtering and search for customers with document status
+- Budget execution rate forecasting and alerts
+- Enhanced payslip generation workflow
+- Mobile app support for evidence and document management
+
+---
+
+**Total Changes**: 35 files modified, 8 new files added, 1 file deleted
+**Main Commit**: `feat: integrate CRM customers and payslips with R&D evidence management, add budget execution rate tracking`
+
 ## Version 0.4.0 (2025-10-09)
 
 ### ✨ Features
