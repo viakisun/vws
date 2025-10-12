@@ -226,5 +226,5 @@ A: 급여 계약 정보에서 예상 퇴직금을 확인할 수 있습니다. �
 
 ## 관련 매뉴얼
 
-- [대시보드 가이드](./dashboard.md)
-- [인사 관리 가이드](./hr.md)
+- [대시보드 가이드](/help?section=dashboard)
+- [인사 관리 가이드](/help?section=hr)

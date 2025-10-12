@@ -200,6 +200,6 @@ A: 미사용 연차는 퇴직금 정산 시 수당으로 지급됩니다.
 
 ## 관련 매뉴얼
 
-- [대시보드 가이드](./dashboard.md)
-- [출퇴근 관리 가이드](./attendance.md)
-- [인사 관리 가이드](./hr.md)
+- [대시보드 가이드](/help?section=dashboard)
+- [출퇴근 관리 가이드](/help?section=attendance)
+- [인사 관리 가이드](/help?section=hr)

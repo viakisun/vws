@@ -225,5 +225,5 @@ A: 지원 기관에 연장 신청을 하고 승인 받은 후 시스템에 반�
 
 ## 관련 매뉴얼
 
-- [재무 관리 가이드](./HELP-finance.md)
-- [인사 관리 가이드](./HELP-hr.md)
+- [재무 관리 가이드](/help?section=finance)
+- [인사 관리 가이드](/help?section=hr)

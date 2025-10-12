@@ -167,6 +167,6 @@ A: 재직증명서 발급 시 옵션에서 "영문 포함" 선택이 가능합�
 
 ## 관련 매뉴얼
 
-- [출퇴근 관리 상세 가이드](./attendance.md)
-- [휴가 관리 상세 가이드](./leave.md)
-- [급여 관리 가이드](./salary.md)
+- [출퇴근 관리 상세 가이드](/help?section=attendance)
+- [휴가 관리 상세 가이드](/help?section=leave)
+- [급여 관리 가이드](/help?section=salary)

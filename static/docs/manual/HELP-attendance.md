@@ -172,6 +172,6 @@ A: 회사 인사 규정에 따릅니다. 자세한 사항은 인사팀에 문의
 
 ## 관련 매뉴얼
 
-- [대시보드 가이드](./dashboard.md)
-- [휴가 관리 가이드](./leave.md)
-- [인사 관리 가이드](./hr.md)
+- [대시보드 가이드](/help?section=dashboard)
+- [휴가 관리 가이드](/help?section=leave)
+- [인사 관리 가이드](/help?section=hr)

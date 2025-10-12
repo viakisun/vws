@@ -208,4 +208,4 @@ A: 기술 부채 정리, 문서화, 다음 사이클 준비를 합니다.
 
 ## 관련 매뉴얼
 
-- [연구개발 사업 관리 가이드](./HELP-research-development.md)
+- [연구개발 사업 관리 가이드](/help?section=research-development)

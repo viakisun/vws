@@ -229,5 +229,5 @@ A: ADMIN 또는 IT 지원팀에 즉시 연락하세요.
 
 ## 관련 매뉴얼
 
-- [인사 관리 가이드](./HELP-hr.md)
-- [대시보드 가이드](./HELP-dashboard.md)
+- [인사 관리 가이드](/help?section=hr)
+- [대시보드 가이드](/help?section=dashboard)

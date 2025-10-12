@@ -202,5 +202,5 @@ A: 재무 관리자에게 예산 조정을 요청하거나, 불필요한 지출�
 
 ## 관련 매뉴얼
 
-- [연구개발 사업 관리 가이드](./HELP-research-development.md)
-- [영업 관리 가이드](./HELP-sales.md)
+- [연구개발 사업 관리 가이드](/help?section=research-development)
+- [영업 관리 가이드](/help?section=sales)

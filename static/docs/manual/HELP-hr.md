@@ -181,7 +181,7 @@ A: 퇴사 처리 후에도 데이터는 보관되며, 재직 상태가 "퇴사"�
 
 ## 관련 매뉴얼
 
-- [출퇴근 관리 가이드](./attendance.md)
-- [휴가 관리 가이드](./leave.md)
-- [급여 관리 가이드](./salary.md)
-- [시스템 설정 가이드](./settings.md)
+- [출퇴근 관리 가이드](/help?section=attendance)
+- [휴가 관리 가이드](/help?section=leave)
+- [급여 관리 가이드](/help?section=salary)
+- [시스템 설정 가이드](/help?section=settings)
