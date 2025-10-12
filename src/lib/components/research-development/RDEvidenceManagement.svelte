@@ -154,6 +154,10 @@
                           >담당자</th
                         >
                         <th
+                          class="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-20"
+                          >서류</th
+                        >
+                        <th
                           class="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-24"
                           >진행률</th
                         >
@@ -191,6 +195,18 @@
                             <span class="text-gray-600"
                               >{memberUtilsImported.formatAssigneeNameFromFields(item)}</span
                             >
+                          </td>
+
+                          <!-- 서류 -->
+                          <td class="px-3 py-3 whitespace-nowrap text-sm text-gray-900 text-center">
+                            <span
+                              class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium {item.document_count >
+                              0
+                                ? 'bg-blue-100 text-blue-800'
+                                : 'bg-gray-100 text-gray-600'}"
+                            >
+                              {item.document_count || 0}
+                            </span>
                           </td>
 
                           <!-- 진행률 -->

@@ -45,7 +45,8 @@
     "resources": "npm run validate-resources && npm run sync-resources",
     "db:migrate:personnel": "tsx scripts/migrate-rd-personnel-data.ts",
     "db:migrate:vendors": "tsx scripts/migrate-rd-vendors.ts",
-    "db:migrate:expenses": "tsx scripts/migrate-rd-expense-data.ts"
+    "db:migrate:expenses": "tsx scripts/migrate-rd-expense-data.ts",
+    "db:migrate:company-code": "psql $DATABASE_URL -f migrations/035_add_company_code.sql"
   },
   "devDependencies": {
     "@eslint/js": "^9.36.0",
@@ -85,6 +86,8 @@
   },
   "type": "module",
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.908.0",
+    "@aws-sdk/s3-request-presigner": "^3.908.0",
     "@lucide/svelte": "^0.544.0",
     "@sveltejs/adapter-node": "^5.3.2",
     "@tailwindcss/postcss": "^4.1.13",

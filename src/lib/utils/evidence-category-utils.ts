@@ -1,6 +1,4 @@
-import {
-    EvidenceCategoryCodeInfo
-} from '$lib/constants/evidence-category-codes'
+import { EvidenceCategoryCodeInfo } from '$lib/constants/evidence-category-codes'
 
 export function getCategoryNameByCode(code: string): string {
   return EvidenceCategoryCodeInfo[code]?.name || '알 수 없음'
@@ -29,4 +27,3 @@ export function getCategoryColor(code: string): string {
   if (code.startsWith('9')) return 'gray'
   return 'gray'
 }
-

@@ -66,9 +66,7 @@ export const POST: RequestHandler = async ({ request }) => {
     }
 
     // 중복 코드 확인
-    const duplicateCheck = await query('SELECT id FROM evidence_categories WHERE code = $1', [
-      code,
-    ])
+    const duplicateCheck = await query('SELECT id FROM evidence_categories WHERE code = $1', [code])
     if (duplicateCheck.rows.length > 0) {
       const response: ApiResponse<null> = {
         success: false,

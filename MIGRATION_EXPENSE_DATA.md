@@ -9,7 +9,7 @@
 1. **증빙 카테고리 코드 시스템** - UUID 참조에서 코드 기반 enum 시스템으로 전환
 2. **거래처 정보 연동** - `sales_customers` 테이블과 증빙 아이템 연결
 3. **세부 집행 내역 추가** - 6개 사업의 재료비, 연구활동비 등 비인건비 증빙 데이터 추가
-4. **SELECT * 패턴 제거** - 모든 API 쿼리에서 필드를 명시적으로 지정
+4. **SELECT \* 패턴 제거** - 모든 API 쿼리에서 필드를 명시적으로 지정
 
 ---
 
@@ -27,6 +27,7 @@ psql postgresql://postgres:viahubdev@db-viahub.cdgqkcss8mpj.ap-northeast-2.rds.a
 ```
 
 **변경 내역:**
+
 - `evidence_categories` 테이블에 `code`, `parent_code`, `display_order`, `is_active` 컬럼 추가
 - `evidence_items` 테이블에 `vendor_id`, `vendor_name`, `item_detail`, `tax_amount`, `payment_date`, `notes` 컬럼 추가
 - 금액 컬럼 타입을 `DECIMAL`에서 `BIGINT`로 변경
@@ -39,6 +40,7 @@ npm run db:migrate:vendors
 ```
 
 **생성되는 거래처:**
+
 - 무기체계: (주)디클래스, (주)스페이스케이, 스카에이어, 라보테, 두거리 우신탕, 하늘천
 - 스마트팜: 엔티렉스, 디스플레이스먼트, 사이더스, 에어플레이
 - 침수안전: MK 솔루션, 이티컴퍼니, 디큐브랩, 바른컴퓨터, 스카이에어
@@ -51,6 +53,7 @@ npm run db:migrate:expenses
 ```
 
 **처리 내역:**
+
 - 기존 비인건비 증빙 삭제 (카테고리 코드 1로 시작하지 않는 항목)
 - 6개 사업의 증빙 항목 생성:
   - 무기체계 개조개발: 13개 항목
@@ -92,7 +95,7 @@ const PROJECT_MAPPING = {
   '무기체계 개조개발': 'PROJ_2024_003',
   '스마트팜(작업자추종)': 'PROJ_2025_002',
   '스마트팜(적심적과)': 'PROJ_2025_001',
-  '침수안전산업': 'PROJ_2025_003',
+  침수안전산업: 'PROJ_2025_003',
   'AI 솔루션 실증 지원': 'PROJ_2024_002',
 }
 ```
@@ -104,7 +107,7 @@ const PROJECT_MAPPING = {
 ### 거래처별 거래 합계
 
 ```sql
-SELECT 
+SELECT
   sc.name as vendor_name,
   COUNT(ei.id) as transaction_count,
   SUM(ei.spent_amount) as total_amount
@@ -117,7 +120,7 @@ ORDER BY total_amount DESC;
 ### 카테고리별 증빙 수 및 금액
 
 ```sql
-SELECT 
+SELECT
   ec.code,
   ec.name,
   COUNT(ei.id) as item_count,
@@ -132,7 +135,7 @@ ORDER BY ec.display_order;
 ### 프로젝트별 비인건비 증빙 합계
 
 ```sql
-SELECT 
+SELECT
   p.code,
   p.title,
   ec.name as category_name,
@@ -152,23 +155,28 @@ ORDER BY p.code, ec.name;
 ## 파일 목록
 
 ### 마이그레이션 파일
+
 - `migrations/032_add_evidence_category_codes.sql`
 - `migrations/033_add_evidence_item_vendor_details.sql`
 
 ### 스크립트 파일
+
 - `scripts/migrate-rd-vendors.ts`
 - `scripts/migrate-rd-expense-data.ts`
 
 ### TypeScript 파일
+
 - `src/lib/constants/evidence-category-codes.ts` - 카테고리 코드 enum 정의
 - `src/lib/utils/evidence-category-utils.ts` - 카테고리 유틸리티 함수
 - `src/lib/services/research-development/evidence.service.ts` - 확장된 타입 정의
 
 ### API 파일
+
 - `src/routes/api/research-development/evidence-categories/+server.ts` - 업데이트됨
 - `src/routes/api/research-development/evidence/+server.ts` - 업데이트됨
 
 ### 기타
+
 - `src/lib/utils/schema-validation.ts` - 스키마 검증 규칙 추가
 - `package.json` - 마이그레이션 스크립트 추가
 
@@ -190,6 +198,7 @@ ORDER BY p.code, ec.name;
 **원인**: 제약 조건 충돌 또는 데이터 타입 불일치
 
 **해결**:
+
 ```sql
 -- 외래키 제약 확인
 SELECT conname FROM pg_constraint WHERE conname LIKE '%evidence%';
@@ -204,11 +213,12 @@ SELECT conname FROM pg_constraint WHERE conname LIKE '%evidence%';
 **원인**: `ON CONFLICT` 절이 제대로 작동하지 않음
 
 **해결**:
+
 ```sql
 -- 중복 거래처 확인
-SELECT name, COUNT(*) 
-FROM sales_customers 
-GROUP BY name 
+SELECT name, COUNT(*)
+FROM sales_customers
+GROUP BY name
 HAVING COUNT(*) > 1;
 ```
 
@@ -217,13 +227,14 @@ HAVING COUNT(*) > 1;
 **원인**: 프로젝트 또는 예산 정보를 찾을 수 없음
 
 **해결**:
+
 ```sql
 -- 프로젝트 확인
 SELECT code, title FROM projects WHERE code LIKE 'PROJ_%';
 
 -- 예산 확인
-SELECT p.code, pb.period_number 
-FROM projects p 
+SELECT p.code, pb.period_number
+FROM projects p
 JOIN project_budgets pb ON p.id = pb.project_id;
 ```
 
@@ -234,4 +245,3 @@ JOIN project_budgets pb ON p.id = pb.project_id;
 - 모든 금액은 원 단위로 저장됩니다.
 - 날짜 필드는 `::text`로 명시적 캐스팅됩니다.
 - 집계 함수 사용 시 `DISTINCT`를 사용하여 중복 카운팅을 방지합니다.
-

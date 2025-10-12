@@ -5,8 +5,8 @@ const PROJECT_MAPPING: Record<string, string> = {
   '무기체계 개조개발': 'PROJ_2024_003',
   '스마트팜(작업자추종)': 'PROJ_2025_002',
   '스마트팜(적심적과)': 'PROJ_2025_001',
-  '침수안전산업': 'PROJ_2025_003',
-  'AI 솔루션 실증 지원': 'PROJ_2024_002'
+  침수안전산업: 'PROJ_2025_003',
+  'AI 솔루션 실증 지원': 'PROJ_2024_002',
 }
 
 const CATEGORY_NAME_TO_CODE: Record<string, string> = {
@@ -17,7 +17,7 @@ const CATEGORY_NAME_TO_CODE: Record<string, string> = {
   국내여비: '3003',
   회의비: '3005',
   업무추진비: '3006',
-  연구활동비: '3001'
+  연구활동비: '3001',
 }
 
 interface ExpenseItem {
@@ -40,7 +40,7 @@ const EXPENSES: ExpenseItem[] = [
     itemDetail: '시험용 드론 프레임',
     amount: 6000000,
     taxAmount: 600000,
-    paymentDate: '2025-09-04'
+    paymentDate: '2025-09-04',
   },
   {
     projectKey: '무기체계 개조개발',
@@ -49,7 +49,7 @@ const EXPENSES: ExpenseItem[] = [
     itemDetail: '시험용 컨트롤러',
     amount: 5400000,
     taxAmount: 540000,
-    paymentDate: '2025-09-04'
+    paymentDate: '2025-09-04',
   },
 
   // 무기체계 - 시제품 제작경비
@@ -60,7 +60,7 @@ const EXPENSES: ExpenseItem[] = [
     itemDetail: '지상통제 데모시스템',
     amount: 26000000,
     taxAmount: 2600000,
-    paymentDate: '2025-09-02'
+    paymentDate: '2025-09-02',
   },
 
   // 무기체계 - 국내여비
@@ -69,7 +69,7 @@ const EXPENSES: ExpenseItem[] = [
     categoryName: '국내여비',
     itemDetail: '드론쇼 코리아(개인차)_김대곤',
     amount: 119640,
-    paymentDate: '2025-03-04'
+    paymentDate: '2025-03-04',
   },
   {
     projectKey: '무기체계 개조개발',
@@ -77,7 +77,7 @@ const EXPENSES: ExpenseItem[] = [
     itemDetail: '드론쇼 코리아(개인차) 식비',
     amount: 68185,
     taxAmount: 6815,
-    paymentDate: '2025-02-26'
+    paymentDate: '2025-02-26',
   },
   {
     projectKey: '무기체계 개조개발',
@@ -85,28 +85,28 @@ const EXPENSES: ExpenseItem[] = [
     itemDetail: '드론쇼 코리아(법인차) 식비',
     amount: 72455,
     taxAmount: 7245,
-    paymentDate: '2025-02-26'
+    paymentDate: '2025-02-26',
   },
   {
     projectKey: '무기체계 개조개발',
     categoryName: '국내여비',
     itemDetail: '드론프릭 출장_이건희',
     amount: 123454,
-    paymentDate: '2025-05-12'
+    paymentDate: '2025-05-12',
   },
   {
     projectKey: '무기체계 개조개발',
     categoryName: '국내여비',
     itemDetail: '드론프릭 출장_이건희',
     amount: 55637,
-    paymentDate: '2025-05-20'
+    paymentDate: '2025-05-20',
   },
   {
     projectKey: '무기체계 개조개발',
     categoryName: '국내여비',
     itemDetail: '드론프릭 출장 일비_이건희',
     amount: 20000,
-    paymentDate: '2025-05-26'
+    paymentDate: '2025-05-26',
   },
 
   // 무기체계 - 회의비
@@ -117,7 +117,7 @@ const EXPENSES: ExpenseItem[] = [
     itemDetail: '회의비',
     amount: 97274,
     taxAmount: 9726,
-    paymentDate: '2025-02-27'
+    paymentDate: '2025-02-27',
   },
   {
     projectKey: '무기체계 개조개발',
@@ -126,7 +126,7 @@ const EXPENSES: ExpenseItem[] = [
     itemDetail: '회의비',
     amount: 82728,
     taxAmount: 8272,
-    paymentDate: '2025-03-05'
+    paymentDate: '2025-03-05',
   },
   {
     projectKey: '무기체계 개조개발',
@@ -135,7 +135,7 @@ const EXPENSES: ExpenseItem[] = [
     itemDetail: '회의비',
     amount: 68182,
     taxAmount: 6818,
-    paymentDate: '2025-05-21'
+    paymentDate: '2025-05-21',
   },
 
   // 스마트팜(작업자추종) - 연구재료비
@@ -146,7 +146,7 @@ const EXPENSES: ExpenseItem[] = [
     itemDetail: '라스베리파이 CM4',
     amount: 1640000,
     taxAmount: 164000,
-    paymentDate: '2025-05-14'
+    paymentDate: '2025-05-14',
   },
   {
     projectKey: '스마트팜(작업자추종)',
@@ -155,7 +155,7 @@ const EXPENSES: ExpenseItem[] = [
     itemDetail: 'AGX Orin Dev Kit 외 5건',
     amount: 12467000,
     taxAmount: 1246700,
-    paymentDate: '2025-07-24'
+    paymentDate: '2025-07-24',
   },
   {
     projectKey: '스마트팜(작업자추종)',
@@ -163,7 +163,7 @@ const EXPENSES: ExpenseItem[] = [
     vendorName: '사이더스',
     itemDetail: 'RouteCAM_CU86_CXLC_IP67',
     amount: 1780545,
-    paymentDate: '2025-08-21'
+    paymentDate: '2025-08-21',
   },
   {
     projectKey: '스마트팜(작업자추종)',
@@ -171,7 +171,7 @@ const EXPENSES: ExpenseItem[] = [
     itemDetail: 'Nvidia Jetson Orin Nano 8GB Edge Computer T218',
     amount: 782446,
     taxAmount: 33160,
-    paymentDate: '2025-08-27'
+    paymentDate: '2025-08-27',
   },
 
   // 스마트팜(작업자추종) - 연구용역비
@@ -182,7 +182,7 @@ const EXPENSES: ExpenseItem[] = [
     itemDetail: '로봇관제 시스템 UXUI 개발',
     amount: 22000000,
     taxAmount: 2200000,
-    paymentDate: '2025-06-25'
+    paymentDate: '2025-06-25',
   },
   {
     projectKey: '스마트팜(작업자추종)',
@@ -191,7 +191,7 @@ const EXPENSES: ExpenseItem[] = [
     itemDetail: '로봇 관제 테스트 모빌리티 제작',
     amount: 25500000,
     taxAmount: 2550000,
-    paymentDate: '2025-07-23'
+    paymentDate: '2025-07-23',
   },
 
   // 스마트팜(적심적과) - 연구재료비
@@ -201,7 +201,7 @@ const EXPENSES: ExpenseItem[] = [
     vendorName: '엔티렉스',
     itemDetail: '라스베리파이 CM4',
     amount: 1640000,
-    paymentDate: '2025-05-14'
+    paymentDate: '2025-05-14',
   },
   {
     projectKey: '스마트팜(적심적과)',
@@ -209,7 +209,7 @@ const EXPENSES: ExpenseItem[] = [
     vendorName: '(주)스페이스케이',
     itemDetail: 'Netgear GS324PP (PoE) 외 8건',
     amount: 10272500,
-    paymentDate: '2025-07-24'
+    paymentDate: '2025-07-24',
   },
 
   // 스마트팜(적심적과) - 연구용역비
@@ -219,7 +219,7 @@ const EXPENSES: ExpenseItem[] = [
     vendorName: '에어플레이',
     itemDetail: '스마트팜 로봇 운영 설계 UX/UI 개발',
     amount: 27000000,
-    paymentDate: '2025-08-26'
+    paymentDate: '2025-08-26',
   },
   {
     projectKey: '스마트팜(적심적과)',
@@ -227,7 +227,7 @@ const EXPENSES: ExpenseItem[] = [
     vendorName: '디스플레이스먼트',
     itemDetail: '스마트팜 로봇 데브옵스 UXUI 개발',
     amount: 25000000,
-    paymentDate: '2025-08-26'
+    paymentDate: '2025-08-26',
   },
 
   // 침수안전 - 연구용역비
@@ -237,7 +237,7 @@ const EXPENSES: ExpenseItem[] = [
     vendorName: 'MK 솔루션',
     itemDetail: '시험용 드론 기체 설계 외주 용역',
     amount: 9000000,
-    notes: '10월 말 예정'
+    notes: '10월 말 예정',
   },
   {
     projectKey: '침수안전산업',
@@ -245,7 +245,7 @@ const EXPENSES: ExpenseItem[] = [
     vendorName: '에어플레이',
     itemDetail: '침수 데이터 시각화 및 예측 UXUI 개발 용역',
     amount: 9000000,
-    paymentDate: '2025-09-17'
+    paymentDate: '2025-09-17',
   },
   {
     projectKey: '침수안전산업',
@@ -253,7 +253,7 @@ const EXPENSES: ExpenseItem[] = [
     vendorName: '디스플레이스먼트',
     itemDetail: '침수 대응 인물 인식 AI 모델 데이터셋 구축 및 학습용 모듈 UXUI 개발 용역',
     amount: 9000000,
-    paymentDate: '2025-09-18'
+    paymentDate: '2025-09-18',
   },
   {
     projectKey: '침수안전산업',
@@ -261,7 +261,7 @@ const EXPENSES: ExpenseItem[] = [
     vendorName: '(주)스페이스케이',
     itemDetail: '항공 영상 데이터셋 촬영 외주 용역',
     amount: 8000000,
-    notes: '11월 중 예정'
+    notes: '11월 중 예정',
   },
 
   // 침수안전 - 연구재료비
@@ -271,7 +271,7 @@ const EXPENSES: ExpenseItem[] = [
     vendorName: 'MK 솔루션',
     itemDetail: '시험용 드론 프레임 3개',
     amount: 9000000,
-    notes: '이번주 예정'
+    notes: '이번주 예정',
   },
   {
     projectKey: '침수안전산업',
@@ -279,7 +279,7 @@ const EXPENSES: ExpenseItem[] = [
     vendorName: '디클래스',
     itemDetail: '시험용 드론 비행 컨트롤러 3개',
     amount: 9000000,
-    paymentDate: '2025-09-26'
+    paymentDate: '2025-09-26',
   },
   {
     projectKey: '침수안전산업',
@@ -287,7 +287,7 @@ const EXPENSES: ExpenseItem[] = [
     vendorName: '스카이에어',
     itemDetail: '시험용 드론 배터리 6개',
     amount: 2700000,
-    notes: '10/01 예정'
+    notes: '10/01 예정',
   },
   {
     projectKey: '침수안전산업',
@@ -295,7 +295,7 @@ const EXPENSES: ExpenseItem[] = [
     vendorName: '이티컴퍼니',
     itemDetail: '시험용 드론 영상 송수신 장치 3개',
     amount: 6000000,
-    paymentDate: '2025-10-01'
+    paymentDate: '2025-10-01',
   },
   {
     projectKey: '침수안전산업',
@@ -303,7 +303,7 @@ const EXPENSES: ExpenseItem[] = [
     vendorName: '스카이에어',
     itemDetail: '시험용 드론 RTK GPS 3개',
     amount: 6300000,
-    notes: '10/01 예정'
+    notes: '10/01 예정',
   },
   {
     projectKey: '침수안전산업',
@@ -311,7 +311,7 @@ const EXPENSES: ExpenseItem[] = [
     vendorName: '이티컴퍼니',
     itemDetail: '시험용 드론 컴패니언 컴퓨팅 모듈 3개',
     amount: 1800000,
-    paymentDate: '2025-10-01'
+    paymentDate: '2025-10-01',
   },
   {
     projectKey: '침수안전산업',
@@ -319,28 +319,28 @@ const EXPENSES: ExpenseItem[] = [
     vendorName: '디큐브랩',
     itemDetail: '시험용 드론 Edge 컴퓨팅 모듈 3개',
     amount: 9090000,
-    paymentDate: '2025-09-23'
+    paymentDate: '2025-09-23',
   },
   {
     projectKey: '침수안전산업',
     categoryName: '연구재료비',
     vendorName: '바른컴퓨터',
     itemDetail: 'AI 모델 학습 RTX 5090 GPU 2way',
-    amount: 9080640
+    amount: 9080640,
   },
   {
     projectKey: '침수안전산업',
     categoryName: '연구재료비',
     vendorName: '바른컴퓨터',
     itemDetail: 'AMD Ryzen 9 그레니트',
-    amount: 1090800
+    amount: 1090800,
   },
   {
     projectKey: '침수안전산업',
     categoryName: '연구재료비',
     vendorName: '바른컴퓨터',
     itemDetail: 'GIGABYTE X870E AI',
-    amount: 954840
+    amount: 954840,
   },
 
   // AI 솔루션 - 연구용역비
@@ -350,7 +350,7 @@ const EXPENSES: ExpenseItem[] = [
     vendorName: '에어플레이',
     itemDetail: '지형 데이터 시스템 UXUI',
     amount: 16000000,
-    paymentDate: '2025-08-13'
+    paymentDate: '2025-08-13',
   },
   {
     projectKey: 'AI 솔루션 실증 지원',
@@ -358,7 +358,7 @@ const EXPENSES: ExpenseItem[] = [
     vendorName: '에어플레이',
     itemDetail: '관제 시스템 UXUI 고도화',
     amount: 14000000,
-    paymentDate: '2025-07-17'
+    paymentDate: '2025-07-17',
   },
 
   // AI 솔루션 - 업무추진비
@@ -368,7 +368,7 @@ const EXPENSES: ExpenseItem[] = [
     vendorName: '전주밥상다잡수소',
     itemDetail: '사업추진비',
     amount: 225455,
-    paymentDate: '2025-08-12'
+    paymentDate: '2025-08-12',
   },
   {
     projectKey: 'AI 솔루션 실증 지원',
@@ -376,7 +376,7 @@ const EXPENSES: ExpenseItem[] = [
     vendorName: '육희당',
     itemDetail: '사업추진비',
     amount: 270912,
-    paymentDate: '2025-08-14'
+    paymentDate: '2025-08-14',
   },
   {
     projectKey: 'AI 솔루션 실증 지원',
@@ -384,7 +384,7 @@ const EXPENSES: ExpenseItem[] = [
     vendorName: '육희당',
     itemDetail: '사업추진비',
     amount: 259095,
-    paymentDate: '2025-08-21'
+    paymentDate: '2025-08-21',
   },
   {
     projectKey: 'AI 솔루션 실증 지원',
@@ -392,8 +392,8 @@ const EXPENSES: ExpenseItem[] = [
     vendorName: '하늘천숫불갈비',
     itemDetail: '사업추진비',
     amount: 81818,
-    paymentDate: '2025-09-04'
-  }
+    paymentDate: '2025-09-04',
+  },
 ]
 
 // 헬퍼 함수들
@@ -424,7 +424,7 @@ async function getProjectByCode(code: string): Promise<any> {
     `
     SELECT id, code, title FROM projects WHERE code = $1
   `,
-    [code]
+    [code],
   )
   if (result.rows.length === 0) {
     throw new Error(`Project not found: ${code}`)
@@ -443,7 +443,7 @@ async function findOrCreateBudget(projectId: string, paymentDate?: string): Prom
     ORDER BY period_number DESC
     LIMIT 1
   `,
-    [projectId]
+    [projectId],
   )
 
   if (result.rows.length === 0) {
@@ -487,8 +487,8 @@ async function createEvidenceItem(data: any): Promise<void> {
       data.item_detail,
       data.tax_amount,
       data.payment_date,
-      data.notes
-    ]
+      data.notes,
+    ],
   )
 }
 
@@ -547,7 +547,7 @@ async function migrateExpenseData() {
         item_detail: item.itemDetail,
         tax_amount: item.taxAmount || 0,
         payment_date: item.paymentDate || new Date().toISOString().split('T')[0],
-        notes: item.notes
+        notes: item.notes,
       })
 
       logger.info(`✓ 증빙 생성: ${projectCode} - ${name}`)
@@ -570,4 +570,3 @@ migrateExpenseData()
     logger.error('마이그레이션 실패:', error)
     process.exit(1)
   })
-

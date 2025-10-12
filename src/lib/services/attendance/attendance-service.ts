@@ -106,7 +106,7 @@ const QUERIES = {
   RECORD_CHECK_IN: `
     INSERT INTO attendance (employee_id, check_in_time, check_in_ip, notes, status)
     VALUES ($1, now(), $2, $3, $4)
-    ON CONFLICT (employee_id, DATE(check_in_time))
+    ON CONFLICT (employee_id, check_in_date)
     DO UPDATE SET
       check_in_time = now(),
       check_in_ip = $2,

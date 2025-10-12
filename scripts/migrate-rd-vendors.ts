@@ -20,7 +20,7 @@ const VENDORS: VendorData[] = [
     name: '(주)스페이스케이',
     type: 'supplier',
     industry: '전자장비',
-    notes: '드론 컨트롤러 공급업체'
+    notes: '드론 컨트롤러 공급업체',
   },
   { name: '스카에이어', type: 'supplier', industry: '소프트웨어', notes: '지상통제 시스템 개발' },
   { name: '라보테', type: 'supplier', industry: '음식점', notes: '회의비' },
@@ -33,7 +33,7 @@ const VENDORS: VendorData[] = [
     name: '디스플레이스먼트',
     type: 'supplier',
     industry: '전자장비',
-    notes: 'AI 장비 공급업체'
+    notes: 'AI 장비 공급업체',
   },
   { name: '사이더스', type: 'supplier', industry: '전자부품', notes: '카메라 모듈 공급업체' },
   { name: '에어플레이', type: 'supplier', industry: '소프트웨어', notes: 'UX/UI 개발 용역' },
@@ -48,7 +48,7 @@ const VENDORS: VendorData[] = [
   // AI 솔루션
   { name: '전주밥상다잡수소', type: 'supplier', industry: '음식점', notes: '업무추진비' },
   { name: '육희당', type: 'supplier', industry: '음식점', notes: '업무추진비' },
-  { name: '하늘천숫불갈비', type: 'supplier', industry: '음식점', notes: '업무추진비' }
+  { name: '하늘천숫불갈비', type: 'supplier', industry: '음식점', notes: '업무추진비' },
 ]
 
 async function migrateVendors() {
@@ -60,10 +60,9 @@ async function migrateVendors() {
   for (const vendor of VENDORS) {
     try {
       // Check if vendor already exists
-      const checkResult = await query(
-        `SELECT id FROM sales_customers WHERE name = $1`,
-        [vendor.name]
-      )
+      const checkResult = await query(`SELECT id FROM sales_customers WHERE name = $1`, [
+        vendor.name,
+      ])
 
       if (checkResult.rows.length > 0) {
         logger.info(`⊙ 거래처 이미 존재: ${vendor.name}`)
@@ -89,12 +88,11 @@ async function migrateVendors() {
           vendor.business_number || '000-00-00000',
           vendor.contact_person || '담당자',
           vendor.contact_phone || '010-0000-0000',
-          vendor.contact_email ||
-            `contact@${vendor.name.replace(/[^a-zA-Z0-9]/g, '')}.com`,
+          vendor.contact_email || `contact@${vendor.name.replace(/[^a-zA-Z0-9]/g, '')}.com`,
           vendor.address || '서울특별시',
           vendor.industry || '제조/서비스업',
-          vendor.notes || '자동 생성된 거래처'
-        ]
+          vendor.notes || '자동 생성된 거래처',
+        ],
       )
 
       if (result.rows.length > 0) {
@@ -118,4 +116,3 @@ migrateVendors()
     logger.error('마이그레이션 실패:', error)
     process.exit(1)
   })
-

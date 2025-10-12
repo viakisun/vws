@@ -81,32 +81,16 @@ export const GET: RequestHandler = async ({ params }) => {
 				ed.id,
 				ed.evidence_item_id,
 				ed.document_type,
-				ed.file_name,
+				ed.document_name as file_name,
 				ed.file_path,
 				ed.file_size,
-				ed.uploader_id,
-				ed.reviewer_id,
 				ed.status,
 				ed.upload_date::text,
 				ed.review_date::text,
-				ed.review_comment,
+				ed.review_notes as review_comment,
 				ed.created_at::text,
-				ed.updated_at::text,
-				CASE
-					WHEN uploader.first_name ~ '^[가-힣]+$' AND uploader.last_name ~ '^[가-힣]+$' THEN
-						uploader.last_name || uploader.first_name
-					ELSE
-						uploader.first_name || ' ' || uploader.last_name
-				END as uploader_name,
-				CASE
-					WHEN reviewer.first_name ~ '^[가-힣]+$' AND reviewer.last_name ~ '^[가-힣]+$' THEN
-						reviewer.last_name || reviewer.first_name
-					ELSE
-						reviewer.first_name || ' ' || reviewer.last_name
-				END as reviewer_name
+				ed.updated_at::text
 			FROM evidence_documents ed
-			LEFT JOIN employees uploader ON ed.uploader_id = uploader.id
-			LEFT JOIN employees reviewer ON ed.reviewer_id = reviewer.id
 			WHERE ed.evidence_item_id = $1
 			ORDER BY ed.upload_date DESC
 		`,
@@ -145,9 +129,8 @@ export const GET: RequestHandler = async ({ params }) => {
 				erh.evidence_item_id,
 				erh.reviewer_id,
 				erh.review_status,
-				erh.review_comment,
+				erh.review_notes as review_comment,
 				erh.reviewed_at::text,
-				erh.created_at::text,
 				CASE
 					WHEN reviewer.first_name ~ '^[가-힣]+$' AND reviewer.last_name ~ '^[가-힣]+$' THEN
 						reviewer.last_name || reviewer.first_name
@@ -225,6 +208,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
     const fieldsToUpdate: Record<string, unknown> = {
       name,
       description,
+      category_id: data.categoryId, // 카테고리 변경 추가
       budget_amount: budgetAmount,
       spent_amount: spentAmount,
       assignee_id: assigneeId,

@@ -15,7 +15,7 @@ export const EvidenceCategoryCode = {
   BUSINESS_PROMOTION: '3006',
 
   // 9000번대: 간접비
-  INDIRECT: '9001'
+  INDIRECT: '9001',
 } as const
 
 export type EvidenceCategoryCodeType =
@@ -35,12 +35,11 @@ export const EvidenceCategoryCodeInfo: Record<
   '2003': { name: '시제품제작경비', description: '시제품 및 프로토타입 제작 비용' },
   '3001': {
     name: '연구활동비',
-    description: '출장비, 회의비, 외주용역비 등 연구활동 관련 증빙'
+    description: '출장비, 회의비, 외주용역비 등 연구활동 관련 증빙',
   },
   '3002': { name: '연구용역비', description: '외주 용역 비용' },
   '3003': { name: '국내여비', description: '국내 출장 관련 비용', parentCode: '3001' },
   '3005': { name: '회의비', description: '회의 관련 비용', parentCode: '3001' },
   '3006': { name: '업무추진비', description: '사업 추진 관련 비용' },
-  '9001': { name: '간접비', description: '간접비 배분 및 특허출원 등 관련 증빙' }
+  '9001': { name: '간접비', description: '간접비 배분 및 특허출원 등 관련 증빙' },
 }
-
