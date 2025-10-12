@@ -279,6 +279,69 @@ export const RESOURCE_REGISTRY: readonly ResourceDefinition[] = Object.freeze([
       },
     ],
   },
+
+  // ============================================
+  // HELP (도움말)
+  // ============================================
+  {
+    key: 'help',
+    nameKo: '도움말',
+    nameEn: 'Help',
+    route: Routes.HELP,
+    description: '사용자 매뉴얼 및 도움말',
+    children: [
+      {
+        key: 'help.dashboard',
+        nameKo: '대시보드',
+        nameEn: 'Dashboard',
+      },
+      {
+        key: 'help.attendance',
+        nameKo: '출퇴근 관리',
+        nameEn: 'Attendance',
+      },
+      {
+        key: 'help.leave',
+        nameKo: '휴가 관리',
+        nameEn: 'Leave',
+      },
+      {
+        key: 'help.hr',
+        nameKo: '인사 관리',
+        nameEn: 'HR',
+      },
+      {
+        key: 'help.salary',
+        nameKo: '급여 관리',
+        nameEn: 'Salary',
+      },
+      {
+        key: 'help.finance',
+        nameKo: '재무 관리',
+        nameEn: 'Finance',
+      },
+      {
+        key: 'help.research_development',
+        nameKo: '연구개발 사업 관리',
+        nameEn: 'Research & Development',
+      },
+      {
+        key: 'help.planner',
+        nameKo: '플래너',
+        nameEn: 'Planner',
+      },
+      {
+        key: 'help.sales',
+        nameKo: '영업 관리',
+        nameEn: 'Sales',
+      },
+      {
+        key: 'help.settings',
+        nameKo: '시스템 설정',
+        nameEn: 'Settings',
+      },
+    ],
+  },
 ])
 
 // ============================================

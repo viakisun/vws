@@ -13,6 +13,7 @@ import {
   DollarSignIcon,
   FileTextIcon,
   FlaskConicalIcon,
+  HelpCircleIcon,
   HomeIcon,
   MessageSquareIcon,
   SettingsIcon,
@@ -39,6 +40,7 @@ export const RESOURCE_ICONS: Record<string, ComponentType> = {
   analytics: FlaskConicalIcon,
   settings: SettingsIcon,
   'admin.permissions': ShieldIcon,
+  help: HelpCircleIcon,
 }
 
 /**

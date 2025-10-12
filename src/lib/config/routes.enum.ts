@@ -92,6 +92,9 @@ export enum Routes {
   // 권한관리
   ADMIN_PERMISSIONS = '/admin/permissions',
 
+  // 도움말
+  HELP = '/help',
+
   // ============================================
   // API Routes
   // ============================================

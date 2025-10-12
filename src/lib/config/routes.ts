@@ -202,4 +202,10 @@ export const ROUTE_PERMISSIONS: Record<string, RoutePermission> = {
     resource: Resource.SYSTEM_ROLES,
     action: PermissionAction.READ,
   },
+
+  // 도움말 - 모든 사용자 접근 가능 (권한 체크 없음)
+  [Routes.HELP]: {
+    // resource를 정의하지 않으면 권한 체크를 건너뜁니다
+    fallback: Routes.DASHBOARD,
+  },
 }

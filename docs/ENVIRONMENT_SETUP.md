@@ -21,10 +21,11 @@ VWS (VIA Workstream) 프로젝트의 로컬 개발 환경 및 프로덕션 배�
 
 - **권장 버전**: Node.js 20.x 이상
 - **설치 방법**:
+
   ```bash
   # Homebrew (macOS)
   brew install node@20
-  
+
   # nvm 사용
   nvm install 20
   nvm use 20
@@ -120,6 +121,7 @@ ADMIN_EMAILS=admin@viasofts.com,manager@viasofts.com
 #### 4.1. RDS 정보 확인
 
 AWS Console에서 RDS 인스턴스 정보 확인:
+
 - 엔드포인트(Endpoint)
 - 포트(Port)
 - 데이터베이스 이름
@@ -177,10 +179,7 @@ S3 버킷에서 직접 업로드를 위해 CORS 설정 필요:
   {
     "AllowedHeaders": ["*"],
     "AllowedMethods": ["GET", "PUT", "POST", "DELETE", "HEAD"],
-    "AllowedOrigins": [
-      "http://localhost:5173",
-      "https://ws.viahub.dev"
-    ],
+    "AllowedOrigins": ["http://localhost:5173", "https://ws.viahub.dev"],
     "ExposeHeaders": ["ETag"],
     "MaxAgeSeconds": 3000
   }
@@ -204,16 +203,8 @@ S3 버킷에서 직접 업로드를 위해 CORS 설정 필요:
   "Statement": [
     {
       "Effect": "Allow",
-      "Action": [
-        "s3:PutObject",
-        "s3:GetObject",
-        "s3:DeleteObject",
-        "s3:ListBucket"
-      ],
-      "Resource": [
-        "arn:aws:s3:::workstream-via/*",
-        "arn:aws:s3:::workstream-via"
-      ]
+      "Action": ["s3:PutObject", "s3:GetObject", "s3:DeleteObject", "s3:ListBucket"],
+      "Resource": ["arn:aws:s3:::workstream-via/*", "arn:aws:s3:::workstream-via"]
     }
   ]
 }
@@ -280,6 +271,7 @@ npm run dev
 #### 1.2. 필수 GitHub Secrets
 
 **데이터베이스**:
+
 - `AWS_DB_HOST`
 - `AWS_DB_PORT`
 - `AWS_DB_NAME`
@@ -287,6 +279,7 @@ npm run dev
 - `AWS_DB_PASSWORD`
 
 **Google OAuth**:
+
 - `GOOGLE_CLIENT_ID`
 - `GOOGLE_CLIENT_SECRET`
 - `GOOGLE_REDIRECT_URI` (프로덕션 URL)
@@ -294,19 +287,23 @@ npm run dev
 - `ADMIN_EMAILS`
 
 **JWT**:
+
 - `JWT_SECRET`
 
 **AWS S3**:
+
 - `AWS_ACCESS_KEY_ID`
 - `AWS_SECRET_ACCESS_KEY`
 - `AWS_S3_BUCKET_NAME`
 - `AWS_S3_REGION`
 
 **파일 업로드**:
+
 - `MAX_FILE_SIZE_MB`
 - `ALLOWED_FILE_TYPES`
 
 **기타**:
+
 - `NODE_ENV=production`
 
 ### 2. CI/CD 파이프라인과 환경변수 연결
@@ -376,32 +373,32 @@ proxy_read_timeout 300s;
 
 ### 필수 환경변수
 
-| 변수명 | 설명 | 예시 |
-|--------|------|------|
-| `AWS_DB_HOST` | RDS 엔드포인트 | `db-viahub.xxx.rds.amazonaws.com` |
-| `AWS_DB_PORT` | RDS 포트 | `5432` |
-| `AWS_DB_NAME` | 데이터베이스 이름 | `postgres` |
-| `AWS_DB_USER` | 데이터베이스 사용자 | `postgres` |
-| `AWS_DB_PASSWORD` | 데이터베이스 비밀번호 | `your-password` |
-| `JWT_SECRET` | JWT 토큰 시크릿 | `64-character-hex-string` |
-| `GOOGLE_CLIENT_ID` | Google OAuth 클라이언트 ID | `xxx.apps.googleusercontent.com` |
-| `GOOGLE_CLIENT_SECRET` | Google OAuth 비밀번호 | `GOCSPX-xxx` |
-| `GOOGLE_REDIRECT_URI` | OAuth 리디렉션 URI | `https://domain.com/api/auth/callback/google` |
-| `ALLOWED_DOMAINS` | 허용 이메일 도메인 | `viasofts.com` |
-| `ADMIN_EMAILS` | 관리자 이메일 | `admin@viasofts.com` |
-| `AWS_ACCESS_KEY_ID` | AWS 액세스 키 | `AKIA...` |
-| `AWS_SECRET_ACCESS_KEY` | AWS 시크릿 키 | `...` |
-| `AWS_S3_BUCKET_NAME` | S3 버킷 이름 | `workstream-via` |
-| `AWS_S3_REGION` | S3 리전 | `ap-northeast-2` |
+| 변수명                  | 설명                       | 예시                                          |
+| ----------------------- | -------------------------- | --------------------------------------------- |
+| `AWS_DB_HOST`           | RDS 엔드포인트             | `db-viahub.xxx.rds.amazonaws.com`             |
+| `AWS_DB_PORT`           | RDS 포트                   | `5432`                                        |
+| `AWS_DB_NAME`           | 데이터베이스 이름          | `postgres`                                    |
+| `AWS_DB_USER`           | 데이터베이스 사용자        | `postgres`                                    |
+| `AWS_DB_PASSWORD`       | 데이터베이스 비밀번호      | `your-password`                               |
+| `JWT_SECRET`            | JWT 토큰 시크릿            | `64-character-hex-string`                     |
+| `GOOGLE_CLIENT_ID`      | Google OAuth 클라이언트 ID | `xxx.apps.googleusercontent.com`              |
+| `GOOGLE_CLIENT_SECRET`  | Google OAuth 비밀번호      | `GOCSPX-xxx`                                  |
+| `GOOGLE_REDIRECT_URI`   | OAuth 리디렉션 URI         | `https://domain.com/api/auth/callback/google` |
+| `ALLOWED_DOMAINS`       | 허용 이메일 도메인         | `viasofts.com`                                |
+| `ADMIN_EMAILS`          | 관리자 이메일              | `admin@viasofts.com`                          |
+| `AWS_ACCESS_KEY_ID`     | AWS 액세스 키              | `AKIA...`                                     |
+| `AWS_SECRET_ACCESS_KEY` | AWS 시크릿 키              | `...`                                         |
+| `AWS_S3_BUCKET_NAME`    | S3 버킷 이름               | `workstream-via`                              |
+| `AWS_S3_REGION`         | S3 리전                    | `ap-northeast-2`                              |
 
 ### 선택 환경변수 (기본값 있음)
 
-| 변수명 | 설명 | 기본값 |
-|--------|------|--------|
-| `NODE_ENV` | 환경 모드 | `development` |
-| `MAX_FILE_SIZE_MB` | 최대 파일 크기 (MB) | `100` |
-| `ALLOWED_FILE_TYPES` | 허용 파일 형식 | `.pdf,.png,.jpg,.jpeg,.xlsx,.xls,.docx,.doc,.hwp` |
-| `LOG_LEVEL` | 로그 레벨 | `info` |
+| 변수명               | 설명                | 기본값                                            |
+| -------------------- | ------------------- | ------------------------------------------------- |
+| `NODE_ENV`           | 환경 모드           | `development`                                     |
+| `MAX_FILE_SIZE_MB`   | 최대 파일 크기 (MB) | `100`                                             |
+| `ALLOWED_FILE_TYPES` | 허용 파일 형식      | `.pdf,.png,.jpg,.jpeg,.xlsx,.xls,.docx,.doc,.hwp` |
+| `LOG_LEVEL`          | 로그 레벨           | `info`                                            |
 
 ---
 
@@ -414,6 +411,7 @@ proxy_read_timeout 300s;
 **원인**: Google Cloud Console의 승인된 리디렉션 URI가 일치하지 않음
 
 **해결**:
+
 1. Google Cloud Console → OAuth 2.0 클라이언트 ID 확인
 2. 승인된 리디렉션 URI에 다음 추가:
    - `http://localhost:5173/api/auth/callback/google` (로컬)
@@ -427,11 +425,13 @@ proxy_read_timeout 300s;
 **증상**: "Connection timed out" 또는 "ECONNREFUSED"
 
 **가능한 원인**:
+
 1. RDS 보안 그룹에 IP가 허용되지 않음
 2. 잘못된 데이터베이스 자격 증명
 3. RDS가 시작되지 않음
 
 **해결**:
+
 1. AWS Console → RDS → 보안 그룹 → 인바운드 규칙에 IP 추가
 2. `.env` 파일의 데이터베이스 정보 확인
 3. RDS 인스턴스 상태 확인
@@ -445,6 +445,7 @@ proxy_read_timeout 300s;
 **원인**: `JWT_SECRET`이 변경되었거나 일치하지 않음
 
 **해결**:
+
 1. 브라우저 쿠키 삭제
 2. 다시 로그인
 3. 프로덕션 환경에서는 GitHub Secrets의 `JWT_SECRET` 확인
@@ -456,11 +457,13 @@ proxy_read_timeout 300s;
 **증상**: "403 Forbidden" 또는 "SignatureDoesNotMatch"
 
 **가능한 원인**:
+
 1. IAM 권한 부족
 2. 잘못된 AWS 자격 증명
 3. CORS 설정 문제
 
 **해결**:
+
 1. IAM 사용자에 S3 권한 확인 (PutObject, GetObject, DeleteObject)
 2. `.env`의 `AWS_ACCESS_KEY_ID`와 `AWS_SECRET_ACCESS_KEY` 확인
 3. S3 버킷 CORS 설정 확인
@@ -475,6 +478,7 @@ proxy_read_timeout 300s;
 **원인**: Nginx 또는 애플리케이션의 파일 크기 제한
 
 **해결**:
+
 1. `.env`에서 `MAX_FILE_SIZE_MB` 확인 및 증가
 2. Nginx 설정 확인:
    ```bash
@@ -495,6 +499,7 @@ proxy_read_timeout 300s;
 **원인**: 개발 서버가 재시작되지 않음
 
 **해결**:
+
 1. 개발 서버 중지 (Ctrl+C)
 2. 개발 서버 재시작: `npm run dev`
 3. 프로덕션 환경: Docker 컨테이너 재시작
@@ -510,4 +515,3 @@ proxy_read_timeout 300s;
 ---
 
 **문제가 해결되지 않으면 개발팀에 문의하세요.**
-
