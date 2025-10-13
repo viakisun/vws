@@ -3,6 +3,7 @@
  * 싱글톤 패턴으로 S3Client 인스턴스 관리
  */
 
+import { env } from '$env/dynamic/private'
 import { logger } from '$lib/utils/logger'
 import { S3Client } from '@aws-sdk/client-s3'
 
@@ -13,9 +14,9 @@ let s3Client: S3Client | null = null
  */
 export function getS3Client(): S3Client {
   if (!s3Client) {
-    const region = process.env.AWS_S3_REGION || process.env.AWS_REGION || 'ap-northeast-2'
-    const accessKeyId = process.env.AWS_ACCESS_KEY_ID
-    const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY
+    const region = env.AWS_S3_REGION || env.AWS_REGION || 'ap-northeast-2'
+    const accessKeyId = env.AWS_ACCESS_KEY_ID
+    const secretAccessKey = env.AWS_SECRET_ACCESS_KEY
 
     if (!accessKeyId || !secretAccessKey) {
       logger.error('AWS credentials are not configured')
@@ -40,7 +41,7 @@ export function getS3Client(): S3Client {
  * S3 버킷 이름 가져오기
  */
 export function getS3BucketName(): string {
-  const bucketName = process.env.AWS_S3_BUCKET_NAME
+  const bucketName = env.AWS_S3_BUCKET_NAME
 
   if (!bucketName) {
     logger.error('AWS_S3_BUCKET_NAME is not configured')
