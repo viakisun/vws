@@ -552,6 +552,7 @@ jobs:
               --restart unless-stopped \
               -p 3000:3000 \
               -e NODE_ENV=production \
+              -e BODY_SIZE_LIMIT=10485760 \
               -e DATABASE_URL="${DATABASE_URL}" \
               -e JWT_SECRET="${JWT_SECRET}" \
               -e GOOGLE_CLIENT_ID="${GOOGLE_CLIENT_ID}" \
