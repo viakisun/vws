@@ -18,17 +18,60 @@
 
   let { open, businessData, bankData, onClose, onConfirm }: Props = $props()
 
-  // 편집 가능한 데이터
-  let editableBusinessData = $state<BusinessRegistrationData | null>(null)
-  let editableBankData = $state<BankAccountData | null>(null)
+  // 편집 가능한 데이터 (null을 undefined로 변환)
+  let editableBusinessData = $state<{
+    companyName: string | undefined
+    businessNumber: string | undefined
+    representativeName: string | undefined
+    businessAddress: string | undefined
+    businessType: string | undefined
+    businessCategory: string | undefined
+    establishmentDate: string | undefined
+    isCorporation: boolean
+    confidence: number
+    rawText: string
+  } | null>(null)
+
+  let editableBankData = $state<{
+    bankName: string | undefined
+    accountNumber: string | undefined
+    accountHolder: string | undefined
+    confidence: number
+    rawText: string
+  } | null>(null)
+
   let showRawText = $state(false)
   let submitting = $state(false)
+
+  // null을 undefined로 변환하는 헬퍼 함수
+  function nullToUndefined(value: string | null): string | undefined {
+    return value === null ? undefined : value
+  }
 
   // open이 변경될 때 초기화
   $effect(() => {
     if (open && businessData) {
-      editableBusinessData = { ...businessData }
-      editableBankData = bankData ? { ...bankData } : null
+      editableBusinessData = {
+        companyName: nullToUndefined(businessData.companyName),
+        businessNumber: nullToUndefined(businessData.businessNumber),
+        representativeName: nullToUndefined(businessData.representativeName),
+        businessAddress: nullToUndefined(businessData.businessAddress),
+        businessType: nullToUndefined(businessData.businessType),
+        businessCategory: nullToUndefined(businessData.businessCategory),
+        establishmentDate: nullToUndefined(businessData.establishmentDate),
+        isCorporation: businessData.isCorporation,
+        confidence: businessData.confidence,
+        rawText: businessData.rawText,
+      }
+      editableBankData = bankData
+        ? {
+            bankName: nullToUndefined(bankData.bankName),
+            accountNumber: nullToUndefined(bankData.accountNumber),
+            accountHolder: nullToUndefined(bankData.accountHolder),
+            confidence: bankData.confidence,
+            rawText: bankData.rawText,
+          }
+        : null
       showRawText = false
     }
   })
@@ -39,8 +82,27 @@
     submitting = true
     try {
       onConfirm({
-        businessData: editableBusinessData,
-        bankData: editableBankData,
+        businessData: {
+          companyName: editableBusinessData.companyName || null,
+          businessNumber: editableBusinessData.businessNumber || null,
+          representativeName: editableBusinessData.representativeName || null,
+          businessAddress: editableBusinessData.businessAddress || null,
+          businessType: editableBusinessData.businessType || null,
+          businessCategory: editableBusinessData.businessCategory || null,
+          establishmentDate: editableBusinessData.establishmentDate || null,
+          isCorporation: editableBusinessData.isCorporation,
+          confidence: editableBusinessData.confidence,
+          rawText: editableBusinessData.rawText,
+        },
+        bankData: editableBankData
+          ? {
+              bankName: editableBankData.bankName || null,
+              accountNumber: editableBankData.accountNumber || null,
+              accountHolder: editableBankData.accountHolder || null,
+              confidence: editableBankData.confidence,
+              rawText: editableBankData.rawText,
+            }
+          : null,
       })
     } finally {
       submitting = false
@@ -55,7 +117,7 @@
   })
 </script>
 
-<ThemeModal {open} {onClose} maxWidth="4xl">
+<ThemeModal {open} onclose={onClose} size="xl">
   <div class="p-6">
     <h2 class="text-2xl font-bold text-gray-900 mb-4">추출된 정보 확인</h2>
 
@@ -103,8 +165,9 @@
           <ThemeInput label="대표자명" bind:value={editableBusinessData.representativeName} />
           <ThemeInput
             label="개업일자"
-            type="date"
+            type="text"
             bind:value={editableBusinessData.establishmentDate}
+            placeholder="YYYY-MM-DD"
           />
           <ThemeInput label="업태" bind:value={editableBusinessData.businessType} />
           <ThemeInput label="종목" bind:value={editableBusinessData.businessCategory} />

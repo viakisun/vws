@@ -29,11 +29,11 @@ export const GET: RequestHandler = async (event) => {
 
     // 문서 타입 검증
     if (!Object.values(CrmDocumentType).includes(documentType as CrmDocumentType)) {
-      return json<ApiResponse<never>>(
+      return json(
         {
           success: false,
           error: '유효하지 않은 문서 타입입니다',
-        },
+        } as ApiResponse<never>,
         { status: 400 },
       )
     }
@@ -46,11 +46,11 @@ export const GET: RequestHandler = async (event) => {
     ])
 
     if (result.rows.length === 0) {
-      return json<ApiResponse<never>>(
+      return json(
         {
           success: false,
           error: '고객을 찾을 수 없습니다',
-        },
+        } as ApiResponse<never>,
         { status: 404 },
       )
     }
@@ -58,11 +58,11 @@ export const GET: RequestHandler = async (event) => {
     const s3Key = result.rows[0].s3_key
 
     if (!s3Key) {
-      return json<ApiResponse<never>>(
+      return json(
         {
           success: false,
           error: '파일이 존재하지 않습니다',
-        },
+        } as ApiResponse<never>,
         { status: 404 },
       )
     }
@@ -91,11 +91,11 @@ export const GET: RequestHandler = async (event) => {
     return json(response)
   } catch (error) {
     logger.error('Failed to generate CRM document download URL:', error)
-    return json<ApiResponse<never>>(
+    return json(
       {
         success: false,
         error: '다운로드 URL 생성에 실패했습니다',
-      },
+      } as ApiResponse<never>,
       { status: 500 },
     )
   }

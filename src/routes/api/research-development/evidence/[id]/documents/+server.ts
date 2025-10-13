@@ -49,11 +49,11 @@ export const GET: RequestHandler = async (event) => {
     return json(response)
   } catch (error) {
     logger.error('Failed to fetch documents:', error)
-    return json<ApiResponse<never>>(
+    return json(
       {
         success: false,
-        error: '문서 목록 조회에 실패했습니다.',
-      },
+        error: '증빙 항목을 찾을 수 없습니다.',
+      } as ApiResponse<never>,
       { status: 500 },
     )
   }
@@ -74,11 +74,11 @@ export const POST: RequestHandler = async (event) => {
     const evidenceCheck = await query(`SELECT id FROM evidence_items WHERE id = $1`, [evidenceId])
 
     if (evidenceCheck.rows.length === 0) {
-      return json<ApiResponse<never>>(
+      return json(
         {
           success: false,
           error: '증빙 항목을 찾을 수 없습니다.',
-        },
+        } as ApiResponse<never>,
         { status: 404 },
       )
     }
@@ -124,11 +124,11 @@ export const POST: RequestHandler = async (event) => {
     return json(response)
   } catch (error) {
     logger.error('Failed to save document metadata:', error)
-    return json<ApiResponse<never>>(
+    return json(
       {
         success: false,
         error: '문서 저장에 실패했습니다.',
-      },
+      } as ApiResponse<never>,
       { status: 500 },
     )
   }

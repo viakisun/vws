@@ -31,22 +31,22 @@ export const POST: RequestHandler = async (event) => {
     // 파일 검증
     const typeError = validateFileType(fileName, allowedTypes)
     if (typeError) {
-      return json<ApiResponse<never>>(
+      return json(
         {
           success: false,
           error: typeError.message,
-        },
+        } as ApiResponse<never>,
         { status: 400 },
       )
     }
 
     const sizeError = validateFileSize(fileSize, maxSizeMB)
     if (sizeError) {
-      return json<ApiResponse<never>>(
+      return json(
         {
           success: false,
           error: sizeError.message,
-        },
+        } as ApiResponse<never>,
         { status: 400 },
       )
     }
@@ -68,11 +68,11 @@ export const POST: RequestHandler = async (event) => {
     )
 
     if (evidenceResult.rows.length === 0) {
-      return json<ApiResponse<never>>(
+      return json(
         {
           success: false,
           error: '증빙 항목을 찾을 수 없습니다.',
-        },
+        } as ApiResponse<never>,
         { status: 404 },
       )
     }
@@ -109,11 +109,11 @@ export const POST: RequestHandler = async (event) => {
     return json(response)
   } catch (error) {
     logger.error('Failed to generate upload URL:', error)
-    return json<ApiResponse<never>>(
+    return json(
       {
         success: false,
         error: '업로드 URL 생성에 실패했습니다.',
-      },
+      } as ApiResponse<never>,
       { status: 500 },
     )
   }

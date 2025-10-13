@@ -3,7 +3,7 @@
  */
 export type Employee = {
   /** 직원 고유 ID */
-  id?: string
+  id: string
   /** 직원 번호 */
   employeeId?: string
   /** 직원 이름 */

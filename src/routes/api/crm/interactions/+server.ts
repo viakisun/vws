@@ -117,7 +117,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
         body.description || '',
         body.interactionDate || new Date().toISOString(),
         body.nextActionDate || null,
-        user?.employeeId || null,
+        user?.employee_id || null,
       ],
     )
 

@@ -5,6 +5,13 @@ import { logger } from '$lib/utils/logger'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
 
+// TODO: 실제 ProjectService로 교체 필요
+declare module '$lib/database/connection' {
+  namespace DatabaseService {
+    function getProjects(params: any): Promise<any>
+  }
+}
+
 interface ProjectQueryParams {
   status?: string
   manager_id?: string

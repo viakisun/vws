@@ -30,11 +30,11 @@ export const DELETE: RequestHandler = async (event) => {
     )
 
     if (docResult.rows.length === 0) {
-      return json<ApiResponse<never>>(
+      return json(
         {
           success: false,
           error: '문서를 찾을 수 없습니다.',
-        },
+        } as ApiResponse<never>,
         { status: 404 },
       )
     }
@@ -66,11 +66,11 @@ export const DELETE: RequestHandler = async (event) => {
     return json(response)
   } catch (error) {
     logger.error('Failed to delete document:', error)
-    return json<ApiResponse<never>>(
+    return json(
       {
         success: false,
         error: '문서 삭제에 실패했습니다.',
-      },
+      } as ApiResponse<never>,
       { status: 500 },
     )
   }

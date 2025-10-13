@@ -4,6 +4,14 @@ import { logger } from '$lib/utils/logger'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
 
+// TODO: 실제 ExpenseService로 교체 필요
+declare module '$lib/database/connection' {
+  namespace DatabaseService {
+    function getExpenseItems(params: any): Promise<any>
+    function createExpenseItem(data: any): Promise<any>
+  }
+}
+
 interface ExpenseItem {
   id: string
   project_id: string

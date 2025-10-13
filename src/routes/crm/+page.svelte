@@ -6,7 +6,6 @@
   import { logger } from '$lib/utils/logger'
 
   import ContractList from '$lib/components/crm/ContractList.svelte'
-  import CRMStatsCards from '$lib/components/crm/CRMStatsCards.svelte'
   import CustomerFormModal from '$lib/components/crm/CustomerFormModal.svelte'
   import CustomerTable from '$lib/components/crm/CustomerTable.svelte'
   import DocumentUploadWithOCR from '$lib/components/crm/DocumentUploadWithOCR.svelte'
@@ -35,7 +34,6 @@
     MessageSquareIcon,
     PlusIcon,
     ScanIcon,
-    StarIcon,
     TargetIcon,
     TrashIcon,
     TrendingUpIcon,
@@ -464,37 +462,41 @@
     }
   }
 
-  // 통계 데이터
-  const stats = [
-    {
-      title: '총 고객 수',
-      value: crmData.customers.length,
-      change: '+8%',
-      changeType: 'positive' as const,
-      icon: UsersIcon,
-    },
-    {
-      title: '활성 고객',
-      value: crmData.customers.filter((c) => c.status === 'active').length,
-      change: '+2',
-      changeType: 'positive' as const,
-      icon: BuildingIcon,
-    },
-    {
-      title: '예상 매출',
-      value: formatCurrency(crmData.opportunities.reduce((sum, opp) => sum + opp.value, 0)),
-      change: '+15%',
-      changeType: 'positive' as const,
-      icon: TrendingUpIcon,
-    },
-    {
-      title: '고객 만족도',
-      value: '92%',
-      change: '+3%',
-      changeType: 'positive' as const,
-      icon: StarIcon,
-    },
-  ]
+  // 통계 데이터 (개요 탭 아래 카드와 동일한 내용)
+  const stats = $derived(() => {
+    if (!crmStats) return []
+
+    return [
+      {
+        title: '총 고객 수',
+        value: crmStats.totalCustomers,
+        badge: `활성 ${crmStats.activeCustomers}개`,
+        icon: UsersIcon,
+        color: 'blue' as const,
+      },
+      {
+        title: '활성 계약 총액',
+        value: formatCurrency(crmStats.totalRevenueContracts),
+        badge: `${crmStats.activeContracts}개 계약`,
+        icon: FileTextIcon,
+        color: 'green' as const,
+      },
+      {
+        title: '순 계약 가치',
+        value: formatCurrency(crmStats.netContractValue),
+        badge: '수령 - 지급',
+        icon: TrendingUpIcon,
+        color: crmStats.netContractValue >= 0 ? ('orange' as const) : ('red' as const),
+      },
+      {
+        title: '진행 중인 기회',
+        value: `${crmStats.openOpportunities}건`,
+        badge: formatCurrency(crmStats.totalOpportunityAmount),
+        icon: TargetIcon,
+        color: 'purple' as const,
+      },
+    ]
+  })
 
   // 액션 버튼들
   const actions = [
@@ -744,7 +746,7 @@
 <PageLayout
   title="고객관리 (CRM)"
   subtitle="고객 정보, 상호작용, 기회 관리"
-  {stats}
+  stats={stats()}
   {actions}
   searchPlaceholder="고객명, 담당자, 업종으로 검색..."
 >
@@ -754,18 +756,6 @@
       {#if tab.id === 'overview'}
         <!-- 개요 탭 -->
         <ThemeSpacer size={6}>
-          <!-- KPI 카드 -->
-          {#if crmStats}
-            <CRMStatsCards stats={crmStats} />
-          {:else if loadingStats}
-            <div class="text-center py-8">
-              <div
-                class="animate-spin rounded-full h-8 w-8 border-2 border-gray-300 border-t-blue-600 mx-auto"
-              ></div>
-              <p class="text-sm text-gray-500 mt-2">통계 로딩 중...</p>
-            </div>
-          {/if}
-
           <!-- 계약 현황 및 빠른 통계 -->
           <ThemeGrid cols={1} lgCols={2} gap={6}>
             <!-- 계약 현황 요약 -->

@@ -4,6 +4,15 @@ import { logger } from '$lib/utils/logger'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
 
+// TODO: 실제 ProjectService로 교체 필요
+declare module '$lib/database/connection' {
+  namespace DatabaseService {
+    function getProjects(params: any): Promise<any>
+    function createProject(data: any): Promise<any>
+    function getProjectById(id: string): Promise<any>
+  }
+}
+
 export const GET: RequestHandler = async ({ url }) => {
   try {
     const limit = parseInt(url.searchParams.get('limit') || '50')
