@@ -80,6 +80,9 @@ jobs:
       - name: 🔍 Lint TypeScript
         run: pnpm run lint:typescript || echo "TypeScript linting completed with warnings"
 
+      - name: 🔄 Sync SvelteKit
+        run: pnpm exec svelte-kit sync
+
       - name: ✅ Type check Svelte
         run: pnpm run check:svelte:ci
 
