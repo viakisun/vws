@@ -78,8 +78,6 @@ export const GET: RequestHandler = async (event) => {
         p.total_payments,
         p.total_deductions,
         p.net_salary,
-        p.working_days,
-        p.overtime_hours,
         p.payments,
         p.deductions,
         p.created_at::text as created_at,
