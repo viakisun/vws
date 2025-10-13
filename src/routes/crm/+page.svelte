@@ -40,7 +40,7 @@
     TrashIcon,
     TrendingUpIcon,
     UsersIcon,
-    X
+    X,
   } from '@lucide/svelte'
   import { onMount } from 'svelte'
   // Import CRM services
@@ -730,28 +730,36 @@
             <ThemeCard class="p-6">
               <ThemeSectionHeader title="빠른 통계" />
               <div class="grid grid-cols-2 gap-4 mt-4">
-                <div class="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600">
+                <div
+                  class="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600"
+                >
                   <p class="text-xs font-medium text-gray-600 dark:text-gray-400">완료된 계약</p>
                   <p class="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-1">
                     {contracts.filter((c) => c.status === 'completed').length}
                   </p>
                 </div>
 
-                <div class="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600">
+                <div
+                  class="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600"
+                >
                   <p class="text-xs font-medium text-gray-600 dark:text-gray-400">진행 중</p>
                   <p class="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-1">
                     {contracts.filter((c) => c.status === 'active').length}
                   </p>
                 </div>
 
-                <div class="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600">
+                <div
+                  class="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600"
+                >
                   <p class="text-xs font-medium text-gray-600 dark:text-gray-400">총 고객</p>
                   <p class="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-1">
                     {crmStats?.totalCustomers || 0}
                   </p>
                 </div>
 
-                <div class="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600">
+                <div
+                  class="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600"
+                >
                   <p class="text-xs font-medium text-gray-600 dark:text-gray-400">활성 고객</p>
                   <p class="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-1">
                     {crmStats?.activeCustomers || 0}
