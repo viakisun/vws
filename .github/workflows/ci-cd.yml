@@ -3,7 +3,7 @@
 # All secrets referenced are legitimate and configured in repository settings
 # Disable diagnostic warnings for secrets context access (false positives)
 
-name: Deploy and Cleanup
+name: CI/CD Pipeline
 
 # ============================================================================
 # Required GitHub Secrets (configured in repository settings):
@@ -51,42 +51,42 @@ jobs:
   # ============================================================================
 
   quality:
-    name: 📝 Code Quality
+    name: Code Quality
     runs-on: ubuntu-latest
     steps:
-      - name: 📥 Checkout
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: 🔧 Setup Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
 
-      - name: 📦 Setup pnpm
+      - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
           version: ${{ env.PNPM_VERSION }}
           run_install: false
 
-      - name: 📚 Install dependencies
+      - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: 🎨 Format check
+      - name: Format check
         run: pnpm format:check
 
-      - name: 🔍 Lint Svelte
+      - name: Lint Svelte
         run: pnpm run lint:svelte || echo "Svelte linting completed with warnings"
 
-      - name: 🔍 Lint TypeScript
+      - name: Lint TypeScript
         run: pnpm run lint:typescript || echo "TypeScript linting completed with warnings"
 
-      - name: 🔄 Sync SvelteKit
+      - name: Sync SvelteKit
         run: pnpm exec svelte-kit sync
 
-      - name: ✅ Type check Svelte
+      - name: Type check Svelte
         run: pnpm run check:svelte:ci
 
-      - name: ✅ Type check TypeScript
+      - name: Type check TypeScript
         run: pnpm run check:typescript || echo "TypeScript check completed with warnings"
 
   # ============================================================================
@@ -94,31 +94,31 @@ jobs:
   # ============================================================================
 
   unit-tests:
-    name: 🧪 Unit Tests
+    name: Unit Tests
     runs-on: ubuntu-latest
     needs: quality
     steps:
-      - name: 📥 Checkout
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: 🔧 Setup Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
 
-      - name: 📦 Setup pnpm
+      - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
           version: ${{ env.PNPM_VERSION }}
           run_install: false
 
-      - name: 📚 Install dependencies
+      - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: 🧪 Run unit tests
+      - name: Run unit tests
         run: pnpm test:unit || echo "Unit tests completed with warnings"
 
-      - name: 📊 Upload unit test coverage
+      - name: Upload unit test coverage
         uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -131,7 +131,7 @@ jobs:
   # ============================================================================
 
   integration-tests:
-    name: 🔗 Integration Tests
+    name: Integration Tests
     runs-on: ubuntu-latest
     needs: quality
     services:
@@ -150,36 +150,36 @@ jobs:
           - 5432:5432
 
     steps:
-      - name: 📥 Checkout
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: 🔧 Setup Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
 
-      - name: 📦 Setup pnpm
+      - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
           version: ${{ env.PNPM_VERSION }}
           run_install: false
 
-      - name: 📚 Install dependencies
+      - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: 🗄️ Setup test database
+      - name: Setup test database
         run: |
           PGPASSWORD=testpass psql -h localhost -U testuser -d vws_test -c "SELECT version();"
         env:
           PGPASSWORD: testpass
 
-      - name: 🔗 Run integration tests
+      - name: Run integration tests
         run: pnpm test:integration || echo "Integration tests completed with warnings"
         env:
           DATABASE_URL: postgresql://testuser:testpass@localhost:5432/vws_test
           JWT_SECRET: test_jwt_secret_key
 
-      - name: 📊 Upload integration test coverage
+      - name: Upload integration test coverage
         uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -192,31 +192,31 @@ jobs:
   # ============================================================================
 
   component-tests:
-    name: 🎨 Component Tests
+    name: Component Tests
     runs-on: ubuntu-latest
     needs: quality
     steps:
-      - name: 📥 Checkout
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: 🔧 Setup Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
 
-      - name: 📦 Setup pnpm
+      - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
           version: ${{ env.PNPM_VERSION }}
           run_install: false
 
-      - name: 📚 Install dependencies
+      - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: 🎨 Run component tests
+      - name: Run component tests
         run: pnpm test:component || echo "Component tests completed with warnings"
 
-      - name: 📊 Upload component test coverage
+      - name: Upload component test coverage
         uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -229,7 +229,7 @@ jobs:
   # ============================================================================
 
   e2e-tests:
-    name: 🎭 E2E Tests
+    name: E2E Tests
     runs-on: ubuntu-latest
     needs: [unit-tests, integration-tests, component-tests]
     services:
@@ -248,33 +248,33 @@ jobs:
           - 5432:5432
 
     steps:
-      - name: 📥 Checkout
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: 🔧 Setup Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
 
-      - name: 📦 Setup pnpm
+      - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
           version: ${{ env.PNPM_VERSION }}
           run_install: false
 
-      - name: 📚 Install dependencies
+      - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: 🎭 Install Playwright
+      - name: Install Playwright
         run: pnpm exec playwright install --with-deps chromium
 
-      - name: 🏗️ Build application
+      - name: Build application
         run: pnpm build
         env:
           DATABASE_URL: postgresql://testuser:testpass@localhost:5432/vws_test
           JWT_SECRET: test_jwt_secret_key
 
-      - name: 🚀 Start application
+      - name: Start application
         run: |
           pnpm preview --port 4173 &
           echo $! > preview.pid
@@ -283,15 +283,15 @@ jobs:
           DATABASE_URL: postgresql://testuser:testpass@localhost:5432/vws_test
           JWT_SECRET: test_jwt_secret_key
 
-      - name: ⏳ Wait for application
+      - name: Wait for application
         run: pnpm dlx wait-on http://localhost:4173 --timeout 30000
 
-      - name: 🎭 Run E2E tests
+      - name: Run E2E tests
         run: pnpm test:e2e || echo "E2E tests completed with warnings"
         env:
           BASE_URL: http://localhost:4173
 
-      - name: 🛑 Stop application
+      - name: Stop application
         if: always()
         run: |
           if [ -f preview.pid ]; then
@@ -299,7 +299,7 @@ jobs:
             rm preview.pid
           fi
 
-      - name: 📊 Upload E2E test results
+      - name: Upload E2E test results
         uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -307,7 +307,7 @@ jobs:
           path: playwright-report/
           retention-days: 30
 
-      - name: 📹 Upload E2E videos
+      - name: Upload E2E videos
         uses: actions/upload-artifact@v4
         if: failure()
         with:
@@ -320,28 +320,28 @@ jobs:
   # ============================================================================
 
   security:
-    name: 🔒 Security Scan
+    name: Security Scan
     runs-on: ubuntu-latest
     needs: quality
     steps:
-      - name: 📥 Checkout
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: 🔧 Setup Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
 
-      - name: 📦 Setup pnpm
+      - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
           version: ${{ env.PNPM_VERSION }}
           run_install: false
 
-      - name: 📚 Install dependencies
+      - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: 🔒 Run security audit
+      - name: Run security audit
         run: pnpm security:audit || echo "Security audit completed with warnings"
 
   # ============================================================================
@@ -349,80 +349,80 @@ jobs:
   # ============================================================================
 
   build:
-    name: 🏗️ Build
+    name: Build
     runs-on: ubuntu-latest
     needs: [unit-tests, integration-tests, component-tests, security]
     steps:
-      - name: 📥 Checkout
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: 🔧 Setup Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
 
-      - name: 📦 Setup pnpm
+      - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
           version: ${{ env.PNPM_VERSION }}
           run_install: false
 
-      - name: 📚 Install dependencies
+      - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: 🏗️ Build application
+      - name: Build application
         run: pnpm build
 
-      - name: ✅ Verify build output
+      - name: Verify build output
         run: |
-          echo "📦 Build output verification:"
+          echo "Build output verification:"
           ls -la build/
-          echo "✅ Build completed successfully"
+          echo "Build completed successfully"
 
   # ============================================================================
   # Stage 8: Performance Test
   # ============================================================================
 
   performance:
-    name: ⚡ Performance Test
+    name: Performance Test
     runs-on: ubuntu-latest
     needs: build
-    continue-on-error: true # Performance 실패해도 배포는 진행
+    continue-on-error: true
     steps:
-      - name: 📥 Checkout
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: 🔧 Setup Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
 
-      - name: 📦 Setup pnpm
+      - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
           version: ${{ env.PNPM_VERSION }}
           run_install: false
 
-      - name: 📚 Install dependencies
+      - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: 🏗️ Build application
+      - name: Build application
         run: pnpm build
 
-      - name: 🚀 Start preview server
+      - name: Start preview server
         run: |
           pnpm preview --port 4173 &
           echo $! > preview.pid
           sleep 5
 
-      - name: ⏳ Wait for server
+      - name: Wait for server
         run: pnpm dlx wait-on http://localhost:4173 --timeout 30000
 
-      - name: ⚡ Run Lighthouse CI
+      - name: Run Lighthouse CI
         run: pnpm dlx @lhci/cli autorun --collect.url=http://localhost:4173 --upload.target=filesystem
         continue-on-error: true
 
-      - name: 🛑 Stop server
+      - name: Stop server
         if: always()
         run: |
           if [ -f preview.pid ]; then
@@ -430,7 +430,7 @@ jobs:
             rm preview.pid
           fi
 
-      - name: 📤 Upload Lighthouse reports
+      - name: Upload Lighthouse reports
         uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -439,26 +439,26 @@ jobs:
           retention-days: 7
 
   # ============================================================================
-  # Stage 9: Docker Build & Push to ECR (Main 브랜치만)
+  # Stage 9: Docker Build & Push to ECR (Main branch only)
   # ============================================================================
 
   docker-push:
-    name: 🐳 Docker Push to ECR
+    name: Docker Push to ECR
     runs-on: ubuntu-latest
     needs: build
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     steps:
-      - name: 📥 Checkout
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: 🔐 Configure AWS credentials
+      - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: 📦 Ensure ECR repository exists
+      - name: Ensure ECR repository exists
         run: |
           aws ecr describe-repositories --repository-names ${{ env.ECR_REPOSITORY }} \
             --region ${{ env.AWS_REGION }} 2>/dev/null || \
@@ -467,53 +467,53 @@ jobs:
             --region ${{ env.AWS_REGION }} \
             --image-scanning-configuration scanOnPush=true
 
-      - name: 🔐 Login to ECR
+      - name: Login to ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: 🐳 Build and push Docker image
+      - name: Build and push Docker image
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           IMAGE_TAG: ${{ github.sha }}
         run: |
-          echo "🏗️ Building Docker image..."
+          echo "Building Docker image..."
           docker build -t $ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG .
           docker tag $ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG \
                      $ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:latest
 
-          echo "📤 Pushing to ECR..."
+          echo "Pushing to ECR..."
           docker push $ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG
           docker push $ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:latest
 
-          echo "✅ Docker image pushed successfully"
-          echo "   - Tag: $IMAGE_TAG"
-          echo "   - Latest: latest"
+          echo "Docker image pushed successfully"
+          echo "Tag: $IMAGE_TAG"
+          echo "Latest: latest"
 
   # ============================================================================
-  # Stage 10: Deploy to EC2 (Main 브랜치만)
+  # Stage 10: Deploy to EC2 (Main branch only)
   # ============================================================================
 
   deploy:
-    name: 🚀 Deploy to EC2
+    name: Deploy to EC2
     runs-on: ubuntu-latest
     needs: docker-push
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     steps:
-      - name: 📥 Checkout
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: 🔐 Configure AWS credentials
+      - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: 🔐 Login to ECR
+      - name: Login to ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: 🚀 Deploy to EC2
+      - name: Deploy to EC2
         uses: appleboy/ssh-action@v1.0.3
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
@@ -535,18 +535,18 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           envs: DATABASE_URL,JWT_SECRET,GOOGLE_CLIENT_ID,GOOGLE_CLIENT_SECRET,GOOGLE_REDIRECT_URI,ALLOWED_DOMAINS,ADMIN_EMAILS,AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY,AWS_S3_BUCKET_NAME,AWS_S3_REGION,OCR_ENGINE,OPENAI_API_KEY
           script: |
-            echo "🔐 Logging in to ECR..."
+            echo "Logging in to ECR..."
             aws ecr get-login-password --region ap-northeast-2 | \
               docker login --username AWS --password-stdin ${{ steps.login-ecr.outputs.registry }}
 
-            echo "🛑 Stopping existing container..."
+            echo "Stopping existing container..."
             docker stop vws-app 2>/dev/null || true
             docker rm vws-app 2>/dev/null || true
 
-            echo "📥 Pulling latest image..."
+            echo "Pulling latest image..."
             docker pull ${{ steps.login-ecr.outputs.registry }}/vws-app:latest
 
-            echo "🚀 Starting new container..."
+            echo "Starting new container..."
             echo "Checking environment variables before docker run..."
             echo "AWS_S3_BUCKET_NAME length: ${#AWS_S3_BUCKET_NAME}"
             echo "AWS_ACCESS_KEY_ID length: ${#AWS_ACCESS_KEY_ID}"
@@ -554,7 +554,7 @@ jobs:
             
             # Secret Key에 공백이 있는지 확인
             if [[ "$AWS_SECRET_ACCESS_KEY" =~ [[:space:]] ]]; then
-              echo "⚠️  WARNING: AWS_SECRET_ACCESS_KEY contains whitespace!"
+              echo "WARNING: AWS_SECRET_ACCESS_KEY contains whitespace!"
             fi
             
             docker run -d \
@@ -581,7 +581,7 @@ jobs:
               -e ALLOWED_FILE_TYPES=.pdf,.png,.jpg,.jpeg,.xlsx,.xls,.docx,.doc,.hwp \
               ${{ steps.login-ecr.outputs.registry }}/vws-app:latest
 
-            echo "⏳ Waiting for container to start..."
+            echo "Waiting for container to start..."
             sleep 10
             
             echo "Checking environment variables inside container..."
@@ -595,16 +595,16 @@ jobs:
               fi
             done
 
-            echo "✅ Verifying deployment..."
+            echo "Verifying deployment..."
             if docker ps | grep -q vws-app; then
-              echo "✅ Container is running"
+              echo "Container is running"
             else
-              echo "❌ Container failed to start"
+              echo "Container failed to start"
               docker logs vws-app --tail 50
               exit 1
             fi
 
-            echo "🔍 Starting Dozzle log viewer..."
+            echo "Starting Dozzle log viewer..."
             # 기존 Dozzle 컨테이너 제거
             docker rm -f dozzle 2>/dev/null || true
             
@@ -616,9 +616,9 @@ jobs:
               -v /var/run/docker.sock:/var/run/docker.sock:ro \
               amir20/dozzle:latest
             
-            echo "✅ Dozzle is running on http://$(curl -s ifconfig.me):8080"
+            echo "Dozzle is running on http://$(curl -s ifconfig.me):8080"
 
-            echo "🔧 Updating Nginx configuration..."
+            echo "Updating Nginx configuration..."
             
             # Proxy Buffer Settings for SvelteKit SSR
             sudo tee /etc/nginx/conf.d/00-proxy-buffers.conf > /dev/null << 'EOF'
@@ -643,53 +643,53 @@ jobs:
             send_timeout 600;
             EOF
 
-            echo "🧪 Testing Nginx configuration..."
+            echo "Testing Nginx configuration..."
             if sudo nginx -t; then
-              echo "🔄 Reloading Nginx..."
+              echo "Reloading Nginx..."
               sudo systemctl reload nginx
-              echo "✅ Nginx configuration updated"
+              echo "Nginx configuration updated"
             else
-              echo "⚠️ Nginx configuration test failed, skipping reload"
+              echo "Nginx configuration test failed, skipping reload"
             fi
 
-            echo "🏥 Running health check..."
+            echo "Running health check..."
             sleep 5
             HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" https://ws.viahub.dev/project-management?tab=projects || echo "000")
 
             if [[ "$HTTP_CODE" =~ ^[23][0-9][0-9]$ ]]; then
-              echo "✅ Health check passed (HTTP $HTTP_CODE)"
+              echo "Health check passed (HTTP $HTTP_CODE)"
             else
-              echo "⚠️ Health check warning (HTTP $HTTP_CODE)"
+              echo "Health check warning (HTTP $HTTP_CODE)"
             fi
 
-            echo "📊 Recent errors (if any):"
+            echo "Recent errors (if any):"
             sudo tail -n 10 /var/log/nginx/error.log | grep -i "too big header" || echo "  No header errors found"
 
-            echo "🎉 Deployment completed successfully!"
+            echo "Deployment completed successfully!"
 
   # ============================================================================
-  # Stage 11: Cleanup ECR and EC2 (Main 브랜치만)
+  # Stage 11: Cleanup ECR and EC2 (Main branch only)
   # ============================================================================
 
   cleanup:
-    name: 🧹 Cleanup ECR and EC2
+    name: Cleanup ECR and EC2
     runs-on: ubuntu-latest
     needs: deploy
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     steps:
-      - name: 📥 Checkout
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: 🔐 Configure AWS credentials
+      - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: 🧹 Cleanup old ECR images
+      - name: Cleanup old ECR images
         run: |
-          echo "🧹 Cleaning up old ECR images (keeping latest 3)..."
+          echo "Cleaning up old ECR images (keeping latest 3)..."
 
           IMAGES=$(aws ecr describe-images \
             --repository-name ${{ env.ECR_REPOSITORY }} \
@@ -703,19 +703,19 @@ jobs:
                 --repository-name ${{ env.ECR_REPOSITORY }} \
                 --image-ids imageDigest=$digest
             done
-            echo "✅ Old ECR images cleaned"
+            echo "Old ECR images cleaned"
           else
-            echo "ℹ️ No old images to clean"
+            echo "No old images to clean"
           fi
 
-      - name: 🧹 Cleanup EC2 Docker resources
+      - name: Cleanup EC2 Docker resources
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            echo "🧹 Cleaning up unused Docker resources..."
+            echo "Cleaning up unused Docker resources..."
 
             # Remove stopped containers
             docker container prune -f
@@ -729,10 +729,10 @@ jobs:
             # Remove build cache
             docker builder prune -f
 
-            echo "✅ EC2 Docker cleanup complete"
+            echo "EC2 Docker cleanup complete"
 
             # Show remaining resources
-            echo "📊 Remaining Docker resources:"
+            echo "Remaining Docker resources:"
             docker system df
 
   # ============================================================================
@@ -740,22 +740,22 @@ jobs:
   # ============================================================================
 
   final-status:
-    name: ✅ Pipeline Status
+    name: Pipeline Status
     runs-on: ubuntu-latest
     needs: [quality, unit-tests, integration-tests, component-tests, security, build]
     if: always()
     steps:
-      - name: 📊 Check all jobs status
+      - name: Check all jobs status
         run: |
           echo "=== CI/CD Pipeline Status ==="
-          echo "📝 Code Quality: ${{ needs.quality.result }}"
-          echo "🧪 Unit Tests: ${{ needs.unit-tests.result }}"
-          echo "🔗 Integration Tests: ${{ needs.integration-tests.result }}"
-          echo "🎨 Component Tests: ${{ needs.component-tests.result }}"
-          echo "🔒 Security: ${{ needs.security.result }}"
-          echo "🏗️ Build: ${{ needs.build.result }}"
+          echo "Code Quality: ${{ needs.quality.result }}"
+          echo "Unit Tests: ${{ needs.unit-tests.result }}"
+          echo "Integration Tests: ${{ needs.integration-tests.result }}"
+          echo "Component Tests: ${{ needs.component-tests.result }}"
+          echo "Security: ${{ needs.security.result }}"
+          echo "Build: ${{ needs.build.result }}"
 
-      - name: ✅ Verify critical jobs
+      - name: Verify critical jobs
         if: |
           needs.quality.result == 'success' &&
           needs.unit-tests.result == 'success' &&
@@ -763,9 +763,9 @@ jobs:
           needs.component-tests.result == 'success' &&
           needs.security.result == 'success' &&
           needs.build.result == 'success'
-        run: echo "🎉 All critical checks passed! Ready for deployment."
+        run: echo "All critical checks passed! Ready for deployment."
 
-      - name: ❌ Report failures
+      - name: Report failures
         if: |
           needs.quality.result == 'failure' ||
           needs.unit-tests.result == 'failure' ||
@@ -774,7 +774,7 @@ jobs:
           needs.security.result == 'failure' ||
           needs.build.result == 'failure'
         run: |
-          echo "❌ Pipeline failed. Please check the logs above."
+          echo "Pipeline failed. Please check the logs above."
           exit 1
 
   # ============================================================================
@@ -782,12 +782,12 @@ jobs:
   # ============================================================================
 
   notify:
-    name: 📢 Notify
+    name: Notify
     runs-on: ubuntu-latest
     needs: [final-status, deploy, cleanup]
     if: always() && github.event_name != 'pull_request'
     steps:
-      - name: 📢 Success Notification
+      - name: Success Notification
         if: needs.final-status.result == 'success'
         uses: 8398a7/action-slack@v3
         continue-on-error: true
@@ -795,14 +795,14 @@ jobs:
           status: success
           channel: '#vws_action'
           text: |
-            ✅ **VWS CI/CD Pipeline Success**
+            **VWS CI/CD Pipeline Success**
             • Branch: `${{ github.ref_name }}`
             • Commit: `${{ github.sha }}`
             • Triggered by: ${{ github.actor }}
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 
-      - name: 📢 Deployment Success
+      - name: Deployment Success
         if: needs.deploy.result == 'success' && needs.cleanup.result == 'success'
         uses: 8398a7/action-slack@v3
         continue-on-error: true
@@ -810,14 +810,14 @@ jobs:
           status: success
           channel: '#vws_action'
           text: |
-            🚀 **VWS Deployed Successfully**
+            **VWS Deployed Successfully**
             • Environment: Production (ws.viahub.dev)
             • Branch: `${{ github.ref_name }}`
             • Image Tag: `${{ github.sha }}`
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 
-      - name: 📢 Failure Notification
+      - name: Failure Notification
         if: needs.final-status.result == 'failure' || needs.deploy.result == 'failure' || needs.cleanup.result == 'failure'
         uses: 8398a7/action-slack@v3
         continue-on-error: true
@@ -825,7 +825,7 @@ jobs:
           status: failure
           channel: '#vws_action'
           text: |
-            ❌ **VWS CI/CD Pipeline Failed**
+            **VWS CI/CD Pipeline Failed**
             • Branch: `${{ github.ref_name }}`
             • Commit: `${{ github.sha }}`
             • Failed Stage: ${{ needs.final-status.result == 'failure' && 'Tests/Build' || (needs.deploy.result == 'failure' && 'Deployment' || 'Cleanup') }}
