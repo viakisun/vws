@@ -2,27 +2,26 @@
   import { CrmDocumentType, DEFAULT_COMPANY_CODE } from '$lib/constants/crm'
   import { downloadCrmDocument, uploadCrmDocument } from '$lib/services/s3/s3-crm.service'
   import { pushToast } from '$lib/stores/toasts'
-  import type { CRMData, CRMContract, CRMStats } from '$lib/types/crm'
+  import type { CRMContract, CRMData, CRMStats } from '$lib/types/crm'
   import { logger } from '$lib/utils/logger'
 
-  import CustomerFormModal from '$lib/components/crm/CustomerFormModal.svelte'
-  import CustomerTable from '$lib/components/crm/CustomerTable.svelte'
   import ContractList from '$lib/components/crm/ContractList.svelte'
   import CRMStatsCards from '$lib/components/crm/CRMStatsCards.svelte'
+  import CustomerFormModal from '$lib/components/crm/CustomerFormModal.svelte'
+  import CustomerTable from '$lib/components/crm/CustomerTable.svelte'
   import DocumentUploadWithOCR from '$lib/components/crm/DocumentUploadWithOCR.svelte'
   import OCRResultModal from '$lib/components/crm/OCRResultModal.svelte'
   import PageLayout from '$lib/components/layout/PageLayout.svelte'
   import ThemeBadge from '$lib/components/ui/ThemeBadge.svelte'
   import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
   import ThemeCard from '$lib/components/ui/ThemeCard.svelte'
-  import ThemeChartPlaceholder from '$lib/components/ui/ThemeChartPlaceholder.svelte'
   import ThemeGrid from '$lib/components/ui/ThemeGrid.svelte'
   import ThemeModal from '$lib/components/ui/ThemeModal.svelte'
   import ThemeSectionHeader from '$lib/components/ui/ThemeSectionHeader.svelte'
   import ThemeSpacer from '$lib/components/ui/ThemeSpacer.svelte'
   import ThemeTabs from '$lib/components/ui/ThemeTabs.svelte'
   import type { BankAccountData, BusinessRegistrationData } from '$lib/services/ocr'
-  import { formatCurrency, formatDate } from '$lib/utils/format'
+  import { formatCurrency } from '$lib/utils/format'
   import { keyOf } from '$lib/utils/keyOf'
   import {
     BarChart3Icon,
@@ -34,7 +33,6 @@
     FileTextIcon,
     MailIcon,
     MessageSquareIcon,
-    PieChartIcon,
     PlusIcon,
     ScanIcon,
     StarIcon,
@@ -42,7 +40,7 @@
     TrashIcon,
     TrendingUpIcon,
     UsersIcon,
-    X,
+    X
   } from '@lucide/svelte'
   import { onMount } from 'svelte'
   // Import CRM services
@@ -732,28 +730,28 @@
             <ThemeCard class="p-6">
               <ThemeSectionHeader title="빠른 통계" />
               <div class="grid grid-cols-2 gap-4 mt-4">
-                <div class="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                <div class="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600">
                   <p class="text-xs font-medium text-gray-600 dark:text-gray-400">완료된 계약</p>
                   <p class="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-1">
                     {contracts.filter((c) => c.status === 'completed').length}
                   </p>
                 </div>
 
-                <div class="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                <div class="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600">
                   <p class="text-xs font-medium text-gray-600 dark:text-gray-400">진행 중</p>
                   <p class="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-1">
                     {contracts.filter((c) => c.status === 'active').length}
                   </p>
                 </div>
 
-                <div class="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                <div class="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600">
                   <p class="text-xs font-medium text-gray-600 dark:text-gray-400">총 고객</p>
                   <p class="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-1">
                     {crmStats?.totalCustomers || 0}
                   </p>
                 </div>
 
-                <div class="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                <div class="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600">
                   <p class="text-xs font-medium text-gray-600 dark:text-gray-400">활성 고객</p>
                   <p class="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-1">
                     {crmStats?.activeCustomers || 0}

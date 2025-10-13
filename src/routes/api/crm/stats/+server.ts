@@ -45,7 +45,7 @@ export const GET: RequestHandler = async () => {
       `
       SELECT 
         COUNT(*) as open_opportunities,
-        COALESCE(SUM(amount), 0) as total_amount
+        COALESCE(SUM(value), 0) as total_amount
       FROM crm_opportunities
       WHERE status = 'open'
     `,

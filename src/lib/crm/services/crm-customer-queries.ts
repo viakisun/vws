@@ -30,6 +30,7 @@ export const CUSTOMER_COLUMNS = [
   'bank_account_s3_key',
   'establishment_date',
   'corporation_status',
+  'business_entity_type', // 사업자 유형 (개인사업자, 법인사업자 등)
   'business_type',
   'business_category',
   'bank_name',
@@ -63,6 +64,7 @@ const INSERT_UPDATE_COLUMNS = [
   'bank_account_s3_key',
   'establishment_date',
   'corporation_status',
+  'business_entity_type', // 사업자 유형 (개인사업자, 법인사업자 등)
   'business_type',
   'business_category',
   'bank_name',
@@ -140,6 +142,7 @@ export function mapCustomerData(data: any): any[] {
     data.bank_account_s3_key || null,
     data.establishment_date || null,
     data.corporation_status || null,
+    data.business_entity_type || null, // 사업자 유형
     data.business_type || null,
     data.business_category || null,
     data.bank_name || null,
