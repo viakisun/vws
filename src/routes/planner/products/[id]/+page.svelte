@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { page } from '$app/state'
   import SectionActionButton from '$lib/components/ui/SectionActionButton.svelte'
   import SectionHeader from '$lib/components/ui/SectionHeader.svelte'
   import InitiativeCard from '$lib/planner/components/InitiativeCard.svelte'
@@ -12,7 +11,9 @@
   } from '$lib/planner/types'
   import { formatKoreanName } from '$lib/utils/korean-name'
   import { FileTextIcon, GithubIcon, PencilIcon } from 'lucide-svelte'
-  import { onMount } from 'svelte'
+  import type { PageData } from './$types'
+
+  const { data }: { data: PageData } = $props()
 
   // =============================================
   // State
@@ -31,12 +32,14 @@
   // Data Fetching
   // =============================================
 
-  async function loadData() {
+  async function loadData(id: string) {
     try {
       loading = true
       error = null
 
-      const id = page.params.id
+      if (!id) {
+        throw new Error('Product ID is missing')
+      }
 
       // Load product
       const productRes = await fetch(`/api/planner/products/${id}`)
@@ -45,7 +48,7 @@
       product = productData.data
 
       // Load milestones
-      await loadMilestones()
+      await loadMilestones(id)
 
       // Load initiatives
       const initiativesRes = await fetch(`/api/planner/initiatives?product_id=${id}`)
@@ -61,8 +64,9 @@
     }
   }
 
-  async function loadMilestones() {
-    const id = page.params.id
+  async function loadMilestones(id: string) {
+    if (!id) return
+    
     const milestonesRes = await fetch(`/api/planner/milestones?product_id=${id}`)
     if (milestonesRes.ok) {
       const milestonesData = await milestonesRes.json()
@@ -70,8 +74,18 @@
     }
   }
 
-  onMount(() => {
-    loadData()
+  // Load data when productId changes
+  $effect(() => {
+    const id = data.productId
+    console.log('Effect running, productId from data:', id)
+    if (id) {
+      console.log('Loading data for product:', id)
+      loadData(id)
+    } else {
+      console.log('No productId available in data')
+      error = 'Product ID is missing from URL'
+      loading = false
+    }
   })
 
   // =============================================
@@ -398,7 +412,7 @@
     onsave={() => {
       showMilestoneModal = false
       editingMilestone = null
-      loadMilestones()
+      if (data.productId) loadMilestones(data.productId)
     }}
   />
 
@@ -411,7 +425,7 @@
     }}
     onsave={() => {
       showProductEditModal = false
-      loadData()
+      if (data.productId) loadData(data.productId)
     }}
   />
 {/if}
