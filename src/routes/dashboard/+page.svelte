@@ -401,7 +401,7 @@
       style="border-color: var(--color-orange); background: var(--color-orange-light);"
     >
       <div class="flex items-start gap-3">
-        <AlertCircleIcon size={20} style="color: var(--color-orange);" />
+        <AlertCircleIcon size={20} stroke-width={1.5} style="color: var(--color-orange);" />
         <div>
           <h3 class="font-semibold mb-1" style:color="var(--color-orange)">직원 정보 미등록</h3>
           <p class="text-sm" style:color="var(--color-text-secondary)">
@@ -441,7 +441,7 @@
                   style:color={cardStyle?.iconColor || 'var(--color-primary)'}
                 >
                   {#if card.icon}
-                    <card.icon size={20} />
+                    <card.icon size={20} stroke-width={1.5} />
                   {/if}
                 </div>
                 <div class="flex-1">
@@ -462,6 +462,7 @@
         <div class="text-center py-8">
           <AlertCircleIcon
             size={40}
+            stroke-width={1.5}
             class="mx-auto mb-3"
             style="color: var(--color-text-tertiary);"
           />
@@ -511,7 +512,7 @@
             <ThemeCard variant="default" hover clickable style="background: {bgStyle}">
               <div class="flex items-start gap-3 mb-3">
                 <div class="p-2 rounded-lg" style:background={iconBg} style:color={iconColor}>
-                  <PackageIcon size={20} />
+                  <PackageIcon size={20} stroke-width={1.5} />
                 </div>
                 <div class="flex-1">
                   <div class="flex items-center gap-2 mb-1">
@@ -538,11 +539,11 @@
                 style:color={secondaryTextColor}
               >
                 <div class="flex items-center gap-1">
-                  <ListTodoIcon size={14} />
+                  <ListTodoIcon size={14} stroke-width={1.5} />
                   <span>{product.initiative_count || 0}개 이니셔티브</span>
                 </div>
                 <div class="flex items-center gap-1">
-                  <FlagIcon size={14} />
+                  <FlagIcon size={14} stroke-width={1.5} />
                   <span>{product.milestone_count || 0}개 마일스톤</span>
                 </div>
               </div>
@@ -626,7 +627,7 @@
                 <div class="pt-3 space-y-1" style:border-top="1px solid {borderColor}">
                   {#if initiative.product}
                     <div class="flex items-center gap-2 text-sm">
-                      <PackageIcon size={14} style="color: {iconColor};" />
+                      <PackageIcon size={14} stroke-width={1.5} style="color: {iconColor};" />
                       <span style:color={secondaryTextColor}>
                         {initiative.product.name}
                       </span>
@@ -634,7 +635,7 @@
                   {/if}
                   {#if initiative.horizon}
                     <div class="flex items-center gap-2 text-sm">
-                      <FlagIcon size={14} style="color: {iconColor};" />
+                      <FlagIcon size={14} stroke-width={1.5} style="color: {iconColor};" />
                       <span style:color={secondaryTextColor}>
                         목표일: {new Date(initiative.horizon).toLocaleDateString('ko-KR')}
                       </span>
@@ -664,7 +665,7 @@
                   style:color="var(--color-blue)"
                 >
                   {#if card.icon}
-                    <card.icon size={20} />
+                    <card.icon size={20} stroke-width={1.5} />
                   {/if}
                 </div>
                 <div class="flex-1">
@@ -698,7 +699,7 @@
                   style:color="var(--color-purple)"
                 >
                   {#if card.icon}
-                    <card.icon size={20} />
+                    <card.icon size={20} stroke-width={1.5} />
                   {/if}
                 </div>
                 <div class="flex-1">
