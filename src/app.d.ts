@@ -30,6 +30,9 @@ declare global {
     // interface PageState {}
     // interface Platform {}
   }
+
+  // Vite에서 주입되는 빌드 타임 변수
+  const __BUILD_TIME__: string
 }
 
 export {}

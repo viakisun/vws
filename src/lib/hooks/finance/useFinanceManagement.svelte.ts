@@ -3,9 +3,9 @@
  * 자금 관리 마스터 Hook - 모든 자금 관련 기능 통합
  */
 
+import { logger } from '$lib/utils/logger'
 import { useAccounts } from './useAccounts.svelte'
 import { useTransactions } from './useTransactions.svelte'
-import { logger } from '$lib/utils/logger'
 
 export function useFinanceManagement() {
   const accounts = useAccounts()
@@ -117,7 +117,11 @@ export function useFinanceManagement() {
 
     // 통합 기능
     loadAllData,
-    statistics,
-    filtered,
+    get statistics() {
+      return statistics
+    },
+    get filtered() {
+      return filtered
+    },
   }
 }

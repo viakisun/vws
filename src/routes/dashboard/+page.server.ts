@@ -1,8 +1,8 @@
-import type { PageServerLoad } from './$types'
-import { productService } from '$lib/planner/services/product.service'
-import { initiativeService } from '$lib/planner/services/initiative.service'
 import { query } from '$lib/database/connection'
+import { initiativeService } from '$lib/planner/services/initiative.service'
+import { productService } from '$lib/planner/services/product.service'
 import { getHoliday } from '$lib/utils/holidays'
+import type { PageServerLoad } from './$types'
 
 export const load: PageServerLoad = async ({ locals }) => {
   const user = locals.user
@@ -44,7 +44,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 
     // Check if today is a leave day
     const leaveResult = await query(
-      `SELECT lr.id, lr.leave_type_id, lt.name as leave_type_name, lr.start_date, lr.end_date
+      `SELECT lr.id, lr.leave_type_id, lt.name as leave_type_name, lr.start_date::text, lr.end_date::text
        FROM leave_requests lr
        JOIN leave_types lt ON lt.id = lr.leave_type_id
        WHERE lr.employee_id = $1
