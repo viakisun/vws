@@ -425,32 +425,32 @@
       // Step 3: Update if editing or files uploaded
       if (isEditMode || files.business || files.bank) {
         await fetch(`/api/crm/customers/${customerId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: customer.name,
-          business_number: customer.businessNumber,
-          type: 'customer',
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: customer.name,
+            business_number: customer.businessNumber,
+            type: 'customer',
             representative_name: customer.representativeName,
             contact_person: customer.contactPerson,
             contact_phone: customer.contactPhone,
             contact_email: customer.contactEmail,
-          address: customer.address,
-          industry: customer.industry,
-          status: customer.status,
-          business_entity_type: customer.businessEntityType,
-          business_type: customer.industry,
-          business_category: customer.businessCategory,
-          establishment_date: customer.establishmentDate,
-          bank_name: customer.bankName,
-          account_number: customer.accountNumber,
-          account_holder: customer.accountHolder,
-          business_registration_s3_key: businessRegistrationS3Key,
-          bank_account_s3_key: bankAccountS3Key,
-          notes: customer.notes,
-        }),
-        credentials: 'include',
-      })
+            address: customer.address,
+            industry: customer.industry,
+            status: customer.status,
+            business_entity_type: customer.businessEntityType,
+            business_type: customer.industry,
+            business_category: customer.businessCategory,
+            establishment_date: customer.establishmentDate,
+            bank_name: customer.bankName,
+            account_number: customer.accountNumber,
+            account_holder: customer.accountHolder,
+            business_registration_s3_key: businessRegistrationS3Key,
+            bank_account_s3_key: bankAccountS3Key,
+            notes: customer.notes,
+          }),
+          credentials: 'include',
+        })
       }
 
       pushToast(isEditMode ? '고객 정보가 수정되었습니다' : '고객이 등록되었습니다', 'success')
@@ -463,7 +463,6 @@
       pushToast(error instanceof Error ? error.message : '저장 중 오류가 발생했습니다', 'error')
     }
   }
-
 
   // 통계 데이터
   const stats = [
@@ -639,16 +638,18 @@
       }
 
       // S3 키 확인 (문서가 있는지 체크)
-      const s3Key = documentType === CrmDocumentType.BUSINESS_REGISTRATION 
-        ? customer.businessRegistrationS3Key 
-        : customer.bankAccountS3Key
+      const s3Key =
+        documentType === CrmDocumentType.BUSINESS_REGISTRATION
+          ? customer.businessRegistrationS3Key
+          : customer.bankAccountS3Key
       if (!s3Key) {
         pushToast('다운로드할 문서가 없습니다', 'error')
         return
       }
 
-      const documentTypeName = documentType === CrmDocumentType.BUSINESS_REGISTRATION ? '사업자등록증' : '통장사본'
-      
+      const documentTypeName =
+        documentType === CrmDocumentType.BUSINESS_REGISTRATION ? '사업자등록증' : '통장사본'
+
       await downloadCrmDocument(customerId, documentType)
       pushToast(`${documentTypeName} 다운로드가 시작되었습니다`, 'success')
     } catch (error) {
@@ -677,18 +678,25 @@
         if (!file) return
 
         try {
-          const documentTypeName = documentType === CrmDocumentType.BUSINESS_REGISTRATION ? '사업자등록증' : '통장사본'
+          const documentTypeName =
+            documentType === CrmDocumentType.BUSINESS_REGISTRATION ? '사업자등록증' : '통장사본'
           pushToast(`${documentTypeName} 업로드 중...`, 'info')
 
           // S3에 업로드
-          const result = await uploadCrmDocument(DEFAULT_COMPANY_CODE, customerId, documentType, file)
+          const result = await uploadCrmDocument(
+            DEFAULT_COMPANY_CODE,
+            customerId,
+            documentType,
+            file,
+          )
           const s3Key = result.s3Key
 
           // 고객 정보 업데이트 (데이터베이스)
-          const updateData = documentType === CrmDocumentType.BUSINESS_REGISTRATION
-            ? { businessRegistrationS3Key: s3Key }
-            : { bankAccountS3Key: s3Key }
-          
+          const updateData =
+            documentType === CrmDocumentType.BUSINESS_REGISTRATION
+              ? { businessRegistrationS3Key: s3Key }
+              : { bankAccountS3Key: s3Key }
+
           const updateResponse = await fetch(`/api/crm/customers/${customerId}`, {
             method: 'PUT',
             headers: {
@@ -774,11 +782,11 @@
                         (c) => c.contractType === 'revenue' && c.status === 'active',
                       ).length}건 진행중
                     </p>
-                      </div>
+                  </div>
                   <p class="text-2xl font-bold text-green-600 dark:text-green-400">
                     {formatCurrency(crmStats?.totalRevenueContracts || 0)}
                   </p>
-                    </div>
+                </div>
 
                 <div
                   class="flex items-center justify-between p-4 bg-red-50 dark:bg-red-900/20 rounded-lg"
@@ -789,12 +797,12 @@
                       {contracts.filter(
                         (c) => c.contractType === 'expense' && c.status === 'active',
                       ).length}건 진행중
-                      </p>
-                    </div>
+                    </p>
+                  </div>
                   <p class="text-2xl font-bold text-red-600 dark:text-red-400">
                     {formatCurrency(crmStats?.totalExpenseContracts || 0)}
                   </p>
-                  </div>
+                </div>
 
                 <div
                   class="flex items-center justify-between p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border-2 border-blue-200 dark:border-blue-700"
@@ -821,7 +829,7 @@
                   <p class="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-1">
                     {contracts.filter((c) => c.status === 'completed').length}
                   </p>
-                      </div>
+                </div>
 
                 <div
                   class="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600"
@@ -830,7 +838,7 @@
                   <p class="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-1">
                     {contracts.filter((c) => c.status === 'active').length}
                   </p>
-                    </div>
+                </div>
 
                 <div
                   class="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600"
@@ -847,9 +855,9 @@
                   <p class="text-xs font-medium text-gray-600 dark:text-gray-400">활성 고객</p>
                   <p class="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-1">
                     {crmStats?.activeCustomers || 0}
-                      </p>
-                    </div>
-                  </div>
+                  </p>
+                </div>
+              </div>
             </ThemeCard>
           </ThemeGrid>
         </ThemeSpacer>
@@ -995,78 +1003,78 @@
                         style:border-color="var(--color-border)"
                       >
                         {#if customer.contactPerson || customer.contactPhone || customer.contactEmail}
-                      <div class="flex flex-col gap-1">
+                          <div class="flex flex-col gap-1">
                             <span
                               class="text-xs font-medium"
                               style:color="var(--color-text-tertiary)"
                             >
                               담당자
-                        </span>
+                            </span>
                             <div class="text-sm" style:color="var(--color-text-secondary)">
                               {#if customer.contactPerson}
-                        <div class="flex items-center gap-1.5">
+                                <div class="flex items-center gap-1.5">
                                   <UsersIcon size={14} />
                                   <span>{customer.contactPerson}</span>
                                 </div>
                               {/if}
                               {#if customer.contactPhone}
                                 <div class="flex items-center gap-1.5 mt-1">
-                          <MailIcon size={14} />
+                                  <MailIcon size={14} />
                                   <span>{customer.contactPhone}</span>
-                        </div>
+                                </div>
                               {/if}
                               {#if customer.contactEmail}
                                 <div class="flex items-center gap-1.5 mt-1">
                                   <MailIcon size={14} />
                                   <span>{customer.contactEmail}</span>
-                      </div>
+                                </div>
                               {/if}
                             </div>
                           </div>
                         {/if}
-                      <div class="flex flex-col gap-1">
+                        <div class="flex flex-col gap-1">
                           <span
                             class="text-xs font-medium"
                             style:color="var(--color-text-tertiary)"
                           >
-                          업종/업태
-                        </span>
-                        <div class="flex items-center gap-1.5">
-                          <BuildingIcon size={14} />
-                          <span>
-                            {customer.industry || '-'}
-                            {#if customer.businessCategory}
-                              / {customer.businessCategory}
-                            {/if}
+                            업종/업태
                           </span>
-                      </div>
-                    </div>
-                    {#if customer.address}
+                          <div class="flex items-center gap-1.5">
+                            <BuildingIcon size={14} />
+                            <span>
+                              {customer.industry || '-'}
+                              {#if customer.businessCategory}
+                                / {customer.businessCategory}
+                              {/if}
+                            </span>
+                          </div>
+                        </div>
+                        {#if customer.address}
                           <div class="flex flex-col gap-1">
                             <span
                               class="text-xs font-medium"
                               style:color="var(--color-text-tertiary)"
                             >
                               주소
-                        </span>
+                            </span>
                             <div class="text-sm" style:color="var(--color-text-secondary)">
-                        {customer.address}
+                              {customer.address}
                             </div>
-                      </div>
-                    {/if}
-                    {#if customer.bankName || customer.accountNumber}
+                          </div>
+                        {/if}
+                        {#if customer.bankName || customer.accountNumber}
                           <div class="flex flex-col gap-1">
                             <span
                               class="text-xs font-medium"
                               style:color="var(--color-text-tertiary)"
                             >
                               계좌
-                        </span>
+                            </span>
                             <div class="text-sm" style:color="var(--color-text-secondary)">
-                        {customer.bankName || ''}
-                        {customer.accountNumber || ''}
-                        {#if customer.accountHolder}
-                          ({customer.accountHolder})
+                              {customer.bankName || ''}
+                              {customer.accountNumber || ''}
+                              {#if customer.accountHolder}
+                                ({customer.accountHolder})
                               {/if}
                             </div>
                           </div>
@@ -1163,7 +1171,7 @@
             <div class="text-center py-12 text-gray-500 dark:text-gray-400">
               <MessageSquareIcon class="w-12 h-12 mx-auto mb-3 opacity-50" />
               <p>상호작용 관리 기능 개발 예정</p>
-                    </div>
+            </div>
           </ThemeCard>
         </ThemeSpacer>
       {:else if tab.id === 'opportunities'}
@@ -1174,7 +1182,7 @@
             <div class="text-center py-12 text-gray-500 dark:text-gray-400">
               <TargetIcon class="w-12 h-12 mx-auto mb-3 opacity-50" />
               <p>영업 기회 관리 기능 개발 예정</p>
-                    </div>
+            </div>
           </ThemeCard>
         </ThemeSpacer>
       {/if}
@@ -1255,8 +1263,8 @@
   open={showCreateModal}
   customer={selectedCustomer}
   onClose={() => {
-          showCreateModal = false
-          selectedCustomer = null
+    showCreateModal = false
+    selectedCustomer = null
   }}
   onSave={handleCustomerSave}
 />

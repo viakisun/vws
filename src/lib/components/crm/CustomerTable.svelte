@@ -1,7 +1,14 @@
 <script lang="ts">
   import type { Customer } from '$lib/types/crm'
   import { CrmDocumentType } from '$lib/constants/crm'
-  import { EditIcon, TrashIcon, EyeIcon, BuildingIcon, DownloadIcon, UploadIcon } from 'lucide-svelte'
+  import {
+    EditIcon,
+    TrashIcon,
+    EyeIcon,
+    BuildingIcon,
+    DownloadIcon,
+    UploadIcon,
+  } from 'lucide-svelte'
   import ThemeBadge from '../ui/ThemeBadge.svelte'
 
   interface Props {
@@ -13,7 +20,8 @@
     onUploadDocument?: (customerId: string, type: CrmDocumentType) => void
   }
 
-  const { customers, onEdit, onDelete, onView, onDownloadDocument, onUploadDocument }: Props = $props()
+  const { customers, onEdit, onDelete, onView, onDownloadDocument, onUploadDocument }: Props =
+    $props()
 
   function formatCurrency(amount: number): string {
     if (amount === 0) return '-'
@@ -136,7 +144,8 @@
               {#if customer.businessRegistrationS3Key}
                 <button
                   type="button"
-                  onclick={() => onDownloadDocument?.(customer.id, CrmDocumentType.BUSINESS_REGISTRATION)}
+                  onclick={() =>
+                    onDownloadDocument?.(customer.id, CrmDocumentType.BUSINESS_REGISTRATION)}
                   title="사업자등록증 다운로드"
                   class="flex items-center gap-1 px-2 py-1 text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
                 >
@@ -146,7 +155,8 @@
               {:else}
                 <button
                   type="button"
-                  onclick={() => onUploadDocument?.(customer.id, CrmDocumentType.BUSINESS_REGISTRATION)}
+                  onclick={() =>
+                    onUploadDocument?.(customer.id, CrmDocumentType.BUSINESS_REGISTRATION)}
                   title="사업자등록증 업로드"
                   class="flex items-center gap-1 px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-300 rounded transition-colors"
                 >
