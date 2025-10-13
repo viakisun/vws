@@ -89,10 +89,7 @@ export async function downloadCrmDocument(
 // ============================================================================
 
 /**
- * CRM 고객 문서 삭제 (선택적)
- *
- * CRM은 고객 정보 수정 시 s3Key를 NULL로 설정하는 방식으로 처리.
- * 필요시 구현 가능.
+ * CRM 고객 문서 삭제
  *
  * @param customerId - 고객 ID
  * @param documentType - 문서 타입
@@ -101,10 +98,23 @@ export async function deleteCrmDocument(
   customerId: string,
   documentType: CrmDocumentType,
 ): Promise<void> {
-  // 필요시 구현
-  logger.log('[CRMS3] Delete not implemented (use customer update to set s3Key to NULL)', {
-    customerId,
-    documentType,
-  })
-  throw new Error('CRM 문서 삭제는 고객 정보 수정을 통해 처리됩니다')
+  try {
+    const response = await fetch(`/api/crm/documents/delete/${customerId}/${documentType}`, {
+      method: 'DELETE',
+      credentials: 'include',
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}))
+      throw new Error(errorData.error || '문서 삭제 실패')
+    }
+
+    logger.log('[CRMS3] Document deleted', {
+      customerId,
+      documentType,
+    })
+  } catch (error) {
+    logger.error('[CRMS3] Delete failed', error)
+    throw error
+  }
 }

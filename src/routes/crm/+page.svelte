@@ -1,6 +1,10 @@
 <script lang="ts">
   import { CrmDocumentType, DEFAULT_COMPANY_CODE } from '$lib/constants/crm'
-  import { downloadCrmDocument, uploadCrmDocument } from '$lib/services/s3/s3-crm.service'
+  import {
+    deleteCrmDocument,
+    downloadCrmDocument,
+    uploadCrmDocument,
+  } from '$lib/services/s3/s3-crm.service'
   import { pushToast } from '$lib/stores/toasts'
   import type { CRMContract, CRMData, CRMStats } from '$lib/types/crm'
   import { logger } from '$lib/utils/logger'
@@ -82,6 +86,19 @@
   let ocrBusinessFile = $state<File | null>(null)
   let ocrBankFile = $state<File | null>(null)
 
+  // OCR 중복 확인 모달 상태
+  let showOcrDuplicateModal = $state(false)
+  let duplicateCustomerId = $state<string | null>(null)
+  let duplicateCustomerInfo = $state<{
+    name: string
+    businessNumber: string
+    representativeName: string
+  } | null>(null)
+  let pendingOcrData = $state<{
+    businessData: BusinessRegistrationData
+    bankData: BankAccountData | null
+  } | null>(null)
+
   // 고객 상세 정보 열림/닫힘 상태 (기본: 닫힘)
   let expandedCustomers = $state<Set<string>>(new Set())
 
@@ -141,6 +158,24 @@
       })
 
       if (!response.ok) {
+        // 중복 사업자번호 에러 처리
+        if (response.status === 409) {
+          const errorData = await response.json()
+          // 중복 확인 모달 표시
+          duplicateCustomerId = errorData.existingCustomerId
+          duplicateCustomerInfo = errorData.existingCustomer
+            ? {
+                name: errorData.existingCustomer.name,
+                businessNumber: errorData.existingCustomer.businessNumber,
+                representativeName: errorData.existingCustomer.representativeName,
+              }
+            : null
+          pendingOcrData = data
+          showOcrResultModal = false
+          showOcrDuplicateModal = true
+          return
+        }
+
         const errorData = await response.json()
         throw new Error(errorData.error || '고객 생성 실패')
       }
@@ -210,6 +245,119 @@
       console.error('Customer creation error:', error)
       pushToast(
         error instanceof Error ? error.message : '고객 생성 중 오류가 발생했습니다',
+        'error',
+      )
+    }
+  }
+
+  async function handleOcrUpdateExisting() {
+    if (!duplicateCustomerId || !pendingOcrData) {
+      pushToast('업데이트할 정보가 없습니다', 'error')
+      return
+    }
+
+    try {
+      const customerId = duplicateCustomerId
+      const { businessData, bankData } = pendingOcrData
+
+      // 1. 기존 S3 파일 삭제
+      if (ocrBusinessFile) {
+        try {
+          await deleteCrmDocument(customerId, CrmDocumentType.BUSINESS_REGISTRATION)
+          console.log('[OCR] Old business registration deleted')
+        } catch (error) {
+          // 파일이 없을 수도 있으므로 에러 무시
+          console.log('[OCR] No existing business registration to delete or delete failed')
+        }
+      }
+
+      if (ocrBankFile) {
+        try {
+          await deleteCrmDocument(customerId, CrmDocumentType.BANK_ACCOUNT)
+          console.log('[OCR] Old bank account deleted')
+        } catch (error) {
+          // 파일이 없을 수도 있으므로 에러 무시
+          console.log('[OCR] No existing bank account to delete or delete failed')
+        }
+      }
+
+      // 2. 새 파일 S3에 업로드
+      let businessRegistrationS3Key: string | null = null
+      let bankAccountS3Key: string | null = null
+
+      if (ocrBusinessFile) {
+        const uploadResult = await uploadCrmDocument(
+          DEFAULT_COMPANY_CODE,
+          customerId,
+          CrmDocumentType.BUSINESS_REGISTRATION,
+          ocrBusinessFile,
+        )
+        businessRegistrationS3Key = uploadResult.s3Key
+        console.log('[OCR] New business registration uploaded:', uploadResult.s3Key)
+      }
+
+      if (ocrBankFile) {
+        const uploadResult = await uploadCrmDocument(
+          DEFAULT_COMPANY_CODE,
+          customerId,
+          CrmDocumentType.BANK_ACCOUNT,
+          ocrBankFile,
+        )
+        bankAccountS3Key = uploadResult.s3Key
+        console.log('[OCR] New bank account uploaded:', uploadResult.s3Key)
+      }
+
+      // 3. 고객 정보 업데이트 (모든 필드를 새 OCR 데이터로 덮어쓰기)
+      // 데이터베이스 필드 길이 제한을 고려하여 truncate
+      const truncate = (str: string | null | undefined, maxLength: number): string | null => {
+        if (!str) return null
+        return str.length > maxLength ? str.substring(0, maxLength) : str
+      }
+
+      const updateResponse = await fetch(`/api/crm/customers/${customerId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: truncate(businessData.companyName, 255),
+          business_number: truncate(businessData.businessNumber, 50),
+          representative_name: truncate(businessData.representativeName, 100),
+          address: businessData.businessAddress, // TEXT 타입이므로 제한 없음
+          industry: truncate(businessData.businessType, 100),
+          business_type: truncate(businessData.businessType, 255),
+          business_category: truncate(businessData.businessCategory, 100),
+          establishment_date: businessData.establishmentDate,
+          corporation_status: businessData.isCorporation,
+          bank_name: truncate(bankData?.bankName, 100),
+          account_number: truncate(bankData?.accountNumber, 50),
+          account_holder: truncate(bankData?.accountHolder, 100),
+          business_registration_s3_key: businessRegistrationS3Key,
+          bank_account_s3_key: bankAccountS3Key,
+          ocr_processed_at: new Date().toISOString(),
+          ocr_confidence: Math.round((businessData.confidence + (bankData?.confidence || 0)) / 2),
+        }),
+      })
+
+      if (!updateResponse.ok) {
+        throw new Error('고객 정보 업데이트 실패')
+      }
+
+      // 모달 닫기 및 상태 초기화
+      showOcrDuplicateModal = false
+      duplicateCustomerId = null
+      duplicateCustomerInfo = null
+      pendingOcrData = null
+
+      // 성공 메시지 표시
+      pushToast('기존 고객 정보가 성공적으로 업데이트되었습니다!', 'success')
+
+      // 고객 목록 새로고침
+      await loadCustomers()
+    } catch (error) {
+      console.error('Customer update error:', error)
+      pushToast(
+        error instanceof Error ? error.message : '고객 정보 업데이트 중 오류가 발생했습니다',
         'error',
       )
     }
@@ -1277,3 +1425,49 @@
   onClose={() => (showOcrResultModal = false)}
   onConfirm={handleOcrConfirm}
 />
+
+<!-- OCR 중복 확인 모달 -->
+{#if showOcrDuplicateModal}
+  <ThemeModal open={showOcrDuplicateModal}>
+    <div class="p-6">
+      <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">사업자번호 중복</h2>
+      <div class="space-y-4">
+        <p class="text-gray-700 dark:text-gray-300">
+          이미 등록된 사업자번호입니다. 기존 고객 정보를 새로운 정보로 덮어쓰시겠습니까?
+        </p>
+        {#if duplicateCustomerInfo}
+          <div
+            class="p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-lg"
+          >
+            <p class="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">기존 고객 정보:</p>
+            <div class="text-sm text-gray-700 dark:text-gray-300 space-y-1">
+              <p><strong>상호명:</strong> {duplicateCustomerInfo.name}</p>
+              <p><strong>사업자번호:</strong> {duplicateCustomerInfo.businessNumber}</p>
+              {#if duplicateCustomerInfo.representativeName}
+                <p><strong>대표자:</strong> {duplicateCustomerInfo.representativeName}</p>
+              {/if}
+            </div>
+          </div>
+        {/if}
+        <p class="text-sm text-gray-600 dark:text-gray-400">
+          * 모든 고객 정보가 새로운 OCR 데이터로 덮어씌워집니다.<br />
+          * 기존 파일은 삭제되고 새 파일로 교체됩니다.
+        </p>
+      </div>
+      <div class="flex justify-end gap-3 mt-6">
+        <ThemeButton
+          variant="secondary"
+          onclick={() => {
+            showOcrDuplicateModal = false
+            duplicateCustomerId = null
+            duplicateCustomerInfo = null
+            pendingOcrData = null
+          }}
+        >
+          취소
+        </ThemeButton>
+        <ThemeButton variant="primary" onclick={handleOcrUpdateExisting}>덮어쓰기</ThemeButton>
+      </div>
+    </div>
+  </ThemeModal>
+{/if}

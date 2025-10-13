@@ -45,17 +45,28 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
     // 사업자번호 중복 체크
     if (businessData.businessNumber) {
       const checkQuery = `
-        SELECT id FROM crm_customers 
+        SELECT id, name, business_number, representative_name, 
+               business_registration_s3_key, bank_account_s3_key
+        FROM crm_customers 
         WHERE business_number = $1 
         AND business_number != '000-00-00000'
       `
       const checkResult = await query(checkQuery, [businessData.businessNumber])
 
       if (checkResult.rows.length > 0) {
+        const existingCustomer = checkResult.rows[0]
         return json(
           {
             error: '이미 등록된 사업자번호입니다',
-            existingCustomerId: checkResult.rows[0].id,
+            existingCustomerId: existingCustomer.id,
+            existingCustomer: {
+              id: existingCustomer.id,
+              name: existingCustomer.name,
+              businessNumber: existingCustomer.business_number,
+              representativeName: existingCustomer.representative_name,
+              hasBusinessRegistration: !!existingCustomer.business_registration_s3_key,
+              hasBankAccount: !!existingCustomer.bank_account_s3_key,
+            },
           },
           { status: 409 },
         )
