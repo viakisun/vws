@@ -3,4 +3,3 @@ export const load = ({ params }) => {
     productId: params.id,
   }
 }
-

@@ -66,7 +66,7 @@
 
   async function loadMilestones(id: string) {
     if (!id) return
-    
+
     const milestonesRes = await fetch(`/api/planner/milestones?product_id=${id}`)
     if (milestonesRes.ok) {
       const milestonesData = await milestonesRes.json()

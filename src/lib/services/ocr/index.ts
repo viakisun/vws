@@ -87,11 +87,22 @@ class OCRService {
   }
 }
 
-// Singleton instance with default engine from env
-const defaultOcrService = new OCRService()
+// Lazy singleton instance - only created when first accessed
+let defaultOcrServiceInstance: OCRService | null = null
 
-// Export singleton instance
-export const ocrService = defaultOcrService
+function getDefaultOcrService(): OCRService {
+  if (!defaultOcrServiceInstance) {
+    defaultOcrServiceInstance = new OCRService()
+  }
+  return defaultOcrServiceInstance
+}
+
+// Export lazy singleton getter
+export const ocrService = {
+  get instance() {
+    return getDefaultOcrService()
+  },
+}
 
 // Export class for testing or manual engine selection
 export { OCRService, type OCREngine }
@@ -104,7 +115,7 @@ export const processBusinessRegistration = (
   fileBuffer: Buffer,
   mimeType: string,
 ): Promise<BusinessRegistrationData> => {
-  return defaultOcrService.processBusinessRegistration(fileBuffer, mimeType)
+  return getDefaultOcrService().processBusinessRegistration(fileBuffer, mimeType)
 }
 
 /**
@@ -114,7 +125,7 @@ export const processBankAccount = (
   fileBuffer: Buffer,
   mimeType: string,
 ): Promise<BankAccountData> => {
-  return defaultOcrService.processBankAccount(fileBuffer, mimeType)
+  return getDefaultOcrService().processBankAccount(fileBuffer, mimeType)
 }
 
 // Re-export types

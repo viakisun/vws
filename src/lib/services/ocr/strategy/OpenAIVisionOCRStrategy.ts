@@ -12,14 +12,19 @@ export class OpenAIVisionOCRStrategy implements OCRStrategy {
   private openai: any
 
   constructor() {
-    this.initializeOpenAI()
+    // Don't initialize OpenAI in constructor to avoid build-time errors
+    // Lazy initialization will happen when methods are called
   }
 
   private async initializeOpenAI() {
     if (!this.openai) {
       const { default: OpenAI } = await import('openai')
+      const apiKey = env.OPENAI_API_KEY
+      if (!apiKey) {
+        throw new Error('OPENAI_API_KEY environment variable is not set')
+      }
       this.openai = new OpenAI({
-        apiKey: env.OPENAI_API_KEY,
+        apiKey,
       })
     }
   }
