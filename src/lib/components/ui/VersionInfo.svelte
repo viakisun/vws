@@ -4,7 +4,7 @@
 
   let version = $state('0.2.2')
   let environment = $state('')
-  
+
   // 빌드 시점의 타임스탬프 (Vite에서 주입)
   const buildTime = __BUILD_TIME__
 
