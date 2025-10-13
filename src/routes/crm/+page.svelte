@@ -1,10 +1,6 @@
 <script lang="ts">
   import { CrmDocumentType, DEFAULT_COMPANY_CODE } from '$lib/constants/crm'
-  import {
-    deleteCrmDocument,
-    downloadCrmDocument,
-    uploadCrmDocument,
-  } from '$lib/services/s3/s3-crm.service'
+  import { downloadCrmDocument, uploadCrmDocument } from '$lib/services/s3/s3-crm.service'
   import { pushToast } from '$lib/stores/toasts'
   import type { CRMContract, CRMData, CRMStats } from '$lib/types/crm'
   import { logger } from '$lib/utils/logger'
@@ -257,31 +253,29 @@
     }
 
     try {
-      const customerId = duplicateCustomerId
       const { businessData, bankData } = pendingOcrData
 
-      // 1. 기존 S3 파일 삭제
-      if (ocrBusinessFile) {
-        try {
-          await deleteCrmDocument(customerId, CrmDocumentType.BUSINESS_REGISTRATION)
-          console.log('[OCR] Old business registration deleted')
-        } catch (error) {
-          // 파일이 없을 수도 있으므로 에러 무시
-          console.log('[OCR] No existing business registration to delete or delete failed')
-        }
+      // 1. overwrite=true로 API 호출 (기존 고객 정보 덮어쓰기)
+      const response = await fetch('/api/crm/customers/from-ocr', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          businessData,
+          bankData,
+          overwrite: true,
+          existingCustomerId: duplicateCustomerId,
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || '고객 업데이트 실패')
       }
 
-      if (ocrBankFile) {
-        try {
-          await deleteCrmDocument(customerId, CrmDocumentType.BANK_ACCOUNT)
-          console.log('[OCR] Old bank account deleted')
-        } catch (error) {
-          // 파일이 없을 수도 있으므로 에러 무시
-          console.log('[OCR] No existing bank account to delete or delete failed')
-        }
-      }
+      const result = await response.json()
+      const customerId = result.customer.id
 
-      // 2. 새 파일 S3에 업로드
+      // 2. S3에 새 파일 업로드
       let businessRegistrationS3Key: string | null = null
       let bankAccountS3Key: string | null = null
 
@@ -293,7 +287,6 @@
           ocrBusinessFile,
         )
         businessRegistrationS3Key = uploadResult.s3Key
-        console.log('[OCR] New business registration uploaded:', uploadResult.s3Key)
       }
 
       if (ocrBankFile) {
@@ -304,55 +297,25 @@
           ocrBankFile,
         )
         bankAccountS3Key = uploadResult.s3Key
-        console.log('[OCR] New bank account uploaded:', uploadResult.s3Key)
       }
 
-      // 3. 고객 정보 업데이트 (모든 필드를 새 OCR 데이터로 덮어쓰기)
-      // 데이터베이스 필드 길이 제한을 고려하여 truncate
-      const truncate = (str: string | null | undefined, maxLength: number): string | null => {
-        if (!str) return null
-        return str.length > maxLength ? str.substring(0, maxLength) : str
+      // 3. S3 키 업데이트
+      if (businessRegistrationS3Key || bankAccountS3Key) {
+        await fetch(`/api/crm/customers/${customerId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            business_registration_s3_key: businessRegistrationS3Key,
+            bank_account_s3_key: bankAccountS3Key,
+          }),
+        })
       }
 
-      const updateResponse = await fetch(`/api/crm/customers/${customerId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name: truncate(businessData.companyName, 255),
-          business_number: truncate(businessData.businessNumber, 50),
-          representative_name: truncate(businessData.representativeName, 100),
-          address: businessData.businessAddress, // TEXT 타입이므로 제한 없음
-          industry: truncate(businessData.businessType, 100),
-          business_type: truncate(businessData.businessType, 255),
-          business_category: truncate(businessData.businessCategory, 100),
-          establishment_date: businessData.establishmentDate,
-          corporation_status: businessData.isCorporation,
-          bank_name: truncate(bankData?.bankName, 100),
-          account_number: truncate(bankData?.accountNumber, 50),
-          account_holder: truncate(bankData?.accountHolder, 100),
-          business_registration_s3_key: businessRegistrationS3Key,
-          bank_account_s3_key: bankAccountS3Key,
-          ocr_processed_at: new Date().toISOString(),
-          ocr_confidence: Math.round((businessData.confidence + (bankData?.confidence || 0)) / 2),
-        }),
-      })
-
-      if (!updateResponse.ok) {
-        throw new Error('고객 정보 업데이트 실패')
-      }
-
-      // 모달 닫기 및 상태 초기화
+      // 모달 닫기 및 새로고침
       showOcrDuplicateModal = false
-      duplicateCustomerId = null
-      duplicateCustomerInfo = null
       pendingOcrData = null
-
-      // 성공 메시지 표시
-      pushToast('기존 고객 정보가 성공적으로 업데이트되었습니다!', 'success')
-
-      // 고객 목록 새로고침
+      duplicateCustomerId = null
+      pushToast('고객 정보가 업데이트되었습니다!', 'success')
       await loadCustomers()
     } catch (error) {
       console.error('Customer update error:', error)
@@ -1433,7 +1396,8 @@
       <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">사업자번호 중복</h2>
       <div class="space-y-4">
         <p class="text-gray-700 dark:text-gray-300">
-          이미 등록된 사업자번호입니다. 기존 고객 정보를 새로운 정보로 덮어쓰시겠습니까?
+          이미 등록된 사업자번호입니다. 기존 고객 정보를 새로운 OCR 데이터로 완전히
+          교체하시겠습니까?
         </p>
         {#if duplicateCustomerInfo}
           <div
@@ -1449,10 +1413,16 @@
             </div>
           </div>
         {/if}
-        <p class="text-sm text-gray-600 dark:text-gray-400">
-          * 모든 고객 정보가 새로운 OCR 데이터로 덮어씌워집니다.<br />
-          * 기존 파일은 삭제되고 새 파일로 교체됩니다.
-        </p>
+        <div
+          class="p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg"
+        >
+          <p class="text-sm font-medium text-blue-900 dark:text-blue-100 mb-2">⚠️ 주의사항:</p>
+          <ul class="text-sm text-blue-800 dark:text-blue-200 space-y-1">
+            <li>• 기존 고객의 모든 정보가 새로운 OCR 데이터로 완전히 교체됩니다</li>
+            <li>• 기존 문서 파일은 삭제되고 새 파일로 교체됩니다</li>
+            <li>• 이 작업은 되돌릴 수 없으니 신중하게 결정해주세요</li>
+          </ul>
+        </div>
       </div>
       <div class="flex justify-end gap-3 mt-6">
         <ThemeButton
@@ -1464,9 +1434,9 @@
             pendingOcrData = null
           }}
         >
-          취소
+          취소 (아무 작업 안함)
         </ThemeButton>
-        <ThemeButton variant="primary" onclick={handleOcrUpdateExisting}>덮어쓰기</ThemeButton>
+        <ThemeButton variant="primary" onclick={handleOcrUpdateExisting}>완전 교체</ThemeButton>
       </div>
     </div>
   </ThemeModal>

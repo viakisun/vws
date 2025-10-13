@@ -1,5 +1,9 @@
 import { UserService } from '$lib/auth/user-service'
-import { buildInsertQuery, mapCustomerData } from '$lib/crm/services/crm-customer-queries'
+import {
+  buildInsertQuery,
+  buildUpdateQuery,
+  mapCustomerData,
+} from '$lib/crm/services/crm-customer-queries'
 import { query } from '$lib/database/connection'
 import type { BankAccountData, BusinessRegistrationData } from '$lib/services/ocr'
 import { json } from '@sveltejs/kit'
@@ -30,47 +34,20 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
       bankData,
       businessRegistrationUrl,
       bankAccountUrl,
+      overwrite,
+      existingCustomerId,
     }: {
       businessData: BusinessRegistrationData
       bankData: BankAccountData
       businessRegistrationUrl?: string
       bankAccountUrl?: string
+      overwrite?: boolean
+      existingCustomerId?: string
     } = body
 
     // 필수 데이터 검증
     if (!businessData || !businessData.companyName) {
       return json({ error: '상호명은 필수입니다' }, { status: 400 })
-    }
-
-    // 사업자번호 중복 체크
-    if (businessData.businessNumber) {
-      const checkQuery = `
-        SELECT id, name, business_number, representative_name, 
-               business_registration_s3_key, bank_account_s3_key
-        FROM crm_customers 
-        WHERE business_number = $1 
-        AND business_number != '000-00-00000'
-      `
-      const checkResult = await query(checkQuery, [businessData.businessNumber])
-
-      if (checkResult.rows.length > 0) {
-        const existingCustomer = checkResult.rows[0]
-        return json(
-          {
-            error: '이미 등록된 사업자번호입니다',
-            existingCustomerId: existingCustomer.id,
-            existingCustomer: {
-              id: existingCustomer.id,
-              name: existingCustomer.name,
-              businessNumber: existingCustomer.business_number,
-              representativeName: existingCustomer.representative_name,
-              hasBusinessRegistration: !!existingCustomer.business_registration_s3_key,
-              hasBankAccount: !!existingCustomer.bank_account_s3_key,
-            },
-          },
-          { status: 409 },
-        )
-      }
     }
 
     // OCR 데이터를 표준 형식으로 변환
@@ -96,6 +73,57 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
       ocr_processed_at: new Date().toISOString(),
       ocr_confidence: Math.round((businessData.confidence + (bankData?.confidence || 0)) / 2),
       status: 'active',
+    }
+
+    // 사업자번호 중복 체크
+    if (businessData.businessNumber) {
+      const checkQuery = `
+        SELECT id, name, business_number, representative_name, 
+               business_registration_s3_key, bank_account_s3_key
+        FROM crm_customers 
+        WHERE business_number = $1 
+        AND business_number != '000-00-00000'
+      `
+      const checkResult = await query(checkQuery, [businessData.businessNumber])
+
+      if (checkResult.rows.length > 0) {
+        const existingCustomer = checkResult.rows[0]
+
+        // overwrite=true일 때 기존 고객 정보 업데이트
+        if (overwrite) {
+          const existingCustomerId = existingCustomer.id
+
+          // UPDATE 쿼리 실행 (모든 필드 덮어쓰기)
+          const updateQuery = buildUpdateQuery()
+          const values = mapCustomerData(customerData)
+          const updateResult = await query(updateQuery, [...values, existingCustomerId])
+          const updatedCustomer = updateResult.rows[0]
+
+          return json({
+            success: true,
+            customer: updatedCustomer,
+            message: '고객 정보가 업데이트되었습니다',
+            updated: true,
+          })
+        } else {
+          // 기존 409 응답 유지
+          return json(
+            {
+              error: '이미 등록된 사업자번호입니다',
+              existingCustomerId: existingCustomer.id,
+              existingCustomer: {
+                id: existingCustomer.id,
+                name: existingCustomer.name,
+                businessNumber: existingCustomer.business_number,
+                representativeName: existingCustomer.representative_name,
+                hasBusinessRegistration: !!existingCustomer.business_registration_s3_key,
+                hasBankAccount: !!existingCustomer.bank_account_s3_key,
+              },
+            },
+            { status: 409 },
+          )
+        }
+      }
     }
 
     // 고객 생성

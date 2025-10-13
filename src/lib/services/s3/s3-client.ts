@@ -14,9 +14,47 @@ let s3Client: S3Client | null = null
  */
 export function getS3Client(): S3Client {
   if (!s3Client) {
+    // 환경변수 상태 로깅
+    console.log('=== S3 Client Initialization ===')
+    console.log('Environment variables check:')
+    console.log('- AWS_S3_REGION:', env.AWS_S3_REGION ? '✓ SET' : '✗ NOT SET')
+    console.log('- AWS_REGION:', env.AWS_REGION ? '✓ SET' : '✗ NOT SET')
+    console.log(
+      '- AWS_ACCESS_KEY_ID:',
+      env.AWS_ACCESS_KEY_ID ? `✓ SET (length: ${env.AWS_ACCESS_KEY_ID.length})` : '✗ NOT SET',
+    )
+    console.log(
+      '- AWS_SECRET_ACCESS_KEY:',
+      env.AWS_SECRET_ACCESS_KEY
+        ? `✓ SET (length: ${env.AWS_SECRET_ACCESS_KEY.length})`
+        : '✗ NOT SET',
+    )
+    console.log(
+      '- AWS_S3_BUCKET_NAME:',
+      env.AWS_S3_BUCKET_NAME ? `✓ SET (${env.AWS_S3_BUCKET_NAME})` : '✗ NOT SET',
+    )
+
+    // 특수문자 검사
+    if (env.AWS_ACCESS_KEY_ID) {
+      const hasSpecialChars = /[^A-Za-z0-9+/=]/.test(env.AWS_ACCESS_KEY_ID)
+      console.log('- AWS_ACCESS_KEY_ID has special chars:', hasSpecialChars)
+    }
+    if (env.AWS_SECRET_ACCESS_KEY) {
+      const hasSpecialChars = /[^A-Za-z0-9+/=]/.test(env.AWS_SECRET_ACCESS_KEY)
+      const hasWhitespace = /\s/.test(env.AWS_SECRET_ACCESS_KEY)
+      console.log('- AWS_SECRET_ACCESS_KEY has special chars:', hasSpecialChars)
+      console.log('- AWS_SECRET_ACCESS_KEY has whitespace:', hasWhitespace)
+      if (hasWhitespace) {
+        console.log('⚠️  WARNING: AWS_SECRET_ACCESS_KEY contains whitespace!')
+      }
+    }
+
     const region = env.AWS_S3_REGION || env.AWS_REGION || 'ap-northeast-2'
     const accessKeyId = env.AWS_ACCESS_KEY_ID
     const secretAccessKey = env.AWS_SECRET_ACCESS_KEY
+
+    console.log('Final region:', region)
+    console.log('================================')
 
     if (!accessKeyId || !secretAccessKey) {
       logger.error('AWS credentials are not configured')
@@ -43,8 +81,16 @@ export function getS3Client(): S3Client {
 export function getS3BucketName(): string {
   const bucketName = env.AWS_S3_BUCKET_NAME
 
+  console.log('[getS3BucketName] Checking bucket name...')
+  console.log('- AWS_S3_BUCKET_NAME:', bucketName ? `✓ ${bucketName}` : '✗ NOT SET')
+
   if (!bucketName) {
     logger.error('AWS_S3_BUCKET_NAME is not configured')
+    console.error('❌ AWS_S3_BUCKET_NAME is not configured')
+    console.error(
+      'Available env keys:',
+      Object.keys(env).filter((k) => k.includes('AWS')),
+    )
     throw new Error('AWS_S3_BUCKET_NAME is not configured')
   }
 

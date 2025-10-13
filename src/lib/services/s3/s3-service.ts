@@ -34,8 +34,16 @@ export async function generatePresignedUploadUrl(
   expiresIn: number = 900, // 15분
 ): Promise<string> {
   try {
+    console.log('[generatePresignedUploadUrl] Starting...')
+    console.log('- Key:', key)
+    console.log('- ContentType:', contentType)
+    console.log('- ExpiresIn:', expiresIn)
+
     const client = getS3Client()
+    console.log('[generatePresignedUploadUrl] S3 Client obtained')
+
     const bucketName = getS3BucketName()
+    console.log('[generatePresignedUploadUrl] Bucket name obtained:', bucketName)
 
     const command = new PutObjectCommand({
       Bucket: bucketName,
@@ -43,11 +51,14 @@ export async function generatePresignedUploadUrl(
       ContentType: contentType,
     })
 
+    console.log('[generatePresignedUploadUrl] Generating signed URL...')
     const url = await getSignedUrl(client, command, { expiresIn })
+    console.log('[generatePresignedUploadUrl] ✓ URL generated successfully')
     logger.log('Presigned upload URL generated', { key, expiresIn })
 
     return url
   } catch (error) {
+    console.error('[generatePresignedUploadUrl] ❌ Error:', error)
     logger.error('Failed to generate presigned upload URL', error)
     throw error
   }

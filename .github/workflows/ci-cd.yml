@@ -547,6 +547,16 @@ jobs:
             docker pull ${{ steps.login-ecr.outputs.registry }}/vws-app:latest
 
             echo "🚀 Starting new container..."
+            echo "Checking environment variables before docker run..."
+            echo "AWS_S3_BUCKET_NAME length: ${#AWS_S3_BUCKET_NAME}"
+            echo "AWS_ACCESS_KEY_ID length: ${#AWS_ACCESS_KEY_ID}"
+            echo "AWS_SECRET_ACCESS_KEY length: ${#AWS_SECRET_ACCESS_KEY}"
+            
+            # Secret Key에 공백이 있는지 확인
+            if [[ "$AWS_SECRET_ACCESS_KEY" =~ [[:space:]] ]]; then
+              echo "⚠️  WARNING: AWS_SECRET_ACCESS_KEY contains whitespace!"
+            fi
+            
             docker run -d \
               --name vws-app \
               --restart unless-stopped \
@@ -573,6 +583,17 @@ jobs:
 
             echo "⏳ Waiting for container to start..."
             sleep 10
+            
+            echo "Checking environment variables inside container..."
+            docker exec vws-app env | grep AWS_ | while read line; do
+              key=$(echo $line | cut -d= -f1)
+              value=$(echo $line | cut -d= -f2-)
+              if [[ "$key" == *"SECRET"* ]] || [[ "$key" == *"KEY"* ]]; then
+                echo "$key: SET (length: ${#value})"
+              else
+                echo "$line"
+              fi
+            done
 
             echo "✅ Verifying deployment..."
             if docker ps | grep -q vws-app; then
@@ -582,6 +603,20 @@ jobs:
               docker logs vws-app --tail 50
               exit 1
             fi
+
+            echo "🔍 Starting Dozzle log viewer..."
+            # 기존 Dozzle 컨테이너 제거
+            docker rm -f dozzle 2>/dev/null || true
+            
+            # Dozzle 실행 (포트 8080)
+            docker run -d \
+              --name dozzle \
+              --restart unless-stopped \
+              -p 8080:8080 \
+              -v /var/run/docker.sock:/var/run/docker.sock:ro \
+              amir20/dozzle:latest
+            
+            echo "✅ Dozzle is running on http://$(curl -s ifconfig.me):8080"
 
             echo "🔧 Updating Nginx configuration..."
             

@@ -8,6 +8,27 @@ import { logger } from '$lib/utils/logger'
 import type { Handle } from '@sveltejs/kit'
 import { error } from '@sveltejs/kit'
 
+// 애플리케이션 시작 시 환경변수 상태 로깅
+console.log('=== Application Startup - Environment Check ===')
+console.log('Node version:', process.version)
+console.log('Platform:', process.platform)
+console.log('Timestamp:', new Date().toISOString())
+console.log('\nAWS Environment Variables:')
+const awsEnvKeys = Object.keys(process.env).filter((k) => k.startsWith('AWS_'))
+awsEnvKeys.forEach((key) => {
+  const value = process.env[key]
+  if (key.includes('SECRET') || key.includes('KEY')) {
+    console.log(`- ${key}: ${value ? `SET (length: ${value.length})` : 'NOT SET'}`)
+  } else {
+    console.log(`- ${key}: ${value || 'NOT SET'}`)
+  }
+})
+console.log('\nOther relevant variables:')
+console.log('- NODE_ENV:', process.env.NODE_ENV)
+console.log('- DATABASE_URL:', process.env.DATABASE_URL ? 'SET' : 'NOT SET')
+console.log('- OPENAI_API_KEY:', process.env.OPENAI_API_KEY ? 'SET' : 'NOT SET')
+console.log('===============================================\n')
+
 // 공개 API 목록 (인증 불필요)
 const PUBLIC_API_ROUTES = [
   Routes.API_AUTH_LOGIN,
