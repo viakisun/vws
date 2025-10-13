@@ -1,129 +1,123 @@
-import { UserService } from '$lib/auth/user-service'
-import type { CRMApiResponse, CRMCustomerStats, CRMStats } from '$lib/crm/types'
 import { query } from '$lib/database/connection'
+import type { CRMStats } from '$lib/types/crm'
 import { logger } from '$lib/utils/logger'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
 
-// CRM 대시보드 통계
-export const GET: RequestHandler = async ({ url, cookies }) => {
-  // 인증 확인
-  const token = cookies.get('auth_token')
-  if (!token) {
-    return json({ error: '인증이 필요합니다' }, { status: 401 })
-  }
-
-  const userService = UserService.getInstance()
-  const payload = userService.verifyToken(token)
-  const user = await userService.getUserById(payload.userId)
-  if (!user) {
-    return json({ error: '유효하지 않은 토큰입니다' }, { status: 401 })
-  }
-
+export const GET: RequestHandler = async () => {
   try {
-    const period = url.searchParams.get('period') || 'month' // month, quarter, year
-    const type = url.searchParams.get('type') || 'overview' // overview, customers
-
-    if (type === 'customers') {
-      // 고객별 통계
-      const result = await query(
-        `
-        SELECT 
-          c.id as customer_id,
-          c.name as customer_name,
-          COALESCE(SUM(CASE WHEN t.type = 'sales' THEN t.amount ELSE 0 END), 0) as total_sales,
-          COALESCE(SUM(CASE WHEN t.type = 'purchase' THEN t.amount ELSE 0 END), 0) as total_purchases,
-          COALESCE(SUM(CASE WHEN t.type = 'sales' AND t.payment_status = 'pending' THEN t.amount ELSE 0 END), 0) as pending_amount,
-          COALESCE(SUM(CASE WHEN t.type = 'sales' AND t.payment_status = 'overdue' THEN t.amount ELSE 0 END), 0) as overdue_amount,
-          COUNT(t.id) as transaction_count
-        FROM crm_customers c
-        LEFT JOIN crm_transactions t ON c.id = t.customer_id
-        GROUP BY c.id, c.name
-        ORDER BY total_sales DESC
-        `,
-      )
-
-      const response: CRMApiResponse<CRMCustomerStats[]> = {
-        success: true,
-        data: result.rows as CRMCustomerStats[],
-      }
-
-      return json(response)
-    }
-
-    // 전체 통계
-    const currentDate = new Date()
-    let dateFilter = ''
-    let dateParams: any[] = []
-
-    switch (period) {
-      case 'month': {
-        const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1)
-        dateFilter = 'AND transaction_date >= $1'
-        dateParams = [firstDayOfMonth.toISOString().split('T')[0]]
-        break
-      }
-      case 'quarter': {
-        const quarterStart = new Date(
-          currentDate.getFullYear(),
-          Math.floor(currentDate.getMonth() / 3) * 3,
-          1,
-        )
-        dateFilter = 'AND transaction_date >= $1'
-        dateParams = [quarterStart.toISOString().split('T')[0]]
-        break
-      }
-      case 'year': {
-        const firstDayOfYear = new Date(currentDate.getFullYear(), 0, 1)
-        dateFilter = 'AND transaction_date >= $1'
-        dateParams = [firstDayOfYear.toISOString().split('T')[0]]
-        break
-      }
-    }
-
-    // 기본 통계 조회
-    const statsResult = await query(
+    // 1. 고객 통계
+    const customerStatsResult = await query<{
+      total_customers: string
+      active_customers: string
+      inactive_customers: string
+      prospect_customers: string
+    }>(
       `
       SELECT 
-        (SELECT COUNT(*) FROM crm_customers WHERE status = 'active') as total_customers,
-        (SELECT COUNT(*) FROM crm_opportunities WHERE status = 'active') as active_opportunities,
-        (SELECT COALESCE(SUM(value), 0) FROM crm_opportunities WHERE status = 'active') as total_sales_value,
-        (SELECT COALESCE(SUM(amount), 0) FROM crm_transactions WHERE type = 'sales' AND payment_status = 'paid' ${dateFilter}) as monthly_revenue,
-        (SELECT COALESCE(SUM(amount), 0) FROM crm_transactions WHERE type = 'sales' AND payment_status = 'overdue') as payment_overdue,
-        (SELECT 
-          CASE 
-            WHEN COUNT(*) > 0 THEN 
-              ROUND((COUNT(CASE WHEN stage = 'closed-won' THEN 1 END)::DECIMAL / COUNT(*)) * 100, 2)
-            ELSE 0 
-          END
-         FROM crm_opportunities) as conversion_rate
-      `,
-      dateParams,
+        COUNT(*) as total_customers,
+        COUNT(CASE WHEN status = 'active' THEN 1 END) as active_customers,
+        COUNT(CASE WHEN status = 'inactive' THEN 1 END) as inactive_customers,
+        COUNT(CASE WHEN status = 'prospect' THEN 1 END) as prospect_customers
+      FROM crm_customers
+    `,
     )
 
-    const stats = statsResult.rows[0]
+    // 2. 이번 달 신규 고객
+    const newCustomersResult = await query<{
+      this_month: string
+      last_month: string
+    }>(
+      `
+      SELECT 
+        COUNT(CASE WHEN created_at >= date_trunc('month', CURRENT_DATE) THEN 1 END) as this_month,
+        COUNT(CASE WHEN created_at >= date_trunc('month', CURRENT_DATE) - INTERVAL '1 month' 
+                   AND created_at < date_trunc('month', CURRENT_DATE) THEN 1 END) as last_month
+      FROM crm_customers
+    `,
+    )
 
-    const crmStats: CRMStats = {
-      totalCustomers: parseInt(stats.total_customers),
-      activeOpportunities: parseInt(stats.active_opportunities),
-      totalSalesValue: parseFloat(stats.total_sales_value),
-      monthlyRevenue: parseFloat(stats.monthly_revenue),
-      paymentOverdue: parseFloat(stats.payment_overdue),
-      conversionRate: parseFloat(stats.conversion_rate),
+    // 3. 영업 기회 통계
+    const opportunityStatsResult = await query<{
+      open_opportunities: string
+      total_amount: string
+    }>(
+      `
+      SELECT 
+        COUNT(*) as open_opportunities,
+        COALESCE(SUM(amount), 0) as total_amount
+      FROM crm_opportunities
+      WHERE status = 'open'
+    `,
+    )
+
+    // 4. 계약 통계
+    const contractStatsResult = await query<{
+      active_contracts: string
+      revenue_total: string
+      expense_total: string
+    }>(
+      `
+      SELECT 
+        COUNT(CASE WHEN status = 'active' THEN 1 END) as active_contracts,
+        COALESCE(SUM(CASE WHEN contract_type = 'revenue' THEN total_amount ELSE 0 END), 0) as revenue_total,
+        COALESCE(SUM(CASE WHEN contract_type = 'expense' THEN total_amount ELSE 0 END), 0) as expense_total
+      FROM crm_contracts
+      WHERE status = 'active'
+    `,
+    )
+
+    // 5. 갱신 예정 계약 (30일 이내 종료)
+    const renewalResult = await query<{
+      renewal_count: string
+    }>(
+      `
+      SELECT COUNT(*) as renewal_count
+      FROM crm_contracts
+      WHERE status = 'active' 
+        AND end_date IS NOT NULL
+        AND end_date BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL '30 days'
+    `,
+    )
+
+    const customerStats = customerStatsResult.rows[0]
+    const newCustomers = newCustomersResult.rows[0]
+    const opportunityStats = opportunityStatsResult.rows[0]
+    const contractStats = contractStatsResult.rows[0]
+    const renewal = renewalResult.rows[0]
+
+    const newThisMonth = parseInt(newCustomers.this_month)
+    const newLastMonth = parseInt(newCustomers.last_month)
+    const growth = newLastMonth > 0 ? ((newThisMonth - newLastMonth) / newLastMonth) * 100 : 0
+
+    const stats: CRMStats = {
+      totalCustomers: parseInt(customerStats.total_customers),
+      activeCustomers: parseInt(customerStats.active_customers),
+      inactiveCustomers: parseInt(customerStats.inactive_customers),
+      prospectCustomers: parseInt(customerStats.prospect_customers),
+      newCustomersThisMonth: newThisMonth,
+      newCustomersLastMonth: newLastMonth,
+      newCustomersGrowth: growth,
+      openOpportunities: parseInt(opportunityStats.open_opportunities),
+      totalOpportunityAmount: parseFloat(opportunityStats.total_amount),
+      expectedRevenueThisMonth: 0, // TODO: Calculate based on probability and expected close date
+      activeContracts: parseInt(contractStats.active_contracts),
+      totalRevenueContracts: parseFloat(contractStats.revenue_total),
+      totalExpenseContracts: parseFloat(contractStats.expense_total),
+      netContractValue:
+        parseFloat(contractStats.revenue_total) - parseFloat(contractStats.expense_total),
+      contractsToRenew: parseInt(renewal.renewal_count),
     }
 
-    const response: CRMApiResponse<CRMStats> = {
-      success: true,
-      data: crmStats,
-    }
-
-    return json(response)
-  } catch (error) {
-    logger.error('CRM 통계 조회 실패:', error)
-    const response: CRMApiResponse<null> = {
-      success: false,
-      error: error instanceof Error ? error.message : 'CRM 통계를 조회할 수 없습니다.',
-    }
-    return json(response, { status: 500 })
+    return json({ success: true, data: stats })
+  } catch (error: unknown) {
+    logger.error('Failed to fetch CRM stats:', error)
+    return json(
+      {
+        success: false,
+        error: error instanceof Error ? error.message : 'CRM 통계 조회에 실패했습니다.',
+      },
+      { status: 500 },
+    )
   }
 }

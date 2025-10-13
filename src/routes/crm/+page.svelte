@@ -2,10 +2,13 @@
   import { CrmDocumentType, DEFAULT_COMPANY_CODE } from '$lib/constants/crm'
   import { downloadCrmDocument, uploadCrmDocument } from '$lib/services/s3/s3-crm.service'
   import { pushToast } from '$lib/stores/toasts'
-  import type { CRMData } from '$lib/types/crm'
+  import type { CRMData, CRMContract, CRMStats } from '$lib/types/crm'
   import { logger } from '$lib/utils/logger'
 
   import CustomerFormModal from '$lib/components/crm/CustomerFormModal.svelte'
+  import CustomerTable from '$lib/components/crm/CustomerTable.svelte'
+  import ContractList from '$lib/components/crm/ContractList.svelte'
+  import CRMStatsCards from '$lib/components/crm/CRMStatsCards.svelte'
   import DocumentUploadWithOCR from '$lib/components/crm/DocumentUploadWithOCR.svelte'
   import OCRResultModal from '$lib/components/crm/OCRResultModal.svelte'
   import PageLayout from '$lib/components/layout/PageLayout.svelte'
@@ -53,6 +56,11 @@
     transactions: [],
   })
 
+  let contracts = $state<CRMContract[]>([])
+  let crmStats = $state<CRMStats | null>(null)
+  let loadingStats = $state(false)
+  let loadingContracts = $state(false)
+
   let selectedCustomer = $state<any>(null)
   let showCustomerModal = $state(false)
   let showCreateModal = $state(false)
@@ -63,9 +71,9 @@
   const tabs = [
     { id: 'overview', label: '개요', icon: BarChart3Icon },
     { id: 'customers', label: '고객', icon: UsersIcon },
+    { id: 'contracts', label: '계약', icon: FileTextIcon },
     { id: 'interactions', label: '상호작용', icon: MessageSquareIcon },
     { id: 'opportunities', label: '기회', icon: TargetIcon },
-    { id: 'reports', label: '보고서', icon: FileTextIcon },
   ]
 
   let activeTab = $state('overview')
@@ -208,6 +216,50 @@
         error instanceof Error ? error.message : '고객 생성 중 오류가 발생했습니다',
         'error',
       )
+    }
+  }
+
+  // 통계 로드
+  async function loadStats() {
+    try {
+      loadingStats = true
+      const response = await fetch('/api/crm/stats', {
+        credentials: 'include',
+      })
+
+      if (!response.ok) {
+        throw new Error('CRM 통계를 불러오는데 실패했습니다')
+      }
+
+      const data = await response.json()
+      crmStats = data.data
+    } catch (error) {
+      console.error('Failed to load CRM stats:', error)
+      pushToast('CRM 통계를 불러오는데 실패했습니다', 'error')
+    } finally {
+      loadingStats = false
+    }
+  }
+
+  // 계약 목록 로드
+  async function loadContracts() {
+    try {
+      loadingContracts = true
+      const response = await fetch('/api/crm/contracts', {
+        credentials: 'include',
+      })
+
+      if (!response.ok) {
+        throw new Error('계약 목록을 불러오는데 실패했습니다')
+      }
+
+      const data = await response.json()
+      contracts = data.data || []
+    } catch (error) {
+      console.error('Failed to load contracts:', error)
+      pushToast('계약 목록을 불러오는데 실패했습니다', 'error')
+    } finally {
+      loadingContracts = false
     }
   }
 
@@ -594,6 +646,8 @@
 
   onMount(() => {
     loadCustomers()
+    loadStats()
+    loadContracts()
   })
 </script>
 
@@ -610,101 +664,107 @@
       {#if tab.id === 'overview'}
         <!-- 개요 탭 -->
         <ThemeSpacer size={6}>
-          <!-- 메인 대시보드 -->
+          <!-- KPI 카드 -->
+          {#if crmStats}
+            <CRMStatsCards stats={crmStats} />
+          {:else if loadingStats}
+            <div class="text-center py-8">
+              <div
+                class="animate-spin rounded-full h-8 w-8 border-2 border-gray-300 border-t-blue-600 mx-auto"
+              ></div>
+              <p class="text-sm text-gray-500 mt-2">통계 로딩 중...</p>
+            </div>
+          {/if}
+
+          <!-- 계약 현황 및 빠른 통계 -->
           <ThemeGrid cols={1} lgCols={2} gap={6}>
-            <!-- 고객 분포 -->
+            <!-- 계약 현황 요약 -->
             <ThemeCard class="p-6">
-              <ThemeSectionHeader title="고객 분포" />
-              <ThemeChartPlaceholder title="고객 상태별 분포" icon={PieChartIcon} />
-            </ThemeCard>
-
-            <!-- 상호작용 현황 -->
-            <ThemeCard class="p-6">
-              <ThemeSectionHeader title="상호작용 현황" />
-              <ThemeChartPlaceholder title="월별 상호작용 추이" icon={BarChart3Icon} />
-            </ThemeCard>
-          </ThemeGrid>
-
-          <!-- 최근 상호작용 -->
-          <ThemeGrid cols={1} lgCols={2} gap={6}>
-            <!-- 최근 상호작용 -->
-            <ThemeCard class="p-6">
-              <ThemeSectionHeader title="최근 상호작용" />
-              <ThemeSpacer size={4}>
-                {#each crmData.interactions as interaction, i (i)}
-                  <div
-                    class="flex items-center justify-between p-3 rounded-lg"
-                    style:background="var(--color-surface-elevated)"
-                  >
-                    <div class="flex-1">
-                      <h4 class="font-medium" style:color="var(--color-text)">
-                        {interaction.subject}
-                      </h4>
-                      <p class="text-sm" style:color="var(--color-text-secondary)">
-                        {interaction.customerName}
-                      </p>
-                      <div class="flex items-center gap-2 mt-1">
-                        <ThemeBadge variant={getInteractionTypeColor(interaction.type)}>
-                          {getInteractionTypeLabel(interaction.type)}
-                        </ThemeBadge>
-                        <span class="text-sm" style:color="var(--color-text-secondary)">
-                          {interaction.user}
-                        </span>
-                      </div>
-                    </div>
-                    <div class="text-right">
-                      <p class="text-xs" style:color="var(--color-text-secondary)">
-                        {formatDate(interaction.date)}
-                      </p>
-                    </div>
+              <ThemeSectionHeader title="계약 현황 요약" />
+              <div class="space-y-4 mt-4">
+                <div
+                  class="flex items-center justify-between p-4 bg-green-50 dark:bg-green-900/20 rounded-lg"
+                >
+                  <div>
+                    <p class="text-sm font-medium text-gray-700 dark:text-gray-300">수령 계약</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                      {contracts.filter(
+                        (c) => c.contractType === 'revenue' && c.status === 'active',
+                      ).length}건 진행중
+                    </p>
                   </div>
-                {/each}
-              </ThemeSpacer>
+                  <p class="text-2xl font-bold text-green-600 dark:text-green-400">
+                    {formatCurrency(crmStats?.totalRevenueContracts || 0)}
+                  </p>
+                </div>
+
+                <div
+                  class="flex items-center justify-between p-4 bg-red-50 dark:bg-red-900/20 rounded-lg"
+                >
+                  <div>
+                    <p class="text-sm font-medium text-gray-700 dark:text-gray-300">지급 예정</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                      {contracts.filter(
+                        (c) => c.contractType === 'expense' && c.status === 'active',
+                      ).length}건 진행중
+                    </p>
+                  </div>
+                  <p class="text-2xl font-bold text-red-600 dark:text-red-400">
+                    {formatCurrency(crmStats?.totalExpenseContracts || 0)}
+                  </p>
+                </div>
+
+                <div
+                  class="flex items-center justify-between p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border-2 border-blue-200 dark:border-blue-700"
+                >
+                  <div>
+                    <p class="text-sm font-medium text-gray-700 dark:text-gray-300">순 계약 가치</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">수령 - 지급</p>
+                  </div>
+                  <p class="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                    {formatCurrency(crmStats?.netContractValue || 0)}
+                  </p>
+                </div>
+              </div>
             </ThemeCard>
 
-            <!-- 진행중인 기회 -->
+            <!-- 빠른 통계 -->
             <ThemeCard class="p-6">
-              <ThemeSectionHeader title="진행중인 기회" />
-              <ThemeSpacer size={4}>
-                {#each crmData.opportunities as opportunity, i (i)}
-                  <div
-                    class="flex items-center justify-between p-3 rounded-lg"
-                    style:background="var(--color-surface-elevated)"
-                  >
-                    <div class="flex-1">
-                      <h4 class="font-medium" style:color="var(--color-text)">
-                        {opportunity.title}
-                      </h4>
-                      <p class="text-sm" style:color="var(--color-text-secondary)">
-                        {opportunity.customerName}
-                      </p>
-                      <div class="flex items-center gap-2 mt-1">
-                        <ThemeBadge variant={getStageColor(opportunity.stage)}>
-                          {getStageLabel(opportunity.stage)}
-                        </ThemeBadge>
-                        <span class="text-sm font-medium" style:color="var(--color-primary)">
-                          {formatCurrency(opportunity.value)} ({opportunity.probability}%)
-                        </span>
-                      </div>
-                    </div>
-                    <div class="text-right">
-                      <p class="text-xs" style:color="var(--color-text-secondary)">
-                        예상 마감: {formatDate(
-                          opportunity.expectedClose || opportunity.expected_close_date,
-                        )}
-                      </p>
-                      <p class="text-xs" style:color="var(--color-text-secondary)">
-                        담당: {opportunity.owner}
-                      </p>
-                    </div>
-                  </div>
-                {/each}
-              </ThemeSpacer>
+              <ThemeSectionHeader title="빠른 통계" />
+              <div class="grid grid-cols-2 gap-4 mt-4">
+                <div class="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                  <p class="text-xs font-medium text-gray-600 dark:text-gray-400">완료된 계약</p>
+                  <p class="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-1">
+                    {contracts.filter((c) => c.status === 'completed').length}
+                  </p>
+                </div>
+
+                <div class="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                  <p class="text-xs font-medium text-gray-600 dark:text-gray-400">진행 중</p>
+                  <p class="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-1">
+                    {contracts.filter((c) => c.status === 'active').length}
+                  </p>
+                </div>
+
+                <div class="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                  <p class="text-xs font-medium text-gray-600 dark:text-gray-400">총 고객</p>
+                  <p class="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-1">
+                    {crmStats?.totalCustomers || 0}
+                  </p>
+                </div>
+
+                <div class="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                  <p class="text-xs font-medium text-gray-600 dark:text-gray-400">활성 고객</p>
+                  <p class="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-1">
+                    {crmStats?.activeCustomers || 0}
+                  </p>
+                </div>
+              </div>
             </ThemeCard>
           </ThemeGrid>
         </ThemeSpacer>
       {:else if tab.id === 'customers'}
-        <!-- 고객 탭 -->
+        <!-- 고객 탭 (테이블 뷰) -->
         <ThemeSpacer size={6}>
           <ThemeCard class="p-6">
             <div class="flex items-center justify-between mb-6">
@@ -726,6 +786,38 @@
               </div>
             </div>
 
+            <CustomerTable
+              customers={filteredCustomers}
+              onEdit={editCustomer}
+              onDelete={deleteCustomer}
+              onView={viewCustomer}
+            />
+          </ThemeCard>
+        </ThemeSpacer>
+      {:else if tab.id === 'contracts'}
+        <!-- 계약 탭 -->
+        <ThemeSpacer size={6}>
+          {#if loadingContracts}
+            <div class="text-center py-8">
+              <div
+                class="animate-spin rounded-full h-8 w-8 border-2 border-gray-300 border-t-blue-600 mx-auto"
+              ></div>
+              <p class="text-sm text-gray-500 mt-2">계약 로딩 중...</p>
+            </div>
+          {:else}
+            <div class="space-y-6">
+              <!-- 수령 계약 -->
+              <ContractList {contracts} contractType="revenue" title="📄 수령 계약" />
+
+              <!-- 지급 예정 계약 -->
+              <ContractList {contracts} contractType="expense" title="💸 지급 예정" />
+            </div>
+          {/if}
+        </ThemeSpacer>
+      {:else if tab.id === 'OLD_CUSTOMER_TAB'}
+        <!-- 이전 고객 카드 뷰 (삭제 예정) -->
+        <ThemeSpacer size={6}>
+          <ThemeCard class="p-6">
             <div class="space-y-4">
               {#each filteredCustomers as customer, i (keyOf(customer, i))}
                 <div
@@ -976,36 +1068,10 @@
         <ThemeSpacer size={6}>
           <ThemeCard class="p-6">
             <ThemeSectionHeader title="고객 상호작용" />
-            <ThemeSpacer size={4}>
-              {#each crmData.interactions as interaction, i (i)}
-                <div
-                  class="flex items-center justify-between p-3 rounded-lg"
-                  style:background="var(--color-surface-elevated)"
-                >
-                  <div class="flex-1">
-                    <h4 class="font-medium" style:color="var(--color-text)">
-                      {interaction.subject}
-                    </h4>
-                    <p class="text-sm" style:color="var(--color-text-secondary)">
-                      {interaction.customerName} • {interaction.user}
-                    </p>
-                    <div class="flex items-center gap-2 mt-1">
-                      <ThemeBadge variant={getInteractionTypeColor(interaction.type)}>
-                        {getInteractionTypeLabel(interaction.type)}
-                      </ThemeBadge>
-                      <span class="text-sm" style:color="var(--color-text-secondary)">
-                        {interaction.description}
-                      </span>
-                    </div>
-                  </div>
-                  <div class="text-right">
-                    <p class="text-xs" style:color="var(--color-text-secondary)">
-                      {formatDate(interaction.date)}
-                    </p>
-                  </div>
-                </div>
-              {/each}
-            </ThemeSpacer>
+            <div class="text-center py-12 text-gray-500 dark:text-gray-400">
+              <MessageSquareIcon class="w-12 h-12 mx-auto mb-3 opacity-50" />
+              <p>상호작용 관리 기능 개발 예정</p>
+            </div>
           </ThemeCard>
         </ThemeSpacer>
       {:else if tab.id === 'opportunities'}
@@ -1013,61 +1079,10 @@
         <ThemeSpacer size={6}>
           <ThemeCard class="p-6">
             <ThemeSectionHeader title="영업 기회" />
-            <ThemeSpacer size={4}>
-              {#each crmData.opportunities as opportunity, i (i)}
-                <div
-                  class="flex items-center justify-between p-3 rounded-lg"
-                  style:background="var(--color-surface-elevated)"
-                >
-                  <div class="flex-1">
-                    <h4 class="font-medium" style:color="var(--color-text)">
-                      {opportunity.title}
-                    </h4>
-                    <p class="text-sm" style:color="var(--color-text-secondary)">
-                      {opportunity.customerName} • {opportunity.owner}
-                    </p>
-                    <div class="flex items-center gap-2 mt-1">
-                      <ThemeBadge variant={getStageColor(opportunity.stage)}>
-                        {getStageLabel(opportunity.stage)}
-                      </ThemeBadge>
-                      <span class="text-sm font-medium" style:color="var(--color-primary)">
-                        {formatCurrency(opportunity.value)} ({opportunity.probability}%)
-                      </span>
-                    </div>
-                  </div>
-                  <div class="text-right">
-                    <p class="text-xs" style:color="var(--color-text-secondary)">
-                      예상 마감: {formatDate(
-                        opportunity.expectedClose || opportunity.expected_close_date,
-                      )}
-                    </p>
-                  </div>
-                </div>
-              {/each}
-            </ThemeSpacer>
-          </ThemeCard>
-        </ThemeSpacer>
-      {:else if tab.id === 'reports'}
-        <!-- 보고서 탭 -->
-        <ThemeSpacer size={6}>
-          <ThemeCard class="p-6">
-            <ThemeSectionHeader title="CRM 보고서" />
-            <ThemeGrid cols={1} mdCols={2} gap={4}>
-              <ThemeButton variant="secondary" class="flex items-center gap-2 p-4 h-auto">
-                <FileTextIcon size={20} />
-                <div class="text-left">
-                  <div class="font-medium">고객 분석 보고서</div>
-                  <div class="text-sm opacity-70">고객별 상세 분석</div>
-                </div>
-              </ThemeButton>
-              <ThemeButton variant="secondary" class="flex items-center gap-2 p-4 h-auto">
-                <BarChart3Icon size={20} />
-                <div class="text-left">
-                  <div class="font-medium">상호작용 분석</div>
-                  <div class="text-sm opacity-70">고객 상호작용 패턴 분석</div>
-                </div>
-              </ThemeButton>
-            </ThemeGrid>
+            <div class="text-center py-12 text-gray-500 dark:text-gray-400">
+              <TargetIcon class="w-12 h-12 mx-auto mb-3 opacity-50" />
+              <p>영업 기회 관리 기능 개발 예정</p>
+            </div>
           </ThemeCard>
         </ThemeSpacer>
       {/if}

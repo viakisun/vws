@@ -1,171 +1,150 @@
-import { UserService } from '$lib/auth/user-service'
-import type { CRMApiResponse, CRMOpportunity } from '$lib/crm/types'
 import { query } from '$lib/database/connection'
 import { logger } from '$lib/utils/logger'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
 
-// 영업 기회 목록 조회
-export const GET: RequestHandler = async ({ url, cookies }) => {
-  // 인증 확인
-  const token = cookies.get('auth_token')
-  if (!token) {
-    return json({ error: '인증이 필요합니다' }, { status: 401 })
-  }
-
-  const userService = UserService.getInstance()
-  const payload = userService.verifyToken(token)
-  const user = await userService.getUserById(payload.userId)
-  if (!user) {
-    return json({ error: '유효하지 않은 토큰입니다' }, { status: 401 })
-  }
-
+export const GET: RequestHandler = async ({ url }) => {
   try {
-    const stage = url.searchParams.get('stage') || 'all'
-    const status = url.searchParams.get('status') || 'all'
-    const type = url.searchParams.get('type') || 'all'
-    const search = url.searchParams.get('search') || ''
+    const customerId = url.searchParams.get('customerId')
+    const stage = url.searchParams.get('stage')
+    const status = url.searchParams.get('status')
 
-    const whereConditions: string[] = []
-    const params: (string | number)[] = []
+    let whereConditions = ['1=1']
+    const params: any[] = []
     let paramIndex = 1
 
-    if (stage !== 'all') {
-      whereConditions.push(`stage = $${paramIndex}`)
+    if (customerId) {
+      whereConditions.push(`o.customer_id = $${paramIndex}`)
+      params.push(customerId)
+      paramIndex++
+    }
+
+    if (stage) {
+      whereConditions.push(`o.stage = $${paramIndex}`)
       params.push(stage)
       paramIndex++
     }
 
-    if (status !== 'all') {
-      whereConditions.push(`status = $${paramIndex}`)
+    if (status) {
+      whereConditions.push(`o.status = $${paramIndex}`)
       params.push(status)
       paramIndex++
     }
 
-    if (type !== 'all') {
-      whereConditions.push(`type = $${paramIndex}`)
-      params.push(type)
-      paramIndex++
-    }
-
-    if (search) {
-      whereConditions.push(`(title ILIKE $${paramIndex} OR description ILIKE $${paramIndex})`)
-      params.push(`%${search}%`)
-      paramIndex++
-    }
-
-    const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : ''
+    const whereClause = whereConditions.join(' AND ')
 
     const result = await query(
       `
       SELECT 
-        o.id, o.title, o.customer_id, o.type, o.stage, o.value, o.probability,
-        o.expected_close_date::text as expected_close_date, o.owner_id, o.description, o.status,
-        o.created_at::text as created_at, o.updated_at::text as updated_at,
+        o.id,
+        o.customer_id,
+        o.title,
+        o.amount,
+        o.stage,
+        o.probability,
+        o.expected_close_date::text,
+        o.actual_close_date::text,
+        o.status,
+        o.assigned_to,
+        o.notes,
+        o.created_at::text,
+        o.updated_at::text,
         c.name as customer_name,
-        c.type as customer_type
+        COALESCE(CONCAT(e.last_name, e.first_name), '') as assigned_to_name
       FROM crm_opportunities o
       LEFT JOIN crm_customers c ON o.customer_id = c.id
-      ${whereClause}
-      ORDER BY o.created_at DESC
+      LEFT JOIN employees e ON o.assigned_to = e.id
+      WHERE ${whereClause}
+      ORDER BY o.expected_close_date ASC NULLS LAST, o.created_at DESC
       `,
       params,
     )
 
-    const response: CRMApiResponse<CRMOpportunity[]> = {
-      success: true,
-      data: result.rows as CRMOpportunity[],
-    }
+    const opportunities = result.rows.map((row) => ({
+      id: row.id,
+      customerId: row.customer_id,
+      customerName: row.customer_name,
+      title: row.title,
+      amount: parseFloat(row.amount),
+      stage: row.stage,
+      probability: row.probability,
+      expectedCloseDate: row.expected_close_date,
+      actualCloseDate: row.actual_close_date,
+      status: row.status,
+      assignedTo: row.assigned_to,
+      assignedToName: row.assigned_to_name,
+      notes: row.notes,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+    }))
 
-    return json(response)
-  } catch (error) {
-    logger.error('영업 기회 목록 조회 실패:', error)
-    const response: CRMApiResponse<null> = {
-      success: false,
-      error: error instanceof Error ? error.message : '영업 기회 목록을 조회할 수 없습니다.',
-    }
-    return json(response, { status: 500 })
+    return json({ success: true, data: opportunities })
+  } catch (error: unknown) {
+    logger.error('Failed to fetch opportunities:', error)
+    return json(
+      {
+        success: false,
+        error: error instanceof Error ? error.message : '영업 기회 목록 조회에 실패했습니다.',
+      },
+      { status: 500 },
+    )
   }
 }
 
-// 새 영업 기회 생성
-export const POST: RequestHandler = async ({ request, cookies }) => {
-  // 인증 확인
-  const token = cookies.get('auth_token')
-  if (!token) {
-    return json({ error: '인증이 필요합니다' }, { status: 401 })
-  }
-
-  const userService = UserService.getInstance()
-  const payload = userService.verifyToken(token)
-  const user = await userService.getUserById(payload.userId)
-  if (!user) {
-    return json({ error: '유효하지 않은 토큰입니다' }, { status: 401 })
-  }
-
+export const POST: RequestHandler = async ({ request }) => {
   try {
-    const data = await request.json()
-
-    // 필수 필드 검증
-    if (!data.title || !data.customer_id || !data.type) {
-      const response: CRMApiResponse<null> = {
-        success: false,
-        error: '제목, 고객, 타입은 필수입니다.',
-      }
-      return json(response, { status: 400 })
-    }
-
-    // 고객 존재 확인
-    const customerCheck = await query('SELECT id FROM crm_customers WHERE id = $1', [
-      data.customer_id,
-    ])
-
-    if (customerCheck.rows.length === 0) {
-      const response: CRMApiResponse<null> = {
-        success: false,
-        error: '존재하지 않는 고객입니다.',
-      }
-      return json(response, { status: 400 })
-    }
+    const body = await request.json()
 
     const result = await query(
       `
       INSERT INTO crm_opportunities (
-        title, customer_id, type, stage, value, probability, 
-        expected_close_date, owner_id, description, status
+        customer_id,
+        title,
+        amount,
+        stage,
+        probability,
+        expected_close_date,
+        status,
+        assigned_to,
+        notes
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-      RETURNING id, title, customer_id, type, stage, value, probability,
-                expected_close_date::text as expected_close_date, owner_id, description, status,
-                created_at::text as created_at, updated_at::text as updated_at
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+      RETURNING 
+        id,
+        customer_id,
+        title,
+        amount,
+        stage,
+        probability,
+        expected_close_date::text,
+        status,
+        assigned_to,
+        notes,
+        created_at::text,
+        updated_at::text
       `,
       [
-        data.title,
-        data.customer_id,
-        data.type,
-        data.stage || 'prospecting',
-        data.value || 0,
-        data.probability || 50,
-        data.expected_close_date || null,
-        data.owner_id || null,
-        data.description || null,
-        data.status || 'active',
+        body.customerId,
+        body.title,
+        body.amount || 0,
+        body.stage || 'prospecting',
+        body.probability || 50,
+        body.expectedCloseDate || null,
+        body.status || 'open',
+        body.assignedTo || null,
+        body.notes || '',
       ],
     )
 
-    const response: CRMApiResponse<CRMOpportunity> = {
-      success: true,
-      data: result.rows[0] as CRMOpportunity,
-      message: '영업 기회가 성공적으로 생성되었습니다.',
-    }
-
-    return json(response)
-  } catch (error) {
-    logger.error('영업 기회 생성 실패:', error)
-    const response: CRMApiResponse<null> = {
-      success: false,
-      error: error instanceof Error ? error.message : '영업 기회 생성에 실패했습니다.',
-    }
-    return json(response, { status: 500 })
+    return json({ success: true, data: result.rows[0] })
+  } catch (error: unknown) {
+    logger.error('Failed to create opportunity:', error)
+    return json(
+      {
+        success: false,
+        error: error instanceof Error ? error.message : '영업 기회 생성에 실패했습니다.',
+      },
+      { status: 500 },
+    )
   }
 }
