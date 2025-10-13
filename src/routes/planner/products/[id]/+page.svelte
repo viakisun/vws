@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { page } from '$app/stores'
+  import { page } from '$app/state'
   import SectionActionButton from '$lib/components/ui/SectionActionButton.svelte'
   import SectionHeader from '$lib/components/ui/SectionHeader.svelte'
   import InitiativeCard from '$lib/planner/components/InitiativeCard.svelte'
@@ -36,7 +36,7 @@
       loading = true
       error = null
 
-      const id = $page.params.id
+      const id = page.params.id
 
       // Load product
       const productRes = await fetch(`/api/planner/products/${id}`)
@@ -62,7 +62,7 @@
   }
 
   async function loadMilestones() {
-    const id = $page.params.id
+    const id = page.params.id
     const milestonesRes = await fetch(`/api/planner/milestones?product_id=${id}`)
     if (milestonesRes.ok) {
       const milestonesData = await milestonesRes.json()
