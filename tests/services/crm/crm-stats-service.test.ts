@@ -1,7 +1,4 @@
-import {
-    loadCRMStats,
-    loadCustomerStats,
-} from '$lib/crm/services/crm-stats-service'
+import { loadCRMStats, loadCustomerStats } from '$lib/crm/services/crm-stats-service'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { mockLogger } from '../../helpers/mock-helper'
 
@@ -24,10 +21,11 @@ describe('CRM Stats Service', () => {
       }
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: true,
-          data: mockStats,
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: mockStats,
+          }),
       } as Response)
 
       const result = await loadCRMStats()
@@ -48,10 +46,11 @@ describe('CRM Stats Service', () => {
 
     it('API 응답 오류 시 에러를 반환해야 함', async () => {
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: false,
-          error: 'Database connection failed',
-        }),
+        json: () =>
+          Promise.resolve({
+            success: false,
+            error: 'Database connection failed',
+          }),
       } as Response)
 
       const result = await loadCRMStats()
@@ -69,10 +68,11 @@ describe('CRM Stats Service', () => {
       }
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: true,
-          data: mockEmptyStats,
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: mockEmptyStats,
+          }),
       } as Response)
 
       const result = await loadCRMStats()
@@ -94,10 +94,11 @@ describe('CRM Stats Service', () => {
       }
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: true,
-          data: mockLargeStats,
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: mockLargeStats,
+          }),
       } as Response)
 
       const result = await loadCRMStats()
@@ -144,10 +145,11 @@ describe('CRM Stats Service', () => {
       }
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: true,
-          data: mockCustomerStats,
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: mockCustomerStats,
+          }),
       } as Response)
 
       const result = await loadCustomerStats(customerId)
@@ -161,10 +163,11 @@ describe('CRM Stats Service', () => {
       const nonExistentCustomerId = 'non-existent-customer'
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: false,
-          error: 'Customer not found',
-        }),
+        json: () =>
+          Promise.resolve({
+            success: false,
+            error: 'Customer not found',
+          }),
       } as Response)
 
       const result = await loadCustomerStats(nonExistentCustomerId)
@@ -196,10 +199,11 @@ describe('CRM Stats Service', () => {
       }
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: true,
-          data: mockEmptyCustomerStats,
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: mockEmptyCustomerStats,
+          }),
       } as Response)
 
       const result = await loadCustomerStats(customerId)
@@ -225,10 +229,11 @@ describe('CRM Stats Service', () => {
       }
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: true,
-          data: mockLargeCustomerStats,
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: mockLargeCustomerStats,
+          }),
       } as Response)
 
       const result = await loadCustomerStats(customerId)
@@ -246,10 +251,11 @@ describe('CRM Stats Service', () => {
       const invalidCustomerId = ''
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: false,
-          error: 'Invalid customer ID',
-        }),
+        json: () =>
+          Promise.resolve({
+            success: false,
+            error: 'Invalid customer ID',
+          }),
       } as Response)
 
       const result = await loadCustomerStats(invalidCustomerId)
@@ -306,16 +312,18 @@ describe('CRM Stats Service', () => {
 
       vi.mocked(fetch)
         .mockResolvedValueOnce({
-          json: () => Promise.resolve({
-            success: true,
-            data: mockCRMStats,
-          }),
+          json: () =>
+            Promise.resolve({
+              success: true,
+              data: mockCRMStats,
+            }),
         } as Response)
         .mockResolvedValueOnce({
-          json: () => Promise.resolve({
-            success: true,
-            data: mockCustomerStats,
-          }),
+          json: () =>
+            Promise.resolve({
+              success: true,
+              data: mockCustomerStats,
+            }),
         } as Response)
 
       // 전체 CRM 통계 로드
@@ -363,10 +371,11 @@ describe('CRM Stats Service', () => {
 
       for (let i = 0; i < customerIds.length; i++) {
         vi.mocked(fetch).mockResolvedValueOnce({
-          json: () => Promise.resolve({
-            success: true,
-            data: mockCustomerStats[i],
-          }),
+          json: () =>
+            Promise.resolve({
+              success: true,
+              data: mockCustomerStats[i],
+            }),
         } as Response)
       }
 
@@ -444,19 +453,21 @@ describe('CRM Stats Service', () => {
 
       // 전체 CRM 통계 로드
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: true,
-          data: mockCRMStats,
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: mockCRMStats,
+          }),
       } as Response)
 
       // 각 고객별 통계 로드
       for (let i = 0; i < customerIds.length; i++) {
         vi.mocked(fetch).mockResolvedValueOnce({
-          json: () => Promise.resolve({
-            success: true,
-            data: mockCustomerStats[i],
-          }),
+          json: () =>
+            Promise.resolve({
+              success: true,
+              data: mockCustomerStats[i],
+            }),
         } as Response)
       }
 
@@ -476,15 +487,15 @@ describe('CRM Stats Service', () => {
       // 각 고객별 통계 합계 확인
       const totalContracts = customerStatsResults.reduce(
         (sum, result) => sum + (result.data?.totalContracts || 0),
-        0
+        0,
       )
       const totalActiveContracts = customerStatsResults.reduce(
         (sum, result) => sum + (result.data?.activeContracts || 0),
-        0
+        0,
       )
       const totalRevenue = customerStatsResults.reduce(
         (sum, result) => sum + (result.data?.totalRevenue || 0),
-        0
+        0,
       )
 
       expect(totalContracts).toBe(12) // 3+2+4+1+2

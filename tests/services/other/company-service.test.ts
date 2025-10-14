@@ -224,7 +224,12 @@ describe('CompanyService', () => {
       expect(result).toBeNull()
       expect(mockQuery).toHaveBeenCalledWith(
         expect.stringContaining('UPDATE'),
-        expect.arrayContaining([updateData.name, updateData.code, updateData.status, 'non-existent']),
+        expect.arrayContaining([
+          updateData.name,
+          updateData.code,
+          updateData.status,
+          'non-existent',
+        ]),
       )
     })
 

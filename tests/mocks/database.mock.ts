@@ -374,7 +374,10 @@ export const setupComplexQueryMocks = {
   // 집계 쿼리 (COUNT, SUM, AVG 등)
   aggregateQuery: (tableName: string, aggregateResult: any) => {
     mockQuery.mockImplementation((sql: string) => {
-      if (sql.includes(tableName) && (sql.includes('COUNT') || sql.includes('SUM') || sql.includes('AVG'))) {
+      if (
+        sql.includes(tableName) &&
+        (sql.includes('COUNT') || sql.includes('SUM') || sql.includes('AVG'))
+      ) {
         return Promise.resolve({
           rows: [aggregateResult],
           rowCount: 1,
@@ -446,7 +449,7 @@ export const resetDatabaseMocks = () => {
   mockConnection.connect.mockClear()
   mockConnection.disconnect.mockClear()
   mockConnection.isConnected.mockClear()
-  
+
   // 기본값으로 리셋
   setupDatabaseMock()
 }

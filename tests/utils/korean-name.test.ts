@@ -1,11 +1,11 @@
 import {
-    formatKoreanName,
-    formatKoreanNameStandard,
-    formatKoreanNameWithSpace,
-    isKoreanName,
-    processKoreanName,
-    sortKoreanNames,
-    splitKoreanName,
+  formatKoreanName,
+  formatKoreanNameStandard,
+  formatKoreanNameWithSpace,
+  isKoreanName,
+  processKoreanName,
+  sortKoreanNames,
+  splitKoreanName,
 } from '$lib/utils/korean-name'
 import { describe, expect, it } from 'vitest'
 
@@ -128,7 +128,10 @@ describe('Korean Name Utils', () => {
 
     it('영문 이름을 올바르게 분리해야 함', () => {
       expect(splitKoreanName('John Doe')).toEqual({ surname: 'John', givenName: 'Doe' })
-      expect(splitKoreanName('Jane Smith Wilson')).toEqual({ surname: 'Jane', givenName: 'Smith Wilson' })
+      expect(splitKoreanName('Jane Smith Wilson')).toEqual({
+        surname: 'Jane',
+        givenName: 'Smith Wilson',
+      })
     })
 
     it('빈 문자열이나 잘못된 입력을 올바르게 처리해야 함', () => {
@@ -210,16 +213,16 @@ describe('Korean Name Utils', () => {
   describe('sortKoreanNames', () => {
     it('한국 이름을 성 순으로 정렬해야 함', () => {
       expect(sortKoreanNames('김철수', '홍길동')).toBe(-1) // 김 < 홍
-      expect(sortKoreanNames('홍길동', '김철수')).toBe(1)  // 홍 > 김
-      expect(sortKoreanNames('이영희', '박민수')).toBe(1)  // 이 > 박 (실제 localeCompare 결과)
+      expect(sortKoreanNames('홍길동', '김철수')).toBe(1) // 홍 > 김
+      expect(sortKoreanNames('이영희', '박민수')).toBe(1) // 이 > 박 (실제 localeCompare 결과)
       expect(sortKoreanNames('박민수', '이영희')).toBe(-1) // 박 < 이 (실제 localeCompare 결과)
     })
 
     it('같은 성의 경우 이름으로 정렬해야 함', () => {
-      expect(sortKoreanNames('김철수', '김영희')).toBe(1)  // 철수 > 영희 (실제 localeCompare 결과)
+      expect(sortKoreanNames('김철수', '김영희')).toBe(1) // 철수 > 영희 (실제 localeCompare 결과)
       expect(sortKoreanNames('김영희', '김철수')).toBe(-1) // 영희 < 철수 (실제 localeCompare 결과)
       expect(sortKoreanNames('홍길동', '홍순이')).toBe(-1) // 길동 < 순이
-      expect(sortKoreanNames('홍순이', '홍길동')).toBe(1)  // 순이 > 길동
+      expect(sortKoreanNames('홍순이', '홍길동')).toBe(1) // 순이 > 길동
     })
 
     it('같은 이름은 0을 반환해야 함', () => {
@@ -228,7 +231,7 @@ describe('Korean Name Utils', () => {
     })
 
     it('영문 이름도 올바르게 정렬해야 함', () => {
-      expect(sortKoreanNames('John Doe', 'Jane Smith')).toBe(1)  // John > Jane (실제 localeCompare 결과)
+      expect(sortKoreanNames('John Doe', 'Jane Smith')).toBe(1) // John > Jane (실제 localeCompare 결과)
       expect(sortKoreanNames('Jane Smith', 'John Doe')).toBe(-1) // Jane < John (실제 localeCompare 결과)
     })
 
@@ -258,7 +261,7 @@ describe('Korean Name Utils', () => {
       // 3글자 이상의 이름
       expect(splitKoreanName('홍길동이')).toEqual({ surname: '홍', givenName: '길동이' })
       expect(formatKoreanNameStandard('길동이 홍')).toBe('홍길동이')
-      
+
       // 특수한 성씨 (실제 구현에서는 첫 글자를 성으로 처리)
       expect(splitKoreanName('독고탁')).toEqual({ surname: '독', givenName: '고탁' })
       expect(formatKoreanNameStandard('탁 독고')).toBe('탁독고')
@@ -279,7 +282,10 @@ describe('Korean Name Utils', () => {
 
     it('매우 긴 이름을 올바르게 처리해야 함', () => {
       const longName = '홍길동이삼사오육칠팔구십'
-      expect(splitKoreanName(longName)).toEqual({ surname: '홍', givenName: '길동이삼사오육칠팔구십' })
+      expect(splitKoreanName(longName)).toEqual({
+        surname: '홍',
+        givenName: '길동이삼사오육칠팔구십',
+      })
       expect(formatKoreanNameStandard(longName)).toBe(longName)
     })
 
@@ -293,35 +299,42 @@ describe('Korean Name Utils', () => {
   describe('Integration tests', () => {
     it('전체 워크플로우가 올바르게 작동해야 함', () => {
       const input = '지은 차'
-      
+
       // 1. 한국 이름 감지
       expect(isKoreanName(input)).toBe(true)
-      
+
       // 2. 표준 형식으로 변환
       const standard = formatKoreanNameStandard(input)
       expect(standard).toBe('차지은')
-      
+
       // 3. 성과 이름 분리
       const { surname, givenName } = splitKoreanName(standard)
       expect(surname).toBe('차')
       expect(givenName).toBe('지은')
-      
+
       // 4. 다시 성+이름 형식으로 변환
       const withSpace = formatKoreanNameWithSpace(standard)
       expect(withSpace).toBe('차 지은')
-      
+
       // 5. 정렬 테스트
       expect(sortKoreanNames(input, '김철수')).toBe(1) // 차 > 김 (실제 localeCompare 결과)
     })
 
     it('다양한 입력 형식에 대해 일관된 결과를 제공해야 함', () => {
-      const variations = ['차지은', '차 지은', '지은 차', '  차지은  ', '  차 지은  ', '  지은 차  ']
-      
-      variations.forEach(variation => {
+      const variations = [
+        '차지은',
+        '차 지은',
+        '지은 차',
+        '  차지은  ',
+        '  차 지은  ',
+        '  지은 차  ',
+      ]
+
+      variations.forEach((variation) => {
         const standard = formatKoreanNameStandard(variation)
         const { surname, givenName } = splitKoreanName(standard)
         const withSpace = formatKoreanNameWithSpace(standard)
-        
+
         expect(standard).toBe('차지은')
         expect(surname).toBe('차')
         expect(givenName).toBe('지은')

@@ -1,10 +1,10 @@
 import {
-    CUSTOMER_COLUMNS,
-    INSERT_UPDATE_COLUMNS,
-    SELECT_QUERY,
-    buildInsertQuery,
-    buildUpdateQuery,
-    mapCustomerData,
+  CUSTOMER_COLUMNS,
+  INSERT_UPDATE_COLUMNS,
+  SELECT_QUERY,
+  buildInsertQuery,
+  buildUpdateQuery,
+  mapCustomerData,
 } from '$lib/crm/services/crm-customer-queries'
 import { describe, expect, it } from 'vitest'
 
@@ -104,7 +104,7 @@ describe('CRM Customer Queries', () => {
     })
 
     it('모든 컬럼이 포함되어야 함', () => {
-      CUSTOMER_COLUMNS.forEach(column => {
+      CUSTOMER_COLUMNS.forEach((column) => {
         expect(SELECT_QUERY).toContain(column)
       })
     })
@@ -132,7 +132,7 @@ describe('CRM Customer Queries', () => {
     it('모든 INSERT_UPDATE_COLUMNS가 포함되어야 함', () => {
       const query = buildInsertQuery()
 
-      INSERT_UPDATE_COLUMNS.forEach(column => {
+      INSERT_UPDATE_COLUMNS.forEach((column) => {
         expect(query).toContain(column)
       })
     })
@@ -140,7 +140,7 @@ describe('CRM Customer Queries', () => {
     it('RETURNING 절에 모든 CUSTOMER_COLUMNS가 포함되어야 함', () => {
       const query = buildInsertQuery()
 
-      CUSTOMER_COLUMNS.forEach(column => {
+      CUSTOMER_COLUMNS.forEach((column) => {
         expect(query).toContain(column)
       })
     })
@@ -159,19 +159,19 @@ describe('CRM Customer Queries', () => {
     it('올바른 플레이스홀더를 생성해야 함', () => {
       const query = buildUpdateQuery()
 
-      // 27개 컬럼에 대해 $1부터 $27까지의 플레이스홀더가 있어야 함
-      for (let i = 1; i <= 27; i++) {
+      // 26개 컬럼에 대해 $1부터 $26까지의 플레이스홀더가 있어야 함
+      for (let i = 1; i <= 26; i++) {
         expect(query).toContain(`$${i}`)
       }
-      // WHERE 절에서 $28 (ID 파라미터)
-      expect(query).toContain('$28')
+      // WHERE 절에서 $27 (ID 파라미터)
+      expect(query).toContain('$27')
     })
 
     it('모든 컬럼이 SET 절에 포함되어야 함', () => {
       const query = buildUpdateQuery()
 
-      INSERT_UPDATE_COLUMNS.forEach(column => {
-        expect(query).toContain(`${column} = $`)
+      INSERT_UPDATE_COLUMNS.forEach((column, index) => {
+        expect(query).toContain(`${column} = $${index + 1}`)
       })
     })
 
@@ -183,7 +183,7 @@ describe('CRM Customer Queries', () => {
     it('RETURNING 절에 모든 CUSTOMER_COLUMNS가 포함되어야 함', () => {
       const query = buildUpdateQuery()
 
-      CUSTOMER_COLUMNS.forEach(column => {
+      CUSTOMER_COLUMNS.forEach((column) => {
         expect(query).toContain(column)
       })
     })
@@ -207,7 +207,7 @@ describe('CRM Customer Queries', () => {
 
       const result = mapCustomerData(data)
 
-      expect(result).toHaveLength(27)
+      expect(result).toHaveLength(26)
       expect(result[0]).toBe('테스트 고객사') // name
       expect(result[1]).toBe('customer') // type
       expect(result[2]).toBe('123-45-67890') // business_number
@@ -288,7 +288,7 @@ describe('CRM Customer Queries', () => {
 
       const result = mapCustomerData(data)
 
-      expect(result).toHaveLength(27)
+      expect(result).toHaveLength(26)
       expect(result[0]).toBe(undefined) // name
       expect(result[1]).toBe('customer') // type 기본값
       expect(result[2]).toBe(undefined) // business_number
@@ -390,7 +390,7 @@ describe('CRM Customer Queries', () => {
       expect(result[8]).toBe('제조업') // industry
       expect(result[9]).toBe(60) // payment_terms
       expect(result[10]).toBe('inactive') // status
-      expect(result[11]).toBe('복합 테스트 고객사입니다.') // notes
+      expect(result[11]).toBe('복합 테스트 고객입니다.') // notes
       expect(result[12]).toBe('https://example.com/complex-business.pdf') // business_registration_file_url
       expect(result[13]).toBe('https://example.com/complex-bank.pdf') // bank_account_file_url
       expect(result[14]).toBe('s3://bucket/complex-business-456.pdf') // business_registration_s3_key
@@ -442,15 +442,13 @@ describe('CRM Customer Queries', () => {
     it('모든 컬럼이 일관성 있게 처리되어야 함', () => {
       // CUSTOMER_COLUMNS에서 id와 created_at, updated_at을 제외한 컬럼들이
       // INSERT_UPDATE_COLUMNS에 모두 포함되어야 함
-      const selectColumns = CUSTOMER_COLUMNS.filter(col => 
-        !col.includes('id') && 
-        !col.includes('created_at') && 
-        !col.includes('updated_at')
-      ).map(col => col.split(' as ')[0]) // 'column::text as column' 형태 처리
+      const selectColumns = CUSTOMER_COLUMNS.filter(
+        (col) => !col.includes('id') && !col.includes('created_at') && !col.includes('updated_at'),
+      ).map((col) => col.split(' as ')[0]) // 'column::text as column' 형태 처리
 
       const insertUpdateColumns = INSERT_UPDATE_COLUMNS
 
-      selectColumns.forEach(selectCol => {
+      selectColumns.forEach((selectCol) => {
         expect(insertUpdateColumns).toContain(selectCol)
       })
     })

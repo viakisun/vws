@@ -218,32 +218,35 @@ describe('budget.service', () => {
       const result = await budgetService.updateBudget(updateData)
 
       expect(result).toEqual(mockUpdatedBudget)
-      expect(mockFetch).toHaveBeenCalledWith(`/api/research-development/project-budgets/${budgetId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          projectId: 'project-1',
-          year: 2024,
-          personnelCostCash: 6000000,
-          researchMaterialCostCash: 2000000,
-          personnelCostInKind: 2000000,
-          researchMaterialCostInKind: 500000,
-          researchActivityCostCash: 800000,
-          researchActivityCostInKind: 200000,
-          researchStipendCash: 0,
-          researchStipendInKind: 0,
-          indirectCostCash: 0,
-          indirectCostInKind: 0,
-          periodNumber: 1,
-          startDate: '2024-01-01',
-          endDate: '2024-12-31',
-        }),
-      })
+      expect(mockFetch).toHaveBeenCalledWith(
+        `/api/research-development/project-budgets/${budgetId}`,
+        {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            projectId: 'project-1',
+            year: 2024,
+            personnelCostCash: 6000000,
+            researchMaterialCostCash: 2000000,
+            personnelCostInKind: 2000000,
+            researchMaterialCostInKind: 500000,
+            researchActivityCostCash: 800000,
+            researchActivityCostInKind: 200000,
+            researchStipendCash: 0,
+            researchStipendInKind: 0,
+            indirectCostCash: 0,
+            indirectCostInKind: 0,
+            periodNumber: 1,
+            startDate: '2024-01-01',
+            endDate: '2024-12-31',
+          }),
+        },
+      )
     })
 
     it('should handle update errors', async () => {
       const budgetId = 'budget-1'
-      const updateData = { 
+      const updateData = {
         id: budgetId,
         projectId: 'project-1',
         year: 2024,
@@ -275,7 +278,7 @@ describe('budget.service', () => {
 
     it('should handle invalid budget amounts', async () => {
       const budgetId = 'budget-1'
-      const updateData = { 
+      const updateData = {
         id: budgetId,
         projectId: 'project-1',
         year: 2024,
@@ -317,9 +320,12 @@ describe('budget.service', () => {
 
       await budgetService.deleteBudget(budgetId)
 
-      expect(mockFetch).toHaveBeenCalledWith(`/api/research-development/project-budgets/${budgetId}`, {
-        method: 'DELETE',
-      })
+      expect(mockFetch).toHaveBeenCalledWith(
+        `/api/research-development/project-budgets/${budgetId}`,
+        {
+          method: 'DELETE',
+        },
+      )
     })
 
     it('should handle deletion errors', async () => {
@@ -440,9 +446,9 @@ describe('budget.service', () => {
     it('should handle timeout errors', async () => {
       mockFetch.mockRejectedValueOnce(new Error('Request timeout'))
 
-      await expect(budgetService.createBudget({ projectId: 'project-1', year: 2024 })).rejects.toThrow(
-        'Request timeout',
-      )
+      await expect(
+        budgetService.createBudget({ projectId: 'project-1', year: 2024 }),
+      ).rejects.toThrow('Request timeout')
     })
   })
 

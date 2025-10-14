@@ -1,7 +1,7 @@
 import {
-    createContract,
-    loadContracts,
-    type ContractFormData,
+  createContract,
+  loadContracts,
+  type ContractFormData,
 } from '$lib/crm/services/crm-contract-service'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { mockLogger } from '../../helpers/mock-helper'
@@ -45,10 +45,11 @@ describe('CRM Contract Service', () => {
       ]
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: true,
-          data: mockContracts,
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: mockContracts,
+          }),
       } as Response)
 
       const result = await loadContracts()
@@ -73,10 +74,11 @@ describe('CRM Contract Service', () => {
       ]
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: true,
-          data: mockContracts,
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: mockContracts,
+          }),
       } as Response)
 
       const result = await loadContracts({ status: 'active' })
@@ -101,10 +103,11 @@ describe('CRM Contract Service', () => {
       ]
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: true,
-          data: mockContracts,
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: mockContracts,
+          }),
       } as Response)
 
       const result = await loadContracts({ type: 'sales' })
@@ -129,10 +132,11 @@ describe('CRM Contract Service', () => {
       ]
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: true,
-          data: mockContracts,
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: mockContracts,
+          }),
       } as Response)
 
       const result = await loadContracts({ search: '테스트' })
@@ -157,10 +161,11 @@ describe('CRM Contract Service', () => {
       ]
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: true,
-          data: mockContracts,
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: mockContracts,
+          }),
       } as Response)
 
       const result = await loadContracts({
@@ -171,7 +176,9 @@ describe('CRM Contract Service', () => {
 
       expect(result.success).toBe(true)
       expect(result.data).toEqual(mockContracts)
-      expect(fetch).toHaveBeenCalledWith('/api/crm/contracts?status=active&type=sales&search=%ED%99%9C%EC%84%B1')
+      expect(fetch).toHaveBeenCalledWith(
+        '/api/crm/contracts?status=active&type=sales&search=%ED%99%9C%EC%84%B1',
+      )
     })
 
     it('API 오류 시 에러를 반환해야 함', async () => {
@@ -185,10 +192,11 @@ describe('CRM Contract Service', () => {
 
     it('API 응답 오류 시 에러를 반환해야 함', async () => {
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: false,
-          error: 'Database connection failed',
-        }),
+        json: () =>
+          Promise.resolve({
+            success: false,
+            error: 'Database connection failed',
+          }),
       } as Response)
 
       const result = await loadContracts()
@@ -222,10 +230,11 @@ describe('CRM Contract Service', () => {
       }
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: true,
-          data: mockCreatedContract,
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: mockCreatedContract,
+          }),
       } as Response)
 
       const result = await createContract(contractData)
@@ -266,10 +275,11 @@ describe('CRM Contract Service', () => {
       }
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: true,
-          data: mockCreatedContract,
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: mockCreatedContract,
+          }),
       } as Response)
 
       const result = await createContract(contractData)
@@ -301,10 +311,11 @@ describe('CRM Contract Service', () => {
       }
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: true,
-          data: mockCreatedContract,
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: mockCreatedContract,
+          }),
       } as Response)
 
       const result = await createContract(contractData)
@@ -336,10 +347,11 @@ describe('CRM Contract Service', () => {
       }
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: true,
-          data: mockCreatedContract,
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: mockCreatedContract,
+          }),
       } as Response)
 
       const result = await createContract(contractData)
@@ -372,10 +384,11 @@ describe('CRM Contract Service', () => {
       }
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: true,
-          data: mockCreatedContract,
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: mockCreatedContract,
+          }),
       } as Response)
 
       const result = await createContract(contractData)
@@ -393,10 +406,11 @@ describe('CRM Contract Service', () => {
       }
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: false,
-          error: 'Customer not found',
-        }),
+        json: () =>
+          Promise.resolve({
+            success: false,
+            error: 'Customer not found',
+          }),
       } as Response)
 
       const result = await createContract(contractData)
@@ -470,26 +484,29 @@ describe('CRM Contract Service', () => {
       }
 
       // 3. 활성 계약만 필터링
-      const mockActiveContracts = mockAllContracts.filter(c => c.status === 'active')
+      const mockActiveContracts = mockAllContracts.filter((c) => c.status === 'active')
 
       vi.mocked(fetch)
         .mockResolvedValueOnce({
-          json: () => Promise.resolve({
-            success: true,
-            data: mockAllContracts,
-          }),
+          json: () =>
+            Promise.resolve({
+              success: true,
+              data: mockAllContracts,
+            }),
         } as Response)
         .mockResolvedValueOnce({
-          json: () => Promise.resolve({
-            success: true,
-            data: mockNewContract,
-          }),
+          json: () =>
+            Promise.resolve({
+              success: true,
+              data: mockNewContract,
+            }),
         } as Response)
         .mockResolvedValueOnce({
-          json: () => Promise.resolve({
-            success: true,
-            data: mockActiveContracts,
-          }),
+          json: () =>
+            Promise.resolve({
+              success: true,
+              data: mockActiveContracts,
+            }),
         } as Response)
 
       // 전체 계약 로드
@@ -561,10 +578,11 @@ describe('CRM Contract Service', () => {
         }
 
         vi.mocked(fetch).mockResolvedValueOnce({
-          json: () => Promise.resolve({
-            success: true,
-            data: mockContract,
-          }),
+          json: () =>
+            Promise.resolve({
+              success: true,
+              data: mockContract,
+            }),
         } as Response)
 
         const result = await createContract(testCase.data)

@@ -1,11 +1,11 @@
 import { TransactionService } from '$lib/finance/services/transaction-service'
 import type {
-    CreateTransactionRequest,
-    DailyTransactionSummary,
-    Transaction,
-    TransactionFilter,
-    TransactionStats,
-    UpdateTransactionRequest,
+  CreateTransactionRequest,
+  DailyTransactionSummary,
+  Transaction,
+  TransactionFilter,
+  TransactionStats,
+  UpdateTransactionRequest,
 } from '$lib/finance/types'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { mockLogger } from '../../helpers/mock-helper'
@@ -64,11 +64,12 @@ describe('Finance Transaction Service', () => {
       }
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: true,
-          data: mockTransactions,
-          pagination: mockResponse.pagination,
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: mockTransactions,
+            pagination: mockResponse.pagination,
+          }),
       } as Response)
 
       const result = await transactionService.getTransactions()
@@ -97,16 +98,17 @@ describe('Finance Transaction Service', () => {
       const filter: TransactionFilter = { accountId: 'account-1' }
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: true,
-          data: mockTransactions,
-          pagination: {
-            page: 1,
-            limit: 20,
-            total: 1,
-            totalPages: 1,
-          },
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: mockTransactions,
+            pagination: {
+              page: 1,
+              limit: 20,
+              total: 1,
+              totalPages: 1,
+            },
+          }),
       } as Response)
 
       const result = await transactionService.getTransactions(filter)
@@ -135,16 +137,17 @@ describe('Finance Transaction Service', () => {
       const filter: TransactionFilter = { categoryId: 'category-1' }
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: true,
-          data: mockTransactions,
-          pagination: {
-            page: 1,
-            limit: 20,
-            total: 1,
-            totalPages: 1,
-          },
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: mockTransactions,
+            pagination: {
+              page: 1,
+              limit: 20,
+              total: 1,
+              totalPages: 1,
+            },
+          }),
       } as Response)
 
       const result = await transactionService.getTransactions(filter)
@@ -173,16 +176,17 @@ describe('Finance Transaction Service', () => {
       const filter: TransactionFilter = { type: 'income' }
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: true,
-          data: mockTransactions,
-          pagination: {
-            page: 1,
-            limit: 20,
-            total: 1,
-            totalPages: 1,
-          },
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: mockTransactions,
+            pagination: {
+              page: 1,
+              limit: 20,
+              total: 1,
+              totalPages: 1,
+            },
+          }),
       } as Response)
 
       const result = await transactionService.getTransactions(filter)
@@ -214,23 +218,24 @@ describe('Finance Transaction Service', () => {
       }
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: true,
-          data: mockTransactions,
-          pagination: {
-            page: 1,
-            limit: 20,
-            total: 1,
-            totalPages: 1,
-          },
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: mockTransactions,
+            pagination: {
+              page: 1,
+              limit: 20,
+              total: 1,
+              totalPages: 1,
+            },
+          }),
       } as Response)
 
       const result = await transactionService.getTransactions(filter)
 
       expect(result.transactions).toEqual(mockTransactions)
       expect(fetch).toHaveBeenCalledWith(
-        '/api/finance/transactions?dateFrom=2025-01-01&dateTo=2025-01-31'
+        '/api/finance/transactions?dateFrom=2025-01-01&dateTo=2025-01-31',
       )
     })
 
@@ -257,23 +262,24 @@ describe('Finance Transaction Service', () => {
       }
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: true,
-          data: mockTransactions,
-          pagination: {
-            page: 1,
-            limit: 20,
-            total: 1,
-            totalPages: 1,
-          },
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: mockTransactions,
+            pagination: {
+              page: 1,
+              limit: 20,
+              total: 1,
+              totalPages: 1,
+            },
+          }),
       } as Response)
 
       const result = await transactionService.getTransactions(filter)
 
       expect(result.transactions).toEqual(mockTransactions)
       expect(fetch).toHaveBeenCalledWith(
-        '/api/finance/transactions?amountMin=50000&amountMax=200000'
+        '/api/finance/transactions?amountMin=50000&amountMax=200000',
       )
     })
 
@@ -297,16 +303,17 @@ describe('Finance Transaction Service', () => {
       const filter: TransactionFilter = { search: '매출' }
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: true,
-          data: mockTransactions,
-          pagination: {
-            page: 1,
-            limit: 20,
-            total: 1,
-            totalPages: 1,
-          },
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: mockTransactions,
+            pagination: {
+              page: 1,
+              limit: 20,
+              total: 1,
+              totalPages: 1,
+            },
+          }),
       } as Response)
 
       const result = await transactionService.getTransactions(filter)
@@ -335,22 +342,25 @@ describe('Finance Transaction Service', () => {
       const filter: TransactionFilter = { tags: ['매출', '수입'] }
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: true,
-          data: mockTransactions,
-          pagination: {
-            page: 1,
-            limit: 20,
-            total: 1,
-            totalPages: 1,
-          },
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: mockTransactions,
+            pagination: {
+              page: 1,
+              limit: 20,
+              total: 1,
+              totalPages: 1,
+            },
+          }),
       } as Response)
 
       const result = await transactionService.getTransactions(filter)
 
       expect(result.transactions).toEqual(mockTransactions)
-      expect(fetch).toHaveBeenCalledWith('/api/finance/transactions?tags=%EB%A7%A4%EC%B6%9C%2C%EC%88%98%EC%9E%85')
+      expect(fetch).toHaveBeenCalledWith(
+        '/api/finance/transactions?tags=%EB%A7%A4%EC%B6%9C%2C%EC%88%98%EC%9E%85',
+      )
     })
 
     it('페이지네이션으로 거래를 조회해야 함', async () => {
@@ -359,16 +369,17 @@ describe('Finance Transaction Service', () => {
       const filter = { page: 2, limit: 10 }
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: true,
-          data: mockTransactions,
-          pagination: {
-            page: 2,
-            limit: 10,
-            total: 50,
-            totalPages: 5,
-          },
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: mockTransactions,
+            pagination: {
+              page: 2,
+              limit: 10,
+              total: 50,
+              totalPages: 5,
+            },
+          }),
       } as Response)
 
       const result = await transactionService.getTransactions(filter)
@@ -413,23 +424,24 @@ describe('Finance Transaction Service', () => {
       }
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: true,
-          data: mockTransactions,
-          pagination: {
-            page: 1,
-            limit: 20,
-            total: 1,
-            totalPages: 1,
-          },
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: mockTransactions,
+            pagination: {
+              page: 1,
+              limit: 20,
+              total: 1,
+              totalPages: 1,
+            },
+          }),
       } as Response)
 
       const result = await transactionService.getTransactions(filter)
 
       expect(result.transactions).toEqual(mockTransactions)
       expect(fetch).toHaveBeenCalledWith(
-        '/api/finance/transactions?accountId=account-1&categoryId=category-1&type=income&dateFrom=2025-01-01&dateTo=2025-01-31&amountMin=50000&amountMax=200000&search=%EB%A7%A4%EC%B6%9C&tags=%EB%A7%A4%EC%B6%9C%2C%EC%88%98%EC%9E%85&page=1&limit=20'
+        '/api/finance/transactions?accountId=account-1&categoryId=category-1&type=income&dateFrom=2025-01-01&dateTo=2025-01-31&amountMin=50000&amountMax=200000&search=%EB%A7%A4%EC%B6%9C&tags=%EB%A7%A4%EC%B6%9C%2C%EC%88%98%EC%9E%85&page=1&limit=20',
       )
     })
 
@@ -441,29 +453,33 @@ describe('Finance Transaction Service', () => {
 
     it('API 응답 오류 시 에러를 던져야 함', async () => {
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: false,
-          error: 'Database connection failed',
-        }),
+        json: () =>
+          Promise.resolve({
+            success: false,
+            error: 'Database connection failed',
+          }),
       } as Response)
 
-      await expect(transactionService.getTransactions()).rejects.toThrow('Database connection failed')
+      await expect(transactionService.getTransactions()).rejects.toThrow(
+        'Database connection failed',
+      )
     })
 
     it('빈 거래 목록을 올바르게 처리해야 함', async () => {
       const mockTransactions: Transaction[] = []
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: true,
-          data: mockTransactions,
-          pagination: {
-            page: 1,
-            limit: 20,
-            total: 0,
-            totalPages: 0,
-          },
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: mockTransactions,
+            pagination: {
+              page: 1,
+              limit: 20,
+              total: 0,
+              totalPages: 0,
+            },
+          }),
       } as Response)
 
       const result = await transactionService.getTransactions()
@@ -491,10 +507,11 @@ describe('Finance Transaction Service', () => {
       }
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: true,
-          data: mockTransaction,
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: mockTransaction,
+          }),
       } as Response)
 
       const result = await transactionService.getTransaction('transaction-1')
@@ -505,14 +522,15 @@ describe('Finance Transaction Service', () => {
 
     it('존재하지 않는 거래 조회 시 에러를 던져야 함', async () => {
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: false,
-          error: 'Transaction not found',
-        }),
+        json: () =>
+          Promise.resolve({
+            success: false,
+            error: 'Transaction not found',
+          }),
       } as Response)
 
       await expect(transactionService.getTransaction('non-existent')).rejects.toThrow(
-        'Transaction not found'
+        'Transaction not found',
       )
     })
 
@@ -520,7 +538,7 @@ describe('Finance Transaction Service', () => {
       vi.mocked(fetch).mockRejectedValueOnce(new Error('Network error'))
 
       await expect(transactionService.getTransaction('transaction-1')).rejects.toThrow(
-        'Network error'
+        'Network error',
       )
     })
   })
@@ -546,10 +564,11 @@ describe('Finance Transaction Service', () => {
       }
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: true,
-          data: mockCreatedTransaction,
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: mockCreatedTransaction,
+          }),
       } as Response)
 
       const result = await transactionService.createTransaction(transactionData)
@@ -584,10 +603,11 @@ describe('Finance Transaction Service', () => {
       }
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: true,
-          data: mockCreatedTransaction,
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: mockCreatedTransaction,
+          }),
       } as Response)
 
       const result = await transactionService.createTransaction(transactionData)
@@ -616,10 +636,11 @@ describe('Finance Transaction Service', () => {
       }
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: true,
-          data: mockCreatedTransaction,
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: mockCreatedTransaction,
+          }),
       } as Response)
 
       const result = await transactionService.createTransaction(transactionData)
@@ -639,14 +660,15 @@ describe('Finance Transaction Service', () => {
       }
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: false,
-          error: 'Account not found',
-        }),
+        json: () =>
+          Promise.resolve({
+            success: false,
+            error: 'Account not found',
+          }),
       } as Response)
 
       await expect(transactionService.createTransaction(transactionData)).rejects.toThrow(
-        'Account not found'
+        'Account not found',
       )
     })
 
@@ -663,7 +685,7 @@ describe('Finance Transaction Service', () => {
       vi.mocked(fetch).mockRejectedValueOnce(new Error('Network error'))
 
       await expect(transactionService.createTransaction(transactionData)).rejects.toThrow(
-        'Network error'
+        'Network error',
       )
     })
   })
@@ -689,10 +711,11 @@ describe('Finance Transaction Service', () => {
       }
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: true,
-          data: mockUpdatedTransaction,
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: mockUpdatedTransaction,
+          }),
       } as Response)
 
       const result = await transactionService.updateTransaction('transaction-1', updateData)
@@ -713,15 +736,16 @@ describe('Finance Transaction Service', () => {
       }
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: false,
-          error: 'Transaction not found',
-        }),
+        json: () =>
+          Promise.resolve({
+            success: false,
+            error: 'Transaction not found',
+          }),
       } as Response)
 
-      await expect(transactionService.updateTransaction('non-existent', updateData)).rejects.toThrow(
-        'Transaction not found'
-      )
+      await expect(
+        transactionService.updateTransaction('non-existent', updateData),
+      ).rejects.toThrow('Transaction not found')
     })
 
     it('네트워크 오류 시 에러를 던져야 함', async () => {
@@ -731,18 +755,19 @@ describe('Finance Transaction Service', () => {
 
       vi.mocked(fetch).mockRejectedValueOnce(new Error('Network error'))
 
-      await expect(transactionService.updateTransaction('transaction-1', updateData)).rejects.toThrow(
-        'Network error'
-      )
+      await expect(
+        transactionService.updateTransaction('transaction-1', updateData),
+      ).rejects.toThrow('Network error')
     })
   })
 
   describe('deleteTransaction', () => {
     it('거래를 성공적으로 삭제해야 함', async () => {
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: true,
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+          }),
       } as Response)
 
       await transactionService.deleteTransaction('transaction-1')
@@ -754,14 +779,15 @@ describe('Finance Transaction Service', () => {
 
     it('존재하지 않는 거래 삭제 시 에러를 던져야 함', async () => {
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: false,
-          error: 'Transaction not found',
-        }),
+        json: () =>
+          Promise.resolve({
+            success: false,
+            error: 'Transaction not found',
+          }),
       } as Response)
 
       await expect(transactionService.deleteTransaction('non-existent')).rejects.toThrow(
-        'Transaction not found'
+        'Transaction not found',
       )
     })
 
@@ -769,7 +795,7 @@ describe('Finance Transaction Service', () => {
       vi.mocked(fetch).mockRejectedValueOnce(new Error('Network error'))
 
       await expect(transactionService.deleteTransaction('transaction-1')).rejects.toThrow(
-        'Network error'
+        'Network error',
       )
     })
   })
@@ -796,10 +822,11 @@ describe('Finance Transaction Service', () => {
       }
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: true,
-          data: mockStats,
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: mockStats,
+          }),
       } as Response)
 
       const result = await transactionService.getTransactionStats()
@@ -834,17 +861,18 @@ describe('Finance Transaction Service', () => {
       }
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: true,
-          data: mockStats,
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: mockStats,
+          }),
       } as Response)
 
       const result = await transactionService.getTransactionStats(filter)
 
       expect(result).toEqual(mockStats)
       expect(fetch).toHaveBeenCalledWith(
-        '/api/finance/transactions/stats?accountId=account-1&dateFrom=2024-12-01&dateTo=2025-01-31'
+        '/api/finance/transactions/stats?accountId=account-1&dateFrom=2024-12-01&dateTo=2025-01-31',
       )
     })
 
@@ -856,14 +884,15 @@ describe('Finance Transaction Service', () => {
 
     it('API 응답 오류 시 에러를 던져야 함', async () => {
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: false,
-          error: 'Database connection failed',
-        }),
+        json: () =>
+          Promise.resolve({
+            success: false,
+            error: 'Database connection failed',
+          }),
       } as Response)
 
       await expect(transactionService.getTransactionStats()).rejects.toThrow(
-        'Database connection failed'
+        'Database connection failed',
       )
     })
   })
@@ -887,10 +916,11 @@ describe('Finance Transaction Service', () => {
       }
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: true,
-          data: mockSummary,
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: mockSummary,
+          }),
       } as Response)
 
       const result = await transactionService.getDailyTransactionSummary('2025-01-15')
@@ -903,20 +933,21 @@ describe('Finance Transaction Service', () => {
       vi.mocked(fetch).mockRejectedValueOnce(new Error('Network error'))
 
       await expect(transactionService.getDailyTransactionSummary('2025-01-15')).rejects.toThrow(
-        'Network error'
+        'Network error',
       )
     })
 
     it('API 응답 오류 시 에러를 던져야 함', async () => {
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: false,
-          error: 'No data found for the specified date',
-        }),
+        json: () =>
+          Promise.resolve({
+            success: false,
+            error: 'No data found for the specified date',
+          }),
       } as Response)
 
       await expect(transactionService.getDailyTransactionSummary('2025-01-15')).rejects.toThrow(
-        'No data found for the specified date'
+        'No data found for the specified date',
       )
     })
   })
@@ -940,36 +971,40 @@ describe('Finance Transaction Service', () => {
       }
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: true,
-          data: mockSummary,
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: mockSummary,
+          }),
       } as Response)
 
       const result = await transactionService.getMonthlyTransactionSummary(2025, 1)
 
       expect(result).toEqual(mockSummary)
-      expect(fetch).toHaveBeenCalledWith('/api/finance/transactions/monthly-summary?year=2025&month=1')
+      expect(fetch).toHaveBeenCalledWith(
+        '/api/finance/transactions/monthly-summary?year=2025&month=1',
+      )
     })
 
     it('API 오류 시 에러를 던져야 함', async () => {
       vi.mocked(fetch).mockRejectedValueOnce(new Error('Network error'))
 
       await expect(transactionService.getMonthlyTransactionSummary(2025, 1)).rejects.toThrow(
-        'Network error'
+        'Network error',
       )
     })
 
     it('API 응답 오류 시 에러를 던져야 함', async () => {
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: false,
-          error: 'No data found for the specified month',
-        }),
+        json: () =>
+          Promise.resolve({
+            success: false,
+            error: 'No data found for the specified month',
+          }),
       } as Response)
 
       await expect(transactionService.getMonthlyTransactionSummary(2025, 1)).rejects.toThrow(
-        'No data found for the specified month'
+        'No data found for the specified month',
       )
     })
   })
@@ -993,10 +1028,11 @@ describe('Finance Transaction Service', () => {
       }
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: true,
-          data: mockUploadResult,
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: mockUploadResult,
+          }),
       } as Response)
 
       const result = await transactionService.uploadTransactions(mockFile)
@@ -1014,14 +1050,15 @@ describe('Finance Transaction Service', () => {
       })
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: false,
-          error: 'Invalid file format',
-        }),
+        json: () =>
+          Promise.resolve({
+            success: false,
+            error: 'Invalid file format',
+          }),
       } as Response)
 
       await expect(transactionService.uploadTransactions(mockFile)).rejects.toThrow(
-        'Invalid file format'
+        'Invalid file format',
       )
     })
 
@@ -1088,38 +1125,41 @@ describe('Finance Transaction Service', () => {
       }
 
       // 3. 수입 거래만 필터링
-      const mockIncomeTransactions = mockAllTransactions.filter(t => t.type === 'income')
+      const mockIncomeTransactions = mockAllTransactions.filter((t) => t.type === 'income')
 
       vi.mocked(fetch)
         .mockResolvedValueOnce({
-          json: () => Promise.resolve({
-            success: true,
-            data: mockAllTransactions,
-            pagination: {
-              page: 1,
-              limit: 20,
-              total: 2,
-              totalPages: 1,
-            },
-          }),
+          json: () =>
+            Promise.resolve({
+              success: true,
+              data: mockAllTransactions,
+              pagination: {
+                page: 1,
+                limit: 20,
+                total: 2,
+                totalPages: 1,
+              },
+            }),
         } as Response)
         .mockResolvedValueOnce({
-          json: () => Promise.resolve({
-            success: true,
-            data: mockNewTransaction,
-          }),
+          json: () =>
+            Promise.resolve({
+              success: true,
+              data: mockNewTransaction,
+            }),
         } as Response)
         .mockResolvedValueOnce({
-          json: () => Promise.resolve({
-            success: true,
-            data: mockIncomeTransactions,
-            pagination: {
-              page: 1,
-              limit: 20,
-              total: 1,
-              totalPages: 1,
-            },
-          }),
+          json: () =>
+            Promise.resolve({
+              success: true,
+              data: mockIncomeTransactions,
+              pagination: {
+                page: 1,
+                limit: 20,
+                total: 1,
+                totalPages: 1,
+              },
+            }),
         } as Response)
 
       // 전체 거래 조회
@@ -1189,10 +1229,11 @@ describe('Finance Transaction Service', () => {
         }
 
         vi.mocked(fetch).mockResolvedValueOnce({
-          json: () => Promise.resolve({
-            success: true,
-            data: mockTransaction,
-          }),
+          json: () =>
+            Promise.resolve({
+              success: true,
+              data: mockTransaction,
+            }),
         } as Response)
 
         const result = await transactionService.createTransaction(testCase.data)

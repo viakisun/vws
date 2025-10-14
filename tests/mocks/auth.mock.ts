@@ -370,7 +370,9 @@ export const setupTokenMocks = {
 export const setupOAuthMocks = {
   // Google OAuth 성공
   googleSuccess: () => {
-    mockOAuthService.getAuthUrl.mockResolvedValueOnce('https://accounts.google.com/oauth/authorize?client_id=123')
+    mockOAuthService.getAuthUrl.mockResolvedValueOnce(
+      'https://accounts.google.com/oauth/authorize?client_id=123',
+    )
     mockOAuthService.handleCallback.mockResolvedValueOnce({
       user: {
         id: 'google-user-123',
@@ -708,7 +710,7 @@ export const verifyAuthMocks = {
   // 특정 사용자로 로그인했는지 확인
   wasLoginWithUser: (email: string) => {
     const calls = mockAuthService.login.mock.calls
-    return calls.some(call => {
+    return calls.some((call) => {
       const credentials = call[0]
       return credentials.email === email
     })
@@ -717,7 +719,7 @@ export const verifyAuthMocks = {
   // 특정 권한으로 토큰이 검증되었는지 확인
   wasTokenVerifiedWithPermission: (permission: string) => {
     const calls = mockAuthService.verifyToken.mock.calls
-    return calls.some(call => {
+    return calls.some((call) => {
       const token = call[0]
       // 실제로는 토큰에서 권한을 추출해야 하지만, Mock에서는 간단히 확인
       return true

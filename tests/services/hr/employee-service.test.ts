@@ -94,7 +94,7 @@ describe('Employee Service', () => {
             phone: '010-9876-5432',
             relationship: '배우자',
           }),
-        ])
+        ]),
       )
     })
 
@@ -150,7 +150,7 @@ describe('Employee Service', () => {
           'active',
           null,
           '{}',
-        ])
+        ]),
       )
     })
 
@@ -193,7 +193,7 @@ describe('Employee Service', () => {
       expect(result).toEqual(mockCreatedEmployee)
       expect(DBHelper.getMockQuery()).not.toHaveBeenCalledWith(
         expect.stringContaining('INSERT INTO reporting_relationships'),
-        expect.anything()
+        expect.anything(),
       )
     })
 
@@ -209,7 +209,9 @@ describe('Employee Service', () => {
         rows: [],
       })
 
-      await expect(employeeService.create(employeeData)).rejects.toThrow('직원 생성에 실패했습니다.')
+      await expect(employeeService.create(employeeData)).rejects.toThrow(
+        '직원 생성에 실패했습니다.',
+      )
     })
 
     it('데이터베이스 오류 시 에러를 던져야 함', async () => {
@@ -222,7 +224,9 @@ describe('Employee Service', () => {
 
       DBHelper.mockError(new Error('Database connection failed'))
 
-      await expect(employeeService.create(employeeData)).rejects.toThrow('Database connection failed')
+      await expect(employeeService.create(employeeData)).rejects.toThrow(
+        'Database connection failed',
+      )
     })
   })
 
@@ -252,23 +256,29 @@ describe('Employee Service', () => {
         updated_at: '2025-01-15T10:00:00Z',
       }
 
-      DBHelper.mockQueryResponse('SELECT id, employee_id, user_id, first_name, last_name, email, phone, department, position, employment_type, hire_date::text as hire_date, salary, status, address, emergency_contact, created_at::text as created_at, updated_at::text as updated_at FROM employees WHERE id = $1', {
-        rows: [mockEmployee],
-      })
+      DBHelper.mockQueryResponse(
+        'SELECT id, employee_id, user_id, first_name, last_name, email, phone, department, position, employment_type, hire_date::text as hire_date, salary, status, address, emergency_contact, created_at::text as created_at, updated_at::text as updated_at FROM employees WHERE id = $1',
+        {
+          rows: [mockEmployee],
+        },
+      )
 
       const result = await employeeService.getById('employee-123')
 
       expect(result).toEqual(mockEmployee)
       expect(DBHelper.getMockQuery()).toHaveBeenCalledWith(
         expect.stringContaining('WHERE id = $1'),
-        ['employee-123']
+        ['employee-123'],
       )
     })
 
     it('존재하지 않는 직원 조회 시 null을 반환해야 함', async () => {
-      DBHelper.mockQueryResponse('SELECT id, employee_id, user_id, first_name, last_name, email, phone, department, position, employment_type, hire_date::text as hire_date, salary, status, address, emergency_contact, created_at::text as created_at, updated_at::text as updated_at FROM employees WHERE id = $1', {
-        rows: [],
-      })
+      DBHelper.mockQueryResponse(
+        'SELECT id, employee_id, user_id, first_name, last_name, email, phone, department, position, employment_type, hire_date::text as hire_date, salary, status, address, emergency_contact, created_at::text as created_at, updated_at::text as updated_at FROM employees WHERE id = $1',
+        {
+          rows: [],
+        },
+      )
 
       const result = await employeeService.getById('non-existent')
 
@@ -278,7 +288,9 @@ describe('Employee Service', () => {
     it('데이터베이스 오류 시 에러를 던져야 함', async () => {
       DBHelper.mockError(new Error('Database connection failed'))
 
-      await expect(employeeService.getById('employee-123')).rejects.toThrow('Database connection failed')
+      await expect(employeeService.getById('employee-123')).rejects.toThrow(
+        'Database connection failed',
+      )
     })
   })
 
@@ -308,23 +320,29 @@ describe('Employee Service', () => {
         updated_at: '2025-01-15T10:00:00Z',
       }
 
-      DBHelper.mockQueryResponse('SELECT id, employee_id, user_id, first_name, last_name, email, phone, department, position, employment_type, hire_date::text as hire_date, salary, status, address, emergency_contact, created_at::text as created_at, updated_at::text as updated_at FROM employees WHERE employee_id = $1', {
-        rows: [mockEmployee],
-      })
+      DBHelper.mockQueryResponse(
+        'SELECT id, employee_id, user_id, first_name, last_name, email, phone, department, position, employment_type, hire_date::text as hire_date, salary, status, address, emergency_contact, created_at::text as created_at, updated_at::text as updated_at FROM employees WHERE employee_id = $1',
+        {
+          rows: [mockEmployee],
+        },
+      )
 
       const result = await employeeService.getByEmployeeId('EMP001')
 
       expect(result).toEqual(mockEmployee)
       expect(DBHelper.getMockQuery()).toHaveBeenCalledWith(
         expect.stringContaining('WHERE employee_id = $1'),
-        ['EMP001']
+        ['EMP001'],
       )
     })
 
     it('존재하지 않는 사번 조회 시 null을 반환해야 함', async () => {
-      DBHelper.mockQueryResponse('SELECT id, employee_id, user_id, first_name, last_name, email, phone, department, position, employment_type, hire_date::text as hire_date, salary, status, address, emergency_contact, created_at::text as created_at, updated_at::text as updated_at FROM employees WHERE employee_id = $1', {
-        rows: [],
-      })
+      DBHelper.mockQueryResponse(
+        'SELECT id, employee_id, user_id, first_name, last_name, email, phone, department, position, employment_type, hire_date::text as hire_date, salary, status, address, emergency_contact, created_at::text as created_at, updated_at::text as updated_at FROM employees WHERE employee_id = $1',
+        {
+          rows: [],
+        },
+      )
 
       const result = await employeeService.getByEmployeeId('NON_EXISTENT')
 
@@ -334,7 +352,9 @@ describe('Employee Service', () => {
     it('데이터베이스 오류 시 에러를 던져야 함', async () => {
       DBHelper.mockError(new Error('Database connection failed'))
 
-      await expect(employeeService.getByEmployeeId('EMP001')).rejects.toThrow('Database connection failed')
+      await expect(employeeService.getByEmployeeId('EMP001')).rejects.toThrow(
+        'Database connection failed',
+      )
     })
   })
 
@@ -381,9 +401,12 @@ describe('Employee Service', () => {
         },
       ]
 
-      DBHelper.mockQueryResponse('SELECT id, employee_id, user_id, first_name, last_name, email, phone, department, position, employment_type, hire_date::text as hire_date, salary, status, address, emergency_contact, created_at::text as created_at, updated_at::text as updated_at FROM employees WHERE 1=1 ORDER BY created_at DESC', {
-        rows: mockEmployees,
-      })
+      DBHelper.mockQueryResponse(
+        'SELECT id, employee_id, user_id, first_name, last_name, email, phone, department, position, employment_type, hire_date::text as hire_date, salary, status, address, emergency_contact, created_at::text as created_at, updated_at::text as updated_at FROM employees WHERE 1=1 ORDER BY created_at DESC',
+        {
+          rows: mockEmployees,
+        },
+      )
 
       const result = await employeeService.list()
 
@@ -416,9 +439,12 @@ describe('Employee Service', () => {
 
       const filters: EmployeeFilters = { department: '개발팀' }
 
-      DBHelper.mockQueryResponse('SELECT id, employee_id, user_id, first_name, last_name, email, phone, department, position, employment_type, hire_date::text as hire_date, salary, status, address, emergency_contact, created_at::text as created_at, updated_at::text as updated_at FROM employees WHERE 1=1 AND department = $1 ORDER BY created_at DESC', {
-        rows: mockEmployees,
-      })
+      DBHelper.mockQueryResponse(
+        'SELECT id, employee_id, user_id, first_name, last_name, email, phone, department, position, employment_type, hire_date::text as hire_date, salary, status, address, emergency_contact, created_at::text as created_at, updated_at::text as updated_at FROM employees WHERE 1=1 AND department = $1 ORDER BY created_at DESC',
+        {
+          rows: mockEmployees,
+        },
+      )
 
       const result = await employeeService.list(filters)
 
@@ -426,7 +452,7 @@ describe('Employee Service', () => {
       expect(result).toHaveLength(1)
       expect(DBHelper.getMockQuery()).toHaveBeenCalledWith(
         expect.stringContaining('AND department = $1'),
-        ['개발팀']
+        ['개발팀'],
       )
     })
 
@@ -455,9 +481,12 @@ describe('Employee Service', () => {
 
       const filters: EmployeeFilters = { status: 'terminated' }
 
-      DBHelper.mockQueryResponse('SELECT id, employee_id, user_id, first_name, last_name, email, phone, department, position, employment_type, hire_date::text as hire_date, salary, status, address, emergency_contact, created_at::text as created_at, updated_at::text as updated_at FROM employees WHERE 1=1 AND status = $1 ORDER BY created_at DESC', {
-        rows: mockEmployees,
-      })
+      DBHelper.mockQueryResponse(
+        'SELECT id, employee_id, user_id, first_name, last_name, email, phone, department, position, employment_type, hire_date::text as hire_date, salary, status, address, emergency_contact, created_at::text as created_at, updated_at::text as updated_at FROM employees WHERE 1=1 AND status = $1 ORDER BY created_at DESC',
+        {
+          rows: mockEmployees,
+        },
+      )
 
       const result = await employeeService.list(filters)
 
@@ -465,7 +494,7 @@ describe('Employee Service', () => {
       expect(result).toHaveLength(1)
       expect(DBHelper.getMockQuery()).toHaveBeenCalledWith(
         expect.stringContaining('AND status = $1'),
-        ['terminated']
+        ['terminated'],
       )
     })
 
@@ -494,9 +523,12 @@ describe('Employee Service', () => {
 
       const filters: EmployeeFilters = { limit: 10, offset: 20 }
 
-      DBHelper.mockQueryResponse('SELECT id, employee_id, user_id, first_name, last_name, email, phone, department, position, employment_type, hire_date::text as hire_date, salary, status, address, emergency_contact, created_at::text as created_at, updated_at::text as updated_at FROM employees WHERE 1=1 ORDER BY created_at DESC LIMIT $1 OFFSET $2', {
-        rows: mockEmployees,
-      })
+      DBHelper.mockQueryResponse(
+        'SELECT id, employee_id, user_id, first_name, last_name, email, phone, department, position, employment_type, hire_date::text as hire_date, salary, status, address, emergency_contact, created_at::text as created_at, updated_at::text as updated_at FROM employees WHERE 1=1 ORDER BY created_at DESC LIMIT $1 OFFSET $2',
+        {
+          rows: mockEmployees,
+        },
+      )
 
       const result = await employeeService.list(filters)
 
@@ -504,7 +536,7 @@ describe('Employee Service', () => {
       expect(result).toHaveLength(1)
       expect(DBHelper.getMockQuery()).toHaveBeenCalledWith(
         expect.stringContaining('LIMIT $1 OFFSET $2'),
-        [10, 20]
+        [10, 20],
       )
     })
 
@@ -538,24 +570,32 @@ describe('Employee Service', () => {
         offset: 0,
       }
 
-      DBHelper.mockQueryResponse('SELECT id, employee_id, user_id, first_name, last_name, email, phone, department, position, employment_type, hire_date::text as hire_date, salary, status, address, emergency_contact, created_at::text as created_at, updated_at::text as updated_at FROM employees WHERE 1=1 AND department = $1 AND status = $2 ORDER BY created_at DESC LIMIT $3 OFFSET $4', {
-        rows: mockEmployees,
-      })
+      DBHelper.mockQueryResponse(
+        'SELECT id, employee_id, user_id, first_name, last_name, email, phone, department, position, employment_type, hire_date::text as hire_date, salary, status, address, emergency_contact, created_at::text as created_at, updated_at::text as updated_at FROM employees WHERE 1=1 AND department = $1 AND status = $2 ORDER BY created_at DESC LIMIT $3 OFFSET $4',
+        {
+          rows: mockEmployees,
+        },
+      )
 
       const result = await employeeService.list(filters)
 
       expect(result).toEqual(mockEmployees)
       expect(result).toHaveLength(1)
       expect(DBHelper.getMockQuery()).toHaveBeenCalledWith(
-        expect.stringContaining('AND department = $1 AND status = $2 ORDER BY created_at DESC LIMIT $3 OFFSET $4'),
-        ['개발팀', 'active', 5, 0]
+        expect.stringContaining(
+          'AND department = $1 AND status = $2 ORDER BY created_at DESC LIMIT $3 OFFSET $4',
+        ),
+        ['개발팀', 'active', 5, 0],
       )
     })
 
     it('빈 직원 목록을 올바르게 처리해야 함', async () => {
-      DBHelper.mockQueryResponse('SELECT id, employee_id, user_id, first_name, last_name, email, phone, department, position, employment_type, hire_date::text as hire_date, salary, status, address, emergency_contact, created_at::text as created_at, updated_at::text as updated_at FROM employees WHERE 1=1 ORDER BY created_at DESC', {
-        rows: [],
-      })
+      DBHelper.mockQueryResponse(
+        'SELECT id, employee_id, user_id, first_name, last_name, email, phone, department, position, employment_type, hire_date::text as hire_date, salary, status, address, emergency_contact, created_at::text as created_at, updated_at::text as updated_at FROM employees WHERE 1=1 ORDER BY created_at DESC',
+        {
+          rows: [],
+        },
+      )
 
       const result = await employeeService.list()
 
@@ -613,9 +653,12 @@ describe('Employee Service', () => {
         updated_at: '2025-01-15T11:00:00Z',
       }
 
-      DBHelper.mockQueryResponse('UPDATE employees SET first_name = $2, last_name = $3, email = $4, phone = $5, department = $6, position = $7, salary = $8, status = $9, address = $10, emergency_contact = $11, updated_at = now() WHERE id = $1', {
-        rows: [mockUpdatedEmployee],
-      })
+      DBHelper.mockQueryResponse(
+        'UPDATE employees SET first_name = $2, last_name = $3, email = $4, phone = $5, department = $6, position = $7, salary = $8, status = $9, address = $10, emergency_contact = $11, updated_at = now() WHERE id = $1',
+        {
+          rows: [mockUpdatedEmployee],
+        },
+      )
 
       const result = await employeeService.update('employee-123', updateData)
 
@@ -638,7 +681,7 @@ describe('Employee Service', () => {
             phone: '010-9876-5432',
             relationship: '배우자',
           }),
-        ])
+        ]),
       )
     })
 
@@ -668,33 +711,45 @@ describe('Employee Service', () => {
         updated_at: '2025-01-15T12:00:00Z',
       }
 
-      DBHelper.mockQueryResponse('UPDATE employees SET salary = $2, position = $3, updated_at = now() WHERE id = $1', {
-        rows: [mockUpdatedEmployee],
-      })
+      DBHelper.mockQueryResponse(
+        'UPDATE employees SET salary = $2, position = $3, updated_at = now() WHERE id = $1',
+        {
+          rows: [mockUpdatedEmployee],
+        },
+      )
 
       const result = await employeeService.update('employee-123', updateData)
 
       expect(result).toEqual(mockUpdatedEmployee)
       expect(DBHelper.getMockQuery()).toHaveBeenCalledWith(
-        expect.stringContaining('UPDATE employees SET salary = $2, position = $3, updated_at = now() WHERE id = $1'),
-        ['employee-123', 6000000, '팀장']
+        expect.stringContaining(
+          'UPDATE employees SET salary = $2, position = $3, updated_at = now() WHERE id = $1',
+        ),
+        ['employee-123', 6000000, '팀장'],
       )
     })
 
     it('업데이트할 데이터가 없을 시 에러를 던져야 함', async () => {
       const updateData = {}
 
-      await expect(employeeService.update('employee-123', updateData)).rejects.toThrow('업데이트할 데이터가 없습니다.')
+      await expect(employeeService.update('employee-123', updateData)).rejects.toThrow(
+        '업데이트할 데이터가 없습니다.',
+      )
     })
 
     it('존재하지 않는 직원 수정 시 에러를 던져야 함', async () => {
       const updateData = { salary: 6000000 }
 
-      DBHelper.mockQueryResponse('UPDATE employees SET salary = $2, updated_at = now() WHERE id = $1', {
-        rows: [],
-      })
+      DBHelper.mockQueryResponse(
+        'UPDATE employees SET salary = $2, updated_at = now() WHERE id = $1',
+        {
+          rows: [],
+        },
+      )
 
-      await expect(employeeService.update('non-existent', updateData)).rejects.toThrow('직원을 찾을 수 없습니다.')
+      await expect(employeeService.update('non-existent', updateData)).rejects.toThrow(
+        '직원을 찾을 수 없습니다.',
+      )
     })
 
     it('데이터베이스 오류 시 에러를 던져야 함', async () => {
@@ -702,7 +757,9 @@ describe('Employee Service', () => {
 
       DBHelper.mockError(new Error('Database connection failed'))
 
-      await expect(employeeService.update('employee-123', updateData)).rejects.toThrow('Database connection failed')
+      await expect(employeeService.update('employee-123', updateData)).rejects.toThrow(
+        'Database connection failed',
+      )
     })
   })
 
@@ -714,16 +771,17 @@ describe('Employee Service', () => {
 
       await employeeService.delete('employee-123')
 
-      expect(DBHelper.getMockQuery()).toHaveBeenCalledWith(
-        'DELETE FROM employees WHERE id = $1',
-        ['employee-123']
-      )
+      expect(DBHelper.getMockQuery()).toHaveBeenCalledWith('DELETE FROM employees WHERE id = $1', [
+        'employee-123',
+      ])
     })
 
     it('데이터베이스 오류 시 에러를 던져야 함', async () => {
       DBHelper.mockError(new Error('Database connection failed'))
 
-      await expect(employeeService.delete('employee-123')).rejects.toThrow('Database connection failed')
+      await expect(employeeService.delete('employee-123')).rejects.toThrow(
+        'Database connection failed',
+      )
     })
   })
 
@@ -749,32 +807,44 @@ describe('Employee Service', () => {
         updated_at: '2025-01-15T15:00:00Z',
       }
 
-      DBHelper.mockQueryResponse('UPDATE employees SET status = $2, updated_at = now() WHERE id = $1', {
-        rows: [mockTerminatedEmployee],
-      })
+      DBHelper.mockQueryResponse(
+        'UPDATE employees SET status = $2, updated_at = now() WHERE id = $1',
+        {
+          rows: [mockTerminatedEmployee],
+        },
+      )
 
       const result = await employeeService.terminate('employee-123')
 
       expect(result).toEqual(mockTerminatedEmployee)
       expect(result.status).toBe('terminated')
       expect(DBHelper.getMockQuery()).toHaveBeenCalledWith(
-        expect.stringContaining('UPDATE employees SET status = $2, updated_at = now() WHERE id = $1'),
-        ['employee-123', 'terminated']
+        expect.stringContaining(
+          'UPDATE employees SET status = $2, updated_at = now() WHERE id = $1',
+        ),
+        ['employee-123', 'terminated'],
       )
     })
 
     it('존재하지 않는 직원 퇴사 처리 시 에러를 던져야 함', async () => {
-      DBHelper.mockQueryResponse('UPDATE employees SET status = $2, updated_at = now() WHERE id = $1', {
-        rows: [],
-      })
+      DBHelper.mockQueryResponse(
+        'UPDATE employees SET status = $2, updated_at = now() WHERE id = $1',
+        {
+          rows: [],
+        },
+      )
 
-      await expect(employeeService.terminate('non-existent')).rejects.toThrow('직원을 찾을 수 없습니다.')
+      await expect(employeeService.terminate('non-existent')).rejects.toThrow(
+        '직원을 찾을 수 없습니다.',
+      )
     })
 
     it('데이터베이스 오류 시 에러를 던져야 함', async () => {
       DBHelper.mockError(new Error('Database connection failed'))
 
-      await expect(employeeService.terminate('employee-123')).rejects.toThrow('Database connection failed')
+      await expect(employeeService.terminate('employee-123')).rejects.toThrow(
+        'Database connection failed',
+      )
     })
   })
 
@@ -817,9 +887,12 @@ describe('Employee Service', () => {
         rows: [mockCreatedEmployee],
       })
 
-      DBHelper.mockQueryResponse('SELECT id, employee_id, user_id, first_name, last_name, email, phone, department, position, employment_type, hire_date::text as hire_date, salary, status, address, emergency_contact, created_at::text as created_at, updated_at::text as updated_at FROM employees WHERE id = $1', {
-        rows: [mockCreatedEmployee],
-      })
+      DBHelper.mockQueryResponse(
+        'SELECT id, employee_id, user_id, first_name, last_name, email, phone, department, position, employment_type, hire_date::text as hire_date, salary, status, address, emergency_contact, created_at::text as created_at, updated_at::text as updated_at FROM employees WHERE id = $1',
+        {
+          rows: [mockCreatedEmployee],
+        },
+      )
 
       // 3. 직원 수정
       const mockUpdatedEmployee = {
@@ -829,9 +902,12 @@ describe('Employee Service', () => {
         updated_at: '2025-01-15T11:00:00Z',
       }
 
-      DBHelper.mockQueryResponse('UPDATE employees SET salary = $2, position = $3, updated_at = now() WHERE id = $1', {
-        rows: [mockUpdatedEmployee],
-      })
+      DBHelper.mockQueryResponse(
+        'UPDATE employees SET salary = $2, position = $3, updated_at = now() WHERE id = $1',
+        {
+          rows: [mockUpdatedEmployee],
+        },
+      )
 
       // 4. 직원 퇴사 처리
       const mockTerminatedEmployee = {
@@ -840,9 +916,12 @@ describe('Employee Service', () => {
         updated_at: '2025-01-15T15:00:00Z',
       }
 
-      DBHelper.mockQueryResponse('UPDATE employees SET status = $2, updated_at = now() WHERE id = $1', {
-        rows: [mockTerminatedEmployee],
-      })
+      DBHelper.mockQueryResponse(
+        'UPDATE employees SET status = $2, updated_at = now() WHERE id = $1',
+        {
+          rows: [mockTerminatedEmployee],
+        },
+      )
 
       // 5. 직원 삭제
       DBHelper.mockQueryResponse('DELETE FROM employees WHERE id = $1', {
@@ -873,10 +952,9 @@ describe('Employee Service', () => {
 
       // 직원 삭제
       await employeeService.delete('employee-123')
-      expect(DBHelper.getMockQuery()).toHaveBeenCalledWith(
-        'DELETE FROM employees WHERE id = $1',
-        ['employee-123']
-      )
+      expect(DBHelper.getMockQuery()).toHaveBeenCalledWith('DELETE FROM employees WHERE id = $1', [
+        'employee-123',
+      ])
     })
 
     it('다양한 직원 타입과 상태를 올바르게 처리해야 함', async () => {

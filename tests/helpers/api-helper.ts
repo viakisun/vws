@@ -13,10 +13,10 @@ export class APIHelper {
     method: string = 'GET',
     url: string = '/api/test',
     body: any = null,
-    headers: Record<string, string> = {}
+    headers: Record<string, string> = {},
   ): Request {
     const fullUrl = url.startsWith('http') ? url : `http://localhost${url}`
-    
+
     return new Request(fullUrl, {
       method,
       headers: {
@@ -35,11 +35,11 @@ export class APIHelper {
     url: string = '/api/test',
     body: any = null,
     params: Record<string, string> = {},
-    cookies: Record<string, string> = {}
+    cookies: Record<string, string> = {},
   ) {
     const request = this.createMockRequest(method, url, body)
     const urlObj = new URL(request.url)
-    
+
     return {
       request,
       url: urlObj,
@@ -69,7 +69,7 @@ export class APIHelper {
       params?: Record<string, string>
       cookies?: Record<string, string>
       headers?: Record<string, string>
-    } = {}
+    } = {},
   ) {
     const {
       method = 'GET',
@@ -81,7 +81,7 @@ export class APIHelper {
     } = options
 
     const event = this.createMockEvent(method, url, body, params, cookies)
-    
+
     // headers를 request에 추가
     if (Object.keys(headers).length > 0) {
       Object.entries(headers).forEach(([key, value]) => {
@@ -120,9 +120,7 @@ export class APIHelper {
    */
   static expectStatus(response: Response, expectedStatus: number) {
     if (response.status !== expectedStatus) {
-      throw new Error(
-        `Expected status ${expectedStatus}, but got ${response.status}`
-      )
+      throw new Error(`Expected status ${expectedStatus}, but got ${response.status}`)
     }
     return response
   }
@@ -135,7 +133,7 @@ export class APIHelper {
     method: string = 'GET',
     url: string = '/api/test',
     body: any = null,
-    params: Record<string, string> = {}
+    params: Record<string, string> = {},
   ) {
     const event = this.createMockEvent(method, url, body, params)
     event.locals.user = user
@@ -150,7 +148,7 @@ export class APIHelper {
     method: string = 'GET',
     url: string = '/api/test',
     body: any = null,
-    params: Record<string, string> = {}
+    params: Record<string, string> = {},
   ) {
     const event = this.createMockEvent(method, url, body, params)
     event.locals.user = null
@@ -167,7 +165,7 @@ export class APIHelper {
     method: string = 'GET',
     url: string = '/api/test',
     body: any = null,
-    params: Record<string, string> = {}
+    params: Record<string, string> = {},
   ) {
     const event = this.createAuthenticatedEvent(user, method, url, body, params)
     event.locals.permissions = [requiredPermission]
@@ -177,14 +175,10 @@ export class APIHelper {
   /**
    * 파일 업로드 요청 Mock 생성
    */
-  static createFileUploadEvent(
-    file: File,
-    method: string = 'POST',
-    url: string = '/api/upload'
-  ) {
+  static createFileUploadEvent(file: File, method: string = 'POST', url: string = '/api/upload') {
     const formData = new FormData()
     formData.append('file', file)
-    
+
     return new Request(url, {
       method,
       body: formData,
@@ -239,19 +233,19 @@ export class APIHelper {
     if (response.status < 400) {
       throw new Error('Expected error response but got success')
     }
-    
+
     if (expectedMessage) {
       // JSON 응답에서 메시지 확인 (비동기)
       return response.json().then((data) => {
         if (!data.message || !data.message.includes(expectedMessage)) {
           throw new Error(
-            `Expected error message to contain "${expectedMessage}", but got "${data.message}"`
+            `Expected error message to contain "${expectedMessage}", but got "${data.message}"`,
           )
         }
         return response
       })
     }
-    
+
     return response
   }
 
@@ -283,17 +277,17 @@ export class APIHelper {
   static expectResponseStructure(response: Response, expectedKeys: string[]) {
     return response.json().then((data) => {
       const actualKeys = Object.keys(data)
-      const missingKeys = expectedKeys.filter(key => !actualKeys.includes(key))
-      const extraKeys = actualKeys.filter(key => !expectedKeys.includes(key))
-      
+      const missingKeys = expectedKeys.filter((key) => !actualKeys.includes(key))
+      const extraKeys = actualKeys.filter((key) => !expectedKeys.includes(key))
+
       if (missingKeys.length > 0) {
         throw new Error(`Missing keys in response: ${missingKeys.join(', ')}`)
       }
-      
+
       if (extraKeys.length > 0) {
         throw new Error(`Extra keys in response: ${extraKeys.join(', ')}`)
       }
-      
+
       return response
     })
   }
@@ -305,10 +299,10 @@ export function createMockRequest(
   body: any = null,
   headers: Record<string, string> = {},
   url: string = '/api/test',
-  cookies: Record<string, string> = {}
+  cookies: Record<string, string> = {},
 ): Request {
   const fullUrl = url.startsWith('http') ? url : `http://localhost${url}`
-  
+
   return new Request(fullUrl, {
     method,
     headers: {
@@ -322,10 +316,10 @@ export function createMockRequest(
 export function createMockEvent(
   request: Request,
   params: Record<string, string> = {},
-  locals: Record<string, any> = {}
+  locals: Record<string, any> = {},
 ) {
   const url = new URL(request.url)
-  
+
   return {
     request,
     url,
@@ -336,9 +330,7 @@ export function createMockEvent(
       get: vi.fn((name: string) => {
         const cookieHeader = request.headers.get('cookie')
         if (!cookieHeader) return undefined
-        const cookies = Object.fromEntries(
-          cookieHeader.split(';').map(c => c.trim().split('='))
-        )
+        const cookies = Object.fromEntries(cookieHeader.split(';').map((c) => c.trim().split('=')))
         return cookies[name]
       }),
       set: vi.fn(),

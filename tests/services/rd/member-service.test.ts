@@ -326,9 +326,12 @@ describe('member.service', () => {
 
       await memberService.deleteMember(memberId)
 
-      expect(mockFetch).toHaveBeenCalledWith(`/api/research-development/project-members/${memberId}`, {
-        method: 'DELETE',
-      })
+      expect(mockFetch).toHaveBeenCalledWith(
+        `/api/research-development/project-members/${memberId}`,
+        {
+          method: 'DELETE',
+        },
+      )
     })
 
     it('should handle deletion errors', async () => {
@@ -548,7 +551,7 @@ describe('member.service', () => {
         endDate: '2024-12-31',
         participationRate: 85.5,
         isSalaryBased: true,
-        contractualSalary: 12345678.90,
+        contractualSalary: 12345678.9,
         weeklyHours: 34.5,
       }
 

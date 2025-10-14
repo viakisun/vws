@@ -16,18 +16,18 @@ export class MockHelper {
       subscribe: vi.fn((callback: (value: T) => void) => {
         subscribers.add(callback)
         callback(currentValue) // 초기값 즉시 전달
-        
+
         return () => {
           subscribers.delete(callback)
         }
       }),
       set: vi.fn((value: T) => {
         currentValue = value
-        subscribers.forEach(callback => callback(value))
+        subscribers.forEach((callback) => callback(value))
       }),
       update: vi.fn((updater: (value: T) => T) => {
         currentValue = updater(currentValue)
-        subscribers.forEach(callback => callback(currentValue))
+        subscribers.forEach((callback) => callback(currentValue))
       }),
       get: () => currentValue,
     }
@@ -49,7 +49,7 @@ export class MockHelper {
           status: 200,
         }
         callback(pageValue)
-        
+
         return () => {}
       }),
     }
@@ -117,16 +117,16 @@ export class MockHelper {
   static createFileMock(
     name: string = 'test.txt',
     type: string = 'text/plain',
-    content: string = 'test content'
+    content: string = 'test content',
   ) {
     const file = new File([content], name, { type })
-    
+
     // File 객체에 추가 속성 설정
     Object.defineProperty(file, 'size', {
       value: content.length,
       writable: false,
     })
-    
+
     return file
   }
 
@@ -188,12 +188,12 @@ export class MockHelper {
         return array
       }),
     }
-    
+
     Object.defineProperty(global, 'crypto', {
       value: mockCrypto,
       writable: true,
     })
-    
+
     return mockCrypto
   }
 
@@ -202,7 +202,7 @@ export class MockHelper {
    */
   static createLocalStorageMock() {
     const storage: Record<string, string> = {}
-    
+
     const mockLocalStorage = {
       getItem: vi.fn((key: string) => storage[key] || null),
       setItem: vi.fn((key: string, value: string) => {
@@ -212,21 +212,21 @@ export class MockHelper {
         delete storage[key]
       }),
       clear: vi.fn(() => {
-        Object.keys(storage).forEach(key => delete storage[key])
+        Object.keys(storage).forEach((key) => delete storage[key])
       }),
       length: 0,
       key: vi.fn((index: number) => Object.keys(storage)[index] || null),
     }
-    
+
     Object.defineProperty(mockLocalStorage, 'length', {
       get: () => Object.keys(storage).length,
     })
-    
+
     Object.defineProperty(global, 'localStorage', {
       value: mockLocalStorage,
       writable: true,
     })
-    
+
     return mockLocalStorage
   }
 
@@ -235,7 +235,7 @@ export class MockHelper {
    */
   static createSessionStorageMock() {
     const storage: Record<string, string> = {}
-    
+
     const mockSessionStorage = {
       getItem: vi.fn((key: string) => storage[key] || null),
       setItem: vi.fn((key: string, value: string) => {
@@ -245,21 +245,21 @@ export class MockHelper {
         delete storage[key]
       }),
       clear: vi.fn(() => {
-        Object.keys(storage).forEach(key => delete storage[key])
+        Object.keys(storage).forEach((key) => delete storage[key])
       }),
       length: 0,
       key: vi.fn((index: number) => Object.keys(storage)[index] || null),
     }
-    
+
     Object.defineProperty(mockSessionStorage, 'length', {
       get: () => Object.keys(storage).length,
     })
-    
+
     Object.defineProperty(global, 'sessionStorage', {
       value: mockSessionStorage,
       writable: true,
     })
-    
+
     return mockSessionStorage
   }
 
@@ -270,7 +270,7 @@ export class MockHelper {
     const mockFetch = vi.fn((url: string, options?: any) => {
       const responseKey = url.split('?')[0] // 쿼리 파라미터 제거
       const response = responses[responseKey] || responses['*'] || { status: 200, data: {} }
-      
+
       return Promise.resolve({
         ok: response.status >= 200 && response.status < 300,
         status: response.status || 200,
@@ -282,12 +282,12 @@ export class MockHelper {
         arrayBuffer: () => Promise.resolve(new ArrayBuffer(0)),
       })
     })
-    
+
     Object.defineProperty(global, 'fetch', {
       value: mockFetch,
       writable: true,
     })
-    
+
     return mockFetch
   }
 
@@ -311,7 +311,7 @@ export class MockHelper {
       removeEventListener: vi.fn(),
       dispatchEvent: vi.fn(),
     }
-    
+
     return mockWebSocket
   }
 
@@ -323,12 +323,12 @@ export class MockHelper {
       requestPermission: vi.fn(() => Promise.resolve('granted')),
       permission: 'granted',
     }
-    
+
     Object.defineProperty(global, 'Notification', {
       value: mockNotification,
       writable: true,
     })
-    
+
     return mockNotification
   }
 
@@ -342,12 +342,12 @@ export class MockHelper {
       unobserve: vi.fn(),
       disconnect: vi.fn(),
     })
-    
+
     Object.defineProperty(global, 'IntersectionObserver', {
       value: mockIntersectionObserver,
       writable: true,
     })
-    
+
     return mockIntersectionObserver
   }
 
@@ -361,12 +361,12 @@ export class MockHelper {
       unobserve: vi.fn(),
       disconnect: vi.fn(),
     })
-    
+
     Object.defineProperty(global, 'ResizeObserver', {
       value: mockResizeObserver,
       writable: true,
     })
-    
+
     return mockResizeObserver
   }
 

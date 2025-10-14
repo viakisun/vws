@@ -438,7 +438,7 @@ export const CRM_FIXTURES = {
  * 테스트용 배열 데이터 생성 헬퍼
  */
 export const createTestArrays = {
-  customers: (count: number) => 
+  customers: (count: number) =>
     Array.from({ length: count }, (_, i) => ({
       ...CRM_FIXTURES.customers.valid,
       id: `customer-${i + 1}`,
@@ -446,7 +446,7 @@ export const createTestArrays = {
       business_number: `123-45-6789${i}`,
     })),
 
-  contracts: (count: number) => 
+  contracts: (count: number) =>
     Array.from({ length: count }, (_, i) => ({
       ...CRM_FIXTURES.contracts.revenue,
       id: `contract-${i + 1}`,
@@ -455,7 +455,7 @@ export const createTestArrays = {
       total_amount: 10000000 * (i + 1),
     })),
 
-  opportunities: (count: number) => 
+  opportunities: (count: number) =>
     Array.from({ length: count }, (_, i) => ({
       ...CRM_FIXTURES.opportunities.open,
       id: `opportunity-${i + 1}`,

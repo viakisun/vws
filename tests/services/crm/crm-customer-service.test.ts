@@ -1,10 +1,10 @@
 import {
-    createCustomer,
-    deleteCustomer,
-    loadCustomer,
-    loadCustomers,
-    updateCustomer,
-    type CustomerFormData,
+  createCustomer,
+  deleteCustomer,
+  loadCustomer,
+  loadCustomers,
+  updateCustomer,
+  type CustomerFormData,
 } from '$lib/crm/services/crm-customer-service'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { mockLogger } from '../../helpers/mock-helper'
@@ -38,10 +38,11 @@ describe('CRM Customer Service', () => {
       ]
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: true,
-          data: mockCustomers,
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: mockCustomers,
+          }),
       } as Response)
 
       const result = await loadCustomers()
@@ -62,10 +63,11 @@ describe('CRM Customer Service', () => {
       ]
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: true,
-          data: mockCustomers,
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: mockCustomers,
+          }),
       } as Response)
 
       const result = await loadCustomers({ type: 'customer' })
@@ -86,10 +88,11 @@ describe('CRM Customer Service', () => {
       ]
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: true,
-          data: mockCustomers,
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: mockCustomers,
+          }),
       } as Response)
 
       const result = await loadCustomers({ status: 'active' })
@@ -110,10 +113,11 @@ describe('CRM Customer Service', () => {
       ]
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: true,
-          data: mockCustomers,
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: mockCustomers,
+          }),
       } as Response)
 
       const result = await loadCustomers({ search: '테스트' })
@@ -134,10 +138,11 @@ describe('CRM Customer Service', () => {
       ]
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: true,
-          data: mockCustomers,
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: mockCustomers,
+          }),
       } as Response)
 
       const result = await loadCustomers({
@@ -148,7 +153,9 @@ describe('CRM Customer Service', () => {
 
       expect(result.success).toBe(true)
       expect(result.data).toEqual(mockCustomers)
-      expect(fetch).toHaveBeenCalledWith('/api/crm/customers?type=customer&status=active&search=%ED%85%8C%EC%8A%A4%ED%8A%B8')
+      expect(fetch).toHaveBeenCalledWith(
+        '/api/crm/customers?type=customer&status=active&search=%ED%85%8C%EC%8A%A4%ED%8A%B8',
+      )
     })
 
     it('API 오류 시 에러를 반환해야 함', async () => {
@@ -162,10 +169,11 @@ describe('CRM Customer Service', () => {
 
     it('API 응답 오류 시 에러를 반환해야 함', async () => {
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: false,
-          error: 'Database connection failed',
-        }),
+        json: () =>
+          Promise.resolve({
+            success: false,
+            error: 'Database connection failed',
+          }),
       } as Response)
 
       const result = await loadCustomers()
@@ -186,10 +194,11 @@ describe('CRM Customer Service', () => {
       }
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: true,
-          data: mockCustomer,
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: mockCustomer,
+          }),
       } as Response)
 
       const result = await loadCustomer('customer-1')
@@ -201,10 +210,11 @@ describe('CRM Customer Service', () => {
 
     it('존재하지 않는 고객 조회 시 에러를 반환해야 함', async () => {
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: false,
-          error: 'Customer not found',
-        }),
+        json: () =>
+          Promise.resolve({
+            success: false,
+            error: 'Customer not found',
+          }),
       } as Response)
 
       const result = await loadCustomer('non-existent')
@@ -244,10 +254,11 @@ describe('CRM Customer Service', () => {
       }
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: true,
-          data: mockCreatedCustomer,
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: mockCreatedCustomer,
+          }),
       } as Response)
 
       const result = await createCustomer(customerData)
@@ -288,10 +299,11 @@ describe('CRM Customer Service', () => {
       }
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: true,
-          data: mockCreatedCustomer,
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: mockCreatedCustomer,
+          }),
       } as Response)
 
       const result = await createCustomer(customerData)
@@ -308,10 +320,11 @@ describe('CRM Customer Service', () => {
       }
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: false,
-          error: 'Business number already exists',
-        }),
+        json: () =>
+          Promise.resolve({
+            success: false,
+            error: 'Business number already exists',
+          }),
       } as Response)
 
       const result = await createCustomer(customerData)
@@ -355,10 +368,11 @@ describe('CRM Customer Service', () => {
       }
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: true,
-          data: mockUpdatedCustomer,
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: mockUpdatedCustomer,
+          }),
       } as Response)
 
       const result = await updateCustomer(customerId, updateData)
@@ -382,10 +396,11 @@ describe('CRM Customer Service', () => {
       }
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: false,
-          error: 'Customer not found',
-        }),
+        json: () =>
+          Promise.resolve({
+            success: false,
+            error: 'Customer not found',
+          }),
       } as Response)
 
       const result = await updateCustomer(customerId, updateData)
@@ -416,9 +431,10 @@ describe('CRM Customer Service', () => {
       const customerId = 'customer-1'
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: true,
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+          }),
       } as Response)
 
       const result = await deleteCustomer(customerId)
@@ -434,10 +450,11 @@ describe('CRM Customer Service', () => {
       const customerId = 'non-existent'
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: false,
-          error: 'Customer not found',
-        }),
+        json: () =>
+          Promise.resolve({
+            success: false,
+            error: 'Customer not found',
+          }),
       } as Response)
 
       const result = await deleteCustomer(customerId)
@@ -478,27 +495,31 @@ describe('CRM Customer Service', () => {
 
       vi.mocked(fetch)
         .mockResolvedValueOnce({
-          json: () => Promise.resolve({
-            success: true,
-            data: mockCreatedCustomer,
-          }),
+          json: () =>
+            Promise.resolve({
+              success: true,
+              data: mockCreatedCustomer,
+            }),
         } as Response)
         .mockResolvedValueOnce({
-          json: () => Promise.resolve({
-            success: true,
-            data: mockCreatedCustomer,
-          }),
+          json: () =>
+            Promise.resolve({
+              success: true,
+              data: mockCreatedCustomer,
+            }),
         } as Response)
         .mockResolvedValueOnce({
-          json: () => Promise.resolve({
-            success: true,
-            data: { ...mockCreatedCustomer, name: '수정된 CRUD 고객사' },
-          }),
+          json: () =>
+            Promise.resolve({
+              success: true,
+              data: { ...mockCreatedCustomer, name: '수정된 CRUD 고객사' },
+            }),
         } as Response)
         .mockResolvedValueOnce({
-          json: () => Promise.resolve({
-            success: true,
-          }),
+          json: () =>
+            Promise.resolve({
+              success: true,
+            }),
         } as Response)
 
       // Create
@@ -550,10 +571,11 @@ describe('CRM Customer Service', () => {
       }
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: true,
-          data: mockOcrCustomer,
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: mockOcrCustomer,
+          }),
       } as Response)
 
       const result = await createCustomer(ocrData)

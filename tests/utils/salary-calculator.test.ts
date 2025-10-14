@@ -1,8 +1,8 @@
 import {
-    calculateBudgetAllocation,
-    calculateMonthlyFromAnnual,
-    calculateMonthlySalary,
-    normalizeSalaryAmount,
+  calculateBudgetAllocation,
+  calculateMonthlyFromAnnual,
+  calculateMonthlySalary,
+  normalizeSalaryAmount,
 } from '$lib/utils/salary-calculator'
 import { describe, expect, it } from 'vitest'
 
@@ -56,7 +56,7 @@ describe('Salary Calculator Utils', () => {
       const result1 = calculateMonthlySalary(NaN, 100)
       const result2 = calculateMonthlySalary(60000000, NaN)
       const result3 = calculateMonthlySalary(NaN, NaN)
-      
+
       expect(result1).toBe(0)
       expect(result2).toBe(0)
       expect(result3).toBe(0)
@@ -66,7 +66,7 @@ describe('Salary Calculator Utils', () => {
       const result1 = calculateMonthlySalary(null as any, 100)
       const result2 = calculateMonthlySalary(60000000, null as any)
       const result3 = calculateMonthlySalary(null as any, null as any)
-      
+
       expect(result1).toBe(0)
       expect(result2).toBe(0)
       expect(result3).toBe(0)
@@ -76,7 +76,7 @@ describe('Salary Calculator Utils', () => {
       const result1 = calculateMonthlySalary(undefined as any, 100)
       const result2 = calculateMonthlySalary(60000000, undefined as any)
       const result3 = calculateMonthlySalary(undefined as any, undefined as any)
-      
+
       expect(result1).toBe(0)
       expect(result2).toBe(0)
       expect(result3).toBe(0)
@@ -195,7 +195,7 @@ describe('Salary Calculator Utils', () => {
       const result1 = calculateBudgetAllocation(NaN, 50)
       const result2 = calculateBudgetAllocation(100000000, NaN)
       const result3 = calculateBudgetAllocation(NaN, NaN)
-      
+
       expect(result1).toBe(0)
       expect(result2).toBe(0)
       expect(result3).toBe(0)
@@ -205,7 +205,7 @@ describe('Salary Calculator Utils', () => {
       const result1 = calculateBudgetAllocation(null as any, 50)
       const result2 = calculateBudgetAllocation(100000000, null as any)
       const result3 = calculateBudgetAllocation(null as any, null as any)
-      
+
       expect(result1).toBe(0)
       expect(result2).toBe(0)
       expect(result3).toBe(0)
@@ -215,7 +215,7 @@ describe('Salary Calculator Utils', () => {
       const result1 = calculateBudgetAllocation(undefined as any, 50)
       const result2 = calculateBudgetAllocation(100000000, undefined as any)
       const result3 = calculateBudgetAllocation(undefined as any, undefined as any)
-      
+
       expect(result1).toBe(0)
       expect(result2).toBe(0)
       expect(result3).toBe(0)
@@ -296,14 +296,14 @@ describe('Salary Calculator Utils', () => {
       // 1. 연봉 6천만원, 참여율 80%인 직원의 월급 계산
       const annualSalary = 60000000
       const participationRate = 80
-      
+
       const monthlySalary = calculateMonthlySalary(annualSalary, participationRate)
       expect(monthlySalary).toBe(4000000) // 60,000,000 * 80% / 12 = 4,000,000
-      
+
       // 2. 정규화 확인
       const normalizedSalary = normalizeSalaryAmount(monthlySalary)
       expect(normalizedSalary).toBe(4000000)
-      
+
       // 3. 전체 연봉 기준 월급과 비교
       const fullTimeMonthly = calculateMonthlyFromAnnual(annualSalary)
       expect(fullTimeMonthly).toBe(5000000) // 60,000,000 / 12 = 5,000,000
@@ -311,22 +311,22 @@ describe('Salary Calculator Utils', () => {
 
     it('예산 배분과 급여 계산이 일관되게 작동해야 함', () => {
       const totalBudget = 120000000 // 1억 2천만원
-      
+
       // 인건비 60% 배분
       const personnelBudget = calculateBudgetAllocation(totalBudget, 60)
       expect(personnelBudget).toBe(72000000)
-      
+
       // 인건비를 2명의 직원에게 50:50 배분
       const employee1Salary = calculateBudgetAllocation(personnelBudget, 50)
       const employee2Salary = calculateBudgetAllocation(personnelBudget, 50)
-      
+
       expect(employee1Salary).toBe(36000000)
       expect(employee2Salary).toBe(36000000)
-      
+
       // 각 직원의 월급 계산 (참여율 100%)
       const employee1Monthly = calculateMonthlySalary(employee1Salary, 100)
       const employee2Monthly = calculateMonthlySalary(employee2Salary, 100)
-      
+
       expect(employee1Monthly).toBe(3000000) // 36,000,000 / 12 = 3,000,000
       expect(employee2Monthly).toBe(3000000)
     })
@@ -334,30 +334,30 @@ describe('Salary Calculator Utils', () => {
     it('복잡한 시나리오를 올바르게 처리해야 함', () => {
       // 프로젝트 예산 5억원
       const projectBudget = 500000000
-      
+
       // 인건비 40%, 재료비 30%, 기타 30% 배분
       const personnelBudget = calculateBudgetAllocation(projectBudget, 40)
       const materialBudget = calculateBudgetAllocation(projectBudget, 30)
       const otherBudget = calculateBudgetAllocation(projectBudget, 30)
-      
+
       expect(personnelBudget).toBe(200000000) // 5억 * 40% = 2억
       expect(materialBudget).toBe(150000000) // 5억 * 30% = 1.5억
-      expect(otherBudget).toBe(150000000)    // 5억 * 30% = 1.5억
-      
+      expect(otherBudget).toBe(150000000) // 5억 * 30% = 1.5억
+
       // 인건비를 3명의 직원에게 40%, 35%, 25% 배분
       const salary1 = calculateBudgetAllocation(personnelBudget, 40)
       const salary2 = calculateBudgetAllocation(personnelBudget, 35)
       const salary3 = calculateBudgetAllocation(personnelBudget, 25)
-      
-      expect(salary1).toBe(80000000)  // 2억 * 40% = 8천만
-      expect(salary2).toBe(70000000)  // 2억 * 35% = 7천만
-      expect(salary3).toBe(50000000)  // 2억 * 25% = 5천만
-      
+
+      expect(salary1).toBe(80000000) // 2억 * 40% = 8천만
+      expect(salary2).toBe(70000000) // 2억 * 35% = 7천만
+      expect(salary3).toBe(50000000) // 2억 * 25% = 5천만
+
       // 각 직원의 월급 계산 (참여율 100%)
       const monthly1 = calculateMonthlySalary(salary1, 100)
       const monthly2 = calculateMonthlySalary(salary2, 100)
       const monthly3 = calculateMonthlySalary(salary3, 100)
-      
+
       expect(monthly1).toBe(6666666) // 80,000,000 / 12 = 6,666,666.666... → 6,666,666
       expect(monthly2).toBe(5833333) // 70,000,000 / 12 = 5,833,333.333... → 5,833,333
       expect(monthly3).toBe(4166666) // 50,000,000 / 12 = 4,166,666.666... → 4,166,666
@@ -367,11 +367,11 @@ describe('Salary Calculator Utils', () => {
       // 매우 작은 금액들
       expect(calculateMonthlySalary(1000, 1)).toBe(0) // 1000 * 1% / 12 = 0.083... → 0
       expect(calculateBudgetAllocation(1000, 0.1)).toBe(1) // 1000 * 0.1% = 1
-      
+
       // 매우 큰 금액들
       expect(calculateMonthlySalary(10000000000, 100)).toBe(833333333) // 100억 / 12
       expect(calculateBudgetAllocation(10000000000, 50)).toBe(5000000000) // 100억 * 50%
-      
+
       // 소수점이 많이 발생하는 경우
       expect(calculateMonthlySalary(1000000, 33.333333)).toBe(27777) // 1,000,000 * 33.333333% / 12 = 27,777.777... → 27,777
       expect(calculateBudgetAllocation(1000000, 33.333333)).toBe(333333) // 1,000,000 * 33.333333% = 333,333.333... → 333,333

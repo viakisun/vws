@@ -334,7 +334,7 @@ export const setupRdEvidenceMocks = {
 
   // 증빙 자료 목록 조회
   evidenceList: (projectId: string, documents: any[] = []) => {
-    const objects = documents.map(doc => ({
+    const objects = documents.map((doc) => ({
       Key: `rd/projects/${projectId}/evidence/${doc.id}/${doc.filename}`,
       Size: doc.size,
       LastModified: new Date(doc.uploadedAt),
@@ -419,7 +419,7 @@ export const resetS3Mocks = () => {
   mockS3Client.headObject.mockClear()
   mockS3Client.listObjectsV2.mockClear()
 
-  Object.values(mockS3Commands).forEach(command => {
+  Object.values(mockS3Commands).forEach((command) => {
     command.mockClear()
   })
 
@@ -452,7 +452,7 @@ export const verifyS3Mocks = {
   // 특정 버킷에 대한 작업이 수행되었는지 확인
   wasBucketAccessed: (bucketName: string) => {
     const calls = mockS3Client.send.mock.calls
-    return calls.some(call => {
+    return calls.some((call) => {
       const command = call[0]
       return command.params && command.params.Bucket === bucketName
     })
@@ -461,7 +461,7 @@ export const verifyS3Mocks = {
   // 특정 키에 대한 작업이 수행되었는지 확인
   wasKeyAccessed: (key: string) => {
     const calls = mockS3Client.send.mock.calls
-    return calls.some(call => {
+    return calls.some((call) => {
       const command = call[0]
       return command.params && command.params.Key === key
     })

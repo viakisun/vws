@@ -45,7 +45,7 @@ export const CUSTOMER_COLUMNS = [
 /**
  * INSERT/UPDATE에서 사용할 컬럼 리스트 (created_at, updated_at 제외)
  */
-const INSERT_UPDATE_COLUMNS = [
+export const INSERT_UPDATE_COLUMNS = [
   'name',
   'type',
   'business_number',

@@ -44,25 +44,41 @@ describe('CRM Stats API', () => {
         rowCount: 1,
       })
 
-      DBHelper.mockQueryResponse('SELECT COALESCE(SUM(total_amount), 0) as sum FROM crm_contracts', {
-        rows: [{ sum: mockStats.expectedRevenueThisMonth }],
-        rowCount: 1,
-      })
+      DBHelper.mockQueryResponse(
+        'SELECT COALESCE(SUM(total_amount), 0) as sum FROM crm_contracts',
+        {
+          rows: [{ sum: mockStats.expectedRevenueThisMonth }],
+          rowCount: 1,
+        },
+      )
 
-      DBHelper.mockQueryResponse('SELECT COUNT(*) as count FROM crm_opportunities WHERE status = $1', {
-        rows: [{ count: mockStats.openOpportunities }],
-        rowCount: 1,
-      })
+      DBHelper.mockQueryResponse(
+        'SELECT COUNT(*) as count FROM crm_opportunities WHERE status = $1',
+        {
+          rows: [{ count: mockStats.openOpportunities }],
+          rowCount: 1,
+        },
+      )
 
       const request = createMockRequest('GET', {})
       const event = createMockEvent(request)
 
       mockGET.mockImplementation(async ({ request }) => {
         // Simulate the stats calculation logic
-        const customerCount = await DBHelper.getMockQuery()('SELECT COUNT(*) as count FROM crm_customers')
-        const activeContracts = await DBHelper.getMockQuery()('SELECT COUNT(*) as count FROM crm_contracts WHERE status = $1', ['active'])
-        const expectedRevenue = await DBHelper.getMockQuery()('SELECT COALESCE(SUM(total_amount), 0) as sum FROM crm_contracts')
-        const openOpportunities = await DBHelper.getMockQuery()('SELECT COUNT(*) as count FROM crm_opportunities WHERE status = $1', ['open'])
+        const customerCount = await DBHelper.getMockQuery()(
+          'SELECT COUNT(*) as count FROM crm_customers',
+        )
+        const activeContracts = await DBHelper.getMockQuery()(
+          'SELECT COUNT(*) as count FROM crm_contracts WHERE status = $1',
+          ['active'],
+        )
+        const expectedRevenue = await DBHelper.getMockQuery()(
+          'SELECT COALESCE(SUM(total_amount), 0) as sum FROM crm_contracts',
+        )
+        const openOpportunities = await DBHelper.getMockQuery()(
+          'SELECT COUNT(*) as count FROM crm_opportunities WHERE status = $1',
+          ['open'],
+        )
 
         const stats = mockCrmStats
 
@@ -72,7 +88,17 @@ describe('CRM Stats API', () => {
         })
       })
 
-      const response = await mockGET({ request, url: event.url, params: {}, locals: event.locals, route: event.route, cookies: event.cookies, fetch: event.fetch, getClientAddress: event.getClientAddress, platform: event.platform })
+      const response = await mockGET({
+        request,
+        url: event.url,
+        params: {},
+        locals: event.locals,
+        route: event.route,
+        cookies: event.cookies,
+        fetch: event.fetch,
+        getClientAddress: event.getClientAddress,
+        platform: event.platform,
+      })
       const responseBody = await getJsonResponseBody(response)
 
       expect(response.status).toBe(200)
@@ -94,14 +120,27 @@ describe('CRM Stats API', () => {
             headers: { 'Content-Type': 'application/json' },
           })
         } catch (error) {
-          return new Response(JSON.stringify({ success: false, error: 'Failed to fetch CRM stats' }), {
-            status: 500,
-            headers: { 'Content-Type': 'application/json' },
-          })
+          return new Response(
+            JSON.stringify({ success: false, error: 'Failed to fetch CRM stats' }),
+            {
+              status: 500,
+              headers: { 'Content-Type': 'application/json' },
+            },
+          )
         }
       })
 
-      const response = await mockGET({ request, url: event.url, params: {}, locals: event.locals, route: event.route, cookies: event.cookies, fetch: event.fetch, getClientAddress: event.getClientAddress, platform: event.platform })
+      const response = await mockGET({
+        request,
+        url: event.url,
+        params: {},
+        locals: event.locals,
+        route: event.route,
+        cookies: event.cookies,
+        fetch: event.fetch,
+        getClientAddress: event.getClientAddress,
+        platform: event.platform,
+      })
       const responseBody = await getJsonResponseBody(response)
 
       expect(response.status).toBe(500)
@@ -130,7 +169,17 @@ describe('CRM Stats API', () => {
         }
       })
 
-      const response = await mockGET({ request, url: event.url, params: {}, locals: event.locals, route: event.route, cookies: event.cookies, fetch: event.fetch, getClientAddress: event.getClientAddress, platform: event.platform })
+      const response = await mockGET({
+        request,
+        url: event.url,
+        params: {},
+        locals: event.locals,
+        route: event.route,
+        cookies: event.cookies,
+        fetch: event.fetch,
+        getClientAddress: event.getClientAddress,
+        platform: event.platform,
+      })
       const responseBody = await getJsonResponseBody(response)
 
       expect(response.status).toBe(401)
@@ -156,24 +205,40 @@ describe('CRM Stats API', () => {
         rowCount: 1,
       })
 
-      DBHelper.mockQueryResponse('SELECT COALESCE(SUM(total_amount), 0) as sum FROM crm_contracts', {
-        rows: [{ sum: 0 }],
-        rowCount: 1,
-      })
+      DBHelper.mockQueryResponse(
+        'SELECT COALESCE(SUM(total_amount), 0) as sum FROM crm_contracts',
+        {
+          rows: [{ sum: 0 }],
+          rowCount: 1,
+        },
+      )
 
-      DBHelper.mockQueryResponse('SELECT COUNT(*) as count FROM crm_opportunities WHERE status = $1', {
-        rows: [{ count: 0 }],
-        rowCount: 1,
-      })
+      DBHelper.mockQueryResponse(
+        'SELECT COUNT(*) as count FROM crm_opportunities WHERE status = $1',
+        {
+          rows: [{ count: 0 }],
+          rowCount: 1,
+        },
+      )
 
       const request = createMockRequest('GET', {})
       const event = createMockEvent(request)
 
       mockGET.mockImplementation(async ({ request }) => {
-        const customerCount = await DBHelper.getMockQuery()('SELECT COUNT(*) as count FROM crm_customers')
-        const activeContracts = await DBHelper.getMockQuery()('SELECT COUNT(*) as count FROM crm_contracts WHERE status = $1', ['active'])
-        const expectedRevenue = await DBHelper.getMockQuery()('SELECT COALESCE(SUM(total_amount), 0) as sum FROM crm_contracts')
-        const openOpportunities = await DBHelper.getMockQuery()('SELECT COUNT(*) as count FROM crm_opportunities WHERE status = $1', ['open'])
+        const customerCount = await DBHelper.getMockQuery()(
+          'SELECT COUNT(*) as count FROM crm_customers',
+        )
+        const activeContracts = await DBHelper.getMockQuery()(
+          'SELECT COUNT(*) as count FROM crm_contracts WHERE status = $1',
+          ['active'],
+        )
+        const expectedRevenue = await DBHelper.getMockQuery()(
+          'SELECT COALESCE(SUM(total_amount), 0) as sum FROM crm_contracts',
+        )
+        const openOpportunities = await DBHelper.getMockQuery()(
+          'SELECT COUNT(*) as count FROM crm_opportunities WHERE status = $1',
+          ['open'],
+        )
 
         const stats = emptyStats
 
@@ -183,7 +248,17 @@ describe('CRM Stats API', () => {
         })
       })
 
-      const response = await mockGET({ request, url: event.url, params: {}, locals: event.locals, route: event.route, cookies: event.cookies, fetch: event.fetch, getClientAddress: event.getClientAddress, platform: event.platform })
+      const response = await mockGET({
+        request,
+        url: event.url,
+        params: {},
+        locals: event.locals,
+        route: event.route,
+        cookies: event.cookies,
+        fetch: event.fetch,
+        getClientAddress: event.getClientAddress,
+        platform: event.platform,
+      })
       const responseBody = await getJsonResponseBody(response)
 
       expect(response.status).toBe(200)
@@ -209,24 +284,40 @@ describe('CRM Stats API', () => {
         rowCount: 1,
       })
 
-      DBHelper.mockQueryResponse('SELECT COALESCE(SUM(total_amount), 0) as sum FROM crm_contracts', {
-        rows: [{ sum: 0 }],
-        rowCount: 1,
-      })
+      DBHelper.mockQueryResponse(
+        'SELECT COALESCE(SUM(total_amount), 0) as sum FROM crm_contracts',
+        {
+          rows: [{ sum: 0 }],
+          rowCount: 1,
+        },
+      )
 
-      DBHelper.mockQueryResponse('SELECT COUNT(*) as count FROM crm_opportunities WHERE status = $1', {
-        rows: [{ count: 0 }],
-        rowCount: 1,
-      })
+      DBHelper.mockQueryResponse(
+        'SELECT COUNT(*) as count FROM crm_opportunities WHERE status = $1',
+        {
+          rows: [{ count: 0 }],
+          rowCount: 1,
+        },
+      )
 
       const request = createMockRequest('GET', {})
       const event = createMockEvent(request)
 
       mockGET.mockImplementation(async ({ request }) => {
-        const customerCount = await DBHelper.getMockQuery()('SELECT COUNT(*) as count FROM crm_customers')
-        const activeContracts = await DBHelper.getMockQuery()('SELECT COUNT(*) as count FROM crm_contracts WHERE status = $1', ['active'])
-        const expectedRevenue = await DBHelper.getMockQuery()('SELECT COALESCE(SUM(total_amount), 0) as sum FROM crm_contracts')
-        const openOpportunities = await DBHelper.getMockQuery()('SELECT COUNT(*) as count FROM crm_opportunities WHERE status = $1', ['open'])
+        const customerCount = await DBHelper.getMockQuery()(
+          'SELECT COUNT(*) as count FROM crm_customers',
+        )
+        const activeContracts = await DBHelper.getMockQuery()(
+          'SELECT COUNT(*) as count FROM crm_contracts WHERE status = $1',
+          ['active'],
+        )
+        const expectedRevenue = await DBHelper.getMockQuery()(
+          'SELECT COALESCE(SUM(total_amount), 0) as sum FROM crm_contracts',
+        )
+        const openOpportunities = await DBHelper.getMockQuery()(
+          'SELECT COUNT(*) as count FROM crm_opportunities WHERE status = $1',
+          ['open'],
+        )
 
         const stats = partialStats
 
@@ -236,7 +327,17 @@ describe('CRM Stats API', () => {
         })
       })
 
-      const response = await mockGET({ request, url: event.url, params: {}, locals: event.locals, route: event.route, cookies: event.cookies, fetch: event.fetch, getClientAddress: event.getClientAddress, platform: event.platform })
+      const response = await mockGET({
+        request,
+        url: event.url,
+        params: {},
+        locals: event.locals,
+        route: event.route,
+        cookies: event.cookies,
+        fetch: event.fetch,
+        getClientAddress: event.getClientAddress,
+        platform: event.platform,
+      })
       const responseBody = await getJsonResponseBody(response)
 
       expect(response.status).toBe(200)
@@ -262,24 +363,40 @@ describe('CRM Stats API', () => {
         rowCount: 1,
       })
 
-      DBHelper.mockQueryResponse('SELECT COALESCE(SUM(total_amount), 0) as sum FROM crm_contracts', {
-        rows: [{ sum: largeStats.expectedRevenueThisMonth }],
-        rowCount: 1,
-      })
+      DBHelper.mockQueryResponse(
+        'SELECT COALESCE(SUM(total_amount), 0) as sum FROM crm_contracts',
+        {
+          rows: [{ sum: largeStats.expectedRevenueThisMonth }],
+          rowCount: 1,
+        },
+      )
 
-      DBHelper.mockQueryResponse('SELECT COUNT(*) as count FROM crm_opportunities WHERE status = $1', {
-        rows: [{ count: largeStats.openOpportunities }],
-        rowCount: 1,
-      })
+      DBHelper.mockQueryResponse(
+        'SELECT COUNT(*) as count FROM crm_opportunities WHERE status = $1',
+        {
+          rows: [{ count: largeStats.openOpportunities }],
+          rowCount: 1,
+        },
+      )
 
       const request = createMockRequest('GET', {})
       const event = createMockEvent(request)
 
       mockGET.mockImplementation(async ({ request }) => {
-        const customerCount = await DBHelper.getMockQuery()('SELECT COUNT(*) as count FROM crm_customers')
-        const activeContracts = await DBHelper.getMockQuery()('SELECT COUNT(*) as count FROM crm_contracts WHERE status = $1', ['active'])
-        const expectedRevenue = await DBHelper.getMockQuery()('SELECT COALESCE(SUM(total_amount), 0) as sum FROM crm_contracts')
-        const openOpportunities = await DBHelper.getMockQuery()('SELECT COUNT(*) as count FROM crm_opportunities WHERE status = $1', ['open'])
+        const customerCount = await DBHelper.getMockQuery()(
+          'SELECT COUNT(*) as count FROM crm_customers',
+        )
+        const activeContracts = await DBHelper.getMockQuery()(
+          'SELECT COUNT(*) as count FROM crm_contracts WHERE status = $1',
+          ['active'],
+        )
+        const expectedRevenue = await DBHelper.getMockQuery()(
+          'SELECT COALESCE(SUM(total_amount), 0) as sum FROM crm_contracts',
+        )
+        const openOpportunities = await DBHelper.getMockQuery()(
+          'SELECT COUNT(*) as count FROM crm_opportunities WHERE status = $1',
+          ['open'],
+        )
 
         const stats = largeStats
 
@@ -289,7 +406,17 @@ describe('CRM Stats API', () => {
         })
       })
 
-      const response = await mockGET({ request, url: event.url, params: {}, locals: event.locals, route: event.route, cookies: event.cookies, fetch: event.fetch, getClientAddress: event.getClientAddress, platform: event.platform })
+      const response = await mockGET({
+        request,
+        url: event.url,
+        params: {},
+        locals: event.locals,
+        route: event.route,
+        cookies: event.cookies,
+        fetch: event.fetch,
+        getClientAddress: event.getClientAddress,
+        platform: event.platform,
+      })
       const responseBody = await getJsonResponseBody(response)
 
       expect(response.status).toBe(200)
@@ -310,24 +437,40 @@ describe('CRM Stats API', () => {
         rowCount: 1,
       })
 
-      DBHelper.mockQueryResponse('SELECT COALESCE(SUM(total_amount), 0) as sum FROM crm_contracts', {
-        rows: [{ sum: null }],
-        rowCount: 1,
-      })
+      DBHelper.mockQueryResponse(
+        'SELECT COALESCE(SUM(total_amount), 0) as sum FROM crm_contracts',
+        {
+          rows: [{ sum: null }],
+          rowCount: 1,
+        },
+      )
 
-      DBHelper.mockQueryResponse('SELECT COUNT(*) as count FROM crm_opportunities WHERE status = $1', {
-        rows: [{ count: null }],
-        rowCount: 1,
-      })
+      DBHelper.mockQueryResponse(
+        'SELECT COUNT(*) as count FROM crm_opportunities WHERE status = $1',
+        {
+          rows: [{ count: null }],
+          rowCount: 1,
+        },
+      )
 
       const request = createMockRequest('GET', {})
       const event = createMockEvent(request)
 
       mockGET.mockImplementation(async ({ request }) => {
-        const customerCount = await DBHelper.getMockQuery()('SELECT COUNT(*) as count FROM crm_customers')
-        const activeContracts = await DBHelper.getMockQuery()('SELECT COUNT(*) as count FROM crm_contracts WHERE status = $1', ['active'])
-        const expectedRevenue = await DBHelper.getMockQuery()('SELECT COALESCE(SUM(total_amount), 0) as sum FROM crm_contracts')
-        const openOpportunities = await DBHelper.getMockQuery()('SELECT COUNT(*) as count FROM crm_opportunities WHERE status = $1', ['open'])
+        const customerCount = await DBHelper.getMockQuery()(
+          'SELECT COUNT(*) as count FROM crm_customers',
+        )
+        const activeContracts = await DBHelper.getMockQuery()(
+          'SELECT COUNT(*) as count FROM crm_contracts WHERE status = $1',
+          ['active'],
+        )
+        const expectedRevenue = await DBHelper.getMockQuery()(
+          'SELECT COALESCE(SUM(total_amount), 0) as sum FROM crm_contracts',
+        )
+        const openOpportunities = await DBHelper.getMockQuery()(
+          'SELECT COUNT(*) as count FROM crm_opportunities WHERE status = $1',
+          ['open'],
+        )
 
         const stats = {
           totalCustomers: customerCount.rows[0]?.count || 0,
@@ -342,7 +485,17 @@ describe('CRM Stats API', () => {
         })
       })
 
-      const response = await mockGET({ request, url: event.url, params: {}, locals: event.locals, route: event.route, cookies: event.cookies, fetch: event.fetch, getClientAddress: event.getClientAddress, platform: event.platform })
+      const response = await mockGET({
+        request,
+        url: event.url,
+        params: {},
+        locals: event.locals,
+        route: event.route,
+        cookies: event.cookies,
+        fetch: event.fetch,
+        getClientAddress: event.getClientAddress,
+        platform: event.platform,
+      })
       const responseBody = await getJsonResponseBody(response)
 
       expect(response.status).toBe(200)
@@ -364,7 +517,9 @@ describe('CRM Stats API', () => {
 
       mockGET.mockImplementation(async ({ request }) => {
         try {
-          const customerCount = await DBHelper.getMockQuery()('SELECT COUNT(*) as count FROM crm_customers')
+          const customerCount = await DBHelper.getMockQuery()(
+            'SELECT COUNT(*) as count FROM crm_customers',
+          )
           if (customerCount.rows.length === 0) {
             throw new Error('No data returned')
           }
@@ -380,7 +535,17 @@ describe('CRM Stats API', () => {
         }
       })
 
-      const response = await mockGET({ request, url: event.url, params: {}, locals: event.locals, route: event.route, cookies: event.cookies, fetch: event.fetch, getClientAddress: event.getClientAddress, platform: event.platform })
+      const response = await mockGET({
+        request,
+        url: event.url,
+        params: {},
+        locals: event.locals,
+        route: event.route,
+        cookies: event.cookies,
+        fetch: event.fetch,
+        getClientAddress: event.getClientAddress,
+        platform: event.platform,
+      })
       const responseBody = await getJsonResponseBody(response)
 
       expect(response.status).toBe(404)

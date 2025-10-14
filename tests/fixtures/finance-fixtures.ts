@@ -165,14 +165,34 @@ export const FINANCE_FIXTURES = {
       { value: 'other_income', label: '기타수익', subcategories: ['refund', 'misc'] },
     ],
     expense: [
-      { value: 'operating', label: '운영비', subcategories: ['office_rent', 'utilities', 'supplies'] },
+      {
+        value: 'operating',
+        label: '운영비',
+        subcategories: ['office_rent', 'utilities', 'supplies'],
+      },
       { value: 'personnel', label: '인건비', subcategories: ['salary', 'benefits', 'training'] },
-      { value: 'marketing', label: '마케팅비', subcategories: ['advertising', 'events', 'promotion'] },
-      { value: 'equipment', label: '장비비', subcategories: ['hardware', 'software', 'maintenance'] },
+      {
+        value: 'marketing',
+        label: '마케팅비',
+        subcategories: ['advertising', 'events', 'promotion'],
+      },
+      {
+        value: 'equipment',
+        label: '장비비',
+        subcategories: ['hardware', 'software', 'maintenance'],
+      },
     ],
     transfer: [
-      { value: 'internal_transfer', label: '내부이체', subcategories: ['account_transfer', 'department_transfer'] },
-      { value: 'external_transfer', label: '외부이체', subcategories: ['vendor_payment', 'loan_payment'] },
+      {
+        value: 'internal_transfer',
+        label: '내부이체',
+        subcategories: ['account_transfer', 'department_transfer'],
+      },
+      {
+        value: 'external_transfer',
+        label: '외부이체',
+        subcategories: ['vendor_payment', 'loan_payment'],
+      },
     ],
   },
 
@@ -397,11 +417,11 @@ export const FINANCE_FIXTURES = {
       },
       invalidAmount: {
         amount: 'invalid-amount',
-        amount: -1000000, // 음수 금액 (수입 거래인데)
+        negativeAmount: -1000000, // 음수 금액 (수입 거래인데)
       },
       invalidDate: {
         transaction_date: 'invalid-date',
-        transaction_date: '2026-01-01', // 미래 날짜
+        futureDate: '2026-01-01', // 미래 날짜
       },
     },
     businessLogic: {
@@ -457,7 +477,7 @@ export const FINANCE_FIXTURES = {
  * 테스트용 배열 데이터 생성 헬퍼
  */
 export const createFinanceTestArrays = {
-  accounts: (count: number) => 
+  accounts: (count: number) =>
     Array.from({ length: count }, (_, i) => ({
       ...FINANCE_FIXTURES.accounts.checking,
       id: `account-${i + 1}`,
@@ -466,7 +486,7 @@ export const createFinanceTestArrays = {
       balance: 10000000 * (i + 1),
     })),
 
-  transactions: (count: number) => 
+  transactions: (count: number) =>
     Array.from({ length: count }, (_, i) => ({
       ...FINANCE_FIXTURES.transactions.income,
       id: `transaction-${i + 1}`,
@@ -476,7 +496,7 @@ export const createFinanceTestArrays = {
       transaction_date: `2025-01-${String(i + 1).padStart(2, '0')}`,
     })),
 
-  alerts: (count: number) => 
+  alerts: (count: number) =>
     Array.from({ length: count }, (_, i) => ({
       ...FINANCE_FIXTURES.dashboard.alerts[0],
       id: `alert-${i + 1}`,

@@ -119,7 +119,9 @@ describe('execution-rate-utils', () => {
 
     it('should handle null and undefined colors', () => {
       expect(executionRateUtils.getExecutionRateTextColorClass(null as any)).toBe('text-gray-600')
-      expect(executionRateUtils.getExecutionRateTextColorClass(undefined as any)).toBe('text-gray-600')
+      expect(executionRateUtils.getExecutionRateTextColorClass(undefined as any)).toBe(
+        'text-gray-600',
+      )
     })
 
     it('should handle special characters in color names', () => {

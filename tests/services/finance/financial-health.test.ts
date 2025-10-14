@@ -20,34 +20,52 @@ describe('Financial Health Analyzer', () => {
         rows: [{ total: '5000000' }],
       })
 
-      DBHelper.mockQueryResponse("SUM(amount) as total FROM finance_transactions WHERE type = 'income'", {
-        rows: [{ total: '2000000' }],
-      })
+      DBHelper.mockQueryResponse(
+        "SUM(amount) as total FROM finance_transactions WHERE type = 'income'",
+        {
+          rows: [{ total: '2000000' }],
+        },
+      )
 
-      DBHelper.mockQueryResponse("SUM(amount) as total FROM finance_transactions WHERE type = 'expense'", {
-        rows: [{ total: '1500000' }],
-      })
+      DBHelper.mockQueryResponse(
+        "SUM(amount) as total FROM finance_transactions WHERE type = 'expense'",
+        {
+          rows: [{ total: '1500000' }],
+        },
+      )
 
-      DBHelper.mockQueryResponse("COUNT(*) as count FROM finance_accounts WHERE status = 'active'", {
-        rows: [{ count: '3' }],
-      })
+      DBHelper.mockQueryResponse(
+        "COUNT(*) as count FROM finance_accounts WHERE status = 'active'",
+        {
+          rows: [{ count: '3' }],
+        },
+      )
 
-      DBHelper.mockQueryResponse("COUNT(*) as count FROM finance_transactions WHERE status = 'completed'", {
-        rows: [{ count: '100' }],
-      })
+      DBHelper.mockQueryResponse(
+        "COUNT(*) as count FROM finance_transactions WHERE status = 'completed'",
+        {
+          rows: [{ count: '100' }],
+        },
+      )
 
-      DBHelper.mockQueryResponse('COUNT(*) as total_budgets, AVG(CASE WHEN actual_amount <= planned_amount THEN 1.0 ELSE 0.0 END) as compliance_rate FROM finance_budgets', {
-        rows: [{ total_budgets: '5', compliance_rate: '0.85' }],
-      })
+      DBHelper.mockQueryResponse(
+        'COUNT(*) as total_budgets, AVG(CASE WHEN actual_amount <= planned_amount THEN 1.0 ELSE 0.0 END) as compliance_rate FROM finance_budgets',
+        {
+          rows: [{ total_budgets: '5', compliance_rate: '0.85' }],
+        },
+      )
 
       DBHelper.mockQueryResponse('SELECT COUNT(*) as count FROM finance_loans', {
         rows: [{ count: '1' }],
       })
 
       // Mock trend analysis
-      DBHelper.mockQueryResponse('SELECT SUM(CASE WHEN type = \'income\' THEN amount ELSE 0 END) as income, SUM(CASE WHEN type = \'expense\' THEN amount ELSE 0 END) as expense, COUNT(*) as transaction_count FROM finance_transactions', {
-        rows: [{ income: '1800000', expense: '1200000', transaction_count: '80' }],
-      })
+      DBHelper.mockQueryResponse(
+        "SELECT SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END) as income, SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END) as expense, COUNT(*) as transaction_count FROM finance_transactions",
+        {
+          rows: [{ income: '1800000', expense: '1200000', transaction_count: '80' }],
+        },
+      )
 
       const result = await analyzer.analyzeFinancialHealth()
 
@@ -69,34 +87,52 @@ describe('Financial Health Analyzer', () => {
         rows: [{ total: '0' }],
       })
 
-      DBHelper.mockQueryResponse("SUM(amount) as total FROM finance_transactions WHERE type = 'income'", {
-        rows: [{ total: '0' }],
-      })
+      DBHelper.mockQueryResponse(
+        "SUM(amount) as total FROM finance_transactions WHERE type = 'income'",
+        {
+          rows: [{ total: '0' }],
+        },
+      )
 
-      DBHelper.mockQueryResponse("SUM(amount) as total FROM finance_transactions WHERE type = 'expense'", {
-        rows: [{ total: '0' }],
-      })
+      DBHelper.mockQueryResponse(
+        "SUM(amount) as total FROM finance_transactions WHERE type = 'expense'",
+        {
+          rows: [{ total: '0' }],
+        },
+      )
 
-      DBHelper.mockQueryResponse("COUNT(*) as count FROM finance_accounts WHERE status = 'active'", {
-        rows: [{ count: '0' }],
-      })
+      DBHelper.mockQueryResponse(
+        "COUNT(*) as count FROM finance_accounts WHERE status = 'active'",
+        {
+          rows: [{ count: '0' }],
+        },
+      )
 
-      DBHelper.mockQueryResponse("COUNT(*) as count FROM finance_transactions WHERE status = 'completed'", {
-        rows: [{ count: '0' }],
-      })
+      DBHelper.mockQueryResponse(
+        "COUNT(*) as count FROM finance_transactions WHERE status = 'completed'",
+        {
+          rows: [{ count: '0' }],
+        },
+      )
 
-      DBHelper.mockQueryResponse('COUNT(*) as total_budgets, AVG(CASE WHEN actual_amount <= planned_amount THEN 1.0 ELSE 0.0 END) as compliance_rate FROM finance_budgets', {
-        rows: [{ total_budgets: '0', compliance_rate: '0' }],
-      })
+      DBHelper.mockQueryResponse(
+        'COUNT(*) as total_budgets, AVG(CASE WHEN actual_amount <= planned_amount THEN 1.0 ELSE 0.0 END) as compliance_rate FROM finance_budgets',
+        {
+          rows: [{ total_budgets: '0', compliance_rate: '0' }],
+        },
+      )
 
       DBHelper.mockQueryResponse('SELECT COUNT(*) as count FROM finance_loans', {
         rows: [{ count: '0' }],
       })
 
       // Mock trend analysis
-      DBHelper.mockQueryResponse('SELECT SUM(CASE WHEN type = \'income\' THEN amount ELSE 0 END) as income, SUM(CASE WHEN type = \'expense\' THEN amount ELSE 0 END) as expense, COUNT(*) as transaction_count FROM finance_transactions', {
-        rows: [{ income: '0', expense: '0', transaction_count: '0' }],
-      })
+      DBHelper.mockQueryResponse(
+        "SELECT SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END) as income, SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END) as expense, COUNT(*) as transaction_count FROM finance_transactions",
+        {
+          rows: [{ income: '0', expense: '0', transaction_count: '0' }],
+        },
+      )
 
       const result = await analyzer.analyzeFinancialHealth()
 
@@ -131,34 +167,52 @@ describe('Financial Health Analyzer', () => {
         rows: [{ total: '20000000' }], // 2천만원
       })
 
-      DBHelper.mockQueryResponse("SUM(amount) as total FROM finance_transactions WHERE type = 'income'", {
-        rows: [{ total: '5000000' }],
-      })
+      DBHelper.mockQueryResponse(
+        "SUM(amount) as total FROM finance_transactions WHERE type = 'income'",
+        {
+          rows: [{ total: '5000000' }],
+        },
+      )
 
-      DBHelper.mockQueryResponse("SUM(amount) as total FROM finance_transactions WHERE type = 'expense'", {
-        rows: [{ total: '1000000' }], // 월 지출 100만원
-      })
+      DBHelper.mockQueryResponse(
+        "SUM(amount) as total FROM finance_transactions WHERE type = 'expense'",
+        {
+          rows: [{ total: '1000000' }], // 월 지출 100만원
+        },
+      )
 
-      DBHelper.mockQueryResponse("COUNT(*) as count FROM finance_accounts WHERE status = 'active'", {
-        rows: [{ count: '5' }],
-      })
+      DBHelper.mockQueryResponse(
+        "COUNT(*) as count FROM finance_accounts WHERE status = 'active'",
+        {
+          rows: [{ count: '5' }],
+        },
+      )
 
-      DBHelper.mockQueryResponse("COUNT(*) as count FROM finance_transactions WHERE status = 'completed'", {
-        rows: [{ count: '200' }],
-      })
+      DBHelper.mockQueryResponse(
+        "COUNT(*) as count FROM finance_transactions WHERE status = 'completed'",
+        {
+          rows: [{ count: '200' }],
+        },
+      )
 
-      DBHelper.mockQueryResponse('COUNT(*) as total_budgets, AVG(CASE WHEN actual_amount <= planned_amount THEN 1.0 ELSE 0.0 END) as compliance_rate FROM finance_budgets', {
-        rows: [{ total_budgets: '10', compliance_rate: '0.95' }],
-      })
+      DBHelper.mockQueryResponse(
+        'COUNT(*) as total_budgets, AVG(CASE WHEN actual_amount <= planned_amount THEN 1.0 ELSE 0.0 END) as compliance_rate FROM finance_budgets',
+        {
+          rows: [{ total_budgets: '10', compliance_rate: '0.95' }],
+        },
+      )
 
       DBHelper.mockQueryResponse('SELECT COUNT(*) as count FROM finance_loans', {
         rows: [{ count: '0' }],
       })
 
       // Mock trend analysis
-      DBHelper.mockQueryResponse('SELECT SUM(CASE WHEN type = \'income\' THEN amount ELSE 0 END) as income, SUM(CASE WHEN type = \'expense\' THEN amount ELSE 0 END) as expense, COUNT(*) as transaction_count FROM finance_transactions', {
-        rows: [{ income: '4500000', expense: '900000', transaction_count: '150' }],
-      })
+      DBHelper.mockQueryResponse(
+        "SELECT SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END) as income, SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END) as expense, COUNT(*) as transaction_count FROM finance_transactions",
+        {
+          rows: [{ income: '4500000', expense: '900000', transaction_count: '150' }],
+        },
+      )
 
       const result = await analyzer.analyzeFinancialHealth()
 
@@ -167,7 +221,9 @@ describe('Financial Health Analyzer', () => {
       expect(result.categories.stability).toBeGreaterThan(80) // 높은 안정성
       expect(result.categories.growth).toBeGreaterThan(80) // 높은 성장성
       expect(result.overallScore).toBeGreaterThan(80)
-      expect(result.recommendations).toContain('우수한 유동성 상태입니다. 투자 기회를 고려해보세요.')
+      expect(result.recommendations).toContain(
+        '우수한 유동성 상태입니다. 투자 기회를 고려해보세요.',
+      )
       expect(result.recommendations).toContain('수익성이 우수합니다. 사업 확장을 검토해보세요.')
     })
 
@@ -177,34 +233,52 @@ describe('Financial Health Analyzer', () => {
         rows: [{ total: '500000' }], // 50만원
       })
 
-      DBHelper.mockQueryResponse("SUM(amount) as total FROM finance_transactions WHERE type = 'income'", {
-        rows: [{ total: '2000000' }],
-      })
+      DBHelper.mockQueryResponse(
+        "SUM(amount) as total FROM finance_transactions WHERE type = 'income'",
+        {
+          rows: [{ total: '2000000' }],
+        },
+      )
 
-      DBHelper.mockQueryResponse("SUM(amount) as total FROM finance_transactions WHERE type = 'expense'", {
-        rows: [{ total: '2500000' }], // 월 지출 250만원 (수입보다 많음)
-      })
+      DBHelper.mockQueryResponse(
+        "SUM(amount) as total FROM finance_transactions WHERE type = 'expense'",
+        {
+          rows: [{ total: '2500000' }], // 월 지출 250만원 (수입보다 많음)
+        },
+      )
 
-      DBHelper.mockQueryResponse("COUNT(*) as count FROM finance_accounts WHERE status = 'active'", {
-        rows: [{ count: '1' }],
-      })
+      DBHelper.mockQueryResponse(
+        "COUNT(*) as count FROM finance_accounts WHERE status = 'active'",
+        {
+          rows: [{ count: '1' }],
+        },
+      )
 
-      DBHelper.mockQueryResponse("COUNT(*) as count FROM finance_transactions WHERE status = 'completed'", {
-        rows: [{ count: '10' }],
-      })
+      DBHelper.mockQueryResponse(
+        "COUNT(*) as count FROM finance_transactions WHERE status = 'completed'",
+        {
+          rows: [{ count: '10' }],
+        },
+      )
 
-      DBHelper.mockQueryResponse('COUNT(*) as total_budgets, AVG(CASE WHEN actual_amount <= planned_amount THEN 1.0 ELSE 0.0 END) as compliance_rate FROM finance_budgets', {
-        rows: [{ total_budgets: '1', compliance_rate: '0.3' }],
-      })
+      DBHelper.mockQueryResponse(
+        'COUNT(*) as total_budgets, AVG(CASE WHEN actual_amount <= planned_amount THEN 1.0 ELSE 0.0 END) as compliance_rate FROM finance_budgets',
+        {
+          rows: [{ total_budgets: '1', compliance_rate: '0.3' }],
+        },
+      )
 
       DBHelper.mockQueryResponse('SELECT COUNT(*) as count FROM finance_loans', {
         rows: [{ count: '3' }],
       })
 
       // Mock trend analysis
-      DBHelper.mockQueryResponse('SELECT SUM(CASE WHEN type = \'income\' THEN amount ELSE 0 END) as income, SUM(CASE WHEN type = \'expense\' THEN amount ELSE 0 END) as expense, COUNT(*) as transaction_count FROM finance_transactions', {
-        rows: [{ income: '1800000', expense: '2200000', transaction_count: '5' }],
-      })
+      DBHelper.mockQueryResponse(
+        "SELECT SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END) as income, SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END) as expense, COUNT(*) as transaction_count FROM finance_transactions",
+        {
+          rows: [{ income: '1800000', expense: '2200000', transaction_count: '5' }],
+        },
+      )
 
       const result = await analyzer.analyzeFinancialHealth()
 
@@ -229,34 +303,52 @@ describe('Financial Health Analyzer', () => {
         rows: [{ total: '3000000' }], // 300만원
       })
 
-      DBHelper.mockQueryResponse("SUM(amount) as total FROM finance_transactions WHERE type = 'income'", {
-        rows: [{ total: '2000000' }],
-      })
+      DBHelper.mockQueryResponse(
+        "SUM(amount) as total FROM finance_transactions WHERE type = 'income'",
+        {
+          rows: [{ total: '2000000' }],
+        },
+      )
 
-      DBHelper.mockQueryResponse("SUM(amount) as total FROM finance_transactions WHERE type = 'expense'", {
-        rows: [{ total: '1800000' }], // 월 지출 180만원
-      })
+      DBHelper.mockQueryResponse(
+        "SUM(amount) as total FROM finance_transactions WHERE type = 'expense'",
+        {
+          rows: [{ total: '1800000' }], // 월 지출 180만원
+        },
+      )
 
-      DBHelper.mockQueryResponse("COUNT(*) as count FROM finance_accounts WHERE status = 'active'", {
-        rows: [{ count: '3' }],
-      })
+      DBHelper.mockQueryResponse(
+        "COUNT(*) as count FROM finance_accounts WHERE status = 'active'",
+        {
+          rows: [{ count: '3' }],
+        },
+      )
 
-      DBHelper.mockQueryResponse("COUNT(*) as count FROM finance_transactions WHERE status = 'completed'", {
-        rows: [{ count: '50' }],
-      })
+      DBHelper.mockQueryResponse(
+        "COUNT(*) as count FROM finance_transactions WHERE status = 'completed'",
+        {
+          rows: [{ count: '50' }],
+        },
+      )
 
-      DBHelper.mockQueryResponse('COUNT(*) as total_budgets, AVG(CASE WHEN actual_amount <= planned_amount THEN 1.0 ELSE 0.0 END) as compliance_rate FROM finance_budgets', {
-        rows: [{ total_budgets: '5', compliance_rate: '0.75' }],
-      })
+      DBHelper.mockQueryResponse(
+        'COUNT(*) as total_budgets, AVG(CASE WHEN actual_amount <= planned_amount THEN 1.0 ELSE 0.0 END) as compliance_rate FROM finance_budgets',
+        {
+          rows: [{ total_budgets: '5', compliance_rate: '0.75' }],
+        },
+      )
 
       DBHelper.mockQueryResponse('SELECT COUNT(*) as count FROM finance_loans', {
         rows: [{ count: '1' }],
       })
 
       // Mock trend analysis
-      DBHelper.mockQueryResponse('SELECT SUM(CASE WHEN type = \'income\' THEN amount ELSE 0 END) as income, SUM(CASE WHEN type = \'expense\' THEN amount ELSE 0 END) as expense, COUNT(*) as transaction_count FROM finance_transactions', {
-        rows: [{ income: '1900000', expense: '1700000', transaction_count: '40' }],
-      })
+      DBHelper.mockQueryResponse(
+        "SELECT SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END) as income, SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END) as expense, COUNT(*) as transaction_count FROM finance_transactions",
+        {
+          rows: [{ income: '1900000', expense: '1700000', transaction_count: '40' }],
+        },
+      )
 
       const result = await analyzer.analyzeFinancialHealth()
 
@@ -278,34 +370,52 @@ describe('Financial Health Analyzer', () => {
         rows: [{ total: '8000000' }],
       })
 
-      DBHelper.mockQueryResponse("SUM(amount) as total FROM finance_transactions WHERE type = 'income'", {
-        rows: [{ total: '3000000' }],
-      })
+      DBHelper.mockQueryResponse(
+        "SUM(amount) as total FROM finance_transactions WHERE type = 'income'",
+        {
+          rows: [{ total: '3000000' }],
+        },
+      )
 
-      DBHelper.mockQueryResponse("SUM(amount) as total FROM finance_transactions WHERE type = 'expense'", {
-        rows: [{ total: '2000000' }],
-      })
+      DBHelper.mockQueryResponse(
+        "SUM(amount) as total FROM finance_transactions WHERE type = 'expense'",
+        {
+          rows: [{ total: '2000000' }],
+        },
+      )
 
-      DBHelper.mockQueryResponse("COUNT(*) as count FROM finance_accounts WHERE status = 'active'", {
-        rows: [{ count: '4' }],
-      })
+      DBHelper.mockQueryResponse(
+        "COUNT(*) as count FROM finance_accounts WHERE status = 'active'",
+        {
+          rows: [{ count: '4' }],
+        },
+      )
 
-      DBHelper.mockQueryResponse("COUNT(*) as count FROM finance_transactions WHERE status = 'completed'", {
-        rows: [{ count: '150' }],
-      })
+      DBHelper.mockQueryResponse(
+        "COUNT(*) as count FROM finance_transactions WHERE status = 'completed'",
+        {
+          rows: [{ count: '150' }],
+        },
+      )
 
-      DBHelper.mockQueryResponse('COUNT(*) as total_budgets, AVG(CASE WHEN actual_amount <= planned_amount THEN 1.0 ELSE 0.0 END) as compliance_rate FROM finance_budgets', {
-        rows: [{ total_budgets: '8', compliance_rate: '0.88' }],
-      })
+      DBHelper.mockQueryResponse(
+        'COUNT(*) as total_budgets, AVG(CASE WHEN actual_amount <= planned_amount THEN 1.0 ELSE 0.0 END) as compliance_rate FROM finance_budgets',
+        {
+          rows: [{ total_budgets: '8', compliance_rate: '0.88' }],
+        },
+      )
 
       DBHelper.mockQueryResponse('SELECT COUNT(*) as count FROM finance_loans', {
         rows: [{ count: '1' }],
       })
 
       // Mock trend analysis
-      DBHelper.mockQueryResponse('SELECT SUM(CASE WHEN type = \'income\' THEN amount ELSE 0 END) as income, SUM(CASE WHEN type = \'expense\' THEN amount ELSE 0 END) as expense, COUNT(*) as transaction_count FROM finance_transactions', {
-        rows: [{ income: '2800000', expense: '1900000', transaction_count: '120' }],
-      })
+      DBHelper.mockQueryResponse(
+        "SELECT SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END) as income, SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END) as expense, COUNT(*) as transaction_count FROM finance_transactions",
+        {
+          rows: [{ income: '2800000', expense: '1900000', transaction_count: '120' }],
+        },
+      )
 
       const result = await analyzer.analyzeFinancialHealth()
 
@@ -402,34 +512,63 @@ describe('Financial Health Analyzer', () => {
           rows: [{ total: scenario.balance.toString() }],
         })
 
-        DBHelper.mockQueryResponse("SUM(amount) as total FROM finance_transactions WHERE type = 'income'", {
-          rows: [{ total: scenario.income.toString() }],
-        })
+        DBHelper.mockQueryResponse(
+          "SUM(amount) as total FROM finance_transactions WHERE type = 'income'",
+          {
+            rows: [{ total: scenario.income.toString() }],
+          },
+        )
 
-        DBHelper.mockQueryResponse("SUM(amount) as total FROM finance_transactions WHERE type = 'expense'", {
-          rows: [{ total: scenario.expense.toString() }],
-        })
+        DBHelper.mockQueryResponse(
+          "SUM(amount) as total FROM finance_transactions WHERE type = 'expense'",
+          {
+            rows: [{ total: scenario.expense.toString() }],
+          },
+        )
 
-        DBHelper.mockQueryResponse("COUNT(*) as count FROM finance_accounts WHERE status = 'active'", {
-          rows: [{ count: scenario.accounts.toString() }],
-        })
+        DBHelper.mockQueryResponse(
+          "COUNT(*) as count FROM finance_accounts WHERE status = 'active'",
+          {
+            rows: [{ count: scenario.accounts.toString() }],
+          },
+        )
 
-        DBHelper.mockQueryResponse("COUNT(*) as count FROM finance_transactions WHERE status = 'completed'", {
-          rows: [{ count: scenario.transactions.toString() }],
-        })
+        DBHelper.mockQueryResponse(
+          "COUNT(*) as count FROM finance_transactions WHERE status = 'completed'",
+          {
+            rows: [{ count: scenario.transactions.toString() }],
+          },
+        )
 
-        DBHelper.mockQueryResponse('COUNT(*) as total_budgets, AVG(CASE WHEN actual_amount <= planned_amount THEN 1.0 ELSE 0.0 END) as compliance_rate FROM finance_budgets', {
-          rows: [{ total_budgets: scenario.budgets.toString(), compliance_rate: scenario.compliance.toString() }],
-        })
+        DBHelper.mockQueryResponse(
+          'COUNT(*) as total_budgets, AVG(CASE WHEN actual_amount <= planned_amount THEN 1.0 ELSE 0.0 END) as compliance_rate FROM finance_budgets',
+          {
+            rows: [
+              {
+                total_budgets: scenario.budgets.toString(),
+                compliance_rate: scenario.compliance.toString(),
+              },
+            ],
+          },
+        )
 
         DBHelper.mockQueryResponse('SELECT COUNT(*) as count FROM finance_loans', {
           rows: [{ count: scenario.loans.toString() }],
         })
 
         // Mock trend analysis
-        DBHelper.mockQueryResponse('SELECT SUM(CASE WHEN type = \'income\' THEN amount ELSE 0 END) as income, SUM(CASE WHEN type = \'expense\' THEN amount ELSE 0 END) as expense, COUNT(*) as transaction_count FROM finance_transactions', {
-          rows: [{ income: (scenario.income * 0.9).toString(), expense: (scenario.expense * 0.9).toString(), transaction_count: (scenario.transactions * 0.8).toString() }],
-        })
+        DBHelper.mockQueryResponse(
+          "SELECT SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END) as income, SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END) as expense, COUNT(*) as transaction_count FROM finance_transactions",
+          {
+            rows: [
+              {
+                income: (scenario.income * 0.9).toString(),
+                expense: (scenario.expense * 0.9).toString(),
+                transaction_count: (scenario.transactions * 0.8).toString(),
+              },
+            ],
+          },
+        )
 
         const result = await analyzer.analyzeFinancialHealth()
 

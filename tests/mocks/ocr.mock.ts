@@ -58,11 +58,9 @@ export const setupOCRMock = () => {
   })
 
   mockOCRService.processBusinessRegistration.mockImplementation(
-    mockOCRStrategy.extractBusinessRegistration
+    mockOCRStrategy.extractBusinessRegistration,
   )
-  mockOCRService.processBankAccount.mockImplementation(
-    mockOCRStrategy.extractBankAccount
-  )
+  mockOCRService.processBankAccount.mockImplementation(mockOCRStrategy.extractBankAccount)
 
   // OpenAI Vision Mock 설정
   mockOpenAIVision.chat.completions.create.mockResolvedValue({

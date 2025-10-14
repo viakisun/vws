@@ -520,7 +520,7 @@ export const HR_FIXTURES = {
  * 테스트용 배열 데이터 생성 헬퍼
  */
 export const createHRTestArrays = {
-  employees: (count: number) => 
+  employees: (count: number) =>
     Array.from({ length: count }, (_, i) => ({
       ...HR_FIXTURES.employees.active,
       id: `employee-${i + 1}`,
@@ -529,10 +529,10 @@ export const createHRTestArrays = {
       last_name: ['철수', '영희', '민수', '지영', '현우'][i % 5],
       email: `employee${i + 1}@company.com`,
       department: ['개발팀', '마케팅팀', '디자인팀', '고객지원팀'][i % 4],
-      salary: 40000000 + (i * 5000000),
+      salary: 40000000 + i * 5000000,
     })),
 
-  attendance: (count: number) => 
+  attendance: (count: number) =>
     Array.from({ length: count }, (_, i) => ({
       ...HR_FIXTURES.attendance.normal,
       id: `attendance-${i + 1}`,
@@ -541,7 +541,7 @@ export const createHRTestArrays = {
       check_out: `2025-01-${String(i + 1).padStart(2, '0')}T18:00:00.000Z`,
     })),
 
-  leaves: (count: number) => 
+  leaves: (count: number) =>
     Array.from({ length: count }, (_, i) => ({
       ...HR_FIXTURES.leaves.annual,
       id: `leave-${i + 1}`,

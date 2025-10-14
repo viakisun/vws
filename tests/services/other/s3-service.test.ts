@@ -46,11 +46,11 @@ vi.mock('$lib/constants/crm', () => ({
 
 import { getS3BucketName, getS3Client } from '$lib/services/s3/s3-client'
 import {
-    deleteS3Object,
-    generateCrmDocumentS3Key,
-    generatePresignedDownloadUrl,
-    generatePresignedUploadUrl,
-    generateS3Key,
+  deleteS3Object,
+  generateCrmDocumentS3Key,
+  generatePresignedDownloadUrl,
+  generatePresignedUploadUrl,
+  generateS3Key,
 } from '$lib/services/s3/s3-service'
 
 describe('S3 Service', () => {
@@ -62,7 +62,7 @@ describe('S3 Service', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
-    
+
     vi.mocked(getS3Client).mockReturnValue(mockS3Client)
     vi.mocked(getS3BucketName).mockReturnValue(mockBucketName)
   })
@@ -75,7 +75,9 @@ describe('S3 Service', () => {
       const filename = 'test-document.pdf'
 
       // Mock the function to return expected format
-      vi.mocked(generateS3Key).mockReturnValue('VWS/projects/PRJ001/evidence/EVD001/1234567890_test-document.pdf')
+      vi.mocked(generateS3Key).mockReturnValue(
+        'VWS/projects/PRJ001/evidence/EVD001/1234567890_test-document.pdf',
+      )
 
       const result = generateS3Key(companyCode, projectCode, evidenceId, filename)
 
@@ -89,11 +91,15 @@ describe('S3 Service', () => {
       const evidenceId = 'EVD001'
       const filename = 'test document with spaces & special chars!.pdf'
 
-      vi.mocked(generateS3Key).mockReturnValue('VWS/projects/PRJ001/evidence/EVD001/1234567890_test_document_with_spaces___special_chars___.pdf')
+      vi.mocked(generateS3Key).mockReturnValue(
+        'VWS/projects/PRJ001/evidence/EVD001/1234567890_test_document_with_spaces___special_chars___.pdf',
+      )
 
       const result = generateS3Key(companyCode, projectCode, evidenceId, filename)
 
-      expect(result).toMatch(/^VWS\/projects\/PRJ001\/evidence\/EVD001\/\d+_test_document_with_spaces___special_chars___.*\.pdf$/)
+      expect(result).toMatch(
+        /^VWS\/projects\/PRJ001\/evidence\/EVD001\/\d+_test_document_with_spaces___special_chars___.*\.pdf$/,
+      )
       expect(generateS3Key).toHaveBeenCalledWith(companyCode, projectCode, evidenceId, filename)
     })
 
@@ -117,7 +123,9 @@ describe('S3 Service', () => {
       const evidenceId = 'EVD-@#$%'
       const filename = 'test.pdf'
 
-      vi.mocked(generateS3Key).mockReturnValue('VWS-@#$%/projects/PRJ-@#$%/evidence/EVD-@#$%/1234567890_test.pdf')
+      vi.mocked(generateS3Key).mockReturnValue(
+        'VWS-@#$%/projects/PRJ-@#$%/evidence/EVD-@#$%/1234567890_test.pdf',
+      )
 
       const result = generateS3Key(companyCode, projectCode, evidenceId, filename)
 
@@ -128,7 +136,8 @@ describe('S3 Service', () => {
 
   describe('generatePresignedUploadUrl', () => {
     it('should generate presigned upload URL successfully', async () => {
-      const mockPresignedUrl = 'https://test-bucket.s3.ap-northeast-2.amazonaws.com/test-key?signature=abc123'
+      const mockPresignedUrl =
+        'https://test-bucket.s3.ap-northeast-2.amazonaws.com/test-key?signature=abc123'
       const key = 'test-key'
       const contentType = 'application/pdf'
       const expiresIn = 900
@@ -142,7 +151,8 @@ describe('S3 Service', () => {
     })
 
     it('should use default expiration time', async () => {
-      const mockPresignedUrl = 'https://test-bucket.s3.ap-northeast-2.amazonaws.com/test-key?signature=abc123'
+      const mockPresignedUrl =
+        'https://test-bucket.s3.ap-northeast-2.amazonaws.com/test-key?signature=abc123'
       const key = 'test-key'
       const contentType = 'application/pdf'
 
@@ -155,7 +165,8 @@ describe('S3 Service', () => {
     })
 
     it('should handle different content types', async () => {
-      const mockPresignedUrl = 'https://test-bucket.s3.ap-northeast-2.amazonaws.com/test-key?signature=abc123'
+      const mockPresignedUrl =
+        'https://test-bucket.s3.ap-northeast-2.amazonaws.com/test-key?signature=abc123'
       const key = 'test-key'
       const contentTypes = [
         'application/pdf',
@@ -198,7 +209,8 @@ describe('S3 Service', () => {
     })
 
     it('should handle very long keys', async () => {
-      const mockPresignedUrl = 'https://test-bucket.s3.ap-northeast-2.amazonaws.com/test-key?signature=abc123'
+      const mockPresignedUrl =
+        'https://test-bucket.s3.ap-northeast-2.amazonaws.com/test-key?signature=abc123'
       const key = 'A'.repeat(1000)
       const contentType = 'application/pdf'
 
@@ -213,7 +225,8 @@ describe('S3 Service', () => {
 
   describe('generatePresignedDownloadUrl', () => {
     it('should generate presigned download URL successfully', async () => {
-      const mockPresignedUrl = 'https://test-bucket.s3.ap-northeast-2.amazonaws.com/test-key?signature=xyz789'
+      const mockPresignedUrl =
+        'https://test-bucket.s3.ap-northeast-2.amazonaws.com/test-key?signature=xyz789'
       const key = 'test-key'
       const expiresIn = 3600
 
@@ -226,7 +239,8 @@ describe('S3 Service', () => {
     })
 
     it('should use default expiration time', async () => {
-      const mockPresignedUrl = 'https://test-bucket.s3.ap-northeast-2.amazonaws.com/test-key?signature=xyz789'
+      const mockPresignedUrl =
+        'https://test-bucket.s3.ap-northeast-2.amazonaws.com/test-key?signature=xyz789'
       const key = 'test-key'
 
       vi.mocked(generatePresignedDownloadUrl).mockResolvedValue(mockPresignedUrl)
@@ -382,7 +396,8 @@ describe('S3 Service', () => {
 
   describe('edge cases', () => {
     it('should handle very long keys', async () => {
-      const mockPresignedUrl = 'https://test-bucket.s3.ap-northeast-2.amazonaws.com/test-key?signature=abc123'
+      const mockPresignedUrl =
+        'https://test-bucket.s3.ap-northeast-2.amazonaws.com/test-key?signature=abc123'
       const key = 'A'.repeat(10000)
       const contentType = 'application/pdf'
 
@@ -395,7 +410,8 @@ describe('S3 Service', () => {
     })
 
     it('should handle special characters in keys', async () => {
-      const mockPresignedUrl = 'https://test-bucket.s3.ap-northeast-2.amazonaws.com/test-key?signature=abc123'
+      const mockPresignedUrl =
+        'https://test-bucket.s3.ap-northeast-2.amazonaws.com/test-key?signature=abc123'
       const key = 'test-key-with-special-chars-@#$%^&*()_+-=[]{}|;:,.<>?'
       const contentType = 'application/pdf'
 
@@ -408,7 +424,8 @@ describe('S3 Service', () => {
     })
 
     it('should handle Unicode characters in keys', async () => {
-      const mockPresignedUrl = 'https://test-bucket.s3.ap-northeast-2.amazonaws.com/test-key?signature=abc123'
+      const mockPresignedUrl =
+        'https://test-bucket.s3.ap-northeast-2.amazonaws.com/test-key?signature=abc123'
       const key = 'test-key-with-한글-characters-한글'
       const contentType = 'application/pdf'
 
@@ -421,7 +438,8 @@ describe('S3 Service', () => {
     })
 
     it('should handle very short expiration times', async () => {
-      const mockPresignedUrl = 'https://test-bucket.s3.ap-northeast-2.amazonaws.com/test-key?signature=abc123'
+      const mockPresignedUrl =
+        'https://test-bucket.s3.ap-northeast-2.amazonaws.com/test-key?signature=abc123'
       const key = 'test-key'
       const contentType = 'application/pdf'
       const expiresIn = 1 // 1 second
@@ -435,7 +453,8 @@ describe('S3 Service', () => {
     })
 
     it('should handle very long expiration times', async () => {
-      const mockPresignedUrl = 'https://test-bucket.s3.ap-northeast-2.amazonaws.com/test-key?signature=abc123'
+      const mockPresignedUrl =
+        'https://test-bucket.s3.ap-northeast-2.amazonaws.com/test-key?signature=abc123'
       const key = 'test-key'
       const contentType = 'application/pdf'
       const expiresIn = 86400 * 7 // 7 days
@@ -449,7 +468,8 @@ describe('S3 Service', () => {
     })
 
     it('should handle concurrent operations', async () => {
-      const mockPresignedUrl = 'https://test-bucket.s3.ap-northeast-2.amazonaws.com/test-key?signature=abc123'
+      const mockPresignedUrl =
+        'https://test-bucket.s3.ap-northeast-2.amazonaws.com/test-key?signature=abc123'
       const keys = Array.from({ length: 10 }, (_, i) => `test-key-${i}`)
       const contentType = 'application/pdf'
 

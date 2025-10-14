@@ -514,7 +514,7 @@ export const verifyEmailMocks = {
     const templateCalls = mockEmailService.sendTemplate.mock.calls
     const bulkCalls = mockEmailService.sendBulk.mock.calls
 
-    return [...sendCalls, ...templateCalls, ...bulkCalls].some(call => {
+    return [...sendCalls, ...templateCalls, ...bulkCalls].some((call) => {
       const options = call[0]
       return options.to && options.to.includes(recipient)
     })
@@ -523,7 +523,7 @@ export const verifyEmailMocks = {
   // 특정 템플릿이 사용되었는지 확인
   wasTemplateUsed: (templateName: string) => {
     const calls = mockEmailService.sendTemplate.mock.calls
-    return calls.some(call => {
+    return calls.some((call) => {
       const options = call[0]
       return options.template === templateName
     })
@@ -545,7 +545,7 @@ export const verifyEmailMocks = {
     const sendCalls = mockEmailService.send.mock.calls
     const templateCalls = mockEmailService.sendTemplate.mock.calls
     const allCalls = [...sendCalls, ...templateCalls]
-    
+
     return allCalls.length > 0 ? allCalls[allCalls.length - 1][0] : null
   },
 }

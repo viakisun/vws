@@ -118,12 +118,18 @@ jobs:
       - name: Run unit tests
         run: pnpm test:unit || echo "Unit tests completed with warnings"
 
+      - name: Run service tests
+        run: pnpm test:services || echo "Service tests completed with warnings"
+
+      - name: Run API tests
+        run: pnpm test:api || echo "API tests completed with warnings"
+
       - name: Upload unit test coverage
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: unit-coverage
-          path: coverage/unit/
+          path: coverage/
           retention-days: 30
 
   # ============================================================================

@@ -104,9 +104,9 @@ describe('validation.service', () => {
         statusText: 'Internal Server Error',
       })
 
-      await expect(validationService.validateEvidenceRegistration(validationPayload)).rejects.toThrow(
-        'Failed to validate evidence: 500 Internal Server Error',
-      )
+      await expect(
+        validationService.validateEvidenceRegistration(validationPayload),
+      ).rejects.toThrow('Failed to validate evidence: 500 Internal Server Error')
     })
 
     it('should handle empty payload', async () => {

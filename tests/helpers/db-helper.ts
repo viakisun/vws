@@ -68,52 +68,40 @@ export class DBHelper {
    * INSERT 쿼리에 대한 응답 설정
    */
   static mockInsertResponse(tableName: string, insertedRow: any) {
-    this.mockQueryResponse(
-      new RegExp(`INSERT INTO ${tableName}`, 'i'),
-      {
-        rows: [insertedRow],
-        rowCount: 1,
-      }
-    )
+    this.mockQueryResponse(new RegExp(`INSERT INTO ${tableName}`, 'i'), {
+      rows: [insertedRow],
+      rowCount: 1,
+    })
   }
 
   /**
    * SELECT 쿼리에 대한 응답 설정
    */
   static mockSelectResponse(tableName: string, rows: any[]) {
-    this.mockQueryResponse(
-      new RegExp(`SELECT.*FROM ${tableName}`, 'i'),
-      {
-        rows,
-        rowCount: rows.length,
-      }
-    )
+    this.mockQueryResponse(new RegExp(`SELECT.*FROM ${tableName}`, 'i'), {
+      rows,
+      rowCount: rows.length,
+    })
   }
 
   /**
    * UPDATE 쿼리에 대한 응답 설정
    */
   static mockUpdateResponse(tableName: string, updatedRow: any) {
-    this.mockQueryResponse(
-      new RegExp(`UPDATE ${tableName}`, 'i'),
-      {
-        rows: [updatedRow],
-        rowCount: 1,
-      }
-    )
+    this.mockQueryResponse(new RegExp(`UPDATE ${tableName}`, 'i'), {
+      rows: [updatedRow],
+      rowCount: 1,
+    })
   }
 
   /**
    * DELETE 쿼리에 대한 응답 설정
    */
   static mockDeleteResponse(tableName: string, deletedCount: number = 1) {
-    this.mockQueryResponse(
-      new RegExp(`DELETE FROM ${tableName}`, 'i'),
-      {
-        rows: [],
-        rowCount: deletedCount,
-      }
-    )
+    this.mockQueryResponse(new RegExp(`DELETE FROM ${tableName}`, 'i'), {
+      rows: [],
+      rowCount: deletedCount,
+    })
   }
 
   /**

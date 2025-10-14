@@ -1,11 +1,11 @@
 import { AccountService } from '$lib/finance/services/account-service'
 import type {
-    Account,
-    AccountFilter,
-    AccountSummary,
-    BankSummary,
-    CreateAccountRequest,
-    UpdateAccountRequest,
+  Account,
+  AccountFilter,
+  AccountSummary,
+  BankSummary,
+  CreateAccountRequest,
+  UpdateAccountRequest,
 } from '$lib/finance/types'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { mockLogger } from '../../helpers/mock-helper'
@@ -52,10 +52,11 @@ describe('Finance Account Service', () => {
       ]
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: true,
-          data: mockAccounts,
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: mockAccounts,
+          }),
       } as Response)
 
       const result = await accountService.getAccounts()
@@ -83,10 +84,11 @@ describe('Finance Account Service', () => {
       const filter: AccountFilter = { bankId: 'bank-1' }
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: true,
-          data: mockAccounts,
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: mockAccounts,
+          }),
       } as Response)
 
       const result = await accountService.getAccounts(filter)
@@ -114,10 +116,11 @@ describe('Finance Account Service', () => {
       const filter: AccountFilter = { accountType: 'savings' }
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: true,
-          data: mockAccounts,
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: mockAccounts,
+          }),
       } as Response)
 
       const result = await accountService.getAccounts(filter)
@@ -145,10 +148,11 @@ describe('Finance Account Service', () => {
       const filter: AccountFilter = { status: 'active' }
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: true,
-          data: mockAccounts,
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: mockAccounts,
+          }),
       } as Response)
 
       const result = await accountService.getAccounts(filter)
@@ -176,10 +180,11 @@ describe('Finance Account Service', () => {
       const filter: AccountFilter = { isPrimary: true }
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: true,
-          data: mockAccounts,
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: mockAccounts,
+          }),
       } as Response)
 
       const result = await accountService.getAccounts(filter)
@@ -207,10 +212,11 @@ describe('Finance Account Service', () => {
       const filter: AccountFilter = { search: '법인' }
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: true,
-          data: mockAccounts,
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: mockAccounts,
+          }),
       } as Response)
 
       const result = await accountService.getAccounts(filter)
@@ -244,17 +250,18 @@ describe('Finance Account Service', () => {
       }
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: true,
-          data: mockAccounts,
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: mockAccounts,
+          }),
       } as Response)
 
       const result = await accountService.getAccounts(filter)
 
       expect(result).toEqual(mockAccounts)
       expect(fetch).toHaveBeenCalledWith(
-        '/api/finance/accounts?bankId=bank-1&accountType=checking&status=active&isPrimary=true&search=%EB%B2%95%EC%9D%B8'
+        '/api/finance/accounts?bankId=bank-1&accountType=checking&status=active&isPrimary=true&search=%EB%B2%95%EC%9D%B8',
       )
     })
 
@@ -266,10 +273,11 @@ describe('Finance Account Service', () => {
 
     it('API 응답 오류 시 에러를 던져야 함', async () => {
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: false,
-          error: 'Database connection failed',
-        }),
+        json: () =>
+          Promise.resolve({
+            success: false,
+            error: 'Database connection failed',
+          }),
       } as Response)
 
       await expect(accountService.getAccounts()).rejects.toThrow('Database connection failed')
@@ -279,10 +287,11 @@ describe('Finance Account Service', () => {
       const mockAccounts: Account[] = []
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: true,
-          data: mockAccounts,
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: mockAccounts,
+          }),
       } as Response)
 
       const result = await accountService.getAccounts()
@@ -308,10 +317,11 @@ describe('Finance Account Service', () => {
       }
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: true,
-          data: mockAccount,
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: mockAccount,
+          }),
       } as Response)
 
       const result = await accountService.getAccount('account-1')
@@ -322,10 +332,11 @@ describe('Finance Account Service', () => {
 
     it('존재하지 않는 계좌 조회 시 에러를 던져야 함', async () => {
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: false,
-          error: 'Account not found',
-        }),
+        json: () =>
+          Promise.resolve({
+            success: false,
+            error: 'Account not found',
+          }),
       } as Response)
 
       await expect(accountService.getAccount('non-existent')).rejects.toThrow('Account not found')
@@ -358,10 +369,11 @@ describe('Finance Account Service', () => {
       }
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: true,
-          data: mockCreatedAccount,
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: mockCreatedAccount,
+          }),
       } as Response)
 
       const result = await accountService.createAccount(accountData)
@@ -387,14 +399,15 @@ describe('Finance Account Service', () => {
       }
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: false,
-          error: 'Account number already exists',
-        }),
+        json: () =>
+          Promise.resolve({
+            success: false,
+            error: 'Account number already exists',
+          }),
       } as Response)
 
       await expect(accountService.createAccount(accountData)).rejects.toThrow(
-        'Account number already exists'
+        'Account number already exists',
       )
     })
 
@@ -434,10 +447,11 @@ describe('Finance Account Service', () => {
       }
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: true,
-          data: mockUpdatedAccount,
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: mockUpdatedAccount,
+          }),
       } as Response)
 
       const result = await accountService.updateAccount('account-1', updateData)
@@ -458,14 +472,15 @@ describe('Finance Account Service', () => {
       }
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: false,
-          error: 'Account not found',
-        }),
+        json: () =>
+          Promise.resolve({
+            success: false,
+            error: 'Account not found',
+          }),
       } as Response)
 
       await expect(accountService.updateAccount('non-existent', updateData)).rejects.toThrow(
-        'Account not found'
+        'Account not found',
       )
     })
 
@@ -477,7 +492,7 @@ describe('Finance Account Service', () => {
       vi.mocked(fetch).mockRejectedValueOnce(new Error('Network error'))
 
       await expect(accountService.updateAccount('account-1', updateData)).rejects.toThrow(
-        'Network error'
+        'Network error',
       )
     })
   })
@@ -485,11 +500,12 @@ describe('Finance Account Service', () => {
   describe('deleteAccount', () => {
     it('계좌를 성공적으로 삭제해야 함', async () => {
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: true,
-          message: '계좌가 삭제되었습니다.',
-          deletedTransactionCount: 15,
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            message: '계좌가 삭제되었습니다.',
+            deletedTransactionCount: 15,
+          }),
       } as Response)
 
       const result = await accountService.deleteAccount('account-1')
@@ -505,14 +521,15 @@ describe('Finance Account Service', () => {
 
     it('존재하지 않는 계좌 삭제 시 에러를 던져야 함', async () => {
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: false,
-          error: 'Account not found',
-        }),
+        json: () =>
+          Promise.resolve({
+            success: false,
+            error: 'Account not found',
+          }),
       } as Response)
 
       await expect(accountService.deleteAccount('non-existent')).rejects.toThrow(
-        'Account not found'
+        'Account not found',
       )
     })
 
@@ -536,10 +553,11 @@ describe('Finance Account Service', () => {
       }
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: true,
-          data: mockSummary,
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: mockSummary,
+          }),
       } as Response)
 
       const result = await accountService.getAccountSummary('account-1')
@@ -560,34 +578,32 @@ describe('Finance Account Service', () => {
       }
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: true,
-          data: mockSummary,
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: mockSummary,
+          }),
       } as Response)
 
-      const result = await accountService.getAccountSummary(
-        'account-1',
-        '2025-01-01',
-        '2025-01-31'
-      )
+      const result = await accountService.getAccountSummary('account-1', '2025-01-01', '2025-01-31')
 
       expect(result).toEqual(mockSummary)
       expect(fetch).toHaveBeenCalledWith(
-        '/api/finance/accounts/account-1/summary?startDate=2025-01-01&endDate=2025-01-31'
+        '/api/finance/accounts/account-1/summary?startDate=2025-01-01&endDate=2025-01-31',
       )
     })
 
     it('존재하지 않는 계좌 요약 조회 시 에러를 던져야 함', async () => {
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: false,
-          error: 'Account not found',
-        }),
+        json: () =>
+          Promise.resolve({
+            success: false,
+            error: 'Account not found',
+          }),
       } as Response)
 
       await expect(accountService.getAccountSummary('non-existent')).rejects.toThrow(
-        'Account not found'
+        'Account not found',
       )
     })
 
@@ -620,10 +636,11 @@ describe('Finance Account Service', () => {
       ]
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: true,
-          data: mockBankSummaries,
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: mockBankSummaries,
+          }),
       } as Response)
 
       const result = await accountService.getBankSummaries()
@@ -636,10 +653,11 @@ describe('Finance Account Service', () => {
       const mockBankSummaries: BankSummary[] = []
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: true,
-          data: mockBankSummaries,
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: mockBankSummaries,
+          }),
       } as Response)
 
       const result = await accountService.getBankSummaries()
@@ -656,15 +674,14 @@ describe('Finance Account Service', () => {
 
     it('API 응답 오류 시 에러를 던져야 함', async () => {
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: false,
-          error: 'Database connection failed',
-        }),
+        json: () =>
+          Promise.resolve({
+            success: false,
+            error: 'Database connection failed',
+          }),
       } as Response)
 
-      await expect(accountService.getBankSummaries()).rejects.toThrow(
-        'Database connection failed'
-      )
+      await expect(accountService.getBankSummaries()).rejects.toThrow('Database connection failed')
     })
   })
 
@@ -717,26 +734,29 @@ describe('Finance Account Service', () => {
       }
 
       // 3. 활성 계좌만 필터링
-      const mockActiveAccounts = mockAllAccounts.filter(a => a.status === 'active')
+      const mockActiveAccounts = mockAllAccounts.filter((a) => a.status === 'active')
 
       vi.mocked(fetch)
         .mockResolvedValueOnce({
-          json: () => Promise.resolve({
-            success: true,
-            data: mockAllAccounts,
-          }),
+          json: () =>
+            Promise.resolve({
+              success: true,
+              data: mockAllAccounts,
+            }),
         } as Response)
         .mockResolvedValueOnce({
-          json: () => Promise.resolve({
-            success: true,
-            data: mockNewAccount,
-          }),
+          json: () =>
+            Promise.resolve({
+              success: true,
+              data: mockNewAccount,
+            }),
         } as Response)
         .mockResolvedValueOnce({
-          json: () => Promise.resolve({
-            success: true,
-            data: mockActiveAccounts,
-          }),
+          json: () =>
+            Promise.resolve({
+              success: true,
+              data: mockActiveAccounts,
+            }),
         } as Response)
 
       // 전체 계좌 조회
@@ -803,10 +823,11 @@ describe('Finance Account Service', () => {
         }
 
         vi.mocked(fetch).mockResolvedValueOnce({
-          json: () => Promise.resolve({
-            success: true,
-            data: mockAccount,
-          }),
+          json: () =>
+            Promise.resolve({
+              success: true,
+              data: mockAccount,
+            }),
         } as Response)
 
         const result = await accountService.createAccount(testCase.data)

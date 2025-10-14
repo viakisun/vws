@@ -1,12 +1,12 @@
 import type { AttendanceRecord } from '$lib/services/attendance/attendance-service'
 import {
-    ATTENDANCE_ERRORS,
-    ATTENDANCE_MESSAGES,
-    fetchAttendanceData,
-    recordBreakEnd,
-    recordBreakStart,
-    recordCheckIn,
-    recordCheckOut,
+  ATTENDANCE_ERRORS,
+  ATTENDANCE_MESSAGES,
+  fetchAttendanceData,
+  recordBreakEnd,
+  recordBreakStart,
+  recordCheckIn,
+  recordCheckOut,
 } from '$lib/services/attendance/attendance-service'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { DBHelper } from '../../helpers/db-helper'
@@ -96,21 +96,33 @@ describe('Attendance Service', () => {
         total_overtime_hours: 8,
       }
 
-      DBHelper.mockQueryResponse('SELECT id, DATE(check_in_time)::text as date, check_in_time::text as check_in_time, check_out_time::text as check_out_time, break_start_time::text as break_start_time, break_end_time::text as break_end_time, total_work_hours, overtime_hours, status, notes FROM attendance WHERE employee_id = $1 AND DATE(check_in_time) = $2::date', {
-        rows: [mockTodayRecord],
-      })
+      DBHelper.mockQueryResponse(
+        'SELECT id, DATE(check_in_time)::text as date, check_in_time::text as check_in_time, check_out_time::text as check_out_time, break_start_time::text as break_start_time, break_end_time::text as break_end_time, total_work_hours, overtime_hours, status, notes FROM attendance WHERE employee_id = $1 AND DATE(check_in_time) = $2::date',
+        {
+          rows: [mockTodayRecord],
+        },
+      )
 
-      DBHelper.mockQueryResponse('SELECT DATE(check_in_time)::text as date, check_in_time::text as check_in_time, check_out_time::text as check_out_time, total_work_hours, overtime_hours, status FROM attendance WHERE employee_id = $1 AND DATE(check_in_time) >= $2::date AND DATE(check_in_time) <= $3::date ORDER BY DATE(check_in_time) DESC', {
-        rows: mockWeekRecords,
-      })
+      DBHelper.mockQueryResponse(
+        'SELECT DATE(check_in_time)::text as date, check_in_time::text as check_in_time, check_out_time::text as check_out_time, total_work_hours, overtime_hours, status FROM attendance WHERE employee_id = $1 AND DATE(check_in_time) >= $2::date AND DATE(check_in_time) <= $3::date ORDER BY DATE(check_in_time) DESC',
+        {
+          rows: mockWeekRecords,
+        },
+      )
 
-      DBHelper.mockQueryResponse('SELECT COUNT(*) as total_days, COUNT(CASE WHEN check_in_time IS NOT NULL THEN 1 END) as work_days, COUNT(CASE WHEN status = \'late\' THEN 1 END) as late_days, COUNT(CASE WHEN status = \'early_leave\' THEN 1 END) as early_leave_days, COALESCE(SUM(total_work_hours), 0) as total_work_hours, COALESCE(SUM(overtime_hours), 0) as total_overtime_hours FROM attendance WHERE employee_id = $1 AND DATE(check_in_time) >= $2::date AND DATE(check_in_time) <= $3::date', {
-        rows: [mockStats],
-      })
+      DBHelper.mockQueryResponse(
+        "SELECT COUNT(*) as total_days, COUNT(CASE WHEN check_in_time IS NOT NULL THEN 1 END) as work_days, COUNT(CASE WHEN status = 'late' THEN 1 END) as late_days, COUNT(CASE WHEN status = 'early_leave' THEN 1 END) as early_leave_days, COALESCE(SUM(total_work_hours), 0) as total_work_hours, COALESCE(SUM(overtime_hours), 0) as total_overtime_hours FROM attendance WHERE employee_id = $1 AND DATE(check_in_time) >= $2::date AND DATE(check_in_time) <= $3::date",
+        {
+          rows: [mockStats],
+        },
+      )
 
-      DBHelper.mockQueryResponse('SELECT DATE(check_in_time)::text as date_str, check_in_time::text as check_in_time, check_out_time::text as check_out_time, total_work_hours, status FROM attendance WHERE employee_id = $1 AND DATE(check_in_time) >= $2::date AND DATE(check_in_time) <= $3::date ORDER BY DATE(check_in_time) ASC', {
-        rows: mockMonthRecords,
-      })
+      DBHelper.mockQueryResponse(
+        'SELECT DATE(check_in_time)::text as date_str, check_in_time::text as check_in_time, check_out_time::text as check_out_time, total_work_hours, status FROM attendance WHERE employee_id = $1 AND DATE(check_in_time) >= $2::date AND DATE(check_in_time) <= $3::date ORDER BY DATE(check_in_time) ASC',
+        {
+          rows: mockMonthRecords,
+        },
+      )
 
       const result = await fetchAttendanceData('employee-1', '2025-01-15')
 
@@ -127,21 +139,42 @@ describe('Attendance Service', () => {
     })
 
     it('빈 출퇴근 데이터를 올바르게 처리해야 함', async () => {
-      DBHelper.mockQueryResponse('SELECT id, DATE(check_in_time)::text as date, check_in_time::text as check_in_time, check_out_time::text as check_out_time, break_start_time::text as break_start_time, break_end_time::text as break_end_time, total_work_hours, overtime_hours, status, notes FROM attendance WHERE employee_id = $1 AND DATE(check_in_time) = $2::date', {
-        rows: [],
-      })
+      DBHelper.mockQueryResponse(
+        'SELECT id, DATE(check_in_time)::text as date, check_in_time::text as check_in_time, check_out_time::text as check_out_time, break_start_time::text as break_start_time, break_end_time::text as break_end_time, total_work_hours, overtime_hours, status, notes FROM attendance WHERE employee_id = $1 AND DATE(check_in_time) = $2::date',
+        {
+          rows: [],
+        },
+      )
 
-      DBHelper.mockQueryResponse('SELECT DATE(check_in_time)::text as date, check_in_time::text as check_in_time, check_out_time::text as check_out_time, total_work_hours, overtime_hours, status FROM attendance WHERE employee_id = $1 AND DATE(check_in_time) >= $2::date AND DATE(check_in_time) <= $3::date ORDER BY DATE(check_in_time) DESC', {
-        rows: [],
-      })
+      DBHelper.mockQueryResponse(
+        'SELECT DATE(check_in_time)::text as date, check_in_time::text as check_in_time, check_out_time::text as check_out_time, total_work_hours, overtime_hours, status FROM attendance WHERE employee_id = $1 AND DATE(check_in_time) >= $2::date AND DATE(check_in_time) <= $3::date ORDER BY DATE(check_in_time) DESC',
+        {
+          rows: [],
+        },
+      )
 
-      DBHelper.mockQueryResponse('SELECT COUNT(*) as total_days, COUNT(CASE WHEN check_in_time IS NOT NULL THEN 1 END) as work_days, COUNT(CASE WHEN status = \'late\' THEN 1 END) as late_days, COUNT(CASE WHEN status = \'early_leave\' THEN 1 END) as early_leave_days, COALESCE(SUM(total_work_hours), 0) as total_work_hours, COALESCE(SUM(overtime_hours), 0) as total_overtime_hours FROM attendance WHERE employee_id = $1 AND DATE(check_in_time) >= $2::date AND DATE(check_in_time) <= $3::date', {
-        rows: [{ total_days: 0, work_days: 0, late_days: 0, early_leave_days: 0, total_work_hours: 0, total_overtime_hours: 0 }],
-      })
+      DBHelper.mockQueryResponse(
+        "SELECT COUNT(*) as total_days, COUNT(CASE WHEN check_in_time IS NOT NULL THEN 1 END) as work_days, COUNT(CASE WHEN status = 'late' THEN 1 END) as late_days, COUNT(CASE WHEN status = 'early_leave' THEN 1 END) as early_leave_days, COALESCE(SUM(total_work_hours), 0) as total_work_hours, COALESCE(SUM(overtime_hours), 0) as total_overtime_hours FROM attendance WHERE employee_id = $1 AND DATE(check_in_time) >= $2::date AND DATE(check_in_time) <= $3::date",
+        {
+          rows: [
+            {
+              total_days: 0,
+              work_days: 0,
+              late_days: 0,
+              early_leave_days: 0,
+              total_work_hours: 0,
+              total_overtime_hours: 0,
+            },
+          ],
+        },
+      )
 
-      DBHelper.mockQueryResponse('SELECT DATE(check_in_time)::text as date_str, check_in_time::text as check_in_time, check_out_time::text as check_out_time, total_work_hours, status FROM attendance WHERE employee_id = $1 AND DATE(check_in_time) >= $2::date AND DATE(check_in_time) <= $3::date ORDER BY DATE(check_in_time) ASC', {
-        rows: [],
-      })
+      DBHelper.mockQueryResponse(
+        'SELECT DATE(check_in_time)::text as date_str, check_in_time::text as check_in_time, check_out_time::text as check_out_time, total_work_hours, status FROM attendance WHERE employee_id = $1 AND DATE(check_in_time) >= $2::date AND DATE(check_in_time) <= $3::date ORDER BY DATE(check_in_time) ASC',
+        {
+          rows: [],
+        },
+      )
 
       const result = await fetchAttendanceData('employee-1', '2025-01-15')
 
@@ -165,28 +198,49 @@ describe('Attendance Service', () => {
     it('기본 날짜로 출퇴근 데이터를 조회해야 함', async () => {
       const today = new Date().toISOString().split('T')[0]
 
-      DBHelper.mockQueryResponse('SELECT id, DATE(check_in_time)::text as date, check_in_time::text as check_in_time, check_out_time::text as check_out_time, break_start_time::text as break_start_time, break_end_time::text as break_end_time, total_work_hours, overtime_hours, status, notes FROM attendance WHERE employee_id = $1 AND DATE(check_in_time) = $2::date', {
-        rows: [],
-      })
+      DBHelper.mockQueryResponse(
+        'SELECT id, DATE(check_in_time)::text as date, check_in_time::text as check_in_time, check_out_time::text as check_out_time, break_start_time::text as break_start_time, break_end_time::text as break_end_time, total_work_hours, overtime_hours, status, notes FROM attendance WHERE employee_id = $1 AND DATE(check_in_time) = $2::date',
+        {
+          rows: [],
+        },
+      )
 
-      DBHelper.mockQueryResponse('SELECT DATE(check_in_time)::text as date, check_in_time::text as check_in_time, check_out_time::text as check_out_time, total_work_hours, overtime_hours, status FROM attendance WHERE employee_id = $1 AND DATE(check_in_time) >= $2::date AND DATE(check_in_time) <= $3::date ORDER BY DATE(check_in_time) DESC', {
-        rows: [],
-      })
+      DBHelper.mockQueryResponse(
+        'SELECT DATE(check_in_time)::text as date, check_in_time::text as check_in_time, check_out_time::text as check_out_time, total_work_hours, overtime_hours, status FROM attendance WHERE employee_id = $1 AND DATE(check_in_time) >= $2::date AND DATE(check_in_time) <= $3::date ORDER BY DATE(check_in_time) DESC',
+        {
+          rows: [],
+        },
+      )
 
-      DBHelper.mockQueryResponse('SELECT COUNT(*) as total_days, COUNT(CASE WHEN check_in_time IS NOT NULL THEN 1 END) as work_days, COUNT(CASE WHEN status = \'late\' THEN 1 END) as late_days, COUNT(CASE WHEN status = \'early_leave\' THEN 1 END) as early_leave_days, COALESCE(SUM(total_work_hours), 0) as total_work_hours, COALESCE(SUM(overtime_hours), 0) as total_overtime_hours FROM attendance WHERE employee_id = $1 AND DATE(check_in_time) >= $2::date AND DATE(check_in_time) <= $3::date', {
-        rows: [{ total_days: 0, work_days: 0, late_days: 0, early_leave_days: 0, total_work_hours: 0, total_overtime_hours: 0 }],
-      })
+      DBHelper.mockQueryResponse(
+        "SELECT COUNT(*) as total_days, COUNT(CASE WHEN check_in_time IS NOT NULL THEN 1 END) as work_days, COUNT(CASE WHEN status = 'late' THEN 1 END) as late_days, COUNT(CASE WHEN status = 'early_leave' THEN 1 END) as early_leave_days, COALESCE(SUM(total_work_hours), 0) as total_work_hours, COALESCE(SUM(overtime_hours), 0) as total_overtime_hours FROM attendance WHERE employee_id = $1 AND DATE(check_in_time) >= $2::date AND DATE(check_in_time) <= $3::date",
+        {
+          rows: [
+            {
+              total_days: 0,
+              work_days: 0,
+              late_days: 0,
+              early_leave_days: 0,
+              total_work_hours: 0,
+              total_overtime_hours: 0,
+            },
+          ],
+        },
+      )
 
-      DBHelper.mockQueryResponse('SELECT DATE(check_in_time)::text as date_str, check_in_time::text as check_in_time, check_out_time::text as check_out_time, total_work_hours, status FROM attendance WHERE employee_id = $1 AND DATE(check_in_time) >= $2::date AND DATE(check_in_time) <= $3::date ORDER BY DATE(check_in_time) ASC', {
-        rows: [],
-      })
+      DBHelper.mockQueryResponse(
+        'SELECT DATE(check_in_time)::text as date_str, check_in_time::text as check_in_time, check_out_time::text as check_out_time, total_work_hours, status FROM attendance WHERE employee_id = $1 AND DATE(check_in_time) >= $2::date AND DATE(check_in_time) <= $3::date ORDER BY DATE(check_in_time) ASC',
+        {
+          rows: [],
+        },
+      )
 
       const result = await fetchAttendanceData('employee-1')
 
       expect(result.success).toBe(true)
       expect(DBHelper.getMockQuery()).toHaveBeenCalledWith(
         expect.stringContaining('WHERE employee_id = $1 AND DATE(check_in_time) = $2::date'),
-        ['employee-1', today]
+        ['employee-1', today],
       )
     })
   })
@@ -211,20 +265,28 @@ describe('Attendance Service', () => {
         rows: [{ id: 'company-1' }],
       })
 
-      DBHelper.mockQueryResponse('SELECT work_start_time, work_end_time, late_threshold_minutes, early_leave_threshold_minutes, allowed_ips, require_ip_check FROM attendance_settings WHERE company_id = $1', {
-        rows: [{
-          work_start_time: '09:00',
-          work_end_time: '18:00',
-          late_threshold_minutes: 15,
-          early_leave_threshold_minutes: 30,
-          allowed_ips: ['192.168.1.0/24'],
-          require_ip_check: false,
-        }],
-      })
+      DBHelper.mockQueryResponse(
+        'SELECT work_start_time, work_end_time, late_threshold_minutes, early_leave_threshold_minutes, allowed_ips, require_ip_check FROM attendance_settings WHERE company_id = $1',
+        {
+          rows: [
+            {
+              work_start_time: '09:00',
+              work_end_time: '18:00',
+              late_threshold_minutes: 15,
+              early_leave_threshold_minutes: 30,
+              allowed_ips: ['192.168.1.0/24'],
+              require_ip_check: false,
+            },
+          ],
+        },
+      )
 
-      DBHelper.mockQueryResponse('INSERT INTO attendance (employee_id, check_in_time, check_in_ip, notes, status) VALUES ($1, now(), $2, $3, $4) ON CONFLICT (employee_id, check_in_date) DO UPDATE SET check_in_time = now(), check_in_ip = $2, notes = $3, status = $4, updated_at = now() RETURNING id, employee_id, check_in_time::text, check_out_time::text, break_start_time::text, break_end_time::text, total_work_hours, overtime_hours, status, notes, created_at::text, updated_at::text', {
-        rows: [mockAttendanceRecord],
-      })
+      DBHelper.mockQueryResponse(
+        'INSERT INTO attendance (employee_id, check_in_time, check_in_ip, notes, status) VALUES ($1, now(), $2, $3, $4) ON CONFLICT (employee_id, check_in_date) DO UPDATE SET check_in_time = now(), check_in_ip = $2, notes = $3, status = $4, updated_at = now() RETURNING id, employee_id, check_in_time::text, check_out_time::text, break_start_time::text, break_end_time::text, total_work_hours, overtime_hours, status, notes, created_at::text, updated_at::text',
+        {
+          rows: [mockAttendanceRecord],
+        },
+      )
 
       const result = await recordCheckIn('employee-1', '2025-01-15', '192.168.1.100', '정상 출근')
 
@@ -252,20 +314,28 @@ describe('Attendance Service', () => {
         rows: [{ id: 'company-1' }],
       })
 
-      DBHelper.mockQueryResponse('SELECT work_start_time, work_end_time, late_threshold_minutes, early_leave_threshold_minutes, allowed_ips, require_ip_check FROM attendance_settings WHERE company_id = $1', {
-        rows: [{
-          work_start_time: '09:00',
-          work_end_time: '18:00',
-          late_threshold_minutes: 10,
-          early_leave_threshold_minutes: 30,
-          allowed_ips: ['192.168.1.0/24'],
-          require_ip_check: false,
-        }],
-      })
+      DBHelper.mockQueryResponse(
+        'SELECT work_start_time, work_end_time, late_threshold_minutes, early_leave_threshold_minutes, allowed_ips, require_ip_check FROM attendance_settings WHERE company_id = $1',
+        {
+          rows: [
+            {
+              work_start_time: '09:00',
+              work_end_time: '18:00',
+              late_threshold_minutes: 10,
+              early_leave_threshold_minutes: 30,
+              allowed_ips: ['192.168.1.0/24'],
+              require_ip_check: false,
+            },
+          ],
+        },
+      )
 
-      DBHelper.mockQueryResponse('INSERT INTO attendance (employee_id, check_in_time, check_in_ip, notes, status) VALUES ($1, now(), $2, $3, $4) ON CONFLICT (employee_id, check_in_date) DO UPDATE SET check_in_time = now(), check_in_ip = $2, notes = $3, status = $4, updated_at = now() RETURNING id, employee_id, check_in_time::text, check_out_time::text, break_start_time::text, break_end_time::text, total_work_hours, overtime_hours, status, notes, created_at::text, updated_at::text', {
-        rows: [mockAttendanceRecord],
-      })
+      DBHelper.mockQueryResponse(
+        'INSERT INTO attendance (employee_id, check_in_time, check_in_ip, notes, status) VALUES ($1, now(), $2, $3, $4) ON CONFLICT (employee_id, check_in_date) DO UPDATE SET check_in_time = now(), check_in_ip = $2, notes = $3, status = $4, updated_at = now() RETURNING id, employee_id, check_in_time::text, check_out_time::text, break_start_time::text, break_end_time::text, total_work_hours, overtime_hours, status, notes, created_at::text, updated_at::text',
+        {
+          rows: [mockAttendanceRecord],
+        },
+      )
 
       const result = await recordCheckIn('employee-1', '2025-01-15', '192.168.1.100', '지각')
 
@@ -280,16 +350,21 @@ describe('Attendance Service', () => {
         rows: [{ id: 'company-1' }],
       })
 
-      DBHelper.mockQueryResponse('SELECT work_start_time, work_end_time, late_threshold_minutes, early_leave_threshold_minutes, allowed_ips, require_ip_check FROM attendance_settings WHERE company_id = $1', {
-        rows: [{
-          work_start_time: '09:00',
-          work_end_time: '18:00',
-          late_threshold_minutes: 15,
-          early_leave_threshold_minutes: 30,
-          allowed_ips: ['192.168.1.0/24'],
-          require_ip_check: true,
-        }],
-      })
+      DBHelper.mockQueryResponse(
+        'SELECT work_start_time, work_end_time, late_threshold_minutes, early_leave_threshold_minutes, allowed_ips, require_ip_check FROM attendance_settings WHERE company_id = $1',
+        {
+          rows: [
+            {
+              work_start_time: '09:00',
+              work_end_time: '18:00',
+              late_threshold_minutes: 15,
+              early_leave_threshold_minutes: 30,
+              allowed_ips: ['192.168.1.0/24'],
+              require_ip_check: true,
+            },
+          ],
+        },
+      )
 
       const result = await recordCheckIn('employee-1', '2025-01-15', '10.0.0.100', '외부 IP')
 
@@ -317,20 +392,28 @@ describe('Attendance Service', () => {
         rows: [{ id: 'company-1' }],
       })
 
-      DBHelper.mockQueryResponse('SELECT work_start_time, work_end_time, late_threshold_minutes, early_leave_threshold_minutes, allowed_ips, require_ip_check FROM attendance_settings WHERE company_id = $1', {
-        rows: [{
-          work_start_time: '09:00',
-          work_end_time: '18:00',
-          late_threshold_minutes: 15,
-          early_leave_threshold_minutes: 30,
-          allowed_ips: ['192.168.1.0/24'],
-          require_ip_check: false,
-        }],
-      })
+      DBHelper.mockQueryResponse(
+        'SELECT work_start_time, work_end_time, late_threshold_minutes, early_leave_threshold_minutes, allowed_ips, require_ip_check FROM attendance_settings WHERE company_id = $1',
+        {
+          rows: [
+            {
+              work_start_time: '09:00',
+              work_end_time: '18:00',
+              late_threshold_minutes: 15,
+              early_leave_threshold_minutes: 30,
+              allowed_ips: ['192.168.1.0/24'],
+              require_ip_check: false,
+            },
+          ],
+        },
+      )
 
-      DBHelper.mockQueryResponse('INSERT INTO attendance (employee_id, check_in_time, check_in_ip, notes, status) VALUES ($1, now(), $2, $3, $4) ON CONFLICT (employee_id, check_in_date) DO UPDATE SET check_in_time = now(), check_in_ip = $2, notes = $3, status = $4, updated_at = now() RETURNING id, employee_id, check_in_time::text, check_out_time::text, break_start_time::text, break_end_time::text, total_work_hours, overtime_hours, status, notes, created_at::text, updated_at::text', {
-        rows: [mockAttendanceRecord],
-      })
+      DBHelper.mockQueryResponse(
+        'INSERT INTO attendance (employee_id, check_in_time, check_in_ip, notes, status) VALUES ($1, now(), $2, $3, $4) ON CONFLICT (employee_id, check_in_date) DO UPDATE SET check_in_time = now(), check_in_ip = $2, notes = $3, status = $4, updated_at = now() RETURNING id, employee_id, check_in_time::text, check_out_time::text, break_start_time::text, break_end_time::text, total_work_hours, overtime_hours, status, notes, created_at::text, updated_at::text',
+        {
+          rows: [mockAttendanceRecord],
+        },
+      )
 
       const result = await recordCheckIn('employee-1', '2025-01-01', '192.168.1.100', '휴일 출근')
 
@@ -369,20 +452,28 @@ describe('Attendance Service', () => {
         rows: [{ id: 'company-1' }],
       })
 
-      DBHelper.mockQueryResponse('SELECT work_start_time, work_end_time, late_threshold_minutes, early_leave_threshold_minutes, allowed_ips, require_ip_check FROM attendance_settings WHERE company_id = $1', {
-        rows: [{
-          work_start_time: '09:00',
-          work_end_time: '18:00',
-          late_threshold_minutes: 15,
-          early_leave_threshold_minutes: 30,
-          allowed_ips: ['192.168.1.0/24'],
-          require_ip_check: false,
-        }],
-      })
+      DBHelper.mockQueryResponse(
+        'SELECT work_start_time, work_end_time, late_threshold_minutes, early_leave_threshold_minutes, allowed_ips, require_ip_check FROM attendance_settings WHERE company_id = $1',
+        {
+          rows: [
+            {
+              work_start_time: '09:00',
+              work_end_time: '18:00',
+              late_threshold_minutes: 15,
+              early_leave_threshold_minutes: 30,
+              allowed_ips: ['192.168.1.0/24'],
+              require_ip_check: false,
+            },
+          ],
+        },
+      )
 
-      DBHelper.mockQueryResponse('UPDATE attendance SET check_out_time = now(), check_out_ip = $2, notes = COALESCE($3, notes), updated_at = now() WHERE employee_id = $1 AND DATE(check_in_time) = CURRENT_DATE RETURNING id, employee_id, check_in_time::text, check_out_time::text, break_start_time::text, break_end_time::text, total_work_hours, overtime_hours, status, notes, created_at::text, updated_at::text', {
-        rows: [mockAttendanceRecord],
-      })
+      DBHelper.mockQueryResponse(
+        'UPDATE attendance SET check_out_time = now(), check_out_ip = $2, notes = COALESCE($3, notes), updated_at = now() WHERE employee_id = $1 AND DATE(check_in_time) = CURRENT_DATE RETURNING id, employee_id, check_in_time::text, check_out_time::text, break_start_time::text, break_end_time::text, total_work_hours, overtime_hours, status, notes, created_at::text, updated_at::text',
+        {
+          rows: [mockAttendanceRecord],
+        },
+      )
 
       const result = await recordCheckOut('employee-1', '192.168.1.100', '정상 퇴근')
 
@@ -410,20 +501,28 @@ describe('Attendance Service', () => {
         rows: [{ id: 'company-1' }],
       })
 
-      DBHelper.mockQueryResponse('SELECT work_start_time, work_end_time, late_threshold_minutes, early_leave_threshold_minutes, allowed_ips, require_ip_check FROM attendance_settings WHERE company_id = $1', {
-        rows: [{
-          work_start_time: '09:00',
-          work_end_time: '18:00',
-          late_threshold_minutes: 15,
-          early_leave_threshold_minutes: 15,
-          allowed_ips: ['192.168.1.0/24'],
-          require_ip_check: false,
-        }],
-      })
+      DBHelper.mockQueryResponse(
+        'SELECT work_start_time, work_end_time, late_threshold_minutes, early_leave_threshold_minutes, allowed_ips, require_ip_check FROM attendance_settings WHERE company_id = $1',
+        {
+          rows: [
+            {
+              work_start_time: '09:00',
+              work_end_time: '18:00',
+              late_threshold_minutes: 15,
+              early_leave_threshold_minutes: 15,
+              allowed_ips: ['192.168.1.0/24'],
+              require_ip_check: false,
+            },
+          ],
+        },
+      )
 
-      DBHelper.mockQueryResponse('UPDATE attendance SET check_out_time = now(), check_out_ip = $2, notes = COALESCE($3, notes), status = \'early_leave\', updated_at = now() WHERE employee_id = $1 AND DATE(check_in_time) = CURRENT_DATE RETURNING id, employee_id, check_in_time::text, check_out_time::text, break_start_time::text, break_end_time::text, total_work_hours, overtime_hours, status, notes, created_at::text, updated_at::text', {
-        rows: [mockAttendanceRecord],
-      })
+      DBHelper.mockQueryResponse(
+        "UPDATE attendance SET check_out_time = now(), check_out_ip = $2, notes = COALESCE($3, notes), status = 'early_leave', updated_at = now() WHERE employee_id = $1 AND DATE(check_in_time) = CURRENT_DATE RETURNING id, employee_id, check_in_time::text, check_out_time::text, break_start_time::text, break_end_time::text, total_work_hours, overtime_hours, status, notes, created_at::text, updated_at::text",
+        {
+          rows: [mockAttendanceRecord],
+        },
+      )
 
       const result = await recordCheckOut('employee-1', '192.168.1.100', '조기퇴근')
 
@@ -438,20 +537,28 @@ describe('Attendance Service', () => {
         rows: [{ id: 'company-1' }],
       })
 
-      DBHelper.mockQueryResponse('SELECT work_start_time, work_end_time, late_threshold_minutes, early_leave_threshold_minutes, allowed_ips, require_ip_check FROM attendance_settings WHERE company_id = $1', {
-        rows: [{
-          work_start_time: '09:00',
-          work_end_time: '18:00',
-          late_threshold_minutes: 15,
-          early_leave_threshold_minutes: 30,
-          allowed_ips: ['192.168.1.0/24'],
-          require_ip_check: false,
-        }],
-      })
+      DBHelper.mockQueryResponse(
+        'SELECT work_start_time, work_end_time, late_threshold_minutes, early_leave_threshold_minutes, allowed_ips, require_ip_check FROM attendance_settings WHERE company_id = $1',
+        {
+          rows: [
+            {
+              work_start_time: '09:00',
+              work_end_time: '18:00',
+              late_threshold_minutes: 15,
+              early_leave_threshold_minutes: 30,
+              allowed_ips: ['192.168.1.0/24'],
+              require_ip_check: false,
+            },
+          ],
+        },
+      )
 
-      DBHelper.mockQueryResponse('UPDATE attendance SET check_out_time = now(), check_out_ip = $2, notes = COALESCE($3, notes), updated_at = now() WHERE employee_id = $1 AND DATE(check_in_time) = CURRENT_DATE RETURNING id, employee_id, check_in_time::text, check_out_time::text, break_start_time::text, break_end_time::text, total_work_hours, overtime_hours, status, notes, created_at::text, updated_at::text', {
-        rows: [],
-      })
+      DBHelper.mockQueryResponse(
+        'UPDATE attendance SET check_out_time = now(), check_out_ip = $2, notes = COALESCE($3, notes), updated_at = now() WHERE employee_id = $1 AND DATE(check_in_time) = CURRENT_DATE RETURNING id, employee_id, check_in_time::text, check_out_time::text, break_start_time::text, break_end_time::text, total_work_hours, overtime_hours, status, notes, created_at::text, updated_at::text',
+        {
+          rows: [],
+        },
+      )
 
       const result = await recordCheckOut('employee-1', '192.168.1.100')
 
@@ -465,16 +572,21 @@ describe('Attendance Service', () => {
         rows: [{ id: 'company-1' }],
       })
 
-      DBHelper.mockQueryResponse('SELECT work_start_time, work_end_time, late_threshold_minutes, early_leave_threshold_minutes, allowed_ips, require_ip_check FROM attendance_settings WHERE company_id = $1', {
-        rows: [{
-          work_start_time: '09:00',
-          work_end_time: '18:00',
-          late_threshold_minutes: 15,
-          early_leave_threshold_minutes: 30,
-          allowed_ips: ['192.168.1.0/24'],
-          require_ip_check: true,
-        }],
-      })
+      DBHelper.mockQueryResponse(
+        'SELECT work_start_time, work_end_time, late_threshold_minutes, early_leave_threshold_minutes, allowed_ips, require_ip_check FROM attendance_settings WHERE company_id = $1',
+        {
+          rows: [
+            {
+              work_start_time: '09:00',
+              work_end_time: '18:00',
+              late_threshold_minutes: 15,
+              early_leave_threshold_minutes: 30,
+              allowed_ips: ['192.168.1.0/24'],
+              require_ip_check: true,
+            },
+          ],
+        },
+      )
 
       const result = await recordCheckOut('employee-1', '10.0.0.100')
 
@@ -508,9 +620,12 @@ describe('Attendance Service', () => {
         notes: null,
       }
 
-      DBHelper.mockQueryResponse('UPDATE attendance SET break_start_time = now(), updated_at = now() WHERE employee_id = $1 AND DATE(check_in_time) = CURRENT_DATE RETURNING id, employee_id, check_in_time::text, check_out_time::text, break_start_time::text, break_end_time::text, total_work_hours, overtime_hours, status, notes, created_at::text, updated_at::text', {
-        rows: [mockAttendanceRecord],
-      })
+      DBHelper.mockQueryResponse(
+        'UPDATE attendance SET break_start_time = now(), updated_at = now() WHERE employee_id = $1 AND DATE(check_in_time) = CURRENT_DATE RETURNING id, employee_id, check_in_time::text, check_out_time::text, break_start_time::text, break_end_time::text, total_work_hours, overtime_hours, status, notes, created_at::text, updated_at::text',
+        {
+          rows: [mockAttendanceRecord],
+        },
+      )
 
       const result = await recordBreakStart('employee-1')
 
@@ -520,9 +635,12 @@ describe('Attendance Service', () => {
     })
 
     it('출근 기록이 없을 시 에러를 반환해야 함', async () => {
-      DBHelper.mockQueryResponse('UPDATE attendance SET break_start_time = now(), updated_at = now() WHERE employee_id = $1 AND DATE(check_in_time) = CURRENT_DATE RETURNING id, employee_id, check_in_time::text, check_out_time::text, break_start_time::text, break_end_time::text, total_work_hours, overtime_hours, status, notes, created_at::text, updated_at::text', {
-        rows: [],
-      })
+      DBHelper.mockQueryResponse(
+        'UPDATE attendance SET break_start_time = now(), updated_at = now() WHERE employee_id = $1 AND DATE(check_in_time) = CURRENT_DATE RETURNING id, employee_id, check_in_time::text, check_out_time::text, break_start_time::text, break_end_time::text, total_work_hours, overtime_hours, status, notes, created_at::text, updated_at::text',
+        {
+          rows: [],
+        },
+      )
 
       const result = await recordBreakStart('employee-1')
 
@@ -555,9 +673,12 @@ describe('Attendance Service', () => {
         notes: null,
       }
 
-      DBHelper.mockQueryResponse('UPDATE attendance SET break_end_time = now(), updated_at = now() WHERE employee_id = $1 AND DATE(check_in_time) = CURRENT_DATE RETURNING id, employee_id, check_in_time::text, check_out_time::text, break_start_time::text, break_end_time::text, total_work_hours, overtime_hours, status, notes, created_at::text, updated_at::text', {
-        rows: [mockAttendanceRecord],
-      })
+      DBHelper.mockQueryResponse(
+        'UPDATE attendance SET break_end_time = now(), updated_at = now() WHERE employee_id = $1 AND DATE(check_in_time) = CURRENT_DATE RETURNING id, employee_id, check_in_time::text, check_out_time::text, break_start_time::text, break_end_time::text, total_work_hours, overtime_hours, status, notes, created_at::text, updated_at::text',
+        {
+          rows: [mockAttendanceRecord],
+        },
+      )
 
       const result = await recordBreakEnd('employee-1')
 
@@ -567,9 +688,12 @@ describe('Attendance Service', () => {
     })
 
     it('출근 기록이 없을 시 에러를 반환해야 함', async () => {
-      DBHelper.mockQueryResponse('UPDATE attendance SET break_end_time = now(), updated_at = now() WHERE employee_id = $1 AND DATE(check_in_time) = CURRENT_DATE RETURNING id, employee_id, check_in_time::text, check_out_time::text, break_start_time::text, break_end_time::text, total_work_hours, overtime_hours, status, notes, created_at::text, updated_at::text', {
-        rows: [],
-      })
+      DBHelper.mockQueryResponse(
+        'UPDATE attendance SET break_end_time = now(), updated_at = now() WHERE employee_id = $1 AND DATE(check_in_time) = CURRENT_DATE RETURNING id, employee_id, check_in_time::text, check_out_time::text, break_start_time::text, break_end_time::text, total_work_hours, overtime_hours, status, notes, created_at::text, updated_at::text',
+        {
+          rows: [],
+        },
+      )
 
       const result = await recordBreakEnd('employee-1')
 
@@ -628,39 +752,61 @@ describe('Attendance Service', () => {
         rows: [{ id: 'company-1' }],
       })
 
-      DBHelper.mockQueryResponse('SELECT work_start_time, work_end_time, late_threshold_minutes, early_leave_threshold_minutes, allowed_ips, require_ip_check FROM attendance_settings WHERE company_id = $1', {
-        rows: [{
-          work_start_time: '09:00',
-          work_end_time: '18:00',
-          late_threshold_minutes: 15,
-          early_leave_threshold_minutes: 30,
-          allowed_ips: ['192.168.1.0/24'],
-          require_ip_check: false,
-        }],
-      })
+      DBHelper.mockQueryResponse(
+        'SELECT work_start_time, work_end_time, late_threshold_minutes, early_leave_threshold_minutes, allowed_ips, require_ip_check FROM attendance_settings WHERE company_id = $1',
+        {
+          rows: [
+            {
+              work_start_time: '09:00',
+              work_end_time: '18:00',
+              late_threshold_minutes: 15,
+              early_leave_threshold_minutes: 30,
+              allowed_ips: ['192.168.1.0/24'],
+              require_ip_check: false,
+            },
+          ],
+        },
+      )
 
       // Mock check-in
-      DBHelper.mockQueryResponse('INSERT INTO attendance (employee_id, check_in_time, check_in_ip, notes, status) VALUES ($1, now(), $2, $3, $4) ON CONFLICT (employee_id, check_in_date) DO UPDATE SET check_in_time = now(), check_in_ip = $2, notes = $3, status = $4, updated_at = now() RETURNING id, employee_id, check_in_time::text, check_out_time::text, break_start_time::text, break_end_time::text, total_work_hours, overtime_hours, status, notes, created_at::text, updated_at::text', {
-        rows: [mockCheckInRecord],
-      })
+      DBHelper.mockQueryResponse(
+        'INSERT INTO attendance (employee_id, check_in_time, check_in_ip, notes, status) VALUES ($1, now(), $2, $3, $4) ON CONFLICT (employee_id, check_in_date) DO UPDATE SET check_in_time = now(), check_in_ip = $2, notes = $3, status = $4, updated_at = now() RETURNING id, employee_id, check_in_time::text, check_out_time::text, break_start_time::text, break_end_time::text, total_work_hours, overtime_hours, status, notes, created_at::text, updated_at::text',
+        {
+          rows: [mockCheckInRecord],
+        },
+      )
 
       // Mock break start
-      DBHelper.mockQueryResponse('UPDATE attendance SET break_start_time = now(), updated_at = now() WHERE employee_id = $1 AND DATE(check_in_time) = CURRENT_DATE RETURNING id, employee_id, check_in_time::text, check_out_time::text, break_start_time::text, break_end_time::text, total_work_hours, overtime_hours, status, notes, created_at::text, updated_at::text', {
-        rows: [mockBreakStartRecord],
-      })
+      DBHelper.mockQueryResponse(
+        'UPDATE attendance SET break_start_time = now(), updated_at = now() WHERE employee_id = $1 AND DATE(check_in_time) = CURRENT_DATE RETURNING id, employee_id, check_in_time::text, check_out_time::text, break_start_time::text, break_end_time::text, total_work_hours, overtime_hours, status, notes, created_at::text, updated_at::text',
+        {
+          rows: [mockBreakStartRecord],
+        },
+      )
 
       // Mock break end
-      DBHelper.mockQueryResponse('UPDATE attendance SET break_end_time = now(), updated_at = now() WHERE employee_id = $1 AND DATE(check_in_time) = CURRENT_DATE RETURNING id, employee_id, check_in_time::text, check_out_time::text, break_start_time::text, break_end_time::text, total_work_hours, overtime_hours, status, notes, created_at::text, updated_at::text', {
-        rows: [mockBreakEndRecord],
-      })
+      DBHelper.mockQueryResponse(
+        'UPDATE attendance SET break_end_time = now(), updated_at = now() WHERE employee_id = $1 AND DATE(check_in_time) = CURRENT_DATE RETURNING id, employee_id, check_in_time::text, check_out_time::text, break_start_time::text, break_end_time::text, total_work_hours, overtime_hours, status, notes, created_at::text, updated_at::text',
+        {
+          rows: [mockBreakEndRecord],
+        },
+      )
 
       // Mock check-out
-      DBHelper.mockQueryResponse('UPDATE attendance SET check_out_time = now(), check_out_ip = $2, notes = COALESCE($3, notes), updated_at = now() WHERE employee_id = $1 AND DATE(check_in_time) = CURRENT_DATE RETURNING id, employee_id, check_in_time::text, check_out_time::text, break_start_time::text, break_end_time::text, total_work_hours, overtime_hours, status, notes, created_at::text, updated_at::text', {
-        rows: [mockCheckOutRecord],
-      })
+      DBHelper.mockQueryResponse(
+        'UPDATE attendance SET check_out_time = now(), check_out_ip = $2, notes = COALESCE($3, notes), updated_at = now() WHERE employee_id = $1 AND DATE(check_in_time) = CURRENT_DATE RETURNING id, employee_id, check_in_time::text, check_out_time::text, break_start_time::text, break_end_time::text, total_work_hours, overtime_hours, status, notes, created_at::text, updated_at::text',
+        {
+          rows: [mockCheckOutRecord],
+        },
+      )
 
       // 출근
-      const checkInResult = await recordCheckIn('employee-1', '2025-01-15', '192.168.1.100', '정상 출근')
+      const checkInResult = await recordCheckIn(
+        'employee-1',
+        '2025-01-15',
+        '192.168.1.100',
+        '정상 출근',
+      )
       expect(checkInResult.success).toBe(true)
       expect(checkInResult.message).toBe(ATTENDANCE_MESSAGES.CHECK_IN)
 
@@ -726,22 +872,35 @@ describe('Attendance Service', () => {
           rows: [{ id: 'company-1' }],
         })
 
-        DBHelper.mockQueryResponse('SELECT work_start_time, work_end_time, late_threshold_minutes, early_leave_threshold_minutes, allowed_ips, require_ip_check FROM attendance_settings WHERE company_id = $1', {
-          rows: [{
-            work_start_time: '09:00',
-            work_end_time: '18:00',
-            late_threshold_minutes: 15,
-            early_leave_threshold_minutes: 30,
-            allowed_ips: ['192.168.1.0/24'],
-            require_ip_check: false,
-          }],
-        })
+        DBHelper.mockQueryResponse(
+          'SELECT work_start_time, work_end_time, late_threshold_minutes, early_leave_threshold_minutes, allowed_ips, require_ip_check FROM attendance_settings WHERE company_id = $1',
+          {
+            rows: [
+              {
+                work_start_time: '09:00',
+                work_end_time: '18:00',
+                late_threshold_minutes: 15,
+                early_leave_threshold_minutes: 30,
+                allowed_ips: ['192.168.1.0/24'],
+                require_ip_check: false,
+              },
+            ],
+          },
+        )
 
-        DBHelper.mockQueryResponse('INSERT INTO attendance (employee_id, check_in_time, check_in_ip, notes, status) VALUES ($1, now(), $2, $3, $4) ON CONFLICT (employee_id, check_in_date) DO UPDATE SET check_in_time = now(), check_in_ip = $2, notes = $3, status = $4, updated_at = now() RETURNING id, employee_id, check_in_time::text, check_out_time::text, break_start_time::text, break_end_time::text, total_work_hours, overtime_hours, status, notes, created_at::text, updated_at::text', {
-          rows: [mockAttendanceRecord],
-        })
+        DBHelper.mockQueryResponse(
+          'INSERT INTO attendance (employee_id, check_in_time, check_in_ip, notes, status) VALUES ($1, now(), $2, $3, $4) ON CONFLICT (employee_id, check_in_date) DO UPDATE SET check_in_time = now(), check_in_ip = $2, notes = $3, status = $4, updated_at = now() RETURNING id, employee_id, check_in_time::text, check_out_time::text, break_start_time::text, break_end_time::text, total_work_hours, overtime_hours, status, notes, created_at::text, updated_at::text',
+          {
+            rows: [mockAttendanceRecord],
+          },
+        )
 
-        const result = await recordCheckIn('employee-1', '2025-01-15', '192.168.1.100', testCase.name)
+        const result = await recordCheckIn(
+          'employee-1',
+          '2025-01-15',
+          '192.168.1.100',
+          testCase.name,
+        )
 
         expect(result.success).toBe(true)
         expect(result.data?.status).toBe(testCase.expectedStatus)

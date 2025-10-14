@@ -149,17 +149,17 @@ global.File = class MockFile {
   constructor(
     public content: any[],
     public filename: string,
-    public options: any = {}
+    public options: any = {},
   ) {}
-  
+
   get size() {
     return this.content.reduce((size, item) => size + item.length, 0)
   }
-  
+
   get type() {
     return this.options.type || 'application/octet-stream'
   }
-  
+
   get name() {
     return this.filename
   }
@@ -169,7 +169,7 @@ global.FileReader = class MockFileReader {
   onload: ((event: any) => void) | null = null
   onerror: ((event: any) => void) | null = null
   result: any = null
-  
+
   readAsArrayBuffer(file: File) {
     setTimeout(() => {
       this.result = new ArrayBuffer(file.size)
@@ -178,7 +178,7 @@ global.FileReader = class MockFileReader {
       }
     }, 0)
   }
-  
+
   readAsDataURL(file: File) {
     setTimeout(() => {
       this.result = 'data:application/pdf;base64,mock-data'
@@ -192,13 +192,13 @@ global.FileReader = class MockFileReader {
 // Global test setup
 beforeEach(() => {
   vi.clearAllMocks()
-  
+
   // Reset fetch mock
   vi.mocked(fetch).mockClear()
-  
+
   // Reset crypto mock
   vi.mocked(global.crypto.randomUUID).mockReturnValue('mock-uuid-123')
-  
+
   // Reset console methods to avoid noise in tests
   vi.spyOn(console, 'log').mockImplementation(() => {})
   vi.spyOn(console, 'warn').mockImplementation(() => {})

@@ -12,14 +12,7 @@ export const USER_FIXTURES = {
       email: 'admin@company.com',
       name: '관리자',
       role: 'ADMIN',
-      permissions: [
-        'read',
-        'write',
-        'delete',
-        'admin',
-        'user_management',
-        'system_config',
-      ],
+      permissions: ['read', 'write', 'delete', 'admin', 'user_management', 'system_config'],
       employee_id: 'EMP001',
       is_active: true,
       last_login: '2025-01-15T10:30:00.000Z',
@@ -31,12 +24,7 @@ export const USER_FIXTURES = {
       email: 'manager@company.com',
       name: '팀장',
       role: 'MANAGER',
-      permissions: [
-        'read',
-        'write',
-        'approve',
-        'team_management',
-      ],
+      permissions: ['read', 'write', 'approve', 'team_management'],
       employee_id: 'EMP002',
       is_active: true,
       last_login: '2025-01-14T15:45:00.000Z',
@@ -48,10 +36,7 @@ export const USER_FIXTURES = {
       email: 'employee@company.com',
       name: '직원',
       role: 'EMPLOYEE',
-      permissions: [
-        'read',
-        'write_own',
-      ],
+      permissions: ['read', 'write_own'],
       employee_id: 'EMP003',
       is_active: true,
       last_login: '2025-01-15T09:00:00.000Z',
@@ -63,10 +48,7 @@ export const USER_FIXTURES = {
       email: 'contractor@external.com',
       name: '계약직',
       role: 'CONTRACTOR',
-      permissions: [
-        'read',
-        'write_own',
-      ],
+      permissions: ['read', 'write_own'],
       employee_id: 'CON001',
       is_active: true,
       last_login: '2025-01-13T14:20:00.000Z',
@@ -78,9 +60,7 @@ export const USER_FIXTURES = {
       email: 'viewer@company.com',
       name: '조회전용',
       role: 'VIEWER',
-      permissions: [
-        'read',
-      ],
+      permissions: ['read'],
       employee_id: 'EMP004',
       is_active: true,
       last_login: '2025-01-12T11:15:00.000Z',
@@ -162,47 +142,14 @@ export const USER_FIXTURES = {
       'rd_read',
       'rd_write',
     ],
-    admin: [
-      'read',
-      'write',
-      'delete',
-      'admin',
-      'user_management',
-      'system_config',
-    ],
-    manager: [
-      'read',
-      'write',
-      'approve',
-      'team_management',
-    ],
-    employee: [
-      'read',
-      'write_own',
-    ],
-    viewer: [
-      'read',
-    ],
-    finance: [
-      'read',
-      'finance_read',
-      'finance_write',
-    ],
-    hr: [
-      'read',
-      'hr_read',
-      'hr_write',
-    ],
-    crm: [
-      'read',
-      'crm_read',
-      'crm_write',
-    ],
-    rd: [
-      'read',
-      'rd_read',
-      'rd_write',
-    ],
+    admin: ['read', 'write', 'delete', 'admin', 'user_management', 'system_config'],
+    manager: ['read', 'write', 'approve', 'team_management'],
+    employee: ['read', 'write_own'],
+    viewer: ['read'],
+    finance: ['read', 'finance_read', 'finance_write'],
+    hr: ['read', 'hr_read', 'hr_write'],
+    crm: ['read', 'crm_read', 'crm_write'],
+    rd: ['read', 'rd_read', 'rd_write'],
   },
 
   /**
@@ -558,7 +505,7 @@ export const USER_FIXTURES = {
  * 테스트용 배열 데이터 생성 헬퍼
  */
 export const createUserTestArrays = {
-  users: (count: number) => 
+  users: (count: number) =>
     Array.from({ length: count }, (_, i) => ({
       ...USER_FIXTURES.authenticated.employee,
       id: `user-${i + 1}`,
@@ -568,7 +515,7 @@ export const createUserTestArrays = {
       role: ['EMPLOYEE', 'MANAGER', 'ADMIN'][i % 3],
     })),
 
-  sessions: (count: number) => 
+  sessions: (count: number) =>
     Array.from({ length: count }, (_, i) => ({
       ...USER_FIXTURES.sessions.valid,
       id: `session-${i + 1}`,
@@ -577,8 +524,9 @@ export const createUserTestArrays = {
       created_at: new Date(Date.now() - i * 60 * 60 * 1000).toISOString(),
     })),
 
-  permissions: (count: number) => 
-    Array.from({ length: count }, (_, i) => 
-      USER_FIXTURES.permissions.all[i % USER_FIXTURES.permissions.all.length]
+  permissions: (count: number) =>
+    Array.from(
+      { length: count },
+      (_, i) => USER_FIXTURES.permissions.all[i % USER_FIXTURES.permissions.all.length],
     ),
 }

@@ -1,12 +1,12 @@
 import {
-    createPayslip,
-    deletePayslip,
-    downloadPayslip,
-    fetchEmployeePayslips,
-    fetchPayslips,
-    fetchSalaryHistory,
-    updatePayslip,
-    uploadPayslipTemplate,
+  createPayslip,
+  deletePayslip,
+  downloadPayslip,
+  fetchEmployeePayslips,
+  fetchPayslips,
+  fetchSalaryHistory,
+  updatePayslip,
+  uploadPayslipTemplate,
 } from '$lib/services/salary/payslip.service'
 import type { Payslip, SalaryHistory } from '$lib/types/salary'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -53,10 +53,11 @@ describe('Payslip Service', () => {
       ]
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: true,
-          data: mockPayslips,
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: mockPayslips,
+          }),
       } as Response)
 
       const result = await fetchPayslips()
@@ -77,10 +78,11 @@ describe('Payslip Service', () => {
 
     it('API 응답 오류 시 에러를 반환해야 함', async () => {
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: false,
-          error: 'Database connection failed',
-        }),
+        json: () =>
+          Promise.resolve({
+            success: false,
+            error: 'Database connection failed',
+          }),
       } as Response)
 
       const result = await fetchPayslips()
@@ -93,10 +95,11 @@ describe('Payslip Service', () => {
       const mockPayslips: Payslip[] = []
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: true,
-          data: mockPayslips,
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: mockPayslips,
+          }),
       } as Response)
 
       const result = await fetchPayslips()
@@ -139,10 +142,11 @@ describe('Payslip Service', () => {
       ]
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: true,
-          data: mockPayslips,
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: mockPayslips,
+          }),
       } as Response)
 
       const result = await fetchEmployeePayslips('employee-1')
@@ -154,10 +158,11 @@ describe('Payslip Service', () => {
 
     it('존재하지 않는 직원의 급여명세서 조회 시 에러를 반환해야 함', async () => {
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: false,
-          error: 'Employee not found',
-        }),
+        json: () =>
+          Promise.resolve({
+            success: false,
+            error: 'Employee not found',
+          }),
       } as Response)
 
       const result = await fetchEmployeePayslips('non-existent')
@@ -193,10 +198,11 @@ describe('Payslip Service', () => {
       }
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: true,
-          data: mockCreatedPayslip,
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: mockCreatedPayslip,
+          }),
       } as Response)
 
       const result = await createPayslip('employee-1', '2025-02')
@@ -212,10 +218,11 @@ describe('Payslip Service', () => {
 
     it('중복 기간의 급여명세서 생성 시 에러를 반환해야 함', async () => {
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: false,
-          error: 'Payslip already exists for this period',
-        }),
+        json: () =>
+          Promise.resolve({
+            success: false,
+            error: 'Payslip already exists for this period',
+          }),
       } as Response)
 
       const result = await createPayslip('employee-1', '2025-01')
@@ -226,10 +233,11 @@ describe('Payslip Service', () => {
 
     it('존재하지 않는 직원의 급여명세서 생성 시 에러를 반환해야 함', async () => {
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: false,
-          error: 'Employee not found',
-        }),
+        json: () =>
+          Promise.resolve({
+            success: false,
+            error: 'Employee not found',
+          }),
       } as Response)
 
       const result = await createPayslip('non-existent', '2025-02')
@@ -269,10 +277,11 @@ describe('Payslip Service', () => {
       }
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: true,
-          data: mockUpdatedPayslip,
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: mockUpdatedPayslip,
+          }),
       } as Response)
 
       const result = await updatePayslip('payslip-1', updates)
@@ -290,10 +299,11 @@ describe('Payslip Service', () => {
       const updates = { basicSalary: 3200000 }
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: false,
-          error: 'Payslip not found',
-        }),
+        json: () =>
+          Promise.resolve({
+            success: false,
+            error: 'Payslip not found',
+          }),
       } as Response)
 
       const result = await updatePayslip('non-existent', updates)
@@ -306,10 +316,11 @@ describe('Payslip Service', () => {
       const updates = { basicSalary: 3200000 }
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: false,
-          error: 'Cannot modify confirmed payslip',
-        }),
+        json: () =>
+          Promise.resolve({
+            success: false,
+            error: 'Cannot modify confirmed payslip',
+          }),
       } as Response)
 
       const result = await updatePayslip('payslip-1', updates)
@@ -333,10 +344,11 @@ describe('Payslip Service', () => {
   describe('deletePayslip', () => {
     it('급여명세서를 성공적으로 삭제해야 함', async () => {
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: true,
-          data: { id: 'payslip-1' },
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: { id: 'payslip-1' },
+          }),
       } as Response)
 
       const result = await deletePayslip('payslip-1')
@@ -350,10 +362,11 @@ describe('Payslip Service', () => {
 
     it('존재하지 않는 급여명세서 삭제 시 에러를 반환해야 함', async () => {
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: false,
-          error: 'Payslip not found',
-        }),
+        json: () =>
+          Promise.resolve({
+            success: false,
+            error: 'Payslip not found',
+          }),
       } as Response)
 
       const result = await deletePayslip('non-existent')
@@ -364,10 +377,11 @@ describe('Payslip Service', () => {
 
     it('확정된 급여명세서 삭제 시 에러를 반환해야 함', async () => {
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: false,
-          error: 'Cannot delete confirmed payslip',
-        }),
+        json: () =>
+          Promise.resolve({
+            success: false,
+            error: 'Cannot delete confirmed payslip',
+          }),
       } as Response)
 
       const result = await deletePayslip('payslip-1')
@@ -492,10 +506,11 @@ describe('Payslip Service', () => {
       ]
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: true,
-          data: mockSalaryHistory,
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: mockSalaryHistory,
+          }),
       } as Response)
 
       const result = await fetchSalaryHistory()
@@ -523,10 +538,11 @@ describe('Payslip Service', () => {
       ]
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: true,
-          data: mockSalaryHistory,
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: mockSalaryHistory,
+          }),
       } as Response)
 
       const result = await fetchSalaryHistory('employee-1')
@@ -538,10 +554,11 @@ describe('Payslip Service', () => {
 
     it('존재하지 않는 직원의 급여 이력 조회 시 에러를 반환해야 함', async () => {
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: false,
-          error: 'Employee not found',
-        }),
+        json: () =>
+          Promise.resolve({
+            success: false,
+            error: 'Employee not found',
+          }),
       } as Response)
 
       const result = await fetchSalaryHistory('non-existent')
@@ -554,10 +571,11 @@ describe('Payslip Service', () => {
       const mockSalaryHistory: SalaryHistory[] = []
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: true,
-          data: mockSalaryHistory,
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: mockSalaryHistory,
+          }),
       } as Response)
 
       const result = await fetchSalaryHistory('employee-1')
@@ -590,10 +608,11 @@ describe('Payslip Service', () => {
       }
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: true,
-          data: mockUploadResult,
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: mockUploadResult,
+          }),
       } as Response)
 
       const result = await uploadPayslipTemplate(mockFormData)
@@ -611,10 +630,11 @@ describe('Payslip Service', () => {
       mockFormData.append('file', new File(['content'], 'template.txt'))
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: false,
-          error: 'Invalid file format. Please upload an Excel file.',
-        }),
+        json: () =>
+          Promise.resolve({
+            success: false,
+            error: 'Invalid file format. Please upload an Excel file.',
+          }),
       } as Response)
 
       const result = await uploadPayslipTemplate(mockFormData)
@@ -628,10 +648,11 @@ describe('Payslip Service', () => {
       mockFormData.append('file', new File(['content'], 'template.xlsx'))
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: false,
-          error: 'File size exceeds the maximum limit of 10MB',
-        }),
+        json: () =>
+          Promise.resolve({
+            success: false,
+            error: 'File size exceeds the maximum limit of 10MB',
+          }),
       } as Response)
 
       const result = await uploadPayslipTemplate(mockFormData)
@@ -686,22 +707,25 @@ describe('Payslip Service', () => {
 
       vi.mocked(fetch)
         .mockResolvedValueOnce({
-          json: () => Promise.resolve({
-            success: true,
-            data: mockCreatedPayslip,
-          }),
+          json: () =>
+            Promise.resolve({
+              success: true,
+              data: mockCreatedPayslip,
+            }),
         } as Response)
         .mockResolvedValueOnce({
-          json: () => Promise.resolve({
-            success: true,
-            data: mockUpdatedPayslip,
-          }),
+          json: () =>
+            Promise.resolve({
+              success: true,
+              data: mockUpdatedPayslip,
+            }),
         } as Response)
         .mockResolvedValueOnce({
-          json: () => Promise.resolve({
-            success: true,
-            data: mockPayslips,
-          }),
+          json: () =>
+            Promise.resolve({
+              success: true,
+              data: mockPayslips,
+            }),
         } as Response)
 
       // 급여명세서 생성
@@ -781,10 +805,11 @@ describe('Payslip Service', () => {
 
       for (const testCase of testCases) {
         vi.mocked(fetch).mockResolvedValueOnce({
-          json: () => Promise.resolve({
-            success: true,
-            data: [testCase.payslip],
-          }),
+          json: () =>
+            Promise.resolve({
+              success: true,
+              data: [testCase.payslip],
+            }),
         } as Response)
 
         const result = await fetchEmployeePayslips(testCase.payslip.employeeId)

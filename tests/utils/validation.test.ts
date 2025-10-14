@@ -1,14 +1,14 @@
 import {
-    BudgetConsistencyValidator,
-    EmploymentPeriodValidator,
-    ParticipationRateValidator,
-    PersonnelCostValidator,
-    UsageRateValidator,
-    ValidationUtils,
-    type EvidenceItem,
-    type ProjectBudget,
-    type ProjectMember,
-    type ValidationResult,
+  BudgetConsistencyValidator,
+  EmploymentPeriodValidator,
+  ParticipationRateValidator,
+  PersonnelCostValidator,
+  UsageRateValidator,
+  ValidationUtils,
+  type EvidenceItem,
+  type ProjectBudget,
+  type ProjectMember,
+  type ValidationResult,
 } from '$lib/utils/validation'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { DBHelper } from '../helpers/db-helper'
@@ -26,7 +26,7 @@ describe('ValidationUtils', () => {
         'VALID',
         '검증 성공',
         ['issue1', 'issue2'],
-        { key: 'value' }
+        { key: 'value' },
       )
 
       expect(result).toEqual({
@@ -172,7 +172,7 @@ describe('ValidationUtils', () => {
         'project-123',
         '테스트 프로젝트',
         validationResults,
-        overallValidation
+        overallValidation,
       )
 
       expect(result).toEqual({
@@ -222,7 +222,10 @@ describe('ValidationUtils', () => {
 
     it('프로젝트 정보를 조회해야 함', async () => {
       const mockProject = { id: 'project-123', title: '테스트 프로젝트' }
-      DBHelper.mockQueryResponse('SELECT * FROM projects WHERE id = $1', { rows: [mockProject], rowCount: 1 })
+      DBHelper.mockQueryResponse('SELECT * FROM projects WHERE id = $1', {
+        rows: [mockProject],
+        rowCount: 1,
+      })
 
       const result = await ValidationUtils.getProjectInfo('project-123')
 
@@ -234,7 +237,7 @@ describe('ValidationUtils', () => {
       DBHelper.mockQueryResponse('SELECT * FROM projects WHERE id = $1', { rows: [], rowCount: 0 })
 
       await expect(ValidationUtils.getProjectInfo('non-existent')).rejects.toThrow(
-        '프로젝트를 찾을 수 없습니다.'
+        '프로젝트를 찾을 수 없습니다.',
       )
     })
 
@@ -243,19 +246,27 @@ describe('ValidationUtils', () => {
         { id: 'budget-1', period_number: 1 },
         { id: 'budget-2', period_number: 2 },
       ]
-      DBHelper.mockQueryResponse('SELECT * FROM project_budgets WHERE project_id = $1 ORDER BY period_number', { rows: mockBudgets, rowCount: mockBudgets.length })
+      DBHelper.mockQueryResponse(
+        'SELECT * FROM project_budgets WHERE project_id = $1 ORDER BY period_number',
+        { rows: mockBudgets, rowCount: mockBudgets.length },
+      )
 
       const result = await ValidationUtils.getProjectBudgets('project-123')
 
       expect(result).toEqual(mockBudgets)
-      expect(DBHelper.wasQueryCalled('SELECT * FROM project_budgets WHERE project_id = $1 ORDER BY period_number')).toBe(true)
+      expect(
+        DBHelper.wasQueryCalled(
+          'SELECT * FROM project_budgets WHERE project_id = $1 ORDER BY period_number',
+        ),
+      ).toBe(true)
     })
 
     it('프로젝트 멤버를 조회해야 함', async () => {
-      const mockMembers = [
-        { id: 'member-1', first_name: '홍', last_name: '길동' },
-      ]
-      DBHelper.mockQueryResponse('FROM project_members pm', { rows: mockMembers, rowCount: mockMembers.length })
+      const mockMembers = [{ id: 'member-1', first_name: '홍', last_name: '길동' }]
+      DBHelper.mockQueryResponse('FROM project_members pm', {
+        rows: mockMembers,
+        rowCount: mockMembers.length,
+      })
 
       const result = await ValidationUtils.getProjectMembers('project-123')
 
@@ -263,10 +274,11 @@ describe('ValidationUtils', () => {
     })
 
     it('증빙 항목을 조회해야 함', async () => {
-      const mockEvidence = [
-        { id: 'evidence-1', category_name: '인건비' },
-      ]
-      DBHelper.mockQueryResponse('FROM evidence_items ei', { rows: mockEvidence, rowCount: mockEvidence.length })
+      const mockEvidence = [{ id: 'evidence-1', category_name: '인건비' }]
+      DBHelper.mockQueryResponse('FROM evidence_items ei', {
+        rows: mockEvidence,
+        rowCount: mockEvidence.length,
+      })
 
       const result = await ValidationUtils.getEvidenceItems('project-123')
 
@@ -274,10 +286,11 @@ describe('ValidationUtils', () => {
     })
 
     it('카테고리별 증빙 항목을 조회해야 함', async () => {
-      const mockEvidence = [
-        { id: 'evidence-1', category_name: '인건비' },
-      ]
-      DBHelper.mockQueryResponse('FROM evidence_items ei', { rows: mockEvidence, rowCount: mockEvidence.length })
+      const mockEvidence = [{ id: 'evidence-1', category_name: '인건비' }]
+      DBHelper.mockQueryResponse('FROM evidence_items ei', {
+        rows: mockEvidence,
+        rowCount: mockEvidence.length,
+      })
 
       const result = await ValidationUtils.getEvidenceItems('project-123', '인건비')
 
@@ -588,7 +601,7 @@ describe('EmploymentPeriodValidator', () => {
 
       const result = EmploymentPeriodValidator.validateEvidenceEmploymentPeriod(
         evidence as any,
-        employee
+        employee,
       )
 
       expect(result.isValid).toBe(true)
@@ -604,7 +617,7 @@ describe('EmploymentPeriodValidator', () => {
 
       const result = EmploymentPeriodValidator.validateEvidenceEmploymentPeriod(
         evidence as any,
-        null as any
+        null as any,
       )
 
       expect(result.isValid).toBe(false)

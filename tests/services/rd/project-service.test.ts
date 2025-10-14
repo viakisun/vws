@@ -85,7 +85,10 @@ describe('project.service', () => {
       const result = await projectService.getProject('project-1')
 
       expect(result).toEqual(mockProject)
-      expect(mockFetch).toHaveBeenCalledWith('/api/research-development/projects/project-1', undefined)
+      expect(mockFetch).toHaveBeenCalledWith(
+        '/api/research-development/projects/project-1',
+        undefined,
+      )
     })
 
     it('should handle fetch errors for single project', async () => {
@@ -253,9 +256,9 @@ describe('project.service', () => {
         statusText: 'Bad Request',
       })
 
-      await expect(projectService.updateProjectPeriod({ projectId, ...periodData })).rejects.toThrow(
-        'Failed to update project: 400 Bad Request',
-      )
+      await expect(
+        projectService.updateProjectPeriod({ projectId, ...periodData }),
+      ).rejects.toThrow('Failed to update project: 400 Bad Request')
     })
   })
 

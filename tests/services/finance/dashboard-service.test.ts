@@ -109,10 +109,11 @@ describe('Finance Dashboard Service', () => {
       }
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: true,
-          data: mockDashboard,
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: mockDashboard,
+          }),
       } as Response)
 
       const result = await dashboardService.getDashboardData()
@@ -140,10 +141,11 @@ describe('Finance Dashboard Service', () => {
       }
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: true,
-          data: mockDashboard,
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: mockDashboard,
+          }),
       } as Response)
 
       const result = await dashboardService.getDashboardData('2025-01-10')
@@ -160,13 +162,16 @@ describe('Finance Dashboard Service', () => {
 
     it('API 응답 오류 시 에러를 던져야 함', async () => {
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: false,
-          error: 'Database connection failed',
-        }),
+        json: () =>
+          Promise.resolve({
+            success: false,
+            error: 'Database connection failed',
+          }),
       } as Response)
 
-      await expect(dashboardService.getDashboardData()).rejects.toThrow('Database connection failed')
+      await expect(dashboardService.getDashboardData()).rejects.toThrow(
+        'Database connection failed',
+      )
     })
 
     it('빈 대시보드 데이터를 올바르게 처리해야 함', async () => {
@@ -188,10 +193,11 @@ describe('Finance Dashboard Service', () => {
       }
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: true,
-          data: mockEmptyDashboard,
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: mockEmptyDashboard,
+          }),
       } as Response)
 
       const result = await dashboardService.getDashboardData()
@@ -269,10 +275,11 @@ describe('Finance Dashboard Service', () => {
       }
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: true,
-          data: mockDailyReport,
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: mockDailyReport,
+          }),
       } as Response)
 
       const result = await dashboardService.generateDailyReport('2025-01-15')
@@ -291,20 +298,21 @@ describe('Finance Dashboard Service', () => {
       vi.mocked(fetch).mockRejectedValueOnce(new Error('Network error'))
 
       await expect(dashboardService.generateDailyReport('2025-01-15')).rejects.toThrow(
-        'Network error'
+        'Network error',
       )
     })
 
     it('API 응답 오류 시 에러를 던져야 함', async () => {
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: false,
-          error: 'Failed to generate daily report',
-        }),
+        json: () =>
+          Promise.resolve({
+            success: false,
+            error: 'Failed to generate daily report',
+          }),
       } as Response)
 
       await expect(dashboardService.generateDailyReport('2025-01-15')).rejects.toThrow(
-        'Failed to generate daily report'
+        'Failed to generate daily report',
       )
     })
   })
@@ -355,10 +363,11 @@ describe('Finance Dashboard Service', () => {
       }
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: true,
-          data: mockDailyReport,
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: mockDailyReport,
+          }),
       } as Response)
 
       const result = await dashboardService.getDailyReport('2025-01-15')
@@ -370,10 +379,11 @@ describe('Finance Dashboard Service', () => {
     it('존재하지 않는 자금일보 조회 시 null을 반환해야 함', async () => {
       vi.mocked(fetch).mockResolvedValueOnce({
         status: 404,
-        json: () => Promise.resolve({
-          success: false,
-          error: 'Daily report not found',
-        }),
+        json: () =>
+          Promise.resolve({
+            success: false,
+            error: 'Daily report not found',
+          }),
       } as Response)
 
       const result = await dashboardService.getDailyReport('2025-01-15')
@@ -390,14 +400,15 @@ describe('Finance Dashboard Service', () => {
     it('API 응답 오류 시 에러를 던져야 함', async () => {
       vi.mocked(fetch).mockResolvedValueOnce({
         status: 500,
-        json: () => Promise.resolve({
-          success: false,
-          error: 'Internal server error',
-        }),
+        json: () =>
+          Promise.resolve({
+            success: false,
+            error: 'Internal server error',
+          }),
       } as Response)
 
       await expect(dashboardService.getDailyReport('2025-01-15')).rejects.toThrow(
-        'Internal server error'
+        'Internal server error',
       )
     })
   })
@@ -471,17 +482,18 @@ describe('Finance Dashboard Service', () => {
       ]
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: true,
-          data: mockDailyReports,
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: mockDailyReports,
+          }),
       } as Response)
 
       const result = await dashboardService.getDailyReports('2025-01-13', '2025-01-15')
 
       expect(result).toEqual(mockDailyReports)
       expect(fetch).toHaveBeenCalledWith(
-        '/api/finance/reports/daily?startDate=2025-01-13&endDate=2025-01-15'
+        '/api/finance/reports/daily?startDate=2025-01-13&endDate=2025-01-15',
       )
     })
 
@@ -489,10 +501,11 @@ describe('Finance Dashboard Service', () => {
       const mockDailyReports: DailyFinanceReport[] = []
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: true,
-          data: mockDailyReports,
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: mockDailyReports,
+          }),
       } as Response)
 
       const result = await dashboardService.getDailyReports('2025-01-01', '2025-01-31')
@@ -505,20 +518,21 @@ describe('Finance Dashboard Service', () => {
       vi.mocked(fetch).mockRejectedValueOnce(new Error('Network error'))
 
       await expect(dashboardService.getDailyReports('2025-01-13', '2025-01-15')).rejects.toThrow(
-        'Network error'
+        'Network error',
       )
     })
 
     it('API 응답 오류 시 에러를 던져야 함', async () => {
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: false,
-          error: 'Invalid date range',
-        }),
+        json: () =>
+          Promise.resolve({
+            success: false,
+            error: 'Invalid date range',
+          }),
       } as Response)
 
       await expect(dashboardService.getDailyReports('2025-01-13', '2025-01-15')).rejects.toThrow(
-        'Invalid date range'
+        'Invalid date range',
       )
     })
   })
@@ -556,10 +570,11 @@ describe('Finance Dashboard Service', () => {
       ]
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: true,
-          data: mockAlerts,
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: mockAlerts,
+          }),
       } as Response)
 
       const result = await dashboardService.getAlerts()
@@ -591,10 +606,11 @@ describe('Finance Dashboard Service', () => {
       ]
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: true,
-          data: mockUnreadAlerts,
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: mockUnreadAlerts,
+          }),
       } as Response)
 
       const result = await dashboardService.getAlerts(false)
@@ -617,10 +633,11 @@ describe('Finance Dashboard Service', () => {
       ]
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: true,
-          data: mockReadAlerts,
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: mockReadAlerts,
+          }),
       } as Response)
 
       const result = await dashboardService.getAlerts(true)
@@ -633,10 +650,11 @@ describe('Finance Dashboard Service', () => {
       const mockAlerts: FinanceAlert[] = []
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: true,
-          data: mockAlerts,
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: mockAlerts,
+          }),
       } as Response)
 
       const result = await dashboardService.getAlerts()
@@ -653,10 +671,11 @@ describe('Finance Dashboard Service', () => {
 
     it('API 응답 오류 시 에러를 던져야 함', async () => {
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: false,
-          error: 'Failed to fetch alerts',
-        }),
+        json: () =>
+          Promise.resolve({
+            success: false,
+            error: 'Failed to fetch alerts',
+          }),
       } as Response)
 
       await expect(dashboardService.getAlerts()).rejects.toThrow('Failed to fetch alerts')
@@ -666,9 +685,10 @@ describe('Finance Dashboard Service', () => {
   describe('markAlertAsRead', () => {
     it('알림을 성공적으로 읽음 처리해야 함', async () => {
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: true,
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+          }),
       } as Response)
 
       await dashboardService.markAlertAsRead('alert-1')
@@ -680,14 +700,15 @@ describe('Finance Dashboard Service', () => {
 
     it('존재하지 않는 알림 읽음 처리 시 에러를 던져야 함', async () => {
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: false,
-          error: 'Alert not found',
-        }),
+        json: () =>
+          Promise.resolve({
+            success: false,
+            error: 'Alert not found',
+          }),
       } as Response)
 
       await expect(dashboardService.markAlertAsRead('non-existent')).rejects.toThrow(
-        'Alert not found'
+        'Alert not found',
       )
     })
 
@@ -701,9 +722,10 @@ describe('Finance Dashboard Service', () => {
   describe('resolveAlert', () => {
     it('알림을 성공적으로 해결 처리해야 함', async () => {
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: true,
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+          }),
       } as Response)
 
       await dashboardService.resolveAlert('alert-1')
@@ -715,10 +737,11 @@ describe('Finance Dashboard Service', () => {
 
     it('존재하지 않는 알림 해결 처리 시 에러를 던져야 함', async () => {
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: false,
-          error: 'Alert not found',
-        }),
+        json: () =>
+          Promise.resolve({
+            success: false,
+            error: 'Alert not found',
+          }),
       } as Response)
 
       await expect(dashboardService.resolveAlert('non-existent')).rejects.toThrow('Alert not found')
@@ -752,10 +775,11 @@ describe('Finance Dashboard Service', () => {
       ]
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: true,
-          data: mockPredictions,
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: mockPredictions,
+          }),
       } as Response)
 
       const result = await dashboardService.getFinancePredictions(3)
@@ -774,10 +798,11 @@ describe('Finance Dashboard Service', () => {
       ]
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: true,
-          data: mockPredictions,
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: mockPredictions,
+          }),
       } as Response)
 
       const result = await dashboardService.getFinancePredictions()
@@ -794,14 +819,15 @@ describe('Finance Dashboard Service', () => {
 
     it('API 응답 오류 시 에러를 던져야 함', async () => {
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: false,
-          error: 'Failed to generate predictions',
-        }),
+        json: () =>
+          Promise.resolve({
+            success: false,
+            error: 'Failed to generate predictions',
+          }),
       } as Response)
 
       await expect(dashboardService.getFinancePredictions(7)).rejects.toThrow(
-        'Failed to generate predictions'
+        'Failed to generate predictions',
       )
     })
   })
@@ -828,39 +854,41 @@ describe('Finance Dashboard Service', () => {
       }
 
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: true,
-          data: mockCashFlowAnalysis,
-        }),
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: mockCashFlowAnalysis,
+          }),
       } as Response)
 
       const result = await dashboardService.getCashFlowAnalysis('2025-01-13', '2025-01-15')
 
       expect(result).toEqual(mockCashFlowAnalysis)
       expect(fetch).toHaveBeenCalledWith(
-        '/api/finance/analysis/cash-flow?startDate=2025-01-13&endDate=2025-01-15'
+        '/api/finance/analysis/cash-flow?startDate=2025-01-13&endDate=2025-01-15',
       )
     })
 
     it('API 오류 시 에러를 던져야 함', async () => {
       vi.mocked(fetch).mockRejectedValueOnce(new Error('Network error'))
 
-      await expect(dashboardService.getCashFlowAnalysis('2025-01-13', '2025-01-15')).rejects.toThrow(
-        'Network error'
-      )
+      await expect(
+        dashboardService.getCashFlowAnalysis('2025-01-13', '2025-01-15'),
+      ).rejects.toThrow('Network error')
     })
 
     it('API 응답 오류 시 에러를 던져야 함', async () => {
       vi.mocked(fetch).mockResolvedValueOnce({
-        json: () => Promise.resolve({
-          success: false,
-          error: 'Failed to analyze cash flow',
-        }),
+        json: () =>
+          Promise.resolve({
+            success: false,
+            error: 'Failed to analyze cash flow',
+          }),
       } as Response)
 
-      await expect(dashboardService.getCashFlowAnalysis('2025-01-13', '2025-01-15')).rejects.toThrow(
-        'Failed to analyze cash flow'
-      )
+      await expect(
+        dashboardService.getCashFlowAnalysis('2025-01-13', '2025-01-15'),
+      ).rejects.toThrow('Failed to analyze cash flow')
     })
   })
 
@@ -920,21 +948,24 @@ describe('Finance Dashboard Service', () => {
       // 3. 알림 읽음 처리
       vi.mocked(fetch)
         .mockResolvedValueOnce({
-          json: () => Promise.resolve({
-            success: true,
-            data: mockDashboard,
-          }),
+          json: () =>
+            Promise.resolve({
+              success: true,
+              data: mockDashboard,
+            }),
         } as Response)
         .mockResolvedValueOnce({
-          json: () => Promise.resolve({
-            success: true,
-            data: mockDailyReport,
-          }),
+          json: () =>
+            Promise.resolve({
+              success: true,
+              data: mockDailyReport,
+            }),
         } as Response)
         .mockResolvedValueOnce({
-          json: () => Promise.resolve({
-            success: true,
-          }),
+          json: () =>
+            Promise.resolve({
+              success: true,
+            }),
         } as Response)
 
       // 대시보드 데이터 조회
@@ -998,10 +1029,11 @@ describe('Finance Dashboard Service', () => {
         const testCase = testCases[i]
 
         vi.mocked(fetch).mockResolvedValueOnce({
-          json: () => Promise.resolve({
-            success: true,
-            data: [testCase.alert],
-          }),
+          json: () =>
+            Promise.resolve({
+              success: true,
+              data: [testCase.alert],
+            }),
         } as Response)
 
         const result = await dashboardService.getAlerts()
