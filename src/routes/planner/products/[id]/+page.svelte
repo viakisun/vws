@@ -4,6 +4,7 @@
   import InitiativeCard from '$lib/planner/components/InitiativeCard.svelte'
   import MilestoneModal from '$lib/planner/components/MilestoneModal.svelte'
   import ProductEditModal from '$lib/planner/components/ProductEditModal.svelte'
+  import ProductReferencesSection from '$lib/planner/components/ProductReferencesSection.svelte'
   import type {
     InitiativeWithOwner,
     MilestoneWithProduct,
@@ -274,6 +275,12 @@
         {/if}
       </div>
     </div>
+
+    <!-- References Section -->
+    <ProductReferencesSection
+      productId={product.id}
+      canEdit={true}
+    />
 
     <!-- Milestones Section -->
     <div>

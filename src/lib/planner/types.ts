@@ -17,6 +17,24 @@ export type ProductStatus =
   | 'sunset'
   | 'archived'
 export type MilestoneStatus = 'upcoming' | 'in_progress' | 'achieved' | 'missed'
+export type ProductReferenceType = 
+  | 'file' 
+  | 'url' 
+  | 'figma' 
+  | 'notion' 
+  | 'google_docs' 
+  | 'pdf' 
+  | 'image' 
+  | 'github'
+  | 'youtube'
+  | 'slack'
+  | 'discord'
+  | 'zoom'
+  | 'trello'
+  | 'jira'
+  | 'miro'
+  | 'adobe'
+  | 'other'
 
 export interface ExternalLink {
   url: string
@@ -160,6 +178,26 @@ export interface Todo {
   updated_at: string
 }
 
+export interface ProductReference {
+  id: string
+  product_id: string
+  title: string
+  description?: string
+  type: ProductReferenceType
+  url?: string
+  s3_key?: string
+  file_name?: string
+  file_size?: number
+  mime_type?: string
+  thumbnail_url?: string
+  metadata?: Record<string, unknown>
+  display_order?: number
+  created_by: string
+  created_at: string
+  updated_at: string
+  deleted_at?: string
+}
+
 export interface ActivityLog {
   id: string
   entity_type: 'initiative' | 'formation' | 'thread'
@@ -234,6 +272,10 @@ export interface ThreadReplyWithAuthor extends ThreadReply {
 
 export interface TodoWithAssignee extends Todo {
   assignee?: Employee
+}
+
+export interface ProductReferenceWithCreator extends ProductReference {
+  creator: Employee
 }
 
 // ============================================================================
@@ -371,6 +413,30 @@ export interface UpdateTodoInput {
   external_links?: ExternalLink[]
 }
 
+export interface CreateProductReferenceInput {
+  product_id: string
+  title: string
+  description?: string
+  type: ProductReferenceType
+  url?: string
+  s3_key?: string
+  file_name?: string
+  file_size?: number
+  mime_type?: string
+  thumbnail_url?: string
+  metadata?: Record<string, unknown>
+  display_order?: number
+}
+
+export interface UpdateProductReferenceInput {
+  title?: string
+  description?: string
+  type?: ProductReferenceType
+  url?: string
+  display_order?: number
+  metadata?: Record<string, unknown>
+}
+
 // ============================================================================
 // FILTER TYPES
 // ============================================================================
@@ -420,6 +486,15 @@ export interface ThreadFilters {
 export interface FormationFilters {
   energy_state?: EnergyState
   member_id?: string
+  limit?: number
+  offset?: number
+}
+
+export interface ProductReferenceFilters {
+  product_id?: string
+  type?: ProductReferenceType | ProductReferenceType[]
+  created_by?: string
+  search?: string
   limit?: number
   offset?: number
 }
