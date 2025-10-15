@@ -22,6 +22,64 @@ export function detectLinkType(url: string, filename?: string): ProductReference
     const pathname = urlObj.pathname.toLowerCase()
     const searchParams = urlObj.searchParams
 
+    // File extension detection SHOULD come FIRST to override service-specific detection
+    // PDF detection - check extension or explicit file type
+    const fullUrl = url.toLowerCase()
+    const hasPdfExtension =
+      pathname.toLowerCase().endsWith('.pdf') ||
+      searchParams.get('format') === 'pdf' ||
+      searchParams.get('filename')?.toLowerCase().endsWith('.pdf') ||
+      searchParams.get('name')?.toLowerCase().endsWith('.pdf') ||
+      filename?.toLowerCase().endsWith('.pdf') ||
+      (fullUrl.includes('.pdf') && (fullUrl.includes('filename=') || fullUrl.includes('name=')))
+
+    if (hasPdfExtension) {
+      return 'pdf'
+    }
+
+    // Image detection
+    const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.bmp', '.tiff']
+    if (
+      imageExtensions.some((ext) => pathname.toLowerCase().endsWith(ext)) ||
+      imageExtensions.some((ext) => filename?.toLowerCase().endsWith(ext))
+    ) {
+      return 'image'
+    }
+
+    // Check for other common file types that should be treated as files
+    const fileExtensions = [
+      '.doc',
+      '.docx',
+      '.xls',
+      '.xlsx',
+      '.ppt',
+      '.pptx',
+      '.txt',
+      '.rtf',
+      '.csv',
+      '.zip',
+      '.rar',
+      '.7z',
+      '.tar',
+      '.gz',
+      '.mp3',
+      '.mp4',
+      '.avi',
+      '.mov',
+      '.wav',
+      '.psd',
+      '.ai',
+      '.eps',
+      '.sketch',
+    ]
+    if (
+      fileExtensions.some((ext) => pathname.toLowerCase().endsWith(ext)) ||
+      fileExtensions.some((ext) => filename?.toLowerCase().endsWith(ext))
+    ) {
+      return 'file'
+    }
+
+    // Service-specific detection comes AFTER file extension detection
     // Figma links
     if (hostname.includes('figma.com')) {
       return 'figma'
@@ -90,38 +148,6 @@ export function detectLinkType(url: string, filename?: string): ProductReference
       return 'adobe'
     }
 
-    // PDF detection - check extension or explicit file type
-    if (
-      pathname.toLowerCase().endsWith('.pdf') ||
-      searchParams.get('format') === 'pdf' ||
-      filename?.toLowerCase().endsWith('.pdf')
-    ) {
-      return 'pdf'
-    }
-
-    // Image detection
-    const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.bmp', '.tiff']
-    if (
-      imageExtensions.some((ext) => pathname.toLowerCase().endsWith(ext)) ||
-      imageExtensions.some((ext) => filename?.toLowerCase().endsWith(ext))
-    ) {
-      return 'image'
-    }
-
-    // Check for other common file types that should be treated as files
-    const fileExtensions = [
-      '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx',
-      '.txt', '.rtf', '.csv', '.zip', '.rar', '.7z', '.tar', '.gz',
-      '.mp3', '.mp4', '.avi', '.mov', '.wav',
-      '.psd', '.ai', '.eps', '.sketch'
-    ]
-    if (
-      fileExtensions.some((ext) => pathname.toLowerCase().endsWith(ext)) ||
-      fileExtensions.some((ext) => filename?.toLowerCase().endsWith(ext))
-    ) {
-      return 'file'
-    }
-
     // If it's a valid URL but doesn't match any specific patterns
     return 'url'
   } catch {
@@ -139,10 +165,29 @@ export function detectLinkType(url: string, filename?: string): ProductReference
       }
 
       const fileExtensions = [
-        '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx',
-        '.txt', '.rtf', '.csv', '.zip', '.rar', '.7z', '.tar', '.gz',
-        '.mp3', '.mp4', '.avi', '.mov', '.wav',
-        '.psd', '.ai', '.eps', '.sketch'
+        '.doc',
+        '.docx',
+        '.xls',
+        '.xlsx',
+        '.ppt',
+        '.pptx',
+        '.txt',
+        '.rtf',
+        '.csv',
+        '.zip',
+        '.rar',
+        '.7z',
+        '.tar',
+        '.gz',
+        '.mp3',
+        '.mp4',
+        '.avi',
+        '.mov',
+        '.wav',
+        '.psd',
+        '.ai',
+        '.eps',
+        '.sketch',
       ]
       if (fileExtensions.some((ext) => lowerFilename.endsWith(ext))) {
         return 'file'
