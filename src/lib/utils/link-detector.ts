@@ -5,6 +5,117 @@
 
 import type { ProductReferenceType } from '$lib/planner/types'
 
+// File extension constants
+const IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.bmp', '.tiff']
+
+const FILE_EXTENSIONS = [
+  '.doc',
+  '.docx',
+  '.xls',
+  '.xlsx',
+  '.ppt',
+  '.pptx',
+  '.txt',
+  '.rtf',
+  '.csv',
+  '.zip',
+  '.rar',
+  '.7z',
+  '.tar',
+  '.gz',
+  '.mp3',
+  '.mp4',
+  '.avi',
+  '.mov',
+  '.wav',
+  '.psd',
+  '.ai',
+  '.eps',
+  '.sketch',
+]
+
+// Service hostname patterns
+const SERVICE_PATTERNS = {
+  figma: ['figma.com'],
+  notion: ['notion.so', 'notion.site'],
+  google_docs: ['docs.google.com', 'drive.google.com'],
+  github: ['github.com', 'github.io'],
+  youtube: ['youtube.com', 'youtu.be'],
+  slack: ['slack.com', 'app.slack.com'],
+  discord: ['discord.com', 'discord.gg'],
+  zoom: ['zoom.us', 'meet.google.com', 'teams.microsoft.com'],
+  trello: ['trello.com'],
+  jira: ['atlassian.net', 'jira.'],
+  miro: ['miro.com'],
+  adobe: ['adobe.com', 'behance.net', 'dribbble.com'],
+} as const
+
+/**
+ * Helper function to check if a string ends with any of the given extensions
+ */
+function hasExtension(str: string, extensions: readonly string[]): boolean {
+  const lowerStr = str.toLowerCase()
+  return extensions.some((ext) => lowerStr.endsWith(ext))
+}
+
+/**
+ * Helper function to detect PDF from various sources
+ */
+function detectPdfType(
+  pathname: string,
+  searchParams: URLSearchParams,
+  filename?: string,
+  fullUrl?: string,
+): boolean {
+  return (
+    hasExtension(pathname, ['.pdf']) ||
+    searchParams.get('format') === 'pdf' ||
+    Boolean(
+      searchParams.get('filename') && hasExtension(searchParams.get('filename')!, ['.pdf']),
+    ) ||
+    Boolean(searchParams.get('name') && hasExtension(searchParams.get('name')!, ['.pdf'])) ||
+    Boolean(filename && hasExtension(filename, ['.pdf'])) ||
+    Boolean(
+      fullUrl &&
+        fullUrl.includes('.pdf') &&
+        (fullUrl.includes('filename=') || fullUrl.includes('name=')),
+    )
+  )
+}
+
+/**
+ * Helper function to detect service type from hostname
+ */
+function detectServiceType(hostname: string): ProductReferenceType | null {
+  for (const [service, patterns] of Object.entries(SERVICE_PATTERNS)) {
+    if (patterns.some((pattern) => hostname.includes(pattern))) {
+      return service as ProductReferenceType
+    }
+  }
+  return null
+}
+
+/**
+ * Helper function to detect file type from filename (fallback)
+ */
+function detectFileTypeFromFilename(filename: string): ProductReferenceType {
+  const lowerFilename = filename.toLowerCase()
+
+  if (lowerFilename.endsWith('.pdf')) {
+    return 'pdf'
+  }
+
+  if (hasExtension(lowerFilename, IMAGE_EXTENSIONS)) {
+    return 'image'
+  }
+
+  if (hasExtension(lowerFilename, FILE_EXTENSIONS)) {
+    return 'file'
+  }
+
+  return 'other'
+}
+
 /**
  * Detects the type of reference based on URL patterns
  * @param url - The URL to analyze
@@ -22,181 +133,62 @@ export function detectLinkType(url: string, filename?: string): ProductReference
     const pathname = urlObj.pathname.toLowerCase()
     const searchParams = urlObj.searchParams
 
-    // File extension detection SHOULD come FIRST to override service-specific detection
-    // PDF detection - check extension or explicit file type
-    const fullUrl = url.toLowerCase()
-    const hasPdfExtension =
-      pathname.toLowerCase().endsWith('.pdf') ||
-      searchParams.get('format') === 'pdf' ||
-      searchParams.get('filename')?.toLowerCase().endsWith('.pdf') ||
-      searchParams.get('name')?.toLowerCase().endsWith('.pdf') ||
-      filename?.toLowerCase().endsWith('.pdf') ||
-      (fullUrl.includes('.pdf') && (fullUrl.includes('filename=') || fullUrl.includes('name=')))
-
-    if (hasPdfExtension) {
+    // File extension detection comes FIRST to override service-specific detection
+    // 1. PDF detection
+    if (detectPdfType(pathname, searchParams, filename, url.toLowerCase())) {
       return 'pdf'
     }
 
-    // Image detection
-    const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.bmp', '.tiff']
+    // 2. Image detection
     if (
-      imageExtensions.some((ext) => pathname.toLowerCase().endsWith(ext)) ||
-      imageExtensions.some((ext) => filename?.toLowerCase().endsWith(ext))
+      hasExtension(pathname, IMAGE_EXTENSIONS) ||
+      (filename && hasExtension(filename, IMAGE_EXTENSIONS))
     ) {
       return 'image'
     }
 
-    // Check for other common file types that should be treated as files
-    const fileExtensions = [
-      '.doc',
-      '.docx',
-      '.xls',
-      '.xlsx',
-      '.ppt',
-      '.pptx',
-      '.txt',
-      '.rtf',
-      '.csv',
-      '.zip',
-      '.rar',
-      '.7z',
-      '.tar',
-      '.gz',
-      '.mp3',
-      '.mp4',
-      '.avi',
-      '.mov',
-      '.wav',
-      '.psd',
-      '.ai',
-      '.eps',
-      '.sketch',
-    ]
+    // 3. Other file types detection
     if (
-      fileExtensions.some((ext) => pathname.toLowerCase().endsWith(ext)) ||
-      fileExtensions.some((ext) => filename?.toLowerCase().endsWith(ext))
+      hasExtension(pathname, FILE_EXTENSIONS) ||
+      (filename && hasExtension(filename, FILE_EXTENSIONS))
     ) {
       return 'file'
     }
 
     // Service-specific detection comes AFTER file extension detection
-    // Figma links
-    if (hostname.includes('figma.com')) {
-      return 'figma'
+    const serviceType = detectServiceType(hostname)
+    if (serviceType) {
+      return serviceType
     }
 
-    // Notion links
-    if (hostname.includes('notion.so') || hostname.includes('notion.site')) {
-      return 'notion'
-    }
-
-    // Google Docs/Drive links
-    if (hostname.includes('docs.google.com') || hostname.includes('drive.google.com')) {
-      return 'google_docs'
-    }
-
-    // GitHub links
-    if (hostname.includes('github.com') || hostname.includes('github.io')) {
-      return 'github'
-    }
-
-    // YouTube links
-    if (hostname.includes('youtube.com') || hostname.includes('youtu.be')) {
-      return 'youtube'
-    }
-
-    // Slack links
-    if (hostname.includes('slack.com') || hostname.includes('app.slack.com')) {
-      return 'slack'
-    }
-
-    // Discord links
-    if (hostname.includes('discord.com') || hostname.includes('discord.gg')) {
-      return 'discord'
-    }
-
-    // Zoom/Meet links
-    if (
-      hostname.includes('zoom.us') ||
-      hostname.includes('meet.google.com') ||
-      hostname.includes('teams.microsoft.com')
-    ) {
-      return 'zoom'
-    }
-
-    // Trello links
-    if (hostname.includes('trello.com')) {
-      return 'trello'
-    }
-
-    // Jira links (Atlassian)
-    if (hostname.includes('atlassian.net') || hostname.includes('jira.')) {
-      return 'jira'
-    }
-
-    // Miro links
-    if (hostname.includes('miro.com')) {
-      return 'miro'
-    }
-
-    // Adobe links (Creative Cloud, etc.)
-    if (
-      hostname.includes('adobe.com') ||
-      hostname.includes('behance.net') ||
-      hostname.includes('dribbble.com')
-    ) {
-      return 'adobe'
-    }
-
-    // If it's a valid URL but doesn't match any specific patterns
+    // Default fallback for valid URLs
     return 'url'
   } catch {
-    // If URL parsing fails, try to detect from filename
+    // URL parsing failed, try to detect from filename only
     if (filename) {
-      const lowerFilename = filename.toLowerCase()
-
-      if (lowerFilename.endsWith('.pdf')) {
-        return 'pdf'
-      }
-
-      const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.bmp', '.tiff']
-      if (imageExtensions.some((ext) => lowerFilename.endsWith(ext))) {
-        return 'image'
-      }
-
-      const fileExtensions = [
-        '.doc',
-        '.docx',
-        '.xls',
-        '.xlsx',
-        '.ppt',
-        '.pptx',
-        '.txt',
-        '.rtf',
-        '.csv',
-        '.zip',
-        '.rar',
-        '.7z',
-        '.tar',
-        '.gz',
-        '.mp3',
-        '.mp4',
-        '.avi',
-        '.mov',
-        '.wav',
-        '.psd',
-        '.ai',
-        '.eps',
-        '.sketch',
-      ]
-      if (fileExtensions.some((ext) => lowerFilename.endsWith(ext))) {
-        return 'file'
-      }
+      return detectFileTypeFromFilename(filename)
     }
 
     return 'other'
   }
 }
+
+// Combined extensions for file upload detection
+const UPLOADABLE_EXTENSIONS = [
+  '.pdf',
+  ...IMAGE_EXTENSIONS,
+  '.doc',
+  '.docx',
+  '.xls',
+  '.xlsx',
+  '.ppt',
+  '.pptx',
+  '.zip',
+  '.rar',
+  '.7z',
+  '.tar',
+  '.gz',
+] as const
 
 /**
  * Determines if a URL is a file that should be uploaded or if it's an external link
@@ -210,33 +202,7 @@ export function isFileUrl(url: string): boolean {
 
   try {
     const urlObj = new URL(url)
-    const pathname = urlObj.pathname.toLowerCase()
-
-    // Check for file extensions that should be uploaded
-    const fileExtensions = [
-      '.pdf',
-      '.jpg',
-      '.jpeg',
-      '.png',
-      '.gif',
-      '.webp',
-      '.svg',
-      '.bmp',
-      '.tiff',
-      '.doc',
-      '.docx',
-      '.xls',
-      '.xlsx',
-      '.ppt',
-      '.pptx',
-      '.zip',
-      '.rar',
-      '.7z',
-      '.tar',
-      '.gz',
-    ]
-
-    return fileExtensions.some((ext) => pathname.endsWith(ext))
+    return hasExtension(urlObj.pathname, UPLOADABLE_EXTENSIONS)
   } catch {
     return false
   }
