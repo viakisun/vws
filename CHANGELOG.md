@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.6.2] - 2025-10-16
 
 ### Added
+
 - **Product References System**: Complete reference management system for planner products
   - Support for file uploads (PDF, images, documents) via S3 integration
   - Support for external links with automatic type detection
@@ -17,7 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Extended Link Type Detection**: Added support for popular collaboration and productivity tools
   - **YouTube** links (youtube.com, youtu.be)
   - **Slack** workspace and channel links
-  - **Discord** server and channel links  
+  - **Discord** server and channel links
   - **Meeting platforms** (Zoom, Google Meet, Microsoft Teams)
   - **Project management** (Trello, Jira)
   - **Design tools** (Miro, Adobe Creative Cloud, Behance, Dribbble)
@@ -28,6 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Migration files for seamless database updates
 
 ### Enhanced
+
 - **Reference Management UI**:
   - Horizontal card layout for better readability
   - Improved title display with 2-line clamping and tooltips
@@ -41,15 +43,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Comprehensive error handling and validation
 
 ### Technical Improvements
+
 - **Svelte 5 Compatibility**: Updated components to use latest runes syntax
 - **Type Safety**: Comprehensive TypeScript definitions for all new features
 - **Testing**: Unit tests for link detection and API endpoints
 - **Accessibility**: Proper ARIA roles and keyboard navigation support
 
 ### Fixed
+
 - Activity log constraint violations for new reference types
 - Type detection accuracy for various URL patterns
 - UI responsiveness and visual consistency
 
 ## [0.6.1] - Previous release
+
 - Initial implementation of core features
