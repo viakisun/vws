@@ -21,7 +21,7 @@
   let { open = $bindable(false), productId, reference = null, onclose, onsave }: Props = $props()
 
   // State
-  let activeTab = $state<'file' | 'url'>('file')
+  let referenceType = $state<'file' | 'url'>('file')
   let title = $state('')
   let description = $state('')
   let url = $state('')
@@ -45,7 +45,7 @@
         description = reference.description || ''
         url = reference.url || ''
         type = reference.type
-        activeTab = reference.url ? 'url' : 'file'
+        referenceType = reference.url ? 'url' : 'file'
       } else {
         // Create mode - reset form
         resetForm()
@@ -102,7 +102,7 @@
 
   // Auto-detect type when URL changes
   $effect(() => {
-    if (url && activeTab === 'url') {
+    if (url && referenceType === 'url') {
       const detectedType = detectLinkType(url)
       type = detectedType
     }
@@ -123,28 +123,52 @@
       uploading = true
       uploadProgress = 0
 
-      if (activeTab === 'file') {
-        if (!selectedFile) {
+      if (referenceType === 'file') {
+        if (!selectedFile && !(isEdit && reference?.s3_key)) {
           error = '파일을 선택해주세요.'
           return
         }
 
-        // Validate file size (50MB max)
-        const maxSize = 50 * 1024 * 1024 // 50MB
-        if (selectedFile.size > maxSize) {
-          error = `파일 크기가 50MB를 초과합니다. (현재: ${formatFileSize(selectedFile.size)})`
-          return
+        // Validate file size (50MB max) - only for new files
+        if (selectedFile) {
+          const maxSize = 50 * 1024 * 1024 // 50MB
+          if (selectedFile.size > maxSize) {
+            error = `파일 크기가 50MB를 초과합니다. (현재: ${formatFileSize(selectedFile.size)})`
+            return
+          }
         }
 
-        await uploadProductReference(
-          productId,
-          selectedFile,
-          title.trim(),
-          description.trim() || undefined,
-          (progress) => {
-            uploadProgress = progress
-          },
-        )
+        if (isEdit && reference?.s3_key && !selectedFile) {
+          // Edit mode - update metadata only (no new file upload)
+          const response = await fetch(`/api/planner/products/${productId}/references/${reference.id}`, {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              title: title.trim(),
+              description: description.trim() || undefined,
+              type: 'file', // Keep as file type
+            }),
+            credentials: 'include',
+          })
+
+          if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}))
+            throw new Error(errorData.error || '레퍼런스 수정에 실패했습니다.')
+          }
+        } else {
+          // New file upload
+          await uploadProductReference(
+            productId,
+            selectedFile!,
+            title.trim(),
+            description.trim() || undefined,
+            (progress) => {
+              uploadProgress = progress
+            },
+          )
+        }
       } else {
         if (!url.trim()) {
           error = 'URL을 입력해주세요.'
@@ -156,13 +180,36 @@
           return
         }
 
-        await createProductReferenceUrl(
-          productId,
-          url.trim(),
-          title.trim(),
-          description.trim() || undefined,
-          type,
-        )
+        if (isEdit && reference?.url) {
+          // Edit mode - update URL metadata
+          const response = await fetch(`/api/planner/products/${productId}/references/${reference.id}`, {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              title: title.trim(),
+              description: description.trim() || undefined,
+              url: url.trim(),
+              type: type,
+            }),
+            credentials: 'include',
+          })
+
+          if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}))
+            throw new Error(errorData.error || '레퍼런스 수정에 실패했습니다.')
+          }
+        } else {
+          // New URL creation
+          await createProductReferenceUrl(
+            productId,
+            url.trim(),
+            title.trim(),
+            description.trim() || undefined,
+            type,
+          )
+        }
       }
 
       onsave()
@@ -209,41 +256,63 @@
       </button>
     </div>
 
-    <!-- Tabs -->
+    <!-- Reference Type Selection -->
     <div class="mb-6">
-      <div class="flex gap-1 rounded-lg bg-gray-100 p-1">
-        <button
-          type="button"
-          class="flex flex-1 items-center justify-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition"
-          class:bg-white={activeTab === 'file'}
-          class:shadow-sm={activeTab === 'file'}
-          class:text-gray-900={activeTab === 'file'}
-          class:text-gray-600={activeTab !== 'file'}
-          onclick={() => {
-            activeTab = 'file'
-            error = null
-          }}
-          disabled={uploading || isEdit}
+      <label class="block text-sm font-medium mb-3" style:color="var(--color-text-primary)">
+        레퍼런스 타입 선택 *
+      </label>
+      <div class="space-y-3">
+        <label class="flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition"
+               class:border-blue-500={referenceType === 'file'}
+               class:border-gray-300={referenceType !== 'file'}
+               class:bg-blue-50={referenceType === 'file'}
+               class:bg-transparent={referenceType !== 'file'}
         >
-          <UploadIcon size={16} />
-          파일 업로드
-        </button>
-        <button
-          type="button"
-          class="flex flex-1 items-center justify-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition"
-          class:bg-white={activeTab === 'url'}
-          class:shadow-sm={activeTab === 'url'}
-          class:text-gray-900={activeTab === 'url'}
-          class:text-gray-600={activeTab !== 'url'}
-          onclick={() => {
-            activeTab = 'url'
-            error = null
-          }}
-          disabled={uploading || !!(isEdit && reference?.s3_key)}
+          <input
+            type="radio"
+            name="referenceType"
+            value="file"
+            bind:group={referenceType}
+            disabled={uploading || (isEdit && !!reference?.url)}
+            class="text-blue-600 focus:ring-blue-500"
+            onchange={() => {
+              error = null
+              // Clear URL when switching to file mode
+              url = ''
+            }}
+          />
+          <UploadIcon size={20} class="text-blue-600" />
+          <div>
+            <div class="font-medium" style:color="var(--color-text-primary)">파일 업로드</div>
+            <div class="text-sm" style:color="var(--color-text-secondary)">PDF, 이미지, 문서 파일을 업로드합니다</div>
+          </div>
+        </label>
+        
+        <label class="flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition"
+               class:border-blue-500={referenceType === 'url'}
+               class:border-gray-300={referenceType !== 'url'}
+               class:bg-blue-50={referenceType === 'url'}
+               class:bg-transparent={referenceType !== 'url'}
         >
-          <LinkIcon size={16} />
-          링크 추가
-        </button>
+          <input
+            type="radio"
+            name="referenceType"
+            value="url"
+            bind:group={referenceType}
+            disabled={uploading || (isEdit && !!reference?.s3_key)}
+            class="text-blue-600 focus:ring-blue-500"
+            onchange={() => {
+              error = null
+              // Clear file when switching to URL mode
+              selectedFile = null
+            }}
+          />
+          <LinkIcon size={20} class="text-blue-600" />
+          <div>
+            <div class="font-medium" style:color="var(--color-text-primary)">링크 추가</div>
+            <div class="text-sm" style:color="var(--color-text-secondary)">웹사이트, 문서, 설계 링크를 추가합니다</div>
+          </div>
+        </label>
       </div>
     </div>
 
@@ -301,8 +370,8 @@
         ></textarea>
       </div>
 
-      <!-- File Upload Tab -->
-      {#if activeTab === 'file'}
+      <!-- File Upload Section -->
+      {#if referenceType === 'file'}
         <div>
           <label
             for="file-dropzone"
@@ -337,12 +406,38 @@
             {#if selectedFile}
               <div class="flex items-center gap-3">
                 <FileTextIcon size={32} class="text-blue-600" />
-                <div class="text-left">
+                <div class="text-left flex-1">
                   <p class="font-medium" style:color="var(--color-text-primary)">
                     {selectedFile.name}
                   </p>
                   <p class="text-sm" style:color="var(--color-text-secondary)">
                     {formatFileSize(selectedFile.size)}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onclick={() => {
+                    selectedFile = null
+                    // Reset file input
+                    const fileInput = document.getElementById('file-input') as HTMLInputElement
+                    if (fileInput) fileInput.value = ''
+                  }}
+                  class="text-gray-400 hover:text-gray-600 transition"
+                  disabled={uploading}
+                >
+                  <XIcon size={18} />
+                </button>
+              </div>
+            {:else if isEdit && reference?.s3_key}
+              <!-- Show existing file in edit mode -->
+              <div class="flex items-center gap-3">
+                <FileTextIcon size={32} class="text-blue-600" />
+                <div class="text-left flex-1">
+                  <p class="font-medium" style:color="var(--color-text-primary)">
+                    {reference.file_name || '기존 파일'}
+                  </p>
+                  <p class="text-sm" style:color="var(--color-text-secondary)">
+                    {reference.file_size ? formatFileSize(reference.file_size) : '파일 정보 없음'}
                   </p>
                 </div>
               </div>
@@ -361,8 +456,8 @@
         </div>
       {/if}
 
-      <!-- URL Tab -->
-      {#if activeTab === 'url'}
+      <!-- URL Section -->
+      {#if referenceType === 'url'}
         <div>
           <label
             for="url"
@@ -427,8 +522,8 @@
           type="submit"
           disabled={uploading ||
             !title.trim() ||
-            (activeTab === 'file' && !selectedFile) ||
-            (activeTab === 'url' && !url.trim())}
+            (referenceType === 'file' && !selectedFile && !(isEdit && reference?.s3_key)) ||
+            (referenceType === 'url' && !url.trim())}
         >
           {uploading ? '저장 중...' : isEdit ? '수정' : '추가'}
         </ThemeButton>
