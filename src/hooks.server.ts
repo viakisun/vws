@@ -17,7 +17,9 @@ console.log(`🖥️  Node version: ${process.version}`)
 console.log(`💻 Platform: ${process.platform} (${process.arch})`)
 console.log(`🔧 Environment: ${process.env.NODE_ENV || 'development'}`)
 console.log(`⏱️  Process ID: ${process.pid}`)
-console.log(`📊 Memory usage: ${Math.round(process.memoryUsage().heapUsed / 1024 / 1024)}MB initial`)
+console.log(
+  `📊 Memory usage: ${Math.round(process.memoryUsage().heapUsed / 1024 / 1024)}MB initial`,
+)
 
 console.log('\n🔐 AWS Environment Variables:')
 const awsEnvKeys = Object.keys(process.env).filter((k) => k.startsWith('AWS_'))
@@ -35,13 +37,7 @@ if (awsEnvKeys.length === 0) {
 }
 
 console.log('\n🔧 Other Configuration:')
-const configVars = [
-  'NODE_ENV',
-  'DATABASE_URL', 
-  'OPENAI_API_KEY',
-  'PORT',
-  'HOST'
-]
+const configVars = ['NODE_ENV', 'DATABASE_URL', 'OPENAI_API_KEY', 'PORT', 'HOST']
 
 configVars.forEach((varName) => {
   const value = process.env[varName]
@@ -50,7 +46,9 @@ configVars.forEach((varName) => {
     // URL에서 호스트와 포트만 표시 (보안)
     try {
       const url = new URL(value)
-      console.log(`  ${status} ${varName}: ${url.protocol}//${url.hostname}:${url.port || 'default'}`)
+      console.log(
+        `  ${status} ${varName}: ${url.protocol}//${url.hostname}:${url.port || 'default'}`,
+      )
     } catch {
       console.log(`  ${status} ${varName}: [CONFIGURED]`)
     }
@@ -68,8 +66,10 @@ if (process.env.NODE_ENV === 'production') {
     const uptime = Math.floor(process.uptime())
     const hours = Math.floor(uptime / 3600)
     const minutes = Math.floor((uptime % 3600) / 60)
-    
-    console.log(`📊 Server Status - Uptime: ${hours}h ${minutes}m, Memory: ${Math.round(memUsage.heapUsed / 1024 / 1024)}MB, RSS: ${Math.round(memUsage.rss / 1024 / 1024)}MB`)
+
+    console.log(
+      `📊 Server Status - Uptime: ${hours}h ${minutes}m, Memory: ${Math.round(memUsage.heapUsed / 1024 / 1024)}MB, RSS: ${Math.round(memUsage.rss / 1024 / 1024)}MB`,
+    )
   }, 300000) // 5분마다
 }
 
@@ -213,7 +213,7 @@ export const handle: Handle = async ({ event, resolve }) => {
   const startTime = Date.now()
   const { url, request } = event
   const userAgent = request.headers.get('user-agent') || 'unknown'
-  
+
   // 상세한 요청 로깅 (API 요청만)
   if (url.pathname.startsWith('/api/')) {
     logger.info('🌐 API Request', {
@@ -221,7 +221,7 @@ export const handle: Handle = async ({ event, resolve }) => {
       path: url.pathname,
       userAgent: userAgent.substring(0, 100), // 길이 제한
       ip: event.getClientAddress(),
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     })
   }
 
@@ -238,24 +238,24 @@ export const handle: Handle = async ({ event, resolve }) => {
         // 계정 타입에 따라 분기 처리
         if (user.account_type === 'system') {
           await handleSystemAdmin(event, user)
-          
+
           if (url.pathname.startsWith('/api/')) {
             logger.info('🔐 System admin authenticated', {
               userId: user.id,
               email: user.email,
-              path: url.pathname
+              path: url.pathname,
             })
           }
         } else {
           await handleEmployeeAccount(event, user)
-          
+
           if (url.pathname.startsWith('/api/') && event.locals.user?.employee) {
             logger.info('👤 Employee authenticated', {
               userId: user.id,
               employeeId: event.locals.user.employee.id,
               email: user.email,
               department: event.locals.user.employee.department,
-              path: url.pathname
+              path: url.pathname,
             })
           }
         }
@@ -263,26 +263,29 @@ export const handle: Handle = async ({ event, resolve }) => {
         if (url.pathname.startsWith('/api/') && token) {
           logger.warn('❌ Invalid token or inactive user', {
             path: url.pathname,
-            ip: event.getClientAddress()
+            ip: event.getClientAddress(),
           })
         }
       }
-    } else if (url.pathname.startsWith('/api/') && !PUBLIC_API_ROUTES.some((route) => url.pathname.startsWith(route))) {
+    } else if (
+      url.pathname.startsWith('/api/') &&
+      !PUBLIC_API_ROUTES.some((route) => url.pathname.startsWith(route))
+    ) {
       logger.info('🔒 Unauthenticated API request', {
         path: url.pathname,
         ip: event.getClientAddress(),
-        userAgent: userAgent.substring(0, 100)
+        userAgent: userAgent.substring(0, 100),
       })
     }
   } catch (error) {
     // Invalid token, clear cookie
     event.cookies.delete('auth_token', { path: '/' })
-    
+
     if (url.pathname.startsWith('/api/')) {
       logger.warn('🚨 Authentication error', {
         error: error instanceof Error ? error.message : 'Unknown error',
         path: url.pathname,
-        ip: event.getClientAddress()
+        ip: event.getClientAddress(),
       })
     }
   }
@@ -297,7 +300,7 @@ export const handle: Handle = async ({ event, resolve }) => {
       logger.warn('🚫 Unauthorized API access attempt', {
         path: event.url.pathname,
         method: event.request.method,
-        ip: event.getClientAddress()
+        ip: event.getClientAddress(),
       })
       throw error(401, 'Unauthorized')
     }
@@ -306,19 +309,19 @@ export const handle: Handle = async ({ event, resolve }) => {
     if (user && !user.employee) {
       logger.debug('✅ System admin - full access granted', {
         userId: user.id,
-        path: event.url.pathname
+        path: event.url.pathname,
       })
       const response = await resolve(event)
       const responseTime = Date.now() - startTime
-      
+
       logger.info('✅ API Response', {
         method: request.method,
         path: url.pathname,
         status: response.status,
         responseTime: `${responseTime}ms`,
-        userId: user.id
+        userId: user.id,
       })
-      
+
       return response
     }
 
@@ -330,7 +333,7 @@ export const handle: Handle = async ({ event, resolve }) => {
         logger.info('✅ Admin user - full access granted', {
           userId: user.id,
           employeeId: user.employee.id,
-          path: event.url.pathname
+          path: event.url.pathname,
         })
       }
 
@@ -369,14 +372,14 @@ export const handle: Handle = async ({ event, resolve }) => {
                   employeeId: user.employee.id,
                   path: event.url.pathname,
                   resource: permission.resource,
-                  action
+                  action,
                 })
                 throw error(403, 'Insufficient permissions')
               } else {
                 logger.debug('✅ Own permission granted', {
                   userId: user.id,
                   employeeId: user.employee.id,
-                  path: event.url.pathname
+                  path: event.url.pathname,
                 })
               }
             } else {
@@ -385,7 +388,7 @@ export const handle: Handle = async ({ event, resolve }) => {
                 employeeId: user.employee.id,
                 path: event.url.pathname,
                 resource: permission.resource,
-                action
+                action,
               })
               throw error(403, 'Insufficient permissions')
             }
@@ -395,7 +398,7 @@ export const handle: Handle = async ({ event, resolve }) => {
               employeeId: user.employee.id,
               path: event.url.pathname,
               resource: permission.resource,
-              action
+              action,
             })
           }
           break
@@ -408,26 +411,26 @@ export const handle: Handle = async ({ event, resolve }) => {
   try {
     const response = await resolve(event)
     const responseTime = Date.now() - startTime
-    
+
     // API 요청에 대한 응답 로깅
     if (url.pathname.startsWith('/api/')) {
       const logLevel = response.status >= 400 ? 'warn' : 'info'
       const emoji = response.status >= 400 ? '❌' : '✅'
-      
+
       logger[logLevel](`${emoji} API Response`, {
         method: request.method,
         path: url.pathname,
         status: response.status,
         responseTime: `${responseTime}ms`,
         userId: event.locals.user?.id || 'anonymous',
-        ip: event.getClientAddress()
+        ip: event.getClientAddress(),
       })
     }
-    
+
     return response
   } catch (err) {
     const responseTime = Date.now() - startTime
-    
+
     if (url.pathname.startsWith('/api/')) {
       logger.error('💥 API Request failed', {
         method: request.method,
@@ -435,10 +438,10 @@ export const handle: Handle = async ({ event, resolve }) => {
         error: err instanceof Error ? err.message : 'Unknown error',
         responseTime: `${responseTime}ms`,
         userId: event.locals.user?.id || 'anonymous',
-        ip: event.getClientAddress()
+        ip: event.getClientAddress(),
       })
     }
-    
+
     throw err
   }
 }

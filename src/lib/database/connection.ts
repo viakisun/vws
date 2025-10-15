@@ -201,7 +201,7 @@ export function initializeDatabase(): Pool {
       database: dbConfig.database,
       port: dbConfig.port,
       maxConnections: dbConfig.max,
-      minConnections: dbConfig.min
+      minConnections: dbConfig.min,
     })
 
     pool = new Pool(dbConfig)
@@ -222,7 +222,7 @@ export function initializeDatabase(): Pool {
       logger.debug('🔗 Database connection acquired', {
         totalCount: pool?.totalCount || 0,
         idleCount: pool?.idleCount || 0,
-        waitingCount: pool?.waitingCount || 0
+        waitingCount: pool?.waitingCount || 0,
       })
     })
 
@@ -231,7 +231,7 @@ export function initializeDatabase(): Pool {
       logger.debug('🔓 Database connection released', {
         totalCount: pool?.totalCount || 0,
         idleCount: pool?.idleCount || 0,
-        waitingCount: pool?.waitingCount || 0
+        waitingCount: pool?.waitingCount || 0,
       })
     })
 
@@ -242,7 +242,7 @@ export function initializeDatabase(): Pool {
         stack: err.stack,
         totalCount: pool?.totalCount || 0,
         idleCount: pool?.idleCount || 0,
-        waitingCount: pool?.waitingCount || 0
+        waitingCount: pool?.waitingCount || 0,
       })
       process.exit(-1)
     })
@@ -252,7 +252,7 @@ export function initializeDatabase(): Pool {
       maxConnections: dbConfig.max,
       minConnections: dbConfig.min,
       idleTimeout: dbConfig.idleTimeoutMillis,
-      connectionTimeout: dbConfig.connectionTimeoutMillis
+      connectionTimeout: dbConfig.connectionTimeoutMillis,
     })
   }
 

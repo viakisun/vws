@@ -7,17 +7,17 @@ import { healthCheck as dbHealthCheck } from '$lib/database/connection'
 
 export const GET: RequestHandler = async () => {
   const startTime = Date.now()
-  
+
   try {
     logger.info('🏥 Health check requested', {
       timestamp: new Date().toISOString(),
-      userAgent: 'health-check'
+      userAgent: 'health-check',
     })
 
     // package.json에서 버전 정보 읽기
     let version = '0.6.0' // 기본값
     let name = 'vws'
-    
+
     try {
       const packageJsonPath = join(process.cwd(), 'package.json')
       const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8'))
@@ -30,7 +30,7 @@ export const GET: RequestHandler = async () => {
     // 데이터베이스 연결 상태 확인
     let dbStatus = 'disconnected'
     let dbResponseTime = 0
-    
+
     try {
       const dbCheckStart = Date.now()
       const isDbHealthy = await dbHealthCheck()
@@ -40,7 +40,7 @@ export const GET: RequestHandler = async () => {
       logger.error('❌ Database health check failed:', error)
       dbStatus = 'error'
     }
-    
+
     const healthInfo = {
       status: dbStatus === 'connected' ? 'ok' : 'degraded',
       timestamp: new Date().toISOString(),
@@ -56,14 +56,14 @@ export const GET: RequestHandler = async () => {
       },
       database: {
         status: dbStatus,
-        responseTime: dbResponseTime
+        responseTime: dbResponseTime,
       },
       responseTime: Date.now() - startTime,
       node: {
         version: process.version,
         platform: process.platform,
-        arch: process.arch
-      }
+        arch: process.arch,
+      },
     }
 
     logger.info('✅ Health check completed', {
@@ -72,7 +72,7 @@ export const GET: RequestHandler = async () => {
       uptime: healthInfo.uptime,
       dbStatus: dbStatus,
       dbResponseTime: dbResponseTime,
-      totalResponseTime: healthInfo.responseTime
+      totalResponseTime: healthInfo.responseTime,
     })
 
     const statusCode = healthInfo.status === 'ok' ? 200 : 503
@@ -82,12 +82,12 @@ export const GET: RequestHandler = async () => {
       status: 'error',
       timestamp: new Date().toISOString(),
       error: 'Health check failed',
-      responseTime: Date.now() - startTime
+      responseTime: Date.now() - startTime,
     }
 
     logger.error('❌ Health check failed:', {
       error,
-      duration: errorResponse.responseTime
+      duration: errorResponse.responseTime,
     })
 
     return json(errorResponse, { status: 500 })
