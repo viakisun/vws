@@ -184,7 +184,7 @@ export class ProductReferenceService {
       )
 
       const references = result.rows as ProductReferenceWithCreator[]
-      
+
       // Auto-fix references with generic 'url' type by re-detecting the actual type
       references.forEach((ref) => {
         if (ref.type === 'url' && ref.url) {
@@ -193,7 +193,7 @@ export class ProductReferenceService {
             // Update the display immediately
             ref.type = detectedType as ProductReferenceType
             // Update the type in the background
-            this.update(ref.id, { type: detectedType }, ref.created_by).catch(error => {
+            this.update(ref.id, { type: detectedType }, ref.created_by).catch((error) => {
               console.warn(`Failed to auto-update reference ${ref.id} type:`, error)
             })
           }

@@ -123,8 +123,18 @@ function detectFileTypeFromFilename(filename: string): ProductReferenceType {
  * @returns The detected reference type
  */
 export function detectLinkType(url: string, filename?: string): ProductReferenceType {
+  // If filename is provided, check it first for file type detection
+  if (filename && typeof filename === 'string') {
+    const fileTypeFromFilename = detectFileTypeFromFilename(filename)
+    // If we detected a specific file type from filename, return it immediately
+    if (fileTypeFromFilename !== 'other') {
+      return fileTypeFromFilename
+    }
+  }
+
+  // If no URL or invalid URL, and no filename detected anything useful
   if (!url || typeof url !== 'string') {
-    return 'other'
+    return filename ? detectFileTypeFromFilename(filename) : 'other'
   }
 
   try {

@@ -23,6 +23,8 @@
     PaletteIcon,
     TrashIcon,
     VideoIcon,
+    BrushIcon,
+    MonitorIcon,
   } from 'lucide-svelte'
 
   interface Props {
@@ -48,41 +50,58 @@
   let loading = $state(false)
   let error = $state<string | null>(null)
 
-  // Get appropriate icon for reference type
-  function getTypeIcon(type: string) {
+  // Get appropriate icon for reference type and filename
+  function getTypeIcon(type: string, filename?: string) {
+    // 파일명을 기반으로 더 구체적인 아이콘 선택
+    if (filename) {
+      const lowerFilename = filename.toLowerCase()
+      
+      // 문서 파일들
+      if (lowerFilename.endsWith('.pdf')) return FileTextIcon
+      if (lowerFilename.match(/\.(doc|docx)$/)) return FileTextIcon
+      if (lowerFilename.match(/\.(xls|xlsx)$/)) return FileIcon // 스프레드시트
+      if (lowerFilename.match(/\.(ppt|pptx)$/)) return FileTextIcon // 프레젠테이션
+      
+      // 이미지 파일들
+      if (lowerFilename.match(/\.(jpg|jpeg|png|gif|webp|svg|bmp|tiff)$/)) return ImageIcon
+    }
+    
+    // 타입 기반 아이콘 매핑
     switch (type) {
       case 'pdf':
-        return FileIcon
+        return FileTextIcon // PDF 문서
       case 'image':
-        return ImageIcon
+        return ImageIcon // 이미지 파일
       case 'github':
-        return GithubIcon
+        return GithubIcon // GitHub 저장소
       case 'youtube':
-        return VideoIcon
+        return VideoIcon // YouTube 비디오
       case 'slack':
+        return MessageSquareIcon // Slack 워크스페이스
       case 'discord':
-        return MessageSquareIcon
+        return MessageSquareIcon // Discord 서버
       case 'zoom':
-        return VideoIcon
+        return VideoIcon // Zoom 회의
       case 'trello':
-        return CheckSquareIcon
+        return CheckSquareIcon // Trello 보드
       case 'jira':
-        return BugIcon
+        return BugIcon // Jira 이슈
       case 'figma':
-        return PaletteIcon
+        return PaletteIcon // Figma 디자인
       case 'notion':
-        return FileTextIcon
+        return FileTextIcon // Notion 페이지
       case 'google_docs':
-        return FileTextIcon
+        return FileTextIcon // Google Docs 문서
       case 'miro':
+        return BrushIcon // Miro 화이트보드
       case 'adobe':
-        return PaletteIcon
+        return PaletteIcon // Adobe 크리에이티브 도구
       case 'url':
-        return ExternalLinkIcon
+        return ExternalLinkIcon // 외부 링크
       case 'file':
-        return FileIcon
+        return FileIcon // 일반 파일
       default:
-        return FileIcon
+        return FileIcon // 기본값
     }
   }
 
@@ -188,7 +207,7 @@
   const isExternalLink = $derived(!!reference.url && !reference.s3_key)
   const hasFile = $derived(!!reference.s3_key)
   const typeColor = $derived(getTypeColor(reference.type))
-  const TypeIcon = $derived(getTypeIcon(reference.type))
+  const TypeIcon = $derived(getTypeIcon(reference.type, reference.file_name))
 </script>
 
 <div

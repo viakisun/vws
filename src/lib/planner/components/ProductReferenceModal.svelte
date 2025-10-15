@@ -72,6 +72,8 @@
       if (!title) {
         title = file.name.replace(/\.[^/.]+$/, '') // Remove extension for title
       }
+      // Auto-detect type from filename
+      type = detectLinkType('', file.name)
     }
   }
 
@@ -97,6 +99,8 @@
       if (!title) {
         title = file.name.replace(/\.[^/.]+$/, '')
       }
+      // Auto-detect type from filename
+      type = detectLinkType('', file.name)
     }
   }
 
