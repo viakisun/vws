@@ -793,6 +793,9 @@ describe('Finance Transaction Service', () => {
         totalExpense: 3000000,
         netAmount: 2000000,
         transactionCount: 100,
+        averageAmount: 50000,
+        largestTransaction: 1000000,
+        smallestTransaction: 10000,
       }
 
       vi.mocked(fetch).mockResolvedValueOnce({
@@ -815,6 +818,9 @@ describe('Finance Transaction Service', () => {
         totalExpense: 1500000,
         netAmount: 1000000,
         transactionCount: 50,
+        averageAmount: 45000,
+        largestTransaction: 800000,
+        smallestTransaction: 5000,
       }
 
       const filter: TransactionFilter = {

@@ -40,17 +40,19 @@ export interface EvidenceItem {
   spent_amount: string | number
 }
 
+export interface OverallValidation {
+  isValid: boolean
+  totalItems: number
+  validItems: number
+  invalidItems: number
+}
+
 export interface ValidationResponse {
   success: boolean
   projectId: string
   projectTitle?: string
   validationResults: ValidationResult[]
-  overallValidation: {
-    isValid: boolean
-    totalItems: number
-    validItems: number
-    invalidItems: number
-  }
+  overallValidation: OverallValidation
   generatedAt: string
 }
 
@@ -221,7 +223,7 @@ export class ValidationUtils {
   /**
    * 전체 검증 결과 생성
    */
-  static createOverallValidation(validationResults: ValidationResult[]) {
+  static createOverallValidation(validationResults: ValidationResult[]): OverallValidation {
     const validItems = validationResults.filter((result) => result.isValid).length
     const invalidItems = validationResults.filter((result) => !result.isValid).length
 
@@ -240,7 +242,7 @@ export class ValidationUtils {
     projectId: string,
     projectTitle: string,
     validationResults: ValidationResult[],
-    overallValidation: ValidationResult,
+    overallValidation: OverallValidation,
   ): ValidationResponse {
     return {
       success: true,

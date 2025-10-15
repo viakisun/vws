@@ -112,7 +112,7 @@ describe('project.service', () => {
         startDate: '2024-01-01',
         endDate: '2024-12-31',
         budget: 2000000,
-        status: 'active',
+        status: 'active' as const,
       }
 
       const mockCreatedProject = {

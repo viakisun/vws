@@ -293,10 +293,15 @@
     <ThemeInput label="업종" placeholder="업종을 입력하세요" bind:value={formData.industry} />
 
     <div>
-      <label class="block text-sm font-medium mb-1" style:color="var(--color-text)">
+      <label
+        for="businessEntityType"
+        class="block text-sm font-medium mb-1"
+        style:color="var(--color-text)"
+      >
         사업자 유형
       </label>
       <select
+        id="businessEntityType"
         bind:value={formData.businessEntityType}
         class="w-full px-3 py-2 border rounded-md"
         style:background="var(--color-surface)"
@@ -333,7 +338,7 @@
     <!-- 파일 업로드 섹션 -->
     <div class="border-t pt-4" style:border-color="var(--color-border)">
       <div class="flex items-center justify-between mb-3">
-        <label class="block text-sm font-medium" style:color="var(--color-text)">첨부 파일</label>
+        <div class="block text-sm font-medium" style:color="var(--color-text)">첨부 파일</div>
         {#if !formData.businessRegistrationS3Key && !formData.bankAccountS3Key}
           <span
             class="text-xs px-2 py-1 rounded-md bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300"

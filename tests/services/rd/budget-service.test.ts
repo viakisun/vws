@@ -94,18 +94,20 @@ describe('budget.service', () => {
   describe('createBudget', () => {
     it('should create a budget successfully', async () => {
       const budgetData = {
-        project_id: 'project-1',
-        year: 2024,
-        personnel_cost_cash: 5000000,
-        personnel_cost_in_kind: 2000000,
-        research_material_cost_cash: 1500000,
-        research_material_cost_in_kind: 500000,
-        research_activity_cost_cash: 800000,
-        research_activity_cost_in_kind: 200000,
-        research_stipend_cash: 0,
-        research_stipend_in_kind: 0,
-        indirect_cost_cash: 0,
-        indirect_cost_in_kind: 0,
+        projectId: 'project-1',
+        periodNumber: 1,
+        startDate: '2024-01-01',
+        endDate: '2024-12-31',
+        personnelCostCash: 5000000,
+        personnelCostInKind: 2000000,
+        researchMaterialCostCash: 1500000,
+        researchMaterialCostInKind: 500000,
+        researchActivityCostCash: 800000,
+        researchActivityCostInKind: 200000,
+        researchStipendCash: 0,
+        researchStipendInKind: 0,
+        indirectCostCash: 0,
+        indirectCostInKind: 0,
       }
 
       const mockCreatedBudget = {
@@ -135,8 +137,19 @@ describe('budget.service', () => {
     it('should handle creation errors', async () => {
       const budgetData = {
         projectId: 'nonexistent-project',
-        year: 2024,
+        periodNumber: 1,
+        startDate: '2024-01-01',
+        endDate: '2024-12-31',
         personnelCostCash: 5000000,
+        personnelCostInKind: 0,
+        researchMaterialCostCash: 0,
+        researchMaterialCostInKind: 0,
+        researchActivityCostCash: 0,
+        researchActivityCostInKind: 0,
+        researchStipendCash: 0,
+        researchStipendInKind: 0,
+        indirectCostCash: 0,
+        indirectCostInKind: 0,
       }
 
       mockFetch.mockResolvedValueOnce({
@@ -153,8 +166,19 @@ describe('budget.service', () => {
     it('should handle duplicate budget creation', async () => {
       const budgetData = {
         projectId: 'project-1',
-        year: 2024, // Already exists
+        periodNumber: 1,
+        startDate: '2024-01-01',
+        endDate: '2024-12-31',
         personnelCostCash: 5000000,
+        personnelCostInKind: 0,
+        researchMaterialCostCash: 0,
+        researchMaterialCostInKind: 0,
+        researchActivityCostCash: 0,
+        researchActivityCostInKind: 0,
+        researchStipendCash: 0,
+        researchStipendInKind: 0,
+        indirectCostCash: 0,
+        indirectCostInKind: 0,
       }
 
       mockFetch.mockResolvedValueOnce({
@@ -175,10 +199,12 @@ describe('budget.service', () => {
       const updateData = {
         id: budgetId,
         projectId: 'project-1',
-        year: 2024,
+        periodNumber: 1,
+        startDate: '2024-01-01',
+        endDate: '2024-12-31',
         personnelCostCash: 6000000,
-        researchMaterialCostCash: 2000000,
         personnelCostInKind: 2000000,
+        researchMaterialCostCash: 2000000,
         researchMaterialCostInKind: 500000,
         researchActivityCostCash: 800000,
         researchActivityCostInKind: 200000,
@@ -186,9 +212,6 @@ describe('budget.service', () => {
         researchStipendInKind: 0,
         indirectCostCash: 0,
         indirectCostInKind: 0,
-        periodNumber: 1,
-        startDate: '2024-01-01',
-        endDate: '2024-12-31',
       }
 
       const mockUpdatedBudget = {
@@ -225,10 +248,12 @@ describe('budget.service', () => {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             projectId: 'project-1',
-            year: 2024,
+            periodNumber: 1,
+            startDate: '2024-01-01',
+            endDate: '2024-12-31',
             personnelCostCash: 6000000,
-            researchMaterialCostCash: 2000000,
             personnelCostInKind: 2000000,
+            researchMaterialCostCash: 2000000,
             researchMaterialCostInKind: 500000,
             researchActivityCostCash: 800000,
             researchActivityCostInKind: 200000,
@@ -236,9 +261,6 @@ describe('budget.service', () => {
             researchStipendInKind: 0,
             indirectCostCash: 0,
             indirectCostInKind: 0,
-            periodNumber: 1,
-            startDate: '2024-01-01',
-            endDate: '2024-12-31',
           }),
         },
       )
@@ -249,7 +271,9 @@ describe('budget.service', () => {
       const updateData = {
         id: budgetId,
         projectId: 'project-1',
-        year: 2024,
+        periodNumber: 1,
+        startDate: '2024-01-01',
+        endDate: '2024-12-31',
         personnelCostCash: 6000000,
         personnelCostInKind: 0,
         researchMaterialCostCash: 0,
@@ -260,9 +284,6 @@ describe('budget.service', () => {
         researchStipendInKind: 0,
         indirectCostCash: 0,
         indirectCostInKind: 0,
-        periodNumber: 1,
-        startDate: '2024-01-01',
-        endDate: '2024-12-31',
       }
 
       mockFetch.mockResolvedValueOnce({
@@ -281,7 +302,9 @@ describe('budget.service', () => {
       const updateData = {
         id: budgetId,
         projectId: 'project-1',
-        year: 2024,
+        periodNumber: 1,
+        startDate: '2024-01-01',
+        endDate: '2024-12-31',
         personnelCostCash: -1000000, // Negative amount
         personnelCostInKind: 0,
         researchMaterialCostCash: 0,
@@ -292,9 +315,6 @@ describe('budget.service', () => {
         researchStipendInKind: 0,
         indirectCostCash: 0,
         indirectCostInKind: 0,
-        periodNumber: 1,
-        startDate: '2024-01-01',
-        endDate: '2024-12-31',
       }
 
       mockFetch.mockResolvedValueOnce({
@@ -447,7 +467,22 @@ describe('budget.service', () => {
       mockFetch.mockRejectedValueOnce(new Error('Request timeout'))
 
       await expect(
-        budgetService.createBudget({ projectId: 'project-1', year: 2024 }),
+        budgetService.createBudget({
+          projectId: 'project-1',
+          periodNumber: 1,
+          startDate: '2024-01-01',
+          endDate: '2024-12-31',
+          personnelCostCash: 5000000,
+          personnelCostInKind: 0,
+          researchMaterialCostCash: 0,
+          researchMaterialCostInKind: 0,
+          researchActivityCostCash: 0,
+          researchActivityCostInKind: 0,
+          researchStipendCash: 0,
+          researchStipendInKind: 0,
+          indirectCostCash: 0,
+          indirectCostInKind: 0,
+        }),
       ).rejects.toThrow('Request timeout')
     })
   })
@@ -456,9 +491,19 @@ describe('budget.service', () => {
     it('should handle very large budget amounts', async () => {
       const budgetData = {
         projectId: 'project-1',
-        year: 2024,
+        periodNumber: 1,
+        startDate: '2024-01-01',
+        endDate: '2024-12-31',
         personnelCostCash: 999999999999,
+        personnelCostInKind: 0,
         researchMaterialCostCash: 999999999999,
+        researchMaterialCostInKind: 0,
+        researchActivityCostCash: 0,
+        researchActivityCostInKind: 0,
+        researchStipendCash: 0,
+        researchStipendInKind: 0,
+        indirectCostCash: 0,
+        indirectCostInKind: 0,
       }
 
       const mockCreatedBudget = {
@@ -483,7 +528,9 @@ describe('budget.service', () => {
     it('should handle zero budget amounts', async () => {
       const budgetData = {
         projectId: 'project-1',
-        year: 2024,
+        periodNumber: 1,
+        startDate: '2024-01-01',
+        endDate: '2024-12-31',
         personnelCostCash: 0,
         personnelCostInKind: 0,
         researchMaterialCostCash: 0,
@@ -518,9 +565,19 @@ describe('budget.service', () => {
     it('should handle decimal budget amounts', async () => {
       const budgetData = {
         projectId: 'project-1',
-        year: 2024,
+        periodNumber: 1,
+        startDate: '2024-01-01',
+        endDate: '2024-12-31',
         personnelCostCash: 1234567.89,
+        personnelCostInKind: 0,
         researchMaterialCostCash: 987654.32,
+        researchMaterialCostInKind: 0,
+        researchActivityCostCash: 0,
+        researchActivityCostInKind: 0,
+        researchStipendCash: 0,
+        researchStipendInKind: 0,
+        indirectCostCash: 0,
+        indirectCostInKind: 0,
       }
 
       const mockCreatedBudget = {
@@ -545,8 +602,19 @@ describe('budget.service', () => {
     it('should handle special characters in project IDs', async () => {
       const budgetData = {
         projectId: 'project-with-special-chars-@#$%',
-        year: 2024,
+        periodNumber: 1,
+        startDate: '2024-01-01',
+        endDate: '2024-12-31',
         personnelCostCash: 5000000,
+        personnelCostInKind: 0,
+        researchMaterialCostCash: 0,
+        researchMaterialCostInKind: 0,
+        researchActivityCostCash: 0,
+        researchActivityCostInKind: 0,
+        researchStipendCash: 0,
+        researchStipendInKind: 0,
+        indirectCostCash: 0,
+        indirectCostInKind: 0,
       }
 
       const mockCreatedBudget = {
@@ -571,8 +639,19 @@ describe('budget.service', () => {
     it('should handle future years', async () => {
       const budgetData = {
         projectId: 'project-1',
-        year: 2030,
+        periodNumber: 1,
+        startDate: '2030-01-01',
+        endDate: '2030-12-31',
         personnelCostCash: 5000000,
+        personnelCostInKind: 0,
+        researchMaterialCostCash: 0,
+        researchMaterialCostInKind: 0,
+        researchActivityCostCash: 0,
+        researchActivityCostInKind: 0,
+        researchStipendCash: 0,
+        researchStipendInKind: 0,
+        indirectCostCash: 0,
+        indirectCostInKind: 0,
       }
 
       const mockCreatedBudget = {
@@ -597,8 +676,19 @@ describe('budget.service', () => {
     it('should handle past years', async () => {
       const budgetData = {
         projectId: 'project-1',
-        year: 2020,
+        periodNumber: 1,
+        startDate: '2020-01-01',
+        endDate: '2020-12-31',
         personnelCostCash: 5000000,
+        personnelCostInKind: 0,
+        researchMaterialCostCash: 0,
+        researchMaterialCostInKind: 0,
+        researchActivityCostCash: 0,
+        researchActivityCostInKind: 0,
+        researchStipendCash: 0,
+        researchStipendInKind: 0,
+        indirectCostCash: 0,
+        indirectCostInKind: 0,
       }
 
       const mockCreatedBudget = {

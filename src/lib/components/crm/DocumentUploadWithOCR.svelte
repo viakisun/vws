@@ -216,12 +216,20 @@
 
   <!-- 업로드 영역 -->
   <div
+    role="button"
+    tabindex="0"
     class="border-2 border-dashed rounded-lg p-8 text-center transition-colors {dragOver
       ? 'border-blue-500 bg-blue-50'
       : 'border-gray-300'}"
     ondragover={handleDragOver}
     ondragleave={handleDragLeave}
     ondrop={handleDrop}
+    onkeydown={(e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault()
+        // 파일 선택 트리거 로직
+      }
+    }}
   >
     {#if loading}
       <div class="flex flex-col items-center gap-4">

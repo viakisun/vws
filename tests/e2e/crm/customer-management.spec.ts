@@ -248,7 +248,10 @@ test.describe('CRM 고객 관리 플로우', () => {
 
     // 2. 모든 행이 선택되었는지 확인
     const checkboxes = page.getByRole('checkbox')
-    const checkedCount = await checkboxes.filter({ checked: true }).count()
+    const allCheckboxes = await checkboxes.all()
+    const checkedCount = await Promise.all(
+      allCheckboxes.map(async (checkbox) => await checkbox.isChecked()),
+    ).then((results) => results.filter(Boolean).length)
     expect(checkedCount).toBeGreaterThan(1) // 전체 선택 체크박스 + 데이터 행들
 
     // 3. 대량 작업 버튼 표시 확인

@@ -8,7 +8,7 @@ import {
   updatePayslip,
   uploadPayslipTemplate,
 } from '$lib/services/salary/payslip.service'
-import type { Payslip, SalaryHistory } from '$lib/types/salary'
+import type { DeductionItem, Payslip, SalaryHistory } from '$lib/types/salary'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 // Mock fetch globally
@@ -26,8 +26,25 @@ describe('Payslip Service', () => {
           id: 'payslip-1',
           employeeId: 'employee-1',
           period: '2025-01',
-          basicSalary: 3000000,
-          allowances: 500000,
+          payDate: '2025-01-31',
+          employeeName: '홍길동',
+          employeeIdNumber: 'EMP001',
+          department: '개발팀',
+          position: '개발자',
+          hireDate: '2023-01-01',
+          baseSalary: 3000000,
+          totalPayments: 3500000,
+          totalDeductions: 200000,
+          netSalary: 3300000,
+          payments: [
+            {
+              id: 'pay-1',
+              name: '기본급',
+              amount: 3000000,
+              type: 'basic',
+              isTaxable: true,
+            },
+          ],
           deductions: [
             {
               id: 'ded-1',
@@ -38,17 +55,31 @@ describe('Payslip Service', () => {
               isMandatory: true,
             },
           ],
-          netSalary: 3300000,
           status: 'approved',
-          updatedAt: '2025-01-15T10:00:00Z',
         },
         {
           id: 'payslip-2',
           employeeId: 'employee-2',
-          employeeName: '김철수',
           period: '2025-01',
-          basicSalary: 2500000,
-          allowances: 300000,
+          payDate: '2025-01-31',
+          employeeName: '김철수',
+          employeeIdNumber: 'EMP002',
+          department: '마케팅팀',
+          position: '매니저',
+          hireDate: '2022-06-01',
+          baseSalary: 2500000,
+          totalPayments: 2800000,
+          totalDeductions: 150000,
+          netSalary: 2650000,
+          payments: [
+            {
+              id: 'pay-2',
+              name: '기본급',
+              amount: 2500000,
+              type: 'basic',
+              isTaxable: true,
+            },
+          ],
           deductions: [
             {
               id: 'ded-2',
@@ -59,10 +90,7 @@ describe('Payslip Service', () => {
               isMandatory: true,
             },
           ],
-          netSalary: 2650000,
           status: 'draft',
-          createdAt: '2025-01-15T11:00:00Z',
-          updatedAt: '2025-01-15T11:00:00Z',
         },
       ]
 
@@ -131,8 +159,25 @@ describe('Payslip Service', () => {
           id: 'payslip-1',
           employeeId: 'employee-1',
           period: '2025-01',
-          basicSalary: 3000000,
-          allowances: 500000,
+          payDate: '2025-01-31',
+          employeeName: '홍길동',
+          employeeIdNumber: 'EMP001',
+          department: '개발팀',
+          position: '개발자',
+          hireDate: '2023-01-01',
+          baseSalary: 3000000,
+          totalPayments: 3500000,
+          totalDeductions: 200000,
+          netSalary: 3300000,
+          payments: [
+            {
+              id: 'pay-1',
+              name: '기본급',
+              amount: 3000000,
+              type: 'basic',
+              isTaxable: true,
+            },
+          ],
           deductions: [
             {
               id: 'ded-1',
@@ -143,16 +188,31 @@ describe('Payslip Service', () => {
               isMandatory: true,
             },
           ],
-          netSalary: 3300000,
           status: 'approved',
-          updatedAt: '2025-01-15T10:00:00Z',
         },
         {
           id: 'payslip-2',
           employeeId: 'employee-1',
           period: '2024-12',
-          basicSalary: 3000000,
-          allowances: 450000,
+          payDate: '2024-12-31',
+          employeeName: '홍길동',
+          employeeIdNumber: 'EMP001',
+          department: '개발팀',
+          position: '개발자',
+          hireDate: '2023-01-01',
+          baseSalary: 3000000,
+          totalPayments: 3450000,
+          totalDeductions: 180000,
+          netSalary: 3270000,
+          payments: [
+            {
+              id: 'pay-2',
+              name: '기본급',
+              amount: 3000000,
+              type: 'basic',
+              isTaxable: true,
+            },
+          ],
           deductions: [
             {
               id: 'ded-3',
@@ -163,10 +223,7 @@ describe('Payslip Service', () => {
               isMandatory: true,
             },
           ],
-          netSalary: 3270000,
           status: 'approved',
-          createdAt: '2024-12-15T10:00:00Z',
-          updatedAt: '2024-12-15T10:00:00Z',
         },
       ]
 
@@ -215,10 +272,26 @@ describe('Payslip Service', () => {
       const mockCreatedPayslip: Payslip = {
         id: 'payslip-new',
         employeeId: 'employee-1',
-        employeeName: '홍길동',
         period: '2025-02',
-        basicSalary: 3000000,
-        allowances: 500000,
+        payDate: '2025-02-28',
+        employeeName: '홍길동',
+        employeeIdNumber: 'EMP001',
+        department: '개발팀',
+        position: '개발자',
+        hireDate: '2023-01-01',
+        baseSalary: 3000000,
+        totalPayments: 3500000,
+        totalDeductions: 200000,
+        netSalary: 3300000,
+        payments: [
+          {
+            id: 'pay-new',
+            name: '기본급',
+            amount: 3000000,
+            type: 'basic',
+            isTaxable: true,
+          },
+        ],
         deductions: [
           {
             id: 'ded-5',
@@ -229,10 +302,7 @@ describe('Payslip Service', () => {
             isMandatory: true,
           },
         ],
-        netSalary: 3300000,
         status: 'draft',
-        createdAt: '2025-02-01T10:00:00Z',
-        updatedAt: '2025-02-01T10:00:00Z',
       }
 
       vi.mocked(fetch).mockResolvedValueOnce({
@@ -296,30 +366,47 @@ describe('Payslip Service', () => {
 
   describe('updatePayslip', () => {
     it('급여명세서를 성공적으로 수정해야 함', async () => {
-      const updates = {
-        basicSalary: 3200000,
-        allowances: 600000,
+      const updates: Partial<Payslip> = {
+        baseSalary: 3200000,
         deductions: [
           {
             id: 'ded-4',
             name: '국민연금',
             rate: 4.5,
-            type: 'pension',
+            type: 'pension' as const,
             amount: 220000,
             isMandatory: true,
           },
-        ],
+        ] as DeductionItem[],
         netSalary: 3580000,
-        status: 'confirmed' as const,
+        status: 'approved' as const,
       }
 
       const mockUpdatedPayslip: Payslip = {
         id: 'payslip-1',
         employeeId: 'employee-1',
-        employeeName: '홍길동',
         period: '2025-01',
-        ...updates,
-        updatedAt: '2025-01-15T12:00:00Z',
+        payDate: '2025-01-31',
+        employeeName: '홍길동',
+        employeeIdNumber: 'EMP001',
+        department: '개발팀',
+        position: '개발자',
+        hireDate: '2023-01-01',
+        baseSalary: updates.baseSalary || 3000000,
+        totalPayments: 3580000,
+        totalDeductions: 200000,
+        netSalary: updates.netSalary || 3300000,
+        payments: [
+          {
+            id: 'pay-1',
+            name: '기본급',
+            amount: updates.baseSalary || 3000000,
+            type: 'basic',
+            isTaxable: true,
+          },
+        ],
+        deductions: (updates.deductions as DeductionItem[]) || [],
+        status: updates.status || 'approved',
       }
 
       vi.mocked(fetch).mockResolvedValueOnce({
@@ -342,7 +429,7 @@ describe('Payslip Service', () => {
     })
 
     it('존재하지 않는 급여명세서 수정 시 에러를 반환해야 함', async () => {
-      const updates = { basicSalary: 3200000 }
+      const updates = { baseSalary: 3200000 }
 
       vi.mocked(fetch).mockResolvedValueOnce({
         json: () =>
@@ -359,7 +446,7 @@ describe('Payslip Service', () => {
     })
 
     it('확정된 급여명세서 수정 시 에러를 반환해야 함', async () => {
-      const updates = { basicSalary: 3200000 }
+      const updates = { baseSalary: 3200000 }
 
       vi.mocked(fetch).mockResolvedValueOnce({
         json: () =>
@@ -376,7 +463,7 @@ describe('Payslip Service', () => {
     })
 
     it('네트워크 오류 시 에러를 반환해야 함', async () => {
-      const updates = { basicSalary: 3200000 }
+      const updates = { baseSalary: 3200000 }
 
       vi.mocked(fetch).mockRejectedValueOnce(new Error('Network error'))
 
@@ -527,42 +614,31 @@ describe('Payslip Service', () => {
           id: 'history-1',
           employeeId: 'employee-1',
           period: '2025-01',
-          basicSalary: 3000000,
-          allowances: 500000,
-          deductions: [
-            {
-              id: 'ded-1',
-              name: '국민연금',
-              rate: 4.5,
-              type: 'pension',
-              amount: 200000,
-              isMandatory: true,
-            },
-          ],
-          netSalary: 3300000,
+          baseSalary: 3000000,
+          totalAllowances: 200000,
+          totalDeductions: 300000,
+          grossSalary: 3200000,
+          netSalary: 3200000,
+          changeType: 'promotion',
           changeReason: '승진',
           effectiveDate: '2025-01-01',
+          createdAt: '2025-01-15T10:00:00Z',
+          createdBy: 'system',
         },
         {
           id: 'history-2',
           employeeId: 'employee-1',
           period: '2024-12',
-          basicSalary: 2800000,
-          allowances: 450000,
-          deductions: [
-            {
-              id: 'ded-3',
-              name: '국민연금',
-              rate: 4.5,
-              type: 'pension',
-              amount: 180000,
-              isMandatory: true,
-            },
-          ],
+          baseSalary: 2800000,
+          totalAllowances: 150000,
+          totalDeductions: 280000,
+          grossSalary: 2950000,
           netSalary: 3070000,
+          changeType: 'adjustment',
           changeReason: '연봉 인상',
           effectiveDate: '2024-12-01',
           createdAt: '2024-12-15T10:00:00Z',
+          createdBy: 'system',
         },
       ]
 
@@ -587,21 +663,16 @@ describe('Payslip Service', () => {
           id: 'history-1',
           employeeId: 'employee-1',
           period: '2025-01',
-          basicSalary: 3000000,
-          allowances: 500000,
-          deductions: [
-            {
-              id: 'ded-1',
-              name: '국민연금',
-              rate: 4.5,
-              type: 'pension',
-              amount: 200000,
-              isMandatory: true,
-            },
-          ],
-          netSalary: 3300000,
+          baseSalary: 3000000,
+          totalAllowances: 200000,
+          totalDeductions: 300000,
+          grossSalary: 3200000,
+          netSalary: 3200000,
+          changeType: 'promotion',
           changeReason: '승진',
           effectiveDate: '2025-01-01',
+          createdAt: '2025-01-15T10:00:00Z',
+          createdBy: 'system',
         },
       ]
 
@@ -748,10 +819,26 @@ describe('Payslip Service', () => {
       const mockCreatedPayslip: Payslip = {
         id: 'payslip-new',
         employeeId: 'employee-1',
-        employeeName: '홍길동',
         period: '2025-02',
-        basicSalary: 3000000,
-        allowances: 500000,
+        payDate: '2025-02-28',
+        employeeName: '홍길동',
+        employeeIdNumber: 'EMP001',
+        department: '개발팀',
+        position: '개발자',
+        hireDate: '2023-01-01',
+        baseSalary: 3000000,
+        totalPayments: 3500000,
+        totalDeductions: 200000,
+        netSalary: 3300000,
+        payments: [
+          {
+            id: 'pay-new',
+            name: '기본급',
+            amount: 3000000,
+            type: 'basic',
+            isTaxable: true,
+          },
+        ],
         deductions: [
           {
             id: 'ded-5',
@@ -762,17 +849,25 @@ describe('Payslip Service', () => {
             isMandatory: true,
           },
         ],
-        netSalary: 3300000,
         status: 'draft',
-        createdAt: '2025-02-01T10:00:00Z',
-        updatedAt: '2025-02-01T10:00:00Z',
       }
 
       // 2. 급여명세서 수정
       const mockUpdatedPayslip: Payslip = {
         ...mockCreatedPayslip,
-        basicSalary: 3200000,
-        allowances: 600000,
+        baseSalary: 3200000,
+        totalPayments: 3780000,
+        totalDeductions: 200000,
+        netSalary: 3580000,
+        payments: [
+          {
+            id: 'pay-new',
+            name: '기본급',
+            amount: 3200000,
+            type: 'basic',
+            isTaxable: true,
+          },
+        ],
         deductions: [
           {
             id: 'ded-4',
@@ -783,9 +878,7 @@ describe('Payslip Service', () => {
             isMandatory: true,
           },
         ],
-        netSalary: 3580000,
         status: 'approved',
-        updatedAt: '2025-02-01T12:00:00Z',
       }
 
       // 3. 급여명세서 조회
@@ -821,8 +914,7 @@ describe('Payslip Service', () => {
 
       // 급여명세서 수정
       const updateResult = await updatePayslip('payslip-new', {
-        basicSalary: 3200000,
-        allowances: 600000,
+        baseSalary: 3200000,
         deductions: [
           {
             id: 'ded-4',
@@ -837,13 +929,13 @@ describe('Payslip Service', () => {
         status: 'approved',
       })
       expect(updateResult.success).toBe(true)
-      expect(updateResult.data?.status).toBe('confirmed')
+      expect(updateResult.data?.status).toBe('approved')
 
       // 급여명세서 조회
       const fetchResult = await fetchPayslips()
       expect(fetchResult.success).toBe(true)
       expect(fetchResult.data).toHaveLength(1)
-      expect(fetchResult.data?.[0].status).toBe('confirmed')
+      expect(fetchResult.data?.[0].status).toBe('approved')
     })
 
     it('다양한 급여명세서 상태를 올바르게 처리해야 함', async () => {
@@ -853,8 +945,25 @@ describe('Payslip Service', () => {
             id: 'payslip-draft',
             employeeId: 'employee-1',
             period: '2025-01',
-            basicSalary: 3000000,
-            allowances: 500000,
+            payDate: '2025-01-31',
+            employeeName: '홍길동',
+            employeeIdNumber: 'EMP001',
+            department: '개발팀',
+            position: '개발자',
+            hireDate: '2023-01-01',
+            baseSalary: 3000000,
+            totalPayments: 3500000,
+            totalDeductions: 200000,
+            netSalary: 3300000,
+            payments: [
+              {
+                id: 'pay-draft',
+                name: '기본급',
+                amount: 3000000,
+                type: 'basic',
+                isTaxable: true,
+              },
+            ],
             deductions: [
               {
                 id: 'ded-1',
@@ -865,9 +974,7 @@ describe('Payslip Service', () => {
                 isMandatory: true,
               },
             ],
-            netSalary: 3300000,
             status: 'draft' as const,
-            updatedAt: '2025-01-15T10:00:00Z',
           },
           expectedStatus: 'draft',
         },
@@ -875,10 +982,26 @@ describe('Payslip Service', () => {
           payslip: {
             id: 'payslip-confirmed',
             employeeId: 'employee-2',
-            employeeName: '김철수',
             period: '2025-01',
-            basicSalary: 2500000,
-            allowances: 300000,
+            payDate: '2025-01-31',
+            employeeName: '김철수',
+            employeeIdNumber: 'EMP002',
+            department: '마케팅팀',
+            position: '매니저',
+            hireDate: '2022-06-01',
+            baseSalary: 2500000,
+            totalPayments: 2800000,
+            totalDeductions: 150000,
+            netSalary: 2650000,
+            payments: [
+              {
+                id: 'pay-confirmed',
+                name: '기본급',
+                amount: 2500000,
+                type: 'basic',
+                isTaxable: true,
+              },
+            ],
             deductions: [
               {
                 id: 'ded-2',
@@ -889,26 +1012,45 @@ describe('Payslip Service', () => {
                 isMandatory: true,
               },
             ],
-            netSalary: 2650000,
-            status: 'confirmed' as const,
-            createdAt: '2025-01-15T11:00:00Z',
-            updatedAt: '2025-01-15T11:00:00Z',
+            status: 'approved' as const,
           },
-          expectedStatus: 'confirmed',
+          expectedStatus: 'approved',
         },
         {
           payslip: {
             id: 'payslip-cancelled',
             employeeId: 'employee-3',
-            employeeName: '이영희',
             period: '2025-01',
-            basicSalary: 2000000,
-            allowances: 200000,
-            deductions: 100000,
+            payDate: '2025-01-31',
+            employeeName: '이영희',
+            employeeIdNumber: 'EMP003',
+            department: '총무팀',
+            position: '사원',
+            hireDate: '2023-03-01',
+            baseSalary: 2000000,
+            totalPayments: 2200000,
+            totalDeductions: 100000,
             netSalary: 2100000,
+            payments: [
+              {
+                id: 'pay-cancelled',
+                name: '기본급',
+                amount: 2000000,
+                type: 'basic',
+                isTaxable: true,
+              },
+            ],
+            deductions: [
+              {
+                id: 'ded-cancelled',
+                name: '국민연금',
+                rate: 4.5,
+                type: 'pension',
+                amount: 100000,
+                isMandatory: true,
+              },
+            ],
             status: 'cancelled' as const,
-            createdAt: '2025-01-15T12:00:00Z',
-            updatedAt: '2025-01-15T12:00:00Z',
           },
           expectedStatus: 'cancelled',
         },

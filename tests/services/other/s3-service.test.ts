@@ -2,14 +2,14 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 // Mock the s3-service module to override global mocks
 vi.mock('$lib/services/s3/s3-service', async (importOriginal) => {
-  const actual = await importOriginal()
+  const actual = (await importOriginal()) as any
   return {
     ...actual,
     generateS3Key: vi.fn(),
     generatePresignedUploadUrl: vi.fn(),
     generatePresignedDownloadUrl: vi.fn(),
-    deleteS3Object: vi.fn(),
-    generateCrmDocumentS3Key: vi.fn(),
+    deleteFile: vi.fn(),
+    generateCrmDocumentKey: vi.fn(),
   }
 })
 
@@ -38,16 +38,17 @@ vi.mock('$lib/utils/file-validation', () => ({
 // Mock CRM constants
 vi.mock('$lib/constants/crm', () => ({
   CrmDocumentType: {
-    BUSINESS_REGISTRATION: 'business_registration',
-    BANK_ACCOUNT: 'bank_account',
+    BUSINESS_REGISTRATION: 'business-registration',
+    BANK_ACCOUNT: 'bank-account',
   },
-  generateCrmDocumentS3Key: vi.fn(),
+  generateCrmDocumentKey: vi.fn(),
 }))
 
+import { CrmDocumentType } from '$lib/constants/crm'
 import { getS3BucketName, getS3Client } from '$lib/services/s3/s3-client'
 import {
-  deleteS3Object,
-  generateCrmDocumentS3Key,
+  deleteFile,
+  generateCrmDocumentKey,
   generatePresignedDownloadUrl,
   generatePresignedUploadUrl,
   generateS3Key,
@@ -56,7 +57,7 @@ import {
 describe('S3 Service', () => {
   const mockS3Client = {
     send: vi.fn(),
-  }
+  } as any
 
   const mockBucketName = 'test-bucket'
 
@@ -272,78 +273,85 @@ describe('S3 Service', () => {
     })
   })
 
-  describe('deleteS3Object', () => {
+  describe('deleteFile', () => {
     it('should delete S3 object successfully', async () => {
       const key = 'test-key'
 
-      vi.mocked(deleteS3Object).mockResolvedValue(undefined)
+      vi.mocked(deleteFile).mockResolvedValue(undefined)
 
-      await deleteS3Object(key)
+      await deleteFile(key)
 
-      expect(deleteS3Object).toHaveBeenCalledWith(key)
+      expect(deleteFile).toHaveBeenCalledWith(key)
     })
 
     it('should handle errors during deletion', async () => {
       const key = 'test-key'
       const error = new Error('S3 deletion failed')
 
-      vi.mocked(deleteS3Object).mockRejectedValue(error)
+      vi.mocked(deleteFile).mockRejectedValue(error)
 
-      await expect(deleteS3Object(key)).rejects.toThrow('S3 deletion failed')
+      await expect(deleteFile(key)).rejects.toThrow('S3 deletion failed')
     })
 
     it('should handle empty key', async () => {
       const key = ''
       const error = new Error('Invalid key')
 
-      vi.mocked(deleteS3Object).mockRejectedValue(error)
+      vi.mocked(deleteFile).mockRejectedValue(error)
 
-      await expect(deleteS3Object(key)).rejects.toThrow('Invalid key')
+      await expect(deleteFile(key)).rejects.toThrow('Invalid key')
     })
 
     it('should handle non-existent object', async () => {
       const key = 'non-existent-key'
       const error = new Error('NoSuchKey')
 
-      vi.mocked(deleteS3Object).mockRejectedValue(error)
+      vi.mocked(deleteFile).mockRejectedValue(error)
 
-      await expect(deleteS3Object(key)).rejects.toThrow('NoSuchKey')
+      await expect(deleteFile(key)).rejects.toThrow('NoSuchKey')
     })
   })
 
-  describe('generateCrmDocumentS3Key', () => {
+  describe('generateCrmDocumentKey', () => {
     it('should generate CRM document S3 key successfully', () => {
       const mockS3Key = 'crm/customer-123/business_registration.pdf'
+      const companyCode = 'VWS'
       const customerId = 'customer-123'
-      const documentType = 'business_registration'
+      const documentType = CrmDocumentType.BUSINESS_REGISTRATION
       const filename = 'business_registration.pdf'
 
-      vi.mocked(generateCrmDocumentS3Key).mockReturnValue(mockS3Key)
+      vi.mocked(generateCrmDocumentKey).mockReturnValue(mockS3Key)
 
-      const result = generateCrmDocumentS3Key(customerId, documentType, filename)
+      const result = generateCrmDocumentKey(companyCode, customerId, documentType, filename)
 
       expect(result).toBe(mockS3Key)
-      expect(generateCrmDocumentS3Key).toHaveBeenCalledWith(customerId, documentType, filename)
+      expect(generateCrmDocumentKey).toHaveBeenCalledWith(
+        companyCode,
+        customerId,
+        documentType,
+        filename,
+      )
     })
 
     it('should handle different document types', () => {
+      const companyCode = 'VWS'
       const customerId = 'customer-123'
-      const documentTypes = [
-        'business_registration',
-        'bank_account',
-        'contract',
-        'invoice',
-        'receipt',
-      ]
+      const documentTypes = [CrmDocumentType.BUSINESS_REGISTRATION, CrmDocumentType.BANK_ACCOUNT]
 
       for (const documentType of documentTypes) {
         const mockS3Key = `crm/customer-123/${documentType}.pdf`
-        vi.mocked(generateCrmDocumentS3Key).mockReturnValue(mockS3Key)
+        vi.mocked(generateCrmDocumentKey).mockReturnValue(mockS3Key)
 
-        const result = generateCrmDocumentS3Key(customerId, documentType, `${documentType}.pdf`)
+        const result = generateCrmDocumentKey(
+          companyCode,
+          customerId,
+          documentType,
+          `${documentType}.pdf`,
+        )
 
         expect(result).toBe(mockS3Key)
-        expect(generateCrmDocumentS3Key).toHaveBeenCalledWith(
+        expect(generateCrmDocumentKey).toHaveBeenCalledWith(
+          companyCode,
           customerId,
           documentType,
           `${documentType}.pdf`,
@@ -353,44 +361,62 @@ describe('S3 Service', () => {
 
     it('should handle special characters in customer ID and filename', () => {
       const mockS3Key = 'crm/customer-@#$%/business_registration_@#$%.pdf'
+      const companyCode = 'VWS'
       const customerId = 'customer-@#$%'
-      const documentType = 'business_registration'
+      const documentType = CrmDocumentType.BUSINESS_REGISTRATION
       const filename = 'business_registration_@#$%.pdf'
 
-      vi.mocked(generateCrmDocumentS3Key).mockReturnValue(mockS3Key)
+      vi.mocked(generateCrmDocumentKey).mockReturnValue(mockS3Key)
 
-      const result = generateCrmDocumentS3Key(customerId, documentType, filename)
+      const result = generateCrmDocumentKey(companyCode, customerId, documentType, filename)
 
       expect(result).toBe(mockS3Key)
-      expect(generateCrmDocumentS3Key).toHaveBeenCalledWith(customerId, documentType, filename)
+      expect(generateCrmDocumentKey).toHaveBeenCalledWith(
+        companyCode,
+        customerId,
+        documentType,
+        filename,
+      )
     })
 
     it('should handle empty customer ID', () => {
       const mockS3Key = 'crm//business_registration.pdf'
+      const companyCode = 'VWS'
       const customerId = ''
-      const documentType = 'business_registration'
+      const documentType = CrmDocumentType.BUSINESS_REGISTRATION
       const filename = 'business_registration.pdf'
 
-      vi.mocked(generateCrmDocumentS3Key).mockReturnValue(mockS3Key)
+      vi.mocked(generateCrmDocumentKey).mockReturnValue(mockS3Key)
 
-      const result = generateCrmDocumentS3Key(customerId, documentType, filename)
+      const result = generateCrmDocumentKey(companyCode, customerId, documentType, filename)
 
       expect(result).toBe(mockS3Key)
-      expect(generateCrmDocumentS3Key).toHaveBeenCalledWith(customerId, documentType, filename)
+      expect(generateCrmDocumentKey).toHaveBeenCalledWith(
+        companyCode,
+        customerId,
+        documentType,
+        filename,
+      )
     })
 
     it('should handle empty filename', () => {
       const mockS3Key = 'crm/customer-123/business_registration'
+      const companyCode = 'VWS'
       const customerId = 'customer-123'
-      const documentType = 'business_registration'
+      const documentType = CrmDocumentType.BUSINESS_REGISTRATION
       const filename = ''
 
-      vi.mocked(generateCrmDocumentS3Key).mockReturnValue(mockS3Key)
+      vi.mocked(generateCrmDocumentKey).mockReturnValue(mockS3Key)
 
-      const result = generateCrmDocumentS3Key(customerId, documentType, filename)
+      const result = generateCrmDocumentKey(companyCode, customerId, documentType, filename)
 
       expect(result).toBe(mockS3Key)
-      expect(generateCrmDocumentS3Key).toHaveBeenCalledWith(customerId, documentType, filename)
+      expect(generateCrmDocumentKey).toHaveBeenCalledWith(
+        companyCode,
+        customerId,
+        documentType,
+        filename,
+      )
     })
   })
 

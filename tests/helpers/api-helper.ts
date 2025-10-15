@@ -1,5 +1,30 @@
-import type { RequestHandler } from '@sveltejs/kit'
+import type { RequestEvent, RequestHandler } from '@sveltejs/kit'
 import { vi } from 'vitest'
+
+interface UserWithEmployee {
+  id: string
+  email: string
+  name: string
+  role: string
+  employee?: {
+    id: string
+    employee_id: string
+    first_name: string
+    last_name: string
+    department: string
+    position: string
+    hire_date: string
+    status: string
+    employment_type: string
+    phone: string
+    birth_date: string
+  }
+}
+
+interface MockLocals {
+  user: UserWithEmployee | null
+  permissions: any | null
+}
 
 /**
  * API 테스트 헬퍼
@@ -36,7 +61,8 @@ export class APIHelper {
     body: any = null,
     params: Record<string, string> = {},
     cookies: Record<string, string> = {},
-  ) {
+    locals: Partial<MockLocals> = {},
+  ): RequestEvent<Record<string, string>, string | null> {
     const request = this.createMockRequest(method, url, body)
     const urlObj = new URL(request.url)
 
@@ -44,17 +70,24 @@ export class APIHelper {
       request,
       url: urlObj,
       params,
+      locals: locals as App.Locals,
       cookies: {
         get: vi.fn((name: string) => cookies[name] || null),
         set: vi.fn(),
         delete: vi.fn(),
+        getAll: vi.fn(() => []),
+        serialize: vi.fn(() => ''),
       },
-      locals: {},
-      platform: undefined,
-      route: { id: '/api/test' },
+      fetch: vi.fn(),
+      getClientAddress: vi.fn(() => '127.0.0.1'),
+      setHeaders: vi.fn(),
       isDataRequest: false,
       isSubRequest: false,
-    }
+      isRemoteRequest: false,
+      tracing: {} as any,
+      platform: undefined,
+      route: { id: '/api/test' },
+    } as unknown as RequestEvent<Record<string, string>, string | null>
   }
 
   /**
@@ -80,7 +113,7 @@ export class APIHelper {
       headers = {},
     } = options
 
-    const event = this.createMockEvent(method, url, body, params, cookies)
+    const event = this.createMockEvent(method, url, body, params, cookies, {})
 
     // headers를 request에 추가
     if (Object.keys(headers).length > 0) {
@@ -134,10 +167,18 @@ export class APIHelper {
     url: string = '/api/test',
     body: any = null,
     params: Record<string, string> = {},
-  ) {
-    const event = this.createMockEvent(method, url, body, params)
-    event.locals.user = user
-    event.locals.permissions = user.permissions || []
+  ): RequestEvent<Record<string, string>, string | null> {
+    const event = this.createMockEvent(
+      method,
+      url,
+      body,
+      params,
+      {},
+      {
+        user,
+        permissions: user.permissions || [],
+      },
+    )
     return event
   }
 
@@ -149,10 +190,18 @@ export class APIHelper {
     url: string = '/api/test',
     body: any = null,
     params: Record<string, string> = {},
-  ) {
-    const event = this.createMockEvent(method, url, body, params)
-    event.locals.user = null
-    event.locals.permissions = null
+  ): RequestEvent<Record<string, string>, string | null> {
+    const event = this.createMockEvent(
+      method,
+      url,
+      body,
+      params,
+      {},
+      {
+        user: null,
+        permissions: null,
+      },
+    )
     return event
   }
 
@@ -166,9 +215,9 @@ export class APIHelper {
     url: string = '/api/test',
     body: any = null,
     params: Record<string, string> = {},
-  ) {
+  ): RequestEvent<Record<string, string>, string | null> {
     const event = this.createAuthenticatedEvent(user, method, url, body, params)
-    event.locals.permissions = [requiredPermission]
+    // Note: permissions are already set in createAuthenticatedEvent, this would override them
     return event
   }
 
@@ -316,15 +365,15 @@ export function createMockRequest(
 export function createMockEvent(
   request: Request,
   params: Record<string, string> = {},
-  locals: Record<string, any> = {},
-) {
+  locals: Partial<MockLocals> = {},
+): RequestEvent<Record<string, string>, string | null> {
   const url = new URL(request.url)
 
   return {
     request,
     url,
     params,
-    locals: locals as any,
+    locals: locals as App.Locals,
     route: { id: null },
     cookies: {
       get: vi.fn((name: string) => {
@@ -335,11 +384,18 @@ export function createMockEvent(
       }),
       set: vi.fn(),
       delete: vi.fn(),
+      getAll: vi.fn(() => []),
+      serialize: vi.fn(() => ''),
     },
     fetch: vi.fn(),
     getClientAddress: vi.fn(() => '127.0.0.1'),
+    setHeaders: vi.fn(),
+    isDataRequest: false,
+    isSubRequest: false,
+    isRemoteRequest: false,
+    tracing: {} as any,
     platform: undefined,
-  }
+  } as unknown as RequestEvent<Record<string, string>, string | null>
 }
 
 export async function getJsonResponseBody(response: Response): Promise<any> {

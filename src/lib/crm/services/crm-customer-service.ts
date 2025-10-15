@@ -28,6 +28,7 @@ export interface CustomerFormData {
   representative_name?: string
   establishment_date?: string
   corporation_status?: boolean
+  business_entity_type?: string
   business_type?: string
   business_category?: string
   bank_name?: string
@@ -35,6 +36,8 @@ export interface CustomerFormData {
   account_holder?: string
   ocr_processed_at?: string
   ocr_confidence?: number
+  business_registration_s3_key?: string
+  bank_account_s3_key?: string
 }
 
 export async function loadCustomers(params?: {

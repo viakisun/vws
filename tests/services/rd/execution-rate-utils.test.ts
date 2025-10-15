@@ -216,7 +216,7 @@ describe('execution-rate-utils', () => {
 
     it('should handle concurrent calls efficiently', () => {
       const start = performance.now()
-      const promises = []
+      const promises: Promise<{ color: string; bgClass: string; textClass: string }>[] = []
 
       for (let i = 0; i < 1000; i++) {
         promises.push(

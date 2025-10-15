@@ -184,7 +184,12 @@ describe('CompanyService', () => {
       expect(result).toEqual(mockCreatedCompany)
       expect(mockQuery).toHaveBeenCalledWith(
         expect.stringContaining('INSERT'),
-        expect.arrayContaining([companyData.name, companyData.code, companyData.status]),
+        expect.arrayContaining([
+          companyData.name,
+          companyData.establishment_date,
+          companyData.ceo_name,
+          companyData.business_type,
+        ]),
       )
     })
 

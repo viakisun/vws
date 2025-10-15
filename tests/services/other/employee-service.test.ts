@@ -16,6 +16,7 @@ vi.mock('$lib/utils/logger', () => ({
 }))
 
 import { query } from '$lib/database/connection'
+import type { CreateEmployeeDto } from '$lib/services/employee/employee-service'
 import { EmployeeService } from '$lib/services/employee/employee-service'
 
 describe('EmployeeService', () => {
@@ -134,8 +135,10 @@ describe('EmployeeService', () => {
 
   describe('createEmployee', () => {
     it('should create employee successfully', async () => {
-      const employeeData = {
-        name: '새로운 직원',
+      const employeeData: CreateEmployeeDto = {
+        employee_id: 'EMP999',
+        first_name: '새로운',
+        last_name: '직원',
         email: 'new@example.com',
         position: '매니저',
         department: '기획팀',
@@ -158,7 +161,9 @@ describe('EmployeeService', () => {
       expect(mockQuery).toHaveBeenCalledWith(
         expect.stringContaining('INSERT'),
         expect.arrayContaining([
-          employeeData.name,
+          employeeData.employee_id,
+          employeeData.first_name,
+          employeeData.last_name,
           employeeData.email,
           employeeData.position,
           employeeData.department,
@@ -168,8 +173,10 @@ describe('EmployeeService', () => {
     })
 
     it('should handle validation errors', async () => {
-      const invalidData = {
-        name: '',
+      const invalidData: CreateEmployeeDto = {
+        employee_id: 'EMP000',
+        first_name: '',
+        last_name: '',
         email: 'invalid-email',
         position: '',
         department: '',
@@ -183,8 +190,10 @@ describe('EmployeeService', () => {
     })
 
     it('should handle duplicate email errors', async () => {
-      const employeeData = {
-        name: '중복 이메일 직원',
+      const employeeData: CreateEmployeeDto = {
+        employee_id: 'EMP100',
+        first_name: '중복',
+        last_name: '이메일',
         email: 'duplicate@example.com',
         position: '개발자',
         department: '개발팀',
@@ -362,7 +371,7 @@ describe('EmployeeService', () => {
         rowCount: 0,
       })
 
-      const result = await employeeService.getEmployeesByDepartment('빈 부서')
+      const result = await employeeService.list({ department: '빈 부서' })
 
       expect(result).toEqual([])
       expect(mockQuery).toHaveBeenCalledWith(
@@ -383,8 +392,10 @@ describe('EmployeeService', () => {
 
   describe('edge cases', () => {
     it('should handle special characters in employee data', async () => {
-      const specialData = {
-        name: '특수문자@#$%^&*()직원',
+      const specialData: CreateEmployeeDto = {
+        employee_id: 'EMP200',
+        first_name: '특수문자@#$%^&*()',
+        last_name: '직원',
         email: 'special@example.com',
         position: '특수@#$%포지션',
         department: '특수@#$%부서',
@@ -401,13 +412,15 @@ describe('EmployeeService', () => {
         rowCount: 1,
       })
 
-      const result = await employeeService.createEmployee(specialData)
+      const result = await employeeService.create(specialData)
 
       expect(result).toEqual(mockEmployee)
       expect(mockQuery).toHaveBeenCalledWith(
         expect.stringContaining('INSERT'),
         expect.arrayContaining([
-          specialData.name,
+          specialData.employee_id,
+          specialData.first_name,
+          specialData.last_name,
           specialData.email,
           specialData.position,
           specialData.department,
@@ -417,8 +430,10 @@ describe('EmployeeService', () => {
     })
 
     it('should handle Unicode characters in employee data', async () => {
-      const unicodeData = {
-        name: '한글직원한글',
+      const unicodeData: CreateEmployeeDto = {
+        employee_id: 'EMP300',
+        first_name: '한글',
+        last_name: '직원한글',
         email: '한글@example.com',
         position: '한글포지션',
         department: '한글부서',
@@ -435,13 +450,15 @@ describe('EmployeeService', () => {
         rowCount: 1,
       })
 
-      const result = await employeeService.createEmployee(unicodeData)
+      const result = await employeeService.create(unicodeData)
 
       expect(result).toEqual(mockEmployee)
       expect(mockQuery).toHaveBeenCalledWith(
         expect.stringContaining('INSERT'),
         expect.arrayContaining([
-          unicodeData.name,
+          unicodeData.employee_id,
+          unicodeData.first_name,
+          unicodeData.last_name,
           unicodeData.email,
           unicodeData.position,
           unicodeData.department,
@@ -451,8 +468,10 @@ describe('EmployeeService', () => {
     })
 
     it('should handle very long employee names', async () => {
-      const longNameData = {
-        name: 'A'.repeat(1000),
+      const longNameData: CreateEmployeeDto = {
+        employee_id: 'EMP400',
+        first_name: 'A'.repeat(500),
+        last_name: 'A'.repeat(500),
         email: 'long@example.com',
         position: '개발자',
         department: '개발팀',
@@ -469,13 +488,15 @@ describe('EmployeeService', () => {
         rowCount: 1,
       })
 
-      const result = await employeeService.createEmployee(longNameData)
+      const result = await employeeService.create(longNameData)
 
       expect(result).toEqual(mockEmployee)
       expect(mockQuery).toHaveBeenCalledWith(
         expect.stringContaining('INSERT'),
         expect.arrayContaining([
-          longNameData.name,
+          longNameData.employee_id,
+          longNameData.first_name,
+          longNameData.last_name,
           longNameData.email,
           longNameData.position,
           longNameData.department,
@@ -485,8 +506,10 @@ describe('EmployeeService', () => {
     })
 
     it('should handle concurrent operations', async () => {
-      const employeeData = {
-        name: '동시 생성 직원',
+      const employeeData: CreateEmployeeDto = {
+        employee_id: 'EMP500',
+        first_name: '동시',
+        last_name: '생성직원',
         email: 'concurrent@example.com',
         position: '개발자',
         department: '개발팀',
@@ -503,7 +526,7 @@ describe('EmployeeService', () => {
         rowCount: 1,
       })
 
-      const promises = Array.from({ length: 5 }, () => employeeService.createEmployee(employeeData))
+      const promises = Array.from({ length: 5 }, () => employeeService.create(employeeData))
 
       const results = await Promise.all(promises)
 

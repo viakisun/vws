@@ -44,9 +44,13 @@ test.describe('CRM OCR 문서 처리 플로우', () => {
     await page.getByRole('button', { name: '확인' }).click()
 
     // 10. 폼에 OCR 결과가 자동 입력되었는지 확인
-    await expect(page.getByDisplayValue('테스트 회사')).toBeVisible()
-    await expect(page.getByDisplayValue('123-45-67890')).toBeVisible()
-    await expect(page.getByDisplayValue('홍길동')).toBeVisible()
+    await expect(page.getByRole('textbox', { name: /회사명|company/i })).toHaveValue('테스트 회사')
+    await expect(page.getByRole('textbox', { name: /사업자번호|business/i })).toHaveValue(
+      '123-45-67890',
+    )
+    await expect(page.getByRole('textbox', { name: /대표자|representative/i })).toHaveValue(
+      '홍길동',
+    )
   })
 
   test('통장사본 업로드 및 OCR 처리', async ({ page }) => {
@@ -98,8 +102,12 @@ test.describe('CRM OCR 문서 처리 플로우', () => {
     await page.getByRole('button', { name: '확인' }).click()
 
     // 6. 수정된 정보가 폼에 반영되었는지 확인
-    await expect(page.getByDisplayValue('수정된 회사명')).toBeVisible()
-    await expect(page.getByDisplayValue('수정된 대표자')).toBeVisible()
+    await expect(page.getByRole('textbox', { name: /회사명|company/i })).toHaveValue(
+      '수정된 회사명',
+    )
+    await expect(page.getByRole('textbox', { name: /대표자|representative/i })).toHaveValue(
+      '수정된 대표자',
+    )
   })
 
   test('OCR 처리 실패 시나리오', async ({ page }) => {
@@ -305,8 +313,10 @@ test.describe('CRM OCR 문서 처리 플로우', () => {
     await page.getByRole('button', { name: '저장된 결과 불러오기' }).click()
 
     // 5. 저장된 정보가 불러와졌는지 확인
-    await expect(page.getByDisplayValue('테스트 회사')).toBeVisible()
-    await expect(page.getByDisplayValue('123-45-67890')).toBeVisible()
+    await expect(page.getByRole('textbox', { name: /회사명|company/i })).toHaveValue('테스트 회사')
+    await expect(page.getByRole('textbox', { name: /사업자번호|business/i })).toHaveValue(
+      '123-45-67890',
+    )
   })
 
   test('OCR 품질 검증 및 수동 보정', async ({ page }) => {

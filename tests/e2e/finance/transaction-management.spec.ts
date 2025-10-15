@@ -180,7 +180,10 @@ test.describe('재무 관리 - 거래 관리 플로우', () => {
 
     // 3. 모든 거래가 선택되었는지 확인
     const checkboxes = page.getByRole('checkbox')
-    const checkedCount = await checkboxes.filter({ checked: true }).count()
+    const allCheckboxes = await checkboxes.all()
+    const checkedCount = await Promise.all(
+      allCheckboxes.map(async (checkbox) => await checkbox.isChecked()),
+    ).then((results) => results.filter(Boolean).length)
     expect(checkedCount).toBeGreaterThan(1) // 전체 선택 체크박스 + 데이터 행들
 
     // 4. 일괄 작업 버튼 표시 확인

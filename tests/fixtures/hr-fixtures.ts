@@ -516,6 +516,10 @@ export const HR_FIXTURES = {
   },
 } as const
 
+// 개별 mock 객체들 export
+export const mockAttendance = HR_FIXTURES.attendance.normal
+export const mockEmployee = HR_FIXTURES.employees.active
+
 /**
  * 테스트용 배열 데이터 생성 헬퍼
  */

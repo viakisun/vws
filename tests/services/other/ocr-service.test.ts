@@ -19,7 +19,7 @@ vi.mock('$lib/services/ocr/strategy/TextractOCRStrategy', () => ({
 vi.mock('$lib/services/ocr', async (importOriginal) => {
   const actual = await importOriginal()
   return {
-    ...actual,
+    ...(actual as any),
     OCRService: vi.fn().mockImplementation((engine?: string) => {
       const mockOpenAIStrategy = {
         extractBusinessRegistration: vi.fn(),

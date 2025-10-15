@@ -130,7 +130,7 @@ vi.mock('$lib/utils/logger', () => ({
 // Mock crypto
 Object.defineProperty(global, 'crypto', {
   value: {
-    randomUUID: vi.fn(() => 'mock-uuid-123'),
+    randomUUID: vi.fn(() => '550e8400-e29b-41d4-a716-446655440000'),
     getRandomValues: vi.fn((array) => {
       for (let i = 0; i < array.length; i++) {
         array[i] = Math.floor(Math.random() * 256)
@@ -145,30 +145,59 @@ Object.defineProperty(global, 'crypto', {
 global.fetch = vi.fn()
 
 // Mock File and FileReader
-global.File = class MockFile {
-  constructor(
-    public content: any[],
-    public filename: string,
-    public options: any = {},
-  ) {}
+const MockFileImpl = class extends Blob {
+  readonly lastModified: number = Date.now()
+  readonly name: string
+  readonly webkitRelativePath: string = ''
 
-  get size() {
-    return this.content.reduce((size, item) => size + item.length, 0)
+  constructor(fileBits: BlobPart[], fileName: string, options?: FilePropertyBag) {
+    super(fileBits, options)
+    this.name = fileName
   }
 
-  get type() {
-    return this.options.type || 'application/octet-stream'
+  arrayBuffer(): Promise<ArrayBuffer> {
+    return Promise.resolve(new ArrayBuffer(0))
   }
 
-  get name() {
-    return this.filename
+  bytes(): Promise<Uint8Array<ArrayBuffer>> {
+    return Promise.resolve(new Uint8Array(new ArrayBuffer(0)) as Uint8Array<ArrayBuffer>)
+  }
+
+  slice(): Blob {
+    return new Blob()
+  }
+
+  stream(): ReadableStream {
+    return new ReadableStream()
+  }
+
+  text(): Promise<string> {
+    return Promise.resolve('')
   }
 }
 
-global.FileReader = class MockFileReader {
+// Type-safe assignment with proper File interface compliance
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+global.File = MockFileImpl as any as typeof File
+
+global.FileReader = class MockFileReader extends EventTarget implements FileReader {
+  static readonly EMPTY = 0
+  static readonly LOADING = 1
+  static readonly DONE = 2
+
+  readonly EMPTY = 0
+  readonly LOADING = 1
+  readonly DONE = 2
+
+  readonly readyState = 0
   onload: ((event: any) => void) | null = null
   onerror: ((event: any) => void) | null = null
+  onloadend: ((event: any) => void) | null = null
+  onloadstart: ((event: any) => void) | null = null
+  onprogress: ((event: any) => void) | null = null
+  onabort: ((event: any) => void) | null = null
   result: any = null
+  error: any = null
 
   readAsArrayBuffer(file: File) {
     setTimeout(() => {
@@ -187,7 +216,29 @@ global.FileReader = class MockFileReader {
       }
     }, 0)
   }
-}
+
+  readAsText(file: File, encoding?: string) {
+    setTimeout(() => {
+      this.result = 'mock text content'
+      if (this.onload) {
+        this.onload({ target: this })
+      }
+    }, 0)
+  }
+
+  readAsBinaryString(file: File) {
+    setTimeout(() => {
+      this.result = 'mock binary content'
+      if (this.onload) {
+        this.onload({ target: this })
+      }
+    }, 0)
+  }
+
+  abort() {
+    // Mock implementation
+  }
+} as any
 
 // Global test setup
 beforeEach(() => {
@@ -197,7 +248,7 @@ beforeEach(() => {
   vi.mocked(fetch).mockClear()
 
   // Reset crypto mock
-  vi.mocked(global.crypto.randomUUID).mockReturnValue('mock-uuid-123')
+  vi.mocked(global.crypto.randomUUID).mockReturnValue('550e8400-e29b-41d4-a716-446655440000')
 
   // Reset console methods to avoid noise in tests
   vi.spyOn(console, 'log').mockImplementation(() => {})

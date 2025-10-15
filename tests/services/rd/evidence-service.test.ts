@@ -358,7 +358,7 @@ describe('evidence.service', () => {
 
     it('should handle update errors', async () => {
       const evidenceId = 'evidence-1'
-      const updateData = { spentAmount: 3000000 }
+      const updateData = { spent_amount: 3000000 }
 
       mockFetch.mockResolvedValueOnce({
         ok: false,
@@ -373,7 +373,7 @@ describe('evidence.service', () => {
 
     it('should handle invalid update data', async () => {
       const evidenceId = 'evidence-1'
-      const updateData = { spentAmount: -1000000 } // Negative amount
+      const updateData = { spent_amount: -1000000 } // Negative amount
 
       mockFetch.mockResolvedValueOnce({
         ok: false,
