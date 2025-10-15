@@ -277,10 +277,7 @@
     </div>
 
     <!-- References Section -->
-    <ProductReferencesSection
-      productId={product.id}
-      canEdit={true}
-    />
+    <ProductReferencesSection productId={product.id} canEdit={true} />
 
     <!-- Milestones Section -->
     <div>

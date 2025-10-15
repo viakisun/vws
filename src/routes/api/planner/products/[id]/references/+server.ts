@@ -1,6 +1,10 @@
 import { productReferenceService } from '$lib/planner/services/product-reference.service'
 import { productService } from '$lib/planner/services/product.service'
-import type { CreateProductReferenceInput, ProductReferenceFilters, ProductReferenceType } from '$lib/planner/types'
+import type {
+  CreateProductReferenceInput,
+  ProductReferenceFilters,
+  ProductReferenceType,
+} from '$lib/planner/types'
 import { detectLinkType } from '$lib/utils/link-detector'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
@@ -49,7 +53,7 @@ export const GET: RequestHandler = async ({ params, locals, url }) => {
     console.error('Error details:', {
       message: error instanceof Error ? error.message : 'Unknown error',
       stack: error instanceof Error ? error.stack : undefined,
-      error
+      error,
     })
     return json(
       {
@@ -84,7 +88,7 @@ export const POST: RequestHandler = async ({ params, request, locals }) => {
     // For now, allow all authenticated users
 
     const body = await request.json()
-    
+
     // Validate required fields
     if (!body.title) {
       return json({ success: false, error: 'Title is required' }, { status: 400 })

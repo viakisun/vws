@@ -14,7 +14,10 @@ export const GET: RequestHandler = async ({ params, locals, url }) => {
 
     const { id: productId, referenceId } = params
     if (!productId || !referenceId) {
-      return json({ success: false, error: 'Product ID and Reference ID are required' }, { status: 400 })
+      return json(
+        { success: false, error: 'Product ID and Reference ID are required' },
+        { status: 400 },
+      )
     }
 
     // Verify product exists
@@ -30,12 +33,15 @@ export const GET: RequestHandler = async ({ params, locals, url }) => {
     }
 
     if (reference.product_id !== productId) {
-      return json({ success: false, error: 'Reference does not belong to this product' }, { status: 400 })
+      return json(
+        { success: false, error: 'Reference does not belong to this product' },
+        { status: 400 },
+      )
     }
 
     // Check if this is for thumbnail or main file
     const isThumbnail = url.searchParams.get('thumbnail') === 'true'
-    
+
     let s3Key: string | undefined
     if (isThumbnail) {
       s3Key = reference.thumbnail_url?.replace(/^https?:\/\/[^/]+\//, '') // Extract key from URL if it's a full URL

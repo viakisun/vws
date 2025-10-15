@@ -24,7 +24,7 @@ import { downloadFromS3Core, uploadToS3Core } from './s3-core'
 export function generateProductReferenceS3Key(
   productId: string,
   filename: string,
-  companyCode: string = DEFAULT_COMPANY_CODE
+  companyCode: string = DEFAULT_COMPANY_CODE,
 ): string {
   const timestamp = Date.now()
   const sanitized = sanitizeFilename(filename)
@@ -187,7 +187,7 @@ export async function downloadProductReference(
 
 /**
  * 제품 레퍼런스 썸네일 다운로드 URL 생성
- * 
+ *
  * @param productId - 제품 ID
  * @param referenceId - 레퍼런스 ID
  * @returns 썸네일 다운로드 URL
@@ -201,7 +201,7 @@ export async function getProductReferenceThumbnailUrl(
       `/api/planner/products/${productId}/references/${referenceId}/download-url?thumbnail=true`,
       {
         credentials: 'include',
-      }
+      },
     )
 
     if (!response.ok) {
@@ -232,13 +232,10 @@ export async function deleteProductReference(
 ): Promise<void> {
   try {
     // 먼저 데이터베이스에서 soft delete 후, S3 파일도 삭제
-    const response = await fetch(
-      `/api/planner/products/${productId}/references/${referenceId}`,
-      {
-        method: 'DELETE',
-        credentials: 'include',
-      }
-    )
+    const response = await fetch(`/api/planner/products/${productId}/references/${referenceId}`, {
+      method: 'DELETE',
+      credentials: 'include',
+    })
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}))
@@ -307,7 +304,6 @@ export function isImageFile(mimeType: string): boolean {
  */
 export function isPdfFile(mimeType: string, fileName?: string): boolean {
   return (
-    mimeType === 'application/pdf' ||
-    Boolean(fileName && fileName.toLowerCase().endsWith('.pdf'))
+    mimeType === 'application/pdf' || Boolean(fileName && fileName.toLowerCase().endsWith('.pdf'))
   )
 }

@@ -5,7 +5,7 @@
   import {
     createProductReferenceUrl,
     formatFileSize,
-    uploadProductReference
+    uploadProductReference,
   } from '$lib/services/s3/s3-planner.service'
   import { detectLinkType, getReferenceTypeLabel } from '$lib/utils/link-detector'
   import { FileTextIcon, LinkIcon, UploadIcon, XIcon } from 'lucide-svelte'
@@ -18,13 +18,7 @@
     onsave: () => void
   }
 
-  let { 
-    open = $bindable(false), 
-    productId, 
-    reference = null, 
-    onclose, 
-    onsave 
-  }: Props = $props()
+  let { open = $bindable(false), productId, reference = null, onclose, onsave }: Props = $props()
 
   // State
   let activeTab = $state<'file' | 'url'>('file')
@@ -95,7 +89,7 @@
   function handleDrop(event: DragEvent) {
     event.preventDefault()
     dropZoneActive = false
-    
+
     const files = event.dataTransfer?.files
     if (files && files.length > 0) {
       const file = files[0]
@@ -149,7 +143,7 @@
           description.trim() || undefined,
           (progress) => {
             uploadProgress = progress
-          }
+          },
         )
       } else {
         if (!url.trim()) {
@@ -167,7 +161,7 @@
           url.trim(),
           title.trim(),
           description.trim() || undefined,
-          type
+          type,
         )
       }
 
@@ -264,7 +258,11 @@
     <form onsubmit={handleSubmit} class="space-y-4">
       <!-- Title -->
       <div>
-        <label for="title" class="block text-sm font-medium mb-1" style:color="var(--color-text-primary)">
+        <label
+          for="title"
+          class="block text-sm font-medium mb-1"
+          style:color="var(--color-text-primary)"
+        >
           제목 *
         </label>
         <input
@@ -283,7 +281,11 @@
 
       <!-- Description -->
       <div>
-        <label for="description" class="block text-sm font-medium mb-1" style:color="var(--color-text-primary)">
+        <label
+          for="description"
+          class="block text-sm font-medium mb-1"
+          style:color="var(--color-text-primary)"
+        >
           설명
         </label>
         <textarea
@@ -302,10 +304,14 @@
       <!-- File Upload Tab -->
       {#if activeTab === 'file'}
         <div>
-          <label for="file-dropzone" class="block text-sm font-medium mb-2" style:color="var(--color-text-primary)">
+          <label
+            for="file-dropzone"
+            class="block text-sm font-medium mb-2"
+            style:color="var(--color-text-primary)"
+          >
             파일 선택
           </label>
-          
+
           <div
             id="file-dropzone"
             role="button"
@@ -327,7 +333,7 @@
               disabled={uploading}
               accept=".pdf,.jpg,.jpeg,.png,.gif,.webp,.svg,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.zip"
             />
-            
+
             {#if selectedFile}
               <div class="flex items-center gap-3">
                 <FileTextIcon size={32} class="text-blue-600" />
@@ -358,7 +364,11 @@
       <!-- URL Tab -->
       {#if activeTab === 'url'}
         <div>
-          <label for="url" class="block text-sm font-medium mb-1" style:color="var(--color-text-primary)">
+          <label
+            for="url"
+            class="block text-sm font-medium mb-1"
+            style:color="var(--color-text-primary)"
+          >
             URL *
           </label>
           <div class="space-y-2">
@@ -377,7 +387,7 @@
             {#if url && type !== 'url'}
               <div class="flex items-center gap-2 text-sm">
                 <span style:color="var(--color-text-tertiary)">감지된 타입:</span>
-                <span 
+                <span
                   class="rounded-full px-2 py-0.5 text-xs font-medium"
                   class:bg-blue-100={type === 'pdf'}
                   class:text-blue-700={type === 'pdf'}
@@ -402,7 +412,7 @@
             <span style:color="var(--color-text-secondary)">{uploadProgress.toFixed(0)}%</span>
           </div>
           <div class="w-full bg-gray-200 rounded-full h-2">
-            <div 
+            <div
               class="bg-blue-600 h-2 rounded-full transition-all duration-300"
               style:width="{uploadProgress}%"
             ></div>
@@ -412,18 +422,15 @@
 
       <!-- Actions -->
       <div class="flex justify-end gap-3 pt-4">
-        <ThemeButton
-          variant="ghost"
-          onclick={handleCancel}
-          disabled={uploading}
-        >
-          취소
-        </ThemeButton>
+        <ThemeButton variant="ghost" onclick={handleCancel} disabled={uploading}>취소</ThemeButton>
         <ThemeButton
           type="submit"
-          disabled={uploading || !title.trim() || (activeTab === 'file' && !selectedFile) || (activeTab === 'url' && !url.trim())}
+          disabled={uploading ||
+            !title.trim() ||
+            (activeTab === 'file' && !selectedFile) ||
+            (activeTab === 'url' && !url.trim())}
         >
-          {uploading ? '저장 중...' : (isEdit ? '수정' : '추가')}
+          {uploading ? '저장 중...' : isEdit ? '수정' : '추가'}
         </ThemeButton>
       </div>
     </form>

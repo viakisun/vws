@@ -1,10 +1,10 @@
 import { DatabaseService } from '$lib/database/connection'
 import type {
-    CreateProductReferenceInput,
-    ProductReference,
-    ProductReferenceFilters,
-    ProductReferenceWithCreator,
-    UpdateProductReferenceInput,
+  CreateProductReferenceInput,
+  ProductReference,
+  ProductReferenceFilters,
+  ProductReferenceWithCreator,
+  UpdateProductReferenceInput,
 } from '$lib/planner/types'
 import { detectLinkType } from '$lib/utils/link-detector'
 
@@ -50,7 +50,14 @@ export class ProductReferenceService {
     )
 
     // Log activity
-    await this.logActivity('product_reference', result.rows[0].id, 'created', actorId, null, result.rows[0])
+    await this.logActivity(
+      'product_reference',
+      result.rows[0].id,
+      'created',
+      actorId,
+      null,
+      result.rows[0],
+    )
 
     return result.rows[0]
   }
@@ -178,8 +185,13 @@ export class ProductReferenceService {
       return result.rows
     } catch (error) {
       console.error('Error in ProductReferenceService.list:', error)
-      if (error instanceof Error && error.message.includes('relation "planner_product_references" does not exist')) {
-        throw new Error('Product references table does not exist. Please run database migration 032_add_planner_product_references.sql')
+      if (
+        error instanceof Error &&
+        error.message.includes('relation "planner_product_references" does not exist')
+      ) {
+        throw new Error(
+          'Product references table does not exist. Please run database migration 032_add_planner_product_references.sql',
+        )
       }
       throw error
     }
@@ -193,7 +205,11 @@ export class ProductReferenceService {
   // UPDATE
   // =============================================
 
-  async update(id: string, input: UpdateProductReferenceInput, actorId: string): Promise<ProductReference | null> {
+  async update(
+    id: string,
+    input: UpdateProductReferenceInput,
+    actorId: string,
+  ): Promise<ProductReference | null> {
     const current = await this.getById(id)
     if (!current) return null
 
@@ -286,9 +302,9 @@ export class ProductReferenceService {
 
     if (result.rowCount && result.rowCount > 0) {
       await this.logActivity('product_reference', id, 'deleted', actorId, current, null)
-      return { 
-        success: true, 
-        s3Key: result.rows[0]?.s3_key // Return S3 key for potential cleanup
+      return {
+        success: true,
+        s3Key: result.rows[0]?.s3_key, // Return S3 key for potential cleanup
       }
     }
 

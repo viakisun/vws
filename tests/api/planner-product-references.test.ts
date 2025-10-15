@@ -8,7 +8,10 @@ vi.mock('$lib/utils/link-detector')
 
 import { productReferenceService } from '$lib/planner/services/product-reference.service'
 import { productService } from '$lib/planner/services/product.service'
-import { generatePresignedDownloadUrl, generatePresignedUploadUrl } from '$lib/services/s3/s3-service'
+import {
+  generatePresignedDownloadUrl,
+  generatePresignedUploadUrl,
+} from '$lib/services/s3/s3-service'
 import { detectLinkType } from '$lib/utils/link-detector'
 
 // Mock the API handlers - we'll test the logic
@@ -17,7 +20,7 @@ const mockReferenceId = 'test-reference-id'
 const mockUser = {
   id: 'test-user-id',
   email: 'test@example.com',
-  role: 'USER'
+  role: 'USER',
 }
 
 const mockProduct = {
@@ -45,16 +48,21 @@ const mockReference = {
 describe('Product References API', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    
+
     // Default mocks
     vi.mocked(productService.getById).mockResolvedValue(mockProduct as any)
     vi.mocked(productReferenceService.getById).mockResolvedValue(mockReference as any)
     vi.mocked(productReferenceService.list).mockResolvedValue([mockReference] as any)
     vi.mocked(productReferenceService.create).mockResolvedValue(mockReference as any)
-    vi.mocked(productReferenceService.update).mockResolvedValue({ ...mockReference, title: 'Updated Title' } as any)
+    vi.mocked(productReferenceService.update).mockResolvedValue({
+      ...mockReference,
+      title: 'Updated Title',
+    } as any)
     vi.mocked(productReferenceService.delete).mockResolvedValue({ success: true })
     vi.mocked(generatePresignedUploadUrl).mockResolvedValue('https://s3.amazonaws.com/upload-url')
-    vi.mocked(generatePresignedDownloadUrl).mockResolvedValue('https://s3.amazonaws.com/download-url')
+    vi.mocked(generatePresignedDownloadUrl).mockResolvedValue(
+      'https://s3.amazonaws.com/download-url',
+    )
     vi.mocked(detectLinkType).mockReturnValue('pdf')
   })
 
@@ -114,9 +122,17 @@ describe('Product References API', () => {
           description: 'Updated Description',
         }
 
-        const result = await productReferenceService.update(mockReferenceId, updateInput, mockUser.id)
+        const result = await productReferenceService.update(
+          mockReferenceId,
+          updateInput,
+          mockUser.id,
+        )
 
-        expect(productReferenceService.update).toHaveBeenCalledWith(mockReferenceId, updateInput, mockUser.id)
+        expect(productReferenceService.update).toHaveBeenCalledWith(
+          mockReferenceId,
+          updateInput,
+          mockUser.id,
+        )
         expect(result?.title).toBe('Updated Title')
       })
     })
@@ -179,7 +195,11 @@ describe('Product References API', () => {
     it('should handle missing reference gracefully', async () => {
       vi.mocked(productReferenceService.getById).mockResolvedValue(null)
 
-      const result = await productReferenceService.update('non-existent', { title: 'Test' }, mockUser.id)
+      const result = await productReferenceService.update(
+        'non-existent',
+        { title: 'Test' },
+        mockUser.id,
+      )
       expect(result).toBeNull()
     })
 
@@ -210,19 +230,22 @@ describe('Product References API', () => {
     it('should handle permission checks in service layer', async () => {
       // Permission checks would typically be done in the API layer
       // but we can verify the service accepts the actorId parameter
-      await productReferenceService.create({
-        product_id: mockProductId,
-        title: 'Test',
-        type: 'other'
-      }, mockUser.id)
+      await productReferenceService.create(
+        {
+          product_id: mockProductId,
+          title: 'Test',
+          type: 'other',
+        },
+        mockUser.id,
+      )
 
       expect(productReferenceService.create).toHaveBeenCalledWith(
         expect.objectContaining({
           product_id: mockProductId,
           title: 'Test',
-          type: 'other'
+          type: 'other',
         }),
-        mockUser.id
+        mockUser.id,
       )
     })
   })

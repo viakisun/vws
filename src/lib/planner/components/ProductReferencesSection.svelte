@@ -18,7 +18,7 @@
   let error = $state<string | null>(null)
   let showModal = $state(false)
   let editingReference = $state<ProductReferenceWithCreator | null>(null)
-  
+
   // Drag and drop state
   let draggedIndex = $state<number | null>(null)
   let dragOverIndex = $state<number | null>(null)
@@ -73,13 +73,10 @@
   // Handle delete reference
   async function handleDeleteReference(referenceId: string) {
     try {
-      const response = await fetch(
-        `/api/planner/products/${productId}/references/${referenceId}`,
-        {
-          method: 'DELETE',
-          credentials: 'include',
-        }
-      )
+      const response = await fetch(`/api/planner/products/${productId}/references/${referenceId}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      })
 
       if (!response.ok) {
         const result = await response.json()
@@ -87,7 +84,7 @@
       }
 
       // Remove from local state
-      references = references.filter(ref => ref.id !== referenceId)
+      references = references.filter((ref) => ref.id !== referenceId)
     } catch (e) {
       error = e instanceof Error ? e.message : 'Failed to delete reference'
       console.error('Error deleting reference:', e)
@@ -141,10 +138,10 @@
       // Create new array with reordered references
       const newReferences = [...references]
       const draggedItem = newReferences[draggedIndex]
-      
+
       // Remove dragged item from its current position
       newReferences.splice(draggedIndex, 1)
-      
+
       // Insert it at the new position
       newReferences.splice(dropIndex, 0, draggedItem)
 
@@ -152,8 +149,8 @@
       references = newReferences
 
       // Send reorder request to API
-      const referenceIds = newReferences.map(ref => ref.id)
-      
+      const referenceIds = newReferences.map((ref) => ref.id)
+
       const response = await fetch(`/api/planner/products/${productId}/references/reorder`, {
         method: 'POST',
         headers: {
@@ -202,7 +199,7 @@
       other: [],
     }
 
-    references.forEach(ref => {
+    references.forEach((ref) => {
       if (groups[ref.type]) {
         groups[ref.type].push(ref)
       } else {
@@ -219,20 +216,16 @@
   <!-- Section Header -->
   <SectionHeader title="References" count={references.length}>
     {#if canEdit}
-      <SectionActionButton onclick={handleAddReference}>
-        + Add Reference
-      </SectionActionButton>
+      <SectionActionButton onclick={handleAddReference}>+ Add Reference</SectionActionButton>
     {/if}
   </SectionHeader>
 
   <!-- Loading State -->
   {#if loading}
     <div class="text-center py-12">
-      <div class="text-sm" style:color="var(--color-text-secondary)">
-        레퍼런스를 불러오는 중...
-      </div>
+      <div class="text-sm" style:color="var(--color-text-secondary)">레퍼런스를 불러오는 중...</div>
     </div>
-  <!-- Error State -->
+    <!-- Error State -->
   {:else if error}
     <div class="rounded-lg border border-red-200 bg-red-50 p-4">
       <div class="text-sm text-red-700">
@@ -246,16 +239,14 @@
         다시 시도
       </button>
     </div>
-  <!-- Empty State -->
+    <!-- Empty State -->
   {:else if references.length === 0}
     <div
       class="text-center py-12 rounded-lg border"
       style:background="var(--color-surface)"
       style:border-color="var(--color-border)"
     >
-      <p class="text-sm" style:color="var(--color-text-tertiary)">
-        아직 레퍼런스가 없습니다.
-      </p>
+      <p class="text-sm" style:color="var(--color-text-tertiary)">아직 레퍼런스가 없습니다.</p>
       {#if canEdit}
         <button
           type="button"
@@ -267,7 +258,7 @@
         </button>
       {/if}
     </div>
-  <!-- References List -->
+    <!-- References List -->
   {:else}
     <!-- Draggable References List -->
     <div class="space-y-3" role="list">

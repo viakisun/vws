@@ -34,10 +34,13 @@ export const POST: RequestHandler = async ({ params, request, locals }) => {
     // Validate file size (50MB limit)
     const maxSize = 50 * 1024 * 1024 // 50MB
     if (fileSize && fileSize > maxSize) {
-      return json({ 
-        success: false, 
-        error: 'File size exceeds 50MB limit' 
-      }, { status: 400 })
+      return json(
+        {
+          success: false,
+          error: 'File size exceeds 50MB limit',
+        },
+        { status: 400 },
+      )
     }
 
     // Validate file type
@@ -61,10 +64,13 @@ export const POST: RequestHandler = async ({ params, request, locals }) => {
 
     const mimeType = contentType || 'application/octet-stream'
     if (contentType && !allowedTypes.includes(contentType)) {
-      return json({ 
-        success: false, 
-        error: 'File type not allowed' 
-      }, { status: 400 })
+      return json(
+        {
+          success: false,
+          error: 'File type not allowed',
+        },
+        { status: 400 },
+      )
     }
 
     // Generate S3 key for the file
@@ -75,7 +81,7 @@ export const POST: RequestHandler = async ({ params, request, locals }) => {
     const uploadUrl = await generatePresignedUploadUrl(
       s3Key,
       mimeType,
-      900 // 15 minutes
+      900, // 15 minutes
     )
 
     return json({

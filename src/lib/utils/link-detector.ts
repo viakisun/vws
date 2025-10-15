@@ -58,7 +58,11 @@ export function detectLinkType(url: string, filename?: string): ProductReference
     }
 
     // Zoom/Meet links
-    if (hostname.includes('zoom.us') || hostname.includes('meet.google.com') || hostname.includes('teams.microsoft.com')) {
+    if (
+      hostname.includes('zoom.us') ||
+      hostname.includes('meet.google.com') ||
+      hostname.includes('teams.microsoft.com')
+    ) {
       return 'zoom'
     }
 
@@ -78,7 +82,11 @@ export function detectLinkType(url: string, filename?: string): ProductReference
     }
 
     // Adobe links (Creative Cloud, etc.)
-    if (hostname.includes('adobe.com') || hostname.includes('behance.net') || hostname.includes('dribbble.com')) {
+    if (
+      hostname.includes('adobe.com') ||
+      hostname.includes('behance.net') ||
+      hostname.includes('dribbble.com')
+    ) {
       return 'adobe'
     }
 
@@ -94,8 +102,8 @@ export function detectLinkType(url: string, filename?: string): ProductReference
     // Image detection
     const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.bmp', '.tiff']
     if (
-      imageExtensions.some(ext => pathname.endsWith(ext)) ||
-      imageExtensions.some(ext => filename?.toLowerCase().endsWith(ext))
+      imageExtensions.some((ext) => pathname.endsWith(ext)) ||
+      imageExtensions.some((ext) => filename?.toLowerCase().endsWith(ext))
     ) {
       return 'image'
     }
@@ -106,17 +114,17 @@ export function detectLinkType(url: string, filename?: string): ProductReference
     // If URL parsing fails, try to detect from filename
     if (filename) {
       const lowerFilename = filename.toLowerCase()
-      
+
       if (lowerFilename.endsWith('.pdf')) {
         return 'pdf'
       }
-      
+
       const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.bmp', '.tiff']
-      if (imageExtensions.some(ext => lowerFilename.endsWith(ext))) {
+      if (imageExtensions.some((ext) => lowerFilename.endsWith(ext))) {
         return 'image'
       }
     }
-    
+
     return 'other'
   }
 }
@@ -134,15 +142,32 @@ export function isFileUrl(url: string): boolean {
   try {
     const urlObj = new URL(url)
     const pathname = urlObj.pathname.toLowerCase()
-    
+
     // Check for file extensions that should be uploaded
     const fileExtensions = [
-      '.pdf', '.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.bmp', '.tiff',
-      '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx',
-      '.zip', '.rar', '.7z', '.tar', '.gz'
+      '.pdf',
+      '.jpg',
+      '.jpeg',
+      '.png',
+      '.gif',
+      '.webp',
+      '.svg',
+      '.bmp',
+      '.tiff',
+      '.doc',
+      '.docx',
+      '.xls',
+      '.xlsx',
+      '.ppt',
+      '.pptx',
+      '.zip',
+      '.rar',
+      '.7z',
+      '.tar',
+      '.gz',
     ]
-    
-    return fileExtensions.some(ext => pathname.endsWith(ext))
+
+    return fileExtensions.some((ext) => pathname.endsWith(ext))
   } catch {
     return false
   }
@@ -207,8 +232,8 @@ export function getReferenceTypeLabel(type: ProductReferenceType): string {
     jira: 'Jira',
     miro: 'Miro',
     adobe: 'Adobe',
-    other: 'Other'
+    other: 'Other',
   }
-  
+
   return labels[type] || 'Unknown'
 }

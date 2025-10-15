@@ -27,16 +27,16 @@ vi.mock('$lib/constants/crm', () => ({
 
 import { downloadFromS3Core, uploadToS3Core } from '$lib/services/s3/s3-core'
 import {
-    createProductReferenceUrl,
-    deleteProductReference,
-    downloadProductReference,
-    formatFileSize,
-    generateProductReferenceS3Key,
-    getFileExtensionFromMimeType,
-    getProductReferenceThumbnailUrl,
-    isImageFile,
-    isPdfFile,
-    uploadProductReference,
+  createProductReferenceUrl,
+  deleteProductReference,
+  downloadProductReference,
+  formatFileSize,
+  generateProductReferenceS3Key,
+  getFileExtensionFromMimeType,
+  getProductReferenceThumbnailUrl,
+  isImageFile,
+  isPdfFile,
+  uploadProductReference,
 } from '$lib/services/s3/s3-planner.service'
 
 // Mock global fetch
@@ -52,28 +52,32 @@ describe('s3-planner.service', () => {
     it('should generate correct S3 key with default company code', () => {
       const productId = 'test-product-id'
       const filename = 'document.pdf'
-      
+
       const key = generateProductReferenceS3Key(productId, filename)
-      
-      expect(key).toMatch(/^1001\/planner\/products\/test-product-id\/references\/\d+_document\.pdf$/)
+
+      expect(key).toMatch(
+        /^1001\/planner\/products\/test-product-id\/references\/\d+_document\.pdf$/,
+      )
     })
 
     it('should generate correct S3 key with custom company code', () => {
       const productId = 'test-product-id'
       const filename = 'document.pdf'
       const companyCode = '2001'
-      
+
       const key = generateProductReferenceS3Key(productId, filename, companyCode)
-      
-      expect(key).toMatch(/^2001\/planner\/products\/test-product-id\/references\/\d+_document\.pdf$/)
+
+      expect(key).toMatch(
+        /^2001\/planner\/products\/test-product-id\/references\/\d+_document\.pdf$/,
+      )
     })
 
     it('should sanitize filename in S3 key', () => {
       const productId = 'test-product-id'
       const filename = 'file with spaces & special chars!.pdf'
-      
+
       const key = generateProductReferenceS3Key(productId, filename)
-      
+
       expect(key).toContain('file_with_spaces___special_chars___.pdf')
     })
   })
@@ -102,7 +106,7 @@ describe('s3-planner.service', () => {
         mockProductId,
         mockFile,
         mockTitle,
-        mockDescription
+        mockDescription,
       )
 
       expect(uploadToS3Core).toHaveBeenCalledWith({
@@ -130,7 +134,7 @@ describe('s3-planner.service', () => {
             file_size: mockFile.size,
             mime_type: 'application/pdf',
           }),
-        })
+        }),
       )
 
       expect(result).toEqual({
@@ -145,17 +149,17 @@ describe('s3-planner.service', () => {
         json: async () => ({ error: 'Database error' }),
       })
 
-      await expect(
-        uploadProductReference(mockProductId, mockFile, mockTitle)
-      ).rejects.toThrow('Database error')
+      await expect(uploadProductReference(mockProductId, mockFile, mockTitle)).rejects.toThrow(
+        'Database error',
+      )
     })
 
     it('should handle upload failure', async () => {
       vi.mocked(uploadToS3Core).mockRejectedValueOnce(new Error('S3 upload failed'))
 
-      await expect(
-        uploadProductReference(mockProductId, mockFile, mockTitle)
-      ).rejects.toThrow('S3 upload failed')
+      await expect(uploadProductReference(mockProductId, mockFile, mockTitle)).rejects.toThrow(
+        'S3 upload failed',
+      )
     })
   })
 
@@ -175,7 +179,7 @@ describe('s3-planner.service', () => {
         mockUrl,
         mockTitle,
         'Test description',
-        'figma'
+        'figma',
       )
 
       expect(mockFetch).toHaveBeenCalledWith(
@@ -189,7 +193,7 @@ describe('s3-planner.service', () => {
             type: 'figma',
             url: mockUrl,
           }),
-        })
+        }),
       )
 
       expect(result).toEqual({
@@ -203,9 +207,9 @@ describe('s3-planner.service', () => {
         json: async () => ({ error: 'Validation error' }),
       })
 
-      await expect(
-        createProductReferenceUrl(mockProductId, mockUrl, mockTitle)
-      ).rejects.toThrow('Validation error')
+      await expect(createProductReferenceUrl(mockProductId, mockUrl, mockTitle)).rejects.toThrow(
+        'Validation error',
+      )
     })
   })
 
@@ -242,7 +246,7 @@ describe('s3-planner.service', () => {
         `/api/planner/products/${mockProductId}/references/${mockReferenceId}/download-url?thumbnail=true`,
         expect.objectContaining({
           credentials: 'include',
-        })
+        }),
       )
 
       expect(result).toBe(mockThumbnailUrl)
@@ -253,9 +257,9 @@ describe('s3-planner.service', () => {
         ok: false,
       })
 
-      await expect(
-        getProductReferenceThumbnailUrl(mockProductId, mockReferenceId)
-      ).rejects.toThrow('썸네일 URL 생성 실패')
+      await expect(getProductReferenceThumbnailUrl(mockProductId, mockReferenceId)).rejects.toThrow(
+        '썸네일 URL 생성 실패',
+      )
     })
   })
 
@@ -276,7 +280,7 @@ describe('s3-planner.service', () => {
         expect.objectContaining({
           method: 'DELETE',
           credentials: 'include',
-        })
+        }),
       )
     })
 
@@ -286,9 +290,9 @@ describe('s3-planner.service', () => {
         json: async () => ({ error: 'Delete failed' }),
       })
 
-      await expect(
-        deleteProductReference(mockProductId, mockReferenceId)
-      ).rejects.toThrow('Delete failed')
+      await expect(deleteProductReference(mockProductId, mockReferenceId)).rejects.toThrow(
+        'Delete failed',
+      )
     })
   })
 

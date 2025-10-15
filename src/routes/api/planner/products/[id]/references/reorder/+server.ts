@@ -31,11 +31,7 @@ export const POST: RequestHandler = async ({ params, request, locals }) => {
 
     // Update the display_order for each reference
     const updatePromises = referenceIds.map((referenceId: string, index: number) => {
-      return productReferenceService.update(
-        referenceId,
-        { display_order: index },
-        user.id
-      )
+      return productReferenceService.update(referenceId, { display_order: index }, user.id)
     })
 
     await Promise.all(updatePromises)
@@ -51,7 +47,7 @@ export const POST: RequestHandler = async ({ params, request, locals }) => {
         success: false,
         error: error instanceof Error ? error.message : 'Failed to reorder references',
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

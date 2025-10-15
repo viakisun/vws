@@ -1,10 +1,10 @@
 import type { ProductReferenceType } from '$lib/planner/types'
 import {
-    detectLinkType,
-    extractDomain,
-    getReferenceTypeLabel,
-    isFileUrl,
-    isValidUrl,
+  detectLinkType,
+  extractDomain,
+  getReferenceTypeLabel,
+  isFileUrl,
+  isValidUrl,
 } from '$lib/utils/link-detector'
 import { describe, expect, it } from 'vitest'
 
@@ -57,7 +57,9 @@ describe('link-detector', () => {
     })
 
     it('should detect Jira links', () => {
-      expect(detectLinkType('https://company.atlassian.net/jira/software/projects/PROJ')).toBe('jira')
+      expect(detectLinkType('https://company.atlassian.net/jira/software/projects/PROJ')).toBe(
+        'jira',
+      )
       expect(detectLinkType('https://jira.company.com/browse/PROJ-123')).toBe('jira')
     })
 
@@ -83,9 +85,9 @@ describe('link-detector', () => {
       expect(detectLinkType('https://example.com/image.jpg')).toBe('image')
       expect(detectLinkType('https://cdn.example.com/photo.png')).toBe('image')
       expect(detectLinkType('https://example.com/file', 'screenshot.webp')).toBe('image')
-      
+
       const imageExts = ['.jpeg', '.gif', '.webp', '.svg', '.bmp', '.tiff']
-      imageExts.forEach(ext => {
+      imageExts.forEach((ext) => {
         expect(detectLinkType(`https://example.com/image${ext}`)).toBe('image')
       })
     })
@@ -181,7 +183,7 @@ describe('link-detector', () => {
         ['jira', 'Jira'],
         ['miro', 'Miro'],
         ['adobe', 'Adobe'],
-        ['other', 'Other']
+        ['other', 'Other'],
       ]
 
       typeLabels.forEach(([type, expectedLabel]) => {

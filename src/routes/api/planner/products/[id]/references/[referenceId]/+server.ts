@@ -14,7 +14,10 @@ export const GET: RequestHandler = async ({ params, locals }) => {
 
     const { id: productId, referenceId } = params
     if (!productId || !referenceId) {
-      return json({ success: false, error: 'Product ID and Reference ID are required' }, { status: 400 })
+      return json(
+        { success: false, error: 'Product ID and Reference ID are required' },
+        { status: 400 },
+      )
     }
 
     // Verify product exists
@@ -30,7 +33,10 @@ export const GET: RequestHandler = async ({ params, locals }) => {
 
     // Verify the reference belongs to this product
     if (reference.product_id !== productId) {
-      return json({ success: false, error: 'Reference does not belong to this product' }, { status: 400 })
+      return json(
+        { success: false, error: 'Reference does not belong to this product' },
+        { status: 400 },
+      )
     }
 
     return json({
@@ -59,7 +65,10 @@ export const PATCH: RequestHandler = async ({ params, request, locals }) => {
 
     const { id: productId, referenceId } = params
     if (!productId || !referenceId) {
-      return json({ success: false, error: 'Product ID and Reference ID are required' }, { status: 400 })
+      return json(
+        { success: false, error: 'Product ID and Reference ID are required' },
+        { status: 400 },
+      )
     }
 
     // Verify product exists
@@ -75,13 +84,16 @@ export const PATCH: RequestHandler = async ({ params, request, locals }) => {
     }
 
     if (existingReference.product_id !== productId) {
-      return json({ success: false, error: 'Reference does not belong to this product' }, { status: 400 })
+      return json(
+        { success: false, error: 'Reference does not belong to this product' },
+        { status: 400 },
+      )
     }
 
     // TODO: Add permission check - only creator, product owner or admin can edit
 
     const body = await request.json()
-    
+
     const input: UpdateProductReferenceInput = {
       title: body.title,
       description: body.description,
@@ -123,7 +135,10 @@ export const DELETE: RequestHandler = async ({ params, locals }) => {
 
     const { id: productId, referenceId } = params
     if (!productId || !referenceId) {
-      return json({ success: false, error: 'Product ID and Reference ID are required' }, { status: 400 })
+      return json(
+        { success: false, error: 'Product ID and Reference ID are required' },
+        { status: 400 },
+      )
     }
 
     // Verify product exists
@@ -139,7 +154,10 @@ export const DELETE: RequestHandler = async ({ params, locals }) => {
     }
 
     if (existingReference.product_id !== productId) {
-      return json({ success: false, error: 'Reference does not belong to this product' }, { status: 400 })
+      return json(
+        { success: false, error: 'Reference does not belong to this product' },
+        { status: 400 },
+      )
     }
 
     // TODO: Add permission check - only creator, product owner or admin can delete

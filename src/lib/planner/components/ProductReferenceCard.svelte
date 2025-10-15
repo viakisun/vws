@@ -1,6 +1,10 @@
 <script lang="ts">
   import type { ProductReferenceWithCreator } from '$lib/planner/types'
-  import { deleteProductReference, downloadProductReference, formatFileSize } from '$lib/services/s3/s3-planner.service'
+  import {
+    deleteProductReference,
+    downloadProductReference,
+    formatFileSize,
+  } from '$lib/services/s3/s3-planner.service'
   import { formatKoreanName } from '$lib/utils/korean-name'
   import { getReferenceTypeLabel } from '$lib/utils/link-detector'
   import {
@@ -18,7 +22,7 @@
     PaletteIcon,
     PlayIcon,
     TrashIcon,
-    VideoIcon
+    VideoIcon,
   } from 'lucide-svelte'
 
   interface Props {
@@ -31,14 +35,14 @@
     showDragHandle?: boolean
   }
 
-  let { 
-    reference, 
-    productId, 
-    onEdit, 
-    onDelete, 
+  let {
+    reference,
+    productId,
+    onEdit,
+    onDelete,
     canEdit = false,
     isDragging = false,
-    showDragHandle = false
+    showDragHandle = false,
   }: Props = $props()
 
   let loading = $state(false)
@@ -128,7 +132,7 @@
   // Handle download/preview
   async function handleAction() {
     if (loading) return
-    
+
     try {
       loading = true
       error = null
@@ -156,7 +160,7 @@
   // Handle delete
   async function handleDelete() {
     if (loading) return
-    
+
     if (!confirm(`정말로 "${reference.title}" 레퍼런스를 삭제하시겠습니까?`)) {
       return
     }
@@ -182,7 +186,7 @@
   const TypeIcon = $derived(getTypeIcon(reference.type))
 </script>
 
-<div 
+<div
   class="group relative rounded-lg border p-4 transition-all hover:shadow-md"
   class:opacity-50={loading || isDragging}
   class:cursor-grab={showDragHandle && canEdit}
@@ -205,9 +209,7 @@
     {/if}
 
     <!-- Type icon -->
-    <div 
-      class="flex h-10 w-10 items-center justify-center rounded-lg border {typeColor}"
-    >
+    <div class="flex h-10 w-10 items-center justify-center rounded-lg border {typeColor}">
       <TypeIcon size={20} />
     </div>
 
@@ -215,16 +217,14 @@
     <div class="flex-1 min-w-0">
       <!-- Title and type badge -->
       <div class="mb-2 flex items-start gap-2">
-        <h4 
-          class="font-medium flex-1" 
+        <h4
+          class="font-medium flex-1"
           style="color: var(--color-text-primary); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;"
           title={reference.title}
         >
           {reference.title}
         </h4>
-        <span 
-          class="rounded-full px-2 py-0.5 text-xs font-medium whitespace-nowrap {typeColor}"
-        >
+        <span class="rounded-full px-2 py-0.5 text-xs font-medium whitespace-nowrap {typeColor}">
           {getReferenceTypeLabel(reference.type)}
         </span>
       </div>
@@ -252,7 +252,7 @@
             {new URL(reference.url).hostname}
           </span>
         {/if}
-        
+
         <span class="flex items-center gap-1">
           {formatKoreanName(reference.creator.last_name, reference.creator.first_name)}
           · {formatDate(reference.created_at)}
@@ -275,7 +275,9 @@
         title={isExternalLink ? '링크 열기' : '다운로드'}
       >
         {#if loading}
-          <div class="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-white"></div>
+          <div
+            class="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-white"
+          ></div>
         {:else if isExternalLink}
           <ExternalLinkIcon size={16} />
         {:else}
