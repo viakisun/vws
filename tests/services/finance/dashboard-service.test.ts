@@ -16,8 +16,19 @@ describe('Finance Dashboard Service', () => {
   describe('getDashboardData', () => {
     it('대시보드 데이터를 성공적으로 조회해야 함', async () => {
       const mockDashboard: FinanceDashboard = {
-        date: '2025-01-15',
-        totalBalance: 5000000,
+        reportDate: '2025-01-15',
+        openingBalance: 4800000,
+        closingBalance: 5000000,
+        totalInflow: 200000,
+        totalOutflow: 0,
+        netFlow: 200000,
+        transactionCount: 1,
+        accountSummaries: [],
+        categorySummaries: [],
+        alerts: [],
+        notes: '',
+        generatedAt: '2025-01-15T10:00:00Z',
+        generatedBy: 'system',
         activeAccounts: 3,
         monthlyIncome: 2000000,
         monthlyExpense: 1500000,
@@ -58,7 +69,6 @@ describe('Finance Dashboard Service', () => {
             description: '매출 수입',
             transactionDate: '2025-01-15T10:00:00Z',
             status: 'completed',
-            tags: ['매출', '수입'],
             createdAt: '2025-01-15T10:00:00Z',
             updatedAt: '2025-01-15T10:00:00Z',
           },
@@ -71,7 +81,6 @@ describe('Finance Dashboard Service', () => {
             description: '사무용품 구매',
             transactionDate: '2025-01-14T15:30:00Z',
             status: 'completed',
-            tags: ['사무용품', '지출'],
             createdAt: '2025-01-14T15:30:00Z',
             updatedAt: '2025-01-14T15:30:00Z',
           },
@@ -82,28 +91,86 @@ describe('Finance Dashboard Service', () => {
             type: 'low_balance',
             title: '잔액 부족 경고',
             message: '법인 통장의 잔액이 부족합니다.',
-            severity: 'warning',
+            severity: 'medium',
             isRead: false,
+            isResolved: false,
             createdAt: '2025-01-15T08:00:00Z',
           },
         ],
-        trends: {
-          dailyBalance: [
-            { date: '2025-01-13', balance: 4800000 },
-            { date: '2025-01-14', balance: 4900000 },
-            { date: '2025-01-15', balance: 5000000 },
-          ],
-          monthlyIncome: [
-            { month: '2024-11', amount: 1800000 },
-            { month: '2024-12', amount: 1900000 },
-            { month: '2025-01', amount: 2000000 },
-          ],
-          monthlyExpense: [
-            { month: '2024-11', amount: 1400000 },
-            { month: '2024-12', amount: 1450000 },
-            { month: '2025-01', amount: 1500000 },
-          ],
-        },
+        trends: [
+          {
+            period: '2025-01-13',
+            metric: 'balance',
+            value: 4800000,
+            change: 0,
+            changePercentage: 0,
+            direction: 'stable',
+          },
+          {
+            period: '2025-01-14',
+            metric: 'balance',
+            value: 4900000,
+            change: 100000,
+            changePercentage: 2.1,
+            direction: 'up',
+          },
+          {
+            period: '2025-01-15',
+            metric: 'balance',
+            value: 5000000,
+            change: 100000,
+            changePercentage: 2.0,
+            direction: 'up',
+          },
+          {
+            period: '2024-11',
+            metric: 'income',
+            value: 1800000,
+            change: 0,
+            changePercentage: 0,
+            direction: 'stable',
+          },
+          {
+            period: '2024-12',
+            metric: 'income',
+            value: 1900000,
+            change: 100000,
+            changePercentage: 5.6,
+            direction: 'up',
+          },
+          {
+            period: '2025-01',
+            metric: 'income',
+            value: 2000000,
+            change: 100000,
+            changePercentage: 5.3,
+            direction: 'up',
+          },
+          {
+            period: '2024-11',
+            metric: 'expense',
+            value: 1400000,
+            change: 0,
+            changePercentage: 0,
+            direction: 'stable',
+          },
+          {
+            period: '2024-12',
+            metric: 'expense',
+            value: 1450000,
+            change: 50000,
+            changePercentage: 3.6,
+            direction: 'up',
+          },
+          {
+            period: '2025-01',
+            metric: 'expense',
+            value: 1500000,
+            change: 50000,
+            changePercentage: 3.4,
+            direction: 'up',
+          },
+        ],
       }
 
       vi.mocked(fetch).mockResolvedValueOnce({
@@ -131,11 +198,7 @@ describe('Finance Dashboard Service', () => {
         accounts: [],
         recentTransactions: [],
         alerts: [],
-        trends: {
-          dailyBalance: [],
-          monthlyIncome: [],
-          monthlyExpense: [],
-        },
+        trends: [],
       }
 
       vi.mocked(fetch).mockResolvedValueOnce({
@@ -174,7 +237,7 @@ describe('Finance Dashboard Service', () => {
 
     it('빈 대시보드 데이터를 올바르게 처리해야 함', async () => {
       const mockEmptyDashboard: FinanceDashboard = {
-        date: '2025-01-15',
+        reportDate: '2025-01-15',
         totalBalance: 0,
         activeAccounts: 0,
         monthlyIncome: 0,
@@ -183,11 +246,7 @@ describe('Finance Dashboard Service', () => {
         accounts: [],
         recentTransactions: [],
         alerts: [],
-        trends: {
-          dailyBalance: [],
-          monthlyIncome: [],
-          monthlyExpense: [],
-        },
+        trends: [],
       }
 
       vi.mocked(fetch).mockResolvedValueOnce({
@@ -200,9 +259,9 @@ describe('Finance Dashboard Service', () => {
 
       const result = await dashboardService.getDashboardData()
 
-      expect(result.totalBalance).toBe(0)
-      expect(result.activeAccounts).toBe(0)
-      expect(result.accounts).toHaveLength(0)
+      expect(result.currentBalance).toBe(0)
+      expect(result.accountBalances).toHaveLength(0)
+      expect(result.recentTransactions).toHaveLength(0)
       expect(result.recentTransactions).toHaveLength(0)
       expect(result.alerts).toHaveLength(0)
     })
@@ -212,10 +271,19 @@ describe('Finance Dashboard Service', () => {
     it('자금일보를 성공적으로 생성해야 함', async () => {
       const mockDailyReport: DailyFinanceReport = {
         id: 'report-1',
-        date: '2025-01-15',
-        totalBalance: 5000000,
-        dailyIncome: 200000,
-        dailyExpense: 150000,
+        reportDate: '2025-01-15',
+        openingBalance: 4800000,
+        closingBalance: 5000000,
+        totalInflow: 200000,
+        totalOutflow: 0,
+        netFlow: 200000,
+        transactionCount: 1,
+        accountSummaries: [],
+        categorySummaries: [],
+        alerts: [],
+        notes: '',
+        generatedAt: '2025-01-15T10:00:00Z',
+        generatedBy: 'system',
         netAmount: 50000,
         accountBalances: [
           {
@@ -241,7 +309,6 @@ describe('Finance Dashboard Service', () => {
             description: '매출 수입',
             transactionDate: '2025-01-15T10:00:00Z',
             status: 'completed',
-            tags: ['매출', '수입'],
             createdAt: '2025-01-15T10:00:00Z',
             updatedAt: '2025-01-15T10:00:00Z',
           },
@@ -254,7 +321,6 @@ describe('Finance Dashboard Service', () => {
             description: '사무용품 구매',
             transactionDate: '2025-01-15T14:30:00Z',
             status: 'completed',
-            tags: ['사무용품', '지출'],
             createdAt: '2025-01-15T14:30:00Z',
             updatedAt: '2025-01-15T14:30:00Z',
           },
@@ -319,10 +385,19 @@ describe('Finance Dashboard Service', () => {
     it('자금일보를 성공적으로 조회해야 함', async () => {
       const mockDailyReport: DailyFinanceReport = {
         id: 'report-1',
-        date: '2025-01-15',
-        totalBalance: 5000000,
-        dailyIncome: 200000,
-        dailyExpense: 150000,
+        reportDate: '2025-01-15',
+        openingBalance: 4800000,
+        closingBalance: 5000000,
+        totalInflow: 200000,
+        totalOutflow: 0,
+        netFlow: 200000,
+        transactionCount: 1,
+        accountSummaries: [],
+        categorySummaries: [],
+        alerts: [],
+        notes: '',
+        generatedAt: '2025-01-15T10:00:00Z',
+        generatedBy: 'system',
         netAmount: 50000,
         accountBalances: [
           {
@@ -342,7 +417,6 @@ describe('Finance Dashboard Service', () => {
             description: '매출 수입',
             transactionDate: '2025-01-15T10:00:00Z',
             status: 'completed',
-            tags: ['매출', '수입'],
             createdAt: '2025-01-15T10:00:00Z',
             updatedAt: '2025-01-15T10:00:00Z',
           },
@@ -416,66 +490,60 @@ describe('Finance Dashboard Service', () => {
       const mockDailyReports: DailyFinanceReport[] = [
         {
           id: 'report-1',
-          date: '2025-01-13',
-          totalBalance: 4800000,
-          dailyIncome: 150000,
-          dailyExpense: 100000,
-          netAmount: 50000,
-          accountBalances: [],
-          transactions: [],
-          summary: {
-            incomeCount: 1,
-            expenseCount: 1,
-            totalTransactions: 2,
-            topCategory: {
-              categoryId: 'category-1',
-              categoryName: '매출',
-              amount: 150000,
-            },
-          },
+          reportDate: '2025-01-13',
+          openingBalance: 4700000,
+          closingBalance: 4800000,
+          totalInflow: 150000,
+          totalOutflow: 50000,
+          netFlow: 100000,
+          transactionCount: 2,
+          accountSummaries: [],
+          categorySummaries: [],
+          alerts: [],
+          notes: '',
+          generatedAt: '2025-01-13T10:00:00Z',
+          generatedBy: 'system',
+          status: 'completed',
           createdAt: '2025-01-13T23:59:59Z',
+          updatedAt: '2025-01-13T23:59:59Z',
         },
         {
           id: 'report-2',
-          date: '2025-01-14',
-          totalBalance: 4900000,
-          dailyIncome: 180000,
-          dailyExpense: 120000,
-          netAmount: 60000,
-          accountBalances: [],
-          transactions: [],
-          summary: {
-            incomeCount: 2,
-            expenseCount: 1,
-            totalTransactions: 3,
-            topCategory: {
-              categoryId: 'category-1',
-              categoryName: '매출',
-              amount: 180000,
-            },
-          },
+          reportDate: '2025-01-14',
+          openingBalance: 4800000,
+          closingBalance: 4900000,
+          totalInflow: 180000,
+          totalOutflow: 70000,
+          netFlow: 110000,
+          transactionCount: 2,
+          accountSummaries: [],
+          categorySummaries: [],
+          alerts: [],
+          notes: '',
+          generatedAt: '2025-01-14T10:00:00Z',
+          generatedBy: 'system',
+          status: 'completed',
           createdAt: '2025-01-14T23:59:59Z',
+          updatedAt: '2025-01-14T23:59:59Z',
         },
         {
           id: 'report-3',
-          date: '2025-01-15',
-          totalBalance: 5000000,
-          dailyIncome: 200000,
-          dailyExpense: 150000,
-          netAmount: 50000,
-          accountBalances: [],
-          transactions: [],
-          summary: {
-            incomeCount: 1,
-            expenseCount: 1,
-            totalTransactions: 2,
-            topCategory: {
-              categoryId: 'category-1',
-              categoryName: '매출',
-              amount: 200000,
-            },
-          },
+          reportDate: '2025-01-15',
+          openingBalance: 4800000,
+          closingBalance: 5000000,
+          totalInflow: 200000,
+          totalOutflow: 0,
+          netFlow: 200000,
+          transactionCount: 1,
+          accountSummaries: [],
+          categorySummaries: [],
+          alerts: [],
+          notes: '',
+          generatedAt: '2025-01-15T10:00:00Z',
+          generatedBy: 'system',
+          status: 'completed',
           createdAt: '2025-01-15T23:59:59Z',
+          updatedAt: '2025-01-15T23:59:59Z',
         },
       ]
 
@@ -545,6 +613,7 @@ describe('Finance Dashboard Service', () => {
           message: '법인 통장의 잔액이 부족합니다.',
           severity: 'warning',
           isRead: false,
+          isResolved: false,
           createdAt: '2025-01-15T08:00:00Z',
         },
         {
@@ -552,7 +621,7 @@ describe('Finance Dashboard Service', () => {
           type: 'unusual_expense',
           title: '비정상적인 지출 감지',
           message: '평소보다 큰 금액의 지출이 발생했습니다.',
-          severity: 'info',
+          severity: 'low',
           isRead: true,
           createdAt: '2025-01-14T16:30:00Z',
         },
@@ -561,8 +630,9 @@ describe('Finance Dashboard Service', () => {
           type: 'budget_exceeded',
           title: '예산 초과 경고',
           message: '사무용품 예산을 초과했습니다.',
-          severity: 'error',
+          severity: 'high',
           isRead: false,
+          isResolved: false,
           createdAt: '2025-01-13T14:20:00Z',
         },
       ]
@@ -590,6 +660,7 @@ describe('Finance Dashboard Service', () => {
           message: '법인 통장의 잔액이 부족합니다.',
           severity: 'warning',
           isRead: false,
+          isResolved: false,
           createdAt: '2025-01-15T08:00:00Z',
         },
         {
@@ -597,8 +668,9 @@ describe('Finance Dashboard Service', () => {
           type: 'budget_exceeded',
           title: '예산 초과 경고',
           message: '사무용품 예산을 초과했습니다.',
-          severity: 'error',
+          severity: 'high',
           isRead: false,
+          isResolved: false,
           createdAt: '2025-01-13T14:20:00Z',
         },
       ]
@@ -624,7 +696,7 @@ describe('Finance Dashboard Service', () => {
           type: 'unusual_expense',
           title: '비정상적인 지출 감지',
           message: '평소보다 큰 금액의 지출이 발생했습니다.',
-          severity: 'info',
+          severity: 'low',
           isRead: true,
           createdAt: '2025-01-14T16:30:00Z',
         },
@@ -894,8 +966,19 @@ describe('Finance Dashboard Service', () => {
     it('전체 대시보드 워크플로우가 올바르게 작동해야 함', async () => {
       // 1. 대시보드 데이터 조회
       const mockDashboard: FinanceDashboard = {
-        date: '2025-01-15',
-        totalBalance: 5000000,
+        reportDate: '2025-01-15',
+        openingBalance: 4800000,
+        closingBalance: 5000000,
+        totalInflow: 200000,
+        totalOutflow: 0,
+        netFlow: 200000,
+        transactionCount: 1,
+        accountSummaries: [],
+        categorySummaries: [],
+        alerts: [],
+        notes: '',
+        generatedAt: '2025-01-15T10:00:00Z',
+        generatedBy: 'system',
         activeAccounts: 3,
         monthlyIncome: 2000000,
         monthlyExpense: 1500000,
@@ -908,25 +991,31 @@ describe('Finance Dashboard Service', () => {
             type: 'low_balance',
             title: '잔액 부족 경고',
             message: '법인 통장의 잔액이 부족합니다.',
-            severity: 'warning',
+            severity: 'medium',
             isRead: false,
+            isResolved: false,
             createdAt: '2025-01-15T08:00:00Z',
           },
         ],
-        trends: {
-          dailyBalance: [],
-          monthlyIncome: [],
-          monthlyExpense: [],
-        },
+        trends: [],
       }
 
       // 2. 자금일보 생성
       const mockDailyReport: DailyFinanceReport = {
         id: 'report-1',
-        date: '2025-01-15',
-        totalBalance: 5000000,
-        dailyIncome: 200000,
-        dailyExpense: 150000,
+        reportDate: '2025-01-15',
+        openingBalance: 4800000,
+        closingBalance: 5000000,
+        totalInflow: 200000,
+        totalOutflow: 0,
+        netFlow: 200000,
+        transactionCount: 1,
+        accountSummaries: [],
+        categorySummaries: [],
+        alerts: [],
+        notes: '',
+        generatedAt: '2025-01-15T10:00:00Z',
+        generatedBy: 'system',
         netAmount: 50000,
         accountBalances: [],
         transactions: [],
@@ -968,13 +1057,13 @@ describe('Finance Dashboard Service', () => {
 
       // 대시보드 데이터 조회
       const dashboardResult = await dashboardService.getDashboardData()
-      expect(dashboardResult.totalBalance).toBe(5000000)
+      expect(dashboardResult.currentBalance).toBe(5000000)
       expect(dashboardResult.alerts).toHaveLength(1)
 
       // 자금일보 생성
       const reportResult = await dashboardService.generateDailyReport('2025-01-15')
-      expect(reportResult.date).toBe('2025-01-15')
-      expect(reportResult.netAmount).toBe(50000)
+      expect(reportResult.reportDate).toBe('2025-01-15')
+      expect(reportResult.netFlow).toBe(200000)
 
       // 알림 읽음 처리
       await dashboardService.markAlertAsRead('alert-1')
@@ -993,6 +1082,7 @@ describe('Finance Dashboard Service', () => {
             message: '법인 통장의 잔액이 부족합니다.',
             severity: 'warning' as const,
             isRead: false,
+            isResolved: false,
             createdAt: '2025-01-15T08:00:00Z',
           },
           expectedSeverity: 'warning',
@@ -1000,7 +1090,7 @@ describe('Finance Dashboard Service', () => {
         {
           alert: {
             id: 'alert-2',
-            type: 'unusual_expense',
+            type: 'unusual_transaction',
             title: '비정상적인 지출 감지',
             message: '평소보다 큰 금액의 지출이 발생했습니다.',
             severity: 'info' as const,

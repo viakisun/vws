@@ -33,7 +33,9 @@ describe('EmployeeService', () => {
       const mockEmployees = [
         {
           id: 'employee-1',
-          name: '홍길동',
+          employee_id: 'EMP001',
+          first_name: '길동',
+          last_name: '홍',
           email: 'hong@example.com',
           position: '개발자',
           department: '개발팀',
@@ -84,7 +86,9 @@ describe('EmployeeService', () => {
     it('should fetch employee by ID successfully', async () => {
       const mockEmployee = {
         id: 'employee-1',
-        name: '홍길동',
+        employee_id: 'EMP001',
+        first_name: '길동',
+        last_name: '홍',
         email: 'hong@example.com',
         position: '개발자',
         department: '개발팀',
@@ -111,7 +115,7 @@ describe('EmployeeService', () => {
         rowCount: 0,
       })
 
-      const result = await employeeService.getEmployeeById('non-existent')
+      const result = await employeeService.getById('non-existent')
 
       expect(result).toBeNull()
       expect(mockQuery).toHaveBeenCalledWith(
@@ -244,7 +248,7 @@ describe('EmployeeService', () => {
         rowCount: 0,
       })
 
-      const result = await employeeService.updateEmployee('non-existent', updateData)
+      const result = await employeeService.update('non-existent', updateData)
 
       expect(result).toBeNull()
       expect(mockQuery).toHaveBeenCalledWith(
@@ -320,7 +324,9 @@ describe('EmployeeService', () => {
       const mockEmployees = [
         {
           id: 'employee-1',
-          name: '홍길동',
+          employee_id: 'EMP001',
+          first_name: '길동',
+          last_name: '홍',
           email: 'hong@example.com',
           position: '개발자',
           department: '개발팀',

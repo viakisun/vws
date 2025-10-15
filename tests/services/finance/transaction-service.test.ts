@@ -685,7 +685,8 @@ describe('Finance Transaction Service', () => {
         id: 'transaction-1',
         accountId: 'account-1',
         categoryId: 'category-1',
-        ...updateData,
+        amount: updateData.amount || 150000,
+        description: updateData.description || '수정된 매출 수입',
         type: 'income',
         transactionDate: '2025-01-15T10:00:00Z',
         status: 'completed',
@@ -792,18 +793,6 @@ describe('Finance Transaction Service', () => {
         totalExpense: 3000000,
         netAmount: 2000000,
         transactionCount: 100,
-        averageTransactionAmount: 50000,
-        incomeCount: 60,
-        expenseCount: 40,
-        topCategories: [
-          { categoryId: 'category-1', categoryName: '매출', amount: 3000000, count: 30 },
-          { categoryId: 'category-2', categoryName: '사무용품', amount: 500000, count: 20 },
-        ],
-        monthlyTrend: [
-          { month: '2024-11', income: 4000000, expense: 2500000 },
-          { month: '2024-12', income: 4500000, expense: 2800000 },
-          { month: '2025-01', income: 5000000, expense: 3000000 },
-        ],
       }
 
       vi.mocked(fetch).mockResolvedValueOnce({
@@ -826,17 +815,6 @@ describe('Finance Transaction Service', () => {
         totalExpense: 1500000,
         netAmount: 1000000,
         transactionCount: 50,
-        averageTransactionAmount: 40000,
-        incomeCount: 30,
-        expenseCount: 20,
-        topCategories: [
-          { categoryId: 'category-1', categoryName: '매출', amount: 2000000, count: 20 },
-          { categoryId: 'category-2', categoryName: '사무용품', amount: 300000, count: 15 },
-        ],
-        monthlyTrend: [
-          { month: '2024-12', income: 2000000, expense: 1200000 },
-          { month: '2025-01', income: 2500000, expense: 1500000 },
-        ],
       }
 
       const filter: TransactionFilter = {
@@ -886,15 +864,11 @@ describe('Finance Transaction Service', () => {
     it('일별 거래 요약을 성공적으로 조회해야 함', async () => {
       const mockSummary: DailyTransactionSummary = {
         date: '2025-01-15',
-        totalTransactions: 10,
+        transactionCount: 10,
         totalIncome: 500000,
         totalExpense: 200000,
         netAmount: 300000,
-        transactionCount: 10,
-        topCategories: [
-          { categoryId: 'category-1', categoryName: '매출', amount: 400000, count: 4 },
-          { categoryId: 'category-2', categoryName: '사무용품', amount: 100000, count: 2 },
-        ],
+        transactions: [],
       }
 
       vi.mocked(fetch).mockResolvedValueOnce({
@@ -938,15 +912,11 @@ describe('Finance Transaction Service', () => {
     it('월별 거래 요약을 성공적으로 조회해야 함', async () => {
       const mockSummary: DailyTransactionSummary = {
         date: '2025-01',
-        totalTransactions: 100,
+        transactionCount: 100,
         totalIncome: 5000000,
         totalExpense: 3000000,
         netAmount: 2000000,
-        transactionCount: 100,
-        topCategories: [
-          { categoryId: 'category-1', categoryName: '매출', amount: 4000000, count: 40 },
-          { categoryId: 'category-2', categoryName: '사무용품', amount: 800000, count: 20 },
-        ],
+        transactions: [],
       }
 
       vi.mocked(fetch).mockResolvedValueOnce({

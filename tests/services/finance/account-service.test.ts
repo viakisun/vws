@@ -12,6 +12,27 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 // Mock fetch globally
 global.fetch = vi.fn()
 
+// Mock banks
+const mockBank = {
+  id: 'bank-1',
+  name: '국민은행',
+  code: '004',
+  color: '#FF6B6B',
+  isActive: true,
+  createdAt: '2025-01-01T00:00:00Z',
+  updatedAt: '2025-01-01T00:00:00Z',
+}
+
+const mockBank2 = {
+  id: 'bank-2',
+  name: '신한은행',
+  code: '088',
+  color: '#4ECDC4',
+  isActive: true,
+  createdAt: '2025-01-01T00:00:00Z',
+  updatedAt: '2025-01-01T00:00:00Z',
+}
+
 describe('Finance Account Service', () => {
   let accountService: AccountService
 
@@ -26,8 +47,9 @@ describe('Finance Account Service', () => {
         {
           id: 'account-1',
           bankId: 'bank-1',
+          bank: mockBank,
           accountNumber: '123-456-789',
-          accountName: '법인 통장',
+          name: '법인 통장',
           accountType: 'checking',
           balance: 1000000,
           status: 'active',
@@ -37,9 +59,9 @@ describe('Finance Account Service', () => {
         },
         {
           id: 'account-2',
-          bankId: 'bank-2',
+          bank: mockBank2,
           accountNumber: '987-654-321',
-          accountName: '예금 통장',
+          name: '예금 통장',
           accountType: 'savings',
           balance: 2000000,
           status: 'active',
@@ -67,9 +89,9 @@ describe('Finance Account Service', () => {
       const mockAccounts: Account[] = [
         {
           id: 'account-1',
-          bankId: 'bank-1',
+          bank: mockBank,
           accountNumber: '123-456-789',
-          accountName: '법인 통장',
+          name: '법인 통장',
           accountType: 'checking',
           balance: 1000000,
           status: 'active',
@@ -99,9 +121,9 @@ describe('Finance Account Service', () => {
       const mockAccounts: Account[] = [
         {
           id: 'account-2',
-          bankId: 'bank-2',
+          bank: mockBank2,
           accountNumber: '987-654-321',
-          accountName: '예금 통장',
+          name: '예금 통장',
           accountType: 'savings',
           balance: 2000000,
           status: 'active',
@@ -131,9 +153,9 @@ describe('Finance Account Service', () => {
       const mockAccounts: Account[] = [
         {
           id: 'account-1',
-          bankId: 'bank-1',
+          bank: mockBank,
           accountNumber: '123-456-789',
-          accountName: '법인 통장',
+          name: '법인 통장',
           accountType: 'checking',
           balance: 1000000,
           status: 'active',
@@ -163,9 +185,9 @@ describe('Finance Account Service', () => {
       const mockAccounts: Account[] = [
         {
           id: 'account-1',
-          bankId: 'bank-1',
+          bank: mockBank,
           accountNumber: '123-456-789',
-          accountName: '법인 통장',
+          name: '법인 통장',
           accountType: 'checking',
           balance: 1000000,
           status: 'active',
@@ -195,9 +217,9 @@ describe('Finance Account Service', () => {
       const mockAccounts: Account[] = [
         {
           id: 'account-1',
-          bankId: 'bank-1',
+          bank: mockBank,
           accountNumber: '123-456-789',
-          accountName: '법인 통장',
+          name: '법인 통장',
           accountType: 'checking',
           balance: 1000000,
           status: 'active',
@@ -227,9 +249,9 @@ describe('Finance Account Service', () => {
       const mockAccounts: Account[] = [
         {
           id: 'account-1',
-          bankId: 'bank-1',
+          bank: mockBank,
           accountNumber: '123-456-789',
-          accountName: '법인 통장',
+          name: '법인 통장',
           accountType: 'checking',
           balance: 1000000,
           status: 'active',
@@ -240,7 +262,7 @@ describe('Finance Account Service', () => {
       ]
 
       const filter: AccountFilter = {
-        bankId: 'bank-1',
+        bank: mockBank,
         accountType: 'checking',
         status: 'active',
         isPrimary: true,
@@ -303,9 +325,9 @@ describe('Finance Account Service', () => {
     it('특정 계좌를 성공적으로 조회해야 함', async () => {
       const mockAccount: Account = {
         id: 'account-1',
-        bankId: 'bank-1',
+        bank: mockBank,
         accountNumber: '123-456-789',
-        accountName: '법인 통장',
+        name: '법인 통장',
         accountType: 'checking',
         balance: 1000000,
         status: 'active',
@@ -350,9 +372,9 @@ describe('Finance Account Service', () => {
   describe('createAccount', () => {
     it('새 계좌를 성공적으로 생성해야 함', async () => {
       const accountData: CreateAccountRequest = {
-        bankId: 'bank-1',
+        bank: mockBank,
         accountNumber: '123-456-789',
-        accountName: '법인 통장',
+        name: '법인 통장',
         accountType: 'checking',
         balance: 1000000,
         isPrimary: true,
@@ -388,9 +410,9 @@ describe('Finance Account Service', () => {
 
     it('중복 계좌번호로 생성 시 에러를 던져야 함', async () => {
       const accountData: CreateAccountRequest = {
-        bankId: 'bank-1',
+        bank: mockBank,
         accountNumber: '123-456-789',
-        accountName: '법인 통장',
+        name: '법인 통장',
         accountType: 'checking',
         balance: 1000000,
         isPrimary: true,
@@ -411,9 +433,9 @@ describe('Finance Account Service', () => {
 
     it('네트워크 오류 시 에러를 던져야 함', async () => {
       const accountData: CreateAccountRequest = {
-        bankId: 'bank-1',
+        bank: mockBank,
         accountNumber: '123-456-789',
-        accountName: '법인 통장',
+        name: '법인 통장',
         accountType: 'checking',
         balance: 1000000,
         isPrimary: true,
@@ -428,14 +450,14 @@ describe('Finance Account Service', () => {
   describe('updateAccount', () => {
     it('계좌를 성공적으로 수정해야 함', async () => {
       const updateData: UpdateAccountRequest = {
-        accountName: '수정된 법인 통장',
+        name: '수정된 법인 통장',
         balance: 1500000,
         isPrimary: false,
       }
 
       const mockUpdatedAccount: Account = {
         id: 'account-1',
-        bankId: 'bank-1',
+        bank: mockBank,
         accountNumber: '123-456-789',
         ...updateData,
         accountType: 'checking',
@@ -466,7 +488,7 @@ describe('Finance Account Service', () => {
 
     it('존재하지 않는 계좌 수정 시 에러를 던져야 함', async () => {
       const updateData: UpdateAccountRequest = {
-        accountName: '수정된 법인 통장',
+        name: '수정된 법인 통장',
       }
 
       vi.mocked(fetch).mockResolvedValueOnce({
@@ -484,7 +506,7 @@ describe('Finance Account Service', () => {
 
     it('네트워크 오류 시 에러를 던져야 함', async () => {
       const updateData: UpdateAccountRequest = {
-        accountName: '수정된 법인 통장',
+        name: '수정된 법인 통장',
       }
 
       vi.mocked(fetch).mockRejectedValueOnce(new Error('Network error'))
@@ -541,7 +563,7 @@ describe('Finance Account Service', () => {
   describe('getAccountSummary', () => {
     it('계좌 요약 정보를 성공적으로 조회해야 함', async () => {
       const mockSummary: AccountSummary = {
-        accountId: 'account-1',
+        account: mockAccount,
         totalTransactions: 50,
         totalIncome: 5000000,
         totalExpense: 3000000,
@@ -566,7 +588,7 @@ describe('Finance Account Service', () => {
 
     it('날짜 범위로 계좌 요약 정보를 조회해야 함', async () => {
       const mockSummary: AccountSummary = {
-        accountId: 'account-1',
+        account: mockAccount,
         totalTransactions: 25,
         totalIncome: 2500000,
         totalExpense: 1500000,
@@ -616,7 +638,7 @@ describe('Finance Account Service', () => {
     it('은행별 요약 정보를 성공적으로 조회해야 함', async () => {
       const mockBankSummaries: BankSummary[] = [
         {
-          bankId: 'bank-1',
+          bank: mockBank,
           bankName: '국민은행',
           accountCount: 3,
           totalBalance: 5000000,
@@ -624,7 +646,7 @@ describe('Finance Account Service', () => {
           totalExpense: 1000000,
         },
         {
-          bankId: 'bank-2',
+          bank: mockBank2,
           bankName: '신한은행',
           accountCount: 2,
           totalBalance: 3000000,
@@ -689,9 +711,9 @@ describe('Finance Account Service', () => {
       const mockAllAccounts: Account[] = [
         {
           id: 'account-1',
-          bankId: 'bank-1',
+          bank: mockBank,
           accountNumber: '123-456-789',
-          accountName: '법인 통장',
+          name: '법인 통장',
           accountType: 'checking',
           balance: 1000000,
           status: 'active',
@@ -701,9 +723,9 @@ describe('Finance Account Service', () => {
         },
         {
           id: 'account-2',
-          bankId: 'bank-2',
+          bank: mockBank2,
           accountNumber: '987-654-321',
-          accountName: '예금 통장',
+          name: '예금 통장',
           accountType: 'savings',
           balance: 2000000,
           status: 'active',
@@ -717,7 +739,7 @@ describe('Finance Account Service', () => {
       const newAccountData: CreateAccountRequest = {
         bankId: 'bank-3',
         accountNumber: '555-666-777',
-        accountName: '투자 통장',
+        name: '투자 통장',
         accountType: 'investment',
         balance: 0,
         isPrimary: false,
@@ -774,7 +796,7 @@ describe('Finance Account Service', () => {
       const testCases = [
         {
           data: {
-            bankId: 'bank-1',
+            bank: mockBank,
             accountNumber: '111-222-333',
             accountName: '당좌 예금',
             accountType: 'checking' as const,
@@ -786,7 +808,7 @@ describe('Finance Account Service', () => {
         },
         {
           data: {
-            bankId: 'bank-2',
+            bank: mockBank2,
             accountNumber: '444-555-666',
             accountName: '정기 예금',
             accountType: 'savings' as const,

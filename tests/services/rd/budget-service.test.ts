@@ -94,18 +94,18 @@ describe('budget.service', () => {
   describe('createBudget', () => {
     it('should create a budget successfully', async () => {
       const budgetData = {
-        projectId: 'project-1',
+        project_id: 'project-1',
         year: 2024,
-        personnelCostCash: 5000000,
-        personnelCostInKind: 2000000,
-        researchMaterialCostCash: 1500000,
-        researchMaterialCostInKind: 500000,
-        researchActivityCostCash: 800000,
-        researchActivityCostInKind: 200000,
-        researchStipendCash: 0,
-        researchStipendInKind: 0,
-        indirectCostCash: 0,
-        indirectCostInKind: 0,
+        personnel_cost_cash: 5000000,
+        personnel_cost_in_kind: 2000000,
+        research_material_cost_cash: 1500000,
+        research_material_cost_in_kind: 500000,
+        research_activity_cost_cash: 800000,
+        research_activity_cost_in_kind: 200000,
+        research_stipend_cash: 0,
+        research_stipend_in_kind: 0,
+        indirect_cost_cash: 0,
+        indirect_cost_in_kind: 0,
       }
 
       const mockCreatedBudget = {
