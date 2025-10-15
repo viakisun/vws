@@ -3,6 +3,7 @@ import type {
   CreateProductReferenceInput,
   ProductReference,
   ProductReferenceFilters,
+  ProductReferenceType,
   ProductReferenceWithCreator,
   UpdateProductReferenceInput,
 } from '$lib/planner/types'
@@ -182,7 +183,24 @@ export class ProductReferenceService {
         [...params, limit, offset],
       )
 
-      return result.rows
+      const references = result.rows as ProductReferenceWithCreator[]
+      
+      // Auto-fix references with generic 'url' type by re-detecting the actual type
+      references.forEach((ref) => {
+        if (ref.type === 'url' && ref.url) {
+          const detectedType = detectLinkType(ref.url, ref.file_name)
+          if (detectedType !== 'url') {
+            // Update the display immediately
+            ref.type = detectedType as ProductReferenceType
+            // Update the type in the background
+            this.update(ref.id, { type: detectedType }, ref.created_by).catch(error => {
+              console.warn(`Failed to auto-update reference ${ref.id} type:`, error)
+            })
+          }
+        }
+      })
+
+      return references
     } catch (error) {
       console.error('Error in ProductReferenceService.list:', error)
       if (
@@ -213,9 +231,9 @@ export class ProductReferenceService {
     const current = await this.getById(id)
     if (!current) return null
 
-    // Auto-detect type if URL is being updated or if no type is specified
+    // Auto-detect type if URL is being updated, no type is specified, or current type is generic 'url'
     let type = input.type
-    if (input.url !== undefined && (!type || input.url !== current.url)) {
+    if (input.url !== undefined && (!type || input.url !== current.url || current.type === 'url')) {
       type = detectLinkType(input.url, current.file_name)
     }
 
