@@ -55,17 +55,17 @@
     // 파일명을 기반으로 더 구체적인 아이콘 선택
     if (filename) {
       const lowerFilename = filename.toLowerCase()
-      
+
       // 문서 파일들
       if (lowerFilename.endsWith('.pdf')) return FileTextIcon
       if (lowerFilename.match(/\.(doc|docx)$/)) return FileTextIcon
       if (lowerFilename.match(/\.(xls|xlsx)$/)) return FileIcon // 스프레드시트
       if (lowerFilename.match(/\.(ppt|pptx)$/)) return FileTextIcon // 프레젠테이션
-      
+
       // 이미지 파일들
       if (lowerFilename.match(/\.(jpg|jpeg|png|gif|webp|svg|bmp|tiff)$/)) return ImageIcon
     }
-    
+
     // 타입 기반 아이콘 매핑
     switch (type) {
       case 'pdf':

@@ -185,11 +185,22 @@ export class ProductReferenceService {
 
       const references = result.rows as ProductReferenceWithCreator[]
 
-      // Auto-fix references with generic 'url' type by re-detecting the actual type
+      // Auto-fix references with generic types by re-detecting the actual type
       references.forEach((ref) => {
-        if (ref.type === 'url' && ref.url) {
-          const detectedType = detectLinkType(ref.url, ref.file_name)
-          if (detectedType !== 'url') {
+        // Check both 'url' and 'file' types that might need more specific detection
+        if (
+          (ref.type === 'url' && ref.url) || 
+          (ref.type === 'file' && ref.file_name)
+        ) {
+          const detectedType = detectLinkType(ref.url || '', ref.file_name)
+          
+          // Update if we detected a more specific type
+          if (
+            detectedType !== 'url' && 
+            detectedType !== 'file' && 
+            detectedType !== 'other' &&
+            detectedType !== ref.type
+          ) {
             // Update the display immediately
             ref.type = detectedType as ProductReferenceType
             // Update the type in the background
@@ -231,10 +242,16 @@ export class ProductReferenceService {
     const current = await this.getById(id)
     if (!current) return null
 
-    // Auto-detect type if URL is being updated, no type is specified, or current type is generic 'url'
+    // Auto-detect type if URL is being updated, no type is specified, or current type is generic
     let type = input.type
     if (input.url !== undefined && (!type || input.url !== current.url || current.type === 'url')) {
       type = detectLinkType(input.url, current.file_name)
+    } else if (current.type === 'file' && current.file_name && !type) {
+      // Also auto-detect for existing 'file' type references that might need more specific typing
+      const detectedType = detectLinkType(current.url || '', current.file_name)
+      if (detectedType !== 'file' && detectedType !== 'url' && detectedType !== 'other') {
+        type = detectedType
+      }
     }
 
     const updates: string[] = []
