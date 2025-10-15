@@ -196,6 +196,14 @@ const dbConfig = getDbConfig()
 // Initialize database connection pool
 export function initializeDatabase(): Pool {
   if (!pool) {
+    logger.info('🗄️  Initializing database connection pool...', {
+      host: dbConfig.host,
+      database: dbConfig.database,
+      port: dbConfig.port,
+      maxConnections: dbConfig.max,
+      minConnections: dbConfig.min
+    })
+
     pool = new Pool(dbConfig)
 
     // Set timezone to Asia/Seoul for all connections
@@ -203,19 +211,49 @@ export function initializeDatabase(): Pool {
     pool.on('connect', async (client) => {
       try {
         await client.query("SET TIME ZONE 'Asia/Seoul'")
-        logger.info('Database session timezone set to Asia/Seoul (KST)')
+        logger.debug('📅 Database session timezone set to Asia/Seoul (KST)')
       } catch (error) {
-        logger.error('Failed to set timezone:', error)
+        logger.error('❌ Failed to set timezone:', error)
       }
+    })
+
+    // Connection acquired
+    pool.on('acquire', (client) => {
+      logger.debug('🔗 Database connection acquired', {
+        totalCount: pool?.totalCount || 0,
+        idleCount: pool?.idleCount || 0,
+        waitingCount: pool?.waitingCount || 0
+      })
+    })
+
+    // Connection released back to pool
+    pool.on('release', () => {
+      logger.debug('🔓 Database connection released', {
+        totalCount: pool?.totalCount || 0,
+        idleCount: pool?.idleCount || 0,
+        waitingCount: pool?.waitingCount || 0
+      })
     })
 
     // Handle pool errors
     pool.on('error', (err: Error) => {
-      logger.error('Unexpected error on idle client', err)
+      logger.error('💥 Unexpected error on idle client', {
+        error: err.message,
+        stack: err.stack,
+        totalCount: pool?.totalCount || 0,
+        idleCount: pool?.idleCount || 0,
+        waitingCount: pool?.waitingCount || 0
+      })
       process.exit(-1)
     })
 
-    logger.info('Database connection pool initialized (Asia/Seoul KST)')
+    logger.info('✅ Database connection pool initialized successfully', {
+      timezone: 'Asia/Seoul (KST)',
+      maxConnections: dbConfig.max,
+      minConnections: dbConfig.min,
+      idleTimeout: dbConfig.idleTimeoutMillis,
+      connectionTimeout: dbConfig.connectionTimeoutMillis
+    })
   }
 
   return pool
