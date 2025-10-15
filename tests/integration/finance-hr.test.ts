@@ -56,12 +56,12 @@ describe('Finance + HR Integration Tests', () => {
         employeeId: 'employee-1',
         period: '2023-10',
         baseSalary: 4166667, // 50000000 / 12
-        allowances: 416667,   // 5000000 / 12
-        overtime: 200000,     // 8 hours * 25000
+        allowances: 416667, // 5000000 / 12
+        overtime: 200000, // 8 hours * 25000
         grossSalary: 4783334,
-        tax: 717500,          // 15% of gross
-        insurance: 239167,    // 5% of gross
-        deductions: 956667,   // tax + insurance
+        tax: 717500, // 15% of gross
+        insurance: 239167, // 5% of gross
+        deductions: 956667, // tax + insurance
         netSalary: 3826667,
         status: 'calculated',
         createdAt: '2023-10-31T00:00:00Z',
@@ -108,26 +108,28 @@ describe('Finance + HR Integration Tests', () => {
       // Mock the salary processing endpoint
       const mockPOST = vi.fn().mockImplementation(async ({ request }) => {
         const body = await request.json()
-        
+
         // Step 1: Get employee data
         const employeeResult = await DBHelper.getMockQuery()('SELECT * FROM employees WHERE id = ?')
         const employee = employeeResult.rows[0] || mockEmployee
-        
+
         // Step 2: Get attendance data
-        const attendanceResult = await DBHelper.getMockQuery()('SELECT * FROM attendance WHERE employee_id = ? AND month = ?')
+        const attendanceResult = await DBHelper.getMockQuery()(
+          'SELECT * FROM attendance WHERE employee_id = ? AND month = ?',
+        )
         const attendance = attendanceResult.rows[0]
-        
+
         // Step 3: Calculate salary
         const monthlyBaseSalary = employee.baseSalary / 12
         const monthlyAllowances = employee.allowances / 12
         const overtimePay = attendance.overtimeHours * 25000 // 25,000 per hour
         const grossSalary = monthlyBaseSalary + monthlyAllowances + overtimePay
-        
+
         const tax = Math.floor(grossSalary * 0.15) // 15% tax
         const insurance = Math.floor(grossSalary * 0.05) // 5% insurance
         const deductions = tax + insurance
         const netSalary = grossSalary - deductions
-        
+
         // Step 4: Create payslip
         const payslipData = {
           employeeId: employee.id,
@@ -142,13 +144,15 @@ describe('Finance + HR Integration Tests', () => {
           netSalary,
           status: 'calculated',
         }
-        
+
         const payslipResult = await DBHelper.getMockQuery()('INSERT INTO payslips ...')
-        
+
         // Step 5: Get bank account for payment
-        const bankResult = await DBHelper.getMockQuery()('SELECT * FROM employee_bank_accounts WHERE employee_id = ? AND is_primary = true')
+        const bankResult = await DBHelper.getMockQuery()(
+          'SELECT * FROM employee_bank_accounts WHERE employee_id = ? AND is_primary = true',
+        )
         const bankAccount = bankResult.rows[0]
-        
+
         // Step 6: Create payment transaction
         const transactionData = {
           accountId: 'company-account',
@@ -159,23 +163,36 @@ describe('Finance + HR Integration Tests', () => {
           referenceNumber: `PAY-${body.period.replace('-', '-')}-001`,
           transactionDate: new Date().toISOString().split('T')[0],
         }
-        
+
         const transactionResult = await DBHelper.getMockQuery()('INSERT INTO transactions ...')
-        
-        return new Response(JSON.stringify({ 
-          success: true, 
-          data: {
-            payslip: payslipResult.rows[0],
-            transaction: transactionResult.rows[0],
-            bankAccount,
-          }
-        }), {
-          status: 201,
-          headers: { 'Content-Type': 'application/json' },
-        })
+
+        return new Response(
+          JSON.stringify({
+            success: true,
+            data: {
+              payslip: payslipResult.rows[0],
+              transaction: transactionResult.rows[0],
+              bankAccount,
+            },
+          }),
+          {
+            status: 201,
+            headers: { 'Content-Type': 'application/json' },
+          },
+        )
       })
 
-      const response = await mockPOST({ request, url: event.url, params: {}, locals: event.locals, route: event.route, cookies: event.cookies, fetch: event.fetch, getClientAddress: event.getClientAddress, platform: event.platform })
+      const response = await mockPOST({
+        request,
+        url: event.url,
+        params: {},
+        locals: event.locals,
+        route: event.route,
+        cookies: event.cookies,
+        fetch: event.fetch,
+        getClientAddress: event.getClientAddress,
+        platform: event.platform,
+      })
       const responseBody = await getJsonResponseBody(response)
 
       expect(response.status).toBe(201)
@@ -183,7 +200,7 @@ describe('Finance + HR Integration Tests', () => {
       expect(responseBody.data.payslip).toBeDefined()
       expect(responseBody.data.transaction).toBeDefined()
       expect(responseBody.data.bankAccount).toBeDefined()
-      
+
       // Verify database queries were called
       expect(DBHelper.getMockQuery()).toHaveBeenCalled()
     })
@@ -208,27 +225,42 @@ describe('Finance + HR Integration Tests', () => {
 
       const mockPOST = vi.fn().mockImplementation(async ({ request }) => {
         const body = await request.json()
-        
+
         const employeeResult = await DBHelper.getMockQuery()('SELECT * FROM employees WHERE id = ?')
         const employee = employeeResult.rows[0]
-        
-        const attendanceResult = await DBHelper.getMockQuery()('SELECT * FROM attendance WHERE employee_id = ? AND month = ?')
+
+        const attendanceResult = await DBHelper.getMockQuery()(
+          'SELECT * FROM attendance WHERE employee_id = ? AND month = ?',
+        )
         const attendance = attendanceResult.rows[0]
-        
+
         if (!attendance) {
-          return new Response(JSON.stringify({ 
-            success: false, 
-            error: 'Attendance data not found for the period' 
-          }), {
-            status: 404,
-            headers: { 'Content-Type': 'application/json' },
-          })
+          return new Response(
+            JSON.stringify({
+              success: false,
+              error: 'Attendance data not found for the period',
+            }),
+            {
+              status: 404,
+              headers: { 'Content-Type': 'application/json' },
+            },
+          )
         }
-        
+
         return new Response(JSON.stringify({ success: true }), { status: 201 })
       })
 
-      const response = await mockPOST({ request, url: event.url, params: {}, locals: event.locals, route: event.route, cookies: event.cookies, fetch: event.fetch, getClientAddress: event.getClientAddress, platform: event.platform })
+      const response = await mockPOST({
+        request,
+        url: event.url,
+        params: {},
+        locals: event.locals,
+        route: event.route,
+        cookies: event.cookies,
+        fetch: event.fetch,
+        getClientAddress: event.getClientAddress,
+        platform: event.platform,
+      })
       const responseBody = await getJsonResponseBody(response)
 
       expect(response.status).toBe(404)
@@ -266,37 +298,54 @@ describe('Finance + HR Integration Tests', () => {
 
       const mockPOST = vi.fn().mockImplementation(async ({ request }) => {
         const body = await request.json()
-        
+
         const employeeResult = await DBHelper.getMockQuery()('SELECT * FROM employees WHERE id = ?')
         const employee = employeeResult.rows[0] || mockEmployee
-        
-        const attendanceResult = await DBHelper.getMockQuery()('SELECT * FROM attendance WHERE employee_id = ? AND month = ?')
+
+        const attendanceResult = await DBHelper.getMockQuery()(
+          'SELECT * FROM attendance WHERE employee_id = ? AND month = ?',
+        )
         const attendance = attendanceResult.rows[0]
-        
+
         // Calculate salary (simplified)
         const monthlyBaseSalary = employee.baseSalary / 12
         const monthlyAllowances = employee.allowances / 12
         const grossSalary = monthlyBaseSalary + monthlyAllowances
-        const netSalary = grossSalary - (grossSalary * 0.2) // 20% deductions
-        
+        const netSalary = grossSalary - grossSalary * 0.2 // 20% deductions
+
         // Try to get bank account
-        const bankResult = await DBHelper.getMockQuery()('SELECT * FROM employee_bank_accounts WHERE employee_id = ? AND is_primary = true')
+        const bankResult = await DBHelper.getMockQuery()(
+          'SELECT * FROM employee_bank_accounts WHERE employee_id = ? AND is_primary = true',
+        )
         const bankAccount = bankResult.rows[0]
-        
+
         if (!bankAccount) {
-          return new Response(JSON.stringify({ 
-            success: false, 
-            error: 'Primary bank account not found for employee' 
-          }), {
-            status: 404,
-            headers: { 'Content-Type': 'application/json' },
-          })
+          return new Response(
+            JSON.stringify({
+              success: false,
+              error: 'Primary bank account not found for employee',
+            }),
+            {
+              status: 404,
+              headers: { 'Content-Type': 'application/json' },
+            },
+          )
         }
-        
+
         return new Response(JSON.stringify({ success: true }), { status: 201 })
       })
 
-      const response = await mockPOST({ request, url: event.url, params: {}, locals: event.locals, route: event.route, cookies: event.cookies, fetch: event.fetch, getClientAddress: event.getClientAddress, platform: event.platform })
+      const response = await mockPOST({
+        request,
+        url: event.url,
+        params: {},
+        locals: event.locals,
+        route: event.route,
+        cookies: event.cookies,
+        fetch: event.fetch,
+        getClientAddress: event.getClientAddress,
+        platform: event.platform,
+      })
       const responseBody = await getJsonResponseBody(response)
 
       expect(response.status).toBe(404)
@@ -375,21 +424,26 @@ describe('Finance + HR Integration Tests', () => {
 
       const mockPUT = vi.fn().mockImplementation(async ({ request, params }) => {
         const body = await request.json()
-        
+
         // Step 1: Get expense request
-        const expenseResult = await DBHelper.getMockQuery()('SELECT * FROM expense_requests WHERE id = ?')
+        const expenseResult = await DBHelper.getMockQuery()(
+          'SELECT * FROM expense_requests WHERE id = ?',
+        )
         const expense = expenseResult.rows[0] || mockExpenseRequest
-        
+
         if (!expense) {
-          return new Response(JSON.stringify({ 
-            success: false, 
-            error: 'Expense request not found' 
-          }), {
-            status: 404,
-            headers: { 'Content-Type': 'application/json' },
-          })
+          return new Response(
+            JSON.stringify({
+              success: false,
+              error: 'Expense request not found',
+            }),
+            {
+              status: 404,
+              headers: { 'Content-Type': 'application/json' },
+            },
+          )
         }
-        
+
         // Step 2: Update expense status
         const updatedExpense = {
           ...expense,
@@ -397,14 +451,18 @@ describe('Finance + HR Integration Tests', () => {
           approvedBy: body.approvedBy,
           approvedAt: new Date().toISOString(),
         }
-        
-        await DBHelper.getMockQuery()('UPDATE expense_requests SET status = ?, approved_by = ?, approved_at = ? WHERE id = ?')
-        
+
+        await DBHelper.getMockQuery()(
+          'UPDATE expense_requests SET status = ?, approved_by = ?, approved_at = ? WHERE id = ?',
+        )
+
         // Step 3: If approved, create reimbursement transaction
         if (body.status === 'approved') {
-          const employeeResult = await DBHelper.getMockQuery()('SELECT * FROM employees WHERE id = ?')
+          const employeeResult = await DBHelper.getMockQuery()(
+            'SELECT * FROM employees WHERE id = ?',
+          )
           const employee = employeeResult.rows[0]
-          
+
           const transactionData = {
             accountId: 'company-account',
             amount: -expense.amount,
@@ -414,27 +472,40 @@ describe('Finance + HR Integration Tests', () => {
             referenceNumber: `REIMB-${new Date().getFullYear()}-001`,
             transactionDate: new Date().toISOString().split('T')[0],
           }
-          
+
           await DBHelper.getMockQuery()('INSERT INTO transactions ...')
         }
-        
-        return new Response(JSON.stringify({ 
-          success: true, 
-          data: updatedExpense 
-        }), {
-          status: 200,
-          headers: { 'Content-Type': 'application/json' },
-        })
+
+        return new Response(
+          JSON.stringify({
+            success: true,
+            data: updatedExpense,
+          }),
+          {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' },
+          },
+        )
       })
 
-      const response = await mockPUT({ request, url: event.url, params: event.params, locals: event.locals, route: event.route, cookies: event.cookies, fetch: event.fetch, getClientAddress: event.getClientAddress, platform: event.platform })
+      const response = await mockPUT({
+        request,
+        url: event.url,
+        params: event.params,
+        locals: event.locals,
+        route: event.route,
+        cookies: event.cookies,
+        fetch: event.fetch,
+        getClientAddress: event.getClientAddress,
+        platform: event.platform,
+      })
       const responseBody = await getJsonResponseBody(response)
 
       expect(response.status).toBe(200)
       expect(responseBody.success).toBe(true)
       expect(responseBody.data.status).toBe('approved')
       expect(responseBody.data.approvedBy).toBe('manager-1')
-      
+
       // Verify database operations
       expect(DBHelper.getMockQuery()).toHaveBeenCalled()
     })
@@ -460,10 +531,12 @@ describe('Finance + HR Integration Tests', () => {
 
       const mockPUT = vi.fn().mockImplementation(async ({ request, params }) => {
         const body = await request.json()
-        
-        const expenseResult = await DBHelper.getMockQuery()('SELECT * FROM expense_requests WHERE id = ?')
+
+        const expenseResult = await DBHelper.getMockQuery()(
+          'SELECT * FROM expense_requests WHERE id = ?',
+        )
         const expense = expenseResult.rows[0]
-        
+
         const updatedExpense = {
           ...expense,
           status: body.status,
@@ -471,21 +544,36 @@ describe('Finance + HR Integration Tests', () => {
           approvedBy: body.approvedBy,
           approvedAt: new Date().toISOString(),
         }
-        
-        await DBHelper.getMockQuery()('UPDATE expense_requests SET status = ?, rejection_reason = ?, approved_by = ?, approved_at = ? WHERE id = ?')
-        
+
+        await DBHelper.getMockQuery()(
+          'UPDATE expense_requests SET status = ?, rejection_reason = ?, approved_by = ?, approved_at = ? WHERE id = ?',
+        )
+
         // No transaction created for rejected expenses
-        
-        return new Response(JSON.stringify({ 
-          success: true, 
-          data: updatedExpense 
-        }), {
-          status: 200,
-          headers: { 'Content-Type': 'application/json' },
-        })
+
+        return new Response(
+          JSON.stringify({
+            success: true,
+            data: updatedExpense,
+          }),
+          {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' },
+          },
+        )
       })
 
-      const response = await mockPUT({ request, url: event.url, params: event.params, locals: event.locals, route: event.route, cookies: event.cookies, fetch: event.fetch, getClientAddress: event.getClientAddress, platform: event.platform })
+      const response = await mockPUT({
+        request,
+        url: event.url,
+        params: event.params,
+        locals: event.locals,
+        route: event.route,
+        cookies: event.cookies,
+        fetch: event.fetch,
+        getClientAddress: event.getClientAddress,
+        platform: event.platform,
+      })
       const responseBody = await getJsonResponseBody(response)
 
       expect(response.status).toBe(200)

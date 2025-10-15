@@ -88,8 +88,8 @@ describe('CRM Customer Queries', () => {
       expect(INSERT_UPDATE_COLUMNS).toContain('ocr_confidence')
     })
 
-    it('총 27개의 컬럼이 있어야 함', () => {
-      expect(INSERT_UPDATE_COLUMNS).toHaveLength(27)
+    it('총 26개의 컬럼이 있어야 함', () => {
+      expect(INSERT_UPDATE_COLUMNS).toHaveLength(26)
     })
   })
 
@@ -123,8 +123,8 @@ describe('CRM Customer Queries', () => {
     it('올바른 플레이스홀더를 생성해야 함', () => {
       const query = buildInsertQuery()
 
-      // 27개 컬럼에 대해 $1부터 $27까지의 플레이스홀더가 있어야 함
-      for (let i = 1; i <= 27; i++) {
+      // 26개 컬럼에 대해 $1부터 $26까지의 플레이스홀더가 있어야 함
+      for (let i = 1; i <= 26; i++) {
         expect(query).toContain(`$${i}`)
       }
     })
@@ -151,7 +151,7 @@ describe('CRM Customer Queries', () => {
       const query = buildUpdateQuery()
 
       expect(query).toContain('UPDATE crm_customers SET')
-      expect(query).toContain('WHERE id = $28') // 27개 컬럼 + 1개 ID = 28번째 파라미터
+      expect(query).toContain('WHERE id = $27') // 26개 컬럼 + 1개 ID = 27번째 파라미터
       expect(query).toContain('updated_at = NOW()')
       expect(query).toContain('RETURNING')
     })

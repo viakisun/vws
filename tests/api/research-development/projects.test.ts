@@ -76,7 +76,17 @@ describe('R&D Projects API', () => {
         })
       })
 
-      const response = await mockGET({ request, url: event.url, params: {}, locals: event.locals, route: event.route, cookies: event.cookies, fetch: event.fetch, getClientAddress: event.getClientAddress, platform: event.platform })
+      const response = await mockGET({
+        request,
+        url: event.url,
+        params: {},
+        locals: event.locals,
+        route: event.route,
+        cookies: event.cookies,
+        fetch: event.fetch,
+        getClientAddress: event.getClientAddress,
+        platform: event.platform,
+      })
       const responseBody = await getJsonResponseBody(response)
 
       expect(response.status).toBe(200)
@@ -105,7 +115,17 @@ describe('R&D Projects API', () => {
         }
       })
 
-      const response = await mockGET({ request, url: event.url, params: {}, locals: event.locals, route: event.route, cookies: event.cookies, fetch: event.fetch, getClientAddress: event.getClientAddress, platform: event.platform })
+      const response = await mockGET({
+        request,
+        url: event.url,
+        params: {},
+        locals: event.locals,
+        route: event.route,
+        cookies: event.cookies,
+        fetch: event.fetch,
+        getClientAddress: event.getClientAddress,
+        platform: event.platform,
+      })
       const responseBody = await getJsonResponseBody(response)
 
       expect(response.status).toBe(500)
@@ -134,7 +154,17 @@ describe('R&D Projects API', () => {
         }
       })
 
-      const response = await mockGET({ request, url: event.url, params: {}, locals: event.locals, route: event.route, cookies: event.cookies, fetch: event.fetch, getClientAddress: event.getClientAddress, platform: event.platform })
+      const response = await mockGET({
+        request,
+        url: event.url,
+        params: {},
+        locals: event.locals,
+        route: event.route,
+        cookies: event.cookies,
+        fetch: event.fetch,
+        getClientAddress: event.getClientAddress,
+        platform: event.platform,
+      })
       const responseBody = await getJsonResponseBody(response)
 
       expect(response.status).toBe(401)
@@ -156,7 +186,17 @@ describe('R&D Projects API', () => {
         })
       })
 
-      const response = await mockGET({ request, url: event.url, params: {}, locals: event.locals, route: event.route, cookies: event.cookies, fetch: event.fetch, getClientAddress: event.getClientAddress, platform: event.platform })
+      const response = await mockGET({
+        request,
+        url: event.url,
+        params: {},
+        locals: event.locals,
+        route: event.route,
+        cookies: event.cookies,
+        fetch: event.fetch,
+        getClientAddress: event.getClientAddress,
+        platform: event.platform,
+      })
       const responseBody = await getJsonResponseBody(response)
 
       expect(response.status).toBe(200)
@@ -202,7 +242,17 @@ describe('R&D Projects API', () => {
         })
       })
 
-      const response = await mockPOST({ request, url: event.url, params: {}, locals: event.locals, route: event.route, cookies: event.cookies, fetch: event.fetch, getClientAddress: event.getClientAddress, platform: event.platform })
+      const response = await mockPOST({
+        request,
+        url: event.url,
+        params: {},
+        locals: event.locals,
+        route: event.route,
+        cookies: event.cookies,
+        fetch: event.fetch,
+        getClientAddress: event.getClientAddress,
+        platform: event.platform,
+      })
       const responseBody = await getJsonResponseBody(response)
 
       expect(response.status).toBe(201)
@@ -225,8 +275,14 @@ describe('R&D Projects API', () => {
 
       mockPOST.mockImplementation(async ({ request }) => {
         const body = await request.json()
-        if (!body.name || !body.description || !body.startDate || !body.endDate || 
-            body.budget <= 0 || !body.projectManager) {
+        if (
+          !body.name ||
+          !body.description ||
+          !body.startDate ||
+          !body.endDate ||
+          body.budget <= 0 ||
+          !body.projectManager
+        ) {
           return new Response(JSON.stringify({ success: false, error: 'Validation failed' }), {
             status: 400,
             headers: { 'Content-Type': 'application/json' },
@@ -238,7 +294,17 @@ describe('R&D Projects API', () => {
         })
       })
 
-      const response = await mockPOST({ request, url: event.url, params: {}, locals: event.locals, route: event.route, cookies: event.cookies, fetch: event.fetch, getClientAddress: event.getClientAddress, platform: event.platform })
+      const response = await mockPOST({
+        request,
+        url: event.url,
+        params: {},
+        locals: event.locals,
+        route: event.route,
+        cookies: event.cookies,
+        fetch: event.fetch,
+        getClientAddress: event.getClientAddress,
+        platform: event.platform,
+      })
       const responseBody = await getJsonResponseBody(response)
 
       expect(response.status).toBe(400)
@@ -272,16 +338,29 @@ describe('R&D Projects API', () => {
           })
         } catch (error) {
           if (error.message.includes('Duplicate')) {
-            return new Response(JSON.stringify({ success: false, error: 'Duplicate project name' }), {
-              status: 409,
-              headers: { 'Content-Type': 'application/json' },
-            })
+            return new Response(
+              JSON.stringify({ success: false, error: 'Duplicate project name' }),
+              {
+                status: 409,
+                headers: { 'Content-Type': 'application/json' },
+              },
+            )
           }
           throw error
         }
       })
 
-      const response = await mockPOST({ request, url: event.url, params: {}, locals: event.locals, route: event.route, cookies: event.cookies, fetch: event.fetch, getClientAddress: event.getClientAddress, platform: event.platform })
+      const response = await mockPOST({
+        request,
+        url: event.url,
+        params: {},
+        locals: event.locals,
+        route: event.route,
+        cookies: event.cookies,
+        fetch: event.fetch,
+        getClientAddress: event.getClientAddress,
+        platform: event.platform,
+      })
       const responseBody = await getJsonResponseBody(response)
 
       expect(response.status).toBe(409)
@@ -321,7 +400,17 @@ describe('R&D Projects API', () => {
         }
       })
 
-      const response = await mockPOST({ request, url: event.url, params: {}, locals: event.locals, route: event.route, cookies: event.cookies, fetch: event.fetch, getClientAddress: event.getClientAddress, platform: event.platform })
+      const response = await mockPOST({
+        request,
+        url: event.url,
+        params: {},
+        locals: event.locals,
+        route: event.route,
+        cookies: event.cookies,
+        fetch: event.fetch,
+        getClientAddress: event.getClientAddress,
+        platform: event.platform,
+      })
       const responseBody = await getJsonResponseBody(response)
 
       expect(response.status).toBe(500)
@@ -367,7 +456,17 @@ describe('R&D Projects API', () => {
         })
       })
 
-      const response = await mockPOST({ request, url: event.url, params: {}, locals: event.locals, route: event.route, cookies: event.cookies, fetch: event.fetch, getClientAddress: event.getClientAddress, platform: event.platform })
+      const response = await mockPOST({
+        request,
+        url: event.url,
+        params: {},
+        locals: event.locals,
+        route: event.route,
+        cookies: event.cookies,
+        fetch: event.fetch,
+        getClientAddress: event.getClientAddress,
+        platform: event.platform,
+      })
       const responseBody = await getJsonResponseBody(response)
 
       expect(response.status).toBe(201)
@@ -411,7 +510,17 @@ describe('R&D Projects API', () => {
         })
       })
 
-      const response = await mockPOST({ request, url: event.url, params: {}, locals: event.locals, route: event.route, cookies: event.cookies, fetch: event.fetch, getClientAddress: event.getClientAddress, platform: event.platform })
+      const response = await mockPOST({
+        request,
+        url: event.url,
+        params: {},
+        locals: event.locals,
+        route: event.route,
+        cookies: event.cookies,
+        fetch: event.fetch,
+        getClientAddress: event.getClientAddress,
+        platform: event.platform,
+      })
       const responseBody = await getJsonResponseBody(response)
 
       expect(response.status).toBe(201)
@@ -455,7 +564,17 @@ describe('R&D Projects API', () => {
         })
       })
 
-      const response = await mockPOST({ request, url: event.url, params: {}, locals: event.locals, route: event.route, cookies: event.cookies, fetch: event.fetch, getClientAddress: event.getClientAddress, platform: event.platform })
+      const response = await mockPOST({
+        request,
+        url: event.url,
+        params: {},
+        locals: event.locals,
+        route: event.route,
+        cookies: event.cookies,
+        fetch: event.fetch,
+        getClientAddress: event.getClientAddress,
+        platform: event.platform,
+      })
       const responseBody = await getJsonResponseBody(response)
 
       expect(response.status).toBe(201)

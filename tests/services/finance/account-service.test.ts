@@ -8,7 +8,6 @@ import type {
   UpdateAccountRequest,
 } from '$lib/finance/types'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { mockLogger } from '../../helpers/mock-helper'
 
 // Mock fetch globally
 global.fetch = vi.fn()
@@ -18,7 +17,6 @@ describe('Finance Account Service', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
-    mockLogger()
     accountService = new AccountService()
   })
 

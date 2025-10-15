@@ -141,7 +141,7 @@ export function mapCustomerData(data: any): any[] {
     data.business_registration_s3_key || null,
     data.bank_account_s3_key || null,
     data.establishment_date || null,
-    data.corporation_status || null,
+    data.corporation_status ?? null,
     data.business_entity_type || null, // 사업자 유형
     data.business_type || null,
     data.business_category || null,

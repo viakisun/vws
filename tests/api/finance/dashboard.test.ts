@@ -68,7 +68,9 @@ describe('Finance Dashboard API', () => {
 
       mockGET.mockImplementation(async ({ request }) => {
         // Simulate dashboard data aggregation
-        const totalBalance = await DBHelper.getMockQuery()('SELECT SUM(balance) as total FROM accounts')
+        const totalBalance = await DBHelper.getMockQuery()(
+          'SELECT SUM(balance) as total FROM accounts',
+        )
         const accounts = await DBHelper.getMockQuery()('SELECT * FROM accounts')
         const transactions = await DBHelper.getMockQuery()('SELECT * FROM transactions')
 
@@ -80,7 +82,17 @@ describe('Finance Dashboard API', () => {
         })
       })
 
-      const response = await mockGET({ request, url: event.url, params: {}, locals: event.locals, route: event.route, cookies: event.cookies, fetch: event.fetch, getClientAddress: event.getClientAddress, platform: event.platform })
+      const response = await mockGET({
+        request,
+        url: event.url,
+        params: {},
+        locals: event.locals,
+        route: event.route,
+        cookies: event.cookies,
+        fetch: event.fetch,
+        getClientAddress: event.getClientAddress,
+        platform: event.platform,
+      })
       const responseBody = await getJsonResponseBody(response)
 
       expect(response.status).toBe(200)
@@ -102,14 +114,27 @@ describe('Finance Dashboard API', () => {
             headers: { 'Content-Type': 'application/json' },
           })
         } catch (error) {
-          return new Response(JSON.stringify({ success: false, error: 'Failed to fetch dashboard data' }), {
-            status: 500,
-            headers: { 'Content-Type': 'application/json' },
-          })
+          return new Response(
+            JSON.stringify({ success: false, error: 'Failed to fetch dashboard data' }),
+            {
+              status: 500,
+              headers: { 'Content-Type': 'application/json' },
+            },
+          )
         }
       })
 
-      const response = await mockGET({ request, url: event.url, params: {}, locals: event.locals, route: event.route, cookies: event.cookies, fetch: event.fetch, getClientAddress: event.getClientAddress, platform: event.platform })
+      const response = await mockGET({
+        request,
+        url: event.url,
+        params: {},
+        locals: event.locals,
+        route: event.route,
+        cookies: event.cookies,
+        fetch: event.fetch,
+        getClientAddress: event.getClientAddress,
+        platform: event.platform,
+      })
       const responseBody = await getJsonResponseBody(response)
 
       expect(response.status).toBe(500)
@@ -138,7 +163,17 @@ describe('Finance Dashboard API', () => {
         }
       })
 
-      const response = await mockGET({ request, url: event.url, params: {}, locals: event.locals, route: event.route, cookies: event.cookies, fetch: event.fetch, getClientAddress: event.getClientAddress, platform: event.platform })
+      const response = await mockGET({
+        request,
+        url: event.url,
+        params: {},
+        locals: event.locals,
+        route: event.route,
+        cookies: event.cookies,
+        fetch: event.fetch,
+        getClientAddress: event.getClientAddress,
+        platform: event.platform,
+      })
       const responseBody = await getJsonResponseBody(response)
 
       expect(response.status).toBe(401)
@@ -177,7 +212,9 @@ describe('Finance Dashboard API', () => {
       const event = createMockEvent(request)
 
       mockGET.mockImplementation(async ({ request }) => {
-        const totalBalance = await DBHelper.getMockQuery()('SELECT SUM(balance) as total FROM accounts')
+        const totalBalance = await DBHelper.getMockQuery()(
+          'SELECT SUM(balance) as total FROM accounts',
+        )
         const accounts = await DBHelper.getMockQuery()('SELECT * FROM accounts')
         const transactions = await DBHelper.getMockQuery()('SELECT * FROM transactions')
 
@@ -189,7 +226,17 @@ describe('Finance Dashboard API', () => {
         })
       })
 
-      const response = await mockGET({ request, url: event.url, params: {}, locals: event.locals, route: event.route, cookies: event.cookies, fetch: event.fetch, getClientAddress: event.getClientAddress, platform: event.platform })
+      const response = await mockGET({
+        request,
+        url: event.url,
+        params: {},
+        locals: event.locals,
+        route: event.route,
+        cookies: event.cookies,
+        fetch: event.fetch,
+        getClientAddress: event.getClientAddress,
+        platform: event.platform,
+      })
       const responseBody = await getJsonResponseBody(response)
 
       expect(response.status).toBe(200)
@@ -230,7 +277,9 @@ describe('Finance Dashboard API', () => {
       const event = createMockEvent(request)
 
       mockGET.mockImplementation(async ({ request }) => {
-        const totalBalance = await DBHelper.getMockQuery()('SELECT SUM(balance) as total FROM accounts')
+        const totalBalance = await DBHelper.getMockQuery()(
+          'SELECT SUM(balance) as total FROM accounts',
+        )
         const accounts = await DBHelper.getMockQuery()('SELECT * FROM accounts')
         const transactions = await DBHelper.getMockQuery()('SELECT * FROM transactions')
 
@@ -242,7 +291,17 @@ describe('Finance Dashboard API', () => {
         })
       })
 
-      const response = await mockGET({ request, url: event.url, params: {}, locals: event.locals, route: event.route, cookies: event.cookies, fetch: event.fetch, getClientAddress: event.getClientAddress, platform: event.platform })
+      const response = await mockGET({
+        request,
+        url: event.url,
+        params: {},
+        locals: event.locals,
+        route: event.route,
+        cookies: event.cookies,
+        fetch: event.fetch,
+        getClientAddress: event.getClientAddress,
+        platform: event.platform,
+      })
       const responseBody = await getJsonResponseBody(response)
 
       expect(response.status).toBe(200)
@@ -260,11 +319,15 @@ describe('Finance Dashboard API', () => {
           { id: 'account-1', name: '대형은행', balance: 999999999999, type: 'checking' },
         ],
         recentTransactions: [
-          { id: 'tx-1', description: '대규모 거래', amount: 500000000000, type: 'income', date: '2023-10-26' },
+          {
+            id: 'tx-1',
+            description: '대규모 거래',
+            amount: 500000000000,
+            type: 'income',
+            date: '2023-10-26',
+          },
         ],
-        monthlyTrends: [
-          { month: '2023-10', income: 500000000000, expense: 300000000000 },
-        ],
+        monthlyTrends: [{ month: '2023-10', income: 500000000000, expense: 300000000000 }],
         alerts: [],
       }
 
@@ -287,7 +350,9 @@ describe('Finance Dashboard API', () => {
       const event = createMockEvent(request)
 
       mockGET.mockImplementation(async ({ request }) => {
-        const totalBalance = await DBHelper.getMockQuery()('SELECT SUM(balance) as total FROM accounts')
+        const totalBalance = await DBHelper.getMockQuery()(
+          'SELECT SUM(balance) as total FROM accounts',
+        )
         const accounts = await DBHelper.getMockQuery()('SELECT * FROM accounts')
         const transactions = await DBHelper.getMockQuery()('SELECT * FROM transactions')
 
@@ -299,7 +364,17 @@ describe('Finance Dashboard API', () => {
         })
       })
 
-      const response = await mockGET({ request, url: event.url, params: {}, locals: event.locals, route: event.route, cookies: event.cookies, fetch: event.fetch, getClientAddress: event.getClientAddress, platform: event.platform })
+      const response = await mockGET({
+        request,
+        url: event.url,
+        params: {},
+        locals: event.locals,
+        route: event.route,
+        cookies: event.cookies,
+        fetch: event.fetch,
+        getClientAddress: event.getClientAddress,
+        platform: event.platform,
+      })
       const responseBody = await getJsonResponseBody(response)
 
       expect(response.status).toBe(200)
@@ -329,7 +404,9 @@ describe('Finance Dashboard API', () => {
       const event = createMockEvent(request)
 
       mockGET.mockImplementation(async ({ request }) => {
-        const totalBalance = await DBHelper.getMockQuery()('SELECT SUM(balance) as total FROM accounts')
+        const totalBalance = await DBHelper.getMockQuery()(
+          'SELECT SUM(balance) as total FROM accounts',
+        )
         const accounts = await DBHelper.getMockQuery()('SELECT * FROM accounts')
         const transactions = await DBHelper.getMockQuery()('SELECT * FROM transactions')
 
@@ -338,12 +415,15 @@ describe('Finance Dashboard API', () => {
           monthlyIncome: 0,
           monthlyExpense: 0,
           monthlyNet: 0,
-          accountSummaries: accounts.rows.length > 0 ? accounts.rows.map(acc => ({
-            id: acc.id || '',
-            name: acc.name || 'Unknown',
-            balance: acc.balance || 0,
-            type: acc.type || 'checking',
-          })) : [],
+          accountSummaries:
+            accounts.rows.length > 0
+              ? accounts.rows.map((acc) => ({
+                  id: acc.id || '',
+                  name: acc.name || 'Unknown',
+                  balance: acc.balance || 0,
+                  type: acc.type || 'checking',
+                }))
+              : [],
           recentTransactions: [],
           monthlyTrends: [],
           alerts: [],
@@ -355,7 +435,17 @@ describe('Finance Dashboard API', () => {
         })
       })
 
-      const response = await mockGET({ request, url: event.url, params: {}, locals: event.locals, route: event.route, cookies: event.cookies, fetch: event.fetch, getClientAddress: event.getClientAddress, platform: event.platform })
+      const response = await mockGET({
+        request,
+        url: event.url,
+        params: {},
+        locals: event.locals,
+        route: event.route,
+        cookies: event.cookies,
+        fetch: event.fetch,
+        getClientAddress: event.getClientAddress,
+        platform: event.platform,
+      })
       const responseBody = await getJsonResponseBody(response)
 
       expect(response.status).toBe(200)
@@ -378,7 +468,9 @@ describe('Finance Dashboard API', () => {
 
       mockGET.mockImplementation(async ({ request }) => {
         try {
-          const totalBalance = await DBHelper.getMockQuery()('SELECT SUM(balance) as total FROM accounts')
+          const totalBalance = await DBHelper.getMockQuery()(
+            'SELECT SUM(balance) as total FROM accounts',
+          )
           if (totalBalance.rows.length === 0) {
             throw new Error('No data returned')
           }
@@ -387,14 +479,27 @@ describe('Finance Dashboard API', () => {
             headers: { 'Content-Type': 'application/json' },
           })
         } catch (error) {
-          return new Response(JSON.stringify({ success: false, error: 'No dashboard data available' }), {
-            status: 404,
-            headers: { 'Content-Type': 'application/json' },
-          })
+          return new Response(
+            JSON.stringify({ success: false, error: 'No dashboard data available' }),
+            {
+              status: 404,
+              headers: { 'Content-Type': 'application/json' },
+            },
+          )
         }
       })
 
-      const response = await mockGET({ request, url: event.url, params: {}, locals: event.locals, route: event.route, cookies: event.cookies, fetch: event.fetch, getClientAddress: event.getClientAddress, platform: event.platform })
+      const response = await mockGET({
+        request,
+        url: event.url,
+        params: {},
+        locals: event.locals,
+        route: event.route,
+        cookies: event.cookies,
+        fetch: event.fetch,
+        getClientAddress: event.getClientAddress,
+        platform: event.platform,
+      })
       const responseBody = await getJsonResponseBody(response)
 
       expect(response.status).toBe(404)

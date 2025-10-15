@@ -49,7 +49,17 @@ describe('Finance Transactions API', () => {
         })
       })
 
-      const response = await mockGET({ request, url: event.url, params: {}, locals: event.locals, route: event.route, cookies: event.cookies, fetch: event.fetch, getClientAddress: event.getClientAddress, platform: event.platform })
+      const response = await mockGET({
+        request,
+        url: event.url,
+        params: {},
+        locals: event.locals,
+        route: event.route,
+        cookies: event.cookies,
+        fetch: event.fetch,
+        getClientAddress: event.getClientAddress,
+        platform: event.platform,
+      })
       const responseBody = await getJsonResponseBody(response)
 
       expect(response.status).toBe(200)
@@ -78,7 +88,17 @@ describe('Finance Transactions API', () => {
         }
       })
 
-      const response = await mockGET({ request, url: event.url, params: {}, locals: event.locals, route: event.route, cookies: event.cookies, fetch: event.fetch, getClientAddress: event.getClientAddress, platform: event.platform })
+      const response = await mockGET({
+        request,
+        url: event.url,
+        params: {},
+        locals: event.locals,
+        route: event.route,
+        cookies: event.cookies,
+        fetch: event.fetch,
+        getClientAddress: event.getClientAddress,
+        platform: event.platform,
+      })
       const responseBody = await getJsonResponseBody(response)
 
       expect(response.status).toBe(500)
@@ -107,7 +127,17 @@ describe('Finance Transactions API', () => {
         }
       })
 
-      const response = await mockGET({ request, url: event.url, params: {}, locals: event.locals, route: event.route, cookies: event.cookies, fetch: event.fetch, getClientAddress: event.getClientAddress, platform: event.platform })
+      const response = await mockGET({
+        request,
+        url: event.url,
+        params: {},
+        locals: event.locals,
+        route: event.route,
+        cookies: event.cookies,
+        fetch: event.fetch,
+        getClientAddress: event.getClientAddress,
+        platform: event.platform,
+      })
       const responseBody = await getJsonResponseBody(response)
 
       expect(response.status).toBe(401)
@@ -129,7 +159,17 @@ describe('Finance Transactions API', () => {
         })
       })
 
-      const response = await mockGET({ request, url: event.url, params: {}, locals: event.locals, route: event.route, cookies: event.cookies, fetch: event.fetch, getClientAddress: event.getClientAddress, platform: event.platform })
+      const response = await mockGET({
+        request,
+        url: event.url,
+        params: {},
+        locals: event.locals,
+        route: event.route,
+        cookies: event.cookies,
+        fetch: event.fetch,
+        getClientAddress: event.getClientAddress,
+        platform: event.platform,
+      })
       const responseBody = await getJsonResponseBody(response)
 
       expect(response.status).toBe(200)
@@ -171,7 +211,17 @@ describe('Finance Transactions API', () => {
         })
       })
 
-      const response = await mockPOST({ request, url: event.url, params: {}, locals: event.locals, route: event.route, cookies: event.cookies, fetch: event.fetch, getClientAddress: event.getClientAddress, platform: event.platform })
+      const response = await mockPOST({
+        request,
+        url: event.url,
+        params: {},
+        locals: event.locals,
+        route: event.route,
+        cookies: event.cookies,
+        fetch: event.fetch,
+        getClientAddress: event.getClientAddress,
+        platform: event.platform,
+      })
       const responseBody = await getJsonResponseBody(response)
 
       expect(response.status).toBe(201)
@@ -191,7 +241,11 @@ describe('Finance Transactions API', () => {
 
       mockPOST.mockImplementation(async ({ request }) => {
         const body = await request.json()
-        if (!body.accountId || body.amount <= 0 || !['income', 'expense', 'transfer'].includes(body.type)) {
+        if (
+          !body.accountId ||
+          body.amount <= 0 ||
+          !['income', 'expense', 'transfer'].includes(body.type)
+        ) {
           return new Response(JSON.stringify({ success: false, error: 'Validation failed' }), {
             status: 400,
             headers: { 'Content-Type': 'application/json' },
@@ -203,7 +257,17 @@ describe('Finance Transactions API', () => {
         })
       })
 
-      const response = await mockPOST({ request, url: event.url, params: {}, locals: event.locals, route: event.route, cookies: event.cookies, fetch: event.fetch, getClientAddress: event.getClientAddress, platform: event.platform })
+      const response = await mockPOST({
+        request,
+        url: event.url,
+        params: {},
+        locals: event.locals,
+        route: event.route,
+        cookies: event.cookies,
+        fetch: event.fetch,
+        getClientAddress: event.getClientAddress,
+        platform: event.platform,
+      })
       const responseBody = await getJsonResponseBody(response)
 
       expect(response.status).toBe(400)
@@ -244,7 +308,17 @@ describe('Finance Transactions API', () => {
         }
       })
 
-      const response = await mockPOST({ request, url: event.url, params: {}, locals: event.locals, route: event.route, cookies: event.cookies, fetch: event.fetch, getClientAddress: event.getClientAddress, platform: event.platform })
+      const response = await mockPOST({
+        request,
+        url: event.url,
+        params: {},
+        locals: event.locals,
+        route: event.route,
+        cookies: event.cookies,
+        fetch: event.fetch,
+        getClientAddress: event.getClientAddress,
+        platform: event.platform,
+      })
       const responseBody = await getJsonResponseBody(response)
 
       expect(response.status).toBe(404)
@@ -282,7 +356,17 @@ describe('Finance Transactions API', () => {
         }
       })
 
-      const response = await mockPOST({ request, url: event.url, params: {}, locals: event.locals, route: event.route, cookies: event.cookies, fetch: event.fetch, getClientAddress: event.getClientAddress, platform: event.platform })
+      const response = await mockPOST({
+        request,
+        url: event.url,
+        params: {},
+        locals: event.locals,
+        route: event.route,
+        cookies: event.cookies,
+        fetch: event.fetch,
+        getClientAddress: event.getClientAddress,
+        platform: event.platform,
+      })
       const responseBody = await getJsonResponseBody(response)
 
       expect(response.status).toBe(500)
@@ -317,7 +401,17 @@ describe('Finance Transactions API', () => {
         })
       })
 
-      const response = await mockGET({ request, url: event.url, params: {}, locals: event.locals, route: event.route, cookies: event.cookies, fetch: event.fetch, getClientAddress: event.getClientAddress, platform: event.platform })
+      const response = await mockGET({
+        request,
+        url: event.url,
+        params: {},
+        locals: event.locals,
+        route: event.route,
+        cookies: event.cookies,
+        fetch: event.fetch,
+        getClientAddress: event.getClientAddress,
+        platform: event.platform,
+      })
       const responseBody = await getJsonResponseBody(response)
 
       expect(response.status).toBe(200)
@@ -339,14 +433,27 @@ describe('Finance Transactions API', () => {
             headers: { 'Content-Type': 'application/json' },
           })
         } catch (error) {
-          return new Response(JSON.stringify({ success: false, error: 'Stats calculation failed' }), {
-            status: 500,
-            headers: { 'Content-Type': 'application/json' },
-          })
+          return new Response(
+            JSON.stringify({ success: false, error: 'Stats calculation failed' }),
+            {
+              status: 500,
+              headers: { 'Content-Type': 'application/json' },
+            },
+          )
         }
       })
 
-      const response = await mockGET({ request, url: event.url, params: {}, locals: event.locals, route: event.route, cookies: event.cookies, fetch: event.fetch, getClientAddress: event.getClientAddress, platform: event.platform })
+      const response = await mockGET({
+        request,
+        url: event.url,
+        params: {},
+        locals: event.locals,
+        route: event.route,
+        cookies: event.cookies,
+        fetch: event.fetch,
+        getClientAddress: event.getClientAddress,
+        platform: event.platform,
+      })
       const responseBody = await getJsonResponseBody(response)
 
       expect(response.status).toBe(500)
@@ -387,7 +494,17 @@ describe('Finance Transactions API', () => {
         })
       })
 
-      const response = await mockPOST({ request, url: event.url, params: {}, locals: event.locals, route: event.route, cookies: event.cookies, fetch: event.fetch, getClientAddress: event.getClientAddress, platform: event.platform })
+      const response = await mockPOST({
+        request,
+        url: event.url,
+        params: {},
+        locals: event.locals,
+        route: event.route,
+        cookies: event.cookies,
+        fetch: event.fetch,
+        getClientAddress: event.getClientAddress,
+        platform: event.platform,
+      })
       const responseBody = await getJsonResponseBody(response)
 
       expect(response.status).toBe(201)
@@ -426,7 +543,17 @@ describe('Finance Transactions API', () => {
         })
       })
 
-      const response = await mockPOST({ request, url: event.url, params: {}, locals: event.locals, route: event.route, cookies: event.cookies, fetch: event.fetch, getClientAddress: event.getClientAddress, platform: event.platform })
+      const response = await mockPOST({
+        request,
+        url: event.url,
+        params: {},
+        locals: event.locals,
+        route: event.route,
+        cookies: event.cookies,
+        fetch: event.fetch,
+        getClientAddress: event.getClientAddress,
+        platform: event.platform,
+      })
       const responseBody = await getJsonResponseBody(response)
 
       expect(response.status).toBe(201)
@@ -465,7 +592,17 @@ describe('Finance Transactions API', () => {
         })
       })
 
-      const response = await mockPOST({ request, url: event.url, params: {}, locals: event.locals, route: event.route, cookies: event.cookies, fetch: event.fetch, getClientAddress: event.getClientAddress, platform: event.platform })
+      const response = await mockPOST({
+        request,
+        url: event.url,
+        params: {},
+        locals: event.locals,
+        route: event.route,
+        cookies: event.cookies,
+        fetch: event.fetch,
+        getClientAddress: event.getClientAddress,
+        platform: event.platform,
+      })
       const responseBody = await getJsonResponseBody(response)
 
       expect(response.status).toBe(201)

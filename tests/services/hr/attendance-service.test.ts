@@ -1,3 +1,4 @@
+import { query } from '$lib/database/connection'
 import type { AttendanceRecord } from '$lib/services/attendance/attendance-service'
 import {
   ATTENDANCE_ERRORS,
@@ -10,7 +11,22 @@ import {
 } from '$lib/services/attendance/attendance-service'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { DBHelper } from '../../helpers/db-helper'
-import { mockLogger } from '../../helpers/mock-helper'
+
+// Mock logger
+vi.mock('$lib/utils/logger', () => ({
+  logger: {
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    debug: vi.fn(),
+    log: vi.fn(),
+  },
+}))
+
+// Mock database connection
+vi.mock('$lib/database/connection', () => ({
+  query: vi.fn(),
+}))
 
 // Mock holidays utility
 vi.mock('$lib/utils/holidays', () => ({
@@ -24,8 +40,11 @@ vi.mock('$lib/utils/holidays', () => ({
 describe('Attendance Service', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    mockLogger()
     DBHelper.reset()
+
+    // Setup mock query
+    const mockQuery = DBHelper.setupMockQuery()
+    vi.mocked(query).mockImplementation(mockQuery)
   })
 
   describe('fetchAttendanceData', () => {
@@ -96,33 +115,13 @@ describe('Attendance Service', () => {
         total_overtime_hours: 8,
       }
 
-      DBHelper.mockQueryResponse(
-        'SELECT id, DATE(check_in_time)::text as date, check_in_time::text as check_in_time, check_out_time::text as check_out_time, break_start_time::text as break_start_time, break_end_time::text as break_end_time, total_work_hours, overtime_hours, status, notes FROM attendance WHERE employee_id = $1 AND DATE(check_in_time) = $2::date',
-        {
-          rows: [mockTodayRecord],
-        },
-      )
-
-      DBHelper.mockQueryResponse(
-        'SELECT DATE(check_in_time)::text as date, check_in_time::text as check_in_time, check_out_time::text as check_out_time, total_work_hours, overtime_hours, status FROM attendance WHERE employee_id = $1 AND DATE(check_in_time) >= $2::date AND DATE(check_in_time) <= $3::date ORDER BY DATE(check_in_time) DESC',
-        {
-          rows: mockWeekRecords,
-        },
-      )
-
-      DBHelper.mockQueryResponse(
-        "SELECT COUNT(*) as total_days, COUNT(CASE WHEN check_in_time IS NOT NULL THEN 1 END) as work_days, COUNT(CASE WHEN status = 'late' THEN 1 END) as late_days, COUNT(CASE WHEN status = 'early_leave' THEN 1 END) as early_leave_days, COALESCE(SUM(total_work_hours), 0) as total_work_hours, COALESCE(SUM(overtime_hours), 0) as total_overtime_hours FROM attendance WHERE employee_id = $1 AND DATE(check_in_time) >= $2::date AND DATE(check_in_time) <= $3::date",
-        {
-          rows: [mockStats],
-        },
-      )
-
-      DBHelper.mockQueryResponse(
-        'SELECT DATE(check_in_time)::text as date_str, check_in_time::text as check_in_time, check_out_time::text as check_out_time, total_work_hours, status FROM attendance WHERE employee_id = $1 AND DATE(check_in_time) >= $2::date AND DATE(check_in_time) <= $3::date ORDER BY DATE(check_in_time) ASC',
-        {
-          rows: mockMonthRecords,
-        },
-      )
+      // Mock database responses in sequence
+      const mockQuery = DBHelper.setupMockQuery()
+      mockQuery
+        .mockResolvedValueOnce({ rows: [mockTodayRecord] }) // First query: today's record
+        .mockResolvedValueOnce({ rows: mockWeekRecords }) // Second query: week records
+        .mockResolvedValueOnce({ rows: [mockStats] }) // Third query: stats
+        .mockResolvedValueOnce({ rows: mockMonthRecords }) // Fourth query: month records
 
       const result = await fetchAttendanceData('employee-1', '2025-01-15')
 

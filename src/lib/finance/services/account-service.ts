@@ -30,7 +30,10 @@ export class AccountService {
       if (filter?.isPrimary !== undefined) params.append('isPrimary', filter.isPrimary.toString())
       if (filter?.search) params.append('search', filter.search)
 
-      const response = await fetch(`${this.baseUrl}/accounts?${params}`)
+      const url = params.toString()
+        ? `${this.baseUrl}/accounts?${params}`
+        : `${this.baseUrl}/accounts`
+      const response = await fetch(url)
       const result = (await response.json()) as ApiResponse<Account[]>
 
       if (!result.success || !result.data) {
@@ -143,7 +146,10 @@ export class AccountService {
       if (startDate) params.append('startDate', startDate)
       if (endDate) params.append('endDate', endDate)
 
-      const response = await fetch(`${this.baseUrl}/accounts/${accountId}/summary?${params}`)
+      const url = params.toString()
+        ? `${this.baseUrl}/accounts/${accountId}/summary?${params}`
+        : `${this.baseUrl}/accounts/${accountId}/summary`
+      const response = await fetch(url)
       const result = (await response.json()) as ApiResponse<AccountSummary>
 
       if (!result.success || !result.data) {

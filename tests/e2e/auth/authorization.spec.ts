@@ -59,7 +59,7 @@ test.describe('권한 기반 접근 제어', () => {
 
     test('관리자는 시스템 설정에 접근 가능', async ({ page }) => {
       await page.goto('/settings')
-      
+
       // 시스템 설정 섹션 확인
       await expect(page.getByRole('heading', { name: '시스템 설정' })).toBeVisible()
       await expect(page.getByRole('button', { name: '사용자 관리' })).toBeVisible()
@@ -98,12 +98,12 @@ test.describe('권한 기반 접근 제어', () => {
 
     test('매니저는 시스템 설정에 제한적 접근', async ({ page }) => {
       await page.goto('/settings')
-      
+
       // 기본 설정은 볼 수 있지만 시스템 설정은 볼 수 없음
       await expect(page.getByRole('heading', { name: '설정' })).toBeVisible()
       await expect(page.getByRole('button', { name: '프로필 설정' })).toBeVisible()
       await expect(page.getByRole('button', { name: '알림 설정' })).toBeVisible()
-      
+
       // 시스템 설정은 접근 불가
       await expect(page.getByRole('heading', { name: '시스템 설정' })).toBeHidden()
     })
@@ -148,11 +148,11 @@ test.describe('권한 기반 접근 제어', () => {
 
     test('직원은 설정 페이지에 제한적 접근', async ({ page }) => {
       await page.goto('/settings')
-      
+
       // 프로필 설정만 접근 가능
       await expect(page.getByRole('heading', { name: '프로필 설정' })).toBeVisible()
       await expect(page.getByRole('button', { name: '프로필 편집' })).toBeVisible()
-      
+
       // 다른 설정 섹션은 접근 불가
       await expect(page.getByRole('heading', { name: '알림 설정' })).toBeHidden()
       await expect(page.getByRole('heading', { name: '시스템 설정' })).toBeHidden()
@@ -160,7 +160,7 @@ test.describe('권한 기반 접근 제어', () => {
 
     test('직원은 인사 관리 페이지에 접근 불가', async ({ page }) => {
       await page.goto('/hr')
-      
+
       // 접근 거부 메시지 표시
       await expect(page.getByText('접근 권한이 없습니다')).toBeVisible()
       await expect(page.getByRole('heading', { name: '인사 관리' })).toBeHidden()
@@ -184,7 +184,7 @@ test.describe('권한 기반 접근 제어', () => {
     test('만료된 토큰으로 접근 시도', async ({ page }) => {
       // 만료된 토큰을 가진 상태로 페이지 접근 시뮬레이션
       await page.goto('/dashboard')
-      
+
       // 로그인 페이지로 리디렉션
       await expect(page).toHaveURL('/login')
       await expect(page.getByText('세션이 만료되었습니다')).toBeVisible()

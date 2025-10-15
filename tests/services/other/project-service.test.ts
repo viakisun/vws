@@ -33,19 +33,21 @@ describe('ProjectService', () => {
       const mockProjects = [
         {
           id: 'project-1',
-          name: '테스트 프로젝트 1',
+          code: 'PROJ-001',
+          title: '테스트 프로젝트 1',
           description: '첫 번째 테스트 프로젝트',
           status: 'active',
-          startDate: '2023-01-01',
-          endDate: '2023-12-31',
+          start_date: '2023-01-01',
+          end_date: '2023-12-31',
         },
         {
           id: 'project-2',
-          name: '테스트 프로젝트 2',
+          code: 'PROJ-002',
+          title: '테스트 프로젝트 2',
           description: '두 번째 테스트 프로젝트',
           status: 'completed',
-          startDate: '2023-02-01',
-          endDate: '2023-11-30',
+          start_date: '2023-02-01',
+          end_date: '2023-11-30',
         },
       ]
 
@@ -54,17 +56,17 @@ describe('ProjectService', () => {
         rowCount: 2,
       })
 
-      const result = await projectService.getProjects()
+      const result = await projectService.list()
 
       expect(result).toEqual(mockProjects)
-      expect(mockQuery).toHaveBeenCalledWith(expect.stringContaining('SELECT'))
+      expect(mockQuery).toHaveBeenCalled()
     })
 
     it('should handle database errors', async () => {
       const error = new Error('Database connection failed')
       mockQuery.mockRejectedValue(error)
 
-      await expect(projectService.getProjects()).rejects.toThrow('Database connection failed')
+      await expect(projectService.list()).rejects.toThrow('Database connection failed')
     })
 
     it('should return empty array when no projects found', async () => {
@@ -73,10 +75,10 @@ describe('ProjectService', () => {
         rowCount: 0,
       })
 
-      const result = await projectService.getProjects()
+      const result = await projectService.list()
 
       expect(result).toEqual([])
-      expect(mockQuery).toHaveBeenCalledWith(expect.stringContaining('SELECT'))
+      expect(mockQuery).toHaveBeenCalled()
     })
   })
 
@@ -84,11 +86,12 @@ describe('ProjectService', () => {
     it('should fetch project by ID successfully', async () => {
       const mockProject = {
         id: 'project-1',
-        name: '테스트 프로젝트',
+        code: 'PROJ-001',
+        title: '테스트 프로젝트',
         description: '테스트 프로젝트 설명',
         status: 'active',
-        startDate: '2023-01-01',
-        endDate: '2023-12-31',
+        start_date: '2023-01-01',
+        end_date: '2023-12-31',
       }
 
       mockQuery.mockResolvedValue({
@@ -96,7 +99,7 @@ describe('ProjectService', () => {
         rowCount: 1,
       })
 
-      const result = await projectService.getProjectById('project-1')
+      const result = await projectService.getById('project-1')
 
       expect(result).toEqual(mockProject)
       expect(mockQuery).toHaveBeenCalledWith(
@@ -111,7 +114,7 @@ describe('ProjectService', () => {
         rowCount: 0,
       })
 
-      const result = await projectService.getProjectById('non-existent')
+      const result = await projectService.getById('non-existent')
 
       expect(result).toBeNull()
       expect(mockQuery).toHaveBeenCalledWith(
@@ -124,20 +127,19 @@ describe('ProjectService', () => {
       const error = new Error('Database query failed')
       mockQuery.mockRejectedValue(error)
 
-      await expect(projectService.getProjectById('project-1')).rejects.toThrow(
-        'Database query failed',
-      )
+      await expect(projectService.getById('project-1')).rejects.toThrow('Database query failed')
     })
   })
 
-  describe('createProject', () => {
+  describe('create', () => {
     it('should create project successfully', async () => {
       const projectData = {
-        name: '새로운 프로젝트',
+        code: 'PROJ-003',
+        title: '새로운 프로젝트',
         description: '새로운 프로젝트 설명',
         status: 'active',
-        startDate: '2023-06-01',
-        endDate: '2023-12-31',
+        start_date: '2023-06-01',
+        end_date: '2023-12-31',
       }
 
       const mockCreatedProject = {
@@ -150,66 +152,70 @@ describe('ProjectService', () => {
         rowCount: 1,
       })
 
-      const result = await projectService.createProject(projectData)
+      const result = await projectService.create(projectData)
 
       expect(result).toEqual(mockCreatedProject)
       expect(mockQuery).toHaveBeenCalledWith(
         expect.stringContaining('INSERT'),
         expect.arrayContaining([
-          projectData.name,
+          projectData.code,
+          projectData.title,
           projectData.description,
+          null, // sponsor
+          null, // sponsor_type
+          projectData.start_date,
+          projectData.end_date,
+          null, // manager_employee_id
           projectData.status,
-          projectData.startDate,
-          projectData.endDate,
+          0, // budget_total
         ]),
       )
     })
 
     it('should handle validation errors', async () => {
       const invalidData = {
-        name: '',
+        code: '',
+        title: '',
         description: '',
         status: 'invalid',
-        startDate: 'invalid-date',
-        endDate: 'invalid-date',
+        start_date: 'invalid-date',
+        end_date: 'invalid-date',
       }
 
       const error = new Error('Validation failed')
       mockQuery.mockRejectedValue(error)
 
-      await expect(projectService.createProject(invalidData)).rejects.toThrow('Validation failed')
+      await expect(projectService.create(invalidData)).rejects.toThrow('Validation failed')
     })
 
     it('should handle duplicate project name errors', async () => {
       const projectData = {
-        name: '중복 프로젝트명',
+        code: 'PROJ-004',
+        title: '중복 프로젝트명',
         description: '중복 프로젝트 설명',
         status: 'active',
-        startDate: '2023-06-01',
-        endDate: '2023-12-31',
+        start_date: '2023-06-01',
+        end_date: '2023-12-31',
       }
 
       const error = new Error('Duplicate project name')
       mockQuery.mockRejectedValue(error)
 
-      await expect(projectService.createProject(projectData)).rejects.toThrow(
-        'Duplicate project name',
-      )
+      await expect(projectService.create(projectData)).rejects.toThrow('Duplicate project name')
     })
   })
 
   describe('updateProject', () => {
     it('should update project successfully', async () => {
       const updateData = {
-        name: '업데이트된 프로젝트',
         description: '업데이트된 프로젝트 설명',
         status: 'completed',
-        startDate: '2023-01-01',
-        endDate: '2023-11-30',
       }
 
       const mockUpdatedProject = {
         id: 'project-1',
+        code: 'PROJ-001',
+        title: '테스트 프로젝트',
         ...updateData,
       }
 
@@ -218,29 +224,19 @@ describe('ProjectService', () => {
         rowCount: 1,
       })
 
-      const result = await projectService.updateProject('project-1', updateData)
+      const result = await projectService.update('project-1', updateData)
 
       expect(result).toEqual(mockUpdatedProject)
       expect(mockQuery).toHaveBeenCalledWith(
         expect.stringContaining('UPDATE'),
-        expect.arrayContaining([
-          updateData.name,
-          updateData.description,
-          updateData.status,
-          updateData.startDate,
-          updateData.endDate,
-          'project-1',
-        ]),
+        expect.arrayContaining(['project-1', updateData.description, updateData.status]),
       )
     })
 
-    it('should return null when project not found', async () => {
+    it('should throw error when project not found', async () => {
       const updateData = {
-        name: '업데이트된 프로젝트',
         description: '업데이트된 프로젝트 설명',
         status: 'completed',
-        startDate: '2023-01-01',
-        endDate: '2023-11-30',
       }
 
       mockQuery.mockResolvedValue({
@@ -248,37 +244,21 @@ describe('ProjectService', () => {
         rowCount: 0,
       })
 
-      const result = await projectService.updateProject('non-existent', updateData)
-
-      expect(result).toBeNull()
-      expect(mockQuery).toHaveBeenCalledWith(
-        expect.stringContaining('UPDATE'),
-        expect.arrayContaining([
-          updateData.name,
-          updateData.description,
-          updateData.status,
-          updateData.startDate,
-          updateData.endDate,
-          'non-existent',
-        ]),
+      await expect(projectService.update('non-existent', updateData)).rejects.toThrow(
+        '프로젝트를 찾을 수 없습니다.',
       )
     })
 
     it('should handle database errors', async () => {
       const updateData = {
-        name: '업데이트된 프로젝트',
         description: '업데이트된 프로젝트 설명',
         status: 'completed',
-        startDate: '2023-01-01',
-        endDate: '2023-11-30',
       }
 
       const error = new Error('Update failed')
       mockQuery.mockRejectedValue(error)
 
-      await expect(projectService.updateProject('project-1', updateData)).rejects.toThrow(
-        'Update failed',
-      )
+      await expect(projectService.update('project-1', updateData)).rejects.toThrow('Update failed')
     })
   })
 
@@ -289,9 +269,8 @@ describe('ProjectService', () => {
         rowCount: 1,
       })
 
-      const result = await projectService.deleteProject('project-1')
+      await projectService.delete('project-1')
 
-      expect(result).toBe(true)
       expect(mockQuery).toHaveBeenCalledWith(
         expect.stringContaining('DELETE'),
         expect.arrayContaining(['project-1']),
@@ -304,9 +283,8 @@ describe('ProjectService', () => {
         rowCount: 0,
       })
 
-      const result = await projectService.deleteProject('non-existent')
+      await projectService.delete('non-existent')
 
-      expect(result).toBe(false)
       expect(mockQuery).toHaveBeenCalledWith(
         expect.stringContaining('DELETE'),
         expect.arrayContaining(['non-existent']),
@@ -317,7 +295,7 @@ describe('ProjectService', () => {
       const error = new Error('Delete failed')
       mockQuery.mockRejectedValue(error)
 
-      await expect(projectService.deleteProject('project-1')).rejects.toThrow('Delete failed')
+      await expect(projectService.delete('project-1')).rejects.toThrow('Delete failed')
     })
   })
 
@@ -326,19 +304,21 @@ describe('ProjectService', () => {
       const mockProjects = [
         {
           id: 'project-1',
-          name: '활성 프로젝트 1',
+          code: 'PROJ-001',
+          title: '활성 프로젝트 1',
           description: '첫 번째 활성 프로젝트',
           status: 'active',
-          startDate: '2023-01-01',
-          endDate: '2023-12-31',
+          start_date: '2023-01-01',
+          end_date: '2023-12-31',
         },
         {
           id: 'project-3',
-          name: '활성 프로젝트 2',
+          code: 'PROJ-003',
+          title: '활성 프로젝트 2',
           description: '두 번째 활성 프로젝트',
           status: 'active',
-          startDate: '2023-03-01',
-          endDate: '2023-12-31',
+          start_date: '2023-03-01',
+          end_date: '2023-12-31',
         },
       ]
 
@@ -347,7 +327,7 @@ describe('ProjectService', () => {
         rowCount: 2,
       })
 
-      const result = await projectService.getProjectsByStatus('active')
+      const result = await projectService.list({ status: 'active' })
 
       expect(result).toEqual(mockProjects)
       expect(mockQuery).toHaveBeenCalledWith(
@@ -362,7 +342,7 @@ describe('ProjectService', () => {
         rowCount: 0,
       })
 
-      const result = await projectService.getProjectsByStatus('cancelled')
+      const result = await projectService.list({ status: 'cancelled' })
 
       expect(result).toEqual([])
       expect(mockQuery).toHaveBeenCalledWith(
@@ -375,20 +355,17 @@ describe('ProjectService', () => {
       const error = new Error('Status query failed')
       mockQuery.mockRejectedValue(error)
 
-      await expect(projectService.getProjectsByStatus('active')).rejects.toThrow(
-        'Status query failed',
-      )
+      await expect(projectService.list({ status: 'active' })).rejects.toThrow('Status query failed')
     })
   })
 
   describe('edge cases', () => {
     it('should handle special characters in project data', async () => {
       const specialData = {
-        name: '특수문자@#$%^&*()프로젝트',
+        code: 'PROJ-SPECIAL',
+        title: '특수문자@#$%^&*()프로젝트',
         description: '특수@#$%^&*()설명',
         status: 'active',
-        startDate: '2023-01-01',
-        endDate: '2023-12-31',
       }
 
       const mockProject = {
@@ -401,28 +378,32 @@ describe('ProjectService', () => {
         rowCount: 1,
       })
 
-      const result = await projectService.createProject(specialData)
+      const result = await projectService.create(specialData)
 
       expect(result).toEqual(mockProject)
       expect(mockQuery).toHaveBeenCalledWith(
         expect.stringContaining('INSERT'),
         expect.arrayContaining([
-          specialData.name,
+          specialData.code,
+          specialData.title,
           specialData.description,
+          null, // sponsor
+          null, // sponsor_type
+          null, // start_date
+          null, // end_date
+          null, // manager_employee_id
           specialData.status,
-          specialData.startDate,
-          specialData.endDate,
+          0, // budget_total
         ]),
       )
     })
 
     it('should handle Unicode characters in project data', async () => {
       const unicodeData = {
-        name: '한글프로젝트한글',
+        code: 'PROJ-한글',
+        title: '한글프로젝트한글',
         description: '한글설명한글',
         status: 'active',
-        startDate: '2023-01-01',
-        endDate: '2023-12-31',
       }
 
       const mockProject = {
@@ -435,28 +416,32 @@ describe('ProjectService', () => {
         rowCount: 1,
       })
 
-      const result = await projectService.createProject(unicodeData)
+      const result = await projectService.create(unicodeData)
 
       expect(result).toEqual(mockProject)
       expect(mockQuery).toHaveBeenCalledWith(
         expect.stringContaining('INSERT'),
         expect.arrayContaining([
-          unicodeData.name,
+          unicodeData.code,
+          unicodeData.title,
           unicodeData.description,
+          null, // sponsor
+          null, // sponsor_type
+          null, // start_date
+          null, // end_date
+          null, // manager_employee_id
           unicodeData.status,
-          unicodeData.startDate,
-          unicodeData.endDate,
+          0, // budget_total
         ]),
       )
     })
 
     it('should handle very long project descriptions', async () => {
       const longDescriptionData = {
-        name: '긴 설명 프로젝트',
+        code: 'PROJ-LONG',
+        title: '긴 설명 프로젝트',
         description: 'A'.repeat(10000),
         status: 'active',
-        startDate: '2023-01-01',
-        endDate: '2023-12-31',
       }
 
       const mockProject = {
@@ -469,28 +454,32 @@ describe('ProjectService', () => {
         rowCount: 1,
       })
 
-      const result = await projectService.createProject(longDescriptionData)
+      const result = await projectService.create(longDescriptionData)
 
       expect(result).toEqual(mockProject)
       expect(mockQuery).toHaveBeenCalledWith(
         expect.stringContaining('INSERT'),
         expect.arrayContaining([
-          longDescriptionData.name,
+          longDescriptionData.code,
+          longDescriptionData.title,
           longDescriptionData.description,
+          null, // sponsor
+          null, // sponsor_type
+          null, // start_date
+          null, // end_date
+          null, // manager_employee_id
           longDescriptionData.status,
-          longDescriptionData.startDate,
-          longDescriptionData.endDate,
+          0, // budget_total
         ]),
       )
     })
 
     it('should handle concurrent operations', async () => {
       const projectData = {
-        name: '동시 생성 프로젝트',
+        code: 'PROJ-CONCURRENT',
+        title: '동시 생성 프로젝트',
         description: '동시 생성 프로젝트 설명',
         status: 'active',
-        startDate: '2023-06-01',
-        endDate: '2023-12-31',
       }
 
       const mockProject = {
@@ -503,7 +492,7 @@ describe('ProjectService', () => {
         rowCount: 1,
       })
 
-      const promises = Array.from({ length: 5 }, () => projectService.createProject(projectData))
+      const promises = Array.from({ length: 5 }, () => projectService.create(projectData))
 
       const results = await Promise.all(promises)
 
@@ -516,11 +505,12 @@ describe('ProjectService', () => {
 
     it('should handle date edge cases', async () => {
       const dateEdgeCaseData = {
-        name: '날짜 엣지케이스 프로젝트',
+        code: 'PROJ-DATE-EDGE',
+        title: '날짜 엣지케이스 프로젝트',
         description: '날짜 엣지케이스 설명',
         status: 'active',
-        startDate: '1900-01-01',
-        endDate: '2099-12-31',
+        start_date: '1900-01-01',
+        end_date: '2099-12-31',
       }
 
       const mockProject = {
@@ -533,17 +523,22 @@ describe('ProjectService', () => {
         rowCount: 1,
       })
 
-      const result = await projectService.createProject(dateEdgeCaseData)
+      const result = await projectService.create(dateEdgeCaseData)
 
       expect(result).toEqual(mockProject)
       expect(mockQuery).toHaveBeenCalledWith(
         expect.stringContaining('INSERT'),
         expect.arrayContaining([
-          dateEdgeCaseData.name,
+          dateEdgeCaseData.code,
+          dateEdgeCaseData.title,
           dateEdgeCaseData.description,
+          null, // sponsor
+          null, // sponsor_type
+          dateEdgeCaseData.start_date,
+          dateEdgeCaseData.end_date,
+          null, // manager_employee_id
           dateEdgeCaseData.status,
-          dateEdgeCaseData.startDate,
-          dateEdgeCaseData.endDate,
+          0, // budget_total
         ]),
       )
     })

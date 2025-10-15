@@ -85,33 +85,42 @@ describe('R&D + Finance Integration Tests', () => {
 
       const mockPOST = vi.fn().mockImplementation(async ({ request }) => {
         const body = await request.json()
-        
+
         // Step 1: Verify project exists
-        const projectResult = await DBHelper.getMockQuery()('SELECT * FROM rd_projects WHERE id = ?')
+        const projectResult = await DBHelper.getMockQuery()(
+          'SELECT * FROM rd_projects WHERE id = ?',
+        )
         const project = projectResult.rows[0] || mockProject
-        
+
         if (!project) {
-          return new Response(JSON.stringify({ 
-            success: false, 
-            error: 'Project not found' 
-          }), {
-            status: 404,
-            headers: { 'Content-Type': 'application/json' },
-          })
+          return new Response(
+            JSON.stringify({
+              success: false,
+              error: 'Project not found',
+            }),
+            {
+              status: 404,
+              headers: { 'Content-Type': 'application/json' },
+            },
+          )
         }
-        
+
         // Step 2: Validate budget amounts
-        const totalCalculated = body.personnelCosts + body.equipmentCosts + body.materialCosts + body.otherCosts
+        const totalCalculated =
+          body.personnelCosts + body.equipmentCosts + body.materialCosts + body.otherCosts
         if (totalCalculated !== body.totalBudget) {
-          return new Response(JSON.stringify({ 
-            success: false, 
-            error: 'Budget amount mismatch' 
-          }), {
-            status: 400,
-            headers: { 'Content-Type': 'application/json' },
-          })
+          return new Response(
+            JSON.stringify({
+              success: false,
+              error: 'Budget amount mismatch',
+            }),
+            {
+              status: 400,
+              headers: { 'Content-Type': 'application/json' },
+            },
+          )
         }
-        
+
         // Step 3: Create project budget
         const budgetData = {
           projectId: body.projectId,
@@ -125,9 +134,9 @@ describe('R&D + Finance Integration Tests', () => {
           remainingAmount: body.totalBudget,
           executionRate: 0.0,
         }
-        
+
         const budgetResult = await DBHelper.getMockQuery()('INSERT INTO rd_project_budgets ...')
-        
+
         // Step 4: Create allocation transaction
         const transactionData = {
           accountId: 'rd-reserve-account',
@@ -138,23 +147,36 @@ describe('R&D + Finance Integration Tests', () => {
           referenceNumber: `RD-ALLOC-${body.year}-001`,
           transactionDate: new Date().toISOString().split('T')[0],
         }
-        
+
         const transactionResult = await DBHelper.getMockQuery()('INSERT INTO transactions ...')
-        
-        return new Response(JSON.stringify({ 
-          success: true, 
-          data: {
-            budget: budgetResult.rows[0],
-            transaction: transactionResult.rows[0],
-            project: project,
-          }
-        }), {
-          status: 201,
-          headers: { 'Content-Type': 'application/json' },
-        })
+
+        return new Response(
+          JSON.stringify({
+            success: true,
+            data: {
+              budget: budgetResult.rows[0],
+              transaction: transactionResult.rows[0],
+              project: project,
+            },
+          }),
+          {
+            status: 201,
+            headers: { 'Content-Type': 'application/json' },
+          },
+        )
       })
 
-      const response = await mockPOST({ request, url: event.url, params: {}, locals: event.locals, route: event.route, cookies: event.cookies, fetch: event.fetch, getClientAddress: event.getClientAddress, platform: event.platform })
+      const response = await mockPOST({
+        request,
+        url: event.url,
+        params: {},
+        locals: event.locals,
+        route: event.route,
+        cookies: event.cookies,
+        fetch: event.fetch,
+        getClientAddress: event.getClientAddress,
+        platform: event.platform,
+      })
       const responseBody = await getJsonResponseBody(response)
 
       expect(response.status).toBe(201)
@@ -162,7 +184,7 @@ describe('R&D + Finance Integration Tests', () => {
       expect(responseBody.data.budget).toBeDefined()
       expect(responseBody.data.transaction).toBeDefined()
       expect(responseBody.data.project).toBeDefined()
-      
+
       // Verify database operations
       expect(DBHelper.getMockQuery()).toHaveBeenCalled()
     })
@@ -237,32 +259,40 @@ describe('R&D + Finance Integration Tests', () => {
 
       const mockPOST = vi.fn().mockImplementation(async ({ request }) => {
         const body = await request.json()
-        
+
         // Step 1: Get project budget
-        const budgetResult = await DBHelper.getMockQuery()('SELECT * FROM rd_project_budgets WHERE project_id = ? AND year = ?')
+        const budgetResult = await DBHelper.getMockQuery()(
+          'SELECT * FROM rd_project_budgets WHERE project_id = ? AND year = ?',
+        )
         const budget = budgetResult.rows[0] || mockProjectBudget
-        
+
         if (!budget) {
-          return new Response(JSON.stringify({ 
-            success: false, 
-            error: 'Project budget not found' 
-          }), {
-            status: 404,
-            headers: { 'Content-Type': 'application/json' },
-          })
+          return new Response(
+            JSON.stringify({
+              success: false,
+              error: 'Project budget not found',
+            }),
+            {
+              status: 404,
+              headers: { 'Content-Type': 'application/json' },
+            },
+          )
         }
-        
+
         // Step 2: Check if expenditure exceeds remaining budget
         if (body.amount > budget.remainingAmount) {
-          return new Response(JSON.stringify({ 
-            success: false, 
-            error: 'Expenditure exceeds remaining budget' 
-          }), {
-            status: 400,
-            headers: { 'Content-Type': 'application/json' },
-          })
+          return new Response(
+            JSON.stringify({
+              success: false,
+              error: 'Expenditure exceeds remaining budget',
+            }),
+            {
+              status: 400,
+              headers: { 'Content-Type': 'application/json' },
+            },
+          )
         }
-        
+
         // Step 3: Create expenditure record
         const expenditureData = {
           projectId: body.projectId,
@@ -273,23 +303,27 @@ describe('R&D + Finance Integration Tests', () => {
           expenditureDate: body.expenditureDate,
           status: 'pending',
         }
-        
-        const expenditureResult = await DBHelper.getMockQuery()('INSERT INTO rd_project_expenditures ...')
-        
+
+        const expenditureResult = await DBHelper.getMockQuery()(
+          'INSERT INTO rd_project_expenditures ...',
+        )
+
         // Step 4: Update project budget
         const newSpentAmount = budget.spentAmount + body.amount
         const newRemainingAmount = budget.remainingAmount - body.amount
         const newExecutionRate = (newSpentAmount / budget.totalBudget) * 100
-        
+
         const updatedBudgetData = {
           ...budget,
           spentAmount: newSpentAmount,
           remainingAmount: newRemainingAmount,
           executionRate: newExecutionRate,
         }
-        
-        await DBHelper.getMockQuery()('UPDATE rd_project_budgets SET spent_amount = ?, remaining_amount = ?, execution_rate = ? WHERE id = ?')
-        
+
+        await DBHelper.getMockQuery()(
+          'UPDATE rd_project_budgets SET spent_amount = ?, remaining_amount = ?, execution_rate = ? WHERE id = ?',
+        )
+
         // Step 5: Create expenditure transaction
         const transactionData = {
           accountId: 'rd-operating-account',
@@ -300,23 +334,36 @@ describe('R&D + Finance Integration Tests', () => {
           referenceNumber: `RD-EXP-${new Date().getFullYear()}-001`,
           transactionDate: body.expenditureDate,
         }
-        
+
         const transactionResult = await DBHelper.getMockQuery()('INSERT INTO transactions ...')
-        
-        return new Response(JSON.stringify({ 
-          success: true, 
-          data: {
-            expenditure: expenditureResult.rows[0],
-            updatedBudget: updatedBudgetData,
-            transaction: transactionResult.rows[0],
-          }
-        }), {
-          status: 201,
-          headers: { 'Content-Type': 'application/json' },
-        })
+
+        return new Response(
+          JSON.stringify({
+            success: true,
+            data: {
+              expenditure: expenditureResult.rows[0],
+              updatedBudget: updatedBudgetData,
+              transaction: transactionResult.rows[0],
+            },
+          }),
+          {
+            status: 201,
+            headers: { 'Content-Type': 'application/json' },
+          },
+        )
       })
 
-      const response = await mockPOST({ request, url: event.url, params: {}, locals: event.locals, route: event.route, cookies: event.cookies, fetch: event.fetch, getClientAddress: event.getClientAddress, platform: event.platform })
+      const response = await mockPOST({
+        request,
+        url: event.url,
+        params: {},
+        locals: event.locals,
+        route: event.route,
+        cookies: event.cookies,
+        fetch: event.fetch,
+        getClientAddress: event.getClientAddress,
+        platform: event.platform,
+      })
       const responseBody = await getJsonResponseBody(response)
 
       expect(response.status).toBe(201)
@@ -324,7 +371,7 @@ describe('R&D + Finance Integration Tests', () => {
       expect(responseBody.data.expenditure).toBeDefined()
       expect(responseBody.data.updatedBudget).toBeDefined()
       expect(responseBody.data.transaction).toBeDefined()
-      
+
       // Verify updated budget calculations
       expect(responseBody.data.updatedBudget.spentAmount).toBe(35000000)
       expect(responseBody.data.updatedBudget.remainingAmount).toBe(65000000)
@@ -355,29 +402,44 @@ describe('R&D + Finance Integration Tests', () => {
 
       const mockPOST = vi.fn().mockImplementation(async ({ request }) => {
         const body = await request.json()
-        
-        const budgetResult = await DBHelper.getMockQuery()('SELECT * FROM rd_project_budgets WHERE project_id = ? AND year = ?')
+
+        const budgetResult = await DBHelper.getMockQuery()(
+          'SELECT * FROM rd_project_budgets WHERE project_id = ? AND year = ?',
+        )
         const budget = budgetResult.rows[0]
-        
+
         if (body.amount > budget.remainingAmount) {
-          return new Response(JSON.stringify({ 
-            success: false, 
-            error: 'Expenditure exceeds remaining budget',
-            details: {
-              requestedAmount: body.amount,
-              remainingAmount: budget.remainingAmount,
-              overrunAmount: body.amount - budget.remainingAmount,
-            }
-          }), {
-            status: 400,
-            headers: { 'Content-Type': 'application/json' },
-          })
+          return new Response(
+            JSON.stringify({
+              success: false,
+              error: 'Expenditure exceeds remaining budget',
+              details: {
+                requestedAmount: body.amount,
+                remainingAmount: budget.remainingAmount,
+                overrunAmount: body.amount - budget.remainingAmount,
+              },
+            }),
+            {
+              status: 400,
+              headers: { 'Content-Type': 'application/json' },
+            },
+          )
         }
-        
+
         return new Response(JSON.stringify({ success: true }), { status: 201 })
       })
 
-      const response = await mockPOST({ request, url: event.url, params: {}, locals: event.locals, route: event.route, cookies: event.cookies, fetch: event.fetch, getClientAddress: event.getClientAddress, platform: event.platform })
+      const response = await mockPOST({
+        request,
+        url: event.url,
+        params: {},
+        locals: event.locals,
+        route: event.route,
+        cookies: event.cookies,
+        fetch: event.fetch,
+        getClientAddress: event.getClientAddress,
+        platform: event.platform,
+      })
       const responseBody = await getJsonResponseBody(response)
 
       expect(response.status).toBe(400)
@@ -474,17 +536,21 @@ describe('R&D + Finance Integration Tests', () => {
 
       const mockPOST = vi.fn().mockImplementation(async ({ request }) => {
         const body = await request.json()
-        
+
         // Step 1: Get project members
-        const membersResult = await DBHelper.getMockQuery()('SELECT * FROM rd_project_members WHERE project_id = ?')
+        const membersResult = await DBHelper.getMockQuery()(
+          'SELECT * FROM rd_project_members WHERE project_id = ?',
+        )
         const members = membersResult.rows
-        
+
         // Step 2: Get project budget
-        const budgetResult = await DBHelper.getMockQuery()('SELECT * FROM rd_project_budgets WHERE project_id = ? AND year = ?')
+        const budgetResult = await DBHelper.getMockQuery()(
+          'SELECT * FROM rd_project_budgets WHERE project_id = ? AND year = ?',
+        )
         const budget = budgetResult.rows[0] || mockProjectBudget
-        
+
         // Step 3: Calculate research costs for each member
-        const researchCosts = members.map(member => {
+        const researchCosts = members.map((member) => {
           const researchCost = (member.salary * member.participationRate) / 100
           return {
             projectId: body.projectId,
@@ -496,26 +562,29 @@ describe('R&D + Finance Integration Tests', () => {
             status: 'calculated',
           }
         })
-        
+
         // Step 4: Save research costs
         const totalResearchCost = researchCosts.reduce((sum, cost) => sum + cost.researchCost, 0)
-        
+
         // Check if total exceeds budget
         if (totalResearchCost > budget.remainingAmount) {
-          return new Response(JSON.stringify({ 
-            success: false, 
-            error: 'Total research cost exceeds remaining budget' 
-          }), {
-            status: 400,
-            headers: { 'Content-Type': 'application/json' },
-          })
+          return new Response(
+            JSON.stringify({
+              success: false,
+              error: 'Total research cost exceeds remaining budget',
+            }),
+            {
+              status: 400,
+              headers: { 'Content-Type': 'application/json' },
+            },
+          )
         }
-        
+
         // Save individual research costs
         for (const cost of researchCosts) {
           await DBHelper.getMockQuery()('INSERT INTO rd_research_costs ...')
         }
-        
+
         // Step 5: Create total research cost transaction
         const transactionData = {
           accountId: 'rd-operating-account',
@@ -526,9 +595,9 @@ describe('R&D + Finance Integration Tests', () => {
           referenceNumber: `RD-PERSONNEL-${body.month}`,
           transactionDate: new Date().toISOString().split('T')[0],
         }
-        
+
         const transactionResult = await DBHelper.getMockQuery()('INSERT INTO transactions ...')
-        
+
         // Step 6: Update project budget
         const updatedBudget = {
           ...budget,
@@ -536,24 +605,39 @@ describe('R&D + Finance Integration Tests', () => {
           remainingAmount: budget.remainingAmount - totalResearchCost,
           executionRate: ((budget.spentAmount + totalResearchCost) / budget.totalBudget) * 100,
         }
-        
-        await DBHelper.getMockQuery()('UPDATE rd_project_budgets SET spent_amount = ?, remaining_amount = ?, execution_rate = ? WHERE id = ?')
-        
-        return new Response(JSON.stringify({ 
-          success: true, 
-          data: {
-            researchCosts,
-            totalResearchCost,
-            transaction: transactionResult.rows[0],
-            updatedBudget,
-          }
-        }), {
-          status: 201,
-          headers: { 'Content-Type': 'application/json' },
-        })
+
+        await DBHelper.getMockQuery()(
+          'UPDATE rd_project_budgets SET spent_amount = ?, remaining_amount = ?, execution_rate = ? WHERE id = ?',
+        )
+
+        return new Response(
+          JSON.stringify({
+            success: true,
+            data: {
+              researchCosts,
+              totalResearchCost,
+              transaction: transactionResult.rows[0],
+              updatedBudget,
+            },
+          }),
+          {
+            status: 201,
+            headers: { 'Content-Type': 'application/json' },
+          },
+        )
       })
 
-      const response = await mockPOST({ request, url: event.url, params: {}, locals: event.locals, route: event.route, cookies: event.cookies, fetch: event.fetch, getClientAddress: event.getClientAddress, platform: event.platform })
+      const response = await mockPOST({
+        request,
+        url: event.url,
+        params: {},
+        locals: event.locals,
+        route: event.route,
+        cookies: event.cookies,
+        fetch: event.fetch,
+        getClientAddress: event.getClientAddress,
+        platform: event.platform,
+      })
       const responseBody = await getJsonResponseBody(response)
 
       expect(response.status).toBe(201)
@@ -562,7 +646,7 @@ describe('R&D + Finance Integration Tests', () => {
       expect(responseBody.data.totalResearchCost).toBe(10000000)
       expect(responseBody.data.transaction).toBeDefined()
       expect(responseBody.data.updatedBudget).toBeDefined()
-      
+
       // Verify research cost calculations
       expect(responseBody.data.researchCosts[0].researchCost).toBe(6000000) // 100% participation
       expect(responseBody.data.researchCosts[1].researchCost).toBe(4000000) // 80% participation

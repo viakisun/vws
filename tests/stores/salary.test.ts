@@ -589,7 +589,8 @@ describe('Salary Store', () => {
         { ...mockSalaryContract, id: 'contract-3', totalSalary: 60000000 },
       ]
 
-      const averageSalary = contracts.reduce((sum, contract) => sum + contract.totalSalary, 0) / contracts.length
+      const averageSalary =
+        contracts.reduce((sum, contract) => sum + contract.totalSalary, 0) / contracts.length
       expect(averageSalary).toBe(50000000)
     })
 
@@ -601,14 +602,17 @@ describe('Salary Store', () => {
         { ...mockSalaryContract, id: 'contract-4', department: '마케팅팀', totalSalary: 45000000 },
       ]
 
-      const departmentBreakdown = contracts.reduce((acc, contract) => {
-        if (!acc[contract.department]) {
-          acc[contract.department] = { count: 0, totalSalary: 0 }
-        }
-        acc[contract.department].count++
-        acc[contract.department].totalSalary += contract.totalSalary
-        return acc
-      }, {} as Record<string, { count: number; totalSalary: number }>)
+      const departmentBreakdown = contracts.reduce(
+        (acc, contract) => {
+          if (!acc[contract.department]) {
+            acc[contract.department] = { count: 0, totalSalary: 0 }
+          }
+          acc[contract.department].count++
+          acc[contract.department].totalSalary += contract.totalSalary
+          return acc
+        },
+        {} as Record<string, { count: number; totalSalary: number }>,
+      )
 
       const result = Object.entries(departmentBreakdown).map(([department, data]) => ({
         department,
@@ -695,7 +699,11 @@ describe('Salary Store', () => {
         deductions: -100000, // 음수 공제 (보너스 등)
       }
 
-      const netSalary = payslipWithNegativeDeductions.grossSalary - payslipWithNegativeDeductions.tax - payslipWithNegativeDeductions.insurance - payslipWithNegativeDeductions.deductions
+      const netSalary =
+        payslipWithNegativeDeductions.grossSalary -
+        payslipWithNegativeDeductions.tax -
+        payslipWithNegativeDeductions.insurance -
+        payslipWithNegativeDeductions.deductions
       expect(netSalary).toBe(4100000) // 더 많은 금액
     })
 

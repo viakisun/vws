@@ -10,7 +10,6 @@ import {
 } from '$lib/services/salary/payslip.service'
 import type { Payslip, SalaryHistory } from '$lib/types/salary'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { mockLogger } from '../../helpers/mock-helper'
 
 // Mock fetch globally
 global.fetch = vi.fn()
@@ -18,7 +17,6 @@ global.fetch = vi.fn()
 describe('Payslip Service', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    mockLogger()
   })
 
   describe('fetchPayslips', () => {

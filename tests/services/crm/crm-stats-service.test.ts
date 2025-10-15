@@ -1,6 +1,5 @@
 import { loadCRMStats, loadCustomerStats } from '$lib/crm/services/crm-stats-service'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { mockLogger } from '../../helpers/mock-helper'
 
 // Mock fetch globally
 global.fetch = vi.fn()
@@ -8,7 +7,6 @@ global.fetch = vi.fn()
 describe('CRM Stats Service', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    mockLogger()
   })
 
   describe('loadCRMStats', () => {
@@ -32,7 +30,7 @@ describe('CRM Stats Service', () => {
 
       expect(result.success).toBe(true)
       expect(result.data).toEqual(mockStats)
-      expect(fetch).toHaveBeenCalledWith('/api/crm/stats')
+      expect(fetch).toHaveBeenCalledWith('/api/crm/stats?type=overview')
     })
 
     it('API 오류 시 에러를 반환해야 함', async () => {
@@ -156,7 +154,7 @@ describe('CRM Stats Service', () => {
 
       expect(result.success).toBe(true)
       expect(result.data).toEqual(mockCustomerStats)
-      expect(fetch).toHaveBeenCalledWith(`/api/crm/customers/${customerId}/stats`)
+      expect(fetch).toHaveBeenCalledWith('/api/crm/stats?type=customers')
     })
 
     it('존재하지 않는 고객의 통계 요청 시 에러를 반환해야 함', async () => {
@@ -184,7 +182,7 @@ describe('CRM Stats Service', () => {
       const result = await loadCustomerStats(customerId)
 
       expect(result.success).toBe(false)
-      expect(result.error).toBe('고객 통계 로드 중 오류가 발생했습니다.')
+      expect(result.error).toBe('고객별 통계 로드 중 오류가 발생했습니다.')
     })
 
     it('빈 고객 통계 데이터를 올바르게 처리해야 함', async () => {
@@ -272,7 +270,7 @@ describe('CRM Stats Service', () => {
       const result = await loadCustomerStats(customerId)
 
       expect(result.success).toBe(false)
-      expect(result.error).toBe('고객 통계 로드 중 오류가 발생했습니다.')
+      expect(result.error).toBe('고객별 통계 로드 중 오류가 발생했습니다.')
     })
 
     it('잘못된 JSON 응답 시 에러를 반환해야 함', async () => {
@@ -285,7 +283,7 @@ describe('CRM Stats Service', () => {
       const result = await loadCustomerStats(customerId)
 
       expect(result.success).toBe(false)
-      expect(result.error).toBe('고객 통계 로드 중 오류가 발생했습니다.')
+      expect(result.error).toBe('고객별 통계 로드 중 오류가 발생했습니다.')
     })
   })
 

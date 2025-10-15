@@ -384,7 +384,7 @@ describe('Finance Store', () => {
         { ...mockAccount, id: 'account-4', isActive: true },
       ]
 
-      const activeAccountsCount = accounts.filter(account => account.isActive).length
+      const activeAccountsCount = accounts.filter((account) => account.isActive).length
       expect(activeAccountsCount).toBe(3)
     })
 
@@ -396,7 +396,7 @@ describe('Finance Store', () => {
       ]
 
       const monthlyIncome = transactions
-        .filter(transaction => transaction.type === 'income')
+        .filter((transaction) => transaction.type === 'income')
         .reduce((sum, transaction) => sum + transaction.amount, 0)
       expect(monthlyIncome).toBe(15000000)
     })
@@ -409,7 +409,7 @@ describe('Finance Store', () => {
       ]
 
       const monthlyExpense = transactions
-        .filter(transaction => transaction.type === 'expense')
+        .filter((transaction) => transaction.type === 'expense')
         .reduce((sum, transaction) => sum + transaction.amount, 0)
       expect(monthlyExpense).toBe(8000000)
     })

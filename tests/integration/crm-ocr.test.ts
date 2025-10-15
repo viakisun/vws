@@ -80,33 +80,52 @@ describe('CRM + OCR Integration Tests', () => {
       // Mock the from-ocr endpoint handler
       const mockPOST = vi.fn().mockImplementation(async ({ request }) => {
         const body = await request.json()
-        
+
         // Step 1: Process OCR
-        const ocrResult = await mockProcessBusinessRegistration(Buffer.from(body.fileData, 'base64'), 'application/pdf')
-        
+        const ocrResult = await mockProcessBusinessRegistration(
+          Buffer.from(body.fileData, 'base64'),
+          'application/pdf',
+        )
+
         // Step 2: Generate upload URL
-        const uploadUrl = await mockGeneratePresignedUploadUrl('customer-new', 'business-registration')
-        
+        const uploadUrl = await mockGeneratePresignedUploadUrl(
+          'customer-new',
+          'business-registration',
+        )
+
         // Step 3: Create customer in database
         const customerData = {
           ...ocrResult,
           businessRegistrationS3Key: `s3://test-bucket/customer-new/business-reg.pdf`,
           bankAccountS3Key: null,
         }
-        
+
         const result = await DBHelper.getMockQuery()('INSERT INTO crm_customers ...')
-        
-        return new Response(JSON.stringify({ 
-          success: true, 
-          data: mockCreatedCustomer,
-          uploadUrl 
-        }), {
-          status: 201,
-          headers: { 'Content-Type': 'application/json' },
-        })
+
+        return new Response(
+          JSON.stringify({
+            success: true,
+            data: mockCreatedCustomer,
+            uploadUrl,
+          }),
+          {
+            status: 201,
+            headers: { 'Content-Type': 'application/json' },
+          },
+        )
       })
 
-      const response = await mockPOST({ request, url: event.url, params: {}, locals: event.locals, route: event.route, cookies: event.cookies, fetch: event.fetch, getClientAddress: event.getClientAddress, platform: event.platform })
+      const response = await mockPOST({
+        request,
+        url: event.url,
+        params: {},
+        locals: event.locals,
+        route: event.route,
+        cookies: event.cookies,
+        fetch: event.fetch,
+        getClientAddress: event.getClientAddress,
+        platform: event.platform,
+      })
       const responseBody = await getJsonResponseBody(response)
 
       // 5. Verify the complete flow
@@ -114,14 +133,17 @@ describe('CRM + OCR Integration Tests', () => {
       expect(responseBody.success).toBe(true)
       expect(responseBody.data).toEqual(mockCreatedCustomer)
       expect(responseBody.uploadUrl).toBe('https://mock-presigned-upload-url.com')
-      
+
       // Verify OCR was called
       expect(mockProcessBusinessRegistration).toHaveBeenCalledTimes(1)
-      
+
       // Verify S3 upload URL was generated
       expect(mockGeneratePresignedUploadUrl).toHaveBeenCalledTimes(1)
-      expect(mockGeneratePresignedUploadUrl).toHaveBeenCalledWith('customer-new', 'business-registration')
-      
+      expect(mockGeneratePresignedUploadUrl).toHaveBeenCalledWith(
+        'customer-new',
+        'business-registration',
+      )
+
       // Verify database operation
       expect(DBHelper.getMockQuery()).toHaveBeenCalled()
     })
@@ -139,20 +161,36 @@ describe('CRM + OCR Integration Tests', () => {
       const mockPOST = vi.fn().mockImplementation(async ({ request }) => {
         try {
           const body = await request.json()
-          await mockProcessBusinessRegistration(Buffer.from(body.fileData, 'base64'), 'application/pdf')
+          await mockProcessBusinessRegistration(
+            Buffer.from(body.fileData, 'base64'),
+            'application/pdf',
+          )
           return new Response(JSON.stringify({ success: true }), { status: 201 })
         } catch (error) {
-          return new Response(JSON.stringify({ 
-            success: false, 
-            error: 'OCR processing failed' 
-          }), {
-            status: 400,
-            headers: { 'Content-Type': 'application/json' },
-          })
+          return new Response(
+            JSON.stringify({
+              success: false,
+              error: 'OCR processing failed',
+            }),
+            {
+              status: 400,
+              headers: { 'Content-Type': 'application/json' },
+            },
+          )
         }
       })
 
-      const response = await mockPOST({ request, url: event.url, params: {}, locals: event.locals, route: event.route, cookies: event.cookies, fetch: event.fetch, getClientAddress: event.getClientAddress, platform: event.platform })
+      const response = await mockPOST({
+        request,
+        url: event.url,
+        params: {},
+        locals: event.locals,
+        route: event.route,
+        cookies: event.cookies,
+        fetch: event.fetch,
+        getClientAddress: event.getClientAddress,
+        platform: event.platform,
+      })
       const responseBody = await getJsonResponseBody(response)
 
       expect(response.status).toBe(400)
@@ -185,21 +223,40 @@ describe('CRM + OCR Integration Tests', () => {
       const mockPOST = vi.fn().mockImplementation(async ({ request }) => {
         try {
           const body = await request.json()
-          const ocrResult = await mockProcessBusinessRegistration(Buffer.from(body.fileData, 'base64'), 'application/pdf')
-          const uploadUrl = await mockGeneratePresignedUploadUrl('customer-new', 'business-registration')
+          const ocrResult = await mockProcessBusinessRegistration(
+            Buffer.from(body.fileData, 'base64'),
+            'application/pdf',
+          )
+          const uploadUrl = await mockGeneratePresignedUploadUrl(
+            'customer-new',
+            'business-registration',
+          )
           return new Response(JSON.stringify({ success: true, uploadUrl }), { status: 201 })
         } catch (error) {
-          return new Response(JSON.stringify({ 
-            success: false, 
-            error: 'S3 service unavailable' 
-          }), {
-            status: 500,
-            headers: { 'Content-Type': 'application/json' },
-          })
+          return new Response(
+            JSON.stringify({
+              success: false,
+              error: 'S3 service unavailable',
+            }),
+            {
+              status: 500,
+              headers: { 'Content-Type': 'application/json' },
+            },
+          )
         }
       })
 
-      const response = await mockPOST({ request, url: event.url, params: {}, locals: event.locals, route: event.route, cookies: event.cookies, fetch: event.fetch, getClientAddress: event.getClientAddress, platform: event.platform })
+      const response = await mockPOST({
+        request,
+        url: event.url,
+        params: {},
+        locals: event.locals,
+        route: event.route,
+        cookies: event.cookies,
+        fetch: event.fetch,
+        getClientAddress: event.getClientAddress,
+        platform: event.platform,
+      })
       const responseBody = await getJsonResponseBody(response)
 
       expect(response.status).toBe(500)
@@ -222,7 +279,7 @@ describe('CRM + OCR Integration Tests', () => {
 
       mockProcessBusinessRegistration.mockResolvedValue(mockBusinessData)
       mockGeneratePresignedUploadUrl.mockResolvedValue('https://mock-presigned-upload-url.com')
-      
+
       // Mock database error
       DBHelper.mockError(new Error('Database connection failed'))
 
@@ -235,25 +292,44 @@ describe('CRM + OCR Integration Tests', () => {
       const mockPOST = vi.fn().mockImplementation(async ({ request }) => {
         try {
           const body = await request.json()
-          const ocrResult = await mockProcessBusinessRegistration(Buffer.from(body.fileData, 'base64'), 'application/pdf')
-          const uploadUrl = await mockGeneratePresignedUploadUrl('customer-new', 'business-registration')
-          
+          const ocrResult = await mockProcessBusinessRegistration(
+            Buffer.from(body.fileData, 'base64'),
+            'application/pdf',
+          )
+          const uploadUrl = await mockGeneratePresignedUploadUrl(
+            'customer-new',
+            'business-registration',
+          )
+
           // This should fail
           await DBHelper.getMockQuery()('INSERT INTO crm_customers ...')
-          
+
           return new Response(JSON.stringify({ success: true, uploadUrl }), { status: 201 })
         } catch (error) {
-          return new Response(JSON.stringify({ 
-            success: false, 
-            error: 'Database connection failed' 
-          }), {
-            status: 500,
-            headers: { 'Content-Type': 'application/json' },
-          })
+          return new Response(
+            JSON.stringify({
+              success: false,
+              error: 'Database connection failed',
+            }),
+            {
+              status: 500,
+              headers: { 'Content-Type': 'application/json' },
+            },
+          )
         }
       })
 
-      const response = await mockPOST({ request, url: event.url, params: {}, locals: event.locals, route: event.route, cookies: event.cookies, fetch: event.fetch, getClientAddress: event.getClientAddress, platform: event.platform })
+      const response = await mockPOST({
+        request,
+        url: event.url,
+        params: {},
+        locals: event.locals,
+        route: event.route,
+        cookies: event.cookies,
+        fetch: event.fetch,
+        getClientAddress: event.getClientAddress,
+        platform: event.platform,
+      })
       const responseBody = await getJsonResponseBody(response)
 
       expect(response.status).toBe(500)
@@ -306,46 +382,66 @@ describe('CRM + OCR Integration Tests', () => {
 
       const mockPOST = vi.fn().mockImplementation(async ({ request }) => {
         const body = await request.json()
-        
+
         // Step 1: Get existing customer
-        const customerResult = await DBHelper.getMockQuery()('SELECT * FROM crm_customers WHERE id = ?')
+        const customerResult = await DBHelper.getMockQuery()(
+          'SELECT * FROM crm_customers WHERE id = ?',
+        )
         const customer = customerResult.rows[0]
-        
+
         // Step 2: Process OCR
-        const ocrResult = await mockProcessBankAccount(Buffer.from(body.fileData, 'base64'), 'application/pdf')
-        
+        const ocrResult = await mockProcessBankAccount(
+          Buffer.from(body.fileData, 'base64'),
+          'application/pdf',
+        )
+
         // Step 3: Generate upload URL
         const uploadUrl = await mockGeneratePresignedUploadUrl(body.customerId, 'bank-account')
-        
+
         // Step 4: Update customer
         const updateData = {
           ...customer,
           bankAccountS3Key: `s3://test-bucket/${body.customerId}/bank-account.pdf`,
         }
-        
-        await DBHelper.getMockQuery()('UPDATE crm_customers SET bank_account_s3_key = ? WHERE id = ?')
-        
-        return new Response(JSON.stringify({ 
-          success: true, 
-          data: updatedCustomer,
-          uploadUrl 
-        }), {
-          status: 200,
-          headers: { 'Content-Type': 'application/json' },
-        })
+
+        await DBHelper.getMockQuery()(
+          'UPDATE crm_customers SET bank_account_s3_key = ? WHERE id = ?',
+        )
+
+        return new Response(
+          JSON.stringify({
+            success: true,
+            data: updatedCustomer,
+            uploadUrl,
+          }),
+          {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' },
+          },
+        )
       })
 
-      const response = await mockPOST({ request, url: event.url, params: {}, locals: event.locals, route: event.route, cookies: event.cookies, fetch: event.fetch, getClientAddress: event.getClientAddress, platform: event.platform })
+      const response = await mockPOST({
+        request,
+        url: event.url,
+        params: {},
+        locals: event.locals,
+        route: event.route,
+        cookies: event.cookies,
+        fetch: event.fetch,
+        getClientAddress: event.getClientAddress,
+        platform: event.platform,
+      })
       const responseBody = await getJsonResponseBody(response)
 
       expect(response.status).toBe(200)
       expect(responseBody.success).toBe(true)
       expect(responseBody.data).toEqual(updatedCustomer)
       expect(responseBody.uploadUrl).toBe('https://mock-presigned-upload-url.com')
-      
+
       // Verify OCR was called
       expect(mockProcessBankAccount).toHaveBeenCalledTimes(1)
-      
+
       // Verify S3 upload URL was generated
       expect(mockGeneratePresignedUploadUrl).toHaveBeenCalledTimes(1)
       expect(mockGeneratePresignedUploadUrl).toHaveBeenCalledWith('customer-1', 'bank-account')
@@ -368,52 +464,75 @@ describe('CRM + OCR Integration Tests', () => {
       mockGeneratePresignedDownloadUrl.mockResolvedValue('https://mock-download-url.com')
 
       const request = createMockRequest('GET', {})
-      const event = createMockEvent(request, { customerId: 'customer-1', documentType: 'business-registration' })
+      const event = createMockEvent(request, {
+        customerId: 'customer-1',
+        documentType: 'business-registration',
+      })
 
       const mockGET = vi.fn().mockImplementation(async ({ request, params }) => {
         // Step 1: Get customer
-        const customerResult = await DBHelper.getMockQuery()('SELECT * FROM crm_customers WHERE id = ?')
+        const customerResult = await DBHelper.getMockQuery()(
+          'SELECT * FROM crm_customers WHERE id = ?',
+        )
         const customer = customerResult.rows[0] || {
           id: 'customer-1',
           businessName: '테스트 회사',
           businessRegistrationS3Key: 's3://test-bucket/customer-1/business-reg.pdf',
           bankAccountS3Key: 's3://test-bucket/customer-1/bank-account.pdf',
         }
-        
+
         // Step 2: Check if document exists
         const s3Key = customer[`${params.documentType}S3Key`]
         if (!s3Key) {
-          return new Response(JSON.stringify({ 
-            success: false, 
-            error: 'Document not found' 
-          }), {
-            status: 404,
-            headers: { 'Content-Type': 'application/json' },
-          })
+          return new Response(
+            JSON.stringify({
+              success: false,
+              error: 'Document not found',
+            }),
+            {
+              status: 404,
+              headers: { 'Content-Type': 'application/json' },
+            },
+          )
         }
-        
+
         // Step 3: Generate download URL
         const downloadUrl = await mockGeneratePresignedDownloadUrl(s3Key)
-        
-        return new Response(JSON.stringify({ 
-          success: true, 
-          downloadUrl 
-        }), {
-          status: 200,
-          headers: { 'Content-Type': 'application/json' },
-        })
+
+        return new Response(
+          JSON.stringify({
+            success: true,
+            downloadUrl,
+          }),
+          {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' },
+          },
+        )
       })
 
-      const response = await mockGET({ request, url: event.url, params: event.params, locals: event.locals, route: event.route, cookies: event.cookies, fetch: event.fetch, getClientAddress: event.getClientAddress, platform: event.platform })
+      const response = await mockGET({
+        request,
+        url: event.url,
+        params: event.params,
+        locals: event.locals,
+        route: event.route,
+        cookies: event.cookies,
+        fetch: event.fetch,
+        getClientAddress: event.getClientAddress,
+        platform: event.platform,
+      })
       const responseBody = await getJsonResponseBody(response)
 
       expect(response.status).toBe(200)
       expect(responseBody.success).toBe(true)
       expect(responseBody.downloadUrl).toBe('https://mock-download-url.com')
-      
+
       // Verify S3 download URL was generated
       expect(mockGeneratePresignedDownloadUrl).toHaveBeenCalledTimes(1)
-      expect(mockGeneratePresignedDownloadUrl).toHaveBeenCalledWith('s3://test-bucket/customer-1/business-reg.pdf')
+      expect(mockGeneratePresignedDownloadUrl).toHaveBeenCalledWith(
+        's3://test-bucket/customer-1/business-reg.pdf',
+      )
     })
 
     it('should handle missing document gracefully', async () => {
@@ -428,34 +547,52 @@ describe('CRM + OCR Integration Tests', () => {
       DBHelper.mockSelectResponse('crm_customers', [customer])
 
       const request = createMockRequest('GET', {})
-      const event = createMockEvent(request, { customerId: 'customer-1', documentType: 'business-registration' })
+      const event = createMockEvent(request, {
+        customerId: 'customer-1',
+        documentType: 'business-registration',
+      })
 
       const mockGET = vi.fn().mockImplementation(async ({ request, params }) => {
-        const customerResult = await DBHelper.getMockQuery()('SELECT * FROM crm_customers WHERE id = ?')
+        const customerResult = await DBHelper.getMockQuery()(
+          'SELECT * FROM crm_customers WHERE id = ?',
+        )
         const customer = customerResult.rows[0]
-        
+
         const s3Key = customer[`${params.documentType}S3Key`]
         if (!s3Key) {
-          return new Response(JSON.stringify({ 
-            success: false, 
-            error: 'Document not found' 
-          }), {
-            status: 404,
-            headers: { 'Content-Type': 'application/json' },
-          })
+          return new Response(
+            JSON.stringify({
+              success: false,
+              error: 'Document not found',
+            }),
+            {
+              status: 404,
+              headers: { 'Content-Type': 'application/json' },
+            },
+          )
         }
-        
+
         const downloadUrl = await mockGeneratePresignedDownloadUrl(s3Key)
         return new Response(JSON.stringify({ success: true, downloadUrl }), { status: 200 })
       })
 
-      const response = await mockGET({ request, url: event.url, params: event.params, locals: event.locals, route: event.route, cookies: event.cookies, fetch: event.fetch, getClientAddress: event.getClientAddress, platform: event.platform })
+      const response = await mockGET({
+        request,
+        url: event.url,
+        params: event.params,
+        locals: event.locals,
+        route: event.route,
+        cookies: event.cookies,
+        fetch: event.fetch,
+        getClientAddress: event.getClientAddress,
+        platform: event.platform,
+      })
       const responseBody = await getJsonResponseBody(response)
 
       expect(response.status).toBe(404)
       expect(responseBody.success).toBe(false)
       expect(responseBody.error).toBe('Document not found')
-      
+
       // Verify S3 download URL was not generated
       expect(mockGeneratePresignedDownloadUrl).not.toHaveBeenCalled()
     })

@@ -7,7 +7,17 @@ import {
   type CustomerFormData,
 } from '$lib/crm/services/crm-customer-service'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { mockLogger } from '../../helpers/mock-helper'
+
+// Mock logger
+vi.mock('$lib/utils/logger', () => ({
+  logger: {
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    debug: vi.fn(),
+    log: vi.fn(),
+  },
+}))
 
 // Mock fetch globally
 global.fetch = vi.fn()
@@ -15,7 +25,6 @@ global.fetch = vi.fn()
 describe('CRM Customer Service', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    mockLogger()
   })
 
   describe('loadCustomers', () => {

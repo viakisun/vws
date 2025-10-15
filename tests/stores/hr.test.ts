@@ -261,7 +261,7 @@ describe('HR Store', () => {
     it('should handle status filter correctly', () => {
       const statusOptions = ['all', 'active', 'inactive', 'on-leave', 'terminated']
 
-      statusOptions.forEach(status => {
+      statusOptions.forEach((status) => {
         const hrFilters = {
           searchTerm: '',
           status: status as any,
@@ -278,7 +278,7 @@ describe('HR Store', () => {
     it('should handle department filter correctly', () => {
       const departments = ['', '개발팀', '마케팅팀', '영업팀', '인사팀']
 
-      departments.forEach(department => {
+      departments.forEach((department) => {
         const hrFilters = {
           searchTerm: '',
           status: 'all',
@@ -295,7 +295,7 @@ describe('HR Store', () => {
     it('should handle position filter correctly', () => {
       const positions = ['', '개발자', '디자이너', '마케터', '매니저']
 
-      positions.forEach(position => {
+      positions.forEach((position) => {
         const hrFilters = {
           searchTerm: '',
           status: 'all',
@@ -312,7 +312,7 @@ describe('HR Store', () => {
     it('should handle employment type filter correctly', () => {
       const employmentTypes = ['all', 'full-time', 'part-time', 'contract', 'intern']
 
-      employmentTypes.forEach(employmentType => {
+      employmentTypes.forEach((employmentType) => {
         const hrFilters = {
           searchTerm: '',
           status: 'all',
@@ -329,7 +329,7 @@ describe('HR Store', () => {
     it('should handle level filter correctly', () => {
       const levels = ['all', 'intern', 'junior', 'mid', 'senior', 'lead', 'manager', 'director']
 
-      levels.forEach(level => {
+      levels.forEach((level) => {
         const hrFilters = {
           searchTerm: '',
           status: 'all',
@@ -447,7 +447,7 @@ describe('HR Store', () => {
         { ...mockEmployee, id: 'emp-4', status: 'on-leave' },
       ]
 
-      const activeEmployees = employees.filter(emp => emp.status === 'active')
+      const activeEmployees = employees.filter((emp) => emp.status === 'active')
       expect(activeEmployees).toHaveLength(2)
       expect(activeEmployees[0].id).toBe('emp-1')
       expect(activeEmployees[1].id).toBe('emp-3')
@@ -461,7 +461,7 @@ describe('HR Store', () => {
         { ...mockEmployee, id: 'emp-4', department: '영업팀' },
       ]
 
-      const devEmployees = employees.filter(emp => emp.department === '개발팀')
+      const devEmployees = employees.filter((emp) => emp.department === '개발팀')
       expect(devEmployees).toHaveLength(2)
       expect(devEmployees[0].id).toBe('emp-1')
       expect(devEmployees[1].id).toBe('emp-3')
@@ -476,8 +476,8 @@ describe('HR Store', () => {
       ]
 
       const searchTerm = '길동'
-      const filteredEmployees = employees.filter(emp => 
-        emp.firstName.includes(searchTerm) || emp.lastName.includes(searchTerm)
+      const filteredEmployees = employees.filter(
+        (emp) => emp.firstName.includes(searchTerm) || emp.lastName.includes(searchTerm),
       )
       expect(filteredEmployees).toHaveLength(2)
       expect(filteredEmployees[0].id).toBe('emp-1')
@@ -492,7 +492,7 @@ describe('HR Store', () => {
         { ...mockEmployee, id: 'emp-4', employmentType: 'contract' },
       ]
 
-      const fullTimeEmployees = employees.filter(emp => emp.employmentType === 'full-time')
+      const fullTimeEmployees = employees.filter((emp) => emp.employmentType === 'full-time')
       expect(fullTimeEmployees).toHaveLength(2)
       expect(fullTimeEmployees[0].id).toBe('emp-1')
       expect(fullTimeEmployees[1].id).toBe('emp-3')
@@ -506,7 +506,7 @@ describe('HR Store', () => {
         { ...mockEmployee, id: 'emp-4', level: 'manager' },
       ]
 
-      const seniorEmployees = employees.filter(emp => emp.level === 'senior')
+      const seniorEmployees = employees.filter((emp) => emp.level === 'senior')
       expect(seniorEmployees).toHaveLength(2)
       expect(seniorEmployees[0].id).toBe('emp-1')
       expect(seniorEmployees[1].id).toBe('emp-3')

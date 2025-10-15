@@ -30,7 +30,10 @@ export class DashboardService {
       const params = new URLSearchParams()
       if (date) params.append('date', date)
 
-      const response = await fetch(`${this.baseUrl}/dashboard?${params}`)
+      const url = params.toString()
+        ? `${this.baseUrl}/dashboard?${params}`
+        : `${this.baseUrl}/dashboard`
+      const response = await fetch(url)
       const result = (await response.json()) as ApiResponse<FinanceDashboard>
 
       if (!result.success || !result.data) {
@@ -115,7 +118,8 @@ export class DashboardService {
       const params = new URLSearchParams()
       if (isRead !== undefined) params.append('isRead', isRead.toString())
 
-      const response = await fetch(`${this.baseUrl}/alerts?${params}`)
+      const url = params.toString() ? `${this.baseUrl}/alerts?${params}` : `${this.baseUrl}/alerts`
+      const response = await fetch(url)
       const result = (await response.json()) as ApiResponse<FinanceAlert[]>
 
       if (!result.success || !result.data) {

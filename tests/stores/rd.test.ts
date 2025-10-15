@@ -334,7 +334,7 @@ describe('R&D Project Store', () => {
         { ...mockProject, id: 'proj-4', status: 'paused' },
       ]
 
-      const activeProjects = projects.filter(proj => proj.status === 'active')
+      const activeProjects = projects.filter((proj) => proj.status === 'active')
       expect(activeProjects).toHaveLength(2)
       expect(activeProjects[0].id).toBe('proj-1')
       expect(activeProjects[1].id).toBe('proj-3')
@@ -369,7 +369,9 @@ describe('R&D Project Store', () => {
         { ...mockProjectBudget, id: 'budget-3', executionRate: 75.0 },
       ]
 
-      const averageExecutionRate = projectBudgets.reduce((sum, budget) => sum + budget.executionRate, 0) / projectBudgets.length
+      const averageExecutionRate =
+        projectBudgets.reduce((sum, budget) => sum + budget.executionRate, 0) /
+        projectBudgets.length
       expect(averageExecutionRate).toBe(63.333333333333336)
     })
 
@@ -381,7 +383,7 @@ describe('R&D Project Store', () => {
         { ...mockProjectMember, id: 'member-4', role: 'assistant' },
       ]
 
-      const leadResearchers = projectMembers.filter(member => member.role === 'lead_researcher')
+      const leadResearchers = projectMembers.filter((member) => member.role === 'lead_researcher')
       expect(leadResearchers).toHaveLength(2)
       expect(leadResearchers[0].id).toBe('member-1')
       expect(leadResearchers[1].id).toBe('member-3')
@@ -395,8 +397,8 @@ describe('R&D Project Store', () => {
         { ...mockParticipationRateAlert, id: 'alert-4', type: 'participation' },
       ]
 
-      const budgetAlerts = alerts.filter(alert => alert.type === 'budget')
-      const participationAlerts = alerts.filter(alert => alert.type === 'participation')
+      const budgetAlerts = alerts.filter((alert) => alert.type === 'budget')
+      const participationAlerts = alerts.filter((alert) => alert.type === 'participation')
 
       expect(budgetAlerts).toHaveLength(2)
       expect(participationAlerts).toHaveLength(2)

@@ -7,6 +7,7 @@ import { vi } from 'vitest'
 export class DBHelper {
   private static mockQuery = vi.fn()
   private static mockTransaction = vi.fn()
+  private static queryPatterns: Array<{ pattern: string | RegExp; response: any }> = []
 
   /**
    * Mock query 함수 설정
@@ -50,16 +51,24 @@ export class DBHelper {
    * 특정 쿼리에 대한 응답 설정
    */
   static mockQueryResponse(queryPattern: string | RegExp, response: any) {
+    // 패턴을 배열에 추가
+    this.queryPatterns.push({ pattern: queryPattern, response })
+
+    // Mock 구현을 업데이트
     this.mockQuery.mockImplementation((sql: string) => {
-      if (typeof queryPattern === 'string') {
-        if (sql.includes(queryPattern)) {
-          return Promise.resolve(response)
-        }
-      } else {
-        if (queryPattern.test(sql)) {
-          return Promise.resolve(response)
+      // 패턴들을 순서대로 확인하여 매칭되는 첫 번째 응답 반환
+      for (const { pattern, response } of this.queryPatterns) {
+        if (typeof pattern === 'string') {
+          if (sql.includes(pattern)) {
+            return Promise.resolve(response)
+          }
+        } else {
+          if (pattern.test(sql)) {
+            return Promise.resolve(response)
+          }
         }
       }
+      // 매칭되는 패턴이 없으면 기본 응답
       return Promise.resolve({ rows: [], rowCount: 0 })
     })
   }
@@ -117,6 +126,7 @@ export class DBHelper {
   static reset() {
     this.mockQuery.mockClear()
     this.mockTransaction.mockClear()
+    this.queryPatterns = []
     this.mockQuery.mockResolvedValue({
       rows: [],
       rowCount: 0,

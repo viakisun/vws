@@ -49,7 +49,10 @@ export class TransactionService {
       if (filter?.page) params.append('page', filter.page.toString())
       if (filter?.limit) params.append('limit', filter.limit.toString())
 
-      const response = await fetch(`${this.baseUrl}/transactions?${params}`)
+      const url = params.toString()
+        ? `${this.baseUrl}/transactions?${params}`
+        : `${this.baseUrl}/transactions`
+      const response = await fetch(url)
       const result = (await response.json()) as ApiResponse<Transaction[]>
 
       if (!result.success || !result.data || !result.pagination) {
@@ -160,7 +163,10 @@ export class TransactionService {
       if (filter?.dateFrom) params.append('dateFrom', filter.dateFrom)
       if (filter?.dateTo) params.append('dateTo', filter.dateTo)
 
-      const response = await fetch(`${this.baseUrl}/transactions/stats?${params}`)
+      const url = params.toString()
+        ? `${this.baseUrl}/transactions/stats?${params}`
+        : `${this.baseUrl}/transactions/stats`
+      const response = await fetch(url)
       const result = (await response.json()) as ApiResponse<TransactionStats>
 
       if (!result.success || !result.data) {

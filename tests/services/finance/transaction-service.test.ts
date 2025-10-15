@@ -8,7 +8,6 @@ import type {
   UpdateTransactionRequest,
 } from '$lib/finance/types'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { mockLogger } from '../../helpers/mock-helper'
 
 // Mock fetch globally
 global.fetch = vi.fn()
@@ -18,7 +17,6 @@ describe('Finance Transaction Service', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
-    mockLogger()
     transactionService = new TransactionService()
   })
 
@@ -34,7 +32,6 @@ describe('Finance Transaction Service', () => {
           description: '매출 수입',
           transactionDate: '2025-01-15T10:00:00Z',
           status: 'completed',
-          tags: ['매출', '수입'],
           createdAt: '2025-01-15T10:00:00Z',
           updatedAt: '2025-01-15T10:00:00Z',
         },
@@ -47,7 +44,6 @@ describe('Finance Transaction Service', () => {
           description: '사무용품 구매',
           transactionDate: '2025-01-14T15:30:00Z',
           status: 'completed',
-          tags: ['사무용품', '지출'],
           createdAt: '2025-01-14T15:30:00Z',
           updatedAt: '2025-01-14T15:30:00Z',
         },
@@ -89,7 +85,6 @@ describe('Finance Transaction Service', () => {
           description: '매출 수입',
           transactionDate: '2025-01-15T10:00:00Z',
           status: 'completed',
-          tags: ['매출', '수입'],
           createdAt: '2025-01-15T10:00:00Z',
           updatedAt: '2025-01-15T10:00:00Z',
         },
@@ -128,7 +123,6 @@ describe('Finance Transaction Service', () => {
           description: '매출 수입',
           transactionDate: '2025-01-15T10:00:00Z',
           status: 'completed',
-          tags: ['매출', '수입'],
           createdAt: '2025-01-15T10:00:00Z',
           updatedAt: '2025-01-15T10:00:00Z',
         },
@@ -167,7 +161,6 @@ describe('Finance Transaction Service', () => {
           description: '매출 수입',
           transactionDate: '2025-01-15T10:00:00Z',
           status: 'completed',
-          tags: ['매출', '수입'],
           createdAt: '2025-01-15T10:00:00Z',
           updatedAt: '2025-01-15T10:00:00Z',
         },
@@ -206,7 +199,6 @@ describe('Finance Transaction Service', () => {
           description: '매출 수입',
           transactionDate: '2025-01-15T10:00:00Z',
           status: 'completed',
-          tags: ['매출', '수입'],
           createdAt: '2025-01-15T10:00:00Z',
           updatedAt: '2025-01-15T10:00:00Z',
         },
@@ -250,7 +242,6 @@ describe('Finance Transaction Service', () => {
           description: '매출 수입',
           transactionDate: '2025-01-15T10:00:00Z',
           status: 'completed',
-          tags: ['매출', '수입'],
           createdAt: '2025-01-15T10:00:00Z',
           updatedAt: '2025-01-15T10:00:00Z',
         },
@@ -294,7 +285,6 @@ describe('Finance Transaction Service', () => {
           description: '매출 수입',
           transactionDate: '2025-01-15T10:00:00Z',
           status: 'completed',
-          tags: ['매출', '수입'],
           createdAt: '2025-01-15T10:00:00Z',
           updatedAt: '2025-01-15T10:00:00Z',
         },
@@ -333,7 +323,6 @@ describe('Finance Transaction Service', () => {
           description: '매출 수입',
           transactionDate: '2025-01-15T10:00:00Z',
           status: 'completed',
-          tags: ['매출', '수입'],
           createdAt: '2025-01-15T10:00:00Z',
           updatedAt: '2025-01-15T10:00:00Z',
         },
@@ -403,7 +392,6 @@ describe('Finance Transaction Service', () => {
           description: '매출 수입',
           transactionDate: '2025-01-15T10:00:00Z',
           status: 'completed',
-          tags: ['매출', '수입'],
           createdAt: '2025-01-15T10:00:00Z',
           updatedAt: '2025-01-15T10:00:00Z',
         },
@@ -418,9 +406,6 @@ describe('Finance Transaction Service', () => {
         amountMin: 50000,
         amountMax: 200000,
         search: '매출',
-        tags: ['매출', '수입'],
-        page: 1,
-        limit: 20,
       }
 
       vi.mocked(fetch).mockResolvedValueOnce({
@@ -501,7 +486,6 @@ describe('Finance Transaction Service', () => {
         description: '매출 수입',
         transactionDate: '2025-01-15T10:00:00Z',
         status: 'completed',
-        tags: ['매출', '수입'],
         createdAt: '2025-01-15T10:00:00Z',
         updatedAt: '2025-01-15T10:00:00Z',
       }
@@ -552,7 +536,6 @@ describe('Finance Transaction Service', () => {
         type: 'income',
         description: '매출 수입',
         transactionDate: '2025-01-15T10:00:00Z',
-        tags: ['매출', '수입'],
       }
 
       const mockCreatedTransaction: Transaction = {
@@ -693,9 +676,9 @@ describe('Finance Transaction Service', () => {
   describe('updateTransaction', () => {
     it('거래를 성공적으로 수정해야 함', async () => {
       const updateData: UpdateTransactionRequest = {
+        id: 'transaction-1',
         amount: 150000,
         description: '수정된 매출 수입',
-        tags: ['매출', '수입', '수정'],
       }
 
       const mockUpdatedTransaction: Transaction = {
@@ -732,6 +715,7 @@ describe('Finance Transaction Service', () => {
 
     it('존재하지 않는 거래 수정 시 에러를 던져야 함', async () => {
       const updateData: UpdateTransactionRequest = {
+        id: 'non-existent',
         description: '수정된 설명',
       }
 
@@ -750,6 +734,7 @@ describe('Finance Transaction Service', () => {
 
     it('네트워크 오류 시 에러를 던져야 함', async () => {
       const updateData: UpdateTransactionRequest = {
+        id: 'transaction-1',
         description: '수정된 설명',
       }
 
@@ -803,10 +788,10 @@ describe('Finance Transaction Service', () => {
   describe('getTransactionStats', () => {
     it('거래 통계를 성공적으로 조회해야 함', async () => {
       const mockStats: TransactionStats = {
-        totalTransactions: 100,
         totalIncome: 5000000,
         totalExpense: 3000000,
         netAmount: 2000000,
+        transactionCount: 100,
         averageTransactionAmount: 50000,
         incomeCount: 60,
         expenseCount: 40,
@@ -837,10 +822,10 @@ describe('Finance Transaction Service', () => {
 
     it('필터로 거래 통계를 조회해야 함', async () => {
       const mockStats: TransactionStats = {
-        totalTransactions: 50,
         totalIncome: 2500000,
         totalExpense: 1500000,
         netAmount: 1000000,
+        transactionCount: 50,
         averageTransactionAmount: 40000,
         incomeCount: 30,
         expenseCount: 20,
@@ -905,10 +890,7 @@ describe('Finance Transaction Service', () => {
         totalIncome: 500000,
         totalExpense: 200000,
         netAmount: 300000,
-        transactionCount: {
-          income: 6,
-          expense: 4,
-        },
+        transactionCount: 10,
         topCategories: [
           { categoryId: 'category-1', categoryName: '매출', amount: 400000, count: 4 },
           { categoryId: 'category-2', categoryName: '사무용품', amount: 100000, count: 2 },
@@ -960,10 +942,7 @@ describe('Finance Transaction Service', () => {
         totalIncome: 5000000,
         totalExpense: 3000000,
         netAmount: 2000000,
-        transactionCount: {
-          income: 60,
-          expense: 40,
-        },
+        transactionCount: 100,
         topCategories: [
           { categoryId: 'category-1', categoryName: '매출', amount: 4000000, count: 40 },
           { categoryId: 'category-2', categoryName: '사무용품', amount: 800000, count: 20 },
@@ -1086,7 +1065,6 @@ describe('Finance Transaction Service', () => {
           description: '매출 수입',
           transactionDate: '2025-01-15T10:00:00Z',
           status: 'completed',
-          tags: ['매출', '수입'],
           createdAt: '2025-01-15T10:00:00Z',
           updatedAt: '2025-01-15T10:00:00Z',
         },
@@ -1099,7 +1077,6 @@ describe('Finance Transaction Service', () => {
           description: '사무용품 구매',
           transactionDate: '2025-01-14T15:30:00Z',
           status: 'completed',
-          tags: ['사무용품', '지출'],
           createdAt: '2025-01-14T15:30:00Z',
           updatedAt: '2025-01-14T15:30:00Z',
         },
@@ -1185,7 +1162,6 @@ describe('Finance Transaction Service', () => {
             type: 'income' as const,
             description: '매출 수입',
             transactionDate: '2025-01-15T10:00:00Z',
-            tags: ['매출', '수입'],
           },
           expectedType: 'income',
           expectedAmount: 100000,
@@ -1198,7 +1174,6 @@ describe('Finance Transaction Service', () => {
             type: 'expense' as const,
             description: '사무용품 구매',
             transactionDate: '2025-01-14T15:30:00Z',
-            tags: ['사무용품', '지출'],
           },
           expectedType: 'expense',
           expectedAmount: 50000,

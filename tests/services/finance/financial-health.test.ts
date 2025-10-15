@@ -1,14 +1,12 @@
 import { FinancialHealthAnalyzer } from '$lib/finance/services/analysis/financial-health'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { DBHelper } from '../../helpers/db-helper'
-import { mockLogger } from '../../helpers/mock-helper'
 
 describe('Financial Health Analyzer', () => {
   let analyzer: FinancialHealthAnalyzer
 
   beforeEach(() => {
     vi.clearAllMocks()
-    mockLogger()
     DBHelper.reset()
     analyzer = new FinancialHealthAnalyzer()
   })

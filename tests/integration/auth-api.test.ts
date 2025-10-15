@@ -29,7 +29,7 @@ describe('Auth + API Integration Tests', () => {
       }
 
       const mockToken = 'valid-jwt-token'
-      
+
       mockVerifyToken.mockResolvedValue({
         valid: true,
         payload: {
@@ -63,10 +63,14 @@ describe('Auth + API Integration Tests', () => {
 
       DBHelper.mockSelectResponse('crm_customers', mockCustomers)
 
-      const request = createMockRequest('GET', {}, {
-        'Authorization': `Bearer ${mockToken}`,
-        'Content-Type': 'application/json',
-      })
+      const request = createMockRequest(
+        'GET',
+        {},
+        {
+          Authorization: `Bearer ${mockToken}`,
+          'Content-Type': 'application/json',
+        },
+      )
       const event = createMockEvent(request)
 
       // Mock the authenticated API endpoint
@@ -74,48 +78,67 @@ describe('Auth + API Integration Tests', () => {
         // Step 1: Verify authentication
         const authResult = await mockRequireAuth(request)
         if (!authResult) {
-          return new Response(JSON.stringify({ 
-            success: false, 
-            error: 'Authentication required' 
-          }), {
-            status: 401,
-            headers: { 'Content-Type': 'application/json' },
-          })
+          return new Response(
+            JSON.stringify({
+              success: false,
+              error: 'Authentication required',
+            }),
+            {
+              status: 401,
+              headers: { 'Content-Type': 'application/json' },
+            },
+          )
         }
 
         // Step 2: Check permissions
         const hasPermission = mockCheckPermissions(authResult.permissions, 'read')
         if (!hasPermission) {
-          return new Response(JSON.stringify({ 
-            success: false, 
-            error: 'Insufficient permissions' 
-          }), {
-            status: 403,
-            headers: { 'Content-Type': 'application/json' },
-          })
+          return new Response(
+            JSON.stringify({
+              success: false,
+              error: 'Insufficient permissions',
+            }),
+            {
+              status: 403,
+              headers: { 'Content-Type': 'application/json' },
+            },
+          )
         }
 
         // Step 3: Execute business logic
         const result = await DBHelper.getMockQuery()('SELECT * FROM crm_customers')
-        
-        return new Response(JSON.stringify({ 
-          success: true, 
-          data: mockCustomers,
-          user: {
-            id: authResult.id,
-            name: authResult.name,
-            role: authResult.role,
-          }
-        }), {
-          status: 200,
-          headers: { 'Content-Type': 'application/json' },
-        })
+
+        return new Response(
+          JSON.stringify({
+            success: true,
+            data: mockCustomers,
+            user: {
+              id: authResult.id,
+              name: authResult.name,
+              role: authResult.role,
+            },
+          }),
+          {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' },
+          },
+        )
       })
 
       // Mock permission check
       mockCheckPermissions.mockReturnValue(true)
 
-      const response = await mockGET({ request, url: event.url, params: {}, locals: event.locals, route: event.route, cookies: event.cookies, fetch: event.fetch, getClientAddress: event.getClientAddress, platform: event.platform })
+      const response = await mockGET({
+        request,
+        url: event.url,
+        params: {},
+        locals: event.locals,
+        route: event.route,
+        cookies: event.cookies,
+        fetch: event.fetch,
+        getClientAddress: event.getClientAddress,
+        platform: event.platform,
+      })
       const responseBody = await getJsonResponseBody(response)
 
       expect(response.status).toBe(200)
@@ -126,7 +149,7 @@ describe('Auth + API Integration Tests', () => {
         name: '테스트 사용자',
         role: 'ADMIN',
       })
-      
+
       // Verify authentication flow
       expect(mockRequireAuth).toHaveBeenCalledWith(request)
       expect(mockCheckPermissions).toHaveBeenCalledWith(['read', 'write', 'admin'], 'read')
@@ -135,7 +158,7 @@ describe('Auth + API Integration Tests', () => {
 
     it('should handle invalid token authentication', async () => {
       const invalidToken = 'invalid-jwt-token'
-      
+
       mockVerifyToken.mockResolvedValue({
         valid: false,
         payload: null,
@@ -144,10 +167,14 @@ describe('Auth + API Integration Tests', () => {
 
       mockRequireAuth.mockRejectedValue(new Error('Invalid token'))
 
-      const request = createMockRequest('GET', {}, {
-        'Authorization': `Bearer ${invalidToken}`,
-        'Content-Type': 'application/json',
-      })
+      const request = createMockRequest(
+        'GET',
+        {},
+        {
+          Authorization: `Bearer ${invalidToken}`,
+          'Content-Type': 'application/json',
+        },
+      )
       const event = createMockEvent(request)
 
       const mockGET = vi.fn().mockImplementation(async ({ request }) => {
@@ -155,18 +182,31 @@ describe('Auth + API Integration Tests', () => {
           const authResult = await mockRequireAuth(request)
           return new Response(JSON.stringify({ success: true }), { status: 200 })
         } catch (error) {
-          return new Response(JSON.stringify({ 
-            success: false, 
-            error: 'Authentication failed',
-            details: error.message
-          }), {
-            status: 401,
-            headers: { 'Content-Type': 'application/json' },
-          })
+          return new Response(
+            JSON.stringify({
+              success: false,
+              error: 'Authentication failed',
+              details: error.message,
+            }),
+            {
+              status: 401,
+              headers: { 'Content-Type': 'application/json' },
+            },
+          )
         }
       })
 
-      const response = await mockGET({ request, url: event.url, params: {}, locals: event.locals, route: event.route, cookies: event.cookies, fetch: event.fetch, getClientAddress: event.getClientAddress, platform: event.platform })
+      const response = await mockGET({
+        request,
+        url: event.url,
+        params: {},
+        locals: event.locals,
+        route: event.route,
+        cookies: event.cookies,
+        fetch: event.fetch,
+        getClientAddress: event.getClientAddress,
+        platform: event.platform,
+      })
       const responseBody = await getJsonResponseBody(response)
 
       expect(response.status).toBe(401)
@@ -188,35 +228,52 @@ describe('Auth + API Integration Tests', () => {
       mockRequireAuth.mockResolvedValue(mockUser)
       mockCheckPermissions.mockReturnValue(false) // No write permission
 
-      const request = createMockRequest('POST', {
-        name: '새로운 고객사',
-        businessNumber: '123-45-67890',
-      }, {
-        'Authorization': 'Bearer valid-jwt-token',
-        'Content-Type': 'application/json',
-      })
+      const request = createMockRequest(
+        'POST',
+        {
+          name: '새로운 고객사',
+          businessNumber: '123-45-67890',
+        },
+        {
+          Authorization: 'Bearer valid-jwt-token',
+          'Content-Type': 'application/json',
+        },
+      )
       const event = createMockEvent(request)
 
       const mockPOST = vi.fn().mockImplementation(async ({ request }) => {
         const authResult = await mockRequireAuth(request)
-        
+
         const hasPermission = mockCheckPermissions(authResult.permissions, 'write')
         if (!hasPermission) {
-          return new Response(JSON.stringify({ 
-            success: false, 
-            error: 'Insufficient permissions',
-            required: 'write',
-            current: authResult.permissions
-          }), {
-            status: 403,
-            headers: { 'Content-Type': 'application/json' },
-          })
+          return new Response(
+            JSON.stringify({
+              success: false,
+              error: 'Insufficient permissions',
+              required: 'write',
+              current: authResult.permissions,
+            }),
+            {
+              status: 403,
+              headers: { 'Content-Type': 'application/json' },
+            },
+          )
         }
 
         return new Response(JSON.stringify({ success: true }), { status: 201 })
       })
 
-      const response = await mockPOST({ request, url: event.url, params: {}, locals: event.locals, route: event.route, cookies: event.cookies, fetch: event.fetch, getClientAddress: event.getClientAddress, platform: event.platform })
+      const response = await mockPOST({
+        request,
+        url: event.url,
+        params: {},
+        locals: event.locals,
+        route: event.route,
+        cookies: event.cookies,
+        fetch: event.fetch,
+        getClientAddress: event.getClientAddress,
+        platform: event.platform,
+      })
       const responseBody = await getJsonResponseBody(response)
 
       expect(response.status).toBe(403)
@@ -228,7 +285,7 @@ describe('Auth + API Integration Tests', () => {
 
     it('should handle expired token', async () => {
       const expiredToken = 'expired-jwt-token'
-      
+
       mockVerifyToken.mockResolvedValue({
         valid: false,
         payload: {
@@ -243,10 +300,14 @@ describe('Auth + API Integration Tests', () => {
 
       mockRequireAuth.mockRejectedValue(new Error('Token expired'))
 
-      const request = createMockRequest('GET', {}, {
-        'Authorization': `Bearer ${expiredToken}`,
-        'Content-Type': 'application/json',
-      })
+      const request = createMockRequest(
+        'GET',
+        {},
+        {
+          Authorization: `Bearer ${expiredToken}`,
+          'Content-Type': 'application/json',
+        },
+      )
       const event = createMockEvent(request)
 
       const mockGET = vi.fn().mockImplementation(async ({ request }) => {
@@ -254,18 +315,31 @@ describe('Auth + API Integration Tests', () => {
           const authResult = await mockRequireAuth(request)
           return new Response(JSON.stringify({ success: true }), { status: 200 })
         } catch (error) {
-          return new Response(JSON.stringify({ 
-            success: false, 
-            error: 'Token expired',
-            details: error.message
-          }), {
-            status: 401,
-            headers: { 'Content-Type': 'application/json' },
-          })
+          return new Response(
+            JSON.stringify({
+              success: false,
+              error: 'Token expired',
+              details: error.message,
+            }),
+            {
+              status: 401,
+              headers: { 'Content-Type': 'application/json' },
+            },
+          )
         }
       })
 
-      const response = await mockGET({ request, url: event.url, params: {}, locals: event.locals, route: event.route, cookies: event.cookies, fetch: event.fetch, getClientAddress: event.getClientAddress, platform: event.platform })
+      const response = await mockGET({
+        request,
+        url: event.url,
+        params: {},
+        locals: event.locals,
+        route: event.route,
+        cookies: event.cookies,
+        fetch: event.fetch,
+        getClientAddress: event.getClientAddress,
+        platform: event.platform,
+      })
       const responseBody = await getJsonResponseBody(response)
 
       expect(response.status).toBe(401)
@@ -288,40 +362,60 @@ describe('Auth + API Integration Tests', () => {
       mockRequireAuth.mockResolvedValue(mockAdminUser)
       mockCheckPermissions.mockReturnValue(true)
 
-      const request = createMockRequest('DELETE', {}, {
-        'Authorization': 'Bearer admin-token',
-        'Content-Type': 'application/json',
-      })
+      const request = createMockRequest(
+        'DELETE',
+        {},
+        {
+          Authorization: 'Bearer admin-token',
+          'Content-Type': 'application/json',
+        },
+      )
       const event = createMockEvent(request, { id: 'customer-1' })
 
       const mockDELETE = vi.fn().mockImplementation(async ({ request }) => {
         const authResult = await mockRequireAuth(request)
-        
+
         // Admin can delete
         const hasPermission = mockCheckPermissions(authResult.permissions, 'delete')
         if (!hasPermission) {
-          return new Response(JSON.stringify({ 
-            success: false, 
-            error: 'Insufficient permissions' 
-          }), {
-            status: 403,
-            headers: { 'Content-Type': 'application/json' },
-          })
+          return new Response(
+            JSON.stringify({
+              success: false,
+              error: 'Insufficient permissions',
+            }),
+            {
+              status: 403,
+              headers: { 'Content-Type': 'application/json' },
+            },
+          )
         }
 
         // Execute delete operation
         await DBHelper.getMockQuery()('DELETE FROM crm_customers WHERE id = ?')
-        
-        return new Response(JSON.stringify({ 
-          success: true, 
-          message: 'Customer deleted successfully' 
-        }), {
-          status: 200,
-          headers: { 'Content-Type': 'application/json' },
-        })
+
+        return new Response(
+          JSON.stringify({
+            success: true,
+            message: 'Customer deleted successfully',
+          }),
+          {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' },
+          },
+        )
       })
 
-      const response = await mockDELETE({ request, url: event.url, params: event.params, locals: event.locals, route: event.route, cookies: event.cookies, fetch: event.fetch, getClientAddress: event.getClientAddress, platform: event.platform })
+      const response = await mockDELETE({
+        request,
+        url: event.url,
+        params: event.params,
+        locals: event.locals,
+        route: event.route,
+        cookies: event.cookies,
+        fetch: event.fetch,
+        getClientAddress: event.getClientAddress,
+        platform: event.platform,
+      })
       const responseBody = await getJsonResponseBody(response)
 
       expect(response.status).toBe(200)
@@ -341,31 +435,48 @@ describe('Auth + API Integration Tests', () => {
       mockRequireAuth.mockResolvedValue(mockManagerUser)
       mockCheckPermissions.mockReturnValue(false) // No delete permission
 
-      const request = createMockRequest('DELETE', {}, {
-        'Authorization': 'Bearer manager-token',
-        'Content-Type': 'application/json',
-      })
+      const request = createMockRequest(
+        'DELETE',
+        {},
+        {
+          Authorization: 'Bearer manager-token',
+          'Content-Type': 'application/json',
+        },
+      )
       const event = createMockEvent(request, { id: 'customer-1' })
 
       const mockDELETE = vi.fn().mockImplementation(async ({ request }) => {
         const authResult = await mockRequireAuth(request)
-        
+
         const hasPermission = mockCheckPermissions(authResult.permissions, 'delete')
         if (!hasPermission) {
-          return new Response(JSON.stringify({ 
-            success: false, 
-            error: 'Insufficient permissions',
-            message: 'Managers cannot delete customers'
-          }), {
-            status: 403,
-            headers: { 'Content-Type': 'application/json' },
-          })
+          return new Response(
+            JSON.stringify({
+              success: false,
+              error: 'Insufficient permissions',
+              message: 'Managers cannot delete customers',
+            }),
+            {
+              status: 403,
+              headers: { 'Content-Type': 'application/json' },
+            },
+          )
         }
 
         return new Response(JSON.stringify({ success: true }), { status: 200 })
       })
 
-      const response = await mockDELETE({ request, url: event.url, params: event.params, locals: event.locals, route: event.route, cookies: event.cookies, fetch: event.fetch, getClientAddress: event.getClientAddress, platform: event.platform })
+      const response = await mockDELETE({
+        request,
+        url: event.url,
+        params: event.params,
+        locals: event.locals,
+        route: event.route,
+        cookies: event.cookies,
+        fetch: event.fetch,
+        getClientAddress: event.getClientAddress,
+        platform: event.platform,
+      })
       const responseBody = await getJsonResponseBody(response)
 
       expect(response.status).toBe(403)
@@ -385,27 +496,34 @@ describe('Auth + API Integration Tests', () => {
 
       mockRequireAuth.mockResolvedValue(mockViewerUser)
 
-      const request = createMockRequest('PUT', {
-        name: '업데이트된 고객사',
-      }, {
-        'Authorization': 'Bearer viewer-token',
-        'Content-Type': 'application/json',
-      })
+      const request = createMockRequest(
+        'PUT',
+        {
+          name: '업데이트된 고객사',
+        },
+        {
+          Authorization: 'Bearer viewer-token',
+          'Content-Type': 'application/json',
+        },
+      )
       const event = createMockEvent(request, { id: 'customer-1' })
 
       const mockPUT = vi.fn().mockImplementation(async ({ request }) => {
         const authResult = await mockRequireAuth(request)
-        
+
         const hasPermission = mockCheckPermissions(authResult.permissions, 'write')
         if (!hasPermission) {
-          return new Response(JSON.stringify({ 
-            success: false, 
-            error: 'Read-only access',
-            message: 'Viewers can only read data'
-          }), {
-            status: 403,
-            headers: { 'Content-Type': 'application/json' },
-          })
+          return new Response(
+            JSON.stringify({
+              success: false,
+              error: 'Read-only access',
+              message: 'Viewers can only read data',
+            }),
+            {
+              status: 403,
+              headers: { 'Content-Type': 'application/json' },
+            },
+          )
         }
 
         return new Response(JSON.stringify({ success: true }), { status: 200 })
@@ -414,7 +532,17 @@ describe('Auth + API Integration Tests', () => {
       // Mock permission check to return false for write operation
       mockCheckPermissions.mockReturnValue(false)
 
-      const response = await mockPUT({ request, url: event.url, params: event.params, locals: event.locals, route: event.route, cookies: event.cookies, fetch: event.fetch, getClientAddress: event.getClientAddress, platform: event.platform })
+      const response = await mockPUT({
+        request,
+        url: event.url,
+        params: event.params,
+        locals: event.locals,
+        route: event.route,
+        cookies: event.cookies,
+        fetch: event.fetch,
+        getClientAddress: event.getClientAddress,
+        platform: event.platform,
+      })
       const responseBody = await getJsonResponseBody(response)
 
       expect(response.status).toBe(403)
@@ -444,51 +572,71 @@ describe('Auth + API Integration Tests', () => {
         expiresIn: 3600,
       })
 
-      const request = createMockRequest('POST', {
-        refreshToken: 'old-refresh-token',
-      }, {
-        'Authorization': `Bearer ${oldToken}`,
-        'Content-Type': 'application/json',
-      })
+      const request = createMockRequest(
+        'POST',
+        {
+          refreshToken: 'old-refresh-token',
+        },
+        {
+          Authorization: `Bearer ${oldToken}`,
+          'Content-Type': 'application/json',
+        },
+      )
       const event = createMockEvent(request)
 
       const mockPOST = vi.fn().mockImplementation(async ({ request }) => {
         const body = await request.json()
-        
+
         try {
           const refreshResult = await mockRefreshToken(body.refreshToken)
-          
-          return new Response(JSON.stringify({ 
-            success: true, 
-            data: {
-              token: refreshResult.token,
-              refreshToken: refreshResult.refreshToken,
-              expiresIn: refreshResult.expiresIn,
-              user: mockUser,
-            }
-          }), {
-            status: 200,
-            headers: { 'Content-Type': 'application/json' },
-          })
+
+          return new Response(
+            JSON.stringify({
+              success: true,
+              data: {
+                token: refreshResult.token,
+                refreshToken: refreshResult.refreshToken,
+                expiresIn: refreshResult.expiresIn,
+                user: mockUser,
+              },
+            }),
+            {
+              status: 200,
+              headers: { 'Content-Type': 'application/json' },
+            },
+          )
         } catch (error) {
-          return new Response(JSON.stringify({ 
-            success: false, 
-            error: 'Token refresh failed' 
-          }), {
-            status: 401,
-            headers: { 'Content-Type': 'application/json' },
-          })
+          return new Response(
+            JSON.stringify({
+              success: false,
+              error: 'Token refresh failed',
+            }),
+            {
+              status: 401,
+              headers: { 'Content-Type': 'application/json' },
+            },
+          )
         }
       })
 
-      const response = await mockPOST({ request, url: event.url, params: {}, locals: event.locals, route: event.route, cookies: event.cookies, fetch: event.fetch, getClientAddress: event.getClientAddress, platform: event.platform })
+      const response = await mockPOST({
+        request,
+        url: event.url,
+        params: {},
+        locals: event.locals,
+        route: event.route,
+        cookies: event.cookies,
+        fetch: event.fetch,
+        getClientAddress: event.getClientAddress,
+        platform: event.platform,
+      })
       const responseBody = await getJsonResponseBody(response)
 
       expect(response.status).toBe(200)
       expect(responseBody.success).toBe(true)
       expect(responseBody.data.token).toBe(newToken)
       expect(responseBody.data.user).toEqual(mockUser)
-      
+
       expect(mockRefreshToken).toHaveBeenCalledWith('old-refresh-token')
     })
 
@@ -506,30 +654,44 @@ describe('Auth + API Integration Tests', () => {
         message: 'Logged out successfully',
       })
 
-      const request = createMockRequest('POST', {}, {
-        'Authorization': 'Bearer valid-jwt-token',
-        'Content-Type': 'application/json',
-      })
+      const request = createMockRequest(
+        'POST',
+        {},
+        {
+          Authorization: 'Bearer valid-jwt-token',
+          'Content-Type': 'application/json',
+        },
+      )
       const event = createMockEvent(request)
 
       const mockPOST = vi.fn().mockImplementation(async ({ request }) => {
         const authResult = await mockRequireAuth(request)
-        
+
         const logoutResult = await mockLogout(authResult.id)
-        
+
         return new Response(JSON.stringify(logoutResult), {
           status: 200,
           headers: { 'Content-Type': 'application/json' },
         })
       })
 
-      const response = await mockPOST({ request, url: event.url, params: {}, locals: event.locals, route: event.route, cookies: event.cookies, fetch: event.fetch, getClientAddress: event.getClientAddress, platform: event.platform })
+      const response = await mockPOST({
+        request,
+        url: event.url,
+        params: {},
+        locals: event.locals,
+        route: event.route,
+        cookies: event.cookies,
+        fetch: event.fetch,
+        getClientAddress: event.getClientAddress,
+        platform: event.platform,
+      })
       const responseBody = await getJsonResponseBody(response)
 
       expect(response.status).toBe(200)
       expect(responseBody.success).toBe(true)
       expect(responseBody.message).toBe('Logged out successfully')
-      
+
       expect(mockLogout).toHaveBeenCalledWith('user-123')
     })
   })

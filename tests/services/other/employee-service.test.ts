@@ -54,7 +54,7 @@ describe('EmployeeService', () => {
         rowCount: 2,
       })
 
-      const result = await employeeService.getEmployees()
+      const result = await employeeService.list()
 
       expect(result).toEqual(mockEmployees)
       expect(mockQuery).toHaveBeenCalledWith(expect.stringContaining('SELECT'))
@@ -64,7 +64,7 @@ describe('EmployeeService', () => {
       const error = new Error('Database connection failed')
       mockQuery.mockRejectedValue(error)
 
-      await expect(employeeService.getEmployees()).rejects.toThrow('Database connection failed')
+      await expect(employeeService.list()).rejects.toThrow('Database connection failed')
     })
 
     it('should return empty array when no employees found', async () => {
@@ -73,7 +73,7 @@ describe('EmployeeService', () => {
         rowCount: 0,
       })
 
-      const result = await employeeService.getEmployees()
+      const result = await employeeService.list()
 
       expect(result).toEqual([])
       expect(mockQuery).toHaveBeenCalledWith(expect.stringContaining('SELECT'))
@@ -96,7 +96,7 @@ describe('EmployeeService', () => {
         rowCount: 1,
       })
 
-      const result = await employeeService.getEmployeeById('employee-1')
+      const result = await employeeService.getById('employee-1')
 
       expect(result).toEqual(mockEmployee)
       expect(mockQuery).toHaveBeenCalledWith(
@@ -124,9 +124,7 @@ describe('EmployeeService', () => {
       const error = new Error('Database query failed')
       mockQuery.mockRejectedValue(error)
 
-      await expect(employeeService.getEmployeeById('employee-1')).rejects.toThrow(
-        'Database query failed',
-      )
+      await expect(employeeService.getById('employee-1')).rejects.toThrow('Database query failed')
     })
   })
 
@@ -150,7 +148,7 @@ describe('EmployeeService', () => {
         rowCount: 1,
       })
 
-      const result = await employeeService.createEmployee(employeeData)
+      const result = await employeeService.create(employeeData)
 
       expect(result).toEqual(mockCreatedEmployee)
       expect(mockQuery).toHaveBeenCalledWith(
@@ -177,7 +175,7 @@ describe('EmployeeService', () => {
       const error = new Error('Validation failed')
       mockQuery.mockRejectedValue(error)
 
-      await expect(employeeService.createEmployee(invalidData)).rejects.toThrow('Validation failed')
+      await expect(employeeService.create(invalidData)).rejects.toThrow('Validation failed')
     })
 
     it('should handle duplicate email errors', async () => {
@@ -192,9 +190,7 @@ describe('EmployeeService', () => {
       const error = new Error('Duplicate email address')
       mockQuery.mockRejectedValue(error)
 
-      await expect(employeeService.createEmployee(employeeData)).rejects.toThrow(
-        'Duplicate email address',
-      )
+      await expect(employeeService.create(employeeData)).rejects.toThrow('Duplicate email address')
     })
   })
 
@@ -218,7 +214,7 @@ describe('EmployeeService', () => {
         rowCount: 1,
       })
 
-      const result = await employeeService.updateEmployee('employee-1', updateData)
+      const result = await employeeService.update('employee-1', updateData)
 
       expect(result).toEqual(mockUpdatedEmployee)
       expect(mockQuery).toHaveBeenCalledWith(
@@ -276,7 +272,7 @@ describe('EmployeeService', () => {
       const error = new Error('Update failed')
       mockQuery.mockRejectedValue(error)
 
-      await expect(employeeService.updateEmployee('employee-1', updateData)).rejects.toThrow(
+      await expect(employeeService.update('employee-1', updateData)).rejects.toThrow(
         'Update failed',
       )
     })
@@ -289,9 +285,8 @@ describe('EmployeeService', () => {
         rowCount: 1,
       })
 
-      const result = await employeeService.deleteEmployee('employee-1')
+      await employeeService.delete('employee-1')
 
-      expect(result).toBe(true)
       expect(mockQuery).toHaveBeenCalledWith(
         expect.stringContaining('DELETE'),
         expect.arrayContaining(['employee-1']),
@@ -304,9 +299,8 @@ describe('EmployeeService', () => {
         rowCount: 0,
       })
 
-      const result = await employeeService.deleteEmployee('non-existent')
+      await employeeService.delete('non-existent')
 
-      expect(result).toBe(false)
       expect(mockQuery).toHaveBeenCalledWith(
         expect.stringContaining('DELETE'),
         expect.arrayContaining(['non-existent']),
@@ -317,7 +311,7 @@ describe('EmployeeService', () => {
       const error = new Error('Delete failed')
       mockQuery.mockRejectedValue(error)
 
-      await expect(employeeService.deleteEmployee('employee-1')).rejects.toThrow('Delete failed')
+      await expect(employeeService.delete('employee-1')).rejects.toThrow('Delete failed')
     })
   })
 
@@ -347,7 +341,7 @@ describe('EmployeeService', () => {
         rowCount: 2,
       })
 
-      const result = await employeeService.getEmployeesByDepartment('개발팀')
+      const result = await employeeService.list({ department: '개발팀' })
 
       expect(result).toEqual(mockEmployees)
       expect(mockQuery).toHaveBeenCalledWith(
@@ -375,7 +369,7 @@ describe('EmployeeService', () => {
       const error = new Error('Department query failed')
       mockQuery.mockRejectedValue(error)
 
-      await expect(employeeService.getEmployeesByDepartment('개발팀')).rejects.toThrow(
+      await expect(employeeService.list({ department: '개발팀' })).rejects.toThrow(
         'Department query failed',
       )
     })

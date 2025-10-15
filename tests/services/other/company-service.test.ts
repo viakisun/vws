@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { DBHelper } from '../../helpers/db-helper'
 
 // Mock database connection
 vi.mock('$lib/database/connection', () => ({
@@ -24,43 +25,68 @@ describe('CompanyService', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
+    DBHelper.reset()
+
+    // Mock query를 DBHelper의 mock으로 설정
+    const mockQueryFn = DBHelper.setupMockQuery()
+    vi.mocked(query).mockImplementation(mockQueryFn)
+
     mockQuery = vi.mocked(query)
     companyService = new CompanyService()
   })
 
-  describe('getCompanies', () => {
+  describe('list', () => {
     it('should fetch all companies successfully', async () => {
       const mockCompanies = [
         {
           id: 'company-1',
           name: '테스트 회사 1',
-          code: 'TEST1',
-          status: 'active',
+          establishment_date: '2020-01-01',
+          ceo_name: '홍길동',
+          business_type: 'IT',
+          address: '서울시 강남구',
+          phone: '02-1234-5678',
+          fax: '02-1234-5679',
+          email: 'test1@company.com',
+          website: 'https://test1.com',
+          registration_number: '123-45-67890',
+          created_at: '2020-01-01T00:00:00Z',
+          updated_at: '2020-01-01T00:00:00Z',
         },
         {
           id: 'company-2',
           name: '테스트 회사 2',
-          code: 'TEST2',
-          status: 'active',
+          establishment_date: '2020-02-01',
+          ceo_name: '김철수',
+          business_type: 'Manufacturing',
+          address: '서울시 서초구',
+          phone: '02-9876-5432',
+          fax: '02-9876-5433',
+          email: 'test2@company.com',
+          website: 'https://test2.com',
+          registration_number: '987-65-43210',
+          created_at: '2020-02-01T00:00:00Z',
+          updated_at: '2020-02-01T00:00:00Z',
         },
       ]
 
       mockQuery.mockResolvedValue({
         rows: mockCompanies,
-        rowCount: 2,
+        rowCount: mockCompanies.length,
       })
 
-      const result = await companyService.getCompanies()
+      const result = await companyService.list()
 
       expect(result).toEqual(mockCompanies)
-      expect(mockQuery).toHaveBeenCalledWith(expect.stringContaining('SELECT'))
+      expect(mockQuery).toHaveBeenCalled()
+      expect(DBHelper.getLastQuery()).toContain('SELECT')
     })
 
     it('should handle database errors', async () => {
       const error = new Error('Database connection failed')
       mockQuery.mockRejectedValue(error)
 
-      await expect(companyService.getCompanies()).rejects.toThrow('Database connection failed')
+      await expect(companyService.list()).rejects.toThrow('Database connection failed')
     })
 
     it('should return empty array when no companies found', async () => {
@@ -69,14 +95,15 @@ describe('CompanyService', () => {
         rowCount: 0,
       })
 
-      const result = await companyService.getCompanies()
+      const result = await companyService.list()
 
       expect(result).toEqual([])
-      expect(mockQuery).toHaveBeenCalledWith(expect.stringContaining('SELECT'))
+      expect(mockQuery).toHaveBeenCalled()
+      expect(DBHelper.getLastQuery()).toContain('SELECT')
     })
   })
 
-  describe('getCompanyById', () => {
+  describe('getById', () => {
     it('should fetch company by ID successfully', async () => {
       const mockCompany = {
         id: 'company-1',
@@ -90,7 +117,7 @@ describe('CompanyService', () => {
         rowCount: 1,
       })
 
-      const result = await companyService.getCompanyById('company-1')
+      const result = await companyService.getById('company-1')
 
       expect(result).toEqual(mockCompany)
       expect(mockQuery).toHaveBeenCalledWith(
@@ -105,7 +132,7 @@ describe('CompanyService', () => {
         rowCount: 0,
       })
 
-      const result = await companyService.getCompanyById('non-existent')
+      const result = await companyService.getById('non-existent')
 
       expect(result).toBeNull()
       expect(mockQuery).toHaveBeenCalledWith(
@@ -118,23 +145,33 @@ describe('CompanyService', () => {
       const error = new Error('Database query failed')
       mockQuery.mockRejectedValue(error)
 
-      await expect(companyService.getCompanyById('company-1')).rejects.toThrow(
-        'Database query failed',
-      )
+      await expect(companyService.getById('company-1')).rejects.toThrow('Database query failed')
     })
   })
 
-  describe('createCompany', () => {
+  describe('create', () => {
     it('should create company successfully', async () => {
       const companyData = {
         name: '새로운 회사',
-        code: 'NEW',
-        status: 'active',
+        establishment_date: '2020-01-01',
+        ceo_name: '홍길동',
+        business_type: 'IT',
       }
 
       const mockCreatedCompany = {
         id: 'company-new',
-        ...companyData,
+        name: '새로운 회사',
+        establishment_date: '2020-01-01',
+        ceo_name: '홍길동',
+        business_type: 'IT',
+        address: null,
+        phone: null,
+        fax: null,
+        email: null,
+        website: null,
+        registration_number: null,
+        created_at: '2020-01-01T00:00:00Z',
+        updated_at: '2020-01-01T00:00:00Z',
       }
 
       mockQuery.mockResolvedValue({
@@ -142,7 +179,7 @@ describe('CompanyService', () => {
         rowCount: 1,
       })
 
-      const result = await companyService.createCompany(companyData)
+      const result = await companyService.create(companyData)
 
       expect(result).toEqual(mockCreatedCompany)
       expect(mockQuery).toHaveBeenCalledWith(
@@ -161,36 +198,43 @@ describe('CompanyService', () => {
       const error = new Error('Validation failed')
       mockQuery.mockRejectedValue(error)
 
-      await expect(companyService.createCompany(invalidData)).rejects.toThrow('Validation failed')
+      await expect(companyService.create(invalidData)).rejects.toThrow('Validation failed')
     })
 
-    it('should handle duplicate code errors', async () => {
+    it('should handle duplicate name errors', async () => {
       const companyData = {
-        name: '중복 코드 회사',
-        code: 'DUPLICATE',
-        status: 'active',
+        name: '중복 이름 회사',
+        business_type: 'IT',
       }
 
-      const error = new Error('Duplicate company code')
+      const error = new Error('Duplicate company name')
       mockQuery.mockRejectedValue(error)
 
-      await expect(companyService.createCompany(companyData)).rejects.toThrow(
-        'Duplicate company code',
-      )
+      await expect(companyService.create(companyData)).rejects.toThrow('Duplicate company name')
     })
   })
 
-  describe('updateCompany', () => {
+  describe('update', () => {
     it('should update company successfully', async () => {
       const updateData = {
         name: '업데이트된 회사',
-        code: 'UPDATED',
-        status: 'active',
+        business_type: 'Manufacturing',
       }
 
       const mockUpdatedCompany = {
         id: 'company-1',
-        ...updateData,
+        name: '업데이트된 회사',
+        establishment_date: '2020-01-01',
+        ceo_name: '홍길동',
+        business_type: 'Manufacturing',
+        address: '서울시 강남구',
+        phone: '02-1234-5678',
+        fax: '02-1234-5679',
+        email: 'test@company.com',
+        website: 'https://test.com',
+        registration_number: '123-45-67890',
+        created_at: '2020-01-01T00:00:00Z',
+        updated_at: '2020-01-01T00:00:00Z',
       }
 
       mockQuery.mockResolvedValue({
@@ -198,20 +242,19 @@ describe('CompanyService', () => {
         rowCount: 1,
       })
 
-      const result = await companyService.updateCompany('company-1', updateData)
+      const result = await companyService.update('company-1', updateData)
 
       expect(result).toEqual(mockUpdatedCompany)
       expect(mockQuery).toHaveBeenCalledWith(
         expect.stringContaining('UPDATE'),
-        expect.arrayContaining([updateData.name, updateData.code, updateData.status, 'company-1']),
+        expect.arrayContaining([updateData.name, updateData.business_type, 'company-1']),
       )
     })
 
-    it('should return null when company not found', async () => {
+    it('should throw error when company not found', async () => {
       const updateData = {
         name: '업데이트된 회사',
-        code: 'UPDATED',
-        status: 'active',
+        business_type: 'Manufacturing',
       }
 
       mockQuery.mockResolvedValue({
@@ -219,17 +262,8 @@ describe('CompanyService', () => {
         rowCount: 0,
       })
 
-      const result = await companyService.updateCompany('non-existent', updateData)
-
-      expect(result).toBeNull()
-      expect(mockQuery).toHaveBeenCalledWith(
-        expect.stringContaining('UPDATE'),
-        expect.arrayContaining([
-          updateData.name,
-          updateData.code,
-          updateData.status,
-          'non-existent',
-        ]),
+      await expect(companyService.update('non-existent', updateData)).rejects.toThrow(
+        '회사를 찾을 수 없습니다.',
       )
     })
 
@@ -243,37 +277,33 @@ describe('CompanyService', () => {
       const error = new Error('Update failed')
       mockQuery.mockRejectedValue(error)
 
-      await expect(companyService.updateCompany('company-1', updateData)).rejects.toThrow(
-        'Update failed',
-      )
+      await expect(companyService.update('company-1', updateData)).rejects.toThrow('Update failed')
     })
   })
 
-  describe('deleteCompany', () => {
+  describe('delete', () => {
     it('should delete company successfully', async () => {
       mockQuery.mockResolvedValue({
         rows: [],
         rowCount: 1,
       })
 
-      const result = await companyService.deleteCompany('company-1')
+      await companyService.delete('company-1')
 
-      expect(result).toBe(true)
       expect(mockQuery).toHaveBeenCalledWith(
         expect.stringContaining('DELETE'),
         expect.arrayContaining(['company-1']),
       )
     })
 
-    it('should return false when company not found', async () => {
+    it('should handle delete when company not found', async () => {
       mockQuery.mockResolvedValue({
         rows: [],
         rowCount: 0,
       })
 
-      const result = await companyService.deleteCompany('non-existent')
+      await companyService.delete('non-existent')
 
-      expect(result).toBe(false)
       expect(mockQuery).toHaveBeenCalledWith(
         expect.stringContaining('DELETE'),
         expect.arrayContaining(['non-existent']),
@@ -284,7 +314,7 @@ describe('CompanyService', () => {
       const error = new Error('Delete failed')
       mockQuery.mockRejectedValue(error)
 
-      await expect(companyService.deleteCompany('company-1')).rejects.toThrow('Delete failed')
+      await expect(companyService.delete('company-1')).rejects.toThrow('Delete failed')
     })
   })
 
@@ -292,13 +322,23 @@ describe('CompanyService', () => {
     it('should handle special characters in company data', async () => {
       const specialData = {
         name: '특수문자@#$%^&*()회사',
-        code: 'SPECIAL@#$%',
-        status: 'active',
+        business_type: 'IT',
       }
 
       const mockCompany = {
         id: 'company-special',
-        ...specialData,
+        name: '특수문자@#$%^&*()회사',
+        establishment_date: null,
+        ceo_name: null,
+        business_type: 'IT',
+        address: null,
+        phone: null,
+        fax: null,
+        email: null,
+        website: null,
+        registration_number: null,
+        created_at: '2020-01-01T00:00:00Z',
+        updated_at: '2020-01-01T00:00:00Z',
       }
 
       mockQuery.mockResolvedValue({
@@ -306,25 +346,35 @@ describe('CompanyService', () => {
         rowCount: 1,
       })
 
-      const result = await companyService.createCompany(specialData)
+      const result = await companyService.create(specialData)
 
       expect(result).toEqual(mockCompany)
       expect(mockQuery).toHaveBeenCalledWith(
         expect.stringContaining('INSERT'),
-        expect.arrayContaining([specialData.name, specialData.code, specialData.status]),
+        expect.arrayContaining([specialData.name, specialData.business_type]),
       )
     })
 
     it('should handle Unicode characters in company data', async () => {
       const unicodeData = {
         name: '한글회사한글',
-        code: '한글코드',
-        status: 'active',
+        business_type: 'IT',
       }
 
       const mockCompany = {
         id: 'company-unicode',
-        ...unicodeData,
+        name: '한글회사한글',
+        establishment_date: null,
+        ceo_name: null,
+        business_type: 'IT',
+        address: null,
+        phone: null,
+        fax: null,
+        email: null,
+        website: null,
+        registration_number: null,
+        created_at: '2020-01-01T00:00:00Z',
+        updated_at: '2020-01-01T00:00:00Z',
       }
 
       mockQuery.mockResolvedValue({
@@ -332,25 +382,35 @@ describe('CompanyService', () => {
         rowCount: 1,
       })
 
-      const result = await companyService.createCompany(unicodeData)
+      const result = await companyService.create(unicodeData)
 
       expect(result).toEqual(mockCompany)
       expect(mockQuery).toHaveBeenCalledWith(
         expect.stringContaining('INSERT'),
-        expect.arrayContaining([unicodeData.name, unicodeData.code, unicodeData.status]),
+        expect.arrayContaining([unicodeData.name, unicodeData.business_type]),
       )
     })
 
     it('should handle very long company names', async () => {
       const longNameData = {
         name: 'A'.repeat(1000),
-        code: 'LONG',
-        status: 'active',
+        business_type: 'IT',
       }
 
       const mockCompany = {
         id: 'company-long',
-        ...longNameData,
+        name: 'A'.repeat(1000),
+        establishment_date: null,
+        ceo_name: null,
+        business_type: 'IT',
+        address: null,
+        phone: null,
+        fax: null,
+        email: null,
+        website: null,
+        registration_number: null,
+        created_at: '2020-01-01T00:00:00Z',
+        updated_at: '2020-01-01T00:00:00Z',
       }
 
       mockQuery.mockResolvedValue({
@@ -358,25 +418,35 @@ describe('CompanyService', () => {
         rowCount: 1,
       })
 
-      const result = await companyService.createCompany(longNameData)
+      const result = await companyService.create(longNameData)
 
       expect(result).toEqual(mockCompany)
       expect(mockQuery).toHaveBeenCalledWith(
         expect.stringContaining('INSERT'),
-        expect.arrayContaining([longNameData.name, longNameData.code, longNameData.status]),
+        expect.arrayContaining([longNameData.name, longNameData.business_type]),
       )
     })
 
     it('should handle concurrent operations', async () => {
       const companyData = {
         name: '동시 생성 회사',
-        code: 'CONCURRENT',
-        status: 'active',
+        business_type: 'IT',
       }
 
       const mockCompany = {
         id: 'company-concurrent',
-        ...companyData,
+        name: '동시 생성 회사',
+        establishment_date: null,
+        ceo_name: null,
+        business_type: 'IT',
+        address: null,
+        phone: null,
+        fax: null,
+        email: null,
+        website: null,
+        registration_number: null,
+        created_at: '2020-01-01T00:00:00Z',
+        updated_at: '2020-01-01T00:00:00Z',
       }
 
       mockQuery.mockResolvedValue({
@@ -384,7 +454,7 @@ describe('CompanyService', () => {
         rowCount: 1,
       })
 
-      const promises = Array.from({ length: 5 }, () => companyService.createCompany(companyData))
+      const promises = Array.from({ length: 5 }, () => companyService.create(companyData))
 
       const results = await Promise.all(promises)
 

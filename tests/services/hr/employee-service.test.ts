@@ -1,16 +1,36 @@
+import { query } from '$lib/database/connection'
 import type { CreateEmployeeDto, EmployeeFilters } from '$lib/services/employee/employee-service'
 import { EmployeeService } from '$lib/services/employee/employee-service'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { DBHelper } from '../../helpers/db-helper'
-import { mockLogger } from '../../helpers/mock-helper'
+
+// Mock logger
+vi.mock('$lib/utils/logger', () => ({
+  logger: {
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    debug: vi.fn(),
+    log: vi.fn(),
+  },
+}))
+
+// Mock database connection
+vi.mock('$lib/database/connection', () => ({
+  query: vi.fn(),
+}))
 
 describe('Employee Service', () => {
   let employeeService: EmployeeService
 
   beforeEach(() => {
     vi.clearAllMocks()
-    mockLogger()
     DBHelper.reset()
+
+    // Setup mock query
+    const mockQuery = DBHelper.setupMockQuery()
+    vi.mocked(query).mockImplementation(mockQuery)
+
     employeeService = new EmployeeService()
   })
 

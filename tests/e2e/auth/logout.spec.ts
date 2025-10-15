@@ -115,7 +115,7 @@ test.describe('로그아웃 플로우', () => {
   test('로그아웃 중 로딩 상태 표시', async ({ page }) => {
     // 1. 로그아웃 API 응답을 지연시켜 로딩 상태 확인
     await page.route('**/api/auth/logout', async (route) => {
-      await new Promise(resolve => setTimeout(resolve, 1000)) // 1초 지연
+      await new Promise((resolve) => setTimeout(resolve, 1000)) // 1초 지연
       route.fulfill({
         status: 200,
         body: JSON.stringify({ success: true }),
@@ -125,7 +125,7 @@ test.describe('로그아웃 플로우', () => {
     // 2. 로그아웃 시작
     await page.getByRole('button', { name: '사용자 메뉴' }).click()
     await page.getByRole('menuitem', { name: '로그아웃' }).click()
-    
+
     const confirmButton = page.getByRole('button', { name: '확인' })
     await confirmButton.click()
 

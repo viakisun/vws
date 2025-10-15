@@ -1,7 +1,6 @@
 import { DashboardService } from '$lib/finance/services/dashboard-service'
 import type { DailyFinanceReport, FinanceAlert, FinanceDashboard } from '$lib/finance/types'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { mockLogger } from '../../helpers/mock-helper'
 
 // Mock fetch globally
 global.fetch = vi.fn()
@@ -11,7 +10,6 @@ describe('Finance Dashboard Service', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
-    mockLogger()
     dashboardService = new DashboardService()
   })
 

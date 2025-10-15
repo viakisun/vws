@@ -68,56 +68,78 @@ describe('Database + Service Integration Tests', () => {
 
       const mockPOST = vi.fn().mockImplementation(async ({ request }) => {
         const body = await request.json()
-        
+
         try {
           const result = await mockTransaction(async (client) => {
             // Step 1: Create customer
             const customerResult = await client.query(
               'INSERT INTO crm_customers (name, business_number, representative_name) VALUES ($1, $2, $3) RETURNING *',
-              [body.customer.name, body.customer.businessNumber, body.customer.representativeName]
+              [body.customer.name, body.customer.businessNumber, body.customer.representativeName],
             )
-            
+
             const customer = customerResult.rows[0]
-            
+
             // Step 2: Create contract (this will fail)
             const contractResult = await client.query(
               'INSERT INTO crm_contracts (contract_number, customer_id, amount, start_date, end_date) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-              [body.contract.contractNumber, customer.id, body.contract.amount, body.contract.startDate, body.contract.endDate]
+              [
+                body.contract.contractNumber,
+                customer.id,
+                body.contract.amount,
+                body.contract.startDate,
+                body.contract.endDate,
+              ],
             )
-            
+
             return {
               customer: customer,
               contract: contractResult.rows[0],
             }
           })
-          
-          return new Response(JSON.stringify({ 
-            success: true, 
-            data: result 
-          }), {
-            status: 201,
-            headers: { 'Content-Type': 'application/json' },
-          })
+
+          return new Response(
+            JSON.stringify({
+              success: true,
+              data: result,
+            }),
+            {
+              status: 201,
+              headers: { 'Content-Type': 'application/json' },
+            },
+          )
         } catch (error) {
-          return new Response(JSON.stringify({ 
-            success: false, 
-            error: 'Transaction failed',
-            details: error.message
-          }), {
-            status: 500,
-            headers: { 'Content-Type': 'application/json' },
-          })
+          return new Response(
+            JSON.stringify({
+              success: false,
+              error: 'Transaction failed',
+              details: error.message,
+            }),
+            {
+              status: 500,
+              headers: { 'Content-Type': 'application/json' },
+            },
+          )
         }
       })
 
-      const response = await mockPOST({ request, url: event.url, params: {}, locals: event.locals, route: event.route, cookies: event.cookies, fetch: event.fetch, getClientAddress: event.getClientAddress, platform: event.platform })
+      const response = await mockPOST({
+        request,
+        url: event.url,
+        params: {},
+        locals: event.locals,
+        route: event.route,
+        cookies: event.cookies,
+        fetch: event.fetch,
+        getClientAddress: event.getClientAddress,
+        platform: event.platform,
+      })
       const responseBody = await getJsonResponseBody(response)
 
       expect(response.status).toBe(500)
       expect(responseBody.success).toBe(false)
       expect(responseBody.error).toBe('Transaction failed')
       expect(responseBody.details).toBe('Contract creation failed')
-      
+
       // Verify transaction was executed but rolled back
       expect(transactionExecuted).toBe(true)
       expect(rollbackExecuted).toBe(true)
@@ -170,45 +192,64 @@ describe('Database + Service Integration Tests', () => {
 
       const mockPOST = vi.fn().mockImplementation(async ({ request }) => {
         const body = await request.json()
-        
+
         const result = await mockTransaction(async (client) => {
           // Step 1: Create customer
           const customerResult = await client.query(
             'INSERT INTO crm_customers (name, business_number, representative_name) VALUES ($1, $2, $3) RETURNING *',
-            [body.customer.name, body.customer.businessNumber, body.customer.representativeName]
+            [body.customer.name, body.customer.businessNumber, body.customer.representativeName],
           )
-          
+
           const customer = customerResult.rows[0]
-          
+
           // Step 2: Create contract
           const contractResult = await client.query(
             'INSERT INTO crm_contracts (contract_number, customer_id, amount, start_date, end_date) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-            [body.contract.contractNumber, customer.id, body.contract.amount, body.contract.startDate, body.contract.endDate]
+            [
+              body.contract.contractNumber,
+              customer.id,
+              body.contract.amount,
+              body.contract.startDate,
+              body.contract.endDate,
+            ],
           )
-          
+
           return {
             customer: customer,
             contract: contractResult.rows[0],
           }
         })
-        
-        return new Response(JSON.stringify({ 
-          success: true, 
-          data: result 
-        }), {
-          status: 201,
-          headers: { 'Content-Type': 'application/json' },
-        })
+
+        return new Response(
+          JSON.stringify({
+            success: true,
+            data: result,
+          }),
+          {
+            status: 201,
+            headers: { 'Content-Type': 'application/json' },
+          },
+        )
       })
 
-      const response = await mockPOST({ request, url: event.url, params: {}, locals: event.locals, route: event.route, cookies: event.cookies, fetch: event.fetch, getClientAddress: event.getClientAddress, platform: event.platform })
+      const response = await mockPOST({
+        request,
+        url: event.url,
+        params: {},
+        locals: event.locals,
+        route: event.route,
+        cookies: event.cookies,
+        fetch: event.fetch,
+        getClientAddress: event.getClientAddress,
+        platform: event.platform,
+      })
       const responseBody = await getJsonResponseBody(response)
 
       expect(response.status).toBe(201)
       expect(responseBody.success).toBe(true)
       expect(responseBody.data.customer).toBeDefined()
       expect(responseBody.data.contract).toBeDefined()
-      
+
       // Verify both operations were executed
       expect(customerCreated).toBe(true)
       expect(contractCreated).toBe(true)
@@ -257,9 +298,10 @@ describe('Database + Service Integration Tests', () => {
       const mockGET = vi.fn().mockImplementation(async ({ request, url }) => {
         const urlObj = new URL(url)
         const customerId = urlObj.searchParams.get('customerId') || 'customer-1'
-        
+
         // Complex join query with proper indexing
-        const result = await mockQuery(`
+        const result = await mockQuery(
+          `
           SELECT 
             c.id as customer_id,
             c.name as customer_name,
@@ -277,25 +319,40 @@ describe('Database + Service Integration Tests', () => {
           LEFT JOIN employees e ON pm.employee_id = e.id
           WHERE c.id = $1
           ORDER BY ct.contract_number, p.name, e.first_name
-        `, [customerId])
-        
-        return new Response(JSON.stringify({ 
-          success: true, 
-          data: result.rows 
-        }), {
-          status: 200,
-          headers: { 'Content-Type': 'application/json' },
-        })
+        `,
+          [customerId],
+        )
+
+        return new Response(
+          JSON.stringify({
+            success: true,
+            data: result.rows,
+          }),
+          {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' },
+          },
+        )
       })
 
-      const response = await mockGET({ request, url: event.url, params: {}, locals: event.locals, route: event.route, cookies: event.cookies, fetch: event.fetch, getClientAddress: event.getClientAddress, platform: event.platform })
+      const response = await mockGET({
+        request,
+        url: event.url,
+        params: {},
+        locals: event.locals,
+        route: event.route,
+        cookies: event.cookies,
+        fetch: event.fetch,
+        getClientAddress: event.getClientAddress,
+        platform: event.platform,
+      })
       const responseBody = await getJsonResponseBody(response)
 
       expect(response.status).toBe(200)
       expect(responseBody.success).toBe(true)
       expect(responseBody.data).toEqual(mockJoinResult)
       expect(responseBody.data).toHaveLength(2)
-      
+
       // Verify complex query was executed
       expect(mockQuery).toHaveBeenCalledTimes(1)
       const queryCall = mockQuery.mock.calls[0]
@@ -329,36 +386,52 @@ describe('Database + Service Integration Tests', () => {
         const page = parseInt(urlObj.searchParams.get('page') || '1')
         const limit = parseInt(urlObj.searchParams.get('limit') || '20')
         const offset = (page - 1) * limit
-        
+
         // Efficient pagination query
-        const result = await mockQuery(`
+        const result = await mockQuery(
+          `
           SELECT * FROM crm_customers 
           ORDER BY created_at DESC 
           LIMIT $1 OFFSET $2
-        `, [limit, offset])
-        
+        `,
+          [limit, offset],
+        )
+
         // Get total count for pagination info
         const countResult = await mockQuery('SELECT COUNT(*) as total FROM crm_customers')
         const total = parseInt(countResult.rows[0].total)
-        
-        return new Response(JSON.stringify({ 
-          success: true, 
-          data: result.rows,
-          pagination: {
-            page,
-            limit,
-            total,
-            totalPages: Math.ceil(total / limit),
-            hasNext: page < Math.ceil(total / limit),
-            hasPrev: page > 1,
-          }
-        }), {
-          status: 200,
-          headers: { 'Content-Type': 'application/json' },
-        })
+
+        return new Response(
+          JSON.stringify({
+            success: true,
+            data: result.rows,
+            pagination: {
+              page,
+              limit,
+              total,
+              totalPages: Math.ceil(total / limit),
+              hasNext: page < Math.ceil(total / limit),
+              hasPrev: page > 1,
+            },
+          }),
+          {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' },
+          },
+        )
       })
 
-      const response = await mockGET({ request, url: event.url, params: {}, locals: event.locals, route: event.route, cookies: event.cookies, fetch: event.fetch, getClientAddress: event.getClientAddress, platform: event.platform })
+      const response = await mockGET({
+        request,
+        url: event.url,
+        params: {},
+        locals: event.locals,
+        route: event.route,
+        cookies: event.cookies,
+        fetch: event.fetch,
+        getClientAddress: event.getClientAddress,
+        platform: event.platform,
+      })
       const responseBody = await getJsonResponseBody(response)
 
       expect(response.status).toBe(200)
@@ -370,7 +443,7 @@ describe('Database + Service Integration Tests', () => {
       expect(responseBody.pagination.totalPages).toBe(5)
       expect(responseBody.pagination.hasNext).toBe(true)
       expect(responseBody.pagination.hasPrev).toBe(true)
-      
+
       // Verify pagination queries were executed
       expect(mockQuery).toHaveBeenCalledTimes(2) // Data query + count query
     })
@@ -387,33 +460,49 @@ describe('Database + Service Integration Tests', () => {
       const mockGET = vi.fn().mockImplementation(async ({ request }) => {
         try {
           const result = await mockQuery('SELECT * FROM crm_customers LIMIT 1')
-          return new Response(JSON.stringify({ 
-            success: true, 
-            data: result.rows 
-          }), {
-            status: 200,
-            headers: { 'Content-Type': 'application/json' },
-          })
+          return new Response(
+            JSON.stringify({
+              success: true,
+              data: result.rows,
+            }),
+            {
+              status: 200,
+              headers: { 'Content-Type': 'application/json' },
+            },
+          )
         } catch (error) {
           if (error.message.includes('Connection pool exhausted')) {
-            return new Response(JSON.stringify({ 
-              success: false, 
-              error: 'Service temporarily unavailable',
-              details: 'Database connection pool is full. Please try again later.',
-              retryAfter: 30
-            }), {
-              status: 503,
-              headers: { 
-                'Content-Type': 'application/json',
-                'Retry-After': '30'
+            return new Response(
+              JSON.stringify({
+                success: false,
+                error: 'Service temporarily unavailable',
+                details: 'Database connection pool is full. Please try again later.',
+                retryAfter: 30,
+              }),
+              {
+                status: 503,
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Retry-After': '30',
+                },
               },
-            })
+            )
           }
           throw error
         }
       })
 
-      const response = await mockGET({ request, url: event.url, params: {}, locals: event.locals, route: event.route, cookies: event.cookies, fetch: event.fetch, getClientAddress: event.getClientAddress, platform: event.platform })
+      const response = await mockGET({
+        request,
+        url: event.url,
+        params: {},
+        locals: event.locals,
+        route: event.route,
+        cookies: event.cookies,
+        fetch: event.fetch,
+        getClientAddress: event.getClientAddress,
+        platform: event.platform,
+      })
       const responseBody = await getJsonResponseBody(response)
 
       expect(response.status).toBe(503)
@@ -434,42 +523,64 @@ describe('Database + Service Integration Tests', () => {
       const mockGET = vi.fn().mockImplementation(async ({ request }) => {
         try {
           const result = await mockQuery('SELECT * FROM crm_customers')
-          return new Response(JSON.stringify({ 
-            success: true, 
-            data: result.rows 
-          }), {
-            status: 200,
-            headers: { 'Content-Type': 'application/json' },
-          })
+          return new Response(
+            JSON.stringify({
+              success: true,
+              data: result.rows,
+            }),
+            {
+              status: 200,
+              headers: { 'Content-Type': 'application/json' },
+            },
+          )
         } catch (error) {
           if (error.message.includes('timeout')) {
-            return new Response(JSON.stringify({ 
-              success: false, 
-              error: 'Request timeout',
-              details: 'Database query timed out. Please try again with a simpler query.',
-            }), {
-              status: 408,
-              headers: { 'Content-Type': 'application/json' },
-            })
+            return new Response(
+              JSON.stringify({
+                success: false,
+                error: 'Request timeout',
+                details: 'Database query timed out. Please try again with a simpler query.',
+              }),
+              {
+                status: 408,
+                headers: { 'Content-Type': 'application/json' },
+              },
+            )
           }
           throw error
         }
       })
 
-      const response = await mockGET({ request, url: event.url, params: {}, locals: event.locals, route: event.route, cookies: event.cookies, fetch: event.fetch, getClientAddress: event.getClientAddress, platform: event.platform })
+      const response = await mockGET({
+        request,
+        url: event.url,
+        params: {},
+        locals: event.locals,
+        route: event.route,
+        cookies: event.cookies,
+        fetch: event.fetch,
+        getClientAddress: event.getClientAddress,
+        platform: event.platform,
+      })
       const responseBody = await getJsonResponseBody(response)
 
       expect(response.status).toBe(408)
       expect(responseBody.success).toBe(false)
       expect(responseBody.error).toBe('Request timeout')
-      expect(responseBody.details).toBe('Database query timed out. Please try again with a simpler query.')
+      expect(responseBody.details).toBe(
+        'Database query timed out. Please try again with a simpler query.',
+      )
     })
   })
 
   describe('Database Data Consistency Flow', () => {
     it('should handle data validation and constraints', async () => {
       // Mock constraint violation
-      mockQuery.mockRejectedValue(new Error('duplicate key value violates unique constraint "crm_customers_business_number_key"'))
+      mockQuery.mockRejectedValue(
+        new Error(
+          'duplicate key value violates unique constraint "crm_customers_business_number_key"',
+        ),
+      )
 
       const request = createMockRequest('POST', {
         name: '테스트 고객사',
@@ -480,37 +591,53 @@ describe('Database + Service Integration Tests', () => {
 
       const mockPOST = vi.fn().mockImplementation(async ({ request }) => {
         const body = await request.json()
-        
+
         try {
           const result = await mockQuery(
             'INSERT INTO crm_customers (name, business_number, representative_name) VALUES ($1, $2, $3) RETURNING *',
-            [body.name, body.businessNumber, body.representativeName]
+            [body.name, body.businessNumber, body.representativeName],
           )
-          
-          return new Response(JSON.stringify({ 
-            success: true, 
-            data: result.rows[0] 
-          }), {
-            status: 201,
-            headers: { 'Content-Type': 'application/json' },
-          })
+
+          return new Response(
+            JSON.stringify({
+              success: true,
+              data: result.rows[0],
+            }),
+            {
+              status: 201,
+              headers: { 'Content-Type': 'application/json' },
+            },
+          )
         } catch (error) {
           if (error.message.includes('duplicate key value violates unique constraint')) {
-            return new Response(JSON.stringify({ 
-              success: false, 
-              error: 'Business number already exists',
-              details: 'A customer with this business number already exists.',
-              field: 'businessNumber'
-            }), {
-              status: 409,
-              headers: { 'Content-Type': 'application/json' },
-            })
+            return new Response(
+              JSON.stringify({
+                success: false,
+                error: 'Business number already exists',
+                details: 'A customer with this business number already exists.',
+                field: 'businessNumber',
+              }),
+              {
+                status: 409,
+                headers: { 'Content-Type': 'application/json' },
+              },
+            )
           }
           throw error
         }
       })
 
-      const response = await mockPOST({ request, url: event.url, params: {}, locals: event.locals, route: event.route, cookies: event.cookies, fetch: event.fetch, getClientAddress: event.getClientAddress, platform: event.platform })
+      const response = await mockPOST({
+        request,
+        url: event.url,
+        params: {},
+        locals: event.locals,
+        route: event.route,
+        cookies: event.cookies,
+        fetch: event.fetch,
+        getClientAddress: event.getClientAddress,
+        platform: event.platform,
+      })
       const responseBody = await getJsonResponseBody(response)
 
       expect(response.status).toBe(409)
@@ -522,7 +649,11 @@ describe('Database + Service Integration Tests', () => {
 
     it('should handle foreign key constraint violations', async () => {
       // Mock foreign key violation
-      mockQuery.mockRejectedValue(new Error('insert or update on table "crm_contracts" violates foreign key constraint "crm_contracts_customer_id_fkey"'))
+      mockQuery.mockRejectedValue(
+        new Error(
+          'insert or update on table "crm_contracts" violates foreign key constraint "crm_contracts_customer_id_fkey"',
+        ),
+      )
 
       const request = createMockRequest('POST', {
         contractNumber: 'CONTRACT-001',
@@ -535,37 +666,53 @@ describe('Database + Service Integration Tests', () => {
 
       const mockPOST = vi.fn().mockImplementation(async ({ request }) => {
         const body = await request.json()
-        
+
         try {
           const result = await mockQuery(
             'INSERT INTO crm_contracts (contract_number, customer_id, amount, start_date, end_date) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-            [body.contractNumber, body.customerId, body.amount, body.startDate, body.endDate]
+            [body.contractNumber, body.customerId, body.amount, body.startDate, body.endDate],
           )
-          
-          return new Response(JSON.stringify({ 
-            success: true, 
-            data: result.rows[0] 
-          }), {
-            status: 201,
-            headers: { 'Content-Type': 'application/json' },
-          })
+
+          return new Response(
+            JSON.stringify({
+              success: true,
+              data: result.rows[0],
+            }),
+            {
+              status: 201,
+              headers: { 'Content-Type': 'application/json' },
+            },
+          )
         } catch (error) {
           if (error.message.includes('violates foreign key constraint')) {
-            return new Response(JSON.stringify({ 
-              success: false, 
-              error: 'Referenced record not found',
-              details: 'The specified customer does not exist.',
-              field: 'customerId'
-            }), {
-              status: 400,
-              headers: { 'Content-Type': 'application/json' },
-            })
+            return new Response(
+              JSON.stringify({
+                success: false,
+                error: 'Referenced record not found',
+                details: 'The specified customer does not exist.',
+                field: 'customerId',
+              }),
+              {
+                status: 400,
+                headers: { 'Content-Type': 'application/json' },
+              },
+            )
           }
           throw error
         }
       })
 
-      const response = await mockPOST({ request, url: event.url, params: {}, locals: event.locals, route: event.route, cookies: event.cookies, fetch: event.fetch, getClientAddress: event.getClientAddress, platform: event.platform })
+      const response = await mockPOST({
+        request,
+        url: event.url,
+        params: {},
+        locals: event.locals,
+        route: event.route,
+        cookies: event.cookies,
+        fetch: event.fetch,
+        getClientAddress: event.getClientAddress,
+        platform: event.platform,
+      })
       const responseBody = await getJsonResponseBody(response)
 
       expect(response.status).toBe(400)

@@ -161,7 +161,7 @@ describe('S3 Service', () => {
       const result = await generatePresignedUploadUrl(key, contentType)
 
       expect(result).toBe(mockPresignedUrl)
-      expect(generatePresignedUploadUrl).toHaveBeenCalledWith(key, contentType, undefined)
+      expect(generatePresignedUploadUrl).toHaveBeenCalledWith(key, contentType)
     })
 
     it('should handle different content types', async () => {
@@ -182,7 +182,7 @@ describe('S3 Service', () => {
         const result = await generatePresignedUploadUrl(key, contentType)
 
         expect(result).toBe(mockPresignedUrl)
-        expect(generatePresignedUploadUrl).toHaveBeenCalledWith(key, contentType, undefined)
+        expect(generatePresignedUploadUrl).toHaveBeenCalledWith(key, contentType)
       }
     })
 
@@ -219,7 +219,7 @@ describe('S3 Service', () => {
       const result = await generatePresignedUploadUrl(key, contentType)
 
       expect(result).toBe(mockPresignedUrl)
-      expect(generatePresignedUploadUrl).toHaveBeenCalledWith(key, contentType, undefined)
+      expect(generatePresignedUploadUrl).toHaveBeenCalledWith(key, contentType)
     })
   })
 
@@ -248,7 +248,7 @@ describe('S3 Service', () => {
       const result = await generatePresignedDownloadUrl(key)
 
       expect(result).toBe(mockPresignedUrl)
-      expect(generatePresignedDownloadUrl).toHaveBeenCalledWith(key, undefined)
+      expect(generatePresignedDownloadUrl).toHaveBeenCalledWith(key)
     })
 
     it('should handle errors during URL generation', async () => {
@@ -406,7 +406,7 @@ describe('S3 Service', () => {
       const result = await generatePresignedUploadUrl(key, contentType)
 
       expect(result).toBe(mockPresignedUrl)
-      expect(generatePresignedUploadUrl).toHaveBeenCalledWith(key, contentType, undefined)
+      expect(generatePresignedUploadUrl).toHaveBeenCalledWith(key, contentType)
     })
 
     it('should handle special characters in keys', async () => {
@@ -420,7 +420,7 @@ describe('S3 Service', () => {
       const result = await generatePresignedUploadUrl(key, contentType)
 
       expect(result).toBe(mockPresignedUrl)
-      expect(generatePresignedUploadUrl).toHaveBeenCalledWith(key, contentType, undefined)
+      expect(generatePresignedUploadUrl).toHaveBeenCalledWith(key, contentType)
     })
 
     it('should handle Unicode characters in keys', async () => {
@@ -434,7 +434,7 @@ describe('S3 Service', () => {
       const result = await generatePresignedUploadUrl(key, contentType)
 
       expect(result).toBe(mockPresignedUrl)
-      expect(generatePresignedUploadUrl).toHaveBeenCalledWith(key, contentType, undefined)
+      expect(generatePresignedUploadUrl).toHaveBeenCalledWith(key, contentType)
     })
 
     it('should handle very short expiration times', async () => {

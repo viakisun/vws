@@ -34,7 +34,7 @@ test.describe('로그인 플로우', () => {
 
     // 2. 오류 메시지 표시 확인
     await expect(page.getByText('이메일 또는 비밀번호가 올바르지 않습니다')).toBeVisible()
-    
+
     // 3. 로그인 페이지에 머물러 있는지 확인
     await expect(page).toHaveURL('/login')
   })
@@ -47,7 +47,7 @@ test.describe('로그인 플로우', () => {
 
     // 2. 오류 메시지 표시 확인
     await expect(page.getByText('이메일 또는 비밀번호가 올바르지 않습니다')).toBeVisible()
-    
+
     // 3. 로그인 페이지에 머물러 있는지 확인
     await expect(page).toHaveURL('/login')
   })
@@ -59,7 +59,7 @@ test.describe('로그인 플로우', () => {
     // 2. 유효성 검사 오류 메시지 확인
     await expect(page.getByText('이메일을 입력해주세요')).toBeVisible()
     await expect(page.getByText('비밀번호를 입력해주세요')).toBeVisible()
-    
+
     // 3. 로그인 페이지에 머물러 있는지 확인
     await expect(page).toHaveURL('/login')
   })
@@ -72,7 +72,7 @@ test.describe('로그인 플로우', () => {
 
     // 2. 이메일 형식 오류 메시지 확인
     await expect(page.getByText('올바른 이메일 형식을 입력해주세요')).toBeVisible()
-    
+
     // 3. 로그인 페이지에 머물러 있는지 확인
     await expect(page).toHaveURL('/login')
   })
@@ -94,15 +94,15 @@ test.describe('로그인 플로우', () => {
     // 1. 로그인 시도
     await page.getByLabel('이메일').fill('admin@example.com')
     await page.getByLabel('비밀번호').fill('password123')
-    
+
     // 2. 로그인 버튼 클릭 전에 로딩 상태 확인을 위한 Promise 설정
     const loginButton = page.getByRole('button', { name: '로그인' })
-    
+
     await loginButton.click()
 
     // 3. 로딩 상태 표시 확인 (간단한 로딩 텍스트나 버튼 비활성화)
     await expect(loginButton).toBeDisabled()
-    
+
     // 4. 최종적으로 성공적으로 로그인되는지 확인
     await expect(page).toHaveURL('/dashboard')
   })
@@ -155,10 +155,10 @@ test.describe('로그인 플로우', () => {
     // 1. Tab 키로 필드 간 이동
     await page.keyboard.press('Tab') // 이메일 필드로 이동
     await page.keyboard.type('admin@example.com')
-    
+
     await page.keyboard.press('Tab') // 비밀번호 필드로 이동
     await page.keyboard.type('password123')
-    
+
     await page.keyboard.press('Tab') // 로그인 버튼으로 이동
     await page.keyboard.press('Enter') // Enter로 로그인
 
