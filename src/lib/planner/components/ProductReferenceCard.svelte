@@ -13,6 +13,7 @@
     DownloadIcon,
     EditIcon,
     ExternalLinkIcon,
+    FileIcon,
     FileTextIcon,
     GithubIcon,
     GlobeIcon,
@@ -51,7 +52,7 @@
   function getTypeIcon(type: string) {
     switch (type) {
       case 'pdf':
-        return FileTextIcon
+        return FileIcon
       case 'image':
         return ImageIcon
       case 'github':
@@ -78,8 +79,10 @@
         return PaletteIcon
       case 'url':
         return ExternalLinkIcon
+      case 'file':
+        return FileIcon
       default:
-        return FileTextIcon
+        return FileIcon
     }
   }
 

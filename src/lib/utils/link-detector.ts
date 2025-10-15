@@ -92,7 +92,7 @@ export function detectLinkType(url: string, filename?: string): ProductReference
 
     // PDF detection - check extension or explicit file type
     if (
-      pathname.endsWith('.pdf') ||
+      pathname.toLowerCase().endsWith('.pdf') ||
       searchParams.get('format') === 'pdf' ||
       filename?.toLowerCase().endsWith('.pdf')
     ) {
@@ -102,10 +102,24 @@ export function detectLinkType(url: string, filename?: string): ProductReference
     // Image detection
     const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.bmp', '.tiff']
     if (
-      imageExtensions.some((ext) => pathname.endsWith(ext)) ||
+      imageExtensions.some((ext) => pathname.toLowerCase().endsWith(ext)) ||
       imageExtensions.some((ext) => filename?.toLowerCase().endsWith(ext))
     ) {
       return 'image'
+    }
+
+    // Check for other common file types that should be treated as files
+    const fileExtensions = [
+      '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx',
+      '.txt', '.rtf', '.csv', '.zip', '.rar', '.7z', '.tar', '.gz',
+      '.mp3', '.mp4', '.avi', '.mov', '.wav',
+      '.psd', '.ai', '.eps', '.sketch'
+    ]
+    if (
+      fileExtensions.some((ext) => pathname.toLowerCase().endsWith(ext)) ||
+      fileExtensions.some((ext) => filename?.toLowerCase().endsWith(ext))
+    ) {
+      return 'file'
     }
 
     // If it's a valid URL but doesn't match any specific patterns
@@ -122,6 +136,16 @@ export function detectLinkType(url: string, filename?: string): ProductReference
       const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.bmp', '.tiff']
       if (imageExtensions.some((ext) => lowerFilename.endsWith(ext))) {
         return 'image'
+      }
+
+      const fileExtensions = [
+        '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx',
+        '.txt', '.rtf', '.csv', '.zip', '.rar', '.7z', '.tar', '.gz',
+        '.mp3', '.mp4', '.avi', '.mov', '.wav',
+        '.psd', '.ai', '.eps', '.sketch'
+      ]
+      if (fileExtensions.some((ext) => lowerFilename.endsWith(ext))) {
+        return 'file'
       }
     }
 
