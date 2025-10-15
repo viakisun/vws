@@ -140,18 +140,21 @@
 
         if (isEdit && reference?.s3_key && !selectedFile) {
           // Edit mode - update metadata only (no new file upload)
-          const response = await fetch(`/api/planner/products/${productId}/references/${reference.id}`, {
-            method: 'PATCH',
-            headers: {
-              'Content-Type': 'application/json',
+          const response = await fetch(
+            `/api/planner/products/${productId}/references/${reference.id}`,
+            {
+              method: 'PATCH',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                title: title.trim(),
+                description: description.trim() || undefined,
+                type: 'file', // Keep as file type
+              }),
+              credentials: 'include',
             },
-            body: JSON.stringify({
-              title: title.trim(),
-              description: description.trim() || undefined,
-              type: 'file', // Keep as file type
-            }),
-            credentials: 'include',
-          })
+          )
 
           if (!response.ok) {
             const errorData = await response.json().catch(() => ({}))
@@ -182,19 +185,22 @@
 
         if (isEdit && reference?.url) {
           // Edit mode - update URL metadata
-          const response = await fetch(`/api/planner/products/${productId}/references/${reference.id}`, {
-            method: 'PATCH',
-            headers: {
-              'Content-Type': 'application/json',
+          const response = await fetch(
+            `/api/planner/products/${productId}/references/${reference.id}`,
+            {
+              method: 'PATCH',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                title: title.trim(),
+                description: description.trim() || undefined,
+                url: url.trim(),
+                type: type,
+              }),
+              credentials: 'include',
             },
-            body: JSON.stringify({
-              title: title.trim(),
-              description: description.trim() || undefined,
-              url: url.trim(),
-              type: type,
-            }),
-            credentials: 'include',
-          })
+          )
 
           if (!response.ok) {
             const errorData = await response.json().catch(() => ({}))
@@ -242,18 +248,10 @@
 <ThemeModal {open} size="lg" onclose={handleCancel}>
   <div class="p-6">
     <!-- Header -->
-    <div class="mb-6 flex items-center justify-between">
+    <div class="mb-6">
       <h2 class="text-xl font-semibold" style:color="var(--color-text-primary)">
         {isEdit ? '레퍼런스 편집' : '새 레퍼런스 추가'}
       </h2>
-      <button
-        type="button"
-        onclick={handleCancel}
-        class="rounded-md p-1 transition hover:bg-gray-100"
-        disabled={uploading}
-      >
-        <XIcon size={20} />
-      </button>
     </div>
 
     <!-- Reference Type Selection -->
@@ -262,11 +260,12 @@
         레퍼런스 타입 선택 *
       </label>
       <div class="space-y-3">
-        <label class="flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition"
-               class:border-blue-500={referenceType === 'file'}
-               class:border-gray-300={referenceType !== 'file'}
-               class:bg-blue-50={referenceType === 'file'}
-               class:bg-transparent={referenceType !== 'file'}
+        <label
+          class="flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition"
+          class:border-blue-500={referenceType === 'file'}
+          class:border-gray-300={referenceType !== 'file'}
+          class:bg-blue-50={referenceType === 'file'}
+          class:bg-transparent={referenceType !== 'file'}
         >
           <input
             type="radio"
@@ -284,15 +283,18 @@
           <UploadIcon size={20} class="text-blue-600" />
           <div>
             <div class="font-medium" style:color="var(--color-text-primary)">파일 업로드</div>
-            <div class="text-sm" style:color="var(--color-text-secondary)">PDF, 이미지, 문서 파일을 업로드합니다</div>
+            <div class="text-sm" style:color="var(--color-text-secondary)">
+              PDF, 이미지, 문서 파일을 업로드합니다
+            </div>
           </div>
         </label>
-        
-        <label class="flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition"
-               class:border-blue-500={referenceType === 'url'}
-               class:border-gray-300={referenceType !== 'url'}
-               class:bg-blue-50={referenceType === 'url'}
-               class:bg-transparent={referenceType !== 'url'}
+
+        <label
+          class="flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition"
+          class:border-blue-500={referenceType === 'url'}
+          class:border-gray-300={referenceType !== 'url'}
+          class:bg-blue-50={referenceType === 'url'}
+          class:bg-transparent={referenceType !== 'url'}
         >
           <input
             type="radio"
@@ -310,7 +312,9 @@
           <LinkIcon size={20} class="text-blue-600" />
           <div>
             <div class="font-medium" style:color="var(--color-text-primary)">링크 추가</div>
-            <div class="text-sm" style:color="var(--color-text-secondary)">웹사이트, 문서, 설계 링크를 추가합니다</div>
+            <div class="text-sm" style:color="var(--color-text-secondary)">
+              웹사이트, 문서, 설계 링크를 추가합니다
+            </div>
           </div>
         </label>
       </div>
