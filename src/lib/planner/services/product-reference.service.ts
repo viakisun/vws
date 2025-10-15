@@ -213,9 +213,9 @@ export class ProductReferenceService {
     const current = await this.getById(id)
     if (!current) return null
 
-    // Auto-detect type if URL is being updated
+    // Auto-detect type if URL is being updated or if no type is specified
     let type = input.type
-    if (input.url && !type) {
+    if (input.url !== undefined && (!type || input.url !== current.url)) {
       type = detectLinkType(input.url, current.file_name)
     }
 

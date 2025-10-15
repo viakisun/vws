@@ -20,7 +20,6 @@
     ImageIcon,
     MessageSquareIcon,
     PaletteIcon,
-    PlayIcon,
     TrashIcon,
     VideoIcon,
   } from 'lucide-svelte'
@@ -58,7 +57,7 @@
       case 'github':
         return GithubIcon
       case 'youtube':
-        return PlayIcon
+        return VideoIcon
       case 'slack':
       case 'discord':
         return MessageSquareIcon
@@ -68,13 +67,16 @@
         return CheckSquareIcon
       case 'jira':
         return BugIcon
+      case 'figma':
+        return PaletteIcon
+      case 'notion':
+        return FileTextIcon
+      case 'google_docs':
+        return FileTextIcon
       case 'miro':
       case 'adobe':
         return PaletteIcon
       case 'url':
-      case 'figma':
-      case 'notion':
-      case 'google_docs':
         return ExternalLinkIcon
       default:
         return FileTextIcon
