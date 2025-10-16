@@ -165,14 +165,14 @@
           bind:value={searchTerm}
           type="text"
           placeholder="IP명, 등록번호, 설명으로 검색..."
-          class="pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         />
       </div>
 
       <!-- 상태 필터 -->
       <select
         bind:value={statusFilter}
-        class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        class="px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
       >
         <option value="all">모든 상태</option>
         <option value="registered">등록됨</option>
@@ -184,7 +184,7 @@
       <!-- 유형 필터 -->
       <select
         bind:value={typeFilter}
-        class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        class="px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
       >
         <option value="all">모든 유형</option>
         <option value="patent">특허</option>
@@ -206,63 +206,63 @@
   <!-- IP 자산 테이블 -->
   <ThemeCard>
     <div class="overflow-x-auto">
-      <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-        <thead class="bg-gray-50 dark:bg-gray-800">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
           <tr>
             <th
-              class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 :bg-gray-700"
               onclick={() => handleSort('name')}
             >
               IP명 {sortBy === 'name' && (sortOrder === 'asc' ? '↑' : '↓')}
             </th>
             <th
-              class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
             >
               유형
             </th>
             <th
-              class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 :bg-gray-700"
               onclick={() => handleSort('registrationNumber')}
             >
               등록번호 {sortBy === 'registrationNumber' && (sortOrder === 'asc' ? '↑' : '↓')}
             </th>
             <th
-              class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 :bg-gray-700"
               onclick={() => handleSort('status')}
             >
               상태 {sortBy === 'status' && (sortOrder === 'asc' ? '↑' : '↓')}
             </th>
             <th
-              class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
             >
               등록일
             </th>
             <th
-              class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 :bg-gray-700"
               onclick={() => handleSort('expirationDate')}
             >
               만료일 {sortBy === 'expirationDate' && (sortOrder === 'asc' ? '↑' : '↓')}
             </th>
             <th
-              class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
             >
               액션
             </th>
           </tr>
         </thead>
-        <tbody class="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
+        <tbody class="bg-white divide-y divide-gray-200">
           {#each filteredAssets() as asset}
-            <tr class="hover:bg-gray-50 dark:hover:bg-gray-800">
+            <tr class="hover:bg-gray-50 :bg-gray-800">
               <td class="px-6 py-4 whitespace-nowrap">
                 <div class="flex items-center">
-                  <div class="text-sm font-medium text-gray-900 dark:text-gray-100">
+                  <div class="text-sm font-medium text-gray-900">
                     {asset.title}
                   </div>
                   {#if isExpiringSoon(asset.expiry_date)}
                     <AlertTriangleIcon class="w-4 h-4 text-yellow-500 ml-2" />
                   {/if}
                 </div>
-                <div class="text-sm text-gray-500 dark:text-gray-400 truncate max-w-xs">
+                <div class="text-sm text-gray-500 truncate max-w-xs">
                   {asset.description || '-'}
                 </div>
               </td>
@@ -271,7 +271,7 @@
                   {getTypeLabel(asset.ip_type)}
                 </Badge>
               </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                 {asset.registration_number || '-'}
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
@@ -279,16 +279,14 @@
                   {getStatusLabel(asset.status)}
                 </Badge>
               </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                 {formatDate(asset.registration_date)}
               </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                 <div class="flex items-center">
                   {formatDate(asset.expiry_date)}
                   {#if isExpiringSoon(asset.expiry_date)}
-                    <span class="ml-2 text-xs text-yellow-600 dark:text-yellow-400">
-                      만료 임박
-                    </span>
+                    <span class="ml-2 text-xs text-yellow-600"> 만료 임박 </span>
                   {/if}
                 </div>
               </td>
@@ -296,13 +294,13 @@
                 <div class="flex space-x-2">
                   <button
                     onclick={() => onEdit?.(asset)}
-                    class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300"
+                    class="text-blue-600 hover:text-blue-900 :text-blue-300"
                   >
                     <EditIcon class="w-4 h-4" />
                   </button>
                   <button
                     onclick={() => onDelete?.(asset)}
-                    class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
+                    class="text-red-600 hover:text-red-900 :text-red-300"
                   >
                     <TrashIcon class="w-4 h-4" />
                   </button>
@@ -311,7 +309,7 @@
             </tr>
           {:else}
             <tr>
-              <td colspan="7" class="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
+              <td colspan="7" class="px-6 py-12 text-center text-gray-500">
                 지식재산권이 없습니다.
               </td>
             </tr>
@@ -322,11 +320,9 @@
 
     <!-- 페이지네이션 -->
     {#if filteredAssets.length > 0}
-      <div
-        class="px-6 py-3 bg-gray-50 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700"
-      >
+      <div class="px-6 py-3 bg-gray-50 border-t border-gray-200">
         <div class="flex items-center justify-between">
-          <div class="text-sm text-gray-700 dark:text-gray-300">
+          <div class="text-sm text-gray-700">
             총 {filteredAssets.length}개 지식재산권
           </div>
         </div>

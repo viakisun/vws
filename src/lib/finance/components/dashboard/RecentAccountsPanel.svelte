@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { Account } from '$lib/finance/types'
-  import { BuildingIcon, CheckCircleIcon, AlertCircleIcon } from '@lucide/svelte'
+  import { AlertCircleIcon, BuildingIcon, CheckCircleIcon } from '@lucide/svelte'
 
   interface Props {
     accounts: Account[]
@@ -26,10 +26,10 @@
   // 계좌 상태에 따른 색상
   function getAccountStatusColor(status: string): string {
     const colors: Record<string, string> = {
-      active: 'text-green-600 dark:text-green-400',
-      inactive: 'text-gray-500 dark:text-gray-500',
-      suspended: 'text-yellow-600 dark:text-yellow-400',
-      closed: 'text-red-600 dark:text-red-400',
+      active: 'text-green-600',
+      inactive: 'text-gray-500',
+      suspended: 'text-yellow-600',
+      closed: 'text-red-600',
     }
     return colors[status] || 'text-gray-500'
   }
@@ -56,13 +56,13 @@
   )
 </script>
 
-<div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+<div class="bg-white rounded-lg shadow p-6">
   <div class="flex items-center justify-between mb-4">
     <h3 class="text-lg font-semibold">주요 계좌</h3>
     <button
       type="button"
       onclick={() => onNavigate('accounts')}
-      class="text-sm text-blue-600 dark:text-blue-400 hover:underline"
+      class="text-sm text-blue-600 hover:underline"
     >
       전체 보기
     </button>
@@ -73,7 +73,7 @@
       <button
         type="button"
         onclick={() => onNavigate('accounts')}
-        class="w-full p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-blue-400 dark:hover:border-blue-500 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-all"
+        class="w-full p-4 rounded-lg border border-gray-200 hover:border-blue-400 hover:bg-gray-50 transition-all"
       >
         <div class="flex items-start justify-between gap-4">
           <!-- 왼쪽: 계좌 정보 -->
@@ -89,12 +89,12 @@
             <div class="text-left flex-1 min-w-0">
               <!-- 계좌명과 은행명 -->
               <div class="flex items-center gap-2 mb-1">
-                <p class="font-medium text-gray-900 dark:text-gray-100 truncate">
+                <p class="font-medium text-gray-900 truncate">
                   {account.name}
                 </p>
                 {#if account.isPrimary}
                   <span
-                    class="px-2 py-0.5 text-xs rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300 flex-shrink-0"
+                    class="px-2 py-0.5 text-xs rounded-full bg-blue-100 text-blue-700 flex-shrink-0"
                   >
                     주계좌
                   </span>
@@ -112,7 +112,7 @@
                     {account.bank.name}
                   </span>
                 {/if}
-                <p class="text-sm text-gray-600 dark:text-gray-400 truncate">
+                <p class="text-sm text-gray-600 truncate">
                   {formatAccountNumber(account.accountNumber)}
                 </p>
               </div>
@@ -141,8 +141,8 @@
           <div class="text-right flex-shrink-0">
             <p
               class="font-bold text-lg {(account.balance || 0) >= 0
-                ? 'text-gray-900 dark:text-gray-100'
-                : 'text-red-600 dark:text-red-400'}"
+                ? 'text-gray-900'
+                : 'text-red-600'}"
             >
               {formatCurrency(account.balance || 0)}
             </p>
@@ -159,9 +159,7 @@
         </div>
       </button>
     {:else}
-      <div class="text-center py-8 text-gray-500 dark:text-gray-500">
-        대시보드 태그가 설정된 주요 계좌가 없습니다
-      </div>
+      <div class="text-center py-8 text-gray-500">대시보드 태그가 설정된 주요 계좌가 없습니다</div>
     {/each}
   </div>
 </div>

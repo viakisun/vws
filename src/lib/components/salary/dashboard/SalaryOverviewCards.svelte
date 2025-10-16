@@ -27,8 +27,8 @@
   <!-- 이번 달 지급 예정액 -->
   <ThemeCard class="p-4">
     <div class="flex items-center gap-3">
-      <div class="p-3 rounded-lg bg-blue-100 dark:bg-blue-900/20">
-        <DollarSignIcon class="w-6 h-6 text-blue-600 dark:text-blue-400" />
+      <div class="p-3 rounded-lg bg-blue-100">
+        <DollarSignIcon class="w-6 h-6 text-blue-600" />
       </div>
       <div>
         <p class="text-sm" style:color="var(--color-text-secondary)">이번 달 지급 예정액</p>
@@ -42,8 +42,8 @@
   <!-- 계약 직원 수 -->
   <ThemeCard class="p-4">
     <div class="flex items-center gap-3">
-      <div class="p-3 rounded-lg bg-green-100 dark:bg-green-900/20">
-        <UsersIcon class="w-6 h-6 text-green-600 dark:text-green-400" />
+      <div class="p-3 rounded-lg bg-green-100">
+        <UsersIcon class="w-6 h-6 text-green-600" />
       </div>
       <div>
         <p class="text-sm" style:color="var(--color-text-secondary)">계약 직원 수</p>
@@ -57,8 +57,8 @@
   <!-- 평균 급여 -->
   <ThemeCard class="p-4">
     <div class="flex items-center gap-3">
-      <div class="p-3 rounded-lg bg-purple-100 dark:bg-purple-900/20">
-        <TrendingUpIcon class="w-6 h-6 text-purple-600 dark:text-purple-400" />
+      <div class="p-3 rounded-lg bg-purple-100">
+        <TrendingUpIcon class="w-6 h-6 text-purple-600" />
       </div>
       <div>
         <p class="text-sm" style:color="var(--color-text-secondary)">평균 급여</p>

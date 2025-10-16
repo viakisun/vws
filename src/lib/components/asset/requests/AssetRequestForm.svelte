@@ -150,20 +150,13 @@
 {#if isOpen}
   <!-- 모달 오버레이 -->
   <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-    <div
-      class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
-    >
+    <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
       <!-- 모달 헤더 -->
-      <div
-        class="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700"
-      >
-        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+      <div class="flex items-center justify-between p-6 border-b border-gray-200">
+        <h3 class="text-lg font-semibold text-gray-900">
           {request ? '자산 신청 수정' : '새 자산 신청'}
         </h3>
-        <button
-          onclick={onCancel}
-          class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-        >
+        <button onclick={onCancel} class="text-gray-400 hover:text-gray-600 :text-gray-300">
           <XIcon class="w-6 h-6" />
         </button>
       </div>
@@ -172,16 +165,13 @@
       <form onsubmit={handleSubmit} class="p-6 space-y-6">
         <!-- 신청 유형 -->
         <div>
-          <label
-            for="requestType"
-            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-          >
+          <label for="requestType" class="block text-sm font-medium text-gray-700 mb-1">
             신청 유형 *
           </label>
           <select
             id="requestType"
             bind:value={formData.requestType}
-            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
             <option value="issue">자산 사용 신청</option>
             <option value="return">자산 반납 신청</option>
@@ -194,16 +184,13 @@
         <!-- 자산 선택 (자산 사용 신청인 경우) -->
         {#if formData.requestType === 'equipment_assignment' || formData.requestType === 'vehicle_reservation'}
           <div>
-            <label
-              for="assetId"
-              class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-            >
+            <label for="assetId" class="block text-sm font-medium text-gray-700 mb-1">
               자산 선택 *
             </label>
             <select
               id="assetId"
               bind:value={formData.assetId}
-              class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent {errors.assetId
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent {errors.assetId
                 ? 'border-red-500'
                 : ''}"
             >
@@ -216,30 +203,27 @@
               {/each}
             </select>
             {#if errors.assetId}
-              <p class="mt-1 text-sm text-red-600 dark:text-red-400">{errors.assetId}</p>
+              <p class="mt-1 text-sm text-red-600">{errors.assetId}</p>
             {/if}
           </div>
         {/if}
 
         <!-- 사용 목적 -->
         <div>
-          <label
-            for="purpose"
-            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-          >
+          <label for="purpose" class="block text-sm font-medium text-gray-700 mb-1">
             {formData.requestType === 'new_purchase' ? '구매 사유' : '사용 목적'} *
           </label>
           <textarea
             id="purpose"
             bind:value={formData.purpose}
             rows="3"
-            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent {errors.purpose
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent {errors.purpose
               ? 'border-red-500'
               : ''}"
             placeholder="사용 목적이나 구매 사유를 자세히 입력해주세요"
           ></textarea>
           {#if errors.purpose}
-            <p class="mt-1 text-sm text-red-600 dark:text-red-400">{errors.purpose}</p>
+            <p class="mt-1 text-sm text-red-600">{errors.purpose}</p>
           {/if}
         </div>
 
@@ -247,42 +231,36 @@
         {#if formData.requestType === 'vehicle_reservation'}
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label
-                for="startDate"
-                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-              >
+              <label for="startDate" class="block text-sm font-medium text-gray-700 mb-1">
                 시작일시 *
               </label>
               <input
                 id="startDate"
                 bind:value={formData.startDate}
                 type="datetime-local"
-                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent {errors.startDate
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent {errors.startDate
                   ? 'border-red-500'
                   : ''}"
               />
               {#if errors.startDate}
-                <p class="mt-1 text-sm text-red-600 dark:text-red-400">{errors.startDate}</p>
+                <p class="mt-1 text-sm text-red-600">{errors.startDate}</p>
               {/if}
             </div>
 
             <div>
-              <label
-                for="endDate"
-                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-              >
+              <label for="endDate" class="block text-sm font-medium text-gray-700 mb-1">
                 종료일시 *
               </label>
               <input
                 id="endDate"
                 bind:value={formData.endDate}
                 type="datetime-local"
-                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent {errors.endDate
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent {errors.endDate
                   ? 'border-red-500'
                   : ''}"
               />
               {#if errors.endDate}
-                <p class="mt-1 text-sm text-red-600 dark:text-red-400">{errors.endDate}</p>
+                <p class="mt-1 text-sm text-red-600">{errors.endDate}</p>
               {/if}
             </div>
           </div>
@@ -292,72 +270,63 @@
         {#if formData.requestType === 'new_purchase'}
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label
-                for="assetName"
-                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-              >
+              <label for="assetName" class="block text-sm font-medium text-gray-700 mb-1">
                 자산명 *
               </label>
               <input
                 id="assetName"
                 bind:value={formData.assetName}
                 type="text"
-                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent {errors.assetName
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent {errors.assetName
                   ? 'border-red-500'
                   : ''}"
                 placeholder="구매할 자산명을 입력하세요"
               />
               {#if errors.assetName}
-                <p class="mt-1 text-sm text-red-600 dark:text-red-400">{errors.assetName}</p>
+                <p class="mt-1 text-sm text-red-600">{errors.assetName}</p>
               {/if}
             </div>
 
             <div>
-              <label
-                for="assetCategory"
-                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-              >
+              <label for="assetCategory" class="block text-sm font-medium text-gray-700 mb-1">
                 카테고리 *
               </label>
               <input
                 id="assetCategory"
                 bind:value={formData.assetCategory}
                 type="text"
-                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent {errors.assetCategory
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent {errors.assetCategory
                   ? 'border-red-500'
                   : ''}"
                 placeholder="자산 카테고리를 입력하세요"
               />
               {#if errors.assetCategory}
-                <p class="mt-1 text-sm text-red-600 dark:text-red-400">{errors.assetCategory}</p>
+                <p class="mt-1 text-sm text-red-600">{errors.assetCategory}</p>
               {/if}
             </div>
           </div>
 
           <div>
-            <label
-              for="estimatedCost"
-              class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-            >
+            <label for="estimatedCost" class="block text-sm font-medium text-gray-700 mb-1">
               예상 비용
             </label>
             <input
               id="estimatedCost"
               bind:value={formData.estimatedCost}
               type="number"
-              class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent {errors.estimatedCost
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent {errors.estimatedCost
                 ? 'border-red-500'
                 : ''}"
               placeholder="0"
             />
             {#if errors.estimatedCost}
-              <p class="mt-1 text-sm text-red-600 dark:text-red-400">{errors.estimatedCost}</p>
+              <p class="mt-1 text-sm text-red-600">{errors.estimatedCost}</p>
             {/if}
           </div>
         {/if}
 
         <!-- 버튼 -->
-        <div class="flex justify-end space-x-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+        <div class="flex justify-end space-x-3 pt-4 border-t border-gray-200">
           <ThemeButton type="button" variant="secondary" onclick={onCancel}>취소</ThemeButton>
           <ThemeButton type="submit" variant="primary">
             {request ? '수정' : '신청'}

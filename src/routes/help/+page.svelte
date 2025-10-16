@@ -70,14 +70,14 @@
   <!-- 좌측 네비게이션 -->
   <aside class="w-64 flex-shrink-0">
     <div
-      class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 sticky top-0"
+      class="bg-white rounded-lg shadow-sm p-4 sticky top-0"
       style:border="1px solid var(--color-border)"
     >
       <div
         class="flex items-center gap-2 mb-4 pb-3 border-b"
         style:border-color="var(--color-border)"
       >
-        <BookOpenIcon class="w-5 h-5 text-blue-600 dark:text-blue-400" />
+        <BookOpenIcon class="w-5 h-5 text-blue-600 " />
         <h2 class="text-lg font-semibold" style:color="var(--color-text)">사용자 매뉴얼</h2>
       </div>
       <nav>
@@ -87,8 +87,8 @@
               <button
                 class="w-full text-left px-3 py-2 rounded-lg transition-colors {selectedId ===
                 manual.id
-                  ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 font-medium'
-                  : 'hover:bg-gray-100 dark:hover:bg-gray-700'}"
+                  ? 'bg-blue-50 /20 text-blue-700 font-medium'
+                  : 'hover:bg-gray-100 :bg-gray-700'}"
                 style:color={selectedId === manual.id ? undefined : 'var(--color-text)'}
                 onclick={() => selectManual(manual.id)}
               >
@@ -109,16 +109,11 @@
         <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
       </div>
     {:else if error}
-      <div
-        class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4"
-      >
-        <p class="text-red-800 dark:text-red-200">{error}</p>
+      <div class="bg-red-50 /20 border border-red-200 rounded-lg p-4">
+        <p class="text-red-800">{error}</p>
       </div>
     {:else}
-      <div
-        class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-8"
-        style:border="1px solid var(--color-border)"
-      >
+      <div class="bg-white rounded-lg shadow-sm p-8" style:border="1px solid var(--color-border)">
         <ThemeMarkdown {content} />
       </div>
     {/if}

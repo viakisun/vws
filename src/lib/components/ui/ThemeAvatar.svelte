@@ -23,7 +23,7 @@
 </script>
 
 <div
-  class="rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center overflow-hidden {sizeClasses[
+  class="rounded-full bg-gray-200 flex items-center justify-center overflow-hidden {sizeClasses[
     size
   ]} {className}"
   role="img"
@@ -32,7 +32,7 @@
   {#if src}
     <img {src} {alt} class="w-full h-full object-cover" />
   {:else}
-    <span class="font-medium text-gray-600 dark:text-gray-300">
+    <span class="font-medium text-gray-600">
       {fallback}
     </span>
   {/if}

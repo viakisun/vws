@@ -245,7 +245,7 @@
     <button
       type="button"
       onclick={handleClose}
-      class="p-1 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700"
+      class="p-1 rounded-md hover:bg-gray-200 :bg-gray-700"
       style:color="var(--color-text-secondary)"
       disabled={submitting}
     >
@@ -340,21 +340,15 @@
       <div class="flex items-center justify-between mb-3">
         <div class="block text-sm font-medium" style:color="var(--color-text)">첨부 파일</div>
         {#if !formData.businessRegistrationS3Key && !formData.bankAccountS3Key}
-          <span
-            class="text-xs px-2 py-1 rounded-md bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300"
-          >
+          <span class="text-xs px-2 py-1 rounded-md bg-gray-100 text-gray-600">
             📎 첨부 파일 없음
           </span>
         {:else if !formData.businessRegistrationS3Key || !formData.bankAccountS3Key}
-          <span
-            class="text-xs px-2 py-1 rounded-md bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300"
-          >
+          <span class="text-xs px-2 py-1 rounded-md bg-yellow-100 /30 text-yellow-700">
             ⚠️ 일부 파일 누락
           </span>
         {:else}
-          <span
-            class="text-xs px-2 py-1 rounded-md bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300"
-          >
+          <span class="text-xs px-2 py-1 rounded-md bg-green-100 /30 text-green-700">
             ✓ 모든 파일 업로드됨
           </span>
         {/if}
@@ -372,15 +366,11 @@
               <FileTextIcon size={16} style="color: var(--color-primary);" />
               <span class="text-sm font-medium" style:color="var(--color-text)">사업자등록증</span>
               {#if !formData.businessRegistrationS3Key && !businessFile}
-                <span
-                  class="text-xs px-1.5 py-0.5 rounded bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400"
-                >
+                <span class="text-xs px-1.5 py-0.5 rounded bg-gray-200 text-gray-600">
                   비어있음
                 </span>
               {:else}
-                <span
-                  class="text-xs px-1.5 py-0.5 rounded bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300"
-                >
+                <span class="text-xs px-1.5 py-0.5 rounded bg-green-100 /30 text-green-700">
                   ✓ {formData.businessRegistrationS3Key ? '업로드됨' : '선택됨'}
                 </span>
               {/if}
@@ -389,7 +379,7 @@
               <button
                 type="button"
                 onclick={handleDeleteBusinessFile}
-                class="text-xs px-2 py-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600"
+                class="text-xs px-2 py-1 rounded hover:bg-red-50 :bg-red-900/20 text-red-600"
               >
                 삭제
               </button>
@@ -401,8 +391,8 @@
               role="button"
               tabindex="0"
               class="border-2 border-dashed rounded-lg p-4 text-center transition-colors {businessDragOver
-                ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
-                : 'border-gray-300 dark:border-gray-600'}"
+                ? 'border-blue-500 bg-blue-50 /20'
+                : 'border-gray-300 '}"
               ondragover={handleBusinessDragOver}
               ondragleave={handleBusinessDragLeave}
               ondrop={handleBusinessDrop}
@@ -461,15 +451,11 @@
               <FileTextIcon size={16} style="color: var(--color-primary);" />
               <span class="text-sm font-medium" style:color="var(--color-text)">통장사본</span>
               {#if !formData.bankAccountS3Key && !bankFile}
-                <span
-                  class="text-xs px-1.5 py-0.5 rounded bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400"
-                >
+                <span class="text-xs px-1.5 py-0.5 rounded bg-gray-200 text-gray-600">
                   비어있음
                 </span>
               {:else}
-                <span
-                  class="text-xs px-1.5 py-0.5 rounded bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300"
-                >
+                <span class="text-xs px-1.5 py-0.5 rounded bg-green-100 /30 text-green-700">
                   ✓ {formData.bankAccountS3Key ? '업로드됨' : '선택됨'}
                 </span>
               {/if}
@@ -478,7 +464,7 @@
               <button
                 type="button"
                 onclick={handleDeleteBankFile}
-                class="text-xs px-2 py-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600"
+                class="text-xs px-2 py-1 rounded hover:bg-red-50 :bg-red-900/20 text-red-600"
               >
                 삭제
               </button>
@@ -490,8 +476,8 @@
               role="button"
               tabindex="0"
               class="border-2 border-dashed rounded-lg p-4 text-center transition-colors {bankDragOver
-                ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
-                : 'border-gray-300 dark:border-gray-600'}"
+                ? 'border-blue-500 bg-blue-50 /20'
+                : 'border-gray-300 '}"
               ondragover={handleBankDragOver}
               ondragleave={handleBankDragLeave}
               ondrop={handleBankDrop}

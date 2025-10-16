@@ -3,13 +3,13 @@
   import Header from '$lib/components/layout/Header.svelte'
   import Sidebar from '$lib/components/layout/Sidebar.svelte'
   import VersionInfo from '$lib/components/ui/VersionInfo.svelte'
+  import { clearPermissions, initializePermissions } from '$lib/stores/permissions'
   import { themeManager } from '$lib/stores/theme'
   import { toasts } from '$lib/stores/toasts'
-  import { initializePermissions, clearPermissions } from '$lib/stores/permissions'
+  import { logger } from '$lib/utils/logger'
   import { onMount } from 'svelte'
   import '../app.css'
   import type { LayoutServerData } from './$types'
-  import { logger } from '$lib/utils/logger'
 
   const { children, data }: { children: any; data: LayoutServerData } = $props()
   let sidebarCollapsed = $state(true)
@@ -75,23 +75,14 @@
       <div
         class="pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg border text-sm transition-all duration-300 min-w-[320px] max-w-md animate-slide-in"
         class:bg-green-50={t.type === 'success'}
-        class:dark:bg-green-900={t.type === 'success'}
         class:border-green-200={t.type === 'success'}
-        class:dark:border-green-800={t.type === 'success'}
         class:text-green-800={t.type === 'success'}
-        class:dark:text-green-200={t.type === 'success'}
         class:bg-red-50={t.type === 'error'}
-        class:dark:bg-red-900={t.type === 'error'}
         class:border-red-200={t.type === 'error'}
-        class:dark:border-red-800={t.type === 'error'}
         class:text-red-800={t.type === 'error'}
-        class:dark:text-red-200={t.type === 'error'}
         class:bg-blue-50={t.type === 'info'}
-        class:dark:bg-blue-900={t.type === 'info'}
         class:border-blue-200={t.type === 'info'}
-        class:dark:border-blue-800={t.type === 'info'}
         class:text-blue-800={t.type === 'info'}
-        class:dark:text-blue-200={t.type === 'info'}
       >
         {#if t.type === 'success'}
           <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">

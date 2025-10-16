@@ -1,7 +1,7 @@
 <script lang="ts">
   import ThemeCard from '$lib/components/ui/ThemeCard.svelte'
-  import { formatCurrency } from '$lib/utils/format'
   import type { Payslip } from '$lib/types/salary'
+  import { formatCurrency } from '$lib/utils/format'
 
   interface Props {
     payslips: Payslip[]
@@ -64,8 +64,8 @@
           </div>
           <span
             class="px-3 py-1 rounded-full text-sm font-medium {status === '지급완료'
-              ? 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-300'
-              : 'bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300'}"
+              ? 'bg-green-100 text-green-700'
+              : 'bg-blue-100 text-blue-700'}"
           >
             {status}
           </span>

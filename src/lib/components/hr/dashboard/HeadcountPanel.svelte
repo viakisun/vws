@@ -1,8 +1,8 @@
 <script lang="ts">
-  import ThemeCard from '$lib/components/ui/ThemeCard.svelte'
   import ThemeBadge from '$lib/components/ui/ThemeBadge.svelte'
-  import { UsersIcon, TrendingUpIcon, TrendingDownIcon } from '@lucide/svelte'
+  import ThemeCard from '$lib/components/ui/ThemeCard.svelte'
   import type { Department, Employee } from '$lib/types/hr'
+  import { TrendingDownIcon, TrendingUpIcon, UsersIcon } from '@lucide/svelte'
 
   interface Props {
     departments: Department[]
@@ -50,7 +50,7 @@
 <ThemeCard class="p-6">
   <div class="flex items-center justify-between mb-6">
     <div class="flex items-center gap-2">
-      <UsersIcon class="w-5 h-5 text-blue-600 dark:text-blue-400" />
+      <UsersIcon class="w-5 h-5 text-blue-600" />
       <h3 class="text-lg font-semibold" style:color="var(--color-text)">T.O (정원) 관리</h3>
     </div>
   </div>

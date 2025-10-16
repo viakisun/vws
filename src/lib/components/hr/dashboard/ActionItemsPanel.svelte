@@ -1,9 +1,9 @@
 <script lang="ts">
-  import ThemeCard from '$lib/components/ui/ThemeCard.svelte'
   import ThemeBadge from '$lib/components/ui/ThemeBadge.svelte'
   import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
-  import { AlertCircleIcon, ClockIcon, FileTextIcon, UserMinusIcon } from '@lucide/svelte'
+  import ThemeCard from '$lib/components/ui/ThemeCard.svelte'
   import type { Employee } from '$lib/types/hr'
+  import { AlertCircleIcon, ClockIcon, FileTextIcon, UserMinusIcon } from '@lucide/svelte'
 
   interface Props {
     employees: Employee[]
@@ -41,7 +41,7 @@
 <ThemeCard class="p-6">
   <div class="flex items-center justify-between mb-4">
     <div class="flex items-center gap-2">
-      <AlertCircleIcon class="w-5 h-5 text-blue-600 dark:text-blue-400" />
+      <AlertCircleIcon class="w-5 h-5 text-blue-600" />
       <h3 class="text-lg font-semibold" style:color="var(--color-text)">처리 필요 항목</h3>
     </div>
     {#if actionItems.total > 0}
@@ -59,8 +59,8 @@
       style:background="var(--color-surface-elevated)"
     >
       <div class="flex items-center gap-3">
-        <div class="p-2 rounded-lg bg-orange-100 dark:bg-orange-900/20">
-          <FileTextIcon class="w-5 h-5 text-orange-600 dark:text-orange-400" />
+        <div class="p-2 rounded-lg bg-orange-100">
+          <FileTextIcon class="w-5 h-5 text-orange-600" />
         </div>
         <div>
           <p class="font-medium" style:color="var(--color-text)">급여명세서 미작성</p>
@@ -89,8 +89,8 @@
       style:background="var(--color-surface-elevated)"
     >
       <div class="flex items-center gap-3">
-        <div class="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/20">
-          <ClockIcon class="w-5 h-5 text-blue-600 dark:text-blue-400" />
+        <div class="p-2 rounded-lg bg-blue-100">
+          <ClockIcon class="w-5 h-5 text-blue-600" />
         </div>
         <div>
           <p class="font-medium" style:color="var(--color-text)">휴가 승인 대기</p>
@@ -121,8 +121,8 @@
       style:background="var(--color-surface-elevated)"
     >
       <div class="flex items-center gap-3">
-        <div class="p-2 rounded-lg bg-red-100 dark:bg-red-900/20">
-          <UserMinusIcon class="w-5 h-5 text-red-600 dark:text-red-400" />
+        <div class="p-2 rounded-lg bg-red-100">
+          <UserMinusIcon class="w-5 h-5 text-red-600" />
         </div>
         <div>
           <p class="font-medium" style:color="var(--color-text)">퇴사 예정자 처리</p>

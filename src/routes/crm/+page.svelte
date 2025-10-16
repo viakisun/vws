@@ -873,46 +873,42 @@
             <ThemeCard class="p-6">
               <ThemeSectionHeader title="계약 현황 요약" />
               <div class="space-y-4 mt-4">
-                <div
-                  class="flex items-center justify-between p-4 bg-green-50 dark:bg-green-900/20 rounded-lg"
-                >
+                <div class="flex items-center justify-between p-4 bg-green-50 /20 rounded-lg">
                   <div>
-                    <p class="text-sm font-medium text-gray-700 dark:text-gray-300">수령 계약</p>
-                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                    <p class="text-sm font-medium text-gray-700">수령 계약</p>
+                    <p class="text-xs text-gray-500 mt-0.5">
                       {contracts.filter(
                         (c) => c.contractType === 'revenue' && c.status === 'active',
                       ).length}건 진행중
                     </p>
                   </div>
-                  <p class="text-2xl font-bold text-green-600 dark:text-green-400">
+                  <p class="text-2xl font-bold text-green-600">
                     {formatCurrency(crmStats?.totalRevenueContracts || 0)}
                   </p>
                 </div>
 
-                <div
-                  class="flex items-center justify-between p-4 bg-red-50 dark:bg-red-900/20 rounded-lg"
-                >
+                <div class="flex items-center justify-between p-4 bg-red-50 /20 rounded-lg">
                   <div>
-                    <p class="text-sm font-medium text-gray-700 dark:text-gray-300">지급 예정</p>
-                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                    <p class="text-sm font-medium text-gray-700">지급 예정</p>
+                    <p class="text-xs text-gray-500 mt-0.5">
                       {contracts.filter(
                         (c) => c.contractType === 'expense' && c.status === 'active',
                       ).length}건 진행중
                     </p>
                   </div>
-                  <p class="text-2xl font-bold text-red-600 dark:text-red-400">
+                  <p class="text-2xl font-bold text-red-600">
                     {formatCurrency(crmStats?.totalExpenseContracts || 0)}
                   </p>
                 </div>
 
                 <div
-                  class="flex items-center justify-between p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border-2 border-blue-200 dark:border-blue-700"
+                  class="flex items-center justify-between p-4 bg-blue-50 /20 rounded-lg border-2 border-blue-200"
                 >
                   <div>
-                    <p class="text-sm font-medium text-gray-700 dark:text-gray-300">순 계약 가치</p>
-                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">수령 - 지급</p>
+                    <p class="text-sm font-medium text-gray-700">순 계약 가치</p>
+                    <p class="text-xs text-gray-500 mt-0.5">수령 - 지급</p>
                   </div>
-                  <p class="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                  <p class="text-2xl font-bold text-blue-600">
                     {formatCurrency(crmStats?.netContractValue || 0)}
                   </p>
                 </div>
@@ -923,38 +919,30 @@
             <ThemeCard class="p-6">
               <ThemeSectionHeader title="빠른 통계" />
               <div class="grid grid-cols-2 gap-4 mt-4">
-                <div
-                  class="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600"
-                >
-                  <p class="text-xs font-medium text-gray-600 dark:text-gray-400">완료된 계약</p>
-                  <p class="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-1">
+                <div class="p-4 bg-gray-50 /50 rounded-lg border border-gray-200">
+                  <p class="text-xs font-medium text-gray-600">완료된 계약</p>
+                  <p class="text-2xl font-bold text-gray-900 mt-1">
                     {contracts.filter((c) => c.status === 'completed').length}
                   </p>
                 </div>
 
-                <div
-                  class="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600"
-                >
-                  <p class="text-xs font-medium text-gray-600 dark:text-gray-400">진행 중</p>
-                  <p class="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-1">
+                <div class="p-4 bg-gray-50 /50 rounded-lg border border-gray-200">
+                  <p class="text-xs font-medium text-gray-600">진행 중</p>
+                  <p class="text-2xl font-bold text-gray-900 mt-1">
                     {contracts.filter((c) => c.status === 'active').length}
                   </p>
                 </div>
 
-                <div
-                  class="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600"
-                >
-                  <p class="text-xs font-medium text-gray-600 dark:text-gray-400">총 고객</p>
-                  <p class="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-1">
+                <div class="p-4 bg-gray-50 /50 rounded-lg border border-gray-200">
+                  <p class="text-xs font-medium text-gray-600">총 고객</p>
+                  <p class="text-2xl font-bold text-gray-900 mt-1">
                     {crmStats?.totalCustomers || 0}
                   </p>
                 </div>
 
-                <div
-                  class="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600"
-                >
-                  <p class="text-xs font-medium text-gray-600 dark:text-gray-400">활성 고객</p>
-                  <p class="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-1">
+                <div class="p-4 bg-gray-50 /50 rounded-lg border border-gray-200">
+                  <p class="text-xs font-medium text-gray-600">활성 고객</p>
+                  <p class="text-2xl font-bold text-gray-900 mt-1">
                     {crmStats?.activeCustomers || 0}
                   </p>
                 </div>
@@ -1200,7 +1188,7 @@
                                 customer.id,
                                 CrmDocumentType.BUSINESS_REGISTRATION,
                               )}
-                            class="flex items-center gap-1 px-2 py-1 text-xs rounded bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors cursor-pointer"
+                            class="flex items-center gap-1 px-2 py-1 text-xs rounded bg-green-50 /20 hover:bg-green-100 :bg-green-900/30 transition-colors cursor-pointer"
                             style:color="var(--color-primary)"
                           >
                             <FileTextIcon size={14} />
@@ -1208,7 +1196,7 @@
                           </button>
                         {:else}
                           <span
-                            class="flex items-center gap-1 px-2 py-1 text-xs rounded bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400"
+                            class="flex items-center gap-1 px-2 py-1 text-xs rounded bg-gray-100 text-gray-500"
                           >
                             <FileTextIcon size={14} />
                             사업자등록증 (비어있음)
@@ -1221,7 +1209,7 @@
                             type="button"
                             onclick={() =>
                               handleDownloadDocument(customer.id, CrmDocumentType.BANK_ACCOUNT)}
-                            class="flex items-center gap-1 px-2 py-1 text-xs rounded bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors cursor-pointer"
+                            class="flex items-center gap-1 px-2 py-1 text-xs rounded bg-green-50 /20 hover:bg-green-100 :bg-green-900/30 transition-colors cursor-pointer"
                             style:color="var(--color-primary)"
                           >
                             <FileTextIcon size={14} />
@@ -1229,7 +1217,7 @@
                           </button>
                         {:else}
                           <span
-                            class="flex items-center gap-1 px-2 py-1 text-xs rounded bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400"
+                            class="flex items-center gap-1 px-2 py-1 text-xs rounded bg-gray-100 text-gray-500"
                           >
                             <FileTextIcon size={14} />
                             통장사본 (비어있음)
@@ -1269,7 +1257,7 @@
         <ThemeSpacer size={6}>
           <ThemeCard class="p-6">
             <ThemeSectionHeader title="고객 상호작용" />
-            <div class="text-center py-12 text-gray-500 dark:text-gray-400">
+            <div class="text-center py-12 text-gray-500">
               <MessageSquareIcon class="w-12 h-12 mx-auto mb-3 opacity-50" />
               <p>상호작용 관리 기능 개발 예정</p>
             </div>
@@ -1280,7 +1268,7 @@
         <ThemeSpacer size={6}>
           <ThemeCard class="p-6">
             <ThemeSectionHeader title="영업 기회" />
-            <div class="text-center py-12 text-gray-500 dark:text-gray-400">
+            <div class="text-center py-12 text-gray-500">
               <TargetIcon class="w-12 h-12 mx-auto mb-3 opacity-50" />
               <p>영업 기회 관리 기능 개발 예정</p>
             </div>
@@ -1302,7 +1290,7 @@
           showCustomerModal = false
           selectedCustomer = null
         }}
-        class="p-1 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700"
+        class="p-1 rounded-md hover:bg-gray-200 :bg-gray-700"
         style:color="var(--color-text-secondary)"
       >
         <X class="w-5 h-5" />
@@ -1393,18 +1381,16 @@
 {#if showOcrDuplicateModal}
   <ThemeModal open={showOcrDuplicateModal}>
     <div class="p-6">
-      <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">사업자번호 중복</h2>
+      <h2 class="text-xl font-bold text-gray-900 mb-4">사업자번호 중복</h2>
       <div class="space-y-4">
-        <p class="text-gray-700 dark:text-gray-300">
+        <p class="text-gray-700">
           이미 등록된 사업자번호입니다. 기존 고객 정보를 새로운 OCR 데이터로 완전히
           교체하시겠습니까?
         </p>
         {#if duplicateCustomerInfo}
-          <div
-            class="p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-lg"
-          >
-            <p class="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">기존 고객 정보:</p>
-            <div class="text-sm text-gray-700 dark:text-gray-300 space-y-1">
+          <div class="p-4 bg-yellow-50 /20 border border-yellow-200 rounded-lg">
+            <p class="text-sm font-medium text-gray-900 mb-2">기존 고객 정보:</p>
+            <div class="text-sm text-gray-700 space-y-1">
               <p><strong>상호명:</strong> {duplicateCustomerInfo.name}</p>
               <p><strong>사업자번호:</strong> {duplicateCustomerInfo.businessNumber}</p>
               {#if duplicateCustomerInfo.representativeName}
@@ -1413,11 +1399,9 @@
             </div>
           </div>
         {/if}
-        <div
-          class="p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg"
-        >
-          <p class="text-sm font-medium text-blue-900 dark:text-blue-100 mb-2">⚠️ 주의사항:</p>
-          <ul class="text-sm text-blue-800 dark:text-blue-200 space-y-1">
+        <div class="p-3 bg-blue-50 /20 border border-blue-200 rounded-lg">
+          <p class="text-sm font-medium text-blue-900 mb-2">⚠️ 주의사항:</p>
+          <ul class="text-sm text-blue-800 space-y-1">
             <li>• 기존 고객의 모든 정보가 새로운 OCR 데이터로 완전히 교체됩니다</li>
             <li>• 기존 문서 파일은 삭제되고 새 파일로 교체됩니다</li>
             <li>• 이 작업은 되돌릴 수 없으니 신중하게 결정해주세요</li>

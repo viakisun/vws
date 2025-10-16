@@ -63,20 +63,16 @@
   }
 </script>
 
-<div class="bg-white dark:bg-gray-800 rounded-lg shadow">
+<div class="bg-white rounded-lg shadow">
   <!-- 헤더 -->
-  <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+  <div class="px-6 py-4 border-b border-gray-200">
     <div class="flex items-center justify-between">
-      <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+      <h3 class="text-lg font-semibold text-gray-900">
         {title}
       </h3>
       <div class="text-sm">
-        <span class="text-gray-600 dark:text-gray-400">{filteredContracts.length}건 /</span>
-        <span
-          class="font-bold {contractType === 'revenue'
-            ? 'text-green-600 dark:text-green-400'
-            : 'text-red-600 dark:text-red-400'}"
-        >
+        <span class="text-gray-600">{filteredContracts.length}건 /</span>
+        <span class="font-bold {contractType === 'revenue' ? 'text-green-600 ' : 'text-red-600 '}">
           {formatCurrency(totalAmount)}
         </span>
       </div>
@@ -86,81 +82,81 @@
   <!-- 테이블 -->
   <div class="overflow-x-auto">
     <table class="w-full">
-      <thead class="bg-gray-50 dark:bg-gray-700">
+      <thead class="bg-gray-50">
         <tr>
           <th
-            class="px-4 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider"
+            class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider"
           >
             계약명
           </th>
           <th
-            class="px-4 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider"
+            class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider"
           >
             상대방
           </th>
           <th
-            class="px-4 py-3 text-right text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider"
+            class="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider"
           >
             금액
           </th>
           <th
-            class="px-4 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider"
+            class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider"
           >
             기간
           </th>
           <th
-            class="px-4 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider"
+            class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider"
           >
             진행률
           </th>
           <th
-            class="px-4 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider"
+            class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider"
           >
             담당자
           </th>
           <th
-            class="px-4 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider"
+            class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider"
           >
             상태
           </th>
           <th
-            class="px-4 py-3 text-center text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider"
+            class="px-4 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider"
           >
             액션
           </th>
         </tr>
       </thead>
-      <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+      <tbody class="bg-white divide-y divide-gray-200">
         {#each filteredContracts as contract (contract.id)}
           {@const progress = calculateProgress(contract.startDate, contract.endDate)}
-          <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+          <tr class="hover:bg-gray-50 :bg-gray-700/50 transition-colors">
             <td class="px-4 py-3">
               <div>
-                <p class="font-medium text-gray-900 dark:text-gray-100 text-sm">
+                <p class="font-medium text-gray-900 text-sm">
                   {contract.title}
                 </p>
-                <p class="text-xs text-gray-500 dark:text-gray-400">{contract.contractNumber}</p>
+                <p class="text-xs text-gray-500">{contract.contractNumber}</p>
               </div>
             </td>
-            <td class="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">
+            <td class="px-4 py-3 text-sm text-gray-900">
               {contract.contractParty}
             </td>
             <td
               class="px-4 py-3 text-sm text-right font-medium {contractType === 'revenue'
-                ? 'text-green-600 dark:text-green-400'
-                : 'text-red-600 dark:text-red-400'}"
+                ? 'text-green-600 '
+                : 'text-red-600 '}"
             >
               {formatCurrency(contract.totalAmount)}
             </td>
             <td class="px-4 py-3">
-              <div class="text-xs text-gray-600 dark:text-gray-400">
+              <div class="text-xs text-gray-600">
                 {#if contract.startDate}
                   <p>{contract.startDate.split('T')[0]}</p>
                 {/if}
                 {#if contract.endDate}
                   <p>~ {contract.endDate.split('T')[0]}</p>
                 {:else}
-                  <p class="text-yellow-600 dark:text-yellow-400">종료일 미정</p>
+                  <p class="text-yellow-600">종료일 미정</p>
                 {/if}
               </div>
             </td>
@@ -168,22 +164,22 @@
               {#if contract.endDate && contract.status === 'active'}
                 <div class="w-full">
                   <div class="flex items-center justify-between mb-1">
-                    <span class="text-xs font-medium text-gray-700 dark:text-gray-300">
+                    <span class="text-xs font-medium text-gray-700">
                       {progress.toFixed(0)}%
                     </span>
                   </div>
-                  <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                  <div class="w-full bg-gray-200 rounded-full h-2">
                     <div
-                      class="bg-blue-600 dark:bg-blue-500 h-2 rounded-full transition-all"
+                      class="bg-blue-600 h-2 rounded-full transition-all"
                       style="width: {Math.min(progress, 100)}%"
                     ></div>
                   </div>
                 </div>
               {:else}
-                <span class="text-xs text-gray-500 dark:text-gray-400">-</span>
+                <span class="text-xs text-gray-500">-</span>
               {/if}
             </td>
-            <td class="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">
+            <td class="px-4 py-3 text-sm text-gray-900">
               {contract.assignedTo || '-'}
             </td>
             <td class="px-4 py-3">
@@ -197,7 +193,7 @@
                   <button
                     type="button"
                     onclick={() => onDownload?.(contract.id)}
-                    class="p-1.5 text-gray-600 hover:text-purple-600 dark:text-gray-400 dark:hover:text-purple-400 transition-colors"
+                    class="p-1.5 text-gray-600 hover:text-purple-600 :text-purple-400 transition-colors"
                     title="계약서 다운로드"
                   >
                     <DownloadIcon class="w-4 h-4" />
@@ -207,7 +203,7 @@
                   <button
                     type="button"
                     onclick={() => onEdit?.(contract.id)}
-                    class="p-1.5 text-gray-600 hover:text-green-600 dark:text-gray-400 dark:hover:text-green-400 transition-colors"
+                    class="p-1.5 text-gray-600 hover:text-green-600 :text-green-400 transition-colors"
                     title="편집"
                   >
                     <EditIcon class="w-4 h-4" />
@@ -217,7 +213,7 @@
                   <button
                     type="button"
                     onclick={() => onDelete?.(contract.id)}
-                    class="p-1.5 text-gray-600 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400 transition-colors"
+                    class="p-1.5 text-gray-600 hover:text-red-600 :text-red-400 transition-colors"
                     title="삭제"
                   >
                     <TrashIcon class="w-4 h-4" />
@@ -232,7 +228,7 @@
   </div>
 
   {#if filteredContracts.length === 0}
-    <div class="text-center py-12 text-gray-500 dark:text-gray-400">
+    <div class="text-center py-12 text-gray-500">
       <FileTextIcon class="w-12 h-12 mx-auto mb-3 opacity-50" />
       <p>등록된 계약이 없습니다</p>
     </div>

@@ -1,9 +1,9 @@
 <script lang="ts">
+  import { AlertTriangleIcon, ArchiveIcon, TrashIcon } from '@lucide/svelte'
   import { createEventDispatcher } from 'svelte'
-  import ThemeModal from './ThemeModal.svelte'
   import ThemeButton from './ThemeButton.svelte'
   import ThemeInput from './ThemeInput.svelte'
-  import { AlertTriangleIcon, TrashIcon, ArchiveIcon } from '@lucide/svelte'
+  import ThemeModal from './ThemeModal.svelte'
 
   interface Props {
     open: boolean
@@ -50,8 +50,8 @@
 <ThemeModal {open} size="md" onclose={handleClose}>
   <div class="p-6">
     <div class="flex items-center gap-4 mb-6">
-      <div class="p-3 bg-red-100 dark:bg-red-900/20 rounded-full">
-        <AlertTriangleIcon size={24} class="text-red-600 dark:text-red-400" />
+      <div class="p-3 bg-red-100 rounded-full">
+        <AlertTriangleIcon size={24} class="text-red-600" />
       </div>
       <div>
         <h2 class="text-lg font-semibold" style:color="var(--color-text)">

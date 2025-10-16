@@ -28,7 +28,7 @@
     <button
       type="button"
       onclick={() => onNavigate('payslips')}
-      class="w-full p-3 rounded-lg border hover:border-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-colors text-left"
+      class="w-full p-3 rounded-lg border hover:border-orange-400 hover:bg-orange-50 transition-colors text-left"
       style:border-color={actionItems.missingPayslips > 0
         ? 'var(--color-warning)'
         : 'var(--color-border)'}
@@ -45,9 +45,7 @@
               : 'var(--color-surface)'}
           >
             <AlertCircleIcon
-              class="w-5 h-5 {actionItems.missingPayslips > 0
-                ? 'text-white'
-                : 'text-gray-500 dark:text-gray-400'}"
+              class="w-5 h-5 {actionItems.missingPayslips > 0 ? 'text-white' : 'text-gray-500'}"
             />
           </div>
           <div>
@@ -72,7 +70,7 @@
     <button
       type="button"
       onclick={() => onNavigate('contracts')}
-      class="w-full p-3 rounded-lg border hover:border-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors text-left"
+      class="w-full p-3 rounded-lg border hover:border-red-400 hover:bg-red-50 transition-colors text-left"
       style:border-color={actionItems.expiringContracts > 0
         ? 'var(--color-danger)'
         : 'var(--color-border)'}
@@ -89,9 +87,7 @@
               : 'var(--color-surface)'}
           >
             <CalendarOffIcon
-              class="w-5 h-5 {actionItems.expiringContracts > 0
-                ? 'text-white'
-                : 'text-gray-500 dark:text-gray-400'}"
+              class="w-5 h-5 {actionItems.expiringContracts > 0 ? 'text-white' : 'text-gray-500'}"
             />
           </div>
           <div>
@@ -114,7 +110,7 @@
     <button
       type="button"
       onclick={() => onNavigate('payslips')}
-      class="w-full p-3 rounded-lg border hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors text-left"
+      class="w-full p-3 rounded-lg border hover:border-blue-400 hover:bg-blue-50 transition-colors text-left"
       style:border-color={actionItems.pendingApprovals > 0
         ? 'var(--color-primary)'
         : 'var(--color-border)'}
@@ -131,9 +127,7 @@
               : 'var(--color-surface)'}
           >
             <CheckCircleIcon
-              class="w-5 h-5 {actionItems.pendingApprovals > 0
-                ? 'text-white'
-                : 'text-gray-500 dark:text-gray-400'}"
+              class="w-5 h-5 {actionItems.pendingApprovals > 0 ? 'text-white' : 'text-gray-500'}"
             />
           </div>
           <div>
@@ -154,10 +148,8 @@
   </div>
 
   {#if actionItems.total === 0}
-    <div class="mt-4 p-3 rounded-lg bg-green-50 dark:bg-green-900/20">
-      <p class="text-sm text-green-700 dark:text-green-300 text-center">
-        ✅ 모든 급여 업무가 처리되었습니다!
-      </p>
+    <div class="mt-4 p-3 rounded-lg bg-green-50">
+      <p class="text-sm text-green-700 text-center">✅ 모든 급여 업무가 처리되었습니다!</p>
     </div>
   {/if}
 </ThemeCard>

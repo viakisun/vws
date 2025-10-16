@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { PlusIcon, TagIcon } from '@lucide/svelte'
-  import { pushToast } from '$lib/stores/toasts'
   import type { AccountTag } from '$lib/finance/types'
+  import { pushToast } from '$lib/stores/toasts'
+  import { PlusIcon, TagIcon } from '@lucide/svelte'
   import { onMount } from 'svelte'
 
   let tags = $state<AccountTag[]>([])
@@ -124,8 +124,8 @@
   <!-- 헤더 -->
   <div class="flex items-center justify-between">
     <div class="flex items-center gap-2">
-      <TagIcon class="w-5 h-5 text-gray-500 dark:text-gray-400" />
-      <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">계좌 태그 관리</h2>
+      <TagIcon class="w-5 h-5 text-gray-500" />
+      <h2 class="text-lg font-semibold text-gray-900">계좌 태그 관리</h2>
     </div>
     <button
       type="button"
@@ -143,7 +143,7 @@
       <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-400"></div>
     </div>
   {:else if tags.length === 0}
-    <div class="text-center py-12 text-gray-500 dark:text-gray-400">
+    <div class="text-center py-12 text-gray-500">
       <TagIcon class="w-12 h-12 mx-auto mb-4 opacity-50" />
       <p>등록된 태그가 없습니다</p>
     </div>
@@ -151,18 +151,16 @@
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {#each tags as tag}
         <div
-          class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 hover:shadow-md transition-shadow"
+          class="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow"
         >
           <div class="flex items-start justify-between mb-2">
             <div class="flex items-center gap-2">
               <div class="w-4 h-4 rounded" style:background-color={tag.color}></div>
               <div>
                 <div class="flex items-center gap-2">
-                  <h3 class="font-medium text-gray-900 dark:text-gray-100">{tag.name}</h3>
+                  <h3 class="font-medium text-gray-900">{tag.name}</h3>
                   {#if tag.isSystem}
-                    <span
-                      class="px-2 py-0.5 text-xs font-medium bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 rounded"
-                    >
+                    <span class="px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-700 rounded">
                       시스템
                     </span>
                   {/if}
@@ -205,7 +203,7 @@
             {/if}
           </div>
           {#if tag.description}
-            <p class="text-sm text-gray-600 dark:text-gray-400">{tag.description}</p>
+            <p class="text-sm text-gray-600">{tag.description}</p>
           {/if}
         </div>
       {/each}
@@ -233,8 +231,8 @@
       }
     }}
   >
-    <div class="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md">
-      <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
+    <div class="bg-white rounded-lg p-6 w-full max-w-md">
+      <h3 class="text-lg font-semibold text-gray-900 mb-4">
         {editingTag ? '태그 수정' : '새 태그 생성'}
       </h3>
 
@@ -246,10 +244,7 @@
         class="space-y-4"
       >
         <div>
-          <label
-            for="tag-name"
-            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-          >
+          <label for="tag-name" class="block text-sm font-medium text-gray-700 mb-1">
             태그 이름 *
           </label>
           <input
@@ -257,15 +252,12 @@
             type="text"
             bind:value={formData.name}
             required
-            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900"
           />
         </div>
 
         <div>
-          <label
-            for="tag-color"
-            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-          >
+          <label for="tag-color" class="block text-sm font-medium text-gray-700 mb-1">
             색상 *
           </label>
           <div class="flex items-center gap-2">
@@ -273,30 +265,27 @@
               id="tag-color-picker"
               type="color"
               bind:value={formData.color}
-              class="w-12 h-10 border border-gray-300 dark:border-gray-600 rounded cursor-pointer"
+              class="w-12 h-10 border border-gray-300 rounded cursor-pointer"
             />
             <input
               id="tag-color"
               type="text"
               bind:value={formData.color}
               placeholder="#3B82F6"
-              class="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+              class="flex-1 px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900"
             />
           </div>
         </div>
 
         <div>
-          <label
-            for="tag-description"
-            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-          >
+          <label for="tag-description" class="block text-sm font-medium text-gray-700 mb-1">
             설명
           </label>
           <textarea
             id="tag-description"
             bind:value={formData.description}
             rows="3"
-            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900"
           ></textarea>
         </div>
 
@@ -307,7 +296,7 @@
               showModal = false
               resetForm()
             }}
-            class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+            class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
           >
             취소
           </button>

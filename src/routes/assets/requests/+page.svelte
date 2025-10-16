@@ -86,10 +86,8 @@
     <!-- 헤더 -->
     <div class="flex justify-between items-center">
       <div>
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">자산 신청 관리</h1>
-        <p class="text-gray-600 dark:text-gray-400 mt-1">
-          자산 사용 요청, 차량 예약, 신규 구매 요청을 관리합니다.
-        </p>
+        <h1 class="text-2xl font-bold text-gray-900">자산 신청 관리</h1>
+        <p class="text-gray-600 mt-1">자산 사용 요청, 차량 예약, 신규 구매 요청을 관리합니다.</p>
       </div>
       <ThemeButton variant="primary" onclick={() => (showRequestForm = true)}>
         <PlusIcon class="w-4 h-4 mr-2" />
@@ -102,7 +100,7 @@
       {#if loading}
         <div class="flex items-center justify-center py-8">
           <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          <span class="ml-2 text-gray-600 dark:text-gray-400">로딩 중...</span>
+          <span class="ml-2 text-gray-600">로딩 중...</span>
         </div>
       {:else}
         <AssetRequestList {requests} />
@@ -112,11 +110,9 @@
     <!-- 요청 생성 폼 모달 -->
     {#if showRequestForm}
       <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div
-          class="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto"
-        >
+        <div class="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
           <div class="flex justify-between items-center mb-4">
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">새 자산 요청</h3>
+            <h3 class="text-lg font-semibold text-gray-900">새 자산 요청</h3>
             <ThemeButton variant="ghost" onclick={() => (showRequestForm = false)}>✕</ThemeButton>
           </div>
 

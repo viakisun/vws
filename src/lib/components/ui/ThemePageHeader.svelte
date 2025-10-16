@@ -13,13 +13,13 @@
 
 <div class="mb-6 {className}">
   {#if title}
-    <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+    <h1 class="text-2xl font-bold text-gray-900 mb-2">
       {title}
     </h1>
   {/if}
 
   {#if subtitle}
-    <p class="text-gray-600 dark:text-gray-300 mb-4">
+    <p class="text-gray-600 mb-4">
       {subtitle}
     </p>
   {/if}

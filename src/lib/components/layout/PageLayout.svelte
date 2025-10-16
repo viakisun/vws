@@ -47,13 +47,13 @@
     <div class="flex-1">
       <!-- 제목과 부제목 -->
       {#if title}
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+        <h1 class="text-2xl font-bold text-gray-900 mb-2">
           {title}
         </h1>
       {/if}
 
       {#if subtitle}
-        <p class="text-gray-600 dark:text-gray-300" class:mb-4={!headerExtra}>
+        <p class="text-gray-600" class:mb-4={!headerExtra}>
           {subtitle}
         </p>
       {/if}

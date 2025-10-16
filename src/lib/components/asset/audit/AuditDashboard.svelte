@@ -85,11 +85,11 @@
     <ThemeCard variant="default">
       <div class="flex items-center justify-between">
         <div>
-          <p class="text-sm font-medium text-gray-600 dark:text-gray-400">총 실사</p>
-          <p class="text-2xl font-bold text-gray-900 dark:text-gray-100">{audits.length || 0}건</p>
+          <p class="text-sm font-medium text-gray-600">총 실사</p>
+          <p class="text-2xl font-bold text-gray-900">{audits.length || 0}건</p>
         </div>
-        <div class="p-3 bg-blue-100 dark:bg-blue-900 rounded-full">
-          <CheckSquareIcon size={24} class="text-blue-600 dark:text-blue-400" stroke-width={1.5} />
+        <div class="p-3 bg-blue-100 rounded-full">
+          <CheckSquareIcon size={24} class="text-blue-600 " stroke-width={1.5} />
         </div>
       </div>
     </ThemeCard>
@@ -97,13 +97,13 @@
     <ThemeCard variant="default">
       <div class="flex items-center justify-between">
         <div>
-          <p class="text-sm font-medium text-gray-600 dark:text-gray-400">진행 중</p>
-          <p class="text-2xl font-bold text-orange-600 dark:text-orange-400">
+          <p class="text-sm font-medium text-gray-600">진행 중</p>
+          <p class="text-2xl font-bold text-orange-600">
             {audits.filter((a) => a.status === 'in_progress').length || 0}건
           </p>
         </div>
-        <div class="p-3 bg-orange-100 dark:bg-orange-900 rounded-full">
-          <ClockIcon size={24} class="text-orange-600 dark:text-orange-400" stroke-width={1.5} />
+        <div class="p-3 bg-orange-100 rounded-full">
+          <ClockIcon size={24} class="text-orange-600 " stroke-width={1.5} />
         </div>
       </div>
     </ThemeCard>
@@ -111,17 +111,13 @@
     <ThemeCard variant="default">
       <div class="flex items-center justify-between">
         <div>
-          <p class="text-sm font-medium text-gray-600 dark:text-gray-400">완료</p>
-          <p class="text-2xl font-bold text-green-600 dark:text-green-400">
+          <p class="text-sm font-medium text-gray-600">완료</p>
+          <p class="text-2xl font-bold text-green-600">
             {audits.filter((a) => a.status === 'completed').length || 0}건
           </p>
         </div>
-        <div class="p-3 bg-green-100 dark:bg-green-900 rounded-full">
-          <CheckCircleIcon
-            size={24}
-            class="text-green-600 dark:text-green-400"
-            stroke-width={1.5}
-          />
+        <div class="p-3 bg-green-100 rounded-full">
+          <CheckCircleIcon size={24} class="text-green-600 " stroke-width={1.5} />
         </div>
       </div>
     </ThemeCard>
@@ -129,17 +125,13 @@
     <ThemeCard variant="default">
       <div class="flex items-center justify-between">
         <div>
-          <p class="text-sm font-medium text-gray-600 dark:text-gray-400">총 자산</p>
-          <p class="text-2xl font-bold text-purple-600 dark:text-purple-400">
+          <p class="text-sm font-medium text-gray-600">총 자산</p>
+          <p class="text-2xl font-bold text-purple-600">
             {summary.totalAssets || 0}개
           </p>
         </div>
-        <div class="p-3 bg-purple-100 dark:bg-purple-900 rounded-full">
-          <TrendingUpIcon
-            size={24}
-            class="text-purple-600 dark:text-purple-400"
-            stroke-width={1.5}
-          />
+        <div class="p-3 bg-purple-100 rounded-full">
+          <TrendingUpIcon size={24} class="text-purple-600 " stroke-width={1.5} />
         </div>
       </div>
     </ThemeCard>
@@ -147,7 +139,7 @@
 
   <!-- 빠른 액션 -->
   <div class="flex justify-between items-center">
-    <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">실사 관리</h3>
+    <h3 class="text-lg font-semibold text-gray-900">실사 관리</h3>
     <ThemeButton variant="primary" onclick={onStartAudit}>
       <PlusIcon class="w-4 h-4 mr-2" />
       새 실사 시작
@@ -162,7 +154,7 @@
         <div class="flex items-center justify-between">
           <div class="flex-1">
             <div class="flex items-center space-x-3 mb-2">
-              <h4 class="text-lg font-medium text-gray-900 dark:text-gray-100">
+              <h4 class="text-lg font-medium text-gray-900">
                 {audit.audit_name} 자산 실사
               </h4>
               <Badge variant={getStatusBadgeVariant(audit.status)}>
@@ -170,9 +162,7 @@
               </Badge>
             </div>
 
-            <div
-              class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600 dark:text-gray-400"
-            >
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600">
               <div class="flex items-center space-x-2">
                 <CalendarIcon class="w-4 h-4" />
                 <span>시작일: {formatDate(audit.start_date)}</span>
@@ -189,13 +179,11 @@
 
             {#if audit.status === 'in_progress'}
               <div class="mt-3">
-                <div
-                  class="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400 mb-1"
-                >
+                <div class="flex items-center justify-between text-sm text-gray-600 mb-1">
                   <span>진행률</span>
                   <span>{progress}%</span>
                 </div>
-                <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                <div class="w-full bg-gray-200 rounded-full h-2">
                   <div
                     class="bg-blue-600 h-2 rounded-full transition-all duration-300"
                     style="width: {progress}%"
@@ -205,7 +193,7 @@
             {/if}
 
             {#if audit.notes}
-              <div class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+              <div class="mt-2 text-sm text-gray-600">
                 <strong>메모:</strong>
                 {audit.notes}
               </div>
@@ -227,7 +215,7 @@
       </ThemeCard>
     {:else}
       <ThemeCard variant="default">
-        <div class="text-center py-8 text-gray-500 dark:text-gray-400">
+        <div class="text-center py-8 text-gray-500">
           <CheckSquareIcon size={48} class="mx-auto mb-3" />
           <p>아직 실사가 없습니다.</p>
           <p class="text-sm mt-1">새 실사를 시작해보세요.</p>
@@ -239,29 +227,29 @@
   <!-- 최근 실사 요약 -->
   {#if audits.length > 0}
     <ThemeCard variant="default">
-      <h4 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">최근 실사 요약</h4>
+      <h4 class="text-lg font-semibold text-gray-900 mb-4">최근 실사 요약</h4>
 
       <div class="space-y-4">
         {#each audits.slice(0, 3) as audit}
-          <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+          <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
             <div class="flex items-center space-x-3">
-              <div class="p-2 bg-blue-100 dark:bg-blue-900 rounded-full">
-                <CheckSquareIcon class="w-4 h-4 text-blue-600 dark:text-blue-400" />
+              <div class="p-2 bg-blue-100 rounded-full">
+                <CheckSquareIcon class="w-4 h-4 text-blue-600 " />
               </div>
               <div>
-                <div class="font-medium text-gray-900 dark:text-gray-100">
+                <div class="font-medium text-gray-900">
                   {audit.audit_name} 실사
                 </div>
-                <div class="text-sm text-gray-600 dark:text-gray-400">
+                <div class="text-sm text-gray-600">
                   {audit.status === 'completed' ? '완료' : '진행 중'}
                 </div>
               </div>
             </div>
             <div class="text-right">
-              <div class="text-sm font-medium text-gray-900 dark:text-gray-100">
+              <div class="text-sm font-medium text-gray-900">
                 {calculateProgress(audit)}%
               </div>
-              <div class="text-xs text-gray-500 dark:text-gray-400">
+              <div class="text-xs text-gray-500">
                 {audit.status === 'completed' ? '완료됨' : '진행 중'}
               </div>
             </div>

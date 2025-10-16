@@ -160,7 +160,7 @@
 <PageLayout title="자산 관리">
   <!-- 탭 네비게이션 -->
   <div class="mb-6">
-    <nav class="flex space-x-1 bg-gray-100 dark:bg-gray-800 p-1 rounded-lg">
+    <nav class="flex space-x-1 bg-gray-100 p-1 rounded-lg">
       {#each tabs as tab}
         {@const Icon = tab.icon}
         <button
@@ -168,8 +168,8 @@
           onclick={() => handleNavigate(tab.id)}
           class="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md transition-colors
             {activeTab === tab.id
-            ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm'
-            : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'}"
+            ? 'bg-white text-gray-900 shadow-sm'
+            : 'text-gray-600 hover:text-gray-900 :text-gray-100'}"
         >
           <Icon size={16} stroke-width={1.5} />
           {tab.label}
@@ -187,13 +187,13 @@
         <ThemeCard variant="default">
           <div class="flex items-center justify-between">
             <div>
-              <p class="text-sm font-medium text-gray-600 dark:text-gray-400">총 자산</p>
-              <p class="text-2xl font-bold text-gray-900 dark:text-gray-100">
+              <p class="text-sm font-medium text-gray-600">총 자산</p>
+              <p class="text-2xl font-bold text-gray-900">
                 {stats.totalAssets}개
               </p>
             </div>
-            <div class="p-3 bg-blue-100 dark:bg-blue-900 rounded-full">
-              <PackageIcon size={24} class="text-blue-600 dark:text-blue-400" stroke-width={1.5} />
+            <div class="p-3 bg-blue-100 rounded-full">
+              <PackageIcon size={24} class="text-blue-600 " stroke-width={1.5} />
             </div>
           </div>
         </ThemeCard>
@@ -201,17 +201,13 @@
         <ThemeCard variant="default">
           <div class="flex items-center justify-between">
             <div>
-              <p class="text-sm font-medium text-gray-600 dark:text-gray-400">사용 가능</p>
-              <p class="text-2xl font-bold text-green-600 dark:text-green-400">
+              <p class="text-sm font-medium text-gray-600">사용 가능</p>
+              <p class="text-2xl font-bold text-green-600">
                 {stats.availableAssets}개
               </p>
             </div>
-            <div class="p-3 bg-green-100 dark:bg-green-900 rounded-full">
-              <CheckSquareIcon
-                size={24}
-                class="text-green-600 dark:text-green-400"
-                stroke-width={1.5}
-              />
+            <div class="p-3 bg-green-100 rounded-full">
+              <CheckSquareIcon size={24} class="text-green-600 " stroke-width={1.5} />
             </div>
           </div>
         </ThemeCard>
@@ -219,13 +215,13 @@
         <ThemeCard variant="default">
           <div class="flex items-center justify-between">
             <div>
-              <p class="text-sm font-medium text-gray-600 dark:text-gray-400">사용 중</p>
-              <p class="text-2xl font-bold text-orange-600 dark:text-orange-400">
+              <p class="text-sm font-medium text-gray-600">사용 중</p>
+              <p class="text-2xl font-bold text-orange-600">
                 {stats.inUseAssets}개
               </p>
             </div>
-            <div class="p-3 bg-orange-100 dark:bg-orange-900 rounded-full">
-              <CarIcon size={24} class="text-orange-600 dark:text-orange-400" stroke-width={1.5} />
+            <div class="p-3 bg-orange-100 rounded-full">
+              <CarIcon size={24} class="text-orange-600 " stroke-width={1.5} />
             </div>
           </div>
         </ThemeCard>
@@ -233,17 +229,13 @@
         <ThemeCard variant="default">
           <div class="flex items-center justify-between">
             <div>
-              <p class="text-sm font-medium text-gray-600 dark:text-gray-400">총 자산 가치</p>
-              <p class="text-2xl font-bold text-gray-900 dark:text-gray-100">
+              <p class="text-sm font-medium text-gray-600">총 자산 가치</p>
+              <p class="text-2xl font-bold text-gray-900">
                 {new Intl.NumberFormat('ko-KR').format(stats.totalValue)}원
               </p>
             </div>
-            <div class="p-3 bg-purple-100 dark:bg-purple-900 rounded-full">
-              <PackageIcon
-                size={24}
-                class="text-purple-600 dark:text-purple-400"
-                stroke-width={1.5}
-              />
+            <div class="p-3 bg-purple-100 rounded-full">
+              <PackageIcon size={24} class="text-purple-600 " stroke-width={1.5} />
             </div>
           </div>
         </ThemeCard>
@@ -252,7 +244,7 @@
       <!-- 빠른 액션 -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <ThemeCard variant="outlined">
-          <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">빠른 액션</h3>
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">빠른 액션</h3>
           <div class="space-y-3">
             <ThemeButton
               variant="secondary"
@@ -282,52 +274,40 @@
         </ThemeCard>
 
         <ThemeCard variant="outlined">
-          <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">알림 현황</h3>
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">알림 현황</h3>
           <div class="space-y-3">
             {#if stats.pendingRequests > 0}
-              <div
-                class="flex items-center justify-between p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg"
-              >
-                <span class="text-sm text-gray-700 dark:text-gray-300">승인 대기 신청</span>
+              <div class="flex items-center justify-between p-3 bg-orange-50 /20 rounded-lg">
+                <span class="text-sm text-gray-700">승인 대기 신청</span>
                 <span
-                  class="px-2 py-1 text-xs font-medium bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200 rounded-full"
+                  class="px-2 py-1 text-xs font-medium bg-orange-100 text-orange-800 rounded-full"
                 >
                   {stats.pendingRequests}건
                 </span>
               </div>
             {/if}
             {#if stats.overdueReturns > 0}
-              <div
-                class="flex items-center justify-between p-3 bg-red-50 dark:bg-red-900/20 rounded-lg"
-              >
-                <span class="text-sm text-gray-700 dark:text-gray-300">연체된 반납</span>
-                <span
-                  class="px-2 py-1 text-xs font-medium bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 rounded-full"
-                >
+              <div class="flex items-center justify-between p-3 bg-red-50 /20 rounded-lg">
+                <span class="text-sm text-gray-700">연체된 반납</span>
+                <span class="px-2 py-1 text-xs font-medium bg-red-100 text-red-800 rounded-full">
                   {stats.overdueReturns}건
                 </span>
               </div>
             {/if}
             {#if stats.expiringIps > 0}
-              <div
-                class="flex items-center justify-between p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg"
-              >
-                <span class="text-sm text-gray-700 dark:text-gray-300">만료 임박 IP</span>
+              <div class="flex items-center justify-between p-3 bg-yellow-50 /20 rounded-lg">
+                <span class="text-sm text-gray-700">만료 임박 IP</span>
                 <span
-                  class="px-2 py-1 text-xs font-medium bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 rounded-full"
+                  class="px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-800 rounded-full"
                 >
                   {stats.expiringIps}건
                 </span>
               </div>
             {/if}
             {#if stats.expiringCertifications > 0}
-              <div
-                class="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg"
-              >
-                <span class="text-sm text-gray-700 dark:text-gray-300">만료 임박 인증</span>
-                <span
-                  class="px-2 py-1 text-xs font-medium bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full"
-                >
+              <div class="flex items-center justify-between p-3 bg-blue-50 /20 rounded-lg">
+                <span class="text-sm text-gray-700">만료 임박 인증</span>
+                <span class="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
                   {stats.expiringCertifications}건
                 </span>
               </div>
@@ -339,7 +319,7 @@
   {:else if activeTab === 'physical'}
     <div class="space-y-6">
       <div class="flex justify-between items-center">
-        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">물리적 자산 관리</h3>
+        <h3 class="text-lg font-semibold text-gray-900">물리적 자산 관리</h3>
         <ThemeButton variant="primary" onclick={() => (showAssetForm = true)}>
           새 자산 추가
         </ThemeButton>
@@ -363,7 +343,7 @@
   {:else if activeTab === 'ip'}
     <div class="space-y-6">
       <div class="flex justify-between items-center">
-        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">지식재산권 관리</h3>
+        <h3 class="text-lg font-semibold text-gray-900">지식재산권 관리</h3>
         <ThemeButton variant="primary">새 IP 등록</ThemeButton>
       </div>
 
@@ -378,7 +358,7 @@
   {:else if activeTab === 'certifications'}
     <div class="space-y-6">
       <div class="flex justify-between items-center">
-        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">인증/등록증 관리</h3>
+        <h3 class="text-lg font-semibold text-gray-900">인증/등록증 관리</h3>
         <ThemeButton variant="primary">새 인증 등록</ThemeButton>
       </div>
 
@@ -393,7 +373,7 @@
   {:else if activeTab === 'requests'}
     <div class="space-y-6">
       <div class="flex justify-between items-center">
-        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">자산 신청</h3>
+        <h3 class="text-lg font-semibold text-gray-900">자산 신청</h3>
         <ThemeButton variant="primary">새 신청</ThemeButton>
       </div>
 

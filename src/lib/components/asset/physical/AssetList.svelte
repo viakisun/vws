@@ -136,14 +136,14 @@
           bind:value={searchTerm}
           type="text"
           placeholder="자산명, 시리얼번호, 위치로 검색..."
-          class="pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         />
       </div>
 
       <!-- 상태 필터 -->
       <select
         bind:value={statusFilter}
-        class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        class="px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
       >
         <option value="all">모든 상태</option>
         <option value="available">사용 가능</option>
@@ -163,62 +163,62 @@
   <!-- 자산 테이블 -->
   <ThemeCard>
     <div class="overflow-x-auto">
-      <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-        <thead class="bg-gray-50 dark:bg-gray-800">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
           <tr>
             <th
-              class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 :bg-gray-700"
               onclick={() => handleSort('name')}
             >
               자산명 {sortBy === 'name' && (sortOrder === 'asc' ? '↑' : '↓')}
             </th>
             <th
-              class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 :bg-gray-700"
               onclick={() => handleSort('serialNumber')}
             >
               시리얼번호 {sortBy === 'serialNumber' && (sortOrder === 'asc' ? '↑' : '↓')}
             </th>
             <th
-              class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 :bg-gray-700"
               onclick={() => handleSort('status')}
             >
               상태 {sortBy === 'status' && (sortOrder === 'asc' ? '↑' : '↓')}
             </th>
             <th
-              class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 :bg-gray-700"
               onclick={() => handleSort('location')}
             >
               위치 {sortBy === 'location' && (sortOrder === 'asc' ? '↑' : '↓')}
             </th>
             <th
-              class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
             >
               할당자
             </th>
             <th
-              class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
             >
               구매가격
             </th>
             <th
-              class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
             >
               액션
             </th>
           </tr>
         </thead>
-        <tbody class="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
+        <tbody class="bg-white divide-y divide-gray-200">
           {#each filteredAssets() as asset}
-            <tr class="hover:bg-gray-50 dark:hover:bg-gray-800">
+            <tr class="hover:bg-gray-50 :bg-gray-800">
               <td class="px-6 py-4 whitespace-nowrap">
-                <div class="text-sm font-medium text-gray-900 dark:text-gray-100">
+                <div class="text-sm font-medium text-gray-900">
                   {asset.name}
                 </div>
-                <div class="text-sm text-gray-500 dark:text-gray-400">
+                <div class="text-sm text-gray-500">
                   {asset.category?.name || '카테고리 없음'}
                 </div>
               </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                 {asset.serial_number || '-'}
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
@@ -226,26 +226,26 @@
                   {getStatusLabel(asset.status)}
                 </Badge>
               </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                 {asset.location || '-'}
               </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                 {asset.current_assignment?.employee?.first_name || '-'}
               </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                 {formatPrice(asset.purchase_price)}
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                 <div class="flex space-x-2">
                   <button
                     onclick={() => onEdit?.(asset)}
-                    class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300"
+                    class="text-blue-600 hover:text-blue-900 :text-blue-300"
                   >
                     <EditIcon class="w-4 h-4" />
                   </button>
                   <button
                     onclick={() => onDelete?.(asset)}
-                    class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
+                    class="text-red-600 hover:text-red-900 :text-red-300"
                   >
                     <TrashIcon class="w-4 h-4" />
                   </button>
@@ -254,9 +254,7 @@
             </tr>
           {:else}
             <tr>
-              <td colspan="7" class="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
-                자산이 없습니다.
-              </td>
+              <td colspan="7" class="px-6 py-12 text-center text-gray-500"> 자산이 없습니다. </td>
             </tr>
           {/each}
         </tbody>
@@ -265,11 +263,9 @@
 
     <!-- 페이지네이션 (필요시 추가) -->
     {#if filteredAssets.length > 0}
-      <div
-        class="px-6 py-3 bg-gray-50 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700"
-      >
+      <div class="px-6 py-3 bg-gray-50 border-t border-gray-200">
         <div class="flex items-center justify-between">
-          <div class="text-sm text-gray-700 dark:text-gray-300">
+          <div class="text-sm text-gray-700">
             총 {filteredAssets.length}개 자산
           </div>
         </div>

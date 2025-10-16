@@ -2,9 +2,9 @@
   import { page } from '$app/stores'
   import type { User } from '$lib/auth/user-service'
   import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
-  import { can } from '$lib/stores/permissions'
-  import type { RoutePermission } from '$lib/config/routes'
   import { NAVIGATION_MENU, getVisibleMenuItems } from '$lib/config/navigation'
+  import type { RoutePermission } from '$lib/config/routes'
+  import { can } from '$lib/stores/permissions'
   import { ChevronLeftIcon, ChevronRightIcon } from '@lucide/svelte'
 
   let { isCollapsed = $bindable(true), user = null } = $props<{
@@ -77,7 +77,7 @@
         variant="ghost"
         size="sm"
         onclick={toggleCollapse}
-        class="p-2 transition-colors text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+        class="p-2 transition-colors text-gray-500 hover:text-gray-700"
       >
         {#if isCollapsed}
           <ChevronRightIcon size={16} />

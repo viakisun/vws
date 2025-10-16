@@ -144,14 +144,14 @@
           bind:value={searchTerm}
           type="text"
           placeholder="인증명, 발급기관, 인증번호로 검색..."
-          class="pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         />
       </div>
 
       <!-- 상태 필터 -->
       <select
         bind:value={statusFilter}
-        class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        class="px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
       >
         <option value="all">모든 상태</option>
         <option value="active">유효</option>
@@ -170,69 +170,69 @@
   <!-- 인증서 테이블 -->
   <ThemeCard>
     <div class="overflow-x-auto">
-      <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-        <thead class="bg-gray-50 dark:bg-gray-800">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
           <tr>
             <th
-              class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 :bg-gray-700"
               onclick={() => handleSort('name')}
             >
               인증명 {sortBy === 'name' && (sortOrder === 'asc' ? '↑' : '↓')}
             </th>
             <th
-              class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
             >
               발급기관
             </th>
             <th
-              class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
             >
               인증번호
             </th>
             <th
-              class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 :bg-gray-700"
               onclick={() => handleSort('status')}
             >
               상태 {sortBy === 'status' && (sortOrder === 'asc' ? '↑' : '↓')}
             </th>
             <th
-              class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
             >
               발급일
             </th>
             <th
-              class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 :bg-gray-700"
               onclick={() => handleSort('expirationDate')}
             >
               만료일 {sortBy === 'expirationDate' && (sortOrder === 'asc' ? '↑' : '↓')}
             </th>
             <th
-              class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
             >
               액션
             </th>
           </tr>
         </thead>
-        <tbody class="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
+        <tbody class="bg-white divide-y divide-gray-200">
           {#each filteredCertifications() as certification}
-            <tr class="hover:bg-gray-50 dark:hover:bg-gray-800">
+            <tr class="hover:bg-gray-50 :bg-gray-800">
               <td class="px-6 py-4 whitespace-nowrap">
                 <div class="flex items-center">
-                  <div class="text-sm font-medium text-gray-900 dark:text-gray-100">
+                  <div class="text-sm font-medium text-gray-900">
                     {certification.certification_name}
                   </div>
                   {#if isExpiringSoon(certification.expiry_date)}
                     <AlertTriangleIcon class="w-4 h-4 text-yellow-500 ml-2" />
                   {/if}
                 </div>
-                <div class="text-sm text-gray-500 dark:text-gray-400">
+                <div class="text-sm text-gray-500">
                   {certification.certification_type || '타입 없음'}
                 </div>
               </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                 {certification.issuing_authority || '-'}
               </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                 {certification.certification_number || '-'}
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
@@ -240,16 +240,14 @@
                   {getStatusLabel(certification.status)}
                 </Badge>
               </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                 {formatDate(certification.issue_date)}
               </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                 <div class="flex items-center">
                   {formatDate(certification.expiry_date)}
                   {#if isExpiringSoon(certification.expiry_date)}
-                    <span class="ml-2 text-xs text-yellow-600 dark:text-yellow-400">
-                      만료 임박
-                    </span>
+                    <span class="ml-2 text-xs text-yellow-600"> 만료 임박 </span>
                   {/if}
                 </div>
               </td>
@@ -258,7 +256,7 @@
                   {#if certification.document_s3_key}
                     <button
                       onclick={() => window.open('#', '_blank')}
-                      class="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300"
+                      class="text-green-600 hover:text-green-900 :text-green-300"
                       title="문서 보기"
                     >
                       <FileTextIcon class="w-4 h-4" />
@@ -266,7 +264,7 @@
                   {:else}
                     <button
                       onclick={() => onUpload?.(certification)}
-                      class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300"
+                      class="text-blue-600 hover:text-blue-900 :text-blue-300"
                       title="문서 업로드"
                     >
                       <UploadIcon class="w-4 h-4" />
@@ -274,14 +272,14 @@
                   {/if}
                   <button
                     onclick={() => onEdit?.(certification)}
-                    class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300"
+                    class="text-blue-600 hover:text-blue-900 :text-blue-300"
                     title="수정"
                   >
                     <EditIcon class="w-4 h-4" />
                   </button>
                   <button
                     onclick={() => onDelete?.(certification)}
-                    class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
+                    class="text-red-600 hover:text-red-900 :text-red-300"
                     title="삭제"
                   >
                     <TrashIcon class="w-4 h-4" />
@@ -291,9 +289,7 @@
             </tr>
           {:else}
             <tr>
-              <td colspan="7" class="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
-                인증서가 없습니다.
-              </td>
+              <td colspan="7" class="px-6 py-12 text-center text-gray-500"> 인증서가 없습니다. </td>
             </tr>
           {/each}
         </tbody>
@@ -302,11 +298,9 @@
 
     <!-- 페이지네이션 -->
     {#if filteredCertifications().length > 0}
-      <div
-        class="px-6 py-3 bg-gray-50 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700"
-      >
+      <div class="px-6 py-3 bg-gray-50 border-t border-gray-200">
         <div class="flex items-center justify-between">
-          <div class="text-sm text-gray-700 dark:text-gray-300">
+          <div class="text-sm text-gray-700">
             총 {filteredCertifications().length}개 인증서
           </div>
         </div>

@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { AccountTag } from '$lib/finance/types'
-  import { onMount } from 'svelte'
   import { logger } from '$lib/utils/logger'
+  import { onMount } from 'svelte'
 
   interface Props {
     accountId: string
@@ -88,7 +88,7 @@
     <button
       type="button"
       onclick={() => (showSelector = !showSelector)}
-      class="text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 underline"
+      class="text-xs text-gray-500 hover:text-gray-700 underline"
     >
       {currentTags.length > 0 ? '편집' : '태그 추가'}
     </button>
@@ -114,14 +114,12 @@
         }
       }}
     >
-      <div class="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md">
-        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">계좌 태그 선택</h3>
+      <div class="bg-white rounded-lg p-6 w-full max-w-md">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">계좌 태그 선택</h3>
 
         <div class="space-y-2 mb-4 max-h-96 overflow-y-auto">
           {#each availableTags as tag}
-            <label
-              class="flex items-center gap-2 p-2 rounded hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer"
-            >
+            <label class="flex items-center gap-2 p-2 rounded hover:bg-gray-50 cursor-pointer">
               <input
                 type="checkbox"
                 checked={currentTags.some((t) => t.id === tag.id)}
@@ -130,11 +128,9 @@
               />
               <div class="flex items-center gap-2 flex-1">
                 <div class="w-3 h-3 rounded" style:background-color={tag.color}></div>
-                <span class="text-sm text-gray-900 dark:text-gray-100">{tag.name}</span>
+                <span class="text-sm text-gray-900">{tag.name}</span>
                 {#if tag.isSystem}
-                  <span
-                    class="px-1.5 py-0.5 text-xs font-medium bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 rounded"
-                  >
+                  <span class="px-1.5 py-0.5 text-xs font-medium bg-blue-100 text-blue-700 rounded">
                     시스템
                   </span>
                 {/if}
@@ -150,7 +146,7 @@
               showSelector = false
               currentTags = [...selectedTags]
             }}
-            class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+            class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
           >
             취소
           </button>

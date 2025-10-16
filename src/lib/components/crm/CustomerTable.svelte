@@ -65,50 +65,42 @@
 
 <div class="overflow-x-auto">
   <table class="w-full">
-    <thead class="bg-gray-50 dark:bg-gray-700">
+    <thead class="bg-gray-50">
       <tr>
-        <th
-          class="px-4 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider"
-        >
+        <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
           회사명
         </th>
-        <th
-          class="px-4 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider"
-        >
+        <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
           대표자
         </th>
-        <th
-          class="px-4 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider"
-        >
+        <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
           사업자번호
         </th>
-        <th
-          class="px-4 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider"
-        >
+        <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
           상태
         </th>
         <th
-          class="px-4 py-3 text-center text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider"
+          class="px-4 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider"
         >
           문서
         </th>
         <th
-          class="px-4 py-3 text-center text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider"
+          class="px-4 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider"
         >
           액션
         </th>
       </tr>
     </thead>
-    <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+    <tbody class="bg-white divide-y divide-gray-200">
       {#each customers as customer (customer.id)}
-        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+        <tr class="hover:bg-gray-50 :bg-gray-700/50 transition-colors">
           <td class="px-4 py-3">
             <div class="flex items-center gap-2">
               <BuildingIcon class="w-4 h-4 text-gray-400" />
               <div>
-                <p class="font-medium text-gray-900 dark:text-gray-100">{customer.name}</p>
+                <p class="font-medium text-gray-900">{customer.name}</p>
                 {#if customer.businessEntityType}
-                  <p class="text-xs text-gray-500 dark:text-gray-400">
+                  <p class="text-xs text-gray-500">
                     {customer.businessEntityType === 'individual'
                       ? '개인'
                       : customer.businessEntityType === 'corporation'
@@ -127,10 +119,10 @@
               </div>
             </div>
           </td>
-          <td class="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">
+          <td class="px-4 py-3 text-sm text-gray-900">
             {customer.representativeName || '-'}
           </td>
-          <td class="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">
+          <td class="px-4 py-3 text-sm text-gray-900">
             {customer.businessNumber || '-'}
           </td>
           <td class="px-4 py-3">
@@ -147,7 +139,7 @@
                   onclick={() =>
                     onDownloadDocument?.(customer.id, CrmDocumentType.BUSINESS_REGISTRATION)}
                   title="사업자등록증 다운로드"
-                  class="flex items-center gap-1 px-2 py-1 text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
+                  class="flex items-center gap-1 px-2 py-1 text-xs text-blue-600 hover:text-blue-800 :text-blue-300 transition-colors"
                 >
                   <DownloadIcon class="w-4 h-4" />
                   <span>사업자</span>
@@ -158,7 +150,7 @@
                   onclick={() =>
                     onUploadDocument?.(customer.id, CrmDocumentType.BUSINESS_REGISTRATION)}
                   title="사업자등록증 업로드"
-                  class="flex items-center gap-1 px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-300 rounded transition-colors"
+                  class="flex items-center gap-1 px-2 py-1 text-xs border border-gray-300 text-gray-600 hover:text-gray-800 :text-gray-300 rounded transition-colors"
                 >
                   <UploadIcon class="w-4 h-4" />
                   <span>사업자</span>
@@ -171,7 +163,7 @@
                   type="button"
                   onclick={() => onDownloadDocument?.(customer.id, CrmDocumentType.BANK_ACCOUNT)}
                   title="통장사본 다운로드"
-                  class="flex items-center gap-1 px-2 py-1 text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
+                  class="flex items-center gap-1 px-2 py-1 text-xs text-blue-600 hover:text-blue-800 :text-blue-300 transition-colors"
                 >
                   <DownloadIcon class="w-4 h-4" />
                   <span>통장</span>
@@ -181,7 +173,7 @@
                   type="button"
                   onclick={() => onUploadDocument?.(customer.id, CrmDocumentType.BANK_ACCOUNT)}
                   title="통장사본 업로드"
-                  class="flex items-center gap-1 px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-300 rounded transition-colors"
+                  class="flex items-center gap-1 px-2 py-1 text-xs border border-gray-300 text-gray-600 hover:text-gray-800 :text-gray-300 rounded transition-colors"
                 >
                   <UploadIcon class="w-4 h-4" />
                   <span>통장</span>
@@ -194,7 +186,7 @@
               <button
                 type="button"
                 onclick={() => onView(customer.id)}
-                class="p-1.5 text-gray-600 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 transition-colors"
+                class="p-1.5 text-gray-600 hover:text-blue-600 :text-blue-400 transition-colors"
                 title="상세보기"
               >
                 <EyeIcon class="w-4 h-4" />
@@ -202,7 +194,7 @@
               <button
                 type="button"
                 onclick={() => onEdit(customer.id)}
-                class="p-1.5 text-gray-600 hover:text-green-600 dark:text-gray-400 dark:hover:text-green-400 transition-colors"
+                class="p-1.5 text-gray-600 hover:text-green-600 :text-green-400 transition-colors"
                 title="편집"
               >
                 <EditIcon class="w-4 h-4" />
@@ -210,7 +202,7 @@
               <button
                 type="button"
                 onclick={() => onDelete(customer.id)}
-                class="p-1.5 text-gray-600 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400 transition-colors"
+                class="p-1.5 text-gray-600 hover:text-red-600 :text-red-400 transition-colors"
                 title="삭제"
               >
                 <TrashIcon class="w-4 h-4" />
@@ -223,7 +215,7 @@
   </table>
 
   {#if customers.length === 0}
-    <div class="text-center py-12 text-gray-500 dark:text-gray-400">
+    <div class="text-center py-12 text-gray-500">
       <BuildingIcon class="w-12 h-12 mx-auto mb-3 opacity-50" />
       <p>등록된 고객이 없습니다</p>
     </div>

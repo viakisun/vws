@@ -1,15 +1,15 @@
 <script lang="ts">
-  import { onMount } from 'svelte'
   import { page } from '$app/stores'
   import PageLayout from '$lib/components/layout/PageLayout.svelte'
   import AccountManagement from '$lib/finance/components/accounts/AccountManagement.svelte'
   import CategoryManagement from '$lib/finance/components/categories/CategoryManagement.svelte'
   import FinanceOverviewTab from '$lib/finance/components/dashboard/FinanceOverviewTab.svelte'
   import RecipientManagement from '$lib/finance/components/email/RecipientManagement.svelte'
-  import TransactionManagement from '$lib/finance/components/transactions/TransactionManagement.svelte'
   import TagManagement from '$lib/finance/components/tags/TagManagement.svelte'
+  import TransactionManagement from '$lib/finance/components/transactions/TransactionManagement.svelte'
   import { useFinanceManagement } from '$lib/hooks/finance'
   import { logger } from '$lib/utils/logger'
+  import { onMount } from 'svelte'
 
   // Hook 사용
   const finance = useFinanceManagement()
@@ -86,15 +86,15 @@
     </div>
   {:else}
     <!-- 탭 네비게이션 -->
-    <div class="border-b border-gray-200 dark:border-gray-700 mb-6">
+    <div class="border-b border-gray-200 mb-6">
       <nav class="flex space-x-8">
         {#each tabs as tab}
           <button
             type="button"
             class="py-2 px-1 border-b-2 font-medium text-sm transition-colors duration-200 {activeTab ===
             tab.id
-              ? 'border-blue-500 text-blue-600 dark:border-blue-400 dark:text-blue-400'
-              : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600'}"
+              ? 'border-blue-500 text-blue-600'
+              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}"
             onclick={() => (activeTab = tab.id)}
           >
             {tab.label}
@@ -105,10 +105,8 @@
 
     <!-- 탭 콘텐츠 -->
     {#if !isInitialized}
-      <div
-        class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-12 text-center"
-      >
-        <div class="text-gray-400 dark:text-gray-500 mb-4">
+      <div class="bg-white rounded-lg border border-gray-200 p-12 text-center">
+        <div class="text-gray-400 mb-4">
           <svg class="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path
               stroke-linecap="round"
@@ -118,10 +116,8 @@
             />
           </svg>
         </div>
-        <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
-          자금 관리 시스템 초기화
-        </h3>
-        <p class="text-gray-500 dark:text-gray-400 mb-4">
+        <h3 class="text-lg font-medium text-gray-900 mb-2">자금 관리 시스템 초기화</h3>
+        <p class="text-gray-500 mb-4">
           기업 자금 관리 시스템의 데이터베이스를 초기화하고 샘플 데이터를 생성합니다.
         </p>
         <button
@@ -157,11 +153,9 @@
     {:else if activeTab === 'email'}
       <RecipientManagement />
     {:else if activeTab === 'reports'}
-      <div
-        class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6"
-      >
-        <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">리포트 관리</h3>
-        <div class="text-center py-8 text-gray-400 dark:text-gray-500">
+      <div class="bg-white rounded-lg border border-gray-200 p-6">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">리포트 관리</h3>
+        <div class="text-center py-8 text-gray-400">
           <p>리포트 관리 시스템이 곧 구현됩니다</p>
         </div>
       </div>
