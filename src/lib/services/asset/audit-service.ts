@@ -368,7 +368,7 @@ export class AuditService {
           COUNT(*) as totalAudits,
           COUNT(CASE WHEN status = 'in_progress' THEN 1 END) as inProgressAudits,
           COUNT(CASE WHEN status = 'completed' THEN 1 END) as completedAudits,
-          (SELECT COUNT(*) FROM physical_assets) as totalAssets
+          (SELECT COUNT(*) FROM assets) as totalAssets
         FROM asset_audits`,
       )
 
@@ -470,7 +470,7 @@ export class AuditService {
     try {
       // 진행 중인 실사가 있는지 확인
       const activeAudits = await query(
-        `SELECT id, audit_name, end_date FROM asset_audits 
+        `SELECT id, audit_name, end_date::text as end_date FROM asset_audits 
          WHERE status = 'in_progress' AND end_date <= CURRENT_DATE + INTERVAL '7 days'`,
       )
 

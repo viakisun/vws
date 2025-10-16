@@ -327,7 +327,7 @@ export class NotificationService {
   private async scheduleAuditReminders(): Promise<void> {
     // 진행 중인 실사 마감 알림
     const activeAudits = await query(
-      `SELECT id, audit_name, end_date FROM asset_audits 
+      `SELECT id, audit_name, end_date::text as end_date FROM asset_audits 
        WHERE status = 'in_progress' AND end_date <= CURRENT_DATE + INTERVAL '7 days'`,
     )
 

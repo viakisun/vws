@@ -1,3 +1,4 @@
+import { ERROR_CATEGORY, ERROR_SEVERITY, recordError } from '$lib/utils/error-monitor'
 import { logger } from '$lib/utils/logger'
 import { config } from 'dotenv'
 import type { PoolClient, QueryResult } from 'pg'
@@ -32,30 +33,30 @@ export function assertDbDateText(value: unknown): string {
     const stack = new Error().stack
     const callerLine = stack?.split('\n')[2]?.trim() || 'unknown location'
 
-    logger.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
-    logger.error('❌ [assertDbDateText] Date object detected - BAD QUERY PATTERN!')
+    logger.selectStar('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+    logger.selectStar('❌ [assertDbDateText] Date object detected - BAD QUERY PATTERN!')
     try {
-      logger.error('   Value:', value.toISOString())
+      logger.selectStar('   Value:', value.toISOString())
     } catch {
-      logger.error('   Value:', String(value))
+      logger.selectStar('   Value:', String(value))
     }
-    logger.error('   Called from:', callerLine)
-    logger.error('')
-    logger.error('   Cause: Using SELECT * or RETURNING * or missing ::text')
-    logger.error('   Fix: Explicitly select columns with ::text')
-    logger.error('')
-    logger.error('   Example:')
-    logger.error('   ❌ SELECT * FROM table')
-    logger.error('   ❌ SELECT DATE(column) FROM table')
-    logger.error('   ✅ SELECT id, name, created_at::text FROM table')
-    logger.error('   ✅ SELECT DATE(column)::text FROM table')
-    logger.error('')
-    logger.error('   ❌ RETURNING *')
-    logger.error('   ✅ RETURNING id, name, created_at::text')
-    logger.error('')
-    logger.error('   Stack trace:')
-    logger.error(stack || 'Stack trace not available')
-    logger.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+    logger.selectStar('   Called from:', callerLine)
+    logger.selectStar('')
+    logger.selectStar('   Cause: Using SELECT * or RETURNING * or missing ::text')
+    logger.selectStar('   Fix: Explicitly select columns with ::text')
+    logger.selectStar('')
+    logger.selectStar('   Example:')
+    logger.selectStar('   ❌ SELECT * FROM table')
+    logger.selectStar('   ❌ SELECT DATE(column) FROM table')
+    logger.selectStar('   ✅ SELECT id, name, created_at::text FROM table')
+    logger.selectStar('   ✅ SELECT DATE(column)::text FROM table')
+    logger.selectStar('')
+    logger.selectStar('   ❌ RETURNING *')
+    logger.selectStar('   ✅ RETURNING id, name, created_at::text')
+    logger.selectStar('')
+    logger.selectStar('   Stack trace:')
+    logger.selectStar(stack || 'Stack trace not available')
+    logger.selectStar('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
     return String(value)
   }
 
@@ -219,7 +220,7 @@ export function initializeDatabase(): Pool {
 
     // Connection acquired
     pool.on('acquire', (client) => {
-      logger.debug('🔗 Database connection acquired', {
+      logger.db.connection('Database connection acquired', {
         totalCount: pool?.totalCount || 0,
         idleCount: pool?.idleCount || 0,
         waitingCount: pool?.waitingCount || 0,
@@ -228,7 +229,7 @@ export function initializeDatabase(): Pool {
 
     // Connection released back to pool
     pool.on('release', () => {
-      logger.debug('🔓 Database connection released', {
+      logger.db.connection('Database connection released', {
         totalCount: pool?.totalCount || 0,
         idleCount: pool?.idleCount || 0,
         waitingCount: pool?.waitingCount || 0,
@@ -237,6 +238,12 @@ export function initializeDatabase(): Pool {
 
     // Handle pool errors
     pool.on('error', (err: Error) => {
+      // 에러 모니터링에 기록
+      recordError('CRITICAL', 'DATABASE', 'Database connection pool error', {
+        stack: err.stack,
+        error: err,
+      })
+
       logger.error('💥 Unexpected error on idle client', {
         error: err.message,
         stack: err.stack,

@@ -4,6 +4,7 @@ import { ROUTE_PERMISSIONS } from '$lib/config/routes'
 import { Routes } from '$lib/config/routes.enum'
 import { DatabaseService } from '$lib/database/connection'
 import { permissionService } from '$lib/server/services/permission.service'
+import { ERROR_CATEGORY, ERROR_SEVERITY, recordError } from '$lib/utils/error-monitor'
 import { logger } from '$lib/utils/logger'
 import type { Handle } from '@sveltejs/kit'
 import { error } from '@sveltejs/kit'
@@ -216,7 +217,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 
   // 상세한 요청 로깅 (API 요청만)
   if (url.pathname.startsWith('/api/')) {
-    logger.info('🌐 API Request', {
+    logger.api.request('API Request', {
       method: request.method,
       path: url.pathname,
       userAgent: userAgent.substring(0, 100), // 길이 제한
@@ -314,7 +315,7 @@ export const handle: Handle = async ({ event, resolve }) => {
       const response = await resolve(event)
       const responseTime = Date.now() - startTime
 
-      logger.info('✅ API Response', {
+      logger.api.response('API Response', {
         method: request.method,
         path: url.pathname,
         status: response.status,
@@ -417,27 +418,53 @@ export const handle: Handle = async ({ event, resolve }) => {
       const logLevel = response.status >= 400 ? 'warn' : 'info'
       const emoji = response.status >= 400 ? '❌' : '✅'
 
-      logger[logLevel](`${emoji} API Response`, {
-        method: request.method,
-        path: url.pathname,
-        status: response.status,
-        responseTime: `${responseTime}ms`,
-        userId: event.locals.user?.id || 'anonymous',
-        ip: event.getClientAddress(),
-      })
+      if (response.status >= 400) {
+        logger[logLevel](`${emoji} API Response`, {
+          method: request.method,
+          path: url.pathname,
+          status: response.status,
+          responseTime: `${responseTime}ms`,
+          userId: event.locals.user?.id || 'anonymous',
+          ip: event.getClientAddress(),
+        })
+      } else {
+        logger.api.response('API Response', {
+          method: request.method,
+          path: url.pathname,
+          status: response.status,
+          responseTime: `${responseTime}ms`,
+          userId: event.locals.user?.id || 'anonymous',
+          ip: event.getClientAddress(),
+        })
+      }
     }
 
     return response
   } catch (err) {
     const responseTime = Date.now() - startTime
+    const errorMessage = err instanceof Error ? err.message : 'Unknown error'
+    const userId = event.locals.user?.id || 'anonymous'
 
+    // 에러 모니터링에 기록
     if (url.pathname.startsWith('/api/')) {
+      const severity =
+        errorMessage.includes('database') || errorMessage.includes('connection') ? 'HIGH' : 'MEDIUM'
+
+      const category = errorMessage.includes('database') ? 'DATABASE' : 'API'
+
+      recordError(severity, category, `API Request failed: ${errorMessage}`, {
+        stack: err instanceof Error ? err.stack : undefined,
+        userId,
+        requestPath: url.pathname,
+        error: err instanceof Error ? err : undefined,
+      })
+
       logger.error('💥 API Request failed', {
         method: request.method,
         path: url.pathname,
-        error: err instanceof Error ? err.message : 'Unknown error',
+        error: errorMessage,
         responseTime: `${responseTime}ms`,
-        userId: event.locals.user?.id || 'anonymous',
+        userId,
         ip: event.getClientAddress(),
       })
     }
