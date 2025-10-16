@@ -3,24 +3,26 @@
  * Svelte 컴포넌트를 사용하므로 브라우저 환경에서만 import
  */
 
-import type { ComponentType } from 'svelte'
 import {
   BanknoteIcon,
-  BarChart3Icon,
   BriefcaseIcon,
   BuildingIcon,
   CalendarIcon,
+  CheckSquareIcon,
   DollarSignIcon,
+  FileCheckIcon,
   FileTextIcon,
   FlaskConicalIcon,
   HelpCircleIcon,
   HomeIcon,
   MessageSquareIcon,
+  PackageIcon,
   SettingsIcon,
   ShieldIcon,
   TargetIcon,
   UsersIcon,
 } from 'lucide-svelte'
+import type { ComponentType } from 'svelte'
 
 /**
  * 리소스 키별 아이콘 매핑
@@ -35,6 +37,12 @@ export const RESOURCE_ICONS: Record<string, ComponentType> = {
   project: BriefcaseIcon,
   planner: TargetIcon,
   crm: BuildingIcon,
+  assets: PackageIcon,
+  'assets.physical': PackageIcon,
+  'assets.ip': FileCheckIcon,
+  'assets.certifications': FileTextIcon,
+  'assets.requests': CalendarIcon,
+  'assets.audit': CheckSquareIcon,
   reports: FileTextIcon,
   analytics: FlaskConicalIcon,
   settings: SettingsIcon,

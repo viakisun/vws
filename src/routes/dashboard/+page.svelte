@@ -113,6 +113,12 @@
       href: '/dashboard/certificate',
       icon: FileTextIcon,
     },
+    {
+      title: '자산 신청',
+      description: '장비/차량 신청 및 내 보유 자산 확인',
+      href: '/assets/requests',
+      icon: PackageIcon,
+    },
   ]
 
   const WORK_CARDS: DashboardCard[] = [
@@ -160,6 +166,13 @@
       href: '/crm',
       icon: TrendingUpIcon,
       roles: ['ADMIN', 'SALES', 'MANAGEMENT'],
+    },
+    {
+      title: '자산 관리',
+      description: '물리적 자산 및 지식재산권 관리',
+      href: '/assets',
+      icon: PackageIcon,
+      roles: ['ADMIN', 'MANAGEMENT'],
     },
     {
       title: '설정',

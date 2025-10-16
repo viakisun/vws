@@ -25,7 +25,29 @@ export async function authenticate(
     }
 
     const userService = UserService.getInstance()
-    const payload = userService.verifyToken(token) as JWTPayload
+
+    // 개발 환경에서 토큰 검증 완화
+    let payload: JWTPayload
+    try {
+      payload = userService.verifyToken(token) as JWTPayload
+    } catch (error) {
+      // 개발 환경에서 만료된 토큰도 허용 (ignoreExpiration)
+      if (process.env.NODE_ENV === 'development') {
+        try {
+          const jwt = await import('jsonwebtoken')
+          payload = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key', {
+            ignoreExpiration: true,
+          }) as JWTPayload
+        } catch (devError) {
+          logger.error('Authentication error (dev mode):', devError)
+          return null
+        }
+      } else {
+        logger.error('Authentication error:', error)
+        return null
+      }
+    }
+
     const user = await userService.getUserById(payload.userId)
 
     if (!user?.is_active) {

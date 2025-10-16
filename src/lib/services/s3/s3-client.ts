@@ -7,7 +7,7 @@ import { env } from '$env/dynamic/private'
 import { logger } from '$lib/utils/logger'
 import { S3Client } from '@aws-sdk/client-s3'
 
-let s3Client: S3Client | null = null
+export let s3Client: S3Client | null = null
 
 /**
  * S3 클라이언트 인스턴스 가져오기

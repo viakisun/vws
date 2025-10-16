@@ -43,7 +43,7 @@ export class UserService {
     try {
       // 1. 먼저 system_accounts에서 확인
       const systemAccountResult = await DatabaseService.query(
-        'SELECT id, email, name, picture, account_type, created_at, updated_at FROM system_accounts WHERE email = $1',
+        'SELECT id, email, name, picture, account_type, created_at::text, updated_at::text FROM system_accounts WHERE email = $1',
         [userData.email],
       )
 
@@ -71,7 +71,7 @@ export class UserService {
 
       // 2. employees에서 확인
       const employeeResult = await DatabaseService.query(
-        'SELECT id, employee_id, first_name, last_name, email, department, position, picture, created_at, updated_at FROM employees WHERE email = $1 AND status = $2',
+        'SELECT id, employee_id, first_name, last_name, email, department, position, picture, created_at::text, updated_at::text FROM employees WHERE email = $1 AND status = $2',
         [userData.email, 'active'],
       )
 

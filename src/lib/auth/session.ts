@@ -250,10 +250,13 @@ export class SessionManager {
     try {
       if (typeof window === 'undefined') return false
 
+      const token = this.getToken()
+      if (!token) return false
+
       const response = await window.fetch('/api/auth/refresh', {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${this.getToken()}`,
+          Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
         } as Record<string, string>,
       })
@@ -269,11 +272,15 @@ export class SessionManager {
           if (browser) {
             window.localStorage.setItem('auth_token', data.token as string)
           }
+
+          console.log('✅ Token refreshed successfully')
           return true
         }
+      } else {
+        console.log('❌ Token refresh failed:', response.status)
       }
-    } catch {
-      // logger.error('Token refresh error:', error)
+    } catch (error) {
+      console.error('Token refresh error:', error)
     }
 
     // If refresh fails, clear session

@@ -294,6 +294,44 @@ export const RESOURCE_REGISTRY: readonly ResourceDefinition[] = Object.freeze([
   },
 
   // ============================================
+  // ASSET MANAGEMENT (자산 관리)
+  // ============================================
+  {
+    key: 'assets',
+    nameKo: '자산 관리',
+    nameEn: 'Asset Management',
+    route: Routes.ASSETS,
+    description: '자산 및 지식재산권 통합 관리',
+    children: [
+      {
+        key: 'assets.physical',
+        nameKo: '물리적 자산',
+        nameEn: 'Physical Assets',
+      },
+      {
+        key: 'assets.ip',
+        nameKo: '지식재산권',
+        nameEn: 'Intellectual Property',
+      },
+      {
+        key: 'assets.certifications',
+        nameKo: '인증/등록증',
+        nameEn: 'Certifications',
+      },
+      {
+        key: 'assets.requests',
+        nameKo: '자산 신청',
+        nameEn: 'Asset Requests',
+      },
+      {
+        key: 'assets.audit',
+        nameKo: '자산 실사',
+        nameEn: 'Asset Audit',
+      },
+    ],
+  },
+
+  // ============================================
   // HELP (도움말)
   // ============================================
   {
@@ -347,6 +385,11 @@ export const RESOURCE_REGISTRY: readonly ResourceDefinition[] = Object.freeze([
         key: 'help.crm',
         nameKo: 'CRM',
         nameEn: 'CRM',
+      },
+      {
+        key: 'help.assets',
+        nameKo: '자산 관리',
+        nameEn: 'Asset Management',
       },
       {
         key: 'help.settings',

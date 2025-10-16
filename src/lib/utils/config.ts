@@ -19,7 +19,7 @@ export const config = {
   },
   jwt: {
     secret: fromEnv('JWT_SECRET', 'your-secret-key'),
-    expiresIn: fromEnv('JWT_EXPIRES_IN', '24h'),
+    expiresIn: fromEnv('JWT_EXPIRES_IN', '7d'), // 개발 환경에서 7일로 연장
   },
   google: {
     clientId: fromEnv('GOOGLE_CLIENT_ID', ''),

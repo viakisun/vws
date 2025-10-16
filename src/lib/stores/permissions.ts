@@ -1,5 +1,5 @@
-import { writable, derived, get } from 'svelte/store'
-import type { Writable, Readable } from 'svelte/store'
+import type { Readable, Writable } from 'svelte/store'
+import { derived, get, writable } from 'svelte/store'
 
 // 권한 타입 정의
 export interface Permission {
@@ -80,6 +80,14 @@ export enum Resource {
   CRM_CONTRACTS = 'crm.contracts',
   CRM_TRANSACTIONS = 'crm.transactions',
   CRM_REPORTS = 'crm.reports',
+
+  // 자산 관리
+  ASSETS = 'assets',
+  ASSETS_PHYSICAL = 'assets.physical',
+  ASSETS_IP = 'assets.ip',
+  ASSETS_CERTIFICATIONS = 'assets.certifications',
+  ASSETS_REQUESTS = 'assets.requests',
+  ASSETS_AUDIT = 'assets.audit',
 
   // 시스템
   REPORTS = 'reports',

@@ -121,6 +121,26 @@ export enum Routes {
   // 시스템 관리 API
   API_ADMIN_USERS = '/api/admin/users',
   API_ADMIN_ROLES = '/api/admin/roles',
+
+  // ============================================
+  // Asset Management Routes
+  // ============================================
+
+  // 자산 관리
+  ASSETS = '/assets',
+  ASSETS_PHYSICAL = '/assets/physical',
+  ASSETS_IP = '/assets/intellectual-property',
+  ASSETS_CERTIFICATIONS = '/assets/certifications',
+  ASSETS_REQUESTS = '/assets/requests',
+  ASSETS_AUDIT = '/assets/audit',
+
+  // 자산 관리 API
+  API_ASSETS = '/api/assets',
+  API_ASSETS_REQUESTS = '/api/assets/requests',
+  API_ASSETS_IP = '/api/assets/ip',
+  API_ASSETS_CERTIFICATIONS = '/api/assets/certifications',
+  API_ASSETS_AUDIT = '/api/assets/audit',
+  API_ASSETS_NOTIFICATIONS = '/api/assets/notifications',
 }
 
 // ============================================

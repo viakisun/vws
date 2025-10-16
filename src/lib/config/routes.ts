@@ -203,4 +203,38 @@ export const ROUTE_PERMISSIONS: Record<string, RoutePermission> = {
     // resource를 정의하지 않으면 권한 체크를 건너뜁니다
     fallback: Routes.DASHBOARD,
   },
+
+  // ============================================
+  // Asset Management Routes
+  // ============================================
+  [Routes.ASSETS]: {
+    resource: Resource.ASSETS,
+    action: PermissionAction.READ,
+    fallback: Routes.DASHBOARD,
+  },
+  [Routes.ASSETS_PHYSICAL]: {
+    resource: Resource.ASSETS,
+    action: PermissionAction.READ,
+    fallback: Routes.DASHBOARD,
+  },
+  [Routes.ASSETS_IP]: {
+    resource: Resource.ASSETS,
+    action: PermissionAction.READ,
+    fallback: Routes.DASHBOARD,
+  },
+  [Routes.ASSETS_CERTIFICATIONS]: {
+    resource: Resource.ASSETS,
+    action: PermissionAction.READ,
+    fallback: Routes.DASHBOARD,
+  },
+  [Routes.ASSETS_REQUESTS]: {
+    resource: Resource.ASSETS,
+    action: PermissionAction.READ,
+    fallback: Routes.DASHBOARD,
+  },
+  [Routes.ASSETS_AUDIT]: {
+    resource: Resource.ASSETS,
+    action: PermissionAction.READ,
+    fallback: Routes.DASHBOARD,
+  },
 }
