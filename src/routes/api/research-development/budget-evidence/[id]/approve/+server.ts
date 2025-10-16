@@ -24,7 +24,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
 
     // 증빙 내역 존재 확인
     const existingEvidence = await query<BudgetEvidence>(
-      'SELECT * FROM budget_evidence WHERE id = $1',
+      'SELECT id, project_id, budget_category_id, amount, description, evidence_type, file_s3_key, status, created_at::text as created_at, updated_at::text as updated_at FROM budget_evidence WHERE id = $1',
       [id],
     )
     if (existingEvidence.rows.length === 0) {

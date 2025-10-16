@@ -89,7 +89,9 @@ export class ThreadService {
    */
   async getById(id: string): Promise<Thread | null> {
     const result = await DatabaseService.query(
-      `SELECT * FROM planner_threads
+      `SELECT id, title, content, employee_id, is_pinned, created_at::text as created_at, 
+              updated_at::text as updated_at, deleted_at
+       FROM planner_threads
        WHERE id = $1 AND deleted_at IS NULL`,
       [id],
     )

@@ -368,7 +368,10 @@ export class NotificationService {
 
       // 발송 예정인 알림 조회
       const notifications = await query<DatabaseAssetNotification>(
-        `SELECT * FROM asset_notifications 
+        `SELECT id, asset_id, notification_type, title, message, status, 
+                scheduled_date, sent_date, priority, created_at::text as created_at, 
+                updated_at::text as updated_at
+         FROM asset_notifications 
          WHERE status = 'pending' 
            AND (scheduled_date IS NULL OR scheduled_date <= $1)
          ORDER BY priority DESC, created_at ASC`,

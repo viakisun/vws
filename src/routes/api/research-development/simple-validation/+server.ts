@@ -133,7 +133,8 @@ async function validateProject(projectId: string): Promise<ValidationResponse> {
 async function validatePersonnelCost(projectId: string): Promise<ValidationResult> {
   const budgetResult = await query<ProjectBudget>(
     `
-		SELECT * FROM project_budgets 
+		SELECT id, project_id, period_number, research_cost, facility_cost, labor_cost, total_budget, created_at::text as created_at, updated_at::text as updated_at
+		FROM project_budgets 
 		WHERE project_id = $1 
 		ORDER BY period_number
 	`,

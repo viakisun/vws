@@ -91,7 +91,9 @@ export class NotificationService {
     },
   ): Promise<Notification[]> {
     let query = `
-      SELECT * FROM notifications
+      SELECT id, employee_id, title, message, type, is_read, created_at::text as created_at, 
+             updated_at::text as updated_at
+      FROM notifications
       WHERE employee_id = $1
     `
     const params: any[] = [employeeId]

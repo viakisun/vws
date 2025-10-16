@@ -226,7 +226,11 @@ export class AssetRequestService {
       await transaction(async (client) => {
         // 신청 상태 확인
         const requestResult = await client.query(
-          `SELECT * FROM asset_requests WHERE id = $1 AND status = 'pending'`,
+          `SELECT id, requester_id, asset_id, category_id, request_type, purpose, 
+                start_datetime, end_datetime, return_reason, status, approver_id, 
+                approval_date, rejection_reason, created_at::text as created_at, 
+                updated_at::text as updated_at
+         FROM asset_requests WHERE id = $1 AND status = 'pending'`,
           [id],
         )
 

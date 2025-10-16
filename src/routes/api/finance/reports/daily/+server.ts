@@ -339,7 +339,7 @@ export const GET: RequestHandler = async ({ url }) => {
 
     // 자금일보 조회
     const result = await query<DailyReportRow>(
-      'SELECT * FROM finance_daily_reports WHERE report_date = $1',
+      'SELECT id, report_date, total_income, total_expense, balance, created_at::text as created_at, updated_at::text as updated_at FROM finance_daily_reports WHERE report_date = $1',
       [date],
     )
 

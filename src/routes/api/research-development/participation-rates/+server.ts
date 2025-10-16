@@ -143,7 +143,10 @@ export const PUT: RequestHandler = async ({ request }) => {
     // 기존 참여율 조회
     const existingRate = await query(
       `
-			SELECT * FROM participation_rates
+			SELECT id, employee_id, project_id, participation_rate, status, 
+			       start_date, end_date, created_at::text as created_at, 
+			       updated_at::text as updated_at
+			FROM participation_rates
 			WHERE employee_id = $1 AND project_id = $2 AND status = 'active'
 		`,
       [employeeId, projectId],

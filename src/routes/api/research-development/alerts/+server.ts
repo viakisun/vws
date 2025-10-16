@@ -75,11 +75,11 @@ export const GET: RequestHandler = async ({ url }) => {
 				AND p.calculated_end_date IS NOT NULL
 				AND p.calculated_end_date <= CURRENT_DATE + INTERVAL '30 days'
 			)
-			SELECT * FROM budget_alerts
+			SELECT 'budget' as alert_type, id, project_id, message, severity, created_at::text as created_at FROM budget_alerts
 			UNION ALL
-			SELECT * FROM participation_alerts
+			SELECT 'participation' as alert_type, id, project_id, message, severity, created_at::text as created_at FROM participation_alerts
 			UNION ALL
-			SELECT * FROM deadline_alerts
+			SELECT 'deadline' as alert_type, id, project_id, message, severity, created_at::text as created_at FROM deadline_alerts
 		`
 
     const params: unknown[] = []

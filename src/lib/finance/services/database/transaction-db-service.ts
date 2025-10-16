@@ -185,7 +185,7 @@ export class TransactionDbService {
 
       // 카테고리 정보 조회
       const categoryResult = await query<CategoryRow>(
-        'SELECT * FROM finance_categories WHERE id = $1',
+        'SELECT id, name, type, parent_id, description, is_active, created_at::text as created_at, updated_at::text as updated_at FROM finance_categories WHERE id = $1',
         [transaction.category_id],
       )
 
