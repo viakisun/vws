@@ -259,10 +259,10 @@
     </div>
 
     <!-- Reference Type Selection -->
-    <div class="mb-6">
-      <label class="block text-sm font-medium mb-3" style:color="var(--color-text-primary)">
+    <fieldset class="mb-6">
+      <legend class="block text-sm font-medium mb-3" style:color="var(--color-text-primary)">
         레퍼런스 타입 선택 *
-      </label>
+      </legend>
       <div class="space-y-3">
         <label
           class="flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition"
@@ -322,7 +322,7 @@
           </div>
         </label>
       </div>
-    </div>
+    </fieldset>
 
     <!-- Error message -->
     {#if error}

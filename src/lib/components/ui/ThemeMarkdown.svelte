@@ -5,13 +5,13 @@
   const MARKDOWN_STYLE_CONFIG = {
     // 기본 폰트
     baseFontSize: '14px',
-    baseLineHeight: '1.7',
+    baseLineHeight: '1.8',
 
     // 제목 크기 (em 단위)
-    h1Size: '1.3em',
-    h2Size: '1.2em',
-    h3Size: '1.1em',
-    h4Size: '1.0em',
+    h1Size: '1.4em',
+    h2Size: '1.3em',
+    h3Size: '1.2em',
+    h4Size: '1.1em',
 
     // 제목 간격 (px)
     headingMarginTop: '24px',
@@ -21,6 +21,9 @@
     paragraphMarginBottom: '16px',
     listMarginBottom: '16px',
     listItemSpacing: '0.5em',
+
+    // 패딩 (px)
+    paddingHorizontal: '16px',
 
     // 코드
     inlineCodeSize: '0.9em',
@@ -34,6 +37,7 @@
     compactH1Size: '1.6em',
     compactH2Size: '1.4em',
     compactH3Size: '1.2em',
+    compactPaddingHorizontal: '16px',
   }
   // ============================================================================
 
@@ -175,10 +179,12 @@
       `--md-inline-code-size: ${MARKDOWN_STYLE_CONFIG.inlineCodeSize}`,
       `--md-code-block-size: ${MARKDOWN_STYLE_CONFIG.codeBlockSize}`,
       `--md-hr-margin-vertical: ${MARKDOWN_STYLE_CONFIG.hrMarginVertical}`,
+      `--md-padding-horizontal: ${MARKDOWN_STYLE_CONFIG.paddingHorizontal}`,
       `--md-compact-base-font-size: ${MARKDOWN_STYLE_CONFIG.compactBaseFontSize}`,
       `--md-compact-h1-size: ${MARKDOWN_STYLE_CONFIG.compactH1Size}`,
       `--md-compact-h2-size: ${MARKDOWN_STYLE_CONFIG.compactH2Size}`,
       `--md-compact-h3-size: ${MARKDOWN_STYLE_CONFIG.compactH3Size}`,
+      `--md-compact-padding-horizontal: ${MARKDOWN_STYLE_CONFIG.compactPaddingHorizontal}`,
     ]
 
     // 높이 제한 스타일 추가
@@ -292,6 +298,8 @@
   :global(.markdown-body) {
     font-size: var(--md-base-font-size);
     line-height: var(--md-base-line-height);
+    padding-left: var(--md-padding-horizontal);
+    padding-right: var(--md-padding-horizontal);
   }
 
   /* 제목 크기 조정 */
@@ -319,9 +327,14 @@
     margin-bottom: var(--md-heading-margin-bottom);
   }
 
-  /* 첫 번째 제목 상단 마진 제거 */
+  /* 첫 번째 제목 상단 마진 조정 */
   :global(.markdown-body > *:first-child) {
-    margin-top: 0 !important;
+    margin-top: 1.5em !important;
+  }
+
+  /* compact 버전에서도 첫 번째 제목 마진 적용 */
+  :global(.markdown-body-compact > *:first-child) {
+    margin-top: 1.5em !important;
   }
 
   /* 본문 텍스트 */
@@ -365,6 +378,8 @@
   /* compact 버전 */
   :global(.markdown-body-compact) {
     font-size: var(--md-compact-base-font-size);
+    padding-left: var(--md-compact-padding-horizontal);
+    padding-right: var(--md-compact-padding-horizontal);
   }
 
   :global(.markdown-body-compact h1) {

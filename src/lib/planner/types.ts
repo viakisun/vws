@@ -198,6 +198,18 @@ export interface ProductReference {
   deleted_at?: string
 }
 
+export interface ProductDoc {
+  id: string
+  product_id: string
+  title: string
+  content: string
+  display_order: number
+  created_by: string
+  created_at: string
+  updated_at: string
+  deleted_at?: string
+}
+
 export interface ActivityLog {
   id: string
   entity_type: 'initiative' | 'formation' | 'thread'
@@ -275,6 +287,10 @@ export interface TodoWithAssignee extends Todo {
 }
 
 export interface ProductReferenceWithCreator extends ProductReference {
+  creator: Employee
+}
+
+export interface ProductDocWithCreator extends ProductDoc {
   creator: Employee
 }
 
@@ -435,6 +451,19 @@ export interface UpdateProductReferenceInput {
   url?: string
   display_order?: number
   metadata?: Record<string, unknown>
+}
+
+export interface CreateProductDocInput {
+  product_id: string
+  title: string
+  content: string
+  display_order?: number
+}
+
+export interface UpdateProductDocInput {
+  title?: string
+  content?: string
+  display_order?: number
 }
 
 // ============================================================================

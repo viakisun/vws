@@ -188,19 +188,31 @@ export class ProductReferenceService {
       // Auto-fix references with generic types by re-detecting the actual type
       references.forEach((ref) => {
         // Check both 'url' and 'file' types that might need more specific detection
-        if (
-          (ref.type === 'url' && ref.url) || 
-          (ref.type === 'file' && ref.file_name)
-        ) {
+        if ((ref.type === 'url' && ref.url) || (ref.type === 'file' && ref.file_name)) {
           const detectedType = detectLinkType(ref.url || '', ref.file_name)
-          
-          // Update if we detected a more specific type
-          if (
-            detectedType !== 'url' && 
-            detectedType !== 'file' && 
-            detectedType !== 'other' &&
-            detectedType !== ref.type
-          ) {
+
+          // Update if we detected a more specific type (avoid generic types)
+          const specificTypes: ProductReferenceType[] = [
+            'pdf',
+            'image',
+            'figma',
+            'notion',
+            'google_docs',
+            'github',
+            'youtube',
+            'slack',
+            'discord',
+            'zoom',
+            'trello',
+            'jira',
+            'miro',
+            'adobe',
+          ]
+
+          const isDetectedSpecific = specificTypes.includes(detectedType as ProductReferenceType)
+          const shouldUpdate = isDetectedSpecific && detectedType !== ref.type
+
+          if (shouldUpdate) {
             // Update the display immediately
             ref.type = detectedType as ProductReferenceType
             // Update the type in the background

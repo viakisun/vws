@@ -3,6 +3,7 @@
   import SectionHeader from '$lib/components/ui/SectionHeader.svelte'
   import InitiativeCard from '$lib/planner/components/InitiativeCard.svelte'
   import MilestoneModal from '$lib/planner/components/MilestoneModal.svelte'
+  import ProductDocsSection from '$lib/planner/components/ProductDocsSection.svelte'
   import ProductEditModal from '$lib/planner/components/ProductEditModal.svelte'
   import ProductReferencesSection from '$lib/planner/components/ProductReferencesSection.svelte'
   import type {
@@ -275,6 +276,9 @@
         {/if}
       </div>
     </div>
+
+    <!-- Docs Section -->
+    <ProductDocsSection productId={product.id} canEdit={true} />
 
     <!-- References Section -->
     <ProductReferencesSection productId={product.id} canEdit={true} />
