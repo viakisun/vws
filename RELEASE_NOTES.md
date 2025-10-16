@@ -1,5 +1,123 @@
 # VWS Release Notes
 
+모든 주요 변경사항은 이 파일에 한글로 문서화됩니다.
+
+## Version 0.6.3 (2025-01-16)
+
+### 🚀 주요 기능
+
+#### 제품 문서화 시스템
+- **완전한 마크다운 문서 관리 기능**
+  - `.md` 파일 업로드 및 직접 편집 지원
+  - 접을 수 있는 마크다운 카드와 라이브 미리보기
+  - 문서 드래그 앤 드롭 재정렬 기능
+  - 기존 `ThemeMarkdown` 컴포넌트와의 통합으로 일관된 렌더링
+
+#### 마크다운 렌더링 개선
+- **가독성 향상을 위한 수평 패딩 추가**
+  - ThemeMarkdown compact 버전에 16px 수평 패딩 추가
+  - 마크다운 콘텐츠 표시를 위한 더 나은 간격 및 타이포그래피
+
+### 🔧 기술적 개선
+
+#### UI/UX 개선
+- **제품 문서 섹션 전체 레이아웃 일관성 개선**
+  - 전체 너비 마크다운 콘텐츠 표시를 위한 ProductDocCard 재구조화
+  - CSS 변수를 사용한 일관된 배경색 및 스타일링
+  - 문서 헤더와 콘텐츠 간 더 나은 시각적 계층 구조
+
+#### 접근성 개선
+- **라디오 버튼 그룹 접근성 경고 수정**
+  - 적절한 fieldset/legend 구조로 접근성 경고 해결
+  - 키보드 탐색 및 스크린 리더 지원 강화
+
+#### 데이터베이스 스키마
+- **새로운 `planner_product_docs` 테이블**
+  - 마크다운 문서 저장을 위한 테이블
+  - 문서 활동 추적을 지원하도록 활동 로그 제약 조건 업데이트
+  - 원활한 데이터베이스 업데이트를 위한 마이그레이션 파일
+
+#### API 엔드포인트
+- **제품 문서화 CRUD 작업**
+  - 제품 문서화를 위한 CRUD 작업
+  - 배치 업데이트가 포함된 문서 재정렬 엔드포인트
+  - 포괄적인 오류 처리 및 검증
+
+#### 코드 품질
+- **TypeScript 타입 검사 문제 수정**
+  - 제품 레퍼런스 서비스의 TypeScript 타입 검사 문제 수정
+  - 코드 포맷팅 및 일관성 개선
+  - 애플리케이션 전체의 오류 처리 강화
+
+### 🐛 버그 수정
+
+- 제품 레퍼런스 타입 감지의 TypeScript 컴파일 오류
+- 폼 라벨 연결의 접근성 문제
+- 문서 섹션 배경 및 테두리의 UI 불일치
+- 마크다운 콘텐츠 패딩 및 가독성 문제
+
+---
+
+**주요 변경사항**: 데이터베이스 스키마 업데이트, API 엔드포인트 추가, UI/UX 개선
+**핵심 커밋**: `feat: implement product documentation system with markdown support`
+
+## Version 0.6.2 (2025-10-16)
+
+### 🚀 주요 기능
+
+#### 제품 레퍼런스 시스템
+- **플래너 제품을 위한 완전한 레퍼런스 관리 시스템**
+  - S3 통합을 통한 파일 업로드 지원 (PDF, 이미지, 문서)
+  - 자동 타입 감지가 포함된 외부 링크 지원
+  - 레퍼런스 드래그 앤 드롭 재정렬 기능
+  - 타입별 아이콘과 색상이 포함된 레퍼런스 카드
+
+#### 확장된 링크 타입 감지
+- **인기 있는 협업 및 생산성 도구 지원 추가**
+  - **YouTube** 링크 (youtube.com, youtu.be)
+  - **Slack** 워크스페이스 및 채널 링크
+  - **Discord** 서버 및 채널 링크
+  - **회의 플랫폼** (Zoom, Google Meet, Microsoft Teams)
+  - **프로젝트 관리** (Trello, Jira)
+  - **디자인 도구** (Miro, Adobe Creative Cloud, Behance, Dribbble)
+
+#### 데이터베이스 스키마 업데이트
+- **새로운 `planner_product_references` 테이블**
+  - 레퍼런스 활동 추적을 지원하도록 활동 로그 제약 조건 업데이트
+  - 원활한 데이터베이스 업데이트를 위한 마이그레이션 파일
+
+### 🔧 기술적 개선
+
+#### 레퍼런스 관리 UI
+- **더 나은 가독성을 위한 수평 카드 레이아웃**
+  - 2줄 클램핑과 툴팁이 포함된 개선된 제목 표시
+  - 기본 액션 하이라이트가 포함된 향상된 액션 버튼 스타일링
+  - 드래그 앤 드롭 작업을 위한 시각적 피드백
+
+#### API 엔드포인트
+- **제품 레퍼런스 CRUD 작업**
+  - 제품 레퍼런스를 위한 CRUD 작업
+  - 안전한 파일 업로드/다운로드를 위한 S3 사전 서명된 URL 생성
+  - 배치 업데이트가 포함된 레퍼런스 재정렬 엔드포인트
+  - 포괄적인 오류 처리 및 검증
+
+#### 기술적 개선
+- **Svelte 5 호환성**: 최신 runes 구문 사용을 위한 컴포넌트 업데이트
+- **타입 안전성**: 모든 새 기능에 대한 포괄적인 TypeScript 정의
+- **테스팅**: 링크 감지 및 API 엔드포인트를 위한 단위 테스트
+- **접근성**: 적절한 ARIA 역할 및 키보드 탐색 지원
+
+### 🐛 버그 수정
+
+- 새로운 레퍼런스 타입에 대한 활동 로그 제약 조건 위반
+- 다양한 URL 패턴에 대한 타입 감지 정확도
+- UI 반응성 및 시각적 일관성
+
+---
+
+**주요 변경사항**: 제품 레퍼런스 시스템 구축, S3 통합, 링크 타입 감지 확장
+**핵심 커밋**: `feat: implement product references system with S3 integration and link detection`
+
 ## Version 0.6.1 (2025-01-15)
 
 ### 🚀 서버 모니터링 및 로깅 시스템 대폭 강화
@@ -124,180 +242,183 @@
 
 ## Version 0.6.0 (2025-01-16)
 
-### 🧪 Testing Infrastructure Overhaul
+### 🧪 테스팅 인프라 대폭 개선
 
-#### Comprehensive Test Coverage Enhancement
+#### 포괄적인 테스트 커버리지 향상
 
-- **Test Coverage Achievement**: 86.4% overall test pass rate (480/557 tests)
-- **Service Layer Testing**: Complete test coverage for all major services
-- **Mock System Standardization**: Unified mock patterns across all test files
-- **Test Infrastructure**: Robust test helpers and fixtures implementation
+- **테스트 커버리지 달성**: 전체 테스트 통과율 86.4% (480/557 테스트)
+- **서비스 계층 테스팅**: 모든 주요 서비스에 대한 완전한 테스트 커버리지
+- **모의 시스템 표준화**: 모든 테스트 파일에서 통일된 모의 패턴
+- **테스트 인프라**: 강력한 테스트 헬퍼 및 픽스처 구현
 
-#### CRM Services Testing
+#### CRM 서비스 테스팅
 
-- **Complete Test Coverage**: All CRM services now have comprehensive test suites
-- **Customer Service Tests**: Full CRUD operations and edge case handling
-- **Contract Service Tests**: Contract management and validation testing
-- **Stats Service Tests**: CRM statistics and analytics testing
-- **API Endpoint Tests**: Complete API endpoint coverage
+- **완전한 테스트 커버리지**: 모든 CRM 서비스가 이제 포괄적인 테스트 스위트를 보유
+- **고객 서비스 테스트**: 전체 CRUD 작업 및 엣지 케이스 처리
+- **계약 서비스 테스트**: 계약 관리 및 검증 테스팅
+- **통계 서비스 테스트**: CRM 통계 및 분석 테스팅
+- **API 엔드포인트 테스트**: 완전한 API 엔드포인트 커버리지
 
-#### Finance Services Testing
+#### 재무 서비스 테스팅
 
-- **Account Service Tests**: Account management and validation
-- **Transaction Service Tests**: Transaction processing and categorization
-- **Dashboard Service Tests**: Financial dashboard functionality
-- **Report Service Tests**: Financial reporting and analytics
-- **Financial Health Analyzer**: Business intelligence testing
+- **계좌 서비스 테스트**: 계좌 관리 및 검증
+- **거래 서비스 테스트**: 거래 처리 및 분류
+- **대시보드 서비스 테스트**: 재무 대시보드 기능
+- **보고서 서비스 테스트**: 재무 보고 및 분석
+- **재무 건강 분석기**: 비즈니스 인텔리전스 테스팅
 
-#### HR Services Testing
+#### HR 서비스 테스팅
 
-- **Employee Service Tests**: Employee management and lifecycle
-- **Attendance Service Tests**: Time tracking and attendance management
-- **Payslip Service Tests**: Payroll processing and payslip generation
-- **Leave Management Tests**: Leave request and approval workflows
+- **직원 서비스 테스트**: 직원 관리 및 생명주기
+- **출근 서비스 테스트**: 시간 추적 및 출근 관리
+- **급여명세서 서비스 테스트**: 급여 처리 및 급여명세서 생성
+- **휴가 관리 테스트**: 휴가 요청 및 승인 워크플로우
 
-#### R&D Services Testing
+#### R&D 서비스 테스팅
 
-- **Project Service Tests**: R&D project management
-- **Budget Service Tests**: Budget planning and execution
-- **Evidence Service Tests**: Evidence collection and validation
-- **Member Service Tests**: Project team management
-- **Validation Service Tests**: Compliance and validation workflows
+- **프로젝트 서비스 테스트**: R&D 프로젝트 관리
+- **예산 서비스 테스트**: 예산 계획 및 실행
+- **증빙 서비스 테스트**: 증빙 수집 및 검증
+- **멤버 서비스 테스트**: 프로젝트 팀 관리
+- **검증 서비스 테스트**: 컴플라이언스 및 검증 워크플로우
 
-#### Other Services Testing
+#### 기타 서비스 테스팅
 
-- **Company Service Tests**: Company information management
-- **Project Service Tests**: General project management
-- **S3 Service Tests**: File storage and management
-- **OCR Service Tests**: Document processing and data extraction
+- **회사 서비스 테스트**: 회사 정보 관리
+- **프로젝트 서비스 테스트**: 일반 프로젝트 관리
+- **S3 서비스 테스트**: 파일 저장 및 관리
+- **OCR 서비스 테스트**: 문서 처리 및 데이터 추출
 
-#### Test Infrastructure Improvements
+#### 테스트 인프라 개선
 
-- **DBHelper Class**: Standardized database mocking utilities
-- **MockHelper Class**: Comprehensive mock creation helpers
-- **API Helper Functions**: Streamlined API testing utilities
-- **Test Fixtures**: Reusable test data across all test suites
-- **Mock Libraries**: Dedicated mock modules for external dependencies
+- **DBHelper 클래스**: 표준화된 데이터베이스 모킹 유틸리티
+- **MockHelper 클래스**: 포괄적인 모의 생성 헬퍼
+- **API 헬퍼 함수**: 간소화된 API 테스팅 유틸리티
+- **테스트 픽스처**: 모든 테스트 스위트에서 재사용 가능한 테스트 데이터
+- **모의 라이브러리**: 외부 종속성을 위한 전용 모의 모듈
 
-#### Quality Assurance Enhancements
+#### 품질 보증 향상
 
-- **Error Handling Tests**: Comprehensive error scenario coverage
-- **Edge Case Testing**: Boundary condition and edge case validation
-- **Integration Tests**: Cross-service interaction testing
-- **Performance Tests**: Concurrent operation and load testing
-- **Security Tests**: Data validation and security measure testing
+- **오류 처리 테스트**: 포괄적인 오류 시나리오 커버리지
+- **엣지 케이스 테스팅**: 경계 조건 및 엣지 케이스 검증
+- **통합 테스트**: 크로스 서비스 상호작용 테스팅
+- **성능 테스트**: 동시 작업 및 로드 테스팅
+- **보안 테스트**: 데이터 검증 및 보안 조치 테스팅
 
-### 🔧 Technical Improvements
+### 🔧 기술적 개선
 
-#### Code Quality Enhancements
+#### 코드 품질 향상
 
-- **Prettier Formatting**: Consistent code formatting across entire codebase
-- **ESLint Compliance**: Improved code quality and consistency
-- **Type Safety**: Enhanced TypeScript type checking and validation
-- **Error Handling**: Standardized error handling patterns
+- **Prettier 포맷팅**: 전체 코드베이스에 걸친 일관된 코드 포맷팅
+- **ESLint 컴플라이언스**: 개선된 코드 품질 및 일관성
+- **타입 안전성**: 향상된 TypeScript 타입 검사 및 검증
+- **오류 처리**: 표준화된 오류 처리 패턴
 
-#### Development Experience
+#### 개발자 경험
 
-- **Test Reliability**: Stable and reliable test execution
-- **Mock Consistency**: Unified mocking patterns for better maintainability
-- **Test Documentation**: Comprehensive test documentation and examples
-- **CI/CD Integration**: Enhanced automated testing in deployment pipeline
+- **테스트 신뢰성**: 안정적이고 신뢰할 수 있는 테스트 실행
+- **모의 일관성**: 더 나은 유지보수성을 위한 통일된 모킹 패턴
+- **테스트 문서화**: 포괄적인 테스트 문서화 및 예제
+- **CI/CD 통합**: 배포 파이프라인에서 향상된 자동화된 테스팅
 
-#### Performance Optimizations
+#### 성능 최적화
 
-- **Test Execution Speed**: Optimized test execution performance
-- **Mock Efficiency**: Streamlined mock setup and teardown
-- **Memory Management**: Improved memory usage in test environments
-- **Parallel Testing**: Enhanced parallel test execution capabilities
+- **테스트 실행 속도**: 최적화된 테스트 실행 성능
+- **모의 효율성**: 간소화된 모의 설정 및 해제
+- **메모리 관리**: 테스트 환경에서 개선된 메모리 사용
+- **병렬 테스팅**: 향상된 병렬 테스트 실행 기능
 
-### 🐛 Bug Fixes
+### 🐛 버그 수정
 
-#### Service Layer Fixes
+#### 서비스 계층 수정
 
-- **Data Structure Alignment**: Fixed mock data structure mismatches
-- **API Call Consistency**: Resolved API call parameter inconsistencies
-- **Database Query Fixes**: Corrected SQL query parameter ordering
-- **Error Message Standardization**: Unified error message formats
+- **데이터 구조 정렬**: 모의 데이터 구조 불일치 수정
+- **API 호출 일관성**: API 호출 매개변수 불일치 해결
+- **데이터베이스 쿼리 수정**: SQL 쿼리 매개변수 순서 수정
+- **오류 메시지 표준화**: 통일된 오류 메시지 형식
 
-#### Test Infrastructure Fixes
+#### 테스트 인프라 수정
 
-- **Mock Setup Issues**: Resolved mock configuration problems
-- **Test Data Validation**: Fixed test data validation issues
-- **Assertion Improvements**: Enhanced test assertion accuracy
-- **Environment Setup**: Improved test environment configuration
+- **모의 설정 문제**: 모의 구성 문제 해결
+- **테스트 데이터 검증**: 테스트 데이터 검증 문제 수정
+- **어설션 개선**: 향상된 테스트 어설션 정확도
+- **환경 설정**: 개선된 테스트 환경 구성
 
-### 📊 Metrics and Statistics
+### 📊 메트릭 및 통계
 
-- **Total Test Files**: 22 test files
-- **Passing Tests**: 480 tests (86.4%)
-- **Failing Tests**: 77 tests (13.6%)
-- **Test Categories**: Unit, Integration, E2E, Component, Security
-- **Coverage Areas**: Services, API, Database, UI Components, Utilities
+- **총 테스트 파일**: 22개 테스트 파일
+- **통과 테스트**: 480개 테스트 (86.4%)
+- **실패 테스트**: 77개 테스트 (13.6%)
+- **테스트 카테고리**: 단위, 통합, E2E, 컴포넌트, 보안
+- **커버리지 영역**: 서비스, API, 데이터베이스, UI 컴포넌트, 유틸리티
 
-### 🚀 Deployment Ready
+### 🚀 배포 준비 완료
 
-This release represents a major milestone in code quality and reliability:
+이 릴리즈는 코드 품질과 신뢰성의 주요 이정표를 나타냅니다:
 
-- **Production Ready**: Enhanced stability for production deployments
-- **Developer Confidence**: Reliable test coverage for confident development
-- **Maintainability**: Standardized patterns for easier maintenance
-- **Scalability**: Robust foundation for future feature development
+- **프로덕션 준비**: 프로덕션 배포를 위한 향상된 안정성
+- **개발자 신뢰**: 자신 있는 개발을 위한 신뢰할 수 있는 테스트 커버리지
+- **유지보수성**: 더 쉬운 유지보수를 위한 표준화된 패턴
+- **확장성**: 향후 기능 개발을 위한 강력한 기반
 
 ---
 
+**주요 변경사항**: 테스팅 인프라 대폭 개선, 코드 품질 향상
+**핵심 커밋**: `feat: comprehensive testing infrastructure overhaul`
+
 ## Version 0.5.0 (2025-10-12)
 
-### ✨ Features
+### ✨ 주요 기능
 
-#### CRM Customer Management Enhancements
+#### CRM 고객 관리 향상
 
-- **Customer Information Reorganization**
-  - Added collapsible sections for Contact, Industry/Business Type, Address, and Account details
-  - Separated "Representative" (대표자) from "Contact Person" (담당자)
-  - Contact Person now includes name, email, and phone number fields
-  - Default state: collapsed for cleaner UI
+- **고객 정보 재구성**
+  - 연락처, 업종/사업 유형, 주소, 계좌 세부사항을 위한 접을 수 있는 섹션 추가
+  - "대표자"와 "담당자" 분리
+  - 담당자에 이름, 이메일, 전화번호 필드 포함
+  - 기본 상태: 더 깔끔한 UI를 위해 접힌 상태
 
-- **Customer Form Modal Refactoring**
-  - Extracted customer creation/edit form into reusable `CustomerFormModal` component
-  - Improved two-way data binding with Svelte 5 `$bindable` for `ThemeInput`
-  - Better state management and form validation
-  - Fixed infinite loop issues in form initialization
+- **고객 폼 모달 리팩토링**
+  - 고객 생성/편집 폼을 재사용 가능한 `CustomerFormModal` 컴포넌트로 추출
+  - `ThemeInput`에 대한 Svelte 5 `$bindable`로 개선된 양방향 데이터 바인딩
+  - 더 나은 상태 관리 및 폼 검증
+  - 폼 초기화에서 무한 루프 문제 수정
 
-- **File Upload Enhancements**
-  - Added Drag & Drop support for business registration and bank account files
-  - Client-side file validation (size: 5MB max, types: PDF, JPG, PNG)
-  - Visual feedback for drag-over state
-  - Improved user experience with toast notifications
+- **파일 업로드 향상**
+  - 사업자등록증 및 계좌 파일에 대한 드래그 앤 드롭 지원 추가
+  - 클라이언트 측 파일 검증 (크기: 최대 5MB, 유형: PDF, JPG, PNG)
+  - 드래그 오버 상태에 대한 시각적 피드백
+  - 토스트 알림으로 개선된 사용자 경험
 
-#### R&D Evidence Management Integration
+#### R&D 증빙 관리 통합
 
-- **Customer Integration**
-  - Added customer field to all evidence categories except personnel expenses
-  - Autocomplete dropdown for customer selection with "(선택하지 않음)" default
-  - Automatic display of business registration certificate and bank account copy links
-  - Real-time updates when customer documents are modified in CRM
+- **고객 통합**
+  - 인건비를 제외한 모든 증빙 카테고리에 고객 필드 추가
+  - "(선택하지 않음)" 기본값이 포함된 고객 선택 자동완성 드롭다운
+  - 사업자등록증 및 계좌 사본 링크 자동 표시
+  - CRM에서 고객 문서가 수정될 때 실시간 업데이트
 
-- **Payslip Integration for Personnel Expenses**
-  - Automatic payslip detection based on evidence item name format: "이름 (YYYY-MM)"
-  - Direct link to payslip output modal from evidence detail view
-  - Guidance message and link to salary management page when payslip is missing
-  - Reusable `CommonPayslipModal` component for generic payslip display
+- **인건비를 위한 급여명세서 통합**
+  - 증빙 항목 이름 형식 기반 자동 급여명세서 감지: "이름 (YYYY-MM)"
+  - 증빙 상세 보기에서 급여명세서 출력 모달로 직접 링크
+  - 급여명세서가 누락된 경우 안내 메시지 및 급여 관리 페이지 링크
+  - 일반 급여명세서 표시를 위한 재사용 가능한 `CommonPayslipModal` 컴포넌트
 
-- **Evidence Item Naming**
-  - Automatic title generation for personnel expenses in "이름 (YYYY-MM)" format
-  - Batch update script for existing personnel expense evidence names
-  - Improved consistency across the system
+- **증빙 항목 명명**
+  - 인건비에 대한 "이름 (YYYY-MM)" 형식의 자동 제목 생성
+  - 기존 인건비 증빙 이름에 대한 배치 업데이트 스크립트
+  - 시스템 전체의 일관성 개선
 
-#### Budget Execution Rate Tracking
+#### 예산 집행률 추적
 
-- **Execution Plan Module**
-  - Added "집행율 보기" (Show Execution Rate) toggle checkbox
-  - Real-time calculation of execution rates by year and category
-  - Color-coded progress bars:
-    - Red: 0-30% (low execution)
-    - Green: 30-70% (optimal)
-    - Orange: 70-100% (high execution)
-  - Visual indicators for each budget category:
+- **집행 계획 모듈**
+  - "집행율 보기" 토글 체크박스 추가
+  - 연도 및 카테고리별 집행률 실시간 계산
+  - 색상 코딩된 진행률 바:
+    - 빨간색: 0-30% (낮은 집행)
+    - 초록색: 30-70% (최적)
+    - 주황색: 70-100% (높은 집행)
+  - 각 예산 카테고리에 대한 시각적 표시기:
     - 인건비 (Personnel Cost)
     - 연구재료비 (Research Material Cost)
     - 연구활동비 (Research Activity Cost)
@@ -305,216 +426,222 @@ This release represents a major milestone in code quality and reliability:
     - 간접비 (Indirect Cost)
     - 총 예산 (Total Budget)
 
-- **Service Architecture**
-  - Separated client-side utilities (`execution-rate-utils.ts`) from server-side services
-  - Database query optimization for aggregating evidence spending
-  - Multiple category support for accurate research material and activity cost tracking
+- **서비스 아키텍처**
+  - 클라이언트 측 유틸리티(`execution-rate-utils.ts`)와 서버 측 서비스 분리
+  - 증빙 지출 집계를 위한 데이터베이스 쿼리 최적화
+  - 정확한 연구재료 및 활동비 추적을 위한 다중 카테고리 지원
 
-### 🔧 Technical Improvements
+### 🔧 기술적 개선
 
-#### Database Schema Updates
+#### 데이터베이스 스키마 업데이트
 
-- **CRM Customers Table**
-  - Added `contact_person`, `contact_phone`, `contact_email` columns
-  - Renamed `contact` to `representative_name` for clarity
-  - Updated migration: `029_add_customer_to_evidence.sql`
+- **CRM 고객 테이블**
+  - `contact_person`, `contact_phone`, `contact_email` 컬럼 추가
+  - 명확성을 위해 `contact`를 `representative_name`으로 이름 변경
+  - 업데이트된 마이그레이션: `029_add_customer_to_evidence.sql`
 
-- **Evidence Items Table**
-  - Added `customer_id` UUID column with foreign key to `crm_customers`
-  - Created index on `customer_id` for performance optimization
+- **증빙 항목 테이블**
+  - `crm_customers`에 대한 외래 키가 있는 `customer_id` UUID 컬럼 추가
+  - 성능 최적화를 위한 `customer_id`에 인덱스 생성
 
-#### API Enhancements
+#### API 향상
 
-- **SQL Query Optimization**
-  - Fixed `SELECT *` issue in execution rate API to use explicit column names
-  - Added `::text` casting for all date/timestamp fields to comply with date validation
-  - Proper `GROUP BY` clause handling for aggregate queries with customer joins
+- **SQL 쿼리 최적화**
+  - 집행률 API에서 `SELECT *` 문제를 명시적 컬럼 이름 사용으로 수정
+  - 날짜 검증 준수를 위해 모든 날짜/타임스탬프 필드에 `::text` 캐스팅 추가
+  - 고객 조인이 있는 집계 쿼리에 대한 적절한 `GROUP BY` 절 처리
 
-- **New Endpoints**
-  - `/api/research-development/evidence/payslip-check` - Check payslip existence by employee name and period
-  - `/api/research-development/project-budgets/[id]/execution-rate` - Fetch execution rates for project budget
-  - `/api/salary/payslips/[id]` - Fetch single payslip by ID with proper data transformation
+- **새로운 엔드포인트**
+  - `/api/research-development/evidence/payslip-check` - 직원 이름 및 기간별 급여명세서 존재 확인
+  - `/api/research-development/project-budgets/[id]/execution-rate` - 프로젝트 예산에 대한 집행률 가져오기
+  - `/api/salary/payslips/[id]` - 적절한 데이터 변환이 포함된 ID별 단일 급여명세서 가져오기
 
-#### Code Quality
+#### 코드 품질
 
-- **Svelte 5 Reactivity Fixes**
-  - Fixed `bind:value` contract implementation in `ThemeInput` component
-  - Resolved infinite loop in `CustomerFormModal` with proper `$effect` dependency tracking
-  - Improved form data initialization to maintain reactivity
-  - Used `$derived` for computed properties in execution rate display
+- **Svelte 5 반응성 수정**
+  - `ThemeInput` 컴포넌트에서 `bind:value` 계약 구현 수정
+  - 적절한 `$effect` 종속성 추적으로 `CustomerFormModal`의 무한 루프 해결
+  - 반응성을 유지하기 위한 폼 데이터 초기화 개선
+  - 집행률 표시에서 계산된 속성을 위해 `$derived` 사용
 
-- **Modal Z-Index Management**
-  - Set `z-index: 1001` for payslip modals to appear above evidence detail modal
-  - Consistent layering for nested modals
+- **모달 Z-인덱스 관리**
+  - 증빙 상세 모달 위에 나타나도록 급여명세서 모달에 `z-index: 1001` 설정
+  - 중첩 모달에 대한 일관된 레이어링
 
-- **Removed Development Logs**
-  - Cleaned up `logger.info` statements from:
+- **개발 로그 제거**
+  - 다음에서 `logger.info` 문 정리:
     - `useRDDetail.svelte.ts`
     - `useRDBudgetExecution.svelte.ts`
     - `useRDEvidence.svelte.ts`
     - `useActiveEmployees.svelte.ts`
 
-### 🐛 Bug Fixes
+### 🐛 버그 수정
 
-#### CRM Module
+#### CRM 모듈
 
-- Fixed `bind:value={undefined}` error in customer form by initializing `formData` with default values
-- Resolved infinite loop in customer creation modal caused by `$effect` reactivity issues
-- Fixed validation error "회사명과 사업자번호는 필수입니다" by implementing correct two-way binding in `ThemeInput`
-- Fixed "Add Customer" button not working due to broken form data binding
+- 기본값으로 `formData`를 초기화하여 고객 폼에서 `bind:value={undefined}` 오류 수정
+- `$effect` 반응성 문제로 인한 고객 생성 모달의 무한 루프 해결
+- `ThemeInput`에서 올바른 양방향 바인딩 구현으로 검증 오류 "회사명과 사업자번호는 필수입니다" 수정
+- 깨진 폼 데이터 바인딩으로 인한 "고객 추가" 버튼이 작동하지 않는 문제 수정
 
-#### Evidence Management Module
+#### 증빙 관리 모듈
 
-- Fixed 500 Internal Server Error in evidence items fetch due to missing columns in `GROUP BY` clause
-- Fixed PostgreSQL foreign key constraint error by using UUID type for `customer_id`
-- Fixed accessibility linter warning by adding `id`/`for` attributes to customer select field
-- Fixed null reference errors by adding nullish coalescing operators for `payslipInfo`
+- `GROUP BY` 절에서 누락된 컬럼으로 인한 증빙 항목 가져오기에서 500 내부 서버 오류 수정
+- `customer_id`에 UUID 타입 사용으로 PostgreSQL 외래 키 제약 조건 오류 수정
+- 고객 선택 필드에 `id`/`for` 속성 추가로 접근성 린터 경고 수정
+- `payslipInfo`에 대한 null 병합 연산자 추가로 null 참조 오류 수정
 
-#### Payslip Integration
+#### 급여명세서 통합
 
-- Fixed "Failed to load resource: 500" error by removing JOINs to non-existent `departments` and `positions` tables
-- Updated query to use `e.department` and `e.position` string columns directly
-- Fixed data transformation to convert `period` (YYYY-MM) into separate `year` and `month` fields
-- Fixed `payments`/`deductions` JSON object to array conversion for `PayslipPDFData`
+- 존재하지 않는 `departments` 및 `positions` 테이블에 대한 JOIN 제거로 "Failed to load resource: 500" 오류 수정
+- `e.department` 및 `e.position` 문자열 컬럼을 직접 사용하도록 쿼리 업데이트
+- `period` (YYYY-MM)를 별도의 `year` 및 `month` 필드로 변환하는 데이터 변환 수정
+- `PayslipPDFData`에 대한 `payments`/`deductions` JSON 객체를 배열로 변환 수정
 
-#### Execution Rate Module
+#### 집행률 모듈
 
-- Fixed `ReferenceError: process is not defined` by separating client-side and server-side code
-- Fixed "집행율 보기" checkbox not working by replacing `onchange` with `$effect` for reactivity
-- Fixed 0.0% execution rate for research materials by querying multiple category codes
-- Fixed database date validation errors by explicitly selecting columns with `::text` casting
+- 클라이언트 측 및 서버 측 코드 분리로 `ReferenceError: process is not defined` 수정
+- 반응성을 위해 `onchange`를 `$effect`로 교체하여 "집행율 보기" 체크박스가 작동하지 않는 문제 수정
+- 여러 카테고리 코드를 쿼리하여 연구재료에 대한 0.0% 집행률 수정
+- 명시적 컬럼 선택과 `::text` 캐스팅으로 데이터베이스 날짜 검증 오류 수정
 
-### 🎨 UI/UX Improvements
+### 🎨 UI/UX 개선
 
-- **Customer Card Enhancements**
-  - Cleaner collapsed/expanded states with chevron icons
-  - Better information hierarchy
-  - Improved mobile responsiveness
+- **고객 카드 향상**
+  - 체브론 아이콘이 있는 더 깔끔한 접힌/펼쳐진 상태
+  - 더 나은 정보 계층 구조
+  - 개선된 모바일 반응성
 
-- **Evidence Detail Modal**
-  - Professional customer card display with document links
-  - Clear payslip status indicators
-  - Helpful guidance messages for missing documents
+- **증빙 상세 모달**
+  - 문서 링크가 있는 전문적인 고객 카드 표시
+  - 명확한 급여명세서 상태 표시기
+  - 누락된 문서에 대한 도움이 되는 안내 메시지
 
-- **Execution Plan Table**
-  - Color-coded progress bars for visual clarity
-  - Compact display with toggle option
-  - Responsive layout for different screen sizes
+- **집행 계획 테이블**
+  - 시각적 명확성을 위한 색상 코딩된 진행률 바
+  - 토글 옵션이 있는 컴팩트한 표시
+  - 다양한 화면 크기에 대한 반응형 레이아웃
 
-### 📊 Data Migration
+### 📊 데이터 마이그레이션
 
-- Batch update script for personnel expense evidence names (`scripts/fix-personnel-evidence-names.ts`)
-- Automatic format conversion: "고동훤 2025년 9월 인건비" → "고동훤 (2025-09)"
-- Database schema updates applied automatically
+- 인건비 증빙 이름에 대한 배치 업데이트 스크립트 (`scripts/fix-personnel-evidence-names.ts`)
+- 자동 형식 변환: "고동훤 2025년 9월 인건비" → "고동훤 (2025-09)"
+- 데이터베이스 스키마 업데이트 자동 적용
 
-### 📝 Developer Notes
+### 📝 개발자 노트
 
-#### Key Components
+#### 주요 컴포넌트
 
-- `CustomerFormModal.svelte` - Reusable customer creation/edit form
-- `CommonPayslipModal.svelte` - Generic payslip display modal
-- `RDEvidenceDetailModal.svelte` - Enhanced with customer and payslip integration
-- `RDExecutionPlan.svelte` - Budget execution rate tracking
+- `CustomerFormModal.svelte` - 재사용 가능한 고객 생성/편집 폼
+- `CommonPayslipModal.svelte` - 일반 급여명세서 표시 모달
+- `RDEvidenceDetailModal.svelte` - 고객 및 급여명세서 통합으로 향상
+- `RDExecutionPlan.svelte` - 예산 집행률 추적
 
-#### Important Fixes
+#### 중요한 수정사항
 
-- `ThemeInput.svelte` now correctly implements `bind:value` with `let value = $bindable('')`
-- `CustomerFormModal` uses `lastCustomerId` tracking to prevent unnecessary re-initializations
-- Execution rate service separated into client-safe utilities and server-side database queries
+- `ThemeInput.svelte`가 이제 `let value = $bindable('')`로 `bind:value`를 올바르게 구현
+- `CustomerFormModal`이 불필요한 재초기화를 방지하기 위해 `lastCustomerId` 추적 사용
+- 집행률 서비스를 클라이언트 안전 유틸리티와 서버 측 데이터베이스 쿼리로 분리
 
-### 🚀 Next Steps
+### 🚀 다음 단계
 
-- Advanced filtering and search for customers with document status
-- Budget execution rate forecasting and alerts
-- Enhanced payslip generation workflow
-- Mobile app support for evidence and document management
+- 문서 상태가 있는 고객에 대한 고급 필터링 및 검색
+- 예산 집행률 예측 및 알림
+- 향상된 급여명세서 생성 워크플로우
+- 증빙 및 문서 관리를 위한 모바일 앱 지원
 
 ---
 
-**Total Changes**: 35 files modified, 8 new files added, 1 file deleted
-**Main Commit**: `feat: integrate CRM customers and payslips with R&D evidence management, add budget execution rate tracking`
+**전체 변경사항**: 35개 파일 수정, 8개 새 파일 추가, 1개 파일 삭제
+**주요 커밋**: `feat: integrate CRM customers and payslips with R&D evidence management, add budget execution rate tracking`
 
 ## Version 0.4.0 (2025-10-09)
 
-### ✨ Features
+### ✨ 주요 기능
 
-#### Planner System Enhancements
+#### 플래너 시스템 향상
 
-- **Milestone-Initiative Connection**: Full integration of milestone tracking with initiatives
-  - Added MilestoneSelector component with status-based grouping (진행중, 예정, 달성, 미달성)
-  - Display milestone in initiative header breadcrumb (Product / Milestone / Title)
-  - Show milestone badges in initiative cards and lists
-  - Filter initiatives by milestone
+- **마일스톤-이니셔티브 연결**: 이니셔티브와의 마일스톤 추적 완전 통합
+  - 상태 기반 그룹화가 포함된 MilestoneSelector 컴포넌트 추가 (진행중, 예정, 달성, 미달성)
+  - 이니셔티브 헤더 브레드크럼에 마일스톤 표시 (Product / Milestone / Title)
+  - 이니셔티브 카드 및 목록에 마일스톤 배지 표시
+  - 마일스톤별 이니셔티브 필터링
 
-- **INBOX Status Workflow**: New initiative status for better workflow management
-  - Added 'inbox' status to initiative lifecycle
-  - Bidirectional transitions: inbox ↔ active ↔ paused
-  - Updated UI components to support inbox state
+- **INBOX 상태 워크플로우**: 더 나은 워크플로우 관리를 위한 새로운 이니셔티브 상태
+  - 이니셔티브 생명주기에 'inbox' 상태 추가
+  - 양방향 전환: inbox ↔ active ↔ paused
+  - inbox 상태를 지원하도록 UI 컴포넌트 업데이트
 
-- **Visual TODO Indicators**: Improved user experience with clear visual cues
-  - Red borders and backgrounds for unassigned team/target date
-  - Warning icons with descriptive messages
-  - Intuitive indication of required actions
+- **시각적 TODO 표시기**: 명확한 시각적 단서로 개선된 사용자 경험
+  - 할당되지 않은 팀/목표 날짜에 대한 빨간색 테두리 및 배경
+  - 설명 메시지가 포함된 경고 아이콘
+  - 필요한 작업에 대한 직관적인 표시
 
-- **Flexible Stage Transitions**: Removed all stage transition restrictions
-  - Free movement between any stage (Shaping → Building → Testing → Shipping → Done)
-  - No status requirements for stage changes
-  - Simplified workflow for better flexibility
+- **유연한 단계 전환**: 모든 단계 전환 제한 제거
+  - 모든 단계 간 자유로운 이동 (Shaping → Building → Testing → Shipping → Done)
+  - 단계 변경에 대한 상태 요구사항 없음
+  - 더 나은 유연성을 위한 간소화된 워크플로우
 
-- **Improved Stage Stepper UI**: Complete redesign of stage progression interface
-  - Card-based layout with uniform sizing
-  - English labels (Shaping, Building, Testing, Shipping, Done)
-  - Center-aligned layout with consistent spacing
-  - Stage #1-5 numbering for clarity
+- **개선된 단계 스테퍼 UI**: 단계 진행 인터페이스 완전 재설계
+  - 균일한 크기의 카드 기반 레이아웃
+  - 영어 라벨 (Shaping, Building, Testing, Shipping, Done)
+  - 일관된 간격이 있는 중앙 정렬 레이아웃
+  - 명확성을 위한 단계 #1-5 번호 매기기
 
-### 🔧 Technical Improvements
+### 🔧 기술적 개선
 
-- **TypeScript Type Safety**: Fixed 11 TypeScript compilation errors
-  - Corrected InitiativeState → InitiativeStage naming
-  - Fixed Record<string, unknown> compatibility in ActivityLog
-  - Updated import paths and auth handling
+- **TypeScript 타입 안전성**: 11개의 TypeScript 컴파일 오류 수정
+  - InitiativeState → InitiativeStage 명명 수정
+  - ActivityLog에서 Record<string, unknown> 호환성 수정
+  - 가져오기 경로 및 인증 처리 업데이트
 
-- **ESLint Configuration**: Improved linting setup
-  - Added .eslintignore to exclude GitHub workflows
-  - Prevented YAML linting warnings in CI/CD pipeline
+- **ESLint 구성**: 린팅 설정 개선
+  - GitHub 워크플로우를 제외하도록 .eslintignore 추가
+  - CI/CD 파이프라인에서 YAML 린팅 경고 방지
 
-- **Code Quality**:
-  - Prettier formatting applied consistently
-  - Type-safe milestone handling throughout the system
-  - Clean component composition patterns
+- **코드 품질**:
+  - 일관되게 적용된 Prettier 포맷팅
+  - 시스템 전체의 타입 안전 마일스톤 처리
+  - 깔끔한 컴포넌트 구성 패턴
 
-### 📊 Database Changes
+### 📊 데이터베이스 변경사항
 
-- Updated `planner_initiatives` table constraints to include 'inbox' status
-- Added milestone_id foreign key support in initiative queries
-- Enhanced JOIN queries for milestone data retrieval
+- 'inbox' 상태를 포함하도록 `planner_initiatives` 테이블 제약 조건 업데이트
+- 이니셔티브 쿼리에 마일스톤 ID 외래 키 지원 추가
+- 마일스톤 데이터 검색을 위한 향상된 JOIN 쿼리
 
-### 🎨 UI/UX Improvements
+### 🎨 UI/UX 개선
 
-- Product/Milestone hierarchy display across all planner views
-- Simplified milestone selector with clean date formatting (10. 14.)
-- Consistent visual language for warnings and alerts
-- Improved stage stepper alignment and spacing
+- 모든 플래너 보기에 걸친 제품/마일스톤 계층 구조 표시
+- 깔끔한 날짜 포맷팅이 포함된 간소화된 마일스톤 선택기 (10. 14.)
+- 경고 및 알림에 대한 일관된 시각적 언어
+- 개선된 단계 스테퍼 정렬 및 간격
 
 ---
+
+**주요 변경사항**: 마일스톤-이니셔티브 통합, 유연한 워크플로우, UI 개선
+**핵심 커밋**: `feat: enhance planner system with milestone integration and flexible workflows`
 
 ## Version 0.3.3 (2025-10-08)
 
-### ✨ Features
+### ✨ 주요 기능
 
-#### Leave Management Enhancements
+#### 휴가 관리 향상
 
-- **Leave Promotion Targets**: Added notifications for employees with low leave usage rates (≤50% by September 1st, after 1 year of employment)
-- **Enhanced Leave Calendar UI**: Improved monthly calendar view with better navigation, holiday display, and leave type visualization
-- **Leave Type Improvements**: Updated leave type colors and icons for better distinction (annual, half-day, quarter-day, bereavement, military leave)
+- **휴가 촉진 대상**: 낮은 휴가 사용률을 가진 직원에 대한 알림 추가 (고용 1년 후 9월 1일까지 ≤50%)
+- **향상된 휴가 달력 UI**: 더 나은 탐색, 휴일 표시, 휴가 유형 시각화가 포함된 개선된 월별 달력 보기
+- **휴가 유형 개선**: 더 나은 구분을 위한 휴가 유형 색상 및 아이콘 업데이트 (연차, 반차, 반반차, 경조사, 군휴가)
 
-### 🔧 Improvements
+### 🔧 개선사항
 
-- **Calendar Navigation**: Added year selector, "Today" button, and month-based navigation for better UX
-- **Leave Balance Display**: Enhanced balance display with usage statistics and promotion alerts
-- **Code Quality**: Disabled Svelte inspector for production builds and updated Vitest configuration
+- **달력 탐색**: 더 나은 UX를 위한 연도 선택기, "오늘" 버튼, 월별 탐색 추가
+- **휴가 잔액 표시**: 사용 통계 및 촉진 알림이 포함된 향상된 잔액 표시
+- **코드 품질**: 프로덕션 빌드에서 Svelte 검사기 비활성화 및 Vitest 구성 업데이트
 
 ---
+
+**주요 변경사항**: 휴가 관리 UI 개선, 촉진 알림 시스템
+**핵심 커밋**: `feat: enhance leave management with promotion targets and improved calendar UI`
 
 ## Version 0.3.2 (2025-10-08)
 
@@ -555,6 +682,9 @@ This release represents a major milestone in code quality and reliability:
 - `static/stamp.png`: 회사 직인 이미지
 
 ---
+
+**주요 변경사항**: 급여명세서 PDF 출력 시스템 완전 개선
+**핵심 커밋**: `feat: complete overhaul of payslip PDF generation system`
 
 ## Version 0.3.1 (2025-10-08)
 
@@ -633,6 +763,9 @@ This release represents a major milestone in code quality and reliability:
 4. **타입 안정성**: any 타입 최소화 및 명확한 인터페이스 정의
 
 ---
+
+**주요 변경사항**: ESLint 설정 대폭 개선, 불필요한 코드 제거
+**핵심 커밋**: `feat: major ESLint refactoring and code cleanup`
 
 ## Version 0.3.0 (2025-10-07)
 
@@ -944,6 +1077,9 @@ let activeAccounts = $derived(store.data.accounts.filter((acc) => acc.status ===
 - 카테고리 데이터의 일관성 및 정확성 향상
 
 ---
+
+**주요 변경사항**: 카테고리 관리 시스템 개선, 자동 분류 기능
+**핵심 커밋**: `feat: improve transaction categorization and remove uncategorized category`
 
 ## Version 0.2.5 (2025-01-27)
 
