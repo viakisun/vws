@@ -25,7 +25,7 @@ export interface ThemeConfig {
   }
 }
 
-// Predefined themes
+// Predefined themes - Light mode only
 export const themes: Record<ColorScheme, ThemeConfig> = {
   light: {
     name: 'light',
@@ -43,24 +43,6 @@ export const themes: Record<ColorScheme, ThemeConfig> = {
       warning: '#F59E0B',
       error: '#EF4444',
       info: '#06B6D4',
-    },
-  },
-  dark: {
-    name: 'dark',
-    displayName: 'Dark',
-    colors: {
-      primary: '#60A5FA',
-      secondary: '#9CA3AF',
-      accent: '#A78BFA',
-      background: '#111827',
-      surface: '#1F2937',
-      text: '#F9FAFB',
-      textSecondary: '#D1D5DB',
-      border: '#374151',
-      success: '#34D399',
-      warning: '#FBBF24',
-      error: '#F87171',
-      info: '#22D3EE',
     },
   },
 }
@@ -217,7 +199,7 @@ if (browser) {
   })
 }
 
-// CSS custom properties for theme colors
+// CSS custom properties for theme colors - Light mode only
 export const themeCSS = `
 	:root {
 		--color-primary: ${themes.light.colors.primary};
@@ -232,21 +214,6 @@ export const themeCSS = `
 		--color-warning: ${themes.light.colors.warning};
 		--color-error: ${themes.light.colors.error};
 		--color-info: ${themes.light.colors.info};
-	}
-
-	[data-theme="dark"] {
-		--color-primary: ${themes.dark.colors.primary};
-		--color-secondary: ${themes.dark.colors.secondary};
-		--color-accent: ${themes.dark.colors.accent};
-		--color-background: ${themes.dark.colors.background};
-		--color-surface: ${themes.dark.colors.surface};
-		--color-text: ${themes.dark.colors.text};
-		--color-text-secondary: ${themes.dark.colors.textSecondary};
-		--color-border: ${themes.dark.colors.border};
-		--color-success: ${themes.dark.colors.success};
-		--color-warning: ${themes.dark.colors.warning};
-		--color-error: ${themes.dark.colors.error};
-		--color-info: ${themes.dark.colors.info};
 	}
 `
 
@@ -269,7 +236,5 @@ export function useTheme() {
   }
 }
 
-// Reactive stores for common theme checks
-export const isDark = derived(currentTheme, (scheme) => scheme === 'dark')
+// Reactive stores for light mode only
 export const isLight = derived(currentTheme, (scheme) => scheme === 'light')
-export const isAuto = derived(themeStore, (theme) => theme === 'auto')
