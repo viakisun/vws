@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { pushToast } from '$lib/stores/toasts'
   import { page } from '$app/stores'
   import { accountService, transactionService } from '$lib/finance/services'
   import type {
@@ -8,41 +7,34 @@
     Transaction,
     TransactionCategory,
   } from '$lib/finance/types'
+  import { pushToast } from '$lib/stores/toasts'
   import { getCurrentUTC } from '$lib/utils/date-handler'
   import { onMount } from 'svelte'
-
   // 새 유틸리티 함수
-  import {
-    convertToUTCTimestamp,
-    convertToDateTimeLocal,
-    getCurrentUTCTimestamp,
-  } from '$lib/finance/utils/transaction-formatters'
   import { getDateRangePreset, type DateRangePreset } from '$lib/finance/utils/date-range'
-
+  import { convertToDateTimeLocal } from '$lib/finance/utils/transaction-formatters'
   // 컴포넌트
-  import TransactionStatistics from './TransactionStatistics.svelte'
-  import TransactionFilters from './TransactionFilters.svelte'
   import AccountCard from './AccountCard.svelte'
-  import TransactionModal from './TransactionModal.svelte'
   import InlineEditInfo from './InlineEditInfo.svelte'
-
+  import TransactionFilters from './TransactionFilters.svelte'
+  import TransactionModal from './TransactionModal.svelte'
+  import TransactionStatistics from './TransactionStatistics.svelte'
   // 타입
   import type {
-    AccountUploadState,
     AccountDeleteState,
-    InlineEditData,
-    AccountUploadStates,
     AccountDeleteStates,
+    AccountUploadState,
+    AccountUploadStates,
+    InlineEditData,
   } from '$lib/finance/types/transaction-state'
-
   // 유틸리티
   import {
     buildQueryParams,
-    filterTransactions,
-    filterAccounts,
     calculateStatistics,
-    getInitialFormData,
+    filterAccounts,
+    filterTransactions,
     getInitialDateTimeInput,
+    getInitialFormData,
   } from '$lib/finance/utils/transaction-helpers'
 
   // ============================================================================
@@ -506,6 +498,7 @@
       })
 
       xhr.open('POST', '/api/finance/transactions/upload')
+      xhr.withCredentials = true // Include cookies for authentication
       xhr.send(formData)
     } catch (error: any) {
       uploadState.uploadResult = { success: false, message: error.message }

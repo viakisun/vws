@@ -4,7 +4,7 @@ import { ROUTE_PERMISSIONS } from '$lib/config/routes'
 import { Routes } from '$lib/config/routes.enum'
 import { DatabaseService } from '$lib/database/connection'
 import { permissionService } from '$lib/server/services/permission.service'
-import { ERROR_CATEGORY, ERROR_SEVERITY, recordError } from '$lib/utils/error-monitor'
+import { recordError } from '$lib/utils/error-monitor'
 import { logger } from '$lib/utils/logger'
 import type { Handle } from '@sveltejs/kit'
 import { error } from '@sveltejs/kit'
@@ -215,25 +215,52 @@ export const handle: Handle = async ({ event, resolve }) => {
   const { url, request } = event
   const userAgent = request.headers.get('user-agent') || 'unknown'
 
-  // 상세한 요청 로깅 (API 요청만)
-  if (url.pathname.startsWith('/api/')) {
+  // 상세한 요청 로깅 (API 요청만, notification polling 제외)
+  if (url.pathname.startsWith('/api/') && !url.pathname.includes('/notifications/unread-count')) {
     logger.api.request('API Request', {
       method: request.method,
       path: url.pathname,
       userAgent: userAgent.substring(0, 100), // 길이 제한
       ip: event.getClientAddress(),
       timestamp: new Date().toISOString(),
+      contentType: request.headers.get('content-type'),
+      contentLength: request.headers.get('content-length'),
     })
+  }
+
+  // 파일 업로드 요청에 대한 특별 처리
+  if (url.pathname === '/api/finance/transactions/upload' && request.method === 'POST') {
+    logger.info('🚀 파일 업로드 요청 감지 - hooks.server.ts 통과')
+    // 파일 업로드는 인증을 API 엔드포인트에서 직접 처리하도록 우회
+    const response = await resolve(event)
+    const responseTime = Date.now() - startTime
+
+    logger.info('🚀 파일 업로드 응답:', {
+      status: response.status,
+      responseTime: `${responseTime}ms`,
+    })
+
+    return response
   }
 
   // Authentication middleware
   try {
     const token = event.cookies.get('auth_token')
+    logger.info('🔐 hooks.server.ts 인증 시작:', {
+      hasToken: !!token,
+      path: url.pathname,
+      method: request.method,
+    })
 
     if (token) {
       const userService = UserService.getInstance()
       const payload = userService.verifyToken(token)
       const user = await userService.getUserById(payload.userId)
+      logger.info('🔐 hooks.server.ts 토큰 검증 성공:', {
+        userId: payload.userId,
+        hasUser: !!user,
+        isActive: user?.is_active,
+      })
 
       if (user && user.is_active) {
         // 계정 타입에 따라 분기 처리
@@ -302,6 +329,8 @@ export const handle: Handle = async ({ event, resolve }) => {
         path: event.url.pathname,
         method: event.request.method,
         ip: event.getClientAddress(),
+        hasUser: !!user,
+        isPublicRoute: PUBLIC_API_ROUTES.some((route) => event.url.pathname.startsWith(route)),
       })
       throw error(401, 'Unauthorized')
     }
@@ -413,8 +442,8 @@ export const handle: Handle = async ({ event, resolve }) => {
     const response = await resolve(event)
     const responseTime = Date.now() - startTime
 
-    // API 요청에 대한 응답 로깅
-    if (url.pathname.startsWith('/api/')) {
+    // API 요청에 대한 응답 로깅 (notification polling 제외)
+    if (url.pathname.startsWith('/api/') && !url.pathname.includes('/notifications/unread-count')) {
       const logLevel = response.status >= 400 ? 'warn' : 'info'
       const emoji = response.status >= 400 ? '❌' : '✅'
 

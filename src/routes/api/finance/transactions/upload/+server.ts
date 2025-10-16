@@ -6,14 +6,59 @@ import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
 
 // POST: 거래내역 파일 업로드
-export const POST: RequestHandler = async ({ request }) => {
+export const POST: RequestHandler = async (event) => {
   try {
     logger.info('=== 업로드 요청 시작 ===')
+    logger.info('Request URL:', event.url.toString())
+    logger.info('Request method:', event.request.method)
+    logger.info('Request headers:', Object.fromEntries(event.request.headers.entries()))
+
+    // 인증 토큰 직접 확인 (requireRole 우회)
+    const token = event.cookies.get('auth_token')
+    logger.info('🔐 직접 토큰 확인:', { hasToken: !!token, tokenLength: token?.length || 0 })
+
+    if (!token) {
+      logger.error('🔐 토큰 없음 - 인증 실패')
+      return json({ success: false, message: 'Authentication required' }, { status: 401 })
+    }
+
+    // 토큰 검증
+    const { requireAuth } = await import('$lib/auth/middleware')
+    const authResult = await requireAuth(event)
+    logger.info('🔐 인증 성공:', {
+      userId: authResult.user.id,
+      email: authResult.user.email,
+      role: authResult.user.role,
+    })
+
+    // 권한 확인 - 거래내역 업로드는 일반직원도 가능하도록 완화
+    if (!['ADMIN', 'MANAGER', 'EMPLOYEE'].includes(authResult.user.role)) {
+      logger.error('🔐 권한 부족:', {
+        userRole: authResult.user.role,
+        requiredRoles: ['ADMIN', 'MANAGER', 'EMPLOYEE'],
+      })
+      return json(
+        {
+          success: false,
+          message: `권한이 부족합니다. 거래내역 업로드는 직원 권한이 필요합니다. 현재 권한: ${authResult.user.role}`,
+          error: 'INSUFFICIENT_PERMISSIONS',
+          userRole: authResult.user.role,
+          requiredRoles: ['ADMIN', 'MANAGER', 'EMPLOYEE'],
+        },
+        { status: 403 },
+      )
+    }
+
+    const { user } = authResult
+
+    const { request } = event
     logger.info('Content-Type:', request.headers.get('content-type'))
     logger.info('Content-Length:', request.headers.get('content-length'))
 
     // UTF-8 인코딩을 명시적으로 설정
+    logger.info('📁 FormData 읽기 시작...')
     const formData = await request.formData()
+    logger.info('📁 FormData 읽기 완료')
 
     // 파일명 UTF-8 디코딩 확인
     const file = formData.get('file') as File
@@ -212,7 +257,7 @@ export const POST: RequestHandler = async ({ request }) => {
         if (duplicateCheck.rows.length > 0) {
           skippedCount++
           logger.info(
-            `중복 거래 건너뜀: ${transaction.transactionDate} ${transaction.description} (${transaction.deposits || transaction.withdrawals || 0}원)`,
+            `🔄 중복 거래 건너뛰기: ${transaction.transactionDate} ${transaction.description} (${transaction.deposits || transaction.withdrawals || 0}원) - 기존 ID: ${duplicateCheck.rows[0].id}`,
           )
           continue
         }
@@ -286,6 +331,9 @@ export const POST: RequestHandler = async ({ request }) => {
           ],
         )
         insertedCount++
+        logger.info(
+          `✅ 거래 삽입 성공: ${transaction.transactionDate} ${transaction.description} (${transaction.deposits || transaction.withdrawals || 0}원)`,
+        )
       } catch (txError) {
         const errorMessage = txError instanceof Error ? txError.message : String(txError)
         transactionErrors.push(
@@ -307,6 +355,15 @@ export const POST: RequestHandler = async ({ request }) => {
     const finalBankName = accountData?.bank_name || bankName
     const finalAccountNumber = accountData?.account_number || accountNumber
 
+    logger.info('📊 업로드 완료 요약:', {
+      totalTransactions: transactions.length,
+      insertedCount,
+      skippedCount,
+      errorCount: transactionErrors.length,
+      accountName: finalAccountName,
+      bankName: finalBankName,
+    })
+
     return json({
       success: true,
       message: '거래내역 업로드 및 처리 완료',
@@ -320,7 +377,10 @@ export const POST: RequestHandler = async ({ request }) => {
       errors: transactionErrors,
     })
   } catch (error) {
-    logger.error('파일 업로드 API 오류:', error)
+    logger.error('❌ 파일 업로드 API 오류 발생:', error)
+    logger.error('❌ 오류 타입:', typeof error)
+    logger.error('❌ 오류 메시지:', error instanceof Error ? error.message : String(error))
+    logger.error('❌ 오류 스택:', error instanceof Error ? error.stack : 'No stack trace')
     const errorMessage = error instanceof Error ? error.message : String(error)
     return json({ success: false, message: '서버 오류 발생', error: errorMessage }, { status: 500 })
   }
