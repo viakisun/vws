@@ -182,7 +182,7 @@ const getDbConfig = () => {
     max: 20, // 최대 연결 수
     min: 5, // 최소 연결 수
     idleTimeoutMillis: 30000, // 30초
-    connectionTimeoutMillis: 2000, // 2초
+    connectionTimeoutMillis: 10000, // 10초 (2초에서 증가)
     acquireTimeoutMillis: 60000, // 60초
     createTimeoutMillis: 30000, // 30초
     destroyTimeoutMillis: 5000, // 5초
@@ -273,19 +273,53 @@ export async function getConnection(): Promise<PoolClient> {
   return await pool!.connect()
 }
 
-// Execute a query with parameters
+// Execute a query with parameters and retry logic
 export async function query<T = unknown>(
   text: string,
   params?: unknown[],
+  retries: number = 3,
 ): Promise<QueryResult<T>> {
-  const client = await getConnection()
-  try {
-    const result = await client.query<T>(text, params)
-    // 자동으로 날짜 필드 처리
-    return processQueryResultDates(result) as QueryResult<T>
-  } finally {
-    client.release()
+  let lastError: Error | null = null
+
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      const client = await getConnection()
+      try {
+        const result = await client.query<T>(text, params)
+        // 자동으로 날짜 필드 처리
+        return processQueryResultDates(result) as QueryResult<T>
+      } finally {
+        client.release()
+      }
+    } catch (error) {
+      lastError = error as Error
+
+      // 타임아웃이나 연결 오류인 경우에만 재시도
+      const shouldRetry =
+        error instanceof Error &&
+        (error.message.includes('ETIMEDOUT') ||
+          error.message.includes('ECONNREFUSED') ||
+          error.message.includes('timeout') ||
+          error.message.includes('connection'))
+
+      if (shouldRetry && attempt < retries) {
+        const delay = Math.min(1000 * Math.pow(2, attempt - 1), 5000) // Exponential backoff, max 5초
+        logger.warn(
+          `Database query failed (attempt ${attempt}/${retries}), retrying in ${delay}ms:`,
+          {
+            error: error.message,
+            query: text.substring(0, 100) + '...',
+          },
+        )
+        await new Promise((resolve) => setTimeout(resolve, delay))
+        continue
+      }
+
+      throw error
+    }
   }
+
+  throw lastError || new Error('Query failed after all retries')
 }
 
 // Execute a transaction

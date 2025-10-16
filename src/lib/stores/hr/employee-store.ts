@@ -254,35 +254,74 @@ export async function addEmployee(
   }
 }
 
-// 직원 수정
-export async function updateEmployee(id: string, updates: Partial<Employee>): Promise<boolean> {
+// 직원 수정 (재시도 로직 포함)
+export async function updateEmployee(
+  id: string,
+  updates: Partial<Employee>,
+  retries: number = 3,
+): Promise<boolean> {
   isLoading.set(true)
   error.set(null)
 
-  try {
-    const response = await fetch(`/api/employees/${id}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(updates),
-    })
+  let lastError: Error | null = null
 
-    const result = (await response.json()) as ApiResponse<Employee>
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      const response = await fetch(`/api/employees/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updates),
+      })
 
-    if (result.success && result.data) {
-      employees.update((current) => current.map((emp) => (emp.id === id ? result.data! : emp)))
-      return true
-    } else {
-      error.set(result.error || '직원 수정에 실패했습니다.')
+      const result = (await response.json()) as ApiResponse<Employee>
+
+      if (result.success && result.data) {
+        employees.update((current) => current.map((emp) => (emp.id === id ? result.data! : emp)))
+        return true
+      } else {
+        // 서버에서 명시적으로 타임아웃 오류를 반환한 경우 재시도
+        if (response.status === 408 && attempt < retries) {
+          const delay = Math.min(1000 * Math.pow(2, attempt - 1), 5000) // Exponential backoff
+          console.warn(
+            `직원 수정 실패 (시도 ${attempt}/${retries}), ${delay}ms 후 재시도:`,
+            result.error,
+          )
+          await new Promise((resolve) => setTimeout(resolve, delay))
+          continue
+        }
+
+        error.set(result.error || '직원 수정에 실패했습니다.')
+        return false
+      }
+    } catch (err) {
+      lastError = err as Error
+
+      // 네트워크 오류인 경우 재시도
+      const shouldRetry =
+        err instanceof Error &&
+        (err.message.includes('fetch') ||
+          err.message.includes('network') ||
+          err.message.includes('timeout'))
+
+      if (shouldRetry && attempt < retries) {
+        const delay = Math.min(1000 * Math.pow(2, attempt - 1), 5000)
+        console.warn(
+          `직원 수정 네트워크 오류 (시도 ${attempt}/${retries}), ${delay}ms 후 재시도:`,
+          err.message,
+        )
+        await new Promise((resolve) => setTimeout(resolve, delay))
+        continue
+      }
+
+      error.set(err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.')
       return false
     }
-  } catch (err) {
-    error.set(err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.')
-    return false
-  } finally {
-    isLoading.set(false)
   }
+
+  error.set(lastError?.message || '직원 수정에 실패했습니다.')
+  return false
 }
 
 // 직원 삭제

@@ -1,5 +1,5 @@
+import { formatKoreanNameStandard, sortKoreanNames, splitKoreanName } from '$lib/utils/korean-name'
 import type { Employee, EmployeeContract } from '../types'
-import { formatKoreanNameStandard, sortKoreanNames } from '$lib/utils/korean-name'
 
 /**
  * 직원 목록 조회
@@ -18,15 +18,23 @@ export async function fetchEmployeeList(limit: number = 100): Promise<Employee[]
 
   if (result.success && result.data && result.data.data && Array.isArray(result.data.data)) {
     return result.data.data
-      .map((emp: Employee) => ({
-        id: emp.id,
-        employeeId: emp.employeeId,
-        name: formatKoreanNameStandard(emp.name || ''),
-        department: emp.department || '부서없음',
-        position: emp.position,
-        hireDate: emp.hireDate,
-        status: emp.status,
-      }))
+      .map((emp: any) => {
+        const standardName = formatKoreanNameStandard(emp.name || '')
+        const { surname, givenName } = splitKoreanName(standardName)
+
+        return {
+          id: emp.id,
+          employeeId: emp.employeeId,
+          name: standardName,
+          formatted_name: standardName,
+          last_name: surname,
+          first_name: givenName,
+          department: emp.department || '부서없음',
+          position: emp.position,
+          hireDate: emp.hireDate,
+          status: emp.status,
+        }
+      })
       .sort((a, b) => sortKoreanNames(a.name || '', b.name || ''))
   }
 

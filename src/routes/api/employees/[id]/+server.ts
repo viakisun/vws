@@ -105,11 +105,41 @@ export const PUT: RequestHandler = async ({ params, request }) => {
   try {
     const data = (await request.json()) as UpdateEmployeeRequest
 
+    logger.info('Employee update request:', {
+      employeeId: params.id,
+      data: {
+        first_name: data.first_name,
+        last_name: data.last_name,
+        email: data.email,
+        department: data.department,
+        position: data.position,
+        salary: data.salary,
+        phone: data.phone,
+        hire_date: data.hire_date,
+        status: data.status,
+        employment_type: data.employment_type,
+        job_title_id: data.job_title_id,
+      },
+    })
+
     // 필수 필드 검증
-    const requiredFields = ['first_name', 'last_name', 'email', 'department', 'position', 'salary']
-    const missingFields = requiredFields.filter((field) => !data[field] || data[field] === '')
+    const requiredFields = ['first_name', 'last_name', 'email', 'department', 'position']
+    const missingFields = requiredFields.filter((field) => {
+      const value = data[field as keyof UpdateEmployeeRequest]
+      return value === null || value === undefined || value === ''
+    })
+
+    // salary는 0도 유효하므로 별도 체크
+    if (data.salary === null || data.salary === undefined) {
+      missingFields.push('salary')
+    }
 
     if (missingFields.length > 0) {
+      logger.error('Missing required fields for employee update:', {
+        employeeId: params.id,
+        missingFields,
+        receivedData: data,
+      })
       return json(
         {
           success: false,
@@ -201,6 +231,30 @@ export const PUT: RequestHandler = async ({ params, request }) => {
     return json(response)
   } catch (error: unknown) {
     logger.error('Error updating employee:', error)
+
+    // 데이터베이스 연결 타임아웃 오류 처리
+    if (error instanceof Error) {
+      if (error.message.includes('ETIMEDOUT') || error.message.includes('timeout')) {
+        return json(
+          {
+            success: false,
+            error: '데이터베이스 연결이 시간 초과되었습니다. 잠시 후 다시 시도해주세요.',
+          },
+          { status: 408 }, // Request Timeout
+        )
+      }
+
+      if (error.message.includes('ECONNREFUSED') || error.message.includes('connection')) {
+        return json(
+          {
+            success: false,
+            error: '데이터베이스 연결에 실패했습니다. 관리자에게 문의해주세요.',
+          },
+          { status: 503 }, // Service Unavailable
+        )
+      }
+    }
+
     return json(
       {
         success: false,

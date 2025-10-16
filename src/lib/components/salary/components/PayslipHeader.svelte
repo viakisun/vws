@@ -44,7 +44,7 @@
       value={selectedEmployeeId}
       employees={employeeList}
       placeholder="직원을 선택하세요"
-      showDepartment={false}
+      showDepartment={true}
       showPosition={true}
       onchange={handleEmployeeChange}
     />
