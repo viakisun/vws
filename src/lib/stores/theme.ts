@@ -1,9 +1,9 @@
 import { browser } from '$app/environment'
 import { derived, writable } from 'svelte/store'
 
-// Theme types
-export type Theme = 'light' | 'dark' | 'auto'
-export type ColorScheme = 'light' | 'dark'
+// Theme types - Light mode only
+export type Theme = 'light'
+export type ColorScheme = 'light'
 
 // Theme configuration
 export interface ThemeConfig {
@@ -51,13 +51,8 @@ export const themes: Record<ColorScheme, ThemeConfig> = {
 const themeStore = writable<Theme>('light')
 const systemColorScheme = writable<ColorScheme>('light')
 
-// Current effective theme (resolved from auto)
-export const currentTheme = derived([themeStore, systemColorScheme], ([theme, systemScheme]) => {
-  if (theme === 'auto') {
-    return systemScheme
-  }
-  return theme as ColorScheme
-})
+// Current effective theme - Fixed to light mode
+export const currentTheme = derived(themeStore, (theme) => theme as ColorScheme)
 
 // Current theme configuration
 export const themeConfig = derived(currentTheme, (scheme) => themes[scheme])
@@ -146,17 +141,9 @@ export class ThemeManager {
     }
   }
 
-  // Get effective color scheme
+  // Get effective color scheme - Fixed to light mode
   public getEffectiveColorScheme(): ColorScheme {
-    const theme = this.getTheme()
-    if (theme === 'auto') {
-      let systemScheme: ColorScheme
-      this.systemStore.subscribe((scheme) => {
-        systemScheme = scheme
-      })()
-      return systemScheme!
-    }
-    return theme as ColorScheme
+    return 'light'
   }
 
   // Toggle between light and dark - Disabled
