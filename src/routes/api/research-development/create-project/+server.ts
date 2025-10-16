@@ -499,7 +499,10 @@ async function validateCreatedProject(projectId: string): Promise<ValidationResu
   const errors: string[] = []
 
   // 프로젝트 기본 정보 확인
-  const projectResult = await query('SELECT id, name, description, status, created_at::text as created_at, updated_at::text as updated_at FROM rd_rd_projects WHERE id = $1', [projectId])
+  const projectResult = await query(
+    'SELECT id, name, description, status, created_at::text as created_at, updated_at::text as updated_at FROM rd_rd_projects WHERE id = $1',
+    [projectId],
+  )
   if (projectResult.rows.length === 0) {
     errors.push('프로젝트가 생성되지 않았습니다.')
   }
@@ -514,9 +517,10 @@ async function validateCreatedProject(projectId: string): Promise<ValidationResu
   }
 
   // 참여연구원 확인
-  const memberResult = await query('SELECT id, project_id, employee_id, role, participation_rate, start_date, end_date, created_at::text as created_at, updated_at::text as updated_at FROM project_members WHERE project_id = $1', [
-    projectId,
-  ])
+  const memberResult = await query(
+    'SELECT id, project_id, employee_id, role, participation_rate, start_date, end_date, created_at::text as created_at, updated_at::text as updated_at FROM project_members WHERE project_id = $1',
+    [projectId],
+  )
   if (memberResult.rows.length === 0) {
     errors.push('참여연구원이 등록되지 않았습니다.')
   }

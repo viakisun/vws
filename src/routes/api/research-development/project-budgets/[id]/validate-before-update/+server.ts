@@ -27,7 +27,10 @@ export const POST: RequestHandler = async ({ params, request }) => {
     } = data
 
     // 기존 사업비 정보 조회
-    const existingBudget = await query('SELECT id, project_id, period_number, research_cost, facility_cost, labor_cost, total_budget, created_at::text as created_at, updated_at::text as updated_at FROM project_budgets WHERE id = $1', [id])
+    const existingBudget = await query(
+      'SELECT id, project_id, period_number, research_cost, facility_cost, labor_cost, total_budget, created_at::text as created_at, updated_at::text as updated_at FROM project_budgets WHERE id = $1',
+      [id],
+    )
 
     if (existingBudget.rows.length === 0) {
       return json(

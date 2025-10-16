@@ -199,7 +199,10 @@ export const POST: RequestHandler = async ({ request }) => {
     const account = result.rows[0]
 
     // 은행 정보 조회
-    const bankResult = await query('SELECT id, name, code, description, created_at::text as created_at, updated_at::text as updated_at FROM finance_banks WHERE id = $1', [account.bank_id])
+    const bankResult = await query(
+      'SELECT id, name, code, description, created_at::text as created_at, updated_at::text as updated_at FROM finance_banks WHERE id = $1',
+      [account.bank_id],
+    )
     const bank = bankResult.rows[0]
 
     return json({

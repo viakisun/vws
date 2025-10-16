@@ -93,7 +93,10 @@ export class ValidationUtils {
    * 프로젝트 기본 정보 조회
    */
   static async getProjectInfo(projectId: string) {
-    const result = await query('SELECT id, name, description, status, created_at::text as created_at, updated_at::text as updated_at FROM projects WHERE id = $1', [projectId])
+    const result = await query(
+      'SELECT id, name, description, status, created_at::text as created_at, updated_at::text as updated_at FROM projects WHERE id = $1',
+      [projectId],
+    )
     if (result.rows.length === 0) {
       throw new Error('프로젝트를 찾을 수 없습니다.')
     }
