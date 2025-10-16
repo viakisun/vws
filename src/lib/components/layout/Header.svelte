@@ -113,9 +113,7 @@
           >
             {user?.name || '사용자'}
           </p>
-          <p
-            class="text-xs text-gray-500 group-hover:text-gray-600 transition-colors"
-          >
+          <p class="text-xs text-gray-500 group-hover:text-gray-600 transition-colors">
             {user?.role || 'EMPLOYEE'} • 온라인
           </p>
         </div>
