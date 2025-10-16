@@ -2,7 +2,7 @@
   import { logger } from '$lib/utils/logger'
   import { onMount } from 'svelte'
 
-  let version = $state('0.2.2')
+  let version = $state('0.7.1')
   let environment = $state('')
 
   // 빌드 시점의 타임스탬프 (Vite에서 주입)
