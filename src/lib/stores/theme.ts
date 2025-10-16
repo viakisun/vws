@@ -65,8 +65,8 @@ export const themes: Record<ColorScheme, ThemeConfig> = {
   },
 }
 
-// Theme store
-const themeStore = writable<Theme>('auto')
+// Theme store - Fixed to light mode
+const themeStore = writable<Theme>('light')
 const systemColorScheme = writable<ColorScheme>('light')
 
 // Current effective theme (resolved from auto)
@@ -100,48 +100,32 @@ export class ThemeManager {
     return ThemeManager.instance
   }
 
-  // Initialize theme from localStorage and system preference
+  // Initialize theme - Fixed to light mode
   private initializeTheme(): void {
-    // Get saved theme from localStorage
-    const savedTheme = localStorage.getItem('theme') as Theme
-    if (savedTheme && ['light', 'dark', 'auto'].includes(savedTheme)) {
-      this.store.set(savedTheme)
-    }
-
-    // Get system color scheme
-    this.updateSystemColorScheme()
+    // Always set to light mode, ignore localStorage
+    this.store.set('light')
+    this.systemStore.set('light')
   }
 
-  // Setup listener for system theme changes
+  // Setup listener for system theme changes - Disabled
   private setupSystemThemeListener(): (() => void) | void {
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
-
-    const handleChange = (_e: MediaQueryListEvent) => {
-      this.updateSystemColorScheme()
-    }
-
-    mediaQuery.addEventListener('change', handleChange)
-
-    // Cleanup function
-    return () => {
-      mediaQuery.removeEventListener('change', handleChange)
-    }
+    // System theme listener disabled - always use light mode
+    return undefined
   }
 
-  // Update system color scheme
+  // Update system color scheme - Disabled
   private updateSystemColorScheme(): void {
-    if (browser) {
-      const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-      this.systemStore.set(isDark ? 'dark' : 'light')
-    }
+    // Always use light mode
+    this.systemStore.set('light')
   }
 
-  // Set theme
+  // Set theme - Disabled, always use light mode
   public setTheme(theme: Theme): void {
-    this.store.set(theme)
+    // Always set to light mode regardless of input
+    this.store.set('light')
 
     if (browser) {
-      localStorage.setItem('theme', theme)
+      localStorage.setItem('theme', 'light')
       this.applyTheme()
     }
   }
@@ -193,20 +177,15 @@ export class ThemeManager {
     return theme as ColorScheme
   }
 
-  // Toggle between light and dark
+  // Toggle between light and dark - Disabled
   public toggleTheme(): void {
-    const current = this.getEffectiveColorScheme()
-    const newTheme = current === 'light' ? 'dark' : 'light'
-    this.setTheme(newTheme)
+    // Theme toggle disabled - always use light mode
+    this.setTheme('light')
   }
 
-  // Get available themes
+  // Get available themes - Only light mode available
   public getAvailableThemes(): Array<{ value: Theme; label: string }> {
-    return [
-      { value: 'light', label: 'Light' },
-      { value: 'dark', label: 'Dark' },
-      { value: 'auto', label: 'Auto (System)' },
-    ]
+    return [{ value: 'light', label: 'Light' }]
   }
 
   // Subscribe to theme changes

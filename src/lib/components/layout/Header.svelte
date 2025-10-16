@@ -1,18 +1,10 @@
 <script lang="ts">
   import type { User } from '$lib/auth/user-service'
+  import NotificationBell from '$lib/components/notifications/NotificationBell.svelte'
   import ThemeAvatar from '$lib/components/ui/ThemeAvatar.svelte'
   import ThemeButton from '$lib/components/ui/ThemeButton.svelte'
-  import NotificationBell from '$lib/components/notifications/NotificationBell.svelte'
-  import { isDark, themeManager } from '$lib/stores/theme'
   import { logger } from '$lib/utils/logger'
-  import {
-    BuildingIcon,
-    LogOutIcon,
-    MoonIcon,
-    SettingsIcon,
-    SunIcon,
-    UserIcon,
-  } from '@lucide/svelte'
+  import { BuildingIcon, LogOutIcon, SettingsIcon, UserIcon } from '@lucide/svelte'
   import { onMount } from 'svelte'
 
   const { user = null, onLogout }: { user: User | null; onLogout: () => void } = $props()
@@ -90,28 +82,6 @@
 
   <!-- Right Section: Actions & User -->
   <div class="flex items-center space-x-3">
-    <!-- Theme Toggle -->
-    <ThemeButton
-      variant="ghost"
-      size="sm"
-      onclick={() => themeManager.toggleTheme()}
-      class="p-3 rounded-xl hover:shadow-lg transition-all duration-300 text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100 hover:scale-105 group"
-    >
-      <div class="relative">
-        {#if $isDark}
-          <SunIcon
-            size={22}
-            class="transition-transform duration-200 group-hover:scale-110 group-hover:rotate-12"
-          />
-        {:else}
-          <MoonIcon
-            size={22}
-            class="transition-transform duration-200 group-hover:scale-110 group-hover:-rotate-12"
-          />
-        {/if}
-      </div>
-    </ThemeButton>
-
     <!-- Notifications -->
     <NotificationBell />
 
