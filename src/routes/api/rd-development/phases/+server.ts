@@ -8,9 +8,10 @@ export const GET: RequestHandler = async ({ url }) => {
     const projectId = url.searchParams.get('project_id')
     const yearNumber = url.searchParams.get('year_number')
 
-    const phases = await RdDevPhaseService.getAllPhases({
+    const service = new RdDevPhaseService()
+    const phases = await service.getPhases({
       project_id: projectId ? parseInt(projectId) : undefined,
-      year_number: yearNumber ? parseInt(yearNumber) : undefined,
+      status: url.searchParams.get('status') || undefined,
     })
 
     return json({
@@ -30,7 +31,8 @@ export const POST: RequestHandler = async ({ request }) => {
   try {
     const body = await request.json()
 
-    const phase = await RdDevPhaseService.createPhase(body)
+    const service = new RdDevPhaseService()
+    const phase = await service.createPhase(body.project_id, body)
 
     return json(
       {

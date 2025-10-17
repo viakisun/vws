@@ -304,7 +304,7 @@ export class RdDevTimelineService {
     institutionAssignments?: Record<string, string[]>,
   ): Promise<RdDevQuarterlyMilestone> {
     try {
-      const fields = []
+      const fields: string[] = []
       const params: unknown[] = []
       let paramCount = 0
 
@@ -411,7 +411,7 @@ export class RdDevTimelineService {
 
       return {
         overall_progress: overallProgress,
-        phase_progress,
+        phase_progress: phaseProgress,
       }
     } catch (error) {
       logger.error('Failed to calculate timeline progress:', error)

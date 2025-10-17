@@ -9,7 +9,8 @@ export const GET: RequestHandler = async ({ url }) => {
     const category = url.searchParams.get('category')
     const search = url.searchParams.get('search')
 
-    const technicalSpecs = await RdDevTechnicalSpecService.getAllTechnicalSpecs({
+    const service = new RdDevTechnicalSpecService()
+    const technicalSpecs = await service.getTechnicalSpecs({
       project_id: projectId ? parseInt(projectId) : undefined,
       category: category || undefined,
       search: search || undefined,
@@ -32,7 +33,8 @@ export const POST: RequestHandler = async ({ request }) => {
   try {
     const body = await request.json()
 
-    const technicalSpec = await RdDevTechnicalSpecService.createTechnicalSpec(body)
+    const service = new RdDevTechnicalSpecService()
+    const technicalSpec = await service.createTechnicalSpec(body)
 
     return json(
       {

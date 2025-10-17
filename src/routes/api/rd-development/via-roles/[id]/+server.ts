@@ -11,7 +11,8 @@ export const GET: RequestHandler = async ({ params }) => {
       return error(400, { message: 'Invalid VIA role ID' })
     }
 
-    const viaRole = await RdDevViaRoleService.getViaRoleById(id)
+    const service = new RdDevViaRoleService()
+    const viaRole = await service.getViaRoleById(id.toString())
 
     if (!viaRole) {
       return error(404, { message: 'VIA role not found' })
@@ -40,7 +41,8 @@ export const PUT: RequestHandler = async ({ params, request }) => {
 
     const body = await request.json()
 
-    const viaRole = await RdDevViaRoleService.updateViaRole(id, body)
+    const service = new RdDevViaRoleService()
+    const viaRole = await service.updateViaRole(id.toString(), body)
 
     if (!viaRole) {
       return error(404, { message: 'VIA role not found' })
@@ -67,7 +69,8 @@ export const DELETE: RequestHandler = async ({ params }) => {
       return error(400, { message: 'Invalid VIA role ID' })
     }
 
-    const deleted = await RdDevViaRoleService.deleteViaRole(id)
+    const service = new RdDevViaRoleService()
+    const deleted = await service.deleteViaRole(id.toString())
 
     if (!deleted) {
       return error(404, { message: 'VIA role not found' })

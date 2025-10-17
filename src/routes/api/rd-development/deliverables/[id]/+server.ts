@@ -41,7 +41,8 @@ export const PUT: RequestHandler = async ({ params, request }) => {
 
     const body = await request.json()
 
-    const deliverable = await RdDevDeliverableService.updateDeliverable(id, body)
+    const service = new RdDevDeliverableService()
+    const deliverable = await service.updateDeliverable(id.toString(), body)
 
     if (!deliverable) {
       return error(404, { message: 'Deliverable not found' })
@@ -68,7 +69,8 @@ export const DELETE: RequestHandler = async ({ params }) => {
       return error(400, { message: 'Invalid deliverable ID' })
     }
 
-    const deleted = await RdDevDeliverableService.deleteDeliverable(id)
+    const service = new RdDevDeliverableService()
+    const deleted = await service.deleteDeliverable(id.toString())
 
     if (!deleted) {
       return error(404, { message: 'Deliverable not found' })

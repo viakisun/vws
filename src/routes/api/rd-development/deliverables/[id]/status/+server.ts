@@ -23,7 +23,8 @@ export const PUT: RequestHandler = async ({ params, request }) => {
       return error(400, { message: 'Invalid status value' })
     }
 
-    const deliverable = await RdDevDeliverableService.updateDeliverableStatus(id, status, notes)
+    const service = new RdDevDeliverableService()
+    const deliverable = await service.updateDeliverableStatus(id.toString(), status, notes)
 
     if (!deliverable) {
       return error(404, { message: 'Deliverable not found' })

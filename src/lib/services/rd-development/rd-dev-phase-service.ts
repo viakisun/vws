@@ -13,6 +13,51 @@ import { logger } from '$lib/utils/logger'
 
 export class RdDevPhaseService {
   /**
+   * 필터를 사용한 단계 조회
+   */
+  async getPhases(filters: { project_id?: number; status?: string }): Promise<RdDevPhase[]> {
+    try {
+      let sql = `
+        SELECT 
+          id,
+          project_id,
+          phase_name,
+          phase_description,
+          start_date,
+          end_date,
+          status,
+          deliverables_count,
+          created_at,
+          updated_at
+        FROM rd_dev_phases
+        WHERE 1=1
+      `
+      const params: unknown[] = []
+      let paramCount = 0
+
+      if (filters.project_id) {
+        paramCount++
+        sql += ` AND project_id = $${paramCount}`
+        params.push(filters.project_id)
+      }
+
+      if (filters.status) {
+        paramCount++
+        sql += ` AND status = $${paramCount}`
+        params.push(filters.status)
+      }
+
+      sql += ` ORDER BY start_date`
+
+      const result = await query(sql, params)
+      return result.rows
+    } catch (error) {
+      logger.error('Failed to fetch phases:', error)
+      throw new Error('Failed to fetch phases')
+    }
+  }
+
+  /**
    * 프로젝트의 모든 단계 조회
    */
   async getPhasesByProjectId(projectId: string): Promise<RdDevPhase[]> {
@@ -128,7 +173,7 @@ export class RdDevPhaseService {
     data: Partial<CreateRdDevPhaseRequest & { status?: string }>,
   ): Promise<RdDevPhase> {
     try {
-      const fields = []
+      const fields: string[] = []
       const params: unknown[] = []
       let paramCount = 0
 

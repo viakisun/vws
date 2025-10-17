@@ -11,7 +11,8 @@ export const GET: RequestHandler = async ({ params }) => {
       return error(400, { message: 'Invalid phase ID' })
     }
 
-    const phase = await RdDevPhaseService.getPhaseById(id)
+    const service = new RdDevPhaseService()
+    const phase = await service.getPhaseById(id.toString())
 
     if (!phase) {
       return error(404, { message: 'Phase not found' })
@@ -40,7 +41,8 @@ export const PUT: RequestHandler = async ({ params, request }) => {
 
     const body = await request.json()
 
-    const phase = await RdDevPhaseService.updatePhase(id, body)
+    const service = new RdDevPhaseService()
+    const phase = await service.updatePhase(id.toString(), body)
 
     if (!phase) {
       return error(404, { message: 'Phase not found' })
@@ -67,7 +69,8 @@ export const DELETE: RequestHandler = async ({ params }) => {
       return error(400, { message: 'Invalid phase ID' })
     }
 
-    const deleted = await RdDevPhaseService.deletePhase(id)
+    const service = new RdDevPhaseService()
+    const deleted = await service.deletePhase(id.toString())
 
     if (!deleted) {
       return error(404, { message: 'Phase not found' })

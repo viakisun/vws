@@ -2,6 +2,100 @@
 
 모든 주요 변경사항은 이 파일에 한글로 문서화됩니다.
 
+## Version 0.7.4 (2025-01-27)
+
+### 🚀 R&D Development 모듈 완전 구현 및 TypeScript 오류 해결
+
+#### 새로운 R&D Development 시스템 구현
+
+- **완전한 R&D 개발 관리 시스템**: 개발자 중심의 R&D 프로젝트 관리 모듈 구현
+- **독립적인 라우팅**: `/rd-development` 경로로 기존 연구개발 관리와 완전 분리
+- **데이터베이스 스키마**: 7개의 새로운 테이블로 R&D Development 전용 데이터 구조 구축
+- **API 엔드포인트**: 완전한 CRUD API로 프로젝트, 단계, 산출물, 기관, VIA 역할 관리
+
+#### 주요 기능 구현
+
+- **프로젝트 관리**: R&D 프로젝트 목록, 상세보기, 필터링 및 검색
+- **타임라인 시각화**: 프로젝트 단계별 진행상황과 마일스톤 시각화
+- **산출물 추적**: 산출물 상태 관리, 검증, 완료율 추적
+- **참여기관 관리**: 연구기관 정보, 역할, 연락처 관리
+- **VIA 역할 정의**: VIA의 기술적 역할과 통합 포인트 명시
+- **기술사양 관리**: 프로젝트별 기술 요구사항 및 제약사항 관리
+
+#### TypeScript 오류 완전 해결
+
+- **69개 오류 → 0개 오류**: 모든 TypeScript 컴파일 오류 완전 해결
+- **서비스 레이어 개선**: 배열 타입 명시, 메서드 시그니처 정리
+- **API 엔드포인트 수정**: 정적 메서드 호출을 인스턴스 메서드로 변경
+- **타입 정의 완성**: 누락된 인터페이스 필드 추가 및 타입 캐스팅 수정
+
+#### 데이터베이스 및 마이그레이션
+
+- **새로운 테이블**: `rd_dev_projects`, `rd_dev_phases`, `rd_dev_deliverables`, `rd_dev_institutions`, `rd_dev_via_roles`, `rd_dev_technical_specs`, `rd_dev_quarterly_milestones`
+- **권한 관리**: R&D Development 전용 RBAC 권한 추가
+- **데이터 시딩**: 실제 마스터플랜 문서에서 2개 프로젝트 데이터 추출 및 등록
+
+#### UI 컴포넌트 구현
+
+- **타임라인 컴포넌트**: 단계별 진행상황과 마일스톤 시각화
+- **산출물 테이블**: 상태별 필터링, 검색, 정렬 기능
+- **기관 패널**: 참여기관 정보와 역할 표시
+- **VIA 역할 표시**: 기술적 역할과 통합 포인트 시각화
+- **기술사양 뷰**: 요구사항과 제약사항 상세 표시
+
+#### 기술적 개선사항
+
+- **Svelte 5 호환성**: 모든 컴포넌트를 Svelte 5 runes 모드로 업데이트
+- **타입 안전성**: 완전한 TypeScript 타입 체크 통과
+- **API 일관성**: RESTful API 설계 원칙 준수
+- **서비스 아키텍처**: 계층화된 서비스 레이어로 비즈니스 로직 분리
+
+#### 해결된 문제들
+
+- ✅ TypeScript 컴파일 오류 69개 완전 해결
+- ✅ 서비스 클래스 배열 타입 오류 해결
+- ✅ API 엔드포인트 메서드 호출 오류 수정
+- ✅ 타입 정의 불일치 문제 해결
+- ✅ Svelte 5 runes 모드 호환성 확보
+
+### 🔧 기술적 세부사항
+
+#### 새로운 파일 구조
+
+```
+src/lib/services/rd-development/
+├── rd-dev-project-service.ts
+├── rd-dev-phase-service.ts
+├── rd-dev-deliverable-service.ts
+├── rd-dev-institution-service.ts
+├── rd-dev-via-role-service.ts
+├── rd-dev-technical-spec-service.ts
+├── rd-dev-quarterly-milestone-service.ts
+├── rd-dev-timeline-service.ts
+└── index.ts
+
+src/routes/api/rd-development/
+├── projects/
+├── phases/
+├── deliverables/
+├── institutions/
+├── via-roles/
+├── technical-specs/
+└── quarterly-milestones/
+
+src/lib/components/rd-development/
+├── RdDevTimeline.svelte
+├── RdDevDeliverablesTable.svelte
+├── RdDevInstitutionsPanel.svelte
+├── RdDevViaRolesDisplay.svelte
+└── RdDevTechnicalSpecsView.svelte
+```
+
+#### 데이터베이스 마이그레이션
+
+- `037_add_rd_development_tables.sql`: 7개 새로운 테이블 생성
+- `038_add_rd_development_permissions.sql`: RBAC 권한 추가
+
 ## Version 0.7.3 (2025-10-17)
 
 ### 🧹 완전한 다크모드 제거 및 UI 정리

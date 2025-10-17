@@ -3,6 +3,7 @@
  */
 
 import { RdDevProjectService } from '$lib/services/rd-development'
+import type { RdDevProjectType } from '$lib/types/rd-development'
 import type { PageServerLoad } from './$types'
 
 const projectService = new RdDevProjectService()
@@ -11,7 +12,7 @@ export const load: PageServerLoad = async ({ url, locals }) => {
   try {
     // URL 쿼리 파라미터에서 필터 추출
     const filters = {
-      project_type: url.searchParams.get('project_type') || undefined,
+      project_type: (url.searchParams.get('project_type') as RdDevProjectType) || undefined,
       status: url.searchParams.get('status') || undefined,
       search: url.searchParams.get('search') || undefined,
       limit: url.searchParams.get('limit') ? parseInt(url.searchParams.get('limit')!) : 50,

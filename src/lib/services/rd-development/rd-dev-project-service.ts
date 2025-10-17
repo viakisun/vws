@@ -175,7 +175,7 @@ export class RdDevProjectService {
    */
   async updateProject(id: string, data: UpdateRdDevProjectRequest): Promise<RdDevProject> {
     try {
-      const fields = []
+      const fields: string[] = []
       const params: unknown[] = []
       let paramCount = 0
 

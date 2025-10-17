@@ -13,6 +13,68 @@ import { logger } from '$lib/utils/logger'
 
 export class RdDevViaRoleService {
   /**
+   * 필터를 사용한 VIA 역할 조회
+   */
+  async getViaRoles(filters: {
+    project_id?: number
+    phase_id?: number
+    category?: string
+    search?: string
+  }): Promise<RdDevViaRole[]> {
+    try {
+      let sql = `
+        SELECT 
+          id,
+          project_id,
+          phase_id,
+          role_category,
+          role_title,
+          role_description,
+          technical_details,
+          integration_points,
+          created_at,
+          updated_at
+        FROM rd_dev_via_roles
+        WHERE 1=1
+      `
+      const params: unknown[] = []
+      let paramCount = 0
+
+      if (filters.project_id) {
+        paramCount++
+        sql += ` AND project_id = $${paramCount}`
+        params.push(filters.project_id)
+      }
+
+      if (filters.phase_id) {
+        paramCount++
+        sql += ` AND phase_id = $${paramCount}`
+        params.push(filters.phase_id)
+      }
+
+      if (filters.category) {
+        paramCount++
+        sql += ` AND role_category = $${paramCount}`
+        params.push(filters.category)
+      }
+
+      if (filters.search) {
+        paramCount++
+        sql += ` AND (role_title ILIKE $${paramCount} OR role_description ILIKE $${paramCount})`
+        params.push(`%${filters.search}%`)
+      }
+
+      sql += ` ORDER BY role_title`
+
+      const result = await query(sql, params)
+      return result.rows
+    } catch (error) {
+      logger.error('Failed to fetch VIA roles:', error)
+      throw new Error('Failed to fetch VIA roles')
+    }
+  }
+
+  /**
    * 프로젝트의 모든 VIA 역할 조회
    */
   async getViaRolesByProjectId(projectId: string): Promise<RdDevViaRole[]> {
@@ -125,7 +187,7 @@ export class RdDevViaRoleService {
    */
   async updateViaRole(id: string, data: Partial<CreateRdDevViaRoleRequest>): Promise<RdDevViaRole> {
     try {
-      const fields = []
+      const fields: string[] = []
       const params: unknown[] = []
       let paramCount = 0
 

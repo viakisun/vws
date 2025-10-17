@@ -1,8 +1,8 @@
-import { query } from '$lib/database'
+import { query } from '$lib/database/connection'
 import type { RdDevTechnicalSpec } from '$lib/types/rd-development'
 
 export class RdDevTechnicalSpecService {
-  async getAllTechnicalSpecs(filters?: {
+  async getTechnicalSpecs(filters?: {
     project_id?: number
     category?: string
     search?: string

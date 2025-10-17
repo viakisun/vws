@@ -9,9 +9,11 @@ export const GET: RequestHandler = async ({ url }) => {
     const phaseId = url.searchParams.get('phase_id')
     const search = url.searchParams.get('search')
 
-    const viaRoles = await RdDevViaRoleService.getAllViaRoles({
+    const service = new RdDevViaRoleService()
+    const viaRoles = await service.getViaRoles({
       project_id: projectId ? parseInt(projectId) : undefined,
       phase_id: phaseId ? parseInt(phaseId) : undefined,
+      category: url.searchParams.get('category') || undefined,
       search: search || undefined,
     })
 
@@ -32,7 +34,8 @@ export const POST: RequestHandler = async ({ request }) => {
   try {
     const body = await request.json()
 
-    const viaRole = await RdDevViaRoleService.createViaRole(body)
+    const service = new RdDevViaRoleService()
+    const viaRole = await service.createViaRole(body.project_id, body)
 
     return json(
       {

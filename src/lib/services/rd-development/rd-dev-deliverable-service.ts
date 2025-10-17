@@ -8,6 +8,7 @@ import type {
   CreateRdDevDeliverableRequest,
   RdDevDeliverable,
   RdDevDeliverableFilters,
+  RdDevDeliverableStatus,
 } from '$lib/types/rd-development'
 import { logger } from '$lib/utils/logger'
 
@@ -202,7 +203,7 @@ export class RdDevDeliverableService {
     >,
   ): Promise<RdDevDeliverable> {
     try {
-      const fields = []
+      const fields: string[] = []
       const params: unknown[] = []
       let paramCount = 0
 
@@ -298,6 +299,46 @@ export class RdDevDeliverableService {
     } catch (error) {
       logger.error('Failed to update deliverable:', error)
       throw new Error('Failed to update deliverable')
+    }
+  }
+
+  /**
+   * 산출물 상태 업데이트
+   */
+  async updateDeliverableStatus(
+    id: string,
+    status: RdDevDeliverableStatus,
+    notes?: string,
+  ): Promise<RdDevDeliverable | null> {
+    try {
+      const sql = `
+        UPDATE rd_dev_deliverables 
+        SET 
+          status = $1,
+          verification_notes = $2,
+          updated_at = CURRENT_TIMESTAMP
+        WHERE id = $3
+        RETURNING 
+          id,
+          project_id,
+          phase_id,
+          institution_id,
+          deliverable_type,
+          title,
+          description,
+          target_date,
+          completion_date,
+          status,
+          verification_notes,
+          created_at,
+          updated_at
+      `
+
+      const result = await query(sql, [status, notes || null, id])
+      return result.rows[0] || null
+    } catch (error) {
+      logger.error('Failed to update deliverable status:', error)
+      throw new Error('Failed to update deliverable status')
     }
   }
 

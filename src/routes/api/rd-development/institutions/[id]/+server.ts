@@ -11,7 +11,8 @@ export const GET: RequestHandler = async ({ params }) => {
       return error(400, { message: 'Invalid institution ID' })
     }
 
-    const institution = await RdDevInstitutionService.getInstitutionById(id)
+    const service = new RdDevInstitutionService()
+    const institution = await service.getInstitutionById(id.toString())
 
     if (!institution) {
       return error(404, { message: 'Institution not found' })
@@ -40,7 +41,8 @@ export const PUT: RequestHandler = async ({ params, request }) => {
 
     const body = await request.json()
 
-    const institution = await RdDevInstitutionService.updateInstitution(id, body)
+    const service = new RdDevInstitutionService()
+    const institution = await service.updateInstitution(id.toString(), body)
 
     if (!institution) {
       return error(404, { message: 'Institution not found' })
@@ -67,7 +69,8 @@ export const DELETE: RequestHandler = async ({ params }) => {
       return error(400, { message: 'Invalid institution ID' })
     }
 
-    const deleted = await RdDevInstitutionService.deleteInstitution(id)
+    const service = new RdDevInstitutionService()
+    const deleted = await service.deleteInstitution(id.toString())
 
     if (!deleted) {
       return error(404, { message: 'Institution not found' })

@@ -10,7 +10,8 @@ export const GET: RequestHandler = async ({ url }) => {
     const year = url.searchParams.get('year')
     const quarter = url.searchParams.get('quarter')
 
-    const milestones = await RdDevQuarterlyMilestoneService.getAllQuarterlyMilestones({
+    const service = new RdDevQuarterlyMilestoneService()
+    const milestones = await service.getQuarterlyMilestones({
       project_id: projectId ? parseInt(projectId) : undefined,
       phase_id: phaseId ? parseInt(phaseId) : undefined,
       year: year ? parseInt(year) : undefined,
@@ -34,7 +35,8 @@ export const POST: RequestHandler = async ({ request }) => {
   try {
     const body = await request.json()
 
-    const milestone = await RdDevQuarterlyMilestoneService.createQuarterlyMilestone(body)
+    const service = new RdDevQuarterlyMilestoneService()
+    const milestone = await service.createQuarterlyMilestone(body)
 
     return json(
       {

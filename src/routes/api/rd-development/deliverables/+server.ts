@@ -13,9 +13,9 @@ export const GET: RequestHandler = async ({ url }) => {
 
     const service = new RdDevDeliverableService()
     const deliverables = await service.getDeliverables({
-      project_id: projectId ? parseInt(projectId) : undefined,
-      phase_id: phaseId ? parseInt(phaseId) : undefined,
-      status: status || undefined,
+      project_id: projectId || undefined,
+      phase_id: phaseId || undefined,
+      status: (status as any) || undefined,
       type: type || undefined,
       search: search || undefined,
     })
@@ -38,7 +38,7 @@ export const POST: RequestHandler = async ({ request }) => {
     const body = await request.json()
 
     const service = new RdDevDeliverableService()
-    const deliverable = await service.createDeliverable(body)
+    const deliverable = await service.createDeliverable(body.project_id, body)
 
     return json(
       {

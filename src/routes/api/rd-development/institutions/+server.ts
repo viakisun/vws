@@ -9,7 +9,8 @@ export const GET: RequestHandler = async ({ url }) => {
     const type = url.searchParams.get('type')
     const search = url.searchParams.get('search')
 
-    const institutions = await RdDevInstitutionService.getAllInstitutions({
+    const service = new RdDevInstitutionService()
+    const institutions = await service.getInstitutions({
       project_id: projectId ? parseInt(projectId) : undefined,
       type: type || undefined,
       search: search || undefined,
@@ -32,7 +33,8 @@ export const POST: RequestHandler = async ({ request }) => {
   try {
     const body = await request.json()
 
-    const institution = await RdDevInstitutionService.createInstitution(body)
+    const service = new RdDevInstitutionService()
+    const institution = await service.createInstitution(body.project_id, body)
 
     return json(
       {

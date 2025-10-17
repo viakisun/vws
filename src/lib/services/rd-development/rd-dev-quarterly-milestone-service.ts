@@ -1,8 +1,8 @@
-import { query } from '$lib/database'
+import { query } from '$lib/database/connection'
 import type { RdDevQuarterlyMilestone } from '$lib/types/rd-development'
 
 export class RdDevQuarterlyMilestoneService {
-  async getAllQuarterlyMilestones(filters?: {
+  async getQuarterlyMilestones(filters?: {
     project_id?: number
     phase_id?: number
     year?: number

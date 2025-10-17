@@ -9,6 +9,60 @@ import { logger } from '$lib/utils/logger'
 
 export class RdDevInstitutionService {
   /**
+   * 필터를 사용한 참여기관 조회
+   */
+  async getInstitutions(filters: {
+    project_id?: number
+    type?: string
+    search?: string
+  }): Promise<RdDevInstitution[]> {
+    try {
+      let sql = `
+        SELECT 
+          id,
+          project_id,
+          institution_name,
+          institution_type,
+          role_description,
+          primary_researcher_name,
+          contact_info,
+          created_at,
+          updated_at
+        FROM rd_dev_institutions
+        WHERE 1=1
+      `
+      const params: unknown[] = []
+      let paramCount = 0
+
+      if (filters.project_id) {
+        paramCount++
+        sql += ` AND project_id = $${paramCount}`
+        params.push(filters.project_id)
+      }
+
+      if (filters.type) {
+        paramCount++
+        sql += ` AND institution_type = $${paramCount}`
+        params.push(filters.type)
+      }
+
+      if (filters.search) {
+        paramCount++
+        sql += ` AND (institution_name ILIKE $${paramCount} OR role_description ILIKE $${paramCount})`
+        params.push(`%${filters.search}%`)
+      }
+
+      sql += ` ORDER BY institution_name`
+
+      const result = await query(sql, params)
+      return result.rows
+    } catch (error) {
+      logger.error('Failed to fetch institutions:', error)
+      throw new Error('Failed to fetch institutions')
+    }
+  }
+
+  /**
    * 프로젝트의 모든 참여기관 조회
    */
   async getInstitutionsByProjectId(projectId: string): Promise<RdDevInstitution[]> {
@@ -119,7 +173,7 @@ export class RdDevInstitutionService {
     data: Partial<CreateRdDevInstitutionRequest>,
   ): Promise<RdDevInstitution> {
     try {
-      const fields = []
+      const fields: string[] = []
       const params: unknown[] = []
       let paramCount = 0
 

@@ -11,7 +11,8 @@ export const GET: RequestHandler = async ({ params }) => {
       return error(400, { message: 'Invalid quarterly milestone ID' })
     }
 
-    const milestone = await RdDevQuarterlyMilestoneService.getQuarterlyMilestoneById(id)
+    const service = new RdDevQuarterlyMilestoneService()
+    const milestone = await service.getQuarterlyMilestoneById(id)
 
     if (!milestone) {
       return error(404, { message: 'Quarterly milestone not found' })
@@ -40,7 +41,8 @@ export const PUT: RequestHandler = async ({ params, request }) => {
 
     const body = await request.json()
 
-    const milestone = await RdDevQuarterlyMilestoneService.updateQuarterlyMilestone(id, body)
+    const service = new RdDevQuarterlyMilestoneService()
+    const milestone = await service.updateQuarterlyMilestone(id, body)
 
     if (!milestone) {
       return error(404, { message: 'Quarterly milestone not found' })
@@ -67,7 +69,8 @@ export const DELETE: RequestHandler = async ({ params }) => {
       return error(400, { message: 'Invalid quarterly milestone ID' })
     }
 
-    const deleted = await RdDevQuarterlyMilestoneService.deleteQuarterlyMilestone(id)
+    const service = new RdDevQuarterlyMilestoneService()
+    const deleted = await service.deleteQuarterlyMilestone(id)
 
     if (!deleted) {
       return error(404, { message: 'Quarterly milestone not found' })

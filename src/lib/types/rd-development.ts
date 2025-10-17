@@ -124,11 +124,13 @@ export interface RdDevDeliverable {
 export interface RdDevQuarterlyMilestone {
   id: string
   project_id: string
-  phase_id: string
+  phase_id?: string
   quarter: RdDevQuarter
   year: number
-  planned_activities: string[]
-  institution_assignments: Record<string, string[]>
+  planned_activities?: string[]
+  institution_assignments?: Record<string, string[]>
+  deliverables_expected?: string[]
+  budget_allocation?: number
   created_at: string
   updated_at: string
 
@@ -155,9 +157,12 @@ export interface RdDevViaRole {
 export interface RdDevTechnicalSpec {
   id: string
   project_id: string
-  spec_category: string
-  spec_title: string
-  spec_data: Record<string, unknown>
+  category: string
+  spec_name: string
+  description?: string
+  specifications?: Record<string, unknown>
+  requirements?: Record<string, unknown>
+  constraints?: Record<string, unknown>
   created_at: string
   updated_at: string
 }
@@ -246,6 +251,8 @@ export interface RdDevDeliverableFilters {
   institution_id?: string
   status?: RdDevDeliverableStatus
   deliverable_type?: string
+  type?: string
+  search?: string
   limit?: number
   offset?: number
 }

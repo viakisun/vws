@@ -11,7 +11,8 @@ export const GET: RequestHandler = async ({ params }) => {
       return error(400, { message: 'Invalid technical spec ID' })
     }
 
-    const technicalSpec = await RdDevTechnicalSpecService.getTechnicalSpecById(id)
+    const service = new RdDevTechnicalSpecService()
+    const technicalSpec = await service.getTechnicalSpecById(id)
 
     if (!technicalSpec) {
       return error(404, { message: 'Technical spec not found' })
@@ -40,7 +41,8 @@ export const PUT: RequestHandler = async ({ params, request }) => {
 
     const body = await request.json()
 
-    const technicalSpec = await RdDevTechnicalSpecService.updateTechnicalSpec(id, body)
+    const service = new RdDevTechnicalSpecService()
+    const technicalSpec = await service.updateTechnicalSpec(id, body)
 
     if (!technicalSpec) {
       return error(404, { message: 'Technical spec not found' })
@@ -67,7 +69,8 @@ export const DELETE: RequestHandler = async ({ params }) => {
       return error(400, { message: 'Invalid technical spec ID' })
     }
 
-    const deleted = await RdDevTechnicalSpecService.deleteTechnicalSpec(id)
+    const service = new RdDevTechnicalSpecService()
+    const deleted = await service.deleteTechnicalSpec(id)
 
     if (!deleted) {
       return error(404, { message: 'Technical spec not found' })
