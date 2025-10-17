@@ -1,9 +1,9 @@
 import { query } from '$lib/database/connection'
 import { transactionDbService } from '$lib/finance/services/database/transaction-db-service'
 import type { UpdateTransactionRequest } from '$lib/finance/types'
+import { logger } from '$lib/utils/logger'
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
-import { logger } from '$lib/utils/logger'
 
 export const PUT: RequestHandler = async ({ params, request }) => {
   try {
@@ -11,7 +11,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
     const data: UpdateTransactionRequest = await request.json()
 
     // 부분 업데이트를 위한 검증 - 최소한 하나의 필드는 업데이트되어야 함
-    if (!data.description && !data.categoryId) {
+    if (data.description === undefined && data.categoryId === undefined) {
       return json(
         {
           success: false,

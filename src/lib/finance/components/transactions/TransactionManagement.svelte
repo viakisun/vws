@@ -483,17 +483,29 @@
           const result = JSON.parse(xhr.responseText)
           uploadState.uploadResult = result
           if (result.success) {
-            // 성공 시 데이터 새로고침
+            // 성공 시 토스트 메시지 및 데이터 새로고침
+            pushToast(
+              `거래내역 업로드 성공! ${result.insertedCount}건 추가, ${result.skippedCount}건 건너뛰기`,
+              'success',
+            )
             loadData()
+          } else {
+            // 실패 시 토스트 메시지
+            const errorMessage = result.message || '업로드 실패'
+            const errorDetails =
+              result.errors && result.errors.length > 0 ? ` (${result.errors[0]})` : ''
+            pushToast(`${errorMessage}${errorDetails}`, 'error')
           }
         } else {
           uploadState.uploadResult = { success: false, message: '업로드 실패' }
+          pushToast('서버 오류로 업로드에 실패했습니다.', 'error')
         }
         uploadState.isUploading = false
       })
 
       xhr.addEventListener('error', () => {
         uploadState.uploadResult = { success: false, message: '업로드 중 오류 발생' }
+        pushToast('네트워크 오류로 업로드에 실패했습니다.', 'error')
         uploadState.isUploading = false
       })
 
@@ -502,6 +514,7 @@
       xhr.send(formData)
     } catch (error: any) {
       uploadState.uploadResult = { success: false, message: error.message }
+      pushToast(`업로드 중 예상치 못한 오류가 발생했습니다: ${error.message}`, 'error')
       uploadState.isUploading = false
     }
   }

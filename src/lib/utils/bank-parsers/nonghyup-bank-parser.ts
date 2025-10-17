@@ -1,8 +1,7 @@
 import { BankCode, BankCodeUtils } from '$lib/types/bank-codes'
-import { toUTC } from '$lib/utils/date-handler'
 import { readExcelFile } from '$lib/utils/excel-reader'
-import type { BankStatementParseResult, ParsedTransaction } from './types'
 import { logger } from '$lib/utils/logger'
+import type { BankStatementParseResult, ParsedTransaction } from './types'
 
 // 거래 내역 인터페이스 (농협은행 전용)
 interface NonghyupTransaction {
@@ -31,12 +30,28 @@ async function parseNonghyupBankExcel(fileContent: string): Promise<NonghyupTran
     const rawData = await readExcelFile(fileContent)
     logger.info('🔥 총 행 수:', rawData.length)
 
-    // 처음 3개 행 확인
-    for (let i = 0; i < Math.min(3, rawData.length); i++) {
+    // 처음 10개 행 상세 확인
+    logger.info('🔥🔥🔥 === Excel 원본 데이터 미리보기 === 🔥🔥🔥')
+    for (let i = 0; i < Math.min(10, rawData.length); i++) {
       const row = rawData[i]
       if (row) {
-        logger.info(`🔥 행 ${i}: ${row.slice(0, 5).join('|')}`)
+        logger.info(
+          `🔥 행 ${i}: [${row.length}개 필드] ${row
+            .slice(0, 10)
+            .map((cell) => `"${cell}"`)
+            .join(' | ')}`,
+        )
       }
+    }
+
+    // 헤더 행 추정
+    if (rawData.length > 0) {
+      const firstRow = rawData[0]
+      logger.info('🔥🔥🔥 === 첫 번째 행 분석 (헤더 후보) === 🔥🔥🔥')
+      logger.info(`🔥 첫 번째 행 필드 수: ${firstRow.length}`)
+      firstRow.forEach((cell, index) => {
+        logger.info(`🔥 필드 ${index}: "${cell}" (타입: ${typeof cell})`)
+      })
     }
 
     // 거래 내역 파싱
@@ -108,44 +123,75 @@ function parseTransactions(rawData: any[][]): NonghyupTransaction[] {
  */
 function parseRow(row: any[], rowIndex: number = 0): NonghyupTransaction | null {
   // 농협은행 거래 데이터 형식 검증
+  logger.info(`🔥🔥🔥 === 행 ${rowIndex} 파싱 시작 === 🔥🔥🔥`)
+  logger.info(
+    `🔥 행 데이터: [${row.length}개 필드] ${row
+      .slice(0, 6)
+      .map((cell) => `"${cell}"`)
+      .join(' | ')}`,
+  )
 
   // 1. 최소 필드 수 확인 (농협은 최소 6개 필드 필요)
   if (row.length < 6) {
+    logger.info(`🔥 행 ${rowIndex} 건너뛰기: 필드 수 부족 (${row.length} < 6)`)
     return null
   }
 
   // 2. 헤더 행이나 메타데이터 행 건너뛰기
   const firstField = String(row[0] || '').trim()
+  logger.info(`🔥 첫 번째 필드: "${firstField}"`)
+
   if (
     firstField.includes('번호') ||
     firstField.includes('거래일시') ||
     firstField.includes('계좌번호') ||
     firstField === ''
   ) {
+    logger.info(`🔥 행 ${rowIndex} 건너뛰기: 헤더/메타데이터 행 감지`)
     return null
   }
 
   // 3. 거래일시 필드 검증 (row[1])
   const transactionDate = String(row[1] || '').trim()
+  logger.info(`🔥 거래일시 필드 (row[1]): "${transactionDate}"`)
+
   if (!transactionDate || transactionDate === 'undefined' || transactionDate === 'null') {
+    logger.info(`🔥 행 ${rowIndex} 건너뛰기: 거래일시가 비어있음`)
     return null
   }
 
   // 날짜 형식이 올바른지 간단히 확인 (숫자와 / 또는 - 포함)
-  if (!/^\d{4}[/-]\d{1,2}[/-]\d{1,2}/.test(transactionDate)) {
+  const datePattern = /^\d{4}[/-]\d{1,2}[/-]\d{1,2}/
+  if (!datePattern.test(transactionDate)) {
+    logger.info(
+      `🔥 행 ${rowIndex} 건너뛰기: 날짜 형식 불일치 (패턴: ${datePattern}, 값: "${transactionDate}")`,
+    )
     return null
   }
 
+  logger.info(`🔥 행 ${rowIndex} 날짜 형식 검증 통과: "${transactionDate}"`)
+
   // 4. 금액 필드 검증 (입금 또는 출금 중 하나는 있어야 함)
+  const rawDeposit = row[3]
+  const rawWithdrawal = row[2]
+  logger.info(`🔥 원본 입금액 (row[3]): "${rawDeposit}" (타입: ${typeof rawDeposit})`)
+  logger.info(`🔥 원본 출금액 (row[2]): "${rawWithdrawal}" (타입: ${typeof rawWithdrawal})`)
+
   const depositAmount = parseAmount(row[3])
   const withdrawalAmount = parseAmount(row[2])
 
+  logger.info(`🔥 파싱된 입금액: ${depositAmount}`)
+  logger.info(`🔥 파싱된 출금액: ${withdrawalAmount}`)
+
   if (depositAmount === 0 && withdrawalAmount === 0) {
+    logger.info(`🔥 행 ${rowIndex} 건너뛰기: 입금과 출금이 모두 0`)
     return null // 입금도 출금도 없으면 유효하지 않은 거래
   }
 
+  logger.info(`🔥 행 ${rowIndex} 금액 검증 통과: 입금 ${depositAmount}, 출금 ${withdrawalAmount}`)
+
   // 5. 유효한 거래 데이터로 판단되면 파싱
-  return {
+  const result = {
     id: String(row[0] || ''), // 번호
     transactionDate, // 거래일시
     withdrawalAmount, // 출금금액
@@ -157,6 +203,11 @@ function parseRow(row: any[], rowIndex: number = 0): NonghyupTransaction | null 
     transactionTime: String(row[8] || '').trim(), // 거래시간
     transferMemo: String(row[9] || '').trim(), // 이체메모
   }
+
+  logger.info(`🔥🔥🔥 행 ${rowIndex} 파싱 성공! 🔥🔥🔥`)
+  logger.info(`🔥 파싱 결과:`, result)
+
+  return result
 }
 
 /**
@@ -200,6 +251,14 @@ export async function parseNonghyupBankStatement(
     for (const tx of csvTransactions) {
       try {
         // 날짜 검증 및 변환
+        logger.info(`🔥🔥🔥 농협 거래 날짜 파싱 시작 - 거래 ID: ${tx.id}`)
+        logger.info(
+          `🔥 원본 거래일시: "${tx.transactionDate}" (타입: ${typeof tx.transactionDate})`,
+        )
+        logger.info(
+          `🔥 원본 거래시간: "${tx.transactionTime}" (타입: ${typeof tx.transactionTime})`,
+        )
+
         if (
           !tx.transactionDate ||
           tx.transactionDate.trim() === '' ||
@@ -212,15 +271,54 @@ export async function parseNonghyupBankStatement(
         let transactionDate: string
         try {
           // 농협은 거래일자와 거래시간이 분리되어 있음 - 결합 필요
-          const normalizedDate = tx.transactionDate.replace(/\//g, '-')
+          logger.info(`🔥 날짜 정규화 전: "${tx.transactionDate}"`)
+
+          // 다양한 날짜 형식 처리
+          let normalizedDate = tx.transactionDate
+
+          // 1. 슬래시를 하이픈으로 변환: 2025/01/15 -> 2025-01-15
+          if (normalizedDate.includes('/')) {
+            normalizedDate = normalizedDate.replace(/\//g, '-')
+            logger.info(`🔥 슬래시를 하이픈으로 변환: "${normalizedDate}"`)
+          }
+
+          // 2. 날짜 형식 정규화 (YYYY-MM-DD 형식으로)
+          const dateMatch = normalizedDate.match(/(\d{4})[-/](\d{1,2})[-/](\d{1,2})/)
+          if (!dateMatch) {
+            throw new Error(`날짜 형식을 인식할 수 없습니다: "${tx.transactionDate}"`)
+          }
+
+          const [, year, month, day] = dateMatch
+          const formattedDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`
+          logger.info(`🔥 날짜 형식 정규화: "${normalizedDate}" -> "${formattedDate}"`)
+
           const timePart = tx.transactionTime || '00:00:00'
-          const combinedDateTime = `${normalizedDate} ${timePart}`
-          transactionDate = toUTC(combinedDateTime)
-          logger.info(`🔥 농협 날짜+시간 변환 성공: "${combinedDateTime}" -> "${transactionDate}"`)
+          logger.info(`🔥 시간 부분: "${timePart}"`)
+
+          // 3. 시간 형식 정규화 (HH:MM:SS 형식으로)
+          let formattedTime = timePart
+          if (timePart.match(/^\d{1,2}:\d{2}$/)) {
+            // HH:MM 형식이면 HH:MM:SS로 확장
+            formattedTime = `${timePart}:00`
+          }
+
+          const combinedDateTime = `${formattedDate} ${formattedTime}`
+          logger.info(`🔥 결합된 날짜시간: "${combinedDateTime}"`)
+
+          // 4. ISO 8601 형식으로 변환
+          const dateObj = new Date(combinedDateTime)
+          if (isNaN(dateObj.getTime())) {
+            throw new Error(`유효하지 않은 날짜: "${combinedDateTime}"`)
+          }
+
+          transactionDate = dateObj.toISOString()
+          logger.info(`🔥 ISO 변환 성공: "${combinedDateTime}" -> "${transactionDate}"`)
         } catch (error) {
-          logger.warn(
-            `🔥 농협 거래 건너뛰기: 날짜 변환 실패 (원본: "${tx.transactionDate}", 오류: ${error})`,
-          )
+          logger.error(`🔥🔥🔥 농협 날짜 변환 실패! 🔥🔥🔥`)
+          logger.error(`🔥 원본 거래일시: "${tx.transactionDate}"`)
+          logger.error(`🔥 원본 거래시간: "${tx.transactionTime}"`)
+          logger.error(`🔥 오류 메시지: ${error instanceof Error ? error.message : String(error)}`)
+          logger.error(`🔥 오류 스택: ${error instanceof Error ? error.stack : 'No stack'}`)
           continue // 날짜 변환 실패시 이 거래는 건너뛰기
         }
 
