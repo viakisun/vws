@@ -205,6 +205,39 @@ export const RESOURCE_REGISTRY: readonly ResourceDefinition[] = Object.freeze([
   },
 
   // ============================================
+  // R&D Development (개발자 중심 R&D 관리)
+  // ============================================
+  {
+    key: 'rd_development',
+    nameKo: 'R&D 개발',
+    nameEn: 'R&D Development',
+    route: Routes.RD_DEVELOPMENT,
+    description: '개발자 중심 R&D 프로젝트 관리',
+    children: [
+      {
+        key: 'rd_development.projects',
+        nameKo: '프로젝트',
+        nameEn: 'Projects',
+      },
+      {
+        key: 'rd_development.deliverables',
+        nameKo: '산출물',
+        nameEn: 'Deliverables',
+      },
+      {
+        key: 'rd_development.timeline',
+        nameKo: '타임라인',
+        nameEn: 'Timeline',
+      },
+      {
+        key: 'rd_development.institutions',
+        nameKo: '참여기관',
+        nameEn: 'Institutions',
+      },
+    ],
+  },
+
+  // ============================================
   // CRM (고객 관계 관리)
   // ============================================
   {

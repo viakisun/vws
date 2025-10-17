@@ -7,6 +7,7 @@
     clickable?: boolean
     class?: string
     style?: string
+    onclick?: () => void
     children?: any
   }
 
@@ -16,6 +17,7 @@
     hover = false,
     clickable = false,
     class: className = '',
+    onclick,
     children,
     ...restProps
   }: Props = $props()
@@ -33,7 +35,7 @@
   }
 </script>
 
-<div class={getCardClasses()} {...restProps}>
+<div class={getCardClasses()} {onclick} {...restProps}>
   {@render children?.()}
 </div>
 

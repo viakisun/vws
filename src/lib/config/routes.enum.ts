@@ -141,6 +141,30 @@ export enum Routes {
   API_ASSETS_CERTIFICATIONS = '/api/assets/certifications',
   API_ASSETS_AUDIT = '/api/assets/audit',
   API_ASSETS_NOTIFICATIONS = '/api/assets/notifications',
+
+  // ============================================
+  // R&D Development Routes (개발자용)
+  // ============================================
+
+  // R&D Development
+  RD_DEVELOPMENT = '/rd-development',
+  RD_DEVELOPMENT_PROJECTS = '/rd-development/projects',
+  RD_DEVELOPMENT_PROJECT_DETAIL = '/rd-development/projects/:id',
+  RD_DEVELOPMENT_PROJECT_TIMELINE = '/rd-development/projects/:id/timeline',
+  RD_DEVELOPMENT_PROJECT_DELIVERABLES = '/rd-development/projects/:id/deliverables',
+  RD_DEVELOPMENT_PROJECT_INSTITUTIONS = '/rd-development/projects/:id/institutions',
+  RD_DEVELOPMENT_PROJECT_VIA_ROLES = '/rd-development/projects/:id/via-roles',
+  RD_DEVELOPMENT_PROJECT_TECHNICAL = '/rd-development/projects/:id/technical-specs',
+
+  // R&D Development API
+  API_RD_DEVELOPMENT_PROJECTS = '/api/rd-development/projects',
+  API_RD_DEVELOPMENT_PHASES = '/api/rd-development/phases',
+  API_RD_DEVELOPMENT_DELIVERABLES = '/api/rd-development/deliverables',
+  API_RD_DEVELOPMENT_INSTITUTIONS = '/api/rd-development/institutions',
+  API_RD_DEVELOPMENT_VIA_ROLES = '/api/rd-development/via-roles',
+  API_RD_DEVELOPMENT_TECHNICAL_SPECS = '/api/rd-development/technical-specs',
+  API_RD_DEVELOPMENT_QUARTERLY_MILESTONES = '/api/rd-development/quarterly-milestones',
+  API_RD_DEVELOPMENT_TIMELINE = '/api/rd-development/timeline',
 }
 
 // ============================================
