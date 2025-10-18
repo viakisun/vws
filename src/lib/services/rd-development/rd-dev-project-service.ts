@@ -36,7 +36,12 @@ export class RdDevProjectService {
           p.title,
           p.description,
           p.sponsor,
-          p.status as project_status
+          p.sponsor_type,
+          p.manager_employee_id,
+          p.status as project_status,
+          p.budget_total,
+          (SELECT MIN(start_date) FROM rd_dev_phases WHERE project_id = rdp.id) as start_date,
+          (SELECT MAX(end_date) FROM rd_dev_phases WHERE project_id = rdp.id) as end_date
         FROM rd_dev_projects rdp
         JOIN projects p ON rdp.project_id = p.id
         WHERE 1=1
@@ -107,7 +112,12 @@ export class RdDevProjectService {
           p.title,
           p.description,
           p.sponsor,
-          p.status as project_status
+          p.sponsor_type,
+          p.manager_employee_id,
+          p.status as project_status,
+          p.budget_total,
+          (SELECT MIN(start_date) FROM rd_dev_phases WHERE project_id = rdp.id) as start_date,
+          (SELECT MAX(end_date) FROM rd_dev_phases WHERE project_id = rdp.id) as end_date
         FROM rd_dev_projects rdp
         JOIN projects p ON rdp.project_id = p.id
         WHERE rdp.id = $1

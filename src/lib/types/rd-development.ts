@@ -59,6 +59,18 @@ export interface RdDevProject {
   created_at: string
   updated_at: string
 
+  // Fields from projects table (via JOIN)
+  code?: string
+  title?: string
+  description?: string
+  sponsor?: string
+  sponsor_type?: string
+  manager_employee_id?: string
+  project_status?: string
+  budget_total?: number
+  start_date?: string
+  end_date?: string
+
   // Related data (populated by services)
   phases?: RdDevPhase[]
   institutions?: RdDevInstitution[]

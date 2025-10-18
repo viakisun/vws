@@ -18,4 +18,11 @@ export default defineConfig({
   define: {
     __BUILD_TIME__: JSON.stringify(buildTimestamp),
   },
+  optimizeDeps: {
+    exclude: ['pg', 'pg-native', 'dotenv'],
+  },
+  ssr: {
+    noExternal: [],
+    external: ['pg', 'pg-native', 'dotenv'],
+  },
 })
